@@ -3,25 +3,529 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
+  /* --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --background-end-rgb: 255, 255, 255; */
+
+  /* Discordフォント */
+  --font-family-discord: "gg sans", "Hiragino Sans", "\30D2\30E9\30AE\30CE\89D2\30B4 ProN W3",
+    "Hiragino Kaku Gothic ProN", ãƒ¡ã‚¤ãƒªã‚ª, Meiryo, Osaka, "MS PGothic", "Noto Sans", "Helvetica Neue", Helvetica,
+    Arial, sans-serif;
+  --font-display-discord: "gg sans", "Hiragino Sans", "\30D2\30E9\30AE\30CE\89D2\30B4 ProN W3",
+    "Hiragino Kaku Gothic ProN", ãƒ¡ã‚¤ãƒªã‚ª, Meiryo, Osaka, "MS PGothic", "Noto Sans", "Helvetica Neue", Helvetica,
+    Arial, sans-serif;
+  --font-family-stripe: "sohne-var", "Helvetica Neue", "Arial", sans-serif;
+  --font-family-revolut: "Basier Circle", sans-serif;
+  --off-white: #f6f6f6;
+  --off-black: #141414;
+  --not-quite-black: #23272a;
+  --caret-color-blue: #1da1f2;
+  --caret-color-light-blue: #02e7f5;
+  --caret-color-red: #ff3b5b;
+  /* 現在のメインロゴ: #2B7FFF
+  現在のメインロゴ: #0AFFFF */
+  --main-color-blue: #2b7fff;
+  --main-color-blue-rgb: 43, 127, 255;
+  --main-color-light: #0affff;
+  --main-color-light-rgb: 10, 255, 255;
+  --main-color-d: #02e7f5;
+  --main-color-tk: #ff3b5b;
+
+  /* インプット */
+  --input-area-bg: rgba(242, 241, 238, 0.6);
+  --input-area-bg-rgb: 242, 241, 238;
 }
 
-@media (prefers-color-scheme: dark) {
+@media screen and (min-width: 1024px) {
   :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+    --num-grid-columns: 12;
+    --section-spacing: 120px;
+  }
+}
+@media screen and (min-width: 768px) {
+  :root {
+    --num-grid-columns: 8;
+    --page-gutter: 40px;
+    --section-spacing: 80px;
   }
 }
 
+.theme_light {
+  /* 
+  --color-bg-brand
+  現在のメイン: #0066ff
+  Figma: #0d99ff
+  Next.js: #0070f3
+  現在のメインロゴ: #2B7FFF
+  現在のメインロゴ: #0AFFFF
+  Discord: #0063e5
+  Wiz: #0254ec
+  Disney+: #0063e5
+  Disney+ caret: #02e7f5
+  TikTok: #ff0050
+  TikTokボタン: #FF3B5B
+  Apple dark, light一緒メイン: #0071e3
+  Apple dark メインテキスト: #2997ff
+  Apple light メインテキスト: #06c
+  Apple light 緑テキスト --bright-green: #00d436
+  Apple light 青テキスト --azure: #027fff
+  Apple light 紫テキスト --indigo: #622aff
+  Apple light グラデーションテキスト background-image: linear-gradient(90deg,#b434ab 0%,#866cbe 30%,#4dbbd8);
+  */
+  --color-bg: #fff; /* メイン背景カラー */
+  --color-bg2: #fff; /* メイン背景カラー */
+  --color-bg-secondary: #f5f5f5; /* サブ背景カラー グレー */
+  --color-bg-hp-main: #fff;
+  --color-bg-hp-sub: var(--off-white);
+  /* ブランドカラー　 */
+  --color-bg-brand: #0d99ff;
+  --color-bg-brand-rgb: 13, 153, 255;
+  --color-bg-brand-hover: #007be5;
+  --color-bg-brand-hover-main: #3183ff;
+  --color-bg-brand-pressed: #007be5;
+  --color-bg-brand-secondary: #0768cf;
+  --color-bg-brand-sub: #2b7fff;
+  --color-bg-brand-sub-rgb: 43, 127, 255;
+  --color-bg-brand-sub-hover: #2571e2;
+
+  /* ボタン */
+  --color-btn-brand: #2b7fff;
+  --color-btn-brand-rgb: 43, 127, 255;
+  --color-btn-brand-hover: #2571e2;
+
+  --color-border: #e6e6e6; /* ボーダーカラー */
+  --color-border-deep: #ccc; /* ボーダーカラー */
+  --color-border-strong: #000;
+  --header-border-bottom: 0px 2px 10px 0px rgba(0, 0, 0, 0.2);
+  --color-border-brand: #bde3ff;
+  --color-border-brand-strong: #007be5;
+  --color-border-brand-light: #00ccff;
+  --color-border-brand-medium: #00aeff;
+  --color-border-brand-sub: #2b7fff;
+  --color-border-selected: #0d99ff; /* 選択ボーダーカラー */
+  --color-border-selected-strong: ##007be5;
+
+  --color-bg-selected: #e5f4ff; /* サイドバー タブ選択カラー */
+  --color-bg-selected-hover: #bde3ff; /* サイドバー タブ選択カラー */
+  --color-bg-selected-pressed: #bde3ff; /* サイドバー タブ選択カラー */
+  --color-bg-selected-secondary: #f2f9ff; /* タグ背景カラー */
+
+  --color-bg-toolbar: #2c2c2c; /* ツールバーNavbar 背景カラー */
+  --color-bg-toolbar-disabled: #757575;
+  --color-bg-toolbar-hover: #111111; /* ツールバーNavbar　ホバー */
+  --color-bg-toolbar-pressed: #111111;
+  --color-bg-toolbar-secondary: #383838; /* Navbar Inputタグ背景 */
+  --color-text-toolbar: #fff;
+
+  --color-text: rgba(0, 0, 0, 0.9); /* テキストカラー or #333333 */
+  --color-text-rgb: 0, 0, 0; /* テキストカラー or #333333 */
+  --color-text-secondary: rgba(0, 0, 0, 0.5); /* テキストサブカラー or #7d7d7d */
+  --color-text-secondary-hover: rgba(0, 0, 0, 0.9);
+  --color-main-text: #000;
+  --color-sub-text: rgba(55, 53, 47, 0.65);
+  --color-sub-text-dark: rgba(180, 179, 178, 0.65);
+  /* ブランドカラー　テキスト */
+  /* 
+  --color-bg-brand ダークモード
+  background: linear-gradient(60deg, #0AFFFF, #2B7FFF);
+  現在のメイン: #0066ff
+  Figma: #0c8ce9
+  Next.js: #0070f3
+  現在のメインロゴ: #2B7FFF
+  現在のメインロゴ: #0AFFFF
+  Discord: #0063e5
+  Wiz: #0254ec
+  Disney+: #0063e5
+  Disney+ caret: #02e7f5
+  TikTok: #ff0050
+  TikTokボタン: #FF3B5B
+  Apple dark, light一緒メイン: #0071e3
+  Apple light メインテキスト: #06c
+  Apple light 緑テキスト --bright-green: #00d436
+  Apple light 青テキスト --azure: #027fff
+  Apple light 紫テキスト --indigo: #622aff
+  Apple light グラデーションテキスト background-image: linear-gradient(90deg,#b434ab 0%,#866cbe 30%,#4dbbd8);
+  */
+  --color-text-brand: #007be5; /* Figma */
+  --color-text-brand-rgb: 0, 123, 229;
+  --color-text-brand_f: #007be5; /* Figma */
+  --color-text-onbrand: #fff; /* ブランドカラー上のテキストカラー */
+  --color-text-brand-sub: #2b7fff;
+  --color-text-brand-sub-rgb: 43, 127, 255;
+  --color-text-brand-sub-hover: #2571e2;
+
+  --color-icon: rgba(0, 0, 0, 0.9); /* アイコンカラー */
+  --color-icon-brand: #007be5;
+  --color-icon-brand-pressed: #0768cf;
+  --color-icon-brand-secondary: #80caff;
+
+  /* Next.js */
+  /* #0070f3*/
+  --selection-bg-color: #0070f3;
+  --selection-text-color: #fff;
+
+  --navColor: #313131;
+  --navbar-text-color-hover: #06c;
+
+  --overlay-dark: #00000030;
+  --overlay-light: #ffffff20;
+
+  --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff30, #ffffff20, #ffffff10, #ffffff10, #ffffff80);
+  --tile-start-rgb: 2, 13, 46;
+  --tile-end-rgb: 2, 5, 19;
+}
+
+.theme_dark {
+  /* 
+  --color-bg-brand ダークモード
+  
+  Figma: #0c8ce9
+  Next.js: #0070f3
+  現在のメイン: #0066ff
+  現在のメインロゴ: #2B7FFF
+  現在のメインロゴ: #0AFFFF
+  Discord: #0063e5
+  Wiz: #0254ec
+  Disney+: #0063e5
+  Disney+ caret: #02e7f5
+  TikTok: #ff0050
+  TikTokボタン: #FF3B5B
+  Apple dark, light一緒メイン: #0071e3
+  Apple dark メインテキスト: #2997ff
+  Apple light 緑テキスト --bright-green: #00d436
+  Apple light 青テキスト --azure: #027fff
+  Apple light 紫テキスト --indigo: #622aff
+  Apple light グラデーションテキスト background-image: linear-gradient(90deg,#b434ab 0%,#866cbe 30%,#4dbbd8);
+  */
+  --color-bg: #2c2c2c; /* メイン背景カラー */
+  --color-bg2: #141414; /* メイン背景カラー */
+  --color-bg-secondary: #383838; /* サブ背景カラー グレー */
+  --color-bg-hp-main: #000;
+  --color-bg-hp-sub: var(--off-black);
+  /* ブランドカラー　背景 */
+  --color-bg-brand: #0066ff;
+  --color-bg-brand-rgb: 0, 102, 255;
+  --color-bg-brand_f: #0c8ce9; /* Figma */
+  --color-bg-brand05: #0c8ce980;
+  --color-bg-brand-hover: #0a6dc2;
+  --color-bg-brand-hover-main: #3183ff;
+  --color-bg-brand-pressed: #0a6dc2;
+  --color-bg-brand-secondary: #105cad;
+  --color-bg-brand-sub: #2b7fff;
+  --color-bg-brand-sub-rgb: 43, 127, 255;
+  --color-bg-brand-sub-hover: #2571e2;
+
+  /* ボタン */
+  --color-btn-brand: #2b7fff;
+  --color-btn-brand-rgb: 43, 127, 255;
+  --color-btn-brand-hover: #2571e2;
+
+  --color-border: #444444; /* ボーダーカラー */
+  --color-border-deep: #333; /* ボーダーカラー */
+  --color-border-strong: #000;
+  --header-border-bottom: inset 0 -1px 0 0 hsla(0, 0%, 100%, 0.1);
+  --color-border-brand: #105cad;
+  --color-border-brand-strong: #7cc4f8;
+  --color-border-brand-light: #00ccff;
+  --color-border-brand-medium: #00aeff;
+  --color-border-brand-sub: #2b7fff;
+  --color-border-selected: #0c8ce9; /* 選択ボーダーカラー */
+  --color-border-selected-strong: #7cc4f8;
+
+  --color-bg-selected: #4a5878; /* サイドバー タブ選択カラー */
+  --color-bg-selected-hover: #536383; /* サイドバー タブ選択カラーホバー */
+  --color-bg-selected-pressed: #536383; /* サイドバー タブ選択カラープレス */
+  --color-bg-selected-secondary: #394360; /* タグ背景カラー */
+
+  --color-bg-toolbar: #2c2c2c; /* ツールバーNavbar 背景カラー */
+  --color-bg-toolbar-disabled: #757575;
+  --color-bg-toolbar-hover: #111111; /* ツールバーNavbar　ホバー */
+  --color-bg-toolbar-pressed: #111111;
+  --color-bg-toolbar-secondary: #383838; /* Navbar Inputタグ背景 */
+  --color-text-toolbar: #fff;
+
+  --color-text: rgba(255, 255, 255, 1); /* テキストカラー or #333333 */
+  --color-text-rgb: 255, 255, 255; /* テキストカラー or #333333 */
+  --color-text-secondary: rgba(255, 255, 255, 0.7); /* テキストサブカラー or #7d7d7d */
+  --color-text-secondary-hover: rgba(255, 255, 255, 1);
+  --color-main-text: #000;
+  --color-sub-text: rgba(55, 53, 47, 0.65);
+  --color-sub-text-dark: rgba(180, 179, 178, 0.65);
+  /* 
+  --color-text-brand
+  Figma: #7cc4f8
+  Figma: #0c8ce9
+  Next.js: #0070f3
+  現在のメインロゴ: #2B7FFF
+  現在のメインロゴ: #0AFFFF
+  現在のメイン: #0066ff
+  Discord: #0063e5
+  Wiz: #0254ec
+  Disney+: #0063e5
+  Disney+ caret: #02e7f5
+  TikTok: #ff0050
+  TikTokボタン: #FF3B5B
+  Apple dark, light一緒メイン: #0071e3
+  Apple dark メインテキスト: #2997ff
+  Apple light メインテキスト: #06c
+  Apple light 緑テキスト --bright-green: #00d436
+  Apple light 青テキスト --azure: #027fff
+  Apple light 紫テキスト --indigo: #622aff
+  Apple light グラデーションテキスト
+  background-image: linear-gradient(90deg,#b434ab 0%,#866cbe 30%,#4dbbd8);
+  */
+  /* ブランドカラー　テキスト メイン背景 #0066ff Next.js #0070f3 Apple #2997ff Figma #0c8ce9*/
+  --color-text-brand: #0066ff;
+  --color-text-brand-rgb: 0, 112, 243; /* タグテキストカラー */
+  --color-text-brand_f: #7cc4f8; /* タグテキストカラー */
+  --color-text-onbrand: #fff; /* ブランドカラー上のテキストカラー */
+  --color-text-brand-sub: #2b7fff;
+  --color-text-brand-sub-rgb: 43, 127, 255;
+  --color-text-brand-sub-hover: #2571e2;
+
+  --color-icon: rgba(255, 255, 255, 1); /* アイコンカラー */
+  --color-icon-brand: #7cc4f8;
+  --color-icon-brand-pressed: #0c8ce9;
+  --color-icon-brand-secondary: #536383;
+
+  --selection-bg-color: #0070f3;
+  --selection-text-color: #fff;
+
+  --navColor: #fff;
+  --navbar-text-color-hover: #2997ff;
+
+  --overlay-dark: #00000030;
+  --overlay-light: #ffffff20;
+
+  /* --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff30, #ffffff20, #ffffff10, #ffffff10, #ffffff80); */
+  --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff20, #ffffff80, #ffffff40, #ffffff20, #ffffff80);
+  /* --tile-border: conic-gradient(#0affff80, #0affff40, #3284ff30, #3284ff80, #0affff10, #0affff10, #0affff80); */
+  --tile-start-rgb: 2, 13, 46;
+  --tile-end-rgb: 2, 5, 19;
+  /* rgb(25, 28, 31) */
+}
+
+@media (prefers-color-scheme: dark) {
+  /* :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  } */
+  body {
+    background-color: #050505;
+  }
+}
+
+/* html {
+  background-color: #000;
+} */
+
+* {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+}
+
+html,
 body {
-  color: rgb(var(--foreground-rgb));
+  /* color: rgb(var(--foreground-rgb));
+  background: linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb)); */
+  /* font-weight: 400;
+  line-height: 1.15; */
+
+  /* text-rendering: optimizeLegibility; */
+  /* font-family: var(--font-primary); */
+  font-family: var(--font-family-stripe);
+  /* font-family: var(--font-family-revolut); */
+  /* font-family: var(--font-family-discord); */
+  scroll-behavior: smooth;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+li {
+  text-decoration: none;
+}
+
+body .theme_dark {
+  background-color: #050505;
+}
+
+input,
+textarea {
+  /* caret-color: #ff3b5b; */
+  caret-color: #1da1f2;
+  /* caret-color: #02e7f5; */
+}
+
+::selection {
+  background-color: var(--selection-bg-color);
+  color: var(--selection-text-color);
+}
+
+/* 共通 インプットボックス、テキストエリア */
+.input-selection::selection {
+  background-color: #ff3b5b;
+  /* background-color: #1da1f2; */
+}
+
+.border-shadow {
+  box-shadow: var(--header-border-bottom);
+}
+
+/* 共通 */
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.flex-col-center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 共通transition */
+.transition-base01 {
+  transition: all 0.1s ease;
+}
+.transition-base03 {
+  transition: all 0.3s ease;
+}
+.transition-base {
+  transition: all 0.5s ease;
+}
+
+.transition-base-color {
+  transition: color, background-color, border-color, text-decoration-color, fill, stroke, 0.5s ease;
+}
+.transition-base06 {
+  transition: all 0.6s ease;
+}
+.transition-base08 {
+  transition: all 0.8s ease;
+}
+.transition-base1 {
+  transition: all 1s ease;
+}
+.transition-base-color1 {
+  transition: background-color 1s ease;
+}
+
+.shadow-gradient {
   background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+    to bottom,
+    rgba(20, 20, 20, 0) 0,
+    rgba(20, 20, 20, 0.15) 15%,
+    rgba(20, 20, 20, 0.35) 29%,
+    rgba(20, 20, 20, 0.58) 44%,
+    #141414 68%,
+    #141414 100%
+  );
+}
+
+/* Apple
+:root {
+    --violet: #8876fe;
+    --indigo: #622aff;
+    --grape: #6e21e6;
+    --plum: #8d1287;
+    --azalea: #e71ee6;
+    --magenta: #dd04d1;
+    --tomato: #f63e54;
+    --guava: #fb4d66;
+    --tangelo: #ff3e17;
+    --coral: #f95c30;
+    --persimmon: #e94b1b;
+    --pumpkin: #e2620c;
+    --orange: #e66702;
+    --verdant: #29d246;
+    --bright-green: #00d436;
+    --new-green: #13be54;
+    --avocado: #73b439;
+    --green: #0c9d46;
+    --blue-green: #26c2ac;
+    --peacock-green: #14b1a1;
+    --sea-green: #099b9d;
+    --teal-green: #2b9ca1;
+    --aqua: #039e8f;
+    --teal: #049cb7;
+    --pool-blue: #00c2ee;
+    --azure: #027fff;
+    --sparkle-blue: #007aff;
+    --denim: #0056d2;
+    --cobalt: #5451fb;
+    --sapphire: #3d44c3;
+    --night: #23466c;
+    --ultramarine: #0d1387;
+}
+
+*/
+
+.text_gradient {
+  font-size: 70px;
+  color: #fff;
+  background: linear-gradient(to top right, #0affff, #0abeff, #0066ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.text_gradient::before {
+  font-size: 70px;
+  position: absolute;
+  content: "ワンコイン";
+  color: rgba(0, 0, 0, 0);
+  background: linear-gradient(to top right, #0affff, #0abeff, #0066ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+}
+.text_gradient_red {
+  font-size: 70px;
+  color: #fff;
+  background: linear-gradient(to top left, #fff, #ff0000, #fff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.text_gradient_red::before {
+  font-size: 70px;
+  position: absolute;
+  content: "キーエンス";
+  color: rgba(0, 0, 0, 0);
+  background: linear-gradient(to top left, #ff0000, #ff0011, #df7c7c, #ff0011, #ff0011);
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+}
+
+.typed-cursor {
+  color: #0066ff !important;
+  animation: typedjsBlink 1.2s infinite;
+  -webkit-animation: typedjsBlink 1.2s infinite;
+  animation: typedjsBlink 1.2s infinite !important;
+}
+@keyframes typedjsBlink {
+  50% {
+    opacity: 0;
+  }
+}
+@-webkit-keyframes typedjsBlink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+.typed-fade-out {
+  opacity: 0;
+  transition: opacity 0.25s;
+  -webkit-animation: 0;
+  animation: 0;
 }

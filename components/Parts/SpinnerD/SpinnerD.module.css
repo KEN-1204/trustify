@@ -1,0 +1,90 @@
+.loader {
+  position: relative;
+  width: var(--spinner-width);
+  height: var(--spinner-height);
+  border-radius: 50%;
+  display: inline-block;
+  z-index: 1;
+
+  border-top: var(--spinner-size) solid #0066ff;
+  border-left: var(--spinner-size) solid #0066ff;
+  border-bottom: var(--spinner-size) solid #0066ff;
+  border-right: var(--spinner-size) solid #0066ff;
+  background: transparent;
+  box-sizing: border-box;
+  animation: spin 1s linear infinite;
+}
+.loader::after {
+  content: "";
+  box-sizing: border-box;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: -1;
+  transform: translate(-50%, -50%);
+  width: var(--spinner-width);
+  height: var(--spinner-height);
+  border-radius: 50%;
+  display: inline-block;
+  border-top: var(--spinner-size) solid transparent;
+  border-left: var(--spinner-size) solid transparent;
+  border-bottom: var(--spinner-size) solid transparent;
+  border-right: var(--spinner-size) solid #0affff;
+  background: transparent;
+  box-sizing: border-box;
+  /* animation: spin 1s linear infinite; */
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* .loader {
+  position: relative;
+  width: var(--spinner-width);
+  height: var(--spinner-height);
+  border-radius: 50%;
+  display: inline-block;
+  background: linear-gradient(to bottom, #0affff, #0a99ff, #015dfc, #015dfc, #015dfc00);
+  
+  box-sizing: content-box;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+} */
+
+/* .loader::after {
+  content: "";
+  box-sizing: border-box;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  width: var(--spinner-width);
+  height: var(--spinner-height);
+  border-radius: 50%;
+  background: var(--color-btn-brand);
+  width: calc(var(--spinner-width) * 0.8);
+  height: calc(var(--spinner-height) * 0.8);
+} */
+/* .loader::before {
+  content: "";
+  box-sizing: border-box;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+  width: calc(var(--spinner-width));
+  height: calc(var(--spinner-height));
+  border-radius: 50%;
+  background: transparent;
+  border-top: var(--spinner-size) solid transparent;
+  border-left: var(--spinner-size) solid transparent;
+  border-bottom: var(--spinner-size) solid transparent;
+  border-right: var(--spinner-size) solid #2b7fff;
+} */

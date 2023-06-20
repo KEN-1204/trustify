@@ -1,0 +1,115 @@
+.dropDown_ul {
+  display: none;
+  width: 180px;
+  position: absolute;
+  z-index: 200;
+  /* top: 0; */
+  top: 100;
+  right: 0px;
+  margin-top: 40px;
+  border-radius: 12px;
+  filter: drop-shadow(-1px 0px 5px rgba(0, 0, 0, 0.34));
+  overflow: hidden;
+  animation: drop 0.15s ease;
+}
+@keyframes drop {
+  0% {
+    transform: scaleY(0);
+    transform-origin: top center;
+  }
+  100% {
+    transform: scaleY(1);
+    transform-origin: top center;
+  }
+}
+.isOpenMobileMenu {
+  display: block;
+}
+
+.dropDown_li {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s;
+  position: relative;
+  width: 100%;
+  padding: 20px 16px;
+}
+
+.dropDown_li a {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 20px;
+  position: relative;
+  /* padding-left: 15px; */
+}
+
+.underline {
+  width: 100%;
+  height: 2px;
+  background: transparent;
+  border-radius: 10%;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: 0.3s ease-in-out;
+  opacity: 0;
+  margin-top: 3px;
+}
+
+.navList {
+  /* display: flex;
+  justify-content: center;
+  align-items: center; */
+  margin-left: 30px;
+}
+.navList:last-of-type {
+  margin-left: 5px;
+}
+
+.navbarItem {
+  /* width: 30px; */
+  /* margin-left: 25px; */
+}
+.navbarItem:last-of-type {
+}
+
+.navbarItem:hover span {
+  color: var(--navbar-text-color-hover);
+  /* color: var(--color-text-secondary); */
+}
+.navbarItem:hover .underline {
+  background-color: var(--navbar-text-color-hover);
+  transform: scaleX(1);
+  opacity: 1;
+}
+
+.navbarButton {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+
+  background: rgba(var(--color-bg-brand-rgb), 0.8);
+  box-shadow: inset 0 0 2px 1px var(--color-border-brand-medium);
+  /* box-shadow: inset 0 0 2px 1px #0066ff; */
+  color: #fff;
+
+  /* backdrop-filter: blur(4px); */
+  padding: 10px 25px;
+  font-size: 18px;
+  border-radius: 4px;
+  margin-left: 10px;
+  cursor: pointer;
+  /* font-weight: 500; */
+  font-weight: 600;
+  transition: all 0.3s;
+}
+.navbarButton:hover {
+  background: var(--color-bg-brand-hover-main);
+  /* box-shadow: 0 0 1px 1px #fff, 0 0 0px 1px #000; */
+  box-shadow: inset 0 0 2px 1px #fff, 0 0 0px 1px #333;
+  /* background: var(--color-bg-brand); */
+
+  transform: translateY(-5%);
+}

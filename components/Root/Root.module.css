@@ -1,0 +1,740 @@
+.main {
+  /* background: #000; */
+  /* background: radial-gradient(#333, #000); */
+  height: 100dvh;
+  background-image: url("/assets/images/login-background.jpg");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+
+  /* position: absolute;
+  top: 0;
+  right: 0;
+  left: 0; */
+  z-index: 0;
+}
+
+.main_container {
+  width: 100%;
+  height: 100dvh;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+}
+
+.main_container svg {
+  color: var(--color-text);
+}
+
+.scroll_slides {
+  width: 100%;
+  height: 100dvh;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  /* padding: 12px min(10%, 6.25rem); */
+  gap: 50px;
+  color: #fff;
+
+  scroll-snap-align: start;
+}
+
+/* ======================== Hero ======================== */
+.hero {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  /* margin-top: 100px; */
+}
+.hero h1 {
+  font-size: 60px;
+  line-height: 70px;
+  font-weight: 600;
+  max-width: 950px;
+}
+.hero h3 {
+  font-weight: 600;
+  font-size: 22px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+.hero p {
+  font-weight: 500;
+}
+
+.email_signUp {
+  /* background: #fff; */
+  background: rgba(15, 15, 15, 0.6);
+  border: 1px solid #ffffff70;
+  /* background: rgba(255, 255, 255, 0.6);
+  border: 1px solid #27272770; */
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  margin-top: 30px;
+  margin: 30px auto 0;
+  max-width: 860px;
+  width: 800px;
+}
+.email_signUp input {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: rgba(15, 15, 15, 0.1);
+  /* color: #555; */
+  background: rgba(255, 255, 255, 0);
+  margin-left: 20px;
+}
+.email_signUp input::placeholder {
+  /* color: #555; */
+}
+
+.email_signUp button {
+  background: var(--color-bg-brand);
+
+  border: 0;
+  outline: 0;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 15px 30px;
+}
+.email_signUp button:hover {
+  background: var(--color-bg-brand-hover-main);
+}
+
+/* =========== ここから ============== */
+/* .text_gradient {
+  font-size: 70px;
+  color: #000;
+  background: -webkit-linear-gradient(135deg, #fff, #fff, #ccc, #fff, #fff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.text_gradient::before {
+  position: absolute;
+  z-index: -1;
+  content: "ワンコイン";
+  color: rgba(0, 0, 0, 0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 2px #fff;
+}
+.text_gradient_red {
+  font-size: 70px;
+  color: #000;
+  background: -webkit-linear-gradient(135deg, #ccc, #ddd, #eee, #fff, #fff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.text_gradient_red::before {
+  position: absolute;
+  z-index: -1;
+  content: "キーエンス";
+  color: rgba(0, 0, 0, 0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 2px #fff;
+} */
+/* =========== ここまで ============== */
+/* =========== ここから ============== */
+/* .text_gradient {
+  font-size: 70px;
+  color: #000;
+  background: -webkit-linear-gradient(135deg, #fff, #fff, #fff, #fff, #fff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 5px #fff;
+}
+.text_gradient_red {
+  font-size: 70px;
+  color: #000;
+  background: -webkit-linear-gradient(135deg, #fff, #fff, #fff, #fff, #fff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 5px #fff;
+} */
+/* =========== ここまで ============== */
+
+/* =========== ここから ============== */
+/* text-shadow: 1px 1px 10px rgb(20, 20, 20), 1px 1px 10px rgb(20, 20, 20), 0 0 0.1em rgba(255, 255, 255, 0.8),
+    0 0 0.08em rgba(255, 255, 255, 0.5); */
+.text_gradient {
+  font-size: 70px;
+  color: #fff;
+  /* background: #fff; */
+  background: linear-gradient(to top right, #0affff, #0abeff, #0066ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transition: all 1.5s;
+}
+.text_gradient::before {
+  font-size: 70px;
+  position: absolute;
+  content: "ワンコイン";
+  color: rgba(0, 0, 0, 0);
+  background: linear-gradient(to top right, #0affff, #0abeff, #0066ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+}
+.text_gradient_red {
+  font-size: 70px;
+  color: #fff;
+  /* background: #fff; */
+  background: linear-gradient(to top left, #fff, #ff0000, #fff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transition: all 1s;
+}
+.text_gradient_red::before {
+  font-size: 70px;
+  position: absolute;
+  content: "キーエンス";
+  color: rgba(0, 0, 0, 0);
+  background: linear-gradient(to top left, #ff0000, #ff0011, #df7c7c, #ff0011, #ff0011);
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+}
+
+/* background: linear-gradient(to top left, #c7c0c0, #c49fa2, #cb555b, #e50914, #e50914); */
+/* background: linear-gradient(to top left, #ffffff, #d3bdbf, #be8487, #e50914, #e50914); */
+/* text-shadow: 1px 1px 10px rgb(20, 20, 20), 1px 1px 10px rgb(20, 20, 20), 0 0 0.1em rgba(255, 255, 255, 0.8),
+    0 0 0.08em rgba(255, 255, 255, 0.5); */
+/* =========== ここまで ============== */
+
+/* .text_gradient::before {
+  position: absolute;
+  z-index: -1;
+  content: "ワンコイン";
+  color: rgba(0, 0, 0, 0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 5px #fff;
+} */
+/* .text_gradient {
+  color: #fff;
+  background: -webkit-linear-gradient(
+    160deg,
+    rgb(30, 250, 247),
+    rgb(83, 208, 250),
+    rgb(94, 158, 249),
+    rgb(112, 104, 251),
+    rgb(136, 99, 248),
+    rgb(162, 84, 251),
+    rgb(208, 114, 251),
+    rgb(255, 100, 216),
+    rgb(253, 109, 162),
+    rgb(255, 137, 86),
+    rgb(255, 193, 86),
+    rgb(255, 232, 115)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 1px 1px 10px rgb(20, 20, 20), 0 0 0.1em rgba(255, 255, 255, 0.8), 0 0 0.08em rgba(255, 255, 255, 0.5);
+}
+.text_gradient::before {
+  position: absolute;
+  content: "ワンコイン";
+  color: rgba(0, 0, 0, 0);
+  background: -webkit-linear-gradient(
+    160deg,
+    rgb(30, 250, 247),
+    rgb(83, 208, 250),
+    rgb(94, 158, 249),
+    rgb(112, 104, 251),
+    rgb(136, 99, 248),
+    rgb(162, 84, 251),
+    rgb(208, 114, 251),
+    rgb(255, 100, 216),
+    rgb(253, 109, 162),
+    rgb(255, 137, 86),
+    rgb(255, 193, 86),
+    rgb(255, 232, 115)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+} */
+
+/* .text_gradient {
+  color: #fff;
+  background: linear-gradient(to top right, #ffd600, #ff7a00, #ff0069, #d300c5, #7638fa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 1px 1px 10px rgb(20, 20, 20), 0 0 0.1em rgb(110, 112, 61), 0 0 0.3em rgb(131, 131, 131);
+}
+.text_gradient::before {
+  position: absolute;
+  content: "ワンコイン";
+  color: rgba(0, 0, 0, 0);
+  background: linear-gradient(to top right, #ffd600, #ff7a00, #ff0069, #d300c5, #7638fa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+} */
+
+/* .text_gradient::before {
+  position: absolute;
+  z-index: -1;
+  content: "ワンコイン";
+  color: rgba(0, 0, 0, 0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 5px #fff;
+} */
+
+.cta_btn {
+  font-weight: bold;
+  color: #f9f9f9;
+  /* background-color: #0063e5; */
+  background-color: var(--color-bg-brand);
+  width: 20vw;
+  margin-top: 32px;
+  /* margin-bottom: 12px; */
+  letter-spacing: 1.5px;
+  font-size: 20px;
+  padding: 16.5px 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.cta_btn:hover {
+  /* background-color: #0483ee; */
+  background-color: var(--color-bg-brand-hover-main);
+}
+
+/* ======================== Features ======================== */
+
+.scroll_slides_row {
+  width: 100%;
+  font-size: 22px;
+  display: flex;
+  /* flex-wrap: wrap; */
+  align-items: center;
+  /* padding: 12px min(10%, 6.25rem); */
+  gap: 50px;
+  color: #fff;
+  padding: 120px 16%;
+
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+}
+.text_col {
+  flex-basis: 50%;
+  margin-bottom: 20px;
+}
+.img_col {
+  flex-basis: 50%;
+  /* width: 90%; */
+  /* margin: auto; */
+  position: relative;
+  height: 450px;
+}
+.scroll_slides_row h2 {
+  font-size: 50px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.horizon {
+  width: 100dvw;
+  height: 10px;
+  background: #232323;
+  border-color: #232323;
+  /* margin-bottom: 60px; */
+}
+
+/* ==================== FAQ ==================== */
+
+.faq {
+  padding: 110px 12% 140px;
+  text-align: center;
+  font-size: 18px;
+
+  scroll-snap-align: start;
+  /* scroll-snap-align: center; */
+  scroll-snap-stop: always;
+}
+.faq h2 {
+  font-weight: 600;
+  font-size: 40px;
+}
+
+.accordion {
+  margin: 40px auto 60px;
+  width: 100%;
+  /* max-width: 750px; */
+  max-width: 1200px;
+}
+.accordion li {
+  list-style: none;
+  width: 100%;
+  padding: 5px;
+}
+.accordion li label {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  /* font-size: 18px; */
+  font-size: 22px;
+  font-weight: 500;
+  background: #303030;
+  margin-bottom: 2px;
+  cursor: pointer;
+  position: relative;
+}
+.accordion li:hover label {
+  background: #454545;
+}
+.accordion li label::after {
+  content: "+";
+  font-size: 34px;
+  position: absolute;
+  right: 20px;
+  transition: transform 0.5s;
+}
+.accordion input[type="radio"] {
+  display: none;
+}
+.accordion .content {
+  background: #303030;
+  text-align: left;
+  padding: 0 20px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s, padding 0.5s;
+}
+.accordion .content p {
+  font-size: 20px;
+}
+
+.accordion input[type="radio"]:checked + label + .content {
+  max-height: 600px;
+  padding: 30px 20px;
+}
+.accordion input[type="radio"]:checked + label::after {
+  transform: rotate(135deg);
+}
+.start {
+  padding: 200px 12%;
+  text-align: center;
+  font-size: 18px;
+
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+}
+
+.email_auth {
+  /* background: #fff; */
+  background: rgba(15, 15, 15, 0.6);
+  /* border: 1px solid #ffffff70; */
+  /* background: rgba(255, 255, 255, 0.6);
+  border: 1px solid #27272770; */
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  /* overflow: hidden; */
+  margin-top: 30px;
+  margin: 30px auto 0;
+  max-width: 860px;
+  width: 800px;
+  position: relative;
+}
+.email_auth .input_box {
+  flex: 1;
+  border: 1px solid #ffffff70;
+  height: 100%;
+  width: 100%;
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+  /* background: rgba(15, 15, 15, 0.1); */
+  /* color: #555; */
+  background: rgba(255, 255, 255, 0);
+  /* margin-left: 20px; */
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+.email_auth .input_box input {
+  border: 0;
+  outline: 0;
+  /* background: rgba(15, 15, 15, 0.1); */
+  /* color: #555; */
+  background: rgba(255, 255, 255, 0);
+  margin-left: 20px;
+  width: 100%;
+  height: 100%;
+}
+.email_auth .input_box label {
+  position: absolute;
+  top: 4px;
+  left: 20px;
+  padding: 10px 0;
+  font-size: 18px;
+  color: #9ca3af;
+  pointer-events: none;
+  transition: 0.5s;
+}
+.email_auth .input_box input.is_entered ~ label,
+.email_auth .input_box input:focus ~ label,
+.email_auth .input_box input:valid ~ label {
+  top: -6px;
+  left: 10px;
+  /* color: var(--main-color-blue); */
+  /* color: #03a9f4; */
+  color: #9ca3af;
+  font-size: 10px;
+}
+
+.email_auth button {
+  background: var(--color-bg-brand);
+
+  border: 0;
+  outline: 0;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 15px 30px;
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+.email_auth button:hover {
+  background: var(--color-bg-brand-hover-main);
+}
+
+.start .email_signUp_area {
+  margin: 20px auto 0px;
+  margin-top: 40px;
+  height: 150px;
+  width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.start .email_auth {
+  max-width: 600px;
+  margin-top: 30px;
+  /* margin: 20px auto 60px;
+  margin-top: 40px; */
+}
+.faq small {
+  font-size: 20px;
+}
+
+.start small {
+  font-size: 20px;
+}
+
+.email_signUp_area .input_box.input_focus {
+  /* box-shadow: 0 0 0 1px hsl(200, 100%, 50%); */
+  border: 1px solid hsl(200, 100%, 50%);
+}
+.email_signUp_area.success .input_box {
+  /* box-shadow: 0 0 0 1px hsl(100, 60%, 50%); */
+  border: 1px solid hsl(100, 60%, 45%);
+}
+
+.email_signUp_area.error .input_box {
+  /* box-shadow: 0 0 0 1px hsl(0, 60%, 50%); */
+  border: 1px solid hsl(0, 60%, 50%);
+}
+
+.email_signUp_area .msg {
+  display: none;
+  font-size: 0.9rem;
+  position: relative;
+}
+
+.email_signUp_area.success .msg,
+.email_signUp_area.error .msg {
+  display: block;
+}
+
+.email_signUp_area.success .msg {
+  color: hsl(100, 60%, 50%);
+}
+.email_signUp_area.error .msg {
+  color: hsl(0, 60%, 50%);
+}
+
+.email_signUp_area span.msg_underline {
+  /* background-color: #0066ff80; */
+  background-color: hsl(0, 60%, 50%);
+  height: 2px;
+  width: 0%;
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  transition: all 0.5s;
+}
+.email_signUp_area.auth_notice span.msg_underline {
+  animation: animate 0.8s forwards;
+}
+@keyframes animate {
+  30% {
+    width: 100%;
+  }
+  40% {
+    width: 100%;
+    transform-origin: right;
+    scale: 1;
+  }
+  100% {
+    width: 100%;
+    transform-origin: right;
+    scale: 0;
+  }
+}
+
+.email_signUp_area_overlay {
+  position: fixed;
+  z-index: 10;
+  inset: 0;
+  height: 100vh;
+  width: 100%;
+  background: #00000030;
+  backdrop-filter: blur(4px);
+}
+
+/* ======================== Footer ======================== */
+.footer {
+  padding: 50px 15% 10px;
+  /* border-top: 6px solid #333; */
+  color: #777;
+
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+.footer h2 {
+  font-size: 18px;
+  font-weight: 400;
+  margin-bottom: 30px;
+}
+.footer .col {
+  flex-basis: 25%;
+  flex-grow: 1;
+  margin-bottom: 20px;
+}
+.footer .col a {
+  display: block;
+  text-decoration: none;
+  color: #777;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+.row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 50px 0;
+}
+.footer .row {
+  align-items: flex-start;
+  padding: 10px 0;
+}
+.footer button.language_btn {
+  position: relative;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #fff;
+  border-radius: 4px;
+  padding: 7px 10px;
+  position: relative;
+  color: var(--color-text);
+}
+.language_btn svg {
+  width: 20px;
+  margin-left: 2px;
+}
+.copyright_txt {
+  font-size: 14px;
+  margin: 20px;
+  margin-bottom: 10px;
+}
+
+.overlay {
+  position: fixed;
+  z-index: 10;
+  inset: 0;
+  /* background-color: #ffffff10; */
+}
+
+/* =================== media =================== */
+@media only screen and (max-width: 600px) {
+  .header {
+    padding: 10px 5%;
+  }
+  .header .logo {
+    width: 100px;
+  }
+  .header nav button {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+  .header nav .language_btn {
+    padding: 4px 8px;
+  }
+  .header_content {
+    position: unset;
+    transform: none;
+    padding-top: 150px;
+  }
+  .header_content h1 {
+    font-size: 30px;
+  }
+  .email_signUp button {
+    font-size: 12px;
+    padding: 10px 15px;
+  }
+  .text-col,
+  .img-col {
+    flex-basis: 100%;
+  }
+  .features h2 {
+    font-size: 28px;
+  }
+  .features p {
+    font-size: 15px;
+  }
+  .features .row {
+    padding: 10px 0;
+    flex-direction: column;
+  }
+  .row:nth-child(2),
+  .row:nth-child(4) {
+    flex-direction: column-reverse;
+  }
+
+  .faq {
+    padding: 10px 8%;
+  }
+  .faq h2 {
+    font-size: 20px;
+  }
+  .accordion .content {
+    font-size: 14px;
+  }
+  .accordion li label {
+    padding: 10px;
+    font-size: 14px;
+  }
+  .accordion li label::after {
+    font-size: 22px;
+  }
+  .footer {
+    padding: 50px 8% 10px;
+  }
+}
