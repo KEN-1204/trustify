@@ -97,13 +97,24 @@
   backdrop-filter: blur(12px);
 } */
 
-.auth_form {
+.auth_area {
   width: 100%;
   max-width: 400px;
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 0 32px;
+  text-align: center;
+  justify-content: flex-start;
+}
+
+.auth_form {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* padding: 0 32px; */
   text-align: center;
   justify-content: flex-start;
 }
@@ -249,11 +260,66 @@
   border-radius: 8px;
 }
 
+.email_signUp_area .msg {
+  display: none;
+  font-size: 0.9rem;
+  position: relative;
+}
+
+.email_signUp_area.success .msg,
+.email_signUp_area.error .msg {
+  display: block;
+}
+
+.email_signUp_area.success .msg {
+  color: hsl(100, 60%, 50%);
+}
+.email_signUp_area.error .msg {
+  color: hsl(0, 60%, 50%);
+}
+
+/* 送信済みEmailの背景色 */
+.submittedEmailInput {
+  background: rgba(var(--color-btn-brand-rgb), 0.5);
+}
+
 .input_group .login_code_area::placeholder {
-  color: #407eeb;
+  /* color: #407eeb; */
+  color: rgba(var(--bright-green-rgb), 1);
 }
 .input_group .login_code_area {
-  box-shadow: 0 0 0 2px var(--color-btn-brand);
+  /* box-shadow: 0 0 0 2px var(--color-btn-brand); */
+  box-shadow: 0 0 0 2px var(--bright-green);
+  background: rgba(var(--bright-green-rgb), 0.1);
+  padding-top: 5px;
+}
+
+.login_code_box {
+  position: relative;
+}
+
+.login_code_box span {
+  position: absolute;
+  top: 25%;
+  left: 5%;
+  color: var(--bright-green);
+  transition: all 0.5s;
+}
+
+.login_code_box span.entered_login_code {
+  top: 1%;
+  left: 3%;
+  font-size: 8px;
+}
+
+.login_code_box .login_code_area:focus ~ span {
+  top: 1%;
+  left: 3%;
+  font-size: 8px;
+}
+
+.login_code_box .login_code_area:focus {
+  box-shadow: 0 0 0 2px var(--bright-green);
 }
 
 .input_group input:focus {

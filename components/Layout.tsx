@@ -37,11 +37,6 @@ export const Layout: FC<Prop> = ({ children, title = "TRUSTiFY | Trustify" }) =>
     };
   }, [isOpenModal, openLangTab]);
 
-  const router = useRouter();
-  const root = router.pathname;
-  console.log("root", root);
-  console.log("root === '/'", root === "/");
-
   return (
     <div className={``}>
       <Head>

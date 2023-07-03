@@ -31,6 +31,10 @@
   --main-color-d: #02e7f5;
   --main-color-tk: #ff3b5b;
 
+  /* ビビッドカラー */
+  --bright-green: #00d436;
+  --bright-green-rgb: 0, 212, 54;
+
   /* インプット */
   --input-area-bg: rgba(242, 241, 238, 0.6);
   --input-area-bg-rgb: 242, 241, 238;

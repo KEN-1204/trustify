@@ -7,6 +7,7 @@ import { MdOutlineLanguage } from "react-icons/md";
 import { AiFillCaretDown } from "react-icons/ai";
 import Typed from "typed.js";
 import { Auth } from "../Auth/Auth";
+import { useUpdateEffect } from "react-use";
 
 export const Root: FC = () => {
   console.log("Rootコンポーネントレンダリング");
@@ -125,7 +126,8 @@ export const Root: FC = () => {
 
   const regex = /^[a-zA-Z0-9_+-]+(\.[a-zA-Z0-9_+-]+)*@([a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.)+[a-zA-Z]{2,}$/;
 
-  useEffect(() => {
+  // useEffect(() => {
+  useUpdateEffect(() => {
     if (email === "") {
       console.log("🔥");
       emailRef.current?.classList.remove(`${styles.success}`);

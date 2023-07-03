@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import Spinner from "../Parts/Spinner/Spinner";
 import SpinnerD from "../Parts/SpinnerD/SpinnerD";
+import { useUpdateEffect } from "react-use";
 
 export const Modal: FC = () => {
   console.log("Modalコンポーネントレンダリング");
@@ -21,8 +22,9 @@ export const Modal: FC = () => {
   // const closeModal = useStore((state) => state.closeModal);
   // const modalContent = useStore((state) => state.modalContent);
   const language = useStore((state) => state.language);
-  const emailRef = useRef<HTMLDivElement | null>(null);
-  const [checkedEmail, setCheckedEmail] = useState("");
+  const isLogin = useStore((state) => state.isLogin);
+  const setIsLogin = useStore((state) => state.setIsLogin);
+  const alreadyRequestedOtp = useStore((state) => state.alreadyRequestedOtp);
 
   const {
     email,
@@ -37,9 +39,6 @@ export const Modal: FC = () => {
     otpRegisterMutation,
     googleLoginMutation,
   } = useMutateAuth();
-  const isLogin = useStore((state) => state.isLogin);
-  const setIsLogin = useStore((state) => state.setIsLogin);
-  const alreadyRequestedOtp = useStore((state) => state.alreadyRequestedOtp);
 
   if (!isOpenModal) return null;
 
@@ -80,6 +79,35 @@ export const Modal: FC = () => {
     googleLoginMutation.mutate();
   };
 
+  // // メールアドレスを入力して「今すぐ始める」ボタンをクリックしたフロー
+  // const emailRef = useRef<HTMLDivElement | null>(null);
+  // const inputRef = useRef<HTMLInputElement | null>(null);
+  // const [checkedEmail, setCheckedEmail] = useState("");
+
+  // const regex = /^[a-zA-Z0-9_+-]+(\.[a-zA-Z0-9_+-]+)*@([a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.)+[a-zA-Z]{2,}$/;
+
+  // // useEffect(() => {
+  // useUpdateEffect(() => {
+  //   if (email === "") {
+  //     console.log("🔥");
+  //     emailRef.current?.classList.remove(`${styles.success}`);
+  //     emailRef.current?.classList.remove(`${styles.error}`);
+  //     setCheckedEmail("");
+  //     return;
+  //   }
+  //   console.log("email", email);
+  //   console.log("regex.test(email)", regex.test(email));
+  //   if (regex.test(email)) {
+  //     emailRef.current?.classList.add(`${styles.success}`);
+  //     emailRef.current?.classList.remove(`${styles.error}`);
+  //     setCheckedEmail("Valid");
+  //   } else {
+  //     emailRef.current?.classList.add(`${styles.error}`);
+  //     emailRef.current?.classList.remove(`${styles.success}`);
+  //     setCheckedEmail("Invalid");
+  //   }
+  // }, [email]);
+
   return (
     <>
       {/* オーバーレイ */}
@@ -91,7 +119,8 @@ export const Modal: FC = () => {
             <MdClose className="fill-[#777] text-[24px]" />
           </button>
         </div>
-        <form className={` ${styles.auth_form}`} onSubmit={handleSubmit}>
+        {/* <form className={`${styles.auth_form}`} onSubmit={handleSubmit}> */}
+        <div className={`${styles.auth_area}`}>
           <div className={`${styles.auth_error} ${errorMsg ? "block" : "hidden"}`}>{errorMsg}</div>
           {/* Googleボタン */}
           <button
@@ -127,79 +156,87 @@ export const Modal: FC = () => {
               setEmail(e.target.value);
             }}
           /> */}
-          {/* ========= メールアドレス入力エリア ========= */}
-          <div className={`${styles.input_group}`} ref={emailRef}>
-            {/* <label htmlFor="email">
+          {/* ================== formエリア ================== */}
+          <form className={`${styles.auth_form}`} onSubmit={handleSubmit}>
+            {/* ========= メールアドレス入力エリア ========= */}
+            <div className={`${styles.input_group} ${styles.email_signUp_area}`} ref={emailRef}>
+              {/* <label htmlFor="email">
               {language === "Ja" && "メール"}
               {language === "En" && "Email"}
             </label> */}
-            <input
-              type="email"
-              name="email"
-              id="email"
-              placeholder={`${language === "Ja" ? "メールアドレスを入力" : "Email"}`}
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-              }}
-            />
+              <input
+                type="email"
+                name="email"
+                id="email"
+                required
+                placeholder={`${language === "Ja" ? "メールアドレスを入力" : "Email"}`}
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                }}
+                className={`${alreadyRequestedOtp ? `${styles.submittedEmailInput}` : ""}`}
+              />
+            </div>
             {checkedEmail === "Valid" && <span className={styles.msg}>有効なメールアドレスです</span>}
             {checkedEmail === "Invalid" && <span className={styles.msg}>有効なメールアドレスを入力してください</span>}
-          </div>
-          {/* メール */}
+            {/* メール */}
 
-          <div className="h-[16px]"></div>
+            <div className="h-[16px]"></div>
 
-          {/* ========= ログインコード入力エリア ========= */}
-          {alreadyRequestedOtp && (
-            <>
-              <div className={`${styles.input_group}`}>
-                {/* <label htmlFor="email">
+            {/* ========= ログインコード入力エリア ========= */}
+            {alreadyRequestedOtp && (
+              <>
+                <div className={`${styles.input_group} ${styles.login_code_box}`}>
+                  {/* <label htmlFor="email">
                   {language === "Ja" && "ログインコード"}
                   {language === "En" && "Email"}
                 </label> */}
-                <input
-                  type="text"
-                  name="login_code"
-                  id="login_code"
-                  placeholder={`${language === "Ja" ? "ログインコードを入力" : "Login code"}`}
-                  value={loginCode}
-                  onChange={(e) => {
-                    setLoginCode(e.target.value);
-                  }}
-                  className={`${styles.login_code_area}`}
-                />
-              </div>
-              <div className="h-[16px]"></div>
-            </>
-          )}
-
-          {/* ログインボタン */}
-          <button type="submit" className={`${styles.auth_block} ${styles.auth_button}`}>
-            {/* Reflection */}
-            <span className={styles.re}></span>
-            {isLoading ? (
-              <div className="flex-center h-full w-full">
-                <Spinner w="28px" h="28px" s="3px" />
-              </div>
-            ) : isLogin ? (
-              <>
-                {language === "Ja" && "メールアドレスでログイン"}
-                {language === "En" && "Log in"}
-              </>
-            ) : alreadyRequestedOtp ? (
-              <>
-                {language === "Ja" && "ログインコードで続ける"}
-                {language === "En" && "Create account"}
-              </>
-            ) : (
-              <>
-                {/* {language === "Ja" && "メールアドレスでアカウントを作成"} */}
-                {language === "Ja" && "メールアドレスでログイン"}
-                {language === "En" && "Create account"}
+                  <input
+                    type="text"
+                    name="login_code"
+                    id="login_code"
+                    // placeholder={`${language === "Ja" ? "ログインコードを入力" : "Login code"}`}
+                    value={loginCode}
+                    onChange={(e) => {
+                      setLoginCode(e.target.value);
+                    }}
+                    className={`${styles.login_code_area}`}
+                  />
+                  <span className={`${loginCode !== "" ? `${styles.entered_login_code}` : ``}`}>
+                    {language === "Ja" ? "ログインコードを入力" : "Login code"}
+                  </span>
+                </div>
+                <div className="h-[16px]"></div>
               </>
             )}
-          </button>
+
+            {/* ログインボタン */}
+            <button type="submit" className={`${styles.auth_block} ${styles.auth_button}`}>
+              {/* Reflection */}
+              <span className={styles.re}></span>
+              {isLoading ? (
+                <div className="flex-center h-full w-full">
+                  <Spinner w="28px" h="28px" s="3px" />
+                </div>
+              ) : isLogin ? (
+                <>
+                  {language === "Ja" && "メールアドレスでログイン"}
+                  {language === "En" && "Log in"}
+                </>
+              ) : alreadyRequestedOtp ? (
+                <>
+                  {language === "Ja" && "ログインコードで続ける"}
+                  {language === "En" && "Create account"}
+                </>
+              ) : (
+                <>
+                  {/* {language === "Ja" && "メールアドレスでアカウントを作成"} */}
+                  {language === "Ja" && "メールアドレスでログイン"}
+                  {language === "En" && "Create account"}
+                </>
+              )}
+            </button>
+          </form>
 
           <div className="h-[16px]"></div>
           <div className="h-[8px]"></div>
@@ -333,7 +370,7 @@ export const Modal: FC = () => {
           />
           <div className="h-[16px]"></div> */}
           <div className="flex cursor-pointer items-start justify-center "></div>
-        </form>
+        </div>
 
         {/* {modalContent} */}
       </div>

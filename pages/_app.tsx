@@ -1,5 +1,5 @@
 import "@/styles/globals.css";
-import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs";
+import { createBrowserSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { Session, SessionContextProvider, useSession } from "@supabase/auth-helpers-react";
 import type { AppProps } from "next/app";
 import { useEffect, useRef, useState } from "react";
@@ -40,13 +40,12 @@ export default function App({
 }>) {
   const sessionState = useStore((state) => state.sessionState);
   const setSessionState = useStore((state) => state.setSessionState);
-  const session = useSession();
   const currentPathRef = useRef("/");
   const router = useRouter();
 
   // Create a new supabase browser client on every first render.
   // 初回レンダリングごとに、新しいsupabaseブラウザークライアントを作成します。
-  const [supabase] = useState(() => createPagesBrowserClient());
+  const [supabase] = useState(() => createBrowserSupabaseClient());
 
   // ユーザーのセッション情報を取得と監視
   useEffect(() => {
@@ -77,11 +76,11 @@ export default function App({
 
     // ユーザーのプロフィール情報のリアルタイム変更を監視
     const {} = supabase.auth.onAuthStateChange(async (authChangeEvent, currentSession) => {
-      console.log("🌟_app onAuthStateChange authChangeEvent", authChangeEvent);
+      console.log("🌟_app onAuthStateChange実行🔥 authChangeEventとcurrentSession", authChangeEvent, currentSession);
       // 認証に成功し、セッションが存在する場合のルート
       if (currentSession) {
         // ZustandのセッションStateに現在のセッションを格納
-        console.log("🌟_app onAuthStateChange 取得したセッションをZustandに格納");
+        console.log("onAuthStateChange 取得したセッションをZustandに格納");
         setSessionState(currentSession);
 
         /**認証成功後にブラウザバックでGoogleの認証ページに戻ることが無いように
@@ -93,19 +92,19 @@ export default function App({
         // } catch(error) {
         //   console.log('❌_app onAuthStateChange router.replace失敗')
         // }
-        if (window.history.state.url !== "/home") {
-          console.log("🌟_app onAuthStateChange セッション有り homeにプッシュ", currentSession);
+        if (window.history.state.url === "/") {
           console.log(
-            "現在のパス pathname, currentPathRef, window.history.state",
+            "onAuthStateChange セッション有りで/ルートにいるため/homeにプッシュ 現在のセッションとパス",
+            currentSession,
             router.pathname,
             // currentPathRef.current,
             window.history.state.url
           );
           await router.push("/home");
         }
-        console.log("🌟_app onAuthStateChange セッション有り /homeのためそのまま", currentSession);
         console.log(
-          "現在のパス pathname, currentPathRef, window.history.state",
+          "onAuthStateChange セッション有り /ルート以外なのでそのまま 現在のセッションとパス",
+          currentSession,
           router.pathname,
           // currentPathRef.current,
           window.history.state.url
@@ -114,23 +113,23 @@ export default function App({
       // ログアウトされセッションが削除されたルート
       else {
         // ZustandのセッションStateをnullでリセット
-        console.log("🌟_app onAuthStateChange ログアウトしたためセッションをnullに");
+        console.log("onAuthStateChange ログアウトしたためセッションをnullに");
         setSessionState(null);
 
         // ログアウト後セッションが削除されたら、自動的に'/'ルートパスに遷移
         if (window.history.state.url !== "/") {
-          console.log("🌟_app onAuthStateChange セッション無し /へプッシュ", currentSession);
           console.log(
-            "現在のパス pathname, currentPathRef, window.history.state",
+            "onAuthStateChange セッション無しで/ルートでは無いため/ルートへプッシュ 現在のセッションとパス",
+            currentSession,
             router.pathname,
             // currentPathRef.current,
             window.history.state.url
           );
           await router.push("/");
         }
-        console.log("🌟_app onAuthStateChange セッション有り /homeのためそのまま", currentSession);
         console.log(
-          "現在のパス pathname, currentPathRef, window.history.state",
+          "onAuthStateChange セッション有り /のためそのまま 現在のセッションとパス pathname, currentPathRef, window.history.state",
+          currentSession,
           router.pathname,
           // currentPathRef.current,
           window.history.state.url

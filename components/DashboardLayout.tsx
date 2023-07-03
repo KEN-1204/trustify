@@ -3,9 +3,11 @@ import Head from "next/head";
 import React, { FC, ReactNode, useEffect } from "react";
 import { Modal } from "./Modal/Modal";
 import { useRouter } from "next/router";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { toast } from "react-toastify";
 
 type Prop = {
-  title: string;
+  title?: string;
   children: ReactNode;
 };
 
@@ -14,10 +16,16 @@ type Prop = {
 export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY | Home" }) => {
   const theme = useStore((state) => state.theme);
   const setTheme = useStore((state) => state.setTheme);
+
+  const router = useRouter();
+  const supabase = useSupabaseClient();
+
+  // テーマカラーチェンジ関数
   const changeTheme = () => {
     if (theme === "light") setTheme("dark");
     if (theme === "dark") setTheme("light");
   };
+
   // モーダルが開いている時はbodyにoverflow: hiddenを設定する
   const isOpenModal = useStore((state) => state.isOpenModal);
   const openLangTab = useStore((state) => state.openLangTab);
@@ -36,10 +44,22 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY | Home" 
     };
   }, [isOpenModal, openLangTab]);
 
-  const router = useRouter();
-  const root = router.pathname;
-  console.log("root", root);
-  console.log("root === '/'", root === "/");
+  // ログアウト関数
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast.error("サインアウトに失敗しました", {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: `${theme === "light" ? "light" : "dark"}`,
+      });
+    }
+  };
 
   return (
     <div className={``}>
@@ -51,8 +71,12 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY | Home" 
       <div className="relative flex h-full min-h-screen flex-col items-center">{children}</div>
       {/* <footer></footer> */}
 
+      {/* サインアウトボタン */}
+      <div className="flex-center fixed bottom-[2%] right-[8%] h-[50px] w-[50px] cursor-pointer">
+        <div className="h-[50px] w-[50px] rounded-full bg-[red]" onClick={handleSignOut}></div>
+      </div>
       {/* テーマ切り替えボタン */}
-      <div className="flex-center fixed bottom-[2%] right-[1%] h-[10%] w-[10%]">
+      <div className="flex-center fixed bottom-[2%] right-[3%] h-[50px] w-[50px] ">
         <div
           className="h-[50px] w-[50px] cursor-pointer rounded-full bg-[--color-bg-brand05]"
           onClick={changeTheme}
@@ -60,7 +84,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY | Home" 
       </div>
 
       {/* モーダル */}
-      <Modal />
+      {/* <Modal /> */}
     </div>
   );
 };
