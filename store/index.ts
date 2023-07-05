@@ -34,10 +34,6 @@ type State = {
   alreadyRequestedOtp: boolean;
   setAlreadyRequestedOtp: (payload: boolean) => void;
 
-  // 認証後の返り値を保持するState
-  authData: any | null;
-  setAuthData: (payload: any | null) => void;
-
   // =================== 共通 ===================
   // 言語切り替え
   language: string;
@@ -102,9 +98,6 @@ const useStore = create<State>((set) => ({
   // フォームは「ログインコードの入力」inputと「ログインコードを送信」ボタンを表示する
   alreadyRequestedOtp: false,
   setAlreadyRequestedOtp: (payload) => set({ alreadyRequestedOtp: payload }),
-
-  authData: null,
-  setAuthData: (payload) => set({ authData: payload }),
 
   // =================== 共通 ===================
   // 【言語切り替え】 Ja日本, En英語, Ko韓国語, Zh中国語,

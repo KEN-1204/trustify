@@ -22,8 +22,6 @@ export const Root: FC = () => {
   const getStartWithEmail = useStore((state) => state.getStartWithEmail);
   const setGetStartWithEmail = useStore((state) => state.setGetStartWithEmail);
   const setInputEmail = useStore((state) => state.setInputEmail);
-  const authData = useStore((state) => state.authData);
-  console.log("🌟authData", authData);
 
   // ============ ヘッダー 下スクロール時に非表示、上スクロール時に表示 ============
   const setIsHeaderShown = useStore((state) => state.setIsHeaderShown);
@@ -275,7 +273,7 @@ export const Root: FC = () => {
             alt=""
             placeholder="blur"
             blurDataURL="/assets/images/feature-4-small.png"
-            loading="lazy"
+            // loading="lazy"
             width={800}
             height={600}
           />
@@ -304,7 +302,7 @@ export const Root: FC = () => {
             alt=""
             placeholder="blur"
             blurDataURL="/assets/images/feature-3-small.png"
-            loading="lazy"
+            // loading="lazy"
             width={800}
             height={600}
           />
@@ -330,7 +328,7 @@ export const Root: FC = () => {
             alt=""
             placeholder="blur"
             blurDataURL="/assets/images/feature-2-small.png"
-            loading="lazy"
+            // loading="lazy"
             width={800}
             height={600}
           />

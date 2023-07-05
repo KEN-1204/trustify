@@ -11,7 +11,7 @@ import { AiFillCaretDown } from "react-icons/ai";
 // };
 
 export const LangBtnMemo: FC = () => {
-  console.log("クリック");
+  console.log("言語切り替えボタン レンダリング");
   const language = useStore((state) => state.language);
   // const setLanguage = useStore((state) => state.setLanguage);
   const openLangTab = useStore((state) => state.openLangTab);

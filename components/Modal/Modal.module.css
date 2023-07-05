@@ -11,12 +11,12 @@
 .modal_container {
   position: fixed;
   z-index: 1000;
-  top: 50%;
+  top: 45%;
   left: 50%;
   /* height: 60dvh; */
   width: 100%;
   max-width: 420px;
-  transform: translate(-50%, -70%);
+  transform: translate(-50%, -50%);
   /* backdrop-filter: blur(4px); */
   border-radius: 12px;
   overflow: hidden;
@@ -221,6 +221,7 @@
   border: 3px solid var(--color-border-brand-sub);
 }
 
+/* 入力欄 */
 .input_group {
   display: flex;
   flex-direction: column;
@@ -249,7 +250,7 @@
   border-radius: 8px;
   color: #000;
   font-weight: 500;
-  font-size: 16px;
+  font-size: 15px;
   caret-color: var(--caret-color-blue);
   font-family: sans-serif !important;
   background: var(--input-area-bg);
@@ -260,10 +261,27 @@
   border-radius: 8px;
 }
 
+.input_group input:focus {
+  /* box-shadow: 0 0 0 1px hsl(200, 100%, 50%); */
+  /* box-shadow: 0 0 0 2px var(--color-border-brand-strong); */
+  box-shadow: 0 0 0 2px var(--color-btn-brand);
+}
+.email_signUp_area.success input {
+  /* box-shadow: 0 0 0 2px hsl(100, 60%, 50%); */
+}
+
+.email_signUp_area.error input {
+  /* box-shadow: 0 0 0 2px hsl(0, 60%, 50%); */
+  box-shadow: 0 0 0 2px #f63e54;
+}
+
 .email_signUp_area .msg {
   display: none;
   font-size: 0.9rem;
   position: relative;
+  margin-top: 5px;
+  margin-right: auto;
+  margin-left: 3px;
 }
 
 .email_signUp_area.success .msg,
@@ -275,14 +293,41 @@
   color: hsl(100, 60%, 50%);
 }
 .email_signUp_area.error .msg {
-  color: hsl(0, 60%, 50%);
+  /* color: hsl(0, 60%, 50%); */
+  color: #f63e54;
 }
 
-/* 送信済みEmailの背景色 */
-.submittedEmailInput {
-  background: rgba(var(--color-btn-brand-rgb), 0.5);
+.email_box {
+  position: relative;
+}
+.email_box span {
+  position: absolute;
+  top: 25%;
+  left: 5%;
+  /* left: 35%; */
+  color: var(--color-placeholder-text);
+  transition: all 0.5s;
+}
+.email_box span.entered_email {
+  top: 3px;
+  left: 3%;
+  font-size: 8px;
+}
+.email_input_area:focus ~ span {
+  top: 3px;
+  left: 3%;
+  font-size: 8px;
+  color: var(--color-bg-brand-sub);
+}
+.input_group .email_input_area {
+  padding-top: 10px;
 }
 
+.email_box .submittedEmailInput {
+  background: rgba(var(--color-btn-brand-rgb), 0.1);
+}
+
+/* ログインコード */
 .input_group .login_code_area::placeholder {
   /* color: #407eeb; */
   color: rgba(var(--bright-green-rgb), 1);
@@ -291,7 +336,7 @@
   /* box-shadow: 0 0 0 2px var(--color-btn-brand); */
   box-shadow: 0 0 0 2px var(--bright-green);
   background: rgba(var(--bright-green-rgb), 0.1);
-  padding-top: 5px;
+  padding-top: 10px;
 }
 
 .login_code_box {
@@ -307,32 +352,19 @@
 }
 
 .login_code_box span.entered_login_code {
-  top: 1%;
+  top: 3px;
   left: 3%;
   font-size: 8px;
 }
 
 .login_code_box .login_code_area:focus ~ span {
-  top: 1%;
+  top: 3px;
   left: 3%;
   font-size: 8px;
 }
 
 .login_code_box .login_code_area:focus {
   box-shadow: 0 0 0 2px var(--bright-green);
-}
-
-.input_group input:focus {
-  /* box-shadow: 0 0 0 1px hsl(200, 100%, 50%); */
-  /* box-shadow: 0 0 0 2px var(--color-border-brand-strong); */
-  box-shadow: 0 0 0 2px var(--color-btn-brand);
-}
-.input_group.success input {
-  box-shadow: 0 0 0 2px hsl(100, 60%, 50%);
-}
-
-.input_group.error input {
-  box-shadow: 0 0 0 2px hsl(0, 60%, 50%);
 }
 
 /* .auth_button {

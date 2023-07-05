@@ -6,6 +6,7 @@ import { googleIcon } from "../assets";
 import { useMutateAuth } from "@/hooks/useMutateAuth";
 import { CheckBtn } from "../Parts/CheckBtn/CheckBtn";
 import Link from "next/link";
+import Spinner from "../Parts/Spinner/Spinner";
 
 export const Auth: FC = () => {
   console.log("Authコンポーネントレンダリング");
@@ -21,6 +22,9 @@ export const Auth: FC = () => {
     email,
     setEmail,
     errorMsg,
+    loginCode,
+    setLoginCode,
+    isLoading,
     otpLoginRequestMutation,
     otpLoginMutation,
     otpRegisterRequestMutation,
@@ -124,7 +128,7 @@ export const Auth: FC = () => {
           {language === "En" && "or"}
         </span>
 
-        {/* メール */}
+        {/* ============================ メール ============================ */}
         {/* <input
             type="email"
             id="email"
@@ -156,18 +160,63 @@ export const Auth: FC = () => {
           {checkedEmail === "Valid" && <span className={styles.msg}>有効なメールアドレスです</span>}
           {checkedEmail === "Invalid" && <span className={styles.msg}>有効なメールアドレスを入力してください</span>}
         </div>
-        {/* メール */}
+
+        {/* ========= メールでOTPリクエスト送信後に表示するメッセージ ========= */}
+        {alreadyRequestedOtp && (
+          <div className="flex-col-center mt-[8px] text-[14px] text-[--color-placeholder-text-light]">
+            <span>一時的なログインコードをお送りしました。</span>
+            <span>受信トレイをご確認ください。</span>
+          </div>
+        )}
 
         <div className="h-[16px]"></div>
 
-        {/* ログインボタン */}
+        {/* ========= ログインコード入力エリア ========= */}
+        {alreadyRequestedOtp && (
+          <>
+            <div className={`${styles.input_group} ${styles.login_code_box}`}>
+              {/* <label htmlFor="email">
+                  {language === "Ja" && "ログインコード"}
+                  {language === "En" && "Email"}
+                </label> */}
+              <input
+                type="text"
+                name="login_code"
+                id="login_code"
+                // placeholder={`${language === "Ja" ? "ログインコードを入力" : "Login code"}`}
+                value={loginCode}
+                onChange={(e) => {
+                  setLoginCode(e.target.value);
+                }}
+                className={`${styles.login_code_area}`}
+              />
+              <span className={`${loginCode !== "" ? `${styles.entered_login_code}` : ``}`}>
+                {language === "Ja" ? "ログインコードを入力" : "Login code"}
+              </span>
+            </div>
+            <div className="h-[16px]"></div>
+          </>
+        )}
+
+        <div className="h-[16px]"></div>
+
+        {/* ========= ログインボタン ========= */}
         <button type="submit" className={`${styles.auth_block} ${styles.auth_button}`}>
           {/* Reflection */}
           <span className={styles.re}></span>
-          {isLogin ? (
+          {isLoading ? (
+            <div className="flex-center h-full w-full">
+              <Spinner w="28px" h="28px" s="3px" />
+            </div>
+          ) : isLogin ? (
             <>
               {language === "Ja" && "メールアドレスでログイン"}
               {language === "En" && "Log in"}
+            </>
+          ) : alreadyRequestedOtp ? (
+            <>
+              {language === "Ja" && "ログインコードで続ける"}
+              {language === "En" && "Create account"}
             </>
           ) : (
             <>

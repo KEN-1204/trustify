@@ -256,6 +256,50 @@
   box-shadow: 0 0 0 2px hsl(0, 60%, 50%);
 }
 
+.submittedEmailInput {
+  background: rgba(var(--color-btn-brand-rgb), 0.5);
+}
+
+/* ログインコード */
+.input_group .login_code_area::placeholder {
+  /* color: #407eeb; */
+  color: rgba(var(--bright-green-rgb), 1);
+}
+.input_group .login_code_area {
+  /* box-shadow: 0 0 0 2px var(--color-btn-brand); */
+  box-shadow: 0 0 0 2px var(--bright-green);
+  background: rgba(var(--bright-green-rgb), 0.1);
+  padding-top: 10px;
+}
+
+.login_code_box {
+  position: relative;
+}
+
+.login_code_box span {
+  position: absolute;
+  top: 25%;
+  left: 5%;
+  color: var(--bright-green);
+  transition: all 0.5s;
+}
+
+.login_code_box span.entered_login_code {
+  top: 3px;
+  left: 3%;
+  font-size: 8px;
+}
+
+.login_code_box .login_code_area:focus ~ span {
+  top: 3px;
+  left: 3%;
+  font-size: 8px;
+}
+
+.login_code_box .login_code_area:focus {
+  box-shadow: 0 0 0 2px var(--bright-green);
+}
+
 /* .auth_button {
   box-shadow: inset 0px 0px 0px 3px var(--color-btn-brand);
   border-radius: 8px;

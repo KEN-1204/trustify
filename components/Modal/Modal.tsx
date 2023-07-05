@@ -40,53 +40,14 @@ export const Modal: FC = () => {
     googleLoginMutation,
   } = useMutateAuth();
 
-  if (!isOpenModal) return null;
+  // メールアドレスを入力して「今すぐ始める」ボタンをクリックしたフロー
+  const emailRef = useRef<HTMLFormElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [checkedEmail, setCheckedEmail] = useState("");
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    console.log("handleSubmit実行");
-    try {
-      // otpリクエスト前
-      if (!alreadyRequestedOtp) {
-        // ログインモード
-        if (isLogin) {
-          otpLoginRequestMutation.mutate();
-        }
-        // サインアップ(新規作成)モード
-        else {
-          otpRegisterRequestMutation.mutate();
-        }
-      }
-      // otpリクエスト後
-      else {
-        // ログインモード
-        if (isLogin) {
-          otpLoginMutation.mutate();
-        }
-        // サインアップ(新規作成)モード
-        else {
-          otpRegisterMutation.mutate();
-        }
-      }
-    } catch (error) {
-      console.log("try/catch文error", error);
-    }
-  };
+  const regex = /^[a-zA-Z0-9_+-]+(\.[a-zA-Z0-9_+-]+)*@([a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.)+[a-zA-Z]{2,}$/;
 
-  // Google認証
-  const handleGoogleAuth = () => {
-    console.log("handleGoogleAuth実行");
-    googleLoginMutation.mutate();
-  };
-
-  // // メールアドレスを入力して「今すぐ始める」ボタンをクリックしたフロー
-  // const emailRef = useRef<HTMLDivElement | null>(null);
-  // const inputRef = useRef<HTMLInputElement | null>(null);
-  // const [checkedEmail, setCheckedEmail] = useState("");
-
-  // const regex = /^[a-zA-Z0-9_+-]+(\.[a-zA-Z0-9_+-]+)*@([a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.)+[a-zA-Z]{2,}$/;
-
-  // // useEffect(() => {
+  // useEffect(() => {
   // useUpdateEffect(() => {
   //   if (email === "") {
   //     console.log("🔥");
@@ -108,6 +69,79 @@ export const Modal: FC = () => {
   //   }
   // }, [email]);
 
+  // ====================== Submit関数 ======================
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    console.log("handleSubmit実行");
+
+    // Submit時にemailRefのクラスを初期化
+    emailRef.current?.classList.remove(`${styles.success}`);
+    emailRef.current?.classList.remove(`${styles.error}`);
+
+    // ====== メールアドレスチェック ======
+    if (email === "") {
+      console.log("Modal handleSubmitメールアドレスチェック メール空");
+      emailRef.current?.classList.remove(`${styles.success}`);
+      emailRef.current?.classList.remove(`${styles.error}`);
+      setCheckedEmail("");
+      return console.log("メール空のためリターン");
+    }
+    console.log("email", email);
+    console.log("regex.test(email)", regex.test(email));
+    if (regex.test(email)) {
+      emailRef.current?.classList.add(`${styles.success}`);
+      emailRef.current?.classList.remove(`${styles.error}`);
+      setCheckedEmail("Valid");
+    } else {
+      emailRef.current?.classList.add(`${styles.error}`);
+      emailRef.current?.classList.remove(`${styles.success}`);
+      setCheckedEmail("Invalid");
+      return console.log("メールが有効では無いためリターン");
+    }
+    // =================================
+
+    // OTPリクエスト or OTPサインアップ、サインイン
+
+    try {
+      // otpリクエスト前
+      if (!alreadyRequestedOtp) {
+        console.log("OTPリクエスト送信");
+        // ログインモード
+        if (isLogin) {
+          otpLoginRequestMutation.mutate();
+        }
+        // サインアップ(新規作成)モード
+        else {
+          otpRegisterRequestMutation.mutate();
+        }
+      }
+      // otpリクエスト後
+      else {
+        console.log("OTP認証送信");
+        // ログインモード
+        if (isLogin) {
+          otpLoginMutation.mutate();
+        }
+        // サインアップ(新規作成)モード
+        else {
+          otpRegisterMutation.mutate();
+        }
+      }
+    } catch (error) {
+      console.log("try/catch文error", error);
+    }
+  };
+
+  // ====================== Google認証 ======================
+  const handleGoogleAuth = () => {
+    console.log("handleGoogleAuth実行");
+    googleLoginMutation.mutate();
+  };
+
+  if (!isOpenModal) return null;
+
+  console.log("🌟checkedEmail", checkedEmail);
+
   return (
     <>
       {/* オーバーレイ */}
@@ -121,7 +155,13 @@ export const Modal: FC = () => {
         </div>
         {/* <form className={`${styles.auth_form}`} onSubmit={handleSubmit}> */}
         <div className={`${styles.auth_area}`}>
-          <div className={`${styles.auth_error} ${errorMsg ? "block" : "hidden"}`}>{errorMsg}</div>
+          {/* エラーメッセージ */}
+          <div className={`${styles.auth_error} ${errorMsg ? "block" : "hidden"}`}>
+            {errorMsg === "Token has expired or is invalid" && language === "Ja"
+              ? "ログインコードが有効ではありません"
+              : `${errorMsg}`}
+            {errorMsg !== "Token has expired or is invalid" && `${errorMsg}`}
+          </div>
           {/* Googleボタン */}
           <button
             type="submit"
@@ -157,9 +197,9 @@ export const Modal: FC = () => {
             }}
           /> */}
           {/* ================== formエリア ================== */}
-          <form className={`${styles.auth_form}`} onSubmit={handleSubmit}>
+          <form className={`${styles.auth_form} ${styles.email_signUp_area}`} onSubmit={handleSubmit} ref={emailRef}>
             {/* ========= メールアドレス入力エリア ========= */}
-            <div className={`${styles.input_group} ${styles.email_signUp_area}`} ref={emailRef}>
+            <div className={`${styles.input_group} ${styles.email_box} relative`}>
               {/* <label htmlFor="email">
               {language === "Ja" && "メール"}
               {language === "En" && "Email"}
@@ -169,17 +209,29 @@ export const Modal: FC = () => {
                 name="email"
                 id="email"
                 required
-                placeholder={`${language === "Ja" ? "メールアドレスを入力" : "Email"}`}
+                // placeholder={`${language === "Ja" ? "メールアドレスを入力" : "Email"}`}
+                autoFocus
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
                 }}
-                className={`${alreadyRequestedOtp ? `${styles.submittedEmailInput}` : ""}`}
+                className={`${alreadyRequestedOtp ? `${styles.submittedEmailInput}` : ""} ${styles.email_input_area}`}
               />
+              <span className={`${email !== "" ? `${styles.entered_email}` : ``} pointer-events-none select-none`}>
+                {language === "Ja" ? "メールアドレスを入力" : "Email"}
+              </span>
             </div>
-            {checkedEmail === "Valid" && <span className={styles.msg}>有効なメールアドレスです</span>}
+            {/* {checkedEmail === "Valid" && <span className={styles.msg}>有効なメールアドレスです</span>} */}
             {checkedEmail === "Invalid" && <span className={styles.msg}>有効なメールアドレスを入力してください</span>}
-            {/* メール */}
+            {/* ========= メールアドレス入力エリア ========= */}
+
+            {/* メールでOTPリクエスト送信後に表示するメッセージ */}
+            {alreadyRequestedOtp && (
+              <div className="flex-col-center mt-[8px] text-[14px] text-[var(--color-sub-text)]">
+                <span>一時的なログインコードをお送りしました。</span>
+                <span>受信トレイをご確認ください。</span>
+              </div>
+            )}
 
             <div className="h-[16px]"></div>
 
@@ -202,7 +254,11 @@ export const Modal: FC = () => {
                     }}
                     className={`${styles.login_code_area}`}
                   />
-                  <span className={`${loginCode !== "" ? `${styles.entered_login_code}` : ``}`}>
+                  <span
+                    className={`${
+                      loginCode !== "" ? `${styles.entered_login_code}` : ``
+                    } pointer-events-none select-none`}
+                  >
                     {language === "Ja" ? "ログインコードを入力" : "Login code"}
                   </span>
                 </div>

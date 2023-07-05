@@ -15,9 +15,9 @@ export const useMutateAuth = () => {
   const [errorMsg, setErrorMsg] = useState("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const setAlreadyRequestedOtp = useStore((state) => state.setAlreadyRequestedOtp);
-  const setAuthData = useStore((state) => state.setAuthData);
   const setSessionState = useStore((state) => state.setSessionState);
   const setIsOpenModal = useStore((state) => state.setIsOpenModal);
+  const setGetStartWithEmail = useStore((state) => state.setGetStartWithEmail);
 
   const googleLoginMutation = useMutation({
     mutationFn: async () => {
@@ -43,7 +43,6 @@ export const useMutateAuth = () => {
       // const displayY = window.innerHeight / 2 - 350;
       // if (data.data.url) window.open(data.data.url, undefined, `left=${displayX},top=${displayY},width=500,height=700`);
 
-      setAuthData(data);
       console.log("Google認証結果signInWithOAuth()の返り値 data, error", data, data.error);
       // 認証エラーが発生したらエラーを投げてonErrorに移行させる
       if (data.error) throw new Error(data.error.message);
@@ -57,7 +56,7 @@ export const useMutateAuth = () => {
 
       setEmail("");
       setIsOpenModal(false);
-      setAuthData(data);
+      setGetStartWithEmail(false);
       setIsLoading(false);
     },
     onError(error: any, variables, context) {
@@ -123,6 +122,7 @@ export const useMutateAuth = () => {
 
       setEmail("");
       setIsOpenModal(false);
+      setGetStartWithEmail(false);
       // ログイン完了したためフォームを通常モードに戻す
       setAlreadyRequestedOtp(false);
       setIsLoading(false);
@@ -196,6 +196,7 @@ export const useMutateAuth = () => {
       setSessionState(data.session);
       setEmail("");
       setIsOpenModal(false);
+      setGetStartWithEmail(false);
       // サインアップ完了したためフォームを通常モードに戻す
       setAlreadyRequestedOtp(false);
       setIsLoading(false);

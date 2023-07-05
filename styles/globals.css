@@ -11,10 +11,13 @@
   --font-family-discord: "gg sans", "Hiragino Sans", "\30D2\30E9\30AE\30CE\89D2\30B4 ProN W3",
     "Hiragino Kaku Gothic ProN", ãƒ¡ã‚¤ãƒªã‚ª, Meiryo, Osaka, "MS PGothic", "Noto Sans", "Helvetica Neue", Helvetica,
     Arial, sans-serif;
+  /* Discordフォンt */
   --font-display-discord: "gg sans", "Hiragino Sans", "\30D2\30E9\30AE\30CE\89D2\30B4 ProN W3",
     "Hiragino Kaku Gothic ProN", ãƒ¡ã‚¤ãƒªã‚ª, Meiryo, Osaka, "MS PGothic", "Noto Sans", "Helvetica Neue", Helvetica,
     Arial, sans-serif;
+  /* Stripeフォント */
   --font-family-stripe: "sohne-var", "Helvetica Neue", "Arial", sans-serif;
+  /* Revolutフォント */
   --font-family-revolut: "Basier Circle", sans-serif;
   --off-white: #f6f6f6;
   --off-black: #141414;
@@ -34,10 +37,14 @@
   /* ビビッドカラー */
   --bright-green: #00d436;
   --bright-green-rgb: 0, 212, 54;
+  --bright-red: #f63e54;
 
   /* インプット */
   --input-area-bg: rgba(242, 241, 238, 0.6);
   --input-area-bg-rgb: 242, 241, 238;
+
+  /* ボーダー */
+  /* rgba(255, 255, 255, 0.12) 0px 1px 1px */
 }
 
 @media screen and (min-width: 1024px) {
@@ -76,6 +83,11 @@
   Apple light 紫テキスト --indigo: #622aff
   Apple light グラデーションテキスト background-image: linear-gradient(90deg,#b434ab 0%,#866cbe 30%,#4dbbd8);
   */
+
+  /* Canva 背景 #fff 背景サブ rgba(64,87,109,.07) #40576d12 */
+  --color-bg-base: #fff;
+  --color-bg-sub: rgba(64, 87, 109, 0.071);
+  /* sub figma #f5f5f5 canva #40576d12 */
   --color-bg: #fff; /* メイン背景カラー */
   --color-bg2: #fff; /* メイン背景カラー */
   --color-bg-secondary: #f5f5f5; /* サブ背景カラー グレー */
@@ -128,6 +140,7 @@
   --color-main-text: #000;
   --color-sub-text: rgba(55, 53, 47, 0.65);
   --color-sub-text-dark: rgba(180, 179, 178, 0.65);
+  --color-placeholder-text: #9ca3af;
   /* ブランドカラー　テキスト */
   /* 
   --color-bg-brand ダークモード
@@ -168,11 +181,16 @@
   --selection-bg-color: #0070f3;
   --selection-text-color: #fff;
 
+  /* ナブバー */
   --navColor: #313131;
   --navbar-text-color-hover: #06c;
 
+  /* オーバーレイ */
   --overlay-dark: #00000030;
   --overlay-light: #ffffff20;
+
+  /* シャドウ */
+  --shadow-sm: 0 2px 4px -1px rgba(57, 76, 96, 0.15);
 
   --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff30, #ffffff20, #ffffff10, #ffffff10, #ffffff80);
   --tile-start-rgb: 2, 13, 46;
@@ -201,6 +219,11 @@
   Apple light 紫テキスト --indigo: #622aff
   Apple light グラデーションテキスト background-image: linear-gradient(90deg,#b434ab 0%,#866cbe 30%,#4dbbd8);
   */
+
+  /* Youtube背景 background-color: #0f0f0f */
+  /* Tiktok背景メイン background-color: rgb(18, 18, 18) #121212 背景サブ background-color: rgb(37, 37, 37) #252525 ブラックサブ2 background-color: rgba(255, 255, 255, 0.08) テーマカラー赤 background-color: rgb(255, 59, 92) #ff3b5c */
+  --color-bg-base: #121212;
+  --color-bg-sub: #252525;
   --color-bg: #2c2c2c; /* メイン背景カラー */
   --color-bg2: #141414; /* メイン背景カラー */
   --color-bg-secondary: #383838; /* サブ背景カラー グレー */
@@ -255,6 +278,8 @@
   --color-main-text: #000;
   --color-sub-text: rgba(55, 53, 47, 0.65);
   --color-sub-text-dark: rgba(180, 179, 178, 0.65);
+  --color-placeholder-text: #9ca3af;
+  --color-placeholder-text-light: #e0e9f9;
   /* 
   --color-text-brand
   Figma: #7cc4f8
@@ -287,19 +312,26 @@
   --color-text-brand-sub-rgb: 43, 127, 255;
   --color-text-brand-sub-hover: #2571e2;
 
+  /* アイコン dark */
   --color-icon: rgba(255, 255, 255, 1); /* アイコンカラー */
   --color-icon-brand: #7cc4f8;
   --color-icon-brand-pressed: #0c8ce9;
   --color-icon-brand-secondary: #536383;
 
+  /* セレクション dark */
   --selection-bg-color: #0070f3;
   --selection-text-color: #fff;
 
+  /* ナブバー dark */
   --navColor: #fff;
   --navbar-text-color-hover: #2997ff;
 
+  /* オーバーレイ dark */
   --overlay-dark: #00000030;
   --overlay-light: #ffffff20;
+
+  /* シャドウ */
+  --shadow-sm: rgba(255, 255, 255, 0.12) 0px 1px 1px;
 
   /* --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff30, #ffffff20, #ffffff10, #ffffff10, #ffffff80); */
   --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff20, #ffffff80, #ffffff40, #ffffff20, #ffffff80);

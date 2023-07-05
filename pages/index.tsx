@@ -7,18 +7,39 @@ import { LangMenuOver } from "@/components/Parts/LangMenuOver/LangMenuOver";
 import { Session, User, createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { GetServerSidePropsContext } from "next";
 import { Profile } from "@/types";
+import { useEffectOnce } from "react-use";
 
 // { initialSession, user }: { initialSession: Session; user: User | null }
 
 export default function Home() {
-  const titleL = "TRUSTiFY | Get the best";
+  const language = useStore((state) => state.language);
+  const setTheme = useStore((state) => state.setTheme);
+
+  // 言語別タイトル
+  let langTitle;
+  switch (language) {
+    case "Ja":
+      langTitle = "TRUSTiFY | 売上を上げ続けた実績に裏付けされたデータベース";
+      break;
+    case "En":
+      langTitle = "TRUSTiFY | Get the best";
+      break;
+    default:
+      langTitle = "TRUSTiFY";
+      break;
+  }
 
   // 言語ドロップダウンメニュー
   const clickedItemPos = useStore((state) => state.clickedItemPos);
   const clickedItemPosOver = useStore((state) => state.clickedItemPosOver);
 
+  // ログイン時にテーマをライトに設定する
+  useEffectOnce(() => {
+    setTheme("dark");
+  });
+
   return (
-    <Layout title={titleL}>
+    <Layout title={langTitle}>
       <Header
         logoSrc="/assets/images/Trustify_logo_white1.png"
         blurDataURL="/assets/images/Trustify_logo_white1_blur.png"

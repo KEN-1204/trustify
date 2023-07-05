@@ -141,8 +141,8 @@ export default function App({
   useEffect(() => {
     const progress = new ProgressBar({
       size: 4,
-      color: "#2B7FFF",
-      // color: "#0066ff",
+      // color: "#2B7FFF",
+      color: "#0066ff",
       className: "z-50",
       delay: 100,
     });

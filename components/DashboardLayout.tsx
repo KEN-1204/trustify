@@ -5,6 +5,7 @@ import { Modal } from "./Modal/Modal";
 import { useRouter } from "next/router";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { toast } from "react-toastify";
+import styles from "@/styles/DashboardLayout.module.css";
 
 type Prop = {
   title?: string;
@@ -13,7 +14,7 @@ type Prop = {
 
 // 各ページをラップして、各ページ毎にCSSクラスやタイトル、ヘッダーなどを柔軟に設定する
 // 各ページのJSXの一番外側に配置
-export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY | Home" }) => {
+export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   const theme = useStore((state) => state.theme);
   const setTheme = useStore((state) => state.setTheme);
 
@@ -62,7 +63,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY | Home" 
   };
 
   return (
-    <div className={``}>
+    <div className={`${styles.trustify_app}`}>
       <Head>
         <title>{title}</title>
       </Head>
@@ -78,7 +79,9 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY | Home" 
       {/* テーマ切り替えボタン */}
       <div className="flex-center fixed bottom-[2%] right-[3%] h-[50px] w-[50px] ">
         <div
-          className="h-[50px] w-[50px] cursor-pointer rounded-full bg-[--color-bg-brand05]"
+          className={`h-[50px] w-[50px] cursor-pointer rounded-full ${
+            theme === "dark" ? "bg-[--color-bg-brand05]" : "bg-[#00000080]"
+          }`}
           onClick={changeTheme}
         ></div>
       </div>
