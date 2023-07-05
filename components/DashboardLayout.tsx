@@ -6,6 +6,7 @@ import { useRouter } from "next/router";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { toast } from "react-toastify";
 import styles from "@/styles/DashboardLayout.module.css";
+import { Tooltip } from "./Parts/Tooltip/Tooltip";
 
 type Prop = {
   title?: string;
@@ -62,6 +63,9 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
     }
   };
 
+  // ツールチップ
+  const hoveredItemPos = useStore((state) => state.hoveredItemPos);
+
   return (
     <div className={`${styles.trustify_app}`}>
       <Head>
@@ -88,6 +92,9 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
 
       {/* モーダル */}
       {/* <Modal /> */}
+
+      {/* ツールチップ */}
+      {hoveredItemPos && <Tooltip />}
     </div>
   );
 };

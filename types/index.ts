@@ -8,6 +8,18 @@ export type ClickedItemPos = {
   itemHeight: number;
 } | null;
 
+// =================== Tooltip ===================
+// ホバー位置
+export type hoveredItemPos = {
+  x: number;
+  y: number;
+  itemWidth: number;
+  itemHeight: number;
+  content: string;
+  content2?: string | null;
+  display: string;
+} | null;
+
 // =================== Profile ===================
 
 //supabaseのprofilesテーブルのフィールド内容にデータ型を定義 初回登録時はsupabaseから取得の際にundefinedで返ってきて登録になるので、データ型はユニオン型で定義

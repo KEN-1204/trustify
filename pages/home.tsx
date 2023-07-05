@@ -5,7 +5,7 @@ import useStore from "@/store";
 import { Profile } from "@/types";
 import { Session, User, createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { GetServerSidePropsContext } from "next";
-import React, { FC } from "react";
+import React from "react";
 import { useEffectOnce } from "react-use";
 
 const DashboardHome = ({

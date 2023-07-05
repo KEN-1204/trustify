@@ -24,6 +24,7 @@
   --not-quite-black: #23272a;
   --caret-color-blue: #1da1f2;
   --caret-color-light-blue: #02e7f5;
+  /* TikTok */
   --caret-color-red: #ff3b5b;
   /* 現在のメインロゴ: #2B7FFF
   現在のメインロゴ: #0AFFFF */
@@ -38,6 +39,8 @@
   --bright-green: #00d436;
   --bright-green-rgb: 0, 212, 54;
   --bright-red: #f63e54;
+  /* TikTok */
+  --color-red-tk: #ff3b5b;
 
   /* インプット */
   --input-area-bg: rgba(242, 241, 238, 0.6);
@@ -86,16 +89,19 @@
 
   /* Canva 背景 #fff 背景サブ rgba(64,87,109,.07) #40576d12 */
   --color-bg-base: #fff;
-  --color-bg-sub: rgba(64, 87, 109, 0.071);
+  --color-bg-sub: rgba(64, 87, 109, 0.07);
   /* sub figma #f5f5f5 canva #40576d12 */
   --color-bg: #fff; /* メイン背景カラー */
   --color-bg2: #fff; /* メイン背景カラー */
   --color-bg-secondary: #f5f5f5; /* サブ背景カラー グレー */
   --color-bg-hp-main: #fff;
   --color-bg-hp-sub: var(--off-white);
+  --color-header-bg-active: rgba(64, 87, 109, 0.07);
   /* ブランドカラー　 */
-  --color-bg-brand: #0d99ff;
+  --color-bg-brand: #0066ff;
   --color-bg-brand-rgb: 13, 153, 255;
+  --color-bg-brand-f: #0d99ff; /* Figma */
+  --color-bg-brand05: #0d99ff80;
   --color-bg-brand-hover: #007be5;
   --color-bg-brand-hover-main: #3183ff;
   --color-bg-brand-pressed: #007be5;
@@ -135,6 +141,8 @@
 
   --color-text: rgba(0, 0, 0, 0.9); /* テキストカラー or #333333 */
   --color-text-rgb: 0, 0, 0; /* テキストカラー or #333333 */
+  --color-text-reverse: #fff;
+  --color-text-sub: rgba(25, 23, 17, 0.6);
   --color-text-secondary: rgba(0, 0, 0, 0.5); /* テキストサブカラー or #7d7d7d */
   --color-text-secondary-hover: rgba(0, 0, 0, 0.9);
   --color-main-text: #000;
@@ -170,8 +178,12 @@
   --color-text-brand-sub: #2b7fff;
   --color-text-brand-sub-rgb: 43, 127, 255;
   --color-text-brand-sub-hover: #2571e2;
+  --color-dashboard-header-text: #0066ff;
 
-  --color-icon: rgba(0, 0, 0, 0.9); /* アイコンカラー */
+  /* アイコンカラー */
+  /* --color-icon: rgba(0, 0, 0, 0.9);  */
+  --color-icon: #0d1216;
+  --color-icon-sub: #5d5d5d;
   --color-icon-brand: #007be5;
   --color-icon-brand-pressed: #0768cf;
   --color-icon-brand-secondary: #80caff;
@@ -223,16 +235,18 @@
   /* Youtube背景 background-color: #0f0f0f */
   /* Tiktok背景メイン background-color: rgb(18, 18, 18) #121212 背景サブ background-color: rgb(37, 37, 37) #252525 ブラックサブ2 background-color: rgba(255, 255, 255, 0.08) テーマカラー赤 background-color: rgb(255, 59, 92) #ff3b5c */
   --color-bg-base: #121212;
-  --color-bg-sub: #252525;
+  /* --color-bg-sub: #252525; */
+  --color-bg-sub: #383838;
   --color-bg: #2c2c2c; /* メイン背景カラー */
   --color-bg2: #141414; /* メイン背景カラー */
   --color-bg-secondary: #383838; /* サブ背景カラー グレー */
   --color-bg-hp-main: #000;
   --color-bg-hp-sub: var(--off-black);
+  --color-header-bg-active: #252525;
   /* ブランドカラー　背景 */
   --color-bg-brand: #0066ff;
   --color-bg-brand-rgb: 0, 102, 255;
-  --color-bg-brand_f: #0c8ce9; /* Figma */
+  --color-bg-brand-f: #0c8ce9; /* Figma */
   --color-bg-brand05: #0c8ce980;
   --color-bg-brand-hover: #0a6dc2;
   --color-bg-brand-hover-main: #3183ff;
@@ -273,6 +287,8 @@
 
   --color-text: rgba(255, 255, 255, 1); /* テキストカラー or #333333 */
   --color-text-rgb: 255, 255, 255; /* テキストカラー or #333333 */
+  --color-text-reverse: rgba(0, 0, 0, 0.9);
+  --color-text-sub: #ccc;
   --color-text-secondary: rgba(255, 255, 255, 0.7); /* テキストサブカラー or #7d7d7d */
   --color-text-secondary-hover: rgba(255, 255, 255, 1);
   --color-main-text: #000;
@@ -311,9 +327,12 @@
   --color-text-brand-sub: #2b7fff;
   --color-text-brand-sub-rgb: 43, 127, 255;
   --color-text-brand-sub-hover: #2571e2;
+  --color-dashboard-header-text: #0c8ce9;
+  /* --color-dashboard-header-text: #7cc4f8; */
 
   /* アイコン dark */
   --color-icon: rgba(255, 255, 255, 1); /* アイコンカラー */
+  --color-icon-sub: #ccc;
   --color-icon-brand: #7cc4f8;
   --color-icon-brand-pressed: #0c8ce9;
   --color-icon-brand-secondary: #536383;
