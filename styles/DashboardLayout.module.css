@@ -1,6 +1,7 @@
 .trustify_app {
   --sidebar-open-width: 240px;
   --sidebar-mini-width: 72px;
+  /* 72px = 40(ハンバーガーメニュー40px) + ヘッダーpadding-left: 16px + ロゴpadding-right: 16pxを合わせたサイズ */
 
   --header-height: 56px;
 }

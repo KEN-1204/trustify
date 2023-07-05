@@ -4,14 +4,14 @@ import styles from "./DashboardHomeComponent.module.css";
 
 export const DashboardHomeComponent = () => {
   const theme = useStore((state) => state.theme);
-  console.log("DashboardHomeComponentレンダリング theme", theme);
   return (
-    <div
-      className={`flex-center transition-base h-screen w-full  ${
-        theme === "light" ? "bg-[--color-bg-base] text-black" : "bg-[--color-bg-base] text-white"
-      }`}
-    >
-      HomeDashboard
+    <div className={`flex-center transition-base ${styles.app_main_container} relative `}>
+      <div className={`${styles.screen1} bg-[--color-bg-base]`}></div>
+      <div className={`${styles.screen1} bg-[--color-bg-secondary]`}></div>
+      <div className={`${styles.screen1} bg-[--color-bg-base]`}></div>
+      <div className={`${styles.screen1} bg-[--color-bg-secondary]`}></div>
+      <div className={`${styles.screen1} bg-[--color-bg-base]`}></div>
+      <div className={`${styles.screen1} bg-[--color-bg-secondary]`}></div>
     </div>
   );
 };

@@ -1,0 +1,10 @@
+.app_sidebar {
+  width: var(--sidebar-open-width);
+  height: 100vh;
+  position: fixed;
+  z-index: 90;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  background: var(--color-bg-base);
+}

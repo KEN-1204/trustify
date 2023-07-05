@@ -1,0 +1,21 @@
+.app_main_container {
+  position: relative;
+  margin-left: var(--sidebar-open-width);
+
+  background-color: var(--color-bg-base);
+  color: var(--color-text);
+
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding-top: var(--header-height);
+  /* overflow-y: scroll;
+  overflow-x: inherit; */
+}
+
+.screen1 {
+  min-height: calc(100vh - var(--header-height));
+  width: 100%;
+}

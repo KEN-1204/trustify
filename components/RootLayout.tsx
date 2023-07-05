@@ -1,5 +1,5 @@
 import useStore from "@/store";
-import React, { FC, ReactNode } from "react";
+import React, { FC, ReactNode, useEffect } from "react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 // import { Modal } from "./Modal/Modal";
@@ -17,6 +17,18 @@ type Prop = {
 
 export const RootLayout: FC<Prop> = ({ children }) => {
   const theme = useStore((state) => state.theme);
+
+  useEffect(() => {
+    if (theme === "light") {
+      document.body.classList.remove("theme_dark");
+      document.body.classList.add("theme_light");
+      document.body.style.colorScheme = "light";
+    } else {
+      document.body.classList.remove("theme_light");
+      document.body.classList.add("theme_dark");
+      document.body.style.colorScheme = "dark";
+    }
+  }, [theme]);
 
   return (
     <div className={`theme_${theme} `}>

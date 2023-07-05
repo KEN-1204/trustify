@@ -7,6 +7,9 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { toast } from "react-toastify";
 import styles from "@/styles/DashboardLayout.module.css";
 import { Tooltip } from "./Parts/Tooltip/Tooltip";
+import { DashboardHeader } from "./DashboardHeader/DashboardHeader";
+import { DashboardSidebar } from "./DashboardSidebar/DashboardSidebar";
+import { useEffectOnce } from "react-use";
 
 type Prop = {
   title?: string;
@@ -46,6 +49,16 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
     };
   }, [isOpenModal, openLangTab]);
 
+  // マウント時にbodyタグにoverflow: hiddenを設定して、ネイティブアプリケーションのようにする
+  useEffectOnce(() => {
+    // document.body.style.overflow = "hidden";
+    // if (theme === "light") {
+    //   document.body.style.backgroundColor = "#fff";
+    // } else {
+    //   document.body.style.backgroundColor = "#121212";
+    // }
+  });
+
   // ログアウト関数
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -71,11 +84,20 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
       <Head>
         <title>{title}</title>
       </Head>
-      {/* <header></header> */}
-      {/* <main className="">{children}</main> */}
-      <div className="relative flex h-full min-h-screen flex-col items-center">{children}</div>
-      {/* <footer></footer> */}
 
+      {/* ============================ メインコンテンツ ============================ */}
+      {/* ヘッダー */}
+      <DashboardHeader />
+      {/* サイドバー */}
+      <DashboardSidebar />
+      {/* メイン */}
+      <main>{children}</main>
+      {/* <main className="relative flex h-full min-h-screen flex-col items-center">{children}</main> */}
+      {/* フッター */}
+      {/* <footer></footer> */}
+      {/* ============================ メインコンテンツ ============================ */}
+
+      {/* ============================ 共通UIコンポーネント ============================ */}
       {/* サインアウトボタン */}
       <div className="flex-center fixed bottom-[2%] right-[8%] h-[50px] w-[50px] cursor-pointer">
         <div className="h-[50px] w-[50px] rounded-full bg-[red]" onClick={handleSignOut}></div>
@@ -95,6 +117,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
 
       {/* ツールチップ */}
       {hoveredItemPos && <Tooltip />}
+      {/* ============================ 共通UIコンポーネント ============================ */}
     </div>
   );
 };

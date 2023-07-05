@@ -42,13 +42,6 @@ const DashboardHome = ({
 
   return (
     <DashboardLayout title={langTitle}>
-      {/* <Header
-        logoSrc="/assets/images/Trustify_logo_white1.png"
-        blurDataURL="/assets/images/Trustify_logo_white1_blur.png"
-        logoSrcDark="/assets/images/Trustify_logo_black.png"
-        blurDataURLDark="/assets/images/Trustify_logo_black_blur.png"
-      /> */}
-      <DashboardHeader />
       <DashboardHomeComponent />
     </DashboardLayout>
   );

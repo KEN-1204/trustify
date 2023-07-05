@@ -1,5 +1,5 @@
 import useStore from "@/store";
-import React, { useState } from "react";
+import React, { FC, memo, useState } from "react";
 import styles from "./DashboardHeader.module.css";
 import { HiOutlineBars3 } from "react-icons/hi2";
 import { FiSettings } from "react-icons/fi";
@@ -10,7 +10,7 @@ import { BsFillGearFill } from "react-icons/bs";
 import Image from "next/image";
 import Link from "next/link";
 
-export const DashboardHeader = () => {
+export const DashboardHeaderMemo: FC = () => {
   const theme = useStore((state) => state.theme);
   const language = useStore((state) => state.language);
   const hoveredItemPos = useStore((state) => state.hoveredItemPos);
@@ -45,7 +45,7 @@ export const DashboardHeader = () => {
   const handleChangeActiveTab = () => {};
 
   return (
-    <div className={`${styles.app_header} transition-base`}>
+    <header className={`${styles.app_header} transition-base`}>
       {/* 左コンテンツ */}
       <div className="relative flex h-full  items-center justify-start ">
         <div
@@ -56,7 +56,7 @@ export const DashboardHeader = () => {
         >
           <HiOutlineBars3 className="text-[24px] text-[--color-text] " />
         </div>
-        <div className="relative flex h-full w-[145px] cursor-pointer select-none items-center justify-center">
+        <div className="relative flex h-full w-[145px] cursor-pointer select-none items-center justify-center pl-[16px]">
           <Image
             src={logoSrc}
             alt=""
@@ -72,7 +72,7 @@ export const DashboardHeader = () => {
       </div>
 
       {/* 真ん中のコンテンツ */}
-      <div className="flex h-full flex-1 pl-[15px]">
+      <div className="flex h-full flex-1 pl-[39px]">
         <nav>
           <ul
             className={`hidden h-full w-full items-center justify-around text-[14px] font-[500] text-[--navColor] md:flex`}
@@ -365,6 +365,8 @@ export const DashboardHeader = () => {
           </div>
         </div>
       </div>
-    </div>
+    </header>
   );
 };
+
+export const DashboardHeader = memo(DashboardHeaderMemo);
