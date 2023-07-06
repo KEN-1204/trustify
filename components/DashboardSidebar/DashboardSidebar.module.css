@@ -122,6 +122,9 @@
 .icon_wrapper svg path {
   stroke: var(--color-text-sub);
 }
+.icon_wrapper span {
+  max-width: 75px;
+}
 .text_wrapper {
   display: inline-flex;
   justify-content: flex-start;
@@ -152,12 +155,14 @@
 .menu_item.active .icon_wrapper svg,
 .menu_item.active .icon_wrapper svg path,
 .menu_item:hover .icon_wrapper svg path,
-.menu_item:hover .icon_wrapper svg path {
+.menu_item:hover .icon_wrapper svg path,
+.menu_item:hover .icon_wrapper span {
   color: var(--color-text);
   stroke: var(--color-text);
 }
 .menu_item.active .icon_wrapper svg,
-.menu_item.active .icon_wrapper svg path {
+.menu_item.active .icon_wrapper svg path,
+.menu_item.active .icon_wrapper span {
   color: #fff;
   stroke: #fff;
   /* stroke-width: 3px; */

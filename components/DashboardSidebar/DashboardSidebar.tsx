@@ -1,27 +1,15 @@
 import React, { FC, memo, useState } from "react";
 import styles from "./DashboardSidebar.module.css";
 import Link from "next/link";
-import { GrHomeRounded, GrDocumentDownload, GrDocumentText, GrDocumentVerified, GrUserManager } from "react-icons/gr";
-import { MdHomeFilled, MdOutlineLeaderboard, MdOutlineAdminPanelSettings } from "react-icons/md";
+import { GrHomeRounded, GrDocumentVerified, GrUserManager } from "react-icons/gr";
+import { MdOutlineLeaderboard, MdOutlineAdminPanelSettings } from "react-icons/md";
 import { HiOutlineBuildingOffice2, HiOutlineChatBubbleLeftRight, HiOutlineInboxArrowDown } from "react-icons/hi2";
-import { RiContactsLine, RiCalendar2Fill, RiMoneyCnyCircleLine, RiMoneyDollarCircleLine } from "react-icons/ri";
-import { RxActivityLog } from "react-icons/rx";
-import { FaFolderPlus, FaLink, FaUserTie } from "react-icons/fa";
-import { AiOutlineDropbox, AiOutlineMoneyCollect } from "react-icons/ai";
-import { BiChevronDown, BiMoneyWithdraw } from "react-icons/bi";
-import {
-  BsTelephonePlus,
-  BsCalendarDate,
-  BsTelephoneInbound,
-  BsChevronDown,
-  BsFolderPlus,
-  BsBoxSeam,
-} from "react-icons/bs";
+import { FaLink } from "react-icons/fa";
+import { AiOutlineMoneyCollect } from "react-icons/ai";
+import { BiMoneyWithdraw } from "react-icons/bi";
+import { BsTelephonePlus, BsCalendarDate, BsTelephoneInbound, BsChevronDown } from "react-icons/bs";
 import useStore from "@/store";
 import useDashboardStore from "@/store/useDashboardStore";
-import { FiFolderPlus } from "react-icons/fi";
-import { VscNewFolder } from "react-icons/vsc";
-import { TbFolderPlus } from "react-icons/tb";
 
 export const DashboardSidebarMemo: FC = () => {
   const language = useStore((state) => state.language);
@@ -895,11 +883,14 @@ export const DashboardSidebarMemo: FC = () => {
                     handleCloseTooltip();
                   }}
                 >
-                  <div className={`${styles.icon_wrapper}`} style={!isOpenSidebar ? { flexDirection: "column" } : {}}>
+                  <div
+                    className={`${styles.icon_wrapper} !max-w-[40px]`}
+                    style={!isOpenSidebar ? { flexDirection: "column" } : {}}
+                  >
                     <HiOutlineInboxArrowDown className="text-[24px] text-[var(--color-text)]" />
                     {!isOpenSidebar && (
                       <span className="pointer-events-none scale-[0.8] select-none truncate text-[10px]">
-                        ピックボックス１０
+                        ピックボックスピック
                       </span>
                     )}
                   </div>

@@ -6,7 +6,7 @@ import { FiSettings } from "react-icons/fi";
 import { IoSettingsOutline } from "react-icons/io5";
 import { SlSettings } from "react-icons/sl";
 import { AiOutlineBell } from "react-icons/ai";
-import { BsFillGearFill } from "react-icons/bs";
+import { BsChevronLeft, BsFillGearFill } from "react-icons/bs";
 import Image from "next/image";
 import Link from "next/link";
 import useDashboardStore from "@/store/useDashboardStore";
@@ -20,6 +20,7 @@ export const DashboardHeaderMemo: FC = () => {
   const setActiveMenuTab = useDashboardStore((state) => state.setActiveMenuTab);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   const setIsOpenSidebar = useDashboardStore((state) => state.setIsOpenSidebar);
+  const [tabPage, setTabPage] = useState(1)
   const logoSrc =
     theme === "light" ? "/assets/images/Trustify_logo_white1.png" : "/assets/images/Trustify_logo_black.png";
 
@@ -73,9 +74,21 @@ export const DashboardHeaderMemo: FC = () => {
         </div>
       </div>
 
+      {/* 矢印 */}
+      <div className="flex-center absolute  left-[15%] z-10 h-[35px] w-[35px] rounded-full bg-[#cccccc90]" onClick={() => {
+        if (tabPage === 1) return
+          setTabPage((prev) => {
+            const newPage = prev - 1
+            return newPage
+          })
+        return null
+      }}>
+        <BsChevronLeft />
+      </div>
+
       {/* 真ん中のコンテンツ */}
-      <div className="flex h-full flex-1 pl-[39px]">
-        <nav>
+      <div className="relative flex h-full flex-1 bg-red-100 pl-[39px] md:max-w-[1036px] md:overflow-x-hidden">
+        <nav className="-ml-[calc(100%+39px)]">
           <ul
             className={`hidden h-full w-full items-center justify-around text-[14px] font-[500] text-[--navColor] md:flex`}
           >
@@ -325,10 +338,68 @@ export const DashboardHeaderMemo: FC = () => {
             </li>
           </ul>
         </nav>
+        <nav className="h-full min-w-[996px] pl-[39px]">
+          <ul
+            className={`hidden h-full w-full items-center justify-start text-[14px] font-[500] text-[--navColor] md:flex`}
+          >
+            <li className={`${styles.navList} max-w-[81.5px]`}>
+              <Link
+                href="/home"
+                prefetch={false}
+                className={`${styles.navbarItem} ${activeMenuTab === "Admin" ? styles.active : ""} `}
+                onClick={() => setActiveMenuTab("VIP")}
+              >
+                <div
+                  className={`${styles.navbarItemInner}`}
+                  data-text="管理者専用スペース"
+                  onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+                  onMouseLeave={handleCloseTooltip}
+                >
+                  <span>
+                    {language === "Ja" && "管理者"}
+                    {language === "En" && "Admin"}
+                  </span>
+                </div>
+              </Link>
+            </li>
+            <li className={`${styles.navList} max-w-[81px]`}>
+              <Link
+                href="/home"
+                prefetch={false}
+                className={`${styles.navbarItem} ${activeMenuTab === "Admin" ? styles.active : ""} `}
+                onClick={() => setActiveMenuTab("VIP")}
+              >
+                <div
+                  className={`${styles.navbarItemInner}`}
+                  data-text="管理者専用スペース"
+                  onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+                  onMouseLeave={handleCloseTooltip}
+                >
+                  <span>
+                    {language === "Ja" && "管理者"}
+                    {language === "En" && "Admin"}
+                  </span>
+                </div>
+              </Link>
+            </li>
+          </ul>
+        </nav>
+      </div>
+
+      {/* 右矢印 */}
+      <div className="flex-center absolute  right-[15%] z-10 h-[35px] w-[35px] rounded-full bg-[#cccccc90]" onClick={() => {
+        if (tabPage !== 2) {
+          setTabPage((prev) => {
+            const newPage = prev + 1
+            return newPage
+          })
+        }
+      }}>
+        <BsChevronRight />
       </div>
 
       {/* 右側のコンテンツ */}
-      <div className="ml-[10px] flex h-[40px] w-[185px] flex-row-reverse items-center justify-start">
+      <div className="flex h-[40px] w-[165px]  flex-row-reverse items-center justify-start">
         {/* 一番右 プロフィールアイコン */}
         <div className="flex-center h-full  w-[52px] px-[6px] py-[1px]">
           <div
