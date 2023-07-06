@@ -58,6 +58,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
     // } else {
     //   document.body.style.backgroundColor = "#121212";
     // }
+    document.body.style.overflow = "hidden";
   });
 
   // ログアウト関数

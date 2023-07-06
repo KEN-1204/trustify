@@ -51,7 +51,7 @@
   /* background: var(--color-bg-brand-f); */
   /* color: var(--color-text); */
   background: var(--color-bg-sub);
-  color: var(--color-dashboard-header-text);
+  /* color: var(--color-dashboard-header-text); */
 }
 
 .navbarItemInner {
@@ -65,6 +65,11 @@
 }
 .navbarItemInner span {
   pointer-events: none;
+  user-select: none;
+}
+.navbarItem.active .navbarItemInner span {
+  color: var(--color-dashboard-header-text);
+  font-weight: 700;
 }
 .notice_outer {
   background: var(--color-bg-base);

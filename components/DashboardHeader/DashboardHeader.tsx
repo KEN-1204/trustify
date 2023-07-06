@@ -18,6 +18,8 @@ export const DashboardHeaderMemo: FC = () => {
   const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
   const activeMenuTab = useDashboardStore((state) => state.activeMenuTab);
   const setActiveMenuTab = useDashboardStore((state) => state.setActiveMenuTab);
+  const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
+  const setIsOpenSidebar = useDashboardStore((state) => state.setIsOpenSidebar);
   const logoSrc =
     theme === "light" ? "/assets/images/Trustify_logo_white1.png" : "/assets/images/Trustify_logo_black.png";
 
@@ -48,10 +50,11 @@ export const DashboardHeaderMemo: FC = () => {
       {/* 左コンテンツ */}
       <div className="relative flex h-full  items-center justify-start ">
         <div
-          data-text="メニューを縮小"
+          data-text={`${isOpenSidebar ? "メニューを縮小" : "メニューを拡大"}`}
           className="flex-center  min-h-[40px] min-w-[40px] cursor-pointer rounded-full hover:bg-[--color-bg-sub]"
           onMouseEnter={(e) => handleOpenTooltip(e, "left")}
           onMouseLeave={handleCloseTooltip}
+          onClick={() => setIsOpenSidebar(!isOpenSidebar)}
         >
           <HiOutlineBars3 className="text-[24px] text-[--color-text] " />
         </div>
@@ -105,7 +108,7 @@ export const DashboardHeaderMemo: FC = () => {
               >
                 <div
                   className={`${styles.navbarItemInner}`}
-                  data-text="営業先の会社リストを一覧で確認"
+                  data-text="営業先の会社リストを一覧で確認する"
                   onMouseEnter={(e) => handleOpenTooltip(e, "center")}
                   onMouseLeave={handleCloseTooltip}
                 >
@@ -126,7 +129,7 @@ export const DashboardHeaderMemo: FC = () => {
                 <div
                   className={`${styles.navbarItemInner}`}
                   data-text="営業先の担当者リストと"
-                  data-text2="担当者ごとに活動履歴を記録・一覧で確認"
+                  data-text2="担当者ごとに活動履歴を記録して一覧で確認する"
                   onMouseEnter={(e) => handleOpenTooltip(e, "center")}
                   onMouseLeave={handleCloseTooltip}
                 >
@@ -147,7 +150,7 @@ export const DashboardHeaderMemo: FC = () => {
                 <div
                   className={`${styles.navbarItemInner}`}
                   data-text="社内全体の「TEL・面談」の"
-                  data-text2="活動履歴を一覧で確認"
+                  data-text2="活動履歴を一覧で確認する"
                   onMouseEnter={(e) => handleOpenTooltip(e, "center")}
                   onMouseLeave={handleCloseTooltip}
                 >
@@ -167,7 +170,7 @@ export const DashboardHeaderMemo: FC = () => {
               >
                 <div
                   className={`${styles.navbarItemInner}`}
-                  data-text="「訪問・WEB面談」履歴を記録・一覧で確認"
+                  data-text="「訪問・WEB面談」履歴を記録して一覧で確認する"
                   onMouseEnter={(e) => handleOpenTooltip(e, "center")}
                   onMouseLeave={handleCloseTooltip}
                 >
@@ -209,7 +212,7 @@ export const DashboardHeaderMemo: FC = () => {
                 <div
                   className={`${styles.navbarItemInner}`}
                   data-text="面談・訪問時に"
-                  data-text2="「商談、申請、受注」に展開した物件を記録・一覧で確認"
+                  data-text2="「商談、申請、受注」に展開した物件を記録して一覧で確認する"
                   onMouseEnter={(e) => handleOpenTooltip(e, "center")}
                   onMouseLeave={handleCloseTooltip}
                 >
@@ -241,11 +244,11 @@ export const DashboardHeaderMemo: FC = () => {
               </Link>
             </li>
             <li className={`${styles.navList}`}>
-              <Link
-                href="/home"
-                prefetch={false}
+              <div
+                // href="/home"
+                // prefetch={false}
                 className={`${styles.navbarItem} ${activeMenuTab === "Lead" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("Lead")}
+                // onClick={() => setActiveMenuTab("Lead")}
               >
                 <div
                   className={`${styles.navbarItemInner}`}
@@ -258,7 +261,7 @@ export const DashboardHeaderMemo: FC = () => {
                     {language === "En" && "Lead"}
                   </span>
                 </div>
-              </Link>
+              </div>
             </li>
             <li className={`${styles.navList}`}>
               <Link

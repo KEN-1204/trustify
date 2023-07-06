@@ -33,6 +33,8 @@ export type hoveredItemPosHorizon = {
 // =================== アクティブタブ ===================
 export type ActiveMenuTab = string;
 
+// =================== サイドバーセクション開閉状態 ===================
+
 // =================== Profile ===================
 
 //supabaseのprofilesテーブルのフィールド内容にデータ型を定義 初回登録時はsupabaseから取得の際にundefinedで返ってきて登録になるので、データ型はユニオン型で定義
