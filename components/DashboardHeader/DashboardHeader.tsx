@@ -6,7 +6,7 @@ import { FiSettings } from "react-icons/fi";
 import { IoSettingsOutline } from "react-icons/io5";
 import { SlSettings } from "react-icons/sl";
 import { AiOutlineBell } from "react-icons/ai";
-import { BsChevronLeft, BsFillGearFill } from "react-icons/bs";
+import { BsChevronLeft, BsChevronRight, BsFillGearFill } from "react-icons/bs";
 import Image from "next/image";
 import Link from "next/link";
 import useDashboardStore from "@/store/useDashboardStore";
@@ -20,7 +20,7 @@ export const DashboardHeaderMemo: FC = () => {
   const setActiveMenuTab = useDashboardStore((state) => state.setActiveMenuTab);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   const setIsOpenSidebar = useDashboardStore((state) => state.setIsOpenSidebar);
-  const [tabPage, setTabPage] = useState(1)
+  const [tabPage, setTabPage] = useState(1);
   const logoSrc =
     theme === "light" ? "/assets/images/Trustify_logo_white1.png" : "/assets/images/Trustify_logo_black.png";
 
@@ -45,6 +45,8 @@ export const DashboardHeaderMemo: FC = () => {
   const handleCloseTooltip = () => {
     setHoveredItemPos(null);
   };
+
+  console.log("🌟tabPage", tabPage);
 
   return (
     <header className={`${styles.app_header} transition-base`}>
@@ -72,23 +74,29 @@ export const DashboardHeaderMemo: FC = () => {
             // className="!relative !h-[60px] !w-[200px] object-cover"
           />
         </div>
+        {/* ヘッダータブ左スクロール時に連続でツールチップが表示されないようにするためのオーバーレイ */}
+        <div className="transition-base absolute left-[185px] top-0 z-30 h-full w-[39px] bg-[var(--color-bg-base)]"></div>
       </div>
 
-      {/* 矢印 */}
-      <div className="flex-center absolute  left-[15%] z-10 h-[35px] w-[35px] rounded-full bg-[#cccccc90]" onClick={() => {
-        if (tabPage === 1) return
-          setTabPage((prev) => {
-            const newPage = prev - 1
-            return newPage
-          })
-        return null
-      }}>
-        <BsChevronLeft />
-      </div>
+      {/* 左矢印 */}
+      {tabPage !== 1 && (
+        <div
+          className={`flex-center absolute left-[14.5%]  z-50 h-[35px] w-[35px] cursor-pointer rounded-full hover:bg-[var(--color-btn-brand-f05)]`}
+          onClick={() => {
+            if (tabPage === 1) return;
+            setTabPage((prev) => {
+              const newPage = prev - 1;
+              return newPage;
+            });
+          }}
+        >
+          <BsChevronLeft className="text-[var(--color-text)]" />
+        </div>
+      )}
 
       {/* 真ん中のコンテンツ */}
-      <div className="relative flex h-full flex-1 bg-red-100 pl-[39px] md:max-w-[1036px] md:overflow-x-hidden">
-        <nav className="-ml-[calc(100%+39px)]">
+      <div className="bg-blue-0 relative flex h-full flex-1 justify-start pl-[39px] md:overflow-x-hidden">
+        <nav className={`${tabPage === 2 ? "-ml-[calc(100%+39px)]" : ""} transition-base`}>
           <ul
             className={`hidden h-full w-full items-center justify-around text-[14px] font-[500] text-[--navColor] md:flex`}
           >
@@ -387,16 +395,21 @@ export const DashboardHeaderMemo: FC = () => {
       </div>
 
       {/* 右矢印 */}
-      <div className="flex-center absolute  right-[15%] z-10 h-[35px] w-[35px] rounded-full bg-[#cccccc90]" onClick={() => {
-        if (tabPage !== 2) {
-          setTabPage((prev) => {
-            const newPage = prev + 1
-            return newPage
-          })
-        }
-      }}>
-        <BsChevronRight />
-      </div>
+      {tabPage !== 2 && (
+        <div
+          className="flex-center absolute right-[12.3%] z-50 h-[35px] w-[35px] cursor-pointer rounded-full hover:bg-[var(--color-btn-brand-f05)]"
+          onClick={() => {
+            if (tabPage !== 2) {
+              setTabPage((prev) => {
+                const newPage = prev + 1;
+                return newPage;
+              });
+            }
+          }}
+        >
+          <BsChevronRight className="text-[var(--color-text)]" />
+        </div>
+      )}
 
       {/* 右側のコンテンツ */}
       <div className="flex h-[40px] w-[165px]  flex-row-reverse items-center justify-start">

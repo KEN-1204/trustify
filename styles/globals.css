@@ -112,7 +112,7 @@
   --color-bg-brand-sub-rgb: 43, 127, 255;
   --color-bg-brand-sub-hover: #2571e2;
 
-  /* サイドばー */
+  /* サイドばー　ライト */
   /* --color-sidebar-active: #e5f4ff; */
   /* --color-sidebar-active: #2b7fff; */
   --color-sidebar-active: #0d99ff;
@@ -123,6 +123,8 @@
   --color-btn-brand: #2b7fff;
   --color-btn-brand-rgb: 43, 127, 255;
   --color-btn-brand-hover: #2571e2;
+  /* ボタン 薄め */
+  --color-btn-brand-f05: #e5f4ff;
 
   /* ボーダーカラー */
   --color-border: #e6e6e6;
@@ -279,10 +281,13 @@
   /* --color-sidebar-active: #275190; */
   /* --color-sidebar-active: #24608b; */
 
-  /* ボタン */
+  /* ボタン dark */
   --color-btn-brand: #2b7fff;
   --color-btn-brand-rgb: 43, 127, 255;
   --color-btn-brand-hover: #2571e2;
+
+  /* ボタン 薄め dark */
+  --color-btn-brand-f05: #0e5d95;
 
   /* ボーダーカラー */
   /* --color-border: #444444;  */
