@@ -182,11 +182,12 @@
   Apple light 紫テキスト --indigo: #622aff
   Apple light グラデーションテキスト background-image: linear-gradient(90deg,#b434ab 0%,#866cbe 30%,#4dbbd8);
   */
+  /* テキストカラー　ライト */
   /* Figma */
   --color-text-brand: #2b7fff;
   --color-text-brand-rgb: 0, 123, 229;
-  /* Figma */
-  --color-text-brand-f: #007be5;
+  /* Figma ライト */
+  --color-text-brand-f: #0d99ff;
   --color-text-onbrand: #fff; /* ブランドカラー上のテキストカラー */
   --color-text-brand-sub: #2b7fff;
   --color-text-brand-sub-rgb: 43, 127, 255;
@@ -346,7 +347,7 @@
   /* ブランドカラー　テキスト メイン背景 #0066ff Next.js #0070f3 Apple #2997ff Figma #0c8ce9*/
   --color-text-brand: #2b7fff;
   --color-text-brand-rgb: 0, 112, 243; /* タグテキストカラー */
-  /* タグテキストカラー */
+  /* タグテキストカラー dark */
   /* --color-text-brand-f: #7cc4f8; */
   --color-text-brand-f: #0c8ce9;
   --color-text-onbrand: #fff; /* ブランドカラー上のテキストカラー */

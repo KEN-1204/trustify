@@ -12,6 +12,9 @@ type State = {
   // 【サイドバーメニュー開閉状態】
   isOpenSideBarMenu: boolean;
   setIsOpenSideBarMenu: (payload: boolean) => void;
+  // 【サイドバーピックボックス開閉状態】
+  isOpenSideBarPickBox: boolean;
+  setIsOpenSideBarPickBox: (payload: boolean) => void;
 
   // 【サイドバーの拡大・縮小】
   isOpenSidebar: boolean;
@@ -26,9 +29,12 @@ const useDashboardStore = create<State>((set) => ({
   // 【サイドバーメニュー開閉状態】
   isOpenSideBarMenu: true,
   setIsOpenSideBarMenu: (payload) => set({ isOpenSideBarMenu: payload }),
+  // 【サイドバーピックボックス開閉状態】
+  isOpenSideBarPickBox: true,
+  setIsOpenSideBarPickBox: (payload) => set({ isOpenSideBarPickBox: payload }),
   // 【サイドバーの拡大・縮小】
   isOpenSidebar: true,
-  setIsOpenSidebar: (payload) => set({ isOpenSidebar: payload })
+  setIsOpenSidebar: (payload) => set({ isOpenSidebar: payload }),
 }));
 
 export default useDashboardStore;
