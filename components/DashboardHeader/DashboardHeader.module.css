@@ -63,7 +63,9 @@
   align-items: center;
   justify-content: center;
 }
-
+.navbarItemInner span {
+  pointer-events: none;
+}
 .notice_outer {
   background: var(--color-bg-base);
   width: 12px;

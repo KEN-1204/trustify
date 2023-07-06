@@ -7,4 +7,113 @@
   left: 0;
   bottom: 0;
   background: var(--color-bg-base);
+  border-right: 1px solid var(--color-border);
+}
+.wrapper {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  position: relative;
+}
+.spacer {
+  width: 100%;
+  height: 0;
+  margin-top: var(--header-height);
+}
+.content_container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  /* background-color: #00000010; */
+  overflow-y: auto;
+}
+.section {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.menu_container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 12px;
+  /* padding-left: 4px; */
+  /* padding-right: 4px; */
+  padding-left: 0px;
+  padding-right: 0px;
+  border-bottom: 1px solid var(--color-border-deep);
+}
+.menu_item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  /* width: calc(100% - 12px); */
+  width: 100%;
+  /* border-radius: 4px; */
+  /* border-radius: 4px; */
+  padding-left: 4px;
+  min-height: 40px;
+  cursor: pointer;
+  color: var(--color-text-sub);
+}
+.menu_item:hover {
+  background-color: var(--color-bg-sub);
+  color: var(--color-text);
+}
+.menu_item.active {
+  background-color: var(--color-sidebar-active);
+  color: var(--color-text);
+  /* background-color: var(--color-bg-sub-dark); */
+}
+.menu_item_inner {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  width: 100%;
+  height: 40px;
+}
+.icon_wrapper {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  vertical-align: middle;
+  min-width: 40px;
+  height: 40px;
+  pointer-events: none;
+}
+.icon_wrapper svg {
+  color: var(--color-text-sub);
+}
+.icon_wrapper svg path {
+  stroke: var(--color-text-sub);
+}
+.text_wrapper {
+  display: inline-flex;
+  justify-content: flex-start;
+  align-items: center;
+  position: relative;
+  /* vertical-align: middle; */
+  width: 100%;
+  height: 100%;
+  padding-left: 12px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  font-size: 15px;
+  pointer-events: none;
+}
+
+.menu_item.active .icon_wrapper svg,
+.menu_item.active .icon_wrapper svg path,
+.menu_item:hover .icon_wrapper svg path,
+.menu_item:hover .icon_wrapper svg path {
+  color: var(--color-text);
+  stroke: var(--color-text);
 }

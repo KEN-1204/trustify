@@ -90,6 +90,7 @@
   /* Canva 背景 #fff 背景サブ rgba(64,87,109,.07) #40576d12 */
   --color-bg-base: #fff;
   --color-bg-sub: rgba(64, 87, 109, 0.07);
+  --color-bg-sub-dark: rgba(57, 76, 96, 0.15);
   /* sub figma #f5f5f5 canva #40576d12 */
   --color-bg: #fff; /* メイン背景カラー */
   --color-bg2: #fff; /* メイン背景カラー */
@@ -101,6 +102,7 @@
   --color-bg-brand: #0066ff;
   --color-bg-brand-rgb: 13, 153, 255;
   --color-bg-brand-f: #0d99ff; /* Figma */
+  --color-bg-brand-f05: #e5f4ff; /* Figma */
   --color-bg-brand05: #0d99ff80;
   --color-bg-brand-hover: #007be5;
   --color-bg-brand-hover-main: #3183ff;
@@ -110,13 +112,19 @@
   --color-bg-brand-sub-rgb: 43, 127, 255;
   --color-bg-brand-sub-hover: #2571e2;
 
+  /* サイドばー */
+  --color-sidebar-active: #e5f4ff;
+  /* --color-sidebar-active: #ddf0fe; */
+
   /* ボタン */
   --color-btn-brand: #2b7fff;
   --color-btn-brand-rgb: 43, 127, 255;
   --color-btn-brand-hover: #2571e2;
 
-  --color-border: #e6e6e6; /* ボーダーカラー */
-  --color-border-deep: #ccc; /* ボーダーカラー */
+  /* ボーダーカラー */
+  --color-border: #e6e6e6;
+  /* --color-border: #ccc; */
+  --color-border-deep: #ccc;
   --color-border-strong: #000;
   --header-border-bottom: 0px 2px 10px 0px rgba(0, 0, 0, 0.2);
   --color-border-brand: #bde3ff;
@@ -237,6 +245,7 @@
   --color-bg-base: #121212;
   /* --color-bg-sub: #252525; */
   --color-bg-sub: #383838;
+  --color-bg-sub-dark: #252525;
   --color-bg: #2c2c2c; /* メイン背景カラー */
   --color-bg2: #141414; /* メイン背景カラー */
   --color-bg-secondary: #383838; /* サブ背景カラー グレー */
@@ -256,13 +265,21 @@
   --color-bg-brand-sub-rgb: 43, 127, 255;
   --color-bg-brand-sub-hover: #2571e2;
 
+  /* サイドバー */
+  /* --color-sidebar-active: #0c8ce9; */
+  /* --color-sidebar-active: #2b7fff; */
+  /* --color-sidebar-active: #476593; */
+  --color-sidebar-active: #24608b;
+
   /* ボタン */
   --color-btn-brand: #2b7fff;
   --color-btn-brand-rgb: 43, 127, 255;
   --color-btn-brand-hover: #2571e2;
 
-  --color-border: #444444; /* ボーダーカラー */
-  --color-border-deep: #333; /* ボーダーカラー */
+  /* ボーダーカラー */
+  /* --color-border: #444444;  */
+  --color-border: #333;
+  --color-border-deep: #444;
   --color-border-strong: #000;
   --header-border-bottom: inset 0 -1px 0 0 hsla(0, 0%, 100%, 0.1);
   --color-border-brand: #105cad;

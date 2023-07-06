@@ -21,17 +21,21 @@ export const Tooltip = () => {
   //   }, [rect]);
 
   let hoveredItemHalfWidth = 0;
+  let hoveredItemWidth = 0;
   let hoveredItemHeight = 0;
   let hoveredItemPositionX = 0;
   let hoveredItemPositionY = 0;
   let hoveredItemDisplay;
   if (hoveredItemPos) {
     hoveredItemHalfWidth = hoveredItemPos.itemWidth / 2;
+    hoveredItemWidth = hoveredItemPos.itemWidth;
     hoveredItemHeight = hoveredItemPos.itemHeight;
     hoveredItemPositionX = hoveredItemPos.x;
     hoveredItemPositionY = hoveredItemPos.y;
     hoveredItemDisplay = hoveredItemPos.display;
   }
+
+  console.log("🌟hoveredItemPositionX + hoveredItemWidth", hoveredItemPositionX + hoveredItemWidth);
 
   // console.log(window.innerWidth);
 

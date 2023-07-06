@@ -10,6 +10,7 @@ import { Tooltip } from "./Parts/Tooltip/Tooltip";
 import { DashboardHeader } from "./DashboardHeader/DashboardHeader";
 import { DashboardSidebar } from "./DashboardSidebar/DashboardSidebar";
 import { useEffectOnce } from "react-use";
+import { TooltipBlur } from "./Parts/Tooltip/TooltipBlur";
 
 type Prop = {
   title?: string;
@@ -78,6 +79,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
 
   // ツールチップ
   const hoveredItemPos = useStore((state) => state.hoveredItemPos);
+  const hoveredItemPosHorizon = useStore((state) => state.hoveredItemPosHorizon);
 
   return (
     <div className={`${styles.trustify_app}`}>
@@ -117,6 +119,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
 
       {/* ツールチップ */}
       {hoveredItemPos && <Tooltip />}
+      {hoveredItemPosHorizon && <TooltipBlur />}
       {/* ============================ 共通UIコンポーネント ============================ */}
     </div>
   );

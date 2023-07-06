@@ -1,4 +1,4 @@
-import { ClickedItemPos, hoveredItemPos } from "@/types";
+import { ClickedItemPos, hoveredItemPos, hoveredItemPosHorizon } from "@/types";
 import { Session } from "@supabase/supabase-js";
 import { ReactNode } from "react";
 import { create } from "zustand";
@@ -11,9 +11,12 @@ type State = {
   clickedItemPosOver: ClickedItemPos;
   setClickedItemPosOver: (payload: ClickedItemPos) => void;
 
-  // ツールチップ ホバー位置
+  // ツールチップ ホバー位置 上下
   hoveredItemPos: hoveredItemPos;
   setHoveredItemPos: (payload: hoveredItemPos) => void;
+  // ツールチップ ホバー位置 左右
+  hoveredItemPosHorizon: hoveredItemPosHorizon;
+  setHoveredItemPosHorizon: (payload: hoveredItemPosHorizon) => void;
 
   // =================== 認証関連 ===================
   // セッション情報
@@ -83,6 +86,9 @@ const useStore = create<State>((set) => ({
   // 【ホバーしたアイテムのポジションを取得 下側にツールチップを表示】
   hoveredItemPos: null,
   setHoveredItemPos: (payload) => set({ hoveredItemPos: payload }),
+  // 【ツールチップ ホバー位置 左右】
+  hoveredItemPosHorizon: null,
+  setHoveredItemPosHorizon: (payload) => set({ hoveredItemPosHorizon: payload }),
 
   // =================== 認証関連 ===================
   // 【セッション情報】

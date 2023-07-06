@@ -19,6 +19,19 @@ export type hoveredItemPos = {
   content2?: string | null;
   display: string;
 } | null;
+// 左右にツールチップを表示
+export type hoveredItemPosHorizon = {
+  x: number;
+  y: number;
+  itemWidth: number;
+  itemHeight: number;
+  content: string;
+  content2?: string | null;
+  display?: string | null;
+} | null;
+
+// =================== アクティブタブ ===================
+export type ActiveMenuTab = string;
 
 // =================== Profile ===================
 

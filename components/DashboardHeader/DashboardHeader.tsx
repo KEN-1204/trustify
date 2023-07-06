@@ -9,20 +9,22 @@ import { AiOutlineBell } from "react-icons/ai";
 import { BsFillGearFill } from "react-icons/bs";
 import Image from "next/image";
 import Link from "next/link";
+import useDashboardStore from "@/store/useDashboardStore";
 
 export const DashboardHeaderMemo: FC = () => {
   const theme = useStore((state) => state.theme);
   const language = useStore((state) => state.language);
   const hoveredItemPos = useStore((state) => state.hoveredItemPos);
   const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
-  const [activeTab, setActiveTab] = useState("HOME");
+  const activeMenuTab = useDashboardStore((state) => state.activeMenuTab);
+  const setActiveMenuTab = useDashboardStore((state) => state.setActiveMenuTab);
   const logoSrc =
     theme === "light" ? "/assets/images/Trustify_logo_white1.png" : "/assets/images/Trustify_logo_black.png";
 
   const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
-    console.log("🌟ツールチップ", (e.target as HTMLDivElement).dataset);
+    // console.log("ツールチップx, y width , height", x, y, width, height);
     const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
       ? ((e.target as HTMLDivElement).dataset.text2 as string)
       : "";
@@ -40,9 +42,6 @@ export const DashboardHeaderMemo: FC = () => {
   const handleCloseTooltip = () => {
     setHoveredItemPos(null);
   };
-
-  // アクティブタブ変更
-  const handleChangeActiveTab = () => {};
 
   return (
     <header className={`${styles.app_header} transition-base`}>
@@ -81,8 +80,8 @@ export const DashboardHeaderMemo: FC = () => {
               <Link
                 href="/home"
                 prefetch={false}
-                className={`${styles.navbarItem} ${activeTab === "HOME" ? styles.active : ""} `}
-                onClick={() => setActiveTab("HOME")}
+                className={`${styles.navbarItem} ${activeMenuTab === "HOME" ? styles.active : ""} `}
+                onClick={() => setActiveMenuTab("HOME")}
               >
                 <div
                   className={`${styles.navbarItemInner}`}
@@ -101,8 +100,8 @@ export const DashboardHeaderMemo: FC = () => {
               <Link
                 href="/home"
                 prefetch={false}
-                className={`${styles.navbarItem} ${activeTab === "Company" ? styles.active : ""} `}
-                onClick={() => setActiveTab("Company")}
+                className={`${styles.navbarItem} ${activeMenuTab === "Company" ? styles.active : ""} `}
+                onClick={() => setActiveMenuTab("Company")}
               >
                 <div
                   className={`${styles.navbarItemInner}`}
@@ -121,8 +120,8 @@ export const DashboardHeaderMemo: FC = () => {
               <Link
                 href="/home"
                 prefetch={false}
-                className={`${styles.navbarItem} ${activeTab === "Contacts" ? styles.active : ""} `}
-                onClick={() => setActiveTab("Contacts")}
+                className={`${styles.navbarItem} ${activeMenuTab === "Contacts" ? styles.active : ""} `}
+                onClick={() => setActiveMenuTab("Contacts")}
               >
                 <div
                   className={`${styles.navbarItemInner}`}
@@ -142,8 +141,8 @@ export const DashboardHeaderMemo: FC = () => {
               <Link
                 href="/home"
                 prefetch={false}
-                className={`${styles.navbarItem} ${activeTab === "Activity" ? styles.active : ""} `}
-                onClick={() => setActiveTab("Activity")}
+                className={`${styles.navbarItem} ${activeMenuTab === "Activity" ? styles.active : ""} `}
+                onClick={() => setActiveMenuTab("Activity")}
               >
                 <div
                   className={`${styles.navbarItemInner}`}
@@ -163,8 +162,8 @@ export const DashboardHeaderMemo: FC = () => {
               <Link
                 href="/home"
                 prefetch={false}
-                className={`${styles.navbarItem} ${activeTab === "Meeting" ? styles.active : ""} `}
-                onClick={() => setActiveTab("Meeting")}
+                className={`${styles.navbarItem} ${activeMenuTab === "Meeting" ? styles.active : ""} `}
+                onClick={() => setActiveMenuTab("Meeting")}
               >
                 <div
                   className={`${styles.navbarItemInner}`}
@@ -183,8 +182,8 @@ export const DashboardHeaderMemo: FC = () => {
               <Link
                 href="/home"
                 prefetch={false}
-                className={`${styles.navbarItem} ${activeTab === "Calendar" ? styles.active : ""} `}
-                onClick={() => setActiveTab("Calendar")}
+                className={`${styles.navbarItem} ${activeMenuTab === "Calendar" ? styles.active : ""} `}
+                onClick={() => setActiveMenuTab("Calendar")}
               >
                 <div
                   className={`${styles.navbarItemInner}`}
@@ -204,8 +203,8 @@ export const DashboardHeaderMemo: FC = () => {
               <Link
                 href="/home"
                 prefetch={false}
-                className={`${styles.navbarItem} ${activeTab === "Property" ? styles.active : ""} `}
-                onClick={() => setActiveTab("Property")}
+                className={`${styles.navbarItem} ${activeMenuTab === "Property" ? styles.active : ""} `}
+                onClick={() => setActiveMenuTab("Property")}
               >
                 <div
                   className={`${styles.navbarItemInner}`}
@@ -225,8 +224,8 @@ export const DashboardHeaderMemo: FC = () => {
               <Link
                 href="/home"
                 prefetch={false}
-                className={`${styles.navbarItem} ${activeTab === "Quotation" ? styles.active : ""} `}
-                onClick={() => setActiveTab("Quotation")}
+                className={`${styles.navbarItem} ${activeMenuTab === "Quotation" ? styles.active : ""} `}
+                onClick={() => setActiveMenuTab("Quotation")}
               >
                 <div
                   className={`${styles.navbarItemInner}`}
@@ -245,8 +244,8 @@ export const DashboardHeaderMemo: FC = () => {
               <Link
                 href="/home"
                 prefetch={false}
-                className={`${styles.navbarItem} ${activeTab === "Lead" ? styles.active : ""} `}
-                onClick={() => setActiveTab("Lead")}
+                className={`${styles.navbarItem} ${activeMenuTab === "Lead" ? styles.active : ""} `}
+                onClick={() => setActiveMenuTab("Lead")}
               >
                 <div
                   className={`${styles.navbarItemInner}`}
@@ -265,8 +264,8 @@ export const DashboardHeaderMemo: FC = () => {
               <Link
                 href="/home"
                 prefetch={false}
-                className={`${styles.navbarItem} ${activeTab === "Alignment" ? styles.active : ""} `}
-                onClick={() => setActiveTab("Alignment")}
+                className={`${styles.navbarItem} ${activeMenuTab === "Alignment" ? styles.active : ""} `}
+                onClick={() => setActiveMenuTab("Alignment")}
               >
                 <div
                   className={`${styles.navbarItemInner}`}
@@ -285,8 +284,8 @@ export const DashboardHeaderMemo: FC = () => {
               <Link
                 href="/home"
                 prefetch={false}
-                className={`${styles.navbarItem} ${activeTab === "SDB" ? styles.active : ""} `}
-                onClick={() => setActiveTab("SDB")}
+                className={`${styles.navbarItem} ${activeMenuTab === "SDB" ? styles.active : ""} `}
+                onClick={() => setActiveMenuTab("SDB")}
               >
                 <div
                   className={`${styles.navbarItemInner}`}
@@ -305,8 +304,8 @@ export const DashboardHeaderMemo: FC = () => {
               <Link
                 href="/home"
                 prefetch={false}
-                className={`${styles.navbarItem} ${activeTab === "Admin" ? styles.active : ""} `}
-                onClick={() => setActiveTab("VIP")}
+                className={`${styles.navbarItem} ${activeMenuTab === "Admin" ? styles.active : ""} `}
+                onClick={() => setActiveMenuTab("VIP")}
               >
                 <div
                   className={`${styles.navbarItemInner}`}
