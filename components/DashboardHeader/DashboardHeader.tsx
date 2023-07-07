@@ -31,6 +31,9 @@ export const DashboardHeaderMemo: FC = () => {
     const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
       ? ((e.target as HTMLDivElement).dataset.text2 as string)
       : "";
+    const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
+      ? ((e.target as HTMLDivElement).dataset.text3 as string)
+      : "";
     setHoveredItemPos({
       x: x,
       y: y,
@@ -38,6 +41,7 @@ export const DashboardHeaderMemo: FC = () => {
       itemHeight: height,
       content: (e.target as HTMLDivElement).dataset.text as string,
       content2: content2,
+      content3: content3,
       display: display,
     });
   };
@@ -45,8 +49,6 @@ export const DashboardHeaderMemo: FC = () => {
   const handleCloseTooltip = () => {
     setHoveredItemPos(null);
   };
-
-  console.log("🌟tabPage", tabPage);
 
   return (
     <header className={`${styles.app_header} transition-base`}>
@@ -59,7 +61,7 @@ export const DashboardHeaderMemo: FC = () => {
           onMouseLeave={handleCloseTooltip}
           onClick={() => setIsOpenSidebar(!isOpenSidebar)}
         >
-          <HiOutlineBars3 className="text-[24px] text-[--color-text] " />
+          <HiOutlineBars3 className="pointer-events-none text-[24px] text-[--color-text]" />
         </div>
         <div className="relative flex h-full w-[145px] cursor-pointer select-none items-center justify-center pl-[16px]">
           <Image
@@ -96,6 +98,7 @@ export const DashboardHeaderMemo: FC = () => {
 
       {/* 真ん中のコンテンツ */}
       <div className="bg-blue-0 relative flex h-full flex-1 justify-start pl-[39px] md:overflow-x-hidden">
+        {/* ============================= 1列目ナビゲーションタブ ここから ============================= */}
         <nav className={`${tabPage === 2 ? "-ml-[calc(100%+39px)]" : ""} transition-base`}>
           <ul
             className={`hidden h-full w-full items-center justify-around text-[14px] font-[500] text-[--navColor] md:flex`}
@@ -149,8 +152,9 @@ export const DashboardHeaderMemo: FC = () => {
               >
                 <div
                   className={`${styles.navbarItemInner}`}
-                  data-text="営業先の担当者リストと"
-                  data-text2="担当者ごとに活動履歴を記録して一覧で確認する"
+                  data-text="日々の営業活動内容を担当者別に確認し、"
+                  data-text2="今行くべき営業リストの作成や、架電時に過去の活動内容をフックにアポに繋げたり、"
+                  data-text3="面談前の上長や他部署の担当者の同席依頼などに活用しましょう。"
                   onMouseEnter={(e) => handleOpenTooltip(e, "center")}
                   onMouseLeave={handleCloseTooltip}
                 >
@@ -170,8 +174,9 @@ export const DashboardHeaderMemo: FC = () => {
               >
                 <div
                   className={`${styles.navbarItemInner}`}
-                  data-text="社内全体の「TEL・面談」の"
-                  data-text2="活動履歴を一覧で確認する"
+                  data-text="架電内容、次回フォロー予定日、面談結果など顧客に関する"
+                  data-text2="全ての情報をきちんと記録することで、リスト作成、架電、面談、フォロー時に"
+                  data-text3="有効な情報を短時間で取得し、最高の結果が出せるようにしましょう"
                   onMouseEnter={(e) => handleOpenTooltip(e, "center")}
                   onMouseLeave={handleCloseTooltip}
                 >
@@ -191,7 +196,9 @@ export const DashboardHeaderMemo: FC = () => {
               >
                 <div
                   className={`${styles.navbarItemInner}`}
-                  data-text="「訪問・WEB面談」履歴を記録して一覧で確認する"
+                  data-text="「訪問・WEB面談」の内容を記録しましょう。"
+                  data-text2="お客様から頂いた情報が売れる商品開発に繋がり、将来の顧客となります。"
+                  data-text3="過去の面談内容を活用して今売れる営業先を見つけたり、売れる営業マンの良い情報を社内に共有しましょう。"
                   onMouseEnter={(e) => handleOpenTooltip(e, "center")}
                   onMouseLeave={handleCloseTooltip}
                 >
@@ -211,8 +218,8 @@ export const DashboardHeaderMemo: FC = () => {
               >
                 <div
                   className={`${styles.navbarItemInner}`}
-                  data-text="自分とメンバーの"
-                  data-text2="アポイント状況を確認する"
+                  data-text="自分とメンバーのアポイント状況を確認する"
+                  data-text2="もう一件面談を入れる余地が無いか、効率は良いか確認してみましょう。"
                   onMouseEnter={(e) => handleOpenTooltip(e, "center")}
                   onMouseLeave={handleCloseTooltip}
                 >
@@ -232,8 +239,8 @@ export const DashboardHeaderMemo: FC = () => {
               >
                 <div
                   className={`${styles.navbarItemInner}`}
-                  data-text="面談・訪問時に"
-                  data-text2="「商談、申請、受注」に展開した物件を記録して一覧で確認する"
+                  data-text="面談・訪問時に「商談、申請、受注」に展開した物件を記録しましょう。"
+                  data-text2="このデータが顧客に刺さる商品開発へと繋がり、将来の財産となります。"
                   onMouseEnter={(e) => handleOpenTooltip(e, "center")}
                   onMouseLeave={handleCloseTooltip}
                 >
@@ -254,6 +261,7 @@ export const DashboardHeaderMemo: FC = () => {
                 <div
                   className={`${styles.navbarItemInner}`}
                   data-text="見積もりを作成する"
+                  data-text2="いつでもお客様と商談ができる状態を維持しましょう。"
                   onMouseEnter={(e) => handleOpenTooltip(e, "center")}
                   onMouseLeave={handleCloseTooltip}
                 >
@@ -308,6 +316,27 @@ export const DashboardHeaderMemo: FC = () => {
               <Link
                 href="/home"
                 prefetch={false}
+                className={`${styles.navbarItem} ${activeMenuTab === "Message" ? styles.active : ""} `}
+                onClick={() => setActiveMenuTab("Message")}
+              >
+                <div
+                  className={`${styles.navbarItemInner}`}
+                  data-text="顧客からの伝言や顧客への送付物、書類作成など"
+                  data-text2="依頼ごとお願いしましょう"
+                  onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+                  onMouseLeave={handleCloseTooltip}
+                >
+                  <span>
+                    {language === "Ja" && "メッセージ"}
+                    {language === "En" && "Message"}
+                  </span>
+                </div>
+              </Link>
+            </li>
+            <li className={`${styles.navList}`}>
+              <Link
+                href="/home"
+                prefetch={false}
                 className={`${styles.navbarItem} ${activeMenuTab === "SDB" ? styles.active : ""} `}
                 onClick={() => setActiveMenuTab("SDB")}
               >
@@ -346,26 +375,28 @@ export const DashboardHeaderMemo: FC = () => {
             </li>
           </ul>
         </nav>
-        <nav className="h-full min-w-[996px] pl-[39px]">
+        {/* ============================= 1列目ナビゲーションタブ ここまで ============================= */}
+        {/* ============================= ２列目ナビゲーションタブ ここから ============================= */}
+        <nav className="h-full min-w-[970px] pl-[69px]">
           <ul
             className={`hidden h-full w-full items-center justify-start text-[14px] font-[500] text-[--navColor] md:flex`}
           >
             <li className={`${styles.navList} max-w-[81.5px]`}>
               <Link
-                href="/home"
+                href="/table"
                 prefetch={false}
-                className={`${styles.navbarItem} ${activeMenuTab === "Admin" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("VIP")}
+                className={`${styles.navbarItem} ${activeMenuTab === "Table" ? styles.active : ""} `}
+                onClick={() => setActiveMenuTab("Table")}
               >
                 <div
                   className={`${styles.navbarItemInner}`}
-                  data-text="管理者専用スペース"
+                  data-text="テーブル"
                   onMouseEnter={(e) => handleOpenTooltip(e, "center")}
                   onMouseLeave={handleCloseTooltip}
                 >
                   <span>
-                    {language === "Ja" && "管理者"}
-                    {language === "En" && "Admin"}
+                    {language === "Ja" && "テーブル"}
+                    {language === "En" && "Table"}
                   </span>
                 </div>
               </Link>
@@ -392,12 +423,13 @@ export const DashboardHeaderMemo: FC = () => {
             </li>
           </ul>
         </nav>
+        {/* ============================= ２列目ナビゲーションタブ ここまで ============================= */}
       </div>
 
       {/* 右矢印 */}
       {tabPage !== 2 && (
         <div
-          className="flex-center absolute right-[12.3%] z-50 h-[35px] w-[35px] cursor-pointer rounded-full hover:bg-[var(--color-btn-brand-f05)]"
+          className="flex-center absolute right-[13%] z-50 h-[35px] w-[35px] cursor-pointer rounded-full hover:bg-[var(--color-btn-brand-f05)]"
           onClick={() => {
             if (tabPage !== 2) {
               setTabPage((prev) => {
@@ -413,6 +445,8 @@ export const DashboardHeaderMemo: FC = () => {
 
       {/* 右側のコンテンツ */}
       <div className="flex h-[40px] w-[165px]  flex-row-reverse items-center justify-start">
+        {/* ヘッダータブ左スクロール時に連続でツールチップが表示されないようにするためのオーバーレイ */}
+        <div className="transition-base absolute right-[185px] top-0 z-30 h-full w-[39px] bg-[var(--color-bg-base)]"></div>
         {/* 一番右 プロフィールアイコン */}
         <div className="flex-center h-full  w-[52px] px-[6px] py-[1px]">
           <div

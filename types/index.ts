@@ -17,6 +17,7 @@ export type hoveredItemPos = {
   itemHeight: number;
   content: string;
   content2?: string | null;
+  content3?: string | null;
   display: string;
 } | null;
 // 左右にツールチップを表示

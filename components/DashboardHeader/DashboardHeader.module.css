@@ -56,7 +56,8 @@
 }
 
 .navbarItemInner {
-  padding: 5px 20px;
+  /* padding: 5px 20px; */
+  padding: 5px 18px;
   /* background: gray; */
   width: 80%;
   height: 100%;
@@ -67,6 +68,7 @@
 .navbarItemInner span {
   pointer-events: none;
   user-select: none;
+  font-size: 12px;
 }
 .navbarItem.active .navbarItemInner span {
   color: var(--color-dashboard-header-text);

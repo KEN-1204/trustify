@@ -78,10 +78,13 @@
   padding: 3px 3px;
   cursor: pointer;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
   /* direction: rtl; */
   white-space: nowrap;
 }
 .dropdown_item:hover {
   background: var(--color-bg-brand);
+}
+.dropdown_item span {
+  margin-right: auto;
 }

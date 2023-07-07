@@ -84,6 +84,7 @@ export const Tooltip = () => {
       >
         <span>{hoveredItemPos?.content}</span>
         <span>{hoveredItemPos?.content2}</span>
+        {hoveredItemPos?.content3 && <span>{hoveredItemPos?.content3}</span>}
       </div>
     </div>
   );

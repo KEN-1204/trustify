@@ -2,9 +2,9 @@ import React, { CSSProperties, FC } from "react";
 import styles from "./SpinnerD.module.css";
 
 type Props = {
-  w: string;
-  h: string;
-  s: string;
+  w?: string;
+  h?: string;
+  s?: string;
 };
 
 const SpinnerD: FC<Props> = ({ w = "28px", h = "28px", s = "3px" }) => {

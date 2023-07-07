@@ -4,7 +4,7 @@ import Link from "next/link";
 import { GrHomeRounded, GrDocumentVerified, GrUserManager } from "react-icons/gr";
 import { MdOutlineLeaderboard, MdOutlineAdminPanelSettings } from "react-icons/md";
 import { HiOutlineBuildingOffice2, HiOutlineChatBubbleLeftRight, HiOutlineInboxArrowDown } from "react-icons/hi2";
-import { FaLink } from "react-icons/fa";
+import { FaLink, FaTelegramPlane } from "react-icons/fa";
 import { AiOutlineMoneyCollect } from "react-icons/ai";
 import { BiMoneyWithdraw } from "react-icons/bi";
 import { BsTelephonePlus, BsCalendarDate, BsTelephoneInbound, BsChevronDown } from "react-icons/bs";
@@ -397,7 +397,7 @@ export const DashboardSidebarMemo: FC = () => {
                   }}
                 >
                   <div className={styles.icon_wrapper}>
-                    <BsTelephoneInbound className="scale-[0.9] text-[24px] text-[var(--color-text)]" />
+                    <BsTelephoneInbound className="scale-[0.85] text-[24px] text-[var(--color-text)]" />
                   </div>
                   <div
                     className={`${styles.text_wrapper} ${
@@ -427,7 +427,7 @@ export const DashboardSidebarMemo: FC = () => {
                   }}
                 >
                   <div className={styles.icon_wrapper}>
-                    <FaLink className="scale-[0.9] text-[24px] text-[var(--color-text)]" />
+                    <FaLink className="scale-[0.85] text-[24px] text-[var(--color-text)]" />
                   </div>
                   <div
                     className={`${styles.text_wrapper} ${
@@ -435,6 +435,36 @@ export const DashboardSidebarMemo: FC = () => {
                     }`}
                   >
                     <span className="truncate">連携</span>
+                  </div>
+                </div>
+              </Link>
+              <Link
+                href="/home"
+                prefetch={false}
+                className={`${styles.menu_item} ${activeMenuTab === "Message" ? styles.active : ""} `}
+                onClick={() => setActiveMenuTab("Message")}
+              >
+                <div
+                  className={styles.menu_item_inner}
+                  data-text="メッセージ"
+                  onMouseEnter={(e) => {
+                    if (isOpenSidebar) return;
+                    handleOpenTooltip(e, "left");
+                  }}
+                  onMouseLeave={() => {
+                    if (isOpenSidebar) return;
+                    handleCloseTooltip();
+                  }}
+                >
+                  <div className={styles.icon_wrapper}>
+                    <FaTelegramPlane className="text-[24px] text-[var(--color-text)]" />
+                  </div>
+                  <div
+                    className={`${styles.text_wrapper} ${
+                      isOpenSidebar ? `opacity-1 transition-base-delay01` : `transition-base01 opacity-0`
+                    }`}
+                  >
+                    <span className="truncate">メッセージ</span>
                   </div>
                 </div>
               </Link>

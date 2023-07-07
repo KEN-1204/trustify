@@ -37,7 +37,7 @@ export const TooltipBlur = () => {
     hoveredItemDisplay = hoveredItemPosHorizon.display;
   }
 
-  console.log("🌟Horizonレンダリング hoveredItemWidth", hoveredItemWidth);
+  console.log("🌟Horizonレンダリング");
   return (
     <div
       className={`${styles.tooltip}  ${
