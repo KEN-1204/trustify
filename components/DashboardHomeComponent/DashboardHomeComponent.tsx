@@ -6,7 +6,6 @@ import { GridTableHome } from "../GridTable/GridTableHome";
 import SpinnerD from "../Parts/SpinnerD/SpinnerD";
 import { ErrorBoundary } from "react-error-boundary";
 import { AiOutlineExclamationCircle } from "react-icons/ai";
-import GridTableTest from "../GridTable/GridTableTest";
 
 export const DashboardHomeComponent = () => {
   const theme = useStore((state) => state.theme);
@@ -31,13 +30,18 @@ export const DashboardHomeComponent = () => {
               <TableHome />
             </Suspense>
           </ErrorBoundary> */}
-          <section className={`${styles.home_screen} space-y-[15px]`}>
+          <section className={`${styles.home_screen} space-y-[20px]`}>
             {/* <GridTableTest /> */}
+            {/* <div className="h-[20vh] w-full"></div> */}
             <GridTableHome title="メッセージ" />
             {/* <GridTableHome title="メッセージ" />
             <GridTableHome title="活動" />
             <GridTableHome title="物件" /> */}
           </section>
+          {/* <section className={`${styles.home_screen} space-y-[15px]`}>
+            <GridTableHome title="メッセージ" />
+          </section> */}
+          <div className={`${styles.screen1} bg-[--color-bg-base]`}></div>
           {/* ２画面目 */}
 
           {/* <div className={`${styles.screen1} flex-center bg-[--color-bg-base]`}>Home</div> */}

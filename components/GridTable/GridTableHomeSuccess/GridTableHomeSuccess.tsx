@@ -1,15 +1,15 @@
 import React, { FC, memo, useCallback, useEffect, useRef, useState } from "react";
-import styles from "./GridTableHome.module.css";
-import { RippleButton } from "../Parts/RippleButton/RippleButton";
-import { tableBodyDataArray } from "./data";
+import styles from "./GridTableHomeSuccess.module.css";
+import { RippleButton } from "../../Parts/RippleButton/RippleButton";
+import { tableBodyDataArray } from "../data";
 import useStore from "@/store";
-import { GridTableFooter } from "./GridTableFooter/GridTableFooter";
+import { GridTableFooter } from "../GridTableFooter/GridTableFooter";
 
 type Props = {
   title: string;
 };
 
-const GridTableHomeMemo: FC<Props> = ({ title }) => {
+const GridTableHomeSuccessMemo: FC<Props> = ({ title }) => {
   const theme = useStore((state) => state.theme);
   const [colsWidth, setColsWidth] = useState(
     new Array(Object.keys(tableBodyDataArray[0]).length + 1).fill("minmax(50px, 1fr)")
@@ -519,4 +519,4 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
   );
 };
 
-export const GridTableHome = memo(GridTableHomeMemo);
+export const GridTableHomeSuccess = memo(GridTableHomeSuccessMemo);

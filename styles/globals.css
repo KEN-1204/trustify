@@ -113,17 +113,30 @@
   --color-bg-brand-sub-rgb: 43, 127, 255;
   --color-bg-brand-sub-hover: #2571e2;
 
-  /* 🌟テーブル light */
+  /* 🌟テーブル light ブルーテーマ */
   --color-bg-table-header: #f5f5f5;
-  /* --color-bg-brand-table-tab: #0d99ffc0; */
-  --color-bg-brand-table-tab: linear-gradient(to top left, #2b7fff, #acffff);
+  --color-bg-brand-table-tab: #0d99ff;
+  /* --color-bg-brand-table-tab: #e2f0fd; */
+  /* --color-bg-brand-table-tab: linear-gradient(to top left, #2b7fff, #acffff); */
   --color-shadow-border: #ffffff70;
   --color-border-table: #ccc;
   /* --color-border-table: #e6e6e6; */
   /* --color-table-header: #40576d18; */
-  --color-table-header: #ecf4fc;
+  /* ヘッダーブルー */
+  --color-table-header: #e2f0fd;
+  /* ヘッダーモノクロ */
+  /* --color-table-header: #eee; */
   /* --color-table-header: #ecf4fc; */
-  --color-table-row-hover: #ecf4fc;
+  /* フッターブルー */
+  --color-table-footer: #e2f0fd90;
+  /* フッターモノクロ */
+  /* --color-table-footer: #eee; */
+  /* --color-table-footer: #fff; */
+  /* --color-table-row-hover: #ecf4fca0; */
+  /* --color-table-row-hover: rgba(55, 53, 47, 0.08); */
+  --color-table-row-hover: rgba(0, 0, 0, 0.04);
+  --color-table-checkbox-outline: #ccc;
+  --color-table-checkbox-focus-outline: #fff;
 
   /* グラデーション light */
   --color-bg-brand-gradient: linear-gradient(to top left, #2b7fff, #acffff);
@@ -304,7 +317,10 @@
   --color-bg-brand-table-tab: #0c8ce9e0;
   --color-border-table: #333;
   --color-table-header: #252525;
+  --color-table-footer: #252525;
   --color-table-row-hover: #232323;
+  --color-table-checkbox-outline: #2e2e2e;
+  --color-table-checkbox-focus-outline: #fff;
 
   /* グラデーション dark */
   --color-bg-brand-gradient: linear-gradient(to top left, #2b7fffaa, #acffffaa);

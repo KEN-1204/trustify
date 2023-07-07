@@ -106,7 +106,7 @@
 .main_container {
   width: 100%;
   /* height: calc(100vh - var(--header-height)); */
-  /* max-height: calc(100vh / 3 - var(--header-height) / 3); */
+  max-height: calc(100vh / 3 - var(--header-height) / 3);
   min-height: calc(100vh / 3 - var(--header-height) / 3);
   background-color: aqua;
 
