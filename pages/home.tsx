@@ -17,7 +17,7 @@ const DashboardHome = ({
   user: User;
   userProfile: Profile;
 }) => {
-  console.log("🔥Homeページ レンダリング initialSession, user, userProfile", initialSession, user, userProfile);
+  console.log("🔥Homeページ レンダリング initialSession, user, userProfile");
   const language = useStore((state) => state.language);
   const setTheme = useStore((state) => state.setTheme);
 
@@ -78,8 +78,8 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   // サーバーのsupabaseクライアントを使用して、行レベルセキュリティの認証済みクエリーをサーバーサイドで実行することができます
   const { data: userProfile, error } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
 
-  if (userProfile) console.log("🌟userProfile", userProfile);
-  if (error) console.log("🌟error", error);
+  if (userProfile) console.log("🌟/homeサーバーサイド userProfileあり");
+  if (error) console.log("🌟/homeサーバーサイド errorあり", error);
 
   // ユーザーが存在するならそのままdashboardコンポーネントをマウント
   console.log("/homeサーバーサイド セッションが存在するためそのままリターン");

@@ -1,9 +1,29 @@
 import React, { FC, memo, useCallback, useEffect, useRef, useState } from "react";
 import styles from "./GridTableHome.module.css";
 import { RippleButton } from "../Parts/RippleButton/RippleButton";
-import { tableBodyDataArray } from "./data";
+import { summary, tableBodyDataArray } from "./data";
 import useStore from "@/store";
 import { GridTableFooter } from "./GridTableFooter/GridTableFooter";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { useVirtualizer } from "@tanstack/react-virtual";
+
+type TableDataType = {
+  id: number;
+  // id: string;
+  rowIndex: string;
+  name: string;
+  gender: string;
+  dob: string;
+  country: string;
+  summary: string;
+};
+
+type ColumnHeaderItemList = {
+  columnId: number;
+  columnName: string;
+  columnIndex: number;
+  columnWidth: string;
+};
 
 type Props = {
   title: string;
@@ -11,15 +31,33 @@ type Props = {
 
 const GridTableHomeMemo: FC<Props> = ({ title }) => {
   const theme = useStore((state) => state.theme);
-  const [colsWidth, setColsWidth] = useState(
-    new Array(Object.keys(tableBodyDataArray[0]).length + 1).fill("minmax(50px, 1fr)")
-  );
+  // const [colsWidth, setColsWidth] = useState(
+  //   new Array(Object.keys(tableBodyDataArray[0]).length + 1).fill("minmax(50px, 1fr)")
+  // );
+  // 初回マウント時にdataがフェッチできたらtrueにしてuseEffectでカラム生成を実行するstate
+  const [gotData, setGotData] = useState(false);
+  // 総アイテムのチェック有り無しを保持するstate
+  const [checkedRows, setCheckedRows] = useState<Record<string, boolean>>({});
+  // =================== 列入れ替え ===================
+  // 列入れ替え用インデックス
+  const [dragColumnIndex, setDragColumnIndex] = useState<number | null>(null);
+  // 列アイテムリスト カラムidとカラム名、カラムインデックス、カラム横幅を格納する
+  const [columnHeaderItemList, setColumnHeaderItemList] = useState<ColumnHeaderItemList[]>([]);
+  // 各カラムの横幅を管理
+  const [colsWidth, setColsWidth] = useState<string[] | null>(null);
+  // 現在のカラムの横幅をrefで管理
+  const currentColsWidths = useRef<string[]>([]);
+
   // カラム列全てにindex付きのrefを渡す
   const colsRef = useRef<(HTMLDivElement | null)[]>([]);
-  const currentColsWidths = useRef<string[]>([]);
+
   const draggableOverlaysRef = useRef<(HTMLDivElement | null)[]>([]);
-  const gridContainerRef = useRef<HTMLDivElement | null>(null);
+  // スクロールコンテナ
+  const parentGridScrollContainer = useRef<HTMLDivElement | null>(null);
+  // Rowヘッダー
   const rowHeaderRef = useRef<HTMLDivElement | null>(null);
+  // Rowグループコンテナ(Virtualize収納用インナー)
+  const gridRowGroupContainerRef = useRef<HTMLDivElement | null>(null);
   const gridRowTracksRefs = useRef<(HTMLDivElement | null)[]>([]);
   // フォーカス中、選択中のセルを保持
   const selectedGridCellRef = useRef<HTMLDivElement | null>(null);
@@ -27,24 +65,115 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
   // ONとなったチェックボックスを保持する配列のstate
   const [selectedCheckBox, setSelectedCheckBox] = useState<number[]>([]);
 
-  // ================== 🌟useEffect ヘッダーカラム生成 ===================
+  // ================== 🌟疑似的なサーバーデータフェッチ用の関数🌟 ==================
+  const fetchServerPage = async (
+    limit: number,
+    offset: number = 0
+  ): Promise<{ rows: TableDataType[]; nextOffset: number }> => {
+    // useInfiniteQueryのクエリ関数で渡すlimitの個数分でIndex番号を付けたRowの配列を生成
+    const rows = new Array(limit).fill(0).map((e, index) => {
+      const newData: TableDataType = {
+        // id: uuidv4(), // indexが0から始めるので+1でidを1から始める
+        id: index + offset * limit, // indexが0から始めるので+1でidを1から始める
+        rowIndex: `${index + 2 + offset * limit}st Line`,
+        name: "John",
+        gender: "Male",
+        dob: "15-Aug-1990",
+        country: "India",
+        summary: summary,
+      };
+      return newData;
+    });
+
+    // 0.5秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // 取得したrowsを返す（nextOffsetは、queryFnのctx.pageParamsが初回フェッチはundefinedで2回目が1のため+1でページ数と合わせる）
+    return { rows, nextOffset: offset + 1 };
+  };
+
+  // ================== 🌟useInfiniteQueryフック🌟 ==================
+  const { status, data, error, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage } = useInfiniteQuery({
+    queryKey: ["projects"],
+    queryFn: async (ctx) => {
+      console.log("useInfiniteQuery queryFn関数内 引数ctx", ctx);
+
+      return fetchServerPage(35, ctx.pageParam); // 35個ずつ取得
+    },
+    getNextPageParam: (_lastGroup, groups) => groups.length,
+    staleTime: Infinity,
+  });
+
+  console.log("🌟useInfiniteQuery data", data);
+  console.log("🌟useInfiniteQuery error", error);
+
+  // 現在取得している全ての行 data.pagesのネストした配列を一つの配列にフラット化
+  const allRows = data ? data.pages.flatMap((d) => d?.rows) : [];
+
+  // ============================= 🌟バーチャライザーのインスタンスを生成🌟 =============================
+  const rowVirtualizer = useVirtualizer({
+    count: hasNextPage ? allRows.length + 1 : allRows.length, // 次のページ有り lengthを１増やす
+    getScrollElement: () => parentGridScrollContainer.current, // スクロール用コンテナ
+    estimateSize: () => 35, // 要素のサイズ
+    // overscan: 20, // ビューポート外にレンダリングさせる個数
+    overscan: 10, // ビューポート外にレンダリングさせる個数
+  });
+  // =====================================================================================
+
+  console.log(
+    `allRows.length: ${allRows.length} !!allRows.length: ${!!allRows.length} virtualItems:${
+      rowVirtualizer.getVirtualItems().length
+    } colsWidth: ${colsWidth}`
+  );
+  // ============================= 🌟無限スクロールの処理 =============================
+
+  // =====================================================================================
+
+  // ============================= 🌟useEffect 初回DBからフェッチ完了を通知する =============================
+  useEffect(() => {
+    if (gotData) return;
+    // 初回マウント データ取得完了後Stateをtrueに変更通知して、カラム生成useEffectを実行
+    if (data) {
+      setGotData(true);
+      // 取得したアイテムの総数分idとbooleanでチェック有り無しをStateで管理 最初はチェック無しなので、全てfalse
+      let idObject = allRows.reduce((obj: { [key: string]: boolean } | undefined, item) => {
+        if (typeof item === "undefined" || typeof obj === "undefined") return;
+        obj[item.id.toString()] = false;
+        return obj;
+      }, {});
+      if (typeof idObject === "undefined") return;
+      setCheckedRows(idObject);
+      return;
+    }
+  }, [data]);
+  // =====================================================================================
+
+  // ================== 🌟useEffect ヘッダーカラム生成🌟 ===================
   // 取得したデータが変更された場合、プロパティ(フィールド)の数が変わる場合があるので、
   // 変更があった場合には再度カラム列の数とサイズを現在取得しているデータでリセット
   useEffect(() => {
-    // setColsWidth(new Array(Object.keys(tableBodyDataArray[0]).length).fill("minmax(50px, 1fr)"));
-    // const newColsWidths = new Array(Object.keys(tableBodyDataArray[0]).length + 1).fill("minmax(50px, 1fr)");
-    const newColsWidths = new Array(Object.keys(tableBodyDataArray[0]).length + 1).fill("250px");
-    newColsWidths.fill("65px", 0, 1);
-    newColsWidths.fill("100px", 1, 2);
-    console.log(newColsWidths);
-    // stateに現在の
+    console.log("🔥ここ");
+    if (!data?.pages[0]) return console.log("useEffect実行もまだdata無し リターン");
+    console.log("🌟ヘッダーカラム生成 gotData", gotData);
+
+    // マウント時に各フィールド分のカラムを生成 サイズはデフォルト値を65px, 100px, 3列目以降は250pxに設定
+    console.log(
+      "🌟useEffect Object.keys(data?.pages[0].rows[0] as object",
+      Object.keys(data?.pages[0].rows[0] as object)
+    );
+    const newColsWidths = new Array(Object.keys(data?.pages[0].rows[0] as object).length + 1).fill("250px");
+    newColsWidths.fill("65px", 0, 1); // 1列目を65pxに変更
+    newColsWidths.fill("100px", 1, 2); // 2列目を100pxに変更
+    console.log("Stateにカラムwidthを保存", newColsWidths);
+    // stateに現在の全てのカラムのwidthを保存
     setColsWidth(newColsWidths);
     // refオブジェクトに保存
     currentColsWidths.current = newColsWidths;
     console.log("currentColsWidths.current", currentColsWidths.current);
 
-    if (gridContainerRef.current === null) return;
+    if (parentGridScrollContainer.current === null) return;
 
+    // ===========　CSSカスタムプロパティに反映
     // newColsWidthの各値のpxの文字を削除
     // ['65px', '100px', '250px', '250px', '250px', '250px']から
     // ['65', '100', '250', '250', '250', '250']へ置換
@@ -52,21 +181,40 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       return col.replace("px", "");
     });
 
+    console.log("🔥ヘッダーカラム生成🌟 newColsWidthNum", newColsWidthNum);
+
     // それぞれのカラムの合計値を取得 +aで文字列から数値型に変換して合計値を取得
     let sumRowWidth = newColsWidthNum.reduce((a, b) => {
       return +a + +b;
     });
+    console.log("🔥ヘッダーカラム生成🌟 sumRowWidth", sumRowWidth);
 
     // それぞれのCSSカスタムプロパティをセット
     // grid-template-columnsの値となるCSSカスタムプロパティをセット
-    gridContainerRef.current.style.setProperty("--template-columns", `${newColsWidths.join(" ")}`);
-    gridContainerRef.current.style.setProperty("--header-row-height", "35px");
-    gridContainerRef.current.style.setProperty("--row-width", `${sumRowWidth}px`);
-    gridContainerRef.current.style.setProperty("--summary-row-height", "35px");
+    parentGridScrollContainer.current.style.setProperty("--template-columns", `${newColsWidths.join(" ")}`);
+    parentGridScrollContainer.current.style.setProperty("--header-row-height", "35px");
+    parentGridScrollContainer.current.style.setProperty("--row-width", `${sumRowWidth}px`);
+    parentGridScrollContainer.current.style.setProperty("--summary-row-height", "35px");
 
-    console.log("更新後--template-columns", gridContainerRef.current.style.getPropertyValue("--template-columns"));
-    console.log("更新後--row-width", gridContainerRef.current.style.getPropertyValue("--row-width"));
-  }, [tableBodyDataArray]);
+    console.log(
+      "更新後--template-columns",
+      parentGridScrollContainer.current.style.getPropertyValue("--template-columns")
+    );
+    console.log("更新後--row-width", parentGridScrollContainer.current.style.getPropertyValue("--row-width"));
+
+    // =========== カラム順番入れ替え用の列アイテムリストに格納
+    // colsWidthsの最初2つはcheckboxとidの列なので、最初から3つ目で入れ替え
+    const tempFirstColumnItemListArray = Object.keys(data?.pages[0].rows[0] as object);
+    const firstColumnItemListArray = tempFirstColumnItemListArray.map((item, index) => ({
+      columnId: index,
+      columnName: item,
+      columnIndex: index + 2,
+      columnWidth: newColsWidths[index + 1],
+    }));
+    console.log(`初期カラム配列`, tempFirstColumnItemListArray);
+    console.log(`整形後カラム配列`, firstColumnItemListArray);
+    setColumnHeaderItemList(firstColumnItemListArray);
+  }, [gotData]); // gotDataのstateがtrueになったら再度実行
   // ================================================================
 
   // =================== 🌟マウスイベント 列サイズ変更 ===================
@@ -108,16 +256,20 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       const newWidth = e.pageX - colsRef.current[index]!.getBoundingClientRect().left;
       console.log("newWidth", newWidth);
       console.log("currentColsWidths.current", currentColsWidths.current);
+      if (colsWidth === null) return;
       const newColsWidths = [...colsWidth];
       // const newColsWidths = [...currentColsWidths.current];
       newColsWidths[index + 1] = Math.max(newWidth, 50) + "px";
       // gridコンテナのCSSカスタムプロパティに新たなwidthを設定したwidthsをセット
-      gridContainerRef.current!.style.setProperty("--template-columns", `${newColsWidths.join(" ")}`);
+      parentGridScrollContainer.current!.style.setProperty("--template-columns", `${newColsWidths.join(" ")}`);
       // setColsWidth(newColsWidths);
       currentColsWidths.current = newColsWidths;
 
       console.log("newColsWidths", newColsWidths);
-      console.log("更新後--template-columns", gridContainerRef.current!.style.getPropertyValue("--template-columns"));
+      console.log(
+        "更新後--template-columns",
+        parentGridScrollContainer.current!.style.getPropertyValue("--template-columns")
+      );
 
       // 列の合計値をセット
       // newColsWidthの各値のpxの文字を削除
@@ -130,9 +282,9 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       // それぞれのカラムの合計値を取得 +aで文字列から数値型に変換して合計値を取得
       let sumRowWidth = newColsWidthNum.reduce((a, b) => {
         return +a + +b;
-      });
-      gridContainerRef.current!.style.setProperty("--row-width", `${sumRowWidth}px`);
-      console.log("更新後--row-width", gridContainerRef.current!.style.getPropertyValue("--row-width"));
+      }, 0);
+      parentGridScrollContainer.current!.style.setProperty("--row-width", `${sumRowWidth}px`);
+      console.log("更新後--row-width", parentGridScrollContainer.current!.style.getPropertyValue("--row-width"));
     };
 
     window.addEventListener("mouseup", handleMouseUp);
@@ -330,12 +482,12 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
           </div> */}
           {/* ================== Gridスクロールコンテナ ================== */}
           <div
-            ref={gridContainerRef}
+            ref={parentGridScrollContainer}
             role="grid"
             aria-multiselectable="true"
-            // style={{ height: "100%", "--header-row-height": "35px", "--row-width": "" } as any}
-            style={{ height: "100%", "--header-row-height": "35px" } as any}
-            className={`select-none overflow-x-auto overflow-y-scroll border border-[#2e2e2e] bg-transparent ${styles.grid_scroll_container}`}
+            style={{ width: "100%" }}
+            // style={{ height: "100%", "--header-row-height": "35px" } as any}
+            className={`${styles.grid_scroll_container}`}
           >
             {/* ======================== Grid列トラック Rowヘッダー ======================== */}
             <div
@@ -344,9 +496,6 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
               aria-rowindex={1}
               aria-selected={false}
               className={`${styles.grid_header_row}`}
-              // style={{
-              //   gridTemplateColumns: colsWidth.join(" "),
-              // }}
             >
               {/* ======== ヘッダーセル チェックボックスColumn ======== */}
               <div
@@ -371,140 +520,182 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
                   </svg>
                 </div>
               </div>
-              {/* ======== ヘッダーセル 全てのプロパティ(フィールド)Column  ======== */}
+              {/* ======== ヘッダーセル 全てのプロパティ(フィールド)Column ここから  ======== */}
 
-              {Object.keys(tableBodyDataArray[0]).map((key, index) => (
-                <div
-                  key={index}
-                  ref={(ref) => (colsRef.current[index] = ref)}
-                  role="columnheader"
-                  aria-colindex={index + 2}
-                  aria-selected={false}
-                  tabIndex={-1}
-                  className={`${styles.grid_column_header_all} ${index === 0 && styles.grid_column_frozen} ${
-                    index === 0 && styles.grid_cell_frozen_last
-                  } ${styles.grid_cell_resizable}`}
-                  style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
-                  onClick={(e) => handleClickGridCell(e)}
-                  // onMouseDown={
-                  //   index !== Object.keys(tableBodyDataArray[0]).length - 1
-                  //     ? (e) => handleMouseDown(e, index)
-                  //     : undefined
-                  // }
-                >
-                  {/* カラム順番入れ替えdraggable用ラッパー(padding 8px除く全体) */}
-                  <div
-                    className="w-full"
-                    draggable={true}
-                    data-handler-id="T1127"
-                    style={{ opacity: 1, cursor: "grab" }}
-                  >
-                    <div className={`${styles.grid_column_header} ${index === 0 && styles.grid_column_header_cursor}`}>
-                      <div className={`${styles.grid_column_header_inner}`}>
-                        <span className={`${styles.grid_column_header_inner_name}`}>{key}</span>
-                      </div>
-                    </div>
-                  </div>
-                  {/* ドラッグ用overlay */}
-                  <div
-                    ref={(ref) => (draggableOverlaysRef.current[index] = ref)}
-                    role="draggable_overlay"
-                    className={styles.draggable_overlay}
-                    onMouseDown={(e) => handleMouseDown(e, index)}
-                    onMouseEnter={() => {
-                      const colsLines = document.querySelectorAll(`[aria-colindex="${index + 2}"]`);
-                      colsLines.forEach((col) => {
-                        if (col instanceof HTMLDivElement) {
-                          // col.style.borderRightColor = `#24b47e`;
-                          col.classList.add(`${styles.is_dragging_hover}`);
-                        }
-                      });
-                    }}
-                    onMouseLeave={() => {
-                      const colsLines = document.querySelectorAll(`[aria-colindex="${index + 2}"]`);
-                      colsLines.forEach((col) => {
-                        if (col instanceof HTMLDivElement) {
-                          // col.style.borderRightColor = `#444`;
-                          col.classList.remove(`${styles.is_dragging_hover}`);
-                        }
-                      });
-                    }}
-                  ></div>
-                </div>
-              ))}
-              {/* ======== ヘッダーセル idを除く全てのプロパティ(フィールド)Column  ======== */}
-            </div>
-            {/* ======================== Grid列トラック Rowヘッダー ======================== */}
-            {/* <div className="h-[1950px]"></div> */}
-            {/* ======================== Grid列トラック Row ======================== */}
-            {tableBodyDataArray.map((rowData, index) => (
-              <div
-                key={index}
-                role="row"
-                tabIndex={-1}
-                aria-rowindex={index + 2} // ヘッダーの次からなのでindex0+2
-                aria-selected={false}
-                className={`${styles.grid_row}`}
-                style={{
-                  // gridTemplateColumns: colsWidth.join(" "),
-                  // top: gridRowTrackTopPosition(index),
-                  top: ((index + 1) * 35).toString() + "px",
-                }}
-              >
-                {/* ======== gridセル チェックボックスセル ======== */}
-                <div
-                  ref={(ref) => (gridRowTracksRefs.current[index] = ref)}
-                  role="gridcell"
-                  aria-colindex={1}
-                  aria-selected={false}
-                  aria-readonly={true}
-                  tabIndex={-1}
-                  className={`${styles.grid_cell} ${styles.grid_column_frozen}`}
-                  style={{ gridColumnStart: 1, left: columnHeaderLeft(0) }}
-                  onClick={(e) => handleClickGridCell(e)}
-                >
-                  <div className={styles.grid_select_cell_header}>
-                    <input
-                      id="checkbox"
-                      type="checkbox"
-                      aria-label="Select"
-                      value={rowData.id}
-                      onChange={(e) => handleSelectedCheckBox(e, rowData.id)}
-                      // className={`${styles.grid_select_cell_header_input}`}
-                    />
-                    <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
-                    </svg>
-                  </div>
-                </div>
-                {/* ======== gridセル 全てのプロパティ(フィールド)セル  ======== */}
-
-                {Object.values(rowData).map((value, index) => (
+              {allRows[0] &&
+                Object.keys(allRows[0]).map((key, index) => (
                   <div
                     key={index}
                     ref={(ref) => (colsRef.current[index] = ref)}
-                    role="gridcell"
+                    role="columnheader"
                     aria-colindex={index + 2}
                     aria-selected={false}
                     tabIndex={-1}
-                    className={`${styles.grid_cell} ${index === 0 ? styles.grid_column_frozen : ""} ${
-                      index === 0 ? styles.grid_cell_frozen_last : ""
+                    className={`${styles.grid_column_header_all} ${index === 0 && styles.grid_column_frozen} ${
+                      index === 0 && styles.grid_cell_frozen_last
                     } ${styles.grid_cell_resizable}`}
                     style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
                     onClick={(e) => handleClickGridCell(e)}
-                    // style={{ gridColumnStart: index + 2, left: `${((index + 1) * 35).toString() + "px"}` }}
                     // onMouseDown={
                     //   index !== Object.keys(tableBodyDataArray[0]).length - 1
                     //     ? (e) => handleMouseDown(e, index)
                     //     : undefined
                     // }
                   >
-                    {value}
+                    {/* カラム順番入れ替えdraggable用ラッパー(padding 8px除く全体) */}
+                    <div
+                      className="w-full"
+                      draggable={true}
+                      data-handler-id="T1127"
+                      style={{ opacity: 1, cursor: "grab" }}
+                    >
+                      <div
+                        className={`${styles.grid_column_header} ${index === 0 && styles.grid_column_header_cursor}`}
+                      >
+                        <div className={`${styles.grid_column_header_inner}`}>
+                          <span className={`${styles.grid_column_header_inner_name}`}>{key}</span>
+                        </div>
+                      </div>
+                    </div>
+                    {/* ドラッグ用overlay */}
+                    <div
+                      ref={(ref) => (draggableOverlaysRef.current[index] = ref)}
+                      role="draggable_overlay"
+                      className={styles.draggable_overlay}
+                      onMouseDown={(e) => handleMouseDown(e, index)}
+                      onMouseEnter={() => {
+                        const colsLines = document.querySelectorAll(`[aria-colindex="${index + 2}"]`);
+                        colsLines.forEach((col) => {
+                          if (col instanceof HTMLDivElement) {
+                            // col.style.borderRightColor = `#24b47e`;
+                            col.classList.add(`${styles.is_dragging_hover}`);
+                          }
+                        });
+                      }}
+                      onMouseLeave={() => {
+                        const colsLines = document.querySelectorAll(`[aria-colindex="${index + 2}"]`);
+                        colsLines.forEach((col) => {
+                          if (col instanceof HTMLDivElement) {
+                            // col.style.borderRightColor = `#444`;
+                            col.classList.remove(`${styles.is_dragging_hover}`);
+                          }
+                        });
+                      }}
+                    ></div>
                   </div>
                 ))}
-                {/* ======== ヘッダーセル idを除く全てのプロパティ(フィールド)Column  ======== */}
-              </div>
-            ))}
+              {/* ======== ヘッダーセル idを除く全てのプロパティ(フィールド)Column ここまで  ======== */}
+            </div>
+            {/* ======================== Grid列トラック Rowヘッダー ======================== */}
+
+            {/* ======================== Grid列トラック Rowグループコンテナ ======================== */}
+            {/* Rowアイテム収納のためのインナー要素 */}
+            <div
+              ref={gridRowGroupContainerRef}
+              role="rowgroup"
+              style={
+                {
+                  height: `${rowVirtualizer.getTotalSize()}px`,
+                  // width: "100%",
+                  width: `var(--row-width)`,
+                  position: "relative",
+                  "--header-row-height": "35px",
+                  "--row-width": "",
+                } as any
+              }
+              className={`${styles.grid_rowgroup_virtualized_container}`}
+            >
+              {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                const isLoaderRow = virtualRow.index > allRows.length - 1;
+                const rowData = allRows[virtualRow.index];
+
+                // ========= 🌟ローディング中の行トラック =========
+                // if (isLoaderRow) return hasNextPage ? "Loading more" : "Nothing more to load";
+                if (isLoaderRow) {
+                  return (
+                    <div
+                      key={virtualRow.index.toString() + "Loading"}
+                      role="row"
+                      tabIndex={-1}
+                      // aria-rowindex={virtualRow.index + 1} // ヘッダーの次からなのでindex0+2
+                      aria-selected={false}
+                      className={`${styles.loading_reflection} flex-center mx-auto h-[35px] w-full text-center font-bold`}
+                    >
+                      <span className={`${styles.reflection}`}></span>
+                      <div className={styles.spinner78}></div>
+                    </div>
+                  );
+                }
+                // ========= 🌟ローディング中の行トラック ここまで =========
+
+                return (
+                  <div
+                    key={"row" + virtualRow.index.toString()}
+                    role="row"
+                    tabIndex={-1}
+                    aria-rowindex={virtualRow.index + 2} // ヘッダーの次からなのでindex0+2
+                    aria-selected={false}
+                    className={`${styles.grid_row}`}
+                    style={{
+                      // gridTemplateColumns: colsWidth.join(" "),
+                      // top: gridRowTrackTopPosition(index),
+                      top: ((virtualRow.index + 0) * 35).toString() + "px", // +1か0か
+                    }}
+                  >
+                    {/* ======== gridセル チェックボックスセル ======== */}
+                    <div
+                      ref={(ref) => (gridRowTracksRefs.current[virtualRow.index] = ref)}
+                      role="gridcell"
+                      aria-colindex={1}
+                      aria-selected={false}
+                      aria-readonly={true}
+                      tabIndex={-1}
+                      className={`${styles.grid_cell} ${styles.grid_column_frozen}`}
+                      style={{ gridColumnStart: 1, left: columnHeaderLeft(0) }}
+                      onClick={(e) => handleClickGridCell(e)}
+                    >
+                      <div className={styles.grid_select_cell_header}>
+                        <input
+                          id="checkbox"
+                          type="checkbox"
+                          aria-label="Select"
+                          value={rowData?.id}
+                          onChange={(e) => {
+                            if (typeof rowData?.id === "undefined") return;
+                            handleSelectedCheckBox(e, rowData?.id);
+                          }}
+                          // className={`${styles.grid_select_cell_header_input}`}
+                        />
+                        <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+                        </svg>
+                      </div>
+                    </div>
+                    {/* ======== gridセル 全てのプロパティ(フィールド)セル  ======== */}
+
+                    {rowData &&
+                      Object.values(rowData).map((value, index) => (
+                        <div
+                          key={"row" + virtualRow.index.toString() + index.toString()}
+                          ref={(ref) => (colsRef.current[index] = ref)}
+                          role="gridcell"
+                          aria-colindex={index + 2}
+                          aria-selected={false}
+                          tabIndex={-1}
+                          className={`${styles.grid_cell} ${index === 0 ? styles.grid_column_frozen : ""} ${
+                            index === 0 ? styles.grid_cell_frozen_last : ""
+                          } ${styles.grid_cell_resizable}`}
+                          style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
+                          onClick={(e) => handleClickGridCell(e)}
+                        >
+                          {value}
+                        </div>
+                      ))}
+                    {/* ======== ヘッダーセル idを除く全てのプロパティ(フィールド)Column  ======== */}
+                  </div>
+                );
+              })}
+            </div>
             {/* ======================== Grid列トラック Row ======================== */}
           </div>
           {/* ================== Gridスクロールコンテナ ここまで ================== */}

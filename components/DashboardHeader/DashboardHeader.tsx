@@ -121,12 +121,13 @@ export const DashboardHeaderMemo: FC = () => {
                     {language === "En" && "HOME"}
                   </span>
                 </div>
+                <div className={`${styles.active_underline}`} />
               </Link>
             </li>
             <li className={`${styles.navList}`}>
-              <Link
-                href="/home"
-                prefetch={false}
+              <div
+                // href="/home"
+                // prefetch={false}
                 className={`${styles.navbarItem} ${activeMenuTab === "Company" ? styles.active : ""} `}
                 onClick={() => setActiveMenuTab("Company")}
               >
@@ -141,7 +142,8 @@ export const DashboardHeaderMemo: FC = () => {
                     {language === "En" && "Company"}
                   </span>
                 </div>
-              </Link>
+                <div className={`${styles.active_underline}`} />
+              </div>
             </li>
             <li className={`${styles.navList}`}>
               <Link
@@ -163,6 +165,7 @@ export const DashboardHeaderMemo: FC = () => {
                     {language === "En" && "Contacts"}
                   </span>
                 </div>
+                <div className={`${styles.active_underline}`} />
               </Link>
             </li>
             <li className={`${styles.navList}`}>
@@ -185,6 +188,7 @@ export const DashboardHeaderMemo: FC = () => {
                     {language === "En" && "Activity"}
                   </span>
                 </div>
+                <div className={`${styles.active_underline}`} />
               </Link>
             </li>
             <li className={`${styles.navList}`}>
@@ -207,6 +211,7 @@ export const DashboardHeaderMemo: FC = () => {
                     {language === "En" && "Meeting"}
                   </span>
                 </div>
+                <div className={`${styles.active_underline}`} />
               </Link>
             </li>
             <li className={`${styles.navList}`}>
@@ -228,6 +233,7 @@ export const DashboardHeaderMemo: FC = () => {
                     {language === "En" && "Calendar"}
                   </span>
                 </div>
+                <div className={`${styles.active_underline}`} />
               </Link>
             </li>
             <li className={`${styles.navList}`}>
@@ -249,6 +255,7 @@ export const DashboardHeaderMemo: FC = () => {
                     {language === "En" && "Property"}
                   </span>
                 </div>
+                <div className={`${styles.active_underline}`} />
               </Link>
             </li>
             <li className={`${styles.navList}`}>
@@ -270,6 +277,7 @@ export const DashboardHeaderMemo: FC = () => {
                     {language === "En" && "Quotation"}
                   </span>
                 </div>
+                <div className={`${styles.active_underline}`} />
               </Link>
             </li>
             <li className={`${styles.navList}`}>
@@ -280,7 +288,7 @@ export const DashboardHeaderMemo: FC = () => {
                 // onClick={() => setActiveMenuTab("Lead")}
               >
                 <div
-                  className={`${styles.navbarItemInner}`}
+                  className={`${styles.navbarItemInner} cursor-not-allowed`}
                   data-text="開発・準備中..."
                   onMouseEnter={(e) => handleOpenTooltip(e, "center")}
                   onMouseLeave={handleCloseTooltip}
@@ -290,6 +298,7 @@ export const DashboardHeaderMemo: FC = () => {
                     {language === "En" && "Lead"}
                   </span>
                 </div>
+                <div className={`${styles.active_underline}`} />
               </div>
             </li>
             <li className={`${styles.navList}`}>
@@ -310,6 +319,7 @@ export const DashboardHeaderMemo: FC = () => {
                     {language === "En" && "Alignment"}
                   </span>
                 </div>
+                <div className={`${styles.active_underline}`} />
               </Link>
             </li>
             <li className={`${styles.navList}`}>
@@ -331,6 +341,7 @@ export const DashboardHeaderMemo: FC = () => {
                     {language === "En" && "Message"}
                   </span>
                 </div>
+                <div className={`${styles.active_underline}`} />
               </Link>
             </li>
             <li className={`${styles.navList}`}>
@@ -351,6 +362,7 @@ export const DashboardHeaderMemo: FC = () => {
                     {language === "En" && "SDB"}
                   </span>
                 </div>
+                <div className={`${styles.active_underline}`} />
               </Link>
             </li>
             <li className={`${styles.navList}`}>
@@ -358,7 +370,7 @@ export const DashboardHeaderMemo: FC = () => {
                 href="/home"
                 prefetch={false}
                 className={`${styles.navbarItem} ${activeMenuTab === "Admin" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("VIP")}
+                onClick={() => setActiveMenuTab("Admin")}
               >
                 <div
                   className={`${styles.navbarItemInner}`}
@@ -371,6 +383,7 @@ export const DashboardHeaderMemo: FC = () => {
                     {language === "En" && "Admin"}
                   </span>
                 </div>
+                <div className={`${styles.active_underline}`} />
               </Link>
             </li>
           </ul>
@@ -399,6 +412,7 @@ export const DashboardHeaderMemo: FC = () => {
                     {language === "En" && "Table"}
                   </span>
                 </div>
+                <div className={`${styles.active_underline}`} />
               </Link>
             </li>
             <li className={`${styles.navList} max-w-[81px]`}>
@@ -419,6 +433,7 @@ export const DashboardHeaderMemo: FC = () => {
                     {language === "En" && "Admin"}
                   </span>
                 </div>
+                <div className={`${styles.active_underline}`} />
               </Link>
             </li>
           </ul>

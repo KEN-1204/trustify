@@ -14,6 +14,7 @@ const GridTableHomeSuccessMemo: FC<Props> = ({ title }) => {
   const [colsWidth, setColsWidth] = useState(
     new Array(Object.keys(tableBodyDataArray[0]).length + 1).fill("minmax(50px, 1fr)")
   );
+
   // カラム列全てにindex付きのrefを渡す
   const colsRef = useRef<(HTMLDivElement | null)[]>([]);
   const currentColsWidths = useRef<string[]>([]);
