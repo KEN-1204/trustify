@@ -1,7 +1,6 @@
 import useStore from "@/store";
 import Head from "next/head";
 import React, { FC, ReactNode, useEffect } from "react";
-import { Modal } from "./Modal/Modal";
 import { useRouter } from "next/router";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { toast } from "react-toastify";
@@ -11,6 +10,8 @@ import { DashboardHeader } from "./DashboardHeader/DashboardHeader";
 import { DashboardSidebar } from "./DashboardSidebar/DashboardSidebar";
 import { useEffectOnce } from "react-use";
 import { TooltipBlur } from "./Parts/Tooltip/TooltipBlur";
+import useDashboardStore from "@/store/useDashboardStore";
+import { EditModal } from "./EditModal/EditModal";
 
 type Prop = {
   title?: string;
@@ -33,10 +34,10 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   };
 
   // モーダルが開いている時はbodyにoverflow: hiddenを設定する
-  const isOpenModal = useStore((state) => state.isOpenModal);
+  const isOpenEditModal = useDashboardStore((state) => state.isOpenEditModal);
   const openLangTab = useStore((state) => state.openLangTab);
   useEffect(() => {
-    if (isOpenModal || openLangTab) {
+    if (isOpenEditModal || openLangTab) {
       // モーダルが開いているときに、bodyにoverflow: hiddenを設定
       document.body.style.overflow = "hidden";
     } else {
@@ -48,7 +49,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
     return () => {
       document.body.style.overflow = "unset";
     };
-  }, [isOpenModal, openLangTab]);
+  }, [isOpenEditModal, openLangTab]);
 
   // マウント時にbodyタグにoverflow: hiddenを設定して、ネイティブアプリケーションのようにする
   useEffectOnce(() => {
@@ -116,7 +117,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
       </div>
 
       {/* モーダル */}
-      {/* <Modal /> */}
+      {isOpenEditModal && <EditModal />}
 
       {/* ツールチップ */}
       {hoveredItemPos && <Tooltip />}

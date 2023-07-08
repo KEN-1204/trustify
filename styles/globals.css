@@ -117,6 +117,7 @@
   --color-bg-table-header: #f5f5f5;
   /* --color-bg-brand-table-tab: #0d99ffd0; */
   --color-bg-brand-table-tab: #2b7fffe0;
+  --color-bg-brand-table-tab: linear-gradient(to top right, #2b7fff, #0affff50);
   /* --color-bg-brand-table-tab: #e2f0fd; */
   /* --color-bg-brand-table-tab: linear-gradient(to top left, #2b7fff, #acffff); */
   --color-shadow-border: #ffffff70;
@@ -134,7 +135,8 @@
   /* --color-table-footer: #eee; */
   --color-table-footer: #fff;
   --color-table-bg-loading: #fff;
-  --color-table-reflection: #ecf4fc;
+  /* リフレクション ブルー */
+  --color-table-reflection: #d9eafb;
   --color-table-loading-spinner: #0d99ffd0;
   /* --color-table-row-hover: #ecf4fca0; */
   /* --color-table-row-hover: rgba(55, 53, 47, 0.08); */
@@ -161,6 +163,21 @@
   --color-btn-brand-f05: #e5f4ff;
   /* ASISTボタン */
   --color-btn-box-shadow: inset 0px 0px 0px 1px #ffffff90, 0px 0px 0px 1px #aaa;
+  /* 🌟EditModal light */
+  /* --color-modal-bg: #fcfcfc;
+  --color-modal-border: #0d99ff;
+  --color-modal-selection-bg: #0d99ff;
+  --color-modal-selection-text: #fff;
+  --color-modal-underline: rgb(94 94 94 / 0.8);
+  --color-modal-underline-active: #0d99ff; */
+  /* 🌟EditModal dark */
+  --color-modal-bg: #232323e0;
+  --color-modal-bg: #000000c0;
+  --color-modal-border: #ececec;
+  --color-modal-selection-bg: #0d99ff;
+  --color-modal-selection-text: #fff;
+  --color-modal-underline: rgb(94 94 94 / 0.8);
+  --color-modal-underline-active: #0d99ff;
 
   /* ボーダーカラー */
   --color-border: #e6e6e6;
@@ -190,6 +207,7 @@
 
   --color-text: rgba(0, 0, 0, 0.9); /* テキストカラー or #333333 */
   --color-text-rgb: 0, 0, 0; /* テキストカラー or #333333 */
+  --color-text-hover: #333;
   --color-text-reverse: #fff;
   --color-text-sub: rgba(25, 23, 17, 0.6);
   --color-text-secondary: rgba(0, 0, 0, 0.5); /* テキストサブカラー or #7d7d7d */
@@ -226,6 +244,7 @@
   --color-text-brand-rgb: 0, 123, 229;
   /* Figma ライト */
   --color-text-brand-f: #0d99ff;
+  --color-text-brand-f-hover: #0d9affbb;
   --color-text-onbrand: #fff; /* ブランドカラー上のテキストカラー */
   --color-text-brand-sub: #2b7fff;
   --color-text-brand-sub-rgb: 43, 127, 255;
@@ -322,6 +341,7 @@
   /* --color-bg-brand-table-tab: #0c8ce9e0; */
   /* --color-bg-brand-table-tab: #156cab; */
   --color-bg-brand-table-tab: #2258a9;
+  --color-bg-brand-table-tab: linear-gradient(to top right, #2b7fffba, #0affff50);
   --color-border-table: #333;
   --color-table-header: #252525;
   /* --color-table-footer: #252525; */
@@ -333,24 +353,31 @@
   --color-table-checkbox-outline: #2e2e2e;
   --color-table-checkbox-focus-outline: #fff;
 
-  /* グラデーション dark */
+  /* 🌟グラデーション dark */
   --color-bg-brand-gradient: linear-gradient(to top left, #2b7fffaa, #acffffaa);
 
-  /* サイドバー dark */
+  /* 🌟サイドバー dark */
   --color-sidebar-active: #0c8ce9;
   /* --color-sidebar-active: #2b7fff; */
   /* --color-sidebar-active: #275190; */
   /* --color-sidebar-active: #24608b; */
 
-  /* ボタン dark */
+  /* 🌟ボタン dark */
   --color-btn-brand: #2b7fff;
   --color-btn-brand-rgb: 43, 127, 255;
   --color-btn-brand-hover: #2571e2;
 
-  /* ボタン 薄め dark */
+  /* 🌟ボタン 薄め dark */
   --color-btn-brand-f05: #0e5d95;
-  /* ASISTボタン ボーダー */
+  /* 🌟ASISTボタン ボーダー */
   --color-btn-box-shadow: inset 0px 0px 0px 1px #999999a0, 0px 0px 0px 1px #333333;
+  /* 🌟EditModal dark */
+  --color-modal-bg: #232323;
+  --color-modal-border: #ececec;
+  --color-modal-selection-bg: #0d99ff;
+  --color-modal-selection-text: #fff;
+  --color-modal-underline: rgb(94 94 94 / 0.8);
+  --color-modal-underline-active: #0d99ff;
 
   /* ボーダーカラー */
   /* --color-border: #444444;  */
@@ -380,6 +407,7 @@
 
   --color-text: rgba(255, 255, 255, 1); /* テキストカラー or #333333 */
   --color-text-rgb: 255, 255, 255; /* テキストカラー or #333333 */
+  --color-text-hover: #aaa;
   --color-text-reverse: rgba(0, 0, 0, 0.9);
   --color-text-sub: #ccc;
   --color-text-secondary: rgba(255, 255, 255, 0.7); /* テキストサブカラー or #7d7d7d */
@@ -418,6 +446,7 @@
   /* タグテキストカラー dark */
   /* --color-text-brand-f: #7cc4f8; */
   --color-text-brand-f: #0c8ce9;
+  --color-text-brand-f-hover: #0d9affbb;
   --color-text-onbrand: #fff; /* ブランドカラー上のテキストカラー */
   --color-text-brand-sub: #2b7fff;
   --color-text-brand-sub-rgb: 43, 127, 255;
@@ -584,6 +613,11 @@ textarea {
     #141414 68%,
     #141414 100%
   );
+}
+
+.input-underline-transition {
+  transition: all 0.4s ease;
+  transition-delay: 0.1s;
 }
 
 /* Apple

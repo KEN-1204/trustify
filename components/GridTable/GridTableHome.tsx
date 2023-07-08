@@ -6,6 +6,7 @@ import useStore from "@/store";
 import { GridTableFooter } from "./GridTableFooter/GridTableFooter";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import useDashboardStore from "@/store/useDashboardStore";
 
 type TableDataType = {
   id: number;
@@ -104,9 +105,6 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
     staleTime: Infinity,
   });
 
-  console.log("🌟useInfiniteQuery data", data);
-  console.log("🌟useInfiniteQuery error", error);
-
   // 現在取得している全ての行 data.pagesのネストした配列を一つの配列にフラット化
   const allRows = data ? data.pages.flatMap((d) => d?.rows) : [];
 
@@ -114,7 +112,8 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
   const rowVirtualizer = useVirtualizer({
     count: hasNextPage ? allRows.length + 1 : allRows.length, // 次のページ有り lengthを１増やす
     getScrollElement: () => parentGridScrollContainer.current, // スクロール用コンテナ
-    estimateSize: () => 35, // 要素のサイズ
+    // estimateSize: () => 35, // 要素のサイズ
+    estimateSize: () => 30, // 要素のサイズ
     // overscan: 20, // ビューポート外にレンダリングさせる個数
     overscan: 10, // ビューポート外にレンダリングさせる個数
   });
@@ -126,6 +125,28 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
     } colsWidth: ${colsWidth}`
   );
   // ============================= 🌟無限スクロールの処理 =============================
+  useEffect(() => {
+    if (!rowVirtualizer) return console.log("無限スクロール関数 rowVirtualizerインスタンス無し");
+    // 現在保持している配列内の最後のアイテムをreverseで先頭にしてから分割代入で取得
+    const [lastItem] = [...rowVirtualizer.getVirtualItems()].reverse();
+    console.log("lastItem", lastItem);
+    if (!lastItem) {
+      return;
+    }
+
+    // ================= lastItem.indexに到達 追加フェッチ =================
+    console.log(`lastItem.index:${lastItem.index} allRows.length:${allRows.length}`);
+    // 最後のアイテムindexが総数-1を超え、まだフェッチできるページがあり、フェッチ中でないなら
+    if (lastItem.index >= allRows.length - 1 && hasNextPage && !isFetchingNextPage) {
+      // queryFnで設定した関数 limitは10で10個ずつフェッチで設定
+      console.log(`🔥追加フェッチ 現在の状態 lastItem.index:${lastItem.index} allRows.length:${allRows.length}`);
+      fetchNextPage(); // 追加でフェッチ
+    }
+    // ================= lastItem.indexに到達 追加フェッチ ここまで =================
+  }, [hasNextPage, fetchNextPage, allRows.length, isFetchingNextPage, rowVirtualizer.getVirtualItems()]);
+
+  // =====================================================================================
+  // ========== 🌟useEffect 取得データ総数が変わったタイミングで発火 チェック有無のStateの数を合わせる ==========
 
   // =====================================================================================
 
@@ -192,9 +213,11 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
     // それぞれのCSSカスタムプロパティをセット
     // grid-template-columnsの値となるCSSカスタムプロパティをセット
     parentGridScrollContainer.current.style.setProperty("--template-columns", `${newColsWidths.join(" ")}`);
-    parentGridScrollContainer.current.style.setProperty("--header-row-height", "35px");
+    parentGridScrollContainer.current.style.setProperty("--header-row-height", "30px");
+    // parentGridScrollContainer.current.style.setProperty("--header-row-height", "35px");
     parentGridScrollContainer.current.style.setProperty("--row-width", `${sumRowWidth}px`);
-    parentGridScrollContainer.current.style.setProperty("--summary-row-height", "35px");
+    parentGridScrollContainer.current.style.setProperty("--summary-row-height", "30px");
+    // parentGridScrollContainer.current.style.setProperty("--summary-row-height", "35px");
 
     console.log(
       "更新後--template-columns",
@@ -309,13 +332,29 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
 
   // ========= 🌟各Grid行トラックのtopからの位置を返す関数 インラインスタイル内で実行
   const gridRowTrackTopPosition = (index: number) => {
-    const topPosition = ((index + 1) * 35).toString() + "px";
+    // const topPosition = ((index + 1) * 35).toString() + "px";
+    const topPosition = ((index + 1) * 30).toString() + "px";
     console.log("topPosition", topPosition);
     return topPosition;
   };
   // ================================================================
-  // ========= 🌟GridCellクリックでセルを選択中アクティブセルstateに更新
-  const handleClickGridCell = (e: React.MouseEvent<HTMLDivElement>) => {
+
+  // ================== 🌟セル シングルクリック、ダブルクリックイベント ==================
+  const setTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const setIsOpenEditModal = useDashboardStore((state) => state.setIsOpenEditModal);
+  const setTextareaInput = useDashboardStore((state) => state.setTextareaInput);
+
+  // ================== 🌟GridCellクリックでセルを選択中アクティブセルstateに更新🌟 ==================
+  const handleClickGridCell = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (setTimeoutRef.current !== null) return;
+
+    setTimeoutRef.current = setTimeout(() => {
+      setTimeoutRef.current = null;
+      // シングルクリック時に実行したい処理
+      // 0.2秒後に実行されてしまうためここには書かない
+    }, 200);
+
+    console.log("シングルクリック");
     // すでにselectedセル(アクティブセル)のrefが存在するなら、一度aria-selectedをfalseに変更
     if (selectedGridCellRef.current?.getAttribute("aria-selected") === "true") {
       // 保持していたアクティブセルを前回のアクティブセルprevSelectedGridCellRefに格納
@@ -334,8 +373,27 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
     console.log(
       `前回アクティブセルの行と列: ${prevSelectedGridCellRef.current?.ariaColIndex}, ${prevSelectedGridCellRef.current?.parentElement?.ariaRowIndex}, 今回アクティブの行と列: ${selectedGridCellRef.current?.ariaColIndex}, ${selectedGridCellRef.current?.parentElement?.ariaRowIndex}`
     );
-  };
+  }, []);
+
+  // セルダブルクリック
+  const handleDoubleClick = useCallback((e: React.MouseEvent<HTMLDivElement>, index: number) => {
+    console.log("index", index);
+    if (index === 0) return console.log("リターン");
+    if (setTimeoutRef.current) {
+      clearTimeout(setTimeoutRef.current);
+
+      // console.log(e.detail);
+      setTimeoutRef.current = null;
+      // ダブルクリック時に実行したい処理
+      console.log("ダブルクリック", e.currentTarget);
+      // クリックした要素のテキストを格納
+      const text = e.currentTarget.innerText;
+      setTextareaInput(text);
+      setIsOpenEditModal(true);
+    }
+  }, []);
   // ================================================================
+
   // ========= 🌟チェックボックスクリックでstateに選択したアイテムのidを追加
   const handleSelectedCheckBox = (e: React.ChangeEvent<HTMLInputElement>, id: number) => {
     console.log(
@@ -343,82 +401,207 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       prevSelectedGridCellRef.current?.parentElement?.ariaRowIndex
     );
     console.log("今回のアクティブセル親列トラックのRowIndex", selectedGridCellRef.current?.parentElement?.ariaRowIndex);
+    const targetRowIndex = e.target.parentElement?.parentElement?.parentElement?.ariaRowIndex;
+    console.log("handleSelectedCheckBox targetRowIndex", targetRowIndex);
+
+    const gridScrollContainer = parentGridScrollContainer.current;
+    if (!gridScrollContainer) return;
+
     // PointerEventsを明示することでtypescriptのエラー回避
     if (e.nativeEvent instanceof PointerEvent) {
-      // ルート１：そのままチェック (シフトキーがfalseの場合)
+      // ================ ルート１：そのままチェック (シフトキーがfalseの場合) ======================
       if (e.nativeEvent.shiftKey === false) {
-        console.log(e);
+        console.log("PointerEvent", e);
+        console.log("🌟e.target.checked", e.target.checked);
         let newSelectedCheckBoxArray = [...selectedCheckBox];
+        console.log("newSelectedCheckBoxArray 前", newSelectedCheckBoxArray);
         // チェックした時
         if (e.target.checked === true) {
           newSelectedCheckBoxArray.push(id);
           newSelectedCheckBoxArray.sort((a, b) => a - b);
           setSelectedCheckBox(newSelectedCheckBoxArray);
+          console.log("newSelectedCheckBoxArray 後", newSelectedCheckBoxArray);
+          // チェックされた行をハイライト
+          // const selectedRow = document.querySelector(`[aria-rowindex="${id + 1}"]`);
+          const selectedRow = gridScrollContainer.querySelector(`[role=row][aria-rowindex="${targetRowIndex}"]`);
+          selectedRow?.setAttribute(`aria-selected`, "true");
+          // チェックした行要素Rowのチェック有無をStateに更新
+          setCheckedRows((prev) => ({
+            ...prev,
+            [id]: true, // プロパティ名に変数を指定するにはブラケット記法を使用する
+          }));
         } else {
           // チェックが外れた時
           const filteredArray = newSelectedCheckBoxArray.filter((itemId) => itemId !== id);
           filteredArray.sort((a, b) => a - b);
           setSelectedCheckBox(filteredArray);
+          // チェックでハイライトされた行を戻す
+          // const selectedRow = document.querySelector(`[aria-rowindex="${id + 1}"]`);
+          const selectedRow = gridScrollContainer.querySelector(`[role=row][aria-rowindex="${targetRowIndex}"]`);
+          selectedRow?.setAttribute(`aria-selected`, "false");
+          // チェックが外れた行要素Rowのチェック有無をStateに更新
+          setCheckedRows((prev) => ({
+            ...prev,
+            [id]: false, // プロパティ名に変数を指定するにはブラケット記法を使用する
+          }));
         }
-      } else {
-        // ルート２：シフトキーが押された状態でチェック
-        // もし他のチェックボックスのセルがaria-selected=trueで選択中となっているならば
-        // クリックしたチェックボックスと前回アクティブだったチェックボックスのセルとの間のチェックボックスを全てtrueにかえる
-        // まずはgridcellのcolindexが1のセルを全て取得
-        const checkBoxCells = document.querySelectorAll('[role=gridcell][aria-colindex="1"]');
-        console.log("シフト有りクリック");
-        // 前回のアクティブセルがcheckboxのセルで、シフトキーを押された状態でチェックされたら
-        if (prevSelectedGridCellRef.current?.ariaColIndex === "1") {
-          // 前回のアクティブセルの親のRowIndexと今回チェックしたセルの親のRowIndexまでを全てtrueに変更
-          if (!prevSelectedGridCellRef.current?.parentElement?.ariaRowIndex)
-            return console.log("prevアクティブセル無し リターン");
-          if (!selectedGridCellRef.current?.parentElement?.ariaRowIndex)
-            return console.log("アクティブセル無し リターン");
-          // 前回と今回の行インデックスで小さい値を取得(セルの親要素をparentElementでアクセス)
-          const minNum = Math.min(
-            +prevSelectedGridCellRef.current?.parentElement?.ariaRowIndex,
-            +selectedGridCellRef.current?.parentElement?.ariaRowIndex
-          );
-          // 前回と今回の行インデックスのを小さい値を取得(セルの親要素をparentElementでアクセス)
-          const maxNum = Math.max(
-            +prevSelectedGridCellRef.current?.parentElement?.ariaRowIndex,
-            +selectedGridCellRef.current?.parentElement?.ariaRowIndex
-          );
-          console.log(`行インデックス最小値${minNum}, 最大値${maxNum}`);
-          // １列目のセルの親の行RowIndexと前回と今回のアクティブセルのRowIndexの間の値を持つチェックボックスを全てチェックtrueにする
-          let checkedCellArray: number[] = [];
-          checkBoxCells.forEach((cell) => {
-            if (!cell.parentElement?.ariaRowIndex) return console.log("セル無し リターン");
-            // 前回と今回のRowIndexの間のセルなら、チェックを入れる
-            if (minNum <= +cell.parentElement?.ariaRowIndex && +cell.parentElement?.ariaRowIndex <= maxNum) {
-              const checkbox = cell.querySelector('[aria-label="Select"]');
-              if (checkbox instanceof HTMLInputElement) {
-                checkbox.checked = true; // チェックボックスにチェックを入れる
+      }
 
-                // １列目のセルの隣のidカラムのセル(兄弟要素)をnextSiblingで取得
-                if (cell.nextElementSibling instanceof HTMLDivElement) {
-                  // ２列目のidフィールドの値となるidを取得
-                  const idCell = cell.nextElementSibling.innerText;
-                  // 数値型に変換してpush
-                  checkedCellArray.push(+idCell);
+      // ====================== ルート２：シフトキーが押された状態でチェック ======================
+      else {
+        // シフトキーが押された状態で、かつチェックが入っておらず今回チェックを入れた場合のルート
+        if (e.target.checked === true) {
+          // もし他のチェックボックスのセルがaria-selected=trueで選択中となっているならば
+          // クリックしたチェックボックスと前回アクティブだったチェックボックスのセルとの間のチェックボックスを全てtrueにかえる
+          // まずはgridcellのcolindexが1のセルを全て取得
+          const checkBoxCells = gridScrollContainer.querySelectorAll('[role=gridcell][aria-colindex="1"]');
+          console.log("シフト有りクリック");
+          // 前回のアクティブセルがcheckboxのセルで、シフトキーを押された状態でチェックされたら
+          if (prevSelectedGridCellRef.current?.ariaColIndex === "1") {
+            // 前回のアクティブセルの親のRowIndexと今回チェックしたセルの親のRowIndexまでを全てtrueに変更
+            if (!prevSelectedGridCellRef.current?.parentElement?.ariaRowIndex)
+              return console.log("prevアクティブセル無し リターン");
+            if (!selectedGridCellRef.current?.parentElement?.ariaRowIndex)
+              return console.log("アクティブセル無し リターン");
+            // 前回と今回の行インデックスで小さい値を取得(セルの親要素をparentElementでアクセス)
+            const minNum = Math.min(
+              +prevSelectedGridCellRef.current?.parentElement?.ariaRowIndex,
+              +selectedGridCellRef.current?.parentElement?.ariaRowIndex
+            );
+            // 前回と今回の行インデックスのを小さい値を取得(セルの親要素をparentElementでアクセス)
+            const maxNum = Math.max(
+              +prevSelectedGridCellRef.current?.parentElement?.ariaRowIndex,
+              +selectedGridCellRef.current?.parentElement?.ariaRowIndex
+            );
+            console.log(`行インデックス最小値${minNum}, 最大値${maxNum}`);
+            // １列目のセルの親の行RowIndexと前回と今回のアクティブセルのRowIndexの間の値を持つチェックボックスを全てチェックtrueにする
+            let checkedCellArray: number[] = [];
+            checkBoxCells.forEach((cell) => {
+              if (!cell.parentElement?.ariaRowIndex) return console.log("セル無し リターン");
+              // 前回と今回のRowIndexの間のセルなら、チェックを入れる
+              if (minNum <= +cell.parentElement?.ariaRowIndex && +cell.parentElement?.ariaRowIndex <= maxNum) {
+                const checkbox = cell.querySelector('[aria-label="Select"]');
+                if (checkbox instanceof HTMLInputElement) {
+                  checkbox.checked = true; // チェックボックスにチェックを入れる
+
+                  // チェックされた行を全てハイライト
+                  if (checkbox.checked) {
+                    cell.parentElement.setAttribute(`aria-selected`, "true");
+                  } else {
+                    cell.parentElement.setAttribute(`aria-selected`, "false");
+                  }
+
+                  // １列目のセルの隣のidカラムのセル(兄弟要素)をnextSiblingで取得
+                  if (cell.nextElementSibling instanceof HTMLDivElement) {
+                    // ２列目のidフィールドの値となるidを取得
+                    const idCell = cell.nextElementSibling.innerText;
+                    // 数値型に変換してpush
+                    checkedCellArray.push(+idCell);
+                  }
                 }
               }
-            }
-          });
-          // 選択中の行要素を保持するstateを更新
-          const newSelectedCheckBox = [...selectedCheckBox];
-          checkedCellArray.forEach((item) => {
-            // すでに含まれているidは無視してリターン
-            if (newSelectedCheckBox.includes(item)) return;
-            newSelectedCheckBox.push(item);
-          });
-          // ソートしてから選択中のstateを更新
-          newSelectedCheckBox.sort((a, b) => a - b);
-          setSelectedCheckBox(newSelectedCheckBox);
+            });
+            // 選択中の行要素を保持するstateを更新
+            const newSelectedCheckBox = [...selectedCheckBox];
+            checkedCellArray.forEach((item) => {
+              // すでに含まれているidは無視してリターン
+              if (newSelectedCheckBox.includes(item)) return;
+              newSelectedCheckBox.push(item);
+            });
+            // ソートしてから選択中のstateを更新
+            newSelectedCheckBox.sort((a, b) => a - b);
+            setSelectedCheckBox(newSelectedCheckBox);
+            console.log("newSelectedCheckBoxArray 後", newSelectedCheckBox);
+
+            // 全てのチェック有無を保持するStateも更新
+            const newArray = newSelectedCheckBox.reduce((acc: { [key: number]: boolean }, cur) => {
+              acc[cur] = true;
+              return acc;
+            }, {});
+            setCheckedRows((prev) => ({
+              ...prev,
+              ...newArray,
+            }));
+          }
+        }
+        // シフトキーが押された状態で、かつチェックが既に入っていて今回チェックをfalseにして複数チェックを外すルート
+        else {
+          const checkBoxCells = gridScrollContainer.querySelectorAll('[role=gridcell][aria-colindex="1"]');
+          console.log("シフト有りクリック");
+          // 前回のアクティブセルがcheckboxのセルで、シフトキーを押された状態でチェックが外されたら
+          if (prevSelectedGridCellRef.current?.ariaColIndex === "1") {
+            // 前回のアクティブセルの親のRowIndexと今回チェックしたセルの親のRowIndexまでを全てfalseに変更
+            if (!prevSelectedGridCellRef.current?.parentElement?.ariaRowIndex)
+              return console.log("prevアクティブセル無し リターン");
+            if (!selectedGridCellRef.current?.parentElement?.ariaRowIndex)
+              return console.log("アクティブセル無し リターン");
+            // 前回と今回の行インデックスで小さい値を取得(セルの親要素をparentElementでアクセス)
+            const minNum = Math.min(
+              +prevSelectedGridCellRef.current?.parentElement?.ariaRowIndex,
+              +selectedGridCellRef.current?.parentElement?.ariaRowIndex
+            );
+            // 前回と今回の行インデックスのを小さい値を取得(セルの親要素をparentElementでアクセス)
+            const maxNum = Math.max(
+              +prevSelectedGridCellRef.current?.parentElement?.ariaRowIndex,
+              +selectedGridCellRef.current?.parentElement?.ariaRowIndex
+            );
+            console.log(`行インデックス最小値${minNum}, 最大値${maxNum}`);
+            // １列目のセルの親の行RowIndexと前回と今回のアクティブセルのRowIndexの間の値を持つチェックボックスを全てチェックfalseにする
+            let uncheckedCellArray: number[] = [];
+            checkBoxCells.forEach((cell) => {
+              if (!cell.parentElement?.ariaRowIndex) return console.log("セル無し リターン");
+              // 前回と今回のRowIndexの間のセルなら、チェックを外す
+              if (minNum <= +cell.parentElement?.ariaRowIndex && +cell.parentElement?.ariaRowIndex <= maxNum) {
+                const checkbox = cell.querySelector('[aria-label="Select"]');
+                if (checkbox instanceof HTMLInputElement) {
+                  checkbox.checked = false; // チェックボックスにチェックを入れる
+
+                  // チェックが外れた行を全てハイライトは取り消す
+                  cell.parentElement.setAttribute(`aria-selected`, "false");
+
+                  // １列目のセルの隣のidカラムのセル(兄弟要素)をnextSiblingで取得
+                  if (cell.nextElementSibling instanceof HTMLDivElement) {
+                    // ２列目のidフィールドの値となるidを取得
+                    const idCell = cell.nextElementSibling.innerText;
+                    // 数値型に変換してpush
+                    uncheckedCellArray.push(+idCell);
+                  }
+                }
+              }
+            });
+            // 選択中の行要素を保持するstateを更新 selectedCheckBox: number[]
+            const newSelectedCheckBox = [...selectedCheckBox];
+            // チェックを外したセルのindexがプロパティで値がfalseのオブジェクトを持つ配列を生成
+            const newUncheckedArray = uncheckedCellArray.reduce((acc: { [key: number]: boolean }, cur) => {
+              acc[cur] = false;
+              return acc;
+            }, {});
+            console.log("newUncheckedArray", newUncheckedArray);
+
+            // チェックでハイライトされた行を戻す
+            // const selectedRow = document.querySelector(`[aria-rowindex="${id + 1}"]`);
+            const selectedRow = gridScrollContainer.querySelector(`[role=row][aria-rowindex="${targetRowIndex}"]`);
+            selectedRow?.setAttribute(`aria-selected`, "false");
+            // チェックが外れた行要素Rowのチェック有無をStateに更新
+            setCheckedRows((prev) => ({
+              ...prev,
+              ...newUncheckedArray, // falseに更新した値で上書き
+            }));
+
+            // 範囲選択でチェックが外れたセルを全てフィルターで除外して新たな配列を生成してセレクトStateに格納
+            const filteredNewArray = uncheckedCellArray.filter((item) => {
+              !newSelectedCheckBox.includes(item);
+            });
+            console.log("filteredNewArray 更新後", filteredNewArray);
+            setSelectedCheckBox(filteredNewArray);
+          }
         }
       }
     }
   };
+  console.log("✅checkedRows", checkedRows);
+  console.log("✅selectedCheckBox", selectedCheckBox);
+
   // ================================================================
   // ======== 🌟チェックボックスヘッダーのON/OFFで全てのチェックボックスをtrue/false切り替え後、全てのidを選択中stateに反映
   const handleAllSelectCheckBox = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -536,6 +719,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
                     } ${styles.grid_cell_resizable}`}
                     style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
                     onClick={(e) => handleClickGridCell(e)}
+                    onDoubleClick={(e) => handleDoubleClick(e, index)}
                     // onMouseDown={
                     //   index !== Object.keys(tableBodyDataArray[0]).length - 1
                     //     ? (e) => handleMouseDown(e, index)
@@ -599,7 +783,8 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
                   // width: "100%",
                   width: `var(--row-width)`,
                   position: "relative",
-                  "--header-row-height": "35px",
+                  // "--header-row-height": "35px",
+                  "--header-row-height": "30px",
                   "--row-width": "",
                 } as any
               }
@@ -619,7 +804,8 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
                       tabIndex={-1}
                       // aria-rowindex={virtualRow.index + 1} // ヘッダーの次からなのでindex0+2
                       aria-selected={false}
-                      className={`${styles.loading_reflection} flex-center mx-auto h-[35px] w-full text-center font-bold`}
+                      className={`${styles.loading_reflection} flex-center mx-auto h-[30px] w-full text-center font-bold`}
+                      // className={`${styles.loading_reflection} flex-center mx-auto h-[35px] w-full text-center font-bold`}
                     >
                       <span className={`${styles.reflection}`}></span>
                       <div className={styles.spinner78}></div>
@@ -639,7 +825,8 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
                     style={{
                       // gridTemplateColumns: colsWidth.join(" "),
                       // top: gridRowTrackTopPosition(index),
-                      top: ((virtualRow.index + 0) * 35).toString() + "px", // +1か0か
+                      // top: ((virtualRow.index + 0) * 35).toString() + "px", // +1か0か
+                      top: ((virtualRow.index + 0) * 30).toString() + "px", // +1か0か
                     }}
                   >
                     {/* ======== gridセル チェックボックスセル ======== */}
@@ -687,6 +874,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
                           } ${styles.grid_cell_resizable}`}
                           style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
                           onClick={(e) => handleClickGridCell(e)}
+                          onDoubleClick={(e) => handleDoubleClick(e, index)}
                         >
                           {value}
                         </div>

@@ -193,11 +193,13 @@
   width: 100%;
   overflow: auto;
   position: relative;
+  padding-right: 30vw;
 }
 /* 仮想化Rowグループコンテナ */
 .grid_rowgroup_virtualized_container {
   position: relative;
-  --header-row-height: 35px;
+  /* --header-row-height: 35px; */
+  --header-row-height: 30px;
   /* --row-width: 0px; */
 }
 .grid_header_row {
@@ -470,7 +472,7 @@
   position: absolute;
   height: 1rem;
   width: 1rem;
-  top: 11px;
+  top: 9px;
   left: 14px;
   opacity: 0;
   pointer-events: none;
@@ -543,7 +545,8 @@
   z-index: 1;
   bottom: 0;
   /* width: 100%; */
-  height: 35px;
+  height: 30px;
+  /* height: 35px; */
   width: var(--row-width);
   display: flex;
   justify-content: flex-start;

@@ -8,17 +8,22 @@ type State = {
   // 【アクティブメニュータブ】
   activeMenuTab: ActiveMenuTab;
   setActiveMenuTab: (payload: ActiveMenuTab) => void;
-
   // 【サイドバーメニュー開閉状態】
   isOpenSideBarMenu: boolean;
   setIsOpenSideBarMenu: (payload: boolean) => void;
   // 【サイドバーピックボックス開閉状態】
   isOpenSideBarPickBox: boolean;
   setIsOpenSideBarPickBox: (payload: boolean) => void;
-
   // 【サイドバーの拡大・縮小】
   isOpenSidebar: boolean;
   setIsOpenSidebar: (payload: boolean) => void;
+  // =================== 編集モーダル ===================
+  // 【編集モーダル開閉状態】
+  isOpenEditModal: boolean;
+  setIsOpenEditModal: (payload: boolean) => void;
+  // 【編集モーダル テキストエリア内容】
+  textareaInput: string;
+  setTextareaInput: (payload: string) => void;
 };
 
 const useDashboardStore = create<State>((set) => ({
@@ -35,6 +40,13 @@ const useDashboardStore = create<State>((set) => ({
   // 【サイドバーの拡大・縮小】
   isOpenSidebar: true,
   setIsOpenSidebar: (payload) => set({ isOpenSidebar: payload }),
+  // =================== 編集モーダル ===================
+  // 【編集モーダル開閉状態】
+  isOpenEditModal: false,
+  setIsOpenEditModal: (payload) => set({ isOpenEditModal: payload }),
+  // 【編集モーダル テキストエリア内容】
+  textareaInput: "",
+  setTextareaInput: (payload) => set({ textareaInput: payload }),
 }));
 
 export default useDashboardStore;

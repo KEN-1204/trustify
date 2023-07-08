@@ -56,7 +56,8 @@ export const Layout: FC<Prop> = ({ children, title = "TRUSTiFY | Trustify" }) =>
       </div>
 
       {/* モーダル */}
-      <Modal />
+      {/* <Modal /> */}
+      {isOpenModal && <Modal />}
     </div>
   );
 };
