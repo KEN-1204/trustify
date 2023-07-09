@@ -3,10 +3,11 @@ import styles from "./EditColumns.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { MdOutlineDragIndicator } from "react-icons/md";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
-import { ImArrowRight2, ImArrowLeft2 } from "react-icons/im";
+import { ImArrowRight2, ImArrowLeft2, ImArrowUp2, ImArrowDown2 } from "react-icons/im";
 import useStore from "@/store";
 import { Tooltip } from "@/components/Parts/Tooltip/Tooltip";
 import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
+import { GrPowerReset } from "react-icons/gr";
 
 // const data: Array<{ id: number; name: string; img: StaticImageData }> = [
 const dataLeft: Array<{ id: number; name: string }> = [
@@ -225,6 +226,10 @@ export const EditColumns: FC = () => {
   const selectedRightItemsRef = useRef<number[]>([]);
   const addArrowRef = useRef<HTMLDivElement | null>(null);
   const removeArrowRef = useRef<HTMLDivElement | null>(null);
+  const upArrowRef = useRef<HTMLDivElement | null>(null);
+  const downArrowRef = useRef<HTMLDivElement | null>(null);
+  const resetLeftRef = useRef<HTMLDivElement | null>(null);
+  const resetRightRef = useRef<HTMLDivElement | null>(null);
   const modalContainerRef = useRef<HTMLDivElement | null>(null);
   console.log(`listItems`, listItemsLeft);
   console.log(`listItems`, listItemsRight);
@@ -287,6 +292,7 @@ export const EditColumns: FC = () => {
     setDragIndexRight(null);
   };
 
+  // ============================== 左側のカラムをクリックでアクティブ化 ==============================
   const handleClickActiveLeft = (e: React.MouseEvent<HTMLElement, MouseEvent>, id: number) => {
     console.log("クリック");
     e.currentTarget.classList.toggle(`${styles.active_left}`);
@@ -301,10 +307,13 @@ export const EditColumns: FC = () => {
     }
     if (!!selectedLeftItemsRef.current.length) {
       addArrowRef.current?.classList.add(`${styles.arrow_add_active}`);
+      resetLeftRef.current?.classList.add(`${styles.arrow_left_reset_active}`);
     } else {
       addArrowRef.current?.classList.remove(`${styles.arrow_add_active}`);
+      resetLeftRef.current?.classList.remove(`${styles.arrow_left_reset_active}`);
     }
   };
+  // ============================== 右側のカラムをクリックでアクティブ化 ==============================
   const handleClickActiveRight = (e: React.MouseEvent<HTMLElement, MouseEvent>, id: number) => {
     console.log("クリック");
     e.currentTarget.classList.toggle(`${styles.active_right}`);
@@ -319,12 +328,18 @@ export const EditColumns: FC = () => {
     }
     if (!!selectedRightItemsRef.current.length) {
       removeArrowRef.current?.classList.add(`${styles.arrow_remove_active}`);
+      upArrowRef.current?.classList.add(`${styles.arrow_up_active}`);
+      downArrowRef.current?.classList.add(`${styles.arrow_down_active}`);
+      resetRightRef.current?.classList.add(`${styles.arrow_right_reset_active}`);
     } else {
       removeArrowRef.current?.classList.remove(`${styles.arrow_remove_active}`);
+      upArrowRef.current?.classList.remove(`${styles.arrow_up_active}`);
+      downArrowRef.current?.classList.remove(`${styles.arrow_down_active}`);
+      resetRightRef.current?.classList.remove(`${styles.arrow_right_reset_active}`);
     }
   };
 
-  // レフトエリアのアイテムをライトエリアに追加する関数
+  // ==================== レフトエリアのアイテムをライトエリアに追加する関数 ====================
   const handleAddVisible = () => {
     if (!selectedLeftItemsRef.current.length) return console.log("左無し");
     // Refに格納している左の選択中のアイテムのidを右のStateに追加して左のStateから削除
@@ -349,7 +364,7 @@ export const EditColumns: FC = () => {
     addArrowRef.current?.classList.remove(`${styles.arrow_add_active}`);
   };
 
-  // ライトエリアのアイテムをレフトエリアに追加する関数
+  // ==================== ライトエリアのアイテムをレフトエリアに追加する関数 ====================
   const handleAddHidden = () => {
     if (!selectedRightItemsRef.current.length) return console.log("右無し");
     // Refに格納している左の選択中のアイテムのidを右のStateに追加して左のStateから削除
@@ -374,7 +389,37 @@ export const EditColumns: FC = () => {
     removeArrowRef.current?.classList.remove(`${styles.arrow_remove_active}`);
   };
 
-  // ================ ツールチップ ===================
+  // ================================ 最下部にカラムを移動する関数 ===============================
+  const handleMoveLast = () => {};
+
+  // ================================ 最上部にカラムを移動する関数 ===============================
+  const handleMoveFirst = () => {};
+
+  // ================================ 左側の選択したカラムを全てリセットする関数 ===============================
+  const handleResetLeft = () => {
+    if (!selectedLeftItemsRef.current.length) return console.log("左無し");
+    if (!modalContainerRef.current) return console.log("無し");
+    selectedLeftItemsRef.current = [];
+    resetLeftRef.current?.classList.remove(`${styles.arrow_left_reset_active}`);
+    const leftActiveColumns = modalContainerRef.current.querySelectorAll(`.${styles.active_left}`);
+    leftActiveColumns.forEach((item) => item.classList.remove(`${styles.active_left}`));
+    addArrowRef.current?.classList.remove(`${styles.arrow_add_active}`);
+  };
+  // ================================ 右側の選択したカラムを全てリセットする関数 ===============================
+  const handleResetRight = () => {
+    if (!selectedRightItemsRef.current.length) return console.log("右無し");
+    if (!modalContainerRef.current) return console.log("無し");
+    selectedRightItemsRef.current = [];
+    resetRightRef.current?.classList.remove(`${styles.arrow_right_reset_active}`);
+
+    const rightActiveColumns = modalContainerRef.current.querySelectorAll(`.${styles.active_right}`);
+    rightActiveColumns.forEach((item) => item.classList.remove(`${styles.active_right}`));
+    removeArrowRef.current?.classList.remove(`${styles.arrow_remove_active}`);
+    downArrowRef.current?.classList.remove(`${styles.arrow_down_active}`);
+    upArrowRef.current?.classList.remove(`${styles.arrow_up_active}`);
+  };
+
+  // ================================ ツールチップ ================================
   const hoveredItemPosModal = useStore((state) => state.hoveredItemPosModal);
   const setHoveredItemPosModal = useStore((state) => state.setHoveredItemPosModal);
   const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
@@ -413,12 +458,12 @@ export const EditColumns: FC = () => {
       <div className={`${styles.container} fade01 `} ref={modalContainerRef}>
         {/* 保存キャンセルエリア */}
         <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[30px] text-center text-[18px]">
-          <div className="cursor-pointer hover:text-[#aaa]" onClick={() => console.log("🌟")}>
+          <div className="font-samibold cursor-pointer hover:text-[#aaa]" onClick={() => setIsOpenEditColumns(false)}>
             キャンセル
           </div>
           <div className="-translate-x-[25px] font-bold">カラム並び替え・追加/削除</div>
           <div
-            className={`cursor-pointer font-bold text-[#0D99FF] ${styles.save_text}`}
+            className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
             onClick={() => console.log("クリック")}
           >
             保存
@@ -428,7 +473,21 @@ export const EditColumns: FC = () => {
         <div className={`${styles.main_contents_container}`}>
           {/* 左コンテンツボックス */}
           <div className={`flex h-full basis-5/12 flex-col items-center ${styles.content_box}`}>
-            <div className={`${styles.title} text-[#0D99FF]`}>非表示</div>
+            {/* タイトルエリア */}
+            <div className={`${styles.title} space-x-4 `}>
+              <span className="text-[#0D99FF]">非表示</span>
+              <div
+                ref={resetLeftRef}
+                className={`flex-center h-[30px] w-[30px] cursor-not-allowed rounded-full bg-[var(--color-edit-arrow-disable)] text-[var(--color-sub-text)]`}
+                // onClick={handleMoveFirst}
+                data-text="選択したカラムをリセットする"
+                onMouseEnter={(e) => handleOpenTooltip(e, "top")}
+                onMouseLeave={handleCloseTooltip}
+                onClick={handleResetLeft}
+              >
+                <GrPowerReset className="pointer-events-none text-[16px]" />
+              </div>
+            </div>
             <ul className={`${styles.sortable_list} `}>
               {listItemsLeft.map((item, index) => (
                 <li
@@ -449,7 +508,8 @@ export const EditColumns: FC = () => {
                     {/* <Image src={item.img} alt="" /> */}
                     <span className="truncate">{item.name}</span>
                   </div>
-                  <MdOutlineDragIndicator />
+                  {/* <MdOutlineDragIndicator /> */}
+                  <div className="min-h-[19px] w-[18px]"></div>
                 </li>
               ))}
             </ul>
@@ -481,7 +541,42 @@ export const EditColumns: FC = () => {
 
           {/* 右コンテンツボックス */}
           <div className={`flex h-full  basis-5/12 flex-col items-center ${styles.content_box}`}>
-            <div className={`${styles.title} text-[#0D99FF] `}>表示</div>
+            {/* タイトルエリア */}
+            <div className={`${styles.title} space-x-4 text-[var(--color-sub-text)]`}>
+              <span className="text-[#0D99FF]">表示</span>
+              <div
+                ref={downArrowRef}
+                className={`flex-center h-[30px] w-[30px] cursor-not-allowed rounded-full bg-[var(--color-edit-arrow-disable)]`}
+                onClick={handleMoveLast}
+                data-text="選択したカラムを一番下に移動する"
+                onMouseEnter={(e) => handleOpenTooltip(e, "top")}
+                onMouseLeave={handleCloseTooltip}
+              >
+                <ImArrowDown2 className="pointer-events-none text-[16px]" />
+              </div>
+              <div
+                ref={upArrowRef}
+                className={`flex-center h-[30px] w-[30px] cursor-not-allowed rounded-full bg-[var(--color-edit-arrow-disable)] `}
+                onClick={handleMoveFirst}
+                data-text="選択したカラムを一番上に移動する"
+                onMouseEnter={(e) => handleOpenTooltip(e, "top")}
+                onMouseLeave={handleCloseTooltip}
+              >
+                <ImArrowUp2 className="pointer-events-none text-[16px]" />
+              </div>
+              <div
+                ref={resetRightRef}
+                className={`flex-center h-[30px] w-[30px] cursor-not-allowed rounded-full bg-[var(--color-edit-arrow-disable)]`}
+                // onClick={handleMoveFirst}
+                data-text="選択したカラムをリセットする"
+                onMouseEnter={(e) => handleOpenTooltip(e, "top")}
+                onMouseLeave={handleCloseTooltip}
+                onClick={handleResetRight}
+              >
+                <GrPowerReset className="pointer-events-none text-[16px]" />
+              </div>
+            </div>
+            {/* カラムリストエリア */}
             <ul className={`${styles.sortable_list}`}>
               {listItemsRight.map((item, index) => (
                 <li

@@ -86,12 +86,11 @@
 }
 .sortable_list .item.active_left {
   box-shadow: 0 0 0 1px var(--color-edit-left-active);
-  /* box-shadow: 0 0 0 1px var(--bright-green); */
-  /* box-shadow: 0 0 0 1px var(--color-bg-brand-f); */
+  background-color: var(--color-edit-left-active-bg);
 }
 .sortable_list .item.active_right {
-  /* border: 1px solid var(--color-bg-brand-f); */
   box-shadow: 0 0 0 1px var(--color-edit-right-active);
+  background-color: var(--color-edit-right-active-bg);
 }
 .item .details {
   display: flex;
@@ -124,28 +123,88 @@
   /* background: #000;
   color: #0affff; */
   opacity: 0.3;
+  /* background: var(--color-edit-add); */
   background: var(--color-bg-brand-f);
+  color: #fff;
 }
 .item_right.dragging {
   /* background: #000;
   color: #0affff; */
   opacity: 0.3;
-  background: var(--bright-red);
+  /* background: var(--bright-red); */
+  background: var(--color-bg-brand-f);
+  color: #fff;
 }
 
+.title svg {
+  /* color: var(--color-sub-text); */
+}
+.title svg path {
+  stroke: var(--color-sub-text);
+}
+/* 追加 */
 .arrow_add_active {
   background-color: var(--color-edit-add);
   color: var(--color-text);
   cursor: pointer;
+  color: #fff;
 }
 .arrow_add_active:hover {
   background-color: var(--color-edit-add-hover);
 }
+/* 削除 */
 .arrow_remove_active {
   background-color: var(--color-edit-remove);
-  color: var(--color-text);
+  /* color: var(--color-text); */
+  color: #fff;
   cursor: pointer;
 }
 .arrow_remove_active:hover {
   background-color: var(--color-edit-remove-hover);
+}
+/* 最上部 */
+.arrow_up_active {
+  background-color: var(--color-bg-brand-f);
+  /* color: var(--color-text); */
+  cursor: pointer;
+  color: #fff;
+}
+.arrow_up_active:hover {
+  background-color: var(--color-bg-brand-f-hover);
+}
+/* 最下部 */
+.arrow_down_active {
+  background-color: var(--color-bg-brand-f);
+  /* color: var(--color-text); */
+  color: #fff;
+  cursor: pointer;
+}
+.arrow_down_active:hover {
+  background-color: var(--color-bg-brand-f-hover);
+}
+/* 右側リセット */
+.arrow_right_reset_active {
+  background-color: var(--color-bg-brand-f);
+  /* color: var(--color-text); */
+  color: #fff;
+  cursor: pointer;
+}
+.arrow_right_reset_active svg path {
+  stroke: #fff;
+}
+.arrow_right_reset_active:hover {
+  background-color: var(--color-bg-brand-f-hover);
+}
+/* 左側リセット */
+.arrow_left_reset_active {
+  background-color: var(--color-bg-brand-f);
+  /* color: var(--color-text); */
+  color: #fff;
+  cursor: pointer;
+}
+.arrow_left_reset_active svg path {
+  stroke: #fff;
+}
+.arrow_left_reset_active:hover {
+  background-color: var(--color-bg-brand-f-hover);
 }

@@ -65,6 +65,7 @@
   }
 }
 
+/* ===================================== 🌈 ===================================== */
 .theme_light {
   /* 
   --color-bg-brand
@@ -103,6 +104,7 @@
   --color-bg-brand: #0066ff;
   --color-bg-brand-rgb: 13, 153, 255;
   --color-bg-brand-f: #0d99ff; /* Figma */
+  --color-bg-brand-f-hover: #0d99ff90;
   --color-bg-brand-f05: #e5f4ff; /* Figma */
   --color-bg-brand05: #0d99ff80;
   --color-bg-brand-hover: #007be5;
@@ -188,12 +190,16 @@
   /* 🌟EditColumnsモーダル カラム変更モーダル light */
   --color-edit-bg: #ffffffe0;
   --color-edit-border: inset 0px 0px 0px 1px #999, 0px 0px 0px 1px #00000030;
-  --color-edit-add: #abffa2;
-  --color-edit-add-hover: #abffa290;
-  --color-edit-remove: #ff8e8e;
-  --color-edit-remove-hover: #ff8e8e90;
+  /* --color-edit-add: #abffa2; */
+  --color-edit-add: #7fff70;
+  --color-edit-add-hover: #7fff7090;
+  /* --color-edit-remove: #ff8585; */
+  --color-edit-remove: #ff7d7d;
+  --color-edit-remove-hover: #ff7d7d90;
   --color-edit-left-active: #6ae67d;
+  --color-edit-left-active-bg: #abffa230;
   --color-edit-right-active: #f63e54;
+  --color-edit-right-active-bg: #ff858530;
   --color-edit-arrow-disable: var(--color-bg-sub);
 
   /* ボーダーカラー */
@@ -301,6 +307,7 @@
   --tile-end-rgb: 2, 5, 19;
 }
 
+/* ===================================== 🌠 ===================================== */
 .theme_dark {
   /* 
   --color-bg-brand ダークモード
@@ -342,6 +349,7 @@
   --color-bg-brand: #0066ff;
   --color-bg-brand-rgb: 0, 102, 255;
   --color-bg-brand-f: #0c8ce9; /* Figma */
+  --color-bg-brand-f-hover: #0c8ce990;
   --color-bg-brand-f05: #0e5d95; /* Figma */
   --color-bg-brand05: #0c8ce980;
   --color-bg-brand-hover: #0a6dc2;
