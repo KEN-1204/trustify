@@ -90,7 +90,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   const setIsOpenEditColumns = useDashboardStore((state) => state.setIsOpenEditColumns);
 
   return (
-    <div className={`${styles.trustify_app}`}>
+    <div className={`${styles.trustify_app} relative`}>
       <Head>
         <title>{title}</title>
       </Head>

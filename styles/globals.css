@@ -188,6 +188,13 @@
   /* 🌟EditColumnsモーダル カラム変更モーダル light */
   --color-edit-bg: #ffffffe0;
   --color-edit-border: inset 0px 0px 0px 1px #999, 0px 0px 0px 1px #00000030;
+  --color-edit-add: #abffa2;
+  --color-edit-add-hover: #abffa290;
+  --color-edit-remove: #ff8e8e;
+  --color-edit-remove-hover: #ff8e8e90;
+  --color-edit-left-active: #6ae67d;
+  --color-edit-right-active: #f63e54;
+  --color-edit-arrow-disable: var(--color-bg-sub);
 
   /* ボーダーカラー */
   --color-border: #e6e6e6;

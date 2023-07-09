@@ -17,6 +17,9 @@ type State = {
   // ツールチップ ホバー位置 左右
   hoveredItemPosHorizon: hoveredItemPosHorizon;
   setHoveredItemPosHorizon: (payload: hoveredItemPosHorizon) => void;
+  // ツールチップ ホバー位置 カラム編集モーダル
+  hoveredItemPosModal: hoveredItemPos;
+  setHoveredItemPosModal: (payload: hoveredItemPos) => void;
 
   // =================== 認証関連 ===================
   // セッション情報
@@ -89,6 +92,9 @@ const useStore = create<State>((set) => ({
   // 【ツールチップ ホバー位置 左右】
   hoveredItemPosHorizon: null,
   setHoveredItemPosHorizon: (payload) => set({ hoveredItemPosHorizon: payload }),
+  // 【ツールチップ カラム編集モーダル内で使用】
+  hoveredItemPosModal: null,
+  setHoveredItemPosModal: (payload) => set({ hoveredItemPosModal: payload }),
 
   // =================== 認証関連 ===================
   // 【セッション情報】

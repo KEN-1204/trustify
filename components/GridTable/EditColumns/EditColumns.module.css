@@ -1,6 +1,7 @@
 .overlay {
   position: fixed;
   z-index: 500;
+  /* z-index: 100; */
   inset: 0;
   /* background: #00000030; */
   backdrop-filter: blur(4px);
@@ -9,6 +10,7 @@
 .container {
   position: fixed;
   z-index: 1000;
+  /* z-index: 150; */
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -75,18 +77,21 @@
   /* border: 1px solid #ccc; */
   box-shadow: 0 0 0 1px #ccc;
   border-radius: 4px;
-  margin-bottom: 6px;
+  /* margin-bottom: 6px; */
+  margin-bottom: 11px;
   /* padding: 10px 13px; */
-  padding: 5px 13px;
+  padding: 6px 13px;
   background: #fff;
   cursor: pointer;
 }
 .sortable_list .item.active_left {
-  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+  box-shadow: 0 0 0 1px var(--color-edit-left-active);
+  /* box-shadow: 0 0 0 1px var(--bright-green); */
+  /* box-shadow: 0 0 0 1px var(--color-bg-brand-f); */
 }
 .sortable_list .item.active_right {
   /* border: 1px solid var(--color-bg-brand-f); */
-  box-shadow: 0 0 0 1px var(--bright-red);
+  box-shadow: 0 0 0 1px var(--color-edit-right-active);
 }
 .item .details {
   display: flex;
@@ -126,4 +131,21 @@
   color: #0affff; */
   opacity: 0.3;
   background: var(--bright-red);
+}
+
+.arrow_add_active {
+  background-color: var(--color-edit-add);
+  color: var(--color-text);
+  cursor: pointer;
+}
+.arrow_add_active:hover {
+  background-color: var(--color-edit-add-hover);
+}
+.arrow_remove_active {
+  background-color: var(--color-edit-remove);
+  color: var(--color-text);
+  cursor: pointer;
+}
+.arrow_remove_active:hover {
+  background-color: var(--color-edit-remove-hover);
 }

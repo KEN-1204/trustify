@@ -2,9 +2,14 @@ import React, { FC, useRef, useState } from "react";
 import styles from "./EditColumns.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { MdOutlineDragIndicator } from "react-icons/md";
+import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
+import { ImArrowRight2, ImArrowLeft2 } from "react-icons/im";
+import useStore from "@/store";
+import { Tooltip } from "@/components/Parts/Tooltip/Tooltip";
+import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
 
 // const data: Array<{ id: number; name: string; img: StaticImageData }> = [
-const data: Array<{ id: number; name: string }> = [
+const dataLeft: Array<{ id: number; name: string }> = [
   {
     id: 1,
     name: "name1234567890123456789012345678901234567",
@@ -106,16 +111,121 @@ const data: Array<{ id: number; name: string }> = [
     // img: img6,
   },
 ];
+const dataRight: Array<{ id: number; name: string }> = [
+  {
+    id: 21,
+    name: "name21234567890123456789012345678901234567",
+    // img: img1,
+  },
+  {
+    id: 22,
+    name: "name22",
+    // img: img2,
+  },
+  {
+    id: 23,
+    name: "name23",
+    // img: img3,
+  },
+  {
+    id: 24,
+    name: "name24",
+    // img: img4,
+  },
+  {
+    id: 25,
+    name: "name25",
+    // img: img5,
+  },
+  {
+    id: 26,
+    name: "name26",
+    // img: img6,
+  },
+  {
+    id: 27,
+    name: "name27",
+    // img: img6,
+  },
+  {
+    id: 28,
+    name: "name28",
+    // img: img6,
+  },
+  {
+    id: 29,
+    name: "name29",
+    // img: img6,
+  },
+  {
+    id: 30,
+    name: "name30",
+    // img: img6,
+  },
+  {
+    id: 31,
+    name: "name31",
+    // img: img6,
+  },
+  {
+    id: 32,
+    name: "name32",
+    // img: img6,
+  },
+  {
+    id: 33,
+    name: "name33",
+    // img: img6,
+  },
+  {
+    id: 34,
+    name: "name34",
+    // img: img6,
+  },
+  {
+    id: 35,
+    name: "name35",
+    // img: img6,
+  },
+  {
+    id: 36,
+    name: "name36",
+    // img: img6,
+  },
+  {
+    id: 37,
+    name: "name37",
+    // img: img6,
+  },
+  {
+    id: 38,
+    name: "name38",
+    // img: img6,
+  },
+  {
+    id: 39,
+    name: "name39",
+    // img: img6,
+  },
+  {
+    id: 40,
+    name: "name40",
+    // img: img6,
+  },
+];
 
 export const EditColumns: FC = () => {
   const setIsOpenEditColumns = useDashboardStore((state) => state.setIsOpenEditColumns);
 
-  const [listItemsLeft, setListItemsLeft] = useState(data);
-  const [listItemsRight, setListItemsRight] = useState(data);
+  const [listItemsLeft, setListItemsLeft] = useState(dataLeft);
+  const [listItemsRight, setListItemsRight] = useState(dataRight);
   const [dragIndexLeft, setDragIndexLeft] = useState<number | null>(null);
   const [dragIndexRight, setDragIndexRight] = useState<number | null>(null);
   const selectedLeftItemsRef = useRef<number[]>([]);
   const selectedRightItemsRef = useRef<number[]>([]);
+  const addArrowRef = useRef<HTMLDivElement | null>(null);
+  const removeArrowRef = useRef<HTMLDivElement | null>(null);
+  const modalContainerRef = useRef<HTMLDivElement | null>(null);
   console.log(`listItems`, listItemsLeft);
   console.log(`listItems`, listItemsRight);
   console.log(`dragIndex`, dragIndexLeft);
@@ -189,6 +299,11 @@ export const EditColumns: FC = () => {
       selectedLeftItemsRef.current = selectedLeftItemsRef.current.filter((item) => item !== id);
       console.log(`フィルターリムーブ selectedLeftItemsRef`, selectedLeftItemsRef.current);
     }
+    if (!!selectedLeftItemsRef.current.length) {
+      addArrowRef.current?.classList.add(`${styles.arrow_add_active}`);
+    } else {
+      addArrowRef.current?.classList.remove(`${styles.arrow_add_active}`);
+    }
   };
   const handleClickActiveRight = (e: React.MouseEvent<HTMLElement, MouseEvent>, id: number) => {
     console.log("クリック");
@@ -202,18 +317,106 @@ export const EditColumns: FC = () => {
       selectedRightItemsRef.current = selectedRightItemsRef.current.filter((item) => item !== id);
       console.log(`フィルターリムーブ selectedRightItemsRef`, selectedRightItemsRef.current);
     }
+    if (!!selectedRightItemsRef.current.length) {
+      removeArrowRef.current?.classList.add(`${styles.arrow_remove_active}`);
+    } else {
+      removeArrowRef.current?.classList.remove(`${styles.arrow_remove_active}`);
+    }
+  };
+
+  // レフトエリアのアイテムをライトエリアに追加する関数
+  const handleAddVisible = () => {
+    if (!selectedLeftItemsRef.current.length) return console.log("左無し");
+    // Refに格納している左の選択中のアイテムのidを右のStateに追加して左のStateから削除
+    const copyRightArray = [...listItemsRight];
+    const copyLeftArray = [...listItemsLeft];
+    // Setオブジェクトに変換して、hasメソッドで瞬時に渡された値を持つかどうか判定する
+    const removedArray = new Set(selectedLeftItemsRef.current);
+    // ================ 右のグループに追加する処理 ================
+    const pushItemArray = copyLeftArray.filter((item) => removedArray.has(item.id));
+    console.log("pushItemObject", pushItemArray);
+    const newRightArray = [...copyRightArray, ...pushItemArray];
+    console.log("newRightArray", newRightArray);
+    setListItemsRight(newRightArray);
+
+    // ================ 左のグループから削除する処理 ================
+    const newLeftArray = copyLeftArray.filter((value) => !removedArray.has(value.id));
+    console.log("newLeftArray", newLeftArray);
+    setListItemsLeft(newLeftArray);
+
+    // 更新が終わったら選択中のRefを空にして、かつ、activeクラスを削除する
+    selectedLeftItemsRef.current = [];
+    addArrowRef.current?.classList.remove(`${styles.arrow_add_active}`);
+  };
+
+  // ライトエリアのアイテムをレフトエリアに追加する関数
+  const handleAddHidden = () => {
+    if (!selectedRightItemsRef.current.length) return console.log("右無し");
+    // Refに格納している左の選択中のアイテムのidを右のStateに追加して左のStateから削除
+    const copyLeftArray = [...listItemsLeft];
+    const copyRightArray = [...listItemsRight];
+    // Setオブジェクトに変換して、hasメソッドで瞬時に渡された値を持つかどうか判定する
+    const removedArray = new Set(selectedRightItemsRef.current);
+    // ================ 左のグループに追加する処理 ================
+    const pushItemArray = copyRightArray.filter((item) => removedArray.has(item.id));
+    console.log("pushItemObject", pushItemArray);
+    const newLeftArray = [...copyLeftArray, ...pushItemArray];
+    console.log("newRightArray", newLeftArray);
+    setListItemsLeft(newLeftArray);
+
+    // ================ 右のグループから削除する処理 ================
+    const newRightArray = copyRightArray.filter((value) => !removedArray.has(value.id));
+    console.log("newLeftArray", newRightArray);
+    setListItemsRight(newRightArray);
+
+    // 更新が終わったら選択中のRefを空にして、かつ、activeクラスを削除する
+    selectedRightItemsRef.current = [];
+    removeArrowRef.current?.classList.remove(`${styles.arrow_remove_active}`);
+  };
+
+  // ================ ツールチップ ===================
+  const hoveredItemPosModal = useStore((state) => state.hoveredItemPosModal);
+  const setHoveredItemPosModal = useStore((state) => state.setHoveredItemPosModal);
+  const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
+    // モーダルコンテナのleftを取得する
+    if (!modalContainerRef.current) return;
+    const containerLeft = modalContainerRef.current?.getBoundingClientRect().left;
+    const containerTop = modalContainerRef.current?.getBoundingClientRect().top;
+    // ホバーしたアイテムにツールチップを表示
+    const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+    // console.log("ツールチップx, y width , height", x, y, width, height);
+    const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
+      ? ((e.target as HTMLDivElement).dataset.text2 as string)
+      : "";
+    const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
+      ? ((e.target as HTMLDivElement).dataset.text3 as string)
+      : "";
+    setHoveredItemPosModal({
+      x: x - containerLeft,
+      y: y - containerTop,
+      itemWidth: width,
+      itemHeight: height,
+      content: (e.target as HTMLDivElement).dataset.text as string,
+      content2: content2,
+      content3: content3,
+      display: display,
+    });
+  };
+  // ツールチップを非表示
+  const handleCloseTooltip = () => {
+    setHoveredItemPosModal(null);
   };
 
   return (
     <>
       <div className={`${styles.overlay} `} onClick={() => setIsOpenEditColumns(false)} />
-      <div className={`${styles.container} fade02 `}>
+      <div className={`${styles.container} fade01 `} ref={modalContainerRef}>
         {/* 保存キャンセルエリア */}
         <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[30px] text-center text-[18px]">
           <div className="cursor-pointer hover:text-[#aaa]" onClick={() => console.log("🌟")}>
             キャンセル
           </div>
-          <div className="-translate-x-[25px] font-bold">カラム並び替え・表示/非表示</div>
+          <div className="-translate-x-[25px] font-bold">カラム並び替え・追加/削除</div>
           <div
             className={`cursor-pointer font-bold text-[#0D99FF] ${styles.save_text}`}
             onClick={() => console.log("クリック")}
@@ -223,12 +426,13 @@ export const EditColumns: FC = () => {
         </div>
         {/* メインコンテンツ コンテナ */}
         <div className={`${styles.main_contents_container}`}>
+          {/* 左コンテンツボックス */}
           <div className={`flex h-full basis-5/12 flex-col items-center ${styles.content_box}`}>
             <div className={`${styles.title} text-[#0D99FF]`}>非表示</div>
             <ul className={`${styles.sortable_list} `}>
               {listItemsLeft.map((item, index) => (
                 <li
-                  key={item.id}
+                  key={`left-${item.id}`}
                   className={`${styles.item} ${item.id} ${index === dragIndexLeft ? `${styles.dragging}` : ""} ${
                     styles.item_left
                   }`}
@@ -251,14 +455,37 @@ export const EditColumns: FC = () => {
             </ul>
           </div>
 
-          <div className="flex-col-center h-full w-full basis-2/12 "></div>
+          {/* 中央コンテンツボックス */}
+          <div className="flex h-full w-full basis-2/12 flex-col items-center justify-center space-y-[60px] text-[24px]">
+            <div
+              className={`flex-center h-[50px] w-[50px] cursor-not-allowed rounded-full bg-[var(--color-edit-arrow-disable)] text-[var(--color-text-sub)]`}
+              ref={addArrowRef}
+              onClick={handleAddVisible}
+              data-text="選択したカラムを表示する"
+              onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+              onMouseLeave={handleCloseTooltip}
+            >
+              <ImArrowRight2 className="pointer-events-none" />
+            </div>
+            <div
+              className="flex-center h-[50px] w-[50px] cursor-not-allowed rounded-full bg-[var(--color-edit-arrow-disable)] text-[var(--color-text-sub)]"
+              ref={removeArrowRef}
+              onClick={handleAddHidden}
+              data-text="選択したカラムを非表示にする"
+              onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+              onMouseLeave={handleCloseTooltip}
+            >
+              <ImArrowLeft2 className="pointer-events-none" />
+            </div>
+          </div>
 
+          {/* 右コンテンツボックス */}
           <div className={`flex h-full  basis-5/12 flex-col items-center ${styles.content_box}`}>
             <div className={`${styles.title} text-[#0D99FF] `}>表示</div>
             <ul className={`${styles.sortable_list}`}>
               {listItemsRight.map((item, index) => (
                 <li
-                  key={item.id}
+                  key={`right-${item.id}`}
                   className={`${styles.item} ${item.id} ${index === dragIndexRight ? `${styles.dragging}` : ""} ${
                     styles.item_right
                   }`}
@@ -281,8 +508,8 @@ export const EditColumns: FC = () => {
             </ul>
           </div>
         </div>
+        {hoveredItemPosModal && <TooltipModal />}
       </div>
-      ;
     </>
   );
 };

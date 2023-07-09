@@ -8,7 +8,8 @@
 } */
 /* ブラック */
 .tooltip {
-  position: absolute;
+  /* position: absolute; */
+  position: fixed;
   /* top: 38px; */
   /* left: 0; */
   /* z-index: 150; */
@@ -23,7 +24,8 @@
 }
 .tooltip::after {
   content: "";
-  position: absolute;
+  /* position: absolute; */
+  position: fixed;
   z-index: 0;
   top: -4px;
   left: 50%;
@@ -36,7 +38,8 @@
 }
 
 .tooltip_over {
-  position: absolute;
+  /* position: absolute; */
+  position: fixed;
   /* top: 38px; */
   /* left: 0; */
   /* z-index: 150; */
@@ -51,7 +54,8 @@
 }
 .tooltip_over::after {
   content: "";
-  position: absolute;
+  /* position: absolute; */
+  position: fixed;
   z-index: 0;
   bottom: -4px;
   left: 50%;
