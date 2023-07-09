@@ -11,6 +11,7 @@ import { ErrorFallback } from "../ErrorFallback/ErrorFallback";
 import Spinner from "../Parts/Spinner/Spinner";
 import { Fallback } from "../Fallback/Fallback";
 import { SpinnerComet } from "../Parts/SpinnerComet/SpinnerComet";
+import { GridTableSmall } from "../GridTable/GridTableSmall/GridTableSmall";
 
 export const DashboardHomeComponent = () => {
   const theme = useStore((state) => state.theme);
@@ -52,6 +53,14 @@ export const DashboardHomeComponent = () => {
                 <Suspense fallback={<Fallback />}>
                   {/* <GridTableHomeSuccess title="メッセージ" /> */}
                   <GridTableHome title="メッセージ" />
+                </Suspense>
+              </ErrorBoundary>
+            )}
+            {activeMenuTab === "Contacts" && (
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Suspense fallback={<Fallback />}>
+                  {/* <GridTableHomeSuccess title="メッセージ" /> */}
+                  <GridTableSmall title="担当者" />
                 </Suspense>
               </ErrorBoundary>
             )}

@@ -34,6 +34,33 @@
   /* border-top: 4px solid #000; */
 }
 
+.tooltip_over {
+  position: absolute;
+  /* top: 38px; */
+  /* left: 0; */
+  z-index: 150;
+  min-height: fit-content;
+  padding: 3px 7px;
+  transform: translateX(-50%);
+  background: #282828;
+  transition-delay: 0.5s;
+  border-radius: 6px;
+  box-shadow: inset 0px 0px 0px 1px #ffffff80, 0px 0px 0px 1px #000;
+}
+.tooltip_over::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%) rotate(135deg);
+  transform-origin: center center;
+  background: #282828;
+  width: 8px;
+  height: 8px;
+  /* border-top: 4px solid #000; */
+}
+
 .tooltip_left {
   position: absolute;
   top: 38px;

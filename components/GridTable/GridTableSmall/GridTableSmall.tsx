@@ -1,12 +1,11 @@
 import React, { FC, memo, useCallback, useEffect, useRef, useState } from "react";
-import styles from "./GridTableHome.module.css";
-import { RippleButton } from "../Parts/RippleButton/RippleButton";
-import { summary, tableBodyDataArray } from "./data";
-import useStore from "@/store";
-import { GridTableFooter } from "./GridTableFooter/GridTableFooter";
+import styles from "./GridTableSmall.module.css";
+import { summary, tableBodyDataArray } from "../data";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import useStore from "@/store";
 import useDashboardStore from "@/store/useDashboardStore";
+import { GridTableFooter } from "../GridTableFooter/GridTableFooter";
 
 type TableDataType = {
   id: number;
@@ -30,7 +29,7 @@ type Props = {
   title: string;
 };
 
-const GridTableHomeMemo: FC<Props> = ({ title }) => {
+const GridTableSmallMemo: FC<Props> = ({ title }) => {
   const theme = useStore((state) => state.theme);
   // const [colsWidth, setColsWidth] = useState(
   //   new Array(Object.keys(tableBodyDataArray[0]).length + 1).fill("minmax(50px, 1fr)")
@@ -108,7 +107,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
 
   // ================== 🌟useInfiniteQueryフック🌟 ==================
   const { status, data, error, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage } = useInfiniteQuery({
-    queryKey: ["companies"],
+    queryKey: ["contacts"],
     queryFn: async (ctx) => {
       console.log("useInfiniteQuery queryFn関数内 引数ctx", ctx);
 
@@ -127,7 +126,8 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
     count: hasNextPage ? allRows.length + 1 : allRows.length, // 次のページ有り lengthを１増やす
     getScrollElement: () => parentGridScrollContainer.current, // スクロール用コンテナ
     // estimateSize: () => 35, // 要素のサイズ
-    estimateSize: () => 30, // 要素のサイズ
+    estimateSize: () => 25, // 要素のサイズ
+    // overscan: 40, // ビューポート外にレンダリングさせる個数
     overscan: 20, // ビューポート外にレンダリングさせる個数
     // overscan: 10, // ビューポート外にレンダリングさせる個数
   });
@@ -253,10 +253,10 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
     // それぞれのCSSカスタムプロパティをセット
     // grid-template-columnsの値となるCSSカスタムプロパティをセット
     parentGridScrollContainer.current.style.setProperty("--template-columns", `${newColsWidths.join(" ")}`);
-    parentGridScrollContainer.current.style.setProperty("--header-row-height", "30px");
+    parentGridScrollContainer.current.style.setProperty("--header-row-height", "25px");
     // parentGridScrollContainer.current.style.setProperty("--header-row-height", "35px");
     parentGridScrollContainer.current.style.setProperty("--row-width", `${sumRowWidth}px`);
-    parentGridScrollContainer.current.style.setProperty("--summary-row-height", "30px");
+    parentGridScrollContainer.current.style.setProperty("--summary-row-height", "25px");
     // parentGridScrollContainer.current.style.setProperty("--summary-row-height", "35px");
 
     console.log(
@@ -1099,7 +1099,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
             aria-multiselectable="true"
             style={{ width: "100%" }}
             // style={{ height: "100%", "--header-row-height": "35px" } as any}
-            className={`${styles.grid_scroll_container}`}
+            className={`${styles.grid_scroll_container} overflow-x-auto`}
           >
             {/* ======================== 🌟Grid列トラック Rowヘッダー🌟 ======================== */}
             <div
@@ -1264,7 +1264,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
                   width: `var(--row-width)`,
                   position: "relative",
                   // "--header-row-height": "35px",
-                  "--header-row-height": "30px",
+                  "--header-row-height": "25px",
                   "--row-width": "",
                 } as any
               }
@@ -1284,7 +1284,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
                       tabIndex={-1}
                       // aria-rowindex={virtualRow.index + 1} // ヘッダーの次からなのでindex0+2
                       aria-selected={false}
-                      className={`${styles.loading_reflection} flex-center mx-auto h-[30px] w-full text-center font-bold`}
+                      className={`${styles.loading_reflection} flex-center mx-auto text-center font-bold`}
                       // className={`${styles.loading_reflection} flex-center mx-auto h-[35px] w-full text-center font-bold`}
                     >
                       <span className={`${styles.reflection}`}></span>
@@ -1307,7 +1307,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
                       // gridTemplateColumns: colsWidth.join(" "),
                       // top: gridRowTrackTopPosition(index),
                       // top: ((virtualRow.index + 0) * 35).toString() + "px", // +1か0か
-                      top: ((virtualRow.index + 0) * 30).toString() + "px", // +1か0か
+                      top: ((virtualRow.index + 0) * 25).toString() + "px", // +1か0か
                     }}
                   >
                     {/* ======== gridセル チェックボックスセル ======== */}
@@ -1473,4 +1473,4 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
   );
 };
 
-export const GridTableHome = memo(GridTableHomeMemo);
+export const GridTableSmall = memo(GridTableSmallMemo);

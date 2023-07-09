@@ -35,9 +35,35 @@ export const Tooltip = () => {
     hoveredItemDisplay = hoveredItemPos.display;
   }
 
-  console.log("Tooltipコンポーネントレンダリング", hoveredItemPos?.content);
+  console.log("Tooltipコンポーネントレンダリング");
 
   // console.log(window.innerWidth);
+  // 左寄りのアイテムに対して右に表示するツールチップ
+  if (hoveredItemDisplay === "top") {
+    return (
+      <div
+        className={`${styles.tooltip_over} ${hoveredItemPos ? `block ${styles.fade}` : "transition-base hidden"}`}
+        style={{
+          position: "absolute",
+          zIndex: 100,
+          left: `${`${hoveredItemPositionX + hoveredItemHalfWidth}px`}`,
+          top: `${`${hoveredItemPositionY - hoveredItemHeight - 8}px`}`,
+        }}
+        ref={menuRef}
+      >
+        <div
+          className={`flex-col-center ${styles.dropdown_item}`}
+          onClick={() => {
+            setHoveredItemPos(null);
+          }}
+        >
+          <span>{hoveredItemPos?.content}</span>
+          <span>{hoveredItemPos?.content2}</span>
+          {hoveredItemPos?.content3 && <span>{hoveredItemPos?.content3}</span>}
+        </div>
+      </div>
+    );
+  }
 
   // 左寄りのアイテムに対して右に表示するツールチップ
   if (hoveredItemDisplay === "left") {
