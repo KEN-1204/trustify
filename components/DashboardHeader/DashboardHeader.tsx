@@ -394,6 +394,27 @@ export const DashboardHeaderMemo: FC = () => {
           <ul
             className={`hidden h-full w-full items-center justify-start text-[14px] font-[500] text-[--navColor] md:flex`}
           >
+            <li className={`${styles.navList} max-w-[81px]`}>
+              <div
+                // href="/home"
+                // prefetch={false}
+                className={`${styles.navbarItem} ${activeMenuTab === "Pre-approval" ? styles.active : ""} `}
+                // onClick={() => setActiveMenuTab("Pre-approval")}
+              >
+                <div
+                  className={`${styles.navbarItemInner} cursor-not-allowed`}
+                  data-text="開発・準備中..."
+                  onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+                  onMouseLeave={handleCloseTooltip}
+                >
+                  <span>
+                    {language === "Ja" && "事前承認"}
+                    {language === "En" && "Pre-approval"}
+                  </span>
+                </div>
+                <div className={`${styles.active_underline}`} />
+              </div>
+            </li>
             <li className={`${styles.navList} max-w-[81.5px]`}>
               <Link
                 href="/table"

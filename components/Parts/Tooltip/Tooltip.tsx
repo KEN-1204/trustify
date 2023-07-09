@@ -35,7 +35,7 @@ export const Tooltip = () => {
     hoveredItemDisplay = hoveredItemPos.display;
   }
 
-  console.log("Tooltipコンポーネントレンダリング");
+  console.log("Tooltipコンポーネントレンダリング", hoveredItemPos?.content);
 
   // console.log(window.innerWidth);
 

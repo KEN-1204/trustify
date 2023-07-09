@@ -125,8 +125,8 @@
   /* --color-border-table: #e6e6e6; */
   /* --color-table-header: #40576d18; */
   /* ヘッダーブルー */
-  /* --color-table-header: #e2f0fd; */
-  --color-table-header: #ecf4fc;
+  --color-table-header: #e2f0fd;
+  /* --color-table-header: #ecf4fc; */
   /* ヘッダーモノクロ */
   /* --color-table-header: #eee; */
   /* フッターブルー */
@@ -142,6 +142,7 @@
   /* --color-table-row-hover: rgba(55, 53, 47, 0.08); */
   /* --color-table-row-hover: #f0f0f0; */
   --color-table-row-hover: #f8f8f8;
+  --color-table-bg-selected: #f8f8f8;
   --color-table-checkbox-outline: #ccc;
   --color-table-checkbox-focus-outline: #fff;
 
@@ -191,7 +192,7 @@
   --color-border-brand-medium: #00aeff;
   --color-border-brand-sub: #2b7fff;
   --color-border-selected: #0d99ff; /* 選択ボーダーカラー */
-  --color-border-selected-strong: ##007be5;
+  --color-border-selected-strong: #007be5;
 
   --color-bg-selected: #e5f4ff; /* サイドバー タブ選択カラー */
   --color-bg-selected-hover: #bde3ff; /* サイドバー タブ選択カラー */
@@ -350,6 +351,7 @@
   --color-table-reflection: rgba(255, 255, 255, 0.2);
   --color-table-loading-spinner: #787878;
   --color-table-row-hover: #232323;
+  --color-table-bg-selected: #232323;
   --color-table-checkbox-outline: #2e2e2e;
   --color-table-checkbox-focus-outline: #fff;
 

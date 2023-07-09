@@ -7,7 +7,14 @@ import { HiOutlineBuildingOffice2, HiOutlineChatBubbleLeftRight, HiOutlineInboxA
 import { FaLink, FaTelegramPlane } from "react-icons/fa";
 import { AiOutlineMoneyCollect } from "react-icons/ai";
 import { BiMoneyWithdraw } from "react-icons/bi";
-import { BsTelephonePlus, BsCalendarDate, BsTelephoneInbound, BsChevronDown } from "react-icons/bs";
+import {
+  BsTelephonePlus,
+  BsCalendarDate,
+  BsTelephoneInbound,
+  BsChevronDown,
+  BsCheckCircle,
+  BsCheck2Circle,
+} from "react-icons/bs";
 import useStore from "@/store";
 import useDashboardStore from "@/store/useDashboardStore";
 
@@ -522,6 +529,38 @@ export const DashboardSidebarMemo: FC = () => {
                   </div>
                 </div>
               </Link>
+              <div
+                // href="/home"
+                // prefetch={false}
+                className={`${styles.menu_item} ${activeMenuTab === "Pre-approval" ? styles.active : ""} `}
+                onClick={() => setActiveMenuTab("Pre-approval")}
+              >
+                <div
+                  className={styles.menu_item_inner}
+                  // data-text="事前承認・稟議"
+                  data-text="開発・準備中..."
+                  onMouseEnter={(e) => {
+                    if (isOpenSidebar) return;
+                    handleOpenTooltip(e, "left");
+                  }}
+                  onMouseLeave={() => {
+                    if (isOpenSidebar) return;
+                    handleCloseTooltip();
+                  }}
+                >
+                  <div className={styles.icon_wrapper}>
+                    {/* <BsCheckCircle className="text-[24px] text-[var(--color-text)]" /> */}
+                    <BsCheck2Circle className="text-[24px] text-[var(--color-text)]" />
+                  </div>
+                  <div
+                    className={`${styles.text_wrapper} ${
+                      isOpenSidebar ? `opacity-1 transition-base-delay01` : `transition-base01 opacity-0`
+                    }`}
+                  >
+                    <span>事前承認・稟議</span>
+                  </div>
+                </div>
+              </div>
               {/* ======================== メニューアイテム ここまで ======================== */}
             </div>
             {/* ========================= menu_container ここまで ========================= */}

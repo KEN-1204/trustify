@@ -21,7 +21,17 @@
   /* max-width: 420px; */
   transform: translate(-50%, -50%);
   border-radius: 8px;
+  /* animation: animate 0.1s ease; */
 }
+@keyframes animate {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
 .contents {
   /* color: var(--color-text); */
   color: #fff;
