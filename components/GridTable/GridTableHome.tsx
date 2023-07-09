@@ -417,6 +417,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
   const setTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const setIsOpenEditModal = useDashboardStore((state) => state.setIsOpenEditModal);
   const setTextareaInput = useDashboardStore((state) => state.setTextareaInput);
+  const [clickedActiveRow, setClickedActiveRow] = useState<number | null>(null);
 
   const handleClickGridCell = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (setTimeoutRef.current !== null) return;
@@ -446,6 +447,13 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
     console.log(
       `前回アクティブセルの行と列: ${prevSelectedGridCellRef.current?.ariaColIndex}, ${prevSelectedGridCellRef.current?.parentElement?.ariaRowIndex}, 今回アクティブの行と列: ${selectedGridCellRef.current?.ariaColIndex}, ${selectedGridCellRef.current?.parentElement?.ariaRowIndex}`
     );
+    // クリックした列を選択中の状態の色に変更する aria-selectedをtrueにする
+    if (typeof selectedGridCellRef.current?.parentElement?.ariaRowIndex === "undefined") return;
+    if (Number(selectedGridCellRef.current?.parentElement?.ariaRowIndex) === 1) {
+      setClickedActiveRow(null);
+      return;
+    }
+    setClickedActiveRow(Number(selectedGridCellRef.current?.parentElement?.ariaRowIndex));
   }, []);
 
   // セルダブルクリック
@@ -1062,6 +1070,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
   };
   // ==================================================================================
 
+  console.log("✅clickedActiveRow", clickedActiveRow);
   console.log("✅ checkedRows", checkedRows);
   console.log("✅ selectedCheckBox", selectedCheckBox);
 
@@ -1116,7 +1125,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
                 aria-colindex={1}
                 aria-selected={false}
                 tabIndex={-1}
-                className={`${styles.grid_column_header_all} ${styles.grid_column_frozen}`}
+                className={`${styles.grid_column_header_all} ${styles.grid_column_frozen} ${styles.grid_column_header_checkbox_column}`}
                 style={{ gridColumnStart: 1, left: columnHeaderLeft(0) }}
                 onClick={(e) => handleClickGridCell(e)}
               >
@@ -1299,9 +1308,12 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
                     key={"row" + virtualRow.index.toString()}
                     role="row"
                     tabIndex={-1}
-                    aria-rowindex={virtualRow.index + 2} // ヘッダーの次からなのでindex0+2
+                    aria-rowindex={virtualRow.index + 2} // ヘッダーの次からで+1、indexは0からなので+1で、index0に+2
                     // aria-selected={false}
-                    aria-selected={checkedRows[virtualRow.index.toString()]}
+                    // チェックが入っているか、もしくは列内のセルがクリックされアクティブになっていた場合には該当のrowのaria-selectedをtrueにする
+                    aria-selected={
+                      checkedRows[virtualRow.index.toString()] || clickedActiveRow === virtualRow.index + 2
+                    }
                     className={`${styles.grid_row} ${rowData.id === 1 ? "first" : ""}`}
                     style={{
                       // gridTemplateColumns: colsWidth.join(" "),

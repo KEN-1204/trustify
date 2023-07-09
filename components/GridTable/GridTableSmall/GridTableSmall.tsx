@@ -223,7 +223,8 @@ const GridTableSmallMemo: FC<Props> = ({ title }) => {
       Object.keys(data?.pages[0].rows[0] as object)
     );
     const newColsWidths = new Array(Object.keys(data?.pages[0].rows[0] as object).length + 1).fill("250px");
-    newColsWidths.fill("65px", 0, 1); // 1列目を65pxに変更
+    // newColsWidths.fill("65px", 0, 1); // 1列目を65pxに変更
+    newColsWidths.fill("50px", 0, 1); // 1列目を50pxに変更
     newColsWidths.fill("100px", 1, 2); // 2列目を100pxに変更
     console.log("Stateにカラムwidthを保存", newColsWidths);
     // stateに現在の全てのカラムのwidthを保存
@@ -236,8 +237,8 @@ const GridTableSmallMemo: FC<Props> = ({ title }) => {
 
     // ===========　CSSカスタムプロパティに反映
     // newColsWidthの各値のpxの文字を削除
-    // ['65px', '100px', '250px', '250px', '250px', '250px']から
-    // ['65', '100', '250', '250', '250', '250']へ置換
+    // ['40px', '100px', '250px', '250px', '250px', '250px']から
+    // ['40', '100', '250', '250', '250', '250']へ置換
     const newColsWidthNum = newColsWidths.map((col) => {
       return col.replace("px", "");
     });
@@ -395,7 +396,8 @@ const GridTableSmallMemo: FC<Props> = ({ title }) => {
         return 0;
         break;
       case 1:
-        return 65;
+        // return 65;
+        return 50;
       default:
         null;
         break;
@@ -406,7 +408,7 @@ const GridTableSmallMemo: FC<Props> = ({ title }) => {
   // ========= 🌟各Grid行トラックのtopからの位置を返す関数 インラインスタイル内で実行 =========
   const gridRowTrackTopPosition = (index: number) => {
     // const topPosition = ((index + 1) * 35).toString() + "px";
-    const topPosition = ((index + 1) * 30).toString() + "px";
+    const topPosition = ((index + 1) * 25).toString() + "px";
     console.log("topPosition", topPosition);
     return topPosition;
   };
@@ -1116,7 +1118,7 @@ const GridTableSmallMemo: FC<Props> = ({ title }) => {
                 aria-colindex={1}
                 aria-selected={false}
                 tabIndex={-1}
-                className={`${styles.grid_column_header_all} ${styles.grid_column_frozen}`}
+                className={`${styles.grid_column_header_all} ${styles.grid_column_frozen} ${styles.grid_column_header_checkbox_column}`}
                 style={{ gridColumnStart: 1, left: columnHeaderLeft(0) }}
                 onClick={(e) => handleClickGridCell(e)}
               >

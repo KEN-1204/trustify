@@ -34,6 +34,7 @@
   --main-color-light-rgb: 10, 255, 255;
   --main-color-d: #02e7f5;
   --main-color-tk: #ff3b5b;
+  --main-color-tk-blue: #00f2ea;
 
   /* ビビッドカラー */
   --bright-green: #00d436;
@@ -142,7 +143,7 @@
   /* --color-table-row-hover: rgba(55, 53, 47, 0.08); */
   /* --color-table-row-hover: #f0f0f0; */
   --color-table-row-hover: #f8f8f8;
-  --color-table-bg-selected: #f8f8f8;
+  --color-table-bg-selected: #f3f3f3;
   --color-table-checkbox-outline: #ccc;
   --color-table-checkbox-focus-outline: #fff;
   --color-table-dragging-gradient: #2b7fff #acffff;
@@ -172,14 +173,21 @@
   --color-modal-selection-text: #fff;
   --color-modal-underline: rgb(94 94 94 / 0.8);
   --color-modal-underline-active: #0d99ff; */
-  /* 🌟EditModal dark */
-  --color-modal-bg: #232323e0;
-  --color-modal-bg: #000000c0;
+  /* 🌟EditModal light */
+  --color-modal-bg: #232323c0;
+  /* --color-modal-bg: #ffffffe0; */
   --color-modal-border: #ececec;
-  --color-modal-selection-bg: #0d99ff;
+  --color-modal-inset-border: inset 0px 0px 0px 1px #ffffff90, 0px 0px 0px 1px #000;
+  /* --color-modal-selection-bg: #0d99ff; */
+  --color-modal-selection-bg: #2b7fff;
   --color-modal-selection-text: #fff;
   --color-modal-underline: rgb(94 94 94 / 0.8);
-  --color-modal-underline-active: #0d99ff;
+  /* --color-modal-underline-active: #0d99ff; */
+  --color-modal-underline-active: #2b7fff;
+
+  /* 🌟EditColumnsモーダル カラム変更モーダル light */
+  --color-edit-bg: #ffffffe0;
+  --color-edit-border: inset 0px 0px 0px 1px #999, 0px 0px 0px 1px #00000030;
 
   /* ボーダーカラー */
   --color-border: #e6e6e6;
@@ -263,9 +271,11 @@
   --color-icon-brand-pressed: #0768cf;
   --color-icon-brand-secondary: #80caff;
 
-  /* Next.js */
-  /* #0070f3*/
-  --selection-bg-color: #0070f3;
+  /* 🌟selection */
+  /* Next.js #0070f3 #0d99ff */
+  /* --selection-bg-color: #0d99ff; */
+  /* --selection-bg-color: #0070f3; */
+  --selection-bg-color: #2b7fff;
   --selection-text-color: #fff;
 
   /* ナブバー */
@@ -378,10 +388,14 @@
   /* 🌟EditModal dark */
   --color-modal-bg: #232323;
   --color-modal-border: #ececec;
-  --color-modal-selection-bg: #0d99ff;
+  --color-modal-inset-border: inset 0 0 0 1px #ececec;
+  /* --color-modal-inset-border: inset 0px 0px 0px 1px #ffffff50, 0px 0px 0px 1px #000; */
+  /* --color-modal-selection-bg: #0d99ff; */
+  --color-modal-selection-bg: #2b7fff;
   --color-modal-selection-text: #fff;
   --color-modal-underline: rgb(94 94 94 / 0.8);
-  --color-modal-underline-active: #0d99ff;
+  /* --color-modal-underline-active: #0d99ff; */
+  --color-modal-underline-active: #2b7fff;
 
   /* ボーダーカラー */
   /* --color-border: #444444;  */
@@ -468,7 +482,8 @@
   --color-icon-brand-pressed: #0c8ce9;
   --color-icon-brand-secondary: #536383;
 
-  /* セレクション dark */
+  /* 🌟セレクション dark */
+  /* Next.js #0070f3 #0d99ff */
   --selection-bg-color: #0070f3;
   --selection-text-color: #fff;
 
@@ -607,6 +622,25 @@ textarea {
   transition: background-color 1s ease;
 }
 
+/* フェードアニメーション */
+.fade {
+  animation: fade 0.3s;
+}
+.fade02 {
+  animation: fade 0.2s;
+}
+.fade01 {
+  animation: fade 0.1s;
+}
+@keyframes fade {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 100;
+  }
+}
+
 .shadow-gradient {
   background: linear-gradient(
     to bottom,
@@ -618,7 +652,7 @@ textarea {
     #141414 100%
   );
 }
-
+/* 左右方向にアンダーラインが広がるアニメーション */
 .input-underline-transition {
   transition: all 0.4s ease;
   transition-delay: 0.1s;
@@ -697,7 +731,7 @@ textarea {
   -webkit-text-fill-color: transparent;
   text-shadow: none;
 }
-
+/* タイピングアニメーションスタイル */
 .typed-cursor {
   color: #0066ff !important;
   animation: typedjsBlink 1.2s infinite;

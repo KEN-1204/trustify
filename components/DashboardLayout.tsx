@@ -12,6 +12,7 @@ import { useEffectOnce } from "react-use";
 import { TooltipBlur } from "./Parts/Tooltip/TooltipBlur";
 import useDashboardStore from "@/store/useDashboardStore";
 import { EditModal } from "./EditModal/EditModal";
+import { EditColumns } from "./GridTable/EditColumns/EditColumns";
 
 type Prop = {
   title?: string;
@@ -23,6 +24,7 @@ type Prop = {
 export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   const theme = useStore((state) => state.theme);
   const setTheme = useStore((state) => state.setTheme);
+  const activeMenuTab = useDashboardStore((state) => state.activeMenuTab);
 
   const router = useRouter();
   const supabase = useSupabaseClient();
@@ -83,6 +85,10 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   const hoveredItemPos = useStore((state) => state.hoveredItemPos);
   const hoveredItemPosHorizon = useStore((state) => state.hoveredItemPosHorizon);
 
+  // テーブルカラム編集モーダル
+  const isOpenEditColumns = useDashboardStore((state) => state.isOpenEditColumns);
+  const setIsOpenEditColumns = useDashboardStore((state) => state.setIsOpenEditColumns);
+
   return (
     <div className={`${styles.trustify_app}`}>
       <Head>
@@ -102,6 +108,15 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
       {/* ============================ メインコンテンツ ============================ */}
 
       {/* ============================ 共通UIコンポーネント ============================ */}
+      {/* カラム入れ替え編集モーダルボタン */}
+      {activeMenuTab !== "HOME" && (
+        <div className="flex-center fixed bottom-[2%] right-[13%] h-[50px] w-[50px] cursor-pointer">
+          <div
+            className="h-[50px] w-[50px] rounded-full bg-[var(--color-bg-brand)]"
+            onClick={() => setIsOpenEditColumns(true)}
+          ></div>
+        </div>
+      )}
       {/* サインアウトボタン */}
       <div className="flex-center fixed bottom-[2%] right-[8%] h-[50px] w-[50px] cursor-pointer">
         <div className="h-[50px] w-[50px] rounded-full bg-[red]" onClick={handleSignOut}></div>
@@ -116,13 +131,16 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
         ></div>
       </div>
 
+      {/* ============================ 共通UIコンポーネント ============================ */}
       {/* モーダル */}
       {isOpenEditModal && <EditModal />}
 
       {/* ツールチップ */}
       {hoveredItemPos && <Tooltip />}
       {hoveredItemPosHorizon && <TooltipBlur />}
-      {/* ============================ 共通UIコンポーネント ============================ */}
+
+      {/* カラム編集モーダル */}
+      {isOpenEditColumns && <EditColumns />}
     </div>
   );
 };

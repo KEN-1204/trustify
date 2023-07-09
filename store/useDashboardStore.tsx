@@ -17,13 +17,17 @@ type State = {
   // 【サイドバーの拡大・縮小】
   isOpenSidebar: boolean;
   setIsOpenSidebar: (payload: boolean) => void;
-  // =================== 編集モーダル ===================
-  // 【編集モーダル開閉状態】
+  // =================== データ編集モーダル ===================
+  // 【データ編集モーダル開閉状態】
   isOpenEditModal: boolean;
   setIsOpenEditModal: (payload: boolean) => void;
-  // 【編集モーダル テキストエリア内容】
+  // 【データ編集モーダル テキストエリア内容】
   textareaInput: string;
   setTextareaInput: (payload: string) => void;
+  // =================== テーブルカラム編集モーダル ===================
+  // 【テーブルカラム編集モーダル開閉状態】
+  isOpenEditColumns: boolean;
+  setIsOpenEditColumns: (payload: boolean) => void;
 };
 
 const useDashboardStore = create<State>((set) => ({
@@ -40,13 +44,17 @@ const useDashboardStore = create<State>((set) => ({
   // 【サイドバーの拡大・縮小】
   isOpenSidebar: true,
   setIsOpenSidebar: (payload) => set({ isOpenSidebar: payload }),
-  // =================== 編集モーダル ===================
-  // 【編集モーダル開閉状態】
+  // =================== データ編集モーダル ===================
+  // 【データ編集モーダル開閉状態】
   isOpenEditModal: false,
   setIsOpenEditModal: (payload) => set({ isOpenEditModal: payload }),
-  // 【編集モーダル テキストエリア内容】
+  // 【データ編集モーダル テキストエリア内容】
   textareaInput: "",
   setTextareaInput: (payload) => set({ textareaInput: payload }),
+  // =================== テーブルカラム編集モーダル ===================
+  // 【テーブルカラム編集モーダル開閉状態】
+  isOpenEditColumns: false,
+  setIsOpenEditColumns: (payload) => set({ isOpenEditColumns: payload }),
 }));
 
 export default useDashboardStore;

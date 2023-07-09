@@ -45,6 +45,7 @@
 .theme_sb:global {
   --border-theme: #24b47e;
   --border-theme-text: #24b47e;
+  --border-theme-text: #fff;
   --border-theme-dark: #30a46c;
   --text-color-sb: #33cc87;
   --checkbox-bg-color: #3fcf8e;
@@ -60,6 +61,8 @@
 .theme_f_light:global {
   --border-theme: #0d99ff;
   --border-theme-text: #0d99ff;
+  --selected-text: #0d99ff;
+  --selected-text: #fff;
   /* --border-theme: #2b7fff; */
   --border-theme-dark: #0c8ce9;
   --main-color: #0d99ff;
@@ -81,6 +84,7 @@
   --border-theme: #0066ff;
   --border-theme-text: #0085ff;
   --border-theme-dark: #0c8ce9;
+  --selected-text: #fff;
   --main-color: #0d99ff;
   --tab-bg: #e5f4ff;
   --navbar-bg: #e5f4ff;
@@ -307,6 +311,7 @@
 .grid_row[aria-selected="true"] .grid_cell {
   background-color: var(--color-table-bg-selected);
   color: var(--border-theme-text);
+  /* color: var(--selected-text); */
 }
 
 .grid_column_header_all[aria-selected="true"] {
@@ -341,19 +346,6 @@
 .grid_column_frozen {
   position: sticky;
   z-index: 1;
-}
-
-.grid_select_cell_header {
-  position: relative;
-  display: flex;
-  height: 100%;
-  width: 100%;
-  align-items: center;
-  justify-content: center;
-}
-.grid_select_cell_header svg {
-  width: 16px;
-  height: 16px;
 }
 
 .grid_cell_frozen_last {
@@ -440,14 +432,26 @@
   align-items: center;
 }
 
-.grid_select_cell_header_input {
-  /* background-color: transparent;
-  color: rgb(255, 255, 255);
-  border: 1px solid var(--colors-scale5);
-  margin-top: 2px;
-  cursor: pointer;
-  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 0.25rem; */
+/* チェックボックスの列カラム */
+.grid_column_header_checkbox_column {
+  padding: 0 0px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grid_select_cell_header {
+  position: relative;
+  display: flex;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+.grid_select_cell_header svg {
+  width: 16px;
+  height: 16px;
 }
 
 .main_container input[type="checkbox"] {
@@ -463,14 +467,11 @@
 
   cursor: pointer;
   /*label手前にチェックボックス用の余白を開ける*/
-  padding-left: 30px;
+  /* padding-left: 30px; */
+  width: 16px;
+  height: 16px;
   vertical-align: middle;
   position: relative;
-  /* display: inline-block;
-  user-select: none;
-  flex-shrink: 0;
-  height: 1rem;
-  width: 1rem; */
 }
 .grid_select_cell_header[aria-selected="true"] {
   box-shadow: inset 0 0 0 1px var(--border-theme);
@@ -484,8 +485,11 @@
   position: absolute;
   height: 1rem;
   width: 1rem;
-  top: 9px;
-  left: 14px;
+  /* top: 6px; */
+  /* left: 14px; */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   opacity: 0;
   pointer-events: none;
 }
@@ -499,14 +503,15 @@
   color: rgb(255, 255, 255);
   border: 1px solid var(--color-table-checkbox-outline);
   border-radius: 3px;
-  margin-top: 2px;
+  /* margin-top: 2px; */
   cursor: pointer;
   transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   height: 1rem;
   width: 1rem;
-  transform: translateY(-50%);
+  /* top: -2px; */
+  /* transform: translateY(-50%);
   top: 50%;
-  left: 5px;
+  left: 5px; */
 }
 .main_container input[type="checkbox"]:checked::before {
   /* background-color: #3fcf8e; */
