@@ -1,225 +1,36 @@
-import React, { FC, useRef, useState } from "react";
-import styles from "./EditColumns.module.css";
+import React, { FC, memo, useRef, useState } from "react";
+import styles from "./EditColumnsModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { MdOutlineDragIndicator } from "react-icons/md";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import { ImArrowRight2, ImArrowLeft2, ImArrowUp2, ImArrowDown2 } from "react-icons/im";
 import useStore from "@/store";
-import { Tooltip } from "@/components/Parts/Tooltip/Tooltip";
 import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
 import { GrPowerReset } from "react-icons/gr";
 
 // const data: Array<{ id: number; name: string; img: StaticImageData }> = [
-const dataLeft: Array<{ id: number; name: string }> = [
-  {
-    id: 1,
-    name: "name1234567890123456789012345678901234567",
-    // img: img1,
-  },
-  {
-    id: 2,
-    name: "name2",
-    // img: img2,
-  },
-  {
-    id: 3,
-    name: "name3",
-    // img: img3,
-  },
-  {
-    id: 4,
-    name: "name4",
-    // img: img4,
-  },
-  {
-    id: 5,
-    name: "name5",
-    // img: img5,
-  },
-  {
-    id: 6,
-    name: "name6",
-    // img: img6,
-  },
-  {
-    id: 7,
-    name: "name7",
-    // img: img6,
-  },
-  {
-    id: 8,
-    name: "name8",
-    // img: img6,
-  },
-  {
-    id: 9,
-    name: "name9",
-    // img: img6,
-  },
-  {
-    id: 10,
-    name: "name10",
-    // img: img6,
-  },
-  {
-    id: 11,
-    name: "name11",
-    // img: img6,
-  },
-  {
-    id: 12,
-    name: "name12",
-    // img: img6,
-  },
-  {
-    id: 13,
-    name: "name13",
-    // img: img6,
-  },
-  {
-    id: 14,
-    name: "name14",
-    // img: img6,
-  },
-  {
-    id: 15,
-    name: "name15",
-    // img: img6,
-  },
-  {
-    id: 16,
-    name: "name16",
-    // img: img6,
-  },
-  {
-    id: 17,
-    name: "name17",
-    // img: img6,
-  },
-  {
-    id: 18,
-    name: "name18",
-    // img: img6,
-  },
-  {
-    id: 19,
-    name: "name19",
-    // img: img6,
-  },
-  {
-    id: 20,
-    name: "name20",
-    // img: img6,
-  },
-];
-const dataRight: Array<{ id: number; name: string }> = [
-  {
-    id: 21,
-    name: "name21234567890123456789012345678901234567",
-    // img: img1,
-  },
-  {
-    id: 22,
-    name: "name22",
-    // img: img2,
-  },
-  {
-    id: 23,
-    name: "name23",
-    // img: img3,
-  },
-  {
-    id: 24,
-    name: "name24",
-    // img: img4,
-  },
-  {
-    id: 25,
-    name: "name25",
-    // img: img5,
-  },
-  {
-    id: 26,
-    name: "name26",
-    // img: img6,
-  },
-  {
-    id: 27,
-    name: "name27",
-    // img: img6,
-  },
-  {
-    id: 28,
-    name: "name28",
-    // img: img6,
-  },
-  {
-    id: 29,
-    name: "name29",
-    // img: img6,
-  },
-  {
-    id: 30,
-    name: "name30",
-    // img: img6,
-  },
-  {
-    id: 31,
-    name: "name31",
-    // img: img6,
-  },
-  {
-    id: 32,
-    name: "name32",
-    // img: img6,
-  },
-  {
-    id: 33,
-    name: "name33",
-    // img: img6,
-  },
-  {
-    id: 34,
-    name: "name34",
-    // img: img6,
-  },
-  {
-    id: 35,
-    name: "name35",
-    // img: img6,
-  },
-  {
-    id: 36,
-    name: "name36",
-    // img: img6,
-  },
-  {
-    id: 37,
-    name: "name37",
-    // img: img6,
-  },
-  {
-    id: 38,
-    name: "name38",
-    // img: img6,
-  },
-  {
-    id: 39,
-    name: "name39",
-    // img: img6,
-  },
-  {
-    id: 40,
-    name: "name40",
-    // img: img6,
-  },
-];
 
-export const EditColumns: FC = () => {
+type ColumnHeaderItemList = {
+  columnId: number;
+  columnName: string;
+  columnIndex: number;
+  columnWidth: string;
+};
+
+type Props = {
+  columnHeaderItemList: ColumnHeaderItemList[];
+};
+
+const EditColumnsModalMemo: FC<Props> = ({ columnHeaderItemList }) => {
   const setIsOpenEditColumns = useDashboardStore((state) => state.setIsOpenEditColumns);
+  const editedColumnHeaderItemList = useDashboardStore((state) => state.editedColumnHeaderItemList);
+  const setEditedColumnHeaderItemList = useDashboardStore((state) => state.setEditedColumnHeaderItemList);
 
-  const [listItemsLeft, setListItemsLeft] = useState(dataLeft);
-  const [listItemsRight, setListItemsRight] = useState(dataRight);
+  // リセットできるように初期値を別のStateで保持しておく
+  const [listItemsRight, setListItemsRight] = useState(columnHeaderItemList);
+  const [resetListItemRight, setResetListItemRight] = useState(columnHeaderItemList);
+  const [listItemsLeft, setListItemsLeft] = useState<Array<ColumnHeaderItemList>>([]);
+  const [resetListItemLeft, setResetListItemLeft] = useState<Array<ColumnHeaderItemList>>([]);
   const [dragIndexLeft, setDragIndexLeft] = useState<number | null>(null);
   const [dragIndexRight, setDragIndexRight] = useState<number | null>(null);
   const [leftCount, setLeftCount] = useState(0);
@@ -235,7 +46,9 @@ export const EditColumns: FC = () => {
   const modalContainerRef = useRef<HTMLDivElement | null>(null);
   const scrollBottomRef = useRef<HTMLSpanElement | null>(null);
   console.log(`listItemsLeft`, listItemsLeft);
+  console.log(`resetListItemLeft`, resetListItemLeft);
   console.log(`listItemsRight`, listItemsRight);
+  console.log(`resetListItemRight`, resetListItemRight);
   console.log(`dragIndexLeft`, dragIndexLeft);
   console.log(`dragIndexRight`, dragIndexRight);
 
@@ -265,7 +78,7 @@ export const EditColumns: FC = () => {
     // 入れ替え後のアイテムリストのindexで指定したターゲットを取得する
     const target = listItemsLeft[dragIndexLeft!];
     console.log("target", target);
-    selectedLeftItemsRef.current = selectedLeftItemsRef.current.filter((item) => item !== target.id);
+    selectedLeftItemsRef.current = selectedLeftItemsRef.current.filter((item) => item !== target.columnId);
     console.log("selectedLeftItemsRef.current", selectedLeftItemsRef.current);
     setLeftCount(selectedLeftItemsRef.current.length);
     if (!selectedLeftItemsRef.current.length) {
@@ -292,13 +105,19 @@ export const EditColumns: FC = () => {
     console.log("dragEnter DroppableIndex, dragIndex", index, dragIndexRight);
     if (index === dragIndexRight) return;
 
+    // 右側の表示中のカラムリストをエンターした内容で更新
     setListItemsRight((prevState) => {
       let newListItems = JSON.parse(JSON.stringify(prevState));
       const deleteElement = newListItems.splice(dragIndexRight, 1)[0];
       newListItems.splice(index, 0, deleteElement);
+      // columnRowIndexを変更した順番の内容で更新する
+      (newListItems as ColumnHeaderItemList[]).forEach((item, index) => {
+        item.columnIndex = index + 2;
+      });
+      console.log("newListItems", newListItems);
       return newListItems;
     });
-
+    // 順番が入れ替わった状態のドラッグしているアイテムの現在のindexをStateに保持
     setDragIndexRight(index);
   };
 
@@ -311,7 +130,7 @@ export const EditColumns: FC = () => {
       // 入れ替え後のアイテムリストのindexで指定したターゲットを取得する
       const target = listItemsRight[dragIndexRight];
       console.log("target", target);
-      selectedRightItemsRef.current = selectedRightItemsRef.current.filter((item) => item !== target.id);
+      selectedRightItemsRef.current = selectedRightItemsRef.current.filter((item) => item !== target.columnId);
       console.log("selectedRightItemsRef.current", selectedRightItemsRef.current);
       setRightCount(selectedRightItemsRef.current.length);
       if (!selectedRightItemsRef.current.length) {
@@ -322,6 +141,8 @@ export const EditColumns: FC = () => {
       }
     }
     // 並び替えが完了した後のlistItems配列をDBに送信して更新する処理を追加
+    // 入れ替えが完了した状態でZustandにグローバルStateとしてcolumnHeaderItemListの更新内容を保存する
+    setEditedColumnHeaderItemList(listItemsRight);
 
     // 全ての更新が終わったら、Indexをnullにして初期化
     setDragIndexRight(null);
@@ -387,14 +208,14 @@ export const EditColumns: FC = () => {
     // Setオブジェクトに変換して、hasメソッドで瞬時に渡された値を持つかどうか判定する
     const removedArray = new Set(selectedLeftItemsRef.current);
     // ================ 右のグループに追加する処理 ================
-    const pushItemArray = copyLeftArray.filter((item) => removedArray.has(item.id));
+    const pushItemArray = copyLeftArray.filter((item) => removedArray.has(item.columnId));
     console.log("pushItemObject", pushItemArray);
     const newRightArray = [...copyRightArray, ...pushItemArray];
     console.log("newRightArray", newRightArray);
     setListItemsRight(newRightArray);
 
     // ================ 左のグループから削除する処理 ================
-    const newLeftArray = copyLeftArray.filter((value) => !removedArray.has(value.id));
+    const newLeftArray = copyLeftArray.filter((value) => !removedArray.has(value.columnId));
     console.log("newLeftArray", newLeftArray);
     setListItemsLeft(newLeftArray);
 
@@ -413,14 +234,14 @@ export const EditColumns: FC = () => {
     // Setオブジェクトに変換して、hasメソッドで瞬時に渡された値を持つかどうか判定する
     const removedArray = new Set(selectedRightItemsRef.current);
     // ================ 左のグループに追加する処理 ================
-    const pushItemArray = copyRightArray.filter((item) => removedArray.has(item.id));
+    const pushItemArray = copyRightArray.filter((item) => removedArray.has(item.columnId));
     console.log("pushItemArray", pushItemArray);
     const newLeftArray = [...copyLeftArray, ...pushItemArray];
     console.log("newRightArray", newLeftArray);
     setListItemsLeft(newLeftArray);
 
     // ================ 右のグループから削除する処理 ================
-    const newRightArray = copyRightArray.filter((value) => !removedArray.has(value.id));
+    const newRightArray = copyRightArray.filter((value) => !removedArray.has(value.columnId));
     console.log("newLeftArray", newRightArray);
     setListItemsRight(newRightArray);
 
@@ -438,10 +259,13 @@ export const EditColumns: FC = () => {
     const copyRightArray = [...listItemsRight];
     // Setオブジェクトに変換して、hasメソッドで瞬時に渡された値を持つかどうか判定する
     const pushItemObject = new Set(selectedRightItemsRef.current);
-    const pushItemArray = copyRightArray.filter((item) => pushItemObject.has(item.id));
-    const afterRemovedItemArray = copyRightArray.filter((item) => !pushItemObject.has(item.id));
+    const pushItemArray = copyRightArray.filter((item) => pushItemObject.has(item.columnId));
+    const afterRemovedItemArray = copyRightArray.filter((item) => !pushItemObject.has(item.columnId));
     console.log("pushItemArray", pushItemArray);
     console.log("afterRemovedItemArray", afterRemovedItemArray);
+    // pushItemArray.forEach((item, index) => {
+    //   item.columnIndex = index + 2;
+    // });
     const newRightArray = [...afterRemovedItemArray, ...pushItemArray];
     setListItemsRight(newRightArray);
   };
@@ -452,10 +276,13 @@ export const EditColumns: FC = () => {
     const copyRightArray = [...listItemsRight];
     // Setオブジェクトに変換して、hasメソッドで瞬時に渡された値を持つかどうか判定する
     const pushItemObject = new Set(selectedRightItemsRef.current);
-    const pushItemArray = copyRightArray.filter((item) => pushItemObject.has(item.id));
-    const afterRemovedItemArray = copyRightArray.filter((item) => !pushItemObject.has(item.id));
+    const pushItemArray = copyRightArray.filter((item) => pushItemObject.has(item.columnId));
+    const afterRemovedItemArray = copyRightArray.filter((item) => !pushItemObject.has(item.columnId));
     console.log("pushItemArray", pushItemArray);
     console.log("afterRemovedItemArray", afterRemovedItemArray);
+    // pushItemArray.forEach((item, index) => {
+    //   item.columnIndex = index + 2;
+    // });
     const newRightArray = [...pushItemArray, ...afterRemovedItemArray];
     setListItemsRight(newRightArray);
   };
@@ -519,19 +346,33 @@ export const EditColumns: FC = () => {
     setHoveredItemPosModal(null);
   };
 
+  // キャンセルクリックでモーダルを開いた時の最初のカラムの状態にリセットする関数
+  const handleCancelAndReset = () => {
+    setListItemsRight([]);
+    setListItemsLeft([]);
+    // ZustandのグローバルStateのカラム編集リストを初期状態に格納して
+    // 親コンポーネント側のuseEffectでリセットさせる
+    setEditedColumnHeaderItemList([...resetListItemRight]);
+    setIsOpenEditColumns(false);
+  };
+
+  const handleSaveAndClose = () => {
+    setIsOpenEditColumns(false);
+  };
+
   return (
     <>
-      <div className={`${styles.overlay} `} onClick={() => setIsOpenEditColumns(false)} />
+      <div className={`${styles.overlay} `} onClick={handleCancelAndReset} />
       <div className={`${styles.container} fade01 `} ref={modalContainerRef}>
         {/* 保存キャンセルエリア */}
         <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[30px] text-center text-[18px]">
-          <div className="font-samibold cursor-pointer hover:text-[#aaa]" onClick={() => setIsOpenEditColumns(false)}>
+          <div className="font-samibold cursor-pointer hover:text-[#aaa]" onClick={handleCancelAndReset}>
             キャンセル
           </div>
           <div className="-translate-x-[25px] font-bold">カラム並び替え・追加/削除</div>
           <div
             className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
-            onClick={() => console.log("クリック")}
+            onClick={handleSaveAndClose}
           >
             保存
           </div>
@@ -563,8 +404,8 @@ export const EditColumns: FC = () => {
             <ul className={`${styles.sortable_list} `}>
               {listItemsLeft.map((item, index) => (
                 <li
-                  key={`left-${item.id}`}
-                  className={`${styles.item} ${item.id} ${index === dragIndexLeft ? `${styles.dragging}` : ""} ${
+                  key={`left-${item.columnId}`}
+                  className={`${styles.item} ${item.columnId} ${index === dragIndexLeft ? `${styles.dragging}` : ""} ${
                     styles.item_left
                   }`}
                   draggable={true}
@@ -574,11 +415,11 @@ export const EditColumns: FC = () => {
                     e.preventDefault();
                   }}
                   onDragEnd={handleDragEndLeft}
-                  onClick={(e) => handleClickActiveLeft(e, item.id)}
+                  onClick={(e) => handleClickActiveLeft(e, item.columnId)}
                 >
                   <div className={styles.details}>
                     {/* <Image src={item.img} alt="" /> */}
-                    <span className="truncate">{item.name}</span>
+                    <span className="truncate">{item.columnName}</span>
                   </div>
                   {/* <MdOutlineDragIndicator /> */}
                   <div className="min-h-[19px] w-[18px]"></div>
@@ -657,8 +498,8 @@ export const EditColumns: FC = () => {
             <ul className={`${styles.sortable_list}`}>
               {listItemsRight.map((item, index) => (
                 <li
-                  key={`right-${item.id}`}
-                  className={`${styles.item} ${item.id} ${index === dragIndexRight ? `${styles.dragging}` : ""} ${
+                  key={`right-${item.columnId}`}
+                  className={`${styles.item} ${item.columnId} ${index === dragIndexRight ? `${styles.dragging}` : ""} ${
                     styles.item_right
                   }`}
                   draggable={true}
@@ -668,11 +509,11 @@ export const EditColumns: FC = () => {
                     e.preventDefault();
                   }}
                   onDragEnd={handleDragEndRight}
-                  onClick={(e) => handleClickActiveRight(e, item.id)}
+                  onClick={(e) => handleClickActiveRight(e, item.columnId)}
                 >
                   <div className={styles.details}>
                     {/* <Image src={item.img} alt="" /> */}
-                    <span className="truncate">{item.name}</span>
+                    <span className="truncate">{item.columnName}</span>
                   </div>
                   <MdOutlineDragIndicator className="fill-[var(--color-text)]" />
                 </li>
@@ -686,3 +527,5 @@ export const EditColumns: FC = () => {
     </>
   );
 };
+
+export const EditColumnsModal = memo(EditColumnsModalMemo);

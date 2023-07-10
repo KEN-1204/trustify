@@ -46,9 +46,8 @@ export const DashboardHomeComponent = () => {
           {/* メッセージコンテナ */}
 
           <section
-            className={`${styles.home_screen} space-y-[20px] ${
-              activeMenuTab === "Meeting" ? "space-y-0. !px-0 !py-0" : ""
-            }`}
+            // className={`${styles.home_screen} space-y-[20px] ${
+            className={`${styles.home_screen}  ${activeMenuTab === "Meeting" ? "space-y-0. !px-0 !py-0" : ""}`}
           >
             {/* <GridTableTest /> */}
             {/* <div className="h-[20vh] w-full"></div> */}

@@ -34,6 +34,14 @@ export type hoveredItemPosHorizon = {
 // =================== アクティブタブ ===================
 export type ActiveMenuTab = string;
 
+// =================== カラム順番 ===================
+export type ColumnHeaderItemList = {
+  columnId: number;
+  columnName: string;
+  columnIndex: number;
+  columnWidth: string;
+};
+
 // =================== サイドバーセクション開閉状態 ===================
 
 // =================== Profile ===================

@@ -109,14 +109,14 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
 
       {/* ============================ 共通UIコンポーネント ============================ */}
       {/* カラム入れ替え編集モーダルボタン */}
-      {activeMenuTab !== "HOME" && (
+      {/* {activeMenuTab !== "HOME" && (
         <div className="flex-center fixed bottom-[2%] right-[13%] z-[1000] h-[50px] w-[50px] cursor-pointer">
           <div
             className="h-[50px] w-[50px] rounded-full bg-[var(--color-bg-brand)]"
             onClick={() => setIsOpenEditColumns(true)}
           ></div>
         </div>
-      )}
+      )} */}
       {/* サインアウトボタン */}
       <div className="flex-center fixed bottom-[2%] right-[8%] z-[1000] h-[50px] w-[50px] cursor-pointer">
         <div className="h-[50px] w-[50px] rounded-full bg-[red]" onClick={handleSignOut}></div>
@@ -140,7 +140,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
       {hoveredItemPosHorizon && <TooltipBlur />}
 
       {/* カラム編集モーダル */}
-      {isOpenEditColumns && <EditColumns />}
+      {/* {isOpenEditColumns && <EditColumns />} */}
     </div>
   );
 };

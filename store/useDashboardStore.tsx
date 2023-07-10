@@ -1,4 +1,4 @@
-import { ActiveMenuTab } from "@/types";
+import { ActiveMenuTab, ColumnHeaderItemList } from "@/types";
 import { Session } from "@supabase/supabase-js";
 import { ReactNode } from "react";
 import { create } from "zustand";
@@ -28,6 +28,9 @@ type State = {
   // 【テーブルカラム編集モーダル開閉状態】
   isOpenEditColumns: boolean;
   setIsOpenEditColumns: (payload: boolean) => void;
+  // 【カラム順番入れ替え・表示非表示の編集内容保持state】
+  editedColumnHeaderItemList: ColumnHeaderItemList[];
+  setEditedColumnHeaderItemList: (payload: ColumnHeaderItemList[]) => void;
 };
 
 const useDashboardStore = create<State>((set) => ({
@@ -55,6 +58,9 @@ const useDashboardStore = create<State>((set) => ({
   // 【テーブルカラム編集モーダル開閉状態】
   isOpenEditColumns: false,
   setIsOpenEditColumns: (payload) => set({ isOpenEditColumns: payload }),
+  // 【カラム順番入れ替え・表示非表示の編集内容保持state】
+  editedColumnHeaderItemList: [],
+  setEditedColumnHeaderItemList: (payload) => set({ editedColumnHeaderItemList: payload }),
 }));
 
 export default useDashboardStore;

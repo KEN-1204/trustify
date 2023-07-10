@@ -189,6 +189,9 @@
 
   /* 🌟EditColumnsモーダル カラム変更モーダル light */
   --color-edit-bg: #ffffffe0;
+  --color-edit-text: #333;
+  --color-edit-item-bg: #fff;
+  --color-edit-item-border: 0 0 0 1px #ccc;
   --color-edit-border: inset 0px 0px 0px 1px #999, 0px 0px 0px 1px #00000030;
   /* --color-edit-add: #abffa2; */
   --color-edit-add: #7fff70;
@@ -200,7 +203,9 @@
   --color-edit-left-active-bg: #abffa230;
   --color-edit-right-active: #f63e54;
   --color-edit-right-active-bg: #ff858530;
-  --color-edit-arrow-disable: var(--color-bg-sub);
+  --color-edit-arrow-disable-bg: var(--color-bg-sub);
+  --color-edit-arrow-disable-bg-onlist: rgba(64, 87, 109, 0.09);
+  --color-edit-arrow-disable-color: var(--color-sub-text);
 
   /* ボーダーカラー */
   --color-border: #e6e6e6;
@@ -411,6 +416,26 @@
   --color-modal-underline: rgb(94 94 94 / 0.8);
   /* --color-modal-underline-active: #0d99ff; */
   --color-modal-underline-active: #2b7fff;
+
+  /* 🌟EditColumnsモーダル カラム変更モーダル dark */
+  --color-edit-bg: #252525e0;
+  --color-edit-text: #fff;
+  --color-edit-item-bg: #252525;
+  --color-edit-item-border: 0 0 0 1px #ccc;
+  --color-edit-border: inset 0px 0px 0px 1px #ffffffe0, 0px 0px 0px 1px #000;
+  /* --color-edit-add: #abffa2; */
+  --color-edit-add: #7fff70;
+  --color-edit-add-hover: #7fff7090;
+  /* --color-edit-remove: #ff8585; */
+  --color-edit-remove: #ff7d7d;
+  --color-edit-remove-hover: #ff7d7d90;
+  --color-edit-left-active: #6ae67d;
+  --color-edit-left-active-bg: #abffa230;
+  --color-edit-right-active: #f63e54;
+  --color-edit-right-active-bg: #ff858530;
+  --color-edit-arrow-disable-bg: var(--color-bg-sub);
+  --color-edit-arrow-disable-bg-onlist: var(--color-bg-sub-dark);
+  --color-edit-arrow-disable-color: var(--color-text-sub);
 
   /* ボーダーカラー */
   /* --color-border: #444444;  */

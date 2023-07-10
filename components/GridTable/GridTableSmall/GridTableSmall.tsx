@@ -31,6 +31,13 @@ type Props = {
 
 const GridTableSmallMemo: FC<Props> = ({ title }) => {
   const theme = useStore((state) => state.theme);
+  // カラム入れ替えモーダルで更新した内容を取得
+  const editedColumnHeaderItemList = useDashboardStore((state) => state.editedColumnHeaderItemList);
+  const setEditedColumnHeaderItemList = useDashboardStore((state) => state.setEditedColumnHeaderItemList);
+  console.log(
+    "🔥GridTableHomeコンポーネント 入れ替え後のカラム editedColumnHeaderItemList ",
+    editedColumnHeaderItemList
+  );
   // const [colsWidth, setColsWidth] = useState(
   //   new Array(Object.keys(tableBodyDataArray[0]).length + 1).fill("minmax(50px, 1fr)")
   // );
@@ -77,6 +84,56 @@ const GridTableSmallMemo: FC<Props> = ({ title }) => {
   const [selectedCheckBox, setSelectedCheckBox] = useState<number[]>([]);
   // 現在のアイテム取得件数
   const [getItemCount, setGetItemCount] = useState(0);
+
+  // ================== 🌟カラム編集モーダルで並び替え後🌟 ==================
+  // カラム並び替えモーダルで編集後にカラムヘッダーリストを更新してZustandのStateを空にする
+  useEffect(() => {
+    if (!editedColumnHeaderItemList.length) return console.log("編集中のカラムリストが存在しないためリターン");
+    // Zustandに格納した並び替え後のカラムリストをローカルのStateに格納する
+    setColumnHeaderItemList([...editedColumnHeaderItemList]);
+    // colsWidthの配列内の各カラムのサイズも更新する
+    let newColsWidth: string[] = [];
+    if (colsWidth !== null) {
+      const copyColsWidth = [...colsWidth];
+      copyColsWidth.forEach((width, index) => {
+        if (index === 0) return newColsWidth.push(width);
+        width = editedColumnHeaderItemList[index - 1].columnWidth;
+        newColsWidth.push(width);
+      });
+    }
+
+    // =========== CSSカスタムプロパティに反映
+    // newColsWidthの各値のpxの文字を削除
+    // ['65px', '100px', '250px', '250px', '250px', '250px']から
+    // ['65', '100', '250', '250', '250', '250']へ置換 同時に数値型に変換もしておく
+    const newColsWidthNum = newColsWidth.map((col) => {
+      return +col.replace("px", "");
+    });
+
+    console.log("🔥ヘッダーカラム生成🌟 新たなnewColsWidthNum", newColsWidthNum);
+
+    // それぞれのカラムの合計値を取得 +aで文字列から数値型に変換して合計値を取得
+    let sumRowWidth = newColsWidthNum.reduce((a, b) => {
+      return a + b;
+    });
+    console.log("🔥ヘッダーカラム生成🌟 width合計値 sumRowWidth", sumRowWidth);
+    // それぞれのCSSカスタムプロパティをセット
+    // grid-template-columnsの値となるCSSカスタムプロパティをセット
+    if (!parentGridScrollContainer.current) return;
+    const GridScrollContainer = parentGridScrollContainer.current;
+    GridScrollContainer.style.setProperty("--template-columns", `${newColsWidth.join(" ")}`);
+    GridScrollContainer.style.setProperty("--row-width", `${sumRowWidth}px`);
+
+    console.log("更新後--template-columns", GridScrollContainer.style.getPropertyValue("--template-columns"));
+    console.log("更新後--row-width", GridScrollContainer.style.getPropertyValue("--row-width"));
+    console.log("🔥ここnewColsWidth", newColsWidth);
+    setColsWidth(newColsWidth);
+
+    // setColsWidth()
+    // 更新したらZustandのカラム編集リストを空にする
+    setEditedColumnHeaderItemList([]);
+  }, [editedColumnHeaderItemList]);
+  // ===================================================================
 
   // ================== 🌟疑似的なサーバーデータフェッチ用の関数🌟 ==================
   const fetchServerPage = async (
@@ -284,9 +341,11 @@ const GridTableSmallMemo: FC<Props> = ({ title }) => {
   // =================== 🌟マウスイベント 列サイズ変更 ===================
   const handleMouseDown = (e: React.MouseEvent, index: number) => {
     e.preventDefault();
+    const gridScrollContainer = parentGridScrollContainer.current;
+    if (!gridScrollContainer) return;
 
     // ドラッグ中の列と同じ列全てのborder-right-colorをハイライトする
-    const colsLine = document.querySelectorAll(`[role=row] [aria-colindex="${index + 2}"]`);
+    const colsLine = gridScrollContainer.querySelectorAll(`[role=row] [aria-colindex="${index + 2}"]`);
     colsLine.forEach((col) => {
       if (col instanceof HTMLDivElement) {
         // col.style.borderRightColor = `#24b47e`;
@@ -300,8 +359,10 @@ const GridTableSmallMemo: FC<Props> = ({ title }) => {
     console.log("handleMouseDown", startX, startWidth);
 
     const handleMouseUp = () => {
+      const gridScrollContainer = parentGridScrollContainer.current;
+      if (!gridScrollContainer) return;
       // ドラッグ中の列と同じ列全てのborder-right-colorをハイライトを元のボーダーカラーに戻す
-      const colsLine = document.querySelectorAll(`[role=row] [aria-colindex="${index + 2}"]`);
+      const colsLine = gridScrollContainer.querySelectorAll(`[role=row] [aria-colindex="${index + 2}"]`);
       colsLine.forEach((col) => {
         if (col instanceof HTMLDivElement) {
           // col.style.borderRightColor = `#444`;
@@ -313,6 +374,18 @@ const GridTableSmallMemo: FC<Props> = ({ title }) => {
       setColsWidth(currentColsWidths.current);
       window.removeEventListener("mouseup", handleMouseUp);
       window.removeEventListener("mousemove", handleMouseMove);
+
+      // ================ columnHeaderItemListも合わせてサイズを更新 テスト ================
+      let newColumnHeaderItemList: any[] = [];
+      const copyColumnHeaderItemList = [...columnHeaderItemList];
+      copyColumnHeaderItemList.forEach((item) => {
+        item.columnWidth = currentColsWidths.current[item.columnIndex - 1];
+        newColumnHeaderItemList.push(item);
+        // return item;
+      });
+      console.log("🌟🔥 newColumnHeaderItemList", newColumnHeaderItemList);
+      setColumnHeaderItemList(newColumnHeaderItemList);
+      // ================ columnHeaderItemListも合わせてサイズを更新 テスト ================
 
       // 🌟3点リーダーがtrueになったらカラムホバー時にツールチップを表示
       const targetText = columnHeaderInnerTextRef.current[index] as HTMLDivElement;
@@ -1119,7 +1192,7 @@ const GridTableSmallMemo: FC<Props> = ({ title }) => {
                 aria-selected={false}
                 tabIndex={-1}
                 className={`${styles.grid_column_header_all} ${styles.grid_column_frozen} ${styles.grid_column_header_checkbox_column}`}
-                style={{ gridColumnStart: 1, left: columnHeaderLeft(0) }}
+                style={{ gridColumnStart: 1, left: columnHeaderLeft(0), position: "sticky" }}
                 onClick={(e) => handleClickGridCell(e)}
               >
                 <div className={styles.grid_select_cell_header}>
