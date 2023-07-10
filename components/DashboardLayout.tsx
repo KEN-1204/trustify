@@ -110,7 +110,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
       {/* ============================ 共通UIコンポーネント ============================ */}
       {/* カラム入れ替え編集モーダルボタン */}
       {activeMenuTab !== "HOME" && (
-        <div className="flex-center fixed bottom-[2%] right-[13%] h-[50px] w-[50px] cursor-pointer">
+        <div className="flex-center fixed bottom-[2%] right-[13%] z-[1000] h-[50px] w-[50px] cursor-pointer">
           <div
             className="h-[50px] w-[50px] rounded-full bg-[var(--color-bg-brand)]"
             onClick={() => setIsOpenEditColumns(true)}
@@ -118,11 +118,11 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
         </div>
       )}
       {/* サインアウトボタン */}
-      <div className="flex-center fixed bottom-[2%] right-[8%] h-[50px] w-[50px] cursor-pointer">
+      <div className="flex-center fixed bottom-[2%] right-[8%] z-[1000] h-[50px] w-[50px] cursor-pointer">
         <div className="h-[50px] w-[50px] rounded-full bg-[red]" onClick={handleSignOut}></div>
       </div>
       {/* テーマ切り替えボタン */}
-      <div className="flex-center fixed bottom-[2%] right-[3%] h-[50px] w-[50px] ">
+      <div className="flex-center fixed bottom-[2%] right-[3%] z-[1000] h-[50px] w-[50px] ">
         <div
           className={`h-[50px] w-[50px] cursor-pointer rounded-full ${
             theme === "dark" ? "bg-[--color-bg-brand05]" : "bg-[#00000080]"

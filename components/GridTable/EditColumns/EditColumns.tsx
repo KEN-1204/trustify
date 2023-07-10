@@ -222,6 +222,8 @@ export const EditColumns: FC = () => {
   const [listItemsRight, setListItemsRight] = useState(dataRight);
   const [dragIndexLeft, setDragIndexLeft] = useState<number | null>(null);
   const [dragIndexRight, setDragIndexRight] = useState<number | null>(null);
+  const [leftCount, setLeftCount] = useState(0);
+  const [rightCount, setRightCount] = useState(0);
   const selectedLeftItemsRef = useRef<number[]>([]);
   const selectedRightItemsRef = useRef<number[]>([]);
   const addArrowRef = useRef<HTMLDivElement | null>(null);
@@ -231,6 +233,7 @@ export const EditColumns: FC = () => {
   const resetLeftRef = useRef<HTMLDivElement | null>(null);
   const resetRightRef = useRef<HTMLDivElement | null>(null);
   const modalContainerRef = useRef<HTMLDivElement | null>(null);
+  const scrollBottomRef = useRef<HTMLSpanElement | null>(null);
   console.log(`listItems`, listItemsLeft);
   console.log(`listItems`, listItemsRight);
   console.log(`dragIndex`, dragIndexLeft);
@@ -308,9 +311,11 @@ export const EditColumns: FC = () => {
     if (!!selectedLeftItemsRef.current.length) {
       addArrowRef.current?.classList.add(`${styles.arrow_add_active}`);
       resetLeftRef.current?.classList.add(`${styles.arrow_left_reset_active}`);
+      setLeftCount(selectedLeftItemsRef.current.length);
     } else {
       addArrowRef.current?.classList.remove(`${styles.arrow_add_active}`);
       resetLeftRef.current?.classList.remove(`${styles.arrow_left_reset_active}`);
+      setLeftCount(selectedLeftItemsRef.current.length);
     }
   };
   // ============================== 右側のカラムをクリックでアクティブ化 ==============================
@@ -331,11 +336,13 @@ export const EditColumns: FC = () => {
       upArrowRef.current?.classList.add(`${styles.arrow_up_active}`);
       downArrowRef.current?.classList.add(`${styles.arrow_down_active}`);
       resetRightRef.current?.classList.add(`${styles.arrow_right_reset_active}`);
+      setRightCount(selectedRightItemsRef.current.length);
     } else {
       removeArrowRef.current?.classList.remove(`${styles.arrow_remove_active}`);
       upArrowRef.current?.classList.remove(`${styles.arrow_up_active}`);
       downArrowRef.current?.classList.remove(`${styles.arrow_down_active}`);
       resetRightRef.current?.classList.remove(`${styles.arrow_right_reset_active}`);
+      setRightCount(selectedRightItemsRef.current.length);
     }
   };
 
@@ -374,7 +381,7 @@ export const EditColumns: FC = () => {
     const removedArray = new Set(selectedRightItemsRef.current);
     // ================ 左のグループに追加する処理 ================
     const pushItemArray = copyRightArray.filter((item) => removedArray.has(item.id));
-    console.log("pushItemObject", pushItemArray);
+    console.log("pushItemArray", pushItemArray);
     const newLeftArray = [...copyLeftArray, ...pushItemArray];
     console.log("newRightArray", newLeftArray);
     setListItemsLeft(newLeftArray);
@@ -390,10 +397,32 @@ export const EditColumns: FC = () => {
   };
 
   // ================================ 最下部にカラムを移動する関数 ===============================
-  const handleMoveLast = () => {};
+  const handleMoveLast = () => {
+    if (!selectedRightItemsRef.current.length) return console.log("右無し");
+    const copyRightArray = [...listItemsRight];
+    // Setオブジェクトに変換して、hasメソッドで瞬時に渡された値を持つかどうか判定する
+    const pushItemObject = new Set(selectedRightItemsRef.current);
+    const pushItemArray = copyRightArray.filter((item) => pushItemObject.has(item.id));
+    const afterRemovedItemArray = copyRightArray.filter((item) => !pushItemObject.has(item.id));
+    console.log("pushItemArray", pushItemArray);
+    console.log("afterRemovedItemArray", afterRemovedItemArray);
+    const newRightArray = [...afterRemovedItemArray, ...pushItemArray];
+    setListItemsRight(newRightArray);
+  };
 
   // ================================ 最上部にカラムを移動する関数 ===============================
-  const handleMoveFirst = () => {};
+  const handleMoveFirst = () => {
+    if (!selectedRightItemsRef.current.length) return console.log("右無し");
+    const copyRightArray = [...listItemsRight];
+    // Setオブジェクトに変換して、hasメソッドで瞬時に渡された値を持つかどうか判定する
+    const pushItemObject = new Set(selectedRightItemsRef.current);
+    const pushItemArray = copyRightArray.filter((item) => pushItemObject.has(item.id));
+    const afterRemovedItemArray = copyRightArray.filter((item) => !pushItemObject.has(item.id));
+    console.log("pushItemArray", pushItemArray);
+    console.log("afterRemovedItemArray", afterRemovedItemArray);
+    const newRightArray = [...pushItemArray, ...afterRemovedItemArray];
+    setListItemsRight(newRightArray);
+  };
 
   // ================================ 左側の選択したカラムを全てリセットする関数 ===============================
   const handleResetLeft = () => {
@@ -404,6 +433,7 @@ export const EditColumns: FC = () => {
     const leftActiveColumns = modalContainerRef.current.querySelectorAll(`.${styles.active_left}`);
     leftActiveColumns.forEach((item) => item.classList.remove(`${styles.active_left}`));
     addArrowRef.current?.classList.remove(`${styles.arrow_add_active}`);
+    setLeftCount(0);
   };
   // ================================ 右側の選択したカラムを全てリセットする関数 ===============================
   const handleResetRight = () => {
@@ -417,6 +447,7 @@ export const EditColumns: FC = () => {
     removeArrowRef.current?.classList.remove(`${styles.arrow_remove_active}`);
     downArrowRef.current?.classList.remove(`${styles.arrow_down_active}`);
     upArrowRef.current?.classList.remove(`${styles.arrow_up_active}`);
+    setRightCount(0);
   };
 
   // ================================ ツールチップ ================================
@@ -487,6 +518,11 @@ export const EditColumns: FC = () => {
               >
                 <GrPowerReset className="pointer-events-none text-[16px]" />
               </div>
+              {!!selectedLeftItemsRef.current.length && (
+                <div className="ml-auto flex h-full w-fit flex-1 items-center justify-end">
+                  <span className="text-[14px] text-[var(--color-text-brand-f)]">{leftCount}件選択中</span>
+                </div>
+              )}
             </div>
             <ul className={`${styles.sortable_list} `}>
               {listItemsLeft.map((item, index) => (
@@ -542,7 +578,7 @@ export const EditColumns: FC = () => {
           {/* 右コンテンツボックス */}
           <div className={`flex h-full  basis-5/12 flex-col items-center ${styles.content_box}`}>
             {/* タイトルエリア */}
-            <div className={`${styles.title} space-x-4 text-[var(--color-sub-text)]`}>
+            <div className={`${styles.title} w-full space-x-4 text-[var(--color-sub-text)]`}>
               <span className="text-[#0D99FF]">表示</span>
               <div
                 ref={downArrowRef}
@@ -575,6 +611,11 @@ export const EditColumns: FC = () => {
               >
                 <GrPowerReset className="pointer-events-none text-[16px]" />
               </div>
+              {!!selectedRightItemsRef.current.length && (
+                <div className="ml-auto flex h-full w-fit flex-1 items-center justify-end">
+                  <span className="text-[14px] text-[var(--color-text-brand-f)]">{rightCount}件選択中</span>
+                </div>
+              )}
             </div>
             {/* カラムリストエリア */}
             <ul className={`${styles.sortable_list}`}>
@@ -601,6 +642,7 @@ export const EditColumns: FC = () => {
                 </li>
               ))}
             </ul>
+            <span ref={scrollBottomRef}></span>
           </div>
         </div>
         {hoveredItemPosModal && <TooltipModal />}

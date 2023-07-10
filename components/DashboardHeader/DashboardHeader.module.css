@@ -46,14 +46,15 @@
 }
 
 .navbarItem:hover {
-  background: var(--color-bg-sub);
+  background-color: var(--color-bg-sub);
   color: var(--color-text);
 }
 .navbarItem.active {
   /* background: var(--color-bg-brand-f); */
   /* color: var(--color-text); */
-  background: var(--color-bg-sub);
+  background-color: var(--color-bg-sub);
   /* color: var(--color-dashboard-header-text); */
+  transition: background-color 0.3s ease;
 }
 .navbarItem.active .active_underline {
   position: absolute;
