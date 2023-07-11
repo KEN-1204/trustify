@@ -158,6 +158,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
     );
     console.log("🔥カラム編集モーダルで並び替え後 ここnewColsWidth", newColsWidth);
     setColsWidth(newColsWidth);
+    currentColsWidths.current = newColsWidth;
 
     // setColsWidth()
     // 更新したらZustandのカラム編集リストを空にする
@@ -183,6 +184,12 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
     // [65, 165, 415, 665, 915, 1165, 1415, 1665]
     // refオブジェクトにレフトポジションを格納
     columnLeftPositions.current = accumulatedArray;
+    // ===================================================== 🔥テスト フローズンカスタムプロパティ
+    const filteredIsFrozenList = editedColumnHeaderItemList.filter((item) => item.isFrozen === true);
+    filteredIsFrozenList.forEach((item, index) => {
+      parentGridScrollContainer.current!.style.setProperty(`--frozen-left-${index}`, `${accumulatedArray[index]}px`);
+    });
+    // ===================================================== 🔥テスト フローズンカスタムプロパティ
     // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ここまで ===============
   }, [editedColumnHeaderItemList]);
   // ============================== 🌟カラム編集モーダルで並び替え後🌟 ここまで ==============================
@@ -347,6 +354,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       console.log("ローカルストレージルート unshift後のnewColsWidth Stateにカラムwidthを保存", newColsWidths);
       // 全てのカラムWidthをローカルStateに格納
       setColsWidth(newColsWidths);
+      currentColsWidths.current = newColsWidths;
       // 全てのカラムWidthをRefオブジェクトに格納
       currentColsWidths.current = newColsWidths;
 
@@ -371,6 +379,12 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       // refオブジェクトにレフトポジションを格納
       columnLeftPositions.current = accumulatedArray;
       console.log("ローカルストレージルート レフトポジション accumulatedArray", accumulatedArray);
+      // ===================================================== 🔥テスト フローズンカスタムプロパティ
+      const filteredIsFrozenList = localStorageColumnHeaderItemList.filter((item) => item.isFrozen === true);
+      filteredIsFrozenList.forEach((item, index) => {
+        parentGridScrollContainer.current!.style.setProperty(`--frozen-left-${index}`, `${accumulatedArray[index]}px`);
+      });
+      // ===================================================== 🔥テスト フローズンカスタムプロパティ
       // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ここまで ===============
 
       // ====================== CSSカスタムプロパティに反映 ======================
@@ -421,6 +435,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
     // ['65px', '100px', '250px', '50px', '119px', '142px', '250px', '250px']
     // stateに現在の全てのカラムのwidthを保存
     setColsWidth(newColsWidths);
+    currentColsWidths.current = newColsWidths;
     // refオブジェクトに保存
     currentColsWidths.current = newColsWidths;
     console.log("currentColsWidths.current", currentColsWidths.current);
@@ -553,7 +568,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
         }
       });
 
-      console.log("マウスアップ✅", currentColsWidths.current);
+      console.log("マウスアップ✅ currentColsWidths.current", currentColsWidths.current);
       setColsWidth(currentColsWidths.current);
       window.removeEventListener("mouseup", handleMouseUp);
       window.removeEventListener("mousemove", handleMouseMove);
@@ -570,12 +585,12 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       setColumnHeaderItemList(newColumnHeaderItemList);
       // ================ columnHeaderItemListも合わせてサイズを更新 テスト ================
 
-      // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ===============
+      // // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ===============
       // colsWidth ['65px', '100px', '250px', '250px', '250px', '250px', '250px', '250px']から
       // accumulatedLeftPosition:  [65, 165, 415, 665, 915, 1165, 1415, 1665]
       // if (!colsWidth) return;
       // 現在のcolsWidthをコピー
-      const widthArray = JSON.parse(JSON.stringify(currentColsWidths.current));
+      const widthArray = JSON.parse(JSON.stringify(colsWidth));
 
       // 各要素の累積和を計算し、新しい配列を作る
       const accumulatedArray = widthArray.reduce((acc: number[], value: string) => {
@@ -591,7 +606,13 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       // refオブジェクトにレフトポジションを格納
       columnLeftPositions.current = accumulatedArray;
       console.log("列サイズ変更 レフトポジション accumulatedArray", accumulatedArray);
-      // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ここまで ===============
+      // ===================================================== 🔥テスト フローズンカスタムプロパティ
+      const filteredIsFrozenList = newColumnHeaderItemList.filter((item) => item.isFrozen === true);
+      filteredIsFrozenList.forEach((item, index) => {
+        parentGridScrollContainer.current!.style.setProperty(`--frozen-left-${index}`, `${accumulatedArray[index]}px`);
+      });
+      // ===================================================== 🔥テスト フローズンカスタムプロパティ
+      // // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ここまで ===============
 
       // 🌟3点リーダーがtrueになったらカラムホバー時にツールチップを表示
       const targetText = columnHeaderInnerTextRef.current[index] as HTMLDivElement;
@@ -671,6 +692,38 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       }, 0);
       parentGridScrollContainer.current!.style.setProperty("--row-width", `${sumRowWidth}px`);
       console.log("更新後--row-width", parentGridScrollContainer.current!.style.getPropertyValue("--row-width"));
+
+      // // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ===============
+      // colsWidth ['65px', '100px', '250px', '250px', '250px', '250px', '250px', '250px']から
+      // accumulatedLeftPosition:  [65, 165, 415, 665, 915, 1165, 1415, 1665]
+      // if (!colsWidth) return;
+      // 現在のcolsWidthをコピー
+      const widthArrayMove = JSON.parse(JSON.stringify(newColsWidths));
+
+      // 各要素の累積和を計算し、新しい配列を作る
+      const accumulatedArrayMove = widthArrayMove.reduce((acc: number[], value: string) => {
+        // parseIntを使って数値部分を抽出する
+        const number = parseInt(value, 10);
+        // 配列の最後の要素（現在の累積和）に数値を加える
+        const newSum = acc.length > 0 ? acc[acc.length - 1] + number : number;
+        // 新しい累積和を配列に追加する
+        acc.push(newSum);
+        return acc;
+      }, []);
+      // [65, 165, 415, 665, 915, 1165, 1415, 1665]
+      // refオブジェクトにレフトポジションを格納
+      columnLeftPositions.current = accumulatedArrayMove;
+      console.log("columnLeftPositions.current", columnLeftPositions.current);
+      // ===================================================== 🔥テスト フローズンカスタムプロパティ
+      const filteredIsFrozenList = columnHeaderItemList.filter((item) => item.isFrozen === true);
+      filteredIsFrozenList.forEach((item, index) => {
+        parentGridScrollContainer.current!.style.setProperty(
+          `--frozen-left-${index}`,
+          `${accumulatedArrayMove[index]}px`
+        );
+      });
+      // ===================================================== 🔥テスト フローズンカスタムプロパティ
+      // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ここまで ===============
     };
 
     window.addEventListener("mouseup", handleMouseUp);
@@ -1280,6 +1333,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
 
     // =========== 🌟colsWidthを更新
     setColsWidth(newTemplateColumnsWidth);
+    currentColsWidths.current = newTemplateColumnsWidth;
 
     setDragColumnIndex(dropIndex!);
 
@@ -1385,6 +1439,12 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
     // refオブジェクトにレフトポジションを格納
     columnLeftPositions.current = accumulatedArray;
     console.log("カラム入れ替えonDragEndイベント レフトポジション accumulatedArray", accumulatedArray);
+    // ===================================================== 🔥テスト フローズンカスタムプロパティ
+    const filteredIsFrozenList = columnHeaderItemList.filter((item) => item.isFrozen === true);
+    filteredIsFrozenList.forEach((item, index) => {
+      parentGridScrollContainer.current!.style.setProperty(`--frozen-left-${index}`, `${accumulatedArray[index]}px`);
+    });
+    // ===================================================== 🔥テスト フローズンカスタムプロパティ
     // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ここまで ===============
     // 順番入れ替え中はリサイズオーバーレイのpointer-eventsはnoneにする
     draggableOverlaysRef.current.forEach((div) => {
@@ -1464,6 +1524,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       );
       // colsWidthのStateを更新
       setColsWidth(newColumnWidthList);
+      currentColsWidths.current = newColumnWidthList;
 
       // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ===============
       // colsWidth ['65px', '100px', '250px', '250px', '250px', '250px', '250px', '250px']から
@@ -1485,6 +1546,23 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       // [65, 165, 415, 665, 915, 1165, 1415, 1665]
       // refオブジェクトにレフトポジションを格納
       columnLeftPositions.current = accumulatedArray;
+      // ===================================================== 🔥テスト フローズンカスタムプロパティ
+      const filteredIsFrozenList = newColumnHeaderItemList.filter((item) => item.isFrozen === true);
+      filteredIsFrozenList.forEach((item, index) => {
+        parentGridScrollContainer.current!.style.setProperty(`--frozen-left-${index}`, `${accumulatedArray[index]}px`);
+      });
+      // ===================================================== 🔥テスト フローズンカスタムプロパティ
+
+      // レフトポジションをカスタムプロパティに追加 =============================== テスト 🔥
+      // parentGridScrollContainer.current.style.setProperty(
+      //   `--frozen-left-${isFrozenCountRef.current - 1}`,
+      //   columnLeftPositions.current[isFrozenCountRef.current - 1].toString() + "px"
+      // );
+      // console.log(
+      //   `フローズンイベント カスタムプロパティ作成--frozen-left-${isFrozenCountRef.current - 1}`,
+      //   parentGridScrollContainer.current.style.getPropertyValue(`--frozen-left-${isFrozenCountRef.current - 1}`)
+      // );
+      // レフトポジションをカスタムプロパティに追加 =============================== テスト 🔥
       // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ここまで ===============
     }
     // 🔥フローズンを外すルート ====================
@@ -1545,6 +1623,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       );
       // colsWidthのStateを更新
       setColsWidth(newColumnWidthList);
+      currentColsWidths.current = newColumnWidthList;
 
       // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ===============
       // colsWidth ['65px', '100px', '250px', '250px', '250px', '250px', '250px', '250px']から
@@ -1566,90 +1645,23 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       // [65, 165, 415, 665, 915, 1165, 1415, 1665]
       // refオブジェクトにレフトポジションを格納
       columnLeftPositions.current = accumulatedArray;
+
+      // レフトポジションをカスタムプロパティから削除 -1された状態なので、そのままの個数で指定 =========== テスト🔥
+      parentGridScrollContainer.current.style.removeProperty(`--frozen-left-${isFrozenCountRef.current}`);
+      // // 位置が入れ替わってLeftポジションが再計算された状態でセットし直す
+      // parentGridScrollContainer.current.style.setProperty(
+      //   `--frozen-left-${isFrozenCountRef.current - 1}`,
+      //   columnLeftPositions.current[isFrozenCountRef.current - 1].toString() + "px"
+      // );
+      // レフトポジションをカスタムプロパティから削除 -1された状態なので、そのままの個数で指定 =========== テスト🔥
+      // ===================================================== 🔥テスト フローズンカスタムプロパティ
+      const filteredIsFrozenList = newColumnHeaderItemList.filter((item) => item.isFrozen === true);
+      filteredIsFrozenList.forEach((item, index) => {
+        parentGridScrollContainer.current!.style.setProperty(`--frozen-left-${index}`, `${accumulatedArray[index]}px`);
+      });
+      // ===================================================== 🔥テスト フローズンカスタムプロパティ
       // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ここまで ===============
     }
-
-    // ============================================================================
-
-    // // 入れ替え前にwidthを更新する CSSカスタムプロパティに反映 grid-template-columnsの場所も入れ替える
-    // const copyTemplateColumnsWidth: string[] = JSON.parse(JSON.stringify(colsWidth));
-    // console.log("🔥copyTemplateColumnsWidth, colsWidth", copyTemplateColumnsWidth, colsWidth);
-    // const columnWidthsOmitCheckbox = copyTemplateColumnsWidth.slice(1); // checkboxを除いたwidthを取得
-
-    // console.log("🔥columnWidthsOmitCheckbox", columnWidthsOmitCheckbox);
-    // const newWidthListItems = copyListItems.map((item, index) => {
-    //   // console.log("item.columnWidth, columnWidthsOmitCheckbox[index]", item.columnWidth, columnWidthsOmitCheckbox[index]);
-    //   console.log(
-    //     "index, id, column名, columnIndex, columnWidth",
-    //     index,
-    //     item.columnId,
-    //     item.columnName,
-    //     item.columnIndex,
-    //     item.columnWidth,
-    //     columnWidthsOmitCheckbox[index]
-    //   );
-    //   return { ...item, columnWidth: columnWidthsOmitCheckbox[index] };
-    // });
-    // // columnIndexを入れ替え
-    // console.log("🌟移動前のカラムリスト width更新後", newWidthListItems);
-    // let prevListItemArray = JSON.parse(JSON.stringify(newWidthListItems));
-    // // // ドラッグ要素をドロップ先の要素のインデックスに変更
-    // // newListItemArray[dragColumnIndex].columnIndex = dropElementColIndex;
-    // // // ドラッグ先のカラムのcolumnIndexをドラッグ元のカラムのインデックスに変更
-    // // newListItemArray[dropIndex!].columnIndex = draggingElementColIndex;
-    // // colIndexの順番を現在の配列のindexの順番に入れ替える
-    // // const deleteElement = newListItemArray.splice(dragColumnIndex, 1)[0];
-    // // newListItemArray.splice(dropIndex!, 0, deleteElement);
-
-    // const transferredItem = prevListItemArray.splice(dragColumnIndex, 1)[0];
-    // console.log("transferredItem, dropElementColIndex", transferredItem, dropElementColIndex);
-    // prevListItemArray.splice(dropElementColIndex - 2, 0, transferredItem); // colindexとindexの差が2あるので-2引いた位置に挿入する
-    // const newListItemArray = prevListItemArray.map((item: ColumnHeaderItemList, index: number) => {
-    //   const newItem = { ...item, columnIndex: index + 2 };
-    //   console.log("🌟ここ", newItem);
-    //   return newItem;
-    // });
-    // // const newListItemArray = JSON.parse(JSON.stringify(prevListItemArray));
-    // // const newListItemArray = [...prevListItemArray];
-    // console.log("移動前のカラムリスト", prevListItemArray);
-    // console.log("移動前のカラムリスト", newListItemArray);
-
-    // // let transferredElement = newListItemArray.splice()
-    // setColumnHeaderItemList((prevArray) => {
-    //   console.log("ここprevArray", prevArray);
-    //   console.log("ここnewListItemArray", newListItemArray);
-    //   return [...newListItemArray];
-    // });
-    // // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
-    // // const columnHeaderItemListJSON = JSON.stringify(newListItemArray);
-    // // localStorage.setItem("grid_columns_company", columnHeaderItemListJSON);
-    // // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
-
-    // // --template-columnsも更新
-    // console.log("copyTemplateColumnsWidth", copyTemplateColumnsWidth);
-    // // const newTemplateColumnsWidth = copyTemplateColumnsWidth.map((item, index) => {
-    // //   return index === 0 ? item : newListItemArray[index - 1].columnWidth;
-    // // });
-    // const transferredWidth = copyTemplateColumnsWidth.splice(dragColumnIndex + 1, 1)[0]; // checkbox分で1増やす
-    // copyTemplateColumnsWidth.splice(dropElementColIndex - 1, 0, transferredWidth);
-    // console.log("transferredWidth", transferredWidth);
-    // const newTemplateColumnsWidth = JSON.parse(JSON.stringify(copyTemplateColumnsWidth));
-    // console.log("copyTemplateColumnsWidth, newTemplateColumns", copyTemplateColumnsWidth, newTemplateColumnsWidth);
-
-    // // grid-template-columnsの値となるCSSカスタムプロパティをセット
-    // if (!parentGridScrollContainer.current) return;
-    // parentGridScrollContainer.current.style.setProperty("--template-columns", `${newTemplateColumnsWidth.join(" ")}`);
-    // console.log(
-    //   "更新後--template-columns",
-    //   parentGridScrollContainer.current.style.getPropertyValue("--template-columns")
-    // );
-
-    // // =========== 🌟colsWidthを更新
-    // setColsWidth(newTemplateColumnsWidth);
-
-    // setDragColumnIndex(dropIndex!);
-
-    // ============================================================================
   };
   // ============== 🌟フローズンイベント ドラッグ可能なターゲット上で発生するイベント🌟 ここまで ==============
 
@@ -1685,7 +1697,8 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
   // 🌟現在のisFrozenの数を取得 isFrozenの個数の総数と同じindex+1のアイテムにborder-right: 4pxを付与する
   // const currentIsFrozenCount = columnHeaderItemList.filter(obj => obj.isFrozen === true).length
   console.log("✅ columnHeaderItemList, columnOrder", columnHeaderItemList, columnOrder);
-  console.log("✅ colsWidth", colsWidth);
+  console.log("✅ colsWidth                ", colsWidth);
+  console.log("✅ currentColsWidths.current", currentColsWidths.current);
   console.log("✅ フローズンの個数isFrozenCountRef.current", isFrozenCountRef.current);
   console.log("✅ レフトポジションcolumnLeftPositions.current", columnLeftPositions.current);
 
@@ -1788,9 +1801,14 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
                         // }`}
                         style={
                           key.isFrozen
-                            ? { gridColumnStart: index + 2, left: columnLeftPositions.current[index] }
+                            ? { gridColumnStart: index + 2, left: `var(--frozen-left-${index})` }
                             : { gridColumnStart: index + 2 }
                         }
+                        // style={
+                        //   key.isFrozen
+                        //     ? { gridColumnStart: index + 2, left: columnLeftPositions.current[index] }
+                        //     : { gridColumnStart: index + 2 }
+                        // }
                         // style={
                         //   key.isFrozen
                         //     ? { gridColumnStart: index + 2, left: columnHeaderLeft(index) }
@@ -2018,7 +2036,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
                                       gridColumnStart: columnHeaderItemList[index]
                                         ? columnHeaderItemList[index]?.columnIndex
                                         : index + 2,
-                                      left: columnLeftPositions.current[index],
+                                      left: `var(--frozen-left-${index})`,
                                     }
                                   : {
                                       gridColumnStart: columnHeaderItemList[index]
@@ -2026,6 +2044,20 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
                                         : index + 2,
                                     }
                               }
+                              // style={
+                              //   columnHeaderItemList[index].isFrozen
+                              //     ? {
+                              //         gridColumnStart: columnHeaderItemList[index]
+                              //           ? columnHeaderItemList[index]?.columnIndex
+                              //           : index + 2,
+                              //         left: columnLeftPositions.current[index],
+                              //       }
+                              //     : {
+                              //         gridColumnStart: columnHeaderItemList[index]
+                              //           ? columnHeaderItemList[index]?.columnIndex
+                              //           : index + 2,
+                              //       }
+                              // }
                               // style={
                               //   columnHeaderItemList[index].isFrozen
                               //     ? {
