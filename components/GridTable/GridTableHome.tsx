@@ -30,6 +30,7 @@ type ColumnHeaderItemList = {
   columnIndex: number;
   columnWidth: string;
   isOverflow: boolean;
+  isFrozen: boolean;
 };
 
 type Props = {
@@ -93,6 +94,10 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
   const [selectedCheckBox, setSelectedCheckBox] = useState<number[]>([]);
   // 現在のアイテム取得件数
   const [getItemCount, setGetItemCount] = useState(0);
+  // isFrozenがtrueの個数を取得 初回はidの列をisFrozen: trueでカラム生成するため初期値は1にする
+  const isFrozenCountRef = useRef<number>(1);
+  // それぞれのカラムのLeftの位置を保持 isFrozenがtrueになったときにindexから値を取得してleftに付与 id列の2列目から
+  const columnLeftPositions = useRef<number[]>([]);
 
   // ============================== 🌟カラム編集モーダルで並び替え後🌟 ==============================
   // テーブルカラム編集モーダル
@@ -129,13 +134,13 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       return +col.replace("px", "");
     });
 
-    console.log("🔥ヘッダーカラム生成🌟 新たなnewColsWidthNum", newColsWidthNum);
+    console.log("🔥ヘッダーカラム生成🌟 カラム編集モーダルで並び替え後 新たなnewColsWidthNum", newColsWidthNum);
 
     // それぞれのカラムの合計値を取得 +aで文字列から数値型に変換して合計値を取得
     let sumRowWidth = newColsWidthNum.reduce((a, b) => {
       return a + b;
     });
-    console.log("🔥ヘッダーカラム生成🌟 width合計値 sumRowWidth", sumRowWidth);
+    console.log("🔥ヘッダーカラム生成🌟 カラム編集モーダルで並び替え後 width合計値 sumRowWidth", sumRowWidth);
     // それぞれのCSSカスタムプロパティをセット
     // grid-template-columnsの値となるCSSカスタムプロパティをセット
     if (!parentGridScrollContainer.current) return;
@@ -143,16 +148,44 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
     GridScrollContainer.style.setProperty("--template-columns", `${newColsWidth.join(" ")}`);
     GridScrollContainer.style.setProperty("--row-width", `${sumRowWidth}px`);
 
-    console.log("更新後--template-columns", GridScrollContainer.style.getPropertyValue("--template-columns"));
-    console.log("更新後--row-width", GridScrollContainer.style.getPropertyValue("--row-width"));
-    console.log("🔥ここnewColsWidth", newColsWidth);
+    console.log(
+      "カラム編集モーダルで並び替え後 更新後--template-columns",
+      GridScrollContainer.style.getPropertyValue("--template-columns")
+    );
+    console.log(
+      "カラム編集モーダルで並び替え後 更新後--row-width",
+      GridScrollContainer.style.getPropertyValue("--row-width")
+    );
+    console.log("🔥カラム編集モーダルで並び替え後 ここnewColsWidth", newColsWidth);
     setColsWidth(newColsWidth);
 
     // setColsWidth()
     // 更新したらZustandのカラム編集リストを空にする
     setEditedColumnHeaderItemList([]);
+
+    // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ===============
+    // colsWidth ['65px', '100px', '250px', '250px', '250px', '250px', '250px', '250px']から
+    // accumulatedLeftPosition:  [65, 165, 415, 665, 915, 1165, 1415, 1665]
+    // if (!colsWidth) return;
+    // 現在のcolsWidthをコピー
+    const widthArray = JSON.parse(JSON.stringify(newColsWidth));
+
+    // 各要素の累積和を計算し、新しい配列を作る
+    const accumulatedArray = widthArray.reduce((acc: number[], value: string) => {
+      // parseIntを使って数値部分を抽出する
+      const number = parseInt(value, 10);
+      // 配列の最後の要素（現在の累積和）に数値を加える
+      const newSum = acc.length > 0 ? acc[acc.length - 1] + number : number;
+      // 新しい累積和を配列に追加する
+      acc.push(newSum);
+      return acc;
+    }, []);
+    // [65, 165, 415, 665, 915, 1165, 1415, 1665]
+    // refオブジェクトにレフトポジションを格納
+    columnLeftPositions.current = accumulatedArray;
+    // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ここまで ===============
   }, [editedColumnHeaderItemList]);
-  // ===================================================================
+  // ============================== 🌟カラム編集モーダルで並び替え後🌟 ここまで ==============================
 
   // ================== 🌟疑似的なサーバーデータフェッチ用の関数🌟 ==================
   const fetchServerPage = async (
@@ -193,6 +226,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
     getNextPageParam: (_lastGroup, groups) => groups.length,
     staleTime: Infinity,
   });
+  // ================== 🌟useInfiniteQueryフック🌟 ここまで ==================
 
   // 現在取得している全ての行 data.pagesのネストした配列を一つの配列にフラット化
   const allRows = data ? data.pages.flatMap((d) => d?.rows) : [];
@@ -214,7 +248,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
     } colsWidth: ${colsWidth} columnHeaderItemList`,
     columnHeaderItemList
   );
-  // ============================= 🌟無限スクロールの処理 追加でフェッチ =============================
+  // ============================= 🌟無限スクロールの処理 追加でフェッチ🌟 =============================
   useEffect(() => {
     if (!rowVirtualizer) return console.log("無限スクロール関数 rowVirtualizerインスタンス無し");
     // 現在保持している配列内の最後のアイテムをreverseで先頭にしてから分割代入で取得
@@ -234,6 +268,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
     }
     // ================= lastItem.indexに到達 追加フェッチ ここまで =================
   }, [hasNextPage, fetchNextPage, allRows.length, isFetchingNextPage, rowVirtualizer.getVirtualItems()]);
+  // ======================= 🌟無限スクロールの処理 追加でフェッチ🌟 ここまで =======================
 
   // ============================== 🌟無限スクロールの処理 追加でフェッチ ==============================
   // ========== 🌟useEffect 取得データ総数が変わったタイミングで発火 チェック有無のStateの数を合わせる🌟 ==========
@@ -291,7 +326,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
     if (!data?.pages[0]) return console.log("useEffect実行もまだdata無し リターン");
     console.log("🌟ヘッダーカラム生成 gotData", gotData);
 
-    // ========================= 🔥テスト ローカルストレージ =========================
+    // ========================= 🔥テスト ローカルストレージ ルート =========================
     const localStorageColumnHeaderItemListJSON = localStorage.getItem("grid_columns_company");
     if (localStorageColumnHeaderItemListJSON) {
       console.log("useEffect ローカルストレージルート🔥");
@@ -299,29 +334,55 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       const localStorageColumnHeaderItemList: ColumnHeaderItemList[] = JSON.parse(localStorageColumnHeaderItemListJSON);
       // まずはローカルストレージから取得したColumnHeaderItemListをローカルStateに格納
       setColumnHeaderItemList(localStorageColumnHeaderItemList);
-      console.log("🔥localStorageColumnHeaderItemList", localStorageColumnHeaderItemList);
+      // isFrozenがtrueの個数をRefに格納
+      isFrozenCountRef.current = localStorageColumnHeaderItemList.filter((obj) => obj.isFrozen === true).length;
+      console.log("🔥ローカルストレージルート localStorageColumnHeaderItemList", localStorageColumnHeaderItemList);
       // columnHeaderItemListからcolumnwidthのみを取得
       const newColsWidths = localStorageColumnHeaderItemList.map((item) => item.columnWidth);
-      console.log("tempColsWidth", newColsWidths);
+      console.log("ローカルストレージルート tempColsWidth", newColsWidths);
       // チェックボックスの65pxの文字列をnewColsWidthsの配列の手前に格納
       newColsWidths.unshift("65px");
-      console.log("unshift後のnewColsWidth Stateにカラムwidthを保存", newColsWidths);
+      console.log("ローカルストレージルート unshift後のnewColsWidth Stateにカラムwidthを保存", newColsWidths);
       // 全てのカラムWidthをローカルStateに格納
       setColsWidth(newColsWidths);
       // 全てのカラムWidthをRefオブジェクトに格納
       currentColsWidths.current = newColsWidths;
+
+      // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ===============
+      // colsWidth ['65px', '100px', '250px', '250px', '250px', '250px', '250px', '250px']から
+      // accumulatedLeftPosition:  [65, 165, 415, 665, 915, 1165, 1415, 1665]
+      // if (!colsWidth) return;
+      // 現在のcolsWidthをコピー
+      const widthArray = JSON.parse(JSON.stringify(newColsWidths));
+
+      // 各要素の累積和を計算し、新しい配列を作る
+      const accumulatedArray = widthArray.reduce((acc: number[], value: string) => {
+        // parseIntを使って数値部分を抽出する
+        const number = parseInt(value, 10);
+        // 配列の最後の要素（現在の累積和）に数値を加える
+        const newSum = acc.length > 0 ? acc[acc.length - 1] + number : number;
+        // 新しい累積和を配列に追加する
+        acc.push(newSum);
+        return acc;
+      }, []);
+      // [65, 165, 415, 665, 915, 1165, 1415, 1665]
+      // refオブジェクトにレフトポジションを格納
+      columnLeftPositions.current = accumulatedArray;
+      console.log("ローカルストレージルート レフトポジション accumulatedArray", accumulatedArray);
+      // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ここまで ===============
+
+      // ====================== CSSカスタムプロパティに反映 ======================
       if (parentGridScrollContainer.current === null) return;
-      // =========== CSSカスタムプロパティに反映
       const newColsWidthNum = newColsWidths.map((col) => {
         const newValue = col.replace("px", "");
         return Number(newValue);
       });
-      console.log("🔥ヘッダーカラム生成🌟 newColsWidthNum", newColsWidthNum);
+      console.log("🔥ローカルストレージルート ヘッダーカラム生成🌟 newColsWidthNum", newColsWidthNum);
       // それぞれのカラムの合計値を取得 +aで文字列から数値型に変換して合計値を取得
       let sumRowWidth = newColsWidthNum.reduce((a, b) => {
         return a + b;
       });
-      console.log("🔥ヘッダーカラム生成🌟 sumRowWidth", sumRowWidth);
+      console.log("🔥ローカルストレージルート ヘッダーカラム生成🌟 sumRowWidth", sumRowWidth);
       // それぞれのCSSカスタムプロパティをセット
       // grid-template-columnsの値となるCSSカスタムプロパティをセット
       parentGridScrollContainer.current.style.setProperty("--template-columns", `${newColsWidths.join(" ")}`);
@@ -332,14 +393,18 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       // parentGridScrollContainer.current.style.setProperty("--summary-row-height", "35px");
 
       console.log(
-        "更新後--template-columns",
+        "ローカルストレージルート 更新後--template-columns",
         parentGridScrollContainer.current.style.getPropertyValue("--template-columns")
       );
-      console.log("更新後--row-width", parentGridScrollContainer.current.style.getPropertyValue("--row-width"));
+      console.log(
+        "ローカルストレージルート 更新後--row-width",
+        parentGridScrollContainer.current.style.getPropertyValue("--row-width")
+      );
 
       return console.log("useEffectはここでリターン ローカルストレージルート");
     }
-    // ========================= 🔥テスト ローカルストレージ =========================
+    // ========================= 🔥テスト ローカルストレージ ルート ここまで =========================
+    // ========================= 🔥初回ヘッダー生成ルート ルート ここまで =========================
     console.log("useEffect ローカルストレージ無し 初回ヘッダー生成ルート🔥");
 
     // マウント時に各フィールド分のカラムを生成 サイズはデフォルト値を65px, 100px, 3列目以降は250pxに設定
@@ -358,9 +423,31 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
     currentColsWidths.current = newColsWidths;
     console.log("currentColsWidths.current", currentColsWidths.current);
 
+    // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ===============
+    // colsWidth ['65px', '100px', '250px', '250px', '250px', '250px', '250px', '250px']から
+    // accumulatedLeftPosition:  [65, 165, 415, 665, 915, 1165, 1415, 1665]
+    // if (!colsWidth) return;
+    // 現在のcolsWidthをコピー
+    const widthArray = JSON.parse(JSON.stringify(newColsWidths));
+
+    // 各要素の累積和を計算し、新しい配列を作る
+    const accumulatedArray = widthArray.reduce((acc: number[], value: string) => {
+      // parseIntを使って数値部分を抽出する
+      const number = parseInt(value, 10);
+      // 配列の最後の要素（現在の累積和）に数値を加える
+      const newSum = acc.length > 0 ? acc[acc.length - 1] + number : number;
+      // 新しい累積和を配列に追加する
+      acc.push(newSum);
+      return acc;
+    }, []);
+    // [65, 165, 415, 665, 915, 1165, 1415, 1665]
+    // refオブジェクトにレフトポジションを格納
+    columnLeftPositions.current = accumulatedArray;
+    // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ここまで ===============
+
     if (parentGridScrollContainer.current === null) return;
 
-    // ===========　CSSカスタムプロパティに反映
+    // ====================== CSSカスタムプロパティに反映 ======================
     // newColsWidthの各値のpxの文字を削除
     // ['65px', '100px', '250px', '250px', '250px', '250px']から
     // ['65', '100', '250', '250', '250', '250']へ置換
@@ -368,13 +455,13 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       return col.replace("px", "");
     });
 
-    console.log("🔥ヘッダーカラム生成🌟 newColsWidthNum", newColsWidthNum);
+    console.log("🔥初回ヘッダー生成 ヘッダーカラム生成🌟 newColsWidthNum", newColsWidthNum);
 
     // それぞれのカラムの合計値を取得 +aで文字列から数値型に変換して合計値を取得
     let sumRowWidth = newColsWidthNum.reduce((a, b) => {
       return +a + +b;
     });
-    console.log("🔥ヘッダーカラム生成🌟 sumRowWidth", sumRowWidth);
+    console.log("🔥初回ヘッダー生成 ヘッダーカラム生成🌟 sumRowWidth", sumRowWidth);
 
     // それぞれのCSSカスタムプロパティをセット
     // grid-template-columnsの値となるCSSカスタムプロパティをセット
@@ -386,24 +473,44 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
     // parentGridScrollContainer.current.style.setProperty("--summary-row-height", "35px");
 
     console.log(
-      "更新後--template-columns",
+      "初回ヘッダー生成 更新後--template-columns",
       parentGridScrollContainer.current.style.getPropertyValue("--template-columns")
     );
-    console.log("更新後--row-width", parentGridScrollContainer.current.style.getPropertyValue("--row-width"));
+    console.log(
+      "初回ヘッダー生成 更新後--row-width",
+      parentGridScrollContainer.current.style.getPropertyValue("--row-width")
+    );
 
-    // =========== カラム順番入れ替え用の列アイテムリストに格納
+    // ====================== カラム順番入れ替え用の列アイテムリストに格納 ======================
     // colsWidthsの最初2つはcheckboxとidの列なので、最初から3つ目で入れ替え
     const tempFirstColumnItemListArray = Object.keys(data?.pages[0].rows[0] as object);
-    const firstColumnItemListArray = tempFirstColumnItemListArray.map((item, index) => ({
-      columnId: index,
-      columnName: item,
-      columnIndex: index + 2,
-      columnWidth: newColsWidths[index + 1],
-      isOverflow: false,
-    }));
-    console.log(`初期カラム配列`, tempFirstColumnItemListArray);
-    console.log(`整形後カラム配列`, firstColumnItemListArray);
+    const firstColumnItemListArray = tempFirstColumnItemListArray.map((item, index) => {
+      // 初回カラム生成は最初の列（現在はid列）はisFrozenとisLastDrozenをtrueにする
+      if (index === 0) {
+        return {
+          columnId: index,
+          columnName: item,
+          columnIndex: index + 2,
+          columnWidth: newColsWidths[index + 1],
+          isOverflow: false,
+          isFrozen: true,
+        };
+      }
+      // 0列目以外はisFrozenとisLastFrozenはfalseにする
+      return {
+        columnId: index,
+        columnName: item,
+        columnIndex: index + 2,
+        columnWidth: newColsWidths[index + 1],
+        isOverflow: false,
+        isFrozen: false,
+      };
+    });
+    console.log(`初回ヘッダー生成 初期カラム配列`, tempFirstColumnItemListArray);
+    console.log(`初回ヘッダー生成 整形後カラム配列`, firstColumnItemListArray);
     setColumnHeaderItemList(firstColumnItemListArray);
+    // isFrozenがtrueの個数をRefに格納
+    isFrozenCountRef.current = firstColumnItemListArray.filter((obj) => obj.isFrozen === true).length;
 
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
     const columnHeaderItemListJSON = JSON.stringify(firstColumnItemListArray);
@@ -460,6 +567,29 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       console.log("🌟🔥 newColumnHeaderItemList", newColumnHeaderItemList);
       setColumnHeaderItemList(newColumnHeaderItemList);
       // ================ columnHeaderItemListも合わせてサイズを更新 テスト ================
+
+      // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ===============
+      // colsWidth ['65px', '100px', '250px', '250px', '250px', '250px', '250px', '250px']から
+      // accumulatedLeftPosition:  [65, 165, 415, 665, 915, 1165, 1415, 1665]
+      // if (!colsWidth) return;
+      // 現在のcolsWidthをコピー
+      const widthArray = JSON.parse(JSON.stringify(currentColsWidths.current));
+
+      // 各要素の累積和を計算し、新しい配列を作る
+      const accumulatedArray = widthArray.reduce((acc: number[], value: string) => {
+        // parseIntを使って数値部分を抽出する
+        const number = parseInt(value, 10);
+        // 配列の最後の要素（現在の累積和）に数値を加える
+        const newSum = acc.length > 0 ? acc[acc.length - 1] + number : number;
+        // 新しい累積和を配列に追加する
+        acc.push(newSum);
+        return acc;
+      }, []);
+      // [65, 165, 415, 665, 915, 1165, 1415, 1665]
+      // refオブジェクトにレフトポジションを格納
+      columnLeftPositions.current = accumulatedArray;
+      console.log("列サイズ変更 レフトポジション accumulatedArray", accumulatedArray);
+      // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ここまで ===============
 
       // 🌟3点リーダーがtrueになったらカラムホバー時にツールチップを表示
       const targetText = columnHeaderInnerTextRef.current[index] as HTMLDivElement;
@@ -544,22 +674,50 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
     window.addEventListener("mouseup", handleMouseUp);
     window.addEventListener("mousemove", handleMouseMove);
   };
-  // ============================== 🌟マウスイベント 列サイズ変更 ここまで ==============================
+  // ============================== 🌟マウスイベント 列サイズ変更🌟 ここまで ==============================
 
   // ========= 🌟１行目と２行目のインラインスタイルのleftに渡す用の関数 =========
   const columnHeaderLeft = (index: number) => {
+    // indexが0のid列は65pxでreturn
+    if (index === 0) return 65;
+
+    // isFrozenがtrueなら
+    if (columnHeaderItemList[index].isFrozen) {
+    }
+    // console.log("レフト計算関数 widthArray", widthArray);
+    // // コピーした配列から現在isFrozenがtrueのwidthを先頭から個数分取得
+    // const isFrozenCountWidthArray = widthArray.slice(0, isFrozenCountRef.current);
+    // console.log("レフト計算関数 isFrozenCountWidthArray", isFrozenCountWidthArray);
+    // // 各要素を数値に変換し、それらの合計を計算して取得
+    // const TotalWidth = isFrozenCountWidthArray.reduce((sum: number, value: string) => {
+    //   // parseIntを使って数値部分のみを10進法の形で抽出して取得する
+    //   const number = parseInt(value, 10);
+    //   return sum + number;
+    // }, 0);
+
     switch (index) {
       case 0:
-        return 0;
-        break;
+        return 65;
       case 1:
         return 65;
       default:
+        // if ()
         null;
         break;
     }
+    // switch (index) {
+    //   case 0:
+    //     return 0;
+    //     break;
+    //   case 1:
+    //     return 65;
+    //   default:
+    //     // if ()
+    //     null;
+    //     break;
+    // }
   };
-  // ========= 🌟１行目と２行目のインラインスタイルのleftに渡す用の関数 ここまで =========
+  // ========= 🌟１行目と２行目のインラインスタイルのleftに渡す用の関数🌟 ここまで =========
 
   // ========= 🌟各Grid行トラックのtopからの位置を返す関数 インラインスタイル内で実行 =========
   const gridRowTrackTopPosition = (index: number) => {
@@ -1201,6 +1359,28 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
     const columnHeaderItemListJSON = JSON.stringify(columnHeaderItemList);
     localStorage.setItem("grid_columns_company", columnHeaderItemListJSON);
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
+    // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ===============
+    // colsWidth ['65px', '100px', '250px', '250px', '250px', '250px', '250px', '250px']から
+    // accumulatedLeftPosition:  [65, 165, 415, 665, 915, 1165, 1415, 1665]
+    if (!colsWidth) return;
+    // 現在のcolsWidthをコピー
+    const widthArray = JSON.parse(JSON.stringify(colsWidth));
+
+    // 各要素の累積和を計算し、新しい配列を作る
+    const accumulatedArray = widthArray.reduce((acc: number[], value: string) => {
+      // parseIntを使って数値部分を抽出する
+      const number = parseInt(value, 10);
+      // 配列の最後の要素（現在の累積和）に数値を加える
+      const newSum = acc.length > 0 ? acc[acc.length - 1] + number : number;
+      // 新しい累積和を配列に追加する
+      acc.push(newSum);
+      return acc;
+    }, []);
+    // [65, 165, 415, 665, 915, 1165, 1415, 1665]
+    // refオブジェクトにレフトポジションを格納
+    columnLeftPositions.current = accumulatedArray;
+    console.log("カラム入れ替えonDragEndイベント レフトポジション accumulatedArray", accumulatedArray);
+    // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ここまで ===============
     // 順番入れ替え中はリサイズオーバーレイのpointer-eventsはnoneにする
     draggableOverlaysRef.current.forEach((div) => {
       div?.classList.remove(`pointer-events-none`);
@@ -1249,8 +1429,12 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
 
   // 🌟現在のカラム順、.map((obj) => Object.values(row)[obj.columnId])で展開してGridセルを表示する
   const columnOrder = [...columnHeaderItemList].map((item, index) => ({ columnId: item.columnId })); // columnIdのみの配列を取得
-  console.log("✅columnHeaderItemList, columnOrder", columnHeaderItemList, columnOrder);
-  console.log("✅colsWidth", colsWidth);
+  // 🌟現在のisFrozenの数を取得 isFrozenの個数の総数と同じindex+1のアイテムにborder-right: 4pxを付与する
+  // const currentIsFrozenCount = columnHeaderItemList.filter(obj => obj.isFrozen === true).length
+  console.log("✅ columnHeaderItemList, columnOrder", columnHeaderItemList, columnOrder);
+  console.log("✅ colsWidth", colsWidth);
+  console.log("✅ フローズンの個数isFrozenCountRef.current", isFrozenCountRef.current);
+  console.log("✅ レフトポジションcolumnLeftPositions.current", columnLeftPositions.current);
 
   // 🌟カラム3点リーダー表示中はホバー時にツールチップを有効化
   // console.log("✅isOverflowColumnHeader", isOverflowColumnHeader);
@@ -1299,7 +1483,8 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
                 aria-selected={false}
                 tabIndex={-1}
                 className={`${styles.grid_column_header_all} ${styles.grid_column_frozen} ${styles.grid_column_header_checkbox_column}`}
-                style={{ gridColumnStart: 1, left: columnHeaderLeft(0), position: "sticky" }}
+                // style={{ gridColumnStart: 1, left: columnHeaderLeft(0), position: "sticky" }}
+                style={{ gridColumnStart: 1, left: "0px", position: "sticky" }}
                 onClick={(e) => handleClickGridCell(e)}
               >
                 <div className={styles.grid_select_cell_header}>
@@ -1337,15 +1522,18 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
                         // aria-colindex={index + 2}
                         aria-selected={false}
                         tabIndex={-1}
-                        className={`${styles.grid_column_header_all} ${index === 0 && styles.grid_column_frozen} ${
-                          index === 0 && styles.grid_cell_frozen_last
-                        } ${styles.grid_cell_resizable} dropzone cursor-grab 
-                        ${
+                        className={`${styles.grid_column_header_all} ${key.isFrozen ? styles.grid_column_frozen : ""} ${
+                          isFrozenCountRef.current === index + 1 ? styles.grid_cell_frozen_last : ""
+                        } ${styles.grid_cell_resizable} dropzone cursor-grab ${
                           key.isOverflow ? `${styles.is_overflow}` : ""
-                          // isOverflowColumnHeader.includes(key.columnId.toString()) ? `${styles.is_overflow}` : ""
-                        }
-                        `}
-                        style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
+                        }`}
+                        // className={`${styles.grid_column_header_all} ${index === 0 && styles.grid_column_frozen} ${
+                        //   index === 0 && styles.grid_cell_frozen_last
+                        // } ${styles.grid_cell_resizable} dropzone cursor-grab ${
+                        //   key.isOverflow ? `${styles.is_overflow}` : ""
+                        // }`}
+                        style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index) }}
+                        // style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
                         onClick={(e) => handleClickGridCell(e)}
                         onDoubleClick={(e) => {
                           handleFrozen(e, index);
@@ -1512,7 +1700,8 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
                       aria-readonly={true}
                       tabIndex={-1}
                       className={`${styles.grid_cell} ${styles.grid_column_frozen}`}
-                      style={{ gridColumnStart: 1, left: columnHeaderLeft(0) }}
+                      // style={{ gridColumnStart: 1, left: columnHeaderLeft(0) }}
+                      style={{ gridColumnStart: 1, left: "0px" }}
                       onClick={(e) => handleClickGridCell(e)}
                     >
                       <div className={styles.grid_select_cell_header}>
@@ -1561,8 +1750,14 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
                                 gridColumnStart: columnHeaderItemList[index]
                                   ? columnHeaderItemList[index]?.columnIndex
                                   : index + 2,
-                                left: columnHeaderLeft(index + 1),
+                                left: columnHeaderLeft(index),
                               }}
+                              // style={{
+                              //   gridColumnStart: columnHeaderItemList[index]
+                              //     ? columnHeaderItemList[index]?.columnIndex
+                              //     : index + 2,
+                              //   left: columnHeaderLeft(index + 1),
+                              // }}
                               onClick={handleClickGridCell}
                               onDoubleClick={(e) => handleDoubleClick(e, index)}
                               // onClick={handleSingleOrDoubleClick}
@@ -1591,8 +1786,14 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
                               gridColumnStart: columnHeaderItemList[index]
                                 ? columnHeaderItemList[index]?.columnIndex
                                 : index + 2,
-                              left: columnHeaderLeft(index + 1),
+                              left: columnHeaderLeft(index),
                             }}
+                            // style={{
+                            //   gridColumnStart: columnHeaderItemList[index]
+                            //     ? columnHeaderItemList[index]?.columnIndex
+                            //     : index + 2,
+                            //   left: columnHeaderLeft(index + 1),
+                            // }}
                             onClick={handleClickGridCell}
                             onDoubleClick={(e) => handleDoubleClick(e, index)}
                             // onClick={handleSingleOrDoubleClick}

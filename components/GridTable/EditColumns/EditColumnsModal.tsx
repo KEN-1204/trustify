@@ -16,6 +16,7 @@ type ColumnHeaderItemList = {
   columnIndex: number;
   columnWidth: string;
   isOverflow: boolean;
+  isFrozen: boolean;
 };
 
 type Props = {

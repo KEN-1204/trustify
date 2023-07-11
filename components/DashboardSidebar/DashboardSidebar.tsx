@@ -622,7 +622,7 @@ export const DashboardSidebarMemo: FC = () => {
                     <BsChevronDown
                       className={`transition-base03 pointer-events-none stroke-[0.5] text-[24px] text-[var(--color-text)] hover:stroke-[var(--color-text-brand-f)] ${
                         isOpenSideBarPickBox ? "rotate-0" : "-rotate-180"
-                      }`}
+                      } `}
                     />
                   </div>
                 )}

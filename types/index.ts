@@ -41,6 +41,7 @@ export type ColumnHeaderItemList = {
   columnIndex: number;
   columnWidth: string;
   isOverflow: boolean;
+  isFrozen: boolean;
 };
 
 // =================== サイドバーセクション開閉状態 ===================
