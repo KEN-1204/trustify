@@ -139,7 +139,8 @@
   --color-table-footer: #fff;
   --color-table-bg-loading: #fff;
   /* リフレクション ブルー */
-  --color-table-reflection: #d9eafb;
+  --color-table-reflection: #0d99ff70;
+  /* --color-table-reflection: #d9eafb; */
   --color-table-loading-spinner: #0d99ffd0;
   /* --color-table-row-hover: #ecf4fca0; */
   /* --color-table-row-hover: rgba(55, 53, 47, 0.08); */
@@ -213,6 +214,9 @@
   --color-edit-item-bg: #fff;
   --color-edit-item-border: 0 0 0 1px #ccc;
   --color-edit-border: inset 0px 0px 0px 1px #999, 0px 0px 0px 1px #00000030;
+  --color-edit-frozen-bg: #eeeeee70;
+  --color-edit-frozen-text: #c0c0c0;
+  --color-edit-border-frozen: 0 0 0 1px #cfcfcf;
   /* --color-edit-add: #abffa2; */
   --color-edit-add: #7fff70;
   --color-edit-add-hover: #7fff7090;
@@ -446,6 +450,10 @@
   --color-edit-item-bg: #252525;
   --color-edit-item-border: 0 0 0 1px #ccc;
   --color-edit-border: inset 0px 0px 0px 1px #ffffffe0, 0px 0px 0px 1px #000;
+  --color-edit-frozen-bg: #444444e0;
+  --color-edit-frozen-text: #999;
+  --color-edit-border-frozen: inset 0px 0px 0px 1px #777777e0, 0px 0px 0px 1px #333;
+  /* --color-edit-border-frozen: 0 0 0 1px #555; */
   /* --color-edit-add: #abffa2; */
   --color-edit-add: #7fff70;
   --color-edit-add-hover: #7fff7090;

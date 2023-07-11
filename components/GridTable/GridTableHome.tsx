@@ -831,9 +831,10 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
   }, []);
 
   // セルダブルクリック
-  const handleDoubleClick = useCallback((e: React.MouseEvent<HTMLDivElement>, index: number) => {
-    console.log("index", index);
-    if (index === 0) return console.log("リターン");
+  const handleDoubleClick = useCallback((e: React.MouseEvent<HTMLDivElement>, index: number, columnName: string) => {
+    console.log("ダブルクリック index", index);
+    if (columnName === "id") return console.log("ダブルクリック idのためリターン");
+    // if (index === 0) return console.log("リターン");
     if (setTimeoutRef.current) {
       clearTimeout(setTimeoutRef.current);
 
@@ -2079,7 +2080,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
                               //   left: columnHeaderLeft(index + 1),
                               // }}
                               onClick={handleClickGridCell}
-                              onDoubleClick={(e) => handleDoubleClick(e, index)}
+                              onDoubleClick={(e) => handleDoubleClick(e, index, columnHeaderItemList[index].columnName)}
                               // onClick={handleSingleOrDoubleClick}
                             >
                               {value}
@@ -2137,7 +2138,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
                             //   left: columnHeaderLeft(index + 1),
                             // }}
                             onClick={handleClickGridCell}
-                            onDoubleClick={(e) => handleDoubleClick(e, index)}
+                            onDoubleClick={(e) => handleDoubleClick(e, index, columnHeaderItemList[index].columnName)}
                             // onClick={handleSingleOrDoubleClick}
                           >
                             {value}

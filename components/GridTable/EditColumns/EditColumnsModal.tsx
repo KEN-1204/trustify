@@ -545,8 +545,9 @@ const EditColumnsModalMemo: FC<Props> = ({ columnHeaderItemList }) => {
                   key={`right-${item.columnId}`}
                   className={`${styles.item} ${item.columnId} ${index === dragIndexRight ? `${styles.dragging}` : ""} ${
                     styles.item_right
-                  }`}
-                  draggable={true}
+                  } ${item.isFrozen ? `${styles.frozen}` : ``}`}
+                  //   draggable={true}
+                  draggable={item.isFrozen === false}
                   onDragStart={() => handleDragStartRight(index)}
                   onDragEnter={() => handleDragEnterRight(index)}
                   onDragOver={(e) => {
@@ -558,6 +559,7 @@ const EditColumnsModalMemo: FC<Props> = ({ columnHeaderItemList }) => {
                   <div className={styles.details}>
                     {/* <Image src={item.img} alt="" /> */}
                     <span className="truncate">{item.columnName}</span>
+                    {/* {item.isFrozen && <span className="absolute -right-3">固定されています</span>} */}
                   </div>
                   <MdOutlineDragIndicator className="fill-[var(--color-text)]" />
                 </li>

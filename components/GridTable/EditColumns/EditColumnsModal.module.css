@@ -220,3 +220,15 @@
 .arrow_left_reset_active:hover {
   background-color: var(--color-bg-brand-f-hover);
 }
+
+.sortable_list .frozen {
+  background-color: var(--color-edit-frozen-bg);
+  color: var(--color-edit-frozen-text);
+  box-shadow: var(--color-edit-border-frozen);
+  cursor: default;
+  pointer-events: none;
+}
+.sortable_list .frozen svg {
+  fill: var(--color-edit-frozen-text);
+  cursor: default;
+}
