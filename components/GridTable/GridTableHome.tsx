@@ -263,7 +263,9 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
     // 最後のアイテムindexが総数-1を超え、まだフェッチできるページがあり、フェッチ中でないなら
     if (lastItem.index >= allRows.length - 1 && hasNextPage && !isFetchingNextPage) {
       // queryFnで設定した関数 limitは10で10個ずつフェッチで設定
-      console.log(`🔥追加フェッチ 現在の状態 lastItem.index:${lastItem.index} allRows.length:${allRows.length}`);
+      console.log(
+        `無限スクロール追加フェッチ実行 現在の状態 lastItem.index:${lastItem.index} allRows.length:${allRows.length}`
+      );
       fetchNextPage(); // 追加でフェッチ
     }
     // ================= lastItem.indexに到達 追加フェッチ ここまで =================
@@ -274,11 +276,11 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
   // ========== 🌟useEffect 取得データ総数が変わったタイミングで発火 チェック有無のStateの数を合わせる🌟 ==========
   useEffect(() => {
     // =========== チェック有無Stateの数を新たに取得したデータ数と一緒にする
-    console.log("🔥総数変化を検知");
+    console.log("🔥総数変化を検知 追加フェッチしたdata分 チェック有無Stateを追加 ====================");
     if (!data) return console.log("data undefined or nullリターン", data);
     const newDataArray = data?.pages.flatMap((d) => d.rows);
-    console.log(`🔥lastIndexに到達 DBに追加フェッチ実行 newDataArray ${newDataArray.length}`, newDataArray);
-    console.log(`🔥lastIndexに到達 DBに追加フェッチ実行 checkedRows ${Object.keys(checkedRows).length}`, checkedRows);
+    console.log(`lastIndexに到達しDBに追加フェッチ結果 newDataArray ${newDataArray.length}`, newDataArray);
+    console.log(`lastIndexに到達しDBに追加フェッチ結果 checkedRows ${Object.keys(checkedRows).length}`, checkedRows);
     // DBから取得した配列をオブジェクトに変換 {id: boolean}にallRowsを変換
     const allRowsBooleanObject = newDataArray.reduce((obj: { [key: number]: boolean }, item) => {
       // obj[item.id.toString()] = false;
@@ -286,12 +288,12 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       return obj;
     }, {});
     console.log(
-      `🔥配列をidとbooleanオブジェクトに変換 allRowsBooleanObject ${Object.keys(allRowsBooleanObject).length}`,
+      `配列をidとbooleanオブジェクトに変換 allRowsBooleanObject ${Object.keys(allRowsBooleanObject).length}`,
       allRowsBooleanObject
     );
     // 配列同士を結合
     const newObject = { ...allRowsBooleanObject, ...checkedRows };
-    console.log(`🔥結合して既存チェックState数を総アイテム数と合わせる ${Object.keys(newObject).length}`, newObject);
+    console.log(`結合して既存チェックState数を総アイテム数と合わせる ${Object.keys(newObject).length}`, newObject);
     setCheckedRows(newObject);
 
     // 現在の取得件数をStateに格納
@@ -324,7 +326,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
   // 変更があった場合には再度カラム列の数とサイズを現在取得しているデータでリセット
   useEffect(() => {
     if (!data?.pages[0]) return console.log("useEffect実行もまだdata無し リターン");
-    console.log("🌟ヘッダーカラム生成 gotData", gotData);
+    console.log("🌟ヘッダーカラム生成 gotData ===========================", gotData);
 
     // ========================= 🔥テスト ローカルストレージ ルート =========================
     const localStorageColumnHeaderItemListJSON = localStorage.getItem("grid_columns_company");
@@ -336,7 +338,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       setColumnHeaderItemList(localStorageColumnHeaderItemList);
       // isFrozenがtrueの個数をRefに格納
       isFrozenCountRef.current = localStorageColumnHeaderItemList.filter((obj) => obj.isFrozen === true).length;
-      console.log("🔥ローカルストレージルート localStorageColumnHeaderItemList", localStorageColumnHeaderItemList);
+      console.log("ローカルストレージルート localStorageColumnHeaderItemList", localStorageColumnHeaderItemList);
       // columnHeaderItemListからcolumnwidthのみを取得
       const newColsWidths = localStorageColumnHeaderItemList.map((item) => item.columnWidth);
       console.log("ローカルストレージルート tempColsWidth", newColsWidths);
@@ -377,12 +379,12 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
         const newValue = col.replace("px", "");
         return Number(newValue);
       });
-      console.log("🔥ローカルストレージルート ヘッダーカラム生成🌟 newColsWidthNum", newColsWidthNum);
+      console.log("ローカルストレージルート ヘッダーカラム生成 newColsWidthNum", newColsWidthNum);
       // それぞれのカラムの合計値を取得 +aで文字列から数値型に変換して合計値を取得
       let sumRowWidth = newColsWidthNum.reduce((a, b) => {
         return a + b;
       });
-      console.log("🔥ローカルストレージルート ヘッダーカラム生成🌟 sumRowWidth", sumRowWidth);
+      console.log("ローカルストレージルート ヘッダーカラム生成 sumRowWidth", sumRowWidth);
       // それぞれのCSSカスタムプロパティをセット
       // grid-template-columnsの値となるCSSカスタムプロパティをセット
       parentGridScrollContainer.current.style.setProperty("--template-columns", `${newColsWidths.join(" ")}`);
@@ -455,13 +457,13 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       return col.replace("px", "");
     });
 
-    console.log("🔥初回ヘッダー生成 ヘッダーカラム生成🌟 newColsWidthNum", newColsWidthNum);
+    console.log("初回ヘッダー生成 ヘッダーカラム生成 newColsWidthNum", newColsWidthNum);
 
     // それぞれのカラムの合計値を取得 +aで文字列から数値型に変換して合計値を取得
     let sumRowWidth = newColsWidthNum.reduce((a, b) => {
       return +a + +b;
     });
-    console.log("🔥初回ヘッダー生成 ヘッダーカラム生成🌟 sumRowWidth", sumRowWidth);
+    console.log("初回ヘッダー生成 ヘッダーカラム生成 sumRowWidth", sumRowWidth);
 
     // それぞれのCSSカスタムプロパティをセット
     // grid-template-columnsの値となるCSSカスタムプロパティをセット
@@ -594,7 +596,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       // 🌟3点リーダーがtrueになったらカラムホバー時にツールチップを表示
       const targetText = columnHeaderInnerTextRef.current[index] as HTMLDivElement;
       console.log(
-        "🔥",
+        "列サイズ変更 3点リーダーがtrueになったらカラムホバー時にツールチップを表示 カラムヘッダーインナーテキスト",
         columnHeaderInnerTextRef.current[index]?.scrollWidth,
         columnHeaderInnerTextRef.current[index]?.clientWidth,
         targetText.scrollWidth > targetText.clientWidth,
@@ -676,14 +678,17 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
   };
   // ============================== 🌟マウスイベント 列サイズ変更🌟 ここまで ==============================
 
-  // ========= 🌟１行目と２行目のインラインスタイルのleftに渡す用の関数 =========
+  // ====================== 🌟１行目と２行目のインラインスタイルのleftに渡す用の関数 ======================
   const columnHeaderLeft = (index: number) => {
     // indexが0のid列は65pxでreturn
-    if (index === 0) return 65;
-
+    // if (index === 0) return 65;
+    // console.log("✅ フローズンの個数isFrozenCountRef.current", isFrozenCountRef.current);
+    // console.log("✅ レフトポジションcolumnLeftPositions.current", columnLeftPositions.current);
     // isFrozenがtrueなら
     if (columnHeaderItemList[index].isFrozen) {
+      return columnLeftPositions.current[index];
     }
+
     // console.log("レフト計算関数 widthArray", widthArray);
     // // コピーした配列から現在isFrozenがtrueのwidthを先頭から個数分取得
     // const isFrozenCountWidthArray = widthArray.slice(0, isFrozenCountRef.current);
@@ -695,16 +700,16 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
     //   return sum + number;
     // }, 0);
 
-    switch (index) {
-      case 0:
-        return 65;
-      case 1:
-        return 65;
-      default:
-        // if ()
-        null;
-        break;
-    }
+    // switch (index) {
+    //   case 0:
+    //     return 65;
+    //   case 1:
+    //     return 65;
+    //   default:
+    //     // if ()
+    //     null;
+    //     break;
+    // }
     // switch (index) {
     //   case 0:
     //     return 0;
@@ -1391,12 +1396,260 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
     setDragColumnIndex(null);
   };
   // ============== ✅onDragEndイベント ドラッグ可能なターゲット上で発生するイベント✅ ここまで ==============
+  // ================================== 🌟カラム順番入れ替え🌟 ここまで ==================================
 
   // ============== 🌟フローズンイベント leftとstickyとz-indexを加えて、columnIndexを変更する🌟 ==============
   const handleFrozen = (e: React.MouseEvent<HTMLElement, MouseEvent>, index: number) => {
-    console.log("カラムヘッダー ダブルクリック フローズンイベント");
+    console.log("🌟カラムヘッダー ダブルクリック フローズンイベント ========================");
     console.log(e);
     console.log(index);
+    console.log("✅ フローズンの個数isFrozenCountRef.current", isFrozenCountRef.current);
+    console.log("✅ レフトポジションcolumnLeftPositions.current", columnLeftPositions.current);
+
+    // 🔥フローズンを付与するルート =================================
+    if (columnHeaderItemList[index].isFrozen === false) {
+      console.log("🔥フローズンを付与するルート ============================");
+      // ✅順番を入れ替え処理 一意性を守るため新たなカラムリストを生成
+      const copyColumnHeaderListItems: ColumnHeaderItemList[] = JSON.parse(JSON.stringify(columnHeaderItemList));
+      // クリックされたカラムヘッダーをリストから取り出す 配列内に一つのみ取得されるので、[0]をつけてオブジェクトで取得
+      const targetFrozenColumn = copyColumnHeaderListItems.splice(index, 1)[0]; // 破壊的
+      console.log("フローズンイベント 今回取り出したフローズンをつけるカラム", targetFrozenColumn);
+      // ターゲットカラムのisFrozenプロパティをtrueに変更する
+      targetFrozenColumn.isFrozen = true;
+      // 残りのリストから現在のisFrozenが付いているリストと付いていないリストに分ける
+      const filteredIsFrozenColumnList = copyColumnHeaderListItems.filter((item) => item.isFrozen === true);
+      const filteredNotFrozenColumnList = copyColumnHeaderListItems.filter((item) => item.isFrozen === false);
+      console.log(
+        "フローズンイベント フローズンが付いているカラムリスト filteredIsFrozenColumnList",
+        filteredIsFrozenColumnList
+      );
+      console.log(
+        "フローズンイベント フローズンが付いていないカラムリスト filteredNotFrozenColumnList",
+        filteredNotFrozenColumnList
+      );
+      // 順番入れ替え
+      // フローズンが付いているリストの後に今回フローズンがついたターゲットカラムを配置し、その後に残りのカラムリストを展開する
+      const newColumnHeaderItemList = [
+        ...filteredIsFrozenColumnList,
+        targetFrozenColumn,
+        ...filteredNotFrozenColumnList,
+      ];
+      // 順番入れ替え後のカラムリストのcolumnIndexを現在の順番に揃える
+      newColumnHeaderItemList.forEach((item, index) => (item.columnIndex = index + 2));
+      console.log("フローズンイベント 順番入れ替えとcolumnIndex整形後のカラムリスト", newColumnHeaderItemList);
+      // カラムリストのStateを更新
+      setColumnHeaderItemList(newColumnHeaderItemList);
+
+      // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
+      const columnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
+      localStorage.setItem("grid_columns_company", columnHeaderItemListJSON);
+      // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
+
+      // 現在のフローズンの総個数を更新する filteredIsFrozenColumnListの+1
+      isFrozenCountRef.current = isFrozenCountRef.current + 1;
+      // isFrozenCountRef.current = filteredIsFrozenColumnList.length + 1;
+
+      // ✅--template-columnsも更新する [65px, 100px, 250px,...]の配列を作成してjoinで' 'を付けて結合する
+      const newColumnWidthList = newColumnHeaderItemList.map((item) => item.columnWidth);
+      // カラムWidthListにチェックボックスカラムの65pxを配列に追加する
+      newColumnWidthList.unshift("65px");
+      console.log("チェックボックス65pxを追加したColumnWidthリスト", newColumnWidthList);
+      console.log('ColumnWidthリストのjoin(" ")後', newColumnWidthList.join(" "));
+
+      if (!parentGridScrollContainer.current) return;
+      parentGridScrollContainer.current.style.setProperty("--template-columns", `${newColumnWidthList.join(" ")}`);
+      console.log(
+        "フローズンイベント 更新後--template-columns",
+        parentGridScrollContainer.current.style.getPropertyValue("--template-columns")
+      );
+      // colsWidthのStateを更新
+      setColsWidth(newColumnWidthList);
+
+      // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ===============
+      // colsWidth ['65px', '100px', '250px', '250px', '250px', '250px', '250px', '250px']から
+      // accumulatedLeftPosition:  [65, 165, 415, 665, 915, 1165, 1415, 1665]
+      // if (!colsWidth) return;
+      // 現在のcolsWidthをコピー
+      const widthArray = JSON.parse(JSON.stringify(newColumnWidthList));
+
+      // 各要素の累積和を計算し、新しい配列を作る
+      const accumulatedArray = widthArray.reduce((acc: number[], value: string) => {
+        // parseIntを使って数値部分を抽出する
+        const number = parseInt(value, 10);
+        // 配列の最後の要素（現在の累積和）に数値を加える
+        const newSum = acc.length > 0 ? acc[acc.length - 1] + number : number;
+        // 新しい累積和を配列に追加する
+        acc.push(newSum);
+        return acc;
+      }, []);
+      // [65, 165, 415, 665, 915, 1165, 1415, 1665]
+      // refオブジェクトにレフトポジションを格納
+      columnLeftPositions.current = accumulatedArray;
+      // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ここまで ===============
+    }
+    // 🔥フローズンを外すルート ====================
+    else {
+      console.log("🔥フローズンを外すルート ============================");
+      // ✅順番を入れ替え処理 一意性を守るため新たなカラムリストを生成
+      const copyColumnHeaderListItems: ColumnHeaderItemList[] = JSON.parse(JSON.stringify(columnHeaderItemList));
+      // クリックされたカラムヘッダーをリストから取り出す 配列内に一つのみ取得されるので、[0]をつけてオブジェクトで取得
+      const targetNotFrozenColumn = copyColumnHeaderListItems.splice(index, 1)[0]; // 破壊的
+      console.log("フローズンイベント 今回取り出したフローズンを外すカラム", targetNotFrozenColumn);
+      // ターゲットカラムのisFrozenプロパティをtrueに変更する
+      targetNotFrozenColumn.isFrozen = false;
+      // 残りのリストから現在のisFrozenが付いているリストと付いていないリストに分ける
+      const filteredIsFrozenColumnList = copyColumnHeaderListItems.filter((item) => item.isFrozen === true);
+      const filteredNotFrozenColumnList = copyColumnHeaderListItems.filter((item) => item.isFrozen === false);
+      console.log(
+        "フローズンイベント フローズンが付いているカラムリスト filteredIsFrozenColumnList",
+        filteredIsFrozenColumnList
+      );
+      console.log(
+        "フローズンイベント フローズンが付いていないカラムリスト filteredNotFrozenColumnList",
+        filteredNotFrozenColumnList
+      );
+      // 順番入れ替え
+      // フローズンが付いているリストの後に今回フローズンがついたターゲットカラムを配置し、その後に残りのカラムリストを展開する
+      const newColumnHeaderItemList = [
+        ...filteredIsFrozenColumnList,
+        targetNotFrozenColumn,
+        ...filteredNotFrozenColumnList,
+      ];
+      // 順番入れ替え後のカラムリストのcolumnIndexを現在の順番に揃える
+      newColumnHeaderItemList.forEach((item, index) => (item.columnIndex = index + 2));
+      console.log("フローズンイベント 順番入れ替えとcolumnIndex整形後のカラムリスト", newColumnHeaderItemList);
+      // カラムリストのStateを更新
+      setColumnHeaderItemList(newColumnHeaderItemList);
+
+      // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
+      const columnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
+      localStorage.setItem("grid_columns_company", columnHeaderItemListJSON);
+      // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
+
+      // 現在のフローズンの総個数を更新する filteredIsFrozenColumnListの-1
+      isFrozenCountRef.current = isFrozenCountRef.current - 1;
+      // isFrozenCountRef.current = filteredIsFrozenColumnList.length - 1;
+
+      // ✅--template-columnsも更新する [65px, 100px, 250px,...]の配列を作成してjoinで' 'を付けて結合する
+      const newColumnWidthList = newColumnHeaderItemList.map((item) => item.columnWidth);
+      // カラムWidthListにチェックボックスカラムの65pxを配列に追加する
+      newColumnWidthList.unshift("65px");
+      console.log("チェックボックス65pxを追加したColumnWidthリスト", newColumnWidthList);
+      console.log('ColumnWidthリストのjoin(" ")後', newColumnWidthList.join(" "));
+
+      if (!parentGridScrollContainer.current) return;
+      parentGridScrollContainer.current.style.setProperty("--template-columns", `${newColumnWidthList.join(" ")}`);
+      console.log(
+        "フローズンイベント 更新後--template-columns",
+        parentGridScrollContainer.current.style.getPropertyValue("--template-columns")
+      );
+      // colsWidthのStateを更新
+      setColsWidth(newColumnWidthList);
+
+      // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ===============
+      // colsWidth ['65px', '100px', '250px', '250px', '250px', '250px', '250px', '250px']から
+      // accumulatedLeftPosition:  [65, 165, 415, 665, 915, 1165, 1415, 1665]
+      // if (!colsWidth) return;
+      // 現在のcolsWidthをコピー
+      const widthArray = JSON.parse(JSON.stringify(newColumnWidthList));
+
+      // 各要素の累積和を計算し、新しい配列を作る
+      const accumulatedArray = widthArray.reduce((acc: number[], value: string) => {
+        // parseIntを使って数値部分を抽出する
+        const number = parseInt(value, 10);
+        // 配列の最後の要素（現在の累積和）に数値を加える
+        const newSum = acc.length > 0 ? acc[acc.length - 1] + number : number;
+        // 新しい累積和を配列に追加する
+        acc.push(newSum);
+        return acc;
+      }, []);
+      // [65, 165, 415, 665, 915, 1165, 1415, 1665]
+      // refオブジェクトにレフトポジションを格納
+      columnLeftPositions.current = accumulatedArray;
+      // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ここまで ===============
+    }
+
+    // ============================================================================
+
+    // // 入れ替え前にwidthを更新する CSSカスタムプロパティに反映 grid-template-columnsの場所も入れ替える
+    // const copyTemplateColumnsWidth: string[] = JSON.parse(JSON.stringify(colsWidth));
+    // console.log("🔥copyTemplateColumnsWidth, colsWidth", copyTemplateColumnsWidth, colsWidth);
+    // const columnWidthsOmitCheckbox = copyTemplateColumnsWidth.slice(1); // checkboxを除いたwidthを取得
+
+    // console.log("🔥columnWidthsOmitCheckbox", columnWidthsOmitCheckbox);
+    // const newWidthListItems = copyListItems.map((item, index) => {
+    //   // console.log("item.columnWidth, columnWidthsOmitCheckbox[index]", item.columnWidth, columnWidthsOmitCheckbox[index]);
+    //   console.log(
+    //     "index, id, column名, columnIndex, columnWidth",
+    //     index,
+    //     item.columnId,
+    //     item.columnName,
+    //     item.columnIndex,
+    //     item.columnWidth,
+    //     columnWidthsOmitCheckbox[index]
+    //   );
+    //   return { ...item, columnWidth: columnWidthsOmitCheckbox[index] };
+    // });
+    // // columnIndexを入れ替え
+    // console.log("🌟移動前のカラムリスト width更新後", newWidthListItems);
+    // let prevListItemArray = JSON.parse(JSON.stringify(newWidthListItems));
+    // // // ドラッグ要素をドロップ先の要素のインデックスに変更
+    // // newListItemArray[dragColumnIndex].columnIndex = dropElementColIndex;
+    // // // ドラッグ先のカラムのcolumnIndexをドラッグ元のカラムのインデックスに変更
+    // // newListItemArray[dropIndex!].columnIndex = draggingElementColIndex;
+    // // colIndexの順番を現在の配列のindexの順番に入れ替える
+    // // const deleteElement = newListItemArray.splice(dragColumnIndex, 1)[0];
+    // // newListItemArray.splice(dropIndex!, 0, deleteElement);
+
+    // const transferredItem = prevListItemArray.splice(dragColumnIndex, 1)[0];
+    // console.log("transferredItem, dropElementColIndex", transferredItem, dropElementColIndex);
+    // prevListItemArray.splice(dropElementColIndex - 2, 0, transferredItem); // colindexとindexの差が2あるので-2引いた位置に挿入する
+    // const newListItemArray = prevListItemArray.map((item: ColumnHeaderItemList, index: number) => {
+    //   const newItem = { ...item, columnIndex: index + 2 };
+    //   console.log("🌟ここ", newItem);
+    //   return newItem;
+    // });
+    // // const newListItemArray = JSON.parse(JSON.stringify(prevListItemArray));
+    // // const newListItemArray = [...prevListItemArray];
+    // console.log("移動前のカラムリスト", prevListItemArray);
+    // console.log("移動前のカラムリスト", newListItemArray);
+
+    // // let transferredElement = newListItemArray.splice()
+    // setColumnHeaderItemList((prevArray) => {
+    //   console.log("ここprevArray", prevArray);
+    //   console.log("ここnewListItemArray", newListItemArray);
+    //   return [...newListItemArray];
+    // });
+    // // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
+    // // const columnHeaderItemListJSON = JSON.stringify(newListItemArray);
+    // // localStorage.setItem("grid_columns_company", columnHeaderItemListJSON);
+    // // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
+
+    // // --template-columnsも更新
+    // console.log("copyTemplateColumnsWidth", copyTemplateColumnsWidth);
+    // // const newTemplateColumnsWidth = copyTemplateColumnsWidth.map((item, index) => {
+    // //   return index === 0 ? item : newListItemArray[index - 1].columnWidth;
+    // // });
+    // const transferredWidth = copyTemplateColumnsWidth.splice(dragColumnIndex + 1, 1)[0]; // checkbox分で1増やす
+    // copyTemplateColumnsWidth.splice(dropElementColIndex - 1, 0, transferredWidth);
+    // console.log("transferredWidth", transferredWidth);
+    // const newTemplateColumnsWidth = JSON.parse(JSON.stringify(copyTemplateColumnsWidth));
+    // console.log("copyTemplateColumnsWidth, newTemplateColumns", copyTemplateColumnsWidth, newTemplateColumnsWidth);
+
+    // // grid-template-columnsの値となるCSSカスタムプロパティをセット
+    // if (!parentGridScrollContainer.current) return;
+    // parentGridScrollContainer.current.style.setProperty("--template-columns", `${newTemplateColumnsWidth.join(" ")}`);
+    // console.log(
+    //   "更新後--template-columns",
+    //   parentGridScrollContainer.current.style.getPropertyValue("--template-columns")
+    // );
+
+    // // =========== 🌟colsWidthを更新
+    // setColsWidth(newTemplateColumnsWidth);
+
+    // setDragColumnIndex(dropIndex!);
+
+    // ============================================================================
   };
   // ============== 🌟フローズンイベント ドラッグ可能なターゲット上で発生するイベント🌟 ここまで ==============
 
@@ -1422,7 +1675,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
   };
   // ==================================================================================
 
-  console.log("✅clickedActiveRow", clickedActiveRow);
+  console.log("✅ clickedActiveRow", clickedActiveRow);
   console.log("✅ checkedRows", checkedRows);
   console.log("✅ selectedCheckBox", selectedCheckBox);
   console.log("✅ allRows", allRows);
@@ -1514,7 +1767,8 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
                         key={key.columnId}
                         ref={(ref) => (colsRef.current[index] = ref)}
                         role="columnheader"
-                        draggable={index === 0 ? false : true} // テスト
+                        draggable={!key.isFrozen} // テスト
+                        // draggable={index === 0 ? false : true} // テスト
                         data-column-id={`${key.columnId}`}
                         data-handler-id={`T${key.columnId}${key.columnName}`}
                         data-text={`${key.columnName}`}
@@ -1522,17 +1776,26 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
                         // aria-colindex={index + 2}
                         aria-selected={false}
                         tabIndex={-1}
-                        className={`${styles.grid_column_header_all} ${key.isFrozen ? styles.grid_column_frozen : ""} ${
+                        className={`${styles.grid_column_header_all} ${
+                          key.isFrozen ? `${styles.grid_column_frozen} cursor-default` : "cursor-grab"
+                        } ${isFrozenCountRef.current === 1 && index === 0 ? styles.grid_cell_frozen_last : ""} ${
                           isFrozenCountRef.current === index + 1 ? styles.grid_cell_frozen_last : ""
-                        } ${styles.grid_cell_resizable} dropzone cursor-grab ${
-                          key.isOverflow ? `${styles.is_overflow}` : ""
-                        }`}
+                        } ${styles.grid_cell_resizable} dropzone ${key.isOverflow ? `${styles.is_overflow}` : ""}`}
                         // className={`${styles.grid_column_header_all} ${index === 0 && styles.grid_column_frozen} ${
                         //   index === 0 && styles.grid_cell_frozen_last
                         // } ${styles.grid_cell_resizable} dropzone cursor-grab ${
                         //   key.isOverflow ? `${styles.is_overflow}` : ""
                         // }`}
-                        style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index) }}
+                        style={
+                          key.isFrozen
+                            ? { gridColumnStart: index + 2, left: columnLeftPositions.current[index] }
+                            : { gridColumnStart: index + 2 }
+                        }
+                        // style={
+                        //   key.isFrozen
+                        //     ? { gridColumnStart: index + 2, left: columnHeaderLeft(index) }
+                        //     : { gridColumnStart: index + 2 }
+                        // }
                         // style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
                         onClick={(e) => handleClickGridCell(e)}
                         onDoubleClick={(e) => {
@@ -1742,16 +2005,41 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
                               aria-selected={false}
                               // variant="contained"
                               tabIndex={-1}
-                              className={`${styles.grid_cell} ${index === 0 ? styles.grid_column_frozen : ""} ${
-                                index === 0 ? styles.grid_cell_frozen_last : ""
-                              } ${styles.grid_cell_resizable}`}
+                              className={`${styles.grid_cell} ${
+                                columnHeaderItemList[index].isFrozen ? styles.grid_column_frozen : ""
+                              } ${isFrozenCountRef.current === 1 && index === 0 ? styles.grid_cell_frozen_last : ""} ${
+                                isFrozenCountRef.current === index + 1 ? styles.grid_cell_frozen_last : ""
+                              }  ${styles.grid_cell_resizable}`}
+                              // className={`${styles.grid_cell} ${index === 0 ? styles.grid_column_frozen : ""}  ${index === 0 ? styles.grid_cell_frozen_last : ""} ${styles.grid_cell_resizable}`}
                               // style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
-                              style={{
-                                gridColumnStart: columnHeaderItemList[index]
-                                  ? columnHeaderItemList[index]?.columnIndex
-                                  : index + 2,
-                                left: columnHeaderLeft(index),
-                              }}
+                              style={
+                                columnHeaderItemList[index].isFrozen
+                                  ? {
+                                      gridColumnStart: columnHeaderItemList[index]
+                                        ? columnHeaderItemList[index]?.columnIndex
+                                        : index + 2,
+                                      left: columnLeftPositions.current[index],
+                                    }
+                                  : {
+                                      gridColumnStart: columnHeaderItemList[index]
+                                        ? columnHeaderItemList[index]?.columnIndex
+                                        : index + 2,
+                                    }
+                              }
+                              // style={
+                              //   columnHeaderItemList[index].isFrozen
+                              //     ? {
+                              //         gridColumnStart: columnHeaderItemList[index]
+                              //           ? columnHeaderItemList[index]?.columnIndex
+                              //           : index + 2,
+                              //         left: columnHeaderLeft(index),
+                              //       }
+                              //     : {
+                              //         gridColumnStart: columnHeaderItemList[index]
+                              //           ? columnHeaderItemList[index]?.columnIndex
+                              //           : index + 2,
+                              //       }
+                              // }
                               // style={{
                               //   gridColumnStart: columnHeaderItemList[index]
                               //     ? columnHeaderItemList[index]?.columnIndex
@@ -1782,12 +2070,34 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
                               index === 0 ? styles.grid_cell_frozen_last : ""
                             } ${styles.grid_cell_resizable}`}
                             // style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
-                            style={{
-                              gridColumnStart: columnHeaderItemList[index]
-                                ? columnHeaderItemList[index]?.columnIndex
-                                : index + 2,
-                              left: columnHeaderLeft(index),
-                            }}
+                            style={
+                              columnHeaderItemList[index].isFrozen
+                                ? {
+                                    gridColumnStart: columnHeaderItemList[index]
+                                      ? columnHeaderItemList[index]?.columnIndex
+                                      : index + 2,
+                                    left: columnLeftPositions.current[index],
+                                  }
+                                : {
+                                    gridColumnStart: columnHeaderItemList[index]
+                                      ? columnHeaderItemList[index]?.columnIndex
+                                      : index + 2,
+                                  }
+                            }
+                            // style={
+                            //   columnHeaderItemList[index].isFrozen
+                            //     ? {
+                            //         gridColumnStart: columnHeaderItemList[index]
+                            //           ? columnHeaderItemList[index]?.columnIndex
+                            //           : index + 2,
+                            //         left: columnHeaderLeft(index),
+                            //       }
+                            //     : {
+                            //         gridColumnStart: columnHeaderItemList[index]
+                            //           ? columnHeaderItemList[index]?.columnIndex
+                            //           : index + 2,
+                            //       }
+                            // }
                             // style={{
                             //   gridColumnStart: columnHeaderItemList[index]
                             //     ? columnHeaderItemList[index]?.columnIndex
