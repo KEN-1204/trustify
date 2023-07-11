@@ -13,6 +13,8 @@ import { TooltipBlur } from "./Parts/Tooltip/TooltipBlur";
 import useDashboardStore from "@/store/useDashboardStore";
 import { EditModal } from "./EditModal/EditModal";
 import { EditColumns } from "./GridTable/EditColumns/EditColumns";
+import useThemeStore from "@/store/useThemeStore";
+import useRootStore from "@/store/useRootStore";
 
 type Prop = {
   title?: string;
@@ -22,8 +24,11 @@ type Prop = {
 // 各ページをラップして、各ページ毎にCSSクラスやタイトル、ヘッダーなどを柔軟に設定する
 // 各ページのJSXの一番外側に配置
 export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
-  const theme = useStore((state) => state.theme);
-  const setTheme = useStore((state) => state.setTheme);
+  const theme = useRootStore(useThemeStore, (state) => state.theme);
+  // const theme = useThemeStore((state) => state.theme);
+  const setTheme = useThemeStore((state) => state.setTheme);
+  // const theme = useStore((state) => state.theme);
+  // const setTheme = useStore((state) => state.setTheme);
   const activeMenuTab = useDashboardStore((state) => state.activeMenuTab);
 
   const router = useRouter();
@@ -31,6 +36,10 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
 
   // テーマカラーチェンジ関数
   const changeTheme = () => {
+    // console.log(`🔥ここ localStorage.getItem("theme-storage")`, localStorage.getItem("theme-storage"));
+    // if (theme === "light") localStorage.setItem("theme", `dark`);
+    // if (theme === "dark") localStorage.setItem("theme", `light`);
+
     if (theme === "light") setTheme("dark");
     if (theme === "dark") setTheme("light");
   };

@@ -14,9 +14,11 @@ import { SpinnerComet } from "../Parts/SpinnerComet/SpinnerComet";
 import { GridTableSmall } from "../GridTable/GridTableSmall/GridTableSmall";
 import { GridTableSmallHalf } from "../GridTable/GridTableSmallHalf/GridTableSmallHalf";
 import { GridTableAll } from "../GridTable/GridTableAll/GridTableAll";
+import useThemeStore from "@/store/useThemeStore";
 
 export const DashboardHomeComponent = () => {
-  const theme = useStore((state) => state.theme);
+  // const theme = useThemeStore((state) => state.theme);
+  // const theme = useStore((state) => state.theme);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   const activeMenuTab = useDashboardStore((state) => state.activeMenuTab);
 

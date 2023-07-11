@@ -1,4 +1,6 @@
 import useStore from "@/store";
+import useRootStore from "@/store/useRootStore";
+import useThemeStore from "@/store/useThemeStore";
 import React, { FC, ReactNode, useEffect } from "react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -16,7 +18,9 @@ type Prop = {
 // モーダル ※モーダルはページのLayoutコンポーネントに配置して、個別の用途毎にモーダルを使用する
 
 export const RootLayout: FC<Prop> = ({ children }) => {
-  const theme = useStore((state) => state.theme);
+  // const theme = useThemeStore((state) => state.theme);
+  const theme = useRootStore(useThemeStore, (state) => state.theme);
+  // const theme = useStore((state) => state.theme);
 
   useEffect(() => {
     if (theme === "light") {

@@ -146,7 +146,9 @@ export const DashboardSidebarMemo: FC = () => {
                   }}
                 >
                   <div className={styles.icon_wrapper}>
-                    <GrHomeRounded className="scale-[0.8] text-[24px] text-[var(--color-text)]" />
+                    <GrHomeRounded
+                      className={`scale-[0.8] text-[24px] text-[var(--color-text)] ${styles.sidebar_icon}`}
+                    />
                   </div>
                   <div
                     className={`${styles.text_wrapper} ${
@@ -176,7 +178,9 @@ export const DashboardSidebarMemo: FC = () => {
                   }}
                 >
                   <div className={styles.icon_wrapper}>
-                    <HiOutlineBuildingOffice2 className="text-[24px] text-[var(--color-text)]" />
+                    <HiOutlineBuildingOffice2
+                      className={`${styles.sidebar_icon} text-[24px] text-[var(--color-text)]`}
+                    />
                   </div>
                   <div
                     className={`${styles.text_wrapper} ${
@@ -208,7 +212,9 @@ export const DashboardSidebarMemo: FC = () => {
                   <div className={styles.icon_wrapper}>
                     {/* <HiOutlineChatBubbleLeftRight className="text-[24px] text-[var(--color-text)]" /> */}
                     {/* <FaUserTie className="scale-[0.9] text-[24px] text-[var(--color-text)]" /> */}
-                    <GrUserManager className="scale-[0.9] text-[24px] text-[var(--color-text)]" />
+                    <GrUserManager
+                      className={`${styles.sidebar_icon} scale-[0.9] text-[24px] text-[var(--color-text)]`}
+                    />
                   </div>
                   <div
                     className={`${styles.text_wrapper} ${
@@ -239,7 +245,9 @@ export const DashboardSidebarMemo: FC = () => {
                 >
                   <div className={styles.icon_wrapper}>
                     {/* <HiOutlineChatBubbleLeftRight className="text-[24px] text-[var(--color-text)]" /> */}
-                    <BsTelephonePlus className="scale-[0.9] text-[24px] text-[var(--color-text)]" />
+                    <BsTelephonePlus
+                      className={`${styles.sidebar_icon} scale-[0.9] text-[24px] text-[var(--color-text)]`}
+                    />
                   </div>
                   <div
                     className={`${styles.text_wrapper} ${
@@ -270,7 +278,9 @@ export const DashboardSidebarMemo: FC = () => {
                 >
                   <div className={styles.icon_wrapper}>
                     {/* <BsTelephonePlus className="scale-[0.9] text-[24px] text-[var(--color-text)]" /> */}
-                    <HiOutlineChatBubbleLeftRight className="scale-[1] text-[24px] text-[var(--color-text)]" />
+                    <HiOutlineChatBubbleLeftRight
+                      className={`${styles.sidebar_icon} scale-[1] text-[24px] text-[var(--color-text)]`}
+                    />
                   </div>
                   <div
                     className={`${styles.text_wrapper} ${
@@ -301,7 +311,9 @@ export const DashboardSidebarMemo: FC = () => {
                 >
                   <div className={styles.icon_wrapper}>
                     {/* <RiCalendar2Fill className="text-[24px] text-[var(--color-text)]" /> */}
-                    <BsCalendarDate className="scale-[0.9] text-[24px] text-[var(--color-text)]" />
+                    <BsCalendarDate
+                      className={`${styles.sidebar_icon} scale-[0.9] text-[24px] text-[var(--color-text)]`}
+                    />
                   </div>
                   <div
                     className={`${styles.text_wrapper} ${
@@ -334,13 +346,17 @@ export const DashboardSidebarMemo: FC = () => {
                     {language === "Ja" && (
                       <>
                         {/* <RiMoneyCnyCircleLine className="scale-[1.05] text-[24px] text-[var(--color-text)]" /> */}
-                        <AiOutlineMoneyCollect className="scale-[1.05] text-[24px] text-[var(--color-text)]" />
+                        <AiOutlineMoneyCollect
+                          className={`${styles.sidebar_icon} scale-[1.05] text-[24px] text-[var(--color-text)]`}
+                        />
                       </>
                     )}
                     {language === "En" && (
                       <>
                         {/* <RiMoneyDollarCircleLine className="scale-[1.05] text-[24px] text-[var(--color-text)]" /> */}
-                        <BiMoneyWithdraw className="scale-[1.05] text-[24px] text-[var(--color-text)]" />
+                        <BiMoneyWithdraw
+                          className={`${styles.sidebar_icon} scale-[1.05] text-[24px] text-[var(--color-text)]`}
+                        />
                       </>
                     )}
                   </div>
@@ -374,7 +390,7 @@ export const DashboardSidebarMemo: FC = () => {
                   <div className={styles.icon_wrapper}>
                     {/* <GrDocumentDownload className="scale-[0.9] text-[24px]" /> */}
                     {/* <GrDocumentText className="scale-[0.9] text-[24px]" /> */}
-                    <GrDocumentVerified className="scale-[0.9] text-[24px]" />
+                    <GrDocumentVerified className={`${styles.sidebar_icon} scale-[0.9] text-[24px]`} />
                   </div>
                   <div
                     className={`${styles.text_wrapper} ${
@@ -404,7 +420,9 @@ export const DashboardSidebarMemo: FC = () => {
                   }}
                 >
                   <div className={styles.icon_wrapper}>
-                    <BsTelephoneInbound className="scale-[0.85] text-[24px] text-[var(--color-text)]" />
+                    <BsTelephoneInbound
+                      className={`${styles.sidebar_icon} scale-[0.85] text-[24px] text-[var(--color-text)]`}
+                    />
                   </div>
                   <div
                     className={`${styles.text_wrapper} ${
@@ -434,7 +452,7 @@ export const DashboardSidebarMemo: FC = () => {
                   }}
                 >
                   <div className={styles.icon_wrapper}>
-                    <FaLink className="scale-[0.85] text-[24px] text-[var(--color-text)]" />
+                    <FaLink className={`${styles.sidebar_icon} scale-[0.85] text-[24px] text-[var(--color-text)]`} />
                   </div>
                   <div
                     className={`${styles.text_wrapper} ${
@@ -464,7 +482,7 @@ export const DashboardSidebarMemo: FC = () => {
                   }}
                 >
                   <div className={styles.icon_wrapper}>
-                    <FaTelegramPlane className="text-[24px] text-[var(--color-text)]" />
+                    <FaTelegramPlane className={`${styles.sidebar_icon} text-[24px] text-[var(--color-text)]`} />
                   </div>
                   <div
                     className={`${styles.text_wrapper} ${
@@ -488,7 +506,7 @@ export const DashboardSidebarMemo: FC = () => {
                   onMouseLeave={handleCloseTooltip}
                 >
                   <div className={`${styles.icon_wrapper}`}>
-                    <MdOutlineLeaderboard className="text-[24px] text-[var(--color-text)]" />
+                    <MdOutlineLeaderboard className={`${styles.sidebar_icon} text-[24px] text-[var(--color-text)]`} />
                   </div>
                   <div
                     className={`${`${styles.text_wrapper} ${
@@ -518,7 +536,9 @@ export const DashboardSidebarMemo: FC = () => {
                   }}
                 >
                   <div className={styles.icon_wrapper}>
-                    <MdOutlineAdminPanelSettings className="text-[24px] text-[var(--color-text)]" />
+                    <MdOutlineAdminPanelSettings
+                      className={`${styles.sidebar_icon} text-[24px] text-[var(--color-text)]`}
+                    />
                   </div>
                   <div
                     className={`${styles.text_wrapper} ${
@@ -550,7 +570,7 @@ export const DashboardSidebarMemo: FC = () => {
                 >
                   <div className={styles.icon_wrapper}>
                     {/* <BsCheckCircle className="text-[24px] text-[var(--color-text)]" /> */}
-                    <BsCheck2Circle className="text-[24px] text-[var(--color-text)]" />
+                    <BsCheck2Circle className={`${styles.sidebar_icon} text-[24px] text-[var(--color-text)]`} />
                   </div>
                   <div
                     className={`${styles.text_wrapper} ${

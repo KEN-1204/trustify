@@ -6,6 +6,8 @@ import Link from "next/link";
 import { toast } from "react-toastify";
 import { LangBtn } from "../Parts/LangBtn/LangBtn";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import useThemeStore from "@/store/useThemeStore";
+import useRootStore from "@/store/useRootStore";
 
 type Props = {
   lightModeColor?: string; // bgカラー(ライトモード)
@@ -29,7 +31,9 @@ export const Header: FC<Props> = ({
   blurDataURLDark = "",
 }) => {
   console.log("Headerコンポーネントレンダリング");
-  const theme = useStore((state) => state.theme);
+  const theme = useRootStore(useThemeStore, (state) => state.theme);
+  // const theme = useThemeStore((state) => state.theme);
+  // const theme = useStore((state) => state.theme);
   const setIsOpenModal = useStore((state) => state.setIsOpenModal);
   const openLangTab = useStore((state) => state.openLangTab);
   const setOpenLangTab = useStore((state) => state.setOpenLangTab);

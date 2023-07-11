@@ -10,11 +10,14 @@ import { BsChevronLeft, BsChevronRight, BsFillGearFill } from "react-icons/bs";
 import Image from "next/image";
 import Link from "next/link";
 import useDashboardStore from "@/store/useDashboardStore";
+import useThemeStore from "@/store/useThemeStore";
+import useRootStore from "@/store/useRootStore";
 
 export const DashboardHeaderMemo: FC = () => {
-  const theme = useStore((state) => state.theme);
+  // const theme = useThemeStore((state) => state.theme);
+  const theme = useRootStore(useThemeStore, (state) => state.theme);
+  // const theme = useStore((state) => state.theme);
   const language = useStore((state) => state.language);
-  const hoveredItemPos = useStore((state) => state.hoveredItemPos);
   const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
   const activeMenuTab = useDashboardStore((state) => state.activeMenuTab);
   const setActiveMenuTab = useDashboardStore((state) => state.setActiveMenuTab);

@@ -15,6 +15,7 @@ type ColumnHeaderItemList = {
   columnName: string;
   columnIndex: number;
   columnWidth: string;
+  isOverflow: boolean;
 };
 
 type Props = {
@@ -28,11 +29,11 @@ const EditColumnsModalMemo: FC<Props> = ({ columnHeaderItemList }) => {
 
   // リセットできるように初期値を別のStateで保持しておく
   const [listItemsRight, setListItemsRight] = useState(columnHeaderItemList);
-  const [resetListItemRight, setResetListItemRight] = useState(columnHeaderItemList);
+  const resetColumnHeaderItemList = useDashboardStore((state) => state.resetColumnHeaderItemList);
   const [listItemsLeft, setListItemsLeft] = useState<Array<ColumnHeaderItemList>>([]);
-  const [resetListItemLeft, setResetListItemLeft] = useState<Array<ColumnHeaderItemList>>([]);
   const [dragIndexLeft, setDragIndexLeft] = useState<number | null>(null);
   const [dragIndexRight, setDragIndexRight] = useState<number | null>(null);
+  // ○件選択中のState
   const [leftCount, setLeftCount] = useState(0);
   const [rightCount, setRightCount] = useState(0);
   const selectedLeftItemsRef = useRef<number[]>([]);
@@ -45,14 +46,13 @@ const EditColumnsModalMemo: FC<Props> = ({ columnHeaderItemList }) => {
   const resetRightRef = useRef<HTMLDivElement | null>(null);
   const modalContainerRef = useRef<HTMLDivElement | null>(null);
   const scrollBottomRef = useRef<HTMLSpanElement | null>(null);
+  console.log("🔥🔥🔥 EditColumnsModalレンダリング", resetColumnHeaderItemList);
   console.log(`listItemsLeft`, listItemsLeft);
-  console.log(`resetListItemLeft`, resetListItemLeft);
   console.log(`listItemsRight`, listItemsRight);
-  console.log(`resetListItemRight`, resetListItemRight);
   console.log(`dragIndexLeft`, dragIndexLeft);
   console.log(`dragIndexRight`, dragIndexRight);
 
-  // ====================== 左側 ======================
+  // ====================== 左側 ドラッグでカラム順番入れ替え ======================
   const handleDragStartLeft = (index: number) => {
     console.log("dragStart🔥", index);
     setDragIndexLeft(index);
@@ -95,7 +95,7 @@ const EditColumnsModalMemo: FC<Props> = ({ columnHeaderItemList }) => {
     console.log("selectedLeftItemsRef.current", selectedLeftItemsRef.current);
   };
 
-  // ====================== 右側 ======================
+  // ====================== 右側 ドラッグでカラム順番入れ替え ======================
   const handleDragStartRight = (index: number) => {
     console.log("dragStart🔥", index);
     setDragIndexRight(index);
@@ -147,6 +147,7 @@ const EditColumnsModalMemo: FC<Props> = ({ columnHeaderItemList }) => {
     // 全ての更新が終わったら、Indexをnullにして初期化
     setDragIndexRight(null);
   };
+  // ============================================================================================
 
   // ============================== 左側のカラムをクリックでアクティブ化 ==============================
   const handleClickActiveLeft = (e: React.MouseEvent<HTMLElement, MouseEvent>, id: number) => {
@@ -171,13 +172,18 @@ const EditColumnsModalMemo: FC<Props> = ({ columnHeaderItemList }) => {
       setLeftCount(selectedLeftItemsRef.current.length);
     }
   };
+  // ============================================================================================
   // ============================== 右側のカラムをクリックでアクティブ化 ==============================
   const handleClickActiveRight = (e: React.MouseEvent<HTMLElement, MouseEvent>, id: number) => {
     console.log("クリック");
     e.currentTarget.classList.toggle(`${styles.active_right}`);
     if (e.currentTarget.classList.contains(`${styles.active_right}`)) {
       selectedRightItemsRef.current.push(id);
-      console.log(`プッシュ selectedRightItemsRef`, selectedRightItemsRef.current);
+      console.log(
+        `プッシュ selectedRightItemsRef selectedRightItemsRef.current.length`,
+        selectedRightItemsRef.current,
+        selectedRightItemsRef.current.length
+      );
     } else {
       //   const index = selectedRightItemsRef.current.indexOf(id);
       //   selectedRightItemsRef.current.splice(index, 1);
@@ -198,6 +204,8 @@ const EditColumnsModalMemo: FC<Props> = ({ columnHeaderItemList }) => {
       setRightCount(selectedRightItemsRef.current.length);
     }
   };
+
+  // ============================================================================================
 
   // ==================== レフトエリアのアイテムをライトエリアに追加する関数 ====================
   const handleAddVisible = () => {
@@ -224,6 +232,7 @@ const EditColumnsModalMemo: FC<Props> = ({ columnHeaderItemList }) => {
     addArrowRef.current?.classList.remove(`${styles.arrow_add_active}`);
     resetLeftRef.current?.classList.remove(`${styles.arrow_left_reset_active}`);
   };
+  // ============================================================================================
 
   // ==================== ライトエリアのアイテムをレフトエリアに追加する関数 ====================
   const handleAddHidden = () => {
@@ -252,6 +261,7 @@ const EditColumnsModalMemo: FC<Props> = ({ columnHeaderItemList }) => {
     downArrowRef.current?.classList.remove(`${styles.arrow_down_active}`);
     resetRightRef.current?.classList.remove(`${styles.arrow_right_reset_active}`);
   };
+  // ============================================================================================
 
   // ================================ 最下部にカラムを移動する関数 ===============================
   const handleMoveLast = () => {
@@ -259,16 +269,30 @@ const EditColumnsModalMemo: FC<Props> = ({ columnHeaderItemList }) => {
     const copyRightArray = [...listItemsRight];
     // Setオブジェクトに変換して、hasメソッドで瞬時に渡された値を持つかどうか判定する
     const pushItemObject = new Set(selectedRightItemsRef.current);
+    // リストから選択されたアイテムを取り除いて、変数に格納
     const pushItemArray = copyRightArray.filter((item) => pushItemObject.has(item.columnId));
+    // リストから選択されたアイテムを削除後の残りのリストを変数に格納
     const afterRemovedItemArray = copyRightArray.filter((item) => !pushItemObject.has(item.columnId));
     console.log("pushItemArray", pushItemArray);
     console.log("afterRemovedItemArray", afterRemovedItemArray);
-    // pushItemArray.forEach((item, index) => {
-    //   item.columnIndex = index + 2;
-    // });
+    // 残りのリストを最初に展開し、取り除いたアイテムを最後に展開することで、最下部にカラムを移動
     const newRightArray = [...afterRemovedItemArray, ...pushItemArray];
+    // ヘッダーカラムリストのcolumnIndexプロパティの値を順番入れ替え後の並び順で再度2,3,4と書き換える
+    // 2から始まるのはチェックボックスカラムのcolumnIndexが1となるため
+    newRightArray.forEach((item, index) => {
+      console.log("columnIndex", item.columnIndex);
+      return (item.columnIndex = index + 2);
+    });
+
+    // カラム順番入れ替え後のローカルStateを更新
+    console.log("🔥後 newRightArray", newRightArray);
     setListItemsRight(newRightArray);
+
+    // 並び替えが完了した後のlistItems配列をDBに送信して更新する処理を追加
+    // カラム順番入れ替え後のZustandにグローバルStateとしてcolumnHeaderItemListの更新内容を保存する
+    // setEditedColumnHeaderItemList(newRightArray);
   };
+  // ============================================================================================
 
   // ================================ 最上部にカラムを移動する関数 ===============================
   const handleMoveFirst = () => {
@@ -276,16 +300,29 @@ const EditColumnsModalMemo: FC<Props> = ({ columnHeaderItemList }) => {
     const copyRightArray = [...listItemsRight];
     // Setオブジェクトに変換して、hasメソッドで瞬時に渡された値を持つかどうか判定する
     const pushItemObject = new Set(selectedRightItemsRef.current);
+    // リストから選択されたアイテムを取り除いて、変数に格納
     const pushItemArray = copyRightArray.filter((item) => pushItemObject.has(item.columnId));
+    // リストから選択されたアイテムを削除後の残りのリストを変数に格納
     const afterRemovedItemArray = copyRightArray.filter((item) => !pushItemObject.has(item.columnId));
     console.log("pushItemArray", pushItemArray);
     console.log("afterRemovedItemArray", afterRemovedItemArray);
-    // pushItemArray.forEach((item, index) => {
-    //   item.columnIndex = index + 2;
-    // });
+    // 残りのリストを最初に展開し、取り除いたアイテムを最後に展開することで、最下部にカラムを移動
     const newRightArray = [...pushItemArray, ...afterRemovedItemArray];
+    // ヘッダーカラムリストのcolumnIndexプロパティの値を順番入れ替え後の並び順で再度2,3,4と書き換える
+    // 2から始まるのはチェックボックスカラムのcolumnIndexが1となるため
+    newRightArray.forEach((item, index) => {
+      console.log("columnIndex", item.columnIndex);
+      return (item.columnIndex = index + 2);
+    });
+    // カラム順番入れ替え後のローカルStateを更新
+    console.log("🔥後 newRightArray", newRightArray);
     setListItemsRight(newRightArray);
+
+    // 並び替えが完了した後のlistItems配列をDBに送信して更新する処理を追加
+    // 入れ替えが完了した状態でZustandにグローバルStateとしてcolumnHeaderItemListの更新内容を保存する
+    // setEditedColumnHeaderItemList(newRightArray);
   };
+  // ============================================================================================
 
   // ================================ 左側の選択したカラムを全てリセットする関数 ===============================
   const handleResetLeft = () => {
@@ -298,6 +335,7 @@ const EditColumnsModalMemo: FC<Props> = ({ columnHeaderItemList }) => {
     addArrowRef.current?.classList.remove(`${styles.arrow_add_active}`);
     setLeftCount(0);
   };
+  // ============================================================================================
   // ================================ 右側の選択したカラムを全てリセットする関数 ===============================
   const handleResetRight = () => {
     if (!selectedRightItemsRef.current.length) return console.log("右無し");
@@ -312,7 +350,7 @@ const EditColumnsModalMemo: FC<Props> = ({ columnHeaderItemList }) => {
     upArrowRef.current?.classList.remove(`${styles.arrow_up_active}`);
     setRightCount(0);
   };
-
+  // ============================================================================================
   // ================================ ツールチップ ================================
   const hoveredItemPosModal = useStore((state) => state.hoveredItemPosModal);
   const setHoveredItemPosModal = useStore((state) => state.setHoveredItemPosModal);
@@ -341,23 +379,28 @@ const EditColumnsModalMemo: FC<Props> = ({ columnHeaderItemList }) => {
       display: display,
     });
   };
-  // ツールチップを非表示
+  // ============================================================================================
+  // ================================ ツールチップを非表示 ================================
   const handleCloseTooltip = () => {
     setHoveredItemPosModal(null);
   };
+  // ============================================================================================
 
   // キャンセルクリックでモーダルを開いた時の最初のカラムの状態にリセットする関数
   const handleCancelAndReset = () => {
-    setListItemsRight([]);
-    setListItemsLeft([]);
     // ZustandのグローバルStateのカラム編集リストを初期状態に格納して
     // 親コンポーネント側のuseEffectでリセットさせる
-    setEditedColumnHeaderItemList([...resetListItemRight]);
+    console.log("🔥🔥🔥キャンセル モーダル閉じた 格納したresetColumnHeaderItemList", resetColumnHeaderItemList);
+    setEditedColumnHeaderItemList(resetColumnHeaderItemList);
     setIsOpenEditColumns(false);
+    setListItemsRight([]);
+    setListItemsLeft([]);
   };
 
   const handleSaveAndClose = () => {
+    setEditedColumnHeaderItemList(listItemsRight);
     setIsOpenEditColumns(false);
+    console.log("🔥🔥🔥セーブ モーダル閉じた 格納したlistItemsRight", listItemsRight);
   };
 
   return (

@@ -6,6 +6,9 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import useStore from "@/store";
 import useDashboardStore from "@/store/useDashboardStore";
 import { GridTableFooter } from "../GridTableFooter/GridTableFooter";
+import { EditColumnsModal } from "../EditColumns/EditColumnsModal";
+import useThemeStore from "@/store/useThemeStore";
+import useRootStore from "@/store/useRootStore";
 
 type TableDataType = {
   id: number;
@@ -30,7 +33,9 @@ type Props = {
 };
 
 const GridTableSmallHalfMemo: FC<Props> = ({ title }) => {
-  const theme = useStore((state) => state.theme);
+  // const theme = useStore((state) => state.theme);
+  const theme = useRootStore(useThemeStore, (state) => state.theme);
+  // const theme = useThemeStore((state) => state.theme);
   // カラム入れ替えモーダルで更新した内容を取得
   const editedColumnHeaderItemList = useDashboardStore((state) => state.editedColumnHeaderItemList);
   const setEditedColumnHeaderItemList = useDashboardStore((state) => state.setEditedColumnHeaderItemList);
@@ -85,12 +90,24 @@ const GridTableSmallHalfMemo: FC<Props> = ({ title }) => {
   // 現在のアイテム取得件数
   const [getItemCount, setGetItemCount] = useState(0);
 
-  // ================== 🌟カラム編集モーダルで並び替え後🌟 ==================
+  // ============================== 🌟カラム編集モーダルで並び替え後🌟 ==============================
+  // テーブルカラム編集モーダル
+  const isOpenEditColumns = useDashboardStore((state) => state.isOpenEditColumns);
+  const setIsOpenEditColumns = useDashboardStore((state) => state.setIsOpenEditColumns);
+  // カラム順番リセット用State カラム編集モーダルを開いた時に保持
+  const resetColumnHeaderItemList = useDashboardStore((state) => state.resetColumnHeaderItemList);
+  const setResetColumnHeaderItemList = useDashboardStore((state) => state.setResetColumnHeaderItemList);
   // カラム並び替えモーダルで編集後にカラムヘッダーリストを更新してZustandのStateを空にする
   useEffect(() => {
     if (!editedColumnHeaderItemList.length) return console.log("編集中のカラムリストが存在しないためリターン");
     // Zustandに格納した並び替え後のカラムリストをローカルのStateに格納する
     setColumnHeaderItemList([...editedColumnHeaderItemList]);
+
+    // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
+    const columnHeaderItemListJSON = JSON.stringify(editedColumnHeaderItemList);
+    localStorage.setItem("grid_columns_company", columnHeaderItemListJSON);
+    // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
+
     // colsWidthの配列内の各カラムのサイズも更新する
     let newColsWidth: string[] = [];
     if (colsWidth !== null) {
@@ -274,6 +291,57 @@ const GridTableSmallHalfMemo: FC<Props> = ({ title }) => {
     if (!data?.pages[0]) return console.log("useEffect実行もまだdata無し リターン");
     console.log("🌟ヘッダーカラム生成 gotData", gotData);
 
+    // ========================= 🔥テスト ローカルストレージ =========================
+    const localStorageColumnHeaderItemListJSON = localStorage.getItem("grid_columns_company");
+    if (localStorageColumnHeaderItemListJSON) {
+      console.log("useEffect ローカルストレージルート🔥");
+      // まずはローカルストレージから取得したColumnHeaderItemListのJSONをJSオブジェクトにパース
+      const localStorageColumnHeaderItemList: ColumnHeaderItemList[] = JSON.parse(localStorageColumnHeaderItemListJSON);
+      // まずはローカルストレージから取得したColumnHeaderItemListをローカルStateに格納
+      setColumnHeaderItemList(localStorageColumnHeaderItemList);
+      console.log("🔥localStorageColumnHeaderItemList", localStorageColumnHeaderItemList);
+      // columnHeaderItemListからcolumnwidthのみを取得
+      const newColsWidths = localStorageColumnHeaderItemList.map((item) => item.columnWidth);
+      console.log("tempColsWidth", newColsWidths);
+      // チェックボックスの65pxの文字列をnewColsWidthsの配列の手前に格納
+      newColsWidths.unshift("65px");
+      console.log("unshift後のnewColsWidth Stateにカラムwidthを保存", newColsWidths);
+      // 全てのカラムWidthをローカルStateに格納
+      setColsWidth(newColsWidths);
+      // 全てのカラムWidthをRefオブジェクトに格納
+      currentColsWidths.current = newColsWidths;
+      if (parentGridScrollContainer.current === null) return;
+      // =========== CSSカスタムプロパティに反映
+      const newColsWidthNum = newColsWidths.map((col) => {
+        const newValue = col.replace("px", "");
+        return Number(newValue);
+      });
+      console.log("🔥ヘッダーカラム生成🌟 newColsWidthNum", newColsWidthNum);
+      // それぞれのカラムの合計値を取得 +aで文字列から数値型に変換して合計値を取得
+      let sumRowWidth = newColsWidthNum.reduce((a, b) => {
+        return a + b;
+      });
+      console.log("🔥ヘッダーカラム生成🌟 sumRowWidth", sumRowWidth);
+      // それぞれのCSSカスタムプロパティをセット
+      // grid-template-columnsの値となるCSSカスタムプロパティをセット
+      parentGridScrollContainer.current.style.setProperty("--template-columns", `${newColsWidths.join(" ")}`);
+      parentGridScrollContainer.current.style.setProperty("--header-row-height", "30px");
+      // parentGridScrollContainer.current.style.setProperty("--header-row-height", "35px");
+      parentGridScrollContainer.current.style.setProperty("--row-width", `${sumRowWidth}px`);
+      parentGridScrollContainer.current.style.setProperty("--summary-row-height", "30px");
+      // parentGridScrollContainer.current.style.setProperty("--summary-row-height", "35px");
+
+      console.log(
+        "更新後--template-columns",
+        parentGridScrollContainer.current.style.getPropertyValue("--template-columns")
+      );
+      console.log("更新後--row-width", parentGridScrollContainer.current.style.getPropertyValue("--row-width"));
+
+      return console.log("useEffectはここでリターン ローカルストレージルート");
+    }
+    // ========================= 🔥テスト ローカルストレージ =========================
+    console.log("useEffect ローカルストレージ無し 初回ヘッダー生成ルート🔥");
+
     // マウント時に各フィールド分のカラムを生成 サイズはデフォルト値を65px, 100px, 3列目以降は250pxに設定
     console.log(
       "🌟useEffect Object.keys(data?.pages[0].rows[0] as object",
@@ -335,6 +403,11 @@ const GridTableSmallHalfMemo: FC<Props> = ({ title }) => {
     console.log(`初期カラム配列`, tempFirstColumnItemListArray);
     console.log(`整形後カラム配列`, firstColumnItemListArray);
     setColumnHeaderItemList(firstColumnItemListArray);
+
+    // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
+    const columnHeaderItemListJSON = JSON.stringify(firstColumnItemListArray);
+    localStorage.setItem("grid_columns_company", columnHeaderItemListJSON);
+    // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
   }, [gotData]); // gotDataのstateがtrueになったら再度実行
   // ================================================================
 
@@ -386,6 +459,11 @@ const GridTableSmallHalfMemo: FC<Props> = ({ title }) => {
       console.log("🌟🔥 newColumnHeaderItemList", newColumnHeaderItemList);
       setColumnHeaderItemList(newColumnHeaderItemList);
       // ================ columnHeaderItemListも合わせてサイズを更新 テスト ================
+
+      // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
+      const columnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
+      localStorage.setItem("grid_columns_company", columnHeaderItemListJSON);
+      // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
 
       // 🌟3点リーダーがtrueになったらカラムホバー時にツールチップを表示
       const targetText = columnHeaderInnerTextRef.current[index] as HTMLDivElement;
@@ -1002,6 +1080,11 @@ const GridTableSmallHalfMemo: FC<Props> = ({ title }) => {
       return [...newListItemArray];
     });
 
+    // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
+    // const columnHeaderItemListJSON = JSON.stringify(newListItemArray);
+    // localStorage.setItem("grid_columns_company", columnHeaderItemListJSON);
+    // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
+
     // --template-columnsも更新
     console.log("copyTemplateColumnsWidth", copyTemplateColumnsWidth);
     // const newTemplateColumnsWidth = copyTemplateColumnsWidth.map((item, index) => {
@@ -1103,6 +1186,12 @@ const GridTableSmallHalfMemo: FC<Props> = ({ title }) => {
   // ============== ✅onDragEndイベント ドラッグ可能なターゲット上で発生するイベント✅ ==============
   const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
     console.log("Drop✅");
+
+    // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
+    const columnHeaderItemListJSON = JSON.stringify(columnHeaderItemList);
+    localStorage.setItem("grid_columns_company", columnHeaderItemListJSON);
+    // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
+
     // 順番入れ替え中はリサイズオーバーレイのpointer-eventsはnoneにする
     draggableOverlaysRef.current.forEach((div) => {
       div?.classList.remove(`pointer-events-none`);
@@ -1543,6 +1632,25 @@ const GridTableSmallHalfMemo: FC<Props> = ({ title }) => {
         </div>
         {/* ================== Gridメインコンテナ ここまで ================== */}
       </div>
+      {/* ================== 🌟カラム編集モーダル🌟 ================== */}
+      {/* カラム入れ替え編集モーダルボタン */}
+      <div className="flex-center fixed bottom-[2%] right-[13%] z-[1000] h-[50px] w-[50px] cursor-pointer">
+        <div
+          className="h-[50px] w-[50px] rounded-full bg-[var(--color-bg-brand)]"
+          onClick={() => {
+            const newResetColumnHeaderItemList = JSON.parse(JSON.stringify(columnHeaderItemList));
+            console.log(
+              "🔥🔥🔥モーダル開いた ZustandのリセットStateにパースして格納newResetColumnHeaderItemList",
+              newResetColumnHeaderItemList
+            );
+            setResetColumnHeaderItemList(newResetColumnHeaderItemList);
+            setIsOpenEditColumns(true);
+          }}
+        ></div>
+      </div>
+      {/* カラム編集モーダル */}
+      {isOpenEditColumns && <EditColumnsModal columnHeaderItemList={columnHeaderItemList} />}
+      {/* ================== 🌟カラム編集モーダル🌟 ここまで ================== */}
       {/* ================== メインコンテナ ここまで ================== */}
     </>
   );

@@ -3,6 +3,8 @@ import Head from "next/head";
 import React, { FC, ReactNode, useEffect } from "react";
 import { Modal } from "./Modal/Modal";
 import { useRouter } from "next/router";
+import useThemeStore from "@/store/useThemeStore";
+import useRootStore from "@/store/useRootStore";
 
 type Prop = {
   title: string;
@@ -13,8 +15,11 @@ type Prop = {
 // 各ページのJSXの一番外側に配置
 
 export const Layout: FC<Prop> = ({ children, title = "TRUSTiFY | Trustify" }) => {
-  const theme = useStore((state) => state.theme);
-  const setTheme = useStore((state) => state.setTheme);
+  const theme = useRootStore(useThemeStore, (state) => state.theme);
+  // const theme = useThemeStore((state) => state.theme);
+  const setTheme = useThemeStore((state) => state.setTheme);
+  // const theme = useStore((state) => state.theme);
+  // const setTheme = useStore((state) => state.setTheme);
   const changeTheme = () => {
     if (theme === "light") setTheme("dark");
     if (theme === "dark") setTheme("light");

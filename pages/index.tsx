@@ -8,12 +8,14 @@ import { Session, User, createServerSupabaseClient } from "@supabase/auth-helper
 import { GetServerSidePropsContext } from "next";
 import { Profile } from "@/types";
 import { useEffectOnce } from "react-use";
+import useThemeStore from "@/store/useThemeStore";
 
 // { initialSession, user }: { initialSession: Session; user: User | null }
 
 export default function Home() {
   const language = useStore((state) => state.language);
-  const setTheme = useStore((state) => state.setTheme);
+  const setTheme = useThemeStore((state) => state.setTheme);
+  // const setTheme = useStore((state) => state.setTheme);
 
   // 言語別タイトル
   let langTitle;

@@ -2,6 +2,7 @@ import { DashboardHeader } from "@/components/DashboardHeader/DashboardHeader";
 import { DashboardHomeComponent } from "@/components/DashboardHomeComponent/DashboardHomeComponent";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import useStore from "@/store";
+import useThemeStore from "@/store/useThemeStore";
 import { Profile } from "@/types";
 import { Session, User, createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { GetServerSidePropsContext } from "next";
@@ -19,7 +20,8 @@ const DashboardHome = ({
 }) => {
   console.log("🔥Homeページ レンダリング initialSession, user, userProfile");
   const language = useStore((state) => state.language);
-  const setTheme = useStore((state) => state.setTheme);
+  const setTheme = useThemeStore((state) => state.setTheme);
+  // const setTheme = useStore((state) => state.setTheme);
 
   // 言語別タイトル
   let langTitle;
@@ -37,7 +39,7 @@ const DashboardHome = ({
 
   // ログイン時にテーマをライトに設定する
   useEffectOnce(() => {
-    setTheme("light");
+    // setTheme("light");
   });
 
   return (

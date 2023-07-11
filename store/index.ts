@@ -54,8 +54,8 @@ type State = {
   setOpenLangTab: (payload: boolean) => void;
 
   // テーマ(Light & Dark)
-  theme: string;
-  setTheme: (payload: string) => void;
+  // theme: string;
+  // setTheme: (payload: string) => void;
 
   // モーダル
   isOpenModal: boolean;
@@ -77,6 +77,9 @@ type State = {
   // =================== Profile関連 ===================
 };
 
+// ============================= 🌟useThemeStore ローカルストレージ保管🌟 =============================
+
+// ================================= 🌟useStore🌟 =================================
 const useStore = create<State>((set) => ({
   // =================== マウス ===================
   // クリックしたアイテムのポジションを取得
@@ -129,8 +132,8 @@ const useStore = create<State>((set) => ({
   setOpenLangTab: (payload) => set({ openLangTab: payload }),
 
   // 【テーマ切り替え】
-  theme: "dark",
-  setTheme: (payload) => set({ theme: payload }),
+  // theme: "dark",
+  // setTheme: (payload) => set({ theme: payload }),
 
   // 【モーダル開閉】
   isOpenModal: false,

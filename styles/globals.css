@@ -186,7 +186,27 @@
   --color-modal-underline: rgb(94 94 94 / 0.8);
   /* --color-modal-underline-active: #0d99ff; */
   --color-modal-underline-active: #2b7fff;
-
+  /* 
+  --color-bg-brand
+  現在のメイン: #0066ff
+  Figma: #0d99ff
+  Next.js: #0070f3
+  現在のメインロゴ: #2B7FFF
+  現在のメインロゴ: #0AFFFF
+  Discord: #0063e5
+  Wiz: #0254ec
+  Disney+: #0063e5
+  Disney+ caret: #02e7f5
+  TikTok: #ff0050
+  TikTokボタン: #FF3B5B
+  Apple dark, light一緒メイン: #0071e3
+  Apple dark メインテキスト: #2997ff
+  Apple light メインテキスト: #06c
+  Apple light 緑テキスト --bright-green: #00d436
+  Apple light 青テキスト --azure: #027fff
+  Apple light 紫テキスト --indigo: #622aff
+  Apple light グラデーションテキスト background-image: linear-gradient(90deg,#b434ab 0%,#866cbe 30%,#4dbbd8);
+  */
   /* 🌟EditColumnsモーダル カラム変更モーダル light */
   --color-edit-bg: #ffffffe0;
   --color-edit-text: #333;
@@ -201,8 +221,10 @@
   --color-edit-remove-hover: #ff7d7d90;
   --color-edit-left-active: #6ae67d;
   --color-edit-left-active-bg: #abffa230;
-  --color-edit-right-active: #f63e54;
-  --color-edit-right-active-bg: #ff858530;
+  /* --color-edit-right-active: #f63e54; */
+  --color-edit-right-active: #0d99ff;
+  /* --color-edit-right-active-bg: #ff858530; */
+  --color-edit-right-active-bg: #0d99ff30;
   --color-edit-arrow-disable-bg: var(--color-bg-sub);
   --color-edit-arrow-disable-bg-onlist: rgba(64, 87, 109, 0.09);
   --color-edit-arrow-disable-color: var(--color-sub-text);
@@ -312,7 +334,7 @@
   --tile-end-rgb: 2, 5, 19;
 }
 
-/* ===================================== 🌠 ===================================== */
+/* ============================================= 🌠 ============================================= */
 .theme_dark {
   /* 
   --color-bg-brand ダークモード
@@ -339,6 +361,7 @@
   /* Youtube背景 background-color: #0f0f0f */
   /* Tiktok背景メイン background-color: rgb(18, 18, 18) #121212 背景サブ background-color: rgb(37, 37, 37) #252525 ブラックサブ2 background-color: rgba(255, 255, 255, 0.08) テーマカラー赤 background-color: rgb(255, 59, 92) #ff3b5c */
   --color-bg-base: #121212;
+  /* --color-bg-base: #141414; */
   /* --color-bg-sub: #252525; */
   --color-bg-sub: #383838;
   --color-bg-sub-dark: #252525;

@@ -31,6 +31,9 @@ type State = {
   // 【カラム順番入れ替え・表示非表示の編集内容保持state】
   editedColumnHeaderItemList: ColumnHeaderItemList[];
   setEditedColumnHeaderItemList: (payload: ColumnHeaderItemList[]) => void;
+  // 【カラム順番入れ替え 初期状態の内容を保持してリセット可能にするstate】
+  resetColumnHeaderItemList: ColumnHeaderItemList[];
+  setResetColumnHeaderItemList: (payload: ColumnHeaderItemList[]) => void;
 };
 
 const useDashboardStore = create<State>((set) => ({
@@ -61,6 +64,9 @@ const useDashboardStore = create<State>((set) => ({
   // 【カラム順番入れ替え・表示非表示の編集内容保持state】
   editedColumnHeaderItemList: [],
   setEditedColumnHeaderItemList: (payload) => set({ editedColumnHeaderItemList: payload }),
+  // 【カラム順番入れ替え 初期状態の内容を保持してリセット可能にするstate】
+  resetColumnHeaderItemList: [],
+  setResetColumnHeaderItemList: (payload) => set({ resetColumnHeaderItemList: payload }),
 }));
 
 export default useDashboardStore;

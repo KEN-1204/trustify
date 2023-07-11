@@ -10,6 +10,8 @@ import useDashboardStore from "@/store/useDashboardStore";
 import { EditColumns } from "./EditColumns/EditColumns";
 import { EditColumnTest } from "./EditColumns/EditColumnTest";
 import { EditColumnsModal } from "./EditColumns/EditColumnsModal";
+import useThemeStore from "@/store/useThemeStore";
+import useRootStore from "@/store/useRootStore";
 
 type TableDataType = {
   id: number;
@@ -27,6 +29,7 @@ type ColumnHeaderItemList = {
   columnName: string;
   columnIndex: number;
   columnWidth: string;
+  isOverflow: boolean;
 };
 
 type Props = {
@@ -34,7 +37,9 @@ type Props = {
 };
 
 const GridTableHomeMemo: FC<Props> = ({ title }) => {
-  const theme = useStore((state) => state.theme);
+  const theme = useRootStore(useThemeStore, (state) => state.theme);
+  // const theme = useThemeStore((state) => state.theme);
+  // const theme = useStore((state) => state.theme);
   // カラム入れ替えモーダルで更新した内容を取得
   const editedColumnHeaderItemList = useDashboardStore((state) => state.editedColumnHeaderItemList);
   const setEditedColumnHeaderItemList = useDashboardStore((state) => state.setEditedColumnHeaderItemList);
@@ -82,19 +87,29 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
   // 前回のアクティブセル
   const prevSelectedGridCellRef = useRef<HTMLDivElement | null>(null);
   // カラム3点リーダー表示時のツールチップ表示State 各カラムでoverflowになったintIdかuuid(string)を格納する
-  const [isOverflowColumnHeader, setIsOverflowColumnHeader] = useState<(string | null)[]>([]);
+  // const [isOverflowColumnHeader, setIsOverflowColumnHeader] = useState<(string | null)[]>([]);
 
   // ONとなったチェックボックスを保持する配列のstate
   const [selectedCheckBox, setSelectedCheckBox] = useState<number[]>([]);
   // 現在のアイテム取得件数
   const [getItemCount, setGetItemCount] = useState(0);
 
-  // ================== 🌟カラム編集モーダルで並び替え後🌟 ==================
+  // ============================== 🌟カラム編集モーダルで並び替え後🌟 ==============================
+  // テーブルカラム編集モーダル
+  const isOpenEditColumns = useDashboardStore((state) => state.isOpenEditColumns);
+  const setIsOpenEditColumns = useDashboardStore((state) => state.setIsOpenEditColumns);
+  // カラム順番リセット用State カラム編集モーダルを開いた時に保持
+  const resetColumnHeaderItemList = useDashboardStore((state) => state.resetColumnHeaderItemList);
+  const setResetColumnHeaderItemList = useDashboardStore((state) => state.setResetColumnHeaderItemList);
   // カラム並び替えモーダルで編集後にカラムヘッダーリストを更新してZustandのStateを空にする
   useEffect(() => {
     if (!editedColumnHeaderItemList.length) return console.log("編集中のカラムリストが存在しないためリターン");
-    // Zustandに格納した並び替え後のカラムリストをローカルのStateに格納する
+    // ================ Zustandに格納した並び替え後のカラムリストをローカルのStateに格納する
     setColumnHeaderItemList([...editedColumnHeaderItemList]);
+    // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
+    const columnHeaderItemListJSON = JSON.stringify(editedColumnHeaderItemList);
+    localStorage.setItem("grid_columns_company", columnHeaderItemListJSON);
+    // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
     // colsWidthの配列内の各カラムのサイズも更新する
     let newColsWidth: string[] = [];
     if (colsWidth !== null) {
@@ -191,7 +206,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
     overscan: 20, // ビューポート外にレンダリングさせる個数
     // overscan: 10, // ビューポート外にレンダリングさせる個数
   });
-  // =====================================================================================
+  // ======================== 🌟バーチャライザーのインスタンスを生成🌟 ここまで ========================
 
   console.log(
     `allRows.length: ${allRows.length} !!allRows.length: ${!!allRows.length} virtualItems:${
@@ -220,8 +235,8 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
     // ================= lastItem.indexに到達 追加フェッチ ここまで =================
   }, [hasNextPage, fetchNextPage, allRows.length, isFetchingNextPage, rowVirtualizer.getVirtualItems()]);
 
-  // =====================================================================================
-  // ========== 🌟useEffect 取得データ総数が変わったタイミングで発火 チェック有無のStateの数を合わせる ==========
+  // ============================== 🌟無限スクロールの処理 追加でフェッチ ==============================
+  // ========== 🌟useEffect 取得データ総数が変わったタイミングで発火 チェック有無のStateの数を合わせる🌟 ==========
   useEffect(() => {
     // =========== チェック有無Stateの数を新たに取得したデータ数と一緒にする
     console.log("🔥総数変化を検知");
@@ -248,9 +263,9 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
     setGetItemCount(Object.keys(newObject).length);
   }, [allRows.length]);
 
-  // ==================================================================================================
+  // ========== 🌟useEffect 取得データ総数が変わったタイミングで発火 チェック有無のStateの数を合わせる🌟 ここまで
 
-  // ============================= 🌟useEffect 初回DBからフェッチ完了を通知する =============================
+  // ========================= 🌟useEffect 初回DBからフェッチ完了を通知する🌟 =========================
   useEffect(() => {
     if (gotData) return;
     // 初回マウント データ取得完了後Stateをtrueに変更通知して、カラム生成useEffectを実行
@@ -267,15 +282,65 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       return;
     }
   }, [data]);
-  // =====================================================================================
+  // ======================= 🌟useEffect 初回DBからフェッチ完了を通知する🌟 ここまで =======================
 
-  // ================== 🌟useEffect ヘッダーカラム生成🌟 ===================
+  // =============================== 🌟useEffect ヘッダーカラム生成🌟 ===============================
   // 取得したデータが変更された場合、プロパティ(フィールド)の数が変わる場合があるので、
   // 変更があった場合には再度カラム列の数とサイズを現在取得しているデータでリセット
   useEffect(() => {
-    console.log("🔥ここ");
     if (!data?.pages[0]) return console.log("useEffect実行もまだdata無し リターン");
     console.log("🌟ヘッダーカラム生成 gotData", gotData);
+
+    // ========================= 🔥テスト ローカルストレージ =========================
+    const localStorageColumnHeaderItemListJSON = localStorage.getItem("grid_columns_company");
+    if (localStorageColumnHeaderItemListJSON) {
+      console.log("useEffect ローカルストレージルート🔥");
+      // まずはローカルストレージから取得したColumnHeaderItemListのJSONをJSオブジェクトにパース
+      const localStorageColumnHeaderItemList: ColumnHeaderItemList[] = JSON.parse(localStorageColumnHeaderItemListJSON);
+      // まずはローカルストレージから取得したColumnHeaderItemListをローカルStateに格納
+      setColumnHeaderItemList(localStorageColumnHeaderItemList);
+      console.log("🔥localStorageColumnHeaderItemList", localStorageColumnHeaderItemList);
+      // columnHeaderItemListからcolumnwidthのみを取得
+      const newColsWidths = localStorageColumnHeaderItemList.map((item) => item.columnWidth);
+      console.log("tempColsWidth", newColsWidths);
+      // チェックボックスの65pxの文字列をnewColsWidthsの配列の手前に格納
+      newColsWidths.unshift("65px");
+      console.log("unshift後のnewColsWidth Stateにカラムwidthを保存", newColsWidths);
+      // 全てのカラムWidthをローカルStateに格納
+      setColsWidth(newColsWidths);
+      // 全てのカラムWidthをRefオブジェクトに格納
+      currentColsWidths.current = newColsWidths;
+      if (parentGridScrollContainer.current === null) return;
+      // =========== CSSカスタムプロパティに反映
+      const newColsWidthNum = newColsWidths.map((col) => {
+        const newValue = col.replace("px", "");
+        return Number(newValue);
+      });
+      console.log("🔥ヘッダーカラム生成🌟 newColsWidthNum", newColsWidthNum);
+      // それぞれのカラムの合計値を取得 +aで文字列から数値型に変換して合計値を取得
+      let sumRowWidth = newColsWidthNum.reduce((a, b) => {
+        return a + b;
+      });
+      console.log("🔥ヘッダーカラム生成🌟 sumRowWidth", sumRowWidth);
+      // それぞれのCSSカスタムプロパティをセット
+      // grid-template-columnsの値となるCSSカスタムプロパティをセット
+      parentGridScrollContainer.current.style.setProperty("--template-columns", `${newColsWidths.join(" ")}`);
+      parentGridScrollContainer.current.style.setProperty("--header-row-height", "30px");
+      // parentGridScrollContainer.current.style.setProperty("--header-row-height", "35px");
+      parentGridScrollContainer.current.style.setProperty("--row-width", `${sumRowWidth}px`);
+      parentGridScrollContainer.current.style.setProperty("--summary-row-height", "30px");
+      // parentGridScrollContainer.current.style.setProperty("--summary-row-height", "35px");
+
+      console.log(
+        "更新後--template-columns",
+        parentGridScrollContainer.current.style.getPropertyValue("--template-columns")
+      );
+      console.log("更新後--row-width", parentGridScrollContainer.current.style.getPropertyValue("--row-width"));
+
+      return console.log("useEffectはここでリターン ローカルストレージルート");
+    }
+    // ========================= 🔥テスト ローカルストレージ =========================
+    console.log("useEffect ローカルストレージ無し 初回ヘッダー生成ルート🔥");
 
     // マウント時に各フィールド分のカラムを生成 サイズはデフォルト値を65px, 100px, 3列目以降は250pxに設定
     console.log(
@@ -286,6 +351,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
     newColsWidths.fill("65px", 0, 1); // 1列目を65pxに変更
     newColsWidths.fill("100px", 1, 2); // 2列目を100pxに変更
     console.log("Stateにカラムwidthを保存", newColsWidths);
+    // ['65px', '100px', '250px', '50px', '119px', '142px', '250px', '250px']
     // stateに現在の全てのカラムのwidthを保存
     setColsWidth(newColsWidths);
     // refオブジェクトに保存
@@ -333,14 +399,20 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       columnName: item,
       columnIndex: index + 2,
       columnWidth: newColsWidths[index + 1],
+      isOverflow: false,
     }));
     console.log(`初期カラム配列`, tempFirstColumnItemListArray);
     console.log(`整形後カラム配列`, firstColumnItemListArray);
     setColumnHeaderItemList(firstColumnItemListArray);
-  }, [gotData]); // gotDataのstateがtrueになったら再度実行
-  // ================================================================
 
-  // =================== 🌟マウスイベント 列サイズ変更 ===================
+    // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
+    const columnHeaderItemListJSON = JSON.stringify(firstColumnItemListArray);
+    localStorage.setItem("grid_columns_company", columnHeaderItemListJSON);
+    // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
+  }, [gotData]); // gotDataのstateがtrueになったら再度実行
+  // ========================== 🌟useEffect ヘッダーカラム生成🌟 ここまで ==========================
+
+  // ================================== 🌟マウスイベント 列サイズ変更🌟 ==================================
   const handleMouseDown = (e: React.MouseEvent, index: number) => {
     e.preventDefault();
 
@@ -400,27 +472,37 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       );
       if (targetText.scrollWidth > targetText.clientWidth) {
         // if (isOverflowColumnHeader.includes(colsRef.current[index]!.ariaColIndex))
-        if (isOverflowColumnHeader.includes(colsRef.current[index]!.dataset.columnId!.toString()))
+        if ((newColumnHeaderItemList as ColumnHeaderItemList[])[index].isOverflow)
           return console.log("既にオンのためリターン");
+        (newColumnHeaderItemList as ColumnHeaderItemList[])[index].isOverflow = true;
+
+        // if (isOverflowColumnHeader.includes(colsRef.current[index]!.dataset.columnId!.toString()))
+        //   return console.log("既にオンのためリターン");
         // 3点リーダーがオンの時
-        setIsOverflowColumnHeader((prevArray) => {
-          console.log("targetText", targetText);
-          const newArray = [...prevArray];
-          newArray.push(colsRef.current[index]!.dataset.columnId!.toString());
-          return newArray;
-        });
+        // setIsOverflowColumnHeader((prevArray) => {
+        //   console.log("targetText", targetText);
+        //   const newArray = [...prevArray];
+        //   newArray.push(colsRef.current[index]!.dataset.columnId!.toString());
+        //   return newArray;
+        // });
       } else {
         // 3点リーダーがオフの時
-        setIsOverflowColumnHeader((prevArray) => {
-          console.log("targetText", targetText);
-          const newArray = [...prevArray];
-          console.log("🌟ここ", newArray, colsRef.current[index]!.dataset.columnId!.toString());
-          const filteredArray = newArray.filter(
-            (item) => item !== colsRef.current[index]!.dataset.columnId!.toString()
-          );
-          return filteredArray;
-        });
+        (newColumnHeaderItemList as ColumnHeaderItemList[])[index].isOverflow = false;
+
+        // setIsOverflowColumnHeader((prevArray) => {
+        //   console.log("targetText", targetText);
+        //   const newArray = [...prevArray];
+        //   console.log("🌟ここ", newArray, colsRef.current[index]!.dataset.columnId!.toString());
+        //   const filteredArray = newArray.filter(
+        //     (item) => item !== colsRef.current[index]!.dataset.columnId!.toString()
+        //   );
+        //   return filteredArray;
+        // });
       }
+      // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
+      const columnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
+      localStorage.setItem("grid_columns_company", columnHeaderItemListJSON);
+      // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
     };
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -462,7 +544,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
     window.addEventListener("mouseup", handleMouseUp);
     window.addEventListener("mousemove", handleMouseMove);
   };
-  // ================================================================
+  // ============================== 🌟マウスイベント 列サイズ変更 ここまで ==============================
 
   // ========= 🌟１行目と２行目のインラインスタイルのleftに渡す用の関数 =========
   const columnHeaderLeft = (index: number) => {
@@ -477,7 +559,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
         break;
     }
   };
-  // ================================================================
+  // ========= 🌟１行目と２行目のインラインスタイルのleftに渡す用の関数 ここまで =========
 
   // ========= 🌟各Grid行トラックのtopからの位置を返す関数 インラインスタイル内で実行 =========
   const gridRowTrackTopPosition = (index: number) => {
@@ -549,9 +631,9 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       setIsOpenEditModal(true);
     }
   }, []);
-  // ================================================================
+  // ================== 🌟GridCellクリックでセルを選択中アクティブセルstateに更新🌟 ここまで ==================
 
-  // ====================== 🌟チェックボックスクリックでstateに選択したアイテムのidを追加 ======================
+  // ==================== 🌟チェックボックスクリックでstateに選択したアイテムのidを追加🌟 ====================
   const handleSelectedCheckBox = (e: React.ChangeEvent<HTMLInputElement>, id: number) => {
     console.log(
       "前回のアクティブセル親列RowトラックのRowIndex",
@@ -745,9 +827,9 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       }
     }
   };
-  // ================================================================
+  // ================= 🌟チェックボックスクリックでstateに選択したアイテムのidを追加🌟 ここまで =================
 
-  // ============================ 🌟チェックボックス全選択 ============================
+  // ================================= 🌟チェックボックス全選択🌟 =================================
   // チェックボックスヘッダーのON/OFFで全てのチェックボックスをtrue/false切り替え後、全てのidを選択中stateに反映
   const handleAllSelectCheckBox = (e: React.ChangeEvent<HTMLInputElement>) => {
     const gridScrollContainer = parentGridScrollContainer.current;
@@ -802,7 +884,7 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       setSelectedCheckBox([]);
     }
   };
-  // ==================================================================================
+  // ================================= 🌟チェックボックス全選択🌟 =================================
 
   // ================================== 🌟カラム順番入れ替え🌟 ==================================
   const [leftBorderLine, setLeftBorderLine] = useState<number | null>(null);
@@ -960,7 +1042,6 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
     console.log("🌟更新前 columnHeaderItemList全体", columnHeaderItemList);
     //  🌟順番を入れ替える columnHeaderItemList
     const copyListItems: ColumnHeaderItemList[] = JSON.parse(JSON.stringify(columnHeaderItemList)); // 一意性を守るため新たなカラムリストを生成
-    console.log("コピー", copyListItems);
     // 入れ替え前にwidthを更新する CSSカスタムプロパティに反映 grid-template-columnsの場所も入れ替える
     const copyTemplateColumnsWidth: string[] = JSON.parse(JSON.stringify(colsWidth));
     console.log("🔥copyTemplateColumnsWidth, colsWidth", copyTemplateColumnsWidth, colsWidth);
@@ -1010,6 +1091,10 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       console.log("ここnewListItemArray", newListItemArray);
       return [...newListItemArray];
     });
+    // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
+    // const columnHeaderItemListJSON = JSON.stringify(newListItemArray);
+    // localStorage.setItem("grid_columns_company", columnHeaderItemListJSON);
+    // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
 
     // --template-columnsも更新
     console.log("copyTemplateColumnsWidth", copyTemplateColumnsWidth);
@@ -1112,6 +1197,10 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
   // ============== ✅onDragEndイベント ドラッグ可能なターゲット上で発生するイベント✅ ==============
   const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
     console.log("Drop✅");
+    // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
+    const columnHeaderItemListJSON = JSON.stringify(columnHeaderItemList);
+    localStorage.setItem("grid_columns_company", columnHeaderItemListJSON);
+    // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
     // 順番入れ替え中はリサイズオーバーレイのpointer-eventsはnoneにする
     draggableOverlaysRef.current.forEach((div) => {
       div?.classList.remove(`pointer-events-none`);
@@ -1122,7 +1211,14 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
     setDragColumnIndex(null);
   };
   // ============== ✅onDragEndイベント ドラッグ可能なターゲット上で発生するイベント✅ ここまで ==============
-  // ==================================================================================
+
+  // ============== 🌟フローズンイベント leftとstickyとz-indexを加えて、columnIndexを変更する🌟 ==============
+  const handleFrozen = (e: React.MouseEvent<HTMLElement, MouseEvent>, index: number) => {
+    console.log("カラムヘッダー ダブルクリック フローズンイベント");
+    console.log(e);
+    console.log(index);
+  };
+  // ============== 🌟フローズンイベント ドラッグ可能なターゲット上で発生するイベント🌟 ここまで ==============
 
   // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
   const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
@@ -1149,18 +1245,15 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
   console.log("✅clickedActiveRow", clickedActiveRow);
   console.log("✅ checkedRows", checkedRows);
   console.log("✅ selectedCheckBox", selectedCheckBox);
+  console.log("✅ allRows", allRows);
 
   // 🌟現在のカラム順、.map((obj) => Object.values(row)[obj.columnId])で展開してGridセルを表示する
   const columnOrder = [...columnHeaderItemList].map((item, index) => ({ columnId: item.columnId })); // columnIdのみの配列を取得
-  console.log("✅columnHeaderItemList, columnOrder", columnHeaderItemList, [...columnHeaderItemList], columnOrder);
+  console.log("✅columnHeaderItemList, columnOrder", columnHeaderItemList, columnOrder);
   console.log("✅colsWidth", colsWidth);
 
   // 🌟カラム3点リーダー表示中はホバー時にツールチップを有効化
-  console.log("✅isOverflowColumnHeader", isOverflowColumnHeader);
-
-  // テーブルカラム編集モーダル
-  const isOpenEditColumns = useDashboardStore((state) => state.isOpenEditColumns);
-  const setIsOpenEditColumns = useDashboardStore((state) => state.setIsOpenEditColumns);
+  // console.log("✅isOverflowColumnHeader", isOverflowColumnHeader);
 
   return (
     <>
@@ -1246,14 +1339,21 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
                         tabIndex={-1}
                         className={`${styles.grid_column_header_all} ${index === 0 && styles.grid_column_frozen} ${
                           index === 0 && styles.grid_cell_frozen_last
-                        } ${styles.grid_cell_resizable} dropzone cursor-grab ${
-                          isOverflowColumnHeader.includes(key.columnId.toString()) ? `${styles.is_overflow}` : ""
-                        }`}
+                        } ${styles.grid_cell_resizable} dropzone cursor-grab 
+                        ${
+                          key.isOverflow ? `${styles.is_overflow}` : ""
+                          // isOverflowColumnHeader.includes(key.columnId.toString()) ? `${styles.is_overflow}` : ""
+                        }
+                        `}
                         style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
                         onClick={(e) => handleClickGridCell(e)}
-                        onDoubleClick={(e) => handleDoubleClick(e, index)}
+                        onDoubleClick={(e) => {
+                          handleFrozen(e, index);
+                          // handleDoubleClick(e, index);
+                        }}
                         onMouseEnter={(e) => {
-                          if (isOverflowColumnHeader.includes(key.columnId.toString())) {
+                          // if (isOverflowColumnHeader.includes(key.columnId.toString())) {
+                          if (key.isOverflow) {
                             handleOpenTooltip(e, "top", key.columnName);
                             console.log("マウスエンター key.columnId.toString()");
                             console.log("マウスエンター ツールチップオープン カラムID", key.columnId.toString());
@@ -1261,7 +1361,8 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
                           // handleOpenTooltip(e, "left");
                         }}
                         onMouseLeave={() => {
-                          if (isOverflowColumnHeader.includes(key.columnId.toString())) {
+                          // if (isOverflowColumnHeader.includes(key.columnId.toString())) {
+                          if (key.isOverflow) {
                             console.log("マウスリーブ ツールチップクローズ");
                             handleCloseTooltip();
                           }
@@ -1565,7 +1666,15 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       <div className="flex-center fixed bottom-[2%] right-[13%] z-[1000] h-[50px] w-[50px] cursor-pointer">
         <div
           className="h-[50px] w-[50px] rounded-full bg-[var(--color-bg-brand)]"
-          onClick={() => setIsOpenEditColumns(true)}
+          onClick={() => {
+            const newResetColumnHeaderItemList = JSON.parse(JSON.stringify(columnHeaderItemList));
+            console.log(
+              "🔥🔥🔥モーダル開いた ZustandのリセットStateにパースして格納newResetColumnHeaderItemList",
+              newResetColumnHeaderItemList
+            );
+            setResetColumnHeaderItemList(newResetColumnHeaderItemList);
+            setIsOpenEditColumns(true);
+          }}
         ></div>
       </div>
       {/* カラム編集モーダル */}
