@@ -11,10 +11,11 @@ import { ErrorFallback } from "../ErrorFallback/ErrorFallback";
 import Spinner from "../Parts/Spinner/Spinner";
 import { Fallback } from "../Fallback/Fallback";
 import { SpinnerComet } from "../Parts/SpinnerComet/SpinnerComet";
-import { GridTableSmall } from "../GridTable/GridTableSmall/GridTableSmall";
+import { GridTableSmallAll } from "../GridTable/GridTableSmallAll/GridTableSmallAll";
 import { GridTableSmallHalf } from "../GridTable/GridTableSmallHalf/GridTableSmallHalf";
 import { GridTableAll } from "../GridTable/GridTableAll/GridTableAll";
 import useThemeStore from "@/store/useThemeStore";
+import { GridTableHalf } from "../GridTable/GridTableHalf/GridTableHalf";
 
 export const DashboardHomeComponent = () => {
   // const theme = useThemeStore((state) => state.theme);
@@ -49,7 +50,11 @@ export const DashboardHomeComponent = () => {
 
           <section
             // className={`${styles.home_screen} space-y-[20px] ${
-            className={`${styles.home_screen}  ${activeMenuTab === "Contacts" ? `${styles.all_container} space-y-0 !px-0 !py-0` : ""}`}
+            className={`${styles.home_screen}  ${
+              activeMenuTab === "Contacts" || activeMenuTab === "Activity" || activeMenuTab === "Meeting"
+                ? `${styles.all_container} space-y-0 !px-0 !py-0`
+                : ""
+            }`}
           >
             {/* <GridTableTest /> */}
             {/* <div className="h-[20vh] w-full"></div> */}
@@ -75,16 +80,16 @@ export const DashboardHomeComponent = () => {
             {activeMenuTab === "Activity" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense fallback={<Fallback />}>
-                  {/* <GridTableHomeSuccess title="メッセージ" /> */}
-                  <GridTableSmallHalf title="GridTableSmallHalf" />
+                  <GridTableHalf title="GridTableHalf" />
+                  {/* <GridTableHalf title="GridTableHalf" /> */}
                 </Suspense>
               </ErrorBoundary>
             )}
             {activeMenuTab === "Meeting" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense fallback={<Fallback />}>
-                  {/* <GridTableHomeSuccess title="メッセージ" /> */}
-                  <GridTableSmall title="GridTableSmall" />
+                  <GridTableSmallAll title="GridTableSmallAll" />
+                  {/* <GridTableHalf title="GridTableHalf" /> */}
                 </Suspense>
               </ErrorBoundary>
             )}

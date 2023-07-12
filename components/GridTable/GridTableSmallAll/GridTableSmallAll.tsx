@@ -1,5 +1,5 @@
 import React, { FC, memo, useCallback, useEffect, useRef, useState } from "react";
-import styles from "./GridTableAll.module.css";
+import styles from "./GridTableSmallAll.module.css";
 import { summary, tableBodyDataArray } from "../data";
 import useStore from "@/store";
 import { GridTableFooter } from "../GridTableFooter/GridTableFooter";
@@ -35,7 +35,7 @@ type Props = {
   title: string;
 };
 
-const GridTableAllMemo: FC<Props> = ({ title }) => {
+const GridTableSmallAllMemo: FC<Props> = ({ title }) => {
   const theme = useRootStore(useThemeStore, (state) => state.theme);
   // const theme = useThemeStore((state) => state.theme);
   // const theme = useStore((state) => state.theme);
@@ -113,7 +113,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     setColumnHeaderItemList([...editedColumnHeaderItemList]);
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
     const columnHeaderItemListJSON = JSON.stringify(editedColumnHeaderItemList);
-    localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
+    localStorage.setItem("grid_columns_meeting", columnHeaderItemListJSON);
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
     // colsWidthの配列内の各カラムのサイズも更新する
     let newColsWidth: string[] = [];
@@ -243,10 +243,11 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     count: hasNextPage ? allRows.length + 1 : allRows.length, // 次のページ有り lengthを１増やす
     getScrollElement: () => parentGridScrollContainer.current, // スクロール用コンテナ
     // estimateSize: () => 35, // 要素のサイズ
-    estimateSize: () => 30, // 要素のサイズ
+    estimateSize: () => 25, // 要素のサイズ
     overscan: 20, // ビューポート外にレンダリングさせる個数
     // overscan: 10, // ビューポート外にレンダリングさせる個数
   });
+  // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 高さ 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟
   // ======================== 🌟バーチャライザーのインスタンスを生成🌟 ここまで ========================
 
   console.log(
@@ -336,7 +337,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     console.log("🌟ヘッダーカラム生成 gotData ===========================", gotData);
 
     // ========================= 🔥テスト ローカルストレージ ルート =========================
-    const localStorageColumnHeaderItemListJSON = localStorage.getItem("grid_columns_contacts");
+    const localStorageColumnHeaderItemListJSON = localStorage.getItem("grid_columns_meeting");
     if (localStorageColumnHeaderItemListJSON) {
       console.log("useEffect ローカルストレージルート🔥");
       // まずはローカルストレージから取得したColumnHeaderItemListのJSONをJSオブジェクトにパース
@@ -402,10 +403,12 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       // それぞれのCSSカスタムプロパティをセット
       // grid-template-columnsの値となるCSSカスタムプロパティをセット
       parentGridScrollContainer.current.style.setProperty("--template-columns", `${newColsWidths.join(" ")}`);
+      // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 高さ 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟
       parentGridScrollContainer.current.style.setProperty("--header-row-height", "30px");
       // parentGridScrollContainer.current.style.setProperty("--header-row-height", "35px");
       parentGridScrollContainer.current.style.setProperty("--row-width", `${sumRowWidth}px`);
-      parentGridScrollContainer.current.style.setProperty("--summary-row-height", "30px");
+      // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 高さ 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟
+      parentGridScrollContainer.current.style.setProperty("--summary-row-height", "25px");
       // parentGridScrollContainer.current.style.setProperty("--summary-row-height", "35px");
 
       console.log(
@@ -483,10 +486,12 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     // それぞれのCSSカスタムプロパティをセット
     // grid-template-columnsの値となるCSSカスタムプロパティをセット
     parentGridScrollContainer.current.style.setProperty("--template-columns", `${newColsWidths.join(" ")}`);
-    parentGridScrollContainer.current.style.setProperty("--header-row-height", "30px");
+    // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 高さ 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟
+    parentGridScrollContainer.current.style.setProperty("--header-row-height", "25px");
     // parentGridScrollContainer.current.style.setProperty("--header-row-height", "35px");
     parentGridScrollContainer.current.style.setProperty("--row-width", `${sumRowWidth}px`);
-    parentGridScrollContainer.current.style.setProperty("--summary-row-height", "30px");
+    // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 高さ 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟
+    parentGridScrollContainer.current.style.setProperty("--summary-row-height", "25px");
     // parentGridScrollContainer.current.style.setProperty("--summary-row-height", "35px");
 
     console.log(
@@ -531,7 +536,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
 
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
     const columnHeaderItemListJSON = JSON.stringify(firstColumnItemListArray);
-    localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
+    localStorage.setItem("grid_columns_meeting", columnHeaderItemListJSON);
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
   }, [gotData]); // gotDataのstateがtrueになったら再度実行
   // ========================== 🌟useEffect ヘッダーカラム生成🌟 ここまで ==========================
@@ -655,7 +660,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       }
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
       const columnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
-      localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
+      localStorage.setItem("grid_columns_meeting", columnHeaderItemListJSON);
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
     };
 
@@ -1419,7 +1424,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     console.log("Drop✅");
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
     const columnHeaderItemListJSON = JSON.stringify(columnHeaderItemList);
-    localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
+    localStorage.setItem("grid_columns_meeting", columnHeaderItemListJSON);
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
     // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ===============
     // colsWidth ['65px', '100px', '250px', '250px', '250px', '250px', '250px', '250px']から
@@ -1505,7 +1510,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
 
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
       const columnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
-      localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
+      localStorage.setItem("grid_columns_meeting", columnHeaderItemListJSON);
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
 
       // 現在のフローズンの総個数を更新する filteredIsFrozenColumnListの+1
@@ -1604,7 +1609,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
 
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
       const columnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
-      localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
+      localStorage.setItem("grid_columns_meeting", columnHeaderItemListJSON);
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
 
       // 現在のフローズンの総個数を更新する filteredIsFrozenColumnListの-1
@@ -1749,7 +1754,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                 }}
               />
             </div>
-            <div className={`flex max-h-[26px] w-full  items-center justify-end space-x-3`}>
+            <div className={`flex max-h-[26px] w-full items-center justify-end space-x-3`}>
               <RippleButton title={`カラム編集`} classText="select-none" />
               <RippleButton title={`サイズ切り替え`} classText="select-none" />
               <RippleButton
@@ -1964,7 +1969,9 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                   width: `var(--row-width)`,
                   position: "relative",
                   // "--header-row-height": "35px",
-                  "--header-row-height": "30px",
+                  // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 高さ 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟
+                  // ここで--header-row-heightを30pxから25pxに上書き
+                  "--header-row-height": "25px",
                   "--row-width": "",
                 } as any
               }
@@ -2010,7 +2017,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                       // gridTemplateColumns: colsWidth.join(" "),
                       // top: gridRowTrackTopPosition(index),
                       // top: ((virtualRow.index + 0) * 35).toString() + "px", // +1か0か
-                      top: ((virtualRow.index + 0) * 30).toString() + "px", // +1か0か
+                      // // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 高さ 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟
+                      top: ((virtualRow.index + 0) * 25).toString() + "px", // +1か0か
                     }}
                   >
                     {/* ======== gridセル チェックボックスセル ======== */}
@@ -2139,9 +2147,14 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                             } // カラムヘッダーの列StateのcolumnIndexと一致させる
                             aria-selected={false}
                             tabIndex={-1}
-                            className={`${styles.grid_cell} ${index === 0 ? styles.grid_column_frozen : ""} ${
-                              index === 0 ? styles.grid_cell_frozen_last : ""
-                            } ${styles.grid_cell_resizable}`}
+                            className={`${styles.grid_cell} ${
+                              columnHeaderItemList[index].isFrozen ? styles.grid_column_frozen : ""
+                            } ${isFrozenCountRef.current === 1 && index === 0 ? styles.grid_cell_frozen_last : ""} ${
+                              isFrozenCountRef.current === index + 1 ? styles.grid_cell_frozen_last : ""
+                            }  ${styles.grid_cell_resizable}`}
+                            // className={`${styles.grid_cell} ${index === 0 ? styles.grid_column_frozen : ""} ${
+                            //   index === 0 ? styles.grid_cell_frozen_last : ""
+                            // } ${styles.grid_cell_resizable}`}
                             // style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
                             style={
                               columnHeaderItemList[index].isFrozen
@@ -2149,7 +2162,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                                     gridColumnStart: columnHeaderItemList[index]
                                       ? columnHeaderItemList[index]?.columnIndex
                                       : index + 2,
-                                    left: columnLeftPositions.current[index],
+                                    left: `var(--frozen-left-${index})`,
                                   }
                                 : {
                                     gridColumnStart: columnHeaderItemList[index]
@@ -2163,7 +2176,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                             //         gridColumnStart: columnHeaderItemList[index]
                             //           ? columnHeaderItemList[index]?.columnIndex
                             //           : index + 2,
-                            //         left: columnHeaderLeft(index),
+                            //         left: columnLeftPositions.current[index],
                             //       }
                             //     : {
                             //         gridColumnStart: columnHeaderItemList[index]
@@ -2171,12 +2184,6 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                             //           : index + 2,
                             //       }
                             // }
-                            // style={{
-                            //   gridColumnStart: columnHeaderItemList[index]
-                            //     ? columnHeaderItemList[index]?.columnIndex
-                            //     : index + 2,
-                            //   left: columnHeaderLeft(index + 1),
-                            // }}
                             onClick={handleClickGridCell}
                             onDoubleClick={(e) => handleDoubleClick(e, index, columnHeaderItemList[index].columnName)}
                             // onClick={handleSingleOrDoubleClick}
@@ -2269,4 +2276,4 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   );
 };
 
-export const GridTableAll = memo(GridTableAllMemo);
+export const GridTableSmallAll = memo(GridTableSmallAllMemo);

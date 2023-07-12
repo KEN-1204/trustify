@@ -1,3 +1,4 @@
+/* 半分 Row30pxバージョン */
 .main_container:global {
   --grid-bg-color: #1c1c1c;
   /* GridTable Supabase */
@@ -118,8 +119,8 @@
   /* max-height: calc(100vh / 3 - var(--header-height) / 3); */
   /* min-height: calc(100vh / 3 - var(--header-height) / 3); */
   /* 全体に表示 Header 56px grid-header 22px */
-  max-height: calc(100vh - var(--header-height) - 22px);
-
+  /* height: calc(100vh - var(--header-height)); */
+  /* max-height: calc(100vh - var(--header-height) - 22px); */
   /* 全体に表示 ファンクションヘッダー有り height: 45px; */
   /* ヘッダー56px */
 
@@ -135,21 +136,6 @@
   color: var(--color-text);
   /* box-shadow: 0 0px 5px rgba(12, 12, 12, 0.3); */
   /* margin-top: 5px; */
-}
-.main_container_half {
-  /* 全体に表示 Header 56px grid-header 22px */
-  /* // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 高さ 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 */
-  max-height: calc(100vh / 2 - var(--header-height) / 2);
-  /* max-height: calc(100vh - var(--header-height)); */
-  /* 全体に表示 ファンクションヘッダー有り height: 45px; */
-  /* ヘッダー56px */
-}
-.main_container_one_third {
-  /* 全体に表示 Header 56px grid-header 22px */
-  /* // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 高さ 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 */
-  max-height: calc(100vh / 3 - var(--header-height) / 3);
-  /* 全体に表示 ファンクションヘッダー有り height: 45px; */
-  /* ヘッダー56px */
 }
 /* 🌟テーブルヘッダー タブエリア */
 .grid_header {
@@ -189,7 +175,7 @@
 .grid_main_container {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  /* height: 100%; */
   border: 1px solid var(--color-border-deep);
   border-top: 0px;
   /* box-shadow: 0 0 5px 0px rgba(12, 12, 12, 0.3); */
@@ -230,21 +216,12 @@
   /* 全体に表示 ファンクションヘッダー無し */
   /* max-height: calc(100vh - var(--header-height) - 30px); */
   /* 全体に表示 ファンクションヘッダー有り height: 40px; footer: 30px */
-  /* ファンクションヘッダー:-30px、フッター:-40px */
-  /* max-height: calc(100vh - var(--header-height) - 30px); */
-  max-height: calc(100vh - var(--header-height) - 30px) - 40px;
+  /* max-height: calc(100vh - var(--header-height) - 30px - 40px); */
+  max-height: calc(100vh / 2 - var(--header-height) / 2 - 30px - 40px);
   width: 100%;
   overflow: auto;
   position: relative;
   padding-right: 30vw;
-}
-.grid_scroll_container_half {
-  /* // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 高さ 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 */
-  max-height: calc(100vh / 2 - var(--header-height) / 2 - 30px - 40px);
-}
-.grid_scroll_container_one_third {
-  /* // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 高さ 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 */
-  max-height: calc(100vh / 3 - var(--header-height) / 3 - 30px - 40px);
 }
 /* 仮想化Rowグループコンテナ */
 .grid_rowgroup_virtualized_container {

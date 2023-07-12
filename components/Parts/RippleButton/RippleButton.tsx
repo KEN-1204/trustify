@@ -13,6 +13,7 @@ type Props = {
   minWidth?: string;
   minHeight?: string;
   classText?: string;
+  clickEventHandler?: () => void;
 };
 
 const RippleButtonMemo: FC<Props> = ({
@@ -25,13 +26,16 @@ const RippleButtonMemo: FC<Props> = ({
   minHeight = "26px",
   borderRadius = "4px",
   classText,
+  clickEventHandler,
   //   padding = "14px 40px",
 }) => {
   //   linear-gradient(90deg, #6616d0, #ac34e7)
 
-  const buttonRef = useRef<HTMLAnchorElement | null>(null);
+  // const buttonRef = useRef<HTMLAnchorElement | null>(null); // Linkタグ用
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
 
-  const handleClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+  // const handleClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.preventDefault();
 
     let overlay = document.createElement("span");
@@ -56,8 +60,8 @@ const RippleButtonMemo: FC<Props> = ({
 
   return (
     <>
-      <Link
-        href="#"
+      <button
+        // href="#"
         className={`${styles.button} transition-base03 px-[10px] py-[4px] ${classText}`}
         style={{
           fontSize: fontSize,
@@ -70,10 +74,13 @@ const RippleButtonMemo: FC<Props> = ({
         }}
         data-text="Button"
         ref={buttonRef}
-        onClick={handleClick}
+        onClick={(e) => {
+          handleClick(e);
+          if (clickEventHandler) clickEventHandler();
+        }}
       >
         {title}
-      </Link>
+      </button>
     </>
   );
 };
