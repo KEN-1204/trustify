@@ -106,6 +106,8 @@
   --color-bg-brand-f: #0d99ff; /* Figma */
   --color-bg-brand-f-hover: #0d99ff90;
   --color-bg-brand-f05: #e5f4ff; /* Figma */
+  --color-bg-brand-f08: #0d99ff90; /* Figma */
+  --color-bg-brand-f-deep: #0c88e1; /* Figma */
   --color-bg-brand05: #0d99ff80;
   --color-bg-brand-hover: #007be5;
   --color-bg-brand-hover-main: #3183ff;
@@ -121,14 +123,17 @@
   /* --color-bg-brand-table-tab: #0d99ffd0; */
   --color-bg-brand-table-tab: #2b7fffe0;
   --color-bg-brand-table-tab: linear-gradient(to top right, #2b7fff, #0affff50);
+  /* --color-bg-brand-table-tab: #fff; */
   /* --color-bg-brand-table-tab: #e2f0fd; */
   /* --color-bg-brand-table-tab: linear-gradient(to top left, #2b7fff, #acffff); */
   --color-shadow-border: #ffffff70;
   --color-border-table: #ccc;
+  --color-border-table-deep: #aaa;
   /* --color-border-table: #e6e6e6; */
   /* --color-table-header: #40576d18; */
   /* ヘッダーブルー */
   --color-table-header: #e2f0fd;
+  /* --color-table-header: #0d99ff20; */
   /* --color-table-header: #ecf4fc; */
   /* ヘッダーモノクロ */
   /* --color-table-header: #eee; */
@@ -139,7 +144,7 @@
   --color-table-footer: #fff;
   --color-table-bg-loading: #fff;
   /* リフレクション ブルー */
-  --color-table-reflection: #0d99ff70;
+  --color-table-reflection: #0d99ff30;
   /* --color-table-reflection: #d9eafb; */
   --color-table-loading-spinner: #0d99ffd0;
   /* --color-table-row-hover: #ecf4fca0; */
@@ -162,9 +167,13 @@
   /* --color-sidebar-active: #3eabfa; */
 
   /* ボタン */
-  --color-btn-brand: #2b7fff;
+  /* --color-btn-brand-f: linear-gradient(to top right, #2b7fff, #0affff50); */
+  --color-btn-brand-f: var(--color-bg-brand-f08);
+  --color-btn-brand-f-hover: var(--color-bg-brand-f);
+  --color-btn-text: #fff;
+  /* --color-btn-brand: #2b7fff;
   --color-btn-brand-rgb: 43, 127, 255;
-  --color-btn-brand-hover: #2571e2;
+  --color-btn-brand-hover: #2571e2; */
   /* ボタン 薄め */
   --color-btn-brand-f05: #e5f4ff;
   /* ASISTボタン */
@@ -402,6 +411,7 @@
   --color-bg-brand-table-tab: #2258a9;
   --color-bg-brand-table-tab: linear-gradient(to top right, #2b7fffba, #0affff50);
   --color-border-table: #333;
+  --color-border-table-deep: #555;
   --color-table-header: #252525;
   /* --color-table-footer: #252525; */
   --color-table-footer: #191919;
@@ -424,9 +434,12 @@
   /* --color-sidebar-active: #24608b; */
 
   /* ======================= 🌟ボタン dark ======================= */
-  --color-btn-brand: #2b7fff;
+  --color-btn-brand-f: var(--color-bg-brand-f05);
+  --color-btn-brand-f-hover: var(--color-bg-brand-f);
+  --color-btn-text: #fff;
+  /* --color-btn-brand: #2b7fff;
   --color-btn-brand-rgb: 43, 127, 255;
-  --color-btn-brand-hover: #2571e2;
+  --color-btn-brand-hover: #2571e2; */
 
   /* 🌟ボタン 薄め dark */
   --color-btn-brand-f05: #0e5d95;

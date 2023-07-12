@@ -49,7 +49,7 @@ export const DashboardHomeComponent = () => {
 
           <section
             // className={`${styles.home_screen} space-y-[20px] ${
-            className={`${styles.home_screen}  ${activeMenuTab === "Meeting" ? "space-y-0. !px-0 !py-0" : ""}`}
+            className={`${styles.home_screen}  ${activeMenuTab === "Contacts" ? `${styles.all_container} space-y-0 !px-0 !py-0` : ""}`}
           >
             {/* <GridTableTest /> */}
             {/* <div className="h-[20vh] w-full"></div> */}
@@ -67,7 +67,8 @@ export const DashboardHomeComponent = () => {
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense fallback={<Fallback />}>
                   {/* <GridTableHomeSuccess title="メッセージ" /> */}
-                  <GridTableSmall title="担当者" />
+                  <GridTableAll title="GridTableAll" />
+                  {/* <GridTableAll title="GridTableAll2" /> */}
                 </Suspense>
               </ErrorBoundary>
             )}
@@ -75,7 +76,7 @@ export const DashboardHomeComponent = () => {
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense fallback={<Fallback />}>
                   {/* <GridTableHomeSuccess title="メッセージ" /> */}
-                  <GridTableSmallHalf title="活動" />
+                  <GridTableSmallHalf title="GridTableSmallHalf" />
                 </Suspense>
               </ErrorBoundary>
             )}
@@ -83,7 +84,7 @@ export const DashboardHomeComponent = () => {
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense fallback={<Fallback />}>
                   {/* <GridTableHomeSuccess title="メッセージ" /> */}
-                  <GridTableAll title="面談・訪問" />
+                  <GridTableSmall title="GridTableSmall" />
                 </Suspense>
               </ErrorBoundary>
             )}

@@ -63,7 +63,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   }, [isOpenEditModal, openLangTab]);
 
   // マウント時にbodyタグにoverflow: hiddenを設定して、ネイティブアプリケーションのようにする
-  useEffectOnce(() => {
+  useEffect(() => {
     // document.body.style.overflow = "hidden";
     // if (theme === "light") {
     //   document.body.style.backgroundColor = "#fff";
@@ -71,7 +71,16 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
     //   document.body.style.backgroundColor = "#121212";
     // }
     document.body.style.overflow = "hidden";
-  });
+  }, []);
+  // useEffectOnce(() => {
+  //   // document.body.style.overflow = "hidden";
+  //   // if (theme === "light") {
+  //   //   document.body.style.backgroundColor = "#fff";
+  //   // } else {
+  //   //   document.body.style.backgroundColor = "#121212";
+  //   // }
+  //   document.body.style.overflow = "hidden";
+  // });
 
   // ログアウト関数
   const handleSignOut = async () => {

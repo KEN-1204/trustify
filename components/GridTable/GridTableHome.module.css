@@ -117,7 +117,8 @@
   /* height: calc(100vh - var(--header-height)); */
   /* max-height: calc(100vh / 3 - var(--header-height) / 3); */
   min-height: calc(100vh / 3 - var(--header-height) / 3);
-  background-color: aqua;
+  /* 全体に表示 */
+  /* max-height: calc(100vh - var(--header-height) - 18px); */
 
   position: relative;
   display: flex;
@@ -153,6 +154,8 @@
   width: 100%;
   padding: 0 15px;
   border-top-left-radius: 4px;
+  /* 全体に表示 */
+  /* border-top-left-radius: 4px;は無し */
   /* border-top-right-radius: 4px; */
   font-size: 12px;
   user-select: none;
@@ -173,6 +176,8 @@
   border-top: 0px;
   /* box-shadow: 0 0 5px 0px rgba(12, 12, 12, 0.3); */
   border-bottom-left-radius: 4px;
+  /* 全体に表示 */
+  /* border-bottom-left-radius: 4px;は無し */
   /* border-bottom-right-radius: 4px; */
 }
 /* 🌟ファンクションヘッダー */
@@ -199,6 +204,8 @@
   /* height: 100%; */
   /* -22pxはテーブルヘッダーの高さ */
   max-height: calc(100vh / 3 - var(--header-height) / 3 - 22px);
+  /* 全体に表示 */
+  /* max-height: calc(100vh - var(--header-height) - 30px); */
   width: 100%;
   overflow: auto;
   position: relative;

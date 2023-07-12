@@ -10,20 +10,21 @@ type Props = {
   bgColor?: string;
   padding?: string;
   borderRadius?: string;
-  width?: string;
-  height?: string;
+  minWidth?: string;
+  minHeight?: string;
+  classText?: string;
 };
 
 const RippleButtonMemo: FC<Props> = ({
   title,
-  fontSize = "18px",
-  fontWeight = 700,
+  fontSize = "12px",
+  fontWeight = 500,
   textColor = "#fff",
-  //   bgColor = "var(--color-bg-brand-gradient)",
-  bgColor = "#0066ff",
-  width = "90px",
-  height = "28px",
-  borderRadius = "45px",
+  bgColor = "var(--color-bg-brand-gradient)",
+  minWidth = "75px",
+  minHeight = "26px",
+  borderRadius = "4px",
+  classText,
   //   padding = "14px 40px",
 }) => {
   //   linear-gradient(90deg, #6616d0, #ac34e7)
@@ -57,14 +58,14 @@ const RippleButtonMemo: FC<Props> = ({
     <>
       <Link
         href="#"
-        className={styles.button}
+        className={`${styles.button} transition-base03 px-[10px] py-[4px] ${classText}`}
         style={{
           fontSize: fontSize,
           fontWeight: fontWeight,
           color: textColor,
-          background: bgColor,
-          width: width,
-          height: height,
+          // background: bgColor,
+          minWidth: minWidth,
+          minHeight: minHeight,
           borderRadius: borderRadius,
         }}
         data-text="Button"

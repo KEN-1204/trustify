@@ -39,7 +39,7 @@
   overflow-x: inherit;
 }
 .spacer_top {
-  height: var(--header-height);
+  min-height: var(--header-height);
   width: 100%;
 }
 .main_contents_container {
@@ -73,4 +73,8 @@
   justify-content: flex-start;
   /* padding: 10px 0px 10px 10px; */
   padding: 20px 0px 20px 20px;
+}
+.all_container {
+  height: calc(100vh - var(--header-height));
+  /* max-height: calc(100vh - var(--header-height)); */
 }

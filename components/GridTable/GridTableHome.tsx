@@ -590,7 +590,8 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       // accumulatedLeftPosition:  [65, 165, 415, 665, 915, 1165, 1415, 1665]
       // if (!colsWidth) return;
       // 現在のcolsWidthをコピー
-      const widthArray = JSON.parse(JSON.stringify(colsWidth));
+      const widthArray = JSON.parse(JSON.stringify(currentColsWidths.current));
+      // const widthArray = JSON.parse(JSON.stringify(colsWidth));
 
       // 各要素の累積和を計算し、新しい配列を作る
       const accumulatedArray = widthArray.reduce((acc: number[], value: string) => {
@@ -698,7 +699,8 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
       // accumulatedLeftPosition:  [65, 165, 415, 665, 915, 1165, 1415, 1665]
       // if (!colsWidth) return;
       // 現在のcolsWidthをコピー
-      const widthArrayMove = JSON.parse(JSON.stringify(newColsWidths));
+      const widthArrayMove = JSON.parse(JSON.stringify(currentColsWidths.current));
+      // const widthArrayMove = JSON.parse(JSON.stringify(newColsWidths));
 
       // 各要素の累積和を計算し、新しい配列を作る
       const accumulatedArrayMove = widthArrayMove.reduce((acc: number[], value: string) => {
@@ -1180,10 +1182,13 @@ const GridTableHomeMemo: FC<Props> = ({ title }) => {
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>, index: number) => {
     // if (isReadyDragEnter) return;
+    if (columnHeaderItemList[index].isFrozen)
+      return console.log("isFrozen リターン", columnHeaderItemList[index].isFrozen);
+    // console.log("🌟handleDragOver index, e", index, e);
 
-    const dragItem: HTMLDivElement = e.target as HTMLDivElement; // ドラッグしている要素
+    // const dragItem: HTMLDivElement = e.target as HTMLDivElement; // ドラッグしている要素
 
-    const targetEl = colsRef.current[index];
+    // const targetEl = colsRef.current[index];
 
     // 左要素のロジック ドラッグ位置が左隣の要素の中心を超えたら
     if (leftBorderLine) {
