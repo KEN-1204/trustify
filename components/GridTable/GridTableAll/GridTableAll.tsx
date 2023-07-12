@@ -10,6 +10,8 @@ import { EditColumnsModal } from "../EditColumns/EditColumnsModal";
 import useThemeStore from "@/store/useThemeStore";
 import useRootStore from "@/store/useRootStore";
 import { RippleButton } from "@/components/Parts/RippleButton/RippleButton";
+import { ChangeSizeBtn } from "@/components/Parts/ChangeSizeBtn/ChangeSizeBtn";
+import { FiLock } from "react-icons/fi";
 
 type TableDataType = {
   id: number;
@@ -83,6 +85,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   const gridRowTracksRefs = useRef<(HTMLDivElement | null)[]>([]);
   // フォーカス中、選択中のセルを保持
   const selectedGridCellRef = useRef<HTMLDivElement | null>(null);
+  const [activeCell, setActiveCell] = useState<HTMLDivElement | null>(null);
   // 前回のアクティブセル
   const prevSelectedGridCellRef = useRef<HTMLDivElement | null>(null);
   // カラム3点リーダー表示時のツールチップ表示State 各カラムでoverflowになったintIdかuuid(string)を格納する
@@ -97,7 +100,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // それぞれのカラムのLeftの位置を保持 isFrozenがtrueになったときにindexから値を取得してleftに付与 id列の2列目から
   const columnLeftPositions = useRef<number[]>([]);
   // コンテナのサイズを全体と半分で更新するためのState
-  const [containerSize, setContainerSize] = useState("all");
+  //   const [tableContainerSize, setTableContainerSize] = useState("all");
+  const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
 
   // ============================== 🌟カラム編集モーダルで並び替え後🌟 ==============================
   // テーブルカラム編集モーダル
@@ -819,6 +823,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
 
     // クリックしたセルを新たなアクティブセルとしてrefに格納して更新
     selectedGridCellRef.current = e.currentTarget;
+    setActiveCell(e.currentTarget);
 
     console.log(
       `前回アクティブセルの行と列: ${prevSelectedGridCellRef.current?.ariaColIndex}, ${prevSelectedGridCellRef.current?.parentElement?.ariaRowIndex}, 今回アクティブの行と列: ${selectedGridCellRef.current?.ariaColIndex}, ${selectedGridCellRef.current?.parentElement?.ariaRowIndex}`
@@ -1462,9 +1467,9 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // ================================== 🌟カラム順番入れ替え🌟 ここまで ==================================
 
   // ============== 🌟フローズンイベント leftとstickyとz-indexを加えて、columnIndexを変更する🌟 ==============
-  const handleFrozen = (e: React.MouseEvent<HTMLElement, MouseEvent>, index: number) => {
+  //   const handleFrozen = (e: React.MouseEvent<HTMLElement, MouseEvent>, index: number) => {
+  const handleFrozen = (index: number) => {
     console.log("🌟カラムヘッダー ダブルクリック フローズンイベント ========================");
-    console.log(e);
     console.log(index);
     console.log("✅ フローズンの個数isFrozenCountRef.current", isFrozenCountRef.current);
     console.log("✅ レフトポジションcolumnLeftPositions.current", columnLeftPositions.current);
@@ -1511,6 +1516,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       // 現在のフローズンの総個数を更新する filteredIsFrozenColumnListの+1
       isFrozenCountRef.current = isFrozenCountRef.current + 1;
       // isFrozenCountRef.current = filteredIsFrozenColumnList.length + 1;
+      // アクティブセルを再度Stateに格納する
+      //   setActiveCell(colsRef.current[isFrozenCountRef.current - 1]);
 
       // ✅--template-columnsも更新する [65px, 100px, 250px,...]の配列を作成してjoinで' 'を付けて結合する
       const newColumnWidthList = newColumnHeaderItemList.map((item) => item.columnWidth);
@@ -1610,6 +1617,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       // 現在のフローズンの総個数を更新する filteredIsFrozenColumnListの-1
       isFrozenCountRef.current = isFrozenCountRef.current - 1;
       // isFrozenCountRef.current = filteredIsFrozenColumnList.length - 1;
+      // アクティブセルを再度Stateに格納する
+      //   setActiveCell(colsRef.current[isFrozenCountRef.current]);
 
       // ✅--template-columnsも更新する [65px, 100px, 250px,...]の配列を作成してjoinで' 'を付けて結合する
       const newColumnWidthList = newColumnHeaderItemList.map((item) => item.columnWidth);
@@ -1704,6 +1713,9 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   console.log("✅ currentColsWidths.current", currentColsWidths.current);
   console.log("✅ フローズンの個数isFrozenCountRef.current", isFrozenCountRef.current);
   console.log("✅ レフトポジションcolumnLeftPositions.current", columnLeftPositions.current);
+  console.log("✅ 選択中のアクティブセルselectedGridCellRef", selectedGridCellRef);
+  console.log("✅ 選択中のアクティブセルactiveCell", activeCell);
+  console.log("✅ 全てのカラムcolsRef", colsRef);
   //   console.log("✅ window", window.innerHeight);
 
   // 🌟カラム3点リーダー表示中はホバー時にツールチップを有効化
@@ -1714,8 +1726,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       {/* ================== メインコンテナ ================== */}
       <div
         className={`${styles.main_container} ${
-          containerSize === "one_third" ? `${styles.main_container_one_third}` : ``
-        } ${containerSize === "half" ? `${styles.main_container_half}` : ``} ${
+          tableContainerSize === "one_third" ? `${styles.main_container_one_third}` : ``
+        } ${tableContainerSize === "half" ? `${styles.main_container_half}` : ``} ${
           theme === "light" ? `${styles.theme_f_light}` : `${styles.theme_f_dark}`
         }`}
       >
@@ -1734,31 +1746,72 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                 title={`新規サーチ`}
                 classText="select-none"
                 clickEventHandler={() => {
-                  if (containerSize === "all") return;
-                  console.log("クリック コンテナ高さ変更 All");
-                  setContainerSize("all");
+                  //   if (tableContainerSize === "all") return;
+                  //   console.log("クリック コンテナ高さ変更 All");
+                  //   setTableContainerSize("all");
+                  console.log("新規サーチ クリック");
                 }}
               />
               <RippleButton
                 title={`サーチ編集`}
                 classText="select-none"
                 clickEventHandler={() => {
-                  if (containerSize === "half") return;
-                  console.log("クリック コンテナ高さ変更 ハーフ");
-                  setContainerSize("half");
+                  //   if (tableContainerSize === "half") return;
+                  //   console.log("クリック コンテナ高さ変更 ハーフ");
+                  //   setTableContainerSize("half");
+                  console.log("サーチ編集 クリック");
                 }}
               />
             </div>
             <div className={`flex max-h-[26px] w-full  items-center justify-end space-x-3`}>
-              <RippleButton title={`カラム編集`} classText="select-none" />
-              <RippleButton title={`サイズ切り替え`} classText="select-none" />
+              <div
+                className={`flex-center transition-base01 h-[28px]  w-[82px] space-x-2  rounded-[4px] text-[12px]  ${
+                  activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) !== 1
+                    ? `cursor-pointer  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`
+                    : "cursor-not-allowed text-[#999]"
+                }`}
+                onClick={() => {
+                  if (!activeCell) return;
+                  if (activeCell.ariaColIndex === null) return;
+                  // カラムヘッダーでかつ、チェックボックスでないなら
+                  if (activeCell.role === "columnheader" && Number(activeCell.ariaColIndex) !== 1) {
+                    handleFrozen(Number(activeCell.ariaColIndex) - 2);
+                    console.log("クリック フローズン");
+                  }
+                }}
+              >
+                <FiLock />
+                <span>固定</span>
+                {/* <span>
+                  {activeCell?.classList.contains(`${styles.grid_column_frozen}`) &&
+                  activeCell?.role === "columnheader" &&
+                  Number(activeCell?.ariaColIndex) !== 1
+                    ? "解除"
+                    : "固定"}
+                </span> */}
+              </div>
+              <RippleButton
+                title={`カラム編集`}
+                classText="select-none"
+                clickEventHandler={() => {
+                  const newResetColumnHeaderItemList = JSON.parse(JSON.stringify(columnHeaderItemList));
+                  console.log(
+                    "🔥🔥🔥モーダル開いた ZustandのリセットStateにパースして格納newResetColumnHeaderItemList",
+                    newResetColumnHeaderItemList
+                  );
+                  setResetColumnHeaderItemList(newResetColumnHeaderItemList);
+                  setIsOpenEditColumns(true);
+                }}
+              />
+              <ChangeSizeBtn />
               <RippleButton
                 title={`ホバーモード`}
                 classText="select-none"
                 clickEventHandler={() => {
-                  if (containerSize === "one_third") return;
-                  console.log("クリック コンテナ高さ変更 3分の1");
-                  setContainerSize("one_third");
+                  //   if (tableContainerSize === "one_third") return;
+                  //   console.log("クリック コンテナ高さ変更 3分の1");
+                  //   setTableContainerSize("one_third");
+                  console.log("ホバーモード クリック");
                 }}
               />
             </div>
@@ -1771,8 +1824,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
             style={{ width: "100%" }}
             // style={{ height: "100%", "--header-row-height": "35px" } as any}
             className={`${styles.grid_scroll_container} ${
-              containerSize === "one_third" ? `${styles.grid_scroll_container_one_third}` : ``
-            } ${containerSize === "half" ? `${styles.grid_scroll_container_half}` : ``}`}
+              tableContainerSize === "one_third" ? `${styles.grid_scroll_container_one_third}` : ``
+            } ${tableContainerSize === "half" ? `${styles.grid_scroll_container_half}` : ``}`}
           >
             {/* ======================== 🌟Grid列トラック Rowヘッダー🌟 ======================== */}
             <div
@@ -1858,7 +1911,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                         // style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
                         onClick={(e) => handleClickGridCell(e)}
                         onDoubleClick={(e) => {
-                          handleFrozen(e, index);
+                          handleFrozen(index);
+                          //   handleFrozen(e, index);
                           // handleDoubleClick(e, index);
                         }}
                         onMouseEnter={(e) => {

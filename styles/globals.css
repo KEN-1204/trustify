@@ -106,8 +106,17 @@
   --color-bg-brand-f: #0d99ff; /* Figma */
   --color-bg-brand-f-hover: #0d99ff90;
   --color-bg-brand-f05: #e5f4ff; /* Figma */
-  --color-bg-brand-f08: #0d99ff90; /* Figma */
-  --color-bg-brand-f-deep: #0c88e1; /* Figma */
+  --color-bg-brand-f10: #0d99ff10;
+  --color-bg-brand-f30: #0d99ff30;
+  --color-bg-brand-f50: #0d99ff50;
+  --color-bg-brand-f70: #0d99ff70;
+  --color-bg-brand-f08: #0d99ff90;
+  --color-bg-brand-f90: #0d99ff90;
+  --color-bg-brand-fa0: #0d99ffa0;
+  --color-bg-brand-fb0: #0d99ffb0;
+  --color-bg-brand-fc0: #0d99ffc0;
+  --color-bg-brand-fe0: #0d99ffe0;
+  --color-bg-brand-f-deep: #0c88e1;
   --color-bg-brand05: #0d99ff80;
   --color-bg-brand-hover: #007be5;
   --color-bg-brand-hover-main: #3183ff;
@@ -115,6 +124,8 @@
   --color-bg-brand-secondary: #0768cf;
   --color-bg-brand-light: #0affff;
   --color-bg-brand-sub: #2b7fff;
+  --color-bg-brand-sub08: #2b7fff90;
+  --color-bg-brand-sub-deep: #2b7fff;
   --color-bg-brand-sub-rgb: 43, 127, 255;
   --color-bg-brand-sub-hover: #2571e2;
 
@@ -166,9 +177,11 @@
   /* --color-sidebar-active: #ddf0fe; */
   /* --color-sidebar-active: #3eabfa; */
 
-  /* ボタン */
+  /* ボタン 🌈ライト */
   /* --color-btn-brand-f: linear-gradient(to top right, #2b7fff, #0affff50); */
-  --color-btn-brand-f: var(--color-bg-brand-f08);
+  /* --color-btn-brand-f: var(--color-bg-brand-f);
+  --color-btn-brand-f-hover: var(--color-bg-brand-f-deep); */
+  --color-btn-brand-f: var(--color-bg-brand-f90);
   --color-btn-brand-f-hover: var(--color-bg-brand-f);
   --color-btn-text: #fff;
   /* --color-btn-brand: #2b7fff;
@@ -392,6 +405,16 @@
   --color-bg-brand-f: #0c8ce9; /* Figma */
   --color-bg-brand-f-hover: #0c8ce990;
   --color-bg-brand-f05: #0e5d95; /* Figma */
+  --color-bg-brand-f10: #0c8ce910;
+  --color-bg-brand-f30: #0c8ce930;
+  --color-bg-brand-f50: #0c8ce950;
+  --color-bg-brand-f70: #0c8ce970;
+  --color-bg-brand-f08: #0c8ce990;
+  --color-bg-brand-f90: #0c8ce990;
+  --color-bg-brand-fa0: #0c8ce9a0;
+  --color-bg-brand-fb0: #0c8ce9b0;
+  --color-bg-brand-fc0: #0c8ce9c0;
+  --color-bg-brand-fe0: #0c8ce9e0;
   --color-bg-brand05: #0c8ce980;
   --color-bg-brand-hover: #0a6dc2;
   --color-bg-brand-hover-main: #3183ff;

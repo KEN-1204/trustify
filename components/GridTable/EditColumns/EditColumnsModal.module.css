@@ -92,8 +92,10 @@
   background-color: var(--color-edit-left-active-bg);
 }
 .sortable_list .item.active_right {
-  box-shadow: 0 0 0 1px var(--color-edit-right-active);
-  background-color: var(--color-edit-right-active-bg);
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+  background-color: var(--color-bg-brand-f30);
+  /* box-shadow: 0 0 0 1px var(--color-edit-right-active);
+  background-color: var(--color-edit-right-active-bg); */
 }
 .item .details {
   display: flex;

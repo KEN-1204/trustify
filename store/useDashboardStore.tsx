@@ -34,6 +34,14 @@ type State = {
   // 【カラム順番入れ替え 初期状態の内容を保持してリセット可能にするstate】
   resetColumnHeaderItemList: ColumnHeaderItemList[];
   setResetColumnHeaderItemList: (payload: ColumnHeaderItemList[]) => void;
+
+  // =================== テーブルサイズ切り替え ===================
+  // 【テーブルサイズ切り替えメニュー開閉状態】
+  isOpenChangeSizeMenu: boolean;
+  setIsOpenChangeSizeMenu: (payload: boolean) => void;
+  // 【テーブルサイズの保持】
+  tableContainerSize: string;
+  setTableContainerSize: (payload: string) => void;
 };
 
 const useDashboardStore = create<State>((set) => ({
@@ -67,6 +75,13 @@ const useDashboardStore = create<State>((set) => ({
   // 【カラム順番入れ替え 初期状態の内容を保持してリセット可能にするstate】
   resetColumnHeaderItemList: [],
   setResetColumnHeaderItemList: (payload) => set({ resetColumnHeaderItemList: payload }),
+  // =================== テーブルサイズ切り替えボタン ===================
+  // 【テーブルサイズ切り替えメニュー開閉状態】
+  isOpenChangeSizeMenu: false,
+  setIsOpenChangeSizeMenu: (payload) => set({ isOpenChangeSizeMenu: payload }),
+  // 【テーブルサイズの保持】
+  tableContainerSize: "all",
+  setTableContainerSize: (payload) => set({ tableContainerSize: payload }),
 }));
 
 export default useDashboardStore;

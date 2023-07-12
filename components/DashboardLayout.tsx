@@ -15,6 +15,7 @@ import { EditModal } from "./EditModal/EditModal";
 import { EditColumns } from "./GridTable/EditColumns/EditColumns";
 import useThemeStore from "@/store/useThemeStore";
 import useRootStore from "@/store/useRootStore";
+import { ChangeSizeMenu } from "./Parts/ChangeSizeMenu/ChangeSizeMenu";
 
 type Prop = {
   title?: string;
@@ -106,6 +107,8 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   // テーブルカラム編集モーダル
   const isOpenEditColumns = useDashboardStore((state) => state.isOpenEditColumns);
   const setIsOpenEditColumns = useDashboardStore((state) => state.setIsOpenEditColumns);
+  // サイズ切り替えメニュー
+  const clickedItemPos = useStore((state) => state.clickedItemPos);
 
   return (
     <div className={`${styles.trustify_app} relative`}>
@@ -159,6 +162,9 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
 
       {/* カラム編集モーダル */}
       {/* {isOpenEditColumns && <EditColumns />} */}
+
+      {/* サイズ切り替えメニュー */}
+      {clickedItemPos && <ChangeSizeMenu />}
     </div>
   );
 };

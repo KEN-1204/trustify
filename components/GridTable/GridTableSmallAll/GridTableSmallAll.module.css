@@ -219,6 +219,15 @@
   align-items: center;
   justify-content: space-between;
 }
+.fh_text_btn {
+  /* border: 1px solid var(--color-bg-brand-f); */
+}
+.fh_text_btn:hover {
+  /* border: 1px solid var(--color-bg-brand-f); */
+  /* border: 1px solid #6ae67d; */
+  background: var(--color-bg-brand-f);
+  color: #fff;
+}
 .page_transition_button {
   font-size: 14px;
   color: var(--color-text);

@@ -12,7 +12,6 @@ import Spinner from "../Parts/Spinner/Spinner";
 import { Fallback } from "../Fallback/Fallback";
 import { SpinnerComet } from "../Parts/SpinnerComet/SpinnerComet";
 import { GridTableSmallAll } from "../GridTable/GridTableSmallAll/GridTableSmallAll";
-import { GridTableSmallHalf } from "../GridTable/GridTableSmallHalf/GridTableSmallHalf";
 import { GridTableAll } from "../GridTable/GridTableAll/GridTableAll";
 import useThemeStore from "@/store/useThemeStore";
 import { GridTableHalf } from "../GridTable/GridTableHalf/GridTableHalf";
@@ -22,22 +21,28 @@ export const DashboardHomeComponent = () => {
   // const theme = useStore((state) => state.theme);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   const activeMenuTab = useDashboardStore((state) => state.activeMenuTab);
+  const isOpenChangeSizeMenu = useDashboardStore((state) => state.isOpenChangeSizeMenu);
+  const setIsOpenChangeSizeMenu = useDashboardStore((state) => state.setIsOpenChangeSizeMenu);
+  const setClickedItemPos = useStore((state) => state.setClickedItemPos);
 
-  // フォールバックコンポーネント
-  // const ErrorFallback = (
-  //   <div className="flex-center fixed inset-0 z-50 bg-red-100 text-[#fff]">
-  //     <div>
-  //       <AiOutlineExclamationCircle />
-  //     </div>
-  //     <p>エラーが発生しました。</p>
-  //   </div>
-  // );
   return (
     <div
       className={`flex-center ${styles.app_main_container} relative ${
         isOpenSidebar ? `${styles.open}` : `${styles.close}`
       }`}
     >
+      {/* 言語切り替えタブ表示時中のオーバーレイ */}
+      {isOpenChangeSizeMenu && (
+        <div
+          className={styles.overlay}
+          onClick={() => {
+            console.log("DashboardHomeComponent オーバーレイクリック");
+            setClickedItemPos(null);
+            // setClickedItemPosOver(null);
+            setIsOpenChangeSizeMenu(false);
+          }}
+        />
+      )}
       {/* 左サイドバーサイズ分のスペーサー */}
       <div className={`${styles.spacer_left} ${isOpenSidebar ? `transition-base02` : `transition-base01`}`}></div>
       <div className={`${styles.main_contents_wrapper}`}>
@@ -77,14 +82,13 @@ export const DashboardHomeComponent = () => {
                 </Suspense>
               </ErrorBoundary>
             )}
-            {activeMenuTab === "Activity" && (
+            {/* {activeMenuTab === "Activity" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense fallback={<Fallback />}>
                   <GridTableHalf title="GridTableHalf" />
-                  {/* <GridTableHalf title="GridTableHalf" /> */}
                 </Suspense>
               </ErrorBoundary>
-            )}
+            )} */}
             {activeMenuTab === "Meeting" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense fallback={<Fallback />}>
