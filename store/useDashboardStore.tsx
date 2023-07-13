@@ -42,6 +42,11 @@ type State = {
   // 【テーブルサイズの保持】
   tableContainerSize: string;
   setTableContainerSize: (payload: string) => void;
+
+  // =================== アンダーテーブル関連 ===================
+  // 【サーチモード切り替え】
+  searchMode: boolean;
+  setSearchMode: (payload: boolean) => void;
 };
 
 const useDashboardStore = create<State>((set) => ({
@@ -82,6 +87,10 @@ const useDashboardStore = create<State>((set) => ({
   // 【テーブルサイズの保持】
   tableContainerSize: "one_third",
   setTableContainerSize: (payload) => set({ tableContainerSize: payload }),
+  // =================== アンダーテーブル関連 ===================
+  // 【サーチモード切り替え】
+  searchMode: false,
+  setSearchMode: (payload) => set({ searchMode: payload }),
 }));
 
 export default useDashboardStore;

@@ -10,6 +10,7 @@ const CompanyDetailMemo: FC = () => {
   console.log("🔥 CompanyDetail レンダリング");
   const theme = useRootStore(useThemeStore, (state) => state.theme);
   const [activeTabDetail, setActiveTabDetail] = useState("Company");
+  const [searchMode, setSearchMode] = useState(true);
   return (
     <div
       className={`${styles.detail_container} bg-red relative w-full  ${

@@ -16,7 +16,7 @@
     "Hiragino Kaku Gothic ProN", ãƒ¡ã‚¤ãƒªã‚ª, Meiryo, Osaka, "MS PGothic", "Noto Sans", "Helvetica Neue", Helvetica,
     Arial, sans-serif;
   /* Stripeフォント */
-  --font-family-stripe: "sohne-var", "Helvetica Neue", "Arial", sans-serif;
+  --font-family-str: "sohne-var", "Helvetica Neue", "Arial", sans-serif;
   /* Revolutフォント */
   --font-family-revolut: "Basier Circle", sans-serif;
   --off-white: #f6f6f6;
@@ -190,6 +190,7 @@
   --color-bg-under-input-box-shadow: inset 0px 0px 0px 1px #ffffff90, 0px 0px 0px 1px #ccc;
   --color-bg-under-input-active-box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f);
   --color-text-under-input: #252525;
+  --color-bg-underline: rgb(94 94 94 / 0.3);
 
   /* グラデーション light */
   --color-bg-brand-gradient: linear-gradient(to top left, #2b7fff, #acffff);
@@ -499,6 +500,8 @@
   --color-bg-under-input-active-box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f);
   /* --color-bg-under-input-active-box-shadow: inset 0px 0px 0px 1px #0066ff; */
   --color-text-under-input: #fff;
+  --color-bg-underline: rgb(94 94 94 / 0.3);
+  --color-bg-underline: rgba(117, 117, 117, 0.7);
 
   /* ======================= 🌟グラデーション dark ======================= */
   --color-bg-brand-gradient: linear-gradient(to top left, #2b7fffaa, #acffffaa);
@@ -691,7 +694,8 @@ body {
 
   /* text-rendering: optimizeLegibility; */
   /* font-family: var(--font-primary); */
-  font-family: var(--font-family-stripe);
+  /* Stripeフォント */
+  font-family: var(--font-family-str);
   /* font-family: var(--font-family-revolut); */
   /* font-family: var(--font-family-discord); */
   scroll-behavior: smooth;

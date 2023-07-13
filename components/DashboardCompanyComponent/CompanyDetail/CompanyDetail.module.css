@@ -211,15 +211,16 @@
 .left_wrapper {
   /* background: #fff; */
 }
-.underline {
-  height: 1px;
+
+.row_area {
+  display: flex;
   width: 100%;
-  background-color: rgb(94 94 94 / 0.3);
-}
-.divider {
-  background-color: rgb(94 94 94 / 0.3);
+  align-items: center;
+
+  margin-top: 5px;
 }
 .title_box {
+  padding-bottom: 5px;
 }
 .title {
   color: var(--color-text-brand-f);
@@ -227,7 +228,9 @@
   white-space: nowrap;
   /* 右側に20px余白 */
   /* padding-right: 20px; */
-  min-width: 80px;
+  /* min-width: 80px; */
+  min-width: 90px;
+  font-weight: 600;
 }
 .title_min {
   color: var(--color-text-brand-f);
@@ -236,9 +239,24 @@
   /* 右側に20px余白 */
   padding-right: 20px;
   /* min-width: 80px; */
+  font-weight: 600;
+}
+.value {
+  /* color: #333; */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.textarea_value {
+  /* color: #333; */
+  overflow: hidden;
+  display: -webkit-box;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 .input_box {
-  height: 80%;
+  height: 100%;
   width: 100%;
   background: var(--color-bg-under-input);
   color: var(--color-text-under-input);
@@ -249,10 +267,21 @@
 .input_box:focus {
   box-shadow: var(--color-bg-under-input-active-box-shadow);
 }
-.row_area {
-  display: flex;
+.underline {
+  min-height: 1px;
   width: 100%;
-  align-items: center;
-
-  margin-top: 5px;
+  background-color: var(--color-bg-underline);
+}
+.divider {
+  background-color: rgb(94 94 94 / 0.3);
+}
+.textarea_box {
+  height: 90%;
+  width: 100%;
+  background: var(--color-bg-under-input);
+  color: var(--color-text-under-input);
+  box-shadow: var(--color-bg-under-input-box-shadow);
+  padding: 3px 10px;
+  border-radius: 2px;
+  resize: none;
 }
