@@ -95,7 +95,7 @@
   --color-table-dragging-gradient: var(--gradient-color-brand);
 }
 .theme_grayscale_light:global {
-  --color-table-header: #f3f3f3;
+  /* --color-table-header: #f3f3f3; */
   /* --color-table-row-hover: #f3f3f390; */
   --border-theme: #0d99ff;
   /* --border-theme: #2b7fff; */
@@ -118,6 +118,8 @@
   /* overflow: hidden; */
   /* box-shadow: inset 0px 0px 0px 1px var(--color-border-table); */
   border: 1px solid var(--color-border-table);
+  border-top: 1px solid var(--color-border-table-deep);
+  /* border: 1px solid var(--color-border-table-deep); */
   /* box-sizing: border-box; */
 }
 
@@ -129,12 +131,13 @@
   );
 }
 
-/* ================================== ヘッダータブ ==================================== */
+/* ================================== 🌟ヘッダータブ ==================================== */
 .tab_header {
   /* background: var(--color-bg-brand-table-tab); */
   /* background: var(--color-bg-secondary); */
   background: var(--color-bg-under-tab-header);
   border-bottom: 1px solid var(--color-border-table);
+  border-bottom: 1px solid var(--color-border-table-deep);
 }
 .navbarItem {
   position: relative;
@@ -161,4 +164,95 @@
   width: 100%;
   height: 2px;
   /* background: var(--color-bg-brand-f); */
+}
+
+/* ================================== 🌟ファンクションヘッダー ================================== */
+.grid_function_header {
+  background: var(--color-table-header);
+  border-bottom: 1px solid var(--color-border-table-deep);
+  display: flex;
+  min-height: 40px;
+  width: 100%;
+  padding: 0px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.fh_text_btn {
+  /* border: 1px solid var(--color-bg-brand-f); */
+}
+.fh_text_btn:hover {
+  /* border: 1px solid var(--color-bg-brand-f); */
+  /* border: 1px solid #6ae67d; */
+  /* background: var(--color-bg-brand-f); */
+  /* background: var(--color-bg-brand-f-deep); */
+  background: var(--color-function-header-text-btn-hover);
+
+  color: #fff;
+}
+.fh_text_btn:active {
+  /* background: var(--color-btn-brand-f); */
+  background: var(--color-function-header-text-btn-active);
+}
+
+/* ================================== 🌟メインコンテナ ================================== */
+.main_container {
+  font-family: sans-serif, "Hiragino Sans", Roboto, system-ui;
+  /* font-family: "Hiragino Sans", sans-serif, Roboto, system-ui; */
+  font-size: 14px;
+}
+.scroll_container {
+  /* background: var(--color-table-header); */
+}
+.left_container {
+  /* border: 1px solid var(--color-border-table); */
+  /* border-top: none; */
+}
+.left_wrapper {
+  /* background: #fff; */
+}
+.underline {
+  height: 1px;
+  width: 100%;
+  background-color: rgb(94 94 94 / 0.3);
+}
+.divider {
+  background-color: rgb(94 94 94 / 0.3);
+}
+.title_box {
+}
+.title {
+  color: var(--color-text-brand-f);
+  color: var(--color-text-under-title);
+  white-space: nowrap;
+  /* 右側に20px余白 */
+  /* padding-right: 20px; */
+  min-width: 80px;
+}
+.title_min {
+  color: var(--color-text-brand-f);
+  color: var(--color-text-under-title);
+  white-space: nowrap;
+  /* 右側に20px余白 */
+  padding-right: 20px;
+  /* min-width: 80px; */
+}
+.input_box {
+  height: 80%;
+  width: 100%;
+  background: var(--color-bg-under-input);
+  color: var(--color-text-under-input);
+  box-shadow: var(--color-bg-under-input-box-shadow);
+  padding: 0px 10px;
+  border-radius: 2px;
+}
+.input_box:focus {
+  box-shadow: var(--color-bg-under-input-active-box-shadow);
+}
+.row_area {
+  display: flex;
+  width: 100%;
+  align-items: center;
+
+  margin-top: 5px;
 }

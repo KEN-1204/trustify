@@ -7,7 +7,7 @@ import useThemeStore from "@/store/useThemeStore";
 import { Profile } from "@/types";
 import { Session, User, createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { GetServerSidePropsContext } from "next";
-import React from "react";
+import React, { useEffect } from "react";
 import { useEffectOnce } from "react-use";
 
 const DashboardHome = ({
@@ -19,9 +19,11 @@ const DashboardHome = ({
   user: User;
   userProfile: Profile;
 }) => {
-  console.log("🔥Homeページ レンダリング initialSession, user, userProfile");
   const language = useStore((state) => state.language);
   const setTheme = useThemeStore((state) => state.setTheme);
+  const activeMenuTab = useDashboardStore((state) => state.activeMenuTab);
+  const setActiveMenuTab = useDashboardStore((state) => state.setActiveMenuTab);
+  console.log("🔥Homeページ レンダリング activeMenuTab", activeMenuTab);
   // const setTheme = useStore((state) => state.setTheme);
 
   // 言語別タイトル
@@ -38,10 +40,14 @@ const DashboardHome = ({
       break;
   }
 
-  // ログイン時にテーマをライトに設定する
-  useEffectOnce(() => {
+  // /companyページにいて、アクティブメニュータブがCompanyでない場合にはCompanyに変更する
+  useEffect(() => {
     // setTheme("light");
-  });
+    if (window.history.state.url === "/home" && activeMenuTab !== "HOME") {
+      setActiveMenuTab("HOME");
+      console.log("homeyページ アクティブタブをHOMEに変更");
+    }
+  }, [activeMenuTab]);
 
   return (
     <DashboardLayout title={langTitle}>

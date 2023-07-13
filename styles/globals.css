@@ -146,10 +146,11 @@
   /* --color-table-header: #40576d18; */
   /* ヘッダーブルー */
   --color-table-header: #e2f0fd;
-  /* --color-table-header: #0d99ff20; */
+  --color-table-header: #0d99ff20;
   /* --color-table-header: #ecf4fc; */
   /* ヘッダーモノクロ */
   /* --color-table-header: #eee; */
+  /* --color-table-header: #fff; */
   /* フッターブルー */
   /* --color-table-footer: #e2f0fd90; */
   /* フッターモノクロ */
@@ -168,17 +169,32 @@
   --color-table-checkbox-outline: #ccc;
   --color-table-checkbox-focus-outline: #fff;
   --color-table-dragging-gradient: #2b7fff #acffff;
+  --color-function-header-text-btn-hover: #3593ffe0;
+  --color-function-header-text-btn-active: #0c88e1;
 
-  /* ===================== 🌟テーブル 下画面 light ===================== */
+  /* ===================================== 🌟テーブル 下画面 light🌟 ===================================== */
   /* --color-bg-under-tab-header: var(--color-bg-secondary);
   --color-bg-under-function-header: var(--color-bg-secondary); */
-  --color-bg-under-tab-header: #e2f0fd;
-  --color-bg-under-function-header: #e2f0fd;
+  /* --color-bg-under-tab-header: #e2f0fd;
+  --color-bg-under-function-header: #e2f0fd; */
+  /* タブヘッダー */
+  --color-bg-under-tab-header: #0d99ff20;
+  /* ファンクションヘッダー */
+  --color-bg-under-function-header: #0d99ff20;
+  /* タイトル */
+  /* --color-text-under-title: #333; */
+  /* --color-text-under-title: #252525; */
+  --color-text-under-title: #121212;
+  /* インプットボックス */
+  --color-bg-under-input: #fff;
+  --color-bg-under-input-box-shadow: inset 0px 0px 0px 1px #ffffff90, 0px 0px 0px 1px #ccc;
+  --color-bg-under-input-active-box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f);
+  --color-text-under-input: #252525;
 
   /* グラデーション light */
   --color-bg-brand-gradient: linear-gradient(to top left, #2b7fff, #acffff);
 
-  /* ================== 🌟サイドばー ライト ================== */
+  /* ===================================== 🌟サイドばー ライト ===================================== */
   /* --color-sidebar-active: #e5f4ff; */
   /* --color-sidebar-active: #2b7fff; */
   --color-sidebar-active: #0d99ff;
@@ -189,8 +205,11 @@
   /* --color-btn-brand-f: linear-gradient(to top right, #2b7fff, #0affff50); */
   /* --color-btn-brand-f: var(--color-bg-brand-f);
   --color-btn-brand-f-hover: var(--color-bg-brand-f-deep); */
+  /* --color-btn-brand-f: #3593ffe0;
+  --color-btn-brand-f-hover: #3593ff; */
   --color-btn-brand-f: var(--color-bg-brand-f90);
   --color-btn-brand-f-hover: var(--color-bg-brand-f);
+  /* --color-btn-brand-f-hover: #3593ff; */
   --color-btn-brand-f-re: var(--color-bg-brand-f);
   --color-btn-brand-f-re-hover: var(--color-bg-brand-f90);
   /* --color-btn-brand-f: #2b7fffc0;
@@ -431,6 +450,7 @@
   --color-bg-brand-fb0: #0c8ce9b0;
   --color-bg-brand-fc0: #0c8ce9c0;
   --color-bg-brand-fe0: #0c8ce9e0;
+  --color-bg-brand-f-deep: #0b73bc;
   --color-bg-brand05: #0c8ce980;
   --color-bg-brand-hover: #0a6dc2;
   --color-bg-brand-hover-main: #3183ff;
@@ -441,7 +461,7 @@
   --color-bg-brand-sub-rgb: 43, 127, 255;
   --color-bg-brand-sub-hover: #2571e2;
 
-  /* ======================= 🌟テーブル dark ======================= */
+  /* ======================================== 🌟テーブル dark ======================================== */
   /* --color-bg-brand-table-tab: #0e5d95; */
   --color-shadow-border: #55555570;
   /* --color-bg-brand-table-tab: linear-gradient(to top left, #2b7fffaa, #acffffaa); */
@@ -462,10 +482,23 @@
   --color-table-checkbox-outline: #2e2e2e;
   --color-table-checkbox-focus-outline: #fff;
   --color-table-dragging-gradient: #2b7fff, #acffff;
+  --color-function-header-text-btn-hover: #0b73bc;
+  --color-function-header-text-btn-active: var(--color-bg-brand-f05);
 
-  /* ======================= 🌟テーブル 下画面 dark ======================= */
+  /* ======================================== 🌟テーブル 下画面 dark ======================================== */
+  /* タブヘッダー */
   --color-bg-under-tab-header: #252525;
+  /* ファンクションヘッダー */
   --color-bg-under-function-header: #252525;
+  /* タイトル */
+  --color-text-under-title: #eee;
+  /* インプットボックス */
+  --color-bg-under-input: #fff;
+  --color-bg-under-input: #3c3c3c;
+  --color-bg-under-input-box-shadow: inset 0px 0px 0px 1px #ffffff90, 0px 0px 0px 1px #000;
+  --color-bg-under-input-active-box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f);
+  /* --color-bg-under-input-active-box-shadow: inset 0px 0px 0px 1px #0066ff; */
+  --color-text-under-input: #fff;
 
   /* ======================= 🌟グラデーション dark ======================= */
   --color-bg-brand-gradient: linear-gradient(to top left, #2b7fffaa, #acffffaa);

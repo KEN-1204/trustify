@@ -1741,10 +1741,11 @@ const GridTableSmallAllMemo: FC<Props> = ({ title }) => {
         <div className={`${styles.grid_main_container}`}>
           {/* ================== Gridファンクションヘッダー ボタンでページ遷移 ================== */}
           <div className={`${styles.grid_function_header}`}>
-            <div className={`flex max-h-[26px] w-full items-center justify-start space-x-3`}>
+            <div className={`flex max-h-[26px] w-full items-center justify-start space-x-[6px]`}>
               <RippleButton
                 title={`新規サーチ`}
                 classText="select-none"
+                borderRadius="2px"
                 clickEventHandler={() => {
                   // if (tableContainerSize === "all") return;
                   // console.log("クリック コンテナ高さ変更 All");
@@ -1755,6 +1756,7 @@ const GridTableSmallAllMemo: FC<Props> = ({ title }) => {
               <RippleButton
                 title={`サーチ編集`}
                 classText="select-none"
+                borderRadius="2px"
                 clickEventHandler={() => {
                   // if (tableContainerSize === "half") return;
                   // console.log("クリック コンテナ高さ変更 ハーフ");
@@ -1763,9 +1765,9 @@ const GridTableSmallAllMemo: FC<Props> = ({ title }) => {
                 }}
               />
             </div>
-            <div className={`flex max-h-[26px] w-full items-center justify-end space-x-3`}>
+            <div className={`flex max-h-[26px] w-full items-center justify-end space-x-[6px]`}>
               <button
-                className={`flex-center transition-base03 h-[28px]  w-[82px] space-x-2  rounded-[4px] text-[12px]  ${
+                className={`flex-center transition-base03 h-[28px]  w-[82px] space-x-2  rounded-[2px] text-[12px]  ${
                   activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) !== 1
                     ? `cursor-pointer  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`
                     : "cursor-not-allowed text-[#999]"
@@ -1793,6 +1795,7 @@ const GridTableSmallAllMemo: FC<Props> = ({ title }) => {
               <RippleButton
                 title={`カラム編集`}
                 classText="select-none"
+                borderRadius="2px"
                 clickEventHandler={() => {
                   const newResetColumnHeaderItemList = JSON.parse(JSON.stringify(columnHeaderItemList));
                   console.log(
@@ -1803,10 +1806,11 @@ const GridTableSmallAllMemo: FC<Props> = ({ title }) => {
                   setIsOpenEditColumns(true);
                 }}
               />
-              <ChangeSizeBtn />
+              <ChangeSizeBtn borderRadius="2px" />
               <RippleButton
                 title={`ホバーモード`}
                 classText="select-none"
+                borderRadius="2px"
                 clickEventHandler={() => {
                   // if (tableContainerSize === "one_third") return;
                   // console.log("クリック コンテナ高さ変更 3分の1");
@@ -1910,11 +1914,11 @@ const GridTableSmallAllMemo: FC<Props> = ({ title }) => {
                         // }
                         // style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
                         onClick={(e) => handleClickGridCell(e)}
-                        onDoubleClick={(e) => {
-                          handleFrozen(index);
-                          // handleFrozen(e, index);
-                          // handleDoubleClick(e, index);
-                        }}
+                        // onDoubleClick={(e) => {
+                        //   handleFrozen(index);
+                        //   // handleFrozen(e, index);
+                        //   // handleDoubleClick(e, index);
+                        // }}
                         onMouseEnter={(e) => {
                           // if (isOverflowColumnHeader.includes(key.columnId.toString())) {
                           if (key.isOverflow) {
@@ -2178,8 +2182,7 @@ const GridTableSmallAllMemo: FC<Props> = ({ title }) => {
                               //   left: columnHeaderLeft(index + 1),
                               // }}
                               onClick={handleClickGridCell}
-                              onDoubleClick={(e) => handleDoubleClick(e, index, columnHeaderItemList[index].columnName)}
-                              // onClick={handleSingleOrDoubleClick}
+                              // onDoubleClick={(e) => handleDoubleClick(e, index, columnHeaderItemList[index].columnName)}
                             >
                               {value}
                             </div>
@@ -2235,8 +2238,7 @@ const GridTableSmallAllMemo: FC<Props> = ({ title }) => {
                             //       }
                             // }
                             onClick={handleClickGridCell}
-                            onDoubleClick={(e) => handleDoubleClick(e, index, columnHeaderItemList[index].columnName)}
-                            // onClick={handleSingleOrDoubleClick}
+                            // onDoubleClick={(e) => handleDoubleClick(e, index, columnHeaderItemList[index].columnName)}
                           >
                             {value}
                           </div>
