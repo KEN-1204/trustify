@@ -1,0 +1,164 @@
+.detail_container:global {
+  --grid-bg-color: #1c1c1c;
+  /* GridTable Supabase */
+  --selection-bg-blue: #1da1f2;
+  --selection-bg-blue-figma: #1da1f2;
+
+  --colors-scale3: #232323;
+  --colors-scale12: #ededed;
+  --border-color2: #2e2e2e;
+  /* --border-color: #393939; */
+  --border-color: var(--color-border-table);
+  --border-color4: #444;
+  --colors-scale5: #2e2e2e;
+  --button-bg-color: #2b825b;
+  --button-box-shadow-color: #40bf86;
+
+  --color-sp-green5: #cef2df;
+  --tw-ring-color: var(--color-sp-green5);
+  --tw-ring-offset-width: 2px;
+  --tw-ring-offset-shadow: 0 0 0 var(--tw-ring-offset-width) #fff;
+  --tw-ring-shadow: 0 0 0 calc(2px + var(--tw-ring-offset-width)) #0b3724;
+  --tw-shadow: 0 0 #0000;
+  --colors-brand9: #3fcf8e;
+
+  --color: #ddd;
+  --summary-border-color: #555;
+  --background-color: #212121;
+  --header-background-color: #1b1b1b;
+  --row-hover-background-color: #171717;
+  --row-selected-background-color: #1a73bc;
+  --row-selected-hover-background-color: #1768ab;
+  --checkbox-color: #94cfff;
+  --checkbox-focus-color: #c7e6ff;
+  --checkbox-disabled-border-color: #000;
+  --checkbox-disabled-background-color: #333;
+}
+.theme_tiktok:global {
+  --main-color: #ff3b5b;
+  --selection-bg: #ff3b5b;
+  --underline-bg: #ff3b5b;
+  --button-color: #ff3b5b;
+  --icon-color: #ff0050;
+}
+
+.theme_sb:global {
+  --border-theme: #24b47e;
+  --border-theme-text: #24b47e;
+  --border-theme-dark: #30a46c;
+  --text-color-sb: #33cc87;
+  --checkbox-bg-color: #3fcf8e;
+  --active-color: #24b47e;
+  --main-color-sb: #3ecf8e;
+  --gradient-color-sb: #3ecf8e, #3ecf8e, #3ecfb2;
+  --color-table-dragging-gradient: var(--gradient-color-sb);
+  /* bg-gradient-to-br from-[#3ECF8E] via-[#3ECF8E] to-[#3ecfb2]
+  background-image: linear-gradient(to bottom right,var(--tw-gradient-stops));
+}
+  */
+}
+.theme_f_light:global {
+  --border-theme: #0d99ff;
+  --border-theme-text: #0d99ff;
+  /* --border-theme: #2b7fff; */
+  --border-theme-dark: #0c8ce9;
+  --selected-text: #fff;
+  --main-color: #0d99ff;
+  --tab-bg: #e5f4ff;
+  --navbar-bg: #e5f4ff;
+  --text-color-sb: #0d99ff;
+  --checkbox-bg-color: #0d99ff;
+  --active-color: #0d99ff;
+  --main-color-sb: #0d99ff;
+  --gradient-color-sb: #3ecf8e, #3ecf8e, #3ecfb2;
+  /* --gradient-color-brand: #2b7fff, #acffffaa; */
+  --gradient-color-brand: #2b7fff, #0affffc0;
+  /* --color-table-dragging-gradient: #2b7fff, #0affff50; */
+  --color-table-dragging-gradient: var(--gradient-color-brand);
+}
+.theme_f_dark:global {
+  /* --border-theme: #0d99ff; */
+  /* --border-theme: #0080ff; */
+  --border-theme: #0066ff;
+  --border-theme-text: #0085ff;
+  --border-theme-dark: #0c8ce9;
+  --selected-text: #fff;
+  --main-color: #0d99ff;
+  --tab-bg: #e5f4ff;
+  --navbar-bg: #e5f4ff;
+  --text-color-sb: #0d99ff;
+  --checkbox-bg-color: #0d99ff;
+  --active-color: #0d99ff;
+  --main-color-sb: #0d99ff;
+  --gradient-color-sb: #3ecf8e, #3ecf8e, #3ecfb2;
+  --gradient-color-brand: #2b7fffe0, #0affff80;
+  --color-table-dragging-gradient: var(--gradient-color-brand);
+}
+.theme_grayscale_light:global {
+  --color-table-header: #f3f3f3;
+  /* --color-table-row-hover: #f3f3f390; */
+  --border-theme: #0d99ff;
+  /* --border-theme: #2b7fff; */
+  --border-theme-dark: #0c8ce9;
+  --main-color: #0d99ff;
+  --tab-bg: #e5f4ff;
+  --navbar-bg: #e5f4ff;
+  --text-color-sb: #0d99ff;
+  --checkbox-bg-color: #0d99ff;
+  --active-color: #0d99ff;
+  --main-color-sb: #0d99ff;
+  --border-theme: #0d99ff;
+  --border-theme-dark: #0c8ce9;
+  --gradient-color-sb: #3ecf8e, #3ecf8e, #3ecfb2;
+}
+
+.detail_container {
+  /* calc(画面サイズ - ヘッダー56px) - テーブルサイズ(calc() 上pt20px - 下pt20px) pt=padding-top */
+  /* min-height: calc(100vh - var(--header-height) - calc(100vh / 3 - var(--header-height) / 3) - 20px - 20px - 20px); */
+  /* overflow: hidden; */
+  /* box-shadow: inset 0px 0px 0px 1px var(--color-border-table); */
+  border: 1px solid var(--color-border-table);
+  /* box-sizing: border-box; */
+}
+
+.scroll_container {
+  /* calc(画面サイズ - ヘッダー56px) - テーブルサイズ(calc() 上pt20px - 下pt20px - ?20px - タブヘッダー22px - ファンクションヘッダー40px - コンテナボーダー分上下1+1=2px) pt=padding-top */
+  height: 100%;
+  max-height: calc(
+    100vh - var(--header-height) - calc(100vh / 3 - var(--header-height) / 3) - 20px - 20px - 20px - 22px - 40px - 2px
+  );
+}
+
+/* ================================== ヘッダータブ ==================================== */
+.tab_header {
+  /* background: var(--color-bg-brand-table-tab); */
+  /* background: var(--color-bg-secondary); */
+  background: var(--color-bg-under-tab-header);
+  border-bottom: 1px solid var(--color-border-table);
+}
+.navbarItem {
+  position: relative;
+  color: var(--color-text-sub);
+}
+
+.navbarItem:hover {
+  background-color: var(--color-bg-sub);
+  color: var(--color-text);
+}
+.navbarItem.active {
+  /* background: var(--color-bg-brand-f); */
+  /* color: var(--color-text); */
+  /* background-color: var(--color-bg-sub); */
+  background: var(--color-bg-brand-table-tab);
+  /* color: var(--color-dashboard-header-text); */
+  transition: background-color 0.3s ease;
+  color: #fff;
+}
+.navbarItem.active .active_underline {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  /* background: var(--color-bg-brand-f); */
+}

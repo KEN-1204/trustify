@@ -109,18 +109,13 @@ export const DashboardHomeComponent = () => {
                 </div>
               </div>
             )}
-            {/* <GridTableTest /> */}
-            {/* <div className="h-[20vh] w-full"></div> */}
-            {/* {activeMenuTab === "Company" && <GridTableHome title="メッセージ" />} */}
-            {/* <ErrorBoundary FallbackComponent={ErrorFallback}> */}
-            {activeMenuTab === "Company" && (
+            {/* {activeMenuTab === "Company" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense fallback={<Fallback />}>
-                  {/* <GridTableHomeSuccess title="メッセージ" /> */}
                   <GridTableHome title="メッセージ" />
                 </Suspense>
               </ErrorBoundary>
-            )}
+            )} */}
             {activeMenuTab === "Contacts" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense fallback={<Fallback />}>
@@ -130,13 +125,6 @@ export const DashboardHomeComponent = () => {
                 </Suspense>
               </ErrorBoundary>
             )}
-            {/* {activeMenuTab === "Activity" && (
-              <ErrorBoundary FallbackComponent={ErrorFallback}>
-                <Suspense fallback={<Fallback />}>
-                  <GridTableHalf title="GridTableHalf" />
-                </Suspense>
-              </ErrorBoundary>
-            )} */}
             {activeMenuTab === "Meeting" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense fallback={<Fallback />}>
@@ -145,10 +133,6 @@ export const DashboardHomeComponent = () => {
                 </Suspense>
               </ErrorBoundary>
             )}
-            {/* </ErrorBoundary> */}
-            {/* <GridTableHome title="メッセージ" />
-            <GridTableHome title="活動" />
-            <GridTableHome title="物件" /> */}
           </section>
           {/* <section className={`${styles.home_screen} space-y-[15px]`}>
             <GridTableHome title="メッセージ" />

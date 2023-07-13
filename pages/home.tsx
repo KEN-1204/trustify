@@ -2,6 +2,7 @@ import { DashboardHeader } from "@/components/DashboardHeader/DashboardHeader";
 import { DashboardHomeComponent } from "@/components/DashboardHomeComponent/DashboardHomeComponent";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import useStore from "@/store";
+import useDashboardStore from "@/store/useDashboardStore";
 import useThemeStore from "@/store/useThemeStore";
 import { Profile } from "@/types";
 import { Session, User, createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";

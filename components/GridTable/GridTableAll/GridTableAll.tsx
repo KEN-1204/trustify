@@ -12,6 +12,7 @@ import useRootStore from "@/store/useRootStore";
 import { RippleButton } from "@/components/Parts/RippleButton/RippleButton";
 import { ChangeSizeBtn } from "@/components/Parts/ChangeSizeBtn/ChangeSizeBtn";
 import { FiLock } from "react-icons/fi";
+import { columnNameToJapanese } from "@/utils/columnNameToJapanese";
 
 type TableDataType = {
   id: number;
@@ -41,6 +42,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   const theme = useRootStore(useThemeStore, (state) => state.theme);
   // const theme = useThemeStore((state) => state.theme);
   // const theme = useStore((state) => state.theme);
+  const language = useStore((state) => state.language);
   // カラム入れ替えモーダルで更新した内容を取得
   const editedColumnHeaderItemList = useDashboardStore((state) => state.editedColumnHeaderItemList);
   const setEditedColumnHeaderItemList = useDashboardStore((state) => state.setEditedColumnHeaderItemList);
@@ -214,6 +216,13 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
         dob: "15-Aug-1990",
         country: "India",
         summary: summary,
+        // id: index + offset * limit, // indexが0から始めるので+1でidを1から始める
+        // rowIndex: `${index + 2 + offset * limit}st Line`,
+        // name: "John",
+        // gender: "Male",
+        // dob: "15-Aug-1990",
+        // country: "India",
+        // summary: summary,
       };
       return newData;
     });
@@ -1967,7 +1976,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                                 className={`${styles.grid_column_header_inner_name} pointer-events-none`}
                                 ref={(ref) => (columnHeaderInnerTextRef.current[index] = ref)}
                               >
-                                {key.columnName}
+                                {language === "En" && key.columnName}
+                                {language === "Ja" && columnNameToJapanese(key.columnName)}
                               </span>
                             </div>
                           </div>
@@ -2303,7 +2313,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       </div>
       {/* ================== 🌟カラム編集モーダル🌟 ================== */}
       {/* カラム入れ替え編集モーダルボタン */}
-      <div className="flex-center fixed bottom-[2%] right-[13%] z-[1000] h-[50px] w-[50px] cursor-pointer">
+      {/* <div className="flex-center fixed bottom-[2%] right-[13%] z-[1000] h-[50px] w-[50px] cursor-pointer">
         <div
           className="h-[50px] w-[50px] rounded-full bg-[var(--color-bg-brand)]"
           onClick={() => {
@@ -2316,7 +2326,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
             setIsOpenEditColumns(true);
           }}
         ></div>
-      </div>
+      </div> */}
       {/* カラム編集モーダル */}
       {isOpenEditColumns && <EditColumnsModal columnHeaderItemList={columnHeaderItemList} />}
       {/* ================== 🌟カラム編集モーダル🌟 ここまで ================== */}

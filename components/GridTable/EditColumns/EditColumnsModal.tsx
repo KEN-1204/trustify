@@ -407,7 +407,7 @@ const EditColumnsModalMemo: FC<Props> = ({ columnHeaderItemList }) => {
   return (
     <>
       <div className={`${styles.overlay} `} onClick={handleCancelAndReset} />
-      <div className={`${styles.container} fade01 `} ref={modalContainerRef}>
+      <div className={`${styles.container} `} ref={modalContainerRef}>
         {/* 保存キャンセルエリア */}
         <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[30px] text-center text-[18px]">
           <div className="font-samibold cursor-pointer hover:text-[#aaa]" onClick={handleCancelAndReset}>

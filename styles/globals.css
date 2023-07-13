@@ -169,6 +169,12 @@
   --color-table-checkbox-focus-outline: #fff;
   --color-table-dragging-gradient: #2b7fff #acffff;
 
+  /* ===================== 🌟テーブル 下画面 light ===================== */
+  /* --color-bg-under-tab-header: var(--color-bg-secondary);
+  --color-bg-under-function-header: var(--color-bg-secondary); */
+  --color-bg-under-tab-header: #e2f0fd;
+  --color-bg-under-function-header: #e2f0fd;
+
   /* グラデーション light */
   --color-bg-brand-gradient: linear-gradient(to top left, #2b7fff, #acffff);
 
@@ -435,7 +441,7 @@
   --color-bg-brand-sub-rgb: 43, 127, 255;
   --color-bg-brand-sub-hover: #2571e2;
 
-  /* ======================= 🌟テーブル ======================= */
+  /* ======================= 🌟テーブル dark ======================= */
   /* --color-bg-brand-table-tab: #0e5d95; */
   --color-shadow-border: #55555570;
   /* --color-bg-brand-table-tab: linear-gradient(to top left, #2b7fffaa, #acffffaa); */
@@ -456,6 +462,10 @@
   --color-table-checkbox-outline: #2e2e2e;
   --color-table-checkbox-focus-outline: #fff;
   --color-table-dragging-gradient: #2b7fff, #acffff;
+
+  /* ======================= 🌟テーブル 下画面 dark ======================= */
+  --color-bg-under-tab-header: #252525;
+  --color-bg-under-function-header: #252525;
 
   /* ======================= 🌟グラデーション dark ======================= */
   --color-bg-brand-gradient: linear-gradient(to top left, #2b7fffaa, #acffffaa);

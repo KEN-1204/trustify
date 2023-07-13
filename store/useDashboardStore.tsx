@@ -80,7 +80,7 @@ const useDashboardStore = create<State>((set) => ({
   isOpenChangeSizeMenu: false,
   setIsOpenChangeSizeMenu: (payload) => set({ isOpenChangeSizeMenu: payload }),
   // 【テーブルサイズの保持】
-  tableContainerSize: "all",
+  tableContainerSize: "one_third",
   setTableContainerSize: (payload) => set({ tableContainerSize: payload }),
 }));
 

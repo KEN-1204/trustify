@@ -12,6 +12,7 @@ import useRootStore from "@/store/useRootStore";
 import { RippleButton } from "@/components/Parts/RippleButton/RippleButton";
 import { FiLock } from "react-icons/fi";
 import { ChangeSizeBtn } from "@/components/Parts/ChangeSizeBtn/ChangeSizeBtn";
+import { columnNameToJapanese } from "@/utils/columnNameToJapanese";
 
 type TableDataType = {
   id: number;
@@ -41,6 +42,7 @@ const GridTableSmallAllMemo: FC<Props> = ({ title }) => {
   const theme = useRootStore(useThemeStore, (state) => state.theme);
   // const theme = useThemeStore((state) => state.theme);
   // const theme = useStore((state) => state.theme);
+  const language = useStore((state) => state.language);
   // カラム入れ替えモーダルで更新した内容を取得
   const editedColumnHeaderItemList = useDashboardStore((state) => state.editedColumnHeaderItemList);
   const setEditedColumnHeaderItemList = useDashboardStore((state) => state.setEditedColumnHeaderItemList);
@@ -1963,7 +1965,8 @@ const GridTableSmallAllMemo: FC<Props> = ({ title }) => {
                                 className={`${styles.grid_column_header_inner_name} pointer-events-none`}
                                 ref={(ref) => (columnHeaderInnerTextRef.current[index] = ref)}
                               >
-                                {key.columnName}
+                                {language === "En" && key.columnName}
+                                {language === "Ja" && columnNameToJapanese(key.columnName)}
                               </span>
                             </div>
                           </div>
@@ -2301,7 +2304,7 @@ const GridTableSmallAllMemo: FC<Props> = ({ title }) => {
       </div>
       {/* ================== 🌟カラム編集モーダル🌟 ================== */}
       {/* カラム入れ替え編集モーダルボタン */}
-      <div className="flex-center fixed bottom-[2%] right-[13%] z-[1000] h-[50px] w-[50px] cursor-pointer">
+      {/* <div className="flex-center fixed bottom-[2%] right-[13%] z-[1000] h-[50px] w-[50px] cursor-pointer">
         <div
           className="h-[50px] w-[50px] rounded-full bg-[var(--color-bg-brand)]"
           onClick={() => {
@@ -2314,7 +2317,7 @@ const GridTableSmallAllMemo: FC<Props> = ({ title }) => {
             setIsOpenEditColumns(true);
           }}
         ></div>
-      </div>
+      </div> */}
       {/* カラム編集モーダル */}
       {isOpenEditColumns && <EditColumnsModal columnHeaderItemList={columnHeaderItemList} />}
       {/* ================== 🌟カラム編集モーダル🌟 ここまで ================== */}

@@ -162,10 +162,10 @@ export const animatedChartIcon = (
 
 export const animatedCycleIcon = (
   <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none">
-    <g className={styles.cycle_icon} stroke-width="1.5">
+    <g className={styles.cycle_icon} strokeWidth="1.5">
       <path
         stroke="var(--color-icon)"
-        stroke-linecap="round"
+        strokeLinecap="round"
         d="M6.883 11.778a5 5 0 018.473-3.597m1.761 4.131a5 5 0 01-8.473 3.597"
       />
       <path
