@@ -31,6 +31,25 @@
   /* background-color: #40bf86; */
   background-color: var(--color-btn-brand-f-hover);
 }
+.button_re {
+  position: relative;
+  z-index: 1;
+  /* display: inline-block; */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+  box-shadow: 0 3px 5px -2px #21253840;
+  overflow: hidden;
+  background: var(--color-btn-brand-f-re);
+  border: 1px solid var(--color-btn-brand-f-re-hover);
+  /* background-color: #2b825b;
+  border: 1px solid #40bf86; */
+}
+.button_re:hover {
+  /* background-color: #40bf86; */
+  background-color: var(--color-btn-brand-f-hover);
+}
 .overlay {
   /* content: attr(data-text); */
   position: absolute;

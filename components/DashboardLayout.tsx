@@ -16,6 +16,7 @@ import { EditColumns } from "./GridTable/EditColumns/EditColumns";
 import useThemeStore from "@/store/useThemeStore";
 import useRootStore from "@/store/useRootStore";
 import { ChangeSizeMenu } from "./Parts/ChangeSizeMenu/ChangeSizeMenu";
+import { MdOutlineDarkMode, MdOutlineLightMode } from "react-icons/md";
 
 type Prop = {
   title?: string;
@@ -139,17 +140,21 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
         </div>
       )} */}
       {/* サインアウトボタン */}
-      <div className="flex-center fixed bottom-[2%] right-[8%] z-[1000] h-[50px] w-[50px] cursor-pointer">
-        <div className="h-[50px] w-[50px] rounded-full bg-[red]" onClick={handleSignOut}></div>
+      <div className="flex-center fixed bottom-[2%] right-[6%] z-[1000] h-[35px] w-[35px] cursor-pointer">
+        <div className="h-[35px] w-[35px] rounded-full bg-[#00000030]" onClick={handleSignOut}></div>
       </div>
       {/* テーマ切り替えボタン */}
-      <div className="flex-center fixed bottom-[2%] right-[3%] z-[1000] h-[50px] w-[50px] ">
-        <div
-          className={`h-[50px] w-[50px] cursor-pointer rounded-full ${
-            theme === "dark" ? "bg-[--color-bg-brand05]" : "bg-[#00000080]"
-          }`}
-          onClick={changeTheme}
-        ></div>
+
+      <div
+        className={`flex-center transition-base01 fixed bottom-[2%] right-[2%] z-[1000] h-[35px] w-[35px] cursor-pointer rounded-full ${
+          theme === "dark"
+            ? "bg-[--color-bg-brand05] hover:bg-[--color-bg-brand-f]"
+            : "bg-[var(--color-bg-brand-fc0)] hover:bg-[var(--color-bg-brand-f)]"
+        }`}
+        onClick={changeTheme}
+      >
+        {theme === "light" && <MdOutlineLightMode className="text-[20px] text-[#fff]" />}
+        {theme === "dark" && <MdOutlineDarkMode className="text-[20px] text-[#fff]" />}
       </div>
 
       {/* ============================ 共通UIコンポーネント ============================ */}

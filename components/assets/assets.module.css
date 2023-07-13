@@ -1,0 +1,97 @@
+.rotate_animate {
+  animation: rotate 3s cubic-bezier(0.7, -0.03, 0.26, 1.05) both infinite;
+  transform-origin: center center;
+  /* transform: scale(1.5) !important; */
+  /* animation-play-state: paused; */
+}
+@keyframes rotate {
+  0% {
+    transform: rotateZ(0);
+  }
+  to {
+    transform: rotateZ(360deg);
+  }
+}
+
+.mail_icon {
+  animation: open 2s cubic-bezier(0.49, 0.39, 0.35, 1.06) both infinite;
+  /* animation-play-state: paused; */
+}
+@keyframes open {
+  0% {
+    transform: translateX(10px) scale(0);
+    transform-origin: 50% 100%;
+  }
+  to {
+    transform: scale(1);
+    transform-origin: 50% 100%;
+  }
+}
+
+.send {
+  animation: send 2s cubic-bezier(1, -0.47, 0.01, 1.37) infinite both;
+  /* animation-play-state: paused; */
+}
+@keyframes send {
+  0% {
+    transform: translateY(0) translateX(0);
+  }
+  100% {
+    transform: translateY(-20px) translateX(20px);
+  }
+}
+
+.search_icon {
+  animation: flipping 1.5s cubic-bezier(0.96, -0.2, 0, 1.29) both infinite alternate-reverse;
+  /* animation-play-state: paused; */
+}
+@keyframes flipping {
+  0% {
+    /* transform: rotate3d(1, 1, 0, 0deg); */
+    transform: scale(0.9) rotate3d(1, 1, 0, 0deg);
+  }
+  to {
+    /* transform: rotate3d(1, 1, 0, 180deg); */
+    transform: scale(1) rotate3d(1, 1, 0, 180deg);
+  }
+}
+
+.trending {
+  animation: trending 2s infinite cubic-bezier(0.99, -0.1, 0.01, 1.02);
+  stroke-dashoffset: 100;
+  stroke-dasharray: 100;
+  /* animation-play-state: paused; */
+}
+@keyframes trending {
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.chart_icon {
+  animation: slide-tr 1s cubic-bezier(0.47, 0, 0.745, 0.715) infinite alternate-reverse both;
+  /* animation-play-state: paused; */
+}
+@keyframes slide-tr {
+  0% {
+    transform: translateY(0) translateX(0);
+  }
+  to {
+    transform: translateY(-2px) translateX(2px);
+  }
+}
+
+.cycle_icon {
+  animation: rotate-center 1.5s ease-in-out infinite both;
+  transform-origin: center center;
+  /* animation-play-state: paused; */
+}
+
+@keyframes rotate-center {
+  0% {
+    transform: rotate(0);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

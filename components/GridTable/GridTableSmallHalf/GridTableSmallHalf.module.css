@@ -1,3 +1,4 @@
+/* 半分 Row30pxバージョン */
 .main_container:global {
   --grid-bg-color: #1c1c1c;
   /* GridTable Supabase */
@@ -45,7 +46,6 @@
 .theme_sb:global {
   --border-theme: #24b47e;
   --border-theme-text: #24b47e;
-  --border-theme-text: #fff;
   --border-theme-dark: #30a46c;
   --text-color-sb: #33cc87;
   --checkbox-bg-color: #3fcf8e;
@@ -61,10 +61,9 @@
 .theme_f_light:global {
   --border-theme: #0d99ff;
   --border-theme-text: #0d99ff;
-  --selected-text: #0d99ff;
-  --selected-text: #fff;
   /* --border-theme: #2b7fff; */
   --border-theme-dark: #0c8ce9;
+  --selected-text: #fff;
   --main-color: #0d99ff;
   --tab-bg: #e5f4ff;
   --navbar-bg: #e5f4ff;
@@ -118,8 +117,11 @@
   width: 100%;
   /* height: calc(100vh - var(--header-height)); */
   /* max-height: calc(100vh / 3 - var(--header-height) / 3); */
-  min-height: calc(100vh / 2 - var(--header-height) / 2);
-  background-color: aqua;
+  /* min-height: calc(100vh / 3 - var(--header-height) / 3); */
+  /* 全体に表示 Header 56px grid-header 22px */
+  max-height: calc(100vh - var(--header-height) - 22px);
+  /* 全体に表示 ファンクションヘッダー有り height: 45px; */
+  /* ヘッダー56px */
 
   position: relative;
   display: flex;
@@ -150,16 +152,18 @@
 .table_tab {
   background: var(--color-bg-brand-table-tab);
   min-width: 80px;
-  /* height: 22px; */
+  /* min-height: 22px; */
   height: 100%;
   width: 100%;
   padding: 0 15px;
-  border-top-left-radius: 4px;
+  /* border-top-left-radius: 4px; */
+  /* 全体に表示 */
+  /* border-top-left-radius: 4px;は無し */
   /* border-top-right-radius: 4px; */
   font-size: 12px;
   user-select: none;
   color: #fcfcfc;
-  font-weight: 700;
+  font-weight: 500;
   box-shadow: inset 0px 0px 0px 1px var(--color-border-deep);
   /* box-shadow: 0 0 5px 0px rgba(12, 12, 12, 0.3); */
   display: flex;
@@ -174,22 +178,29 @@
   border: 1px solid var(--color-border-deep);
   border-top: 0px;
   /* box-shadow: 0 0 5px 0px rgba(12, 12, 12, 0.3); */
-  border-bottom-left-radius: 4px;
+  /* border-bottom-left-radius: 4px; */
+  /* 全体に表示 */
+  /* border-bottom-left-radius: 4px;は無し */
   /* border-bottom-right-radius: 4px; */
 }
 /* 🌟ファンクションヘッダー */
 .grid_function_header {
   /* border: 1px solid var(--border-color); */
-  border-bottom: none;
+  /* border-bottom: none; */
   /* overflow: visible;
   z-index: 0;
   position: relative; */
-  background-color: var(--color-bg-table-header);
+  background: var(--color-table-header);
+  border-bottom: 1px solid var(--color-border-table-deep);
+  /* border-bottom: 1px solid var(--border-color); */
   display: flex;
-  height: 45px;
+  min-height: 40px;
+  width: 100%;
+  /* height: 45px; */
   padding: 0px 10px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
 }
 .page_transition_button {
   font-size: 14px;
@@ -200,7 +211,12 @@
 .grid_scroll_container {
   /* height: 100%; */
   /* -22pxはテーブルヘッダーの高さ */
-  max-height: calc(100vh / 2 - var(--header-height) / 2 - 22px);
+  /* max-height: calc(100vh / 3 - var(--header-height) / 3 - 22px); */
+  /* 全体に表示 ファンクションヘッダー無し */
+  /* max-height: calc(100vh - var(--header-height) - 30px); */
+  /* 全体に表示 ファンクションヘッダー有り height: 40px; footer: 30px */
+  /* max-height: calc(100vh - var(--header-height) - 30px - 40px); */
+  max-height: calc(100vh / 2 - var(--header-height) / 2 - 30px - 40px);
   width: 100%;
   overflow: auto;
   position: relative;
@@ -229,6 +245,7 @@
   width: var(--row-width);
   box-sizing: content-box;
   border-bottom: 1px solid var(--color-border);
+  /* border-bottom: 1px solid var(--color-border-table-deep); */
 }
 
 /* テスト */
@@ -263,7 +280,7 @@
 .grid_column_header_all {
   color: var(--color-text);
 
-  background-color: var(--color-table-header);
+  background: var(--color-table-header);
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -272,7 +289,8 @@
   align-items: center;
   font-size: 13px;
 
-  border-bottom: 1px solid var(--border-color);
+  /* border-bottom: 1px solid var(--border-color); */
+  border-bottom: 1px solid var(--color-border-table-deep);
   border-right: 1px solid var(--border-color);
   contain: size layout style paint;
   outline: none;
@@ -297,7 +315,7 @@
 
   display: flex;
   align-items: center;
-  font-size: 12px;
+  font-size: 13px;
 
   border-bottom: 1px solid var(--border-color);
   border-right: 1px solid var(--border-color);
@@ -414,7 +432,8 @@
 
 .grid_footer {
   display: flex;
-  height: 2.5rem;
+  /* height: 2.5rem; */
+  min-height: 30px;
   align-items: center;
   justify-content: space-between;
   background-color: var(--colors-scale3);
@@ -440,7 +459,6 @@
   align-items: center;
   justify-content: center;
 }
-
 .grid_select_cell_header {
   position: relative;
   display: flex;
@@ -472,6 +490,11 @@
   height: 16px;
   vertical-align: middle;
   position: relative;
+  /* display: inline-block;
+  user-select: none;
+  flex-shrink: 0;
+  height: 1rem;
+  width: 1rem; */
 }
 .grid_select_cell_header[aria-selected="true"] {
   box-shadow: inset 0 0 0 1px var(--border-theme);
@@ -485,9 +508,9 @@
   position: absolute;
   height: 1rem;
   width: 1rem;
-  /* top: 6px; */
-  /* left: 14px; */
-  top: 50%;
+  /* top: 9px;
+  left: 14px; */
+  top: 51%;
   left: 50%;
   transform: translate(-50%, -50%);
   opacity: 0;
@@ -508,7 +531,7 @@
   transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   height: 1rem;
   width: 1rem;
-  /* top: -2px; */
+  top: 1px;
   /* transform: translateY(-50%);
   top: 50%;
   left: 5px; */
@@ -562,9 +585,10 @@
   z-index: 1;
   bottom: 0;
   /* width: 100%; */
-  height: 25px;
+  height: 30px;
   /* height: 35px; */
-  width: var(--row-width);
+  /* width: var(--row-width); */
+  width: 100%;
   display: flex;
   /* justify-content: flex-start; */
   justify-content: flex-start;
@@ -616,8 +640,8 @@
 }
 
 .spinner78 {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   /* border: 3.8px solid #787878; */
   border: 3.8px solid var(--color-table-loading-spinner);

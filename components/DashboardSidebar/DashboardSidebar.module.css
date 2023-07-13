@@ -92,7 +92,7 @@
   background-color: var(--color-sidebar-active);
   /* color: var(--color-text); */
   /* color: #fff; */
-  /* background-color: var(--color-bg-sub-dark); */
+  /* background-color: var(--color-bg-sub-deep); */
 }
 .menu_item_inner {
   display: flex;

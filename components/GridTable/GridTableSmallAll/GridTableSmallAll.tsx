@@ -1762,8 +1762,8 @@ const GridTableSmallAllMemo: FC<Props> = ({ title }) => {
               />
             </div>
             <div className={`flex max-h-[26px] w-full items-center justify-end space-x-3`}>
-              <div
-                className={`flex-center transition-base01 h-[28px]  w-[82px] space-x-2  rounded-[4px] text-[12px]  ${
+              <button
+                className={`flex-center transition-base03 h-[28px]  w-[82px] space-x-2  rounded-[4px] text-[12px]  ${
                   activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) !== 1
                     ? `cursor-pointer  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`
                     : "cursor-not-allowed text-[#999]"
@@ -1787,7 +1787,7 @@ const GridTableSmallAllMemo: FC<Props> = ({ title }) => {
                     ? "解除"
                     : "固定"}
                 </span> */}
-              </div>
+              </button>
               <RippleButton
                 title={`カラム編集`}
                 classText="select-none"

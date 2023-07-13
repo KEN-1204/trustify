@@ -1744,7 +1744,9 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
             <div className={`flex max-h-[26px] w-full items-center justify-start space-x-3`}>
               <RippleButton
                 title={`新規サーチ`}
-                classText="select-none"
+                bgColor="var(--color-btn-brand-f-re)"
+                border="var(--color-btn-brand-f-re-hover)"
+                classText={`select-none`}
                 clickEventHandler={() => {
                   //   if (tableContainerSize === "all") return;
                   //   console.log("クリック コンテナ高さ変更 All");
@@ -1764,8 +1766,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
               />
             </div>
             <div className={`flex max-h-[26px] w-full  items-center justify-end space-x-3`}>
-              <div
-                className={`flex-center transition-base01 h-[28px]  w-[82px] space-x-2  rounded-[4px] text-[12px]  ${
+              <button
+                className={`flex-center transition-base03 h-[28px]  w-[82px] space-x-2  rounded-[4px] text-[12px]  ${
                   activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) !== 1
                     ? `cursor-pointer  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`
                     : "cursor-not-allowed text-[#999]"
@@ -1789,7 +1791,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                     ? "解除"
                     : "固定"}
                 </span> */}
-              </div>
+              </button>
               <RippleButton
                 title={`カラム編集`}
                 classText="select-none"

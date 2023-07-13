@@ -121,7 +121,11 @@
   /* min-height: calc(100vh / 3 - var(--header-height) / 3); */
   /* 全体に表示 Header 56px grid-header 22px */
   /* // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 高さ 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 */
-  max-height: calc(100vh - var(--header-height) - 22px);
+  /* 🌟全体に表示 Header 56px grid-header 22px */
+  /* max-height: calc(100vh - var(--header-height) - 22px); */
+  /* 🌟HomeComponentのスクリーンにpadding 上下20px有りの場合 */
+  max-height: calc(100vh - var(--header-height) - 22px - 20px);
+
   /* 全体に表示 ファンクションヘッダー有り height: 45px; */
   /* ヘッダー56px */
 
@@ -243,8 +247,11 @@
   /* 全体に表示 ファンクションヘッダー有り height: 40px; footer: 30px */
   /* max-height: calc(100vh - var(--header-height) - 30px - 40px); */
   /* // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 高さ 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 */
-  max-height: calc(100vh - var(--header-height) - 30px - 40px);
-  /* max-height: calc(100vh / 2 - var(--header-height) / 2 - 30px - 40px); */
+  /* 🌟HomeComponentのスクリーンにpadding無しで全体を表示する場合 */
+  /* max-height: calc(100vh - var(--header-height) - 30px - 40px); */
+  /* 🌟HomeComponentのスクリーンにpadding 上下20px有りの場合 */
+  max-height: calc(100vh - var(--header-height) - 30px - 40px - 20px);
+
   width: 100%;
   overflow: auto;
   position: relative;

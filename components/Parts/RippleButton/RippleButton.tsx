@@ -12,6 +12,7 @@ type Props = {
   borderRadius?: string;
   minWidth?: string;
   minHeight?: string;
+  border?: string;
   classText?: string;
   clickEventHandler?: () => void;
 };
@@ -21,10 +22,13 @@ const RippleButtonMemo: FC<Props> = ({
   fontSize = "12px",
   fontWeight = 500,
   textColor = "#fff",
-  bgColor = "var(--color-bg-brand-gradient)",
+  // bgColor = "var(--color-bg-brand-gradient)",
+  bgColor,
   minWidth = "75px",
   minHeight = "26px",
+  border,
   borderRadius = "4px",
+
   classText,
   clickEventHandler,
   //   padding = "14px 40px",
@@ -68,6 +72,7 @@ const RippleButtonMemo: FC<Props> = ({
           fontWeight: fontWeight,
           color: textColor,
           // background: bgColor,
+          // border: border,
           minWidth: minWidth,
           minHeight: minHeight,
           borderRadius: borderRadius,

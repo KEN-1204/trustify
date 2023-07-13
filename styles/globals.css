@@ -92,7 +92,9 @@
   /* Canva 背景 #fff 背景サブ rgba(64,87,109,.07) #40576d12 */
   --color-bg-base: #fff;
   --color-bg-sub: rgba(64, 87, 109, 0.07);
-  --color-bg-sub-dark: rgba(57, 76, 96, 0.15);
+  --color-bg-sub-deep: rgba(57, 76, 96, 0.15);
+  --color-bg-sub-re: rgba(64, 87, 109, 0.08);
+  --color-bg-sub-re-hover: rgba(57, 76, 96, 0.15);
   /* sub figma #f5f5f5 canva #40576d12 */
   --color-bg: #fff; /* メイン背景カラー */
   --color-bg2: #fff; /* メイン背景カラー */
@@ -105,7 +107,7 @@
   --color-bg-brand-rgb: 13, 153, 255;
   --color-bg-brand-f: #0d99ff; /* Figma */
   --color-bg-brand-f-hover: #0d99ff90;
-  --color-bg-brand-f05: #e5f4ff; /* Figma */
+  --color-bg-brand-f05: #e5f4ff;
   --color-bg-brand-f10: #0d99ff10;
   --color-bg-brand-f30: #0d99ff30;
   --color-bg-brand-f50: #0d99ff50;
@@ -183,6 +185,10 @@
   --color-btn-brand-f-hover: var(--color-bg-brand-f-deep); */
   --color-btn-brand-f: var(--color-bg-brand-f90);
   --color-btn-brand-f-hover: var(--color-bg-brand-f);
+  --color-btn-brand-f-re: var(--color-bg-brand-f);
+  --color-btn-brand-f-re-hover: var(--color-bg-brand-f90);
+  /* --color-btn-brand-f: #2b7fffc0;
+  --color-btn-brand-f-hover: #2b7fff; */
   --color-btn-text: #fff;
   /* --color-btn-brand: #2b7fff;
   --color-btn-brand-rgb: 43, 127, 255;
@@ -286,6 +292,7 @@
   --color-text-hover: #333;
   --color-text-reverse: #fff;
   --color-text-sub: rgba(25, 23, 17, 0.6);
+  --color-text-third: #333;
   --color-text-secondary: rgba(0, 0, 0, 0.5); /* テキストサブカラー or #7d7d7d */
   --color-text-secondary-hover: rgba(0, 0, 0, 0.9);
   --color-main-text: #000;
@@ -332,6 +339,7 @@
   /* アイコンカラー */
   /* --color-icon: rgba(0, 0, 0, 0.9);  */
   --color-icon: #0d1216;
+  --color-icon-home: #0d1216;
   --color-icon-sub: #5d5d5d;
   --color-icon-brand: #007be5;
   --color-icon-brand-pressed: #0768cf;
@@ -390,7 +398,9 @@
   /* --color-bg-base: #141414; */
   /* --color-bg-sub: #252525; */
   --color-bg-sub: #383838;
-  --color-bg-sub-dark: #252525;
+  --color-bg-sub-deep: #252525;
+  --color-bg-sub-re: #252525;
+  --color-bg-sub-re-hover: #383838;
   --color-bg: #2c2c2c; /* メイン背景カラー */
   --color-bg2: #141414; /* メイン背景カラー */
   --color-bg-secondary: #383838; /* サブ背景カラー グレー */
@@ -457,8 +467,11 @@
   /* --color-sidebar-active: #24608b; */
 
   /* ======================= 🌟ボタン dark ======================= */
+  /* --color-btn-brand-f: var(--color-bg-brand-f50); */
   --color-btn-brand-f: var(--color-bg-brand-f05);
   --color-btn-brand-f-hover: var(--color-bg-brand-f);
+  /* --color-btn-brand-f: #2b7fff50;
+  --color-btn-brand-f-hover: #2b7fff; */
   --color-btn-text: #fff;
   /* --color-btn-brand: #2b7fff;
   --color-btn-brand-rgb: 43, 127, 255;
@@ -501,7 +514,7 @@
   --color-edit-right-active: #f63e54;
   --color-edit-right-active-bg: #ff858530;
   --color-edit-arrow-disable-bg: var(--color-bg-sub);
-  --color-edit-arrow-disable-bg-onlist: var(--color-bg-sub-dark);
+  --color-edit-arrow-disable-bg-onlist: var(--color-bg-sub-deep);
   --color-edit-arrow-disable-color: var(--color-text-sub);
 
   /* ボーダーカラー */
@@ -535,6 +548,7 @@
   --color-text-hover: #aaa;
   --color-text-reverse: rgba(0, 0, 0, 0.9);
   --color-text-sub: #ccc;
+  --color-text-third: #eee;
   --color-text-secondary: rgba(255, 255, 255, 0.7); /* テキストサブカラー or #7d7d7d */
   --color-text-secondary-hover: rgba(255, 255, 255, 1);
   --color-main-text: #000;
@@ -583,8 +597,9 @@
   /* --color-dashboard-header-text: #7cc4f8; */
 
   /* アイコン dark */
-  --color-icon: rgba(255, 255, 255, 1); /* アイコンカラー */
+  --color-icon: rgba(255, 255, 255, 0.9); /* アイコンカラー */
   --color-icon-sub: #ccc;
+  --color-icon-home: #eee;
   --color-icon-brand: #7cc4f8;
   --color-icon-brand-pressed: #0c8ce9;
   --color-icon-brand-secondary: #536383;
