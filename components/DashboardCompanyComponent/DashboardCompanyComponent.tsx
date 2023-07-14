@@ -7,6 +7,7 @@ import { ErrorFallback } from "../ErrorFallback/ErrorFallback";
 import { Fallback } from "../Fallback/Fallback";
 import { GridTableAll } from "../GridTable/GridTableAll/GridTableAll";
 import { CompanyDetail } from "./CompanyDetail/CompanyDetail";
+import useRootStore from "@/store/useRootStore";
 
 export const DashboardCompanyComponent: FC = () => {
   console.log("🔥 DashboardCompanyComponentレンダリング レンダリング");
@@ -14,8 +15,11 @@ export const DashboardCompanyComponent: FC = () => {
   const activeMenuTab = useDashboardStore((state) => state.activeMenuTab);
   const isOpenChangeSizeMenu = useDashboardStore((state) => state.isOpenChangeSizeMenu);
   const setIsOpenChangeSizeMenu = useDashboardStore((state) => state.setIsOpenChangeSizeMenu);
-  const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
   const setClickedItemPos = useStore((state) => state.setClickedItemPos);
+
+  // ハーフとallの時はheight指定を無しにして、コンテンツ全体を表示できるようにする
+  // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
+  const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
 
   return (
     <div
@@ -23,7 +27,7 @@ export const DashboardCompanyComponent: FC = () => {
         isOpenSidebar ? `${styles.open}` : `${styles.close}`
       }`}
     >
-      {/* 言語切り替えタブ表示時中のオーバーレイ */}
+      {/* サイズメニュー切り替えタブ表示時中のオーバーレイ */}
       {isOpenChangeSizeMenu && (
         <div
           className={styles.overlay}
@@ -37,7 +41,7 @@ export const DashboardCompanyComponent: FC = () => {
       )}
       {/* 左サイドバーサイズ分のスペーサー */}
       <div className={`${styles.spacer_left} ${isOpenSidebar ? `transition-base02` : `transition-base01`}`}></div>
-      <div className={`${styles.main_contents_wrapper}`}>
+      <div className={`${styles.main_contents_wrapper} `}>
         {/* 上ヘッダーサイズ分のスペーサー */}
         <div className={`${styles.spacer_top}`}></div>
         {/* ===================== スクロールコンテナ ここから ===================== */}
@@ -58,20 +62,11 @@ export const DashboardCompanyComponent: FC = () => {
           >
             {activeMenuTab === "Company" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
-                <Suspense fallback={<Fallback />}>
-                  {/* <GridTableHomeSuccess title="メッセージ" /> */}
+                <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
                   <GridTableAll title="会社 GridTableAll" />
-                  {/* <GridTableAll title="GridTableAll2" /> */}
                 </Suspense>
               </ErrorBoundary>
             )}
-            {/* {activeMenuTab === "Meeting" && (
-              <ErrorBoundary FallbackComponent={ErrorFallback}>
-                <Suspense fallback={<Fallback />}>
-                  <GridTableSmallAll title="GridTableSmallAll" />
-                </Suspense>
-              </ErrorBoundary>
-            )} */}
           </section>
 
           {/* ２画面目 下画面 */}

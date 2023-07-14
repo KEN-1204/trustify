@@ -144,17 +144,17 @@
   --color-border-table-deep: #aaa;
   /* --color-border-table: #e6e6e6; */
   /* --color-table-header: #40576d18; */
-  /* ヘッダーブルー */
+  /* ヘッダーブルー 🌟ブルーならこれ */
   --color-table-header: #e2f0fd;
   /* --color-table-header: #0d99ff20; */
   /* --color-table-header: #ecf4fc; */
-  /* ヘッダーモノクロ */
-  /* --color-table-header: #eee; */
-  /* --color-table-header: #fff; */
+  /* ヘッダーモノクロ 🌟モノクロならこれ */
+  --color-table-header: #ececec;
   /* フッターブルー */
   /* --color-table-footer: #e2f0fd90; */
   /* フッターモノクロ */
   /* --color-table-footer: #eee; */
+  --color-table-cell-bg: #fff;
   --color-table-footer: #fff;
   --color-table-bg-loading: #fff;
   /* リフレクション ブルー */
@@ -179,6 +179,8 @@
   --color-bg-under-function-header: #e2f0fd; */
   /* タブヘッダー */
   --color-bg-under-tab-header: #0d99ff20;
+  --color-bg-under-tab-header: var(--color-table-header);
+  --color-bg-under-tab-active: var(--color-bg-brand-f);
   /* ファンクションヘッダー */
   --color-bg-under-function-header: #0d99ff20;
   /* タイトル */
@@ -192,6 +194,14 @@
   --color-bg-under-input-active-box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f);
   --color-text-under-input: #252525;
   --color-bg-underline: rgb(94 94 94 / 0.3);
+  --color-bg-under-sub: rgb(0 0 0 / 0.1);
+  --color-bg-under-back: rgb(0 0 0 / 0);
+  --color-bg-under-header: #ececec;
+  /* --color-bg-under-back: rgb(255 255 255 / 0.05); */
+  /* 右側 活動履歴 */
+  --color-right-under-bg-cell: #fff;
+  --color-right-under-header-text: var(--color-bg-brand-sub);
+  --color-disabled: #ccc;
 
   /* グラデーション light */
   --color-bg-brand-gradient: linear-gradient(to top left, #2b7fff, #acffff);
@@ -209,7 +219,7 @@
   --color-btn-brand-f-hover: var(--color-bg-brand-f-deep); */
   /* --color-btn-brand-f: #3593ffe0;
   --color-btn-brand-f-hover: #3593ff; */
-  --color-btn-brand-f: var(--color-bg-brand-f90);
+  --color-btn-brand-f: var(--color-bg-brand-fc0);
   --color-btn-brand-f-hover: var(--color-bg-brand-f);
   /* --color-btn-brand-f-hover: #3593ff; */
   --color-btn-brand-f-re: var(--color-bg-brand-f);
@@ -473,9 +483,12 @@
   --color-bg-brand-table-tab: linear-gradient(to top right, #2b7fffba, #0affff50);
   --color-border-table: #333;
   --color-border-table-deep: #555;
-  --color-table-header: #252525;
+  /* --color-table-header: #252525; */
+  --color-table-header: #2c2c2c;
+  --color-table-cell-bg: #1c1c1c;
   /* --color-table-footer: #252525; */
-  --color-table-footer: #191919;
+  /* --color-table-footer: #191919; */
+  --color-table-footer: #2c2c2c;
   --color-table-bg-loading: #121212;
   --color-table-reflection: rgba(255, 255, 255, 0.2);
   --color-table-loading-spinner: #787878;
@@ -489,7 +502,9 @@
 
   /* ======================================== 🌟テーブル 下画面 dark ======================================== */
   /* タブヘッダー */
-  --color-bg-under-tab-header: #252525;
+  /* --color-bg-under-tab-header: #252525; */
+  --color-bg-under-tab-header: var(--color-table-header);
+  --color-bg-under-tab-active: var(--color-bg-brand-fe0);
   /* ファンクションヘッダー */
   --color-bg-under-function-header: #252525;
   /* タイトル */
@@ -504,6 +519,11 @@
   --color-text-under-input: #fff;
   --color-bg-underline: rgb(94 94 94 / 0.3);
   --color-bg-underline: rgba(117, 117, 117, 0.7);
+  --color-bg-under-header: #2c2c2c;
+  /* --color-bg-under-back: rgb(255 255 255 / 0.05); */
+  /* 右側 活動履歴 */
+  --color-right-under-bg-cell: #1c1c1c;
+  --color-right-under-header-text: var(--color-text);
 
   /* ======================= 🌟グラデーション dark ======================= */
   --color-bg-brand-gradient: linear-gradient(to top left, #2b7fffaa, #acffffaa);

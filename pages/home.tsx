@@ -43,11 +43,11 @@ const DashboardHome = ({
   // /companyページにいて、アクティブメニュータブがCompanyでない場合にはCompanyに変更する
   useEffect(() => {
     // setTheme("light");
-    if (window.history.state.url === "/home" && activeMenuTab !== "HOME") {
+    if (window.history.state.url === "/home") {
       setActiveMenuTab("HOME");
       console.log("homeyページ アクティブタブをHOMEに変更");
     }
-  }, [activeMenuTab]);
+  }, []);
 
   return (
     <DashboardLayout title={langTitle}>

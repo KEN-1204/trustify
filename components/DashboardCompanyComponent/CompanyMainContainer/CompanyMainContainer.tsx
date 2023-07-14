@@ -1,7 +1,35 @@
-import React, { FC, memo } from "react";
+import React, { FC, Suspense, memo } from "react";
 import styles from "../CompanyDetail/CompanyDetail.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import useStore from "@/store";
+// import { UnderRightActivityLog } from "./UnderRightActivityLog/UnderRightActivityLog";
+import { FiLock } from "react-icons/fi";
+import { AiFillLock } from "react-icons/ai";
+import { FaLock } from "react-icons/fa";
+import { BsFillLockFill } from "react-icons/bs";
+import useRootStore from "@/store/useRootStore";
+import { Fallback } from "@/components/Fallback/Fallback";
+import { ErrorBoundary } from "react-error-boundary";
+import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
+import dynamic from "next/dynamic";
+
+// https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
+// デフォルトエクスポートの場合のダイナミックインポート
+// const DynamicComponent = dynamic(() => import('../components/hello'));
+// 名前付きエクスポートの場合のダイナミックインポート
+const UnderRightActivityLog = dynamic(
+  () => import("./UnderRightActivityLog/UnderRightActivityLog").then((mod) => mod.UnderRightActivityLog),
+  {
+    ssr: false,
+  }
+);
+/**カスタムローディングコンポーネント オプションの loading コンポーネントを追加して、動的コンポーネントの読み込み中に読み込み状態をレンダリングできます
+ * const DynamicComponentWithCustomLoading = dynamic(() => import('../components/hello'), {
+  loading: () => <p>...</p>
+});
+ */
+// SSRを使用しない場合
+// 常にサーバー側にモジュールを含める必要はありません。たとえば、ブラウザのみで動作するライブラリがモジュールに含まれている場合です。
 
 const CompanyMainContainerMemo: FC = () => {
   const searchMode = useDashboardStore((state) => state.searchMode);
@@ -32,10 +60,20 @@ const CompanyMainContainerMemo: FC = () => {
   const handleCloseTooltip = () => {
     setHoveredItemPosWrap(null);
   };
+
+  const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
+  const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
+
+  // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
   return (
     <div className={`${styles.main_container} w-full `}>
       {/* ------------------------- スクロールコンテナ ------------------------- */}
-      <div className={`${styles.scroll_container} relative flex w-full overflow-y-auto px-[10px] `}>
+      {/* <div className={`${styles.scroll_container} relative flex w-full overflow-y-auto pl-[10px] `}> */}
+      <div
+        className={`${styles.scroll_container} relative flex w-full overflow-y-auto pl-[10px] ${
+          tableContainerSize === "half" && underDisplayFullScreen ? `${styles.height_all}` : ``
+        } ${tableContainerSize === "all" && underDisplayFullScreen ? `${styles.height_all}` : ``}`}
+      >
         {/* ------------------------- 左コンテナ ------------------------- */}
         <div className={`${styles.left_container} h-full w-[calc(50vw-var(--sidebar-mini-width))] pb-[35px] pt-[10px]`}>
           {/* --------- ラッパー --------- */}
@@ -46,14 +84,14 @@ const CompanyMainContainerMemo: FC = () => {
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>○法人番号</span>
                   {!searchMode && <span className={`${styles.value}`}>01234567890</span>}
-                  {searchMode && <input type="number" className={`${styles.input_box}`} />}
+                  {searchMode && <input type="text" className={`${styles.input_box}`} />}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
                   <span className={`${styles.title_min}`}>ID</span>
-                  {!searchMode && <span className={`${styles.value}`}>01234567890</span>}
+                  {!searchMode && <span className={`${styles.value} truncate`}>01234567890</span>}
                   {searchMode && <input type="text" className={`${styles.input_box}`} />}
                 </div>
                 <div className={`${styles.underline}`}></div>
@@ -108,7 +146,7 @@ const CompanyMainContainerMemo: FC = () => {
               </div>
             </div>
 
-            {/* 郵便番号・地区CD */}
+            {/* 郵便番号・競合チェック */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
@@ -118,11 +156,17 @@ const CompanyMainContainerMemo: FC = () => {
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
-              <div className="flex h-full w-1/2 flex-col pr-[20px]">
+              <div className={`flex h-full w-1/2 flex-col pr-[20px]`}>
                 <div className={`${styles.title_box} flex h-full items-center`}>
-                  <span className={`${styles.title}`}>地区CD</span>
-                  {!searchMode && <span className={`${styles.value}`}>3070012</span>}
+                  {/* <span className={`${styles.title}`}>競合チェック</span> */}
+                  <span className={`${styles.title}`}>会員専用</span>
+                  {/* {!searchMode && <span className={`${styles.value}`}>競合無し</span>} */}
+                  {!searchMode && <span className={`${styles.value}`}>有料会員様専用のフィールドです</span>}
                   {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                  {/* サブスク未加入者にはブラーを表示 */}
+                  <div className={`${styles.limited_lock_cover_half} flex-center`}>
+                    <FaLock />
+                  </div>
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -134,15 +178,9 @@ const CompanyMainContainerMemo: FC = () => {
                 <div className={`${styles.title_box} flex h-full `}>
                   <span className={`${styles.title}`}>○住所</span>
                   {!searchMode && (
-                    <>
-                      {/* <span className={`${styles.textarea_value} h-[45px]`}>
-                        東京都港区芝浦4-20-2
-                        芝浦アイランドブルームタワー602号室あああああああああああああああああああああああああああああ芝浦アイランドブルームタワー602号室222あああああああああああああああああああああああああああああ
-                      </span> */}
-                      <span className={`${styles.textarea_value} h-[45px]`}>
-                        東京都港区芝浦4-20-2 芝浦アイランドブルームタワー
-                      </span>
-                    </>
+                    <span className={`${styles.textarea_value} h-[45px]`}>
+                      東京都港区芝浦4-20-2 芝浦アイランドブルームタワー
+                    </span>
                   )}
                   {searchMode && (
                     <textarea
@@ -247,17 +285,6 @@ const CompanyMainContainerMemo: FC = () => {
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>主要取引先</span>
-                  {/* {!searchMode && <span className={`${styles.value}`}>株式会社キーエンス</span>} */}
-                  {/* {!searchMode && (
-                    <span
-                      data-text="株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス"
-                      className={`${styles.value}`}
-                      onMouseEnter={(e) => handleOpenTooltip(e)}
-                      onMouseLeave={handleCloseTooltip}
-                    >
-                      株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス
-                    </span>
-                  )} */}
                   {!searchMode && (
                     <span
                       data-text="株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス"
@@ -634,18 +661,12 @@ const CompanyMainContainerMemo: FC = () => {
                 <div className={`${styles.title_box}  flex h-full`}>
                   <span className={`${styles.title}`}>検査設備</span>
                   {!searchMode && (
-                    <>
-                      {/* <span className={`${styles.textarea_value} h-[45px]`}>
-                        東京都港区芝浦4-20-2
-                        芝浦アイランドブルームタワー602号室あああああああああああああああああああああああああああああ芝浦アイランドブルームタワー602号室222あああああああああああああああああああああああああああああ
-                      </span> */}
-                      <span
-                        data-text=""
-                        className={`${styles.textarea_value} h-[45px]`}
-                        onMouseEnter={(e) => handleOpenTooltip(e)}
-                        onMouseLeave={handleCloseTooltip}
-                      ></span>
-                    </>
+                    <span
+                      data-text=""
+                      className={`${styles.textarea_value} h-[45px]`}
+                      onMouseEnter={(e) => handleOpenTooltip(e)}
+                      onMouseLeave={handleCloseTooltip}
+                    ></span>
                   )}
                   {searchMode && (
                     <textarea
@@ -667,13 +688,24 @@ const CompanyMainContainerMemo: FC = () => {
         {/* ---------------- 右コンテナ サーチモードではない通常モード 活動テーブル ---------------- */}
         {!searchMode && (
           <div className={`${styles.right_container} h-full grow bg-[aqua]/[0] pb-[35px] pt-[20px]`}>
-            <div className={`${styles.right_contents_wrapper} h-full w-full bg-[#000]/[0.3]`}></div>
+            <div className={`${styles.right_contents_wrapper} flex h-full w-full flex-col bg-[#000]/[0]`}>
+              {/* 活動履歴 */}
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Suspense
+                  fallback={<Fallback className="min-h-[calc(100vh-100vh/3-var(--header-height)/3--20px-22px-40px)]" />}
+                >
+                  <UnderRightActivityLog />
+                </Suspense>
+              </ErrorBoundary>
+              {/*  */}
+              <div className="h-screen w-full bg-red-100"></div>
+            </div>
           </div>
         )}
         {/* ---------------- 右コンテナ input時はstickyにしてnullやis nullなどのボタンや説明を配置 ---------------- */}
         {searchMode && (
           <div className={`${styles.right_sticky_container} sticky top-0 h-full grow bg-[aqua]/[0] pt-[20px]`}>
-            <div className={`${styles.right_sticky_contents_wrapper} h-[350px] w-full bg-[#000]/[0.3]`}></div>
+            <div className={`${styles.right_sticky_contents_wrapper} h-[350px] w-full bg-[#fff]/[0.3]`}></div>
           </div>
         )}
       </div>
@@ -688,3 +720,12 @@ export const CompanyMainContainer = memo(CompanyMainContainerMemo);
 //    <div className="flex h-full items-center">○法人番号</div>
 //    <div className={`${styles.underline}`}></div>
 //  </div>;
+
+/**
+ * 
+ * <div
+        className={`${styles.scroll_container} relative flex w-full overflow-y-auto pl-[10px] ${
+          tableContainerSize === "half" ? `${styles.height_all}` : ``
+        } ${tableContainerSize === "all" ? `${styles.height_all}` : ``}`}
+      >
+*/

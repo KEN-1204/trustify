@@ -1720,6 +1720,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // const columnOrder = [...columnHeaderItemList].map((item, index) => ({
   //   columnName: item.columnName as keyof TableDataType,
   // })); // columnNameのみの配列を取得
+  // 🌟現在のカラム順、.map((obj) => Object.values(row)[obj.columnId])で展開してGridセルを表示する
   // const columnOrder = [...columnHeaderItemList].map((item, index) => ({ columnId: item.columnId })); // columnIdのみの配列を取得
   // 🌟現在のisFrozenの数を取得 isFrozenの個数の総数と同じindex+1のアイテムにborder-right: 4pxを付与する
   // const currentIsFrozenCount = columnHeaderItemList.filter(obj => obj.isFrozen === true).length

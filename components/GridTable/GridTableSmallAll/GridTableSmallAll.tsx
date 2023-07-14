@@ -1707,8 +1707,15 @@ const GridTableSmallAllMemo: FC<Props> = ({ title }) => {
   console.log("✅ selectedCheckBox", selectedCheckBox);
   console.log("✅ allRows", allRows);
 
+  // 🌟現在のカラム.map((obj) => Object.values(row)[obj.columnId])で展開してGridセルを表示する
+  // カラムNameの値のみ配列バージョンで順番入れ替え
+  const columnOrder = [...columnHeaderItemList].map((item, index) => item.columnName as keyof TableDataType); // columnNameのみの配列を取得
+  // // カラムName配列バージョンで順番入れ替え
+  // const columnOrder = [...columnHeaderItemList].map((item, index) => ({
+  //   columnName: item.columnName as keyof TableDataType,
+  // })); // columnNameのみの配列を取得
   // 🌟現在のカラム順、.map((obj) => Object.values(row)[obj.columnId])で展開してGridセルを表示する
-  const columnOrder = [...columnHeaderItemList].map((item, index) => ({ columnId: item.columnId })); // columnIdのみの配列を取得
+  // const columnOrder = [...columnHeaderItemList].map((item, index) => ({ columnId: item.columnId })); // columnIdのみの配列を取得
   // 🌟現在のisFrozenの数を取得 isFrozenの個数の総数と同じindex+1のアイテムにborder-right: 4pxを付与する
   // const currentIsFrozenCount = columnHeaderItemList.filter(obj => obj.isFrozen === true).length
   console.log("✅ columnHeaderItemList, columnOrder", columnHeaderItemList, columnOrder);
@@ -2119,7 +2126,14 @@ const GridTableSmallAllMemo: FC<Props> = ({ title }) => {
                       // カラム順番が変更されているなら順番を合わせてからmap()で展開
                       columnOrder ? (
                         columnOrder
-                          .map((obj) => Object.values(rowData)[obj.columnId])
+                          .map((columnName) => rowData[columnName])
+                          // columnOrder
+                          //   .map((obj) => {
+                          //     // return { [obj.columnName]: rowData[obj.columnName] };
+                          //     return rowData[obj.columnName];
+                          //   })
+                          // columnOrder
+                          //   .map((obj) => Object.values(rowData)[obj.columnId])
                           .map((value, index) => (
                             <div
                               key={"row" + virtualRow.index.toString() + index.toString()}

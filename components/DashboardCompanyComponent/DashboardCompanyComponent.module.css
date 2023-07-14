@@ -120,8 +120,13 @@
   width: 100%;
   /* background-color: var(--color-bg-base); */
   /* min-height: calc(100vh - var(--header-height)); */
+  /* -----------------------------🌟テスト🌟----------------------------- */
+  /* -----------------------------パターン1 ハーフとオールで全体表示 */
+  /* height: 100%; */
+  /* -----------------------------パターン2 */
   height: 100%;
   min-height: calc(100vh - var(--header-height) - calc(100vh / 3 - var(--header-height) / 3) - 20px - 20px);
+  /* -----------------------------🌟テスト🌟----------------------------- */
   /* background: #ccc; */
   position: relative;
   display: flex;
@@ -137,6 +142,7 @@
   /* 画面上下を固定 */
   /* overflow: hidden; */
 }
+
 .company_screen_under_all {
   /* min-height: calc(100vh - var(--header-height)); */
   /* height: calc(100vh - var(--header-height)); */

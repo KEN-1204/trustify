@@ -26,6 +26,7 @@ export const Tooltip = () => {
   let hoveredItemPositionX = 0;
   let hoveredItemPositionY = 0;
   let hoveredItemDisplay;
+  let textLengthNum = 0;
   if (hoveredItemPos) {
     hoveredItemHalfWidth = hoveredItemPos.itemWidth / 2;
     hoveredItemWidth = hoveredItemPos.itemWidth;
@@ -33,6 +34,7 @@ export const Tooltip = () => {
     hoveredItemPositionX = hoveredItemPos.x;
     hoveredItemPositionY = hoveredItemPos.y;
     hoveredItemDisplay = hoveredItemPos.display;
+    textLengthNum = hoveredItemPos.textLength ? hoveredItemPos.textLength : 0;
   }
 
   console.log("Tooltipコンポーネントレンダリング");
@@ -74,6 +76,30 @@ export const Tooltip = () => {
           position: "absolute",
           zIndex: 100,
           left: `${`${hoveredItemPositionX}px`}`,
+          top: `${`${hoveredItemPositionY + hoveredItemHeight + 10}px`}`,
+        }}
+        ref={menuRef}
+      >
+        <div
+          className={`flex-center ${styles.dropdown_item}`}
+          onClick={() => {
+            setHoveredItemPos(null);
+          }}
+        >
+          {hoveredItemPos?.content}
+        </div>
+      </div>
+    );
+  }
+  // 右寄りのアイテムに対して左に表示するツールチップ 12はfont-size * 文字数 + padding10 * 2左右
+  if (hoveredItemDisplay === "right") {
+    return (
+      <div
+        className={`${styles.tooltip_right}  ${hoveredItemPos ? `block ${styles.fade}` : "transition-base hidden"}`}
+        style={{
+          position: "absolute",
+          zIndex: 100,
+          left: `${`${hoveredItemPositionX - 12 * textLengthNum + 10 * 2}px`}`,
           top: `${`${hoveredItemPositionY + hoveredItemHeight + 10}px`}`,
         }}
         ref={menuRef}

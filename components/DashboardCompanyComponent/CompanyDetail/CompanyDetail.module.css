@@ -112,6 +112,7 @@
   --gradient-color-sb: #3ecf8e, #3ecf8e, #3ecfb2;
 }
 
+/* ------------------------------- detailコンテナ ------------------------------- */
 .detail_container {
   /* calc(画面サイズ - ヘッダー56px) - テーブルサイズ(calc() 上pt20px - 下pt20px) pt=padding-top */
   /* min-height: calc(100vh - var(--header-height) - calc(100vh / 3 - var(--header-height) / 3) - 20px - 20px - 20px); */
@@ -124,23 +125,16 @@
   /* border-top-left-radius: 4px;
   border-bottom-left-radius: 4px; */
 
-  font-family: sans-serif, "Hiragino Sans", Roboto, system-ui;
-  font-family: "Hiragino Sans", sans-serif, Roboto, system-ui;
-
   /* 丸み */
   border-radius: 4px;
   overflow: hidden;
 }
-
-.scroll_container {
-  /* calc(画面サイズ - ヘッダー56px) - テーブルサイズ(calc() 上pt20px - 下pt20px - ?20px - タブヘッダー22px - ファンクションヘッダー40px - コンテナボーダー分上下1+1=2px) pt=padding-top */
-  height: 100%;
-  max-height: calc(
-    100vh - var(--header-height) - calc(100vh / 3 - var(--header-height) / 3) - 20px - 20px - 20px - 22px - 40px - 2px
-  );
+.detail_container.height_all {
+  overflow: visible;
+  /* overflow-x: hidden; */
 }
 
-/* ================================== 🌟ヘッダータブ ==================================== */
+/* ------------------------------- ヘッダータブ -------------------------------== */
 .tab_header {
   /* background: var(--color-bg-brand-table-tab); */
   /* background: var(--color-bg-secondary); */
@@ -161,7 +155,8 @@
   /* color: var(--color-text); */
   /* background-color: var(--color-bg-sub); */
   /* background: var(--color-bg-brand-table-tab); */
-  background: var(--color-bg-brand-f);
+  /* background: var(--color-bg-brand-f); */
+  background: var(--color-bg-under-tab-active);
   /* color: var(--color-dashboard-header-text); */
   transition: background-color 0.3s ease;
   color: #fff;
@@ -209,12 +204,27 @@
   /* font-family: sans-serif, "Hiragino Sans", Roboto, system-ui; */
   /* font-family: "Hiragino Sans", sans-serif, Roboto, system-ui; */
   font-size: 14px;
+  /* font-family: sans-serif, "Hiragino Sans", Roboto, system-ui; */
+  font-family: "Hiragino Sans", sans-serif, Roboto, system-ui;
 }
+/* --sidebar-open-width: 240px;
+  --sidebar-mini-width: 72px; */
+
+/* ------------------------------- スクロールコンテナ ------------------------------- */
 .scroll_container {
-  /* background: var(--color-table-header); */
-  /* padding-bottom: 35px; */
-  position: relative;
+  /* calc(画面サイズ - ヘッダー56px) - テーブルサイズ(calc() 上pt20px - 下pt20px - ?20px - タブヘッダー22px - ファンクションヘッダー40px - コンテナボーダー分上下1+1=2px) pt=padding-top */
+  height: 100%;
+  max-height: calc(
+    100vh - var(--header-height) - calc(100vh / 3 - var(--header-height) / 3) - 20px - 20px - 20px - 22px - 40px - 2px
+  );
 }
+/* 🌟サイズ切り替えでサイズがallとhalfの時はmaxではなくh-100%にする */
+.scroll_container.height_all {
+  max-height: none;
+  height: 100%;
+  overflow-y: visible;
+}
+
 .left_container {
   /* border: 1px solid var(--color-border-table); */
   /* border-top: none; */
@@ -223,22 +233,6 @@
 .left_contents_wrapper {
   /* background: #fff; */
   height: 100%;
-}
-
-.right_container {
-  height: 100%;
-}
-.right_contents_wrapper {
-  height: 100%;
-}
-.right_sticky_container {
-  height: 100%;
-}
-.right_sticky_contents_wrapper {
-  height: calc(
-    100vh - var(--header-height) - calc(100vh / 3 - var(--header-height) / 3) - 20px - 20px - 20px - 22px - 40px - 2px -
-      20px - 20px
-  );
 }
 
 .row_area {
@@ -250,8 +244,25 @@
   margin-top: 10px;
 }
 .title_box {
+  position: relative;
   padding-bottom: 5px;
 }
+.limited_lock_cover_half {
+  position: absolute;
+  z-index: 1;
+  left: 0px;
+  bottom: 4px;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(7px);
+}
+.limited_lock_cover_half svg {
+  color: var(--color-bg-brand-f);
+  /* color: var(--color-text); */
+  width: 18px;
+  height: 18px;
+}
+
 .title {
   color: var(--color-text-brand-f);
   color: var(--color-text-under-title);
@@ -259,7 +270,8 @@
   /* 右側に20px余白 */
   /* padding-right: 20px; */
   /* min-width: 80px; */
-  min-width: 90px;
+  /* min-width: 90px; */
+  min-width: 95px;
   font-weight: 600;
 }
 .title_min {
@@ -317,4 +329,73 @@
   padding: 3px 10px;
   border-radius: 2px;
   resize: none;
+}
+
+/* ------------------------------- 右側エリア ------------------------------- */
+.right_container {
+  height: 100%;
+}
+/* --sidebar-open-width: 240px;
+  --sidebar-mini-width: 72px; */
+.right_contents_wrapper {
+  /* height: 100%; */
+}
+/* 右側活動履歴 */
+.right_activity_log_container {
+  /* スクロールコンテナのサイズから-20px(上のpadding分)を引いたサイズの0.6倍(残り下は0.4倍のサイズ分) */
+  height: calc(
+    (
+        100vh - var(--header-height) - calc(100vh / 3 - var(--header-height) / 3) - 20px - 20px - 20px - 22px - 40px -
+          2px - 20px
+      ) * 0.6
+  );
+  border-radius: 4px;
+  box-shadow: inset 0px 0px 0px 1px var(--color-border-deep);
+}
+/* サーチモードの時はstickyになり、スクロールコンテナの上下padding20px分の40pxを引いたサイズ */
+.right_sticky_container {
+  height: 100%;
+}
+.right_sticky_contents_wrapper {
+  /* calc(画面サイズ - ヘッダー56px) - テーブルサイズ(calc() 上pt20px - 下pt20px - ?20px - タブヘッダー22px - ファンクションヘッダー40px - コンテナボーダー分上下1+1=2px) - (スクロールコンテナー上下padding20px+20px) pt=padding-top */
+  height: calc(
+    100vh - var(--header-height) - calc(100vh / 3 - var(--header-height) / 3) - 20px - 20px - 20px - 22px - 40px - 2px -
+      20px - 20px
+  );
+}
+.right_table_tab_header {
+  /* height: 35px;
+  min-height: 35px; */
+  height: 22px;
+  width: 100%;
+  /* border-bottom: 1px solid var(--color-border-deep); */
+  background-color: transparent;
+  /* background-color: var(--color-bg-table-header); */
+  display: flex;
+  justify-content: space-between;
+  /* padding-left: 1px; */
+
+  /* background: var(--color-bg-brand-table-tab); */
+  /* background: var(--color-table-header); */
+  background: var(--color-bg-under-sub);
+  min-width: 80px;
+  /* min-height: 22px; */
+  width: 100%;
+  padding: 0 15px;
+  /* 全体に表示 */
+  font-size: 12px;
+  user-select: none;
+  color: #fcfcfc;
+  font-weight: 500;
+  box-shadow: inset 0px 0px 0px 1px var(--color-border-deep);
+
+  /* box-shadow: 0 0 5px 0px rgba(12, 12, 12, 0.3); */
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+
+  /* 丸み */
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  color: var(--color-text);
 }

@@ -109,7 +109,6 @@ export const DashboardHeaderMemo: FC = () => {
             <li className={`${styles.navList}`}>
               <Link
                 href="/home"
-                prefetch={false}
                 className={`${styles.navbarItem} ${activeMenuTab === "HOME" ? styles.active : ""} `}
                 onClick={() => setActiveMenuTab("HOME")}
               >
@@ -130,7 +129,6 @@ export const DashboardHeaderMemo: FC = () => {
             <li className={`${styles.navList}`}>
               <Link
                 href="/company"
-                prefetch={false}
                 className={`${styles.navbarItem} ${activeMenuTab === "Company" ? styles.active : ""} `}
                 onClick={() => setActiveMenuTab("Company")}
               >
@@ -443,18 +441,18 @@ export const DashboardHeaderMemo: FC = () => {
               <Link
                 href="/home"
                 prefetch={false}
-                className={`${styles.navbarItem} ${activeMenuTab === "Admin" ? styles.active : ""} `}
+                className={`${styles.navbarItem} ${activeMenuTab === "VIP" ? styles.active : ""} `}
                 onClick={() => setActiveMenuTab("VIP")}
               >
                 <div
                   className={`${styles.navbarItemInner}`}
-                  data-text="管理者専用スペース"
+                  data-text="VIP専用スペースです"
                   onMouseEnter={(e) => handleOpenTooltip(e, "center")}
                   onMouseLeave={handleCloseTooltip}
                 >
                   <span>
-                    {language === "Ja" && "管理者"}
-                    {language === "En" && "Admin"}
+                    {language === "Ja" && "VIP"}
+                    {language === "En" && "VIP"}
                   </span>
                 </div>
                 <div className={`${styles.active_underline}`} />

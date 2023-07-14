@@ -38,6 +38,10 @@
   overflow-y: scroll;
   overflow-x: inherit;
 }
+.main_contents_wrapper.height_all {
+  height: 100%;
+}
+
 .spacer_top {
   min-height: var(--header-height);
   width: 100%;
@@ -50,6 +54,9 @@
   justify-content: flex-start;
   overflow-y: scroll;
   overflow-x: inherit;
+}
+.main_contents_container.height_all {
+  height: 100%;
 }
 
 .screen1 {
