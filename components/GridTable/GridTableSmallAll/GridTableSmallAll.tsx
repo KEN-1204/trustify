@@ -2188,7 +2188,7 @@ const GridTableSmallAllMemo: FC<Props> = ({ title }) => {
                               //   left: columnHeaderLeft(index + 1),
                               // }}
                               onClick={handleClickGridCell}
-                              // onDoubleClick={(e) => handleDoubleClick(e, index, columnHeaderItemList[index].columnName)}
+                              onDoubleClick={(e) => handleDoubleClick(e, index, columnHeaderItemList[index].columnName)}
                             >
                               {value}
                             </div>
@@ -2244,7 +2244,7 @@ const GridTableSmallAllMemo: FC<Props> = ({ title }) => {
                             //       }
                             // }
                             onClick={handleClickGridCell}
-                            // onDoubleClick={(e) => handleDoubleClick(e, index, columnHeaderItemList[index].columnName)}
+                            onDoubleClick={(e) => handleDoubleClick(e, index, columnHeaderItemList[index].columnName)}
                           >
                             {value}
                           </div>

@@ -17,6 +17,7 @@ import useThemeStore from "@/store/useThemeStore";
 import useRootStore from "@/store/useRootStore";
 import { ChangeSizeMenu } from "./Parts/ChangeSizeMenu/ChangeSizeMenu";
 import { MdOutlineDarkMode, MdOutlineLightMode } from "react-icons/md";
+import { TooltipWrap } from "./Parts/Tooltip/TooltipWrap";
 
 type Prop = {
   title?: string;
@@ -104,6 +105,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   // ツールチップ
   const hoveredItemPos = useStore((state) => state.hoveredItemPos);
   const hoveredItemPosHorizon = useStore((state) => state.hoveredItemPosHorizon);
+  const hoveredItemPosWrap = useStore((state) => state.hoveredItemPosWrap);
 
   // テーブルカラム編集モーダル
   const isOpenEditColumns = useDashboardStore((state) => state.isOpenEditColumns);
@@ -164,6 +166,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
       {/* ツールチップ */}
       {hoveredItemPos && <Tooltip />}
       {hoveredItemPosHorizon && <TooltipBlur />}
+      {hoveredItemPosWrap && <TooltipWrap />}
 
       {/* カラム編集モーダル */}
       {/* {isOpenEditColumns && <EditColumns />} */}

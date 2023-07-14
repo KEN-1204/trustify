@@ -146,7 +146,7 @@
   /* --color-table-header: #40576d18; */
   /* ヘッダーブルー */
   --color-table-header: #e2f0fd;
-  --color-table-header: #0d99ff20;
+  /* --color-table-header: #0d99ff20; */
   /* --color-table-header: #ecf4fc; */
   /* ヘッダーモノクロ */
   /* --color-table-header: #eee; */
@@ -185,6 +185,7 @@
   /* --color-text-under-title: #333; */
   /* --color-text-under-title: #252525; */
   --color-text-under-title: #121212;
+  --color-text-under-value: #424242;
   /* インプットボックス */
   --color-bg-under-input: #fff;
   --color-bg-under-input-box-shadow: inset 0px 0px 0px 1px #ffffff90, 0px 0px 0px 1px #ccc;
@@ -493,6 +494,7 @@
   --color-bg-under-function-header: #252525;
   /* タイトル */
   --color-text-under-title: #eee;
+  --color-text-under-value: #ececec;
   /* インプットボックス */
   --color-bg-under-input: #fff;
   --color-bg-under-input: #3c3c3c;

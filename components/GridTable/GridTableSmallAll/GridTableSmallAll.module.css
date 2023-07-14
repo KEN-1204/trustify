@@ -190,6 +190,10 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
+
+  /* 丸み */
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
 }
 /* 🌟gridメインコンテナ */
 .grid_main_container {

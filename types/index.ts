@@ -30,6 +30,16 @@ export type hoveredItemPosHorizon = {
   content2?: string | null;
   display?: string | null;
 } | null;
+// ホバー位置 ツールチップ側でMouseEnterした位置で動的に上下に表示
+export type hoveredItemPosWrap = {
+  x: number;
+  y: number;
+  itemWidth: number;
+  itemHeight: number;
+  content: string;
+  content2?: string | null;
+  content3?: string | null;
+} | null;
 
 // =================== アクティブタブ ===================
 export type ActiveMenuTab = string;

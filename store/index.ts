@@ -1,4 +1,4 @@
-import { ClickedItemPos, hoveredItemPos, hoveredItemPosHorizon } from "@/types";
+import { ClickedItemPos, hoveredItemPos, hoveredItemPosHorizon, hoveredItemPosWrap } from "@/types";
 import { Session } from "@supabase/supabase-js";
 import { ReactNode } from "react";
 import { create } from "zustand";
@@ -20,6 +20,9 @@ type State = {
   // ツールチップ ホバー位置 カラム編集モーダル
   hoveredItemPosModal: hoveredItemPos;
   setHoveredItemPosModal: (payload: hoveredItemPos) => void;
+  // 【ホバーしたアイテムのポジションを取得 折り返し有り MouseEnterした位置で動的に上下にツールチップを表示】
+  hoveredItemPosWrap: hoveredItemPosWrap;
+  setHoveredItemPosWrap: (payload: hoveredItemPosWrap) => void;
 
   // =================== 認証関連 ===================
   // セッション情報
@@ -98,6 +101,9 @@ const useStore = create<State>((set) => ({
   // 【ツールチップ カラム編集モーダル内で使用】
   hoveredItemPosModal: null,
   setHoveredItemPosModal: (payload) => set({ hoveredItemPosModal: payload }),
+  // 【ホバーしたアイテムのポジションを取得 折り返し有り MouseEnterした位置で動的に上下にツールチップを表示】
+  hoveredItemPosWrap: null,
+  setHoveredItemPosWrap: (payload) => set({ hoveredItemPosWrap: payload }),
 
   // =================== 認証関連 ===================
   // 【セッション情報】
