@@ -26,6 +26,73 @@ export const TooltipWrap = () => {
 
   console.log("TooltipWrapコンポーネントレンダリング X Y", hoveredItemPositionX, hoveredItemPositionY);
 
+  // 右寄りのアイテムに対してのルート
+  if (hoveredItemPosWrap?.display === "right") {
+    // 上に表示するツールチップ
+    // 下1/3でエンターしたなら上方向に表示 -40pxはRowのheight35px + margin-top5px = 40px分
+    if (window.innerHeight - window.innerHeight / 3 < hoveredItemPositionY) {
+      return (
+        <div
+          className={`${styles.tooltip_over_right} ${
+            hoveredItemPosWrap ? `block ${styles.fade}` : "transition-base hidden"
+          }`}
+          style={{
+            position: "absolute",
+            zIndex: 100,
+            // left: `${`${hoveredItemPositionX}px`}`,
+            // right: `${`${-hoveredItemWidth}px`}`,
+            // right: `${`${-hoveredItemHalfWidth}px`}`,
+            left: `${`${hoveredItemPositionX}px`}`,
+            right: `${`${0}px`}`,
+            //   top: `${`${hoveredItemPositionY - hoveredItemHeight - 40}px`}`,
+            bottom: `${`${hoveredItemPositionYOver + 10}px`}`,
+          }}
+          ref={menuRef}
+        >
+          <div
+            className={`flex-col-center ${styles.dropdown_item}`}
+            onClick={() => {
+              setHoveredItemPosWrap(null);
+            }}
+          >
+            <span>{hoveredItemPosWrap?.content}</span>
+            <span>{hoveredItemPosWrap?.content2}</span>
+            {hoveredItemPosWrap?.content3 && <span>{hoveredItemPosWrap?.content3}</span>}
+          </div>
+        </div>
+      );
+    }
+
+    // // 右寄り
+    // 下で表示
+    // 上2/3でエンターしたなら下方向に表示
+    return (
+      <div
+        className={`${styles.tooltip_right}  ${hoveredItemPosWrap ? `block ${styles.fade}` : "transition-base hidden"}`}
+        style={{
+          position: "absolute",
+          zIndex: 100,
+          left: `${`${hoveredItemPositionX}px`}`,
+          top: `${`${hoveredItemPositionY + hoveredItemHeight + 10}px`}`,
+        }}
+        ref={menuRef}
+      >
+        <div
+          className={`flex-col-center ${styles.dropdown_item}`}
+          onClick={() => {
+            setHoveredItemPosWrap(null);
+          }}
+        >
+          <span>{hoveredItemPosWrap?.content}</span>
+          <span>{hoveredItemPosWrap?.content2}</span>
+          {hoveredItemPosWrap?.content3 && <span>{hoveredItemPosWrap?.content3}</span>}
+        </div>
+      </div>
+    );
+  }
+  // 右寄りここまで
+
+  // center
   // 上に表示するツールチップ
   // 下1/3でエンターしたなら上方向に表示 -40pxはRowのheight35px + margin-top5px = 40px分
   if (window.innerHeight - window.innerHeight / 3 < hoveredItemPositionY) {

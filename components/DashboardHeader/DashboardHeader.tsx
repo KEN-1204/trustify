@@ -303,15 +303,15 @@ export const DashboardHeaderMemo: FC = () => {
               </div>
             </li>
             <li className={`${styles.navList}`}>
-              <Link
-                href="/home"
-                prefetch={false}
+              <div
+                // href="/home"
+                // prefetch={false}
                 className={`${styles.navbarItem} ${activeMenuTab === "Alignment" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("Alignment")}
+                // onClick={() => setActiveMenuTab("Alignment")}
               >
                 <div
-                  className={`${styles.navbarItemInner}`}
-                  data-text="営業担当者同士で連携する"
+                  className={`${styles.navbarItemInner} cursor-not-allowed`}
+                  data-text="開発・準備中..."
                   onMouseEnter={(e) => handleOpenTooltip(e, "center")}
                   onMouseLeave={handleCloseTooltip}
                 >
@@ -321,19 +321,20 @@ export const DashboardHeaderMemo: FC = () => {
                   </span>
                 </div>
                 <div className={`${styles.active_underline}`} />
-              </Link>
+              </div>
             </li>
             <li className={`${styles.navList}`}>
-              <Link
-                href="/home"
-                prefetch={false}
+              <div
+                // href="/home"
+                // prefetch={false}
                 className={`${styles.navbarItem} ${activeMenuTab === "Message" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("Message")}
+                // onClick={() => setActiveMenuTab("Message")}
               >
                 <div
-                  className={`${styles.navbarItemInner}`}
-                  data-text="顧客からの伝言や顧客への送付物、書類作成など"
-                  data-text2="依頼ごとお願いしましょう"
+                  className={`${styles.navbarItemInner} cursor-not-allowed`}
+                  // data-text="顧客からの伝言や顧客への送付物、書類作成など"
+                  // data-text2="依頼ごとお願いしましょう"
+                  data-text="開発・準備中..."
                   onMouseEnter={(e) => handleOpenTooltip(e, "center")}
                   onMouseLeave={handleCloseTooltip}
                 >
@@ -343,12 +344,12 @@ export const DashboardHeaderMemo: FC = () => {
                   </span>
                 </div>
                 <div className={`${styles.active_underline}`} />
-              </Link>
+              </div>
             </li>
             <li className={`${styles.navList}`}>
-              <Link
-                href="/home"
-                prefetch={false}
+              <div
+                // href="/home"
+                // prefetch={false}
                 className={`${styles.navbarItem} ${activeMenuTab === "SDB" ? styles.active : ""} `}
                 onClick={() => setActiveMenuTab("SDB")}
               >
@@ -364,12 +365,12 @@ export const DashboardHeaderMemo: FC = () => {
                   </span>
                 </div>
                 <div className={`${styles.active_underline}`} />
-              </Link>
+              </div>
             </li>
             <li className={`${styles.navList}`}>
-              <Link
-                href="/home"
-                prefetch={false}
+              <div
+                // href="/home"
+                // prefetch={false}
                 className={`${styles.navbarItem} ${activeMenuTab === "Admin" ? styles.active : ""} `}
                 onClick={() => setActiveMenuTab("Admin")}
               >
@@ -385,7 +386,7 @@ export const DashboardHeaderMemo: FC = () => {
                   </span>
                 </div>
                 <div className={`${styles.active_underline}`} />
-              </Link>
+              </div>
             </li>
           </ul>
         </nav>
@@ -416,47 +417,26 @@ export const DashboardHeaderMemo: FC = () => {
                 <div className={`${styles.active_underline}`} />
               </div>
             </li>
-            <li className={`${styles.navList} max-w-[81.5px]`}>
-              <Link
-                href="/table"
-                prefetch={false}
-                className={`${styles.navbarItem} ${activeMenuTab === "Table" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("Table")}
-              >
-                <div
-                  className={`${styles.navbarItemInner}`}
-                  data-text="テーブル"
-                  onMouseEnter={(e) => handleOpenTooltip(e, "center")}
-                  onMouseLeave={handleCloseTooltip}
-                >
-                  <span>
-                    {language === "Ja" && "テーブル"}
-                    {language === "En" && "Table"}
-                  </span>
-                </div>
-                <div className={`${styles.active_underline}`} />
-              </Link>
-            </li>
             <li className={`${styles.navList} max-w-[81px]`}>
-              <Link
-                href="/home"
-                prefetch={false}
-                className={`${styles.navbarItem} ${activeMenuTab === "VIP" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("VIP")}
+              <div
+                // href="/home"
+                // prefetch={false}
+                className={`${styles.navbarItem} ${activeMenuTab === "Supporter" ? styles.active : ""} `}
+                // onClick={() => setActiveMenuTab("Supporter")}
               >
                 <div
-                  className={`${styles.navbarItemInner}`}
-                  data-text="VIP専用スペースです"
+                  className={`${styles.navbarItemInner} cursor-not-allowed`}
+                  data-text="サポーター専用スペースです"
                   onMouseEnter={(e) => handleOpenTooltip(e, "center")}
                   onMouseLeave={handleCloseTooltip}
                 >
                   <span>
-                    {language === "Ja" && "VIP"}
-                    {language === "En" && "VIP"}
+                    {language === "Ja" && "サポーター"}
+                    {language === "En" && "サポーター"}
                   </span>
                 </div>
                 <div className={`${styles.active_underline}`} />
-              </Link>
+              </div>
             </li>
           </ul>
         </nav>

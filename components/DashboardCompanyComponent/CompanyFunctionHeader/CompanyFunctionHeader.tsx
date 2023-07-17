@@ -59,7 +59,13 @@ const CompanyFunctionHeaderMemo: FC = () => {
           classText={`select-none`}
           clickEventHandler={() => {
             console.log("新規サーチ クリック");
-            setSearchMode(!searchMode);
+            if (searchMode) {
+              // SELECTメソッド
+              setSearchMode(false);
+            } else {
+              // 新規サーチクリック
+              setSearchMode(true);
+            }
           }}
         />
         <RippleButton
@@ -69,6 +75,22 @@ const CompanyFunctionHeaderMemo: FC = () => {
           clickEventHandler={() => {
             console.log("サーチ編集 クリック");
             setSearchMode(false);
+          }}
+        />
+        <RippleButton
+          title={`会社作成`}
+          classText="select-none"
+          borderRadius="2px"
+          clickEventHandler={() => {
+            console.log("サーチ編集 クリック");
+          }}
+        />
+        <RippleButton
+          title={`会社編集`}
+          classText="select-none"
+          borderRadius="2px"
+          clickEventHandler={() => {
+            console.log("サーチ編集 クリック");
           }}
         />
         <RippleButton
@@ -83,20 +105,19 @@ const CompanyFunctionHeaderMemo: FC = () => {
 
       <div className={`flex max-h-[26px] w-full  items-center justify-end space-x-[6px]`}>
         <button
-          className={`flex-center transition-base03 h-[26px]  w-[70px] cursor-pointer  space-x-2 rounded-[4px] text-[12px]  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn} `}
+          className={`flex-center transition-base03 mr-[10px]  h-[26px] w-[70px]  cursor-pointer space-x-2 rounded-[4px]  text-[12px] text-[var(--color-bg-brand-f)] ${styles.fh_text_btn} `}
         >
           {/* <FiLock /> */}
           <span>HP検索</span>
         </button>
-        <button
+        {/* <button
           className={`flex-center transition-base03 h-[26px]  min-w-[70px] cursor-pointer  space-x-2 rounded-[4px] text-[12px]  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn} `}
         >
-          {/* <FiLock /> */}
           <span>MAP</span>
-        </button>
+        </button> */}
         <button
           data-text={`${underDisplayFullScreen ? "デフォルト表示" : "全画面表示"}`}
-          className={`flex-center transition-base03 h-[26px]  min-w-[26px]  space-x-2 rounded-[4px] text-[16px]   ${
+          className={`flex-center transition-base03   !mr-[10px] h-[26px] min-w-[26px]  space-x-2 rounded-[4px] text-[16px]   ${
             tableContainerSize === "one_third"
               ? `cursor-not-allowed  text-[#b9b9b9]`
               : `text-[var(--color-bg-brand-f)] ${styles.fh_text_btn} cursor-pointer`

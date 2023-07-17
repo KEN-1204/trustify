@@ -149,7 +149,10 @@
   /* --color-table-header: #0d99ff20; */
   /* --color-table-header: #ecf4fc; */
   /* ヘッダーモノクロ 🌟モノクロならこれ */
-  --color-table-header: #ececec;
+  /* --color-table-header: #ececec; */
+  /* --color-table-header: #f0f0f0; */
+  --color-table-header: #f4f4f4;
+  /* --color-table-header: #f3f3f3; */
   /* フッターブルー */
   /* --color-table-footer: #e2f0fd90; */
   /* フッターモノクロ */
@@ -196,7 +199,8 @@
   --color-bg-underline: rgb(94 94 94 / 0.3);
   --color-bg-under-sub: rgb(0 0 0 / 0.1);
   --color-bg-under-back: rgb(0 0 0 / 0);
-  --color-bg-under-header: #ececec;
+  /* --color-bg-under-header: #ececec; */
+  --color-bg-under-header: var(--color-table-header);
   /* --color-bg-under-back: rgb(255 255 255 / 0.05); */
   /* 右側 活動履歴 */
   --color-right-under-bg-cell: #fff;
