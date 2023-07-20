@@ -968,7 +968,6 @@ export interface Database {
           stripe_customer_id: string | null;
           subscription_id: string | null;
           updated_at: string | null;
-          visit_ban_flag: boolean | null;
         };
         Insert: {
           accept_notification?: boolean | null;

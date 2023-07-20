@@ -47,47 +47,47 @@ export const Header: FC<Props> = ({
   const menuRef = useRef<HTMLUListElement | null>(null);
 
   // Zustandでヘッダーが200を超えたかどうかを保持
-  const isHeaderShown = useStore((state) => state.isHeaderShown);
-  const isHeaderTop = useStore((state) => state.isHeaderTop);
+  // const isHeaderShown = useStore((state) => state.isHeaderShown);
+  // const isHeaderTop = useStore((state) => state.isHeaderTop);
 
-  //   // ============ ヘッダー 下スクロール時に非表示、上スクロール時に表示 ============
-  //   const [isHeaderShown, setIsHeaderShown] = useState(true);
-  //   const [currentY, setCurrentY] = useState(0);
-  //   const [isHeaderTop, setIsHeaderTop] = useState(true);
+  // ============ ヘッダー 下スクロール時に非表示、上スクロール時に表示 ============
+  const [isHeaderShown, setIsHeaderShown] = useState(true);
+  const [isHeaderTop, setIsHeaderTop] = useState(true);
+  const [currentY, setCurrentY] = useState(0);
 
-  //   const handleScrollEvent = useCallback(() => {
-  //     console.log("scrollイベント発火🔥 現在のscrollY, currentY", scrollY, currentY);
-  //     // headerの高さ100px、scrollYが100以下か上にスクロールした場合はheaderを表示
-  //     if (window.scrollY < 100 || window.scrollY < currentY) {
-  //       setIsHeaderShown(true);
-  //     } else {
-  //       setIsHeaderShown(false);
-  //     }
-  //     setCurrentY(window.scrollY);
+  const handleScrollEvent = useCallback(() => {
+    console.log("scrollイベント発火🔥 現在のscrollY, currentY", scrollY, currentY);
+    // headerの高さ100px、scrollYが100以下か上にスクロールした場合はheaderを表示
+    if (window.scrollY < 100 || window.scrollY < currentY) {
+      setIsHeaderShown(true);
+    } else {
+      setIsHeaderShown(false);
+    }
+    setCurrentY(window.scrollY);
 
-  //     // 画面が最上部の時はヘッダーを透明にする
-  //     // if (window.scrollY > 0) {
-  //     //   setIsHeaderTop(false);
-  //     // } else {
-  //     //   setIsHeaderTop(true);
-  //     // }
-  //     if (window.scrollY > 200) {
-  //       setIsHeaderTop(false);
-  //     } else {
-  //       setIsHeaderTop(true);
-  //     }
-  //     // }, [currentY, isHeaderShown, isHeaderTop]);
-  //   }, [currentY]);
+    // 画面が最上部の時はヘッダーを透明にする
+    // if (window.scrollY > 0) {
+    //   setIsHeaderTop(false);
+    // } else {
+    //   setIsHeaderTop(true);
+    // }
+    if (window.scrollY > 200) {
+      setIsHeaderTop(false);
+    } else {
+      setIsHeaderTop(true);
+    }
+    // }, [currentY, isHeaderShown, isHeaderTop]);
+  }, [currentY]);
 
-  //   useEffect(() => {
-  //     console.log("window", window.scrollY);
-  //     window.addEventListener(`scroll`, handleScrollEvent);
+  useEffect(() => {
+    console.log("window", window.scrollY);
+    window.addEventListener(`scroll`, handleScrollEvent);
 
-  //     return () => {
-  //       window.removeEventListener("scroll", handleScrollEvent);
-  //     };
-  //   }, [handleScrollEvent]);
-  //   // =======================================================================
+    return () => {
+      window.removeEventListener("scroll", handleScrollEvent);
+    };
+  }, [handleScrollEvent]);
+  // =======================================================================
 
   // 仮コード🌟
   const supabase = useSupabaseClient();
@@ -125,7 +125,7 @@ export const Header: FC<Props> = ({
   return (
     <>
       <header
-        className={`fixed left-0 top-0 z-[80] flex h-[100px] w-[100dvw] items-center justify-between  px-[22px] py-[30px] md:px-[10%] ${
+        className={`fixed left-0 top-0 z-[80] flex h-[100px] w-[100%] items-center justify-between  px-[22px] py-[30px] md:px-[10%]  ${
           theme === "dark" ? darkModeColor : lightModeColor
         } ${isHeaderShown ? " opacity-100 " : "opacity-0"}  ${
           isHeaderTop ? "transition-base08" : "transition-base border-shadow backdrop-blur-md"
@@ -198,7 +198,7 @@ export const Header: FC<Props> = ({
                 <div className={`${styles.underline}`} />
               </Link>
             </li>
-            <li className={`${styles.navList}`}>
+            {/* <li className={`${styles.navList}`}>
               <Link href="/" prefetch={false} className={`${styles.navbarItem}`}>
                 <span>
                   {language === "Ja" && "サポート"}
@@ -206,7 +206,7 @@ export const Header: FC<Props> = ({
                 </span>
                 <div className={`${styles.underline}`} />
               </Link>
-            </li>
+            </li> */}
             <li className={`${styles.navList}`}>
               <button className={`${styles.navbarItem}`} onClick={handleAuthLoginLogout}>
                 {sessionState ? (

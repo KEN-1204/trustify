@@ -1,0 +1,237 @@
+.overlay {
+  position: fixed;
+  z-index: 500;
+  /* z-index: 100; */
+  inset: 0;
+  /* background: #00000030; */
+  backdrop-filter: blur(4px);
+  /* transform: translateY(-20px) scaleY(1.1); */
+}
+
+.container {
+  position: fixed;
+  z-index: 1000;
+  /* z-index: 150; */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40vw;
+  height: 90vh;
+  /* background-color: rgb(39 39 39 / 0.7); */
+  background-color: var(--color-edit-bg);
+  border-radius: 8px;
+  /* box-shadow: inset 0px 0px 0px 1px #ffffff70, 0px 0px 0px 1px #000;
+  box-shadow: inset 0 0 0 1px var(--color-modal-border); */
+  /* box-shadow: var(--color-modal-inset-border); */
+  box-shadow: var(--color-edit-border);
+  padding: 5px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 15px 40px;
+  /* overflow: hidden; */
+
+  color: #333;
+  color: var(--color-edit-text);
+  font-family: sans-serif;
+}
+.main_contents_container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  padding: 0px 0 20px 0;
+  display: flex;
+  /* justify-content: space-between; */
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+.content_box {
+  background: var(--color-bg-sub);
+  border-radius: 6px;
+}
+.title {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  height: 50px;
+  width: 100%;
+  padding-left: 25px;
+  padding-right: 25px;
+  padding-top: 5px;
+  font-weight: 700;
+  font-size: 18px;
+}
+.sortable_list {
+  /* background: var(--color-bg-sub); */
+  /* width: 445px; */
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  padding: 5px 25px 20px;
+  overflow-y: scroll;
+}
+.sortable_list .item {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* border: 1px solid #ccc; */
+  box-shadow: var(--color-edit-item-border);
+  border-radius: 4px;
+  /* margin-bottom: 6px; */
+  margin-bottom: 11px;
+  /* padding: 10px 13px; */
+  padding: 6px 13px;
+  background: var(--color-edit-item-bg);
+  cursor: pointer;
+}
+.sortable_list .item.active_left {
+  box-shadow: 0 0 0 1px var(--color-edit-left-active);
+  background-color: var(--color-edit-left-active-bg);
+}
+.sortable_list .item.active_right {
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+  background-color: var(--color-bg-brand-f30);
+  /* box-shadow: 0 0 0 1px var(--color-edit-right-active);
+  background-color: var(--color-edit-right-active-bg); */
+}
+.item .details {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+.item .details img {
+  width: 43px;
+  height: 43px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-right: 12px;
+}
+.item .details span {
+  font-size: 12px;
+  width: 290px;
+}
+.item svg {
+  color: #474747;
+  font-size: 1.2rem;
+  cursor: grab;
+  user-select: none;
+}
+
+.item.dragging :where(.details, svg) {
+  /* opacity: 0; */
+  /* opacity: 0.3; */
+}
+.item_left.dragging {
+  /* background: #000;
+  color: #0affff; */
+  opacity: 0.3;
+  /* background: var(--color-edit-add); */
+  background: var(--color-bg-brand-f);
+  color: #fff;
+}
+.item_right.dragging {
+  /* background: #000;
+  color: #0affff; */
+  opacity: 0.3;
+  /* background: var(--bright-red); */
+  background: var(--color-bg-brand-f);
+  color: #fff;
+}
+
+.title svg {
+  /* color: var(--color-sub-text); */
+}
+.title svg path {
+  stroke: var(--color-edit-arrow-disable-color);
+}
+.icon_button {
+  background-color: var(--color-edit-arrow-disable-bg-onlist);
+  color: var(--color-edit-arrow-disable-color);
+}
+/* .icon_button svg {
+  background-color: var(--color-edit-arrow-disable-bg-onlist);
+  color: var(--color-sub-text);
+  fill: var(--color-sub-text);
+} */
+/* 追加 */
+.arrow_add_active {
+  background-color: var(--color-edit-add);
+  color: var(--color-text);
+  cursor: pointer;
+  color: #fff;
+}
+.arrow_add_active:hover {
+  background-color: var(--color-edit-add-hover);
+}
+/* 削除 */
+.arrow_remove_active {
+  background-color: var(--color-edit-remove);
+  /* color: var(--color-text); */
+  color: #fff;
+  cursor: pointer;
+}
+.arrow_remove_active:hover {
+  background-color: var(--color-edit-remove-hover);
+}
+/* 最上部 */
+.arrow_up_active {
+  background-color: var(--color-bg-brand-f);
+  /* color: var(--color-text); */
+  cursor: pointer;
+  color: #fff;
+}
+.arrow_up_active:hover {
+  background-color: var(--color-bg-brand-f-hover);
+}
+/* 最下部 */
+.arrow_down_active {
+  background-color: var(--color-bg-brand-f);
+  /* color: var(--color-text); */
+  color: #fff;
+  cursor: pointer;
+}
+.arrow_down_active:hover {
+  background-color: var(--color-bg-brand-f-hover);
+}
+/* 右側リセット */
+.arrow_right_reset_active {
+  background-color: var(--color-bg-brand-f);
+  /* color: var(--color-text); */
+  color: #fff;
+  cursor: pointer;
+}
+.arrow_right_reset_active svg path {
+  stroke: #fff;
+}
+.arrow_right_reset_active:hover {
+  background-color: var(--color-bg-brand-f-hover);
+}
+/* 左側リセット */
+.arrow_left_reset_active {
+  background-color: var(--color-bg-brand-f);
+  /* color: var(--color-text); */
+  color: #fff;
+  cursor: pointer;
+}
+.arrow_left_reset_active svg path {
+  stroke: #fff;
+}
+.arrow_left_reset_active:hover {
+  background-color: var(--color-bg-brand-f-hover);
+}
+
+.sortable_list .frozen {
+  background-color: var(--color-edit-frozen-bg);
+  color: var(--color-edit-frozen-text);
+  box-shadow: var(--color-edit-border-frozen);
+  cursor: default;
+  pointer-events: none;
+}
+.sortable_list .frozen svg {
+  fill: var(--color-edit-frozen-text);
+  cursor: default;
+}

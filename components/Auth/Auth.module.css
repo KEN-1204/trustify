@@ -80,7 +80,8 @@
   inset: 0;
   padding: 2px;
   border-radius: 12px;
-  background: #141414;
+  /* background: #141414; */
+  background: var(--color-auth-modal-bg);
   /* background: linear-gradient(to top right, #080808, #232323); */
   background-clip: content-box;
   backdrop-filter: blur(12px);
@@ -190,7 +191,8 @@
   width: 100%;
   font-size: 16px;
   line-height: 60px;
-  color: var(--color-text-secondary);
+  /* color: var(--color-text-secondary); */
+  color: var(--color-auth-modal-or-text);
 }
 .form_input {
   font-weight: 500;
@@ -392,7 +394,9 @@
 .sign_in_and_up_switch_area .switch_form_text {
   font-size: 16px;
   user-select: none;
-  color: rgba(var(--color-text-rgb), 0.9);
+  /* color: rgba(var(--color-text-rgb), 0.9); */
+  color: var(--color-auth-modal-switch-text);
+  /* color: #fff; */
 }
 .switch_link {
   cursor: pointer;

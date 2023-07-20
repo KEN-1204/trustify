@@ -33,6 +33,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   // const theme = useStore((state) => state.theme);
   // const setTheme = useStore((state) => state.setTheme);
   const activeMenuTab = useDashboardStore((state) => state.activeMenuTab);
+  // ユーザープロフィール
 
   const router = useRouter();
   const supabase = useSupabaseClient();
@@ -67,23 +68,8 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
 
   // マウント時にbodyタグにoverflow: hiddenを設定して、ネイティブアプリケーションのようにする
   useEffect(() => {
-    // document.body.style.overflow = "hidden";
-    // if (theme === "light") {
-    //   document.body.style.backgroundColor = "#fff";
-    // } else {
-    //   document.body.style.backgroundColor = "#121212";
-    // }
     document.body.style.overflow = "hidden";
   }, []);
-  // useEffectOnce(() => {
-  //   // document.body.style.overflow = "hidden";
-  //   // if (theme === "light") {
-  //   //   document.body.style.backgroundColor = "#fff";
-  //   // } else {
-  //   //   document.body.style.backgroundColor = "#121212";
-  //   // }
-  //   document.body.style.overflow = "hidden";
-  // });
 
   // ログアウト関数
   const handleSignOut = async () => {
@@ -146,7 +132,6 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
         <div className="h-[35px] w-[35px] rounded-full bg-[#00000030]" onClick={handleSignOut}></div>
       </div>
       {/* テーマ切り替えボタン */}
-
       <div
         className={`flex-center transition-base01 fixed bottom-[2%] right-[2%] z-[1000] h-[35px] w-[35px] cursor-pointer rounded-full ${
           theme === "dark"

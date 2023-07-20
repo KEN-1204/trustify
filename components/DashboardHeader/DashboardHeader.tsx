@@ -127,8 +127,8 @@ export const DashboardHeaderMemo: FC = () => {
               </Link>
             </li>
             <li className={`${styles.navList}`}>
-              <Link
-                href="/company"
+              <div
+                // href="/company"
                 className={`${styles.navbarItem} ${activeMenuTab === "Company" ? styles.active : ""} `}
                 onClick={() => setActiveMenuTab("Company")}
               >
@@ -144,12 +144,12 @@ export const DashboardHeaderMemo: FC = () => {
                   </span>
                 </div>
                 <div className={`${styles.active_underline}`} />
-              </Link>
+              </div>
             </li>
             <li className={`${styles.navList}`}>
-              <Link
-                href="/home"
-                prefetch={false}
+              <div
+                // href="/home"
+                // prefetch={false}
                 className={`${styles.navbarItem} ${activeMenuTab === "Contacts" ? styles.active : ""} `}
                 onClick={() => setActiveMenuTab("Contacts")}
               >
@@ -167,12 +167,12 @@ export const DashboardHeaderMemo: FC = () => {
                   </span>
                 </div>
                 <div className={`${styles.active_underline}`} />
-              </Link>
+              </div>
             </li>
             <li className={`${styles.navList}`}>
-              <Link
-                href="/home"
-                prefetch={false}
+              <div
+                // href="/home"
+                // prefetch={false}
                 className={`${styles.navbarItem} ${activeMenuTab === "Activity" ? styles.active : ""} `}
                 onClick={() => setActiveMenuTab("Activity")}
               >
@@ -190,7 +190,7 @@ export const DashboardHeaderMemo: FC = () => {
                   </span>
                 </div>
                 <div className={`${styles.active_underline}`} />
-              </Link>
+              </div>
             </li>
             <li className={`${styles.navList}`}>
               <Link

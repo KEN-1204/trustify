@@ -2,10 +2,11 @@
   /* background: #000; */
   /* background: radial-gradient(#333, #000); */
   height: 100dvh;
-  background-image: url("/assets/images/login-background.jpg");
+  /* 背景画像🌟 */
+  /* background-image: url("/assets/images/login-background.jpg");
   background-position: center;
   background-size: cover;
-  background-repeat: no-repeat;
+  background-repeat: no-repeat; */
 
   /* position: absolute;
   top: 0;
@@ -17,8 +18,10 @@
 .main_container {
   width: 100%;
   height: 100dvh;
-  overflow-y: scroll;
-  scroll-snap-type: y mandatory;
+  /* background-color: var(--color-bg-base); */
+  /* スクロールスナップ🌟 */
+  /* overflow-y: scroll;
+  scroll-snap-type: y mandatory; */
 }
 
 .main_container svg {
@@ -36,7 +39,8 @@
   gap: 50px;
   color: #fff;
 
-  scroll-snap-align: start;
+  /* スクロールスナップ🌟 */
+  /* scroll-snap-align: start; */
 }
 
 /* ======================== Hero ======================== */
@@ -176,7 +180,8 @@
 .text_gradient::before {
   font-size: 70px;
   position: absolute;
-  content: "ワンコイン";
+  /* content: "ワンコイン"; */
+  content: "980円";
   color: rgba(0, 0, 0, 0);
   background: linear-gradient(to top right, #0affff, #0abeff, #0066ff);
   -webkit-background-clip: text;
@@ -321,17 +326,74 @@
   /* flex-wrap: wrap; */
   align-items: center;
   /* padding: 12px min(10%, 6.25rem); */
-  gap: 50px;
-  color: #fff;
-  padding: 120px 16%;
+  /* gap: 50px; */
+  gap: 100px;
+  /* カラー🌟 */
+  /* color: #fff; */
+  color: var(--color-text);
+  /* padding: 120px 16%; */
+  padding: 120px 10%;
 
-  scroll-snap-align: center;
-  scroll-snap-stop: always;
+  /* スクロールスナップ🌟 */
+  /* scroll-snap-align: center;
+  scroll-snap-stop: always; */
+}
+.wrap {
+  /* padding-top: 56.25%; */
+  border-radius: 10px;
+  /* box-shadow: rgb(0 0 0 / 69%) 0px 26px 30px -10px, rgb(0 0 0 / 73%) 0px 16px 10px -10px; */
+  /* box-shadow: rgb(0 0 0 / 69%) 0px 16px 30px -10px, rgb(0 0 0 / 5%) 0px 16px 10px -10px; */
+  box-shadow: var(--color-wrap-box-shadow);
+  overflow: hidden;
+  position: relative;
+  transition: all 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s;
+  /* border: 8px solid rgba(249, 249, 249, 0.2); */
+  border: 8px solid var(--color-wrap-border);
+}
+.wrap:hover {
+  /* box-shadow: rgb(0 0 0 / 80%) 0px 40px 58px -16px, rgb(0 0 0 / 72%) 0px 30px 22px -10px; */
+  /* box-shadow: rgb(0 0 0 / 69%) 0px 26px 30px -10px, rgb(0 0 0 / 45%) 0px 16px 10px -10px; */
+  box-shadow: var(--color-wrap-box-shadow-hover);
+  overflow: hidden;
+  /* transform: scale(1.05); */
+  /* border-color: rgba(249, 249, 249, 1); */
+  /* border-color: var(--color-bg-brand-sub); */
+  border-color: var(--color-bg-brand-hover-main);
+}
+.img {
+  border-radius: 4px;
+  transition: all 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s;
+  z-index: 1;
+}
+
+.wrap:hover .img {
+  /* border-radius: 10px; */
+  transform: scale(1.03);
+  opacity: 1;
+}
+.wrap video {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  /* top: 0; */
+  inset: 0;
+  opacity: 0;
+  z-index: 0;
+  border-radius: 4px;
+  transition: all 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s;
+}
+.wrap:hover video {
+  opacity: 1;
+  z-index: 0;
+  /* border-radius: 10px; */
+  transform: scale(1.03);
 }
 .text_col {
   flex-basis: 50%;
+  /* flex-basis: 50%; */
   margin-bottom: 20px;
 }
+
 .img_col {
   flex-basis: 50%;
   /* width: 90%; */
@@ -339,8 +401,13 @@
   position: relative;
   height: 450px;
 }
+
+.text_col p {
+  font-size: 18px;
+}
 .scroll_slides_row h2 {
-  font-size: 50px;
+  /* font-size: 50px; */
+  font-size: 45px;
   font-weight: 600;
   margin-bottom: 20px;
 }
@@ -348,8 +415,10 @@
 .horizon {
   width: 100dvw;
   height: 10px;
-  background: #232323;
-  border-color: #232323;
+  /* background: #232323; */
+  background: var(--color-horizon);
+  /* border-color: #232323; */
+  /* border-color: var(--color-horizon); */
   /* margin-bottom: 60px; */
 }
 
@@ -360,8 +429,9 @@
   text-align: center;
   font-size: 18px;
 
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
+  /* スクロールスナップ🌟 */
+  /* scroll-snap-align: start;
+  scroll-snap-stop: always; */
 
   /* scroll-snap-align: center; */
 }
@@ -388,13 +458,15 @@
   /* font-size: 18px; */
   font-size: 22px;
   font-weight: 500;
-  background: #303030;
+  /* background: #303030; */
+  background: var(--color-accordion-bg);
   margin-bottom: 2px;
   cursor: pointer;
   position: relative;
 }
 .accordion li:hover label {
-  background: #454545;
+  /* background: #454545; */
+  background: var(--color-accordion-bg-hover);
 }
 .accordion li label::after {
   content: "+";
@@ -407,7 +479,8 @@
   display: none;
 }
 .accordion .content {
-  background: #303030;
+  /* background: #303030; */
+  background: var(--color-accordion-bg);
   text-align: left;
   padding: 0 20px;
   max-height: 0;
@@ -430,13 +503,15 @@
   text-align: center;
   font-size: 18px;
 
-  scroll-snap-align: center;
-  scroll-snap-stop: always;
+  /* スクロールスナップ🌟 */
+  /* scroll-snap-align: center;
+  scroll-snap-stop: always; */
 }
 
 .email_auth {
   /* background: #fff; */
-  background: rgba(15, 15, 15, 0.6);
+  /* background: rgba(15, 15, 15, 0.6); */
+  background: var(--color-input-bg);
   /* border: 1px solid #ffffff70; */
   /* background: rgba(255, 255, 255, 0.6);
   border: 1px solid #27272770; */
@@ -615,8 +690,9 @@
   /* border-top: 6px solid #333; */
   color: #777;
 
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
+  /* スクロールスナップ🌟 */
+  /* scroll-snap-align: start;
+  scroll-snap-stop: always; */
 }
 .footer h2 {
   font-size: 18px;

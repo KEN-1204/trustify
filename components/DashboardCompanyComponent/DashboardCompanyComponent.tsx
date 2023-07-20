@@ -63,7 +63,7 @@ export const DashboardCompanyComponent: FC = () => {
             {activeMenuTab === "Company" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
-                  <GridTableAll title="会社 GridTableAll" />
+                  <GridTableAll title="会社" />
                 </Suspense>
               </ErrorBoundary>
             )}

@@ -68,7 +68,7 @@ export const Root: FC = () => {
   useEffect(() => {
     typed.current = new Typed(typingRef.current, {
       strings: [
-        `<span id='red' className="text_gradient_red text-[70px]">キーエンス</span> で培われた</span><br /><span className="whitespace-nowrap leading-normal">強力なデータベースを <span id='one' className="text_gradient">ワンコイン</span> で`,
+        `<span id='red' className="text_gradient_red text-[70px]">キーエンス</span> で培われた</span><br /><span className="whitespace-nowrap leading-normal">強力なデータベースを <span id='one' className="text_gradient">980円</span> で`,
       ],
       loop: false,
       typeSpeed: 80,
@@ -161,9 +161,24 @@ export const Root: FC = () => {
       )}
       {/* ======================== Heroセクション ======================== */}
       <div
-        className={`transition-base-color h-[100dvh] w-[100vw] ${styles.scroll_slides} ${styles.main}`}
+        className={`transition-base-color h-[100dvh] w-[100vw]   ${styles.scroll_slides} ${styles.main}`}
         ref={scrollRef}
       >
+        <div className="absolute left-0 top-0 -z-[0] h-[100dvh] w-[100dvw] overflow-hidden">
+          <video
+            autoPlay={true}
+            muted={true}
+            playsInline={true}
+            loop={true}
+            // className={`absolute left-0 top-0 -z-[0] h-[100dvh] w-[100dvw] scale-[1.02]`}
+            className={` h-[100%] w-[100%] scale-[1.02]`}
+          >
+            {/* <source src="/assets/videos/Root/top-bg1.mp4" type="video/mp4" /> */}
+            {/* <source src="/assets/videos/Root/top-bg2.mp4" type="video/mp4" /> */}
+            <source src="/assets/videos/Root/top-bg3.mp4" type="video/mp4" />
+          </video>
+        </div>
+        <div className="absolute left-0 top-0  z-0 h-[100dvh] w-[100dvw] bg-[#00000030]"></div>
         <div className={styles.hero}>
           <h1 className={`${language === "En" && "!max-w-full "}`}>
             {/* ========== タイピングアニメーション ========== */}
@@ -179,13 +194,17 @@ export const Root: FC = () => {
             {language === "En" && "Unlimited movies, TV shows and more."}
           </h1>
           <h3>
-            {language === "Ja" && "映画やドラマをもっと自由に。いつでもキャンセルOK。"}
-            {language === "En" && "Watch anywhere. Cancel anytime."}
+            {/* {language === "Ja" && "映画やドラマをもっと自由に。いつでもキャンセルOK。"} */}
+            {language === "Ja" && "売上を上げ続ける仕組みを誰にでも。いつでもキャンセルOK。"}
+            {/* {language === "En" && "Watch anywhere. Cancel anytime."} */}
+            {language === "En" && "Raise sales to anyone. Cancel anytime."}
           </h3>
           <p>
             {language === "Ja" &&
-              "まもなくご視聴いただけます! メールアドレスを入力してメンバーシップを開始、または再開してください。"}
-            {language === "En" && "Ready to watch? Enter your email to create or restart your membership."}
+              // "まもなくご視聴いただけます! メールアドレスを入力してメンバーシップを開始、または再開してください。"}
+              "まもなくご利用いただけます! メールアドレスを入力してメンバーシップを開始してください。"}
+            {/* {language === "En" && "Ready to watch? Enter your email to create or restart your membership."} */}
+            {language === "En" && "Ready to use? Enter your email to create your membership."}
           </p>
           {/* ============= メールで始める ============= */}
           {/* <form className={`${styles.email_signUp}`}> */}
@@ -217,6 +236,8 @@ export const Root: FC = () => {
           >
             {language === "Ja" && "無料で始める"}
             {language === "En" && "Get Started for free"}
+            {/* {language === "Ja" && "無料で始める"}
+            {language === "En" && "Get Started for free"} */}
           </button>
           {/* ============= 始めるボタンでModal表示 ここまで ============= */}
         </div>
@@ -229,26 +250,53 @@ export const Root: FC = () => {
       <section className={`transition-base-color bg-[--color-bg-hp-main] ${styles.scroll_slides_row}`}>
         <div className={`${styles.text_col}`}>
           <h2>
-            {language === "Ja" && "大画面で楽しめる"}
+            {/* {language === "Ja" && "最小の資本と人で、最大の経済効果を上げる"} */}
+            {/* {language === "Ja" && "営業を科学する"} */}
+            {language === "Ja" && "誰でも売れる組織へ"}
             {language === "En" && "Enjoy on your TV."}
+            {/* {language === "Ja" && "大画面で楽しめる"}
+            {language === "En" && "Enjoy on your TV."} */}
           </h2>
           <p>
             {language === "Ja" &&
-              "スマートテレビやApple TVはもちろん、PlayStationやXboxなどのゲーム機、Chromecastなどのストリーミングデバイス、ブルーレイプレーヤーを使えば、お持ちのテレビで簡単に観られます。"}
+              "属人的になりがちな営業を「リスト作成、架電、アポ取り、商談、クロージング、サポート」の全てのプロセスをデータ化し、「売れる営業先・売れる営業手法・満足度を最大化するサポート手法」を可視化することで、どんな営業マンでも高い売上を上げ、「最小の資本と人で最大の経済効果を上げる」組織を実現します。"}
+            {/* {language === "Ja" &&
+              "スマートテレビやApple TVはもちろん、PlayStationやXboxなどのゲーム機、Chromecastなどのストリーミングデバイス、ブルーレイプレーヤーを使えば、お持ちのテレビで簡単に観られます。"} */}
             {language === "En" &&
               "Watch on Smart TVs, Playstation, Xbox, Chromecast, Apple TV, Blu-ray players, and more."}
           </p>
         </div>
-        <div className={`${styles.img_col}`}>
+        <div className={`${styles.img_col} flex items-center`}>
+          <div className={`${styles.wrap}`}>
+            <Image
+              src="/assets/images/root2/feature01.png"
+              // src="/assets/images/root/feature1.png"
+              // src="/assets/images/feature-1.png"
+              alt=""
+              // placeholder="blur"
+              // blurDataURL="/assets/images/feature-1-small.png"
+              width={800}
+              height={600}
+              className={`${styles.img}`}
+            />
+            <video autoPlay={true} loop={true} playsInline={true} muted={true}>
+              <source src="/assets/videos/dash-company-feature01.mp4" type="video/mp4" />
+            </video>
+          </div>
+        </div>
+        {/* <div className={`${styles.img_col}`}>
           <Image
-            src="/assets/images/feature-1.png"
+            // src="/assets/images/root2/feature1.png"
+            src="/assets/images/root/feature1.png"
+            // src="/assets/images/feature-1.png"
             alt=""
             placeholder="blur"
             blurDataURL="/assets/images/feature-1-small.png"
             width={800}
             height={600}
+            className=""
           />
-        </div>
+        </div> */}
       </section>
 
       <hr className={styles.horizon} />
@@ -257,19 +305,44 @@ export const Root: FC = () => {
       <section className={`transition-base-color bg-[--color-bg-hp-main] ${styles.scroll_slides_row} flex-row-reverse`}>
         <div className={`${styles.text_col}`}>
           <h2>
-            {language === "Ja" && "どこでも観られる"}
+            {/* {language === "Ja" && ""} */}
+            {language === "Ja" && `"今" 売れる営業先がすぐ見つかる`}
             {language === "En" && "Watch everywhere."}
           </h2>
           <p>
             {language === "Ja" &&
-              "スマートフォンやタブレット、パソコンやテレビなど、たくさんの機器でたくさんの映画やTV番組をお楽しみください。"}
+              `データベースから未知の客先にアポを組み、600万円の商品をその日に即売りするなど "今" 売れる営業を何度も経験してきました。 `}
+            {language === "En" &&
+              "Stream unlimited movies and TV shows on your phone, tablet, laptop, and TV without paying more."}
+          </p>
+          <p>
+            {language === "Ja" &&
+              `98万社の会社データを保有するデータベースから自社の狙い先となり得る会社を、「業界、取引先、規模、今までの活動履歴」などの様々な条件から簡単、瞬時に抽出が可能です。 自社のサービスが解決する課題を持つ会社を瞬時に見つけ、競合よりも早く売ることができます。`}
             {language === "En" &&
               "Stream unlimited movies and TV shows on your phone, tablet, laptop, and TV without paying more."}
           </p>
         </div>
-        <div className={styles.img_col}>
+        <div className={`${styles.img_col} flex items-center`}>
+          <div className={`${styles.wrap}`}>
+            <Image
+              src="/assets/images/root2/feature05.png"
+              // src="/assets/images/root/feature2.png"
+              // src="/assets/images/feature-4.png"
+              alt=""
+              // placeholder="blur"
+              // blurDataURL="/assets/images/feature-4-small.png"
+              // loading="lazy"
+              width={800}
+              height={600}
+              className={`${styles.img}`}
+            />
+          </div>
+        </div>
+        {/* <div className={styles.img_col}>
           <Image
-            src="/assets/images/feature-4.png"
+            // src="/assets/images/root2/feature2.png"
+            src="/assets/images/root/feature2.png"
+            // src="/assets/images/feature-4.png"
             alt=""
             placeholder="blur"
             blurDataURL="/assets/images/feature-4-small.png"
@@ -277,7 +350,7 @@ export const Root: FC = () => {
             width={800}
             height={600}
           />
-        </div>
+        </div> */}
       </section>
 
       <hr className={styles.horizon} />
@@ -286,19 +359,45 @@ export const Root: FC = () => {
       <section className={`transition-base-color bg-[--color-bg-hp-main] ${styles.scroll_slides_row}`}>
         <div className={`${styles.text_col}`}>
           <h2>
-            {language === "Ja" && "お子様用のプロフィールを作成できます。"}
+            {language === "Ja" && "リスト作成時間を大幅に短縮し工数削減"}
             {language === "En" && "Create profiles for kids."}
+            {/* {language === "Ja" && "お子様用のプロフィールを作成できます。"}
+            {language === "En" && "Create profiles for kids."} */}
           </h2>
           <p>
             {language === "Ja" &&
-              "お子様専用のプロフィールから視聴すれば、お子様はお気に入りのキャラクターと冒険をしている気分に。プロフィールは無料でご利用いただけます。"}
+              "キーエンスではリスト作成・架電・準備・営業・入金確認・サポートを全て一人で行います。そのため最小の時間で最大の売上を上げられるよう限られた時間で売れる営業先のリストを多くピックしなければなりません。 "}
+            {language === "En" &&
+              "Send kids on adventures with their favorite characters in a space made just for them—free with your membership."}
+          </p>
+          <p>
+            {language === "Ja" &&
+              "日々のリスト作成時間を1日30分短縮することで、20日稼働で月10時間の短縮、年間120時間の短縮となり、人件費1人当たり26万4000円/年、10人で260万円/年の導入効果に繋がります。(*人件費は中央値430万円/年で計算)"}
             {language === "En" &&
               "Send kids on adventures with their favorite characters in a space made just for them—free with your membership."}
           </p>
         </div>
-        <div className={`${styles.img_col}`}>
+        <div className={`${styles.img_col} flex items-center`}>
+          <div className={`${styles.wrap}`}>
+            <Image
+              src="/assets/images/root2/feature02.png"
+              // src="/assets/images/root/feature3.png"
+              // src="/assets/images/feature-3.png"
+              alt=""
+              // placeholder="blur"
+              // blurDataURL="/assets/images/feature-3-small.png"
+              // loading="lazy"
+              width={800}
+              height={600}
+              className={`${styles.img}`}
+            />
+          </div>
+        </div>
+        {/* <div className={`${styles.img_col}`}>
           <Image
-            src="/assets/images/feature-3.png"
+            // src="/assets/images/root2/feature3.png"
+            src="/assets/images/root/feature3.png"
+            // src="/assets/images/feature-3.png"
             alt=""
             placeholder="blur"
             blurDataURL="/assets/images/feature-3-small.png"
@@ -306,7 +405,7 @@ export const Root: FC = () => {
             width={800}
             height={600}
           />
-        </div>
+        </div> */}
       </section>
 
       <hr className={styles.horizon} />
@@ -314,24 +413,44 @@ export const Root: FC = () => {
       <section className={`transition-base-color bg-[--color-bg-hp-main] ${styles.scroll_slides_row} flex-row-reverse`}>
         <div className={`${styles.text_col}`}>
           <h2>
-            {language === "Ja" && "ダウンロードしてオフラインで視聴"}
+            {language === "Ja" && "顧客に刺さる商品開発へ"}
             {language === "En" && "Download your shows to watch offline."}
+            {/* {language === "Ja" && "ダウンロードしてオフラインで視聴"}
+            {language === "En" && "Download your shows to watch offline."} */}
           </h2>
           <p>
-            {language === "Ja" && "広告なしのプランでのみご利用いただけます。"}
+            {language === "Ja" &&
+              "売れ先、売れなかった行き先のデータを常に収集することで、日々の営業データから次なる潜在ニーズの発掘し、他社よりも先手を打つ商品を開発し、また営業データを収集と売れるサイクルを構築します。"}
+            {/* {language === "Ja" && "日々の営業データから次なる潜在ニーズを発掘し、広告なしのプランでのみご利用いただけます。"} */}
             {language === "En" && "Only available on ad-free plans."}
           </p>
         </div>
-        <div className={styles.img_col}>
-          <Image
-            src="/assets/images/feature-2.png"
+        <div className={`${styles.img_col} flex items-center`}>
+          <div className={`${styles.wrap}`}>
+            <Image
+              src="/assets/images/root2/feature06.png"
+              // src="/assets/images/root/feature4.png"
+              // src="/assets/images/feature-2.png"
+              alt=""
+              // placeholder="blur"
+              // blurDataURL="/assets/images/feature-2-small.png"
+              // loading="lazy"
+              width={800}
+              height={600}
+              className={`${styles.img}`}
+            />
+          </div>
+          {/* <Image
+            // src="/assets/images/root2/feature4.png"
+            src="/assets/images/root/feature4.png"
+            // src="/assets/images/feature-2.png"
             alt=""
             placeholder="blur"
             blurDataURL="/assets/images/feature-2-small.png"
             // loading="lazy"
             width={800}
             height={600}
-          />
+          /> */}
         </div>
       </section>
 
@@ -347,8 +466,8 @@ export const Root: FC = () => {
           <li>
             <input type="radio" name="accordion" id="first" />
             <label htmlFor="first">
-              {language === "Ja" && "Netflixとは？"}
-              {language === "En" && "What is Netflix?"}
+              {language === "Ja" && "TRUSTiFYとは？"}
+              {language === "En" && "What is TRUSTiFY?"}
             </label>
             <div className={styles.content}>
               <p>
@@ -362,8 +481,8 @@ export const Root: FC = () => {
           <li>
             <input type="radio" name="accordion" id="second" />
             <label htmlFor="second">
-              {language === "Ja" && "Netflix利用料金は？"}
-              {language === "En" && "How much does Netflix cost?"}
+              {language === "Ja" && "TRUSTiFY利用料金は？"}
+              {language === "En" && "How much does TRUSTiFY cost?"}
             </label>
             <div className={styles.content}>
               <p>
@@ -389,7 +508,7 @@ export const Root: FC = () => {
               </p>
             </div>
           </li>
-          <li>
+          {/* <li>
             <input type="radio" name="accordion" id="fourth" />
             <label htmlFor="fourth">
               {language === "Ja" && "どこで視聴できますか？"}
@@ -403,7 +522,7 @@ export const Root: FC = () => {
                   "Watch anywhere, anytime. Sign in with your Netflix account to watch instantly on the web at netflix.com from your personal computer or on any internet-connected device that offers the Netflix app, including smart TVs, smartphones, tablets, streaming media players and game consoles. You can also download your favorite shows with the iOS, Android, or Windows 10 app. Use downloads to watch while you're on the go and without an internet connection. Take Netflix with you anywhere."}
               </p>
             </div>
-          </li>
+          </li> */}
           <li>
             <input type="radio" name="accordion" id="fifth" />
             <label htmlFor="fifth">
@@ -419,11 +538,11 @@ export const Root: FC = () => {
               </p>
             </div>
           </li>
-          <li>
+          {/* <li>
             <input type="radio" name="accordion" id="sixth" />
             <label htmlFor="sixth">
-              {language === "Ja" && "Netflixで何が視聴できますか？"}
-              {language === "En" && "What can I watch on Netflix?"}
+              {language === "Ja" && "TRUSTiFYで何が視聴できますか？"}
+              {language === "En" && "What can I watch on TRUSTiFY?"}
             </label>
             <div className={styles.content}>
               <p>
@@ -433,8 +552,8 @@ export const Root: FC = () => {
                   "Netflix has an extensive library of feature films, documentaries, TV shows, anime, award-winning Netflix originals, and more. Watch as much as you want, anytime you want."}
               </p>
             </div>
-          </li>
-          <li>
+          </li> */}
+          {/* <li>
             <input type="radio" name="accordion" id="seventh" />
             <label htmlFor="seventh">
               {language === "Ja" && "Netflixは子供も安心して楽しめますか？"}
@@ -448,7 +567,7 @@ export const Root: FC = () => {
                   "The Netflix Kids experience is included in your membership to give parents control while kids enjoy family-friendly TV shows and movies in their own space. Kids profiles come with PIN-protected parental controls that let you restrict the maturity rating of content kids can watch and block specific titles you don't want kids to see."}
               </p>
             </div>
-          </li>
+          </li> */}
         </ul>
       </section>
 
@@ -457,8 +576,8 @@ export const Root: FC = () => {
       <section className={styles.start}>
         <small className="">
           {language === "Ja" &&
-            "まもなくご視聴いただけます! メールアドレスを入力してメンバーシップを開始、または再開してください。"}
-          {language === "En" && "Ready to watch? Enter your email to create or restart your membership."}
+            "まもなくご利用いただけます! メールアドレスを入力してメンバーシップを開始してください。"}
+          {language === "En" && "Ready to use? Enter your email to create or restart your membership."}
         </small>
         {/* Netflixメールエリア */}
         <div className={`${styles.email_signUp_area}`} ref={emailRef}>
@@ -540,7 +659,8 @@ export const Root: FC = () => {
       {/* ======================== Footer ======================== */}
       <section className={styles.footer}>
         <h2>
-          {language === "Ja" && "ご質問ですか？お問合せはこちらまで: 0120-000-000"}
+          {/* {language === "Ja" && "ご質問ですか？お問合せはこちらまで: 0120-000-000"} */}
+          {language === "Ja" && "ご質問ですか？お問合せはこちらまで: contact@trustify.co.jp"}
           {language === "En" && "Questions? Call 0120-996-012"}
         </h2>
 
@@ -551,24 +671,29 @@ export const Root: FC = () => {
               {language === "En" && "FAQ"}
             </Link>
             <Link href="/" prefetch={false}>
+              {language === "Ja" && "プライバシーポリシー"}
+              {language === "En" && "Privacy"}
+            </Link>
+            {/* <Link href="/" prefetch={false}>
               {language === "Ja" && "投資家情報"}
               {language === "En" && "Investor Relations"}
             </Link>
-            <Link href="/" prefetch={false}>
-              {language === "Ja" && "プライバシー"}
-              {language === "En" && "Privacy"}
-            </Link>
+           
             <Link href="/" prefetch={false}>
               {language === "Ja" && "スピードテスト"}
               {language === "En" && "Speed Test"}
-            </Link>
+            </Link> */}
           </div>
           <div className={styles.col}>
-            <Link href="/" prefetch={false}>
+            {/* <Link href="/" prefetch={false}>
               {language === "Ja" && "ヘルプセンター"}
               {language === "En" && "Help Center"}
-            </Link>
+            </Link> */}
             <Link href="/" prefetch={false}>
+              {language === "Ja" && "利用規約"}
+              {language === "En" && "Terms of Use"}
+            </Link>
+            {/* <Link href="/" prefetch={false}>
               {language === "Ja" && "採用情報"}
               {language === "En" && "Jobs"}
             </Link>
@@ -579,35 +704,35 @@ export const Root: FC = () => {
             <Link href="/" prefetch={false}>
               {language === "Ja" && "法的事項"}
               {language === "En" && "Legal Notices"}
-            </Link>
+            </Link> */}
           </div>
           <div className={styles.col}>
-            <Link href="/" prefetch={false}>
+            {/* <Link href="/" prefetch={false}>
               {language === "Ja" && "アカウント"}
               {language === "En" && "Account"}
-            </Link>
-            <Link href="/" prefetch={false}>
+            </Link> */}
+            {/* <Link href="/" prefetch={false}>
               {language === "Ja" && "視聴デバイス"}
               {language === "En" && "ways to watch"}
-            </Link>
+            </Link> */}
             <Link href="/" prefetch={false}>
               {language === "Ja" && "企業情報"}
               {language === "En" && "Corporate Information"}
             </Link>
-            <Link href="/" prefetch={false}>
+            {/* <Link href="/" prefetch={false}>
               {language === "Ja" && "Netflix独占配信"}
               {language === "En" && "Only on Netflix"}
-            </Link>
+            </Link> */}
           </div>
           <div className={styles.col}>
-            <Link href="/" prefetch={false}>
+            {/* <Link href="/" prefetch={false}>
               {language === "Ja" && "メディアセンター"}
               {language === "En" && "Media Centre"}
             </Link>
             <Link href="/" prefetch={false}>
               {language === "Ja" && "利用規約"}
               {language === "En" && "Terms of Use"}
-            </Link>
+            </Link> */}
             <Link href="/" prefetch={false}>
               {language === "Ja" && "お問い合せ"}
               {language === "En" && "Contact Us"}
@@ -634,8 +759,8 @@ export const Root: FC = () => {
           <AiFillCaretDown />
         </button>
         <p className={styles.copyright_txt}>
-          {language === "Ja" && "Netflix 日本"}
-          {language === "En" && "Netflix"}
+          {language === "Ja" && "TRUSTiFY"}
+          {language === "En" && "TRUSTiFY"}
         </p>
       </section>
     </main>

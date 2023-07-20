@@ -23,7 +23,7 @@ const CompanyTabHeaderMemo: FC<Props> = ({ activeTabDetail, setActiveTabDetail }
         <div>会社</div>
         <div className={`${styles.active_underline}`} />
       </li>
-      <li
+      {/* <li
         className={`${
           styles.navbarItem
         } flex-col-center relative h-full w-[60px] cursor-pointer  text-[12px] text-[var(--color-text)] ${
@@ -50,7 +50,7 @@ const CompanyTabHeaderMemo: FC<Props> = ({ activeTabDetail, setActiveTabDetail }
       >
         <div>詳細</div>
         <div className={`${styles.active_underline}`} />
-      </li>
+      </li> */}
     </ul>
   );
 };

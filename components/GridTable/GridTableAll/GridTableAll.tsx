@@ -15,6 +15,9 @@ import { FiLock } from "react-icons/fi";
 import { columnNameToJapanese } from "@/utils/columnNameToJapanese";
 import { Client_company, Client_company_row_data } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { EditColumnsModalDisplayOnly } from "../EditColumns/EditColumnsModalDisplayOnly";
+import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
+import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 
 type TableDataType = {
   id: number;
@@ -52,6 +55,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     "🔥GridTableHomeコンポーネント 入れ替え後のカラム editedColumnHeaderItemList ",
     editedColumnHeaderItemList
   );
+  const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   // const [colsWidth, setColsWidth] = useState(
   //   new Array(Object.keys(tableBodyDataArray[0]).length + 1).fill("minmax(50px, 1fr)")
   // );
@@ -64,13 +68,13 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // =================== 列入れ替え ===================
   // 列入れ替え用インデックス
   const [dragColumnIndex, setDragColumnIndex] = useState<number | null>(null);
-  // =========================== 🔥🔥テスト🔥🔥===========================
+  // ================= 🔥🔥テスト🔥🔥==================
   // 列アイテムリスト カラムidとカラム名、カラムインデックス、カラム横幅を格納する 🌟🌟ローカル
   // const [columnHeaderItemList, setColumnHeaderItemList] = useState<ColumnHeaderItemList[]>([]);
   // 🌟🌟Zustandから指定したカラムを最初から表示
   const columnHeaderItemList = useDashboardStore((state) => state.columnHeaderItemList);
   const setColumnHeaderItemList = useDashboardStore((state) => state.setColumnHeaderItemList);
-  // =========================== 🔥🔥テスト🔥🔥===========================
+  // ================= 🔥🔥テスト🔥🔥==================
   // 各カラムの横幅を管理
   const [colsWidth, setColsWidth] = useState<string[] | null>(null);
   // 現在のカラムの横幅をrefで管理
@@ -101,10 +105,10 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // const [isOverflowColumnHeader, setIsOverflowColumnHeader] = useState<(string | null)[]>([]);
 
   // ONとなったチェックボックスを保持する配列のstate
-  // =========================== 🔥🔥テスト🔥🔥===========================
+  // ================= 🔥🔥テスト🔥🔥==================
   // const [selectedCheckBox, setSelectedCheckBox] = useState<number[]>([]);
   const [selectedCheckBox, setSelectedCheckBox] = useState<string[]>([]);
-  // =========================== 🔥🔥テスト🔥🔥===========================
+  // ================= 🔥🔥テスト🔥🔥==================
   // 現在のアイテム取得件数
   const [getItemCount, setGetItemCount] = useState(0);
   // isFrozenがtrueの個数を取得 初回はidの列をisFrozen: trueでカラム生成するため初期値は1にする
@@ -129,7 +133,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     setColumnHeaderItemList([...editedColumnHeaderItemList]);
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
     const columnHeaderItemListJSON = JSON.stringify(editedColumnHeaderItemList);
-    localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
+    localStorage.setItem("grid_columns_companies", columnHeaderItemListJSON);
+    // localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
     // colsWidthの配列内の各カラムのサイズも更新する
     let newColsWidth: string[] = [];
@@ -210,7 +215,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   }, [editedColumnHeaderItemList]);
   // ============================== 🌟カラム編集モーダルで並び替え後🌟 ここまで ==============================
 
-  // =========================== 🔥🔥テスト🔥🔥===========================
+  // ================== 🌟supabase本番サーバーデータフェッチ用の関数🌟 ==================
+  // ================= 🔥🔥テスト🔥🔥==================
   // Supabaseからの応答を確実に Client_company[] | null 型に変換するか、あるいはエラーをスローするような関数を作成すると良いでしょう。
   function ensureClientCompanies(data: any): Client_company[] | null {
     if (Array.isArray(data) && data.length > 0 && "error" in data[0]) {
@@ -222,194 +228,247 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   }
   // ================== 🌟supabase本番サーバーデータフェッチ用の関数🌟 ==================
   const supabase = useSupabaseClient();
+  // 検索条件を保持するState
+  const [searchParameters, setSearchParameters] = useState();
+  // 表示するカラム
   const columnNamesObj = [...columnHeaderItemList]
     .map((item, index) => item.columnName as keyof Client_company)
     .join(", "); // columnNameのみの配列を取得
-  console.log("🔥🔥テスト🔥🔥columnNamesObj", columnNamesObj);
 
-  const fetchServerPage = async (
-    limit: number,
-    offset: number = 0
-    // =========================== 🔥🔥テスト🔥🔥===========================
-  ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean }> => {
-    // =========================== 🔥🔥テスト🔥🔥===========================
-    // ): Promise<{ rows: Client_company[] | null; nextOffset: number; }> => {
-    // ): Promise<{ rows: TableDataType[]; nextOffset: number }> => {
-    // useInfiniteQueryのクエリ関数で渡すlimitの個数分でIndex番号を付けたRowの配列を生成
-    console.log("🔥🔥テスト🔥🔥 offset, limit", offset, limit);
-    const from = offset * limit;
-    const to = from + limit - 1;
-    console.log("🔥🔥テスト🔥🔥 from, to", from, to);
-    const { data, error } = await supabase.from("client_companies").select(`${columnNamesObj}`).range(from, to);
+  // ユーザーState
+  const userProfileState = useDashboardStore((state) => state.userProfileState);
+  console.log("🔥🔥テスト🔥🔥userProfileState", userProfileState);
+  // 新規サーチした時のrpc()に渡す検索項目params
+  const newSearchCompanyParams = useDashboardStore((state) => state.newSearchCompanyParams);
 
-    console.log("🔥🔥テスト🔥🔥 data", from, to);
-    console.log("🔥🔥テスト🔥🔥 data", data);
-    if (error) throw error;
-    const rows = ensureClientCompanies(data);
-    // const rows = data as Client_company[] | null;
-    console.log("🔥🔥テスト🔥🔥 rows", rows);
-    // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
-    const isLastPage = rows === null || rows.length < limit;
+  // ================== 🌟条件なしサーバーデータフェッチ用の関数🌟 ==================
+  // ユーザーが会社idを持っていない場合にはcreated_by_company_idはnullのみを取得する関数を定義
+  let fetchServerPage: any;
+  // ユーザーが会社に所属していない場合には、created_byがNULLの会社のみ取得 新規サーチはなし
+  if (userProfileState?.company_id === null) {
+    fetchServerPage = async (
+      limit: number,
+      offset: number = 0
+      // ================= 🔥🔥テスト🔥🔥==================
+    ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean }> => {
+      // ================= 🔥🔥テスト🔥🔥==================
+      // ): Promise<{ rows: Client_company[] | null; nextOffset: number; }> => {
+      // ): Promise<{ rows: TableDataType[]; nextOffset: number }> => {
+      // useInfiniteQueryのクエリ関数で渡すlimitの個数分でIndex番号を付けたRowの配列を生成
+      console.log("🔥🔥テスト🔥🔥 offset, limit", offset, limit);
+      const from = offset * limit;
+      const to = from + limit - 1;
+      console.log("🔥🔥テスト🔥🔥 from, to", from, to);
+      // const { data, error } = await supabase.from("client_companies").select(`${columnNamesObj}`).range(from, to);
+      const { data, error } = await supabase
+        .from("client_companies")
+        .select(`${columnNamesObj}`)
+        .is("created_by_company_id", null)
+        .range(from, to);
+      // const { data, error } = await supabase
+      //   .from("client_companies")
+      //   .select(`${columnNamesObj}`)
+      //   .or(`created_by_company_id.is.null`)
+      //   .range(from, to);
+      // const { data, error } = await supabase.from("client_companies").select(`*`).eq(``).range(from, to);
 
-    // 取得したrowsを返す（nextOffsetは、queryFnのctx.pageParamsが初回フェッチはundefinedで2回目が1のため+1でページ数と合わせる）
-    return { rows, nextOffset: offset + 1, isLastPage };
+      console.log("🔥🔥テスト🔥🔥フェッチ後 from, to", from, to);
+      console.log("🔥🔥テスト🔥🔥フェッチ後 data", data);
+      if (error) throw error;
+      // ===== 🔥🔥テスト🔥🔥ここから=====
+      const rows = ensureClientCompanies(data);
+      // ===== 🔥🔥テスト🔥🔥ここまで=====
+      // const rows = data as Client_company[] | null;
+      console.log("🔥🔥テスト🔥🔥 rows", rows);
+      // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
+      const isLastPage = rows === null || rows.length < limit;
 
-    // =========================== 🔥🔥テスト🔥🔥===========================
+      // 0.5秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    // const rows = new Array(limit).fill(0).map((e, index) => {
-    //   const newData: Client_company = {
-    //     // const newData: TableDataType = {
-    //     id: (index + offset * limit).toString(),
-    //     corporate_number: "01234567890",
-    //     name: "株式会社キーエンス",
-    //     representative_name: "伊藤",
-    //     department_name: "代表取締役社長",
-    //     main_phone_number: "0312345678",
-    //     main_fax: "098765432",
-    //     zipcode: "3070012",
-    //     address: "東京都港区芝浦4-20-2",
-    //     industry_large: "4",
-    //     industry_small: "5",
-    //     industry_type: "6",
-    //     product_category_large: "7",
-    //     product_category_medium: "8",
-    //     product_category_small: "9",
-    //     number_of_employees_class: "F100人以下",
-    //     fiscal_end_month: "3月",
-    //     capital: "1000",
-    //     email: "cieletoile.0000@gmail.com",
-    //     clients: "",
-    //     supplier: "",
-    //     representative_position_name: "",
-    //     chairperson: "",
-    //     senior_vice_president: "",
-    //     senior_managing_director: "",
-    //     managing_director: "",
-    //     director: "",
-    //     auditor: "",
-    //     manager: "",
-    //     member: "",
-    //     facility: "",
-    //     business_sites: "",
-    //     overseas_bases: "",
-    //     group_company: "",
-    //     number_of_employees: "",
-    //     established_in: "7月",
-    //   };
-    //   return newData;
-    // });
-    // =========================== 🔥🔥テスト🔥🔥===========================
+      // 取得したrowsを返す（nextOffsetは、queryFnのctx.pageParamsが初回フェッチはundefinedで2回目が1のため+1でページ数と合わせる）
+      return { rows, nextOffset: offset + 1, isLastPage };
+    };
+  }
+  // ユーザーが会社idを持っている場合にはcreated_by_company_idはnullと自社で作成した会社両方を取得する関数を定義 新規サーチなし
+  if (userProfileState?.company_id) {
+    fetchServerPage = async (
+      limit: number,
+      offset: number = 0
+      // ================= 🔥🔥テスト🔥🔥==================
+    ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean }> => {
+      // ================= 🔥🔥テスト🔥🔥==================
+      // ): Promise<{ rows: Client_company[] | null; nextOffset: number; }> => {
+      // ): Promise<{ rows: TableDataType[]; nextOffset: number }> => {
+      // useInfiniteQueryのクエリ関数で渡すlimitの個数分でIndex番号を付けたRowの配列を生成
+      console.log("🔥🔥テスト🔥🔥 offset, limit", offset, limit);
+      const from = offset * limit;
+      const to = from + limit - 1;
+      console.log("🔥🔥テスト🔥🔥 from, to", from, to);
+      // const { data, error } = await supabase.from("client_companies").select(`${columnNamesObj}`).range(from, to);
+      const { data, error } = await supabase
+        .from("client_companies")
+        .select(`${columnNamesObj}`)
+        .or(`created_by_company_id.is.null,created_by_company_id.eq.${userProfileState.company_id}`)
+        .range(from, to);
+      // const { data, error } = await supabase.from("client_companies").select(`*`).eq(``).range(from, to);
 
-    // =========================== 🔥🔥テスト🔥🔥===========================
-    // ================== 🌟疑似的なサーバーデータフェッチ用の関数🌟 ==================
-    // const fetchServerPage = async (
-    //   limit: number,
-    //   offset: number = 0
-    // ): Promise<{ rows: Client_company[]; nextOffset: number }> => {
-    //   // ): Promise<{ rows: TableDataType[]; nextOffset: number }> => {
-    //   // useInfiniteQueryのクエリ関数で渡すlimitの個数分でIndex番号を付けたRowの配列を生成
-    //   const rows = new Array(limit).fill(0).map((e, index) => {
-    //     const newData: Client_company = {
-    //       // const newData: TableDataType = {
-    //       id: (index + offset * limit).toString(),
-    //       corporate_number: "01234567890",
-    //       name: "株式会社キーエンス",
-    //       representative_name: "伊藤",
-    //       department_name: "代表取締役社長",
-    //       main_phone_number: "0312345678",
-    //       main_fax: "098765432",
-    //       zipcode: "3070012",
-    //       address: "東京都港区芝浦4-20-2",
-    //       industry_large: "4",
-    //       industry_small: "5",
-    //       industry_type: "6",
-    //       product_category_large: "7",
-    //       product_category_medium: "8",
-    //       product_category_small: "9",
-    //       number_of_employees_class: "F100人以下",
-    //       fiscal_end_month: "3月",
-    //       capital: "1000",
-    //       email: "cieletoile.0000@gmail.com",
-    //       clients: "",
-    //       supplier: "",
-    //       representative_position_name: "",
-    //       chairperson: "",
-    //       senior_vice_president: "",
-    //       senior_managing_director: "",
-    //       managing_director: "",
-    //       director: "",
-    //       auditor: "",
-    //       manager: "",
-    //       member: "",
-    //       facility: "",
-    //       business_sites: "",
-    //       overseas_bases: "",
-    //       group_company: "",
-    //       number_of_employees: "",
-    //       established_in: "7月",
-    //     };
-    //     return newData;
-    //   });
-    // =========================== 🔥🔥テスト🔥🔥===========================
-    // =========================== 🔥🔥テスト🔥🔥元のデータ===========================
-    // const fetchServerPage = async (
-    //   limit: number,
-    //   offset: number = 0
-    // ): Promise<{ rows: TableDataType[]; nextOffset: number }> => {
-    //   // useInfiniteQueryのクエリ関数で渡すlimitの個数分でIndex番号を付けたRowの配列を生成
-    //   const rows = new Array(limit).fill(0).map((e, index) => {
-    //     const newData: TableDataType = {
-    //       // id: uuidv4(), // indexが0から始めるので+1でidを1から始める
-    //       id: index + offset * limit, // indexが0から始めるので+1でidを1から始める
-    //       rowIndex: `${index + 2 + offset * limit}st Line`,
-    //       name: "John",
-    //       gender: "Male",
-    //       dob: "15-Aug-1990",
-    //       country: "India",
-    //       summary: summary,
-    //       // id: index + offset * limit, // indexが0から始めるので+1でidを1から始める
-    //       // rowIndex: `${index + 2 + offset * limit}st Line`,
-    //       // name: "John",
-    //       // gender: "Male",
-    //       // dob: "15-Aug-1990",
-    //       // country: "India",
-    //       // summary: summary,
-    //     };
-    //     return newData;
-    //   });
-    // =========================== 🔥🔥テスト🔥🔥元のデータ===========================
+      console.log("🔥🔥テスト🔥🔥フェッチ後 from, to", from, to);
+      console.log("🔥🔥テスト🔥🔥フェッチ後 data", data);
+      if (error) throw error;
+      // ===== 🔥🔥テスト🔥🔥ここから=====
+      const rows = ensureClientCompanies(data);
+      // ===== 🔥🔥テスト🔥🔥ここまで=====
+      // const rows = data as Client_company[] | null;
+      console.log("🔥🔥テスト🔥🔥 rows", rows);
+      // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
+      const isLastPage = rows === null || rows.length < limit;
 
-    // // 0.5秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
-    // await new Promise((resolve) => setTimeout(resolve, 1000));
+      // 0.5秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    // // 取得したrowsを返す（nextOffsetは、queryFnのctx.pageParamsが初回フェッチはundefinedで2回目が1のため+1でページ数と合わせる）
-    // return { rows, nextOffset: offset + 1 };
-  };
+      // 取得したrowsを返す（nextOffsetは、queryFnのctx.pageParamsが初回フェッチはundefinedで2回目が1のため+1でページ数と合わせる）
+      return { rows, nextOffset: offset + 1, isLastPage };
+    };
+  }
 
-  // =========================== 🔥🔥テスト🔥🔥===========================
+  // ================== 🌟条件あり新規サーチサーバーデータフェッチ用の関数🌟 ==================
+  let fetchNewSearchServerPage: any;
+  // 条件あり新規サーチ ユーザーが会社に所属していない場合には、created_byがNULLの会社のみ取得
+  if (userProfileState?.company_id === null) {
+    fetchNewSearchServerPage = async (
+      limit: number,
+      offset: number = 0
+    ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean }> => {
+      const from = offset * limit;
+      const to = from + limit - 1;
+      console.log("🔥🔥テスト🔥🔥 from, to", from, to);
+      const { data, error } = await supabase
+        .rpc("search_companies", { newSearchCompanyParams })
+        .is("created_by_company_id", null)
+        .range(from, to);
+      console.log("🔥🔥テスト🔥🔥フェッチ後 data", data);
+      if (error) {
+        alert(error.message);
+        throw error;
+      }
+      const rows = ensureClientCompanies(data);
+      console.log("🔥🔥テスト🔥🔥 rows", rows);
+
+      // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
+      const isLastPage = rows === null || rows.length < limit;
+
+      // 1秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // 取得したrowsを返す（nextOffsetは、queryFnのctx.pageParamsが初回フェッチはundefinedで2回目が1のため+1でページ数と合わせる）
+      return { rows, nextOffset: offset + 1, isLastPage };
+    };
+  }
+  // 条件あり新規サーチ ユーザーが会社に所属している場合には、created_byがNULLか、ユーザーの所属会社idに合致する会社のみ取得
+  if (userProfileState?.company_id) {
+    fetchNewSearchServerPage = async (
+      limit: number,
+      offset: number = 0
+    ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean }> => {
+      console.log("🔥🔥テスト🔥🔥 offset, limit", offset, limit);
+      const from = offset * limit;
+      const to = from + limit - 1;
+      console.log("🔥🔥テスト🔥🔥 from, to", from, to);
+      const { data, error } = await supabase
+        .rpc("search_companies", { newSearchCompanyParams })
+        .is("created_by_company_id", null)
+        .range(from, to);
+      console.log("🔥🔥テスト🔥🔥フェッチ後 data", data);
+      if (error) throw error;
+
+      const rows = ensureClientCompanies(data);
+
+      console.log("🔥🔥テスト🔥🔥 rows", rows);
+      // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
+      const isLastPage = rows === null || rows.length < limit;
+
+      // 0.5秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // 取得したrowsを返す（nextOffsetは、queryFnのctx.pageParamsが初回フェッチはundefinedで2回目が1のため+1でページ数と合わせる）
+      return { rows, nextOffset: offset + 1, isLastPage };
+    };
+  }
+
+  // ================= 🔥🔥テスト🔥🔥==================
+  // 新規サーチで検索した条件のnewSearchCompanyParamsのオブジェクトを全てa-zで並べ替えた状態で文字列にすることで、
+  // 次回に同じ検索をした場合にもキャッシュを使用できるようにする
+  // useInfiniteQueryのキャッシュのクエリキーの第二引数に割り当てる
+  // const [newSearchParamsString, setNewSearchParamsString] = useState<string | null>(null);
+  const newSearchParamsStringRef = useRef<string | null>(null);
+  // console.log(
+  //   "✅🔥 newSearchCompanyParams",
+  //   newSearchCompanyParams,
+  //   "setNewSearchParamsString",
+  //   newSearchParamsStringRef.current
+  // );
+  // // let newSearchParamsString = null;
+  if (newSearchCompanyParams) {
+    newSearchParamsStringRef.current = Object.entries(newSearchCompanyParams)
+      .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+      .map((key, value) => `${key}: ${value === null ? `null` : `${value}`}`)
+      .join(", ");
+    console.log("キャッシュに割り当てるparamsキー newSearchParamsStringRef.current", newSearchParamsStringRef.current);
+  }
+  console.log(
+    "✅🔥newSearchCompanyParams",
+    newSearchCompanyParams,
+    "NewSearchParamsString",
+    newSearchParamsStringRef.current
+  );
   // ================== 🌟useInfiniteQueryフック🌟 ==================
   const { status, data, error, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage } = useInfiniteQuery({
     queryKey: ["contacts"],
+    // queryKey: ["contacts", newSearchParamsStringRef.current],
     queryFn: async (ctx) => {
       console.log("useInfiniteQuery queryFn関数内 引数ctx", ctx);
 
       // return fetchServerPage(35, ctx.pageParam); // 50個ずつ取得
-      return fetchServerPage(50, ctx.pageParam); // 50個ずつ取得
+      // 新規サーチなしの通常モード
+      if (newSearchCompanyParams === null) {
+        return fetchServerPage(50, ctx.pageParam); // 50個ずつ取得
+      } else {
+        return fetchNewSearchServerPage(50, ctx.pageParam); // 50個ずつ取得
+      }
     },
-    // =========================== 🔥🔥テスト🔥🔥===========================
+    // ================= 🔥🔥テスト🔥🔥==================
     // getNextPageParam: (_lastGroup, groups) => groups.length,
     getNextPageParam: (lastGroup, allGroups) => {
       // lastGroup.isLastPageがtrueならundefinedを返す
       return lastGroup.isLastPage ? undefined : allGroups.length;
     },
-    // =========================== 🔥🔥テスト🔥🔥===========================
+    // ================= 🔥🔥テスト🔥🔥==================
     staleTime: Infinity,
   });
   // ================== 🌟useInfiniteQueryフック🌟 ここまで ==================
-  // =========================== 🔥🔥テスト🔥🔥===========================
+  // ================= 🔥🔥テスト🔥🔥ここまで==================
+console.log('🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥hasNextPage', hasNextPage, status)
+  // useEffect(() => {
+  //   if (newSearchCompanyParams === null) setNewSearchParamsString(null);
+  //   if (newSearchCompanyParams) {
+  //     let paramsString = Object.entries(newSearchCompanyParams)
+  //       .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+  //       .map((key, value) => `${key}: ${value === null ? `null` : `${value}`}`)
+  //       .join(", ");
+  //     setNewSearchParamsString(paramsString);
+  //     console.log("キャッシュに割り当てるparamsキー paramsString", paramsString);
+  //   }
+  // }, [newSearchCompanyParams]);
 
+  // ================= 🔥🔥テスト🔥🔥ここから==================
   // 現在取得している全ての行 data.pagesのネストした配列を一つの配列にフラット化
-  const allRows = data ? data.pages.flatMap((d) => d?.rows) : [];
+  // const allRows = data ? data.pages.flatMap((d) => d?.rows) : [];
+  const Rows = data ? data.pages.flatMap((d) => d?.rows) : [];
+  const allRows = Rows.map((obj, index) => {
+    return { index, ...obj };
+  });
+  // ================= 🔥🔥テスト🔥🔥ここまで==================
 
   // ============================= 🌟バーチャライザーのインスタンスを生成🌟 =============================
   const rowVirtualizer = useVirtualizer({
@@ -417,17 +476,17 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     getScrollElement: () => parentGridScrollContainer.current, // スクロール用コンテナ
     // estimateSize: () => 35, // 要素のサイズ
     estimateSize: () => 30, // 要素のサイズ
-    overscan: 20, // ビューポート外にレンダリングさせる個数
-    // overscan: 10, // ビューポート外にレンダリングさせる個数
+    // overscan: 20, // ビューポート外にレンダリングさせる個数
+    overscan: 10, // ビューポート外にレンダリングさせる個数
   });
   // ======================== 🌟バーチャライザーのインスタンスを生成🌟 ここまで ========================
 
-  console.log(
-    `allRows.length: ${allRows.length} !!allRows.length: ${!!allRows.length} virtualItems:${
-      rowVirtualizer.getVirtualItems().length
-    } colsWidth: ${colsWidth} columnHeaderItemList`,
-    columnHeaderItemList
-  );
+  // console.log(
+  //   `allRows.length: ${allRows.length} !!allRows.length: ${!!allRows.length} virtualItems:${
+  //     rowVirtualizer.getVirtualItems().length
+  //   } colsWidth: ${colsWidth} columnHeaderItemList`,
+  //   columnHeaderItemList
+  // );
   // ============================= 🌟無限スクロールの処理 追加でフェッチ🌟 =============================
   useEffect(() => {
     if (!rowVirtualizer) return console.log("無限スクロール関数 rowVirtualizerインスタンス無し");
@@ -446,15 +505,15 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       console.log(
         `無限スクロール追加フェッチ実行 現在の状態 lastItem.index:${lastItem.index} allRows.length:${allRows.length}`
       );
-      // =========================== 🔥🔥テスト🔥🔥===========================
+      // ================= 🔥🔥テスト🔥🔥==================
       console.log("🔥🔥テスト🔥🔥status", status);
       console.log("🔥🔥テスト🔥🔥data", data);
       console.log("🔥🔥テスト🔥🔥error", error);
       console.log("🔥🔥テスト🔥🔥isFetching", isFetching);
       console.log("🔥🔥テスト🔥🔥isFetchingNextPage", isFetchingNextPage);
       console.log("🔥🔥テスト🔥🔥hasNextPage", hasNextPage);
-      // fetchNextPage(); // 追加でフェッチ
-      // =========================== 🔥🔥テスト🔥🔥===========================
+      fetchNextPage(); // 追加でフェッチ
+      // ================= 🔥🔥テスト🔥🔥==================
     }
     // ================= lastItem.indexに到達 追加フェッチ ここまで =================
   }, [hasNextPage, fetchNextPage, allRows.length, isFetchingNextPage, rowVirtualizer.getVirtualItems()]);
@@ -465,25 +524,38 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   useEffect(() => {
     // =========== チェック有無Stateの数を新たに取得したデータ数と一緒にする
     console.log("🔥総数変化を検知 追加フェッチしたdata分 チェック有無Stateを追加 ====================");
-    if (!data) return console.log("data undefined or nullリターン", data);
-    const newDataArray = data?.pages.flatMap((d) => d.rows);
-    // =========================== 🔥🔥テスト🔥🔥===========================
+    // ================= 🔥🔥テスト🔥🔥ここから==================
+    if (!allRows) return console.log("data undefined or nullリターン", allRows);
+    const newDataArray = allRows;
+    // if (!data) return console.log("data undefined or nullリターン", data);
+    // const newDataArray = data?.pages.flatMap((d) => d.rows);
+    // ================= 🔥🔥テスト🔥🔥==================
     if (!newDataArray.length) return;
-    // =========================== 🔥🔥テスト🔥🔥===========================
+    // ================= 🔥🔥テスト🔥🔥==================
     console.log(`lastIndexに到達しDBに追加フェッチ結果 newDataArray ${newDataArray.length}`, newDataArray);
     console.log(`lastIndexに到達しDBに追加フェッチ結果 checkedRows ${Object.keys(checkedRows).length}`, checkedRows);
     // DBから取得した配列をオブジェクトに変換 {id: boolean}にallRowsを変換
-    // =========================== 🔥🔥テスト🔥🔥===========================
+    // ================= 🔥🔥テスト🔥🔥==================
+
+    // ================= 🔥🔥テスト🔥🔥ここから==================
+
+    // const allRowsBooleanArray = newDataArray.map((obj) => {
+    //   let newObj: Record<string, boolean> = {};
+    //   if (obj === null) return newObj;
+    //   if (obj?.id === null) return newObj;
+    //   newObj[obj.id] = false
+    //   return newObj;
+    // });
     // const allRowsBooleanObject = newDataArray.reduce((obj: { [key: number]: boolean }, item) => {
     const allRowsBooleanObject = newDataArray.reduce((obj: { [key: string]: boolean }, item) => {
-      // =========================== 🔥🔥テスト🔥🔥===========================
-      // obj[item.id.toString()] = false;
-      // =========================== 🔥🔥テスト🔥🔥===========================
       if (item === null) return obj;
-      obj[Number(item.id)] = false;
-      // =========================== 🔥🔥テスト🔥🔥===========================
+      obj[item.index.toString()] = false;
+      // obj[checkedCount] = false;
+      // obj[item.id] = false; // id：falseにする場合はこっち
+      // obj[Number(item.id)] = false;
       return obj;
     }, {});
+    // ================= 🔥🔥テスト🔥🔥ここまで==================
     console.log(
       `配列をidとbooleanオブジェクトに変換 allRowsBooleanObject ${Object.keys(allRowsBooleanObject).length}`,
       allRowsBooleanObject
@@ -508,12 +580,15 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       // 取得したアイテムの総数分idとbooleanでチェック有り無しをStateで管理 最初はチェック無しなので、全てfalse
       let idObject = allRows.reduce((obj: { [key: string]: boolean } | undefined, item) => {
         if (typeof item === "undefined" || typeof obj === "undefined") return;
-        // =========================== 🔥🔥テスト🔥🔥===========================
+        // ================= 🔥🔥テスト🔥🔥ここから==================
         if (item === null) return;
-        if ((typeof item.id === "undefined") === null) return;
-        // =========================== 🔥🔥テスト🔥🔥===========================
-        obj[item.id.toString()] = false;
+        // if ((typeof item.id === "undefined") === null) return;
+        // if (typeof item.id === "undefined") return;
+        // obj[item.id.toString()] = false;
+        obj[item.index.toString()] = false;
+
         return obj;
+        // ================= 🔥🔥テスト🔥🔥ここまで==================
       }, {});
       if (typeof idObject === "undefined") return;
       setCheckedRows(idObject);
@@ -530,7 +605,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     console.log("🌟ヘッダーカラム生成 gotData ===========================", gotData);
 
     // ========================= 🔥テスト ローカルストレージ ルート =========================
-    const localStorageColumnHeaderItemListJSON = localStorage.getItem("grid_columns_contacts");
+    const localStorageColumnHeaderItemListJSON = localStorage.getItem("grid_columns_companies");
+    // const localStorageColumnHeaderItemListJSON = localStorage.getItem("grid_columns_contacts");
     if (localStorageColumnHeaderItemListJSON) {
       console.log("useEffect ローカルストレージルート🔥");
       // まずはローカルストレージから取得したColumnHeaderItemListのJSONをJSオブジェクトにパース
@@ -618,9 +694,9 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     console.log("useEffect ローカルストレージ無し 初回ヘッダー生成ルート🔥");
 
     // マウント時に各フィールド分のカラムを生成 サイズはデフォルト値を65px, 100px, 3列目以降は250pxに設定
-    // =========================== 🔥🔥テスト🔥🔥===========================
+    // ================= 🔥🔥テスト🔥🔥==================
     if (data?.pages[0].rows === null) return;
-    // =========================== 🔥🔥テスト🔥🔥===========================
+    // ================= 🔥🔥テスト🔥🔥==================
     console.log(
       "🌟useEffect Object.keys(data?.pages[0].rows[0] as object",
       Object.keys(data?.pages[0].rows[0] as object)
@@ -730,7 +806,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
 
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
     const columnHeaderItemListJSON = JSON.stringify(firstColumnItemListArray);
-    localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
+    localStorage.setItem("grid_columns_companies", columnHeaderItemListJSON);
+    // localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
   }, [gotData]); // gotDataのstateがtrueになったら再度実行
   // ========================== 🌟useEffect ヘッダーカラム生成🌟 ここまで ==========================
@@ -854,7 +931,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       }
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
       const columnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
-      localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
+      localStorage.setItem("grid_columns_companies", columnHeaderItemListJSON);
+      // localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
     };
 
@@ -993,70 +1071,82 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   const setIsOpenEditModal = useDashboardStore((state) => state.setIsOpenEditModal);
   const setTextareaInput = useDashboardStore((state) => state.setTextareaInput);
   const [clickedActiveRow, setClickedActiveRow] = useState<number | null>(null);
+  // ================= 🔥🔥テスト🔥🔥==================
+  const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
+  const setSelectedRowDataCompany = useDashboardStore((state) => state.setSelectedRowDataCompany);
+  // ================= 🔥🔥テスト🔥🔥==================
 
-  const handleClickGridCell = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (setTimeoutRef.current !== null) return;
+  const handleClickGridCell = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (setTimeoutRef.current !== null) return;
 
-    setTimeoutRef.current = setTimeout(() => {
-      setTimeoutRef.current = null;
-      // シングルクリック時に実行したい処理
-      // 0.2秒後に実行されてしまうためここには書かない
-    }, 200);
+      setTimeoutRef.current = setTimeout(() => {
+        setTimeoutRef.current = null;
+        // シングルクリック時に実行したい処理
+        // 0.2秒後に実行されてしまうためここには書かない
+      }, 200);
 
-    console.log("シングルクリック");
-    // すでにselectedセル(アクティブセル)のrefが存在するなら、一度aria-selectedをfalseに変更
-    if (selectedGridCellRef.current?.getAttribute("aria-selected") === "true") {
-      // 保持していたアクティブセルを前回のアクティブセルprevSelectedGridCellRefに格納
-      prevSelectedGridCellRef.current = selectedGridCellRef.current;
+      console.log("シングルクリック");
+      // すでにselectedセル(アクティブセル)のrefが存在するなら、一度aria-selectedをfalseに変更
+      if (selectedGridCellRef.current?.getAttribute("aria-selected") === "true") {
+        // 保持していたアクティブセルを前回のアクティブセルprevSelectedGridCellRefに格納
+        prevSelectedGridCellRef.current = selectedGridCellRef.current;
 
-      selectedGridCellRef.current.setAttribute("aria-selected", "false");
-      selectedGridCellRef.current.setAttribute("tabindex", "-1");
-    }
-    // クリックしたセルの属性setAttributeでクリックしたセルのaria-selectedをtrueに変更
-    e.currentTarget.setAttribute("aria-selected", "true");
-    e.currentTarget.setAttribute("tabindex", "0");
+        selectedGridCellRef.current.setAttribute("aria-selected", "false");
+        selectedGridCellRef.current.setAttribute("tabindex", "-1");
+      }
+      // クリックしたセルの属性setAttributeでクリックしたセルのaria-selectedをtrueに変更
+      e.currentTarget.setAttribute("aria-selected", "true");
+      e.currentTarget.setAttribute("tabindex", "0");
 
-    // クリックしたセルを新たなアクティブセルとしてrefに格納して更新
-    selectedGridCellRef.current = e.currentTarget;
-    setActiveCell(e.currentTarget);
+      // クリックしたセルを新たなアクティブセルとしてrefに格納して更新
+      selectedGridCellRef.current = e.currentTarget;
+      setActiveCell(e.currentTarget);
 
-    console.log(
-      `前回アクティブセルの行と列: ${prevSelectedGridCellRef.current?.ariaColIndex}, ${prevSelectedGridCellRef.current?.parentElement?.ariaRowIndex}, 今回アクティブの行と列: ${selectedGridCellRef.current?.ariaColIndex}, ${selectedGridCellRef.current?.parentElement?.ariaRowIndex}`
-    );
-    // クリックした列を選択中の状態の色に変更する aria-selectedをtrueにする
-    if (typeof selectedGridCellRef.current?.parentElement?.ariaRowIndex === "undefined") return;
-    if (Number(selectedGridCellRef.current?.parentElement?.ariaRowIndex) === 1) {
-      setClickedActiveRow(null);
-      return;
-    }
-    setClickedActiveRow(Number(selectedGridCellRef.current?.parentElement?.ariaRowIndex));
-  }, []);
+      console.log(
+        `前回アクティブセルの行と列: ${prevSelectedGridCellRef.current?.ariaColIndex}, ${prevSelectedGridCellRef.current?.parentElement?.ariaRowIndex}, 今回アクティブの行と列: ${selectedGridCellRef.current?.ariaColIndex}, ${selectedGridCellRef.current?.parentElement?.ariaRowIndex}`
+      );
+      // クリックした列を選択中の状態の色に変更する aria-selectedをtrueにする
+      if (typeof selectedGridCellRef.current?.parentElement?.ariaRowIndex === "undefined") return;
+      if (Number(selectedGridCellRef.current?.parentElement?.ariaRowIndex) === 1) {
+        setClickedActiveRow(null);
+        return;
+      }
+      setClickedActiveRow(Number(selectedGridCellRef.current?.parentElement?.ariaRowIndex));
+      // クリックした列要素の列データをZustandに挿入 indexは0から rowIndexは2から
+      setSelectedRowDataCompany(allRows[Number(selectedGridCellRef.current?.parentElement?.ariaRowIndex) - 2]);
+    },
+    [allRows]
+  );
 
   // セルダブルクリック
-  const handleDoubleClick = useCallback((e: React.MouseEvent<HTMLDivElement>, index: number, columnName: string) => {
-    console.log("ダブルクリック index", index);
-    if (columnName === "id") return console.log("ダブルクリック idのためリターン");
-    // if (index === 0) return console.log("リターン");
-    if (setTimeoutRef.current) {
-      clearTimeout(setTimeoutRef.current);
+  const handleDoubleClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>, index: number, columnName: string) => {
+      console.log("ダブルクリック index", index);
+      if (columnName === "id") return console.log("ダブルクリック idのためリターン");
+      // if (index === 0) return console.log("リターン");
+      if (setTimeoutRef.current) {
+        clearTimeout(setTimeoutRef.current);
 
-      // console.log(e.detail);
-      setTimeoutRef.current = null;
-      // ダブルクリック時に実行したい処理
-      console.log("ダブルクリック", e.currentTarget);
-      // クリックした要素のテキストを格納
-      const text = e.currentTarget.innerText;
-      setTextareaInput(text);
-      setIsOpenEditModal(true);
-    }
-  }, []);
+        // console.log(e.detail);
+        setTimeoutRef.current = null;
+        // ダブルクリック時に実行したい処理
+        console.log("ダブルクリック", e.currentTarget);
+        // クリックした要素のテキストを格納
+        const text = e.currentTarget.innerText;
+        setTextareaInput(text);
+        setIsOpenEditModal(true);
+      }
+    },
+    [allRows]
+  );
   // ================== 🌟GridCellクリックでセルを選択中アクティブセルstateに更新🌟 ここまで ==================
 
   // ==================== 🌟チェックボックスクリックでstateに選択したアイテムのidを追加🌟 ====================
-  // =========================== 🔥🔥テスト🔥🔥===========================
+  // ================= 🔥🔥テスト🔥🔥==================
   // const handleSelectedCheckBox = (e: React.ChangeEvent<HTMLInputElement>, id: number) => {
-  const handleSelectedCheckBox = (e: React.ChangeEvent<HTMLInputElement>, id: string) => {
-    // =========================== 🔥🔥テスト🔥🔥===========================
+  const handleSelectedCheckBox = (e: React.ChangeEvent<HTMLInputElement>, index: string) => {
+    // ================= 🔥🔥テスト🔥🔥==================
     console.log(
       "前回のアクティブセル親列RowトラックのRowIndex",
       prevSelectedGridCellRef.current?.parentElement?.ariaRowIndex
@@ -1075,37 +1165,52 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
         let newSelectedCheckBoxArray = [...selectedCheckBox];
         // ======= ルート１ー１ チェックした時
         if (e.target.checked === true) {
-          // =========================== 🔥🔥テスト🔥🔥===========================
-          newSelectedCheckBoxArray.push(id);
+          // ================= 🔥🔥テスト🔥🔥ここから==================
+          newSelectedCheckBoxArray.push(index);
           // newSelectedCheckBoxArray.sort((a, b) => a - b);
-          // =========================== 🔥🔥テスト🔥🔥===========================
+          newSelectedCheckBoxArray.sort((a, b) => +a - +b);
+          // ================= 🔥🔥テスト🔥🔥ここまで==================
           setSelectedCheckBox(newSelectedCheckBoxArray);
           // チェックされた行をハイライト
           // const selectedRow = document.querySelector(`[aria-rowindex="${id + 1}"]`);
           const selectedRow = gridScrollContainer.querySelector(`[role=row][aria-rowindex="${targetRowIndex}"]`);
           selectedRow?.setAttribute(`aria-selected`, "true");
           // チェックした行要素Rowのチェック有無をStateに更新
+          // ================= 🔥🔥テスト🔥🔥ここから==================
           setCheckedRows((prev) => ({
             ...prev,
-            [id]: true, // プロパティ名に変数を指定するにはブラケット記法を使用する
+            [index]: true, // プロパティ名に変数を指定するにはブラケット記法を使用する
           }));
+          // setCheckedRows((prev) => ({
+          //   ...prev,
+          //   [id]: true, // プロパティ名に変数を指定するにはブラケット記法を使用する
+          // }));
+          // ================= 🔥🔥テスト🔥🔥ここまで==================
         }
         // ======= ルート１−２ チェックが外れた時
         else {
-          const filteredArray = newSelectedCheckBoxArray.filter((itemId) => itemId !== id);
-          // =========================== 🔥🔥テスト🔥🔥===========================
+          // ================= 🔥🔥テスト🔥🔥ここから==================
+          // const filteredArray = newSelectedCheckBoxArray.filter((itemId) => itemId !== id);
+          const filteredArray = newSelectedCheckBoxArray.filter((itemId) => itemId !== index);
+          filteredArray.sort((a, b) => +a - +b);
           // filteredArray.sort((a, b) => a - b);
-          // =========================== 🔥🔥テスト🔥🔥===========================
+          // ================= 🔥🔥テスト🔥🔥ここまで==================
           setSelectedCheckBox(filteredArray);
           // チェックでハイライトされた行を戻す
           // const selectedRow = document.querySelector(`[aria-rowindex="${id + 1}"]`);
           const selectedRow = gridScrollContainer.querySelector(`[role=row][aria-rowindex="${targetRowIndex}"]`);
           selectedRow?.setAttribute(`aria-selected`, "false");
           // チェックが外れた行要素Rowのチェック有無をStateに更新
+          // ================= 🔥🔥テスト🔥🔥ここから==================
+          // setCheckedRows((prev) => ({
+          //   ...prev,
+          //   [id]: false, // プロパティ名に変数を指定するにはブラケット記法を使用する
+          // }));
           setCheckedRows((prev) => ({
             ...prev,
-            [id]: false, // プロパティ名に変数を指定するにはブラケット記法を使用する
+            [index]: false, // プロパティ名に変数を指定するにはブラケット記法を使用する
           }));
+          // ================= 🔥🔥テスト🔥🔥ここまで==================
         }
       }
 
@@ -1167,14 +1272,14 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
             // {0: true, 1: true...}からキーのみを取得して配列を生成
             const keys = Object.keys(currentCheckId);
             // idが数値型の場合にはキーを数値型に変換
-            // =========================== 🔥🔥テスト🔥🔥===========================
+            // ================= 🔥🔥テスト🔥🔥==================
             // let newSelectedCheck: number[] = [];
             let newSelectedCheck: string[] = [];
-            // =========================== 🔥🔥テスト🔥🔥===========================
-            // =========================== 🔥🔥テスト🔥🔥===========================
+            // ================= 🔥🔥テスト🔥🔥==================
+            // ================= 🔥🔥テスト🔥🔥==================
             // keys.forEach((item) => newSelectedCheck.push(Number(item)));
             keys.forEach((item) => newSelectedCheck.push(item));
-            // =========================== 🔥🔥テスト🔥🔥===========================
+            // ================= 🔥🔥テスト🔥🔥==================
             // 選択中の行要素を保持するstateを更新
             const copySelectedCheckBox = [...selectedCheckBox];
             // 元々のチェックしているStateと新しくチェックした配列を結合
@@ -1182,9 +1287,9 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
             // 重複した値を一意にする
             const uniqueArray = [...new Set(combinedArray)];
             // idが数値の場合には順番をソートする
-            // =========================== 🔥🔥テスト🔥🔥===========================
+            // ================= 🔥🔥テスト🔥🔥==================
             // uniqueArray.sort((a, b) => a - b);
-            // =========================== 🔥🔥テスト🔥🔥===========================
+            // ================= 🔥🔥テスト🔥🔥==================
             console.log("🔥ソート後 uniqueArray", uniqueArray);
             setSelectedCheckBox(uniqueArray);
           }
@@ -1243,14 +1348,14 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
             const unCheckedKeys = Object.keys(unCheckId);
             console.log("🔥 unCheckedKeys", unCheckedKeys);
             // idが数値型の場合にはキーを数値型に変換
-            // =========================== 🔥🔥テスト🔥🔥===========================
+            // ================= 🔥🔥テスト🔥🔥==================
             // let newUnCheckedIdArray: number[] = [];
             let newUnCheckedIdArray: string[] = [];
-            // =========================== 🔥🔥テスト🔥🔥===========================
-            // =========================== 🔥🔥テスト🔥🔥===========================
+            // ================= 🔥🔥テスト🔥🔥==================
+            // ================= 🔥🔥テスト🔥🔥==================
             // unCheckedKeys.forEach((item) => newUnCheckedIdArray.push(Number(item)));
             unCheckedKeys.forEach((item) => newUnCheckedIdArray.push(item));
-            // =========================== 🔥🔥テスト🔥🔥===========================
+            // ================= 🔥🔥テスト🔥🔥==================
             // 選択中の行要素を保持するstateを更新
             const copySelectedCheckBox = [...selectedCheckBox];
             console.log("🔥 copySelectedCheckBox", copySelectedCheckBox);
@@ -1298,18 +1403,18 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       // {0: true, 1: true...}からキーのみを取得して配列を生成
       const allKeys = Object.keys(allCheckedIdArray);
       // idが数値型の場合にはキーを数値型に変換
-      // =========================== 🔥🔥テスト🔥🔥===========================
+      // ================= 🔥🔥テスト🔥🔥==================
       // let newAllSelectedCheckArray: number[] = [];
       let newAllSelectedCheckArray: string[] = [];
-      // =========================== 🔥🔥テスト🔥🔥===========================
-      // =========================== 🔥🔥テスト🔥🔥===========================
+      // ================= 🔥🔥テスト🔥🔥==================
+      // ================= 🔥🔥テスト🔥🔥==================
       // allKeys.forEach((item) => newAllSelectedCheckArray.push(Number(item)));
       allKeys.forEach((item) => newAllSelectedCheckArray.push(item));
-      // =========================== 🔥🔥テスト🔥🔥===========================
+      // ================= 🔥🔥テスト🔥🔥==================
       // idが数値の場合には順番をソートする
-      // =========================== 🔥🔥テスト🔥🔥===========================
+      // ================= 🔥🔥テスト🔥🔥==================
       // newAllSelectedCheckArray.sort((a, b) => a - b);
-      // =========================== 🔥🔥テスト🔥🔥===========================
+      // ================= 🔥🔥テスト🔥🔥==================
       console.log("🔥ソート後 uniqueArray", newAllSelectedCheckArray);
       setSelectedCheckBox(newAllSelectedCheckArray);
     }
@@ -1536,14 +1641,14 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     console.log("移動前のカラムリスト", newListItemArray);
 
     // let transferredElement = newListItemArray.splice()
-    // =========================== 🔥🔥テスト🔥🔥===========================
+    // ================= 🔥🔥テスト🔥🔥==================
     setColumnHeaderItemList([...newListItemArray]);
     // setColumnHeaderItemList((prevArray) => {
     //   console.log("ここprevArray", prevArray);
     //   console.log("ここnewListItemArray", newListItemArray);
     //   return [...newListItemArray];
     // });
-    // =========================== 🔥🔥テスト🔥🔥===========================
+    // ================= 🔥🔥テスト🔥🔥==================
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
     // const columnHeaderItemListJSON = JSON.stringify(newListItemArray);
     // localStorage.setItem("grid_columns_company", columnHeaderItemListJSON);
@@ -1653,7 +1758,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     console.log("Drop✅");
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
     const columnHeaderItemListJSON = JSON.stringify(columnHeaderItemList);
-    localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
+    localStorage.setItem("grid_columns_companies", columnHeaderItemListJSON);
+    // localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
     // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ===============
     // colsWidth ['65px', '100px', '250px', '250px', '250px', '250px', '250px', '250px']から
@@ -1739,7 +1845,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
 
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
       const columnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
-      localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
+      localStorage.setItem("grid_columns_companies", columnHeaderItemListJSON);
+      // localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
 
       // 現在のフローズンの総個数を更新する filteredIsFrozenColumnListの+1
@@ -1840,7 +1947,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
 
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
       const columnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
-      localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
+      localStorage.setItem("grid_columns_companies", columnHeaderItemListJSON);
+      // localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
 
       // 現在のフローズンの総個数を更新する filteredIsFrozenColumnListの-1
@@ -1928,17 +2036,12 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   };
   // ==================================================================================
 
-  console.log("✅ clickedActiveRow", clickedActiveRow);
-  console.log("✅ checkedRows", checkedRows);
-  console.log("✅ selectedCheckBox", selectedCheckBox);
-  console.log("✅ allRows", allRows);
-
   // 🌟現在のカラム.map((obj) => Object.values(row)[obj.columnId])で展開してGridセルを表示する
   // カラムNameの値のみ配列バージョンで順番入れ替え
-  // =========================== 🔥🔥テスト🔥🔥===========================
+  // ================= 🔥🔥テスト🔥🔥==================
   const columnOrder = [...columnHeaderItemList].map((item, index) => item.columnName as keyof Client_company); // columnNameのみの配列を取得
   // const columnOrder = [...columnHeaderItemList].map((item, index) => item.columnName as keyof TableDataType); // columnNameのみの配列を取得
-  // =========================== 🔥🔥テスト🔥🔥===========================
+  // ================= 🔥🔥テスト🔥🔥==================
   // // カラムName配列バージョンで順番入れ替え
   // const columnOrder = [...columnHeaderItemList].map((item, index) => ({
   //   columnName: item.columnName as keyof TableDataType,
@@ -1947,18 +2050,58 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // const columnOrder = [...columnHeaderItemList].map((item, index) => ({ columnId: item.columnId })); // columnIdのみの配列を取得
   // 🌟現在のisFrozenの数を取得 isFrozenの個数の総数と同じindex+1のアイテムにborder-right: 4pxを付与する
   // const currentIsFrozenCount = columnHeaderItemList.filter(obj => obj.isFrozen === true).length
-  console.log("✅ columnHeaderItemList, columnOrder", columnHeaderItemList, columnOrder);
-  console.log("✅ colsWidth                ", colsWidth);
-  console.log("✅ currentColsWidths.current", currentColsWidths.current);
-  console.log("✅ フローズンの個数isFrozenCountRef.current", isFrozenCountRef.current);
-  console.log("✅ レフトポジションcolumnLeftPositions.current", columnLeftPositions.current);
-  console.log("✅ 選択中のアクティブセルselectedGridCellRef", selectedGridCellRef);
-  console.log("✅ 選択中のアクティブセルactiveCell", activeCell);
-  console.log("✅ 全てのカラムcolsRef", colsRef);
+  // console.log("✅ clickedActiveRow", clickedActiveRow);
+  // console.log("✅ checkedRows個数, checkedRows", Object.keys(checkedRows).length, checkedRows);
+  // console.log("✅ selectedCheckBox", selectedCheckBox);
+  // console.log("✅ allRows個数 allRows", allRows);
+  // console.log(`✅ virtualItems:${rowVirtualizer.getVirtualItems().length}`);
+  // console.log("✅ columnHeaderItemList, columnOrder", columnHeaderItemList, columnOrder);
+  // console.log("✅ colsWidth                ", colsWidth);
+  // console.log("✅ currentColsWidths.current", currentColsWidths.current);
+  // console.log("✅ フローズンの個数isFrozenCountRef.current", isFrozenCountRef.current);
+  // console.log("✅ レフトポジションcolumnLeftPositions.current", columnLeftPositions.current);
+  // console.log("✅ 選択中のアクティブセルselectedGridCellRef", selectedGridCellRef);
+  // console.log("✅ 選択中のアクティブセルactiveCell", activeCell);
+  // console.log("✅ 全てのカラムcolsRef", colsRef);
+  console.log(
+    "✅ 全てのカラムcolsRef",
+    colsRef,
+    "checkedRows個数, checkedRows",
+    Object.keys(checkedRows).length,
+    checkedRows,
+    "selectedCheckBox",
+    selectedCheckBox,
+    "allRows",
+    allRows,
+    `virtualItems:${rowVirtualizer.getVirtualItems().length}`,
+    "columnHeaderItemList, columnOrder",
+    columnHeaderItemList,
+    columnOrder,
+    "colsWidth                ",
+    colsWidth,
+    "currentColsWidths.current",
+    currentColsWidths.current,
+    "フローズンの個数isFrozenCountRef.current",
+    isFrozenCountRef.current,
+    "レフトポジションcolumnLeftPositions.current",
+    columnLeftPositions.current,
+    "選択中のアクティブセルselectedGridCellRef",
+    selectedGridCellRef,
+    "選択中のアクティブセルactiveCell",
+    activeCell,
+    "clickedActiveRow",
+    clickedActiveRow,
+    "選択中のRowデータselectedRowDataCompany",
+    selectedRowDataCompany
+  );
   //   console.log("✅ window", window.innerHeight);
 
   // 🌟カラム3点リーダー表示中はホバー時にツールチップを有効化
   // console.log("✅isOverflowColumnHeader", isOverflowColumnHeader);
+
+  // ======================== 🔥テスト🔥 ========================
+  const searchMode = useDashboardStore((state) => state.searchMode);
+  // ======================== 🔥テスト🔥 ========================
 
   return (
     <>
@@ -2258,280 +2401,297 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
               {/* ======== ヘッダーセル idを除く全てのプロパティ(フィールド)Column ここまで  ======== */}
             </div>
             {/* ======================== 🌟Grid列トラック Rowヘッダー🌟 ======================== */}
+            {/* サーチモード中は空のdivを表示 */}
+            {searchMode ? (
+              <div
+                className={`${tableContainerSize === "one_third" ? `${styles.search_mode_container_one_third}` : ``} ${
+                  tableContainerSize === "half" ? `${styles.search_mode_container_half}` : ``
+                } ${tableContainerSize === "all" ? `${styles.search_mode_container_all}` : ``}  w-[100vw]`}
+              >
+                {loadingGlobalState && <SpinnerComet />}
+              </div>
+            ) : (
+              <>
+                {/* ======================== 🌟Grid列トラック Rowグループコンテナ🌟 ======================== */}
+                {/* Rowアイテム収納のためのインナー要素 */}
+                <div
+                  ref={gridRowGroupContainerRef}
+                  role="rowgroup"
+                  style={
+                    {
+                      height: `${rowVirtualizer.getTotalSize()}px`,
+                      // width: "100%",
+                      width: `var(--row-width)`,
+                      position: "relative",
+                      // "--header-row-height": "35px",
+                      "--header-row-height": "30px",
+                      "--row-width": "",
+                    } as any
+                  }
+                  className={`${styles.grid_rowgroup_virtualized_container}`}
+                >
+                  {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                    const isLoaderRow = virtualRow.index > allRows.length - 1;
+                    const rowData = allRows[virtualRow.index];
 
-            {/* ======================== 🌟Grid列トラック Rowグループコンテナ🌟 ======================== */}
-            {/* Rowアイテム収納のためのインナー要素 */}
-            <div
-              ref={gridRowGroupContainerRef}
-              role="rowgroup"
-              style={
-                {
-                  height: `${rowVirtualizer.getTotalSize()}px`,
-                  // width: "100%",
-                  width: `var(--row-width)`,
-                  position: "relative",
-                  // "--header-row-height": "35px",
-                  "--header-row-height": "30px",
-                  "--row-width": "",
-                } as any
-              }
-              className={`${styles.grid_rowgroup_virtualized_container}`}
-            >
-              {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-                const isLoaderRow = virtualRow.index > allRows.length - 1;
-                const rowData = allRows[virtualRow.index];
+                    // console.log(`rowData`, rowData);
+                    // console.log(`rowData.name`, rowData.name);
+                    // console.log(
+                    //   `${columnOrder.map((obj) => Object.values(rowData)[obj.columnId])}`,
+                    //   columnOrder.map((obj) => Object.values(rowData)[obj.columnId])
+                    // );
 
-                // console.log(`rowData`, rowData);
-                // console.log(`rowData.name`, rowData.name);
-                // console.log(
-                //   `${columnOrder.map((obj) => Object.values(rowData)[obj.columnId])}`,
-                //   columnOrder.map((obj) => Object.values(rowData)[obj.columnId])
-                // );
-
-                // ========= 🌟ローディング中の行トラック =========
-                // if (isLoaderRow) return hasNextPage ? "Loading more" : "Nothing more to load";
-                if (isLoaderRow) {
-                  return (
-                    <div
-                      key={virtualRow.index.toString() + "Loading"}
-                      role="row"
-                      tabIndex={-1}
-                      // aria-rowindex={virtualRow.index + 1} // ヘッダーの次からなのでindex0+2
-                      aria-selected={false}
-                      className={`${styles.loading_reflection} flex-center mx-auto h-[30px] w-full text-center font-bold`}
-                      // className={`${styles.loading_reflection} flex-center mx-auto h-[35px] w-full text-center font-bold`}
-                    >
-                      <span className={`${styles.reflection}`}></span>
-                      <div className={styles.spinner78}></div>
-                    </div>
-                  );
-                }
-                // ========= 🌟ローディング中の行トラック ここまで =========
-                /* ======================== Grid列トラック Row ======================== */
-                return (
-                  <div
-                    key={"row" + virtualRow.index.toString()}
-                    role="row"
-                    tabIndex={-1}
-                    aria-rowindex={virtualRow.index + 2} // ヘッダーの次からで+1、indexは0からなので+1で、index0に+2
-                    // aria-selected={false}
-                    // チェックが入っているか、もしくは列内のセルがクリックされアクティブになっていた場合には該当のrowのaria-selectedをtrueにする
-                    aria-selected={
-                      checkedRows[virtualRow.index.toString()] || clickedActiveRow === virtualRow.index + 2
+                    // ========= 🌟ローディング中の行トラック =========
+                    // if (isLoaderRow) return hasNextPage ? "Loading more" : "Nothing more to load";
+                    if (isLoaderRow) {
+                      return (
+                        <div
+                          key={virtualRow.index.toString() + "Loading"}
+                          role="row"
+                          tabIndex={-1}
+                          // aria-rowindex={virtualRow.index + 1} // ヘッダーの次からなのでindex0+2
+                          aria-selected={false}
+                          className={`${styles.loading_reflection} flex-center mx-auto h-[30px] w-full text-center font-bold`}
+                          // className={`${styles.loading_reflection} flex-center mx-auto h-[35px] w-full text-center font-bold`}
+                        >
+                          <span className={`${styles.reflection}`}></span>
+                          <div className={styles.spinner78}></div>
+                        </div>
+                      );
                     }
-                    // // =========================== 🔥🔥テスト🔥🔥===========================
-                    // className={`${styles.grid_row} ${rowData.id === 1 ? "first" : ""}`}
-                    className={`${styles.grid_row}`}
-                    // =========================== 🔥🔥テスト🔥🔥===========================
-                    style={{
-                      // gridTemplateColumns: colsWidth.join(" "),
-                      // top: gridRowTrackTopPosition(index),
-                      // top: ((virtualRow.index + 0) * 35).toString() + "px", // +1か0か
-                      top: ((virtualRow.index + 0) * 30).toString() + "px", // +1か0か
-                    }}
-                  >
-                    {/* ======== gridセル チェックボックスセル ======== */}
-                    <div
-                      ref={(ref) => (gridRowTracksRefs.current[virtualRow.index] = ref)}
-                      role="gridcell"
-                      aria-colindex={1}
-                      aria-selected={false}
-                      aria-readonly={true}
-                      tabIndex={-1}
-                      className={`${styles.grid_cell} ${styles.grid_column_frozen}`}
-                      // style={{ gridColumnStart: 1, left: columnHeaderLeft(0) }}
-                      style={{ gridColumnStart: 1, left: "0px" }}
-                      onClick={(e) => handleClickGridCell(e)}
-                    >
-                      <div className={styles.grid_select_cell_header}>
-                        <input
-                          id="checkbox"
-                          type="checkbox"
-                          aria-label="Select"
-                          // =========================== 🔥🔥テスト🔥🔥===========================
-                          value={rowData?.id}
-                          // value={rowData?.id ? rowData?.id : null}
-                          // =========================== 🔥🔥テスト🔥🔥===========================
-                          checked={!!checkedRows[virtualRow.index.toString()]} // !!で初期状態でstateがundefinedでもfalseになるようにして、初期エラーを回避する
-                          onChange={(e) => {
-                            if (typeof rowData?.id === "undefined") return;
-                            if (rowData?.id === null) return;
-                            console.log(`クリック VirtualRow.index: ${virtualRow.index} row.id${rowData.id}`);
-                            handleSelectedCheckBox(e, rowData?.id);
-                          }}
-                          // className={`${styles.grid_select_cell_header_input}`}
-                        />
-                        <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
-                        </svg>
-                      </div>
-                    </div>
-                    {/* ======== gridセル 全てのプロパティ(フィールド)セル  ======== */}
-
-                    {rowData ? (
-                      // カラム順番が変更されているなら順番を合わせてからmap()で展開 上はcolumnNameで呼び出し
-                      columnOrder ? (
-                        columnOrder
-                          .map((columnName) => rowData[columnName])
-                          // columnOrder
-                          //   .map((obj) => {
-                          //     // return { [obj.columnName]: rowData[obj.columnName] };
-                          //     return rowData[obj.columnName];
-                          //   })
-                          // columnOrder
-                          //   .map((obj) => Object.values(rowData)[obj.columnId])
-                          .map((value, index) => (
-                            <div
-                              key={"row" + virtualRow.index.toString() + index.toString()}
-                              role="gridcell"
-                              // ref={(ref) => (colsRef.current[index] = ref)}
-                              // aria-colindex={index + 2}
-                              aria-colindex={
-                                columnHeaderItemList[index] ? columnHeaderItemList[index]?.columnIndex : index + 2
-                              } // カラムヘッダーの列StateのcolumnIndexと一致させる
-                              aria-selected={false}
-                              // variant="contained"
-                              tabIndex={-1}
-                              className={`${styles.grid_cell} ${
-                                columnHeaderItemList[index].isFrozen ? styles.grid_column_frozen : ""
-                              } ${isFrozenCountRef.current === 1 && index === 0 ? styles.grid_cell_frozen_last : ""} ${
-                                isFrozenCountRef.current === index + 1 ? styles.grid_cell_frozen_last : ""
-                              }  ${styles.grid_cell_resizable}`}
-                              // className={`${styles.grid_cell} ${index === 0 ? styles.grid_column_frozen : ""}  ${index === 0 ? styles.grid_cell_frozen_last : ""} ${styles.grid_cell_resizable}`}
-                              // style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
-                              style={
-                                columnHeaderItemList[index].isFrozen
-                                  ? {
-                                      gridColumnStart: columnHeaderItemList[index]
-                                        ? columnHeaderItemList[index]?.columnIndex
-                                        : index + 2,
-                                      left: `var(--frozen-left-${index})`,
-                                    }
-                                  : {
-                                      gridColumnStart: columnHeaderItemList[index]
-                                        ? columnHeaderItemList[index]?.columnIndex
-                                        : index + 2,
-                                    }
-                              }
-                              // style={
-                              //   columnHeaderItemList[index].isFrozen
-                              //     ? {
-                              //         gridColumnStart: columnHeaderItemList[index]
-                              //           ? columnHeaderItemList[index]?.columnIndex
-                              //           : index + 2,
-                              //         left: columnLeftPositions.current[index],
-                              //       }
-                              //     : {
-                              //         gridColumnStart: columnHeaderItemList[index]
-                              //           ? columnHeaderItemList[index]?.columnIndex
-                              //           : index + 2,
-                              //       }
-                              // }
-                              // style={
-                              //   columnHeaderItemList[index].isFrozen
-                              //     ? {
-                              //         gridColumnStart: columnHeaderItemList[index]
-                              //           ? columnHeaderItemList[index]?.columnIndex
-                              //           : index + 2,
-                              //         left: columnHeaderLeft(index),
-                              //       }
-                              //     : {
-                              //         gridColumnStart: columnHeaderItemList[index]
-                              //           ? columnHeaderItemList[index]?.columnIndex
-                              //           : index + 2,
-                              //       }
-                              // }
-                              // style={{
-                              //   gridColumnStart: columnHeaderItemList[index]
-                              //     ? columnHeaderItemList[index]?.columnIndex
-                              //     : index + 2,
-                              //   left: columnHeaderLeft(index + 1),
-                              // }}
-                              onClick={handleClickGridCell}
-                              onDoubleClick={(e) => handleDoubleClick(e, index, columnHeaderItemList[index].columnName)}
-                            >
-                              {value}
-                              {/* {value.} */}
-                            </div>
-                          ))
-                      ) : (
-                        // カラム順番が変更されていない場合には、初期のallRows[0]のrowからmap()で展開
-                        Object.values(rowData).map((value, index) => (
-                          <div
-                            key={"row" + virtualRow.index.toString() + index.toString()}
-                            // ref={(ref) => (colsRef.current[index] = ref)}
-                            role="gridcell"
-                            // aria-colindex={index + 2}
-                            aria-colindex={
-                              columnHeaderItemList[index] ? columnHeaderItemList[index]?.columnIndex : index + 2
-                            } // カラムヘッダーの列StateのcolumnIndexと一致させる
-                            aria-selected={false}
-                            tabIndex={-1}
-                            className={`${styles.grid_cell} ${index === 0 ? styles.grid_column_frozen : ""} ${
-                              index === 0 ? styles.grid_cell_frozen_last : ""
-                            } ${styles.grid_cell_resizable}`}
-                            // style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
-                            style={
-                              columnHeaderItemList[index].isFrozen
-                                ? {
-                                    gridColumnStart: columnHeaderItemList[index]
-                                      ? columnHeaderItemList[index]?.columnIndex
-                                      : index + 2,
-                                    left: columnLeftPositions.current[index],
-                                  }
-                                : {
-                                    gridColumnStart: columnHeaderItemList[index]
-                                      ? columnHeaderItemList[index]?.columnIndex
-                                      : index + 2,
-                                  }
-                            }
-                            // style={
-                            //   columnHeaderItemList[index].isFrozen
-                            //     ? {
-                            //         gridColumnStart: columnHeaderItemList[index]
-                            //           ? columnHeaderItemList[index]?.columnIndex
-                            //           : index + 2,
-                            //         left: columnHeaderLeft(index),
-                            //       }
-                            //     : {
-                            //         gridColumnStart: columnHeaderItemList[index]
-                            //           ? columnHeaderItemList[index]?.columnIndex
-                            //           : index + 2,
-                            //       }
-                            // }
-                            // style={{
-                            //   gridColumnStart: columnHeaderItemList[index]
-                            //     ? columnHeaderItemList[index]?.columnIndex
-                            //     : index + 2,
-                            //   left: columnHeaderLeft(index + 1),
-                            // }}
-                            onClick={handleClickGridCell}
-                            onDoubleClick={(e) => handleDoubleClick(e, index, columnHeaderItemList[index].columnName)}
-                          >
-                            {value}
-                          </div>
-                        ))
-                      )
-                    ) : (
+                    // ========= 🌟ローディング中の行トラック ここまで =========
+                    /* ======================== Grid列トラック Row ======================== */
+                    return (
                       <div
-                        key={virtualRow.index.toString() + "Loading..."}
+                        key={"row" + virtualRow.index.toString()}
                         role="row"
                         tabIndex={-1}
-                        // aria-rowindex={virtualRow.index + 1} // ヘッダーの次からなのでindex0+2
-                        aria-selected={false}
-                        className={`${styles.grid_row} z-index absolute w-full bg-slate-300 text-center font-bold text-[red]`}
+                        aria-rowindex={virtualRow.index + 2} // ヘッダーの次からで+1、indexは0からなので+1で、index0に+2
+                        // aria-selected={false}
+                        // チェックが入っているか、もしくは列内のセルがクリックされアクティブになっていた場合には該当のrowのaria-selectedをtrueにする
+                        aria-selected={
+                          checkedRows[virtualRow.index.toString()] || clickedActiveRow === virtualRow.index + 2
+                        }
+                        // // ================= 🔥🔥テスト🔥🔥==================
+                        // className={`${styles.grid_row} ${rowData.id === 1 ? "first" : ""}`}
+                        className={`${styles.grid_row}`}
+                        // ================= 🔥🔥テスト🔥🔥==================
                         style={{
                           // gridTemplateColumns: colsWidth.join(" "),
                           // top: gridRowTrackTopPosition(index),
-                          // top: (virtualRow.index * 35).toString() + "px",
-                          bottom: "2.5rem",
+                          // top: ((virtualRow.index + 0) * 35).toString() + "px", // +1か0か
+                          top: ((virtualRow.index + 0) * 30).toString() + "px", // +1か0か
                         }}
                       >
-                        Loading...
-                      </div>
-                    )}
+                        {/* ======== gridセル チェックボックスセル ======== */}
+                        <div
+                          ref={(ref) => (gridRowTracksRefs.current[virtualRow.index] = ref)}
+                          role="gridcell"
+                          aria-colindex={1}
+                          aria-selected={false}
+                          aria-readonly={true}
+                          tabIndex={-1}
+                          className={`${styles.grid_cell} ${styles.grid_column_frozen}`}
+                          // style={{ gridColumnStart: 1, left: columnHeaderLeft(0) }}
+                          style={{ gridColumnStart: 1, left: "0px" }}
+                          onClick={(e) => handleClickGridCell(e)}
+                        >
+                          <div className={styles.grid_select_cell_header}>
+                            <input
+                              id="checkbox"
+                              type="checkbox"
+                              aria-label="Select"
+                              // ================= 🔥🔥テスト🔥🔥==================
+                              value={rowData?.id}
+                              // value={rowData?.id ? rowData?.id : null}
+                              // ================= 🔥🔥テスト🔥🔥==================
+                              checked={!!checkedRows[virtualRow.index.toString()]} // !!で初期状態でstateがundefinedでもfalseになるようにして、初期エラーを回避する
+                              onChange={(e) => {
+                                if (typeof rowData?.id === "undefined") return;
+                                if (rowData?.id === null) return;
+                                console.log(`クリック VirtualRow.index: ${virtualRow.index} row.id${rowData.id}`);
+                                handleSelectedCheckBox(e, rowData?.index.toString());
+                                // handleSelectedCheckBox(e, rowData?.id);
+                              }}
+                              // className={`${styles.grid_select_cell_header_input}`}
+                            />
+                            <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+                            </svg>
+                          </div>
+                        </div>
+                        {/* ======== gridセル 全てのプロパティ(フィールド)セル  ======== */}
 
-                    {/* {rowData &&
+                        {rowData ? (
+                          // カラム順番が変更されているなら順番を合わせてからmap()で展開 上はcolumnNameで呼び出し
+                          columnOrder ? (
+                            columnOrder
+                              .map((columnName) => rowData[columnName])
+                              // columnOrder
+                              //   .map((obj) => {
+                              //     // return { [obj.columnName]: rowData[obj.columnName] };
+                              //     return rowData[obj.columnName];
+                              //   })
+                              // columnOrder
+                              //   .map((obj) => Object.values(rowData)[obj.columnId])
+                              .map((value, index) => (
+                                <div
+                                  key={"row" + virtualRow.index.toString() + index.toString()}
+                                  role="gridcell"
+                                  // ref={(ref) => (colsRef.current[index] = ref)}
+                                  // aria-colindex={index + 2}
+                                  aria-colindex={
+                                    columnHeaderItemList[index] ? columnHeaderItemList[index]?.columnIndex : index + 2
+                                  } // カラムヘッダーの列StateのcolumnIndexと一致させる
+                                  aria-selected={false}
+                                  // variant="contained"
+                                  tabIndex={-1}
+                                  className={`${styles.grid_cell} ${
+                                    columnHeaderItemList[index].isFrozen ? styles.grid_column_frozen : ""
+                                  } ${
+                                    isFrozenCountRef.current === 1 && index === 0 ? styles.grid_cell_frozen_last : ""
+                                  } ${isFrozenCountRef.current === index + 1 ? styles.grid_cell_frozen_last : ""}  ${
+                                    styles.grid_cell_resizable
+                                  }`}
+                                  // className={`${styles.grid_cell} ${index === 0 ? styles.grid_column_frozen : ""}  ${index === 0 ? styles.grid_cell_frozen_last : ""} ${styles.grid_cell_resizable}`}
+                                  // style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
+                                  style={
+                                    columnHeaderItemList[index].isFrozen
+                                      ? {
+                                          gridColumnStart: columnHeaderItemList[index]
+                                            ? columnHeaderItemList[index]?.columnIndex
+                                            : index + 2,
+                                          left: `var(--frozen-left-${index})`,
+                                        }
+                                      : {
+                                          gridColumnStart: columnHeaderItemList[index]
+                                            ? columnHeaderItemList[index]?.columnIndex
+                                            : index + 2,
+                                        }
+                                  }
+                                  // style={
+                                  //   columnHeaderItemList[index].isFrozen
+                                  //     ? {
+                                  //         gridColumnStart: columnHeaderItemList[index]
+                                  //           ? columnHeaderItemList[index]?.columnIndex
+                                  //           : index + 2,
+                                  //         left: columnLeftPositions.current[index],
+                                  //       }
+                                  //     : {
+                                  //         gridColumnStart: columnHeaderItemList[index]
+                                  //           ? columnHeaderItemList[index]?.columnIndex
+                                  //           : index + 2,
+                                  //       }
+                                  // }
+                                  // style={
+                                  //   columnHeaderItemList[index].isFrozen
+                                  //     ? {
+                                  //         gridColumnStart: columnHeaderItemList[index]
+                                  //           ? columnHeaderItemList[index]?.columnIndex
+                                  //           : index + 2,
+                                  //         left: columnHeaderLeft(index),
+                                  //       }
+                                  //     : {
+                                  //         gridColumnStart: columnHeaderItemList[index]
+                                  //           ? columnHeaderItemList[index]?.columnIndex
+                                  //           : index + 2,
+                                  //       }
+                                  // }
+                                  // style={{
+                                  //   gridColumnStart: columnHeaderItemList[index]
+                                  //     ? columnHeaderItemList[index]?.columnIndex
+                                  //     : index + 2,
+                                  //   left: columnHeaderLeft(index + 1),
+                                  // }}
+                                  onClick={handleClickGridCell}
+                                  onDoubleClick={(e) =>
+                                    handleDoubleClick(e, index, columnHeaderItemList[index].columnName)
+                                  }
+                                >
+                                  {value}
+                                  {/* {value.} */}
+                                </div>
+                              ))
+                          ) : (
+                            // カラム順番が変更されていない場合には、初期のallRows[0]のrowからmap()で展開
+                            Object.values(rowData).map((value, index) => (
+                              <div
+                                key={"row" + virtualRow.index.toString() + index.toString()}
+                                // ref={(ref) => (colsRef.current[index] = ref)}
+                                role="gridcell"
+                                // aria-colindex={index + 2}
+                                aria-colindex={
+                                  columnHeaderItemList[index] ? columnHeaderItemList[index]?.columnIndex : index + 2
+                                } // カラムヘッダーの列StateのcolumnIndexと一致させる
+                                aria-selected={false}
+                                tabIndex={-1}
+                                className={`${styles.grid_cell} ${index === 0 ? styles.grid_column_frozen : ""} ${
+                                  index === 0 ? styles.grid_cell_frozen_last : ""
+                                } ${styles.grid_cell_resizable}`}
+                                // style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
+                                style={
+                                  columnHeaderItemList[index].isFrozen
+                                    ? {
+                                        gridColumnStart: columnHeaderItemList[index]
+                                          ? columnHeaderItemList[index]?.columnIndex
+                                          : index + 2,
+                                        left: columnLeftPositions.current[index],
+                                      }
+                                    : {
+                                        gridColumnStart: columnHeaderItemList[index]
+                                          ? columnHeaderItemList[index]?.columnIndex
+                                          : index + 2,
+                                      }
+                                }
+                                // style={
+                                //   columnHeaderItemList[index].isFrozen
+                                //     ? {
+                                //         gridColumnStart: columnHeaderItemList[index]
+                                //           ? columnHeaderItemList[index]?.columnIndex
+                                //           : index + 2,
+                                //         left: columnHeaderLeft(index),
+                                //       }
+                                //     : {
+                                //         gridColumnStart: columnHeaderItemList[index]
+                                //           ? columnHeaderItemList[index]?.columnIndex
+                                //           : index + 2,
+                                //       }
+                                // }
+                                // style={{
+                                //   gridColumnStart: columnHeaderItemList[index]
+                                //     ? columnHeaderItemList[index]?.columnIndex
+                                //     : index + 2,
+                                //   left: columnHeaderLeft(index + 1),
+                                // }}
+                                onClick={handleClickGridCell}
+                                onDoubleClick={(e) =>
+                                  handleDoubleClick(e, index, columnHeaderItemList[index].columnName)
+                                }
+                              >
+                                {value as any}
+                              </div>
+                            ))
+                          )
+                        ) : (
+                          <div
+                            key={virtualRow.index.toString() + "Loading..."}
+                            role="row"
+                            tabIndex={-1}
+                            // aria-rowindex={virtualRow.index + 1} // ヘッダーの次からなのでindex0+2
+                            aria-selected={false}
+                            className={`${styles.grid_row} z-index absolute w-full bg-slate-300 text-center font-bold text-[red]`}
+                            style={{
+                              // gridTemplateColumns: colsWidth.join(" "),
+                              // top: gridRowTrackTopPosition(index),
+                              // top: (virtualRow.index * 35).toString() + "px",
+                              bottom: "2.5rem",
+                            }}
+                          >
+                            Loading...
+                          </div>
+                        )}
+
+                        {/* {rowData &&
                       Object.values(rowData).map((value, index) => (
                         <div
                           key={"row" + virtualRow.index.toString() + index.toString()}
@@ -2558,16 +2718,18 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                           {value}
                         </div>
                       ))} */}
-                    {/* ======== ヘッダーセル idを除く全てのプロパティ(フィールド)Column  ======== */}
-                  </div>
-                );
-              })}
-            </div>
-            {/* ======================== Grid列トラック Row ======================== */}
+                        {/* ======== ヘッダーセル idを除く全てのプロパティ(フィールド)Column  ======== */}
+                      </div>
+                    );
+                  })}
+                </div>
+                {/* ======================== Grid列トラック Row ======================== */}
+              </>
+            )}
           </div>
           {/* ================== Gridスクロールコンテナ ここまで ================== */}
           {/* =============== Gridフッター ここから スクロールコンテナと同列で配置 =============== */}
-          <GridTableFooter getItemCount={getItemCount} />
+          <GridTableFooter getItemCount={allRows.length} />
           {/* ================== Gridフッター ここまで ================== */}
         </div>
         {/* ================== Gridメインコンテナ ここまで ================== */}
@@ -2589,7 +2751,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
         ></div>
       </div> */}
       {/* カラム編集モーダル */}
-      {isOpenEditColumns && <EditColumnsModal columnHeaderItemList={columnHeaderItemList} />}
+      {/* {isOpenEditColumns && <EditColumnsModal columnHeaderItemList={columnHeaderItemList} />} */}
+      {isOpenEditColumns && <EditColumnsModalDisplayOnly columnHeaderItemList={columnHeaderItemList} />}
       {/* ================== 🌟カラム編集モーダル🌟 ここまで ================== */}
       {/* ================== メインコンテナ ここまで ================== */}
     </>

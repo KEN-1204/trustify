@@ -275,6 +275,38 @@
   /* // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 高さ 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 */
   max-height: calc(100vh / 3 - var(--header-height) / 3 - 30px - 40px);
 }
+/* サーチモード中の仮想化Rowグループ代わりのコンテナ ヘッダー30pxも引く */
+.search_mode_container_one_third {
+  min-height: calc(100vh / 3 - var(--header-height) / 3 - 30px - 40px - 30px);
+  /* background: #ccc; */
+}
+.search_mode_container_half {
+  min-height: calc(100vh / 2 - var(--header-height) / 2 - 30px - 40px - 30px);
+  /* background: #ccc; */
+}
+.search_mode_container_all {
+  min-height: calc(100vh - var(--header-height) - 30px - 40px - 30px);
+  /* background: #ccc; */
+}
+.searching_row {
+  /* border-top: 1px solid #ccc; */
+  border-bottom: 1px solid var(--border-color);
+  width: 100%;
+  height: 30px;
+  animation: shine-lines 1.6s infinite linear;
+}
+.searching_row::after {
+}
+@keyframes shine-lines {
+  0% {
+    background-position: -100px;
+  }
+  40%,
+  100% {
+    background-position: 140px;
+  }
+}
+
 /* 仮想化Rowグループコンテナ */
 .grid_rowgroup_virtualized_container {
   position: relative;

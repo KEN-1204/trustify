@@ -52,7 +52,7 @@ const CompanyFunctionHeaderMemo: FC = () => {
     <div className={`${styles.grid_function_header} h-[40px] w-full bg-[var(--color-bg-under-function-header)]`}>
       <div className={`flex max-h-[26px] w-full items-center justify-start space-x-[6px]`}>
         <RippleButton
-          title={`${searchMode ? `サーチ実行` : `新規サーチ`}`}
+          title={`${searchMode ? `サーチ中止` : `新規サーチ`}`}
           // bgColor="var(--color-btn-brand-f-re)"
           // border="var(--color-btn-brand-f-re-hover)"
           borderRadius="2px"
@@ -69,15 +69,16 @@ const CompanyFunctionHeaderMemo: FC = () => {
           }}
         />
         <RippleButton
-          title={`${searchMode ? `サーチ中止` : `サーチ編集`}`}
-          classText="select-none"
+          title={`${searchMode ? `サーチ編集` : `サーチ編集`}`}
+          classText={`select-none ${searchMode ? `cursor-not-allowed` : ``}`}
           borderRadius="2px"
           clickEventHandler={() => {
+            if (searchMode) return;
             console.log("サーチ編集 クリック");
             setSearchMode(false);
           }}
         />
-        <RippleButton
+        {/* <RippleButton
           title={`会社作成`}
           classText="select-none"
           borderRadius="2px"
@@ -92,24 +93,24 @@ const CompanyFunctionHeaderMemo: FC = () => {
           clickEventHandler={() => {
             console.log("サーチ編集 クリック");
           }}
-        />
+        /> */}
         <RippleButton
           title={`担当者作成`}
-          classText="select-none"
+          classText={`select-none ${searchMode ? `cursor-not-allowed` : ``}`}
           borderRadius="2px"
           clickEventHandler={() => {
-            console.log("サーチ編集 クリック");
+            if (searchMode) return;
+            console.log("担当者作成 クリック");
           }}
         />
       </div>
 
       <div className={`flex max-h-[26px] w-full  items-center justify-end space-x-[6px]`}>
-        <button
+        {/* <button
           className={`flex-center transition-base03 mr-[10px]  h-[26px] w-[70px]  cursor-pointer space-x-2 rounded-[4px]  text-[12px] text-[var(--color-bg-brand-f)] ${styles.fh_text_btn} `}
         >
-          {/* <FiLock /> */}
           <span>HP検索</span>
-        </button>
+        </button> */}
         {/* <button
           className={`flex-center transition-base03 h-[26px]  min-w-[70px] cursor-pointer  space-x-2 rounded-[4px] text-[12px]  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn} `}
         >

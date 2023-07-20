@@ -48,6 +48,9 @@ export const columnNameToJapanese = (columnName: string) => {
     case "number_of_employees_class":
       return "従業員数(規模)";
       break;
+    case "number_of_employees":
+      return "従業員数";
+      break;
     case "fiscal_end_month":
       return "決算月";
       break;
@@ -95,6 +98,12 @@ export const columnNameToJapanese = (columnName: string) => {
       break;
     case "business_sites":
       return "事業拠点";
+      break;
+    case "business_content":
+      return "事業概要";
+      break;
+    case "website_url":
+      return "ホームページ";
       break;
     case "overseas_bases":
       return "海外拠点";

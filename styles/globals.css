@@ -101,6 +101,18 @@
   --color-bg-secondary: #f5f5f5; /* サブ背景カラー グレー */
   --color-bg-hp-main: #fff;
   --color-bg-hp-sub: var(--off-white);
+  --color-horizon: #999;
+  --color-accordion-bg: #eee;
+  --color-accordion-bg-hover: #ddd;
+  --color-input-bg: rgba(225, 225, 225, 0.6);
+  --color-wrap-box-shadow: rgb(0 0 0 / 29%) 0px 16px 38px -10px, rgb(0 0 0 / 45%) 0px 14px 10px -10px;
+  --color-wrap-box-shadow-hover: rgb(0 0 0 / 69%) 0px 26px 58px -10px, rgb(0 0 0 / 45%) 0px 16px 10px -10px;
+  --color-auth-modal-switch-text: #fff;
+  --color-auth-modal-or-text: #ccc;
+  --color-auth-modal-bg: #282828;
+
+  --color-wrap-border: rgba(220, 220, 220, 0.6);
+
   --color-header-bg-active: rgba(64, 87, 109, 0.07);
   /* ブランドカラー　 */
   --color-bg-brand: #0066ff;
@@ -231,9 +243,9 @@
   /* --color-btn-brand-f: #2b7fffc0;
   --color-btn-brand-f-hover: #2b7fff; */
   --color-btn-text: #fff;
-  /* --color-btn-brand: #2b7fff;
+  --color-btn-brand: #2b7fff;
   --color-btn-brand-rgb: 43, 127, 255;
-  --color-btn-brand-hover: #2571e2; */
+  --color-btn-brand-hover: #2571e2;
   /* ボタン 薄め */
   --color-btn-brand-f05: #e5f4ff;
   /* ASISTボタン */
@@ -395,6 +407,7 @@
 
   /* ナブバー */
   --navColor: #313131;
+  /* --navColor: var(--color-text); */
   --navbar-text-color-hover: #06c;
 
   /* オーバーレイ */
@@ -445,9 +458,21 @@
   --color-bg: #2c2c2c; /* メイン背景カラー */
   --color-bg2: #141414; /* メイン背景カラー */
   --color-bg-secondary: #383838; /* サブ背景カラー グレー */
-  --color-bg-hp-main: #000;
+  /* --color-bg-hp-main: #000; */
+  --color-bg-hp-main: #121212;
   --color-bg-hp-sub: var(--off-black);
+  --color-horizon: #232323;
+  --color-accordion-bg: #303030;
+  --color-accordion-bg-hover: #454545;
+  --color-input-bg: rgba(15, 15, 15, 0.6);
+  --color-wrap-box-shadow: rgb(255 255 255 / 40%) 0px 10px 58px -10px, rgb(0 0 0 / 72%) 0px 30px 22px -10px;
+  --color-wrap-box-shadow-hover: rgb(255 255 255 / 50%) 0px 15px 68px 0px, rgb(0 0 0 / 72%) 0px 30px 22px -10px;
+  --color-wrap-border: rgba(249, 249, 249, 0.2);
+  --color-auth-modal-switch-text: rgba(var(--color-text-rgb), 0.9);
+  --color-auth-modal-or-text: var(--color-text-secondary);
   --color-header-bg-active: #252525;
+  --color-auth-modal-bg: #141414;
+
   /* テーブルカラー light */
   --color-bg-table-header: #252525;
   /* ブランドカラー　背景 */
@@ -545,9 +570,9 @@
   /* --color-btn-brand-f: #2b7fff50;
   --color-btn-brand-f-hover: #2b7fff; */
   --color-btn-text: #fff;
-  /* --color-btn-brand: #2b7fff;
+  --color-btn-brand: #2b7fff;
   --color-btn-brand-rgb: 43, 127, 255;
-  --color-btn-brand-hover: #2571e2; */
+  --color-btn-brand-hover: #2571e2;
 
   /* 🌟ボタン 薄め dark */
   --color-btn-brand-f05: #0e5d95;
@@ -733,6 +758,8 @@ body {
   overflow-x: visible;
   display: block; */
   /* overflow: hidden; */
+  /* overflow-x: hidden;
+  max-width: 100vw; */
 }
 
 li {
@@ -742,10 +769,12 @@ li {
 .theme_dark {
   background-color: #121212;
   color-scheme: dark;
+  transition: background-color 0.5s;
 }
 .theme_light {
   background-color: #fff;
   color-scheme: light;
+  transition: background-color 0.5s;
 }
 
 input,

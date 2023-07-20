@@ -35,7 +35,7 @@ export const RootLayout: FC<Prop> = ({ children }) => {
   }, [theme]);
 
   return (
-    <div className={`theme_${theme} `}>
+    <div className={`theme_${theme}`}>
       {children}
       <ToastContainer
         position="top-left"

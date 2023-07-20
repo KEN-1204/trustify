@@ -1,4 +1,11 @@
-import { ActiveMenuTab, Client_company, ColumnHeaderItemList } from "@/types";
+import {
+  ActiveMenuTab,
+  Client_company,
+  Client_company_row_data,
+  ColumnHeaderItemList,
+  NewSearchCompanyParams,
+  UserProfile,
+} from "@/types";
 import { Session } from "@supabase/supabase-js";
 import { ReactNode } from "react";
 import { create } from "zustand";
@@ -59,6 +66,24 @@ type State = {
   // =================== 会社テーブル ヘッダーリスト保持用state関連 ===================
   columnHeaderItemList: ColumnHeaderItemList[];
   setColumnHeaderItemList: (payload: ColumnHeaderItemList[]) => void;
+
+  // =================== 上画面の列選択した時に下画面に会社情報を映す用のState ===================
+  // オブジェクト
+  selectedRowDataCompany: Client_company_row_data | null;
+  setSelectedRowDataCompany: (payload: Client_company_row_data) => void;
+
+  // 会社データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
+  // newSearchCompanyCondition: Omit<Client_company_row_data, ''>
+  newSearchCompanyParams: NewSearchCompanyParams | null;
+  setNewSearchCompanyParams: (payload: NewSearchCompanyParams) => void;
+
+  // =================== ローディング状態保持 ===================
+  loadingGlobalState: boolean;
+  setLoadingGlobalState: (payload: boolean) => void;
+
+  // =================== ユーザープロフィール ===================
+  userProfileState: UserProfile;
+  setUserProfileState: (payload: UserProfile) => void;
 };
 
 const useDashboardStore = create<State>((set) => ({
@@ -185,7 +210,7 @@ const useDashboardStore = create<State>((set) => ({
     {
       columnId: 9,
       columnIndex: 11,
-      columnName: "industry_large",
+      columnName: "number_of_employees",
       columnWidth: "200px",
       isFrozen: false,
       isOverflow: false,
@@ -193,7 +218,7 @@ const useDashboardStore = create<State>((set) => ({
     {
       columnId: 10,
       columnIndex: 12,
-      columnName: "industry_small",
+      columnName: "number_of_employees_class",
       columnWidth: "200px",
       isFrozen: false,
       isOverflow: false,
@@ -201,7 +226,7 @@ const useDashboardStore = create<State>((set) => ({
     {
       columnId: 11,
       columnIndex: 13,
-      columnName: "industry_type",
+      columnName: "capital",
       columnWidth: "200px",
       isFrozen: false,
       isOverflow: false,
@@ -209,7 +234,7 @@ const useDashboardStore = create<State>((set) => ({
     {
       columnId: 12,
       columnIndex: 14,
-      columnName: "product_category_large",
+      columnName: "established_in",
       columnWidth: "200px",
       isFrozen: false,
       isOverflow: false,
@@ -217,7 +242,7 @@ const useDashboardStore = create<State>((set) => ({
     {
       columnId: 13,
       columnIndex: 15,
-      columnName: "product_category_medium",
+      columnName: "business_content",
       columnWidth: "200px",
       isFrozen: false,
       isOverflow: false,
@@ -225,7 +250,7 @@ const useDashboardStore = create<State>((set) => ({
     {
       columnId: 14,
       columnIndex: 16,
-      columnName: "product_category_small",
+      columnName: "email",
       columnWidth: "200px",
       isFrozen: false,
       isOverflow: false,
@@ -233,7 +258,7 @@ const useDashboardStore = create<State>((set) => ({
     {
       columnId: 15,
       columnIndex: 17,
-      columnName: "number_of_employees_class",
+      columnName: "website_url",
       columnWidth: "200px",
       isFrozen: false,
       isOverflow: false,
@@ -241,7 +266,7 @@ const useDashboardStore = create<State>((set) => ({
     {
       columnId: 16,
       columnIndex: 18,
-      columnName: "fiscal_end_month",
+      columnName: "industry_large",
       columnWidth: "200px",
       isFrozen: false,
       isOverflow: false,
@@ -249,7 +274,7 @@ const useDashboardStore = create<State>((set) => ({
     {
       columnId: 17,
       columnIndex: 19,
-      columnName: "capital",
+      columnName: "industry_small",
       columnWidth: "200px",
       isFrozen: false,
       isOverflow: false,
@@ -257,7 +282,7 @@ const useDashboardStore = create<State>((set) => ({
     {
       columnId: 18,
       columnIndex: 20,
-      columnName: "email",
+      columnName: "industry_type",
       columnWidth: "200px",
       isFrozen: false,
       isOverflow: false,
@@ -265,7 +290,7 @@ const useDashboardStore = create<State>((set) => ({
     {
       columnId: 19,
       columnIndex: 21,
-      columnName: "clients",
+      columnName: "product_category_large",
       columnWidth: "200px",
       isFrozen: false,
       isOverflow: false,
@@ -273,7 +298,7 @@ const useDashboardStore = create<State>((set) => ({
     {
       columnId: 20,
       columnIndex: 22,
-      columnName: "supplier",
+      columnName: "product_category_medium",
       columnWidth: "200px",
       isFrozen: false,
       isOverflow: false,
@@ -281,23 +306,25 @@ const useDashboardStore = create<State>((set) => ({
     {
       columnId: 21,
       columnIndex: 23,
-      columnName: "representative_position_name",
+      columnName: "product_category_small",
       columnWidth: "200px",
       isFrozen: false,
       isOverflow: false,
     },
+
     {
       columnId: 22,
       columnIndex: 24,
-      columnName: "chairperson",
+      columnName: "fiscal_end_month",
       columnWidth: "200px",
       isFrozen: false,
       isOverflow: false,
     },
+
     {
       columnId: 23,
       columnIndex: 25,
-      columnName: "senior_vice_president",
+      columnName: "clients",
       columnWidth: "200px",
       isFrozen: false,
       isOverflow: false,
@@ -305,15 +332,23 @@ const useDashboardStore = create<State>((set) => ({
     {
       columnId: 24,
       columnIndex: 26,
-      columnName: "senior_managing_director",
+      columnName: "supplier",
       columnWidth: "200px",
       isFrozen: false,
       isOverflow: false,
     },
+    // {
+    //   columnId: 21,
+    //   columnIndex: 23,
+    //   columnName: "representative_position_name",
+    //   columnWidth: "200px",
+    //   isFrozen: false,
+    //   isOverflow: false,
+    // },
     {
       columnId: 25,
       columnIndex: 27,
-      columnName: "managing_director",
+      columnName: "chairperson",
       columnWidth: "200px",
       isFrozen: false,
       isOverflow: false,
@@ -321,7 +356,7 @@ const useDashboardStore = create<State>((set) => ({
     {
       columnId: 26,
       columnIndex: 28,
-      columnName: "director",
+      columnName: "senior_vice_president",
       columnWidth: "200px",
       isFrozen: false,
       isOverflow: false,
@@ -329,7 +364,7 @@ const useDashboardStore = create<State>((set) => ({
     {
       columnId: 27,
       columnIndex: 29,
-      columnName: "auditor",
+      columnName: "senior_managing_director",
       columnWidth: "200px",
       isFrozen: false,
       isOverflow: false,
@@ -337,7 +372,7 @@ const useDashboardStore = create<State>((set) => ({
     {
       columnId: 28,
       columnIndex: 30,
-      columnName: "manager",
+      columnName: "managing_director",
       columnWidth: "200px",
       isFrozen: false,
       isOverflow: false,
@@ -345,7 +380,7 @@ const useDashboardStore = create<State>((set) => ({
     {
       columnId: 29,
       columnIndex: 31,
-      columnName: "member",
+      columnName: "director",
       columnWidth: "200px",
       isFrozen: false,
       isOverflow: false,
@@ -353,7 +388,7 @@ const useDashboardStore = create<State>((set) => ({
     {
       columnId: 30,
       columnIndex: 32,
-      columnName: "facility",
+      columnName: "auditor",
       columnWidth: "200px",
       isFrozen: false,
       isOverflow: false,
@@ -361,15 +396,31 @@ const useDashboardStore = create<State>((set) => ({
     {
       columnId: 31,
       columnIndex: 33,
-      columnName: "business_sites",
+      columnName: "manager",
       columnWidth: "200px",
       isFrozen: false,
       isOverflow: false,
     },
     {
       columnId: 32,
+      columnIndex: 34,
+      columnName: "member",
+      columnWidth: "200px",
+      isFrozen: false,
+      isOverflow: false,
+    },
+    {
+      columnId: 33,
+      columnIndex: 35,
+      columnName: "facility",
+      columnWidth: "200px",
+      isFrozen: false,
+      isOverflow: false,
+    },
+    {
+      columnId: 34,
       columnIndex: 36,
-      columnName: "overseas_bases",
+      columnName: "business_sites",
       columnWidth: "200px",
       isFrozen: false,
       isOverflow: false,
@@ -377,7 +428,7 @@ const useDashboardStore = create<State>((set) => ({
     {
       columnId: 35,
       columnIndex: 37,
-      columnName: "group_company",
+      columnName: "overseas_bases",
       columnWidth: "200px",
       isFrozen: false,
       isOverflow: false,
@@ -385,19 +436,12 @@ const useDashboardStore = create<State>((set) => ({
     {
       columnId: 36,
       columnIndex: 38,
-      columnName: "number_of_employees",
+      columnName: "group_company",
       columnWidth: "200px",
       isFrozen: false,
       isOverflow: false,
     },
-    {
-      columnId: 37,
-      columnIndex: 39,
-      columnName: "established_in",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
+
     // {
     //   columnId: 36,
     //   columnIndex: 38,
@@ -512,7 +556,7 @@ const useDashboardStore = create<State>((set) => ({
         product_category_medium: payload.product_category_medium,
         product_category_small: payload.product_category_small,
         representative_name: payload.representative_name,
-        representative_position_name: payload.representative_position_name,
+        // representative_position_name: payload.representative_position_name,
         sending_ban_flag: payload.sending_ban_flag,
         senior_managing_director: payload.senior_managing_director,
         senior_vice_president: payload.senior_vice_president,
@@ -569,7 +613,7 @@ const useDashboardStore = create<State>((set) => ({
         product_category_medium: "",
         product_category_small: "",
         representative_name: "",
-        representative_position_name: "",
+        // representative_position_name: "",
         sending_ban_flag: null,
         senior_managing_director: "",
         senior_vice_president: "",
@@ -579,7 +623,23 @@ const useDashboardStore = create<State>((set) => ({
       },
     }),
 
-  //
+  // =================== 上画面の列選択した時に下画面に会社情報を映す用のState ===================
+  // 会社オブジェクト
+  selectedRowDataCompany: null,
+  setSelectedRowDataCompany: (payload) => set({ selectedRowDataCompany: payload }),
+
+  // 会社データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
+  // newSearchCompanyParams: Omit<Client_company_row_data, ''>
+  newSearchCompanyParams: null,
+  setNewSearchCompanyParams: (payload) => set({ newSearchCompanyParams: payload }),
+
+  // =================== ローディング状態保持 ===================
+  loadingGlobalState: false,
+  setLoadingGlobalState: (payload) => set({ loadingGlobalState: payload }),
+
+  // =================== ユーザープロフィール ===================
+  userProfileState: null,
+  setUserProfileState: (payload) => set({ userProfileState: payload }),
 }));
 
 export default useDashboardStore;

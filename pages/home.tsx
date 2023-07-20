@@ -1,10 +1,11 @@
+import { DashboardCompanyComponent } from "@/components/DashboardCompanyComponent/DashboardCompanyComponent";
 import { DashboardHeader } from "@/components/DashboardHeader/DashboardHeader";
 import { DashboardHomeComponent } from "@/components/DashboardHomeComponent/DashboardHomeComponent";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import useStore from "@/store";
 import useDashboardStore from "@/store/useDashboardStore";
 import useThemeStore from "@/store/useThemeStore";
-import { Profile } from "@/types";
+import { Profile, UserProfile } from "@/types";
 import { Session, User, createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { GetServerSidePropsContext } from "next";
 import React, { useEffect } from "react";
@@ -17,41 +18,63 @@ const DashboardHome = ({
 }: {
   initialSession: Session;
   user: User;
-  userProfile: Profile;
+  userProfile: UserProfile;
 }) => {
   const language = useStore((state) => state.language);
   const setTheme = useThemeStore((state) => state.setTheme);
   const activeMenuTab = useDashboardStore((state) => state.activeMenuTab);
   const setActiveMenuTab = useDashboardStore((state) => state.setActiveMenuTab);
-  console.log("🔥Homeページ レンダリング activeMenuTab", activeMenuTab);
+  const setUserProfileState = useDashboardStore((state) => state.setUserProfileState);
+  console.log("🔥Homeページ レンダリング", activeMenuTab, user, userProfile);
+
+  useEffect(() => {
+    setUserProfileState(userProfile);
+  }, [userProfile, setUserProfileState]);
+
   // const setTheme = useStore((state) => state.setTheme);
 
   // 言語別タイトル
   let langTitle;
-  switch (language) {
-    case "Ja":
-      langTitle = "ホーム - TRUSTiFY";
-      break;
-    case "En":
-      langTitle = "Home - TRUSTiFY";
-      break;
-    default:
-      langTitle = "Home - TRUSTiFY";
-      break;
+  if (activeMenuTab === "HOME") {
+    switch (language) {
+      case "Ja":
+        langTitle = "ホーム - TRUSTiFY";
+        break;
+      case "En":
+        langTitle = "Home - TRUSTiFY";
+        break;
+      default:
+        langTitle = "Home - TRUSTiFY";
+        break;
+    }
+  }
+  if (activeMenuTab === "Company") {
+    switch (language) {
+      case "Ja":
+        langTitle = "会社 - TRUSTiFY";
+        break;
+      case "En":
+        langTitle = "Company - TRUSTiFY";
+        break;
+      default:
+        langTitle = "Company - TRUSTiFY";
+        break;
+    }
   }
 
   // /companyページにいて、アクティブメニュータブがCompanyでない場合にはCompanyに変更する
   useEffect(() => {
-    // setTheme("light");
-    if (window.history.state.url === "/home") {
-      setActiveMenuTab("HOME");
-      console.log("homeyページ アクティブタブをHOMEに変更");
-    }
+    setTheme("light");
+    // if (window.history.state.url === "/home") {
+    //   setActiveMenuTab("HOME");
+    //   console.log("homeyページ アクティブタブをHOMEに変更");
+    // }
   }, []);
 
   return (
     <DashboardLayout title={langTitle}>
-      <DashboardHomeComponent />
+      {activeMenuTab === "HOME" && <DashboardHomeComponent />}
+      {activeMenuTab === "Company" && <DashboardCompanyComponent />}
     </DashboardLayout>
   );
 };

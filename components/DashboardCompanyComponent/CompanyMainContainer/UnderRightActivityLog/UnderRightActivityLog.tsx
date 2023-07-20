@@ -7,6 +7,7 @@ import useDashboardStore from "@/store/useDashboardStore";
 import useRootStore from "@/store/useRootStore";
 import { GridTableFooter } from "@/components/GridTable/GridTableFooter/GridTableFooter";
 import { UnderRightGridTableFooter } from "./UnderRightGridTableFooter";
+import { rightRowData } from "./data";
 
 type TableDataType = {
   activityType: string;
@@ -88,17 +89,18 @@ const UnderRightActivityLogMemo: FC = () => {
     offset: number = 0
   ): Promise<{ rows: TableDataType[]; nextOffset: number }> => {
     // useInfiniteQueryのクエリ関数で渡すlimitの個数分でIndex番号を付けたRowの配列を生成
-    const rows = new Array(limit).fill(0).map((e, index) => {
-      const newData: TableDataType = {
-        activityType: `TEL発信`,
-        summary: "50ミクロンで測定したい",
-        date: "2021/06/01",
-        sales: "伊藤謙太",
-        department: "メトロロジ",
-        office: "東京営業所",
-      };
-      return newData;
-    });
+    // const rows = new Array(limit).fill(0).map((e, index) => {
+    //   const newData: TableDataType = {
+    //     activityType: `TEL発信`,
+    //     summary: "50ミクロンで測定したい",
+    //     date: "2021/06/01",
+    //     sales: "伊藤謙太",
+    //     department: "メトロロジ",
+    //     office: "東京営業所",
+    //   };
+    //   return newData;
+    // });
+    const rows = rightRowData;
 
     // 0.5秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
     await new Promise((resolve) => setTimeout(resolve, 1000));

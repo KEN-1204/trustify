@@ -17,7 +17,6 @@ const CompanyDetailMemo: FC = () => {
   // ハーフとオールの時には全体を表示するためにoverflow: hiddenを削除
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
   const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
-  // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
   return (
     // <div
     //   className={`${styles.detail_container} bg-red relative w-full  ${
@@ -37,6 +36,10 @@ const CompanyDetailMemo: FC = () => {
       <CompanyFunctionHeader />
       {/* メインコンテナ 左と右 */}
       <CompanyMainContainer />
+
+      {/* ファンクションヘッダー */}
+
+      {/* メインコンテナ 左と右 */}
     </div>
   );
 };

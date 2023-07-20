@@ -1,4 +1,4 @@
-import React, { FC, Suspense, memo } from "react";
+import React, { FC, FormEvent, Suspense, memo, useState } from "react";
 import styles from "../CompanyDetail/CompanyDetail.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import useStore from "@/store";
@@ -12,6 +12,7 @@ import { Fallback } from "@/components/Fallback/Fallback";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import dynamic from "next/dynamic";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -33,9 +34,12 @@ const UnderRightActivityLog = dynamic(
 
 const CompanyMainContainerMemo: FC = () => {
   const searchMode = useDashboardStore((state) => state.searchMode);
+  const setSearchMode = useDashboardStore((state) => state.setSearchMode);
   console.log("🔥 CompanyMainContainerレンダリング searchMode", searchMode);
   const setHoveredItemPosWrap = useStore((state) => state.setHoveredItemPosWrap);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
+  // 上画面の洗濯中の列データ会社
+  const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
 
   const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string = "center") => {
     // ホバーしたアイテムにツールチップを表示
@@ -85,9 +89,122 @@ const CompanyMainContainerMemo: FC = () => {
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
   const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
 
+  // 🌟サブミット
+  const [inputName, setInputName] = useState("");
+  const [inputDepartment, setInputDepartment] = useState("");
+  const [inputTel, setInputTel] = useState("");
+  const [inputFax, setInputFax] = useState("");
+  const [inputZipcode, setInputZipcode] = useState("");
+  const [inputAddress, setInputAddress] = useState("");
+  const [inputEmployeesClass, setInputEmployeesClass] = useState("");
+  const [inputCapital, setInputCapital] = useState("");
+  const [inputFound, setInputFound] = useState("");
+  const [inputContent, setInputContent] = useState("");
+  const [inputIndustryType, setInputIndustryType] = useState("");
+  const [inputProductL, setInputProductL] = useState("");
+  const [inputProductM, setInputProductM] = useState("");
+  const [inputProductS, setInputProductS] = useState("");
+  const [inputFiscal, setInputFiscal] = useState("");
+  const [inputClient, setInputClient] = useState("");
+  const [inputSupplier, setInputSupplier] = useState("");
+  const [inputFacility, setInputFacility] = useState("");
+  const [inputBusinessSite, setInputBusinessSite] = useState("");
+  const [inputOverseas, setInputOverseas] = useState("");
+  const [inputGroup, setInputGroup] = useState("");
+  const [inputCorporateNum, setInputCorporateNum] = useState("");
+
+  const supabase = useSupabaseClient();
+  const setNewSearchCompanyParams = useDashboardStore((state) => state.setNewSearchCompanyParams);
+  const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
+
+  const handleSearchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    // // Asterisks to percent signs for PostgreSQL's LIKE operator
+    function adjustFieldValue(value: string) {
+      if (value === "") return null; // 全てのデータ
+      if (value === null) return null; // 全てのデータ
+      if (value.includes("*")) value = value.replace(/\*/g, "%");
+      if (value.includes("＊")) value = value.replace(/\＊/g, "%");
+      if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信
+      // if (value === "is not null") return "%%";
+      if (value === "is not null") return "ISNOTNULL"; // ISNOTNULLパラメータを送信
+      return value;
+    }
+    setLoadingGlobalState(true);
+
+    let _name = adjustFieldValue(inputName);
+    let _department_name = adjustFieldValue(inputDepartment);
+    let _main_phone_number = adjustFieldValue(inputTel);
+    let _main_fax = adjustFieldValue(inputFax);
+    let _zipcode = adjustFieldValue(inputZipcode);
+    let _number_of_employees_class = adjustFieldValue(inputEmployeesClass);
+    let _address = adjustFieldValue(inputAddress);
+    let _capital = adjustFieldValue(inputCapital);
+    let _established_in = adjustFieldValue(inputFound);
+    let _business_content = adjustFieldValue(inputContent);
+    let _industry_type = adjustFieldValue(inputIndustryType);
+    let _product_category_large = adjustFieldValue(inputProductL);
+    let _product_category_medium = adjustFieldValue(inputProductM);
+    let _product_category_small = adjustFieldValue(inputProductS);
+    let _fiscal_end_month = adjustFieldValue(inputFiscal);
+    let _clients = adjustFieldValue(inputClient);
+    let _supplier = adjustFieldValue(inputSupplier);
+    let _facility = adjustFieldValue(inputFacility);
+    let _business_sites = adjustFieldValue(inputBusinessSite);
+    let _overseas_bases = adjustFieldValue(inputOverseas);
+    let _group_company = adjustFieldValue(inputGroup);
+    let _corporate_number = adjustFieldValue(inputCorporateNum);
+
+    // // Asterisks to percent signs for PostgreSQL's LIKE operator
+    // if (_field1.includes("*")) _field1 = _field1.replace(/\*/g, "%");
+    // if (_field1 === "is null") _field1 = null;
+    // if (_field1 === "is not null") _field1 = "%%";
+
+    const params = {
+      name: _name,
+      department_name: _department_name,
+      main_phone_number: _main_phone_number,
+      main_fax: _main_fax,
+      zipcode: _zipcode,
+      number_of_employees_class: _number_of_employees_class,
+      address: _address,
+      capital: _capital,
+      established_in: _established_in,
+      business_content: _business_content,
+      industry_type: _industry_type,
+      product_category_large: _product_category_large,
+      product_category_medium: _product_category_medium,
+      product_category_small: _product_category_small,
+      fiscal_end_month: _fiscal_end_month,
+      clients: _clients,
+      supplier: _supplier,
+      facility: _facility,
+      business_sites: _business_sites,
+      overseas_bases: _overseas_bases,
+      group_company: _group_company,
+      corporate_number: _corporate_number,
+    };
+
+    console.log("✅ 条件 params", params);
+
+    setSearchMode(false);
+
+    setNewSearchCompanyParams(params);
+
+    // const { data, error } = await supabase.rpc("search_companies", { params });
+    // const { data, error } = await supabase
+    //   .rpc("search_companies", { params })
+    //   .is("created_by_company_id", null)
+    //   .range(0, 20);
+
+    // if (error) return alert(error.message);
+    // console.log("✅ 検索結果データ取得 data", data);
+  };
+
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
   return (
-    <div className={`${styles.main_container} w-full `}>
+    <form className={`${styles.main_container} w-full `} onSubmit={handleSearchSubmit}>
       {/* ------------------------- スクロールコンテナ ------------------------- */}
       {/* <div className={`${styles.scroll_container} relative flex w-full overflow-y-auto pl-[10px] `}> */}
       <div
@@ -100,37 +217,26 @@ const CompanyMainContainerMemo: FC = () => {
           className={`${styles.left_container} h-full min-w-[calc(50vw-var(--sidebar-mini-width))] pb-[35px] pt-[10px]`}
         >
           {/* --------- ラッパー --------- */}
-          <form className={`${styles.left_contents_wrapper} flex h-full w-full flex-col`}>
-            {/* 法人番号・ID */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>○法人番号</span>
-                  {!searchMode && <span className={`${styles.value}`}>01234567890</span>}
-                  {searchMode && <input type="text" className={`${styles.input_box}`} />}
-                </div>
-                <div className={`${styles.underline}`}></div>
-              </div>
-              <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center`}>
-                  <span className={`${styles.title_min}`}>ID</span>
-                  {!searchMode && <span className={`${styles.value} truncate`}>01234567890</span>}
-                  {searchMode && <input type="text" className={`${styles.input_box}`} />}
-                </div>
-                <div className={`${styles.underline}`}></div>
-              </div>
-            </div>
-
+          <div className={`${styles.left_contents_wrapper} flex h-full w-full flex-col`}>
             {/* 会社名 */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>●会社名</span>
                   {!searchMode && (
-                    <span className={`${styles.value} ${styles.value_highlight}`}>株式会社キーエンス</span>
+                    <span className={`${styles.value} ${styles.value_highlight}`}>
+                      {selectedRowDataCompany?.name ? selectedRowDataCompany?.name : ""}
+                    </span>
                   )}
                   {searchMode && (
-                    <input type="text" placeholder="株式会社○○" required autoFocus className={`${styles.input_box}`} />
+                    <input
+                      type="text"
+                      placeholder="株式会社○○"
+                      autoFocus
+                      className={`${styles.input_box}`}
+                      value={inputName}
+                      onChange={(e) => setInputName(e.target.value)}
+                    />
                   )}
                 </div>
                 <div className={`${styles.underline}`}></div>
@@ -142,13 +248,18 @@ const CompanyMainContainerMemo: FC = () => {
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>●部署名</span>
-                  {!searchMode && <span className={`${styles.value}`}>代表取締役社長</span>}
+                  {!searchMode && (
+                    <span className={`${styles.value}`}>
+                      {selectedRowDataCompany?.department_name ? selectedRowDataCompany?.department_name : ""}
+                    </span>
+                  )}
                   {searchMode && (
                     <input
                       type="text"
-                      placeholder="代表取締役 or ○○事業部など 不明の場合は.(ピリオド)を入力"
-                      required
+                      placeholder="代表取締役 or ○○事業部など"
                       className={`${styles.input_box}`}
+                      value={inputDepartment}
+                      onChange={(e) => setInputDepartment(e.target.value)}
                     />
                   )}
                 </div>
@@ -161,9 +272,19 @@ const CompanyMainContainerMemo: FC = () => {
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>●代表TEL</span>
-                  {!searchMode && <span className={`${styles.value}`}>0312345678</span>}
+                  {!searchMode && (
+                    <span className={`${styles.value}`}>
+                      {selectedRowDataCompany?.main_phone_number ? selectedRowDataCompany?.main_phone_number : ""}
+                    </span>
+                  )}
                   {searchMode && (
-                    <input type="tel" placeholder="0312341234" required className={`${styles.input_box}`} />
+                    <input
+                      type="tel"
+                      placeholder="0312341234"
+                      className={`${styles.input_box}`}
+                      value={inputTel}
+                      onChange={(e) => setInputTel(e.target.value)}
+                    />
                   )}
                 </div>
                 <div className={`${styles.underline}`}></div>
@@ -171,8 +292,19 @@ const CompanyMainContainerMemo: FC = () => {
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
                   <span className={`${styles.title}`}>代表Fax</span>
-                  {!searchMode && <span className={`${styles.value}`}>098765432</span>}
-                  {searchMode && <input type="tel" className={`${styles.input_box}`} />}
+                  {!searchMode && (
+                    <span className={`${styles.value}`}>
+                      {selectedRowDataCompany?.main_fax ? selectedRowDataCompany?.main_fax : ""}
+                    </span>
+                  )}
+                  {searchMode && (
+                    <input
+                      type="tel"
+                      className={`${styles.input_box}`}
+                      value={inputFax}
+                      onChange={(e) => setInputFax(e.target.value)}
+                    />
+                  )}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -183,18 +315,33 @@ const CompanyMainContainerMemo: FC = () => {
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>郵便番号</span>
-                  {!searchMode && <span className={`${styles.value}`}>3070012</span>}
-                  {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                  {!searchMode && (
+                    <span className={`${styles.value}`}>
+                      {selectedRowDataCompany?.zipcode ? selectedRowDataCompany?.zipcode : ""}
+                    </span>
+                  )}
+                  {searchMode && (
+                    <input
+                      type="text"
+                      className={`${styles.input_box}`}
+                      value={inputZipcode}
+                      onChange={(e) => setInputZipcode(e.target.value)}
+                    />
+                  )}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
               <div className={`flex h-full w-1/2 flex-col pr-[20px]`}>
                 <div className={`${styles.title_box} flex h-full items-center`}>
-                  <span className={`${styles.title}`}>競合</span>
+                  <span className={`${styles.title}`}>従業員数</span>
                   {/* <span className={`${styles.title}`}>会員専用</span> */}
-                  {!searchMode && <span className={`${styles.value}`}>無し</span>}
+                  {!searchMode && (
+                    <span className={`${styles.value}`}>
+                      {selectedRowDataCompany?.number_of_employees ? selectedRowDataCompany?.number_of_employees : ""}
+                    </span>
+                  )}
                   {/* {!searchMode && <span className={`${styles.value}`}>有料会員様専用のフィールドです</span>} */}
-                  {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                  {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
                   {/* サブスク未加入者にはブラーを表示 */}
                   {/* <div className={`${styles.limited_lock_cover_half} flex-center`}>
                     <FaLock />
@@ -211,7 +358,7 @@ const CompanyMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>○住所</span>
                   {!searchMode && (
                     <span className={`${styles.textarea_value} h-[45px]`}>
-                      東京都港区芝浦4-20-2 芝浦アイランドブルームタワー
+                      {selectedRowDataCompany?.address ? selectedRowDataCompany?.address : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -221,6 +368,8 @@ const CompanyMainContainerMemo: FC = () => {
                       cols={30}
                       rows={10}
                       className={`${styles.textarea_box} `}
+                      value={inputAddress}
+                      onChange={(e) => setInputAddress(e.target.value)}
                     ></textarea>
                   )}
                 </div>
@@ -228,164 +377,114 @@ const CompanyMainContainerMemo: FC = () => {
               </div>
             </div>
 
-            {/* 代表者・会長 */}
+            {/* 資本金・設立 */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>代表者</span>
-                  {!searchMode && <span className={`${styles.value}`}>代表太郎</span>}
-                  {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                  <span className={`${styles.title}`}>資本金</span>
+                  {!searchMode && (
+                    <span className={`${styles.value}`}>
+                      {selectedRowDataCompany?.capital ? selectedRowDataCompany?.capital : ""}
+                    </span>
+                  )}
+                  {searchMode && (
+                    <input
+                      type="text"
+                      className={`${styles.input_box}`}
+                      value={inputCapital}
+                      onChange={(e) => setInputCapital(e.target.value)}
+                    />
+                  )}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
-                  <span className={`${styles.title}`}>会長</span>
-                  {!searchMode && <span className={`${styles.value}`}>会長太郎</span>}
-                  {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                  <span className={`${styles.title}`}>設立</span>
+                  {!searchMode && (
+                    <span className={`${styles.value}`}>
+                      {selectedRowDataCompany?.established_in ? selectedRowDataCompany?.established_in : ""}
+                    </span>
+                  )}
+                  {searchMode && (
+                    <input
+                      type="text"
+                      className={`${styles.input_box}`}
+                      value={inputFound}
+                      onChange={(e) => setInputFound(e.target.value)}
+                    />
+                  )}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
             </div>
 
-            {/* 副社長・専務取締役 */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>副社長</span>
-                  {!searchMode && <span className={`${styles.value}`}>副社長太郎</span>}
-                  {searchMode && <input type="text" className={`${styles.input_box}`} />}
-                </div>
-                <div className={`${styles.underline}`}></div>
-              </div>
-              <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center`}>
-                  <span className={`${styles.title}`}>専務取締役</span>
+            {/* 事業内容 */}
+            <div className={`${styles.row_area} flex h-[50px] w-full items-center`}>
+              <div className="flex h-full w-full flex-col pr-[20px] ">
+                <div className={`${styles.title_box}  flex h-full`}>
+                  <span className={`${styles.title}`}>事業概要</span>
                   {!searchMode && (
-                    <span
-                      data-text="専務太郎"
-                      className={`${styles.value}`}
-                      onMouseEnter={(e) => handleOpenTooltip(e)}
-                      onMouseLeave={handleCloseTooltip}
-                    >
-                      専務太郎
-                    </span>
+                    <>
+                      {/* <span className={`${styles.textarea_value} h-[45px]`}>
+                        東京都港区芝浦4-20-2
+                        芝浦アイランドブルームタワー602号室あああああああああああああああああああああああああああああ芝浦アイランドブルームタワー602号室222あああああああああああああああああああああああああああああ
+                      </span> */}
+                      <span
+                        data-text={`${
+                          selectedRowDataCompany?.business_content ? selectedRowDataCompany?.business_content : ""
+                        }`}
+                        className={`${styles.textarea_value} h-[45px]`}
+                        onMouseEnter={(e) => handleOpenTooltip(e)}
+                        onMouseLeave={handleCloseTooltip}
+                      >
+                        {selectedRowDataCompany?.business_content ? selectedRowDataCompany?.business_content : ""}
+                      </span>
+                    </>
                   )}
-                  {searchMode && <input type="text" className={`${styles.input_box}`} />}
-                </div>
-                <div className={`${styles.underline}`}></div>
-              </div>
-            </div>
-
-            {/* 常務取締役・取締役 */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>常務取締役</span>
-                  {!searchMode && (
-                    <span
-                      data-text="常務太郎,常務太郎,常務太郎"
-                      className={`${styles.value}`}
-                      onMouseEnter={(e) => handleOpenTooltip(e)}
-                      onMouseLeave={handleCloseTooltip}
-                    >
-                      常務太郎,常務太郎,常務太郎
-                    </span>
+                  {searchMode && (
+                    <textarea
+                      name="address"
+                      id="address"
+                      cols={30}
+                      rows={10}
+                      className={`${styles.textarea_box} `}
+                      value={inputContent}
+                      onChange={(e) => setInputContent(e.target.value)}
+                    ></textarea>
                   )}
-                  {searchMode && <input type="text" className={`${styles.input_box}`} />}
-                </div>
-                <div className={`${styles.underline}`}></div>
-              </div>
-              <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center`}>
-                  <span className={`${styles.title}`}>取締役</span>
-                  {!searchMode && (
-                    <span
-                      data-text="取締太郎、取締太郎、取締太郎、取締太郎、取締太郎"
-                      className={`${styles.value} truncate`}
-                      onMouseEnter={(e) => handleOpenTooltip(e)}
-                      onMouseLeave={handleCloseTooltip}
-                    >
-                      取締太郎、取締太郎、取締太郎、取締太郎、取締太郎、
-                    </span>
-                  )}
-                  {searchMode && <input type="text" className={`${styles.input_box}`} />}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
             </div>
 
-            {/* 役員・監査役 */}
+            {/* HP */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-1/2 flex-col pr-[20px]">
+              <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>役員</span>
+                  <span className={`${styles.title}`}>HP</span>
                   {!searchMode && (
-                    <span
-                      data-text="役員太郎・役員太郎・役員太郎・役員太郎・役員太郎・役員太郎・役員太郎・役員太郎・役員太郎・役員太郎"
-                      className={`${styles.value}`}
-                      onMouseEnter={(e) => handleOpenTooltip(e)}
-                      onMouseLeave={handleCloseTooltip}
-                    >
-                      役員太郎・役員太郎・役員太郎・役員太郎・役員太郎・役員太郎・役員太郎・役員太郎・役員太郎・役員太郎・役員太郎・役員太郎
+                    <span className={`${styles.value}`}>
+                      {selectedRowDataCompany?.website_url ? selectedRowDataCompany?.website_url : ""}
                     </span>
                   )}
-                  {searchMode && <input type="text" className={`${styles.input_box}`} />}
-                </div>
-                <div className={`${styles.underline}`}></div>
-              </div>
-              <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center`}>
-                  <span className={`${styles.title}`}>監査役</span>
-                  {!searchMode && (
-                    <span
-                      data-text="監査太郎"
-                      className={`${styles.value}`}
-                      onMouseEnter={(e) => handleOpenTooltip(e)}
-                      onMouseLeave={handleCloseTooltip}
-                    >
-                      監査太郎
-                    </span>
-                  )}
-                  {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                  {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
             </div>
 
-            {/* 部長・担当者 */}
+            {/* Email */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-1/2 flex-col pr-[20px]">
+              <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>部長</span>
+                  <span className={`${styles.title}`}>Email</span>
                   {!searchMode && (
-                    <span
-                      data-text="部長"
-                      className={`${styles.value}`}
-                      onMouseEnter={(e) => handleOpenTooltip(e)}
-                      onMouseLeave={handleCloseTooltip}
-                    >
-                      部長太郎
+                    <span className={`${styles.value}`}>
+                      {selectedRowDataCompany?.email ? selectedRowDataCompany?.email : ""}
                     </span>
                   )}
-                  {searchMode && <input type="text" className={`${styles.input_box}`} />}
-                </div>
-                <div className={`${styles.underline}`}></div>
-              </div>
-              <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center`}>
-                  <span className={`${styles.title}`}>担当者</span>
-                  {!searchMode && (
-                    <span
-                      data-text="担当太郎"
-                      className={`${styles.value}`}
-                      onMouseEnter={(e) => handleOpenTooltip(e)}
-                      onMouseLeave={handleCloseTooltip}
-                    >
-                      担当太郎
-                    </span>
-                  )}
-                  {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                  {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -396,20 +495,92 @@ const CompanyMainContainerMemo: FC = () => {
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>○業種</span>
-                  {!searchMode && <span className={`${styles.value}`}></span>}
-                  {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                  {!searchMode && (
+                    <span className={`${styles.value}`}>
+                      {selectedRowDataCompany?.industry_type ? selectedRowDataCompany?.industry_type : ""}
+                    </span>
+                  )}
+                  {searchMode && (
+                    <input
+                      type="text"
+                      className={`${styles.input_box}`}
+                      value={inputIndustryType}
+                      onChange={(e) => setInputIndustryType(e.target.value)}
+                    />
+                  )}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
             </div>
 
-            {/* 製品 */}
+            {/* 製品分類(大分類) */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>○製品</span>
-                  {!searchMode && <span className={`${styles.value}`}></span>}
-                  {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                  <span className={`${styles.title}`}>○製品分類(大分類)</span>
+                  {!searchMode && (
+                    <span className={`${styles.value}`}>
+                      {selectedRowDataCompany?.product_category_large
+                        ? selectedRowDataCompany?.product_category_large
+                        : ""}
+                    </span>
+                  )}
+                  {searchMode && (
+                    <input
+                      type="text"
+                      className={`${styles.input_box}`}
+                      value={inputProductL}
+                      onChange={(e) => setInputProductL(e.target.value)}
+                    />
+                  )}
+                </div>
+                <div className={`${styles.underline}`}></div>
+              </div>
+            </div>
+            {/* 製品分類(中分類) */}
+            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className="flex h-full w-full flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full items-center `}>
+                  <span className={`${styles.title}`}>○製品分類(中分類)</span>
+                  {!searchMode && (
+                    <span className={`${styles.value}`}>
+                      {selectedRowDataCompany?.product_category_medium
+                        ? selectedRowDataCompany?.product_category_medium
+                        : ""}
+                    </span>
+                  )}
+                  {searchMode && (
+                    <input
+                      type="text"
+                      className={`${styles.input_box}`}
+                      value={inputProductM}
+                      onChange={(e) => setInputProductM(e.target.value)}
+                    />
+                  )}
+                </div>
+                <div className={`${styles.underline}`}></div>
+              </div>
+            </div>
+            {/* 製品分類(小分類) */}
+            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className="flex h-full w-full flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full items-center `}>
+                  <span className={`${styles.title}`}>○製品分類(小分類)</span>
+                  {!searchMode && (
+                    <span className={`${styles.value}`}>
+                      {selectedRowDataCompany?.product_category_small
+                        ? selectedRowDataCompany?.product_category_small
+                        : ""}
+                    </span>
+                  )}
+                  {searchMode && (
+                    <input
+                      type="text"
+                      className={`${styles.input_box}`}
+                      value={inputProductS}
+                      onChange={(e) => setInputProductS(e.target.value)}
+                    />
+                  )}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -420,47 +591,57 @@ const CompanyMainContainerMemo: FC = () => {
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>規模(ﾗﾝｸ)</span>
-                  {!searchMode && <span className={`${styles.value}`}>F100人以下</span>}
-                  {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                  {!searchMode && (
+                    <span className={`${styles.value}`}>
+                      {selectedRowDataCompany?.number_of_employees_class
+                        ? selectedRowDataCompany?.number_of_employees_class
+                        : ""}
+                    </span>
+                  )}
+                  {searchMode && (
+                    <input
+                      type="text"
+                      className={`${styles.input_box}`}
+                      value={inputEmployeesClass}
+                      onChange={(e) => setInputEmployeesClass(e.target.value)}
+                    />
+                  )}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
                   <span className={`${styles.title}`}>決算月</span>
-                  {!searchMode && <span className={`${styles.value}`}>6月</span>}
-                  {searchMode && <input type="text" className={`${styles.input_box}`} />}
-                </div>
-                <div className={`${styles.underline}`}></div>
-              </div>
-            </div>
-
-            {/* 資本金・設立 */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>資本金</span>
-                  {!searchMode && <span className={`${styles.value}`}>1000万円</span>}
-                  {searchMode && <input type="text" className={`${styles.input_box}`} />}
-                </div>
-                <div className={`${styles.underline}`}></div>
-              </div>
-              <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center`}>
-                  <span className={`${styles.title}`}>設立</span>
-                  {!searchMode && <span className={`${styles.value}`}>2000年12月</span>}
-                  {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                  {!searchMode && (
+                    <span className={`${styles.value}`}>
+                      {selectedRowDataCompany?.fiscal_end_month ? selectedRowDataCompany?.fiscal_end_month : ""}
+                    </span>
+                  )}
+                  {searchMode && (
+                    <input
+                      type="text"
+                      className={`${styles.input_box}`}
+                      value={inputFiscal}
+                      onChange={(e) => setInputFiscal(e.target.value)}
+                    />
+                  )}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
             </div>
 
             {/* 予算申請月1・予算申請月2 */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+            {/* <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>予算申請月1</span>
-                  {!searchMode && <span className={`${styles.value}`}>11月</span>}
+                  {!searchMode && (
+                    <span className={`${styles.value}`}>
+                      {selectedRowDataCompany?.budget_request_month1
+                        ? selectedRowDataCompany?.budget_request_month1
+                        : ""}
+                    </span>
+                  )}
                   {searchMode && <input type="text" className={`${styles.input_box}`} />}
                 </div>
                 <div className={`${styles.underline}`}></div>
@@ -468,12 +649,18 @@ const CompanyMainContainerMemo: FC = () => {
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
                   <span className={`${styles.title}`}>予算申請月2</span>
-                  {!searchMode && <span className={`${styles.value}`}>5月</span>}
+                  {!searchMode && (
+                    <span className={`${styles.value}`}>
+                      {selectedRowDataCompany?.budget_request_month2
+                        ? selectedRowDataCompany?.budget_request_month2
+                        : ""}
+                    </span>
+                  )}
                   {searchMode && <input type="text" className={`${styles.input_box}`} />}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
-            </div>
+            </div> */}
 
             {/* 主要取引先 */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
@@ -482,15 +669,22 @@ const CompanyMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>主要取引先</span>
                   {!searchMode && (
                     <span
-                      data-text="株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス"
+                      data-text={`${selectedRowDataCompany?.clients ? selectedRowDataCompany?.clients : ""}`}
                       className={`${styles.value}`}
                       onMouseEnter={(e) => handleOpenTooltip(e)}
                       onMouseLeave={handleCloseTooltip}
                     >
-                      株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス、株式会社キーエンス
+                      {selectedRowDataCompany?.clients ? selectedRowDataCompany?.clients : ""}
                     </span>
                   )}
-                  {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                  {searchMode && (
+                    <input
+                      type="text"
+                      className={`${styles.input_box}`}
+                      value={inputClient}
+                      onChange={(e) => setInputClient(e.target.value)}
+                    />
+                  )}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -503,73 +697,21 @@ const CompanyMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>主要仕入先</span>
                   {!searchMode && (
                     <span
-                      data-text="株式会社Keyence"
+                      data-text={`${selectedRowDataCompany?.supplier ? selectedRowDataCompany?.supplier : ""}`}
                       className={`${styles.value}`}
                       onMouseEnter={(e) => handleOpenTooltip(e)}
                       onMouseLeave={handleCloseTooltip}
                     >
-                      株式会社Keyence
+                      {selectedRowDataCompany?.supplier ? selectedRowDataCompany?.supplier : ""}
                     </span>
                   )}
-                  {searchMode && <input type="text" className={`${styles.input_box}`} />}
-                </div>
-                <div className={`${styles.underline}`}></div>
-              </div>
-            </div>
-
-            {/* HP */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-full flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>HP</span>
-                  {!searchMode && <span className={`${styles.value}`}>http://localhost:3000/company</span>}
-                  {searchMode && <input type="text" className={`${styles.input_box}`} />}
-                </div>
-                <div className={`${styles.underline}`}></div>
-              </div>
-            </div>
-
-            {/* Email */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-full flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>Email</span>
-                  {!searchMode && <span className={`${styles.value}`}>cieletoile.0000@gmail.com</span>}
-                  {searchMode && <input type="text" className={`${styles.input_box}`} />}
-                </div>
-                <div className={`${styles.underline}`}></div>
-              </div>
-            </div>
-
-            {/* 事業内容 */}
-            <div className={`${styles.row_area} flex h-[50px] w-full items-center`}>
-              <div className="flex h-full w-full flex-col pr-[20px] ">
-                <div className={`${styles.title_box}  flex h-full`}>
-                  <span className={`${styles.title}`}>事業内容</span>
-                  {!searchMode && (
-                    <>
-                      {/* <span className={`${styles.textarea_value} h-[45px]`}>
-                        東京都港区芝浦4-20-2
-                        芝浦アイランドブルームタワー602号室あああああああああああああああああああああああああああああ芝浦アイランドブルームタワー602号室222あああああああああああああああああああああああああああああ
-                      </span> */}
-                      <span
-                        data-text="・放電加工機の電極・フィルター・周辺機器、機械・装置、電気接点の製造　１．放電加工周辺機器・工作機械販売事業　２．機械装置の設計製作事業　３．電気接点の製造事業　４．プレス金型の設計製作事業　５．合金開発製造事業（放電加工用電極、電気接点材料）　６．工作機械用フィルタの開発製造事業　７．樹脂加工事業"
-                        className={`${styles.textarea_value} h-[45px]`}
-                        onMouseEnter={(e) => handleOpenTooltip(e)}
-                        onMouseLeave={handleCloseTooltip}
-                      >
-                        ・放電加工機の電極・フィルター・周辺機器、機械・装置、電気接点の製造　１．放電加工周辺機器・工作機械販売事業　２．機械装置の設計製作事業　３．電気接点の製造事業　４．プレス金型の設計製作事業　５．合金開発製造事業（放電加工用電極、電気接点材料）　６．工作機械用フィルタの開発製造事業　７．樹脂加工事業
-                      </span>
-                    </>
-                  )}
                   {searchMode && (
-                    <textarea
-                      name="address"
-                      id="address"
-                      cols={30}
-                      rows={10}
-                      className={`${styles.textarea_box} `}
-                    ></textarea>
+                    <input
+                      type="text"
+                      className={`${styles.input_box}`}
+                      value={inputSupplier}
+                      onChange={(e) => setInputSupplier(e.target.value)}
+                    />
                   )}
                 </div>
                 <div className={`${styles.underline}`}></div>
@@ -588,12 +730,12 @@ const CompanyMainContainerMemo: FC = () => {
                         芝浦アイランドブルームタワー602号室あああああああああああああああああああああああああああああ芝浦アイランドブルームタワー602号室222あああああああああああああああああああああああああああああ
                       </span> */}
                       <span
-                        data-text="・成形平面研削盤、平面研削盤、CNC成形平面研削盤、CNC治具研削盤、工具研削盤、高速加工マシニングセンター、マシニングセンター、NCフライス盤、フライス盤、NC電極加工機（銅、グラファイト）、NC放電加工機、WC放電加工機、NC細穴加工機、メッキ装置、ピーニング装置（クリーニング、ピーニング）、旋盤、ボール盤、直立ボール盤、鋸盤、レーザー彫刻機、汎用彫刻機、ブラスト機（プラ、ガラスビーズ）、トランスファー成形機、2D-CAM、3D-CAM、3D-CAD、2D-CAD、樹脂流動解析ソフト、構造解析ソフト"
+                        data-text={`${selectedRowDataCompany?.facility ? selectedRowDataCompany?.facility : ""}`}
                         className={`${styles.textarea_value} h-[45px]`}
                         onMouseEnter={(e) => handleOpenTooltip(e)}
                         onMouseLeave={handleCloseTooltip}
                       >
-                        ・成形平面研削盤、平面研削盤、CNC成形平面研削盤、CNC治具研削盤、工具研削盤、高速加工マシニングセンター、マシニングセンター、NCフライス盤、フライス盤、NC電極加工機（銅、グラファイト）、NC放電加工機、WC放電加工機、NC細穴加工機、メッキ装置、ピーニング装置（クリーニング、ピーニング）、旋盤、ボール盤、直立ボール盤、鋸盤、レーザー彫刻機、汎用彫刻機、ブラスト機（プラ、ガラスビーズ）、トランスファー成形機、2D-CAM、3D-CAM、3D-CAD、2D-CAD、樹脂流動解析ソフト、構造解析ソフト
+                        {selectedRowDataCompany?.facility ? selectedRowDataCompany?.facility : ""}
                       </span>
                     </>
                   )}
@@ -604,6 +746,8 @@ const CompanyMainContainerMemo: FC = () => {
                       cols={30}
                       rows={10}
                       className={`${styles.textarea_box} `}
+                      value={inputFacility}
+                      onChange={(e) => setInputFacility(e.target.value)}
                     ></textarea>
                   )}
                 </div>
@@ -618,15 +762,24 @@ const CompanyMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>事業拠点</span>
                   {!searchMode && (
                     <span
-                      data-text="東京営業所、浦和営業所、厚木工場、群馬工場"
+                      data-text={`${
+                        selectedRowDataCompany?.business_sites ? selectedRowDataCompany?.business_sites : ""
+                      }`}
                       className={`${styles.value}`}
                       onMouseEnter={(e) => handleOpenTooltip(e)}
                       onMouseLeave={handleCloseTooltip}
                     >
-                      東京営業所、浦和営業所、厚木工場、群馬工場
+                      {selectedRowDataCompany?.business_sites ? selectedRowDataCompany?.business_sites : ""}
                     </span>
                   )}
-                  {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                  {searchMode && (
+                    <input
+                      type="text"
+                      className={`${styles.input_box}`}
+                      value={inputBusinessSite}
+                      onChange={(e) => setInputBusinessSite(e.target.value)}
+                    />
+                  )}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -635,15 +788,24 @@ const CompanyMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>海外拠点</span>
                   {!searchMode && (
                     <span
-                      data-text="中国、アメリカ"
+                      data-text={`${
+                        selectedRowDataCompany?.overseas_bases ? selectedRowDataCompany?.overseas_bases : ""
+                      }`}
                       className={`${styles.value}`}
                       onMouseEnter={(e) => handleOpenTooltip(e)}
                       onMouseLeave={handleCloseTooltip}
                     >
-                      中国、アメリカ
+                      {selectedRowDataCompany?.overseas_bases ? selectedRowDataCompany?.overseas_bases : ""}
                     </span>
                   )}
-                  {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                  {searchMode && (
+                    <input
+                      type="text"
+                      className={`${styles.input_box}`}
+                      value={inputOverseas}
+                      onChange={(e) => setInputOverseas(e.target.value)}
+                    />
+                  )}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -657,21 +819,65 @@ const CompanyMainContainerMemo: FC = () => {
                   {!searchMode && (
                     <span
                       className={`${styles.value}`}
-                      data-text="株式会社キーエンスエンジニアリング"
+                      data-text={`${
+                        selectedRowDataCompany?.group_company ? selectedRowDataCompany?.group_company : ""
+                      }`}
                       onMouseEnter={(e) => handleOpenTooltip(e)}
                       onMouseLeave={handleCloseTooltip}
                     >
-                      株式会社キーエンスエンジニアリング
+                      {selectedRowDataCompany?.group_company ? selectedRowDataCompany?.group_company : ""}
                     </span>
                   )}
-                  {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                  {searchMode && (
+                    <input
+                      type="text"
+                      className={`${styles.input_box}`}
+                      value={inputGroup}
+                      onChange={(e) => setInputGroup(e.target.value)}
+                    />
+                  )}
+                </div>
+                <div className={`${styles.underline}`}></div>
+              </div>
+            </div>
+
+            {/* 法人番号・ID */}
+            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full items-center `}>
+                  <span className={`${styles.title}`}>○法人番号</span>
+                  {!searchMode && (
+                    <span className={`${styles.value}`}>
+                      {selectedRowDataCompany?.corporate_number ? selectedRowDataCompany?.corporate_number : ""}
+                    </span>
+                  )}
+                  {searchMode && (
+                    <input
+                      type="text"
+                      className={`${styles.input_box}`}
+                      value={inputCorporateNum}
+                      onChange={(e) => setInputCorporateNum(e.target.value)}
+                    />
+                  )}
+                </div>
+                <div className={`${styles.underline}`}></div>
+              </div>
+              <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full items-center`}>
+                  <span className={`${styles.title_min}`}>ID</span>
+                  {!searchMode && (
+                    <span className={`${styles.value} truncate`}>
+                      {selectedRowDataCompany?.id ? selectedRowDataCompany?.id : ""}
+                    </span>
+                  )}
+                  {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
             </div>
 
             {/* --------- ラッパーここまで --------- */}
-          </form>
+          </div>
         </div>
         {/* ---------------- 右コンテナ サーチモードではない通常モード 活動テーブル ---------------- */}
         {!searchMode && (
@@ -691,8 +897,196 @@ const CompanyMainContainerMemo: FC = () => {
                   isOpenSidebar ? `transition-base02` : `transition-base01`
                 }`}
               >
+                {/* 代表者・会長 */}
+                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title}`}>代表者</span>
+                      {!searchMode && (
+                        <span className={`${styles.value}`}>
+                          {selectedRowDataCompany?.representative_name
+                            ? selectedRowDataCompany?.representative_name
+                            : ""}
+                        </span>
+                      )}
+                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}>
+                      <span className={`${styles.title}`}>会長</span>
+                      {!searchMode && (
+                        <span className={`${styles.value}`}>
+                          {selectedRowDataCompany?.chairperson ? selectedRowDataCompany?.chairperson : ""}
+                        </span>
+                      )}
+                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
+
+                {/* 副社長・専務取締役 */}
+                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title}`}>副社長</span>
+                      {!searchMode && (
+                        <span className={`${styles.value}`}>
+                          {selectedRowDataCompany?.senior_vice_president
+                            ? selectedRowDataCompany?.senior_vice_president
+                            : ""}
+                        </span>
+                      )}
+                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}>
+                      <span className={`${styles.title}`}>専務取締役</span>
+                      {!searchMode && (
+                        <span
+                          data-text={`${
+                            selectedRowDataCompany?.senior_managing_director
+                              ? selectedRowDataCompany?.senior_managing_director
+                              : ""
+                          }`}
+                          className={`${styles.value}`}
+                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          {selectedRowDataCompany?.senior_managing_director
+                            ? selectedRowDataCompany?.senior_managing_director
+                            : ""}
+                        </span>
+                      )}
+                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
+
+                {/* 常務取締役・取締役 */}
+                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title}`}>常務取締役</span>
+                      {!searchMode && (
+                        <span
+                          data-text={`${
+                            selectedRowDataCompany?.managing_director ? selectedRowDataCompany?.managing_director : ""
+                          }`}
+                          className={`${styles.value}`}
+                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          {selectedRowDataCompany?.managing_director ? selectedRowDataCompany?.managing_director : ""}
+                        </span>
+                      )}
+                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}>
+                      <span className={`${styles.title}`}>取締役</span>
+                      {!searchMode && (
+                        <span
+                          data-text={`${selectedRowDataCompany?.director ? selectedRowDataCompany?.director : ""}`}
+                          className={`${styles.value} truncate`}
+                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          {selectedRowDataCompany?.director ? selectedRowDataCompany?.director : ""}
+                        </span>
+                      )}
+                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
+
+                {/* 役員・監査役 */}
+                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title}`}>役員</span>
+                      {!searchMode && (
+                        <span
+                          data-text={`${
+                            selectedRowDataCompany?.board_member ? selectedRowDataCompany?.board_member : ""
+                          }`}
+                          className={`${styles.value}`}
+                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          {selectedRowDataCompany?.board_member ? selectedRowDataCompany?.board_member : ""}
+                        </span>
+                      )}
+                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}>
+                      <span className={`${styles.title}`}>監査役</span>
+                      {!searchMode && (
+                        <span
+                          data-text={`${selectedRowDataCompany?.auditor ? selectedRowDataCompany?.auditor : ""}`}
+                          className={`${styles.value}`}
+                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          {selectedRowDataCompany?.auditor ? selectedRowDataCompany?.auditor : ""}
+                        </span>
+                      )}
+                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
+
+                {/* 部長・担当者 */}
+                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title}`}>部長</span>
+                      {!searchMode && (
+                        <span
+                          data-text={`${selectedRowDataCompany?.manager ? selectedRowDataCompany?.manager : ""}`}
+                          className={`${styles.value}`}
+                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          {selectedRowDataCompany?.manager ? selectedRowDataCompany?.manager : ""}
+                        </span>
+                      )}
+                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}>
+                      <span className={`${styles.title}`}>担当者</span>
+                      {!searchMode && (
+                        <span
+                          data-text={`${selectedRowDataCompany?.member ? selectedRowDataCompany?.member : ""}`}
+                          className={`${styles.value}`}
+                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          {selectedRowDataCompany?.member ? selectedRowDataCompany?.member : ""}
+                        </span>
+                      )}
+                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
                 {/* TEL要注意フラグ・TEL要注意理由 */}
-                <div className={`${styles.right_row_area}  mt-[10px] flex h-[35px] w-full grow items-center`}>
+                {/* <div className={`${styles.right_row_area}  mt-[10px] flex h-[35px] w-full grow items-center`}>
                   <div className="transition-base03 flex h-full w-1/2  flex-col pr-[20px]">
                     <div className={`${styles.title_box} transition-base03 flex h-full items-center `}>
                       <span className={`${styles.check_title}`}>TEL要注意</span>
@@ -701,6 +1095,7 @@ const CompanyMainContainerMemo: FC = () => {
                         <input
                           type="checkbox"
                           // checked={!!checkedColumnHeader} // 初期値
+                          checked={!!selectedRowDataCompany?.call_careful_flag}
                           onChange={() => console.log("チェッククリック")}
                           className={`${styles.grid_select_cell_header_input}`}
                         />
@@ -716,23 +1111,29 @@ const CompanyMainContainerMemo: FC = () => {
                       <span className={`${styles.right_under_title}`}>注意理由</span>
                       {!searchMode && (
                         <span
-                          data-text=" TEL要注意理由 吾輩は猫である。名前はまだ無い。"
+                          data-text={`${
+                            selectedRowDataCompany?.call_careful_reason
+                              ? selectedRowDataCompany?.call_careful_reason
+                              : ""
+                          }`}
                           className={`${styles.value}`}
                           onMouseEnter={(e) => handleOpenTooltip(e, "right")}
                           onMouseLeave={handleCloseTooltip}
                           // onDoubleClick={(e) => handleDoubleClick(e, index, columnHeaderItemList[index].columnName)}
                         >
-                          TEL要注意理由 吾輩は猫である。名前はまだ無い。
+                          {selectedRowDataCompany?.call_careful_reason
+                            ? selectedRowDataCompany?.call_careful_reason
+                            : ""}
                         </span>
                       )}
                       {searchMode && <input type="text" className={`${styles.input_box}`} />}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
-                </div>
+                </div> */}
 
                 {/* メール禁止フラグ・資料禁止フラグ */}
-                <div className={`${styles.right_row_area}  mt-[10px] flex h-[35px] w-full grow items-center`}>
+                {/* <div className={`${styles.right_row_area}  mt-[10px] flex h-[35px] w-full grow items-center`}>
                   <div className="transition-base03 flex h-full w-1/2  flex-col pr-[20px]">
                     <div className={`${styles.title_box} transition-base03 flex h-full items-center `}>
                       <span className={`${styles.check_title}`}>メール禁止フラグ</span>
@@ -741,6 +1142,7 @@ const CompanyMainContainerMemo: FC = () => {
                         <input
                           type="checkbox"
                           // checked={!!checkedColumnHeader} // 初期値
+                          checked={!!selectedRowDataCompany?.email_ban_flag}
                           onChange={() => console.log("チェッククリック")}
                           className={`${styles.grid_select_cell_header_input}`}
                         />
@@ -759,6 +1161,7 @@ const CompanyMainContainerMemo: FC = () => {
                         <input
                           type="checkbox"
                           // checked={!!checkedColumnHeader} // 初期値
+                          checked={!!selectedRowDataCompany?.sending_ban_flag}
                           onChange={() => console.log("チェッククリック")}
                           className={`${styles.grid_select_cell_header_input}`}
                         />
@@ -769,10 +1172,10 @@ const CompanyMainContainerMemo: FC = () => {
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
-                </div>
+                </div> */}
 
                 {/* FAX・DM禁止フラグ */}
-                <div className={`${styles.right_row_area}  mt-[10px] flex h-[35px] w-full grow items-center`}>
+                {/* <div className={`${styles.right_row_area}  mt-[10px] flex h-[35px] w-full grow items-center`}>
                   <div className="transition-base03 flex h-full w-1/2  flex-col pr-[20px]">
                     <div className={`${styles.title_box} transition-base03 flex h-full items-center `}>
                       <span className={`${styles.check_title}`}>FAX・DM禁止フラグ</span>
@@ -781,6 +1184,7 @@ const CompanyMainContainerMemo: FC = () => {
                         <input
                           type="checkbox"
                           // checked={!!checkedColumnHeader} // 初期値
+                          checked={!!selectedRowDataCompany?.fax_dm_ban_flag}
                           onChange={() => console.log("チェッククリック")}
                           className={`${styles.grid_select_cell_header_input}`}
                         />
@@ -794,28 +1198,28 @@ const CompanyMainContainerMemo: FC = () => {
                   <div className="transition-base03 flex h-full w-1/2  flex-col pr-[20px]">
                     <div className={`${styles.title_box} transition-base03 flex h-full items-center `}></div>
                   </div>
-                </div>
+                </div> */}
 
                 {/* 禁止理由 */}
-                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                {/* <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                   <div className="flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>禁止理由</span>
                       {!searchMode && (
                         <span
-                          data-text="吾輩は猫である。名前はまだ無い。"
+                          data-text={`${selectedRowDataCompany?.ban_reason ? selectedRowDataCompany?.ban_reason : ""}`}
                           className={`${styles.value}`}
                           onMouseEnter={(e) => handleOpenTooltip(e)}
                           onMouseLeave={handleCloseTooltip}
                         >
-                          吾輩は猫である。名前はまだ無い。
+                          {selectedRowDataCompany?.ban_reason ? selectedRowDataCompany?.ban_reason : ""}
                         </span>
                       )}
                       {searchMode && <input type="text" className={`${styles.input_box}`} />}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
-                </div>
+                </div> */}
                 {/* クレーム */}
                 {/* <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                   <div className="flex h-full w-full flex-col pr-[20px]">
@@ -852,36 +1256,43 @@ const CompanyMainContainerMemo: FC = () => {
             <div
               className={`${styles.right_sticky_contents_wrapper} flex h-[350px] w-full flex-col rounded-[8px] bg-[var(--color-bg-brand-f10)] px-[20px] `}
             >
-              <div className="flex-center h-[40px] w-full text-[18px] font-semibold ">会社 条件検索</div>
-              <div className={`} text-[15px]`}>
-                <div className="mt-[10px] flex  min-h-[30px] items-center">・検索したい条件を入力してください。</div>
+              {/* <div className="flex h-[40px] w-full items-center justify-center text-[18px] font-semibold ">
+                会社 条件検索
+              </div> */}
+              <div className={` text-[13px]`}>
+                <div className="mt-[5px] flex  min-h-[30px] items-center">○検索したい条件を入力してください。</div>
                 <div className="flex  min-h-[30px] items-center">
                   <span className="h-full w-[15px]"></span>
-                  例えば、「東京都大田区」の会社で「海外拠点」が存在する会社を検索する場合は、「●住所」に「東京都大田区※」と入力し、「海外拠点」に「is
+                  例えば、「&quot;東京都大田区&quot;」の会社で「事業拠点」が存在する会社を検索する場合は、「●住所」に「東京都大田区※」と入力し、「事業拠点」に「is
                   not null」と入力してください。
                 </div>
                 <div className="mt-[10px] flex  min-h-[30px] items-center">
-                  ・「※ アスタリスク」は、「前方一致・後方一致・部分一致」を表します
+                  ○「※ アスタリスク」は、「前方一致・後方一致・部分一致」を表します
                 </div>
                 <div className="flex items-center">
                   <span className="h-full w-[15px]"></span>
-                  例えば、会社名に「〜工業」と付く会社を検索したい場合に、「※工業※」、「〜精機」の会社は「※精機※」と検索することで、部分一致で検索可能です
+                  例えば、会社名に「&quot;工業&quot;」と付く会社を検索したい場合に、「※工業※」、「&quot;精機&quot;」と付く会社は「※精機※」と検索することで、指定した文字が付くデータを検索可能です
                 </div>
                 <div className="mt-[10px] flex  min-h-[30px] items-center">
-                  ・「is not null」は「空白で無いデータ」を抽出します
+                  ○「is not null」は「&quot;空白でない&quot;データ」を抽出します
                 </div>
                 <div className="mt-[10px] flex  min-h-[30px] items-center">
-                  ・「is null」は「空白のデータ」を抽出します
+                  ○「is null」は「&quot;空白の&quot;データ」を抽出します
                 </div>
                 <div className="mt-[10px] flex  min-h-[30px] items-center">
-                  ・空白の項目のまま検索した場合は、その項目の「全てのデータ」を抽出します
+                  ○空白の項目のまま検索した場合は、その項目の「全てのデータ」を抽出します
+                </div>
+                <div className="mt-[10px] flex h-[30px] w-full items-center">
+                  <button type="submit" className={`${styles.btn}`}>
+                    検索
+                  </button>
                 </div>
               </div>
             </div>
           </div>
         )}
       </div>
-    </div>
+    </form>
   );
 };
 

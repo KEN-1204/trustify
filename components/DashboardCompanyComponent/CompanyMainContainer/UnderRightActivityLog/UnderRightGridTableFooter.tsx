@@ -47,7 +47,7 @@ const UnderRightGridTableFooterMemo: FC<Props> = ({ getItemCount }) => {
             </span>
           </button>
           <p className="text-[13px] font-medium text-[#bbb]">
-            {language === "Ja" && `/ 5000件`}
+            {language === "Ja" && `/ 124件`}
             {language === "En" && "55 records"}
           </p>
         </div>

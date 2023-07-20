@@ -5,6 +5,7 @@ import { Modal } from "./Modal/Modal";
 import { useRouter } from "next/router";
 import useThemeStore from "@/store/useThemeStore";
 import useRootStore from "@/store/useRootStore";
+import { MdOutlineDarkMode, MdOutlineLightMode } from "react-icons/md";
 
 type Prop = {
   title: string;
@@ -49,15 +50,26 @@ export const Layout: FC<Prop> = ({ children, title = "TRUSTiFY | Trustify" }) =>
       </Head>
       {/* <header></header> */}
       {/* <main className="">{children}</main> */}
-      <div className="relative flex h-full min-h-screen flex-col items-center">{children}</div>
+      <div className="relative flex h-full min-h-screen max-w-[100vw] flex-col items-center ">{children}</div>
       {/* <footer></footer> */}
 
       {/* テーマ切り替えボタン */}
-      <div className="flex-center fixed bottom-[2%] right-[1%] h-[10%] w-[10%]">
+      {/* <div className="flex-center fixed bottom-[2%] right-[1%] h-[10%] w-[10%]">
         <div
           className="h-[50px] w-[50px] cursor-pointer rounded-full bg-[--color-bg-brand05]"
           onClick={changeTheme}
         ></div>
+      </div> */}
+      <div
+        className={`flex-center transition-base01 fixed bottom-[2%] right-[2%] z-[1000] h-[35px] w-[35px] cursor-pointer rounded-full ${
+          theme === "dark"
+            ? "bg-[--color-bg-brand05] hover:bg-[--color-bg-brand-f]"
+            : "bg-[var(--color-bg-brand-fc0)] hover:bg-[var(--color-bg-brand-f)]"
+        }`}
+        onClick={changeTheme}
+      >
+        {theme === "light" && <MdOutlineLightMode className="text-[20px] text-[#fff]" />}
+        {theme === "dark" && <MdOutlineDarkMode className="text-[20px] text-[#fff]" />}
       </div>
 
       {/* モーダル */}
