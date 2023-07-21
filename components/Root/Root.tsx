@@ -191,7 +191,8 @@ export const Root: FC = () => {
             <span className="whitespace-nowrap leading-normal">
               強力なデータベースを <span className={`${styles.text_gradient} `}>ワンコイン</span> で
             </span> */}
-            {language === "En" && "Unlimited movies, TV shows and more."}
+            {/* {language === "En" && "Unlimited movies, TV shows and more."} */}
+            {language === "En" && "Access the powerful database developed by Keyence for just ¥980."}
           </h1>
           <h3>
             {/* {language === "Ja" && "映画やドラマをもっと自由に。いつでもキャンセルOK。"} */}
@@ -247,13 +248,13 @@ export const Root: FC = () => {
 
       {/* ======================== Featuresセクション ======================== */}
       {/* ======================== Feature1 ======================== */}
-      <section className={`transition-base-color bg-[--color-bg-hp-main] ${styles.scroll_slides_row}`}>
+      <section id="product" className={`transition-base-color bg-[--color-bg-hp-main] ${styles.scroll_slides_row}`}>
         <div className={`${styles.text_col}`}>
           <h2>
             {/* {language === "Ja" && "最小の資本と人で、最大の経済効果を上げる"} */}
             {/* {language === "Ja" && "営業を科学する"} */}
             {language === "Ja" && "誰でも売れる組織へ"}
-            {language === "En" && "Enjoy on your TV."}
+            {language === "En" && "To an organization where anyone can sell."}
             {/* {language === "Ja" && "大画面で楽しめる"}
             {language === "En" && "Enjoy on your TV."} */}
           </h2>
@@ -263,7 +264,7 @@ export const Root: FC = () => {
             {/* {language === "Ja" &&
               "スマートテレビやApple TVはもちろん、PlayStationやXboxなどのゲーム機、Chromecastなどのストリーミングデバイス、ブルーレイプレーヤーを使えば、お持ちのテレビで簡単に観られます。"} */}
             {language === "En" &&
-              "Watch on Smart TVs, Playstation, Xbox, Chromecast, Apple TV, Blu-ray players, and more."}
+              "By datafying all the processes of sales, which tends to be personalized, such as 'list creation, cold calling, appointment setting, negotiation, closing, and support', and visualizing 'sales-boosting customers, sales-boosting methods, and support methods to maximize satisfaction', we realize an organization where any salesperson can generate high sales and 'maximize economic effects with the least amount of capital and people'."}
           </p>
         </div>
         <div className={`${styles.img_col} flex items-center`}>
@@ -307,19 +308,19 @@ export const Root: FC = () => {
           <h2>
             {/* {language === "Ja" && ""} */}
             {language === "Ja" && `"今" 売れる営業先がすぐ見つかる`}
-            {language === "En" && "Watch everywhere."}
+            {language === "En" && "Find 'current' sales prospects immediately"}
           </h2>
           <p>
             {language === "Ja" &&
-              `データベースから未知の客先にアポを組み、600万円の商品をその日に即売りするなど "今" 売れる営業を何度も経験してきました。 `}
+              `データベースから未知の客先にアポを組み、600万円の商品をその場でご注文いただくなど "今" 売れる営業を何度も経験してきました。 `}
             {language === "En" &&
-              "Stream unlimited movies and TV shows on your phone, tablet, laptop, and TV without paying more."}
+              "I've had repeated experiences with 'current' successful sales, such as arranging appointments with unknown clients from the database and receiving on-the-spot orders for products worth around 55,000 USD."}
           </p>
           <p>
             {language === "Ja" &&
               `98万社の会社データを保有するデータベースから自社の狙い先となり得る会社を、「業界、取引先、規模、今までの活動履歴」などの様々な条件から簡単、瞬時に抽出が可能です。 自社のサービスが解決する課題を持つ会社を瞬時に見つけ、競合よりも早く売ることができます。`}
             {language === "En" &&
-              "Stream unlimited movies and TV shows on your phone, tablet, laptop, and TV without paying more."}
+              "You can easily and instantly extract potential target companies from our database, which holds data from 980,000 companies, based on various criteria such as 'industry, clients, scale, and past activities'. You can quickly find companies that have the problems your service solves, allowing you to sell faster than your competitors."}
           </p>
         </div>
         <div className={`${styles.img_col} flex items-center`}>
@@ -360,7 +361,7 @@ export const Root: FC = () => {
         <div className={`${styles.text_col}`}>
           <h2>
             {language === "Ja" && "リスト作成時間を大幅に短縮し工数削減"}
-            {language === "En" && "Create profiles for kids."}
+            {language === "En" && "Significantly reduce list creation time and workload."}
             {/* {language === "Ja" && "お子様用のプロフィールを作成できます。"}
             {language === "En" && "Create profiles for kids."} */}
           </h2>
@@ -368,13 +369,13 @@ export const Root: FC = () => {
             {language === "Ja" &&
               "キーエンスではリスト作成・架電・準備・営業・入金確認・サポートを全て一人で行います。そのため最小の時間で最大の売上を上げられるよう限られた時間で売れる営業先のリストを多くピックしなければなりません。 "}
             {language === "En" &&
-              "Send kids on adventures with their favorite characters in a space made just for them—free with your membership."}
+              "At Keyence, we handle everything from list creation, cold calling, preparation, sales, payment confirmation, to support all by ourselves. Therefore, in order to maximize sales in the shortest time possible, we must pick a large number of prospective clients from our lists in the limited time we have."}
           </p>
           <p>
             {language === "Ja" &&
               "日々のリスト作成時間を1日30分短縮することで、20日稼働で月10時間の短縮、年間120時間の短縮となり、人件費1人当たり26万4000円/年、10人で260万円/年の導入効果に繋がります。(*人件費は中央値430万円/年で計算)"}
             {language === "En" &&
-              "Send kids on adventures with their favorite characters in a space made just for them—free with your membership."}
+              "By reducing daily list creation time by 30 minutes, this leads to a reduction of 10 hours per month for a 20-day operation, and 120 hours annually. This equates to a savings of ¥264,000 per person per year in labor costs, or ¥2.6 million per year for a team of 10, contributing to the effectiveness of implementation. (*Labor costs are calculated based on the median of ¥4.3 million per year.)"}
           </p>
         </div>
         <div className={`${styles.img_col} flex items-center`}>
@@ -414,7 +415,7 @@ export const Root: FC = () => {
         <div className={`${styles.text_col}`}>
           <h2>
             {language === "Ja" && "顧客に刺さる商品開発へ"}
-            {language === "En" && "Download your shows to watch offline."}
+            {language === "En" && "Towards Product Development that Resonates with Customers"}
             {/* {language === "Ja" && "ダウンロードしてオフラインで視聴"}
             {language === "En" && "Download your shows to watch offline."} */}
           </h2>
@@ -422,7 +423,8 @@ export const Root: FC = () => {
             {language === "Ja" &&
               "売れ先、売れなかった行き先のデータを常に収集することで、日々の営業データから次なる潜在ニーズの発掘し、他社よりも先手を打つ商品を開発し、また営業データを収集と売れるサイクルを構築します。"}
             {/* {language === "Ja" && "日々の営業データから次なる潜在ニーズを発掘し、広告なしのプランでのみご利用いただけます。"} */}
-            {language === "En" && "Only available on ad-free plans."}
+            {language === "En" &&
+              "By continuously collecting data on successful and unsuccessful sales prospects, we uncover potential needs from daily sales data, develop products that take the initiative over competitors, and establish a cycle of sales data collection and sales success."}
           </p>
         </div>
         <div className={`${styles.img_col} flex items-center`}>
@@ -457,12 +459,12 @@ export const Root: FC = () => {
       <hr className={styles.horizon} />
 
       {/* ======================== FAQ ======================== */}
-      <section className={styles.faq}>
+      <section id="faq" className={styles.faq}>
         <h2>
           {language === "Ja" && "よくある質問"}
           {language === "En" && "Frequently Asked Questions"}
         </h2>
-        <ul className={styles.accordion}>
+        <ul id="price" className={styles.accordion}>
           <li>
             <input type="radio" name="accordion" id="first" />
             <label htmlFor="first">
@@ -471,10 +473,18 @@ export const Root: FC = () => {
             </label>
             <div className={styles.content}>
               <p>
+                {/* {language === "Ja" &&
+                  "Netflixは、受賞歴のあるドラマ、映画、アニメ、ドキュメンタリーなどの幅広いコンテンツを配信するストリーミングサービスで、メンバーはあらゆるインターネット接続デバイスで視聴することができます。定額、低価格で、いつでもどこでも、好きなだけ視聴することができます。映画やドラマは毎週追加されるので、いつでも新しい作品が見つかります。"} */}
                 {language === "Ja" &&
-                  "Netflixは、受賞歴のあるドラマ、映画、アニメ、ドキュメンタリーなどの幅広いコンテンツを配信するストリーミングサービスで、メンバーはあらゆるインターネット接続デバイスで視聴することができます。定額、低価格で、いつでもどこでも、好きなだけ視聴することができます。映画やドラマは毎週追加されるので、いつでも新しい作品が見つかります。"}
+                  "TRUSTiFYは、キーエンスで培われた組織全員が誰でも売上を上げる仕組みの根幹となるデータベースで、メンバーはこのデータベースを活用することで「営業全員が高い売上を上げる組織」を実現することができます。キーエンスで営業１人が年間約４億円を売り上げることができるのはデータベースがあるからです。"}
                 {language === "En" &&
-                  "Netflix is a streaming service that offers a wide variety of award-winning TV shows, movies, anime, documentaries, and more on thousands of internet-connected devices. You can watch as much as you want, whenever you want – all for one low monthly price. There's always something new to discover and new TV shows and movies are added every week!"}
+                  "TRUSTiFY is a database that forms the core of the mechanism developed at Keyence that enables every member of the organization to increase sales. By utilizing this database, members can realize an organization where 'every salesperson achieves high sales'. The reason why a single salesperson at Keyence can generate approximately 4 billion yen in annual sales is because of this database."}
+              </p>
+              <p>
+                {language === "Ja" &&
+                  "引合・リードによる受動的な顧客を確実に売り、さらに能動営業で大きな上乗せができるようになることで、例年のリード数に依存せずに高い目標の達成、伸びを出し続けることを可能にします。日々の営業データは売上を生む新たな商品開発に繋がり、また営業データを収集する、貴社に売上を上げ続ける好循環をもたらします。"}
+                {language === "En" &&
+                  "By reliably selling to passive customers through inquiries and leads, and further increasing sales with proactive sales, you can achieve high targets and continue to grow without depending on the number of leads each year. Daily sales data leads to the development of new products that generate sales, and the collection of sales data brings a positive cycle that continues to increase your company's sales."}
               </p>
             </div>
           </li>
@@ -487,24 +497,39 @@ export const Root: FC = () => {
             <div className={styles.content}>
               <p>
                 {language === "Ja" &&
-                  "スマホ、タブレット、スマートテレビ、パソコン、ストリーミングデバイスなどから、Netflixを定額でお楽しみいただけます。プランは月額￥790から￥1,980まで。追加料金や長期契約はありません。"}
+                  "TRUSTiFYを定額でお使いいただけます。プランは1人あたり月額￥980から￥1,980まで。追加料金や長期契約はありません。"}
+                {/* {language === "Ja" &&
+                  "スマホ、タブレット、スマートテレビ、パソコン、ストリーミングデバイスなどから、Netflixを定額でお楽しみいただけます。プランは月額￥790から￥1,980まで。追加料金や長期契約はありません。"} */}
                 {language === "En" &&
-                  "Watch Netflix on your smartphone, tablet, Smart TV, laptop, or streaming device, all for one fixed monthly fee. Plans range from JPY790 to JPY1,980 a month. No extra costs, no contracts."}
+                  "You can use TRUSTiFY for a flat rate. Our plans range from ¥980 to ¥1,980 per person per month. There are no additional charges or long-term contracts."}
+                {/* {language === "En" &&
+                  "Watch Netflix on your smartphone, tablet, Smart TV, laptop, or streaming device, all for one fixed monthly fee. Plans range from JPY790 to JPY1,980 a month. No extra costs, no contracts."} */}
               </p>
             </div>
           </li>
           <li>
             <input type="radio" name="accordion" id="third" />
             <label htmlFor="third">
-              {language === "Ja" && "広告つきプランと通常のプランとの違いは何ですか？"}
+              {/* {language === "Ja" && "広告つきプランと通常のプランとの違いは何ですか？"} */}
+              {language === "Ja" && "ビジネスプランとサポータープランとの違いは何ですか？"}
               {language === "En" && "What's different on an ad-supported plan?"}
             </label>
             <div className={styles.content}>
               <p>
+                {/* {language === "Ja" &&
+                  "広告つきプランでは、低価格で映画やドラマをお楽しみいただけます。様々な作品をご視聴いただけますが、再生中に広告が流れることがあります (場所やデバイスによっては一部制限があります)。ダウンロードはご利用いただけません。また、一部の映画やドラマは、ライセンスの関係でご覧いただけません。詳しくはこちら。"} */}
                 {language === "Ja" &&
-                  "広告つきプランでは、低価格で映画やドラマをお楽しみいただけます。様々な作品をご視聴いただけますが、再生中に広告が流れることがあります (場所やデバイスによっては一部制限があります)。ダウンロードはご利用いただけません。また、一部の映画やドラマは、ライセンスの関係でご覧いただけません。詳しくはこちら。"}
+                  "ビジネスプランでは、無料プランでは利用制限のかかるコンテンツを無制限にご利用いただけます。"}
                 {language === "En" &&
-                  "An ad-supported plan is a great way to enjoy movies and TV shows at a lower price. You can stream your favorites with limited ad breaks (some location and device restrictions apply). Downloads are not supported and a limited number of movies and TV shows are not available due to licensing restrictions. Learn more."}
+                  "With the Business Plan, you can enjoy unlimited access to content that is subject to usage restrictions in the Free Plan. "}
+                {/* {language === "En" &&
+                  "An ad-supported plan is a great way to enjoy movies and TV shows at a lower price. You can stream your favorites with limited ad breaks (some location and device restrictions apply). Downloads are not supported and a limited number of movies and TV shows are not available due to licensing restrictions. Learn more."} */}
+              </p>
+              <p>
+                {language === "Ja" &&
+                  "また、サポータープランは、まだTRUSTiFYはベータ版であり、少数精鋭のTRUSTiFYチームがお客様の要望を聞きながらすぐに改善し、低価格で最大の経済効果を上げられるサービスへと育てていけるよう「支援者」となっていただく方を本プランにて募集しております。ご満足いただけるサービスにできるよう何卒よろしくお願い申し上げます。"}
+                {language === "En" &&
+                  "Also, we are seeking 'supporters' in the Supporter Plan, as TRUSTiFY is still in beta. Our small but dedicated TRUSTiFY team is committed to promptly implementing improvements based on our customers' feedback, in order to evolve this into a service that yields maximum economic benefits at a low cost. We sincerely ask for your support in making this a service that will satisfy you."}
               </p>
             </div>
           </li>
@@ -532,9 +557,9 @@ export const Root: FC = () => {
             <div className={styles.content}>
               <p>
                 {language === "Ja" &&
-                  "Netflixの手続きはとっても簡単。面倒な契約や拘束は一切ありません。たった数回のクリックで、オンラインで簡単にキャンセルできます。キャンセル料金は一切なく、アカウントの開始やキャンセルはいつでも可能です。"}
+                  "TRUSTiFYの手続きはとっても簡単。面倒な契約や拘束は一切ありません。たった数回のクリックで、オンラインで簡単にキャンセルできます。キャンセル料金は一切なく、アカウントの開始やキャンセルはいつでも可能です。"}
                 {language === "En" &&
-                  "Netflix is flexible. There are no pesky contracts and no commitments. You can easily cancel your account online in two clicks. There are no cancellation fees – start or stop your account anytime."}
+                  "TRUSTiFY is flexible. There are no pesky contracts and no commitments. You can easily cancel your account online in two clicks. There are no cancellation fees – start or stop your account anytime."}
               </p>
             </div>
           </li>
@@ -666,13 +691,13 @@ export const Root: FC = () => {
 
         <div className={styles.row}>
           <div className={styles.col}>
-            <Link href="/" prefetch={false}>
+            <Link href="#faq" scroll={false} prefetch={false}>
               {language === "Ja" && "よくあるご質問"}
               {language === "En" && "FAQ"}
             </Link>
-            <Link href="/" prefetch={false}>
-              {language === "Ja" && "プライバシーポリシー"}
-              {language === "En" && "Privacy"}
+            <Link href="#" prefetch={false}>
+              {language === "Ja" && "お知らせ"}
+              {language === "En" && ""}
             </Link>
             {/* <Link href="/" prefetch={false}>
               {language === "Ja" && "投資家情報"}
@@ -689,9 +714,13 @@ export const Root: FC = () => {
               {language === "Ja" && "ヘルプセンター"}
               {language === "En" && "Help Center"}
             </Link> */}
-            <Link href="/" prefetch={false}>
+            <Link href="#" prefetch={false}>
               {language === "Ja" && "利用規約"}
               {language === "En" && "Terms of Use"}
+            </Link>
+            <Link href="#" prefetch={false}>
+              {language === "Ja" && "プライバシーポリシー"}
+              {language === "En" && "Privacy"}
             </Link>
             {/* <Link href="/" prefetch={false}>
               {language === "Ja" && "採用情報"}
@@ -715,7 +744,7 @@ export const Root: FC = () => {
               {language === "Ja" && "視聴デバイス"}
               {language === "En" && "ways to watch"}
             </Link> */}
-            <Link href="/" prefetch={false}>
+            <Link href="#" prefetch={false}>
               {language === "Ja" && "企業情報"}
               {language === "En" && "Corporate Information"}
             </Link>
@@ -733,7 +762,7 @@ export const Root: FC = () => {
               {language === "Ja" && "利用規約"}
               {language === "En" && "Terms of Use"}
             </Link> */}
-            <Link href="/" prefetch={false}>
+            <Link href="#" prefetch={false}>
               {language === "Ja" && "お問い合せ"}
               {language === "En" && "Contact Us"}
             </Link>

@@ -181,7 +181,7 @@ export const Header: FC<Props> = ({
             className={`hidden h-full w-auto items-center justify-around text-[16px] font-[500] text-[--navColor] md:flex`}
           >
             <li className={`${styles.navList}`}>
-              <Link href="/" prefetch={false} className={`${styles.navbarItem}`}>
+              <Link href="#product" scroll={false} prefetch={false} className={`${styles.navbarItem}`}>
                 <span>
                   {language === "Ja" && "製品"}
                   {language === "En" && "Products"}
@@ -190,7 +190,7 @@ export const Header: FC<Props> = ({
               </Link>
             </li>
             <li className={`${styles.navList}`}>
-              <Link href="/price" prefetch={false} className={`${styles.navbarItem}`}>
+              <Link href="#price" scroll={false} prefetch={false} className={`${styles.navbarItem}`}>
                 <span>
                   {language === "Ja" && "料金"}
                   {language === "En" && "Pricing"}
