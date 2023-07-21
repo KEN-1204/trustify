@@ -111,7 +111,7 @@ const UnderRightActivityLogMemo: FC = () => {
 
   // ================== 🌟useInfiniteQueryフック🌟 ==================
   const { status, data, error, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage } = useInfiniteQuery({
-    queryKey: ["activities", "株式会社キーエンスのid"],
+    queryKey: ["under_right_activities", "選択した会社名"],
     queryFn: async (ctx) => {
       return fetchServerPage(50, ctx.pageParam); // 50個ずつ取得
     },

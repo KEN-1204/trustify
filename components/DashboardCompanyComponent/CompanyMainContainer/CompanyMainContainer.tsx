@@ -188,18 +188,41 @@ const CompanyMainContainerMemo: FC = () => {
 
     console.log("✅ 条件 params", params);
 
+    setInputName("");
+    setInputDepartment("");
+    setInputTel("");
+    setInputFax("");
+    setInputZipcode("");
+    setInputEmployeesClass("");
+    setInputAddress("");
+    setInputCapital("");
+    setInputFound("");
+    setInputContent("");
+    setInputIndustryType("");
+    setInputProductL("");
+    setInputProductM("");
+    setInputProductS("");
+    setInputFiscal("");
+    setInputClient("");
+    setInputSupplier("");
+    setInputFacility("");
+    setInputBusinessSite("");
+    setInputOverseas("");
+    setInputGroup("");
+    setInputCorporateNum("");
+
     setSearchMode(false);
 
-    setNewSearchCompanyParams(params);
+    // setNewSearchCompanyParams(params);
 
     // const { data, error } = await supabase.rpc("search_companies", { params });
-    // const { data, error } = await supabase
-    //   .rpc("search_companies", { params })
-    //   .is("created_by_company_id", null)
-    //   .range(0, 20);
+    const { data, error } = await supabase
+      .rpc("search_companies", { params })
+      .is("created_by_company_id", null)
+      .range(0, 20);
 
-    // if (error) return alert(error.message);
-    // console.log("✅ 検索結果データ取得 data", data);
+    if (error) return alert(error.message);
+    console.log("✅ 検索結果データ取得 data", data);
   };
 
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);

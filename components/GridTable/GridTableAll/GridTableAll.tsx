@@ -3,7 +3,7 @@ import styles from "./GridTableAll.module.css";
 import { summary, tableBodyDataArray } from "../data";
 import useStore from "@/store";
 import { GridTableFooter } from "../GridTableFooter/GridTableFooter";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import useDashboardStore from "@/store/useDashboardStore";
 import { EditColumnsModal } from "../EditColumns/EditColumnsModal";
@@ -333,6 +333,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   }
 
   // ================== 🌟条件あり新規サーチサーバーデータフェッチ用の関数🌟 ==================
+  // const queryClient = useQueryClient()
+  const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   let fetchNewSearchServerPage: any;
   // 条件あり新規サーチ ユーザーが会社に所属していない場合には、created_byがNULLの会社のみ取得
   if (userProfileState?.company_id === null) {
@@ -342,11 +344,11 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean }> => {
       const from = offset * limit;
       const to = from + limit - 1;
-      console.log("🔥🔥テスト🔥🔥 from, to", from, to);
-      const { data, error } = await supabase
-        .rpc("search_companies", { newSearchCompanyParams })
-        .is("created_by_company_id", null)
-        .range(from, to);
+      console.log("🔥🔥テスト🔥🔥実行！！！！！！！！", from, to);
+      const { data, error } = await supabase.rpc("search_companies", { newSearchCompanyParams });
+      console.log("🔥🔥テスト🔥🔥終了！！！！！！！！ from, to", from, to);
+      // .is("created_by_company_id", null)
+      // .range(from, to);
       console.log("🔥🔥テスト🔥🔥フェッチ後 data", data);
       if (error) {
         alert(error.message);
@@ -360,6 +362,9 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
 
       // 1秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
       await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // ローディング終了
+      setLoadingGlobalState(false);
 
       // 取得したrowsを返す（nextOffsetは、queryFnのctx.pageParamsが初回フェッチはundefinedで2回目が1のため+1でページ数と合わせる）
       return { rows, nextOffset: offset + 1, isLastPage };
@@ -402,18 +407,14 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // useInfiniteQueryのキャッシュのクエリキーの第二引数に割り当てる
   // const [newSearchParamsString, setNewSearchParamsString] = useState<string | null>(null);
   const newSearchParamsStringRef = useRef<string | null>(null);
-  // console.log(
-  //   "✅🔥 newSearchCompanyParams",
-  //   newSearchCompanyParams,
-  //   "setNewSearchParamsString",
-  //   newSearchParamsStringRef.current
-  // );
-  // // let newSearchParamsString = null;
+  console.log("キャッシュに割り当てるparamsキー newSearchCompanyParams", newSearchCompanyParams);
   if (newSearchCompanyParams) {
     newSearchParamsStringRef.current = Object.entries(newSearchCompanyParams)
       .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-      .map((key, value) => `${key}: ${value === null ? `null` : `${value}`}`)
+      .map(([key, value]) => `${key}:${value === null ? `null` : `${value}`}`)
+      // .map((key, index) => `${key}:${key[index]} `)
       .join(", ");
+    // .join("");
     console.log("キャッシュに割り当てるparamsキー newSearchParamsStringRef.current", newSearchParamsStringRef.current);
   }
   console.log(
@@ -424,8 +425,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   );
   // ================== 🌟useInfiniteQueryフック🌟 ==================
   const { status, data, error, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage } = useInfiniteQuery({
-    queryKey: ["contacts"],
-    // queryKey: ["contacts", newSearchParamsStringRef.current],
+    // queryKey: ["companies"],
+    queryKey: ["companies", newSearchParamsStringRef.current],
     queryFn: async (ctx) => {
       console.log("useInfiniteQuery queryFn関数内 引数ctx", ctx);
 
@@ -448,7 +449,6 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   });
   // ================== 🌟useInfiniteQueryフック🌟 ここまで ==================
   // ================= 🔥🔥テスト🔥🔥ここまで==================
-console.log('🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥hasNextPage', hasNextPage, status)
   // useEffect(() => {
   //   if (newSearchCompanyParams === null) setNewSearchParamsString(null);
   //   if (newSearchCompanyParams) {
@@ -2402,7 +2402,7 @@ console.log('🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥hasNextPage', hasNextPage, 
             </div>
             {/* ======================== 🌟Grid列トラック Rowヘッダー🌟 ======================== */}
             {/* サーチモード中は空のdivを表示 */}
-            {searchMode ? (
+            {searchMode && loadingGlobalState ? (
               <div
                 className={`${tableContainerSize === "one_third" ? `${styles.search_mode_container_one_third}` : ``} ${
                   tableContainerSize === "half" ? `${styles.search_mode_container_half}` : ``
