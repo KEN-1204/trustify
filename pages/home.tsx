@@ -1,5 +1,4 @@
 import { DashboardCompanyComponent } from "@/components/DashboardCompanyComponent/DashboardCompanyComponent";
-import { DashboardHeader } from "@/components/DashboardHeader/DashboardHeader";
 import { DashboardHomeComponent } from "@/components/DashboardHomeComponent/DashboardHomeComponent";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import useStore from "@/store";
@@ -9,7 +8,6 @@ import { Profile, UserProfile } from "@/types";
 import { Session, User, createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { GetServerSidePropsContext } from "next";
 import React, { useEffect } from "react";
-import { useEffectOnce } from "react-use";
 
 const DashboardHome = ({
   initialSession,

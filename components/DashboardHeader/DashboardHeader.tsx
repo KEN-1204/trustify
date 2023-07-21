@@ -2,9 +2,8 @@ import useStore from "@/store";
 import React, { FC, memo, useState } from "react";
 import styles from "./DashboardHeader.module.css";
 import { HiOutlineBars3 } from "react-icons/hi2";
-import { FiSettings } from "react-icons/fi";
 import { IoSettingsOutline } from "react-icons/io5";
-import { SlSettings } from "react-icons/sl";
+
 import { AiOutlineBell } from "react-icons/ai";
 import { BsChevronLeft, BsChevronRight, BsFillGearFill } from "react-icons/bs";
 import Image from "next/image";

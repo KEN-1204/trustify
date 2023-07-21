@@ -2,7 +2,6 @@ import React, { Dispatch, FC, SetStateAction, memo, useEffect } from "react";
 import styles from "../CompanyDetail/CompanyDetail.module.css";
 import { RippleButton } from "@/components/Parts/RippleButton/RippleButton";
 import useDashboardStore from "@/store/useDashboardStore";
-import { ChangeSizeBtn } from "@/components/Parts/ChangeSizeBtn/ChangeSizeBtn";
 import { SlSizeActual, SlSizeFullscreen } from "react-icons/sl";
 import useStore from "@/store";
 

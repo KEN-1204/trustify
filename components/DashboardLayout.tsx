@@ -8,11 +8,11 @@ import styles from "@/styles/DashboardLayout.module.css";
 import { Tooltip } from "./Parts/Tooltip/Tooltip";
 import { DashboardHeader } from "./DashboardHeader/DashboardHeader";
 import { DashboardSidebar } from "./DashboardSidebar/DashboardSidebar";
-import { useEffectOnce } from "react-use";
+
 import { TooltipBlur } from "./Parts/Tooltip/TooltipBlur";
 import useDashboardStore from "@/store/useDashboardStore";
 import { EditModal } from "./EditModal/EditModal";
-import { EditColumns } from "./GridTable/EditColumns/EditColumns";
+
 import useThemeStore from "@/store/useThemeStore";
 import useRootStore from "@/store/useRootStore";
 import { ChangeSizeMenu } from "./Parts/ChangeSizeMenu/ChangeSizeMenu";

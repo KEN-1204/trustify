@@ -1,12 +1,10 @@
 import React, { FC, memo, useCallback, useEffect, useRef, useState } from "react";
 import styles from "./GridTableAll.module.css";
-import { summary, tableBodyDataArray } from "../data";
 import useStore from "@/store";
 import { GridTableFooter } from "../GridTableFooter/GridTableFooter";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import useDashboardStore from "@/store/useDashboardStore";
-import { EditColumnsModal } from "../EditColumns/EditColumnsModal";
 import useThemeStore from "@/store/useThemeStore";
 import useRootStore from "@/store/useRootStore";
 import { RippleButton } from "@/components/Parts/RippleButton/RippleButton";
@@ -17,7 +15,6 @@ import { Client_company, Client_company_row_data } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { EditColumnsModalDisplayOnly } from "../EditColumns/EditColumnsModalDisplayOnly";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
-import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 
 type TableDataType = {
   id: number;

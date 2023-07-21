@@ -7,7 +7,6 @@ import { ErrorFallback } from "../ErrorFallback/ErrorFallback";
 import { Fallback } from "../Fallback/Fallback";
 import { GridTableAll } from "../GridTable/GridTableAll/GridTableAll";
 import { CompanyDetail } from "./CompanyDetail/CompanyDetail";
-import useRootStore from "@/store/useRootStore";
 
 export const DashboardCompanyComponent: FC = () => {
   console.log("🔥 DashboardCompanyComponentレンダリング レンダリング");

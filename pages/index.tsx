@@ -6,7 +6,6 @@ import { LangMenu } from "@/components/Parts/LangMenu/LangMenu";
 import { LangMenuOver } from "@/components/Parts/LangMenuOver/LangMenuOver";
 import { Session, User, createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { GetServerSidePropsContext } from "next";
-import { Profile } from "@/types";
 import { useEffectOnce } from "react-use";
 import useThemeStore from "@/store/useThemeStore";
 

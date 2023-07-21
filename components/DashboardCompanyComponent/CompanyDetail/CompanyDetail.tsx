@@ -6,7 +6,6 @@ import { CompanyTabHeader } from "../CompanyTabHeader/CompanyTabHeader";
 import { CompanyFunctionHeader } from "../CompanyFunctionHeader/CompanyFunctionHeader";
 import { CompanyMainContainer } from "../CompanyMainContainer/CompanyMainContainer";
 import useDashboardStore from "@/store/useDashboardStore";
-import { Fallback } from "@/components/Fallback/Fallback";
 
 const CompanyDetailMemo: FC = () => {
   console.log("🔥 CompanyDetail レンダリング");
