@@ -34,7 +34,7 @@ export const useMutateAuth = () => {
             // hd: "domain.com", // google will also allow OAuth logins to be restricted to a specified domain using the 'hd' parameter
           },
           // skipBrowserRedirect: true,
-          // redirectTo: process.env.CLIENT_URL, //テスト
+          redirectTo: process.env.CLIENT_URL, //テスト
         },
       });
 

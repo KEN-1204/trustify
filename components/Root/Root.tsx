@@ -178,7 +178,7 @@ export const Root: FC = () => {
             <source src="/assets/videos/Root/top-bg3.mp4" type="video/mp4" />
           </video>
         </div>
-        <div className="absolute left-0 top-0  z-0 h-[100dvh] w-[100dvw] bg-[#00000030]"></div>
+        {/* <div className="absolute left-0 top-0  z-0 h-[100dvh] w-[100dvw] bg-[#00000030]"></div> */}
         <div className={styles.hero}>
           <h1 className={`${language === "En" && "!max-w-full "}`}>
             {/* ========== タイピングアニメーション ========== */}
