@@ -685,8 +685,8 @@ export const Root: FC = () => {
       <section className={styles.footer}>
         <h2>
           {/* {language === "Ja" && "ご質問ですか？お問合せはこちらまで: 0120-000-000"} */}
-          {language === "Ja" && "ご質問ですか？お問合せはこちらまで: contact@trustify.co.jp"}
-          {language === "En" && "Questions? Call 0120-996-012"}
+          {language === "Ja" && "ご質問ですか？お問合せはこちらまで: contact@thetrustify.com"}
+          {language === "En" && "Questions? Email contact@thetrustify.com"}
         </h2>
 
         <div className={styles.row}>
