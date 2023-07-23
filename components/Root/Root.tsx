@@ -698,10 +698,10 @@ export const Root: FC = () => {
               {language === "Ja" && "よくあるご質問"}
               {language === "En" && "FAQ"}
             </Link>
-            <Link href="#" prefetch={false}>
+            {/* <Link href="#" prefetch={false}>
               {language === "Ja" && "お知らせ"}
               {language === "En" && ""}
-            </Link>
+            </Link> */}
             {/* <Link href="/" prefetch={false}>
               {language === "Ja" && "投資家情報"}
               {language === "En" && "Investor Relations"}
@@ -721,10 +721,10 @@ export const Root: FC = () => {
               {language === "Ja" && "利用規約"}
               {language === "En" && "Terms of Use"}
             </Link>
-            <Link href="#" prefetch={false}>
+            {/* <Link href="#" prefetch={false}>
               {language === "Ja" && "プライバシーポリシー"}
               {language === "En" && "Privacy"}
-            </Link>
+            </Link> */}
             {/* <Link href="/" prefetch={false}>
               {language === "Ja" && "採用情報"}
               {language === "En" && "Jobs"}
@@ -747,9 +747,13 @@ export const Root: FC = () => {
               {language === "Ja" && "視聴デバイス"}
               {language === "En" && "ways to watch"}
             </Link> */}
-            <Link href="#" prefetch={false}>
+            {/* <Link href="#" prefetch={false}>
               {language === "Ja" && "企業情報"}
               {language === "En" && "Corporate Information"}
+            </Link> */}
+            <Link href="#" prefetch={false}>
+              {language === "Ja" && "プライバシーポリシー"}
+              {language === "En" && "Privacy"}
             </Link>
             {/* <Link href="/" prefetch={false}>
               {language === "Ja" && "Netflix独占配信"}
@@ -765,9 +769,13 @@ export const Root: FC = () => {
               {language === "Ja" && "利用規約"}
               {language === "En" && "Terms of Use"}
             </Link> */}
-            <Link href="#" prefetch={false}>
+            {/* <Link href="#" prefetch={false}>
               {language === "Ja" && "お問い合せ"}
               {language === "En" && "Contact Us"}
+            </Link> */}
+            <Link href="#" prefetch={false}>
+              {language === "Ja" && "お知らせ"}
+              {language === "En" && ""}
             </Link>
           </div>
         </div>
