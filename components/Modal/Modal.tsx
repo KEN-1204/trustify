@@ -70,6 +70,10 @@ export const Modal: FC = () => {
   // }, [email]);
 
   // ====================== Submit関数 ======================
+  // メンテナンス中用
+  const handleSubmitTest = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+  };
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log("handleSubmit実行");
@@ -166,7 +170,7 @@ export const Modal: FC = () => {
           <button
             type="submit"
             className={`${styles.auth_block} ${styles.auth_google} text-[#000]`}
-            onClick={handleGoogleAuth}
+            // onClick={handleGoogleAuth}
           >
             <div className="flex-center space-x-4">
               <span className="h-[24px] w-[24px]">{googleIcon}</span>
@@ -197,7 +201,12 @@ export const Modal: FC = () => {
             }}
           /> */}
           {/* ================== formエリア ================== */}
-          <form className={`${styles.auth_form} ${styles.email_signUp_area}`} onSubmit={handleSubmit} ref={emailRef}>
+          <form
+            className={`${styles.auth_form} ${styles.email_signUp_area}`}
+            onSubmit={handleSubmitTest}
+            ref={emailRef}
+          >
+            {/* <form className={`${styles.auth_form} ${styles.email_signUp_area}`} onSubmit={handleSubmit} ref={emailRef}> */}
             {/* ========= メールアドレス入力エリア ========= */}
             <div className={`${styles.input_group} ${styles.email_box} relative`}>
               {/* <label htmlFor="email">
@@ -276,7 +285,8 @@ export const Modal: FC = () => {
                 </div>
               ) : isLogin ? (
                 <>
-                  {language === "Ja" && "メールアドレスでログイン"}
+                  {/* {language === "Ja" && "メールアドレスでログイン"} */}
+                  {language === "Ja" && "準備中"}
                   {language === "En" && "Log in"}
                 </>
               ) : alreadyRequestedOtp ? (
@@ -287,7 +297,8 @@ export const Modal: FC = () => {
               ) : (
                 <>
                   {/* {language === "Ja" && "メールアドレスでアカウントを作成"} */}
-                  {language === "Ja" && "メールアドレスでログイン"}
+                  {/* {language === "Ja" && "メールアドレスでログイン"} */}
+                  {language === "Ja" && "準備中"}
                   {language === "En" && "Create account"}
                 </>
               )}
@@ -300,15 +311,15 @@ export const Modal: FC = () => {
           {isLogin ? (
             <>
               {/* シングルサインオンエリア */}
-              <div className={`${styles.signIn_with_saml_area} flex-center`}>
+              {/* <div className={`${styles.signIn_with_saml_area} flex-center`}>
                 <Link href="#" prefetch={false}>
                   {language === "Ja" && "シングルサインオンを使用"}
                   {language === "En" && "Use single sign-on"}
                 </Link>
-              </div>
+              </div> */}
 
-              <div className="h-[16px]"></div>
-              <div className="h-[8px]"></div>
+              {/* <div className="h-[16px]"></div>
+              <div className="h-[8px]"></div> */}
 
               {/* ログインに切り替えエリア */}
               <div className={`${styles.sign_in_and_up_switch_area} flex-center`}>
@@ -345,15 +356,15 @@ export const Modal: FC = () => {
               <div className="h-[8px]"></div>
 
               {/* シングルサインオンエリア */}
-              <div className={`${styles.signIn_with_saml_area} flex-center`}>
+              {/* <div className={`${styles.signIn_with_saml_area} flex-center`}>
                 <Link href="#" prefetch={false}>
                   {language === "Ja" && "シングルサインオンを使用"}
                   {language === "En" && "Use single sign-on"}
                 </Link>
-              </div>
+              </div> */}
 
-              <div className="h-[16px]"></div>
-              <div className="h-[8px]"></div>
+              {/* <div className="h-[16px]"></div>
+              <div className="h-[8px]"></div> */}
 
               {/* ログインに切り替えエリア */}
               <div className={`${styles.sign_in_and_up_switch_area} flex-center`}>

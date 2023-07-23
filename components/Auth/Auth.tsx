@@ -35,6 +35,10 @@ export const Auth: FC = () => {
   const setIsLogin = useStore((state) => state.setIsLogin);
   const alreadyRequestedOtp = useStore((state) => state.alreadyRequestedOtp);
 
+  // メンテナンス中用
+  const handleSubmitTest = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+  };
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log("handleSubmit実行");
@@ -106,13 +110,14 @@ export const Auth: FC = () => {
           <MdClose className="fill-[#777] text-[24px]" />
         </button>
       </div>
-      <form className={` ${styles.auth_form}`} onSubmit={handleSubmit}>
+      {/* <form className={` ${styles.auth_form}`} onSubmit={handleSubmit}> */}
+      <form className={` ${styles.auth_form}`} onSubmit={handleSubmitTest}>
         <div className={`${styles.auth_error} ${errorMsg ? "block" : "hidden"}`}>{errorMsg}</div>
         {/* Googleボタン */}
         <button
           type="submit"
           className={`${styles.auth_block} ${styles.auth_google} text-[#000]`}
-          onClick={handleGoogleAuth}
+          // onClick={handleGoogleAuth}
         >
           <div className="flex-center space-x-4">
             <span className="h-[24px] w-[24px]">{googleIcon}</span>
@@ -210,7 +215,8 @@ export const Auth: FC = () => {
             </div>
           ) : isLogin ? (
             <>
-              {language === "Ja" && "メールアドレスでログイン"}
+              {/* {language === "Ja" && "メールアドレスでログイン"} */}
+              {language === "Ja" && "準備中"}
               {language === "En" && "Log in"}
             </>
           ) : alreadyRequestedOtp ? (
@@ -221,7 +227,8 @@ export const Auth: FC = () => {
           ) : (
             <>
               {/* {language === "Ja" && "メールアドレスでアカウントを作成"} */}
-              {language === "Ja" && "メールアドレスでログイン"}
+              {/* {language === "Ja" && "メールアドレスでログイン"} */}
+              {language === "Ja" && "準備中"}
               {language === "En" && "Create account"}
             </>
           )}
@@ -233,7 +240,7 @@ export const Auth: FC = () => {
         {isLogin ? (
           <>
             {/* シングルサインオンエリア */}
-            <div className={`${styles.signIn_with_saml_area} flex-center`}>
+            {/* <div className={`${styles.signIn_with_saml_area} flex-center`}>
               <Link href="#" prefetch={false}>
                 {language === "Ja" && "シングルサインオンを使用"}
                 {language === "En" && "Use single sign-on"}
@@ -241,7 +248,7 @@ export const Auth: FC = () => {
             </div>
 
             <div className="h-[16px]"></div>
-            <div className="h-[8px]"></div>
+            <div className="h-[8px]"></div> */}
 
             {/* ログインに切り替えエリア */}
             <div className={`${styles.sign_in_and_up_switch_area} flex-center`}>
@@ -278,7 +285,7 @@ export const Auth: FC = () => {
             <div className="h-[8px]"></div>
 
             {/* シングルサインオンエリア */}
-            <div className={`${styles.signIn_with_saml_area} flex-center`}>
+            {/* <div className={`${styles.signIn_with_saml_area} flex-center`}>
               <Link href="#" prefetch={false}>
                 {language === "Ja" && "シングルサインオンを使用"}
                 {language === "En" && "Use single sign-on"}
@@ -286,7 +293,7 @@ export const Auth: FC = () => {
             </div>
 
             <div className="h-[16px]"></div>
-            <div className="h-[8px]"></div>
+            <div className="h-[8px]"></div> */}
 
             {/* ログインに切り替えエリア */}
             <div className={`${styles.sign_in_and_up_switch_area} flex-center`}>

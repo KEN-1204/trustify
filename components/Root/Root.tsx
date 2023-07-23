@@ -231,12 +231,15 @@ export const Root: FC = () => {
           <button
             onClick={() => {
               setIsLogin(false);
-              openModal(true);
+              openModal(true); // メンテナンス完了後は表示
             }}
             className={`${styles.cta_btn}`}
           >
-            {language === "Ja" && "無料で始める"}
-            {language === "En" && "Get Started for free"}
+            {/* {language === "Ja" && "無料で始める"} */}
+            {language === "Ja" && "今すぐ始める"}
+            {/* {language === "Ja" && "メンテナンス中"} */}
+            {/* {language === "En" && "Get Started for free"} */}
+            {language === "En" && "Get Started"}
             {/* {language === "Ja" && "無料で始める"}
             {language === "En" && "Get Started for free"} */}
           </button>
@@ -497,7 +500,7 @@ export const Root: FC = () => {
             <div className={styles.content}>
               <p>
                 {language === "Ja" &&
-                  "TRUSTiFYを定額でお使いいただけます。プランは1人あたり月額￥980から￥1,980まで。追加料金や長期契約はありません。"}
+                  "TRUSTiFYを定額でお使いいただけます。プランは1人あたり月額￥980（ビジネスプラン）から￥1,980（サポータープラン）まで。追加料金や長期契約はありません。"}
                 {/* {language === "Ja" &&
                   "スマホ、タブレット、スマートテレビ、パソコン、ストリーミングデバイスなどから、Netflixを定額でお楽しみいただけます。プランは月額￥790から￥1,980まで。追加料金や長期契約はありません。"} */}
                 {language === "En" &&
@@ -643,7 +646,7 @@ export const Root: FC = () => {
                 }
                 console.log(checkedEmail);
                 setInputEmail(email);
-                setGetStartWithEmail(true);
+                setGetStartWithEmail(true); // メンテナンス完了後は表示
                 setIsLogin(false);
               }}
             >
@@ -685,8 +688,8 @@ export const Root: FC = () => {
       <section className={styles.footer}>
         <h2>
           {/* {language === "Ja" && "ご質問ですか？お問合せはこちらまで: 0120-000-000"} */}
-          {language === "Ja" && "ご質問ですか？お問合せはこちらまで: contact@thetrustify.com"}
-          {language === "En" && "Questions? Email contact@thetrustify.com"}
+          {language === "Ja" && "ご質問ですか？お問合せはこちらまで: info@thetrustify.com"}
+          {language === "En" && "Questions? Email info@thetrustify.com"}
         </h2>
 
         <div className={styles.row}>
@@ -768,7 +771,7 @@ export const Root: FC = () => {
             </Link>
           </div>
         </div>
-        <button
+        {/* <button
           className={styles.language_btn}
           onClick={(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
             if (openLangTab) {
@@ -786,7 +789,7 @@ export const Root: FC = () => {
           {language === "Ja" && "日本語"}
           {language === "En" && "English"}
           <AiFillCaretDown />
-        </button>
+        </button> */}
         <p className={styles.copyright_txt}>
           {language === "Ja" && "TRUSTiFY"}
           {language === "En" && "TRUSTiFY"}
