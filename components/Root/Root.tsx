@@ -378,7 +378,7 @@ export const Root: FC = () => {
             {language === "Ja" &&
               "日々のリスト作成時間を1日30分短縮することで、20日稼働で月10時間の短縮、年間120時間の短縮となり、人件費1人当たり26万4000円/年、10人で260万円/年の導入効果に繋がります。(*人件費は中央値430万円/年で計算)"}
             {language === "En" &&
-              "By reducing daily list creation time by 30 minutes, this leads to a reduction of 10 hours per month for a 20-day operation, and 120 hours annually. This equates to a savings of ¥264,000 per person per year in labor costs, or ¥2.6 million per year for a team of 10, contributing to the effectiveness of implementation. (*Labor costs are calculated based on the median of ¥4.3 million per year.)"}
+              "By reducing the daily list creation time by 30 minutes, you save 10 hours per month based on 20 working days, resulting in an annual reduction of 120 hours. This leads to a personnel cost saving of approximately $2,380 per person per year and $23,800 per year for a team of 10 people. (*Personnel costs are calculated based on the median annual income of $38,790)."}
           </p>
         </div>
         <div className={`${styles.img_col} flex items-center`}>
