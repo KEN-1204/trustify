@@ -170,7 +170,7 @@ export const Modal: FC = () => {
           <button
             type="submit"
             className={`${styles.auth_block} ${styles.auth_google} text-[#000]`}
-            // onClick={handleGoogleAuth}
+            onClick={handleGoogleAuth}
           >
             <div className="flex-center space-x-4">
               <span className="h-[24px] w-[24px]">{googleIcon}</span>
@@ -203,7 +203,8 @@ export const Modal: FC = () => {
           {/* ================== formエリア ================== */}
           <form
             className={`${styles.auth_form} ${styles.email_signUp_area}`}
-            onSubmit={handleSubmitTest}
+            // onSubmit={handleSubmitTest}
+            onSubmit={handleSubmit}
             ref={emailRef}
           >
             {/* <form className={`${styles.auth_form} ${styles.email_signUp_area}`} onSubmit={handleSubmit} ref={emailRef}> */}
@@ -285,8 +286,8 @@ export const Modal: FC = () => {
                 </div>
               ) : isLogin ? (
                 <>
-                  {/* {language === "Ja" && "メールアドレスでログイン"} */}
-                  {language === "Ja" && "準備中"}
+                  {language === "Ja" && "メールアドレスでログイン"}
+                  {/* {language === "Ja" && "準備中"} */}
                   {language === "En" && "Log in"}
                 </>
               ) : alreadyRequestedOtp ? (
@@ -297,8 +298,8 @@ export const Modal: FC = () => {
               ) : (
                 <>
                   {/* {language === "Ja" && "メールアドレスでアカウントを作成"} */}
-                  {/* {language === "Ja" && "メールアドレスでログイン"} */}
-                  {language === "Ja" && "準備中"}
+                  {language === "Ja" && "メールアドレスでログイン"}
+                  {/* {language === "Ja" && "準備中"} */}
                   {language === "En" && "Create account"}
                 </>
               )}
