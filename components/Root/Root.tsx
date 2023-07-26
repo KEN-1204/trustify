@@ -376,7 +376,7 @@ export const Root: FC = () => {
           </p>
           <p>
             {language === "Ja" &&
-              "日々のリスト作成時間を1日30分短縮することで、20日稼働で月10時間の短縮、年間120時間の短縮となり、人件費1人当たり26万4000円/年、10人で260万円/年の導入効果に繋がります。(*人件費は中央値430万円/年で計算)"}
+              "日々のリスト作成時間を1日30分短縮することで、20日稼働で月10時間の短縮、年間120時間の短縮となり、人件費1人当たり26万8680円/年、10人で260万円/年の導入効果に繋がります。(*人件費は中央値430万円/年で計算)"}
             {language === "En" &&
               "By reducing the daily list creation time by 30 minutes, you save 10 hours per month based on 20 working days, resulting in an annual reduction of 120 hours. This leads to a personnel cost saving of approximately $2,380 per person per year and $23,800 per year for a team of 10 people. (*Personnel costs are calculated based on the median annual income of $38,790)."}
           </p>
@@ -499,8 +499,10 @@ export const Root: FC = () => {
             </label>
             <div className={styles.content}>
               <p>
+                {/* {language === "Ja" &&
+                  "TRUSTiFYを定額でお使いいただけます。プランは1人あたり月額￥980（ビジネスプラン）から￥1,980（サポータープラン）まで。追加料金や長期契約はありません。"} */}
                 {language === "Ja" &&
-                  "TRUSTiFYを定額でお使いいただけます。プランは1人あたり月額￥980（ビジネスプラン）から￥1,980（サポータープラン）まで。追加料金や長期契約はありません。"}
+                  "TRUSTiFYを定額でお使いいただけます。プランは1人あたり月額￥980（ビジネスプラン）と￥19,800（サポータープラン）の2つのみ。追加料金や長期契約はありません。"}
                 {/* {language === "Ja" &&
                   "スマホ、タブレット、スマートテレビ、パソコン、ストリーミングデバイスなどから、Netflixを定額でお楽しみいただけます。プランは月額￥790から￥1,980まで。追加料金や長期契約はありません。"} */}
                 {language === "En" &&
@@ -521,8 +523,9 @@ export const Root: FC = () => {
               <p>
                 {/* {language === "Ja" &&
                   "広告つきプランでは、低価格で映画やドラマをお楽しみいただけます。様々な作品をご視聴いただけますが、再生中に広告が流れることがあります (場所やデバイスによっては一部制限があります)。ダウンロードはご利用いただけません。また、一部の映画やドラマは、ライセンスの関係でご覧いただけません。詳しくはこちら。"} */}
-                {language === "Ja" &&
-                  "ビジネスプランでは、無料プランでは利用制限のかかるコンテンツを無制限にご利用いただけます。"}
+                {/* {language === "Ja" &&
+                  "ビジネスプランでは、無料プランでは利用制限のかかるコンテンツを無制限にご利用いただけます。"} */}
+                {language === "Ja" && "ビジネスプランのメンバーは全てのコンテンツを無制限にご利用いただけます。"}
                 {language === "En" &&
                   "With the Business Plan, you can enjoy unlimited access to content that is subject to usage restrictions in the Free Plan. "}
                 {/* {language === "En" &&
@@ -530,7 +533,7 @@ export const Root: FC = () => {
               </p>
               <p>
                 {language === "Ja" &&
-                  "また、サポータープランは、まだTRUSTiFYはベータ版であり、少数精鋭のTRUSTiFYチームがお客様の要望を聞きながらすぐに改善し、低価格で最大の経済効果を上げられるサービスへと育てていけるよう「支援者」となっていただく方を本プランにて募集しております。ご満足いただけるサービスにできるよう何卒よろしくお願い申し上げます。"}
+                  "また、サポータープランに関しては、まだTRUSTiFYはベータ版であり、少数精鋭のTRUSTiFYチームが直接お客様のご要望を聞きながらすぐに改善し、低価格で最大の経済効果を上げられるサービスへと育てていけるよう「支援者」となっていただく方を本プランにて募集しております。ご満足いただけるサービスにできるよう何卒よろしくお願い申し上げます。"}
                 {language === "En" &&
                   "Also, we are seeking 'supporters' in the Supporter Plan, as TRUSTiFY is still in beta. Our small but dedicated TRUSTiFY team is committed to promptly implementing improvements based on our customers' feedback, in order to evolve this into a service that yields maximum economic benefits at a low cost. We sincerely ask for your support in making this a service that will satisfy you."}
               </p>
