@@ -352,6 +352,7 @@
   --color-text-toolbar: #fff;
 
   --color-text: rgba(0, 0, 0, 0.9); /* テキストカラー or #333333 */
+  --color-text: #282828;
   --color-text-rgb: 0, 0, 0; /* テキストカラー or #333333 */
   --color-text-hover: #333;
   --color-text-reverse: #fff;
