@@ -3,10 +3,16 @@
   /* background: radial-gradient(#333, #000); */
   height: 100dvh;
   /* 背景画像🌟 */
-  /* background-image: url("/assets/images/login-background.jpg");
+  /* background-image: url("/assets/images/login-background.jpg"); */
+  /* background-image: url("/assets/images/hero/hero_white.png");
+  background-image: url("/assets/images/hero/hero_black3.png"); */
+  /* background-image: url("/assets/images/hero/hero_white3.png"); */
+  /* hero画面横 */
+  background-image: var(--hero-img);
   background-position: center;
   background-size: cover;
-  background-repeat: no-repeat; */
+  background-repeat: no-repeat;
+  /* hero画面横 */
 
   /* position: absolute;
   top: 0;
@@ -52,6 +58,31 @@
   text-align: center;
   /* margin-top: 100px; */
 }
+/* ヒーロー画像横の場合 */
+/* hero画面横 */
+.hero {
+  position: absolute;
+  top: 50%;
+  left: 5%;
+  transform: translateY(-50%);
+  text-align: justify;
+  color: var(--color-text);
+  text-shadow: var(--hero-text-shadow) 1px 0 10px;
+}
+.hero_overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--hero-overlay);
+}
+.btn_box {
+  padding-left: 150px;
+}
+
+/* ヒーロー画像横の場合 */
+/* hero画面横 */
 .hero h1 {
   font-size: 60px;
   line-height: 70px;
@@ -301,6 +332,8 @@
   color: #f9f9f9;
   /* background-color: #0063e5; */
   background-color: var(--color-bg-brand);
+  /* hero画面横 */
+  background-color: var(--cta-btn);
   width: 20vw;
   margin-top: 32px;
   /* margin-bottom: 12px; */
@@ -315,6 +348,8 @@
 .cta_btn:hover {
   /* background-color: #0483ee; */
   background-color: var(--color-bg-brand-hover-main);
+  /* hero画面横 */
+  background-color: var(--cta-btn-hover);
 }
 
 /* ======================== Features ======================== */
@@ -527,7 +562,8 @@
 }
 .email_auth .input_box {
   flex: 1;
-  border: 1px solid #ffffff70;
+  /* border: 1px solid #ffffff70; */
+  border: 1px solid var(--input-border);
   height: 100%;
   width: 100%;
   border-top-left-radius: 4px;
@@ -573,6 +609,8 @@
 
 .email_auth button {
   background: var(--color-bg-brand);
+  /* hero画面横 */
+  background: var(--cta-btn);
 
   border: 0;
   outline: 0;
@@ -586,6 +624,8 @@
 }
 .email_auth button:hover {
   background: var(--color-bg-brand-hover-main);
+  /* hero画面横 */
+  background: var(--cta-btn-hover);
 }
 
 .start .email_signUp_area {

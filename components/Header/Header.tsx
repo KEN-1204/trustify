@@ -236,7 +236,8 @@ export const Header: FC<Props> = ({
               >
                 <span>
                   {language === "Ja" && "始める"}
-                  {language === "En" && "Get started for free"}
+                  {/* {language === "En" && "Get started for free"} */}
+                  {language === "En" && "Get started"}
                 </span>
                 {/* <div className={`${styles.underline}`} /> */}
               </button>

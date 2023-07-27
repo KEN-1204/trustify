@@ -73,9 +73,13 @@
 }
 .navbarItem:last-of-type {
 }
-
+.navbarItem span {
+  /* color: #000; */
+  text-shadow: var(--header-text-shadow) 0 0 10px;
+}
 .navbarItem:hover span {
   color: var(--navbar-text-color-hover);
+  text-shadow: var(--header-text-shadow-hover) 0 0 10px;
   /* color: var(--color-text-secondary); */
 }
 .navbarItem:hover .underline {

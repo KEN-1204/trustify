@@ -5,6 +5,7 @@
   cursor: pointer;
   /* background: #00000030; */
   background: var(--overlay-light);
+  background: var(--overlay);
   /* backdrop-filter: blur(2px); */
 }
 

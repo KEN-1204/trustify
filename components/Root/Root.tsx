@@ -165,20 +165,18 @@ export const Root: FC = () => {
         ref={scrollRef}
       >
         <div className="absolute left-0 top-0 -z-[0] h-[100dvh] w-[100dvw] overflow-hidden">
-          <video
+          {/* <video
             autoPlay={true}
             muted={true}
             playsInline={true}
             loop={true}
-            // className={`absolute left-0 top-0 -z-[0] h-[100dvh] w-[100dvw] scale-[1.02]`}
             className={` h-[100%] w-[100%] scale-[1.02]`}
           >
-            {/* <source src="/assets/videos/Root/top-bg1.mp4" type="video/mp4" /> */}
-            {/* <source src="/assets/videos/Root/top-bg2.mp4" type="video/mp4" /> */}
             <source src="/assets/videos/Root/top-bg3.mp4" type="video/mp4" />
-          </video>
+          </video> */}
         </div>
-        {/* <div className="absolute left-0 top-0  z-0 h-[100dvh] w-[100dvw] bg-[#00000030]"></div> */}
+        {/* <div className="absolute left-0 top-0  z-0 h-[100dvh] w-[100dvw] bg-[#00000010]"></div> */}
+        {/* <div className={`${styles.hero_overlay}`}></div> */}
         <div className={styles.hero}>
           <h1 className={`${language === "En" && "!max-w-full "}`}>
             {/* ========== タイピングアニメーション ========== */}
@@ -228,21 +226,23 @@ export const Root: FC = () => {
           {/* </form> */}
           {/* ============= メールで始める ここまで ============= */}
           {/* ============= 始めるボタンでModal表示 Only ============= */}
-          <button
-            onClick={() => {
-              setIsLogin(false);
-              openModal(true); // メンテナンス完了後は表示
-            }}
-            className={`${styles.cta_btn}`}
-          >
-            {/* {language === "Ja" && "無料で始める"} */}
-            {language === "Ja" && "今すぐ始める"}
-            {/* {language === "Ja" && "メンテナンス中"} */}
-            {/* {language === "En" && "Get Started for free"} */}
-            {language === "En" && "Get Started"}
-            {/* {language === "Ja" && "無料で始める"}
+          <div className={`${styles.btn_box}`}>
+            <button
+              onClick={() => {
+                setIsLogin(false);
+                openModal(true); // メンテナンス完了後は表示
+              }}
+              className={`${styles.cta_btn}`}
+            >
+              {/* {language === "Ja" && "無料で始める"} */}
+              {language === "Ja" && "今すぐ始める"}
+              {/* {language === "Ja" && "メンテナンス中"} */}
+              {/* {language === "En" && "Get Started for free"} */}
+              {language === "En" && "Get Started"}
+              {/* {language === "Ja" && "無料で始める"}
             {language === "En" && "Get Started for free"} */}
-          </button>
+            </button>
+          </div>
           {/* ============= 始めるボタンでModal表示 ここまで ============= */}
         </div>
       </div>
