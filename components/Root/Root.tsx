@@ -427,7 +427,7 @@ export const Root: FC = () => {
           </h2>
           <p>
             {language === "Ja" &&
-              "売れ先、売れなかった行き先のデータを常に収集することで、日々の営業データから次なる潜在ニーズの発掘し、他社よりも先手を打つ商品を開発し、また営業データを収集と売れるサイクルを構築します。"}
+              "売れ先、売れなかった行き先のデータを常に収集することで、日々の営業データから次なる潜在ニーズを発掘し、他社よりも先手を打つ商品を開発しリリース、そしてまた営業データを収集、売上を上げ続ける仕組みを構築します。"}
             {/* {language === "Ja" && "日々の営業データから次なる潜在ニーズを発掘し、広告なしのプランでのみご利用いただけます。"} */}
             {language === "En" &&
               "By continuously collecting data on successful and unsuccessful sales prospects, we uncover potential needs from daily sales data, develop products that take the initiative over competitors, and establish a cycle of sales data collection and sales success."}
