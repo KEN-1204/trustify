@@ -509,7 +509,9 @@ export const Root: FC = () => {
                 {/* {language === "Ja" &&
                   "スマホ、タブレット、スマートテレビ、パソコン、ストリーミングデバイスなどから、Netflixを定額でお楽しみいただけます。プランは月額￥790から￥1,980まで。追加料金や長期契約はありません。"} */}
                 {language === "En" &&
-                  "You can use TRUSTiFY for a flat rate. Our plans range from $7 to $14 per person per month. There are no additional charges or long-term contracts."}
+                  "You can use TRUSTiFY at a flat rate. We offer only two plans: the Business Plan at $8.70 per person per month, and the Supporter Plan at $176 per person per month. There are no additional charges or long-term contracts."}
+                {/* {language === "En" &&
+                  "You can use TRUSTiFY for a flat rate. Our plans range from $7 to $14 per person per month. There are no additional charges or long-term contracts."} */}
                 {/* {language === "En" &&
                   "Watch Netflix on your smartphone, tablet, Smart TV, laptop, or streaming device, all for one fixed monthly fee. Plans range from JPY790 to JPY1,980 a month. No extra costs, no contracts."} */}
               </p>
