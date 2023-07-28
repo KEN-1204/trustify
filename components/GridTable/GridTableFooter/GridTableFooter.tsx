@@ -5,10 +5,12 @@ import useStore from "@/store";
 
 type Props = {
   getItemCount: number;
+  getTotalCount?: number | null;
 };
 
-const GridTableFooterMemo: FC<Props> = ({ getItemCount }) => {
+const GridTableFooterMemo: FC<Props> = ({ getItemCount, getTotalCount }) => {
   const language = useStore((state) => state.language);
+  console.log("トータルカウント", getTotalCount);
   return (
     <div className={styles.grid_footer}>
       <div className={styles.grid_footer_inner}>
@@ -40,15 +42,17 @@ const GridTableFooterMemo: FC<Props> = ({ getItemCount }) => {
           </button> */}
           <button className=" focus:outline-scale-600 flex rounded bg-transparent p-0  outline-offset-1 transition-all focus:outline-4 ">
             <span className=" font-regular text-scale-1200 bordershadow-scale-600 hover:bordershadow-scale-700 dark:bordershadow-scale-800 hover:dark:bordershadow-scale-900 focus-visible:outline-scale-700 relative inline-flex cursor-pointer items-center space-x-2 rounded border border-[#777] bg-transparent px-[10px] py-[3px] text-center text-xs shadow-sm transition transition-all duration-200 ease-out focus-visible:outline-4 focus-visible:outline-offset-1">
-              <span className="truncate">
+              <span className="truncate ">
                 {language === "Ja" && `${getItemCount ? getItemCount : `-`} 件`}
                 {language === "En" && "100 rows"}
               </span>
             </span>
           </button>
           <p className="text-sm font-medium text-[#bbb]">
-            {language === "Ja" && `/ 975184件`}
-            {language === "En" && "/ 975184 records"}
+            {language === "Ja" && `/ ${getTotalCount === null ? "-" : getTotalCount}件`}
+            {language === "En" && `/ ${getTotalCount === null ? "-" : getTotalCount} records`}
+            {/* {language === "Ja" && `/ 975184件`}
+            {language === "En" && "/ 975184 records"} */}
           </p>
         </div>
       </div>

@@ -1,7 +1,7 @@
 .btn_common {
   border: 0;
   outline: 0;
-  background: var(--color-bg-brand);
+  /* background: var(--color-bg-brand); */
   /* color: #fff; */
   color: var(--navColor);
   padding: 7px 20px;
@@ -10,12 +10,14 @@
   /* margin-left: 10px; */
   cursor: pointer;
   font-weight: 500;
-  box-shadow: 0px 0 20px var(--header-lang-box-shadow);
+  /* hero画面横 */
+  /* box-shadow: 0px 0 20px var(--header-lang-box-shadow); */
 }
 .language_btn {
   border: 0;
   outline: 0;
   /* background: var(--color-bg-brand); */
+  /* hero画面横 */
   background-color: var(--header-lang-btn-bg) !important;
   /* color: #fff; */
   color: var(--navColor);
@@ -35,7 +37,8 @@
   padding: 7px 10px;
   position: relative;
   z-index: 100;
-  text-shadow: var(--header-text-shadow) 0px 0 10px;
+  /* hero画面横 */
+  /* text-shadow: var(--header-text-shadow) 0px 0 10px; */
 }
 .language_btn svg {
   width: 20px;

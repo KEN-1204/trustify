@@ -240,7 +240,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
 
   // ================== 🌟条件なしサーバーデータフェッチ用の関数🌟 ==================
   // 取得カウント保持用state
-  const [getTotalCount, setGetTotalCount] = useState();
+  const [getTotalCount, setGetTotalCount] = useState<number | null>(null);
+  // let getTotalCount;
   // ユーザーが会社idを持っていない場合にはcreated_by_company_idはnullのみを取得する関数を定義
   let fetchServerPage: any;
   // ユーザーが会社に所属していない場合には、created_byがNULLの会社のみ取得 新規サーチはなし
@@ -249,7 +250,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       limit: number,
       offset: number = 0
       // ================= 🔥🔥テスト🔥🔥==================
-    ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean }> => {
+    ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean; count: number | null }> => {
+      // ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean }> => {
       // ================= 🔥🔥テスト🔥🔥==================
       // ): Promise<{ rows: Client_company[] | null; nextOffset: number; }> => {
       // ): Promise<{ rows: TableDataType[]; nextOffset: number }> => {
@@ -259,9 +261,10 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       const to = from + limit - 1;
       console.log("🔥🔥テスト🔥🔥 from, to", from, to);
       // const { data, error } = await supabase.from("client_companies").select(`${columnNamesObj}`).range(from, to);
-      const { data, error } = await supabase
+      const { data, error, count } = await supabase
         .from("client_companies")
-        .select(`${columnNamesObj}`)
+        // .select(`${columnNamesObj}`)
+        .select(`${columnNamesObj}`, { count: "exact" })
         .is("created_by_company_id", null)
         .range(from, to);
       // const { data, error } = await supabase
@@ -271,10 +274,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       //   .range(from, to);
       // const { data, error } = await supabase.from("client_companies").select(`*`).eq(``).range(from, to);
 
-      // 取得総数を最初のフェッチのみ取得
-
-      console.log("🔥🔥テスト🔥🔥フェッチ後 from, to", from, to);
-      console.log("🔥🔥テスト🔥🔥フェッチ後 data", data);
+      console.log("🔥🔥テスト🔥🔥フェッチ後 count data", count, data);
       if (error) throw error;
       // ===== 🔥🔥テスト🔥🔥ここから=====
       const rows = ensureClientCompanies(data);
@@ -288,7 +288,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // 取得したrowsを返す（nextOffsetは、queryFnのctx.pageParamsが初回フェッチはundefinedで2回目が1のため+1でページ数と合わせる）
-      return { rows, nextOffset: offset + 1, isLastPage };
+      // return { rows, nextOffset: offset + 1, isLastPage };
+      return { rows, nextOffset: offset + 1, isLastPage, count };
     };
   }
   // ユーザーが会社idを持っている場合にはcreated_by_company_idはnullと自社で作成した会社両方を取得する関数を定義 新規サーチなし
@@ -297,7 +298,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       limit: number,
       offset: number = 0
       // ================= 🔥🔥テスト🔥🔥==================
-    ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean }> => {
+    ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean; count: number | null }> => {
+      // ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean }> => {
       // ================= 🔥🔥テスト🔥🔥==================
       // ): Promise<{ rows: Client_company[] | null; nextOffset: number; }> => {
       // ): Promise<{ rows: TableDataType[]; nextOffset: number }> => {
@@ -307,15 +309,14 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       const to = from + limit - 1;
       console.log("🔥🔥テスト🔥🔥 from, to", from, to);
       // const { data, error } = await supabase.from("client_companies").select(`${columnNamesObj}`).range(from, to);
-      const { data, error } = await supabase
+      const { data, error, count } = await supabase
         .from("client_companies")
-        .select(`${columnNamesObj}`)
+        .select(`${columnNamesObj}`, { count: "exact" })
         .or(`created_by_company_id.is.null,created_by_company_id.eq.${userProfileState.company_id}`)
         .range(from, to);
       // const { data, error } = await supabase.from("client_companies").select(`*`).eq(``).range(from, to);
 
-      console.log("🔥🔥テスト🔥🔥フェッチ後 from, to", from, to);
-      console.log("🔥🔥テスト🔥🔥フェッチ後 data", data);
+      console.log("🔥🔥テスト🔥🔥フェッチ後 count data", count, data);
       if (error) throw error;
       // ===== 🔥🔥テスト🔥🔥ここから=====
       const rows = ensureClientCompanies(data);
@@ -329,7 +330,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // 取得したrowsを返す（nextOffsetは、queryFnのctx.pageParamsが初回フェッチはundefinedで2回目が1のため+1でページ数と合わせる）
-      return { rows, nextOffset: offset + 1, isLastPage };
+      // return { rows, nextOffset: offset + 1, isLastPage };
+      return { rows, nextOffset: offset + 1, isLastPage, count };
     };
   }
 
@@ -342,19 +344,23 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     fetchNewSearchServerPage = async (
       limit: number,
       offset: number = 0
-    ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean }> => {
+    ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean; count: number | null }> => {
+      // ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean }> => {
       const from = offset * limit;
       const to = from + limit - 1;
       console.log("🔥🔥テスト🔥🔥実行！！！！！！！！", from, to);
       let params = newSearchCompanyParams;
-      const { data, error } = await supabase
-        .rpc("search_companies", { params })
+      const { data, error, count } = await supabase
+        .rpc("search_companies", { params }, { count: "exact" })
         .is("created_by_company_id", null)
         .range(from, to);
       console.log("🔥🔥テスト🔥🔥終了！！！！！！！！ from, to", from, to);
+
       // .is("created_by_company_id", null)
       // .range(from, to);
-      console.log("🔥🔥テスト🔥🔥フェッチ後 data", data);
+
+      console.log("🔥🔥テスト🔥🔥フェッチ後 count data", count, data);
+
       if (error) {
         alert(error.message);
         throw error;
@@ -372,7 +378,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       setLoadingGlobalState(false);
 
       // 取得したrowsを返す（nextOffsetは、queryFnのctx.pageParamsが初回フェッチはundefinedで2回目が1のため+1でページ数と合わせる）
-      return { rows, nextOffset: offset + 1, isLastPage };
+      // return { rows, nextOffset: offset + 1, isLastPage };
+      return { rows, nextOffset: offset + 1, isLastPage, count };
     };
   }
   // 条件あり新規サーチ ユーザーが会社に所属している場合には、created_byがNULLか、ユーザーの所属会社idに合致する会社のみ取得
@@ -380,17 +387,20 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     fetchNewSearchServerPage = async (
       limit: number,
       offset: number = 0
-    ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean }> => {
+    ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean; count: number | null }> => {
+      // ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean }> => {
       console.log("🔥🔥テスト🔥🔥 offset, limit", offset, limit);
       const from = offset * limit;
       const to = from + limit - 1;
       console.log("🔥🔥テスト🔥🔥 from, to", from, to);
       let params = newSearchCompanyParams;
-      const { data, error } = await supabase
-        .rpc("search_companies", { params })
+      const { data, error, count } = await supabase
+        .rpc("search_companies", { params }, { count: "exact" })
         .is("created_by_company_id", null)
         .range(from, to);
-      console.log("🔥🔥テスト🔥🔥フェッチ後 data", data);
+
+      console.log("🔥🔥テスト🔥🔥フェッチ後 count data", count, data);
+
       if (error) throw error;
 
       const rows = ensureClientCompanies(data);
@@ -403,7 +413,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // 取得したrowsを返す（nextOffsetは、queryFnのctx.pageParamsが初回フェッチはundefinedで2回目が1のため+1でページ数と合わせる）
-      return { rows, nextOffset: offset + 1, isLastPage };
+      // return { rows, nextOffset: offset + 1, isLastPage };
+      return { rows, nextOffset: offset + 1, isLastPage, count };
     };
   }
 
@@ -477,6 +488,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // ================= 🔥🔥テスト🔥🔥ここから==================
   // 現在取得している全ての行 data.pagesのネストした配列を一つの配列にフラット化
   // const allRows = data ? data.pages.flatMap((d) => d?.rows) : [];
+  console.log("=============================================data", data);
   const Rows = data ? data.pages.flatMap((d) => d?.rows) : [];
   const allRows = Rows.map((obj, index) => {
     return { index, ...obj };
@@ -2737,7 +2749,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
           </div>
           {/* ================== Gridスクロールコンテナ ここまで ================== */}
           {/* =============== Gridフッター ここから スクロールコンテナと同列で配置 =============== */}
-          <GridTableFooter getItemCount={allRows.length} />
+          <GridTableFooter getItemCount={allRows.length} getTotalCount={data ? data.pages[0].count : 0} />
           {/* ================== Gridフッター ここまで ================== */}
         </div>
         {/* ================== Gridメインコンテナ ここまで ================== */}
