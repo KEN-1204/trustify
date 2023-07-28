@@ -279,14 +279,17 @@
 .search_mode_container_one_third {
   min-height: calc(100vh / 3 - var(--header-height) / 3 - 30px - 40px - 30px);
   /* background: #ccc; */
+  width: calc(100vw - var(--sidebar-width) - 20px);
 }
 .search_mode_container_half {
   min-height: calc(100vh / 2 - var(--header-height) / 2 - 30px - 40px - 30px);
   /* background: #ccc; */
+  width: calc(100vw - var(--sidebar-width) - 20px);
 }
 .search_mode_container_all {
   min-height: calc(100vh - var(--header-height) - 30px - 40px - 30px);
   /* background: #ccc; */
+  width: calc(100vw - var(--sidebar-width) - 20px);
 }
 .searching_row {
   /* border-top: 1px solid #ccc; */

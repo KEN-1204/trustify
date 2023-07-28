@@ -37,6 +37,7 @@ export default function Home() {
   // ログイン時にテーマをライトに設定する
   useEffectOnce(() => {
     setTheme("dark");
+    // setTheme("light");
   });
 
   return (

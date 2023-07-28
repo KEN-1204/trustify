@@ -6,6 +6,7 @@
   height: 80px;
   /* width: 40px;
   height: 40px; */
+  transform: scale(0.4);
 }
 .lds_spinner div {
   /* transform-origin: 40px 40px; */

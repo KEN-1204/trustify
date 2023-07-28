@@ -8,6 +8,7 @@ import useStore from "@/store";
 const CompanyFunctionHeaderMemo: FC = () => {
   const searchMode = useDashboardStore((state) => state.searchMode);
   const setSearchMode = useDashboardStore((state) => state.setSearchMode);
+  const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
   const setUnderDisplayFullScreen = useDashboardStore((state) => state.setUnderDisplayFullScreen);
   const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
@@ -61,9 +62,11 @@ const CompanyFunctionHeaderMemo: FC = () => {
             if (searchMode) {
               // SELECTメソッド
               setSearchMode(false);
+              setLoadingGlobalState(false);
             } else {
               // 新規サーチクリック
               setSearchMode(true);
+              // setLoadingGlobalState(true);
             }
           }}
         />

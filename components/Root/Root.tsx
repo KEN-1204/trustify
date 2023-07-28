@@ -165,7 +165,7 @@ export const Root: FC = () => {
         ref={scrollRef}
       >
         <div className="absolute left-0 top-0 -z-[0] h-[100dvh] w-[100dvw] overflow-hidden">
-          {/* <video
+          <video
             autoPlay={true}
             muted={true}
             playsInline={true}
@@ -173,7 +173,7 @@ export const Root: FC = () => {
             className={` h-[100%] w-[100%] scale-[1.02]`}
           >
             <source src="/assets/videos/Root/top-bg3.mp4" type="video/mp4" />
-          </video> */}
+          </video>
         </div>
         {/* <div className="absolute left-0 top-0  z-0 h-[100dvh] w-[100dvw] bg-[#00000010]"></div> */}
         {/* <div className={`${styles.hero_overlay}`}></div> */}
@@ -340,6 +340,9 @@ export const Root: FC = () => {
               height={600}
               className={`${styles.img}`}
             />
+            <video autoPlay={true} loop={true} playsInline={true} muted={true}>
+              <source src="/assets/videos/trustify-company-movie2-up.mp4" type="video/mp4" />
+            </video>
           </div>
         </div>
         {/* <div className={styles.img_col}>

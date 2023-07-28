@@ -15,7 +15,8 @@
 .language_btn {
   border: 0;
   outline: 0;
-  background: var(--color-bg-brand);
+  /* background: var(--color-bg-brand); */
+  background-color: var(--header-lang-btn-bg) !important;
   /* color: #fff; */
   color: var(--navColor);
   padding: 7px 20px;

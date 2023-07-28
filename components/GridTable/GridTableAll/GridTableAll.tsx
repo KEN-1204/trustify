@@ -15,6 +15,7 @@ import { Client_company, Client_company_row_data } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { EditColumnsModalDisplayOnly } from "../EditColumns/EditColumnsModalDisplayOnly";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
+import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 
 type TableDataType = {
   id: number;
@@ -225,8 +226,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   }
   // ================== 🌟supabase本番サーバーデータフェッチ用の関数🌟 ==================
   const supabase = useSupabaseClient();
-  // 検索条件を保持するState
-  const [searchParameters, setSearchParameters] = useState();
+
   // 表示するカラム
   const columnNamesObj = [...columnHeaderItemList]
     .map((item, index) => item.columnName as keyof Client_company)
@@ -234,11 +234,13 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
 
   // ユーザーState
   const userProfileState = useDashboardStore((state) => state.userProfileState);
-  console.log("🔥🔥テスト🔥🔥userProfileState", userProfileState);
+
   // 新規サーチした時のrpc()に渡す検索項目params
   const newSearchCompanyParams = useDashboardStore((state) => state.newSearchCompanyParams);
 
   // ================== 🌟条件なしサーバーデータフェッチ用の関数🌟 ==================
+  // 取得カウント保持用state
+  const [getTotalCount, setGetTotalCount] = useState();
   // ユーザーが会社idを持っていない場合にはcreated_by_company_idはnullのみを取得する関数を定義
   let fetchServerPage: any;
   // ユーザーが会社に所属していない場合には、created_byがNULLの会社のみ取得 新規サーチはなし
@@ -268,6 +270,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       //   .or(`created_by_company_id.is.null`)
       //   .range(from, to);
       // const { data, error } = await supabase.from("client_companies").select(`*`).eq(``).range(from, to);
+
+      // 取得総数を最初のフェッチのみ取得
 
       console.log("🔥🔥テスト🔥🔥フェッチ後 from, to", from, to);
       console.log("🔥🔥テスト🔥🔥フェッチ後 data", data);
@@ -342,7 +346,11 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       const from = offset * limit;
       const to = from + limit - 1;
       console.log("🔥🔥テスト🔥🔥実行！！！！！！！！", from, to);
-      const { data, error } = await supabase.rpc("search_companies", { newSearchCompanyParams });
+      let params = newSearchCompanyParams;
+      const { data, error } = await supabase
+        .rpc("search_companies", { params })
+        .is("created_by_company_id", null)
+        .range(from, to);
       console.log("🔥🔥テスト🔥🔥終了！！！！！！！！ from, to", from, to);
       // .is("created_by_company_id", null)
       // .range(from, to);
@@ -377,8 +385,9 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       const from = offset * limit;
       const to = from + limit - 1;
       console.log("🔥🔥テスト🔥🔥 from, to", from, to);
+      let params = newSearchCompanyParams;
       const { data, error } = await supabase
-        .rpc("search_companies", { newSearchCompanyParams })
+        .rpc("search_companies", { params })
         .is("created_by_company_id", null)
         .range(from, to);
       console.log("🔥🔥テスト🔥🔥フェッチ後 data", data);
@@ -398,6 +407,11 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     };
   }
 
+  useEffect(() => {
+    if (!newSearchCompanyParams) return console.log("newSearchCompanyParamsなし✅✅✅", newSearchCompanyParams);
+    console.log("newSearchCompanyParamsあり✅✅✅", newSearchCompanyParams);
+  }, [newSearchCompanyParams]);
+
   // ================= 🔥🔥テスト🔥🔥==================
   // 新規サーチで検索した条件のnewSearchCompanyParamsのオブジェクトを全てa-zで並べ替えた状態で文字列にすることで、
   // 次回に同じ検索をした場合にもキャッシュを使用できるようにする
@@ -414,12 +428,12 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     // .join("");
     console.log("キャッシュに割り当てるparamsキー newSearchParamsStringRef.current", newSearchParamsStringRef.current);
   }
-  console.log(
-    "✅🔥newSearchCompanyParams",
-    newSearchCompanyParams,
-    "NewSearchParamsString",
-    newSearchParamsStringRef.current
-  );
+  // console.log(
+  //   "✅🔥newSearchCompanyParams",
+  //   newSearchCompanyParams,
+  //   "NewSearchParamsString",
+  //   newSearchParamsStringRef.current
+  // );
   // ================== 🌟useInfiniteQueryフック🌟 ==================
   const { status, data, error, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage } = useInfiniteQuery({
     // queryKey: ["companies"],
@@ -430,8 +444,10 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       // return fetchServerPage(35, ctx.pageParam); // 50個ずつ取得
       // 新規サーチなしの通常モード
       if (newSearchCompanyParams === null) {
+        console.log("通常フェッチ queryFn✅✅✅", newSearchCompanyParams);
         return fetchServerPage(50, ctx.pageParam); // 50個ずつ取得
       } else {
+        console.log("サーチフェッチ queryFn✅✅✅", newSearchCompanyParams);
         return fetchNewSearchServerPage(50, ctx.pageParam); // 50個ずつ取得
       }
     },
@@ -478,12 +494,6 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   });
   // ======================== 🌟バーチャライザーのインスタンスを生成🌟 ここまで ========================
 
-  // console.log(
-  //   `allRows.length: ${allRows.length} !!allRows.length: ${!!allRows.length} virtualItems:${
-  //     rowVirtualizer.getVirtualItems().length
-  //   } colsWidth: ${colsWidth} columnHeaderItemList`,
-  //   columnHeaderItemList
-  // );
   // ============================= 🌟無限スクロールの処理 追加でフェッチ🌟 =============================
   useEffect(() => {
     if (!rowVirtualizer) return console.log("無限スクロール関数 rowVirtualizerインスタンス無し");
@@ -612,13 +622,13 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       setColumnHeaderItemList(localStorageColumnHeaderItemList);
       // isFrozenがtrueの個数をRefに格納
       isFrozenCountRef.current = localStorageColumnHeaderItemList.filter((obj) => obj.isFrozen === true).length;
-      console.log("ローカルストレージルート localStorageColumnHeaderItemList", localStorageColumnHeaderItemList);
+      // console.log("ローカルストレージルート localStorageColumnHeaderItemList", localStorageColumnHeaderItemList);
       // columnHeaderItemListからcolumnwidthのみを取得
       const newColsWidths = localStorageColumnHeaderItemList.map((item) => item.columnWidth);
-      console.log("ローカルストレージルート tempColsWidth", newColsWidths);
+      // console.log("ローカルストレージルート tempColsWidth", newColsWidths);
       // チェックボックスの65pxの文字列をnewColsWidthsの配列の手前に格納
       newColsWidths.unshift("65px");
-      console.log("ローカルストレージルート unshift後のnewColsWidth Stateにカラムwidthを保存", newColsWidths);
+      // console.log("ローカルストレージルート unshift後のnewColsWidth Stateにカラムwidthを保存", newColsWidths);
       // 全てのカラムWidthをローカルStateに格納
       setColsWidth(newColsWidths);
       currentColsWidths.current = newColsWidths;
@@ -645,7 +655,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       // [65, 165, 415, 665, 915, 1165, 1415, 1665]
       // refオブジェクトにレフトポジションを格納
       columnLeftPositions.current = accumulatedArray;
-      console.log("ローカルストレージルート レフトポジション accumulatedArray", accumulatedArray);
+      // console.log("ローカルストレージルート レフトポジション accumulatedArray", accumulatedArray);
       // ===================================================== 🔥テスト フローズンカスタムプロパティ
       const filteredIsFrozenList = localStorageColumnHeaderItemList.filter((item) => item.isFrozen === true);
       filteredIsFrozenList.forEach((item, index) => {
@@ -660,12 +670,12 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
         const newValue = col.replace("px", "");
         return Number(newValue);
       });
-      console.log("ローカルストレージルート ヘッダーカラム生成 newColsWidthNum", newColsWidthNum);
+      // console.log("ローカルストレージルート ヘッダーカラム生成 newColsWidthNum", newColsWidthNum);
       // それぞれのカラムの合計値を取得 +aで文字列から数値型に変換して合計値を取得
       let sumRowWidth = newColsWidthNum.reduce((a, b) => {
         return a + b;
       });
-      console.log("ローカルストレージルート ヘッダーカラム生成 sumRowWidth", sumRowWidth);
+      // console.log("ローカルストレージルート ヘッダーカラム生成 sumRowWidth", sumRowWidth);
       // それぞれのCSSカスタムプロパティをセット
       // grid-template-columnsの値となるCSSカスタムプロパティをセット
       parentGridScrollContainer.current.style.setProperty("--template-columns", `${newColsWidths.join(" ")}`);
@@ -675,14 +685,14 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       parentGridScrollContainer.current.style.setProperty("--summary-row-height", "30px");
       // parentGridScrollContainer.current.style.setProperty("--summary-row-height", "35px");
 
-      console.log(
-        "ローカルストレージルート 更新後--template-columns",
-        parentGridScrollContainer.current.style.getPropertyValue("--template-columns")
-      );
-      console.log(
-        "ローカルストレージルート 更新後--row-width",
-        parentGridScrollContainer.current.style.getPropertyValue("--row-width")
-      );
+      // console.log(
+      //   "ローカルストレージルート 更新後--template-columns",
+      //   parentGridScrollContainer.current.style.getPropertyValue("--template-columns")
+      // );
+      // console.log(
+      //   "ローカルストレージルート 更新後--row-width",
+      //   parentGridScrollContainer.current.style.getPropertyValue("--row-width")
+      // );
 
       return console.log("useEffectはここでリターン ローカルストレージルート");
     }
@@ -2399,13 +2409,14 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
             </div>
             {/* ======================== 🌟Grid列トラック Rowヘッダー🌟 ======================== */}
             {/* サーチモード中は空のdivを表示 */}
-            {searchMode && loadingGlobalState ? (
+            {searchMode ? (
               <div
                 className={`${tableContainerSize === "one_third" ? `${styles.search_mode_container_one_third}` : ``} ${
                   tableContainerSize === "half" ? `${styles.search_mode_container_half}` : ``
-                } ${tableContainerSize === "all" ? `${styles.search_mode_container_all}` : ``}  w-[100vw]`}
+                } ${tableContainerSize === "all" ? `${styles.search_mode_container_all}` : ``} flex-center w-[100vw]`}
               >
-                {loadingGlobalState && <SpinnerComet />}
+                {/* {loadingGlobalState && <SpinnerComet />} */}
+                {loadingGlobalState && <SpinnerIDS />}
               </div>
             ) : (
               <>

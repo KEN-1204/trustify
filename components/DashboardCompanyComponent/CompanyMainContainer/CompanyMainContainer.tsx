@@ -208,16 +208,20 @@ const CompanyMainContainerMemo: FC = () => {
 
     setSearchMode(false);
 
-    // setNewSearchCompanyParams(params);
+    // Zustandに検索条件を格納
+    setNewSearchCompanyParams(params);
 
+    console.log("✅ params", params);
     // const { data, error } = await supabase.rpc("search_companies", { params });
-    const { data, error } = await supabase
-      .rpc("search_companies", { params })
-      .is("created_by_company_id", null)
-      .range(0, 20);
 
-    if (error) return alert(error.message);
-    console.log("✅ 検索結果データ取得 data", data);
+    // 会社IDがnull、つまりまだ有料アカウントを持っていないユーザー
+    // const { data, error } = await supabase
+    //   .rpc("search_companies", { params })
+    //   .is("created_by_company_id", null)
+    //   .range(0, 20);
+
+    // if (error) return alert(error.message);
+    // console.log("✅ 検索結果データ取得 data", data);
   };
 
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
@@ -1284,21 +1288,21 @@ const CompanyMainContainerMemo: FC = () => {
                   例えば、「&quot;東京都大田区&quot;」の会社で「事業拠点」が存在する会社を検索する場合は、「●住所」に「東京都大田区※」と入力し、「事業拠点」に「is
                   not null」と入力してください。
                 </div>
-                <div className="mt-[10px] flex  min-h-[30px] items-center">
+                <div className="mt-[5px] flex  min-h-[30px] items-center">
                   ○「※ アスタリスク」は、「前方一致・後方一致・部分一致」を表します
                 </div>
                 <div className="flex items-center">
                   <span className="h-full w-[15px]"></span>
                   例えば、会社名に「&quot;工業&quot;」と付く会社を検索したい場合に、「※工業※」、「&quot;精機&quot;」と付く会社は「※精機※」と検索することで、指定した文字が付くデータを検索可能です
                 </div>
-                <div className="mt-[10px] flex  min-h-[30px] items-center">
-                  ○「is not null」は「&quot;空白でない&quot;データ」を抽出します
+                <div className="mt-[5px] flex  min-h-[30px] items-center">
+                  ○「is not null」は「&quot;空欄でない&quot;データ」を抽出します
                 </div>
-                <div className="mt-[10px] flex  min-h-[30px] items-center">
-                  ○「is null」は「&quot;空白の&quot;データ」を抽出します
+                <div className="mt-[5px] flex  min-h-[30px] items-center">
+                  ○「is null」は「&quot;空欄の&quot;データ」を抽出します
                 </div>
-                <div className="mt-[10px] flex  min-h-[30px] items-center">
-                  ○空白の項目のまま検索した場合は、その項目の「全てのデータ」を抽出します
+                <div className="mt-[5px] flex  min-h-[30px] items-center">
+                  ○空欄の項目のまま検索した場合は、その項目の「全てのデータ」を抽出します
                 </div>
                 <div className="mt-[10px] flex h-[30px] w-full items-center">
                   <button type="submit" className={`${styles.btn}`}>

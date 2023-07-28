@@ -99,6 +99,7 @@
   --header-text-shadow: transparent;
   --header-text-shadow-hover: transparent;
   --header-lang-box-shadow: transparent;
+  --header-lang-btn-bg: transparent;
 
   /* Canva 背景 #fff 背景サブ rgba(64,87,109,.07) #40576d12 */
   --color-bg-base: #fff;
@@ -213,6 +214,7 @@
   /* --color-text-under-title: #333; */
   /* --color-text-under-title: #252525; */
   --color-text-under-title: #121212;
+  --color-text-under-title: #282828;
   --color-text-under-value: #424242;
   /* インプットボックス */
   --color-bg-under-input: #fff;
@@ -469,6 +471,7 @@
   --header-text-shadow: #000000;
   --header-text-shadow-hover: transparent;
   --header-lang-box-shadow: #00000050;
+  --header-lang-btn-bg: #00000078;
 
   /* Youtube背景 background-color: #0f0f0f */
   /* Tiktok背景メイン background-color: rgb(18, 18, 18) #121212 背景サブ background-color: rgb(37, 37, 37) #252525 ブラックサブ2 background-color: rgba(255, 255, 255, 0.08) テーマカラー赤 background-color: rgb(255, 59, 92) #ff3b5c */
