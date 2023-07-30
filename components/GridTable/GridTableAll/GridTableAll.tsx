@@ -418,11 +418,6 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     };
   }
 
-  useEffect(() => {
-    if (!newSearchCompanyParams) return console.log("newSearchCompanyParamsなし✅✅✅", newSearchCompanyParams);
-    console.log("newSearchCompanyParamsあり✅✅✅", newSearchCompanyParams);
-  }, [newSearchCompanyParams]);
-
   // ================= 🔥🔥テスト🔥🔥==================
   // 新規サーチで検索した条件のnewSearchCompanyParamsのオブジェクトを全てa-zで並べ替えた状態で文字列にすることで、
   // 次回に同じ検索をした場合にもキャッシュを使用できるようにする
