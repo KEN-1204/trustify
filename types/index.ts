@@ -262,6 +262,7 @@ export type NewSearchCompanyParams = {
   department_name: string | null;
   main_phone_number: string | null;
   main_fax: string | null;
+  email: string | null;
   zipcode: string | null;
   number_of_employees_class: string | null;
   address: string | null;
@@ -273,12 +274,14 @@ export type NewSearchCompanyParams = {
   product_category_medium: string | null;
   product_category_small: string | null;
   fiscal_end_month: string | null;
+  facility: string | null;
   clients: string | null;
   supplier: string | null;
   business_sites: string | null;
   overseas_bases: string | null;
   group_company: string | null;
   corporate_number: string | null;
+  website_url: string | null;
 };
 
 export type UserProfile = {

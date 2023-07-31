@@ -1,4 +1,4 @@
-import React, { FC, FormEvent, Suspense, memo, useState } from "react";
+import React, { FC, FormEvent, Suspense, memo, useEffect, useState } from "react";
 import styles from "../CompanyDetail/CompanyDetail.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import useStore from "@/store";
@@ -111,9 +111,82 @@ const CompanyMainContainerMemo: FC = () => {
   const [inputCorporateNum, setInputCorporateNum] = useState("");
 
   const supabase = useSupabaseClient();
+  const newSearchCompanyParams = useDashboardStore((state) => state.newSearchCompanyParams);
   const setNewSearchCompanyParams = useDashboardStore((state) => state.setNewSearchCompanyParams);
+  const editSearchMode = useDashboardStore((state) => state.editSearchMode);
+  const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
 
+  // サーチ編集モードでリプレイス前の値に復元する関数
+  function beforeAdjustFieldValue(value: string | null) {
+    if (value === "") return ""; // 全てのデータ
+    if (value === null) return ""; // 全てのデータ
+    if (value.includes("%")) value = value.replace(/\%/g, "＊");
+    if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+    if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+    return value;
+  }
+  console.log("🔥メインコンテナーnewSearchCompanyParams", newSearchCompanyParams);
+
+  // 編集モードtrueの場合、サーチ条件をinputタグのvalueに格納
+  // 新規サーチの場合には、サーチ条件を空にする
+  useEffect(() => {
+    if (newSearchCompanyParams === null) return;
+    console.log("🔥メインコンテナーnewSearchCompanyParams編集モード", newSearchCompanyParams);
+    if (editSearchMode) {
+      setInputName(beforeAdjustFieldValue(newSearchCompanyParams.name));
+      setInputDepartment(beforeAdjustFieldValue(newSearchCompanyParams.department_name));
+      setInputTel(beforeAdjustFieldValue(newSearchCompanyParams?.main_phone_number));
+      setInputFax(beforeAdjustFieldValue(newSearchCompanyParams?.main_fax));
+      setInputZipcode(beforeAdjustFieldValue(newSearchCompanyParams?.zipcode));
+      setInputEmployeesClass(beforeAdjustFieldValue(newSearchCompanyParams?.number_of_employees_class));
+      setInputAddress(beforeAdjustFieldValue(newSearchCompanyParams?.address));
+      setInputCapital(beforeAdjustFieldValue(newSearchCompanyParams?.capital));
+      setInputFound(beforeAdjustFieldValue(newSearchCompanyParams?.established_in));
+      setInputContent(beforeAdjustFieldValue(newSearchCompanyParams?.business_content));
+      setInputHP(beforeAdjustFieldValue(newSearchCompanyParams.website_url));
+      setInputEmail(beforeAdjustFieldValue(newSearchCompanyParams.email));
+      setInputIndustryType(beforeAdjustFieldValue(newSearchCompanyParams.industry_type));
+      setInputProductL(beforeAdjustFieldValue(newSearchCompanyParams.product_category_large));
+      setInputProductM(beforeAdjustFieldValue(newSearchCompanyParams.product_category_medium));
+      setInputProductS(beforeAdjustFieldValue(newSearchCompanyParams.product_category_small));
+      setInputFiscal(beforeAdjustFieldValue(newSearchCompanyParams.fiscal_end_month));
+      setInputClient(beforeAdjustFieldValue(newSearchCompanyParams.clients));
+      setInputSupplier(beforeAdjustFieldValue(newSearchCompanyParams.supplier));
+      setInputFacility(beforeAdjustFieldValue(newSearchCompanyParams.facility));
+      setInputBusinessSite(beforeAdjustFieldValue(newSearchCompanyParams.business_sites));
+      setInputOverseas(beforeAdjustFieldValue(newSearchCompanyParams.overseas_bases));
+      setInputGroup(beforeAdjustFieldValue(newSearchCompanyParams.group_company));
+      setInputCorporateNum(beforeAdjustFieldValue(newSearchCompanyParams.corporate_number));
+    } else {
+      setInputName("");
+      setInputDepartment("");
+      setInputTel("");
+      setInputFax("");
+      setInputZipcode("");
+      setInputEmployeesClass("");
+      setInputAddress("");
+      setInputCapital("");
+      setInputFound("");
+      setInputContent("");
+      setInputHP("");
+      setInputEmail("");
+      setInputIndustryType("");
+      setInputProductL("");
+      setInputProductM("");
+      setInputProductS("");
+      setInputFiscal("");
+      setInputClient("");
+      setInputSupplier("");
+      setInputFacility("");
+      setInputBusinessSite("");
+      setInputOverseas("");
+      setInputGroup("");
+      setInputCorporateNum("");
+    }
+  }, [editSearchMode]);
+
+  // サーチ関数実行
   const handleSearchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -215,6 +288,7 @@ const CompanyMainContainerMemo: FC = () => {
     setInputCorporateNum("");
 
     setSearchMode(false);
+    setEditSearchMode(false);
 
     // Zustandに検索条件を格納
     setNewSearchCompanyParams(params);

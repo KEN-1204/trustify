@@ -58,6 +58,9 @@ type State = {
   // 【サーチモード切り替え】
   searchMode: boolean;
   setSearchMode: (payload: boolean) => void;
+  // 【サーチ編集モード切り替え】
+  editSearchMode: boolean;
+  setEditSearchMode: (payload: boolean) => void;
   // 【下画面サイズ・フルスクリーンかデフォルトかを保持】
   underDisplayFullScreen: boolean;
   setUnderDisplayFullScreen: (payload: boolean) => void;
@@ -139,6 +142,9 @@ const useDashboardStore = create<State>((set) => ({
   // 【サーチモード切り替え】
   searchMode: false,
   setSearchMode: (payload) => set({ searchMode: payload }),
+  // 【サーチ編集モード切り替え】
+  editSearchMode: false,
+  setEditSearchMode: (payload) => set({ editSearchMode: payload }),
   // 【下画面サイズ・フルスクリーンかデフォルトかを保持】
   underDisplayFullScreen: false,
   setUnderDisplayFullScreen: (payload) => set({ underDisplayFullScreen: payload }),

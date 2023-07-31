@@ -8,6 +8,7 @@ import useStore from "@/store";
 const CompanyFunctionHeaderMemo: FC = () => {
   const searchMode = useDashboardStore((state) => state.searchMode);
   const setSearchMode = useDashboardStore((state) => state.setSearchMode);
+  const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
   const setUnderDisplayFullScreen = useDashboardStore((state) => state.setUnderDisplayFullScreen);
@@ -67,6 +68,8 @@ const CompanyFunctionHeaderMemo: FC = () => {
               // SELECTメソッド
               setSearchMode(false);
               setLoadingGlobalState(false);
+              // 編集モード中止
+              setEditSearchMode(false);
             } else {
               // 新規サーチクリック
               setSearchMode(true);
@@ -81,7 +84,9 @@ const CompanyFunctionHeaderMemo: FC = () => {
           clickEventHandler={() => {
             if (searchMode) return;
             console.log("サーチ編集 クリック");
-            setSearchMode(false);
+            // 編集モードとして開く
+            setEditSearchMode(true);
+            setSearchMode(true);
           }}
         />
         {/* <RippleButton

@@ -1,4 +1,5 @@
 import { DashboardCompanyComponent } from "@/components/DashboardCompanyComponent/DashboardCompanyComponent";
+import { DashboardContactComponent } from "@/components/DashboardContactComponent/DashboardContactComponent";
 import { DashboardHomeComponent } from "@/components/DashboardHomeComponent/DashboardHomeComponent";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import useStore from "@/store";
@@ -73,6 +74,7 @@ const DashboardHome = ({
     <DashboardLayout title={langTitle}>
       {activeMenuTab === "HOME" && <DashboardHomeComponent />}
       {activeMenuTab === "Company" && <DashboardCompanyComponent />}
+      {activeMenuTab === "Contact" && <DashboardContactComponent />}
     </DashboardLayout>
   );
 };
