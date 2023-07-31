@@ -33,7 +33,7 @@ const CompanyMainContainerMemo: FC = () => {
   console.log("🔥 CompanyMainContainerレンダリング searchMode", searchMode);
   const setHoveredItemPosWrap = useStore((state) => state.setHoveredItemPosWrap);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
-  // 上画面の洗濯中の列データ会社
+  // 上画面の選択中の列データ会社
   const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
 
   const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string = "center") => {
@@ -95,6 +95,8 @@ const CompanyMainContainerMemo: FC = () => {
   const [inputCapital, setInputCapital] = useState("");
   const [inputFound, setInputFound] = useState("");
   const [inputContent, setInputContent] = useState("");
+  const [inputHP, setInputHP] = useState("");
+  const [inputEmail, setInputEmail] = useState("");
   const [inputIndustryType, setInputIndustryType] = useState("");
   const [inputProductL, setInputProductL] = useState("");
   const [inputProductM, setInputProductM] = useState("");
@@ -138,6 +140,8 @@ const CompanyMainContainerMemo: FC = () => {
     let _capital = adjustFieldValue(inputCapital);
     let _established_in = adjustFieldValue(inputFound);
     let _business_content = adjustFieldValue(inputContent);
+    let _website_url = adjustFieldValue(inputHP);
+    let _email = adjustFieldValue(inputEmail);
     let _industry_type = adjustFieldValue(inputIndustryType);
     let _product_category_large = adjustFieldValue(inputProductL);
     let _product_category_medium = adjustFieldValue(inputProductM);
@@ -167,6 +171,8 @@ const CompanyMainContainerMemo: FC = () => {
       capital: _capital,
       established_in: _established_in,
       business_content: _business_content,
+      website_url: _website_url,
+      email: _email,
       industry_type: _industry_type,
       product_category_large: _product_category_large,
       product_category_medium: _product_category_medium,
@@ -193,6 +199,8 @@ const CompanyMainContainerMemo: FC = () => {
     setInputCapital("");
     setInputFound("");
     setInputContent("");
+    setInputHP("");
+    setInputEmail("");
     setInputIndustryType("");
     setInputProductL("");
     setInputProductM("");
@@ -490,7 +498,14 @@ const CompanyMainContainerMemo: FC = () => {
                       {selectedRowDataCompany?.website_url ? selectedRowDataCompany?.website_url : ""}
                     </span>
                   )}
-                  {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
+                  {searchMode && (
+                    <input
+                      type="text"
+                      className={`${styles.input_box}`}
+                      value={inputHP}
+                      onChange={(e) => setInputHP(e.target.value)}
+                    />
+                  )}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -506,7 +521,14 @@ const CompanyMainContainerMemo: FC = () => {
                       {selectedRowDataCompany?.email ? selectedRowDataCompany?.email : ""}
                     </span>
                   )}
-                  {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
+                  {searchMode && (
+                    <input
+                      type="text"
+                      className={`${styles.input_box}`}
+                      value={inputEmail}
+                      onChange={(e) => setInputEmail(e.target.value)}
+                    />
+                  )}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -1302,7 +1324,7 @@ const CompanyMainContainerMemo: FC = () => {
                   ○「is null」は「&quot;空欄の&quot;データ」を抽出します
                 </div>
                 <div className="mt-[5px] flex  min-h-[30px] items-center">
-                  ○空欄の項目のまま検索した場合は、その項目の「全てのデータ」を抽出します
+                  ○項目を空欄のまま検索した場合は、その項目の「全てのデータ」を抽出します
                 </div>
                 <div className="mt-[10px] flex h-[30px] w-full items-center">
                   <button type="submit" className={`${styles.btn}`}>

@@ -50,6 +50,10 @@ type State = {
   tableContainerSize: string;
   setTableContainerSize: (payload: string) => void;
 
+  // =================== 担当者作成モーダル ===================
+  isOpenInsertNewContactModal: boolean;
+  setIsOpenInsertNewContactModal: (payload: boolean) => void;
+
   // =================== アンダーテーブル関連 ===================
   // 【サーチモード切り替え】
   searchMode: boolean;
@@ -100,6 +104,7 @@ const useDashboardStore = create<State>((set) => ({
   // 【サイドバーの拡大・縮小】
   isOpenSidebar: true,
   setIsOpenSidebar: (payload) => set({ isOpenSidebar: payload }),
+
   // =================== データ編集モーダル ===================
   // 【データ編集モーダル開閉状態】
   isOpenEditModal: false,
@@ -107,6 +112,7 @@ const useDashboardStore = create<State>((set) => ({
   // 【データ編集モーダル テキストエリア内容】
   textareaInput: "",
   setTextareaInput: (payload) => set({ textareaInput: payload }),
+
   // =================== テーブルカラム編集モーダル ===================
   // 【テーブルカラム編集モーダル開閉状態】
   isOpenEditColumns: false,
@@ -117,6 +123,11 @@ const useDashboardStore = create<State>((set) => ({
   // 【カラム順番入れ替え 初期状態の内容を保持してリセット可能にするstate】
   resetColumnHeaderItemList: [],
   setResetColumnHeaderItemList: (payload) => set({ resetColumnHeaderItemList: payload }),
+
+  // =================== 担当者作成モーダル ===================
+  isOpenInsertNewContactModal: false,
+  setIsOpenInsertNewContactModal: (payload) => set({ isOpenInsertNewContactModal: payload }),
+
   // =================== テーブルサイズ切り替えボタン ===================
   // 【テーブルサイズ切り替えメニュー開閉状態】
   isOpenChangeSizeMenu: false,
@@ -140,7 +151,7 @@ const useDashboardStore = create<State>((set) => ({
       columnIndex: 2,
       columnName: "id",
       columnWidth: "50px",
-      isFrozen: true,
+      isFrozen: false,
       isOverflow: false,
     },
     {
@@ -148,7 +159,7 @@ const useDashboardStore = create<State>((set) => ({
       columnIndex: 3,
       columnName: "corporate_number",
       columnWidth: "200px",
-      isFrozen: true,
+      isFrozen: false,
       isOverflow: false,
     },
     {

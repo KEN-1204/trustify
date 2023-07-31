@@ -112,23 +112,20 @@ export const DashboardHomeComponent = () => {
                 </Suspense>
               </ErrorBoundary>
             )} */}
-            {activeMenuTab === "Contacts" && (
+            {/* {activeMenuTab === "Contacts" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense fallback={<Fallback />}>
-                  {/* <GridTableHomeSuccess title="メッセージ" /> */}
                   <GridTableAll title="GridTableAll" />
-                  {/* <GridTableAll title="GridTableAll2" /> */}
                 </Suspense>
               </ErrorBoundary>
-            )}
-            {activeMenuTab === "Meeting" && (
+            )} */}
+            {/* {activeMenuTab === "Meeting" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense fallback={<Fallback />}>
                   <GridTableSmallAll title="GridTableSmallAll" />
-                  {/* <GridTableHalf title="GridTableHalf" /> */}
                 </Suspense>
               </ErrorBoundary>
-            )}
+            )} */}
           </section>
           {/* <section className={`${styles.home_screen} space-y-[15px]`}>
             <GridTableHome title="メッセージ" />

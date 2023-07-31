@@ -13,6 +13,7 @@ const CompanyFunctionHeaderMemo: FC = () => {
   const setUnderDisplayFullScreen = useDashboardStore((state) => state.setUnderDisplayFullScreen);
   const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
+  const setIsOpenInsertNewContactModal = useDashboardStore((state) => state.setIsOpenInsertNewContactModal);
 
   const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
     // ホバーしたアイテムにツールチップを表示
@@ -103,6 +104,7 @@ const CompanyFunctionHeaderMemo: FC = () => {
           clickEventHandler={() => {
             if (searchMode) return;
             console.log("担当者作成 クリック");
+            setIsOpenInsertNewContactModal(true);
           }}
         />
       </div>

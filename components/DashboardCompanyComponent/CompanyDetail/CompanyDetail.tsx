@@ -35,10 +35,6 @@ const CompanyDetailMemo: FC = () => {
       <CompanyFunctionHeader />
       {/* メインコンテナ 左と右 */}
       <CompanyMainContainer />
-
-      {/* ファンクションヘッダー */}
-
-      {/* メインコンテナ 左と右 */}
     </div>
   );
 };

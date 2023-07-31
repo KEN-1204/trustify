@@ -348,28 +348,36 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       // ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean }> => {
       const from = offset * limit;
       const to = from + limit - 1;
-      console.log("🔥🔥テスト🔥🔥実行！！！！！！！！", from, to);
       let params = newSearchCompanyParams;
+      console.log("🔥🔥テスト🔥🔥supabase rpcフェッチ実行！！！！！！！！ from, to, params", from, to, params);
       const { data, error, count } = await supabase
         .rpc("search_companies", { params }, { count: "exact" })
         .is("created_by_company_id", null)
         .range(from, to);
-      console.log("🔥🔥テスト🔥🔥終了！！！！！！！！ from, to", from, to);
-
-      // .is("created_by_company_id", null)
-      // .range(from, to);
-
-      console.log("🔥🔥テスト🔥🔥フェッチ後 count data", count, data);
 
       if (error) {
         alert(error.message);
         throw error;
       }
       const rows = ensureClientCompanies(data);
-      console.log("🔥🔥テスト🔥🔥 rows", rows);
 
       // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
       const isLastPage = rows === null || rows.length < limit;
+
+      console.log(
+        "🔥🔥テスト🔥🔥フェッチ後 count",
+        count,
+        "data",
+        data,
+        "from",
+        from,
+        "to",
+        to,
+        "rows",
+        rows,
+        "isLastPage",
+        isLastPage
+      );
 
       // 1秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
       await new Promise((resolve) => setTimeout(resolve, 1000));

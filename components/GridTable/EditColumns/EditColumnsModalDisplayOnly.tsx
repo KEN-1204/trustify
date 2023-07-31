@@ -269,7 +269,8 @@ const EditColumnsModalDisplayOnlyMemo: FC<Props> = ({ columnHeaderItemList }) =>
           <div className="font-samibold cursor-pointer hover:text-[#aaa]" onClick={handleCancelAndReset}>
             キャンセル
           </div>
-          <div className="-translate-x-[25px] font-bold">カラム並び替え・追加/削除</div>
+          <div className="-translate-x-[25px] font-bold">カラム並び替え</div>
+          {/* <div className="-translate-x-[25px] font-bold">カラム並び替え・追加/削除</div> */}
           <div
             className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
             onClick={handleSaveAndClose}
