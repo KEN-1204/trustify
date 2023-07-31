@@ -318,4 +318,33 @@ export type UserProfile = {
   stripe_customer_id: string | null;
   subscription_id: string | null;
   updated_at: string | null;
+  unit: string | null;
 } | null;
+
+export type Contact = {
+  id: string;
+  created_at: string;
+  updated_at: string | null;
+  name: string;
+  direct_line: string | null;
+  direct_fax: string | null;
+  extension: string | null;
+  company_cell_phone: string | null;
+  personal_cell_phone: string | null;
+  email: string | null;
+  position: string | null;
+  position_class: string | null;
+  occupation: string | null;
+  approval_amount: number | null;
+  email_ban_flag: boolean;
+  sending_materials_ban_flag: boolean;
+  fax_dm_ban_flag: boolean;
+  ban_reason: string | null;
+  claim: string | null;
+  call_careful_flag: boolean;
+  call_careful_reason: string | null;
+  created_by_company_id: string | null;
+  created_by_user_id: string | null;
+  created_by_department_of_user: string | null;
+  created_by_unit_of_user: string | null;
+};

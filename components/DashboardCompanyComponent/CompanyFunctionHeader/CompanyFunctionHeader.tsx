@@ -15,6 +15,9 @@ const CompanyFunctionHeaderMemo: FC = () => {
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
   const setIsOpenInsertNewContactModal = useDashboardStore((state) => state.setIsOpenInsertNewContactModal);
 
+  // 上画面の選択中の列データ会社
+  const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
+
   const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
@@ -103,6 +106,7 @@ const CompanyFunctionHeaderMemo: FC = () => {
           borderRadius="2px"
           clickEventHandler={() => {
             if (searchMode) return;
+            if (!selectedRowDataCompany) return alert("会社を選択してください");
             console.log("担当者作成 クリック");
             setIsOpenInsertNewContactModal(true);
           }}

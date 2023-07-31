@@ -1,11 +1,21 @@
 import React, { useState } from "react";
 import styles from "./InsertNewContactModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
+import { toast } from "react-toastify";
+import useThemeStore from "@/store/useThemeStore";
+import { isNaN } from "lodash";
+import { useMutateContact } from "@/hooks/useMutateContact";
 
 export const InsertNewContactModal = () => {
   const setIsOpenInsertNewContactModal = useDashboardStore((state) => state.setIsOpenInsertNewContactModal);
+  const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
+  const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
+  const theme = useThemeStore((state) => state.theme);
   // 上画面の選択中の列データ会社
   const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
+  const userProfileState = useDashboardStore((state) => state.userProfileState);
   // 職位selectタグ選択用state
   const [selectedPositionClass, setSelectedPositionClass] = useState("1 代表者");
   // 担当職種selectタグ選択用state
@@ -20,7 +30,10 @@ export const InsertNewContactModal = () => {
   const [position, setPosition] = useState("");
   // const [positionClass, setPositionClass] = useState('')
   // const [occupation, setOccupation] = useState('')
-  const [approvalAmount, setApprovalAmount] = useState("");
+  const [approvalAmount, setApprovalAmount] = useState<number | null>(null);
+
+  const supabase = useSupabaseClient();
+  const { createContactMutation } = useMutateContact();
 
   console.log(
     "InsertNewContactModalコンポーネント レンダリング",
@@ -34,12 +47,80 @@ export const InsertNewContactModal = () => {
   const handleCancelAndReset = () => {
     setIsOpenInsertNewContactModal(false);
   };
-  const handleSaveAndClose = () => {
+  const handleSaveAndClose = async () => {
+    setLoadingGlobalState(true);
+
+    // 新規作成するデータをオブジェクトにまとめる
+    const newContact = {
+      name: name,
+      direct_line: directLine,
+      direct_fax: directFax,
+      extension: extension,
+      company_cell_phone: companyCellPhone,
+      personal_cell_phone: personalCellPhone,
+      email: email,
+      position: position,
+      position_class: selectedPositionClass,
+      occupation: selectedOccupation,
+      approval_amount: approvalAmount,
+      email_ban_flag: false,
+      sending_materials_ban_flag: false,
+      fax_dm_ban_flag: false,
+      ban_reason: null,
+      claim: null,
+      call_careful_flag: false,
+      call_careful_reason: null,
+      client_company_id: selectedRowDataCompany!.id,
+      created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
+      created_by_user_id: userProfileState?.id ? userProfileState.id : null,
+      created_by_department_of_user: userProfileState?.department ? userProfileState.department : null,
+      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+    };
+
+    // supabaseにINSERT
+    createContactMutation.mutate(newContact);
+
+    // const { error } = await supabase.from("contacts").insert(newContact);
+
+    // if (error) {
+    //   alert(error);
+    //   console.log("INSERTエラー", error);
+    //   toast.error("担当者の作成に失敗しました!", {
+    //     position: "top-right",
+    //     autoClose: 4000,
+    //     hideProgressBar: false,
+    //     closeOnClick: true,
+    //     pauseOnHover: true,
+    //     draggable: true,
+    //     progress: undefined,
+    //     theme: `${theme === "light" ? "light" : "dark"}`,
+    //   });
+    // } else {
+    //   toast.success("担当者の作成に完了しました!", {
+    //     position: "top-right",
+    //     autoClose: 4000,
+    //     hideProgressBar: false,
+    //     closeOnClick: true,
+    //     pauseOnHover: true,
+    //     draggable: true,
+    //     progress: undefined,
+    //     theme: `${theme === "light" ? "light" : "dark"}`,
+    //   });
+    // }
+
+    setLoadingGlobalState(false);
+
+    // モーダルを閉じる
     setIsOpenInsertNewContactModal(false);
   };
   return (
     <>
       <div className={`${styles.overlay} `} onClick={handleCancelAndReset} />
+      {loadingGlobalState && (
+        <div className={`${styles.loading_overlay} `}>
+          <SpinnerIDS scale={"scale-[0.5]"} />
+        </div>
+      )}
       <div className={`${styles.container} `}>
         {/* 保存・タイトル・キャンセルエリア */}
         <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[30px] text-center text-[18px]">
@@ -323,17 +404,26 @@ export const InsertNewContactModal = () => {
                 </div>
               </div>
 
-              {/* 決済金額 */}
+              {/* 決裁金額 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>決済金額</span>
+                    <span className={`${styles.title}`}>決裁金額(万)</span>
                     <input
-                      type="text"
+                      type="number"
                       placeholder=""
                       className={`${styles.input_box}`}
-                      value={approvalAmount}
-                      onChange={(e) => setApprovalAmount(e.target.value)}
+                      min={"0"}
+                      value={approvalAmount !== null ? approvalAmount : ""}
+                      onChange={(e) => {
+                        // プラスの数値と空文字以外をstateに格納
+                        if (e.target.value === "" || e.target.value.search(/^[0-9]+$/) === 0) {
+                          console.log("OK", e.target.value.search(/^[-]?[0-9]+$/));
+                          setApprovalAmount(e.target.value === "" ? null : Number(e.target.value));
+                        } else {
+                          console.log("NG", e.target.value.search(/^[0-9]+$/));
+                        }
+                      }}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
