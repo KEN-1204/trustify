@@ -360,7 +360,7 @@ const CompanyMainContainerMemo: FC = () => {
                   {searchMode && (
                     <input
                       type="text"
-                      placeholder="代表取締役 or ○○事業部など"
+                      placeholder="「代表取締役＊」や「＊製造部＊」「＊品質＊」など"
                       className={`${styles.input_box}`}
                       value={inputDepartment}
                       onChange={(e) => setInputDepartment(e.target.value)}
@@ -384,7 +384,7 @@ const CompanyMainContainerMemo: FC = () => {
                   {searchMode && (
                     <input
                       type="tel"
-                      placeholder="0312341234"
+                      placeholder=""
                       className={`${styles.input_box}`}
                       value={inputTel}
                       onChange={(e) => setInputTel(e.target.value)}
@@ -471,6 +471,7 @@ const CompanyMainContainerMemo: FC = () => {
                       id="address"
                       cols={30}
                       rows={10}
+                      placeholder="「神奈川県＊」や「＊大田区＊」など"
                       className={`${styles.textarea_box} `}
                       value={inputAddress}
                       onChange={(e) => setInputAddress(e.target.value)}
@@ -576,6 +577,7 @@ const CompanyMainContainerMemo: FC = () => {
                     <input
                       type="text"
                       className={`${styles.input_box}`}
+                      placeholder="「is not null」でHP有りのデータのみ抽出"
                       value={inputHP}
                       onChange={(e) => setInputHP(e.target.value)}
                     />
@@ -635,7 +637,7 @@ const CompanyMainContainerMemo: FC = () => {
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>○製品分類(大分類)</span>
+                  <span className={`${styles.title} !mr-[5px] !min-w-max`}>○製品分類(大分類)</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
                       {selectedRowDataCompany?.product_category_large
@@ -659,7 +661,7 @@ const CompanyMainContainerMemo: FC = () => {
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>○製品分類(中分類)</span>
+                  <span className={`${styles.title} !mr-[5px] !min-w-max`}>○製品分類(中分類)</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
                       {selectedRowDataCompany?.product_category_medium
@@ -683,7 +685,7 @@ const CompanyMainContainerMemo: FC = () => {
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>○製品分類(小分類)</span>
+                  <span className={`${styles.title} !mr-[5px] !min-w-max`}>○製品分類(小分類)</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
                       {selectedRowDataCompany?.product_category_small

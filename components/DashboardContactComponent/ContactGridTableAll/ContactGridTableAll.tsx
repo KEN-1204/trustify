@@ -260,19 +260,19 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
       const from = offset * limit;
       const to = from + limit - 1;
       console.log("🔥🔥テスト🔥🔥 from, to", from, to);
-      // const { data, error } = await supabase.from("client_companies").select(`${columnNamesObj}`).range(from, to);
+      // const { data, error } = await supabase.from("contacts").select(`${columnNamesObj}`).range(from, to);
       const { data, error, count } = await supabase
-        .from("client_companies")
+        .from("contacts")
         // .select(`${columnNamesObj}`)
         .select(`${columnNamesObj}`, { count: "exact" })
         .is("created_by_company_id", null)
         .range(from, to);
       // const { data, error } = await supabase
-      //   .from("client_companies")
+      //   .from("contacts")
       //   .select(`${columnNamesObj}`)
       //   .or(`created_by_company_id.is.null`)
       //   .range(from, to);
-      // const { data, error } = await supabase.from("client_companies").select(`*`).eq(``).range(from, to);
+      // const { data, error } = await supabase.from("contacts").select(`*`).eq(``).range(from, to);
 
       console.log("🔥🔥テスト🔥🔥フェッチ後 count data", count, data);
       if (error) throw error;
@@ -308,13 +308,13 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
       const from = offset * limit;
       const to = from + limit - 1;
       console.log("🔥🔥テスト🔥🔥 from, to", from, to);
-      // const { data, error } = await supabase.from("client_companies").select(`${columnNamesObj}`).range(from, to);
+      // const { data, error } = await supabase.from("contacts").select(`${columnNamesObj}`).range(from, to);
       const { data, error, count } = await supabase
-        .from("client_companies")
+        .from("contacts")
         .select(`${columnNamesObj}`, { count: "exact" })
         .or(`created_by_company_id.is.null,created_by_company_id.eq.${userProfileState.company_id}`)
         .range(from, to);
-      // const { data, error } = await supabase.from("client_companies").select(`*`).eq(``).range(from, to);
+      // const { data, error } = await supabase.from("contacts").select(`*`).eq(``).range(from, to);
 
       console.log("🔥🔥テスト🔥🔥フェッチ後 count data", count, data);
       if (error) throw error;
