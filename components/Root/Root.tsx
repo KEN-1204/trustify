@@ -708,6 +708,10 @@ export const Root: FC = () => {
               {language === "Ja" && "よくあるご質問"}
               {language === "En" && "FAQ"}
             </Link>
+            <Link href="#" prefetch={false}>
+              {language === "Ja" && "お知らせ"}
+              {language === "En" && ""}
+            </Link>
             {/* <Link href="#" prefetch={false}>
               {language === "Ja" && "お知らせ"}
               {language === "En" && ""}
@@ -783,9 +787,13 @@ export const Root: FC = () => {
               {language === "Ja" && "お問い合せ"}
               {language === "En" && "Contact Us"}
             </Link> */}
-            <Link href="#" prefetch={false}>
+            {/* <Link href="#" prefetch={false}>
               {language === "Ja" && "お知らせ"}
               {language === "En" && ""}
+            </Link> */}
+            <Link href="/about" prefetch={false}>
+              {language === "Ja" && "企業情報"}
+              {language === "En" && "Corporate Information"}
             </Link>
           </div>
         </div>

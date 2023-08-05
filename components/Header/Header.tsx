@@ -198,15 +198,15 @@ export const Header: FC<Props> = ({
                 <div className={`${styles.underline}`} />
               </Link>
             </li>
-            {/* <li className={`${styles.navList}`}>
-              <Link href="/" prefetch={false} className={`${styles.navbarItem}`}>
+            <li className={`${styles.navList}`}>
+              <Link href="/about" prefetch={false} className={`${styles.navbarItem}`}>
                 <span>
-                  {language === "Ja" && "サポート"}
-                  {language === "En" && "Support"}
+                  {language === "Ja" && "企業"}
+                  {language === "En" && "About"}
                 </span>
                 <div className={`${styles.underline}`} />
               </Link>
-            </li> */}
+            </li>
             <li className={`${styles.navList}`}>
               <button className={`${styles.navbarItem}`} onClick={handleAuthLoginLogout}>
                 {sessionState ? (
