@@ -88,7 +88,7 @@ const ContactMainContainerMemo: FC = () => {
   const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
 
   // 🌟サブミット
-  const [inputName, setInputName] = useState("");
+  const [inputCompanyName, setInputCompanyName] = useState("");
   const [inputDepartment, setInputDepartment] = useState("");
   const [inputTel, setInputTel] = useState("");
   const [inputFax, setInputFax] = useState("");
@@ -99,12 +99,14 @@ const ContactMainContainerMemo: FC = () => {
   const [inputFound, setInputFound] = useState("");
   const [inputContent, setInputContent] = useState("");
   const [inputHP, setInputHP] = useState("");
-  const [inputEmail, setInputEmail] = useState("");
+  const [inputCompanyEmail, setInputCompanyEmail] = useState("");
   const [inputIndustryType, setInputIndustryType] = useState("");
   const [inputProductL, setInputProductL] = useState("");
   const [inputProductM, setInputProductM] = useState("");
   const [inputProductS, setInputProductS] = useState("");
   const [inputFiscal, setInputFiscal] = useState("");
+  const [inputBudgetRequestMonth1, setInputBudgetRequestMonth1] = useState("");
+  const [inputBudgetRequestMonth2, setInputBudgetRequestMonth2] = useState("");
   const [inputClient, setInputClient] = useState("");
   const [inputSupplier, setInputSupplier] = useState("");
   const [inputFacility, setInputFacility] = useState("");
@@ -112,10 +114,24 @@ const ContactMainContainerMemo: FC = () => {
   const [inputOverseas, setInputOverseas] = useState("");
   const [inputGroup, setInputGroup] = useState("");
   const [inputCorporateNum, setInputCorporateNum] = useState("");
+  // contactsテーブル
+  const [inputContactName, setInputContactName] = useState("");
+  const [inputDirectLine, setInputDirectLine] = useState("");
+  const [inputDirectFax, setInputDirectFax] = useState("");
+  const [inputExtension, setInputExtension] = useState("");
+  const [inputCompanyCellPhone, setInputCompanyCellPhone] = useState("");
+  const [inputPersonalCellPhone, setInputPersonalCellPhone] = useState("");
+  const [inputContactEmail, setInputContactEmail] = useState("");
+  const [inputPositionName, setInputPositionName] = useState("");
+  const [inputPositionClass, setInputPositionClass] = useState("");
+  const [inputOccupation, setInputOccupation] = useState("");
+  const [inputApprovalAmount, setInputApprovalAmount] = useState("");
+  const [inputCreatedByCompanyId, setInputCreatedByCompanyId] = useState("");
+  const [inputCreatedByUserId, setInputCreatedByUserId] = useState("");
 
   const supabase = useSupabaseClient();
-  const newSearchCompanyParams = useDashboardStore((state) => state.newSearchCompanyParams);
-  const setNewSearchCompanyParams = useDashboardStore((state) => state.setNewSearchCompanyParams);
+  const newSearchContact_CompanyParams = useDashboardStore((state) => state.newSearchContact_CompanyParams);
+  const setNewSearchContact_CompanyParams = useDashboardStore((state) => state.setNewSearchContact_CompanyParams);
   const editSearchMode = useDashboardStore((state) => state.editSearchMode);
   const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
@@ -129,41 +145,61 @@ const ContactMainContainerMemo: FC = () => {
     if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
     return value;
   }
-  console.log("🔥メインコンテナーnewSearchCompanyParams", newSearchCompanyParams);
+  console.log("🔥メインコンテナーnewSearchContact_CompanyParams", newSearchContact_CompanyParams);
 
   // 編集モードtrueの場合、サーチ条件をinputタグのvalueに格納
   // 新規サーチの場合には、サーチ条件を空にする
   useEffect(() => {
-    if (newSearchCompanyParams === null) return;
-    console.log("🔥メインコンテナーnewSearchCompanyParams編集モード", newSearchCompanyParams);
+    if (newSearchContact_CompanyParams === null) return;
+    console.log("🔥メインコンテナーnewSearchContact_CompanyParams編集モード", newSearchContact_CompanyParams);
     if (editSearchMode) {
-      setInputName(beforeAdjustFieldValue(newSearchCompanyParams.name));
-      setInputDepartment(beforeAdjustFieldValue(newSearchCompanyParams.department_name));
-      setInputTel(beforeAdjustFieldValue(newSearchCompanyParams?.main_phone_number));
-      setInputFax(beforeAdjustFieldValue(newSearchCompanyParams?.main_fax));
-      setInputZipcode(beforeAdjustFieldValue(newSearchCompanyParams?.zipcode));
-      setInputEmployeesClass(beforeAdjustFieldValue(newSearchCompanyParams?.number_of_employees_class));
-      setInputAddress(beforeAdjustFieldValue(newSearchCompanyParams?.address));
-      setInputCapital(beforeAdjustFieldValue(newSearchCompanyParams?.capital));
-      setInputFound(beforeAdjustFieldValue(newSearchCompanyParams?.established_in));
-      setInputContent(beforeAdjustFieldValue(newSearchCompanyParams?.business_content));
-      setInputHP(beforeAdjustFieldValue(newSearchCompanyParams.website_url));
-      setInputEmail(beforeAdjustFieldValue(newSearchCompanyParams.email));
-      setInputIndustryType(beforeAdjustFieldValue(newSearchCompanyParams.industry_type));
-      setInputProductL(beforeAdjustFieldValue(newSearchCompanyParams.product_category_large));
-      setInputProductM(beforeAdjustFieldValue(newSearchCompanyParams.product_category_medium));
-      setInputProductS(beforeAdjustFieldValue(newSearchCompanyParams.product_category_small));
-      setInputFiscal(beforeAdjustFieldValue(newSearchCompanyParams.fiscal_end_month));
-      setInputClient(beforeAdjustFieldValue(newSearchCompanyParams.clients));
-      setInputSupplier(beforeAdjustFieldValue(newSearchCompanyParams.supplier));
-      setInputFacility(beforeAdjustFieldValue(newSearchCompanyParams.facility));
-      setInputBusinessSite(beforeAdjustFieldValue(newSearchCompanyParams.business_sites));
-      setInputOverseas(beforeAdjustFieldValue(newSearchCompanyParams.overseas_bases));
-      setInputGroup(beforeAdjustFieldValue(newSearchCompanyParams.group_company));
-      setInputCorporateNum(beforeAdjustFieldValue(newSearchCompanyParams.corporate_number));
+      setInputCompanyName(beforeAdjustFieldValue(newSearchContact_CompanyParams.company_name));
+      setInputDepartment(beforeAdjustFieldValue(newSearchContact_CompanyParams.department_name));
+      setInputContactName(beforeAdjustFieldValue(newSearchContact_CompanyParams.contact_name));
+      setInputTel(beforeAdjustFieldValue(newSearchContact_CompanyParams?.main_phone_number));
+      setInputFax(beforeAdjustFieldValue(newSearchContact_CompanyParams?.main_fax));
+      setInputZipcode(beforeAdjustFieldValue(newSearchContact_CompanyParams?.zipcode));
+      setInputEmployeesClass(beforeAdjustFieldValue(newSearchContact_CompanyParams?.number_of_employees_class));
+      setInputAddress(beforeAdjustFieldValue(newSearchContact_CompanyParams?.address));
+      setInputCapital(beforeAdjustFieldValue(newSearchContact_CompanyParams?.capital));
+      setInputFound(beforeAdjustFieldValue(newSearchContact_CompanyParams?.established_in));
+      setInputContent(beforeAdjustFieldValue(newSearchContact_CompanyParams?.business_content));
+      setInputHP(beforeAdjustFieldValue(newSearchContact_CompanyParams.website_url));
+      setInputCompanyEmail(beforeAdjustFieldValue(newSearchContact_CompanyParams.company_email));
+      setInputIndustryType(beforeAdjustFieldValue(newSearchContact_CompanyParams.industry_type));
+      setInputProductL(beforeAdjustFieldValue(newSearchContact_CompanyParams.product_category_large));
+      setInputProductM(beforeAdjustFieldValue(newSearchContact_CompanyParams.product_category_medium));
+      setInputProductS(beforeAdjustFieldValue(newSearchContact_CompanyParams.product_category_small));
+      setInputFiscal(beforeAdjustFieldValue(newSearchContact_CompanyParams.fiscal_end_month));
+      setInputBudgetRequestMonth1(beforeAdjustFieldValue(newSearchContact_CompanyParams.budget_request_month1));
+      setInputBudgetRequestMonth2(beforeAdjustFieldValue(newSearchContact_CompanyParams.budget_request_month2));
+      setInputClient(beforeAdjustFieldValue(newSearchContact_CompanyParams.clients));
+      setInputSupplier(beforeAdjustFieldValue(newSearchContact_CompanyParams.supplier));
+      setInputFacility(beforeAdjustFieldValue(newSearchContact_CompanyParams.facility));
+      setInputBusinessSite(beforeAdjustFieldValue(newSearchContact_CompanyParams.business_sites));
+      setInputOverseas(beforeAdjustFieldValue(newSearchContact_CompanyParams.overseas_bases));
+      setInputGroup(beforeAdjustFieldValue(newSearchContact_CompanyParams.group_company));
+      setInputCorporateNum(beforeAdjustFieldValue(newSearchContact_CompanyParams.corporate_number));
+
+      // contactsテーブル
+      setInputContactName(beforeAdjustFieldValue(newSearchContact_CompanyParams.contact_name));
+      setInputDirectLine(beforeAdjustFieldValue(newSearchContact_CompanyParams.direct_line));
+      setInputDirectFax(beforeAdjustFieldValue(newSearchContact_CompanyParams.direct_fax));
+      setInputExtension(beforeAdjustFieldValue(newSearchContact_CompanyParams.extension));
+      setInputCompanyCellPhone(beforeAdjustFieldValue(newSearchContact_CompanyParams.company_cell_phone));
+      setInputPersonalCellPhone(beforeAdjustFieldValue(newSearchContact_CompanyParams.personal_cell_phone));
+      setInputContactEmail(beforeAdjustFieldValue(newSearchContact_CompanyParams.contact_email));
+      setInputPositionName(beforeAdjustFieldValue(newSearchContact_CompanyParams.position_name));
+      setInputPositionClass(beforeAdjustFieldValue(newSearchContact_CompanyParams.position_class));
+      setInputOccupation(beforeAdjustFieldValue(newSearchContact_CompanyParams.occupation));
+      setInputApprovalAmount(beforeAdjustFieldValue(newSearchContact_CompanyParams.approval_amount));
+      setInputCreatedByCompanyId(beforeAdjustFieldValue(newSearchContact_CompanyParams.created_by_company_id));
+      setInputCreatedByUserId(beforeAdjustFieldValue(newSearchContact_CompanyParams.created_by_user_id));
     } else {
-      setInputName("");
+      setInputCompanyName("");
+      setInputContactName("");
       setInputDepartment("");
+      setInputContactName("");
       setInputTel("");
       setInputFax("");
       setInputZipcode("");
@@ -173,12 +209,14 @@ const ContactMainContainerMemo: FC = () => {
       setInputFound("");
       setInputContent("");
       setInputHP("");
-      setInputEmail("");
+      setInputCompanyEmail("");
       setInputIndustryType("");
       setInputProductL("");
       setInputProductM("");
       setInputProductS("");
       setInputFiscal("");
+      setInputBudgetRequestMonth1("");
+      setInputBudgetRequestMonth2("");
       setInputClient("");
       setInputSupplier("");
       setInputFacility("");
@@ -186,6 +224,21 @@ const ContactMainContainerMemo: FC = () => {
       setInputOverseas("");
       setInputGroup("");
       setInputCorporateNum("");
+
+      // contactsテーブル
+      setInputContactName("");
+      setInputDirectLine("");
+      setInputDirectFax("");
+      setInputExtension("");
+      setInputCompanyCellPhone("");
+      setInputPersonalCellPhone("");
+      setInputContactEmail("");
+      setInputPositionName("");
+      setInputPositionClass("");
+      setInputOccupation("");
+      setInputApprovalAmount("");
+      setInputCreatedByCompanyId("");
+      setInputCreatedByUserId("");
     }
   }, [editSearchMode]);
 
@@ -206,7 +259,7 @@ const ContactMainContainerMemo: FC = () => {
     }
     setLoadingGlobalState(true);
 
-    let _name = adjustFieldValue(inputName);
+    let _company_name = adjustFieldValue(inputCompanyName);
     let _department_name = adjustFieldValue(inputDepartment);
     let _main_phone_number = adjustFieldValue(inputTel);
     let _main_fax = adjustFieldValue(inputFax);
@@ -217,12 +270,14 @@ const ContactMainContainerMemo: FC = () => {
     let _established_in = adjustFieldValue(inputFound);
     let _business_content = adjustFieldValue(inputContent);
     let _website_url = adjustFieldValue(inputHP);
-    let _email = adjustFieldValue(inputEmail);
+    let _company_email = adjustFieldValue(inputCompanyEmail);
     let _industry_type = adjustFieldValue(inputIndustryType);
     let _product_category_large = adjustFieldValue(inputProductL);
     let _product_category_medium = adjustFieldValue(inputProductM);
     let _product_category_small = adjustFieldValue(inputProductS);
     let _fiscal_end_month = adjustFieldValue(inputFiscal);
+    let _budget_request_month1 = adjustFieldValue(inputBudgetRequestMonth1);
+    let _budget_request_month2 = adjustFieldValue(inputBudgetRequestMonth2);
     let _clients = adjustFieldValue(inputClient);
     let _supplier = adjustFieldValue(inputSupplier);
     let _facility = adjustFieldValue(inputFacility);
@@ -230,6 +285,20 @@ const ContactMainContainerMemo: FC = () => {
     let _overseas_bases = adjustFieldValue(inputOverseas);
     let _group_company = adjustFieldValue(inputGroup);
     let _corporate_number = adjustFieldValue(inputCorporateNum);
+    // contactsテーブル
+    let _contact_name = adjustFieldValue(inputContactName);
+    let _direct_line = adjustFieldValue(inputDirectLine);
+    let _direct_fax = adjustFieldValue(inputDirectFax);
+    let _extension = adjustFieldValue(inputExtension);
+    let _company_cell_phone = adjustFieldValue(inputCompanyCellPhone);
+    let _personal_cell_phone = adjustFieldValue(inputPersonalCellPhone);
+    let _contact_email = adjustFieldValue(inputContactEmail);
+    let _position_name = adjustFieldValue(inputPositionName);
+    let _position_class = adjustFieldValue(inputPositionClass);
+    let _occupation = adjustFieldValue(inputOccupation);
+    let _approval_amount = adjustFieldValue(inputApprovalAmount);
+    let _created_by_company_id = adjustFieldValue(inputCreatedByCompanyId);
+    let _created_by_user_id = adjustFieldValue(inputCreatedByUserId);
 
     // // Asterisks to percent signs for PostgreSQL's LIKE operator
     // if (_field1.includes("*")) _field1 = _field1.replace(/\*/g, "%");
@@ -237,23 +306,25 @@ const ContactMainContainerMemo: FC = () => {
     // if (_field1 === "is not null") _field1 = "%%";
 
     const params = {
-      name: _name,
+      company_name: _company_name,
       department_name: _department_name,
       main_phone_number: _main_phone_number,
       main_fax: _main_fax,
       zipcode: _zipcode,
-      number_of_employees_class: _number_of_employees_class,
       address: _address,
+      number_of_employees_class: _number_of_employees_class,
       capital: _capital,
       established_in: _established_in,
       business_content: _business_content,
       website_url: _website_url,
-      email: _email,
+      company_email: _company_email,
       industry_type: _industry_type,
       product_category_large: _product_category_large,
       product_category_medium: _product_category_medium,
       product_category_small: _product_category_small,
       fiscal_end_month: _fiscal_end_month,
+      budget_request_month1: _budget_request_month1,
+      budget_request_month2: _budget_request_month2,
       clients: _clients,
       supplier: _supplier,
       facility: _facility,
@@ -261,11 +332,26 @@ const ContactMainContainerMemo: FC = () => {
       overseas_bases: _overseas_bases,
       group_company: _group_company,
       corporate_number: _corporate_number,
+
+      // contactsテーブル
+      contact_name: _contact_name,
+      direct_line: _direct_line,
+      direct_fax: _direct_fax,
+      extension: _extension,
+      company_cell_phone: _company_cell_phone,
+      personal_cell_phone: _personal_cell_phone,
+      contact_email: _contact_email,
+      position_name: _position_name,
+      position_class: _position_class,
+      occupation: _occupation,
+      approval_amount: _approval_amount,
+      created_by_company_id: _created_by_company_id,
+      created_by_user_id: _created_by_user_id,
     };
 
     console.log("✅ 条件 params", params);
 
-    setInputName("");
+    setInputCompanyName("");
     setInputDepartment("");
     setInputTel("");
     setInputFax("");
@@ -276,12 +362,14 @@ const ContactMainContainerMemo: FC = () => {
     setInputFound("");
     setInputContent("");
     setInputHP("");
-    setInputEmail("");
+    setInputCompanyEmail("");
     setInputIndustryType("");
     setInputProductL("");
     setInputProductM("");
     setInputProductS("");
     setInputFiscal("");
+    setInputBudgetRequestMonth1("");
+    setInputBudgetRequestMonth2("");
     setInputClient("");
     setInputSupplier("");
     setInputFacility("");
@@ -289,12 +377,26 @@ const ContactMainContainerMemo: FC = () => {
     setInputOverseas("");
     setInputGroup("");
     setInputCorporateNum("");
+    // contactsテーブル
+    setInputContactName("");
+    setInputDirectLine("");
+    setInputDirectFax("");
+    setInputExtension("");
+    setInputCompanyCellPhone("");
+    setInputPersonalCellPhone("");
+    setInputContactEmail("");
+    setInputPositionName("");
+    setInputPositionClass("");
+    setInputOccupation("");
+    setInputApprovalAmount("");
+    setInputCreatedByCompanyId("");
+    setInputCreatedByUserId("");
 
     setSearchMode(false);
     setEditSearchMode(false);
 
     // Zustandに検索条件を格納
-    setNewSearchCompanyParams(params);
+    setNewSearchContact_CompanyParams(params);
 
     console.log("✅ params", params);
     // const { data, error } = await supabase.rpc("search_companies", { params });
@@ -341,8 +443,8 @@ const ContactMainContainerMemo: FC = () => {
                       placeholder="株式会社○○"
                       autoFocus
                       className={`${styles.input_box}`}
-                      value={inputName}
-                      onChange={(e) => setInputName(e.target.value)}
+                      value={inputCompanyName}
+                      onChange={(e) => setInputCompanyName(e.target.value)}
                     />
                   )}
                 </div>
@@ -641,7 +743,7 @@ const ContactMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>役職名</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.position ? selectedRowDataContact?.position : ""}
+                      {selectedRowDataContact?.position_name ? selectedRowDataContact?.position_name : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -699,7 +801,7 @@ const ContactMainContainerMemo: FC = () => {
               </div>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
-                  <span className={`${styles.title}`}>決裁金額</span>
+                  <span className={`${styles.title}`}>決裁金額(万円)</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
                       {selectedRowDataContact?.approval_amount ? selectedRowDataContact?.approval_amount : ""}
@@ -1453,25 +1555,25 @@ const ContactMainContainerMemo: FC = () => {
                   </div>
                 </div>
                 {/* クレーム */}
-                {/* <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                   <div className="flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>クレーム</span>
                       {!searchMode && (
                         <span
-                          data-text="吾輩は猫である。名前はまだ無い。"
+                          data-text={`${selectedRowDataContact?.claim ? selectedRowDataContact?.claim : ""}`}
                           className={`${styles.value}`}
                           onMouseEnter={(e) => handleOpenTooltip(e)}
                           onMouseLeave={handleCloseTooltip}
                         >
-                          吾輩は猫である。名前はまだ無い。
+                          {selectedRowDataContact?.claim ? selectedRowDataContact?.claim : ""}
                         </span>
                       )}
                       {searchMode && <input type="text" className={`${styles.input_box}`} />}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
-                </div> */}
+                </div>
 
                 {/*  */}
               </div>

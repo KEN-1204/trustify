@@ -5,6 +5,7 @@ import {
   ColumnHeaderItemList,
   Contact_row_data,
   NewSearchCompanyParams,
+  NewSearchContact_CompanyParams,
   UserProfile,
 } from "@/types";
 import { contactColumnHeaderItemListData } from "@/utils/contactColumnHeaderItemListData";
@@ -102,6 +103,10 @@ type State = {
   // オブジェクト
   selectedRowDataContact: Contact_row_data | null;
   setSelectedRowDataContact: (payload: Contact_row_data) => void;
+
+  // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
+  newSearchContact_CompanyParams: NewSearchContact_CompanyParams | null;
+  setNewSearchContact_CompanyParams: (payload: NewSearchContact_CompanyParams) => void;
 };
 
 const useDashboardStore = create<State>((set) => ({
@@ -679,6 +684,10 @@ const useDashboardStore = create<State>((set) => ({
   // オブジェクト
   selectedRowDataContact: null,
   setSelectedRowDataContact: (payload) => set({ selectedRowDataContact: payload }),
+
+  // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
+  newSearchContact_CompanyParams: null,
+  setNewSearchContact_CompanyParams: (payload) => set({ newSearchContact_CompanyParams: payload }),
 }));
 
 export default useDashboardStore;

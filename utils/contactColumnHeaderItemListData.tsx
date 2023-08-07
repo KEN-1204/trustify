@@ -25,7 +25,7 @@ const contactColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "name",
+    columnName: "contact_name",
     columnWidth: "200px",
     isFrozen: false,
     isOverflow: false,
@@ -38,7 +38,7 @@ const contactColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "position",
+    columnName: "position_name",
     columnWidth: "200px",
     isFrozen: false,
     isOverflow: false,
@@ -98,6 +98,19 @@ const contactColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
+  {
+    columnName: "budget_request_month1",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "budget_request_month2",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  //
   {
     columnName: "fiscal_end_month",
     columnWidth: "200px",

@@ -320,7 +320,7 @@ export type Contact_row_data = {
   department_name?: string | null;
   name?: string | null;
   position_class?: string | null;
-  position?: string | null;
+  position_name?: string | null;
   direct_line?: string | null;
   main_phone_number?: string | null;
   direct_fax?: string | null;
@@ -355,4 +355,47 @@ export type Contact_row_data = {
   sending_ban_flag?: string | null;
   fax_dm_ban_flag?: string | null;
   ban_reason?: string | null;
+  claim?: string | null;
+};
+
+export type NewSearchContact_CompanyParams = {
+  company_name: string | null;
+  department_name: string | null;
+  main_phone_number: string | null;
+  main_fax: string | null;
+  company_email: string | null;
+  zipcode: string | null;
+  number_of_employees_class: string | null;
+  address: string | null;
+  capital: string | null;
+  established_in: string | null;
+  business_content: string | null;
+  industry_type: string | null;
+  product_category_large: string | null;
+  product_category_medium: string | null;
+  product_category_small: string | null;
+  budget_request_month1: string | null;
+  budget_request_month2: string | null;
+  fiscal_end_month: string | null;
+  facility: string | null;
+  clients: string | null;
+  supplier: string | null;
+  business_sites: string | null;
+  overseas_bases: string | null;
+  group_company: string | null;
+  corporate_number: string | null;
+  website_url: string | null;
+
+  contact_name: string | null;
+  direct_fax: string | null;
+  extension: string | null;
+  company_cell_phone: string | null;
+  personal_cell_phone: string | null;
+  contact_email: string | null;
+  position_name: string | null;
+  position_class: string | null;
+  occupation: string | null;
+  approval_amount: number | null;
+  created_by_company_id: string | null;
+  direct_line: string | null;
 };
