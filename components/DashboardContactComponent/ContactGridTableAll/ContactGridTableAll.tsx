@@ -1,7 +1,7 @@
 import React, { FC, memo, useCallback, useEffect, useRef, useState } from "react";
-import styles from "./GridTableAll.module.css";
+import styles from "./ContactGridTableAll.module.css";
 import useStore from "@/store";
-import { GridTableFooter } from "../../GridTable/GridTableFooter/GridTableFooter";
+import { ContactGridTableFooter } from "./ContactGridTableFooter/ContactGridTableFooter";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import useDashboardStore from "@/store/useDashboardStore";
@@ -13,7 +13,7 @@ import { FiLock } from "react-icons/fi";
 import { columnNameToJapaneseContacts } from "@/utils/columnNameToJapaneseContacts";
 import { Client_company, Client_company_row_data } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import { EditColumnsModalDisplayOnly } from "../../GridTable//EditColumns/EditColumnsModalDisplayOnly";
+import { EditColumnsModalDisplayOnly } from "../../GridTable/EditColumns/EditColumnsModalDisplayOnly";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 
@@ -68,10 +68,11 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
   const [dragColumnIndex, setDragColumnIndex] = useState<number | null>(null);
   // ================= 🔥🔥テスト🔥🔥==================
   // 列アイテムリスト カラムidとカラム名、カラムインデックス、カラム横幅を格納する 🌟🌟ローカル
-  // const [columnHeaderItemList, setColumnHeaderItemList] = useState<ColumnHeaderItemList[]>([]);
+  // const [contactColumnHeaderItemList, setContactColumnHeaderItemList] = useState<ColumnHeaderItemList[]>([]);
   // 🌟🌟Zustandから指定したカラムを最初から表示
-  const columnHeaderItemList = useDashboardStore((state) => state.columnHeaderItemList);
-  const setColumnHeaderItemList = useDashboardStore((state) => state.setColumnHeaderItemList);
+  const contactColumnHeaderItemList = useDashboardStore((state) => state.contactColumnHeaderItemList);
+  const setContactColumnHeaderItemList = useDashboardStore((state) => state.setContactColumnHeaderItemList);
+  console.log("contactColumnHeaderItemList", contactColumnHeaderItemList);
   // ================= 🔥🔥テスト🔥🔥==================
   // 各カラムの横幅を管理
   const [colsWidth, setColsWidth] = useState<string[] | null>(null);
@@ -122,17 +123,16 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
   const isOpenEditColumns = useDashboardStore((state) => state.isOpenEditColumns);
   const setIsOpenEditColumns = useDashboardStore((state) => state.setIsOpenEditColumns);
   // カラム順番リセット用State カラム編集モーダルを開いた時に保持
-  const resetColumnHeaderItemList = useDashboardStore((state) => state.resetColumnHeaderItemList);
-  const setResetColumnHeaderItemList = useDashboardStore((state) => state.setResetColumnHeaderItemList);
+  const ColumnHeaderItemListReset = useDashboardStore((state) => state.ColumnHeaderItemListReset);
   // カラム並び替えモーダルで編集後にカラムヘッダーリストを更新してZustandのStateを空にする
   useEffect(() => {
     if (!editedColumnHeaderItemList.length) return console.log("編集中のカラムリストが存在しないためリターン");
     // ================ Zustandに格納した並び替え後のカラムリストをローカルのStateに格納する
-    setColumnHeaderItemList([...editedColumnHeaderItemList]);
+    setContactColumnHeaderItemList([...editedColumnHeaderItemList]);
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
-    const columnHeaderItemListJSON = JSON.stringify(editedColumnHeaderItemList);
-    localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
-    // localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
+    const contactColumnHeaderItemListJSON = JSON.stringify(editedColumnHeaderItemList);
+    localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
+    // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
     // colsWidthの配列内の各カラムのサイズも更新する
     let newColsWidth: string[] = [];
@@ -228,7 +228,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
   const supabase = useSupabaseClient();
 
   // 表示するカラム
-  const columnNamesObj = [...columnHeaderItemList]
+  const columnNamesObj = [...contactColumnHeaderItemList]
     .map((item, index) => item.columnName as keyof Client_company)
     .join(", "); // columnNameのみの配列を取得
 
@@ -250,46 +250,32 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
       limit: number,
       offset: number = 0
       // ================= 🔥🔥テスト🔥🔥==================
-    ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean; count: number | null }> => {
-      // ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean }> => {
-      // ================= 🔥🔥テスト🔥🔥==================
-      // ): Promise<{ rows: Client_company[] | null; nextOffset: number; }> => {
-      // ): Promise<{ rows: TableDataType[]; nextOffset: number }> => {
+    ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean }> => {
       // useInfiniteQueryのクエリ関数で渡すlimitの個数分でIndex番号を付けたRowの配列を生成
-      console.log("🔥🔥テスト🔥🔥 offset, limit", offset, limit);
-      const from = offset * limit;
-      const to = from + limit - 1;
-      console.log("🔥🔥テスト🔥🔥 from, to", from, to);
-      // const { data, error } = await supabase.from("contacts").select(`${columnNamesObj}`).range(from, to);
-      const { data, error, count } = await supabase
-        .from("contacts")
-        // .select(`${columnNamesObj}`)
-        .select(`${columnNamesObj}`, { count: "exact" })
-        .is("created_by_company_id", null)
-        .range(from, to);
-      // const { data, error } = await supabase
-      //   .from("contacts")
-      //   .select(`${columnNamesObj}`)
-      //   .or(`created_by_company_id.is.null`)
-      //   .range(from, to);
-      // const { data, error } = await supabase.from("contacts").select(`*`).eq(``).range(from, to);
+      //   const from = offset * limit;
+      //   const to = from + limit - 1;
+      //   const { data, error, count } = await supabase
+      //     .from("contacts")
+      //     .select(`${columnNamesObj}`, { count: "exact" })
+      //     .is("created_by_company_id", null)
+      //     .range(from, to);
 
-      console.log("🔥🔥テスト🔥🔥フェッチ後 count data", count, data);
-      if (error) throw error;
+      //   console.log("🔥🔥テスト🔥🔥フェッチ後 count data", count, data);
+      //   if (error) throw error;
       // ===== 🔥🔥テスト🔥🔥ここから=====
-      const rows = ensureClientCompanies(data);
+      //   const rows = ensureClientCompanies(data);
+      let rows: null = null;
       // ===== 🔥🔥テスト🔥🔥ここまで=====
-      // const rows = data as Client_company[] | null;
-      console.log("🔥🔥テスト🔥🔥 rows", rows);
+      console.log("🔥🔥サーバーフェッチ ここ", rows);
       // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
-      const isLastPage = rows === null || rows.length < limit;
+      const isLastPage = rows === null;
 
       // 0.5秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // 取得したrowsを返す（nextOffsetは、queryFnのctx.pageParamsが初回フェッチはundefinedで2回目が1のため+1でページ数と合わせる）
       // return { rows, nextOffset: offset + 1, isLastPage };
-      return { rows, nextOffset: offset + 1, isLastPage, count };
+      return { rows, nextOffset: offset + 1, isLastPage };
     };
   }
   // ユーザーが会社idを持っている場合にはcreated_by_company_idはnullと自社で作成した会社両方を取得する関数を定義 新規サーチなし
@@ -298,40 +284,32 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
       limit: number,
       offset: number = 0
       // ================= 🔥🔥テスト🔥🔥==================
-    ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean; count: number | null }> => {
-      // ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean }> => {
-      // ================= 🔥🔥テスト🔥🔥==================
-      // ): Promise<{ rows: Client_company[] | null; nextOffset: number; }> => {
-      // ): Promise<{ rows: TableDataType[]; nextOffset: number }> => {
+    ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean }> => {
       // useInfiniteQueryのクエリ関数で渡すlimitの個数分でIndex番号を付けたRowの配列を生成
-      console.log("🔥🔥テスト🔥🔥 offset, limit", offset, limit);
-      const from = offset * limit;
-      const to = from + limit - 1;
-      console.log("🔥🔥テスト🔥🔥 from, to", from, to);
-      // const { data, error } = await supabase.from("contacts").select(`${columnNamesObj}`).range(from, to);
-      const { data, error, count } = await supabase
-        .from("contacts")
-        .select(`${columnNamesObj}`, { count: "exact" })
-        .or(`created_by_company_id.is.null,created_by_company_id.eq.${userProfileState.company_id}`)
-        .range(from, to);
-      // const { data, error } = await supabase.from("contacts").select(`*`).eq(``).range(from, to);
+      //   const from = offset * limit;
+      //   const to = from + limit - 1;
+      //   const { data, error, count } = await supabase
+      //     .from("contacts")
+      //     .select(`${columnNamesObj}`, { count: "exact" })
+      //     .is("created_by_company_id", null)
+      //     .range(from, to);
 
-      console.log("🔥🔥テスト🔥🔥フェッチ後 count data", count, data);
-      if (error) throw error;
+      //   console.log("🔥🔥テスト🔥🔥フェッチ後 count data", count, data);
+      //   if (error) throw error;
       // ===== 🔥🔥テスト🔥🔥ここから=====
-      const rows = ensureClientCompanies(data);
+      //   const rows = ensureClientCompanies(data);
+      let rows: null = null;
       // ===== 🔥🔥テスト🔥🔥ここまで=====
-      // const rows = data as Client_company[] | null;
-      console.log("🔥🔥テスト🔥🔥 rows", rows);
+      console.log("🔥🔥サーバーフェッチ ここ", rows);
       // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
-      const isLastPage = rows === null || rows.length < limit;
+      const isLastPage = rows === null;
 
       // 0.5秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // 取得したrowsを返す（nextOffsetは、queryFnのctx.pageParamsが初回フェッチはundefinedで2回目が1のため+1でページ数と合わせる）
       // return { rows, nextOffset: offset + 1, isLastPage };
-      return { rows, nextOffset: offset + 1, isLastPage, count };
+      return { rows, nextOffset: offset + 1, isLastPage };
     };
   }
 
@@ -634,11 +612,11 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
       // まずはローカルストレージから取得したColumnHeaderItemListのJSONをJSオブジェクトにパース
       const localStorageColumnHeaderItemList: ColumnHeaderItemList[] = JSON.parse(localStorageColumnHeaderItemListJSON);
       // まずはローカルストレージから取得したColumnHeaderItemListをローカルStateに格納
-      setColumnHeaderItemList(localStorageColumnHeaderItemList);
+      setContactColumnHeaderItemList(localStorageColumnHeaderItemList);
       // isFrozenがtrueの個数をRefに格納
       isFrozenCountRef.current = localStorageColumnHeaderItemList.filter((obj) => obj.isFrozen === true).length;
       // console.log("ローカルストレージルート localStorageColumnHeaderItemList", localStorageColumnHeaderItemList);
-      // columnHeaderItemListからcolumnwidthのみを取得
+      // contactColumnHeaderItemListからcolumnwidthのみを取得
       const newColsWidths = localStorageColumnHeaderItemList.map((item) => item.columnWidth);
       // console.log("ローカルストレージルート tempColsWidth", newColsWidths);
       // チェックボックスの65pxの文字列をnewColsWidthsの配列の手前に格納
@@ -717,17 +695,18 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
 
     // マウント時に各フィールド分のカラムを生成 サイズはデフォルト値を65px, 100px, 3列目以降は250pxに設定
     // ================= 🔥🔥テスト🔥🔥==================
-    if (data?.pages[0].rows === null) return;
+    // if (data?.pages[0].rows === null) return;
     // ================= 🔥🔥テスト🔥🔥==================
-    console.log(
-      "🌟useEffect Object.keys(data?.pages[0].rows[0] as object",
-      Object.keys(data?.pages[0].rows[0] as object)
-    );
-    const newColsWidths = new Array(Object.keys(data?.pages[0].rows[0] as object).length + 1).fill("120px");
+    // console.log(
+    //   "🌟useEffect Object.keys(data?.pages[0].rows[0] as object",
+    //   Object.keys(data?.pages[0].rows[0] as object)
+    // );
+    // const newColsWidths = new Array(Object.keys(data?.pages[0].rows[0] as object).length + 1).fill("120px");
+    const newColsWidths = new Array(contactColumnHeaderItemList.length + 1).fill("120px");
     newColsWidths.fill("65px", 0, 1); // 1列目を65pxに変更
-    newColsWidths.fill("50px", 1, 2); // 2列目を100pxに変更 id
-    newColsWidths.fill("100px", 2, 3); // 2列目を100pxに変更 法人番号
-    newColsWidths.fill("200px", 3, 4); // 4列目を100pxに変更 会社名
+    newColsWidths.fill("250px", 1, 2); // 2列目を100pxに変更 id
+    // newColsWidths.fill("100px", 2, 3); // 2列目を100pxに変更 法人番号
+    // newColsWidths.fill("200px", 3, 4); // 4列目を100pxに変更 会社名
     console.log("Stateにカラムwidthを保存", newColsWidths);
     // ['65px', '100px', '250px', '50px', '119px', '142px', '250px', '250px']
     // stateに現在の全てのカラムのwidthを保存
@@ -797,7 +776,8 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
 
     // ====================== カラム順番入れ替え用の列アイテムリストに格納 ======================
     // colsWidthsの最初2つはcheckboxとidの列なので、最初から3つ目で入れ替え
-    const tempFirstColumnItemListArray = Object.keys(data?.pages[0].rows[0] as object);
+    // const tempFirstColumnItemListArray = Object.keys(data?.pages[0].rows[0] as object);
+    const tempFirstColumnItemListArray = contactColumnHeaderItemList.map((item) => item.columnName);
     const firstColumnItemListArray = tempFirstColumnItemListArray.map((item, index) => {
       // 初回カラム生成は最初の列（現在はid列）はisFrozenとisLastDrozenをtrueにする
       if (index === 0) {
@@ -822,14 +802,14 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
     });
     console.log(`初回ヘッダー生成 初期カラム配列`, tempFirstColumnItemListArray);
     console.log(`初回ヘッダー生成 整形後カラム配列`, firstColumnItemListArray);
-    setColumnHeaderItemList(firstColumnItemListArray);
+    setContactColumnHeaderItemList(firstColumnItemListArray);
     // isFrozenがtrueの個数をRefに格納
     isFrozenCountRef.current = firstColumnItemListArray.filter((obj) => obj.isFrozen === true).length;
 
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
-    const columnHeaderItemListJSON = JSON.stringify(firstColumnItemListArray);
-    localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
-    // localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
+    const contactColumnHeaderItemListJSON = JSON.stringify(firstColumnItemListArray);
+    localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
+    // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
   }, [gotData]); // gotDataのstateがtrueになったら再度実行
   // ========================== 🌟useEffect ヘッダーカラム生成🌟 ここまで ==========================
@@ -871,17 +851,17 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
       window.removeEventListener("mouseup", handleMouseUp);
       window.removeEventListener("mousemove", handleMouseMove);
 
-      // ================ columnHeaderItemListも合わせてサイズを更新 テスト ================
+      // ================ contactColumnHeaderItemListも合わせてサイズを更新 テスト ================
       let newColumnHeaderItemList: any[] = [];
-      const copyColumnHeaderItemList = [...columnHeaderItemList];
+      const copyColumnHeaderItemList = [...contactColumnHeaderItemList];
       copyColumnHeaderItemList.forEach((item) => {
         item.columnWidth = currentColsWidths.current[item.columnIndex - 1];
         newColumnHeaderItemList.push(item);
         // return item;
       });
       console.log("🌟🔥 newColumnHeaderItemList", newColumnHeaderItemList);
-      setColumnHeaderItemList(newColumnHeaderItemList);
-      // ================ columnHeaderItemListも合わせてサイズを更新 テスト ================
+      setContactColumnHeaderItemList(newColumnHeaderItemList);
+      // ================ contactColumnHeaderItemListも合わせてサイズを更新 テスト ================
 
       // // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ===============
       // colsWidth ['65px', '100px', '250px', '250px', '250px', '250px', '250px', '250px']から
@@ -952,9 +932,9 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
         // });
       }
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
-      const columnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
-      localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
-      // localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
+      const contactColumnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
+      localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
+      // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
     };
 
@@ -1016,7 +996,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
       columnLeftPositions.current = accumulatedArrayMove;
       console.log("columnLeftPositions.current", columnLeftPositions.current);
       // ===================================================== 🔥テスト フローズンカスタムプロパティ
-      const filteredIsFrozenList = columnHeaderItemList.filter((item) => item.isFrozen === true);
+      const filteredIsFrozenList = contactColumnHeaderItemList.filter((item) => item.isFrozen === true);
       filteredIsFrozenList.forEach((item, index) => {
         parentGridScrollContainer.current!.style.setProperty(
           `--frozen-left-${index}`,
@@ -1039,7 +1019,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
     // console.log("✅ フローズンの個数isFrozenCountRef.current", isFrozenCountRef.current);
     // console.log("✅ レフトポジションcolumnLeftPositions.current", columnLeftPositions.current);
     // isFrozenがtrueなら
-    if (columnHeaderItemList[index].isFrozen) {
+    if (contactColumnHeaderItemList[index].isFrozen) {
       return columnLeftPositions.current[index];
     }
 
@@ -1600,10 +1580,10 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
     if (!draggingElementColumnId || !dropElementColumnId) return;
 
     // ドラッグ、ドロップ2つの要素のcolIndexとwidthを取得
-    const draggingElementColIndex = columnHeaderItemList[dragColumnIndex].columnIndex;
-    const dropElementColIndex = columnHeaderItemList[dropIndex!].columnIndex;
-    const draggingElementColWidth = columnHeaderItemList[dragColumnIndex].columnWidth;
-    const dropElementColWidth = columnHeaderItemList[dropIndex!].columnWidth;
+    const draggingElementColIndex = contactColumnHeaderItemList[dragColumnIndex].columnIndex;
+    const dropElementColIndex = contactColumnHeaderItemList[dropIndex!].columnIndex;
+    const draggingElementColWidth = contactColumnHeaderItemList[dragColumnIndex].columnWidth;
+    const dropElementColWidth = contactColumnHeaderItemList[dropIndex!].columnWidth;
     const draggingElementName = draggingElement.dataset.handlerId;
     const dropElementColName = dropElement.dataset.handlerId;
 
@@ -1614,9 +1594,9 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
       `🌟ドロップ先のName: ${dropElementColName} id: ${dropElementColumnId}, colIndex: ${dropElementColIndex}, width: ${dropElementColWidth}`
     );
 
-    console.log("🌟更新前 columnHeaderItemList全体", columnHeaderItemList);
-    //  🌟順番を入れ替える columnHeaderItemList
-    const copyListItems: ColumnHeaderItemList[] = JSON.parse(JSON.stringify(columnHeaderItemList)); // 一意性を守るため新たなカラムリストを生成
+    console.log("🌟更新前 contactColumnHeaderItemList全体", contactColumnHeaderItemList);
+    //  🌟順番を入れ替える contactColumnHeaderItemList
+    const copyListItems: ColumnHeaderItemList[] = JSON.parse(JSON.stringify(contactColumnHeaderItemList)); // 一意性を守るため新たなカラムリストを生成
     // 入れ替え前にwidthを更新する CSSカスタムプロパティに反映 grid-template-columnsの場所も入れ替える
     const copyTemplateColumnsWidth: string[] = JSON.parse(JSON.stringify(colsWidth));
     console.log("🔥copyTemplateColumnsWidth, colsWidth", copyTemplateColumnsWidth, colsWidth);
@@ -1664,16 +1644,16 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
 
     // let transferredElement = newListItemArray.splice()
     // ================= 🔥🔥テスト🔥🔥==================
-    setColumnHeaderItemList([...newListItemArray]);
-    // setColumnHeaderItemList((prevArray) => {
+    setContactColumnHeaderItemList([...newListItemArray]);
+    // setContactColumnHeaderItemList((prevArray) => {
     //   console.log("ここprevArray", prevArray);
     //   console.log("ここnewListItemArray", newListItemArray);
     //   return [...newListItemArray];
     // });
     // ================= 🔥🔥テスト🔥🔥==================
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
-    // const columnHeaderItemListJSON = JSON.stringify(newListItemArray);
-    // localStorage.setItem("grid_columns_company", columnHeaderItemListJSON);
+    // const contactColumnHeaderItemListJSON = JSON.stringify(newListItemArray);
+    // localStorage.setItem("grid_columns_company", contactColumnHeaderItemListJSON);
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
 
     // --template-columnsも更新
@@ -1779,9 +1759,9 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
   const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
     console.log("Drop✅");
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
-    const columnHeaderItemListJSON = JSON.stringify(columnHeaderItemList);
-    localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
-    // localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
+    const contactColumnHeaderItemListJSON = JSON.stringify(contactColumnHeaderItemList);
+    localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
+    // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
     // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ===============
     // colsWidth ['65px', '100px', '250px', '250px', '250px', '250px', '250px', '250px']から
@@ -1805,7 +1785,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
     columnLeftPositions.current = accumulatedArray;
     console.log("カラム入れ替えonDragEndイベント レフトポジション accumulatedArray", accumulatedArray);
     // ===================================================== 🔥テスト フローズンカスタムプロパティ
-    const filteredIsFrozenList = columnHeaderItemList.filter((item) => item.isFrozen === true);
+    const filteredIsFrozenList = contactColumnHeaderItemList.filter((item) => item.isFrozen === true);
     filteredIsFrozenList.forEach((item, index) => {
       parentGridScrollContainer.current!.style.setProperty(`--frozen-left-${index}`, `${accumulatedArray[index]}px`);
     });
@@ -1832,10 +1812,10 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
     console.log("✅ レフトポジションcolumnLeftPositions.current", columnLeftPositions.current);
 
     // 🔥フローズンを付与するルート =================================
-    if (columnHeaderItemList[index].isFrozen === false) {
+    if (contactColumnHeaderItemList[index].isFrozen === false) {
       console.log("🔥フローズンを付与するルート ============================");
       // ✅順番を入れ替え処理 一意性を守るため新たなカラムリストを生成
-      const copyColumnHeaderListItems: ColumnHeaderItemList[] = JSON.parse(JSON.stringify(columnHeaderItemList));
+      const copyColumnHeaderListItems: ColumnHeaderItemList[] = JSON.parse(JSON.stringify(contactColumnHeaderItemList));
       // クリックされたカラムヘッダーをリストから取り出す 配列内に一つのみ取得されるので、[0]をつけてオブジェクトで取得
       const targetFrozenColumn = copyColumnHeaderListItems.splice(index, 1)[0]; // 破壊的
       console.log("フローズンイベント 今回取り出したフローズンをつけるカラム", targetFrozenColumn);
@@ -1863,12 +1843,12 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
       newColumnHeaderItemList.forEach((item, index) => (item.columnIndex = index + 2));
       console.log("フローズンイベント 順番入れ替えとcolumnIndex整形後のカラムリスト", newColumnHeaderItemList);
       // カラムリストのStateを更新
-      setColumnHeaderItemList(newColumnHeaderItemList);
+      setContactColumnHeaderItemList(newColumnHeaderItemList);
 
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
-      const columnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
-      localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
-      // localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
+      const contactColumnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
+      localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
+      // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
 
       // 現在のフローズンの総個数を更新する filteredIsFrozenColumnListの+1
@@ -1937,7 +1917,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
     else {
       console.log("🔥フローズンを外すルート ============================");
       // ✅順番を入れ替え処理 一意性を守るため新たなカラムリストを生成
-      const copyColumnHeaderListItems: ColumnHeaderItemList[] = JSON.parse(JSON.stringify(columnHeaderItemList));
+      const copyColumnHeaderListItems: ColumnHeaderItemList[] = JSON.parse(JSON.stringify(contactColumnHeaderItemList));
       // クリックされたカラムヘッダーをリストから取り出す 配列内に一つのみ取得されるので、[0]をつけてオブジェクトで取得
       const targetNotFrozenColumn = copyColumnHeaderListItems.splice(index, 1)[0]; // 破壊的
       console.log("フローズンイベント 今回取り出したフローズンを外すカラム", targetNotFrozenColumn);
@@ -1965,12 +1945,12 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
       newColumnHeaderItemList.forEach((item, index) => (item.columnIndex = index + 2));
       console.log("フローズンイベント 順番入れ替えとcolumnIndex整形後のカラムリスト", newColumnHeaderItemList);
       // カラムリストのStateを更新
-      setColumnHeaderItemList(newColumnHeaderItemList);
+      setContactColumnHeaderItemList(newColumnHeaderItemList);
 
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
-      const columnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
-      localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
-      // localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
+      const contactColumnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
+      localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
+      // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
 
       // 現在のフローズンの総個数を更新する filteredIsFrozenColumnListの-1
@@ -2061,23 +2041,23 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
   // 🌟現在のカラム.map((obj) => Object.values(row)[obj.columnId])で展開してGridセルを表示する
   // カラムNameの値のみ配列バージョンで順番入れ替え
   // ================= 🔥🔥テスト🔥🔥==================
-  const columnOrder = [...columnHeaderItemList].map((item, index) => item.columnName as keyof Client_company); // columnNameのみの配列を取得
-  // const columnOrder = [...columnHeaderItemList].map((item, index) => item.columnName as keyof TableDataType); // columnNameのみの配列を取得
+  const columnOrder = [...contactColumnHeaderItemList].map((item, index) => item.columnName as keyof Client_company); // columnNameのみの配列を取得
+  // const columnOrder = [...contactColumnHeaderItemList].map((item, index) => item.columnName as keyof TableDataType); // columnNameのみの配列を取得
   // ================= 🔥🔥テスト🔥🔥==================
   // // カラムName配列バージョンで順番入れ替え
-  // const columnOrder = [...columnHeaderItemList].map((item, index) => ({
+  // const columnOrder = [...contactColumnHeaderItemList].map((item, index) => ({
   //   columnName: item.columnName as keyof TableDataType,
   // })); // columnNameのみの配列を取得
   // 🌟現在のカラム順、.map((obj) => Object.values(row)[obj.columnId])で展開してGridセルを表示する
-  // const columnOrder = [...columnHeaderItemList].map((item, index) => ({ columnId: item.columnId })); // columnIdのみの配列を取得
+  // const columnOrder = [...contactColumnHeaderItemList].map((item, index) => ({ columnId: item.columnId })); // columnIdのみの配列を取得
   // 🌟現在のisFrozenの数を取得 isFrozenの個数の総数と同じindex+1のアイテムにborder-right: 4pxを付与する
-  // const currentIsFrozenCount = columnHeaderItemList.filter(obj => obj.isFrozen === true).length
+  // const currentIsFrozenCount = contactColumnHeaderItemList.filter(obj => obj.isFrozen === true).length
   // console.log("✅ clickedActiveRow", clickedActiveRow);
   // console.log("✅ checkedRows個数, checkedRows", Object.keys(checkedRows).length, checkedRows);
   // console.log("✅ selectedCheckBox", selectedCheckBox);
   // console.log("✅ allRows個数 allRows", allRows);
   // console.log(`✅ virtualItems:${rowVirtualizer.getVirtualItems().length}`);
-  // console.log("✅ columnHeaderItemList, columnOrder", columnHeaderItemList, columnOrder);
+  // console.log("✅ contactColumnHeaderItemList, columnOrder", contactColumnHeaderItemList, columnOrder);
   // console.log("✅ colsWidth                ", colsWidth);
   // console.log("✅ currentColsWidths.current", currentColsWidths.current);
   // console.log("✅ フローズンの個数isFrozenCountRef.current", isFrozenCountRef.current);
@@ -2096,8 +2076,8 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
     "allRows",
     allRows,
     `virtualItems:${rowVirtualizer.getVirtualItems().length}`,
-    "columnHeaderItemList, columnOrder",
-    columnHeaderItemList,
+    "contactColumnHeaderItemList, columnOrder",
+    contactColumnHeaderItemList,
     columnOrder,
     "colsWidth                ",
     colsWidth,
@@ -2209,12 +2189,12 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                 borderRadius="2px"
                 classText="select-none"
                 clickEventHandler={() => {
-                  const newResetColumnHeaderItemList = JSON.parse(JSON.stringify(columnHeaderItemList));
+                  const newColumnHeaderItemListReset = JSON.parse(JSON.stringify(contactColumnHeaderItemList));
                   console.log(
-                    "🔥🔥🔥モーダル開いた ZustandのリセットStateにパースして格納newResetColumnHeaderItemList",
-                    newResetColumnHeaderItemList
+                    "🔥🔥🔥モーダル開いた ZusContactリセットStateにパースして格納newResetColumnHeaderItemListReset",
+                    newColumnHeaderItemListReset
                   );
-                  setResetColumnHeaderItemList(newResetColumnHeaderItemList);
+                  ColumnHeaderItemListReset(newColumnHeaderItemListReset);
                   setIsOpenEditColumns(true);
                 }}
               />
@@ -2281,8 +2261,8 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
               {
                 // allRows[0] &&
                 //   Object.keys(allRows[0]).map((key, index) => (
-                !!columnHeaderItemList.length &&
-                  columnHeaderItemList
+                !!contactColumnHeaderItemList.length &&
+                  contactColumnHeaderItemList
                     .sort((a, b) => a.columnIndex - b.columnIndex) // columnIndexで並び替え
                     .map((key, index) => (
                       <div
@@ -2564,13 +2544,15 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                                   // ref={(ref) => (colsRef.current[index] = ref)}
                                   // aria-colindex={index + 2}
                                   aria-colindex={
-                                    columnHeaderItemList[index] ? columnHeaderItemList[index]?.columnIndex : index + 2
+                                    contactColumnHeaderItemList[index]
+                                      ? contactColumnHeaderItemList[index]?.columnIndex
+                                      : index + 2
                                   } // カラムヘッダーの列StateのcolumnIndexと一致させる
                                   aria-selected={false}
                                   // variant="contained"
                                   tabIndex={-1}
                                   className={`${styles.grid_cell} ${
-                                    columnHeaderItemList[index].isFrozen ? styles.grid_column_frozen : ""
+                                    contactColumnHeaderItemList[index].isFrozen ? styles.grid_column_frozen : ""
                                   } ${
                                     isFrozenCountRef.current === 1 && index === 0 ? styles.grid_cell_frozen_last : ""
                                   } ${isFrozenCountRef.current === index + 1 ? styles.grid_cell_frozen_last : ""}  ${
@@ -2579,56 +2561,56 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                                   // className={`${styles.grid_cell} ${index === 0 ? styles.grid_column_frozen : ""}  ${index === 0 ? styles.grid_cell_frozen_last : ""} ${styles.grid_cell_resizable}`}
                                   // style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
                                   style={
-                                    columnHeaderItemList[index].isFrozen
+                                    contactColumnHeaderItemList[index].isFrozen
                                       ? {
-                                          gridColumnStart: columnHeaderItemList[index]
-                                            ? columnHeaderItemList[index]?.columnIndex
+                                          gridColumnStart: contactColumnHeaderItemList[index]
+                                            ? contactColumnHeaderItemList[index]?.columnIndex
                                             : index + 2,
                                           left: `var(--frozen-left-${index})`,
                                         }
                                       : {
-                                          gridColumnStart: columnHeaderItemList[index]
-                                            ? columnHeaderItemList[index]?.columnIndex
+                                          gridColumnStart: contactColumnHeaderItemList[index]
+                                            ? contactColumnHeaderItemList[index]?.columnIndex
                                             : index + 2,
                                         }
                                   }
                                   // style={
-                                  //   columnHeaderItemList[index].isFrozen
+                                  //   contactColumnHeaderItemList[index].isFrozen
                                   //     ? {
-                                  //         gridColumnStart: columnHeaderItemList[index]
-                                  //           ? columnHeaderItemList[index]?.columnIndex
+                                  //         gridColumnStart: contactColumnHeaderItemList[index]
+                                  //           ? contactColumnHeaderItemList[index]?.columnIndex
                                   //           : index + 2,
                                   //         left: columnLeftPositions.current[index],
                                   //       }
                                   //     : {
-                                  //         gridColumnStart: columnHeaderItemList[index]
-                                  //           ? columnHeaderItemList[index]?.columnIndex
+                                  //         gridColumnStart: contactColumnHeaderItemList[index]
+                                  //           ? contactColumnHeaderItemList[index]?.columnIndex
                                   //           : index + 2,
                                   //       }
                                   // }
                                   // style={
-                                  //   columnHeaderItemList[index].isFrozen
+                                  //   contactColumnHeaderItemList[index].isFrozen
                                   //     ? {
-                                  //         gridColumnStart: columnHeaderItemList[index]
-                                  //           ? columnHeaderItemList[index]?.columnIndex
+                                  //         gridColumnStart: contactColumnHeaderItemList[index]
+                                  //           ? contactColumnHeaderItemList[index]?.columnIndex
                                   //           : index + 2,
                                   //         left: columnHeaderLeft(index),
                                   //       }
                                   //     : {
-                                  //         gridColumnStart: columnHeaderItemList[index]
-                                  //           ? columnHeaderItemList[index]?.columnIndex
+                                  //         gridColumnStart: contactColumnHeaderItemList[index]
+                                  //           ? contactColumnHeaderItemList[index]?.columnIndex
                                   //           : index + 2,
                                   //       }
                                   // }
                                   // style={{
-                                  //   gridColumnStart: columnHeaderItemList[index]
-                                  //     ? columnHeaderItemList[index]?.columnIndex
+                                  //   gridColumnStart: contactColumnHeaderItemList[index]
+                                  //     ? contactColumnHeaderItemList[index]?.columnIndex
                                   //     : index + 2,
                                   //   left: columnHeaderLeft(index + 1),
                                   // }}
                                   onClick={handleClickGridCell}
                                   onDoubleClick={(e) =>
-                                    handleDoubleClick(e, index, columnHeaderItemList[index].columnName)
+                                    handleDoubleClick(e, index, contactColumnHeaderItemList[index].columnName)
                                   }
                                 >
                                   {value}
@@ -2644,7 +2626,9 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                                 role="gridcell"
                                 // aria-colindex={index + 2}
                                 aria-colindex={
-                                  columnHeaderItemList[index] ? columnHeaderItemList[index]?.columnIndex : index + 2
+                                  contactColumnHeaderItemList[index]
+                                    ? contactColumnHeaderItemList[index]?.columnIndex
+                                    : index + 2
                                 } // カラムヘッダーの列StateのcolumnIndexと一致させる
                                 aria-selected={false}
                                 tabIndex={-1}
@@ -2653,42 +2637,42 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                                 } ${styles.grid_cell_resizable}`}
                                 // style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
                                 style={
-                                  columnHeaderItemList[index].isFrozen
+                                  contactColumnHeaderItemList[index].isFrozen
                                     ? {
-                                        gridColumnStart: columnHeaderItemList[index]
-                                          ? columnHeaderItemList[index]?.columnIndex
+                                        gridColumnStart: contactColumnHeaderItemList[index]
+                                          ? contactColumnHeaderItemList[index]?.columnIndex
                                           : index + 2,
                                         left: columnLeftPositions.current[index],
                                       }
                                     : {
-                                        gridColumnStart: columnHeaderItemList[index]
-                                          ? columnHeaderItemList[index]?.columnIndex
+                                        gridColumnStart: contactColumnHeaderItemList[index]
+                                          ? contactColumnHeaderItemList[index]?.columnIndex
                                           : index + 2,
                                       }
                                 }
                                 // style={
-                                //   columnHeaderItemList[index].isFrozen
+                                //   contactColumnHeaderItemList[index].isFrozen
                                 //     ? {
-                                //         gridColumnStart: columnHeaderItemList[index]
-                                //           ? columnHeaderItemList[index]?.columnIndex
+                                //         gridColumnStart: contactColumnHeaderItemList[index]
+                                //           ? contactColumnHeaderItemList[index]?.columnIndex
                                 //           : index + 2,
                                 //         left: columnHeaderLeft(index),
                                 //       }
                                 //     : {
-                                //         gridColumnStart: columnHeaderItemList[index]
-                                //           ? columnHeaderItemList[index]?.columnIndex
+                                //         gridColumnStart: contactColumnHeaderItemList[index]
+                                //           ? contactColumnHeaderItemList[index]?.columnIndex
                                 //           : index + 2,
                                 //       }
                                 // }
                                 // style={{
-                                //   gridColumnStart: columnHeaderItemList[index]
-                                //     ? columnHeaderItemList[index]?.columnIndex
+                                //   gridColumnStart: contactColumnHeaderItemList[index]
+                                //     ? contactColumnHeaderItemList[index]?.columnIndex
                                 //     : index + 2,
                                 //   left: columnHeaderLeft(index + 1),
                                 // }}
                                 onClick={handleClickGridCell}
                                 onDoubleClick={(e) =>
-                                  handleDoubleClick(e, index, columnHeaderItemList[index].columnName)
+                                  handleDoubleClick(e, index, contactColumnHeaderItemList[index].columnName)
                                 }
                               >
                                 {value as any}
@@ -2721,7 +2705,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                           role="gridcell"
                           // aria-colindex={index + 2}
                           aria-colindex={
-                            columnHeaderItemList[index] ? columnHeaderItemList[index]?.columnIndex : index + 2
+                            contactColumnHeaderItemList[index] ? contactColumnHeaderItemList[index]?.columnIndex : index + 2
                           } // カラムヘッダーの列StateのcolumnIndexと一致させる
                           aria-selected={false}
                           tabIndex={-1}
@@ -2730,8 +2714,8 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                           } ${styles.grid_cell_resizable}`}
                           // style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
                           style={{
-                            gridColumnStart: columnHeaderItemList[index]
-                              ? columnHeaderItemList[index]?.columnIndex
+                            gridColumnStart: contactColumnHeaderItemList[index]
+                              ? contactColumnHeaderItemList[index]?.columnIndex
                               : index + 2,
                             left: columnHeaderLeft(index + 1),
                           }}
@@ -2752,7 +2736,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
           </div>
           {/* ================== Gridスクロールコンテナ ここまで ================== */}
           {/* =============== Gridフッター ここから スクロールコンテナと同列で配置 =============== */}
-          <GridTableFooter getItemCount={allRows.length} getTotalCount={data ? data.pages[0].count : 0} />
+          <ContactGridTableFooter getItemCount={allRows.length} getTotalCount={data ? data.pages[0].count : 0} />
           {/* ================== Gridフッター ここまで ================== */}
         </div>
         {/* ================== Gridメインコンテナ ここまで ================== */}
@@ -2763,19 +2747,19 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
         <div
           className="h-[50px] w-[50px] rounded-full bg-[var(--color-bg-brand)]"
           onClick={() => {
-            const newResetColumnHeaderItemList = JSON.parse(JSON.stringify(columnHeaderItemList));
+            const newColumnHeaderItemListReset = JSON.parse(JSON.stringify(contactColumnHeaderItemList));
             console.log(
-              "🔥🔥🔥モーダル開いた ZustandのリセットStateにパースして格納newResetColumnHeaderItemList",
-              newResetColumnHeaderItemList
+              "🔥🔥🔥モーダル開いた ZusContactリセットStateにパースして格納newResetColumnHeaderItemListReset",
+              newColumnHeaderItemListReset
             );
-            setResetColumnHeaderItemList(newResetColumnHeaderItemList);
+            ColumnHeaderItemListReset(newColumnHeaderItemListReset);
             setIsOpenEditColumns(true);
           }}
         ></div>
       </div> */}
       {/* カラム編集モーダル */}
-      {/* {isOpenEditColumns && <EditColumnsModal columnHeaderItemList={columnHeaderItemList} />} */}
-      {isOpenEditColumns && <EditColumnsModalDisplayOnly columnHeaderItemList={columnHeaderItemList} />}
+      {/* {isOpenEditColumns && <EditColumnsModal contactColumnHeaderItemList={contactColumnHeaderItemList} />} */}
+      {isOpenEditColumns && <EditColumnsModalDisplayOnly columnHeaderItemList={contactColumnHeaderItemList} />}
       {/* ================== 🌟カラム編集モーダル🌟 ここまで ================== */}
       {/* ================== メインコンテナ ここまで ================== */}
     </>

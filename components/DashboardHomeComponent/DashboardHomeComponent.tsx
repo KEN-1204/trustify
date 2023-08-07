@@ -16,6 +16,7 @@ import { BsChevronRight } from "react-icons/bs";
 import { home_cards } from "./data";
 
 export const DashboardHomeComponent = () => {
+  console.log('DashboardHomeComponentレンダリング')
   // const theme = useThemeStore((state) => state.theme);
   // const theme = useStore((state) => state.theme);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);

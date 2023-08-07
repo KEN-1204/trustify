@@ -45,21 +45,21 @@ const About = () => {
         </div>
 
         <div className="my-[30px] flex  w-full flex-col">
-          <div className="h-[3px] w-full bg-[var(--color-border)]"></div>
+          <div className="h-[2px] w-full bg-[var(--color-border)]"></div>
           <div className="flex">
             <div className="flex w-1/2 flex-col pr-[50px]">
               <div className="flex h-full items-center py-[35px] font-semibold">
                 <div className="mr-[80px] w-[64px] ">社名</div>
-                <div>株式会社トラスティファイ</div>
+                <div>株式会社トラスティファイ / TRUSTiFY, Inc</div>
               </div>
-              <div className="h-[3px] w-full bg-[var(--color-border)]"></div>
+              <div className="h-[2px] w-full bg-[var(--color-border)]"></div>
             </div>
             <div className="flex w-1/2 flex-col pr-[10px]">
               <div className="flex h-full items-center py-[35px] font-semibold">
                 <div className="mr-[80px] w-[64px]">所在地</div>
                 <div>東京都港区北青山1-3-1 アールキューブ3F</div>
               </div>
-              <div className="h-[3px] w-full bg-[var(--color-border)]"></div>
+              <div className="h-[2px] w-full bg-[var(--color-border)]"></div>
             </div>
           </div>
           <div className="flex">
@@ -68,14 +68,14 @@ const About = () => {
                 <div className="mr-[80px] w-[64px]">代表者</div>
                 <div>伊藤 謙太</div>
               </div>
-              <div className="h-[3px] w-full bg-[var(--color-border)]"></div>
+              <div className="h-[2px] w-full bg-[var(--color-border)]"></div>
             </div>
             <div className="flex w-1/2 flex-col pr-[10px]">
               <div className="flex h-full items-center py-[35px] font-semibold">
                 <div className="mr-[80px] w-[64px]">連絡先</div>
                 <div>info@thetrustify.com</div>
               </div>
-              <div className="h-[3px] w-full bg-[var(--color-border)]"></div>
+              <div className="h-[2px] w-full bg-[var(--color-border)]"></div>
             </div>
           </div>
           <div className="flex">
@@ -84,15 +84,17 @@ const About = () => {
                 <div className="mr-[80px] w-[64px]">事業内容</div>
                 <div>クラウドアプリケーションの開発、運営、セールスコンサルティング事業</div>
               </div>
-              <div className="h-[3px] w-full bg-[var(--color-border)]"></div>
+              <div className="h-[2px] w-full bg-[var(--color-border)]"></div>
             </div>
           </div>
         </div>
-        <div className="mt-[30px] flex h-[30px] w-full cursor-pointer" onClick={() => router.push("/")}>
-          <div className="flex-center h-[30px] w-[30px] rounded-full">
-            <AiOutlineArrowLeft className="text-[20px]" />
+        <div className="mt-[30px] flex h-[30px] w-full">
+          <div className="flex cursor-pointer" onClick={() => router.push("/")}>
+            <div className="flex-center h-[30px] w-[30px] rounded-full">
+              <AiOutlineArrowLeft className="text-[20px]" />
+            </div>
+            <div className="flex-center ml-[10px] h-[30px] font-bold">戻る</div>
           </div>
-          <div className="flex-center ml-[10px] h-[30px] font-bold">戻る</div>
         </div>
       </div>
     </Layout>

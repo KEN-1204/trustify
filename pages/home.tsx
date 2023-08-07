@@ -74,7 +74,8 @@ const DashboardHome = ({
     <DashboardLayout title={langTitle}>
       {activeMenuTab === "HOME" && <DashboardHomeComponent />}
       {activeMenuTab === "Company" && <DashboardCompanyComponent />}
-      {activeMenuTab === "Contact" && <DashboardContactComponent />}
+      {activeMenuTab === "Contacts" && <DashboardContactComponent />}
+      {/* {activeMenuTab === "Contacts" && <div className="flex-center w-screen h-screen bg-red-100">あい</div>} */}
     </DashboardLayout>
   );
 };

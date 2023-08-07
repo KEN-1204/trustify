@@ -5,16 +5,17 @@ import useDashboardStore from "@/store/useDashboardStore";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallback } from "../ErrorFallback/ErrorFallback";
 import { Fallback } from "../Fallback/Fallback";
-import { GridTableAll } from "../GridTable/GridTableAll/GridTableAll";
+import { ContactGridTableAll } from "./ContactGridTableAll/ContactGridTableAll";
+import { ContactDetail } from "./ContactDetail/ContactDetail";
 // import { ContactDetail } from "./ContactDetail/ContactDetail";
 
 export const DashboardContactComponent: FC = () => {
-  console.log("🔥 DashboardContactComponentレンダリング レンダリング");
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   const activeMenuTab = useDashboardStore((state) => state.activeMenuTab);
   const isOpenChangeSizeMenu = useDashboardStore((state) => state.isOpenChangeSizeMenu);
   const setIsOpenChangeSizeMenu = useDashboardStore((state) => state.setIsOpenChangeSizeMenu);
   const setClickedItemPos = useStore((state) => state.setClickedItemPos);
+  console.log("🔥 DashboardContactComponentレンダリング レンダリング activeMenuTab", activeMenuTab);
 
   // ハーフとallの時はheight指定を無しにして、コンテンツ全体を表示できるようにする
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
@@ -59,13 +60,13 @@ export const DashboardContactComponent: FC = () => {
                 : "py-[20px] pl-[20px]"
             }`}
           >
-            {/* {activeMenuTab === "Contact" && (
+            {activeMenuTab === "Contacts" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
-                  <GridTableAll title="会社" />
+                  <ContactGridTableAll title="担当者" />
                 </Suspense>
               </ErrorBoundary>
-            )} */}
+            )}
           </section>
 
           {/* ２画面目 下画面 */}
@@ -74,7 +75,7 @@ export const DashboardContactComponent: FC = () => {
               tableContainerSize === "half" ? `${styles.company_screen_under_half}` : ``
             } ${tableContainerSize === "one_third" ? `${styles.company_screen_under_one_third}` : ``}`}
           >
-            {/* <CompanyDetail /> */}
+            <ContactDetail />
           </section>
 
           {/* <div className={`${styles.screen1} bg-[--color-bg-secondary]`}></div>

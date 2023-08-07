@@ -1,0 +1,794 @@
+.main_container:global {
+  --grid-bg-color: #1c1c1c;
+  /* GridTable Supabase */
+  --selection-bg-blue: #1da1f2;
+  --selection-bg-blue-figma: #1da1f2;
+
+  --colors-scale3: #232323;
+  --colors-scale12: #ededed;
+  --border-color2: #2e2e2e;
+  /* --border-color: #393939; */
+  --border-color: var(--color-border-table);
+  --border-color4: #444;
+  --colors-scale5: #2e2e2e;
+  --button-bg-color: #2b825b;
+  --button-box-shadow-color: #40bf86;
+
+  --color-sp-green5: #cef2df;
+  --tw-ring-color: var(--color-sp-green5);
+  --tw-ring-offset-width: 2px;
+  --tw-ring-offset-shadow: 0 0 0 var(--tw-ring-offset-width) #fff;
+  --tw-ring-shadow: 0 0 0 calc(2px + var(--tw-ring-offset-width)) #0b3724;
+  --tw-shadow: 0 0 #0000;
+  --colors-brand9: #3fcf8e;
+
+  --color: #ddd;
+  --summary-border-color: #555;
+  --background-color: #212121;
+  --header-background-color: #1b1b1b;
+  --row-hover-background-color: #171717;
+  --row-selected-background-color: #1a73bc;
+  --row-selected-hover-background-color: #1768ab;
+  --checkbox-color: #94cfff;
+  --checkbox-focus-color: #c7e6ff;
+  --checkbox-disabled-border-color: #000;
+  --checkbox-disabled-background-color: #333;
+}
+.theme_tiktok:global {
+  --main-color: #ff3b5b;
+  --selection-bg: #ff3b5b;
+  --underline-bg: #ff3b5b;
+  --button-color: #ff3b5b;
+  --icon-color: #ff0050;
+}
+
+.theme_sb:global {
+  --border-theme: #24b47e;
+  --border-theme-text: #24b47e;
+  --border-theme-dark: #30a46c;
+  --text-color-sb: #33cc87;
+  --checkbox-bg-color: #3fcf8e;
+  --active-color: #24b47e;
+  --main-color-sb: #3ecf8e;
+  --gradient-color-sb: #3ecf8e, #3ecf8e, #3ecfb2;
+  --color-table-dragging-gradient: var(--gradient-color-sb);
+  /* bg-gradient-to-br from-[#3ECF8E] via-[#3ECF8E] to-[#3ecfb2]
+  background-image: linear-gradient(to bottom right,var(--tw-gradient-stops));
+}
+  */
+}
+.theme_f_light:global {
+  --border-theme: #0d99ff;
+  --border-theme-text: #0d99ff;
+  /* --border-theme: #2b7fff; */
+  --border-theme-dark: #0c8ce9;
+  --selected-text: #fff;
+  --main-color: #0d99ff;
+  --tab-bg: #e5f4ff;
+  --navbar-bg: #e5f4ff;
+  --text-color-sb: #0d99ff;
+  --checkbox-bg-color: #0d99ff;
+  --active-color: #0d99ff;
+  --main-color-sb: #0d99ff;
+  --gradient-color-sb: #3ecf8e, #3ecf8e, #3ecfb2;
+  /* --gradient-color-brand: #2b7fff, #acffffaa; */
+  --gradient-color-brand: #2b7fff, #0affffc0;
+  /* --color-table-dragging-gradient: #2b7fff, #0affff50; */
+  --color-table-dragging-gradient: var(--gradient-color-brand);
+}
+.theme_f_dark:global {
+  /* --border-theme: #0d99ff; */
+  /* --border-theme: #0080ff; */
+  --border-theme: #0066ff;
+  --border-theme-text: #0085ff;
+  --border-theme-dark: #0c8ce9;
+  --selected-text: #fff;
+  --main-color: #0d99ff;
+  --tab-bg: #e5f4ff;
+  --navbar-bg: #e5f4ff;
+  --text-color-sb: #0d99ff;
+  --checkbox-bg-color: #0d99ff;
+  --active-color: #0d99ff;
+  --main-color-sb: #0d99ff;
+  --gradient-color-sb: #3ecf8e, #3ecf8e, #3ecfb2;
+  --gradient-color-brand: #2b7fffe0, #0affff80;
+  --color-table-dragging-gradient: var(--gradient-color-brand);
+}
+.theme_grayscale_light:global {
+  --color-table-header: #f3f3f3;
+  /* --color-table-row-hover: #f3f3f390; */
+  --border-theme: #0d99ff;
+  /* --border-theme: #2b7fff; */
+  --border-theme-dark: #0c8ce9;
+  --main-color: #0d99ff;
+  --tab-bg: #e5f4ff;
+  --navbar-bg: #e5f4ff;
+  --text-color-sb: #0d99ff;
+  --checkbox-bg-color: #0d99ff;
+  --active-color: #0d99ff;
+  --main-color-sb: #0d99ff;
+  --border-theme: #0d99ff;
+  --border-theme-dark: #0c8ce9;
+  --gradient-color-sb: #3ecf8e, #3ecf8e, #3ecfb2;
+}
+
+.main_container {
+  width: 100%;
+  /* height: calc(100vh - var(--header-height)); */
+  /* max-height: calc(100vh / 3 - var(--header-height) / 3); */
+  /* min-height: calc(100vh / 3 - var(--header-height) / 3); */
+  /* // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 高さ 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 */
+  /* 🌟全体に表示 Header 56px grid-header 22px */
+  /* max-height: calc(100vh - var(--header-height) - 22px); */
+  /* 🌟HomeComponentのスクリーンにpadding 上下20px有りの場合 */
+  max-height: calc(100vh - var(--header-height) - 22px - 20px);
+
+  /* 全体に表示 ファンクションヘッダー有り height: 45px; */
+  /* ヘッダー56px */
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0%;
+  /* overflow: hidden; */
+  /* overflow-x: hidden; */
+  /* background: transparent; */
+  background-color: var(--color-bg-base);
+  /* box-shadow: 0 0px 20px rgba(12, 12, 12, 0.5); */
+  color: var(--color-text);
+  /* box-shadow: 0 0px 5px rgba(12, 12, 12, 0.3); */
+  /* margin-top: 5px; */
+}
+.main_container_half {
+  /* 全体に表示 Header 56px grid-header 22px */
+  /* // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 高さ 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 */
+  max-height: calc(100vh / 2 - var(--header-height) / 2);
+  /* max-height: calc(100vh - var(--header-height)); */
+  /* 全体に表示 ファンクションヘッダー有り height: 45px; */
+  /* ヘッダー56px */
+}
+.main_container_one_third {
+  /* 全体に表示 Header 56px grid-header 22px */
+  /* // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 高さ 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 */
+  max-height: calc(100vh / 3 - var(--header-height) / 3);
+  /* 全体に表示 ファンクションヘッダー有り height: 45px; */
+  /* ヘッダー56px */
+}
+/* 🌟テーブルヘッダー タブエリア */
+.grid_header {
+  /* height: 35px;
+  min-height: 35px; */
+  height: 22px;
+  width: 100%;
+  /* border-bottom: 1px solid var(--color-border-deep); */
+  background-color: transparent;
+  /* background-color: var(--color-bg-table-header); */
+  display: flex;
+  justify-content: space-between;
+  /* padding-left: 1px; */
+}
+.table_tab {
+  background: var(--color-bg-brand-table-tab);
+  min-width: 80px;
+  /* min-height: 22px; */
+  height: 100%;
+  width: 100%;
+  padding: 0 15px;
+  /* 全体に表示 */
+  font-size: 12px;
+  user-select: none;
+  color: #fcfcfc;
+  font-weight: 500;
+  box-shadow: inset 0px 0px 0px 1px var(--color-border-deep);
+  /* box-shadow: 0 0 5px 0px rgba(12, 12, 12, 0.3); */
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+
+  /* 丸み */
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+}
+/* 🌟gridメインコンテナ */
+.grid_main_container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border: 1px solid var(--color-border-deep);
+  border-top: 0px;
+  /* box-shadow: 0 0 5px 0px rgba(12, 12, 12, 0.3); */
+  /* border-bottom-left-radius: 4px; */
+  /* 全体に表示 */
+  /* border-bottom-left-radius: 4px;は無し */
+  /* border-bottom-right-radius: 4px; */
+  /* 丸み */
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+/* 🌟ファンクションヘッダー */
+.grid_function_header {
+  /* border: 1px solid var(--border-color); */
+  /* border-bottom: none; */
+  /* overflow: visible;
+  z-index: 0;
+  position: relative; */
+  background: var(--color-table-header);
+  border-bottom: 1px solid var(--color-border-table-deep);
+  /* border-bottom: 1px solid var(--border-color); */
+  display: flex;
+  min-height: 40px;
+  width: 100%;
+  /* height: 45px; */
+  padding: 0px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.fh_text_btn {
+  /* border: 1px solid var(--color-bg-brand-f); */
+}
+.fh_text_btn:hover {
+  /* border: 1px solid var(--color-bg-brand-f); */
+  /* border: 1px solid #6ae67d; */
+  /* background: var(--color-bg-brand-f); */
+  /* background: var(--color-bg-brand-f-deep); */
+  background: var(--color-function-header-text-btn-hover);
+
+  color: #fff;
+}
+.fh_text_btn:active {
+  /* background: var(--color-btn-brand-f); */
+  background: var(--color-function-header-text-btn-active);
+}
+
+.page_transition_button {
+  font-size: 14px;
+  color: var(--color-text);
+}
+/* 🌟スクロールコンテナ overflow: auto */
+/* position relative */
+/* // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 高さ 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 */
+.grid_scroll_container {
+  /* height: 100%; */
+  /* -22pxはテーブルヘッダーの高さ */
+  /* max-height: calc(100vh / 3 - var(--header-height) / 3 - 22px); */
+  /* 全体に表示 ファンクションヘッダー無し */
+  /* max-height: calc(100vh - var(--header-height) - 30px); */
+  /* 全体に表示 ファンクションヘッダー有り height: 40px; footer: 30px */
+  /* ファンクションヘッダー:-30px、フッター:-40px */
+  /* max-height: calc(100vh - var(--header-height) - 30px); */
+  /* max-height: calc(100vh - var(--header-height) - 30px) - 40px; */
+  /* 🌟HomeComponentのスクリーンにpadding無しで全体を表示する場合 */
+  /* max-height: calc(100vh - var(--header-height) - 30px - 40px); */
+  /* 🌟HomeComponentのスクリーンにpadding 上下20px有りの場合 */
+  max-height: calc(100vh - var(--header-height) - 30px - 40px - 20px);
+  width: 100%;
+  overflow: auto;
+  position: relative;
+  padding-right: 30vw;
+}
+.grid_scroll_container_half {
+  /* // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 高さ 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 */
+  max-height: calc(100vh / 2 - var(--header-height) / 2 - 30px - 40px);
+}
+.grid_scroll_container_one_third {
+  /* // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 高さ 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 */
+  max-height: calc(100vh / 3 - var(--header-height) / 3 - 30px - 40px);
+}
+/* サーチモード中の仮想化Rowグループ代わりのコンテナ ヘッダー30pxも引く */
+.search_mode_container_one_third {
+  min-height: calc(100vh / 3 - var(--header-height) / 3 - 30px - 40px - 30px);
+  /* background: #ccc; */
+  width: calc(100vw - var(--sidebar-width) - 20px);
+}
+.search_mode_container_half {
+  min-height: calc(100vh / 2 - var(--header-height) / 2 - 30px - 40px - 30px);
+  /* background: #ccc; */
+  width: calc(100vw - var(--sidebar-width) - 20px);
+}
+.search_mode_container_all {
+  min-height: calc(100vh - var(--header-height) - 30px - 40px - 30px);
+  /* background: #ccc; */
+  width: calc(100vw - var(--sidebar-width) - 20px);
+}
+.searching_row {
+  /* border-top: 1px solid #ccc; */
+  border-bottom: 1px solid var(--border-color);
+  width: 100%;
+  height: 30px;
+  animation: shine-lines 1.6s infinite linear;
+}
+.searching_row::after {
+}
+@keyframes shine-lines {
+  0% {
+    background-position: -100px;
+  }
+  40%,
+  100% {
+    background-position: 140px;
+  }
+}
+
+/* 仮想化Rowグループコンテナ */
+.grid_rowgroup_virtualized_container {
+  position: relative;
+  /* --header-row-height: 35px; */
+  --header-row-height: 30px;
+  /* --row-width: 0px; */
+}
+.grid_header_row {
+  position: sticky;
+  z-index: 10;
+  top: 0;
+
+  display: grid;
+  grid-template-columns: var(--template-columns);
+  grid-template-rows: var(--header-row-height);
+  user-select: none;
+  outline: none;
+  font-weight: 700;
+  contain: layout size style;
+  height: var(--header-row-height);
+  width: var(--row-width);
+  box-sizing: content-box;
+  border-bottom: 1px solid var(--color-border);
+  /* border-bottom: 1px solid var(--color-border-table-deep); */
+}
+
+/* テスト */
+.grid_header_row {
+  display: grid;
+  grid-template-columns: var(--template-columns);
+  grid-template-rows: var(--header-row-height);
+  position: sticky;
+  z-index: 10;
+  top: 0;
+  user-select: none;
+  border-style: none;
+  outline: none;
+  font-weight: 700;
+  contain: size layout style paint;
+  height: var(--header-row-height);
+  width: var(--row-width);
+  /* background-color: var(--color-bg-base-sub); */
+}
+
+.grid_row {
+  display: grid;
+  grid-template-columns: var(--template-columns);
+  grid-template-rows: var(--header-row-height);
+  height: var(--header-row-height);
+  width: var(--row-width);
+  contain: size layout style paint;
+  left: 0;
+  position: absolute;
+}
+
+.grid_column_header_all {
+  color: var(--color-text);
+
+  background: var(--color-table-header);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+
+  /* border-bottom: 1px solid var(--border-color); */
+  border-bottom: 1px solid var(--color-border-table-deep);
+  border-right: 1px solid var(--border-color);
+  contain: size layout style paint;
+  outline: none;
+  padding: 0 8px;
+}
+
+/* １列目と２列目の色を変える */
+.grid_column_header_all:nth-of-type(1),
+.grid_column_header_all:nth-of-type(2) {
+  /* background-color: #232323; */
+  background-color: var(--color-table-header);
+}
+
+.grid_cell {
+  color: var(--color-text);
+  /* background: var(--color-bg-base); */
+  background: var(--color-table-cell-bg);
+  /* background-color: #232323; */
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+
+  border-bottom: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  contain: size layout style paint;
+  outline: none;
+  padding: 0 8px;
+}
+.grid_row:hover .grid_cell {
+  background-color: var(--color-table-row-hover);
+}
+.grid_row[aria-selected="true"] .grid_cell {
+  background-color: var(--color-table-bg-selected);
+  color: var(--border-theme-text);
+  /* color: var(--selected-text); */
+}
+
+.grid_column_header_all[aria-selected="true"] {
+  box-shadow: inset 0 0 0 1px var(--border-theme);
+}
+
+.grid_cell[aria-selected="true"] {
+  box-shadow: inset 0 0 0 1px var(--border-theme);
+}
+
+/* 列サイズ変更時のボーダーハイライト */
+.grid_column_header_all.is_dragging {
+  border-right-color: var(--border-theme);
+}
+.grid_column_header_all.is_dragging_hover {
+  border-right-color: var(--border-theme);
+}
+.grid_cell.is_dragging {
+  border-right-color: var(--border-theme);
+}
+.grid_cell.is_dragging_hover {
+  border-right-color: var(--border-theme);
+}
+/* カラム順番入れ替え中のスタイル変更 ドラッグ中の色を付ける */
+.grid_column_header_all.dragging_change_order {
+  opacity: 0.3;
+  /* background-image: linear-gradient(to bottom right, var(--gradient-color-sb)); */
+  background-image: linear-gradient(to top right, var(--color-table-dragging-gradient));
+  cursor: grabbing;
+}
+
+.grid_column_frozen {
+  position: sticky;
+  z-index: 1;
+}
+
+.grid_cell_frozen_last {
+  border-right-width: 4px;
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+.grid_cell_resizable {
+  touch-action: none;
+}
+.grid_cell_resizable > div[draggable="true"] {
+  height: 100%;
+}
+
+.grid_cell_resizable::after {
+  /* bottom: 0;
+  content: "";
+  cursor: col-resize;
+  position: absolute;
+  right: 0px;
+  top: 0;
+  width: 10px; */
+  /* background-color: red; */
+}
+
+.draggable_overlay {
+  bottom: 0;
+  content: "";
+  cursor: col-resize;
+  position: absolute;
+  right: 0px;
+  top: 0;
+  width: 10px;
+  /* background-color: red; */
+}
+
+.grid_column_header {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.grid_column_header_cursor {
+  cursor: default;
+}
+.grid_column_header_inner {
+  display: flex;
+  align-items: center;
+  text-overflow: ellipsis;
+  gap: 0.5rem;
+  overflow: hidden;
+}
+.grid_column_header_inner_name {
+  user-select: text;
+  text-overflow: ellipsis;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: var(--color-text);
+  overflow: hidden;
+
+  /* -webkit-user-select: none;
+  user-select: none; */
+}
+
+.grid_footer {
+  display: flex;
+  /* height: 2.5rem; */
+  min-height: 30px;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--colors-scale3);
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+.grid_footer_inner {
+  display: flex;
+  align-items: center;
+}
+
+.grid_pagination {
+  display: flex;
+  align-items: center;
+}
+
+/* チェックボックスの列カラム */
+.grid_column_header_checkbox_column {
+  padding: 0 0px;
+  /* position: relative; */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.grid_select_cell_header {
+  position: relative;
+  display: flex;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+.grid_select_cell_header svg {
+  width: 16px;
+  height: 16px;
+}
+
+.main_container input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  outline: none;
+
+  cursor: pointer;
+  /*label手前にチェックボックス用の余白を開ける*/
+  /* padding-left: 30px; */
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+  position: relative;
+  /* display: inline-block;
+  user-select: none;
+  flex-shrink: 0;
+  height: 1rem;
+  width: 1rem; */
+}
+.grid_select_cell_header[aria-selected="true"] {
+  box-shadow: inset 0 0 0 1px var(--border-theme);
+}
+.main_container input[type="checkbox"]:checked ~ svg {
+  display: inline-block;
+  opacity: 1;
+}
+.grid_select_cell_header svg {
+  display: none;
+  position: absolute;
+  height: 1rem;
+  width: 1rem;
+  /* top: 9px;
+  left: 14px; */
+  top: 51%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  pointer-events: none;
+}
+.main_container input[type="checkbox"]::before {
+  content: "";
+  display: block;
+  position: absolute;
+}
+.main_container input[type="checkbox"]::before {
+  background-color: transparent;
+  color: rgb(255, 255, 255);
+  border: 1px solid var(--color-table-checkbox-outline);
+  border-radius: 3px;
+  /* margin-top: 2px; */
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 1rem;
+  width: 1rem;
+  top: 1px;
+  /* transform: translateY(-50%);
+  top: 50%;
+  left: 5px; */
+}
+.main_container input[type="checkbox"]:checked::before {
+  /* background-color: #3fcf8e; */
+  background-color: var(--checkbox-bg-color);
+  border-radius: 3px;
+}
+.main_container input[type="checkbox"]:focus::before {
+  /* outline: 2px solid #fff; */
+  outline: 2px solid var(--color-table-checkbox-focus-outline);
+  box-shadow: 0 0 3px 1px var(--color-bg-brand);
+  /* outline-offset: 1px; */
+  /* --tw-ring-color: var(--colors-brand5); */
+  /* box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow); */
+}
+.main_container input[type="checkbox"]:hover::before {
+  /* border-color: #30a46c; */
+  border-color: var(--border-theme-dark);
+}
+
+.main_container input[type="checkbox"]::after {
+  /* チェックの太さ*/
+  /* border-bottom: 2.5px solid #fff; */
+  /*チェックの太さ*/
+  /* border-left: 2.5px solid #fff; */
+  /*チェック前は非表示*/
+  /* opacity: 0; */
+  /*チェックの高さ*/
+  /* height: 6px; */
+  /*チェックの横幅*/
+  /* width: 10px; */
+  /* transform: rotate(-45deg); */
+  /*チェック時の位置調整*/
+  /* top: -3px; */
+  /*チェック時の位置調整*/
+  /* left: 8px; */
+}
+
+.main_container input[type="checkbox"]:checked::after {
+  /*チェック後表示*/
+  /* opacity: 1; */
+}
+
+/* ローディング中のRowスタイル */
+.loading_reflection {
+  display: grid;
+  grid-template-columns: var(--template-columns);
+  position: absolute;
+  z-index: 1;
+  bottom: 0;
+  /* width: 100%; */
+  height: 30px;
+  /* height: 35px; */
+  /* width: var(--row-width); */
+  width: 100%;
+  display: flex;
+  /* justify-content: flex-start; */
+  justify-content: flex-start;
+  align-items: center;
+  padding-left: 40vw;
+  border-right: 1px solid var(--border-color);
+  background-color: var(--color-table-bg-loading);
+  overflow-x: hidden;
+}
+.reflection {
+  position: absolute;
+  top: 0;
+  /* left: -120%; */
+  width: 100%;
+  height: 100%;
+  /* background: rgba(255, 255, 255, 0.2); */
+  background: var(--color-table-reflection);
+  transition: 0.5s;
+  transition-delay: 1s;
+  transform: skewX(5deg);
+  filter: blur(10px);
+  /* animation: animateReflection 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; */
+  animation: animateReflection 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  /* animation: animatePulse 1s cubic-bezier(0.4, 0, 0.6, 1) alternate-reverse infinite; */
+}
+@keyframes animateReflection {
+  0% {
+    left: -120%;
+    opacity: 0.2;
+  }
+  50% {
+    /* opacity: 1; */
+  }
+  100% {
+    left: 120%;
+    opacity: 0.7;
+  }
+}
+@keyframes animatePulse {
+  0% {
+    opacity: 0.2;
+  }
+  50% {
+    /* opacity: 1; */
+  }
+  100% {
+    opacity: 0.5;
+  }
+}
+
+.spinner78 {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  /* border: 3.8px solid #787878; */
+  border: 3.8px solid var(--color-table-loading-spinner);
+  animation: spinner-bulqg1 1.1199999999999999s infinite linear alternate,
+    spinner-oaa3wk 2.2399999999999998s infinite linear;
+}
+
+@keyframes spinner-bulqg1 {
+  0% {
+    clip-path: polygon(50% 50%, 0 0, 50% 0%, 50% 0%, 50% 0%, 50% 0%, 50% 0%);
+  }
+
+  12.5% {
+    clip-path: polygon(50% 50%, 0 0, 50% 0%, 100% 0%, 100% 0%, 100% 0%, 100% 0%);
+  }
+
+  25% {
+    clip-path: polygon(50% 50%, 0 0, 50% 0%, 100% 0%, 100% 100%, 100% 100%, 100% 100%);
+  }
+
+  50% {
+    clip-path: polygon(50% 50%, 0 0, 50% 0%, 100% 0%, 100% 100%, 50% 100%, 0% 100%);
+  }
+
+  62.5% {
+    clip-path: polygon(50% 50%, 100% 0, 100% 0%, 100% 0%, 100% 100%, 50% 100%, 0% 100%);
+  }
+
+  75% {
+    clip-path: polygon(50% 50%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 50% 100%, 0% 100%);
+  }
+
+  100% {
+    clip-path: polygon(50% 50%, 50% 100%, 50% 100%, 50% 100%, 50% 100%, 50% 100%, 0% 100%);
+  }
+}
+
+@keyframes spinner-oaa3wk {
+  0% {
+    transform: scaleY(1) rotate(0deg);
+  }
+
+  49.99% {
+    transform: scaleY(1) rotate(135deg);
+  }
+
+  50% {
+    transform: scaleY(-1) rotate(0deg);
+  }
+
+  100% {
+    transform: scaleY(-1) rotate(-135deg);
+  }
+}
+
+.overlay {
+  position: absolute;
+  z-index: 20;
+  inset: 0;
+  /* background-color: #ffffff10; */
+}
