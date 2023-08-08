@@ -6,13 +6,22 @@ export const EditModal = () => {
   const textareaInput = useDashboardStore((state) => state.textareaInput);
   const setTextareaInput = useDashboardStore((state) => state.setTextareaInput);
   const setIsOpenEditModal = useDashboardStore((state) => state.setIsOpenEditModal);
+  const activeMenuTab = useDashboardStore((state) => state.activeMenuTab);
+  const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
 
   const handleClickOverlay = () => {
     setTextareaInput("");
     setIsOpenEditModal(false);
   };
 
-  console.log("🔥EditModalレンダリング", textareaInput);
+  console.log("🔥EditModalレンダリング textareaInput", textareaInput, "selectedRowDataContact", selectedRowDataContact);
+
+  const handleSave = () => {
+    if (activeMenuTab === "Company") {
+    }
+    if (activeMenuTab === "Contacts") {
+    }
+  };
 
   return (
     <>

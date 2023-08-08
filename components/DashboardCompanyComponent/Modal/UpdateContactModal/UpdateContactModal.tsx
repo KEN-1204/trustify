@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import styles from "./InsertNewContactModal.module.css";
+import React, { useEffect, useState } from "react";
+import styles from "./UpdateContactModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
@@ -8,18 +8,16 @@ import useThemeStore from "@/store/useThemeStore";
 import { isNaN } from "lodash";
 import { useMutateContact } from "@/hooks/useMutateContact";
 
-export const InsertNewContactModal = () => {
-  const setIsOpenInsertNewContactModal = useDashboardStore((state) => state.setIsOpenInsertNewContactModal);
+export const UpdateContactModal = () => {
+  //   const setIsOpenInsertNewContactModal = useDashboardStore((state) => state.setIsOpenInsertNewContactModal);
+  const setIsOpenUpdateContactModal = useDashboardStore((state) => state.setIsOpenUpdateContactModal);
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   const theme = useThemeStore((state) => state.theme);
   // 上画面の選択中の列データ会社
-  const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
+  const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
-  // 職位selectタグ選択用state
-  const [selectedPositionClass, setSelectedPositionClass] = useState("1 代表者");
   // 担当職種selectタグ選択用state
-  const [selectedOccupation, setSelectedOccupation] = useState("1 社長・専務");
   const [name, setName] = useState("");
   const [directLine, setDirectLine] = useState("");
   const [directFax, setDirectFax] = useState("");
@@ -31,10 +29,13 @@ export const InsertNewContactModal = () => {
   // const [positionClass, setPositionClass] = useState('')
   // const [occupation, setOccupation] = useState('')
   const [approvalAmount, setApprovalAmount] = useState("");
-  // const [approvalAmount, setApprovalAmount] = useState<number | null>(null);
+  //   const [approvalAmount, setApprovalAmount] = useState<number | null>(null);
+  // 職位selectタグ選択用state
+  const [selectedPositionClass, setSelectedPositionClass] = useState("1 代表者");
+  const [selectedOccupation, setSelectedOccupation] = useState("1 社長・専務");
 
   const supabase = useSupabaseClient();
-  const { createContactMutation } = useMutateContact();
+  const { updateContactMutation } = useMutateContact();
 
   console.log(
     "InsertNewContactModalコンポーネント レンダリング",
@@ -44,15 +45,47 @@ export const InsertNewContactModal = () => {
     selectedOccupation
   );
 
+  // 初回マウント時に選択中の担当者&会社の列データの情報をStateに格納
+  useEffect(() => {
+    if (!selectedRowDataContact) return;
+    let _name = selectedRowDataContact.contact_name ? selectedRowDataContact.contact_name : "";
+    let _direct_line = selectedRowDataContact.direct_line ? selectedRowDataContact.direct_line : "";
+    let _direct_fax = selectedRowDataContact.direct_fax ? selectedRowDataContact.direct_fax : "";
+    let _extension = selectedRowDataContact.extension ? selectedRowDataContact.extension : "";
+    let _company_cell_phone = selectedRowDataContact.company_cell_phone
+      ? selectedRowDataContact.company_cell_phone
+      : "";
+    let _personal_cell_phone = selectedRowDataContact.personal_cell_phone
+      ? selectedRowDataContact.personal_cell_phone
+      : "";
+    let _contact_email = selectedRowDataContact.contact_email ? selectedRowDataContact.contact_email : "";
+    let _position_name = selectedRowDataContact.position_name ? selectedRowDataContact.position_name : "";
+    let _approval_amount = selectedRowDataContact.approval_amount ? selectedRowDataContact.approval_amount : "";
+    let _position_class = selectedRowDataContact.position_class ? selectedRowDataContact.position_class : "";
+    let _occupation = selectedRowDataContact.occupation ? selectedRowDataContact.occupation : "";
+    setName(_name);
+    setDirectLine(_direct_line);
+    setDirectFax(_direct_fax);
+    setExtension(_extension);
+    setCompanyCellPhone(_company_cell_phone);
+    setPersonalCellPhone(_personal_cell_phone);
+    setEmail(_contact_email);
+    setPosition(_position_name);
+    setApprovalAmount(_approval_amount);
+    setSelectedPositionClass(_position_class);
+    setSelectedOccupation(_occupation);
+  }, []);
+
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
-    setIsOpenInsertNewContactModal(false);
+    setIsOpenUpdateContactModal(false);
   };
   const handleSaveAndClose = async () => {
     setLoadingGlobalState(true);
 
-    // 新規作成するデータをオブジェクトにまとめる
+    // 編集、保存するデータをオブジェクトにまとめる
     const newContact = {
+      id: selectedRowDataContact!.contact_id,
       name: name,
       direct_line: directLine,
       direct_fax: directFax,
@@ -71,48 +104,20 @@ export const InsertNewContactModal = () => {
       claim: null,
       call_careful_flag: false,
       call_careful_reason: null,
-      client_company_id: selectedRowDataCompany!.id,
+      client_company_id: selectedRowDataContact!.company_id,
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
       created_by_user_id: userProfileState?.id ? userProfileState.id : null,
       created_by_department_of_user: userProfileState?.department ? userProfileState.department : null,
       created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
     };
 
-    // supabaseにINSERT
-    createContactMutation.mutate(newContact);
-
-    // const { error } = await supabase.from("contacts").insert(newContact);
-
-    // if (error) {
-    //   alert(error);
-    //   console.log("INSERTエラー", error);
-    //   toast.error("担当者の作成に失敗しました!", {
-    //     position: "top-right",
-    //     autoClose: 4000,
-    //     hideProgressBar: false,
-    //     closeOnClick: true,
-    //     pauseOnHover: true,
-    //     draggable: true,
-    //     progress: undefined,
-    //     theme: `${theme === "light" ? "light" : "dark"}`,
-    //   });
-    // } else {
-    //   toast.success("担当者の作成に完了しました!", {
-    //     position: "top-right",
-    //     autoClose: 4000,
-    //     hideProgressBar: false,
-    //     closeOnClick: true,
-    //     pauseOnHover: true,
-    //     draggable: true,
-    //     progress: undefined,
-    //     theme: `${theme === "light" ? "light" : "dark"}`,
-    //   });
-    // }
+    // supabaseにUPDATE
+    updateContactMutation.mutate(newContact);
 
     setLoadingGlobalState(false);
 
     // モーダルを閉じる
-    setIsOpenInsertNewContactModal(false);
+    setIsOpenUpdateContactModal(false);
   };
   return (
     <>
@@ -146,7 +151,7 @@ export const InsertNewContactModal = () => {
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>会社名</span>
                   <span className={`${styles.value} ${styles.value_highlight}`}>
-                    {selectedRowDataCompany?.name ? selectedRowDataCompany?.name : ""}
+                    {selectedRowDataContact?.company_name ? selectedRowDataContact?.company_name : ""}
                   </span>
                 </div>
                 <div className={`${styles.underline}`}></div>
@@ -159,7 +164,7 @@ export const InsertNewContactModal = () => {
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>部署名</span>
                   <span className={`${styles.value}`}>
-                    {selectedRowDataCompany?.department_name ? selectedRowDataCompany?.department_name : ""}
+                    {selectedRowDataContact?.department_name ? selectedRowDataContact?.department_name : ""}
                   </span>
                 </div>
                 <div className={`${styles.underline}`}></div>
@@ -176,7 +181,7 @@ export const InsertNewContactModal = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>●担当名</span>
                     {/* <span className={`${styles.value} ${styles.value_highlight}`}>
-                      {selectedRowDataCompany?.name ? selectedRowDataCompany?.name : ""}
+                      {selectedRowDataContact?.name ? selectedRowDataContact?.name : ""}
                     </span> */}
                     <input
                       type="text"
@@ -411,12 +416,13 @@ export const InsertNewContactModal = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>決裁金額(万)</span>
                     <input
-                      type="number"
+                      type="text"
                       placeholder=""
                       className={`${styles.input_box}`}
                       min={"0"}
                       value={approvalAmount !== null ? approvalAmount : ""}
                       onChange={(e) => {
+                        // Number型の場合
                         // プラスの数値と空文字以外をstateに格納
                         // if (e.target.value === "" || e.target.value.search(/^[0-9]+$/) === 0) {
                         //   console.log("OK", e.target.value.search(/^[-]?[0-9]+$/));

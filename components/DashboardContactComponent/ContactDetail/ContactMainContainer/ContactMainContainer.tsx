@@ -31,6 +31,7 @@ const ContactUnderRightActivityLog = dynamic(
 // 常にサーバー側にモジュールを含める必要はありません。たとえば、ブラウザのみで動作するライブラリがモジュールに含まれている場合です。
 
 const ContactMainContainerMemo: FC = () => {
+  const userProfileState = useDashboardStore((state) => state.userProfileState);
   const searchMode = useDashboardStore((state) => state.searchMode);
   const setSearchMode = useDashboardStore((state) => state.setSearchMode);
   console.log("🔥 ContactMainContainerレンダリング searchMode", searchMode);
@@ -38,6 +39,7 @@ const ContactMainContainerMemo: FC = () => {
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   // 上画面の選択中の列データ会社
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
+  const setSelectedRowDataContact = useDashboardStore((state) => state.setSelectedRowDataContact);
 
   const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string = "center") => {
     // ホバーしたアイテムにツールチップを表示
@@ -153,9 +155,11 @@ const ContactMainContainerMemo: FC = () => {
     if (newSearchContact_CompanyParams === null) return;
     console.log("🔥メインコンテナーnewSearchContact_CompanyParams編集モード", newSearchContact_CompanyParams);
     if (editSearchMode) {
-      setInputCompanyName(beforeAdjustFieldValue(newSearchContact_CompanyParams.company_name));
+      //   setInputCompanyName(beforeAdjustFieldValue(newSearchContact_CompanyParams.company_name));
+      setInputCompanyName(beforeAdjustFieldValue(newSearchContact_CompanyParams["client_companies.name"]));
       setInputDepartment(beforeAdjustFieldValue(newSearchContact_CompanyParams.department_name));
-      setInputContactName(beforeAdjustFieldValue(newSearchContact_CompanyParams.contact_name));
+      //   setInputContactName(beforeAdjustFieldValue(newSearchContact_CompanyParams.contact_name));
+      setInputContactName(beforeAdjustFieldValue(newSearchContact_CompanyParams["contacts.name"]));
       setInputTel(beforeAdjustFieldValue(newSearchContact_CompanyParams?.main_phone_number));
       setInputFax(beforeAdjustFieldValue(newSearchContact_CompanyParams?.main_fax));
       setInputZipcode(beforeAdjustFieldValue(newSearchContact_CompanyParams?.zipcode));
@@ -165,7 +169,8 @@ const ContactMainContainerMemo: FC = () => {
       setInputFound(beforeAdjustFieldValue(newSearchContact_CompanyParams?.established_in));
       setInputContent(beforeAdjustFieldValue(newSearchContact_CompanyParams?.business_content));
       setInputHP(beforeAdjustFieldValue(newSearchContact_CompanyParams.website_url));
-      setInputCompanyEmail(beforeAdjustFieldValue(newSearchContact_CompanyParams.company_email));
+      //   setInputCompanyEmail(beforeAdjustFieldValue(newSearchContact_CompanyParams.company_email));
+      setInputCompanyEmail(beforeAdjustFieldValue(newSearchContact_CompanyParams["client_companies.email"]));
       setInputIndustryType(beforeAdjustFieldValue(newSearchContact_CompanyParams.industry_type));
       setInputProductL(beforeAdjustFieldValue(newSearchContact_CompanyParams.product_category_large));
       setInputProductM(beforeAdjustFieldValue(newSearchContact_CompanyParams.product_category_medium));
@@ -182,13 +187,15 @@ const ContactMainContainerMemo: FC = () => {
       setInputCorporateNum(beforeAdjustFieldValue(newSearchContact_CompanyParams.corporate_number));
 
       // contactsテーブル
-      setInputContactName(beforeAdjustFieldValue(newSearchContact_CompanyParams.contact_name));
+      //   setInputContactName(beforeAdjustFieldValue(newSearchContact_CompanyParams.contact_name));
+      setInputContactName(beforeAdjustFieldValue(newSearchContact_CompanyParams["contacts.name"]));
       setInputDirectLine(beforeAdjustFieldValue(newSearchContact_CompanyParams.direct_line));
       setInputDirectFax(beforeAdjustFieldValue(newSearchContact_CompanyParams.direct_fax));
       setInputExtension(beforeAdjustFieldValue(newSearchContact_CompanyParams.extension));
       setInputCompanyCellPhone(beforeAdjustFieldValue(newSearchContact_CompanyParams.company_cell_phone));
       setInputPersonalCellPhone(beforeAdjustFieldValue(newSearchContact_CompanyParams.personal_cell_phone));
-      setInputContactEmail(beforeAdjustFieldValue(newSearchContact_CompanyParams.contact_email));
+      //   setInputContactEmail(beforeAdjustFieldValue(newSearchContact_CompanyParams.contact_email));
+      setInputContactEmail(beforeAdjustFieldValue(newSearchContact_CompanyParams["contacts.email"]));
       setInputPositionName(beforeAdjustFieldValue(newSearchContact_CompanyParams.position_name));
       setInputPositionClass(beforeAdjustFieldValue(newSearchContact_CompanyParams.position_class));
       setInputOccupation(beforeAdjustFieldValue(newSearchContact_CompanyParams.occupation));
@@ -318,7 +325,8 @@ const ContactMainContainerMemo: FC = () => {
       established_in: _established_in,
       business_content: _business_content,
       website_url: _website_url,
-      company_email: _company_email,
+      //   company_email: _company_email,
+      "client_companies.email": _company_email,
       industry_type: _industry_type,
       product_category_large: _product_category_large,
       product_category_medium: _product_category_medium,
@@ -341,7 +349,8 @@ const ContactMainContainerMemo: FC = () => {
       extension: _extension,
       company_cell_phone: _company_cell_phone,
       personal_cell_phone: _personal_cell_phone,
-      contact_email: _contact_email,
+      //   contact_email: _contact_email,
+      "contacts.email": _contact_email,
       position_name: _position_name,
       position_class: _position_class,
       occupation: _occupation,
@@ -400,20 +409,31 @@ const ContactMainContainerMemo: FC = () => {
     setEditSearchMode(false);
 
     // Zustandに検索条件を格納
-    // setNewSearchContact_CompanyParams(params);
+    setNewSearchContact_CompanyParams(params);
+
+    // 選択中の列データをリセット
+    setSelectedRowDataContact(null);
 
     console.log("✅ 条件 params", params);
-    // // const { data, error } = await supabase.rpc("search_companies", { params });
+    // const { data, error } = await supabase.rpc("search_companies", { params });
     // const { data, error } = await supabase.rpc("search_companies_and_contacts", { params });
 
     // 会社IDがnull、つまりまだ有料アカウントを持っていないユーザー
-    const { data, error } = await supabase
-      .rpc("search_companies", { params })
-      .is("created_by_company_id", null)
-      .range(0, 20);
+    // const { data, error } = await supabase
+    //   .rpc("search_companies_and_contacts", { params })
+    //   .is("created_by_company_id", null)
+    //   .range(0, 20);
 
-    if (error) return alert(error.message);
-    console.log("✅ 検索結果データ取得 data", data);
+    // ユーザーIDが自身のIDと一致するデータのみ 成功
+    // const { data, error } = await supabase
+    //   .rpc("search_companies_and_contacts", { params })
+    //   .eq("created_by_user_id", `${userProfileState?.id}`)
+    //   .range(0, 20);
+
+    // if (error) return alert(error.message);
+    // console.log("✅ 検索結果データ取得 data", data);
+
+    // setLoadingGlobalState(false);
   };
 
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
@@ -1628,7 +1648,7 @@ const ContactMainContainerMemo: FC = () => {
                         <input
                           type="checkbox"
                           // checked={!!checkedColumnHeader} // 初期値
-                          checked={!!selectedRowDataContact?.sending_ban_flag}
+                          checked={!!selectedRowDataContact?.sending_materials_ban_flag}
                           onChange={() => console.log("チェッククリック")}
                           className={`${styles.grid_select_cell_header_input}`}
                         />

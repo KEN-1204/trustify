@@ -19,6 +19,7 @@ import { ChangeSizeMenu } from "./Parts/ChangeSizeMenu/ChangeSizeMenu";
 import { MdOutlineDarkMode, MdOutlineLightMode } from "react-icons/md";
 import { TooltipWrap } from "./Parts/Tooltip/TooltipWrap";
 import { InsertNewContactModal } from "./DashboardCompanyComponent/Modal/InsertNewContactModal/InsertNewContactModal";
+import { UpdateContactModal } from "./DashboardCompanyComponent/Modal/UpdateContactModal/UpdateContactModal";
 
 type Prop = {
   title?: string;
@@ -99,8 +100,9 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   const setIsOpenEditColumns = useDashboardStore((state) => state.setIsOpenEditColumns);
   // サイズ切り替えメニュー
   const clickedItemPos = useStore((state) => state.clickedItemPos);
-  // 担当者作成モーダル
+  // 担当者作成モーダル 新規作成と編集モーダル
   const isOpenInsertNewContactModal = useDashboardStore((state) => state.isOpenInsertNewContactModal);
+  const isOpenUpdateContactModal = useDashboardStore((state) => state.isOpenUpdateContactModal);
 
   return (
     <div className={`${styles.trustify_app} relative`}>
@@ -164,6 +166,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
 
       {/* 担当者作成モーダル */}
       {isOpenInsertNewContactModal && <InsertNewContactModal />}
+      {isOpenUpdateContactModal && <UpdateContactModal />}
     </div>
   );
 };

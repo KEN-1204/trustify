@@ -14,10 +14,12 @@ const ContactFunctionHeaderMemo: FC = () => {
   const setUnderDisplayFullScreen = useDashboardStore((state) => state.setUnderDisplayFullScreen);
   const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
-  const setIsOpenInsertNewContactModal = useDashboardStore((state) => state.setIsOpenInsertNewContactModal);
+  //   const setIsOpenInsertNewContactModal = useDashboardStore((state) => state.setIsOpenInsertNewContactModal);
+  const setIsOpenUpdateContactModal = useDashboardStore((state) => state.setIsOpenUpdateContactModal);
 
   // 上画面の選択中の列データ会社
-  const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
+  //   const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
+  const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
 
   const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
     // ホバーしたアイテムにツールチップを表示
@@ -111,9 +113,9 @@ const ContactFunctionHeaderMemo: FC = () => {
           borderRadius="2px"
           clickEventHandler={() => {
             if (searchMode) return;
-            if (!selectedRowDataCompany) return alert("会社を選択してください");
+            if (!selectedRowDataContact) return alert("担当者を選択してください");
             console.log("担当者作成 クリック");
-            setIsOpenInsertNewContactModal(true);
+            setIsOpenUpdateContactModal(true);
           }}
         />
       </div>

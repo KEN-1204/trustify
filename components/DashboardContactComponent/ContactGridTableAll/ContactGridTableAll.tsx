@@ -274,6 +274,9 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
       // 0.5秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
+      // ローディング終了
+      setLoadingGlobalState(false);
+
       // 取得したrowsを返す（nextOffsetは、queryFnのctx.pageParamsが初回フェッチはundefinedで2回目が1のため+1でページ数と合わせる）
       // return { rows, nextOffset: offset + 1, isLastPage };
       return { rows, nextOffset: offset + 1, isLastPage };
@@ -308,6 +311,9 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
       // 0.5秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
+      // ローディング終了
+      setLoadingGlobalState(false);
+
       // 取得したrowsを返す（nextOffsetは、queryFnのctx.pageParamsが初回フェッチはundefinedで2回目が1のため+1でページ数と合わせる）
       // return { rows, nextOffset: offset + 1, isLastPage };
       return { rows, nextOffset: offset + 1, isLastPage };
@@ -330,10 +336,17 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
       //   let params = newSearchCompanyParams;
       let params = newSearchContact_CompanyParams;
       console.log("🔥🔥テスト🔥🔥supabase rpcフェッチ実行！！！！！！！！ from, to, params", from, to, params);
+      // created_by_company_idがnullのもの
       const { data, error, count } = await supabase
-        .rpc("search_companies", { params }, { count: "exact" })
+        .rpc("search_companies_and_contacts", { params }, { count: "exact" })
         .is("created_by_company_id", null)
         .range(from, to);
+
+      // ユーザーIDが自身のIDと一致するデータのみ 成功
+      // const { data, error } = await supabase
+      //   .rpc("search_companies_and_contacts", { params })
+      //   .eq("created_by_user_id", `${userProfileState?.id}`)
+      //   .range(0, 20);
 
       if (error) {
         alert(error.message);
@@ -383,10 +396,17 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
       console.log("🔥🔥テスト🔥🔥 from, to", from, to);
       //   let params = newSearchCompanyParams;
       let params = newSearchContact_CompanyParams;
+      // created_by_company_idが一致するデータのみ
       const { data, error, count } = await supabase
         .rpc("search_companies", { params }, { count: "exact" })
-        .is("created_by_company_id", null)
+        .eq("created_by_company_id", `${userProfileState?.company_id}`)
         .range(from, to);
+
+      // ユーザーIDが自身のIDと一致するデータのみ 成功
+      // const { data, error } = await supabase
+      //   .rpc("search_companies_and_contacts", { params })
+      //   .eq("created_by_user_id", `${userProfileState?.id}`)
+      //   .range(0, 20);
 
       console.log("🔥🔥テスト🔥🔥フェッチ後 count data", count, data);
 
@@ -400,6 +420,9 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
 
       // 0.5秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
       await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // ローディング終了
+      setLoadingGlobalState(false);
 
       // 取得したrowsを返す（nextOffsetは、queryFnのctx.pageParamsが初回フェッチはundefinedで2回目が1のため+1でページ数と合わせる）
       // return { rows, nextOffset: offset + 1, isLastPage };
@@ -1078,8 +1101,10 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
   const setTextareaInput = useDashboardStore((state) => state.setTextareaInput);
   const [clickedActiveRow, setClickedActiveRow] = useState<number | null>(null);
   // ================= 🔥🔥テスト🔥🔥==================
-  const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
-  const setSelectedRowDataCompany = useDashboardStore((state) => state.setSelectedRowDataCompany);
+  //   const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
+  //   const setSelectedRowDataCompany = useDashboardStore((state) => state.setSelectedRowDataCompany);
+  const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
+  const setSelectedRowDataContact = useDashboardStore((state) => state.setSelectedRowDataContact);
   // ================= 🔥🔥テスト🔥🔥==================
 
   const handleClickGridCell = useCallback(
@@ -1120,7 +1145,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
       }
       setClickedActiveRow(Number(selectedGridCellRef.current?.parentElement?.ariaRowIndex));
       // クリックした列要素の列データをZustandに挿入 indexは0から rowIndexは2から
-      setSelectedRowDataCompany(allRows[Number(selectedGridCellRef.current?.parentElement?.ariaRowIndex) - 2]);
+      setSelectedRowDataContact(allRows[Number(selectedGridCellRef.current?.parentElement?.ariaRowIndex) - 2]);
     },
     [allRows]
   );
@@ -1141,6 +1166,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
         // クリックした要素のテキストを格納
         const text = e.currentTarget.innerText;
         setTextareaInput(text);
+
         setIsOpenEditModal(true);
       }
     },
@@ -2097,8 +2123,8 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
     activeCell,
     "clickedActiveRow",
     clickedActiveRow,
-    "選択中のRowデータselectedRowDataCompany",
-    selectedRowDataCompany
+    "選択中のRowデータselectedRowDataContact",
+    selectedRowDataContact
   );
   //   console.log("✅ window", window.innerHeight);
 

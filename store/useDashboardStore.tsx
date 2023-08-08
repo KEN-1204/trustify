@@ -55,8 +55,12 @@ type State = {
   setTableContainerSize: (payload: string) => void;
 
   // =================== 担当者作成モーダル ===================
+  // 新規作成モーダル
   isOpenInsertNewContactModal: boolean;
   setIsOpenInsertNewContactModal: (payload: boolean) => void;
+  // 編集モーダル
+  isOpenUpdateContactModal: boolean;
+  setIsOpenUpdateContactModal: (payload: boolean) => void;
 
   // =================== アンダーテーブル関連 ===================
   // 【サーチモード切り替え】
@@ -102,7 +106,7 @@ type State = {
   // =================== 上画面の列選択した時に下画面に担当者情報を映す用のState ===================
   // オブジェクト
   selectedRowDataContact: Contact_row_data | null;
-  setSelectedRowDataContact: (payload: Contact_row_data) => void;
+  setSelectedRowDataContact: (payload: Contact_row_data | null) => void;
 
   // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
   newSearchContact_CompanyParams: NewSearchContact_CompanyParams | null;
@@ -145,8 +149,12 @@ const useDashboardStore = create<State>((set) => ({
   ColumnHeaderItemListReset: (payload) => set({ resetColumnHeaderItemList: payload }),
 
   // =================== 担当者作成モーダル ===================
+  // 新規作成モーダル
   isOpenInsertNewContactModal: false,
   setIsOpenInsertNewContactModal: (payload) => set({ isOpenInsertNewContactModal: payload }),
+  // 編集モーダル
+  isOpenUpdateContactModal: false,
+  setIsOpenUpdateContactModal: (payload) => set({ isOpenUpdateContactModal: payload }),
 
   // =================== テーブルサイズ切り替えボタン ===================
   // 【テーブルサイズ切り替えメニュー開閉状態】
