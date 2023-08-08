@@ -62,6 +62,12 @@ const contactColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
+    columnName: "main_fax",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
     columnName: "email",
     columnWidth: "200px",
     isFrozen: false,
@@ -124,6 +130,12 @@ const contactColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
+    columnName: "established_in",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
     columnName: "supplier",
     columnWidth: "200px",
     isFrozen: false,
@@ -161,6 +173,36 @@ const contactColumnHeaderItemListArray: Obj[] = [
   },
   {
     columnName: "group_company",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "industry_type",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "product_category_large",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "product_category_medium",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "product_category_small",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "corporate_number",
     columnWidth: "200px",
     isFrozen: false,
     isOverflow: false,

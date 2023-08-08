@@ -314,43 +314,54 @@ export type Contact = {
   created_by_unit_of_user: string | null;
 };
 export type Contact_row_data = {
-  id?: string;
+  // client_companyテーブル
+  company_id?: string;
   company_name?: string | null;
-  address?: string | null;
   department_name?: string | null;
-  name?: string | null;
-  position_class?: string | null;
-  position_name?: string | null;
-  direct_line?: string | null;
   main_phone_number?: string | null;
-  direct_fax?: string | null;
-  email?: string | null;
-  extension?: string | null;
-  company_cell_phone?: string | null;
-  personal_cell_phone?: string | null;
-  occupation?: string | null;
-  approval_amount?: string | null;
-  fiscal_end_month?: string | null;
-  capital?: string | null;
-  supplier?: string | null;
-  clients?: string | null;
+  main_fax?: string | null;
+  zipcode?: string | null;
+  address?: string | null;
   number_of_employees_class?: string | null;
+  capital?: string | null;
+  established_in?: string | null;
   business_content?: string | null;
+  website_url?: string | null;
+  company_email?: string | null;
+  industry_type?: string | null;
+  product_category_large?: string | null;
+  product_category_medium?: string | null;
+  product_category_small?: string | null;
+  fiscal_end_month?: string | null;
+  budget_request_month1?: string | null;
+  budget_request_month2?: string | null;
+  clients?: string | null;
+  supplier?: string | null;
+  facility?: string | null;
   business_sites?: string | null;
   overseas_bases?: string | null;
   group_company?: string | null;
-
-  zipcode?: string | null;
-  website_url?: string | null;
-  industry_type?: string | null;
-  budget_request_month1?: string | null;
-  budget_request_month2?: string | null;
-  facility?: string | null;
   corporate_number?: string | null;
 
+  // contactテーブル
+  contact_id?: string | null;
+  contact_name?: string | null;
+  direct_line?: string | null;
+  direct_fax?: string | null;
+  position_name?: string | null;
+  position_class?: string | null;
+  extension?: string | null;
+  company_cell_phone?: string | null;
+  personal_cell_phone?: string | null;
+  contact_email?: string | null;
+  occupation?: string | null;
+  approval_amount?: string | null;
+  created_by_company_id?: string | null;
+  created_by_user_id?: string | null;
+  created_by_department_of_user?: string | null;
+  created_by_unit_of_user?: string | null;
   call_careful_flag?: string | null;
   call_careful_reason?: string | null;
-  grid_select_cell_header?: string | null;
   email_ban_flag?: string | null;
   sending_ban_flag?: string | null;
   fax_dm_ban_flag?: string | null;
@@ -387,6 +398,7 @@ export type NewSearchContact_CompanyParams = {
   website_url: string | null;
 
   contact_name: string | null;
+  direct_line: string | null;
   direct_fax: string | null;
   extension: string | null;
   company_cell_phone: string | null;
@@ -395,7 +407,7 @@ export type NewSearchContact_CompanyParams = {
   position_name: string | null;
   position_class: string | null;
   occupation: string | null;
-  approval_amount: number | null;
+  approval_amount: string | null;
   created_by_company_id: string | null;
-  direct_line: string | null;
+  created_by_user_id: string | null;
 };

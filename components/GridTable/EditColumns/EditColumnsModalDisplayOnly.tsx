@@ -8,6 +8,7 @@ import useStore from "@/store";
 import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
 import { GrPowerReset } from "react-icons/gr";
 import { columnNameToJapanese } from "@/utils/columnNameToJapanese";
+import { columnNameToJapaneseContacts } from "@/utils/columnNameToJapaneseContacts";
 
 // const data: Array<{ id: number; name: string; img: StaticImageData }> = [
 
@@ -25,6 +26,7 @@ type Props = {
 };
 
 const EditColumnsModalDisplayOnlyMemo: FC<Props> = ({ columnHeaderItemList }) => {
+  const activeMenuTab = useDashboardStore((state) => state.activeMenuTab);
   const setIsOpenEditColumns = useDashboardStore((state) => state.setIsOpenEditColumns);
   const editedColumnHeaderItemList = useDashboardStore((state) => state.editedColumnHeaderItemList);
   const setEditedColumnHeaderItemList = useDashboardStore((state) => state.setEditedColumnHeaderItemList);
@@ -343,7 +345,12 @@ const EditColumnsModalDisplayOnlyMemo: FC<Props> = ({ columnHeaderItemList }) =>
                   <div className={styles.details}>
                     {/* <Image src={item.img} alt="" /> */}
                     {/* <span className="truncate">{item.columnName}</span> */}
-                    <span className="truncate">{columnNameToJapanese(item.columnName)}</span>
+                    {activeMenuTab === "Company" && (
+                      <span className="truncate">{columnNameToJapanese(item.columnName)}</span>
+                    )}
+                    {activeMenuTab === "Contacts" && (
+                      <span className="truncate">{columnNameToJapaneseContacts(item.columnName)}</span>
+                    )}
                     {/* {item.isFrozen && <span className="absolute -right-3">固定されています</span>} */}
                   </div>
                   <MdOutlineDragIndicator className="fill-[var(--color-text)]" />

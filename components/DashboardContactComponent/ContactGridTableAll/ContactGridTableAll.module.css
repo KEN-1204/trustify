@@ -316,6 +316,9 @@
   /* --header-row-height: 35px; */
   --header-row-height: 30px;
   /* --row-width: 0px; */
+  /* テスト */
+  min-height: calc(100vh / 3 - var(--header-height) / 3 - 30px - 40px - 30px - 1px);
+  /* テスト */
 }
 .grid_header_row {
   position: sticky;

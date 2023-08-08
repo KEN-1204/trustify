@@ -306,7 +306,8 @@ const ContactMainContainerMemo: FC = () => {
     // if (_field1 === "is not null") _field1 = "%%";
 
     const params = {
-      company_name: _company_name,
+      "client_companies.name": _company_name,
+      //   company_name: _company_name,
       department_name: _department_name,
       main_phone_number: _main_phone_number,
       main_fax: _main_fax,
@@ -332,9 +333,9 @@ const ContactMainContainerMemo: FC = () => {
       overseas_bases: _overseas_bases,
       group_company: _group_company,
       corporate_number: _corporate_number,
-
       // contactsテーブル
-      contact_name: _contact_name,
+      //   contact_name: _contact_name,
+      "contacts.name": _contact_name,
       direct_line: _direct_line,
       direct_fax: _direct_fax,
       extension: _extension,
@@ -349,7 +350,10 @@ const ContactMainContainerMemo: FC = () => {
       created_by_user_id: _created_by_user_id,
     };
 
-    console.log("✅ 条件 params", params);
+    // console.log("✅ 条件 params", params);
+
+    // const { data, error } = await supabase.rpc("search_companies_and_contacts", { params });
+    // const { data, error } = await supabase.rpc("search_companies", { params });
 
     setInputCompanyName("");
     setInputDepartment("");
@@ -396,19 +400,20 @@ const ContactMainContainerMemo: FC = () => {
     setEditSearchMode(false);
 
     // Zustandに検索条件を格納
-    setNewSearchContact_CompanyParams(params);
+    // setNewSearchContact_CompanyParams(params);
 
-    console.log("✅ params", params);
-    // const { data, error } = await supabase.rpc("search_companies", { params });
+    console.log("✅ 条件 params", params);
+    // // const { data, error } = await supabase.rpc("search_companies", { params });
+    // const { data, error } = await supabase.rpc("search_companies_and_contacts", { params });
 
     // 会社IDがnull、つまりまだ有料アカウントを持っていないユーザー
-    // const { data, error } = await supabase
-    //   .rpc("search_companies", { params })
-    //   .is("created_by_company_id", null)
-    //   .range(0, 20);
+    const { data, error } = await supabase
+      .rpc("search_companies", { params })
+      .is("created_by_company_id", null)
+      .range(0, 20);
 
-    // if (error) return alert(error.message);
-    // console.log("✅ 検索結果データ取得 data", data);
+    if (error) return alert(error.message);
+    console.log("✅ 検索結果データ取得 data", data);
   };
 
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
@@ -483,7 +488,7 @@ const ContactMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>担当者名</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.name ? selectedRowDataContact?.name : ""}
+                      {selectedRowDataContact?.contact_name ? selectedRowDataContact?.contact_name : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -491,8 +496,8 @@ const ContactMainContainerMemo: FC = () => {
                       type="tel"
                       placeholder=""
                       className={`${styles.input_box}`}
-                      //   value={inputTel}
-                      //   onChange={(e) => setInputTel(e.target.value)}
+                      value={inputContactName}
+                      onChange={(e) => setInputContactName(e.target.value)}
                     />
                   )}
                 </div>
@@ -500,28 +505,6 @@ const ContactMainContainerMemo: FC = () => {
               </div>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
-                  <span className={`${styles.title}`}></span>
-                  {/* {!searchMode && (
-                    <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.main_fax ? selectedRowDataContact?.main_fax : ""}
-                    </span>
-                  )}
-                  {searchMode && (
-                    <input
-                      type="tel"
-                      className={`${styles.input_box}`}
-                      value={inputFax}
-                      onChange={(e) => setInputFax(e.target.value)}
-                    />
-                  )} */}
-                </div>
-                {/* <div className={`${styles.underline}`}></div> */}
-              </div>
-            </div>
-            {/* 代表TEL・代表Fax */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>直通TEL</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
@@ -531,10 +514,33 @@ const ContactMainContainerMemo: FC = () => {
                   {searchMode && (
                     <input
                       type="tel"
+                      className={`${styles.input_box}`}
+                      value={inputDirectLine}
+                      onChange={(e) => setInputDirectLine(e.target.value)}
+                    />
+                  )}
+                </div>
+                <div className={`${styles.underline}`}></div>
+              </div>
+            </div>
+
+            {/* 内線TEL・代表TEL */}
+            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full items-center `}>
+                  <span className={`${styles.title}`}>内線TEL</span>
+                  {!searchMode && (
+                    <span className={`${styles.value}`}>
+                      {selectedRowDataContact?.extension ? selectedRowDataContact?.extension : ""}
+                    </span>
+                  )}
+                  {searchMode && (
+                    <input
+                      type="tel"
                       placeholder=""
                       className={`${styles.input_box}`}
-                      value={inputTel}
-                      onChange={(e) => setInputTel(e.target.value)}
+                      value={inputExtension}
+                      onChange={(e) => setInputExtension(e.target.value)}
                     />
                   )}
                 </div>
@@ -552,8 +558,8 @@ const ContactMainContainerMemo: FC = () => {
                     <input
                       type="tel"
                       className={`${styles.input_box}`}
-                      value={inputFax}
-                      onChange={(e) => setInputFax(e.target.value)}
+                      value={inputTel}
+                      onChange={(e) => setInputTel(e.target.value)}
                     />
                   )}
                 </div>
@@ -561,22 +567,22 @@ const ContactMainContainerMemo: FC = () => {
               </div>
             </div>
 
-            {/* 内線TEL・直通FAX */}
+            {/* 直通FAX・代表FAX */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>内線TEL</span>
+                  <span className={`${styles.title}`}>直通FAX</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.extension ? selectedRowDataContact?.extension : ""}
+                      {selectedRowDataContact?.direct_fax ? selectedRowDataContact?.direct_fax : ""}
                     </span>
                   )}
                   {searchMode && (
                     <input
                       type="text"
                       className={`${styles.input_box}`}
-                      value={inputZipcode}
-                      onChange={(e) => setInputZipcode(e.target.value)}
+                      value={inputDirectFax}
+                      onChange={(e) => setInputDirectFax(e.target.value)}
                     />
                   )}
                 </div>
@@ -584,12 +590,20 @@ const ContactMainContainerMemo: FC = () => {
               </div>
               <div className={`flex h-full w-1/2 flex-col pr-[20px]`}>
                 <div className={`${styles.title_box} flex h-full items-center`}>
-                  <span className={`${styles.title}`}>直通FAX</span>
+                  <span className={`${styles.title}`}>代表FAX</span>
                   {/* <span className={`${styles.title}`}>会員専用</span> */}
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.direct_fax ? selectedRowDataContact?.direct_fax : ""}
+                      {selectedRowDataContact?.main_fax ? selectedRowDataContact?.main_fax : ""}
                     </span>
+                  )}
+                  {searchMode && (
+                    <input
+                      type="text"
+                      className={`${styles.input_box}`}
+                      value={inputFax}
+                      onChange={(e) => setInputFax(e.target.value)}
+                    />
                   )}
                   {/* {!searchMode && <span className={`${styles.value}`}>有料会員様専用のフィールドです</span>} */}
                   {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
@@ -616,8 +630,8 @@ const ContactMainContainerMemo: FC = () => {
                     <input
                       type="text"
                       className={`${styles.input_box}`}
-                      //   value={inputCapital}
-                      //   onChange={(e) => setInputCapital(e.target.value)}
+                      value={inputCompanyCellPhone}
+                      onChange={(e) => setInputCompanyCellPhone(e.target.value)}
                     />
                   )}
                 </div>
@@ -635,8 +649,8 @@ const ContactMainContainerMemo: FC = () => {
                     <input
                       type="text"
                       className={`${styles.input_box}`}
-                      value={inputFound}
-                      onChange={(e) => setInputFound(e.target.value)}
+                      value={inputPersonalCellPhone}
+                      onChange={(e) => setInputPersonalCellPhone(e.target.value)}
                     />
                   )}
                 </div>
@@ -651,15 +665,15 @@ const ContactMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>E-mail</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.email ? selectedRowDataContact?.email : ""}
+                      {selectedRowDataContact?.contact_email ? selectedRowDataContact?.contact_email : ""}
                     </span>
                   )}
                   {searchMode && (
                     <input
                       type="text"
                       className={`${styles.input_box}`}
-                      value={inputEmail}
-                      onChange={(e) => setInputEmail(e.target.value)}
+                      value={inputContactEmail}
+                      onChange={(e) => setInputContactEmail(e.target.value)}
                     />
                   )}
                 </div>
@@ -681,8 +695,8 @@ const ContactMainContainerMemo: FC = () => {
                     <input
                       type="text"
                       className={`${styles.input_box}`}
-                      value={inputCapital}
-                      onChange={(e) => setInputCapital(e.target.value)}
+                      value={inputZipcode}
+                      onChange={(e) => setInputZipcode(e.target.value)}
                     />
                   )}
                 </div>
@@ -750,8 +764,8 @@ const ContactMainContainerMemo: FC = () => {
                     <input
                       type="text"
                       className={`${styles.input_box}`}
-                      //   value={inputEmployeesClass}
-                      //   onChange={(e) => setInputEmployeesClass(e.target.value)}
+                      value={inputPositionName}
+                      onChange={(e) => setInputPositionName(e.target.value)}
                     />
                   )}
                 </div>
@@ -769,8 +783,8 @@ const ContactMainContainerMemo: FC = () => {
                     <input
                       type="text"
                       className={`${styles.input_box}`}
-                      //   value={inputFiscal}
-                      //   onChange={(e) => setInputFiscal(e.target.value)}
+                      value={inputPositionClass}
+                      onChange={(e) => setInputPositionClass(e.target.value)}
                     />
                   )}
                 </div>
@@ -792,8 +806,8 @@ const ContactMainContainerMemo: FC = () => {
                     <input
                       type="text"
                       className={`${styles.input_box}`}
-                      //   value={inputEmployeesClass}
-                      //   onChange={(e) => setInputEmployeesClass(e.target.value)}
+                      value={inputOccupation}
+                      onChange={(e) => setInputOccupation(e.target.value)}
                     />
                   )}
                 </div>
@@ -811,31 +825,8 @@ const ContactMainContainerMemo: FC = () => {
                     <input
                       type="text"
                       className={`${styles.input_box}`}
-                      //   value={inputFiscal}
-                      //   onChange={(e) => setInputFiscal(e.target.value)}
-                    />
-                  )}
-                </div>
-                <div className={`${styles.underline}`}></div>
-              </div>
-            </div>
-
-            {/* 業種 */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-full flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>○業種</span>
-                  {!searchMode && (
-                    <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.industry_type ? selectedRowDataContact?.industry_type : ""}
-                    </span>
-                  )}
-                  {searchMode && (
-                    <input
-                      type="text"
-                      className={`${styles.input_box}`}
-                      value={inputIndustryType}
-                      onChange={(e) => setInputIndustryType(e.target.value)}
+                      value={inputApprovalAmount}
+                      onChange={(e) => setInputApprovalAmount(e.target.value)}
                     />
                   )}
                 </div>
@@ -903,8 +894,8 @@ const ContactMainContainerMemo: FC = () => {
                     <input
                       type="text"
                       className={`${styles.input_box}`}
-                      //   value={inputEmployeesClass}
-                      //   onChange={(e) => setInputEmployeesClass(e.target.value)}
+                      value={inputBudgetRequestMonth1}
+                      onChange={(e) => setInputBudgetRequestMonth1(e.target.value)}
                     />
                   )}
                 </div>
@@ -924,8 +915,8 @@ const ContactMainContainerMemo: FC = () => {
                     <input
                       type="text"
                       className={`${styles.input_box}`}
-                      //   value={inputFiscal}
-                      //   onChange={(e) => setInputFiscal(e.target.value)}
+                      value={inputBudgetRequestMonth2}
+                      onChange={(e) => setInputBudgetRequestMonth2(e.target.value)}
                     />
                   )}
                 </div>
@@ -966,30 +957,6 @@ const ContactMainContainerMemo: FC = () => {
                       value={inputContent}
                       onChange={(e) => setInputContent(e.target.value)}
                     ></textarea>
-                  )}
-                </div>
-                <div className={`${styles.underline}`}></div>
-              </div>
-            </div>
-
-            {/* HP */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-full flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>HP</span>
-                  {!searchMode && (
-                    <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.website_url ? selectedRowDataContact?.website_url : ""}
-                    </span>
-                  )}
-                  {searchMode && (
-                    <input
-                      type="text"
-                      className={`${styles.input_box}`}
-                      placeholder="「is not null」でHP有りのデータのみ抽出"
-                      value={inputHP}
-                      onChange={(e) => setInputHP(e.target.value)}
-                    />
                   )}
                 </div>
                 <div className={`${styles.underline}`}></div>
@@ -1059,10 +1026,6 @@ const ContactMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>設備</span>
                   {!searchMode && (
                     <>
-                      {/* <span className={`${styles.textarea_value} h-[45px]`}>
-                        東京都港区芝浦4-20-2
-                        芝浦アイランドブルームタワー602号室あああああああああああああああああああああああああああああ芝浦アイランドブルームタワー602号室222あああああああああああああああああああああああああああああ
-                      </span> */}
                       <span
                         data-text={`${selectedRowDataContact?.facility ? selectedRowDataContact?.facility : ""}`}
                         className={`${styles.textarea_value} h-[45px]`}
@@ -1175,6 +1138,176 @@ const ContactMainContainerMemo: FC = () => {
               </div>
             </div>
 
+            {/* HP */}
+            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className="flex h-full w-full flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full items-center `}>
+                  <span className={`${styles.title}`}>HP</span>
+                  {!searchMode && (
+                    <span className={`${styles.value}`}>
+                      {selectedRowDataContact?.website_url ? selectedRowDataContact?.website_url : ""}
+                    </span>
+                  )}
+                  {searchMode && (
+                    <input
+                      type="text"
+                      className={`${styles.input_box}`}
+                      placeholder="「is not null」でHP有りのデータのみ抽出"
+                      value={inputHP}
+                      onChange={(e) => setInputHP(e.target.value)}
+                    />
+                  )}
+                </div>
+                <div className={`${styles.underline}`}></div>
+              </div>
+            </div>
+
+            {/* 会社Email */}
+            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className="flex h-full w-full flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full items-center `}>
+                  <span className={`${styles.title}`}>会社Email</span>
+                  {!searchMode && (
+                    <span className={`${styles.value}`}>
+                      {selectedRowDataContact?.company_email ? selectedRowDataContact?.company_email : ""}
+                    </span>
+                  )}
+                  {searchMode && (
+                    <input
+                      type="text"
+                      className={`${styles.input_box}`}
+                      placeholder="「is not null」でHP有りのデータのみ抽出"
+                      value={inputCompanyEmail}
+                      onChange={(e) => setInputCompanyEmail(e.target.value)}
+                    />
+                  )}
+                </div>
+                <div className={`${styles.underline}`}></div>
+              </div>
+            </div>
+
+            {/* 業種 */}
+            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className="flex h-full w-full flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full items-center `}>
+                  <span className={`${styles.title}`}>○業種</span>
+                  {!searchMode && (
+                    <span className={`${styles.value}`}>
+                      {selectedRowDataContact?.industry_type ? selectedRowDataContact?.industry_type : ""}
+                    </span>
+                  )}
+                  {searchMode && (
+                    <input
+                      type="text"
+                      className={`${styles.input_box}`}
+                      value={inputIndustryType}
+                      onChange={(e) => setInputIndustryType(e.target.value)}
+                    />
+                  )}
+                </div>
+                <div className={`${styles.underline}`}></div>
+              </div>
+            </div>
+            {/* 製品分類（大分類） */}
+            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className="flex h-full w-full flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full items-center `}>
+                  <span className={`${styles.title} `}>製品分類（大分類）</span>
+                  {!searchMode && (
+                    <span
+                      className={`${styles.value}`}
+                      data-text={`${
+                        selectedRowDataContact?.product_category_large
+                          ? selectedRowDataContact?.product_category_large
+                          : ""
+                      }`}
+                      onMouseEnter={(e) => handleOpenTooltip(e)}
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      {selectedRowDataContact?.product_category_large
+                        ? selectedRowDataContact?.product_category_large
+                        : ""}
+                    </span>
+                  )}
+                  {searchMode && (
+                    <input
+                      type="text"
+                      className={`${styles.input_box} ml-[20px]`}
+                      value={inputProductL}
+                      onChange={(e) => setInputProductL(e.target.value)}
+                    />
+                  )}
+                </div>
+                <div className={`${styles.underline}`}></div>
+              </div>
+            </div>
+            {/* 製品分類（中分類） */}
+            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className="flex h-full w-full flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full items-center `}>
+                  <span className={`${styles.title}`}>製品分類（大分類）</span>
+                  {!searchMode && (
+                    <span
+                      className={`${styles.value}`}
+                      data-text={`${
+                        selectedRowDataContact?.product_category_medium
+                          ? selectedRowDataContact?.product_category_medium
+                          : ""
+                      }`}
+                      onMouseEnter={(e) => handleOpenTooltip(e)}
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      {selectedRowDataContact?.product_category_medium
+                        ? selectedRowDataContact?.product_category_medium
+                        : ""}
+                    </span>
+                  )}
+                  {searchMode && (
+                    <input
+                      type="text"
+                      className={`${styles.input_box} ml-[20px]`}
+                      value={inputProductM}
+                      onChange={(e) => setInputProductM(e.target.value)}
+                    />
+                  )}
+                </div>
+                <div className={`${styles.underline}`}></div>
+              </div>
+            </div>
+            {/* 製品分類（小分類） */}
+            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className="flex h-full w-full flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full items-center `}>
+                  <span className={`${styles.title}`}>製品分類（大分類）</span>
+                  {!searchMode && (
+                    <span
+                      className={`${styles.value}`}
+                      data-text={`${
+                        selectedRowDataContact?.product_category_small
+                          ? selectedRowDataContact?.product_category_small
+                          : ""
+                      }`}
+                      onMouseEnter={(e) => handleOpenTooltip(e)}
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      {selectedRowDataContact?.product_category_small
+                        ? selectedRowDataContact?.product_category_small
+                        : ""}
+                    </span>
+                  )}
+                  {searchMode && (
+                    <input
+                      type="text"
+                      className={`${styles.input_box} ml-[20px]`}
+                      value={inputProductS}
+                      onChange={(e) => setInputProductS(e.target.value)}
+                    />
+                  )}
+                </div>
+                <div className={`${styles.underline}`}></div>
+              </div>
+            </div>
+
             {/* 法人番号・ID */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
@@ -1198,10 +1331,10 @@ const ContactMainContainerMemo: FC = () => {
               </div>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
-                  <span className={`${styles.title_min}`}>ID</span>
+                  <span className={`${styles.title_min}`}>会社ID</span>
                   {!searchMode && (
                     <span className={`${styles.value} truncate`}>
-                      {selectedRowDataContact?.id ? selectedRowDataContact?.id : ""}
+                      {selectedRowDataContact?.company_id ? selectedRowDataContact?.company_id : ""}
                     </span>
                   )}
                   {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}

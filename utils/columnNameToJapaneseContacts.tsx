@@ -9,17 +9,20 @@ export const columnNameToJapaneseContacts = (columnName: string) => {
     case "updated_at":
       return "更新日時";
       break;
-    case "name":
+    case "contact_name":
       return "担当者名";
       break;
+    case "company_name":
+      return "会社名";
+      break;
     case "direct_line":
-      return "直通電話";
+      return "直通TEL";
       break;
     case "direct_fax":
       return "直通Fax";
       break;
     case "extension":
-      return "内線";
+      return "内線TEL";
       break;
     case "company_cell_phone":
       return "社用携帯";
@@ -30,7 +33,7 @@ export const columnNameToJapaneseContacts = (columnName: string) => {
     case "email":
       return "Email";
       break;
-    case "position":
+    case "position_name":
       return "役職名";
       break;
     case "position_class":
@@ -183,6 +186,12 @@ export const columnNameToJapaneseContacts = (columnName: string) => {
       break;
     case "established_in":
       return "設立日";
+      break;
+    case "budget_request_month1":
+      return "予算申請月1";
+      break;
+    case "budget_request_month2":
+      return "予算申請月2";
       break;
 
     default:

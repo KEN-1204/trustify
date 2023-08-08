@@ -236,7 +236,8 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
 
   // 新規サーチした時のrpc()に渡す検索項目params
-  const newSearchCompanyParams = useDashboardStore((state) => state.newSearchCompanyParams);
+  //   const newSearchCompanyParams = useDashboardStore((state) => state.newSearchCompanyParams);
+  const newSearchContact_CompanyParams = useDashboardStore((state) => state.newSearchContact_CompanyParams);
 
   // ================== 🌟条件なしサーバーデータフェッチ用の関数🌟 ==================
   // 取得カウント保持用state
@@ -326,7 +327,8 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
       // ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean }> => {
       const from = offset * limit;
       const to = from + limit - 1;
-      let params = newSearchCompanyParams;
+      //   let params = newSearchCompanyParams;
+      let params = newSearchContact_CompanyParams;
       console.log("🔥🔥テスト🔥🔥supabase rpcフェッチ実行！！！！！！！！ from, to, params", from, to, params);
       const { data, error, count } = await supabase
         .rpc("search_companies", { params }, { count: "exact" })
@@ -379,7 +381,8 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
       const from = offset * limit;
       const to = from + limit - 1;
       console.log("🔥🔥テスト🔥🔥 from, to", from, to);
-      let params = newSearchCompanyParams;
+      //   let params = newSearchCompanyParams;
+      let params = newSearchContact_CompanyParams;
       const { data, error, count } = await supabase
         .rpc("search_companies", { params }, { count: "exact" })
         .is("created_by_company_id", null)
@@ -405,14 +408,15 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
   }
 
   // ================= 🔥🔥テスト🔥🔥==================
-  // 新規サーチで検索した条件のnewSearchCompanyParamsのオブジェクトを全てa-zで並べ替えた状態で文字列にすることで、
+  // 新規サーチで検索した条件のnewSearchContact_CompanyParamsのオブジェクトを全てa-zで並べ替えた状態で文字列にすることで、
   // 次回に同じ検索をした場合にもキャッシュを使用できるようにする
   // useInfiniteQueryのキャッシュのクエリキーの第二引数に割り当てる
   // const [newSearchParamsString, setNewSearchParamsString] = useState<string | null>(null);
   const newSearchParamsStringRef = useRef<string | null>(null);
-  console.log("キャッシュに割り当てるparamsキー newSearchCompanyParams", newSearchCompanyParams);
-  if (newSearchCompanyParams) {
-    newSearchParamsStringRef.current = Object.entries(newSearchCompanyParams)
+  //   console.log("キャッシュに割り当てるparamsキー newSearchCompanyParams", newSearchCompanyParams);
+  console.log("キャッシュに割り当てるparamsキー newSearchContact_CompanyParams", newSearchContact_CompanyParams);
+  if (newSearchContact_CompanyParams) {
+    newSearchParamsStringRef.current = Object.entries(newSearchContact_CompanyParams)
       .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
       .map(([key, value]) => `${key}:${value === null ? `null` : `${value}`}`)
       // .map((key, index) => `${key}:${key[index]} `)
@@ -435,11 +439,11 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
 
       // return fetchServerPage(35, ctx.pageParam); // 50個ずつ取得
       // 新規サーチなしの通常モード
-      if (newSearchCompanyParams === null) {
-        console.log("通常フェッチ queryFn✅✅✅", newSearchCompanyParams);
+      if (newSearchContact_CompanyParams === null) {
+        console.log("通常フェッチ queryFn✅✅✅", newSearchContact_CompanyParams);
         return fetchServerPage(50, ctx.pageParam); // 50個ずつ取得
       } else {
-        console.log("サーチフェッチ queryFn✅✅✅", newSearchCompanyParams);
+        console.log("サーチフェッチ queryFn✅✅✅", newSearchContact_CompanyParams);
         return fetchNewSearchServerPage(50, ctx.pageParam); // 50個ずつ取得
       }
     },
