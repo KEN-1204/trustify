@@ -8,6 +8,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import dynamic from "next/dynamic";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import productCategoriesM from "@/utils/productCategoryM";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -621,12 +622,72 @@ const CompanyMainContainerMemo: FC = () => {
                     </span>
                   )}
                   {searchMode && (
-                    <input
-                      type="text"
-                      className={`${styles.input_box}`}
+                    // <input
+                    //   type="text"
+                    //   className={`${styles.input_box}`}
+                    //   value={inputIndustryType}
+                    //   onChange={(e) => setInputIndustryType(e.target.value)}
+                    // />
+                    <select
+                      name="position_class"
+                      id="position_class"
+                      className="ml-auto h-full w-full cursor-pointer rounded-[4px] bg-[var(--select-menu-bg)]"
                       value={inputIndustryType}
                       onChange={(e) => setInputIndustryType(e.target.value)}
-                    />
+                    >
+                      <option value=""></option>
+                      <option value="機械要素・部品">機械要素・部品</option>
+                      <option value="自動車・輸送機器">自動車・輸送機器</option>
+                      <option value="電子部品・半導体">電子部品・半導体</option>
+                      <option value="製造・加工受託">製造・加工受託</option>
+                      <option value="産業用機械">産業用機械</option>
+                      <option value="産業用電気機器">産業用電気機器</option>
+                      <option value="IT・情報通信">IT・情報通信</option>
+                      <option value="ソフトウェア">ソフトウェア</option>
+                      <option value="医薬品・バイオ">医薬品・バイオ</option>
+                      <option value="樹脂・プラスチック">樹脂・プラスチック</option>
+                      <option value="ゴム製品">ゴム製品</option>
+                      <option value="鉄/非鉄金属">鉄/非鉄金属</option>
+                      <option value="民生用電気機器">民生用電気機器</option>
+                      <option value="航空・宇宙">航空・宇宙</option>
+                      <option value="CAD/CAM">CAD/CAM</option>
+                      <option value="建材・資材・什器">建材・資材・什器</option>
+                      <option value="小売">小売</option>
+                      <option value="飲食料品">飲食料品</option>
+                      <option value="飲食店・宿泊業">飲食店・宿泊業</option>
+                      <option value="公益・特殊・独立行政法人">公益・特殊・独立行政法人</option>
+                      <option value="水産・農林業">水産・農林業</option>
+                      <option value="繊維">繊維</option>
+                      <option value="ガラス・土石製品">ガラス・土石製品</option>
+                      <option value="造船・重機">造船・重機</option>
+                      <option value="環境">環境</option>
+                      <option value="印刷業">印刷業</option>
+                      <option value="運輸業">運輸業</option>
+                      <option value="金融・証券・保険業">金融・証券・保険業</option>
+                      <option value="警察・消防・自衛隊">警察・消防・自衛隊</option>
+                      <option value="鉱業">鉱業</option>
+                      <option value="紙・バルブ">紙・バルブ</option>
+                      <option value="木材">木材</option>
+                      <option value="ロボット">ロボット</option>
+                      <option value="試験・分析・測定">試験・分析・測定</option>
+                      <option value="エネルギー">エネルギー</option>
+                      <option value="電気・ガス・水道業">電気・ガス・水道業</option>
+                      <option value="医療・福祉">医療・福祉</option>
+                      <option value="サービス業">サービス業</option>
+                      <option value="その他">その他</option>
+                      <option value="化学">化学</option>
+                      <option value="セラミックス">セラミックス</option>
+                      <option value="食品機械">食品機械</option>
+                      <option value="光学機器">光学機器</option>
+                      <option value="医療機器">医療機器</option>
+                      <option value="その他製造">その他製造</option>
+                      <option value="倉庫・運輸関連業">倉庫・運輸関連業</option>
+                      <option value="教育・研究機関">教育・研究機関</option>
+                      <option value="石油・石炭製品">石油・石炭製品</option>
+                      <option value="商社・卸売">商社・卸売</option>
+                      <option value="官公庁">官公庁</option>
+                      <option value="個人">個人</option>
+                    </select>
                   )}
                 </div>
                 <div className={`${styles.underline}`}></div>
@@ -646,12 +707,36 @@ const CompanyMainContainerMemo: FC = () => {
                     </span>
                   )}
                   {searchMode && (
-                    <input
-                      type="text"
-                      className={`${styles.input_box}`}
+                    // <input
+                    //   type="text"
+                    //   className={`${styles.input_box} ml-[20px]`}
+                    //   value={inputProductL}
+                    //   onChange={(e) => setInputProductL(e.target.value)}
+                    // />
+                    <select
+                      name="position_class"
+                      id="position_class"
+                      className="ml-auto h-full w-[80%] cursor-pointer rounded-[4px] bg-[var(--select-menu-bg)]"
                       value={inputProductL}
                       onChange={(e) => setInputProductL(e.target.value)}
-                    />
+                    >
+                      <option value=""></option>
+                      <option value="電子部品・モジュール">電子部品・モジュール</option>
+                      <option value="機械部品">機械部品</option>
+                      <option value="製造・加工機械">製造・加工機械</option>
+                      <option value="科学・理化学機器">科学・理化学機器</option>
+                      <option value="素材・材料">素材・材料</option>
+                      <option value="測定・分析">測定・分析</option>
+                      <option value="画像処理">画像処理</option>
+                      <option value="制御・電機機器">制御・電機機器</option>
+                      <option value="工具・消耗品・備品">工具・消耗品・備品</option>
+                      <option value="設計・生産支援">設計・生産支援</option>
+                      <option value="IT・ネットワーク">IT・ネットワーク</option>
+                      <option value="オフィス">オフィス</option>
+                      <option value="業務支援サービス">業務支援サービス</option>
+                      <option value="セミナー・スキルアップ">セミナー・スキルアップ</option>
+                      <option value="その他">その他</option>
+                    </select>
                   )}
                 </div>
                 <div className={`${styles.underline}`}></div>
@@ -669,20 +754,53 @@ const CompanyMainContainerMemo: FC = () => {
                         : ""}
                     </span>
                   )}
-                  {searchMode && (
-                    <input
-                      type="text"
-                      className={`${styles.input_box}`}
+                  {searchMode && !!inputProductL && (
+                    // <input
+                    //   type="text"
+                    //   className={`${styles.input_box} ml-[20px]`}
+                    //   value={inputProductM}
+                    //   onChange={(e) => setInputProductM(e.target.value)}
+                    // />
+                    <select
+                      name="position_class"
+                      id="position_class"
                       value={inputProductM}
                       onChange={(e) => setInputProductM(e.target.value)}
-                    />
+                      className={`${
+                        inputProductL ? "" : "hidden"
+                      } ml-auto h-full w-[80%] cursor-pointer rounded-[4px] bg-[var(--select-menu-bg)]`}
+                    >
+                      {inputProductL === "電子部品・モジュール" &&
+                        productCategoriesM.moduleCategoryM.map((option) => option)}
+                      {inputProductL === "機械部品" && productCategoriesM.machinePartsCategoryM.map((option) => option)}
+                      {inputProductL === "製造・加工機械" &&
+                        productCategoriesM.processingMachineryCategoryM.map((option) => option)}
+                      {inputProductL === "科学・理化学機器" &&
+                        productCategoriesM.scienceCategoryM.map((option) => option)}
+                      {inputProductL === "素材・材料" && productCategoriesM.materialCategoryM.map((option) => option)}
+                      {inputProductL === "測定・分析" && productCategoriesM.analysisCategoryM.map((option) => option)}
+                      {inputProductL === "画像処理" &&
+                        productCategoriesM.imageProcessingCategoryM.map((option) => option)}
+                      {inputProductL === "制御・電機機器" &&
+                        productCategoriesM.controlEquipmentCategoryM.map((option) => option)}
+                      {inputProductL === "工具・消耗品・備品" &&
+                        productCategoriesM.toolCategoryM.map((option) => option)}
+                      {inputProductL === "設計・生産支援" && productCategoriesM.designCategoryM.map((option) => option)}
+                      {inputProductL === "IT・ネットワーク" && productCategoriesM.ITCategoryM.map((option) => option)}
+                      {inputProductL === "オフィス" && productCategoriesM.OfficeCategoryM.map((option) => option)}
+                      {inputProductL === "業務支援サービス" &&
+                        productCategoriesM.businessSupportCategoryM.map((option) => option)}
+                      {inputProductL === "セミナー・スキルアップ" &&
+                        productCategoriesM.skillUpCategoryM.map((option) => option)}
+                      {inputProductL === "その他" && productCategoriesM.othersCategoryM.map((option) => option)}
+                    </select>
                   )}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
             </div>
             {/* 製品分類(小分類) */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+            {/* <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title} !mr-[5px] !min-w-max`}>○製品分類(小分類)</span>
@@ -704,7 +822,7 @@ const CompanyMainContainerMemo: FC = () => {
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
-            </div>
+            </div> */}
 
             {/* 規模（ランク）・決算月 */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
@@ -718,13 +836,37 @@ const CompanyMainContainerMemo: FC = () => {
                         : ""}
                     </span>
                   )}
-                  {searchMode && (
+                  {/* {searchMode && (
                     <input
                       type="text"
                       className={`${styles.input_box}`}
                       value={inputEmployeesClass}
                       onChange={(e) => setInputEmployeesClass(e.target.value)}
                     />
+                  )} */}
+                  {searchMode && (
+                    // <input
+                    //   type="text"
+                    //   className={`${styles.input_box} ml-[20px]`}
+                    //   value={inputProductL}
+                    //   onChange={(e) => setInputProductL(e.target.value)}
+                    // />
+                    <select
+                      name="position_class"
+                      id="position_class"
+                      className="ml-auto h-full w-full cursor-pointer rounded-[4px] bg-[var(--select-menu-bg)]"
+                      value={inputEmployeesClass}
+                      onChange={(e) => setInputEmployeesClass(e.target.value)}
+                    >
+                      <option value=""></option>
+                      <option value="A 1000名以上">A 1000名以上</option>
+                      <option value="B 500-999名">B 500-999名</option>
+                      <option value="C 300-499名">C 300-499名</option>
+                      <option value="D 200-299名">D 200-299名</option>
+                      <option value="E 100-199名">E 100-199名</option>
+                      <option value="F 50-99名">F 50-99名</option>
+                      <option value="G 50名未満">G 50名未満</option>
+                    </select>
                   )}
                 </div>
                 <div className={`${styles.underline}`}></div>

@@ -113,6 +113,7 @@ const CompanyFunctionHeaderMemo: FC = () => {
             if (searchMode) return;
             if (!selectedRowDataCompany) return alert("会社を選択してください");
             console.log("担当者作成 クリック");
+            setLoadingGlobalState(false);
             setIsOpenInsertNewContactModal(true);
           }}
         />
