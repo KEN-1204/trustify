@@ -668,7 +668,6 @@
   /*チェック後表示*/
   /* opacity: 1; */
 }
-
 /* ローディング中のRowスタイル */
 .loading_reflection {
   display: grid;

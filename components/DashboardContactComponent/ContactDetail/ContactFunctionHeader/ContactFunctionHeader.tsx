@@ -108,13 +108,14 @@ const ContactFunctionHeaderMemo: FC = () => {
           }}
         /> */}
         <RippleButton
-          title={`担当者作成`}
-          classText={`select-none ${searchMode ? `cursor-not-allowed` : ``}`}
+          title={`担当者編集`}
+          classText={`select-none ${searchMode || !selectedRowDataContact ? `cursor-not-allowed` : ``}`}
           borderRadius="2px"
           clickEventHandler={() => {
             if (searchMode) return;
             if (!selectedRowDataContact) return alert("担当者を選択してください");
             console.log("担当者作成 クリック");
+            setLoadingGlobalState(false);
             setIsOpenUpdateContactModal(true);
           }}
         />

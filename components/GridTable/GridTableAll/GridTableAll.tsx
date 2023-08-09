@@ -266,7 +266,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
         // .select(`${columnNamesObj}`)
         .select(`${columnNamesObj}`, { count: "exact" })
         .is("created_by_company_id", null)
-        .range(from, to);
+        .range(from, to)
+        .order("name", { ascending: true });
       // const { data, error } = await supabase
       //   .from("client_companies")
       //   .select(`${columnNamesObj}`)
@@ -313,7 +314,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
         .from("client_companies")
         .select(`${columnNamesObj}`, { count: "exact" })
         .or(`created_by_company_id.is.null,created_by_company_id.eq.${userProfileState.company_id}`)
-        .range(from, to);
+        .range(from, to)
+        .order("name", { ascending: true });
       // const { data, error } = await supabase.from("client_companies").select(`*`).eq(``).range(from, to);
 
       console.log("🔥🔥テスト🔥🔥フェッチ後 count data", count, data);
@@ -353,7 +355,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       const { data, error, count } = await supabase
         .rpc("search_companies", { params }, { count: "exact" })
         .is("created_by_company_id", null)
-        .range(from, to);
+        .range(from, to)
+        .order("name", { ascending: true });
 
       if (error) {
         alert(error.message);
@@ -405,7 +408,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       const { data, error, count } = await supabase
         .rpc("search_companies", { params }, { count: "exact" })
         .is("created_by_company_id", null)
-        .range(from, to);
+        .range(from, to)
+        .order("name", { ascending: true });
 
       console.log("🔥🔥テスト🔥🔥フェッチ後 count data", count, data);
 

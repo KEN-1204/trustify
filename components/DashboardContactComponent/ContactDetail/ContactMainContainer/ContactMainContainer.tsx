@@ -40,6 +40,8 @@ const ContactMainContainerMemo: FC = () => {
   // 上画面の選択中の列データ会社
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
   const setSelectedRowDataContact = useDashboardStore((state) => state.setSelectedRowDataContact);
+  // 担当者編集モーダルオープン
+  const setIsOpenUpdateContactModal = useDashboardStore((state) => state.setIsOpenUpdateContactModal);
 
   const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string = "center") => {
     // ホバーしたアイテムにツールチップを表示
@@ -962,8 +964,13 @@ const ContactMainContainerMemo: FC = () => {
                         className={`${styles.textarea_value} h-[45px]`}
                         onMouseEnter={(e) => handleOpenTooltip(e)}
                         onMouseLeave={handleCloseTooltip}
+                        dangerouslySetInnerHTML={{
+                          __html: selectedRowDataContact?.business_content
+                            ? selectedRowDataContact?.business_content.replace(/\n/g, "<br>")
+                            : "",
+                        }}
                       >
-                        {selectedRowDataContact?.business_content ? selectedRowDataContact?.business_content : ""}
+                        {/* {selectedRowDataContact?.business_content ? selectedRowDataContact?.business_content : ""} */}
                       </span>
                     </>
                   )}
@@ -1051,8 +1058,13 @@ const ContactMainContainerMemo: FC = () => {
                         className={`${styles.textarea_value} h-[45px]`}
                         onMouseEnter={(e) => handleOpenTooltip(e)}
                         onMouseLeave={handleCloseTooltip}
+                        dangerouslySetInnerHTML={{
+                          __html: selectedRowDataContact?.facility
+                            ? selectedRowDataContact?.facility.replace(/\n/g, "<br>")
+                            : "",
+                        }}
                       >
-                        {selectedRowDataContact?.facility ? selectedRowDataContact?.facility : ""}
+                        {/* {selectedRowDataContact?.facility ? selectedRowDataContact?.facility : ""} */}
                       </span>
                     </>
                   )}
@@ -1576,14 +1588,17 @@ const ContactMainContainerMemo: FC = () => {
                 <div className={`${styles.right_row_area}  mt-[10px] flex h-[35px] w-full grow items-center`}>
                   <div className="transition-base03 flex h-full w-1/2  flex-col pr-[20px]">
                     <div className={`${styles.title_box} transition-base03 flex h-full items-center `}>
-                      <span className={`${styles.check_title}`}>TEL要注意</span>
+                      <span className={`${styles.check_title}`}>TEL要注意フラグ</span>
 
-                      <div className={`${styles.grid_select_cell_header}`}>
+                      <div className={`${styles.grid_select_cell_header} `}>
                         <input
                           type="checkbox"
                           // checked={!!checkedColumnHeader} // 初期値
                           checked={!!selectedRowDataContact?.call_careful_flag}
-                          onChange={() => console.log("チェッククリック")}
+                          onChange={() => {
+                            setLoadingGlobalState(false);
+                            setIsOpenUpdateContactModal(true);
+                          }}
                           className={`${styles.grid_select_cell_header_input}`}
                         />
                         <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -1625,12 +1640,15 @@ const ContactMainContainerMemo: FC = () => {
                     <div className={`${styles.title_box} transition-base03 flex h-full items-center `}>
                       <span className={`${styles.check_title}`}>メール禁止フラグ</span>
 
-                      <div className={`${styles.grid_select_cell_header}`}>
+                      <div className={`${styles.grid_select_cell_header} `}>
                         <input
                           type="checkbox"
                           // checked={!!checkedColumnHeader} // 初期値
                           checked={!!selectedRowDataContact?.email_ban_flag}
-                          onChange={() => console.log("チェッククリック")}
+                          onChange={() => {
+                            setLoadingGlobalState(false);
+                            setIsOpenUpdateContactModal(true);
+                          }}
                           className={`${styles.grid_select_cell_header_input}`}
                         />
                         <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -1644,12 +1662,15 @@ const ContactMainContainerMemo: FC = () => {
                     <div className={`${styles.title_box} transition-base03 flex h-full items-center `}>
                       <span className={`${styles.check_title}`}>資料禁止フラグ</span>
 
-                      <div className={`${styles.grid_select_cell_header}`}>
+                      <div className={`${styles.grid_select_cell_header} `}>
                         <input
                           type="checkbox"
                           // checked={!!checkedColumnHeader} // 初期値
                           checked={!!selectedRowDataContact?.sending_materials_ban_flag}
-                          onChange={() => console.log("チェッククリック")}
+                          onChange={() => {
+                            setLoadingGlobalState(false);
+                            setIsOpenUpdateContactModal(true);
+                          }}
                           className={`${styles.grid_select_cell_header_input}`}
                         />
                         <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -1667,12 +1688,15 @@ const ContactMainContainerMemo: FC = () => {
                     <div className={`${styles.title_box} transition-base03 flex h-full items-center `}>
                       <span className={`${styles.check_title}`}>FAX・DM禁止フラグ</span>
 
-                      <div className={`${styles.grid_select_cell_header}`}>
+                      <div className={`${styles.grid_select_cell_header} `}>
                         <input
                           type="checkbox"
                           // checked={!!checkedColumnHeader} // 初期値
                           checked={!!selectedRowDataContact?.fax_dm_ban_flag}
-                          onChange={() => console.log("チェッククリック")}
+                          onChange={() => {
+                            setLoadingGlobalState(false);
+                            setIsOpenUpdateContactModal(true);
+                          }}
                           className={`${styles.grid_select_cell_header_input}`}
                         />
                         <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -1688,19 +1712,26 @@ const ContactMainContainerMemo: FC = () => {
                 </div>
 
                 {/* 禁止理由 */}
-                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className={`${styles.row_area} flex h-[70px] w-full items-center`}>
                   <div className="flex h-full w-full flex-col pr-[20px]">
-                    <div className={`${styles.title_box} flex h-full items-center `}>
+                    <div className={`${styles.title_box} flex h-full `}>
                       <span className={`${styles.title}`}>禁止理由</span>
                       {!searchMode && (
-                        <span
+                        <div
                           data-text={`${selectedRowDataContact?.ban_reason ? selectedRowDataContact?.ban_reason : ""}`}
-                          className={`${styles.value}`}
+                          className={`${styles.value} h-[65px]`}
                           onMouseEnter={(e) => handleOpenTooltip(e)}
                           onMouseLeave={handleCloseTooltip}
+                          dangerouslySetInnerHTML={{
+                            __html: selectedRowDataContact?.ban_reason
+                              ? selectedRowDataContact?.ban_reason.replace(/\n/g, "<br>")
+                              : "",
+                          }}
                         >
-                          {selectedRowDataContact?.ban_reason ? selectedRowDataContact?.ban_reason : ""}
-                        </span>
+                          {/* {selectedRowDataContact?.ban_reason
+                            ? selectedRowDataContact?.ban_reason.replace(/\n/g, "<br>")
+                            : ""} */}
+                        </div>
                       )}
                       {searchMode && <input type="text" className={`${styles.input_box}`} />}
                     </div>
@@ -1708,19 +1739,24 @@ const ContactMainContainerMemo: FC = () => {
                   </div>
                 </div>
                 {/* クレーム */}
-                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className={`${styles.row_area} flex h-[70px] w-full items-center`}>
                   <div className="flex h-full w-full flex-col pr-[20px]">
-                    <div className={`${styles.title_box} flex h-full items-center `}>
+                    <div className={`${styles.title_box} flex h-full  `}>
                       <span className={`${styles.title}`}>クレーム</span>
                       {!searchMode && (
-                        <span
+                        <div
                           data-text={`${selectedRowDataContact?.claim ? selectedRowDataContact?.claim : ""}`}
-                          className={`${styles.value}`}
+                          className={`${styles.value} h-[65px]`}
                           onMouseEnter={(e) => handleOpenTooltip(e)}
                           onMouseLeave={handleCloseTooltip}
+                          dangerouslySetInnerHTML={{
+                            __html: selectedRowDataContact?.claim
+                              ? selectedRowDataContact?.claim.replace(/\n/g, "<br>")
+                              : "",
+                          }}
                         >
-                          {selectedRowDataContact?.claim ? selectedRowDataContact?.claim : ""}
-                        </span>
+                          {/* {selectedRowDataContact?.claim ? selectedRowDataContact?.claim : ""} */}
+                        </div>
                       )}
                       {searchMode && <input type="text" className={`${styles.input_box}`} />}
                     </div>
@@ -1758,7 +1794,7 @@ const ContactMainContainerMemo: FC = () => {
                 </div>
                 <div className="flex items-center">
                   <span className="h-full w-[15px]"></span>
-                  例えば、会社名に「&quot;工業&quot;」と付く会社を検索したい場合に、「※工業※」、「&quot;精機&quot;」と付く会社は「※精機※」と検索することで、指定した文字が付くデータを検索可能です
+                  例えば、会社名に「&quot;工業&quot;」と付く会社を検索したい場合に、「※工業※」、「&quot;製作所&quot;」と付く会社は「※製作所※」と検索することで、指定した文字が付くデータを検索可能です
                 </div>
                 <div className="mt-[5px] flex  min-h-[30px] items-center">
                   ○「is not null」は「&quot;空欄でない&quot;データ」を抽出します

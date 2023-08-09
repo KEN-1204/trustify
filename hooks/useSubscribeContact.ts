@@ -1,5 +1,6 @@
 // //【Contactsテーブル監視用Subscribeカスタムフック】
 
+// import { Contact } from "@/types";
 // import { useSupabaseClient } from "@supabase/auth-helpers-react";
 // import { useQueryClient } from "@tanstack/react-query";
 // import { useEffect } from "react";
@@ -10,6 +11,23 @@
 //   const queryClient = useQueryClient();
 // // supabaseクライアント作成
 //   const supabase = useSupabaseClient()
+
+//   useEffect(() => {
+//     const channel = supabase
+//     .channel('table-db-changes')
+//     .on(
+//         'postgres_changes',
+//         {
+//             event: 'INSERT',
+//             scheme: 'public',
+//             table: 'contacts',
+//         },
+//         (payload) => {
+//             console.log("🌟Supabase contactsテーブルリアルタイム実行 payload", payload);
+//             let previousContacts = queryClient.getQueryData<Contact[]>(['contacts'])
+//         }
+//     )
+//   }, [])
 
 //   useEffect(() => {
 //     //【マウント時にsubscribe()を実行】監視停止removeSubscription用にsubscribe実行結果を変数に格納

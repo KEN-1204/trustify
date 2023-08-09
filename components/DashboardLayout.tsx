@@ -53,20 +53,20 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   // モーダルが開いている時はbodyにoverflow: hiddenを設定する
   const isOpenEditModal = useDashboardStore((state) => state.isOpenEditModal);
   const openLangTab = useStore((state) => state.openLangTab);
-  useEffect(() => {
-    if (isOpenEditModal || openLangTab) {
-      // モーダルが開いているときに、bodyにoverflow: hiddenを設定
-      document.body.style.overflow = "hidden";
-    } else {
-      // モーダルが閉じているときに、bodyのoverflowを初期状態に戻す
-      document.body.style.overflow = "unset";
-    }
+  // useEffect(() => {
+  //   if (isOpenEditModal || openLangTab) {
+  //     // モーダルが開いているときに、bodyにoverflow: hiddenを設定
+  //     document.body.style.overflow = "hidden";
+  //   } else {
+  //     // モーダルが閉じているときに、bodyのoverflowを初期状態に戻す
+  //     document.body.style.overflow = "unset";
+  //   }
 
-    // useEffectのクリーンアップ関数で、コンポーネントのアンマウント時にも初期状態に戻す
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [isOpenEditModal, openLangTab]);
+  //   // useEffectのクリーンアップ関数で、コンポーネントのアンマウント時にも初期状態に戻す
+  //   return () => {
+  //     document.body.style.overflow = "unset";
+  //   };
+  // }, [isOpenEditModal, openLangTab]);
 
   // マウント時にbodyタグにoverflow: hiddenを設定して、ネイティブアプリケーションのようにする
   useEffect(() => {

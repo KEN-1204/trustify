@@ -55,7 +55,12 @@ export const TooltipWrap = () => {
               setHoveredItemPosWrap(null);
             }}
           >
-            <span>{hoveredItemPosWrap?.content}</span>
+            {/* <span >{hoveredItemPosWrap?.content}</span> */}
+            <div
+              dangerouslySetInnerHTML={{
+                __html: hoveredItemPosWrap?.content ? hoveredItemPosWrap?.content.replace(/\n/g, "<br>") : "",
+              }}
+            ></div>
             <span>{hoveredItemPosWrap?.content2}</span>
             {hoveredItemPosWrap?.content3 && <span>{hoveredItemPosWrap?.content3}</span>}
           </div>
@@ -83,7 +88,12 @@ export const TooltipWrap = () => {
             setHoveredItemPosWrap(null);
           }}
         >
-          <span>{hoveredItemPosWrap?.content}</span>
+          {/* <span>{hoveredItemPosWrap?.content}</span> */}
+          <div
+            dangerouslySetInnerHTML={{
+              __html: hoveredItemPosWrap?.content ? hoveredItemPosWrap?.content.replace(/\n/g, "<br>") : "",
+            }}
+          ></div>
           <span>{hoveredItemPosWrap?.content2}</span>
           {hoveredItemPosWrap?.content3 && <span>{hoveredItemPosWrap?.content3}</span>}
         </div>
@@ -114,7 +124,12 @@ export const TooltipWrap = () => {
             setHoveredItemPosWrap(null);
           }}
         >
-          <span>{hoveredItemPosWrap?.content}</span>
+          {/* <span>{hoveredItemPosWrap?.content}</span> */}
+          <div
+            dangerouslySetInnerHTML={{
+              __html: hoveredItemPosWrap?.content ? hoveredItemPosWrap?.content.replace(/\n/g, "<br>") : "",
+            }}
+          ></div>
           <span>{hoveredItemPosWrap?.content2}</span>
           {hoveredItemPosWrap?.content3 && <span>{hoveredItemPosWrap?.content3}</span>}
         </div>
@@ -141,7 +156,12 @@ export const TooltipWrap = () => {
           setHoveredItemPosWrap(null);
         }}
       >
-        <span>{hoveredItemPosWrap?.content}</span>
+        {/* <span>{hoveredItemPosWrap?.content}</span> */}
+        <div
+          dangerouslySetInnerHTML={{
+            __html: hoveredItemPosWrap?.content ? hoveredItemPosWrap?.content.replace(/\n/g, "<br>") : "",
+          }}
+        ></div>
         <span>{hoveredItemPosWrap?.content2}</span>
         {hoveredItemPosWrap?.content3 && <span>{hoveredItemPosWrap?.content3}</span>}
       </div>

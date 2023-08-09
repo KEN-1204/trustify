@@ -9,7 +9,7 @@ import useThemeStore from "@/store/useThemeStore";
 import useRootStore from "@/store/useRootStore";
 import { RippleButton } from "@/components/Parts/RippleButton/RippleButton";
 import { ChangeSizeBtn } from "@/components/Parts/ChangeSizeBtn/ChangeSizeBtn";
-import { FiLock } from "react-icons/fi";
+import { FiLock, FiRefreshCw } from "react-icons/fi";
 import { columnNameToJapaneseContacts } from "@/utils/columnNameToJapaneseContacts";
 import { Client_company, Client_company_row_data } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -340,7 +340,8 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
       const { data, error, count } = await supabase
         .rpc("search_companies_and_contacts", { params }, { count: "exact" })
         .is("created_by_company_id", null)
-        .range(from, to);
+        .range(from, to)
+        .order("company_name", { ascending: true });
 
       // ユーザーIDが自身のIDと一致するデータのみ 成功
       // const { data, error } = await supabase
@@ -454,31 +455,34 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
   //   newSearchParamsStringRef.current
   // );
   // ================== 🌟useInfiniteQueryフック🌟 ==================
-  const { status, data, error, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage } = useInfiniteQuery({
-    // queryKey: ["companies"],
-    queryKey: ["contacts", newSearchParamsStringRef.current],
-    queryFn: async (ctx) => {
-      console.log("useInfiniteQuery queryFn関数内 引数ctx", ctx);
+  const { status, data, error, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } = useInfiniteQuery(
+    {
+      // queryKey: ["companies"],
+      queryKey: ["contacts", newSearchParamsStringRef.current],
+      // queryKey: ["contacts"],
+      queryFn: async (ctx) => {
+        console.log("useInfiniteQuery queryFn関数内 引数ctx", ctx);
 
-      // return fetchServerPage(35, ctx.pageParam); // 50個ずつ取得
-      // 新規サーチなしの通常モード
-      if (newSearchContact_CompanyParams === null) {
-        console.log("通常フェッチ queryFn✅✅✅", newSearchContact_CompanyParams);
-        return fetchServerPage(50, ctx.pageParam); // 50個ずつ取得
-      } else {
-        console.log("サーチフェッチ queryFn✅✅✅", newSearchContact_CompanyParams);
-        return fetchNewSearchServerPage(50, ctx.pageParam); // 50個ずつ取得
-      }
-    },
-    // ================= 🔥🔥テスト🔥🔥==================
-    // getNextPageParam: (_lastGroup, groups) => groups.length,
-    getNextPageParam: (lastGroup, allGroups) => {
-      // lastGroup.isLastPageがtrueならundefinedを返す
-      return lastGroup.isLastPage ? undefined : allGroups.length;
-    },
-    // ================= 🔥🔥テスト🔥🔥==================
-    staleTime: Infinity,
-  });
+        // return fetchServerPage(35, ctx.pageParam); // 50個ずつ取得
+        // 新規サーチなしの通常モード
+        if (newSearchContact_CompanyParams === null) {
+          console.log("通常フェッチ queryFn✅✅✅", newSearchContact_CompanyParams);
+          return fetchServerPage(50, ctx.pageParam); // 50個ずつ取得
+        } else {
+          console.log("サーチフェッチ queryFn✅✅✅", newSearchContact_CompanyParams);
+          return fetchNewSearchServerPage(50, ctx.pageParam); // 50個ずつ取得
+        }
+      },
+      // ================= 🔥🔥テスト🔥🔥==================
+      // getNextPageParam: (_lastGroup, groups) => groups.length,
+      getNextPageParam: (lastGroup, allGroups) => {
+        // lastGroup.isLastPageがtrueならundefinedを返す
+        return lastGroup.isLastPage ? undefined : allGroups.length;
+      },
+      // ================= 🔥🔥テスト🔥🔥==================
+      staleTime: Infinity,
+    }
+  );
   // ================== 🌟useInfiniteQueryフック🌟 ここまで ==================
   // ================= 🔥🔥テスト🔥🔥ここまで==================
   // useEffect(() => {
@@ -2158,7 +2162,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
             <div className={`flex max-h-[26px] w-full items-center justify-start space-x-[6px]`}>
               <RippleButton
                 title={`新規サーチ`}
-                bgColor="var(--color-btn-brand-f-re)"
+                // bgColor="var(--color-btn-brand-f-re)"
                 border="var(--color-btn-brand-f-re-hover)"
                 borderRadius="2px"
                 classText={`select-none`}
@@ -2180,10 +2184,20 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                   console.log("サーチ編集 クリック");
                 }}
               />
+              <button
+                className={`flex-center transition-base03 h-[26px]  cursor-pointer space-x-1  rounded-[4px] px-[15px]  text-[12px]  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`}
+                onClick={() => {
+                  console.log("リフレッシュ クリック");
+                  //   refetch()
+                }}
+              >
+                <FiRefreshCw />
+                <span>リフレッシュ</span>
+              </button>
             </div>
             <div className={`flex max-h-[26px] w-full  items-center justify-end space-x-[6px]`}>
               <button
-                className={`flex-center transition-base03 h-[26px]  space-x-2 rounded-[2px]  px-[15px] text-[12px]  ${
+                className={`flex-center transition-base03 h-[26px]  space-x-2 rounded-[4px]  px-[15px] text-[12px]  ${
                   activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) !== 1
                     ? `cursor-pointer  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`
                     : "cursor-not-allowed text-[#999]"
@@ -2209,7 +2223,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                 </span> */}
               </button>
               <button
-                className={`flex-center transition-base03 h-[26px]  cursor-pointer space-x-2  rounded-[2px] px-[15px] text-[12px]  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn} `}
+                className={`flex-center transition-base03 h-[26px]  cursor-pointer space-x-2  rounded-[4px] px-[15px] text-[12px]  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn} `}
               >
                 {/* <FiLock /> */}
                 <span>モード</span>
@@ -2535,14 +2549,16 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                               type="checkbox"
                               aria-label="Select"
                               // ================= 🔥🔥テスト🔥🔥==================
-                              value={rowData?.id}
+                            //   value={rowData?.id}
+                              value={rowData?.contact_id}
                               // value={rowData?.id ? rowData?.id : null}
                               // ================= 🔥🔥テスト🔥🔥==================
                               checked={!!checkedRows[virtualRow.index.toString()]} // !!で初期状態でstateがundefinedでもfalseになるようにして、初期エラーを回避する
                               onChange={(e) => {
-                                if (typeof rowData?.id === "undefined") return;
-                                if (rowData?.id === null) return;
-                                console.log(`クリック VirtualRow.index: ${virtualRow.index} row.id${rowData.id}`);
+                                if (typeof rowData?.contact_id === "undefined") return;
+                                if (rowData?.contact_id === null) return;
+                                console.log(`クリック VirtualRow.index: ${virtualRow.index} row.contact_id${rowData.contact_id}`);
+                                // console.log(`クリック VirtualRow.index: ${virtualRow.index} row.id${rowData.id}`);
                                 handleSelectedCheckBox(e, rowData?.index.toString());
                                 // handleSelectedCheckBox(e, rowData?.id);
                               }}

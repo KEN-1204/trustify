@@ -71,7 +71,7 @@ const RippleButtonMemo: FC<Props> = ({
           fontSize: fontSize,
           fontWeight: fontWeight,
           color: textColor,
-          // background: bgColor,
+          background: bgColor,
           // border: border,
           minWidth: minWidth,
           minHeight: minHeight,

@@ -47,6 +47,9 @@
   --input-area-bg: rgba(242, 241, 238, 0.6);
   --input-area-bg-rgb: 242, 241, 238;
 
+  --checkbox-bg-color: #0d99ff;
+  --border-theme-dark: #0c8ce9;
+
   /* ボーダー */
   /* rgba(255, 255, 255, 0.12) 0px 1px 1px */
 }
