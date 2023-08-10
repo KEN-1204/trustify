@@ -81,38 +81,10 @@ export const InsertNewContactModal = () => {
     // supabaseにINSERT
     createContactMutation.mutate(newContact);
 
-    // const { error } = await supabase.from("contacts").insert(newContact);
-
-    // if (error) {
-    //   alert(error);
-    //   console.log("INSERTエラー", error);
-    //   toast.error("担当者の作成に失敗しました!", {
-    //     position: "top-right",
-    //     autoClose: 4000,
-    //     hideProgressBar: false,
-    //     closeOnClick: true,
-    //     pauseOnHover: true,
-    //     draggable: true,
-    //     progress: undefined,
-    //     theme: `${theme === "light" ? "light" : "dark"}`,
-    //   });
-    // } else {
-    //   toast.success("担当者の作成に完了しました!", {
-    //     position: "top-right",
-    //     autoClose: 4000,
-    //     hideProgressBar: false,
-    //     closeOnClick: true,
-    //     pauseOnHover: true,
-    //     draggable: true,
-    //     progress: undefined,
-    //     theme: `${theme === "light" ? "light" : "dark"}`,
-    //   });
-    // }
-
-    setLoadingGlobalState(false);
+    // setLoadingGlobalState(false);
 
     // モーダルを閉じる
-    setIsOpenInsertNewContactModal(false);
+    // setIsOpenInsertNewContactModal(false);
   };
   return (
     <>

@@ -10,6 +10,8 @@ import { ContainerInstance } from "react-toastify/dist/hooks";
 export const useMutateClientCompany = () => {
   const theme = useThemeStore((state) => state.theme);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
+  const setIsOpenInsertNewClientCompanyModal = useDashboardStore((state) => state.setIsOpenInsertNewClientCompanyModal);
+  const setIsOpenUpdateClientCompanyModal = useDashboardStore((state) => state.setIsOpenUpdateClientCompanyModal);
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
 
@@ -27,33 +29,38 @@ export const useMutateClientCompany = () => {
         // TanStack Queryでデータの変更に合わせて別のデータを再取得する
         // https://zenn.dev/masatakaitoh/articles/3c2f8602d2bb9d
 
-        toast.success("会社の作成に完了しました!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: `${theme === "light" ? "light" : "dark"}`,
-        });
-
-        setLoadingGlobalState(false);
+        setTimeout(() => {
+          setLoadingGlobalState(false);
+          setIsOpenInsertNewClientCompanyModal(false);
+          toast.success("会社の作成に完了しました!", {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: `${theme === "light" ? "light" : "dark"}`,
+          });
+        }, 500);
       },
       onError: (err: any) => {
-        alert(err.message);
-        console.log("INSERTエラー", err.message);
-        toast.error("会社の作成に失敗しました!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: `${theme === "light" ? "light" : "dark"}`,
-        });
-        setLoadingGlobalState(false);
+        setTimeout(() => {
+          setLoadingGlobalState(false);
+          setIsOpenInsertNewClientCompanyModal(false);
+          alert(err.message);
+          console.log("INSERTエラー", err.message);
+          toast.error("会社の作成に失敗しました!", {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: `${theme === "light" ? "light" : "dark"}`,
+          });
+        }, 500);
       },
     }
   );
@@ -71,34 +78,38 @@ export const useMutateClientCompany = () => {
         await queryClient.invalidateQueries({ queryKey: ["companies"] });
         // TanStack Queryでデータの変更に合わせて別のデータを再取得する
         // https://zenn.dev/masatakaitoh/articles/3c2f8602d2bb9d
-
-        toast.success("会社の更新完了しました!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: `${theme === "light" ? "light" : "dark"}`,
-        });
-
-        setLoadingGlobalState(false);
+        setTimeout(() => {
+          setLoadingGlobalState(false);
+          setIsOpenUpdateClientCompanyModal(false);
+          toast.success("会社の更新完了しました!", {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: `${theme === "light" ? "light" : "dark"}`,
+          });
+        }, 500);
       },
       onError: (err: any) => {
-        alert(err.message);
-        console.log("INSERTエラー", err.message);
-        toast.error("会社の更新に失敗しました!", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: `${theme === "light" ? "light" : "dark"}`,
-        });
-        setLoadingGlobalState(false);
+        setTimeout(() => {
+          setLoadingGlobalState(false);
+          setIsOpenUpdateClientCompanyModal(false);
+          alert(err.message);
+          console.log("INSERTエラー", err.message);
+          toast.error("会社の更新に失敗しました!", {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: `${theme === "light" ? "light" : "dark"}`,
+          });
+        }, 500);
       },
     }
   );

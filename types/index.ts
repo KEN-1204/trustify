@@ -162,7 +162,7 @@ export type Client_company = {
 };
 
 export type Client_company_row_data = {
-  id?: string;
+  id: string;
   address?: string | null;
   auditor?: string | null;
   ban_reason?: string | null;
@@ -244,6 +244,17 @@ export type NewSearchCompanyParams = {
   group_company: string | null;
   corporate_number: string | null;
   website_url: string | null;
+  // 代表者
+  representative_name: string | null;
+  chairperson: string | null;
+  senior_vice_president: string | null;
+  senior_managing_director: string | null;
+  managing_director: string | null;
+  director: string | null;
+  auditor: string | null;
+  manager: string | null;
+  member: string | null;
+  board_member: string | null;
 };
 
 export type UserProfile = {

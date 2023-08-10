@@ -16,6 +16,7 @@ const CompanyFunctionHeaderMemo: FC = () => {
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
   const setIsOpenInsertNewContactModal = useDashboardStore((state) => state.setIsOpenInsertNewContactModal);
   const setIsOpenInsertNewClientCompanyModal = useDashboardStore((state) => state.setIsOpenInsertNewClientCompanyModal);
+  const setIsOpenUpdateClientCompanyModal = useDashboardStore((state) => state.setIsOpenUpdateClientCompanyModal);
 
   // 上画面の選択中の列データ会社
   const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
@@ -110,7 +111,7 @@ const CompanyFunctionHeaderMemo: FC = () => {
             if (!selectedRowDataCompany) return alert("会社を選択してください");
             console.log("会社編集 クリック");
             setLoadingGlobalState(false);
-            // setIsOpenUpdateContactModal(true);
+            setIsOpenUpdateClientCompanyModal(true);
           }}
         />
         <RippleButton

@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import styles from "./InsertNewClientCompanyModal.module.css";
+import React, { useEffect, useState } from "react";
+import styles from "./UpdateClientCompanyModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
@@ -9,13 +9,13 @@ import { isNaN } from "lodash";
 import { useMutateClientCompany } from "@/hooks/useMutateClientCompany";
 import productCategoriesM from "@/utils/productCategoryM";
 
-export const InsertNewClientCompanyModal = () => {
-  const setIsOpenInsertNewClientCompanyModal = useDashboardStore((state) => state.setIsOpenInsertNewClientCompanyModal);
+export const UpdateClientCompanyModal = () => {
+  const setIsOpenUpdateClientCompanyModal = useDashboardStore((state) => state.setIsOpenUpdateClientCompanyModal);
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   // const theme = useThemeStore((state) => state.theme);
   // 上画面の選択中の列データ会社
-  // const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
+  const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
 
   const [name, setName] = useState("");
@@ -60,13 +60,120 @@ export const InsertNewClientCompanyModal = () => {
   const [numberOfEmployees, setNumberOfEmployees] = useState("");
 
   const supabase = useSupabaseClient();
-  const { createClientCompanyMutation } = useMutateClientCompany();
+  const { updateClientCompanyMutation } = useMutateClientCompany();
 
-  // console.log("InsertNewClientCompanyModalコンポーネント レンダリング selectedRowDataCompany", selectedRowDataCompany);
+  // console.log("UpdateClientCompanyModalコンポーネント レンダリング selectedRowDataCompany", selectedRowDataCompany);
+
+  // 初回マウント時に選択中の担当者&会社の列データの情報をStateに格納
+  useEffect(() => {
+    if (!selectedRowDataCompany) return;
+    let _name = selectedRowDataCompany.name ? selectedRowDataCompany.name : "";
+    let _department_name = selectedRowDataCompany.department_name ? selectedRowDataCompany.department_name : "";
+    let _main_fax = selectedRowDataCompany.main_fax ? selectedRowDataCompany.main_fax : "";
+    let _zipcode = selectedRowDataCompany.zipcode ? selectedRowDataCompany.zipcode : "";
+    let _address = selectedRowDataCompany.address ? selectedRowDataCompany.address : "";
+    let _department_contacts = selectedRowDataCompany.department_contacts
+      ? selectedRowDataCompany.department_contacts
+      : "";
+    let _industry_large = selectedRowDataCompany.industry_large ? selectedRowDataCompany.industry_large : "";
+    let _industry_small = selectedRowDataCompany.industry_small ? selectedRowDataCompany.industry_small : "";
+    let _industry_type = selectedRowDataCompany.industry_type ? selectedRowDataCompany.industry_type : "";
+    let _product_category_large = selectedRowDataCompany.product_category_large
+      ? selectedRowDataCompany.product_category_large
+      : "";
+    let _product_category_medium = selectedRowDataCompany.product_category_medium
+      ? selectedRowDataCompany.product_category_medium
+      : "";
+    let _product_category_small = selectedRowDataCompany.product_category_small
+      ? selectedRowDataCompany.product_category_small
+      : "";
+    let _number_of_employees_class = selectedRowDataCompany.number_of_employees_class
+      ? selectedRowDataCompany.number_of_employees_class
+      : "";
+    let _fiscal_end_month = selectedRowDataCompany.fiscal_end_month ? selectedRowDataCompany.fiscal_end_month : "";
+    let _capital = selectedRowDataCompany.capital ? selectedRowDataCompany.capital : "";
+    let _budget_request_month1 = selectedRowDataCompany.budget_request_month1
+      ? selectedRowDataCompany.budget_request_month1
+      : "";
+    let _budget_request_month2 = selectedRowDataCompany.budget_request_month2
+      ? selectedRowDataCompany.budget_request_month2
+      : "";
+    let _website_url = selectedRowDataCompany.website_url ? selectedRowDataCompany.website_url : "";
+    let _clients = selectedRowDataCompany.clients ? selectedRowDataCompany.clients : "";
+    let _supplier = selectedRowDataCompany.supplier ? selectedRowDataCompany.supplier : "";
+    let _business_content = selectedRowDataCompany.business_content ? selectedRowDataCompany.business_content : "";
+    let _established_in = selectedRowDataCompany.established_in ? selectedRowDataCompany.established_in : "";
+    let _representative_name = selectedRowDataCompany.representative_name
+      ? selectedRowDataCompany.representative_name
+      : "";
+    let _chairperson = selectedRowDataCompany.chairperson ? selectedRowDataCompany.chairperson : "";
+    let _senior_vice_president = selectedRowDataCompany.senior_vice_president
+      ? selectedRowDataCompany.senior_vice_president
+      : "";
+    let _senior_managing_director = selectedRowDataCompany.senior_managing_director
+      ? selectedRowDataCompany.senior_managing_director
+      : "";
+    let _managing_director = selectedRowDataCompany.managing_director ? selectedRowDataCompany.managing_director : "";
+    let _director = selectedRowDataCompany.director ? selectedRowDataCompany.director : "";
+    let _auditor = selectedRowDataCompany.auditor ? selectedRowDataCompany.auditor : "";
+    let _manager = selectedRowDataCompany.manager ? selectedRowDataCompany.manager : "";
+    let _member = selectedRowDataCompany.member ? selectedRowDataCompany.member : "";
+    let _facility = selectedRowDataCompany.facility ? selectedRowDataCompany.facility : "";
+    let _business_sites = selectedRowDataCompany.business_sites ? selectedRowDataCompany.business_sites : "";
+    let _overseas_bases = selectedRowDataCompany.overseas_bases ? selectedRowDataCompany.overseas_bases : "";
+    let _group_company = selectedRowDataCompany.group_company ? selectedRowDataCompany.group_company : "";
+    let _email = selectedRowDataCompany.email ? selectedRowDataCompany.email : "";
+    let _main_phone_number = selectedRowDataCompany.main_phone_number ? selectedRowDataCompany.main_phone_number : "";
+    let _corporate_number = selectedRowDataCompany.corporate_number ? selectedRowDataCompany.corporate_number : "";
+    let _board_member = selectedRowDataCompany.board_member ? selectedRowDataCompany.board_member : "";
+    let _number_of_employees = selectedRowDataCompany.number_of_employees
+      ? selectedRowDataCompany.number_of_employees
+      : "";
+    setName(_name);
+    setDepartmentName(_department_name);
+    setMainFax(_main_fax);
+    setZipcode(_zipcode);
+    setAddress(_address);
+    setDepartmentContacts(_department_contacts);
+    setIndustryL(_industry_large);
+    setIndustryS(_industry_small);
+    setIndustryType(_industry_type);
+    setProductCategoryL(_product_category_large);
+    setProductCategoryM(_product_category_medium);
+    setProductCategoryS(_product_category_small);
+    setNumberOfEmployeesClass(_number_of_employees_class);
+    setFiscalEndMonth(_fiscal_end_month);
+    setCapital(_capital);
+    setBudgetRequestMonth1(_budget_request_month1);
+    setBudgetRequestMonth2(_budget_request_month2);
+    setWebsiteURL(_website_url);
+    setClients(_clients);
+    setSupplier(_supplier);
+    setBusinessContent(_business_content);
+    setEstablishedIn(_established_in);
+    setRepresentativeName(_representative_name);
+    setChairperson(_chairperson);
+    setSeniorVicePresident(_senior_vice_president);
+    setSeniorManagingDirector(_senior_managing_director);
+    setManagingDirector(_managing_director);
+    setDirector(_director);
+    setAuditor(_auditor);
+    setManager(_manager);
+    setMember(_member);
+    setFacility(_facility);
+    setBusinessSites(_business_sites);
+    setOverseasBases(_overseas_bases);
+    setGroupCompany(_group_company);
+    setEmail(_email);
+    setMainPhoneNumber(_main_phone_number);
+    setCorporateNumber(_corporate_number);
+    setBoardMember(_board_member);
+    setNumberOfEmployees(_number_of_employees);
+  }, []);
 
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
-    setIsOpenInsertNewClientCompanyModal(false);
+    setIsOpenUpdateClientCompanyModal(false);
   };
   const handleSaveAndClose = async () => {
     if (!name) return alert("会社名を入力してください");
@@ -74,10 +181,17 @@ export const InsertNewClientCompanyModal = () => {
     if (!departmentName) return alert("部署名を入力してください");
     if (!address) return alert("住所を入力してください");
 
+    if (!selectedRowDataCompany) {
+      alert("選択した会社情報が見つかりません");
+      setIsOpenUpdateClientCompanyModal(false);
+      return;
+    }
+
     setLoadingGlobalState(true);
 
     // 新規作成するデータをオブジェクトにまとめる
     const newClientCompany = {
+      id: selectedRowDataCompany.id,
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
       created_by_user_id: userProfileState?.id ? userProfileState.id : null,
       created_by_department_of_user: userProfileState?.department ? userProfileState.department : null,
@@ -125,12 +239,12 @@ export const InsertNewClientCompanyModal = () => {
     };
 
     // supabaseにINSERT
-    createClientCompanyMutation.mutate(newClientCompany);
+    updateClientCompanyMutation.mutate(newClientCompany);
 
     // setLoadingGlobalState(false);
 
     // モーダルを閉じる
-    // setIsOpenInsertNewClientCompanyModal(false);
+    // setIsOpenUpdateClientCompanyModal(false);
   };
 
   // 全角文字を半角に変換する関数
@@ -149,25 +263,6 @@ export const InsertNewClientCompanyModal = () => {
       })
       .replace(/　/g, " "); // 全角スペースを半角スペースに
   };
-
-  // 昭和や平成、令和の元号を西暦に変換する
-  // const convertJapaneseEraToWesternYear = (value: string) => {
-  //   const eraPatterns = [
-  //     { era: "昭和", startYear: 1925 },
-  //     { era: "平成", startYear: 1988 },
-  //     { era: "令和", startYear: 2018 },
-  //   ];
-
-  //   for (let pattern of eraPatterns) {
-  //     if (value.includes(pattern.era)) {
-  //       const year = parseInt(value.replace(pattern.era, ""), 10);
-  //       if (!isNaN(year)) {
-  //         return pattern.startYear + year;
-  //       }
-  //     }
-  //   }
-  //   return value;
-  // };
 
   type Era = "昭和" | "平成" | "令和";
   const eras = {

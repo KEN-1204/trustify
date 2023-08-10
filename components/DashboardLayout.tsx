@@ -21,6 +21,7 @@ import { TooltipWrap } from "./Parts/Tooltip/TooltipWrap";
 import { InsertNewContactModal } from "./DashboardCompanyComponent/Modal/InsertNewContactModal/InsertNewContactModal";
 import { UpdateContactModal } from "./DashboardCompanyComponent/Modal/UpdateContactModal/UpdateContactModal";
 import { InsertNewClientCompanyModal } from "./DashboardCompanyComponent/Modal/InsertNewClientCompnayModal/InsertNewClientCompanyModal";
+import { UpdateClientCompanyModal } from "./DashboardCompanyComponent/Modal/UpdateClientCompanyModal/UpdateClientCompanyModal";
 
 type Prop = {
   title?: string;
@@ -170,7 +171,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
 
       {/* 会社作成・編集モーダル */}
       {isOpenInsertNewClientCompanyModal && <InsertNewClientCompanyModal />}
-      {/* {isOpenUpdateCompanyModal && <UpdateCompanyModal />} */}
+      {isOpenUpdateClientCompanyModal && <UpdateClientCompanyModal />}
 
       {/* 担当者作成・編集モーダル */}
       {isOpenInsertNewContactModal && <InsertNewContactModal />}

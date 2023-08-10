@@ -110,6 +110,17 @@ const CompanyMainContainerMemo: FC = () => {
   const [inputOverseas, setInputOverseas] = useState("");
   const [inputGroup, setInputGroup] = useState("");
   const [inputCorporateNum, setInputCorporateNum] = useState("");
+  // 代表者
+  const [inputRepresentativeName, setInputRepresentativeName] = useState("");
+  const [inputChairperson, setInputChairperson] = useState("");
+  const [inputSeniorVicePresident, setInputSeniorVicePresident] = useState("");
+  const [inputSeniorManagingDirector, setInputSeniorManagingDirector] = useState("");
+  const [inputManagingDirector, setInputManagingDirector] = useState("");
+  const [inputDirector, setInputDirector] = useState("");
+  const [inputBoardMember, setInputBoardMember] = useState("");
+  const [inputAuditor, setInputAuditor] = useState("");
+  const [inputManager, setInputManager] = useState("");
+  const [inputMember, setInputMember] = useState("");
 
   const supabase = useSupabaseClient();
   const newSearchCompanyParams = useDashboardStore((state) => state.newSearchCompanyParams);
@@ -159,6 +170,17 @@ const CompanyMainContainerMemo: FC = () => {
       setInputOverseas(beforeAdjustFieldValue(newSearchCompanyParams.overseas_bases));
       setInputGroup(beforeAdjustFieldValue(newSearchCompanyParams.group_company));
       setInputCorporateNum(beforeAdjustFieldValue(newSearchCompanyParams.corporate_number));
+      // 代表者
+      setInputRepresentativeName(beforeAdjustFieldValue(newSearchCompanyParams.representative_name));
+      setInputChairperson(beforeAdjustFieldValue(newSearchCompanyParams.chairperson));
+      setInputSeniorVicePresident(beforeAdjustFieldValue(newSearchCompanyParams.senior_vice_president));
+      setInputSeniorManagingDirector(beforeAdjustFieldValue(newSearchCompanyParams.senior_managing_director));
+      setInputManagingDirector(beforeAdjustFieldValue(newSearchCompanyParams.managing_director));
+      setInputDirector(beforeAdjustFieldValue(newSearchCompanyParams.director));
+      setInputBoardMember(beforeAdjustFieldValue(newSearchCompanyParams.board_member));
+      setInputAuditor(beforeAdjustFieldValue(newSearchCompanyParams.auditor));
+      setInputManager(beforeAdjustFieldValue(newSearchCompanyParams.manager));
+      setInputMember(beforeAdjustFieldValue(newSearchCompanyParams.member));
     } else {
       setInputName("");
       setInputDepartment("");
@@ -184,6 +206,17 @@ const CompanyMainContainerMemo: FC = () => {
       setInputOverseas("");
       setInputGroup("");
       setInputCorporateNum("");
+      // 代表者
+      setInputRepresentativeName("");
+      setInputChairperson("");
+      setInputSeniorVicePresident("");
+      setInputSeniorManagingDirector("");
+      setInputManagingDirector("");
+      setInputDirector("");
+      setInputBoardMember("");
+      setInputAuditor("");
+      setInputManager("");
+      setInputMember("");
     }
   }, [editSearchMode]);
 
@@ -229,6 +262,18 @@ const CompanyMainContainerMemo: FC = () => {
     let _group_company = adjustFieldValue(inputGroup);
     let _corporate_number = adjustFieldValue(inputCorporateNum);
 
+    // 代表者
+    let _representative_name = adjustFieldValue(inputRepresentativeName);
+    let _chairperson = adjustFieldValue(inputChairperson);
+    let _senior_vice_president = adjustFieldValue(inputSeniorVicePresident);
+    let _senior_managing_director = adjustFieldValue(inputSeniorManagingDirector);
+    let _managing_director = adjustFieldValue(inputManagingDirector);
+    let _director = adjustFieldValue(inputDirector);
+    let _board_member = adjustFieldValue(inputDirector);
+    let _auditor = adjustFieldValue(inputAuditor);
+    let _manager = adjustFieldValue(inputManager);
+    let _member = adjustFieldValue(inputMember);
+
     // // Asterisks to percent signs for PostgreSQL's LIKE operator
     // if (_field1.includes("*")) _field1 = _field1.replace(/\*/g, "%");
     // if (_field1 === "is null") _field1 = null;
@@ -259,6 +304,17 @@ const CompanyMainContainerMemo: FC = () => {
       overseas_bases: _overseas_bases,
       group_company: _group_company,
       corporate_number: _corporate_number,
+      // 代表者
+      representative_name: _representative_name,
+      chairperson: _chairperson,
+      senior_vice_president: _senior_vice_president,
+      senior_managing_director: _senior_managing_director,
+      managing_director: _managing_director,
+      director: _director,
+      board_member: _board_member,
+      auditor: _auditor,
+      manager: _manager,
+      member: _member,
     };
 
     console.log("✅ 条件 params", params);
@@ -287,8 +343,21 @@ const CompanyMainContainerMemo: FC = () => {
     setInputOverseas("");
     setInputGroup("");
     setInputCorporateNum("");
+    // 代表者
+    setInputRepresentativeName("");
+    setInputChairperson("");
+    setInputSeniorVicePresident("");
+    setInputSeniorManagingDirector("");
+    setInputManagingDirector("");
+    setInputDirector("");
+    setInputBoardMember("");
+    setInputAuditor("");
+    setInputManager("");
+    setInputMember("");
 
+    // サーチモードをfalse
     setSearchMode(false);
+    // 編集モードをfalse
     setEditSearchMode(false);
 
     // Zustandに検索条件を格納
@@ -1140,6 +1209,270 @@ const CompanyMainContainerMemo: FC = () => {
                 <div className={`${styles.underline}`}></div>
               </div>
             </div>
+
+            {/* サーチモード時は左側の下に表示 */}
+            {searchMode && (
+              <>
+                {/* 代表者・会長 */}
+                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title}`}>代表者</span>
+                      {!searchMode && (
+                        <span className={`${styles.value}`}>
+                          {selectedRowDataCompany?.representative_name
+                            ? selectedRowDataCompany?.representative_name
+                            : ""}
+                        </span>
+                      )}
+                      {searchMode && (
+                        <input
+                          type="text"
+                          className={`${styles.input_box}`}
+                          value={inputRepresentativeName}
+                          onChange={(e) => setInputRepresentativeName(e.target.value)}
+                        />
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}>
+                      <span className={`${styles.title}`}>会長</span>
+                      {!searchMode && (
+                        <span className={`${styles.value}`}>
+                          {selectedRowDataCompany?.chairperson ? selectedRowDataCompany?.chairperson : ""}
+                        </span>
+                      )}
+                      {searchMode && (
+                        <input
+                          type="text"
+                          className={`${styles.input_box}`}
+                          value={inputChairperson}
+                          onChange={(e) => setInputChairperson(e.target.value)}
+                        />
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
+
+                {/* 副社長・専務取締役 */}
+                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title}`}>副社長</span>
+                      {!searchMode && (
+                        <span className={`${styles.value}`}>
+                          {selectedRowDataCompany?.senior_vice_president
+                            ? selectedRowDataCompany?.senior_vice_president
+                            : ""}
+                        </span>
+                      )}
+                      {searchMode && (
+                        <input
+                          type="text"
+                          className={`${styles.input_box}`}
+                          value={inputSeniorVicePresident}
+                          onChange={(e) => setInputSeniorVicePresident(e.target.value)}
+                        />
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}>
+                      <span className={`${styles.title}`}>専務取締役</span>
+                      {!searchMode && (
+                        <span
+                          data-text={`${
+                            selectedRowDataCompany?.senior_managing_director
+                              ? selectedRowDataCompany?.senior_managing_director
+                              : ""
+                          }`}
+                          className={`${styles.value}`}
+                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          {selectedRowDataCompany?.senior_managing_director
+                            ? selectedRowDataCompany?.senior_managing_director
+                            : ""}
+                        </span>
+                      )}
+                      {searchMode && (
+                        <input
+                          type="text"
+                          className={`${styles.input_box}`}
+                          value={inputSeniorManagingDirector}
+                          onChange={(e) => setInputSeniorManagingDirector(e.target.value)}
+                        />
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
+
+                {/* 常務取締役・取締役 */}
+                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title}`}>常務取締役</span>
+                      {!searchMode && (
+                        <span
+                          data-text={`${
+                            selectedRowDataCompany?.managing_director ? selectedRowDataCompany?.managing_director : ""
+                          }`}
+                          className={`${styles.value}`}
+                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          {selectedRowDataCompany?.managing_director ? selectedRowDataCompany?.managing_director : ""}
+                        </span>
+                      )}
+                      {searchMode && (
+                        <input
+                          type="text"
+                          className={`${styles.input_box}`}
+                          value={inputManagingDirector}
+                          onChange={(e) => setInputManagingDirector(e.target.value)}
+                        />
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}>
+                      <span className={`${styles.title}`}>取締役</span>
+                      {!searchMode && (
+                        <span
+                          data-text={`${selectedRowDataCompany?.director ? selectedRowDataCompany?.director : ""}`}
+                          className={`${styles.value} truncate`}
+                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          {selectedRowDataCompany?.director ? selectedRowDataCompany?.director : ""}
+                        </span>
+                      )}
+                      {searchMode && (
+                        <input
+                          type="text"
+                          className={`${styles.input_box}`}
+                          value={inputDirector}
+                          onChange={(e) => setInputDirector(e.target.value)}
+                        />
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
+
+                {/* 役員・監査役 */}
+                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title}`}>役員</span>
+                      {!searchMode && (
+                        <span
+                          data-text={`${
+                            selectedRowDataCompany?.board_member ? selectedRowDataCompany?.board_member : ""
+                          }`}
+                          className={`${styles.value}`}
+                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          {selectedRowDataCompany?.board_member ? selectedRowDataCompany?.board_member : ""}
+                        </span>
+                      )}
+                      {searchMode && (
+                        <input
+                          type="text"
+                          className={`${styles.input_box}`}
+                          value={inputBoardMember}
+                          onChange={(e) => setInputBoardMember(e.target.value)}
+                        />
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}>
+                      <span className={`${styles.title}`}>監査役</span>
+                      {!searchMode && (
+                        <span
+                          data-text={`${selectedRowDataCompany?.auditor ? selectedRowDataCompany?.auditor : ""}`}
+                          className={`${styles.value}`}
+                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          {selectedRowDataCompany?.auditor ? selectedRowDataCompany?.auditor : ""}
+                        </span>
+                      )}
+                      {searchMode && (
+                        <input
+                          type="text"
+                          className={`${styles.input_box}`}
+                          value={inputAuditor}
+                          onChange={(e) => setInputAuditor(e.target.value)}
+                        />
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
+
+                {/* 部長・担当者 */}
+                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title}`}>部長</span>
+                      {!searchMode && (
+                        <span
+                          data-text={`${selectedRowDataCompany?.manager ? selectedRowDataCompany?.manager : ""}`}
+                          className={`${styles.value}`}
+                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          {selectedRowDataCompany?.manager ? selectedRowDataCompany?.manager : ""}
+                        </span>
+                      )}
+                      {searchMode && (
+                        <input
+                          type="text"
+                          className={`${styles.input_box}`}
+                          value={inputManager}
+                          onChange={(e) => setInputManager(e.target.value)}
+                        />
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}>
+                      <span className={`${styles.title}`}>担当者</span>
+                      {!searchMode && (
+                        <span
+                          data-text={`${selectedRowDataCompany?.member ? selectedRowDataCompany?.member : ""}`}
+                          className={`${styles.value}`}
+                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          {selectedRowDataCompany?.member ? selectedRowDataCompany?.member : ""}
+                        </span>
+                      )}
+                      {searchMode && (
+                        <input
+                          type="text"
+                          className={`${styles.input_box}`}
+                          value={inputMember}
+                          onChange={(e) => setInputMember(e.target.value)}
+                        />
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* --------- ラッパーここまで --------- */}
           </div>
