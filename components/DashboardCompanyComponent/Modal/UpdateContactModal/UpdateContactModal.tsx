@@ -167,7 +167,7 @@ export const UpdateContactModal = () => {
           <div className="font-samibold cursor-pointer hover:text-[#aaa]" onClick={handleCancelAndReset}>
             キャンセル
           </div>
-          <div className="-translate-x-[25px] font-bold">担当者 新規作成</div>
+          <div className="-translate-x-[25px] font-bold">担当者 編集</div>
           <div
             className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
             onClick={handleSaveAndClose}
@@ -383,6 +383,8 @@ export const UpdateContactModal = () => {
                     <select
                       name="position_class"
                       id="position_class"
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={selectedOccupation}
                       onChange={(e) => setSelectedOccupation(e.target.value)}
                     >
                       <option value="1">1 社長・専務</option>
@@ -422,6 +424,8 @@ export const UpdateContactModal = () => {
                     <select
                       name="position_class"
                       id="position_class"
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={selectedPositionClass}
                       onChange={(e) => setSelectedPositionClass(e.target.value)}
                     >
                       <option value="1">1 代表者</option>

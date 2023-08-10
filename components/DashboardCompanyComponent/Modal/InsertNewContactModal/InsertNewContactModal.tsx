@@ -312,8 +312,8 @@ export const InsertNewContactModal = () => {
                 <div className={`${styles.underline}`}></div>
               </div>
             </div>
-            {/* --------- 横幅全部ラッパーここまで --------- */}
           </div>
+          {/* --------- 横幅全部ラッパーここまで --------- */}
 
           {/* --------- 横幅全体ラッパー --------- */}
           <div className={`${styles.full_contents_wrapper} flex w-full`}>
@@ -344,6 +344,8 @@ export const InsertNewContactModal = () => {
                     <select
                       name="position_class"
                       id="position_class"
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={selectedOccupation}
                       onChange={(e) => setSelectedOccupation(e.target.value)}
                     >
                       <option value="1">1 社長・専務</option>
@@ -383,6 +385,7 @@ export const InsertNewContactModal = () => {
                     <select
                       name="position_class"
                       id="position_class"
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={selectedPositionClass}
                       onChange={(e) => setSelectedPositionClass(e.target.value)}
                     >

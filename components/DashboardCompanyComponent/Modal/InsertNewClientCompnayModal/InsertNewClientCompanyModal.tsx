@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 import useThemeStore from "@/store/useThemeStore";
 import { isNaN } from "lodash";
 import { useMutateClientCompany } from "@/hooks/useMutateClientCompany";
+import productCategoriesM from "@/utils/productCategoryM";
 
 export const InsertNewClientCompanyModal = () => {
   const setIsOpenInsertNewClientCompanyModal = useDashboardStore((state) => state.setIsOpenInsertNewClientCompanyModal);
@@ -25,6 +26,7 @@ export const InsertNewClientCompanyModal = () => {
   const [departmentContacts, setDepartmentContacts] = useState("");
   const [industryL, setIndustryL] = useState("");
   const [industryS, setIndustryS] = useState("");
+  const [industryType, setIndustryType] = useState("");
   const [productCategoryL, setProductCategoryL] = useState("");
   const [productCategoryM, setProductCategoryM] = useState("");
   const [productCategoryS, setProductCategoryS] = useState("");
@@ -60,10 +62,7 @@ export const InsertNewClientCompanyModal = () => {
   const supabase = useSupabaseClient();
   const { createClientCompanyMutation } = useMutateClientCompany();
 
-  console.log(
-    "InsertNewClientCompanyModalコンポーネント レンダリング selectedRowDataCompany",
-    selectedRowDataCompany
-  );
+  console.log("InsertNewClientCompanyModalコンポーネント レンダリング selectedRowDataCompany", selectedRowDataCompany);
 
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
@@ -74,13 +73,13 @@ export const InsertNewClientCompanyModal = () => {
 
     // 新規作成するデータをオブジェクトにまとめる
     const newClientCompany = {
-        created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
-        created_by_user_id: userProfileState?.id ? userProfileState.id : null,
-        created_by_department_of_user: userProfileState?.department ? userProfileState.department : null,
-        created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
-        name: name,
-        department_name: departmentName,
-        main_fax: mainFax,
+      created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
+      created_by_user_id: userProfileState?.id ? userProfileState.id : null,
+      created_by_department_of_user: userProfileState?.department ? userProfileState.department : null,
+      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      name: name,
+      department_name: departmentName,
+      main_fax: mainFax,
       zipcode: zipcode,
       address: address,
       department_contacts: departmentContacts,
@@ -166,7 +165,7 @@ export const InsertNewClientCompanyModal = () => {
       )}
       <div className={`${styles.container} `}>
         {/* 保存・タイトル・キャンセルエリア */}
-        <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[30px] text-center text-[18px]">
+        <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[20px] text-center text-[18px]">
           <div className="font-samibold cursor-pointer hover:text-[#aaa]" onClick={handleCancelAndReset}>
             キャンセル
           </div>
@@ -195,8 +194,8 @@ export const InsertNewClientCompanyModal = () => {
                     placeholder="会社名を入力してください *入力必須"
                     required
                     className={`${styles.input_box}`}
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
                   />
                 </div>
                 <div className={`${styles.underline}`}></div>
@@ -213,10 +212,11 @@ export const InsertNewClientCompanyModal = () => {
                   </span> */}
                   <input
                     type="text"
-                    placeholder=""
+                    placeholder="部署名を入力してください *入力必須"
+                    required
                     className={`${styles.input_box}`}
-                      value={departmentName}
-                      onChange={(e) => setDepartmentName(e.target.value)}
+                    value={departmentName}
+                    onChange={(e) => setDepartmentName(e.target.value)}
                   />
                 </div>
                 <div className={`${styles.underline}`}></div>
@@ -231,13 +231,13 @@ export const InsertNewClientCompanyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>●担当名</span>
+                    <span className={`${styles.title}`}>●代表TEL</span>
                     {/* <span className={`${styles.value} ${styles.value_highlight}`}>
                       {selectedRowDataCompany?.name ? selectedRowDataCompany?.name : ""}
                     </span> */}
                     <input
                       type="text"
-                      placeholder="担当者名を入力してください *入力必須"
+                      placeholder="代表電話番号を入力してください *入力必須"
                       required
                       autoFocus
                       className={`${styles.input_box}`}
@@ -249,51 +249,17 @@ export const InsertNewClientCompanyModal = () => {
                 </div>
               </div>
 
-              {/* 直通TEL */}
+              {/* 郵便番号 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>直通TEL</span>
+                    <span className={`${styles.title}`}>郵便番号</span>
                     <input
                       type="text"
                       placeholder=""
                       className={`${styles.input_box}`}
-                    //   value={directLine}
-                    //   onChange={(e) => setDirectLine(e.target.value)}
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 内線TEL */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>内線TEL</span>
-                    <input
-                      type="text"
-                      placeholder=""
-                      className={`${styles.input_box}`}
-                    //   value={extension}
-                    //   onChange={(e) => setExtension(e.target.value)}
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 社用携帯 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>社用携帯</span>
-                    <input
-                      type="text"
-                      placeholder=""
-                      className={`${styles.input_box}`}
-                    //   value={companyCellPhone}
-                    //   onChange={(e) => setClientCompanyCellPhone(e.target.value)}
+                      //   value={directLine}
+                      //   onChange={(e) => setDirectLine(e.target.value)}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -304,44 +270,34 @@ export const InsertNewClientCompanyModal = () => {
 
             {/* --------- 右ラッパー --------- */}
             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 空白 */}
+              {/* 代表FAX */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}></span>
-                  </div>
-                  {/* <div className={`${styles.underline}`}></div> */}
-                </div>
-              </div>
-
-              {/* 直通Fax */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>直通Fax</span>
+                    <span className={`${styles.title}`}>代表FAX</span>
                     <input
                       type="text"
                       placeholder=""
                       className={`${styles.input_box}`}
-                    //   value={directFax}
-                    //   onChange={(e) => setDirectFax(e.target.value)}
+                      //   value={directFax}
+                      //   onChange={(e) => setDirectFax(e.target.value)}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
 
-              {/* 私用携帯 */}
+              {/* 決算月 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>私用携帯</span>
+                    <span className={`${styles.title}`}>決算月</span>
                     <input
                       type="text"
                       placeholder=""
                       className={`${styles.input_box}`}
-                    //   value={personalCellPhone}
-                    //   onChange={(e) => setPersonalCellPhone(e.target.value)}
+                      //   value={directFax}
+                      //   onChange={(e) => setDirectFax(e.target.value)}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -353,74 +309,52 @@ export const InsertNewClientCompanyModal = () => {
           </div>
           {/* --------- 横幅全部ラッパー --------- */}
           <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
-            {/* Email */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+            {/* 住所 */}
+            <div className={`${styles.row_area} ${styles.text_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>Email</span>
-                  <input
-                    type="text"
+                <div className={`${styles.title_box} flex h-full `}>
+                  <span className={`${styles.title}`}>住所</span>
+                  <textarea
+                    name="call_careful_reason"
+                    id="call_careful_reason"
+                    cols={30}
+                    rows={10}
                     placeholder=""
-                    className={`${styles.input_box}`}
-                    //   value={inputDepartment}
-                    //   onChange={(e) => setInputDepartment(e.target.value)}
-                  />
+                    className={`${styles.textarea_box}`}
+                    // value={callCarefulReason}
+                    // onChange={(e) => setCallCarefulReason(e.target.value)}
+                  ></textarea>
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
             </div>
-            {/* --------- 横幅全部ラッパーここまで --------- */}
           </div>
+          {/* --------- 横幅全部ラッパーここまで --------- */}
 
           {/* --------- 横幅全体ラッパー --------- */}
           <div className={`${styles.full_contents_wrapper} flex w-full`}>
             {/* --------- 左ラッパー --------- */}
             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 役職名 */}
+              {/* 規模(ﾗﾝｸ) */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>役職名</span>
-                    <input
-                      type="text"
-                      placeholder=""
-                      className={`${styles.input_box}`}
-                    //   value={position}
-                    //   onChange={(e) => setPosition(e.target.value)}
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 担当職種 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>担当職種</span>
+                    <span className={`${styles.title}`}>規模(ﾗﾝｸ)</span>
                     <select
-                      name="position_class"
-                      id="position_class"
-                    //   onChange={(e) => setSelectedOccupation(e.target.value)}
+                      name="number_of_employees_class"
+                      id="number_of_employees_class"
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      // value={inputEmployeesClass}
+                      // onChange={(e) => setInputEmployeesClass(e.target.value)}
                     >
-                      <option value="1">1 社長・専務</option>
-                      <option value="2">2 取締役・役員</option>
-                      <option value="3">3 開発・設計</option>
-                      <option value="4">4 生産技術</option>
-                      <option value="5">5 製造</option>
-                      <option value="6">6 品質管理・品質保証</option>
-                      <option value="7">7 人事</option>
-                      <option value="8">8 経理</option>
-                      <option value="9">9 総務</option>
-                      <option value="10">10 法務</option>
-                      <option value="11">11 財務</option>
-                      <option value="12">12 情報システム</option>
-                      <option value="13">13 マーケティング</option>
-                      <option value="14">14 購買</option>
-                      <option value="15">15 営業</option>
-                      <option value="16">16 企画</option>
-                      <option value="17">17 CS</option>
-                      <option value="18">18 その他</option>
+                      <option value=""></option>
+                      <option value="A 1000名以上">A 1000名以上</option>
+                      <option value="B 500-999名">B 500-999名</option>
+                      <option value="C 300-499名">C 300-499名</option>
+                      <option value="D 200-299名">D 200-299名</option>
+                      <option value="E 100-199名">E 100-199名</option>
+                      <option value="F 50-99名">F 50-99名</option>
+                      <option value="G 50名未満">G 50名未満</option>
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -432,59 +366,17 @@ export const InsertNewClientCompanyModal = () => {
 
             {/* --------- 右ラッパー --------- */}
             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 職位 */}
+              {/* 従業員数 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>職位</span>
-                    <select
-                      name="position_class"
-                      id="position_class"
-                    //   value={selectedPositionClass}
-                    //   onChange={(e) => setSelectedPositionClass(e.target.value)}
-                    >
-                      <option value=""></option>
-                      <option value="1 代表者">1 代表者</option>
-                      <option value="2 取締役/役員">2 取締役/役員</option>
-                      <option value="3 部長">3 部長</option>
-                      <option value="4 課長">4 課長</option>
-                      <option value="5 課長未満">5 課長未満</option>
-                      <option value="6 所長・工場長">6 所長・工場長</option>
-                      <option value="7 不明">7 不明</option>
-                      {/* <option value="executive">1 代表者</option>
-                      <option value="Director">2 取締役/役員</option>
-                      <option value="department_manager">3 部長</option>
-                      <option value="section_manager">4 課長</option>
-                      <option value="below_section_manager">5 課長未満</option>
-                      <option value="chief_factory_manager">6 所長・工場長</option>
-                      <option value="section_chief">7 不明</option> */}
-                    </select>
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 決裁金額 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>決裁金額(万)</span>
+                    <span className={`${styles.title}`}>従業員数</span>
                     <input
-                      type="number"
+                      type="text"
                       placeholder=""
                       className={`${styles.input_box}`}
-                      min={"0"}
-                    //   value={approvalAmount !== null ? approvalAmount : ""}
-                      onChange={(e) => {
-                        // プラスの数値と空文字以外をstateに格納
-                        // if (e.target.value === "" || e.target.value.search(/^[0-9]+$/) === 0) {
-                        //   console.log("OK", e.target.value.search(/^[-]?[0-9]+$/));
-                        //   setApprovalAmount(e.target.value === "" ? null : Number(e.target.value));
-                        // } else {
-                        //   console.log("NG", e.target.value.search(/^[0-9]+$/));
-                        // }
-                        // setApprovalAmount(e.target.value);
-                      }}
+                      //   value={directLine}
+                      //   onChange={(e) => setDirectLine(e.target.value)}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -493,8 +385,512 @@ export const InsertNewClientCompanyModal = () => {
 
               {/* 右ラッパーここまで */}
             </div>
-            {/* --------- 横幅全体ラッパーここまで --------- */}
           </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* 資本金 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>資本金</span>
+                    <input
+                      type="text"
+                      placeholder=""
+                      className={`${styles.input_box}`}
+                      //   value={directLine}
+                      //   onChange={(e) => setDirectLine(e.target.value)}
+                    />
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 左ラッパーここまで */}
+            </div>
+
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* 設立 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>設立</span>
+                    <input
+                      type="text"
+                      placeholder=""
+                      className={`${styles.input_box}`}
+                      //   value={directLine}
+                      //   onChange={(e) => setDirectLine(e.target.value)}
+                    />
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 右ラッパーここまで */}
+            </div>
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* 業界(大分類) */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>業界(大分類)</span>
+                    <select
+                      name="number_of_employees_class"
+                      id="number_of_employees_class"
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      // value={inputEmployeesClass}
+                      // onChange={(e) => setInputEmployeesClass(e.target.value)}
+                    >
+                      <option value=""></option>
+                      <option value="A 1000名以上">A 1000名以上</option>
+                      <option value="B 500-999名">B 500-999名</option>
+                      <option value="C 300-499名">C 300-499名</option>
+                      <option value="D 200-299名">D 200-299名</option>
+                      <option value="E 100-199名">E 100-199名</option>
+                      <option value="F 50-99名">F 50-99名</option>
+                      <option value="G 50名未満">G 50名未満</option>
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 左ラッパーここまで */}
+            </div>
+
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* 従業員数 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>従業員数</span>
+                    <input
+                      type="text"
+                      placeholder=""
+                      className={`${styles.input_box}`}
+                      //   value={directLine}
+                      //   onChange={(e) => setDirectLine(e.target.value)}
+                    />
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 右ラッパーここまで */}
+            </div>
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全部ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
+            {/* 業種 */}
+            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className="flex h-full w-full flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full items-center `}>
+                  <span className={`${styles.title}`}>業種</span>
+                  <select
+                    name="position_class"
+                    id="position_class"
+                    className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                    // value={inputIndustryType}
+                    // onChange={(e) => setInputIndustryType(e.target.value)}
+                  >
+                    <option value=""></option>
+                    <option value="機械要素・部品">機械要素・部品</option>
+                    <option value="自動車・輸送機器">自動車・輸送機器</option>
+                    <option value="電子部品・半導体">電子部品・半導体</option>
+                    <option value="製造・加工受託">製造・加工受託</option>
+                    <option value="産業用機械">産業用機械</option>
+                    <option value="産業用電気機器">産業用電気機器</option>
+                    <option value="IT・情報通信">IT・情報通信</option>
+                    <option value="ソフトウェア">ソフトウェア</option>
+                    <option value="医薬品・バイオ">医薬品・バイオ</option>
+                    <option value="樹脂・プラスチック">樹脂・プラスチック</option>
+                    <option value="ゴム製品">ゴム製品</option>
+                    <option value="鉄/非鉄金属">鉄/非鉄金属</option>
+                    <option value="民生用電気機器">民生用電気機器</option>
+                    <option value="航空・宇宙">航空・宇宙</option>
+                    <option value="CAD/CAM">CAD/CAM</option>
+                    <option value="建材・資材・什器">建材・資材・什器</option>
+                    <option value="小売">小売</option>
+                    <option value="飲食料品">飲食料品</option>
+                    <option value="飲食店・宿泊業">飲食店・宿泊業</option>
+                    <option value="公益・特殊・独立行政法人">公益・特殊・独立行政法人</option>
+                    <option value="水産・農林業">水産・農林業</option>
+                    <option value="繊維">繊維</option>
+                    <option value="ガラス・土石製品">ガラス・土石製品</option>
+                    <option value="造船・重機">造船・重機</option>
+                    <option value="環境">環境</option>
+                    <option value="印刷業">印刷業</option>
+                    <option value="運輸業">運輸業</option>
+                    <option value="金融・証券・保険業">金融・証券・保険業</option>
+                    <option value="警察・消防・自衛隊">警察・消防・自衛隊</option>
+                    <option value="鉱業">鉱業</option>
+                    <option value="紙・バルブ">紙・バルブ</option>
+                    <option value="木材">木材</option>
+                    <option value="ロボット">ロボット</option>
+                    <option value="試験・分析・測定">試験・分析・測定</option>
+                    <option value="エネルギー">エネルギー</option>
+                    <option value="電気・ガス・水道業">電気・ガス・水道業</option>
+                    <option value="医療・福祉">医療・福祉</option>
+                    <option value="サービス業">サービス業</option>
+                    <option value="その他">その他</option>
+                    <option value="化学">化学</option>
+                    <option value="セラミックス">セラミックス</option>
+                    <option value="食品機械">食品機械</option>
+                    <option value="光学機器">光学機器</option>
+                    <option value="医療機器">医療機器</option>
+                    <option value="その他製造">その他製造</option>
+                    <option value="倉庫・運輸関連業">倉庫・運輸関連業</option>
+                    <option value="教育・研究機関">教育・研究機関</option>
+                    <option value="石油・石炭製品">石油・石炭製品</option>
+                    <option value="商社・卸売">商社・卸売</option>
+                    <option value="官公庁">官公庁</option>
+                    <option value="個人">個人</option>
+                    <option value="不明">不明</option>
+                  </select>
+                </div>
+                <div className={`${styles.underline}`}></div>
+              </div>
+            </div>
+          </div>
+          {/* --------- 横幅全部ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* 製品分類(大分類) */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>製品分類(大分類)</span>
+                    <select
+                      name="position_class"
+                      id="position_class"
+                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={productCategoryL}
+                      onChange={(e) => setProductCategoryL(e.target.value)}
+                    >
+                      <option value=""></option>
+                      <option value="電子部品・モジュール">電子部品・モジュール</option>
+                      <option value="機械部品">機械部品</option>
+                      <option value="製造・加工機械">製造・加工機械</option>
+                      <option value="科学・理化学機器">科学・理化学機器</option>
+                      <option value="素材・材料">素材・材料</option>
+                      <option value="測定・分析">測定・分析</option>
+                      <option value="画像処理">画像処理</option>
+                      <option value="制御・電機機器">制御・電機機器</option>
+                      <option value="工具・消耗品・備品">工具・消耗品・備品</option>
+                      <option value="設計・生産支援">設計・生産支援</option>
+                      <option value="IT・ネットワーク">IT・ネットワーク</option>
+                      <option value="オフィス">オフィス</option>
+                      <option value="業務支援サービス">業務支援サービス</option>
+                      <option value="セミナー・スキルアップ">セミナー・スキルアップ</option>
+                      <option value="その他">その他</option>
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 左ラッパーここまで */}
+            </div>
+
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* 製品分類(中分類) */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>製品分類(中分類)</span>
+                    {!!productCategoryL && (
+                      // <input
+                      //   type="text"
+                      //   className={`${styles.input_box} ml-[20px]`}
+                      //   value={inputProductM}
+                      //   onChange={(e) => setInputProductM(e.target.value)}
+                      // />
+                      <select
+                        name="position_class"
+                        id="position_class"
+                        value={productCategoryM}
+                        onChange={(e) => setProductCategoryM(e.target.value)}
+                        className={`${
+                          productCategoryL ? "" : "hidden"
+                        } ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      >
+                        {productCategoryL === "電子部品・モジュール" &&
+                          productCategoriesM.moduleCategoryM.map((option) => option)}
+                        {productCategoryL === "機械部品" &&
+                          productCategoriesM.machinePartsCategoryM.map((option) => option)}
+                        {productCategoryL === "製造・加工機械" &&
+                          productCategoriesM.processingMachineryCategoryM.map((option) => option)}
+                        {productCategoryL === "科学・理化学機器" &&
+                          productCategoriesM.scienceCategoryM.map((option) => option)}
+                        {productCategoryL === "素材・材料" &&
+                          productCategoriesM.materialCategoryM.map((option) => option)}
+                        {productCategoryL === "測定・分析" &&
+                          productCategoriesM.analysisCategoryM.map((option) => option)}
+                        {productCategoryL === "画像処理" &&
+                          productCategoriesM.imageProcessingCategoryM.map((option) => option)}
+                        {productCategoryL === "制御・電機機器" &&
+                          productCategoriesM.controlEquipmentCategoryM.map((option) => option)}
+                        {productCategoryL === "工具・消耗品・備品" &&
+                          productCategoriesM.toolCategoryM.map((option) => option)}
+                        {productCategoryL === "設計・生産支援" &&
+                          productCategoriesM.designCategoryM.map((option) => option)}
+                        {productCategoryL === "IT・ネットワーク" &&
+                          productCategoriesM.ITCategoryM.map((option) => option)}
+                        {productCategoryL === "オフィス" && productCategoriesM.OfficeCategoryM.map((option) => option)}
+                        {productCategoryL === "業務支援サービス" &&
+                          productCategoriesM.businessSupportCategoryM.map((option) => option)}
+                        {productCategoryL === "セミナー・スキルアップ" &&
+                          productCategoriesM.skillUpCategoryM.map((option) => option)}
+                        {productCategoryL === "その他" && productCategoriesM.othersCategoryM.map((option) => option)}
+                      </select>
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 右ラッパーここまで */}
+            </div>
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全部ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
+            {/* 事業概要 */}
+            <div className={`${styles.row_area} ${styles.text_area_large} flex h-[35px] w-full items-center`}>
+              <div className="flex h-full w-full flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full `}>
+                  <span className={`${styles.title}`}>事業概要</span>
+                  <textarea
+                    name="call_careful_reason"
+                    id="call_careful_reason"
+                    cols={30}
+                    rows={10}
+                    placeholder=""
+                    className={`${styles.textarea_box}`}
+                    // value={callCarefulReason}
+                    // onChange={(e) => setCallCarefulReason(e.target.value)}
+                  ></textarea>
+                </div>
+                <div className={`${styles.underline}`}></div>
+              </div>
+            </div>
+          </div>
+          {/* --------- 横幅全部ラッパーここまで --------- */}
+
+          {/* --------- 横幅全部ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
+            {/* HP */}
+            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className="flex h-full w-full flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full items-center `}>
+                  <span className={`${styles.title}`}>HP</span>
+                  <input
+                    type="text"
+                    placeholder=""
+                    className={`${styles.input_box}`}
+                    //   value={directLine}
+                    //   onChange={(e) => setDirectLine(e.target.value)}
+                  />
+                </div>
+                <div className={`${styles.underline}`}></div>
+              </div>
+            </div>
+          </div>
+          {/* --------- 横幅全部ラッパーここまで --------- */}
+
+          {/* --------- 横幅全部ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
+            {/* Email */}
+            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className="flex h-full w-full flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full items-center `}>
+                  <span className={`${styles.title}`}>Email</span>
+                  <input
+                    type="text"
+                    placeholder=""
+                    className={`${styles.input_box}`}
+                    //   value={directLine}
+                    //   onChange={(e) => setDirectLine(e.target.value)}
+                  />
+                </div>
+                <div className={`${styles.underline}`}></div>
+              </div>
+            </div>
+          </div>
+          {/* --------- 横幅全部ラッパーここまで --------- */}
+          {/* --------- 横幅全部ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
+            {/* 主要取引先 */}
+            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className="flex h-full w-full flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full items-center `}>
+                  <span className={`${styles.title}`}>主要取引先</span>
+                  <input
+                    type="text"
+                    placeholder=""
+                    className={`${styles.input_box}`}
+                    //   value={directLine}
+                    //   onChange={(e) => setDirectLine(e.target.value)}
+                  />
+                </div>
+                <div className={`${styles.underline}`}></div>
+              </div>
+            </div>
+          </div>
+          {/* --------- 横幅全部ラッパーここまで --------- */}
+          {/* --------- 横幅全部ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
+            {/* 主要仕入先 */}
+            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className="flex h-full w-full flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full items-center `}>
+                  <span className={`${styles.title}`}>主要仕入先</span>
+                  <input
+                    type="text"
+                    placeholder=""
+                    className={`${styles.input_box}`}
+                    //   value={directLine}
+                    //   onChange={(e) => setDirectLine(e.target.value)}
+                  />
+                </div>
+                <div className={`${styles.underline}`}></div>
+              </div>
+            </div>
+          </div>
+          {/* --------- 横幅全部ラッパーここまで --------- */}
+
+          {/* --------- 横幅全部ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
+            {/* 設備 */}
+            <div className={`${styles.row_area} ${styles.text_area_large} flex h-[35px] w-full items-center`}>
+              <div className="flex h-full w-full flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full `}>
+                  <span className={`${styles.title}`}>設備</span>
+                  <textarea
+                    name="call_careful_reason"
+                    id="call_careful_reason"
+                    cols={30}
+                    rows={10}
+                    placeholder=""
+                    className={`${styles.textarea_box}`}
+                    // value={callCarefulReason}
+                    // onChange={(e) => setCallCarefulReason(e.target.value)}
+                  ></textarea>
+                </div>
+                <div className={`${styles.underline}`}></div>
+              </div>
+            </div>
+          </div>
+          {/* --------- 横幅全部ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* 事業拠点 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>事業拠点</span>
+                    <input
+                      type="text"
+                      placeholder=""
+                      className={`${styles.input_box}`}
+                      //   value={directLine}
+                      //   onChange={(e) => setDirectLine(e.target.value)}
+                    />
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 左ラッパーここまで */}
+            </div>
+
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* 海外拠点 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>海外拠点</span>
+                    <input
+                      type="text"
+                      placeholder=""
+                      className={`${styles.input_box}`}
+                      //   value={directLine}
+                      //   onChange={(e) => setDirectLine(e.target.value)}
+                    />
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 右ラッパーここまで */}
+            </div>
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全部ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
+            {/* グループ会社 */}
+            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className="flex h-full w-full flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full items-center `}>
+                  <span className={`${styles.title}`}>グループ会社</span>
+                  <input
+                    type="text"
+                    placeholder=""
+                    className={`${styles.input_box}`}
+                    //   value={directLine}
+                    //   onChange={(e) => setDirectLine(e.target.value)}
+                  />
+                </div>
+                <div className={`${styles.underline}`}></div>
+              </div>
+            </div>
+          </div>
+          {/* --------- 横幅全部ラッパーここまで --------- */}
+          {/* --------- 横幅全部ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
+            {/* 法人番号 */}
+            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className="flex h-full w-full flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full items-center `}>
+                  <span className={`${styles.title}`}>法人番号</span>
+                  <input
+                    type="text"
+                    placeholder=""
+                    className={`${styles.input_box}`}
+                    //   value={directLine}
+                    //   onChange={(e) => setDirectLine(e.target.value)}
+                  />
+                </div>
+                <div className={`${styles.underline}`}></div>
+              </div>
+            </div>
+          </div>
+          {/* --------- 横幅全部ラッパーここまで --------- */}
+
           {/* メインコンテンツ コンテナ ここまで */}
         </div>
       </div>

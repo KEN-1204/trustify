@@ -812,7 +812,7 @@ const ContactMainContainerMemo: FC = () => {
                     <select
                       name="position_class"
                       id="position_class"
-                      className="ml-auto h-full w-full cursor-pointer rounded-[4px] bg-[var(--select-menu-bg)]"
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={inputPositionClass}
                       onChange={(e) => setInputPositionClass(e.target.value)}
                     >
@@ -851,7 +851,7 @@ const ContactMainContainerMemo: FC = () => {
                     <select
                       name="position_class"
                       id="position_class"
-                      className="ml-auto h-full w-full cursor-pointer rounded-[4px] bg-[var(--select-menu-bg)]"
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={inputEmployeesClass}
                       onChange={(e) => setInputEmployeesClass(e.target.value)}
                     >
@@ -922,7 +922,7 @@ const ContactMainContainerMemo: FC = () => {
                     <select
                       name="position_class"
                       id="position_class"
-                      className="ml-auto h-full w-full cursor-pointer rounded-[4px] bg-[var(--select-menu-bg)]"
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={inputEmployeesClass}
                       onChange={(e) => setInputEmployeesClass(e.target.value)}
                     >
@@ -1298,7 +1298,7 @@ const ContactMainContainerMemo: FC = () => {
                     <select
                       name="position_class"
                       id="position_class"
-                      className="ml-auto h-full w-full cursor-pointer rounded-[4px] bg-[var(--select-menu-bg)]"
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={inputIndustryType}
                       onChange={(e) => setInputIndustryType(e.target.value)}
                     >
@@ -1392,7 +1392,7 @@ const ContactMainContainerMemo: FC = () => {
                     <select
                       name="position_class"
                       id="position_class"
-                      className="ml-auto h-full w-[80%] cursor-pointer rounded-[4px] bg-[var(--select-menu-bg)]"
+                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={inputProductL}
                       onChange={(e) => setInputProductL(e.target.value)}
                     >
@@ -1453,7 +1453,7 @@ const ContactMainContainerMemo: FC = () => {
                       onChange={(e) => setInputProductM(e.target.value)}
                       className={`${
                         inputProductL ? "" : "hidden"
-                      } ml-auto h-full w-[80%] cursor-pointer rounded-[4px] bg-[var(--select-menu-bg)]`}
+                      } ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                     >
                       {inputProductL === "電子部品・モジュール" &&
                         productCategoriesM.moduleCategoryM.map((option) => option)}

@@ -436,21 +436,49 @@ const CompanyMainContainerMemo: FC = () => {
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
-              <div className={`flex h-full w-1/2 flex-col pr-[20px]`}>
-                <div className={`${styles.title_box} flex h-full items-center`}>
-                  <span className={`${styles.title}`}>従業員数</span>
-                  {/* <span className={`${styles.title}`}>会員専用</span> */}
+
+              <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full items-center `}>
+                  <span className={`${styles.title}`}>規模(ﾗﾝｸ)</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataCompany?.number_of_employees ? selectedRowDataCompany?.number_of_employees : ""}
+                      {selectedRowDataCompany?.number_of_employees_class
+                        ? selectedRowDataCompany?.number_of_employees_class
+                        : ""}
                     </span>
                   )}
-                  {/* {!searchMode && <span className={`${styles.value}`}>有料会員様専用のフィールドです</span>} */}
-                  {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
-                  {/* サブスク未加入者にはブラーを表示 */}
-                  {/* <div className={`${styles.limited_lock_cover_half} flex-center`}>
-                    <FaLock />
-                  </div> */}
+                  {/* {searchMode && (
+                    <input
+                      type="text"
+                      className={`${styles.input_box}`}
+                      value={inputEmployeesClass}
+                      onChange={(e) => setInputEmployeesClass(e.target.value)}
+                    />
+                  )} */}
+                  {searchMode && (
+                    // <input
+                    //   type="text"
+                    //   className={`${styles.input_box} ml-[20px]`}
+                    //   value={inputProductL}
+                    //   onChange={(e) => setInputProductL(e.target.value)}
+                    // />
+                    <select
+                      name="position_class"
+                      id="position_class"
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={inputEmployeesClass}
+                      onChange={(e) => setInputEmployeesClass(e.target.value)}
+                    >
+                      <option value=""></option>
+                      <option value="A 1000名以上">A 1000名以上</option>
+                      <option value="B 500-999名">B 500-999名</option>
+                      <option value="C 300-499名">C 300-499名</option>
+                      <option value="D 200-299名">D 200-299名</option>
+                      <option value="E 100-199名">E 100-199名</option>
+                      <option value="F 50-99名">F 50-99名</option>
+                      <option value="G 50名未満">G 50名未満</option>
+                    </select>
+                  )}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -621,7 +649,7 @@ const CompanyMainContainerMemo: FC = () => {
                       {selectedRowDataCompany?.industry_type ? selectedRowDataCompany?.industry_type : ""}
                     </span>
                   )}
-                  {searchMode && (
+                  {searchMode && !inputProductL && (
                     // <input
                     //   type="text"
                     //   className={`${styles.input_box}`}
@@ -631,7 +659,7 @@ const CompanyMainContainerMemo: FC = () => {
                     <select
                       name="position_class"
                       id="position_class"
-                      className="ml-auto h-full w-full cursor-pointer rounded-[4px] bg-[var(--select-menu-bg)]"
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={inputIndustryType}
                       onChange={(e) => setInputIndustryType(e.target.value)}
                     >
@@ -707,7 +735,7 @@ const CompanyMainContainerMemo: FC = () => {
                         : ""}
                     </span>
                   )}
-                  {searchMode && (
+                  {searchMode && !inputIndustryType && (
                     // <input
                     //   type="text"
                     //   className={`${styles.input_box} ml-[20px]`}
@@ -717,7 +745,7 @@ const CompanyMainContainerMemo: FC = () => {
                     <select
                       name="position_class"
                       id="position_class"
-                      className="ml-auto h-full w-[80%] cursor-pointer rounded-[4px] bg-[var(--select-menu-bg)]"
+                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={inputProductL}
                       onChange={(e) => setInputProductL(e.target.value)}
                     >
@@ -769,7 +797,7 @@ const CompanyMainContainerMemo: FC = () => {
                       onChange={(e) => setInputProductM(e.target.value)}
                       className={`${
                         inputProductL ? "" : "hidden"
-                      } ml-auto h-full w-[80%] cursor-pointer rounded-[4px] bg-[var(--select-menu-bg)]`}
+                      } ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                     >
                       {inputProductL === "電子部品・モジュール" &&
                         productCategoriesM.moduleCategoryM.map((option) => option)}
@@ -827,51 +855,25 @@ const CompanyMainContainerMemo: FC = () => {
 
             {/* 規模（ランク）・決算月 */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>規模(ﾗﾝｸ)</span>
+              <div className={`flex h-full w-1/2 flex-col pr-[20px]`}>
+                <div className={`${styles.title_box} flex h-full items-center`}>
+                  <span className={`${styles.title}`}>従業員数</span>
+                  {/* <span className={`${styles.title}`}>会員専用</span> */}
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataCompany?.number_of_employees_class
-                        ? selectedRowDataCompany?.number_of_employees_class
-                        : ""}
+                      {selectedRowDataCompany?.number_of_employees ? selectedRowDataCompany?.number_of_employees : ""}
                     </span>
                   )}
-                  {/* {searchMode && (
-                    <input
-                      type="text"
-                      className={`${styles.input_box}`}
-                      value={inputEmployeesClass}
-                      onChange={(e) => setInputEmployeesClass(e.target.value)}
-                    />
-                  )} */}
-                  {searchMode && (
-                    // <input
-                    //   type="text"
-                    //   className={`${styles.input_box} ml-[20px]`}
-                    //   value={inputProductL}
-                    //   onChange={(e) => setInputProductL(e.target.value)}
-                    // />
-                    <select
-                      name="position_class"
-                      id="position_class"
-                      className="ml-auto h-full w-full cursor-pointer rounded-[4px] bg-[var(--select-menu-bg)]"
-                      value={inputEmployeesClass}
-                      onChange={(e) => setInputEmployeesClass(e.target.value)}
-                    >
-                      <option value=""></option>
-                      <option value="A 1000名以上">A 1000名以上</option>
-                      <option value="B 500-999名">B 500-999名</option>
-                      <option value="C 300-499名">C 300-499名</option>
-                      <option value="D 200-299名">D 200-299名</option>
-                      <option value="E 100-199名">E 100-199名</option>
-                      <option value="F 50-99名">F 50-99名</option>
-                      <option value="G 50名未満">G 50名未満</option>
-                    </select>
-                  )}
+                  {/* {!searchMode && <span className={`${styles.value}`}>有料会員様専用のフィールドです</span>} */}
+                  {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
+                  {/* サブスク未加入者にはブラーを表示 */}
+                  {/* <div className={`${styles.limited_lock_cover_half} flex-center`}>
+                    <FaLock />
+                  </div> */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
+
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
                   <span className={`${styles.title}`}>決算月</span>
