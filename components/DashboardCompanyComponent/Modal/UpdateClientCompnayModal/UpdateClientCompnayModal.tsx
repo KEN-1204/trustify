@@ -9,7 +9,7 @@ import { isNaN } from "lodash";
 import { useMutateClientCompany } from "@/hooks/useMutateClientCompany";
 import productCategoriesM from "@/utils/productCategoryM";
 
-export const InsertNewClientCompanyModal = () => {
+export const UpdateClientCompanyModal = () => {
   const setIsOpenInsertNewClientCompanyModal = useDashboardStore((state) => state.setIsOpenInsertNewClientCompanyModal);
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
@@ -164,14 +164,6 @@ export const InsertNewClientCompanyModal = () => {
     });
     // .replace(/　/g, " "); // 全角スペースを半角スペースに
   };
-  const toHalfWidthAndSpace = (strVal: string) => {
-    // 全角文字コードの範囲は65281 - 65374、スペースの全角文字コードは12288
-    return strVal
-      .replace(/[！-～]/g, (match) => {
-        return String.fromCharCode(match.charCodeAt(0) - 0xfee0);
-      })
-      .replace(/　/g, " "); // 全角スペースを半角スペースに
-  };
 
   // 昭和や平成、令和の元号を西暦に変換する
   // const convertJapaneseEraToWesternYear = (value: string) => {
@@ -247,53 +239,6 @@ export const InsertNewClientCompanyModal = () => {
   //   // Return the input if no matching era found
   //   return input;
   // }
-
-  // 全角を半角に変換する関数
-  function zenkakuToHankaku(str: string) {
-    const zen = ["０", "１", "２", "３", "４", "５", "６", "７", "８", "９"];
-    const han = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
-
-    for (let i = 0; i < zen.length; i++) {
-      const regex = new RegExp(zen[i], "g");
-      str = str.replace(regex, han[i]);
-    }
-
-    return str;
-  }
-
-  // 資本金 100万円の場合は100、18億9,190万円は189190、12,500,000円は1250、のように変換する方法
-  function convertToNumber(inputString: string) {
-    // 全角数字を半角に変換
-    inputString = zenkakuToHankaku(inputString);
-
-    // 「億」「万」「円」がすべて含まれていなければ変換をスキップ
-    if (
-      !inputString.includes("億") &&
-      !inputString.includes("万") &&
-      !inputString.includes("円") &&
-      !inputString.includes(",")
-    ) {
-      return inputString;
-    }
-
-    // 億、万、円で分けてそれぞれの数値を取得
-    const billion = (inputString.includes("億") ? parseInt(inputString.split("億")[0].replace(/,/g, ""), 10) : 0) || 0;
-    const million =
-      (inputString.includes("万") && !inputString.includes("億")
-        ? parseInt(inputString.split("万")[0].replace(/,/g, ""), 10)
-        : inputString.includes("億") && inputString.includes("万")
-        ? parseInt(inputString.split("億")[1].split("万")[0].replace(/,/g, ""), 10)
-        : 0) || 0;
-    const thousand =
-      (!inputString.includes("万") && !inputString.includes("億")
-        ? Math.floor(parseInt(inputString.replace(/,/g, "").replace("円", ""), 10) / 10000)
-        : 0) || 0;
-
-    // 最終的な数値を計算
-    const total = billion * 10000 + million + thousand;
-
-    return total;
-  }
 
   return (
     <>
@@ -554,8 +499,7 @@ export const InsertNewClientCompanyModal = () => {
                       className={`${styles.input_box}`}
                       value={capital}
                       onChange={(e) => setCapital(e.target.value)}
-                      // onBlur={() => setCapital(toHalfWidth(capital.trim()))}
-                      onBlur={() => setCapital(convertToNumber(capital.trim()).toString())}
+                      onBlur={() => setCapital(toHalfWidth(capital.trim()))}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -608,7 +552,7 @@ export const InsertNewClientCompanyModal = () => {
                       className={`${styles.input_box}`}
                       value={representativeName}
                       onChange={(e) => setRepresentativeName(e.target.value)}
-                      onBlur={() => setRepresentativeName(toHalfWidthAndSpace(representativeName.trim()))}
+                      onBlur={() => setRepresentativeName(toHalfWidth(representativeName.trim()))}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -631,7 +575,7 @@ export const InsertNewClientCompanyModal = () => {
                       className={`${styles.input_box}`}
                       value={chairperson}
                       onChange={(e) => setChairperson(e.target.value)}
-                      onBlur={() => setChairperson(toHalfWidthAndSpace(chairperson.trim()))}
+                      onBlur={() => setChairperson(toHalfWidth(chairperson.trim()))}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -658,7 +602,7 @@ export const InsertNewClientCompanyModal = () => {
                       className={`${styles.input_box}`}
                       value={seniorVicePresident}
                       onChange={(e) => setSeniorVicePresident(e.target.value)}
-                      onBlur={() => setSeniorVicePresident(toHalfWidthAndSpace(seniorVicePresident.trim()))}
+                      onBlur={() => setSeniorVicePresident(toHalfWidth(seniorVicePresident.trim()))}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -681,7 +625,7 @@ export const InsertNewClientCompanyModal = () => {
                       className={`${styles.input_box}`}
                       value={seniorManagingDirector}
                       onChange={(e) => setSeniorManagingDirector(e.target.value)}
-                      onBlur={() => setSeniorManagingDirector(toHalfWidthAndSpace(seniorManagingDirector.trim()))}
+                      onBlur={() => setSeniorManagingDirector(toHalfWidth(seniorManagingDirector.trim()))}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -708,7 +652,7 @@ export const InsertNewClientCompanyModal = () => {
                       className={`${styles.input_box}`}
                       value={managingDirector}
                       onChange={(e) => setManagingDirector(e.target.value)}
-                      onBlur={() => setManagingDirector(toHalfWidthAndSpace(managingDirector.trim()))}
+                      onBlur={() => setManagingDirector(toHalfWidth(managingDirector.trim()))}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -731,7 +675,7 @@ export const InsertNewClientCompanyModal = () => {
                       className={`${styles.input_box}`}
                       value={director}
                       onChange={(e) => setDirector(e.target.value)}
-                      onBlur={() => setDirector(toHalfWidthAndSpace(director.trim()))}
+                      onBlur={() => setDirector(toHalfWidth(director.trim()))}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -758,7 +702,7 @@ export const InsertNewClientCompanyModal = () => {
                       className={`${styles.input_box}`}
                       value={boardMember}
                       onChange={(e) => setBoardMember(e.target.value)}
-                      onBlur={() => setBoardMember(toHalfWidthAndSpace(boardMember.trim()))}
+                      onBlur={() => setBoardMember(toHalfWidth(boardMember.trim()))}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -781,7 +725,7 @@ export const InsertNewClientCompanyModal = () => {
                       className={`${styles.input_box}`}
                       value={auditor}
                       onChange={(e) => setAuditor(e.target.value)}
-                      onBlur={() => setAuditor(toHalfWidthAndSpace(auditor.trim()))}
+                      onBlur={() => setAuditor(toHalfWidth(auditor.trim()))}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -808,7 +752,7 @@ export const InsertNewClientCompanyModal = () => {
                       className={`${styles.input_box}`}
                       value={manager}
                       onChange={(e) => setManager(e.target.value)}
-                      onBlur={() => setManager(toHalfWidthAndSpace(manager.trim()))}
+                      onBlur={() => setManager(toHalfWidth(manager.trim()))}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -831,7 +775,7 @@ export const InsertNewClientCompanyModal = () => {
                       className={`${styles.input_box}`}
                       value={member}
                       onChange={(e) => setMember(e.target.value)}
-                      onBlur={() => setMember(toHalfWidthAndSpace(member.trim()))}
+                      onBlur={() => setMember(toHalfWidth(member.trim()))}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>

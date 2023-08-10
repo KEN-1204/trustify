@@ -167,7 +167,8 @@
   background: var(--color-bg-under-input);
   color: var(--color-text-under-input);
   box-shadow: var(--color-bg-under-input-box-shadow);
-  padding: 0px 6px;
+  /* padding: 0px 6px; */
+  padding: 4px 6px;
   border-radius: 2px;
 }
 .input_box:focus {
@@ -195,4 +196,5 @@
 .select_box {
   box-shadow: var(--color-bg-under-input-box-shadow);
   padding-left: 5px;
+  height: 30px;
 }

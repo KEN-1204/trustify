@@ -17,17 +17,17 @@ export const useMutateClientCompany = () => {
   const createClientCompanyMutation = useMutation(
     async (newClientCompany: Omit<Client_company, "id" | "created_at" | "updated_at">) => {
       setLoadingGlobalState(true);
-      const { error } = await supabase.from("contacts").insert(newClientCompany);
+      const { error } = await supabase.from("client_companies").insert(newClientCompany);
       if (error) throw new Error(error.message);
     },
     {
       onSuccess: async () => {
         // キャッシュのデータを再取得
-        await queryClient.invalidateQueries({ queryKey: ["contacts"] });
+        await queryClient.invalidateQueries({ queryKey: ["companies"] });
         // TanStack Queryでデータの変更に合わせて別のデータを再取得する
         // https://zenn.dev/masatakaitoh/articles/3c2f8602d2bb9d
 
-        toast.success("担当者の作成に完了しました!", {
+        toast.success("会社の作成に完了しました!", {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,
@@ -43,7 +43,7 @@ export const useMutateClientCompany = () => {
       onError: (err: any) => {
         alert(err.message);
         console.log("INSERTエラー", err.message);
-        toast.error("担当者の作成に失敗しました!", {
+        toast.error("会社の作成に失敗しました!", {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,
@@ -62,17 +62,17 @@ export const useMutateClientCompany = () => {
   const updateClientCompanyMutation = useMutation(
     async (newClientCompany: Omit<Client_company, "created_at" | "updated_at">) => {
       setLoadingGlobalState(true);
-      const { error } = await supabase.from("contacts").update(newClientCompany).eq("id", newClientCompany.id);
+      const { error } = await supabase.from("client_companies").update(newClientCompany).eq("id", newClientCompany.id);
       if (error) throw new Error(error.message);
     },
     {
       onSuccess: async () => {
         // キャッシュのデータを再取得
-        await queryClient.invalidateQueries({ queryKey: ["contacts"] });
+        await queryClient.invalidateQueries({ queryKey: ["companies"] });
         // TanStack Queryでデータの変更に合わせて別のデータを再取得する
         // https://zenn.dev/masatakaitoh/articles/3c2f8602d2bb9d
 
-        toast.success("担当者の更新完了しました!", {
+        toast.success("会社の更新完了しました!", {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,
@@ -88,7 +88,7 @@ export const useMutateClientCompany = () => {
       onError: (err: any) => {
         alert(err.message);
         console.log("INSERTエラー", err.message);
-        toast.error("担当者の更新に失敗しました!", {
+        toast.error("会社の更新に失敗しました!", {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,

@@ -147,7 +147,7 @@ export type Client_company = {
   overseas_bases?: string | null;
   group_company?: string | null;
   email?: string | null;
-  main_phone_number?: string;
+  main_phone_number?: string | null;
   corporate_number?: string | null;
   board_member?: string | null;
   number_of_employees?: string | null;
