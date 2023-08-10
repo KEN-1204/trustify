@@ -20,6 +20,7 @@ import { MdOutlineDarkMode, MdOutlineLightMode } from "react-icons/md";
 import { TooltipWrap } from "./Parts/Tooltip/TooltipWrap";
 import { InsertNewContactModal } from "./DashboardCompanyComponent/Modal/InsertNewContactModal/InsertNewContactModal";
 import { UpdateContactModal } from "./DashboardCompanyComponent/Modal/UpdateContactModal/UpdateContactModal";
+import { InsertNewClientCompanyModal } from "./DashboardCompanyComponent/Modal/InsertNewClientCompnayModal/InsertNewClientCompanyModal";
 
 type Prop = {
   title?: string;
@@ -100,6 +101,9 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   const setIsOpenEditColumns = useDashboardStore((state) => state.setIsOpenEditColumns);
   // サイズ切り替えメニュー
   const clickedItemPos = useStore((state) => state.clickedItemPos);
+  // 会社作成モーダル 新規作成と編集モーダル
+  const isOpenInsertNewClientCompanyModal = useDashboardStore((state) => state.isOpenInsertNewClientCompanyModal);
+  const isOpenUpdateClientCompanyModal = useDashboardStore((state) => state.isOpenUpdateClientCompanyModal);
   // 担当者作成モーダル 新規作成と編集モーダル
   const isOpenInsertNewContactModal = useDashboardStore((state) => state.isOpenInsertNewContactModal);
   const isOpenUpdateContactModal = useDashboardStore((state) => state.isOpenUpdateContactModal);
@@ -164,7 +168,11 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
       {/* サイズ切り替えメニュー */}
       {clickedItemPos && <ChangeSizeMenu />}
 
-      {/* 担当者作成モーダル */}
+      {/* 会社作成・編集モーダル */}
+      {isOpenInsertNewClientCompanyModal && <InsertNewClientCompanyModal />}
+      {/* {isOpenUpdateCompanyModal && <UpdateCompanyModal />} */}
+
+      {/* 担当者作成・編集モーダル */}
       {isOpenInsertNewContactModal && <InsertNewContactModal />}
       {isOpenUpdateContactModal && <UpdateContactModal />}
     </div>

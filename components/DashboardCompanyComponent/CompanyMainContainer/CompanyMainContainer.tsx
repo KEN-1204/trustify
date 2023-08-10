@@ -687,6 +687,7 @@ const CompanyMainContainerMemo: FC = () => {
                       <option value="商社・卸売">商社・卸売</option>
                       <option value="官公庁">官公庁</option>
                       <option value="個人">個人</option>
+                      <option value="不明">不明</option>
                     </select>
                   )}
                 </div>
@@ -1525,7 +1526,7 @@ const CompanyMainContainerMemo: FC = () => {
                 <div className="mt-[5px] flex  min-h-[30px] items-center">○検索したい条件を入力してください。</div>
                 <div className="flex  min-h-[30px] items-center">
                   <span className="h-full w-[15px]"></span>
-                  例えば、「&quot;東京都大田区&quot;」の会社で「事業拠点」が存在する会社を検索する場合は、「●住所」に「東京都大田区※」と入力し、「事業拠点」に「is
+                  例えば、「&quot;東京都大田区&quot;」の会社で「ホームページ」が存在する会社を検索する場合は、「●住所」に「東京都大田区※」と入力し、「HP」に「is
                   not null」と入力してください。
                 </div>
                 <div className="mt-[5px] flex  min-h-[30px] items-center">

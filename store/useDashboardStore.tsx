@@ -54,6 +54,14 @@ type State = {
   tableContainerSize: string;
   setTableContainerSize: (payload: string) => void;
 
+  // =================== 会社作成モーダル ===================
+  // 新規作成モーダル
+  isOpenInsertNewClientCompanyModal: boolean;
+  setIsOpenInsertNewClientCompanyModal: (payload: boolean) => void;
+  // 編集モーダル
+  isOpenUpdateClientCompanyModal: boolean;
+  setIsOpenUpdateClientCompanyModal: (payload: boolean) => void;
+
   // =================== 担当者作成モーダル ===================
   // 新規作成モーダル
   isOpenInsertNewContactModal: boolean;
@@ -147,6 +155,14 @@ const useDashboardStore = create<State>((set) => ({
   resetColumnHeaderItemList: [],
   setResetColumnHeaderItemList: (payload) => set({ resetColumnHeaderItemList: payload }),
   ColumnHeaderItemListReset: (payload) => set({ resetColumnHeaderItemList: payload }),
+
+  // =================== 会社作成モーダル ===================
+  // 新規作成モーダル
+  isOpenInsertNewClientCompanyModal: false,
+  setIsOpenInsertNewClientCompanyModal: (payload) => set({ isOpenInsertNewClientCompanyModal: payload }),
+  // 編集モーダル
+  isOpenUpdateClientCompanyModal: false,
+  setIsOpenUpdateClientCompanyModal: (payload) => set({ isOpenUpdateClientCompanyModal: payload }),
 
   // =================== 担当者作成モーダル ===================
   // 新規作成モーダル
@@ -556,17 +572,17 @@ const useDashboardStore = create<State>((set) => ({
         id: payload.id,
         address: payload.address,
         auditor: payload.auditor,
-        ban_reason: payload.ban_reason,
+        // ban_reason: payload.ban_reason,
         budget_request_month1: payload.budget_request_month1,
         budget_request_month2: payload.budget_request_month2,
         business_content: payload.business_content,
         business_sites: payload.business_sites,
-        call_careful_flag: payload.call_careful_flag,
-        call_careful_reason: payload.call_careful_reason,
+        // call_careful_flag: payload.call_careful_flag,
+        // call_careful_reason: payload.call_careful_reason,
         capital: payload.capital,
         corporate_number: payload.corporate_number,
         chairperson: payload.chairperson,
-        claim: payload.claim,
+        // claim: payload.claim,
         clients: payload.clients,
         created_by_company_id: payload.created_by_company_id,
         created_by_department_of_user: payload.created_by_department_of_user,
@@ -576,10 +592,10 @@ const useDashboardStore = create<State>((set) => ({
         department_name: payload.department_name,
         director: payload.director,
         email: payload.email,
-        email_ban_flag: payload.email_ban_flag,
+        // email_ban_flag: payload.email_ban_flag,
         established_in: payload.established_in,
         facility: payload.facility,
-        fax_dm_ban_flag: payload.fax_dm_ban_flag,
+        // fax_dm_ban_flag: payload.fax_dm_ban_flag,
         fiscal_end_month: payload.fiscal_end_month,
         group_company: payload.group_company,
         industry_large: payload.industry_large,
@@ -599,7 +615,7 @@ const useDashboardStore = create<State>((set) => ({
         product_category_small: payload.product_category_small,
         representative_name: payload.representative_name,
         // representative_position_name: payload.representative_position_name,
-        sending_ban_flag: payload.sending_ban_flag,
+        // sending_ban_flag: payload.sending_ban_flag,
         senior_managing_director: payload.senior_managing_director,
         senior_vice_president: payload.senior_vice_president,
         supplier: payload.supplier,
@@ -613,17 +629,17 @@ const useDashboardStore = create<State>((set) => ({
         id: "",
         address: "",
         auditor: "",
-        ban_reason: "",
+        // ban_reason: "",
         budget_request_month1: null,
         budget_request_month2: null,
         business_content: "",
         business_sites: "",
-        call_careful_flag: null,
-        call_careful_reason: "",
+        // call_careful_flag: null,
+        // call_careful_reason: "",
         capital: null,
         corporate_number: null,
         chairperson: "",
-        claim: "",
+        // claim: "",
         clients: "",
         created_by_company_id: "",
         created_by_department_of_user: "",
@@ -633,10 +649,10 @@ const useDashboardStore = create<State>((set) => ({
         department_name: "",
         director: "",
         email: "",
-        email_ban_flag: null,
+        // email_ban_flag: null,
         established_in: "",
         facility: "",
-        fax_dm_ban_flag: null,
+        // fax_dm_ban_flag: null,
         fiscal_end_month: null,
         group_company: "",
         industry_large: "",
@@ -656,7 +672,7 @@ const useDashboardStore = create<State>((set) => ({
         product_category_small: "",
         representative_name: "",
         // representative_position_name: "",
-        sending_ban_flag: null,
+        // sending_ban_flag: null,
         senior_managing_director: "",
         senior_vice_president: "",
         supplier: "",

@@ -15,6 +15,7 @@ const CompanyFunctionHeaderMemo: FC = () => {
   const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
   const setIsOpenInsertNewContactModal = useDashboardStore((state) => state.setIsOpenInsertNewContactModal);
+  const setIsOpenInsertNewClientCompanyModal = useDashboardStore((state) => state.setIsOpenInsertNewClientCompanyModal);
 
   // 上画面の選択中の列データ会社
   const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
@@ -89,22 +90,29 @@ const CompanyFunctionHeaderMemo: FC = () => {
             setSearchMode(true);
           }}
         />
-        {/* <RippleButton
+        <RippleButton
           title={`会社作成`}
           classText="select-none"
           borderRadius="2px"
           clickEventHandler={() => {
-            console.log("サーチ編集 クリック");
+            if (searchMode) return;
+            console.log("会社作成 クリック");
+            setLoadingGlobalState(false);
+            setIsOpenInsertNewClientCompanyModal(true);
           }}
         />
         <RippleButton
           title={`会社編集`}
-          classText="select-none"
+          classText={`select-none ${searchMode || !selectedRowDataCompany ? `cursor-not-allowed` : ``}`}
           borderRadius="2px"
           clickEventHandler={() => {
-            console.log("サーチ編集 クリック");
+            if (searchMode) return;
+            if (!selectedRowDataCompany) return alert("会社を選択してください");
+            console.log("会社編集 クリック");
+            setLoadingGlobalState(false);
+            // setIsOpenUpdateContactModal(true);
           }}
-        /> */}
+        />
         <RippleButton
           title={`担当者作成`}
           classText={`select-none ${searchMode ? `cursor-not-allowed` : ``}`}

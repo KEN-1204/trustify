@@ -1354,6 +1354,7 @@ const ContactMainContainerMemo: FC = () => {
                       <option value="商社・卸売">商社・卸売</option>
                       <option value="官公庁">官公庁</option>
                       <option value="個人">個人</option>
+                      <option value="不明">不明</option>
                     </select>
                   )}
                 </div>

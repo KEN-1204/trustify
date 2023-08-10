@@ -2152,7 +2152,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
             <div className={`flex max-h-[26px] w-full items-center justify-start space-x-[6px]`}>
               <RippleButton
                 title={`新規サーチ`}
-                bgColor="var(--color-btn-brand-f-re)"
+                // bgColor="var(--color-btn-brand-f-re)"
                 border="var(--color-btn-brand-f-re-hover)"
                 borderRadius="2px"
                 classText={`select-none`}
