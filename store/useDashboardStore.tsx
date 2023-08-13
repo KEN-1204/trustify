@@ -70,6 +70,22 @@ type State = {
   isOpenUpdateContactModal: boolean;
   setIsOpenUpdateContactModal: (payload: boolean) => void;
 
+  // =================== 活動作成モーダル ===================
+  // 新規作成モーダル
+  isOpenInsertNewActivityModal: boolean;
+  setIsOpenInsertNewActivityModal: (payload: boolean) => void;
+  // 編集モーダル
+  isOpenUpdateActivityModal: boolean;
+  setIsOpenUpdateActivityModal: (payload: boolean) => void;
+
+  // =================== アカウント設定モーダル ===================
+  // アカウント設定開閉
+  isOpenSettingAccountModal: boolean;
+  setIsOpenSettingAccountModal: (payload: boolean) => void;
+  // 選択中のメニュー
+  selectedSettingAccountMenu: string;
+  setSelectedSettingAccountMenu: (payload: string) => void;
+
   // =================== アンダーテーブル関連 ===================
   // 【サーチモード切り替え】
   searchMode: boolean;
@@ -171,6 +187,22 @@ const useDashboardStore = create<State>((set) => ({
   // 編集モーダル
   isOpenUpdateContactModal: false,
   setIsOpenUpdateContactModal: (payload) => set({ isOpenUpdateContactModal: payload }),
+
+  // =================== 活動作成モーダル ===================
+  // 新規作成モーダル
+  isOpenInsertNewActivityModal: false,
+  setIsOpenInsertNewActivityModal: (payload) => set({ isOpenInsertNewActivityModal: payload }),
+  // 編集モーダル
+  isOpenUpdateActivityModal: false,
+  setIsOpenUpdateActivityModal: (payload) => set({ isOpenUpdateActivityModal: payload }),
+
+  // =================== アカウント設定モーダル ===================
+  // 開閉
+  isOpenSettingAccountModal: false,
+  setIsOpenSettingAccountModal: (payload) => set({ isOpenSettingAccountModal: payload }),
+  // 選択中のメニュー
+  selectedSettingAccountMenu: "Profile",
+  setSelectedSettingAccountMenu: (payload) => set({ selectedSettingAccountMenu: payload }),
 
   // =================== テーブルサイズ切り替えボタン ===================
   // 【テーブルサイズ切り替えメニュー開閉状態】

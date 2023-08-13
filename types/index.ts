@@ -505,3 +505,29 @@ export type NewSearchContact_CompanyParams = {
   created_by_company_id: string | null;
   created_by_user_id: string | null;
 };
+
+// 営業先会社 client_companiesテーブル
+export type Activity = {
+  id: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  created_by_company_id?: string | null;
+  created_by_user_id?: string | null;
+  created_by_department_of_user?: string | null;
+  created_by_unit_of_user?: string | null;
+  client_contact_id?: string | null;
+  client_company_id?: string | null;
+  summary?: string | null;
+  scheduled_follow_up_date?: string | null;
+  follow_up_flag: boolean | null;
+  document_url?: string | null;
+  activity_type?: string | null;
+  claim_flag: boolean | null;
+  product_introduction1?: string | null;
+  product_introduction2?: string | null;
+  product_introduction3?: string | null;
+  product_introduction4?: string | null;
+  product_introduction5?: string | null;
+  business_office?: string | null;
+  member_name?: string | null;
+};

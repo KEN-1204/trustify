@@ -42,6 +42,7 @@ type Props = {
 };
 
 const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
+  const queryClient = useQueryClient();
   const theme = useRootStore(useThemeStore, (state) => state.theme);
   // const theme = useThemeStore((state) => state.theme);
   // const theme = useStore((state) => state.theme);
@@ -2186,9 +2187,9 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
               />
               <button
                 className={`flex-center transition-base03 h-[26px]  cursor-pointer space-x-1  rounded-[4px] px-[15px]  text-[12px]  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`}
-                onClick={() => {
+                onClick={async () => {
                   console.log("リフレッシュ クリック");
-                  //   refetch()
+                  await queryClient.invalidateQueries({ queryKey: ["contacts"] });
                 }}
               >
                 <FiRefreshCw />
@@ -2549,7 +2550,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                               type="checkbox"
                               aria-label="Select"
                               // ================= 🔥🔥テスト🔥🔥==================
-                            //   value={rowData?.id}
+                              //   value={rowData?.id}
                               value={rowData?.contact_id}
                               // value={rowData?.id ? rowData?.id : null}
                               // ================= 🔥🔥テスト🔥🔥==================
@@ -2557,7 +2558,9 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                               onChange={(e) => {
                                 if (typeof rowData?.contact_id === "undefined") return;
                                 if (rowData?.contact_id === null) return;
-                                console.log(`クリック VirtualRow.index: ${virtualRow.index} row.contact_id${rowData.contact_id}`);
+                                console.log(
+                                  `クリック VirtualRow.index: ${virtualRow.index} row.contact_id${rowData.contact_id}`
+                                );
                                 // console.log(`クリック VirtualRow.index: ${virtualRow.index} row.id${rowData.id}`);
                                 handleSelectedCheckBox(e, rowData?.index.toString());
                                 // handleSelectedCheckBox(e, rowData?.id);

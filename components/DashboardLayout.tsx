@@ -22,6 +22,8 @@ import { InsertNewContactModal } from "./DashboardCompanyComponent/Modal/InsertN
 import { UpdateContactModal } from "./DashboardCompanyComponent/Modal/UpdateContactModal/UpdateContactModal";
 import { InsertNewClientCompanyModal } from "./DashboardCompanyComponent/Modal/InsertNewClientCompnayModal/InsertNewClientCompanyModal";
 import { UpdateClientCompanyModal } from "./DashboardCompanyComponent/Modal/UpdateClientCompanyModal/UpdateClientCompanyModal";
+import { InsertNewActivityModal } from "./DashboardCompanyComponent/Modal/InsertNewActivityModal/InsertNewActivityModal";
+import { SettingAccountModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingAccountModal";
 
 type Prop = {
   title?: string;
@@ -102,12 +104,17 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   const setIsOpenEditColumns = useDashboardStore((state) => state.setIsOpenEditColumns);
   // サイズ切り替えメニュー
   const clickedItemPos = useStore((state) => state.clickedItemPos);
+  // アカウント設定モーダル
+  const isOpenSettingAccountModal = useDashboardStore((state) => state.isOpenSettingAccountModal);
   // 会社作成モーダル 新規作成と編集モーダル
   const isOpenInsertNewClientCompanyModal = useDashboardStore((state) => state.isOpenInsertNewClientCompanyModal);
   const isOpenUpdateClientCompanyModal = useDashboardStore((state) => state.isOpenUpdateClientCompanyModal);
   // 担当者作成モーダル 新規作成と編集モーダル
   const isOpenInsertNewContactModal = useDashboardStore((state) => state.isOpenInsertNewContactModal);
   const isOpenUpdateContactModal = useDashboardStore((state) => state.isOpenUpdateContactModal);
+  // 活動作成モーダル 新規作成と編集モーダル
+  const isOpenInsertNewActivityModal = useDashboardStore((state) => state.isOpenInsertNewActivityModal);
+  // const isOpenUpdateContactModal = useDashboardStore((state) => state.isOpenUpdateContactModal);
 
   return (
     <div className={`${styles.trustify_app} relative`}>
@@ -170,12 +177,19 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
       {clickedItemPos && <ChangeSizeMenu />}
 
       {/* 会社作成・編集モーダル */}
+      {isOpenSettingAccountModal && <SettingAccountModal />}
+
+      {/* 会社作成・編集モーダル */}
       {isOpenInsertNewClientCompanyModal && <InsertNewClientCompanyModal />}
       {isOpenUpdateClientCompanyModal && <UpdateClientCompanyModal />}
 
       {/* 担当者作成・編集モーダル */}
       {isOpenInsertNewContactModal && <InsertNewContactModal />}
       {isOpenUpdateContactModal && <UpdateContactModal />}
+
+      {/* 活動作成・編集モーダル */}
+      {isOpenInsertNewActivityModal && <InsertNewActivityModal />}
+      {/* {isOpenUpdateActivityModal && <UpdateActivityModal />} */}
     </div>
   );
 };

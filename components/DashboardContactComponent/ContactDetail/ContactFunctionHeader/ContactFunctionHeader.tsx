@@ -16,6 +16,7 @@ const ContactFunctionHeaderMemo: FC = () => {
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
   //   const setIsOpenInsertNewContactModal = useDashboardStore((state) => state.setIsOpenInsertNewContactModal);
   const setIsOpenUpdateContactModal = useDashboardStore((state) => state.setIsOpenUpdateContactModal);
+  const setIsOpenInsertNewActivityModal = useDashboardStore((state) => state.setIsOpenInsertNewActivityModal);
 
   // 上画面の選択中の列データ会社
   //   const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
@@ -117,6 +118,18 @@ const ContactFunctionHeaderMemo: FC = () => {
             console.log("担当者作成 クリック");
             setLoadingGlobalState(false);
             setIsOpenUpdateContactModal(true);
+          }}
+        />
+        <RippleButton
+          title={`活動作成`}
+          classText={`select-none ${searchMode || !selectedRowDataContact ? `cursor-not-allowed` : ``}`}
+          borderRadius="2px"
+          clickEventHandler={() => {
+            if (searchMode) return;
+            if (!selectedRowDataContact) return alert("担当者を選択してください");
+            console.log("活動作成 クリック");
+            setLoadingGlobalState(false);
+            setIsOpenInsertNewActivityModal(true);
           }}
         />
       </div>

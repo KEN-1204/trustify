@@ -9,7 +9,7 @@ import useThemeStore from "@/store/useThemeStore";
 import useRootStore from "@/store/useRootStore";
 import { RippleButton } from "@/components/Parts/RippleButton/RippleButton";
 import { ChangeSizeBtn } from "@/components/Parts/ChangeSizeBtn/ChangeSizeBtn";
-import { FiLock } from "react-icons/fi";
+import { FiLock, FiRefreshCw } from "react-icons/fi";
 import { columnNameToJapanese } from "@/utils/columnNameToJapanese";
 import { Client_company, Client_company_row_data } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -42,6 +42,7 @@ type Props = {
 };
 
 const GridTableAllMemo: FC<Props> = ({ title }) => {
+  const queryClient = useQueryClient();
   const theme = useRootStore(useThemeStore, (state) => state.theme);
   // const theme = useThemeStore((state) => state.theme);
   // const theme = useStore((state) => state.theme);
@@ -2203,6 +2204,16 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                   console.log("サーチ編集 クリック");
                 }}
               />
+              <button
+                className={`flex-center transition-base03 h-[26px]  cursor-pointer space-x-1  rounded-[4px] px-[15px]  text-[12px]  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`}
+                onClick={async () => {
+                  console.log("リフレッシュ クリック");
+                  await queryClient.invalidateQueries({ queryKey: ["companies"] });
+                }}
+              >
+                <FiRefreshCw />
+                <span>リフレッシュ</span>
+              </button>
             </div>
             <div className={`flex max-h-[26px] w-full  items-center justify-end space-x-[6px]`}>
               <button
