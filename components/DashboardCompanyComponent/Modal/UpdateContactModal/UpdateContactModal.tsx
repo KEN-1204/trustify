@@ -428,13 +428,13 @@ export const UpdateContactModal = () => {
                       value={selectedPositionClass}
                       onChange={(e) => setSelectedPositionClass(e.target.value)}
                     >
-                      <option value="1">1 代表者</option>
-                      <option value="2">2 取締役/役員</option>
-                      <option value="3">3 部長</option>
-                      <option value="4">4 課長</option>
-                      <option value="5">5 課長未満</option>
-                      <option value="6">6 所長・工場長</option>
-                      <option value="7">7 不明</option>
+                      <option value="1 代表者">1 代表者</option>
+                      <option value="2 取締役/役員">2 取締役/役員</option>
+                      <option value="3 部長">3 部長</option>
+                      <option value="4 課長">4 課長</option>
+                      <option value="5 課長未満">5 課長未満</option>
+                      <option value="6 所長・工場長">6 所長・工場長</option>
+                      <option value="7 不明">7 不明</option>
                       {/* <option value="executive">1 代表者</option>
                       <option value="Director">2 取締役/役員</option>
                       <option value="department_manager">3 部長</option>

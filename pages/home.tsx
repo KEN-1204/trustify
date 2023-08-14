@@ -27,7 +27,7 @@ const DashboardHome = ({
   console.log("🔥Homeページ レンダリング", activeMenuTab, user, userProfile);
 
   useEffect(() => {
-    setUserProfileState(userProfile);
+    setUserProfileState(userProfile as UserProfile);
   }, [userProfile, setUserProfileState]);
 
   // const setTheme = useStore((state) => state.setTheme);

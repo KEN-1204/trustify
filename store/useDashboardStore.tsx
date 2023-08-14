@@ -121,8 +121,8 @@ type State = {
   setLoadingGlobalState: (payload: boolean) => void;
 
   // =================== ユーザープロフィール ===================
-  userProfileState: UserProfile;
-  setUserProfileState: (payload: UserProfile) => void;
+  userProfileState: UserProfile | null;
+  setUserProfileState: (payload: UserProfile | null) => void;
 
   // =================== 担当者テーブル ヘッダーリスト保持用state関連 ===================
   contactColumnHeaderItemList: ColumnHeaderItemList[];
