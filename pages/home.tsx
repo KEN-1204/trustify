@@ -1,3 +1,4 @@
+import { DashboardActivityComponent } from "@/components/DashboardActivityComponent/DashboardActivityComponent";
 import { DashboardCompanyComponent } from "@/components/DashboardCompanyComponent/DashboardCompanyComponent";
 import { DashboardContactComponent } from "@/components/DashboardContactComponent/DashboardContactComponent";
 import { DashboardHomeComponent } from "@/components/DashboardHomeComponent/DashboardHomeComponent";
@@ -75,6 +76,7 @@ const DashboardHome = ({
       {activeMenuTab === "HOME" && <DashboardHomeComponent />}
       {activeMenuTab === "Company" && <DashboardCompanyComponent />}
       {activeMenuTab === "Contacts" && <DashboardContactComponent />}
+      {activeMenuTab === "Activity" && <DashboardActivityComponent />}
       {/* {activeMenuTab === "Contacts" && <div className="flex-center w-screen h-screen bg-red-100">あい</div>} */}
     </DashboardLayout>
   );

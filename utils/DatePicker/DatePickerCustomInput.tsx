@@ -8,11 +8,13 @@ import { getYear, subYears } from "date-fns";
 import React, { Dispatch, FC, SetStateAction, useState } from "react";
 import useStore from "@/store";
 import { range } from "lodash";
+import { MdClose } from "react-icons/md";
+import { AiTwotoneCalendar } from "react-icons/ai";
 
 type Props = {
-  startDate: Date;
+  startDate: Date | null;
   //   setStartDate: (date: Date) => void;
-  setStartDate: Dispatch<SetStateAction<Date>>;
+  setStartDate: Dispatch<SetStateAction<Date | null>>;
 };
 
 export const DatePickerCustomInput: FC<Props> = ({ startDate, setStartDate }) => {
@@ -37,6 +39,17 @@ export const DatePickerCustomInput: FC<Props> = ({ startDate, setStartDate }) =>
   registerLocale("en", enUS);
   return (
     <>
+      {/* バツボタン */}
+      {startDate && (
+        <div className={`${styles.close_btn} text-[var(--setting-side-bg-select)]`} onClick={() => setStartDate(null)}>
+          <MdClose className="text-[20px] " />
+        </div>
+      )}
+      {!startDate && (
+        <div className={`${styles.calendar_btn} `}>
+          <AiTwotoneCalendar className="text-[20px] " />
+        </div>
+      )}
       {language === "Ja" ? (
         <DatePicker
           className={`rounded border-gray-100 p-1.5 text-base outline-0 ${styles.input_box}`}

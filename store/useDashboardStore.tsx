@@ -1,13 +1,16 @@
 import {
   ActiveMenuTab,
+  Activity_row_data,
   Client_company,
   Client_company_row_data,
   ColumnHeaderItemList,
   Contact_row_data,
+  NewSearchActivity_Contact_CompanyParams,
   NewSearchCompanyParams,
   NewSearchContact_CompanyParams,
   UserProfile,
 } from "@/types";
+import { activityColumnHeaderItemListData } from "@/utils/activityColumnHeaderItemListDate";
 import { contactColumnHeaderItemListData } from "@/utils/contactColumnHeaderItemListData";
 import { Session } from "@supabase/supabase-js";
 import { ReactNode } from "react";
@@ -135,6 +138,18 @@ type State = {
   // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
   newSearchContact_CompanyParams: NewSearchContact_CompanyParams | null;
   setNewSearchContact_CompanyParams: (payload: NewSearchContact_CompanyParams) => void;
+
+  // =================== 活動テーブル ヘッダーリスト保持用state関連 ===================
+  activityColumnHeaderItemList: ColumnHeaderItemList[];
+  setActivityColumnHeaderItemList: (payload: ColumnHeaderItemList[]) => void;
+  // =================== 上画面の列選択した時に下画面に担当者情報を映す用のState ===================
+  // オブジェクト
+  selectedRowDataActivity: Activity_row_data | null;
+  setSelectedRowDataActivity: (payload: Activity_row_data | null) => void;
+
+  // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
+  newSearchActivity_Contact_CompanyParams: NewSearchActivity_Contact_CompanyParams | null;
+  setNewSearchActivity_Contact_CompanyParams: (payload: NewSearchActivity_Contact_CompanyParams) => void;
 };
 
 const useDashboardStore = create<State>((set) => ({
@@ -744,6 +759,20 @@ const useDashboardStore = create<State>((set) => ({
   // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
   newSearchContact_CompanyParams: null,
   setNewSearchContact_CompanyParams: (payload) => set({ newSearchContact_CompanyParams: payload }),
+
+  // =================== 活動テーブル ヘッダーリスト保持用state関連 ===================
+  // 上画面のテーブルはチェックボックスありで1のため、columnIndexは2から
+  activityColumnHeaderItemList: activityColumnHeaderItemListData,
+  setActivityColumnHeaderItemList: (payload) => set({ activityColumnHeaderItemList: payload }),
+
+  // =================== 上画面の列選択した時に下画面に担当者情報を映す用のState ===================
+  // オブジェクト
+  selectedRowDataActivity: null,
+  setSelectedRowDataActivity: (payload) => set({ selectedRowDataActivity: payload }),
+
+  // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
+  newSearchActivity_Contact_CompanyParams: null,
+  setNewSearchActivity_Contact_CompanyParams: (payload) => set({ newSearchActivity_Contact_CompanyParams: payload }),
 }));
 
 export default useDashboardStore;

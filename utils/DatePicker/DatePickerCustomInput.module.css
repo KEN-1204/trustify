@@ -7,7 +7,44 @@
   /* padding: 0px 6px; */
   padding: 4px 8px;
   border-radius: 2px;
+  cursor: pointer;
 }
 .input_box:focus {
   box-shadow: var(--color-bg-under-input-active-box-shadow);
+}
+
+.close_btn {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  z-index: 100;
+  transform: translateY(-57%);
+  /* background: #00000020; */
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+.close_btn:hover {
+  background: var(--close-bg);
+}
+
+.calendar_btn {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  z-index: 100;
+  transform: translateY(-57%);
+  /* background: #00000020; */
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  pointer-events: none;
 }

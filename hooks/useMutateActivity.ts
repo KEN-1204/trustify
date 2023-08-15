@@ -47,7 +47,7 @@ export const useMutateActivity = () => {
       onError: (err: any) => {
         setTimeout(() => {
           setLoadingGlobalState(false);
-          setIsOpenInsertNewActivityModal(false);
+          // setIsOpenInsertNewActivityModal(false);
           alert(err.message);
           console.log("INSERTエラー", err.message);
           toast.error("活動の作成に失敗しました!", {
@@ -96,7 +96,7 @@ export const useMutateActivity = () => {
       onError: (err: any) => {
         setTimeout(() => {
           setLoadingGlobalState(false);
-          setIsOpenUpdateActivityModal(false);
+          // setIsOpenUpdateActivityModal(false);
           alert(err.message);
           console.log("INSERTエラー", err.message);
           toast.error("活動の更新に失敗しました!", {

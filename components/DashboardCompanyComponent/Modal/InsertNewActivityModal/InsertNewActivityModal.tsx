@@ -11,6 +11,7 @@ import productCategoriesM from "@/utils/productCategoryM";
 import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
 
 export const InsertNewActivityModal = () => {
+  const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
   const setIsOpenInsertNewActivityModal = useDashboardStore((state) => state.setIsOpenInsertNewActivityModal);
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
@@ -19,18 +20,18 @@ export const InsertNewActivityModal = () => {
   // const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
 
-  const [startDate, setStartDate] = useState(new Date());
+  const [activityDate, setActivityDate] = useState<Date | null>(new Date());
   const [summary, setSummary] = useState("");
-  const [scheduledFollowUpDate, setScheduledFollowUpDate] = useState("");
+  const [scheduledFollowUpDate, setScheduledFollowUpDate] = useState<Date | null>(null);
   const [followUpFlag, setFollowUpFlag] = useState(false);
   const [documentURL, setDocumentURL] = useState("");
   const [activityType, setActivityType] = useState("");
   const [claimFlag, setClaimFlag] = useState(false);
-  const [productIntroduction1, setProductIntroduction1] = useState("");
-  const [productIntroduction2, setProductIntroduction2] = useState("");
-  const [productIntroduction3, setProductIntroduction3] = useState("");
-  const [productIntroduction4, setProductIntroduction4] = useState("");
-  const [productIntroduction5, setProductIntroduction5] = useState("");
+  const [productIntroduction1, setProductIntroduction1] = useState(null);
+  const [productIntroduction2, setProductIntroduction2] = useState(null);
+  const [productIntroduction3, setProductIntroduction3] = useState(null);
+  const [productIntroduction4, setProductIntroduction4] = useState(null);
+  const [productIntroduction5, setProductIntroduction5] = useState(null);
   const [departmentName, setDepartmentName] = useState(
     userProfileState?.department ? userProfileState?.department : ""
   );
@@ -56,8 +57,10 @@ export const InsertNewActivityModal = () => {
   };
   const handleSaveAndClose = async () => {
     if (!summary) return alert("活動概要を入力してください");
-    if (!summary) return alert("活動概要を入力してください");
     if (!activityType) return alert("活動タイプを選択してください");
+    if (!userProfileState?.id) return alert("ユーザー情報が存在しません");
+    if (!selectedRowDataContact?.company_id) return alert("相手先の会社情報が存在しません");
+    if (!selectedRowDataContact?.contact_id) return alert("担当者情報が存在しません");
 
     setLoadingGlobalState(true);
 
@@ -67,21 +70,24 @@ export const InsertNewActivityModal = () => {
       created_by_user_id: userProfileState?.id ? userProfileState.id : null,
       created_by_department_of_user: departmentName ? departmentName : null,
       created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
-      client_contact_id: userProfileState?.unit ? userProfileState.unit : null,
-      client_company_id: userProfileState?.unit ? userProfileState.unit : null,
+      client_contact_id: selectedRowDataContact.contact_id,
+      client_company_id: selectedRowDataContact.company_id,
       summary: summary,
-      scheduled_follow_up_date: scheduledFollowUpDate ? scheduledFollowUpDate : null,
+      scheduled_follow_up_date: scheduledFollowUpDate ? scheduledFollowUpDate.toISOString() : null,
       follow_up_flag: followUpFlag ? followUpFlag : null,
+      document_url: null,
       activity_type: activityType ? activityType : null,
       claim_flag: claimFlag ? claimFlag : null,
-      product_introduction1: productIntroduction1 ? productIntroduction1 : null,
-      product_introduction2: productIntroduction2 ? productIntroduction2 : null,
-      product_introduction3: productIntroduction3 ? productIntroduction3 : null,
-      product_introduction4: productIntroduction4 ? productIntroduction4 : null,
-      product_introduction5: productIntroduction5 ? productIntroduction5 : null,
-      de: businessOffice ? businessOffice : null,
+      product_introduction1: productIntroduction1,
+      product_introduction2: productIntroduction2,
+      product_introduction3: productIntroduction3,
+      product_introduction4: productIntroduction4,
+      product_introduction5: productIntroduction5,
+      department: departmentName ? departmentName : null,
       business_office: businessOffice ? businessOffice : null,
-      member_name: userProfileState?.last_name ? userProfileState?.last_name + userProfileState?.first_name : "",
+      member_name: memberName ? memberName : null,
+      priority: priority ? priority : null,
+      activity_date: activityDate ? activityDate.toISOString() : null,
     };
 
     // supabaseにINSERT
@@ -196,6 +202,8 @@ export const InsertNewActivityModal = () => {
     return total;
   }
 
+  console.log("活動作成モーダル selectedRowDataContact", selectedRowDataContact);
+
   return (
     <>
       <div className={`${styles.overlay} `} onClick={handleCancelAndReset} />
@@ -228,8 +236,8 @@ export const InsertNewActivityModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>●活動日</span>
-                    <DatePickerCustomInput startDate={startDate} setStartDate={setStartDate} />
+                    <span className={`${styles.title} !min-w-[140px]`}>●活動日</span>
+                    <DatePickerCustomInput startDate={activityDate} setStartDate={setActivityDate} />
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -275,7 +283,7 @@ export const InsertNewActivityModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>●活動タイプ</span>
+                    <span className={`${styles.title} !min-w-[140px]`}>●活動タイプ</span>
                     <select
                       name="number_of_employees_class"
                       id="number_of_employees_class"
@@ -338,6 +346,22 @@ export const InsertNewActivityModal = () => {
 
           {/* --------- 横幅全体ラッパー --------- */}
           <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* 次回フォロー予定日 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title} !min-w-[172px]`}>次回フォロー予定日</span>
+                    <DatePickerCustomInput startDate={scheduledFollowUpDate} setStartDate={setScheduledFollowUpDate} />
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 左ラッパーここまで */}
+            </div>
+
             {/* --------- 右ラッパー --------- */}
             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
               {/* フォロー完了フラグ */}
@@ -346,17 +370,19 @@ export const InsertNewActivityModal = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} ${styles.check_title}`}>フォロー完了フラグ</span>
 
-                    <div className={`${styles.grid_select_cell_header}`}>
-                      <input
-                        type="checkbox"
-                        className={`${styles.grid_select_cell_header_input}`}
-                        checked={followUpFlag}
-                        onChange={() => setFollowUpFlag(!followUpFlag)}
-                      />
-                      <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
-                      </svg>
-                    </div>
+                    {scheduledFollowUpDate && (
+                      <div className={`${styles.grid_select_cell_header}`}>
+                        <input
+                          type="checkbox"
+                          className={`${styles.grid_select_cell_header_input}`}
+                          checked={followUpFlag}
+                          onChange={() => setFollowUpFlag(!followUpFlag)}
+                        />
+                        <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+                        </svg>
+                      </div>
+                    )}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -368,20 +394,20 @@ export const InsertNewActivityModal = () => {
 
           {/* --------- 横幅全部ラッパー --------- */}
           <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
-            {/* 事業概要 */}
+            {/* 活動概要 */}
             <div className={`${styles.row_area} ${styles.text_area_xl} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full `}>
-                  <span className={`${styles.title}`}>事業概要</span>
+                  <span className={`${styles.title} !min-w-[140px]`}>活動概要</span>
                   <textarea
-                    name="call_careful_reason"
-                    id="call_careful_reason"
+                    name="summary"
+                    id="summary"
                     cols={30}
                     rows={10}
                     placeholder=""
                     className={`${styles.textarea_box}`}
-                    // value={businessContent}
-                    // onChange={(e) => setBusinessContent(e.target.value)}
+                    value={summary}
+                    onChange={(e) => setSummary(e.target.value)}
                   ></textarea>
                 </div>
                 <div className={`${styles.underline}`}></div>
@@ -394,170 +420,11 @@ export const InsertNewActivityModal = () => {
           <div className={`${styles.full_contents_wrapper} flex w-full`}>
             {/* --------- 左ラッパー --------- */}
             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 紹介商品1 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>紹介商品1</span>
-                    <select
-                      name="number_of_employees_class"
-                      id="number_of_employees_class"
-                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      //   value={numberOfEmployeesClass}
-                      //   onChange={(e) => setNumberOfEmployeesClass(e.target.value)}
-                    >
-                      <option value=""></option>
-                      <option value="A 1000名以上">A 1000名以上</option>
-                      <option value="B 500-999名">B 500-999名</option>
-                      <option value="C 300-499名">C 300-499名</option>
-                      <option value="D 200-299名">D 200-299名</option>
-                      <option value="E 100-199名">E 100-199名</option>
-                      <option value="F 50-99名">F 50-99名</option>
-                      <option value="G 50名未満">G 50名未満</option>
-                    </select>
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 左ラッパーここまで */}
-            </div>
-
-            {/* --------- 右ラッパー --------- */}
-            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 紹介商品2 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>紹介商品2</span>
-                    <select
-                      name="number_of_employees_class"
-                      id="number_of_employees_class"
-                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      //   value={numberOfEmployeesClass}
-                      //   onChange={(e) => setNumberOfEmployeesClass(e.target.value)}
-                    >
-                      <option value=""></option>
-                      <option value="高">高</option>
-                      <option value="中">中</option>
-                      <option value="低">低</option>
-                    </select>
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 右ラッパーここまで */}
-            </div>
-          </div>
-          {/* --------- 横幅全体ラッパーここまで --------- */}
-
-          {/* --------- 横幅全体ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full`}>
-            {/* --------- 左ラッパー --------- */}
-            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 紹介商品3 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>紹介商品3</span>
-                    <select
-                      name="number_of_employees_class"
-                      id="number_of_employees_class"
-                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      //   value={numberOfEmployeesClass}
-                      //   onChange={(e) => setNumberOfEmployeesClass(e.target.value)}
-                    >
-                      <option value=""></option>
-                      <option value="A 1000名以上">A 1000名以上</option>
-                      <option value="B 500-999名">B 500-999名</option>
-                      <option value="C 300-499名">C 300-499名</option>
-                      <option value="D 200-299名">D 200-299名</option>
-                      <option value="E 100-199名">E 100-199名</option>
-                      <option value="F 50-99名">F 50-99名</option>
-                      <option value="G 50名未満">G 50名未満</option>
-                    </select>
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 左ラッパーここまで */}
-            </div>
-
-            {/* --------- 右ラッパー --------- */}
-            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 紹介商品4 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>紹介商品4</span>
-                    <select
-                      name="number_of_employees_class"
-                      id="number_of_employees_class"
-                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      //   value={numberOfEmployeesClass}
-                      //   onChange={(e) => setNumberOfEmployeesClass(e.target.value)}
-                    >
-                      <option value=""></option>
-                      <option value="高">高</option>
-                      <option value="中">中</option>
-                      <option value="低">低</option>
-                    </select>
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 右ラッパーここまで */}
-            </div>
-          </div>
-          {/* --------- 横幅全体ラッパーここまで --------- */}
-
-          {/* --------- 横幅全体ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full`}>
-            {/* --------- 左ラッパー --------- */}
-            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 紹介商品5 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>紹介商品5</span>
-                    <select
-                      name="number_of_employees_class"
-                      id="number_of_employees_class"
-                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      //   value={numberOfEmployeesClass}
-                      //   onChange={(e) => setNumberOfEmployeesClass(e.target.value)}
-                    >
-                      <option value=""></option>
-                      <option value="A 1000名以上">A 1000名以上</option>
-                      <option value="B 500-999名">B 500-999名</option>
-                      <option value="C 300-499名">C 300-499名</option>
-                      <option value="D 200-299名">D 200-299名</option>
-                      <option value="E 100-199名">E 100-199名</option>
-                      <option value="F 50-99名">F 50-99名</option>
-                      <option value="G 50名未満">G 50名未満</option>
-                    </select>
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 左ラッパーここまで */}
-            </div>
-          </div>
-          {/* --------- 横幅全体ラッパーここまで --------- */}
-
-          {/* --------- 横幅全体ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full`}>
-            {/* --------- 左ラッパー --------- */}
-            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
               {/* 事業部名 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[108px]`}>事業部名</span>
+                    <span className={`${styles.title} !min-w-[140px]`}>事業部名</span>
                     <input
                       type="text"
                       placeholder=""
@@ -585,7 +452,7 @@ export const InsertNewActivityModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[108px]`}>所属事業所</span>
+                    <span className={`${styles.title} !min-w-[140px]`}>所属事業所</span>
                     <input
                       type="text"
                       placeholder=""

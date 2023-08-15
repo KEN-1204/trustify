@@ -107,6 +107,8 @@
   --setting-side-bg: #eee;
   --setting-side-bg-select: #00000013;
   --setting-side-bg-select-hover: #00000025;
+  --close-bg: #eee;
+  /* --setting-side-bg-select-deep: #00000055; */
 
   /* Canva 背景 #fff 背景サブ rgba(64,87,109,.07) #40576d12 */
   --color-bg-base: #fff;
@@ -484,6 +486,7 @@
   --setting-side-bg: #333;
   --setting-side-bg-select: #ffffff20;
   --setting-side-bg-select-hover: #bbbbbb20;
+  --close-bg: #777;
 
   /* Youtube背景 background-color: #0f0f0f */
   /* Tiktok背景メイン background-color: rgb(18, 18, 18) #121212 背景サブ background-color: rgb(37, 37, 37) #252525 ブラックサブ2 background-color: rgba(255, 255, 255, 0.08) テーマカラー赤 background-color: rgb(255, 59, 92) #ff3b5c */
