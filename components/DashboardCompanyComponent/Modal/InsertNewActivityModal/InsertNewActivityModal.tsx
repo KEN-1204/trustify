@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./InsertNewActivityModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -8,6 +8,7 @@ import useThemeStore from "@/store/useThemeStore";
 import { isNaN } from "lodash";
 import { useMutateActivity } from "@/hooks/useMutateActivity";
 import productCategoriesM from "@/utils/productCategoryM";
+import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
 
 export const InsertNewActivityModal = () => {
   const setIsOpenInsertNewActivityModal = useDashboardStore((state) => state.setIsOpenInsertNewActivityModal);
@@ -18,6 +19,7 @@ export const InsertNewActivityModal = () => {
   // const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
 
+  const [startDate, setStartDate] = useState(new Date());
   const [summary, setSummary] = useState("");
   const [scheduledFollowUpDate, setScheduledFollowUpDate] = useState("");
   const [followUpFlag, setFollowUpFlag] = useState(false);
@@ -41,13 +43,19 @@ export const InsertNewActivityModal = () => {
   const supabase = useSupabaseClient();
   const { createActivityMutation } = useMutateActivity();
 
-  // console.log("InsertNewActivityModalコンポーネント レンダリング selectedRowDataCompany", selectedRowDataCompany);
+  useEffect(() => {
+    if (!userProfileState) return;
+    setMemberName(userProfileState.profile_name ? userProfileState.profile_name : "");
+    setBusinessOffice(userProfileState.office ? userProfileState.office : "");
+    setDepartmentName(userProfileState.department ? userProfileState.department : "");
+  }, []);
 
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
     setIsOpenInsertNewActivityModal(false);
   };
   const handleSaveAndClose = async () => {
+    if (!summary) return alert("活動概要を入力してください");
     if (!summary) return alert("活動概要を入力してください");
     if (!activityType) return alert("活動タイプを選択してください");
 
@@ -221,22 +229,7 @@ export const InsertNewActivityModal = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>●活動日</span>
-                    <select
-                      name="number_of_employees_class"
-                      id="number_of_employees_class"
-                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      //   value={numberOfEmployeesClass}
-                      //   onChange={(e) => setNumberOfEmployeesClass(e.target.value)}
-                    >
-                      <option value=""></option>
-                      <option value="A 1000名以上">A 1000名以上</option>
-                      <option value="B 500-999名">B 500-999名</option>
-                      <option value="C 300-499名">C 300-499名</option>
-                      <option value="D 200-299名">D 200-299名</option>
-                      <option value="E 100-199名">E 100-199名</option>
-                      <option value="F 50-99名">F 50-99名</option>
-                      <option value="G 50名未満">G 50名未満</option>
-                    </select>
+                    <DatePickerCustomInput startDate={startDate} setStartDate={setStartDate} />
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -287,17 +280,24 @@ export const InsertNewActivityModal = () => {
                       name="number_of_employees_class"
                       id="number_of_employees_class"
                       className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      //   value={numberOfEmployeesClass}
-                      //   onChange={(e) => setNumberOfEmployeesClass(e.target.value)}
+                      value={activityType}
+                      onChange={(e) => {
+                        if (e.target.value === "") return alert("活動タイプを選択してください");
+                        setActivityType(e.target.value);
+                      }}
                     >
                       <option value=""></option>
-                      <option value="A 1000名以上">A 1000名以上</option>
-                      <option value="B 500-999名">B 500-999名</option>
-                      <option value="C 300-499名">C 300-499名</option>
-                      <option value="D 200-299名">D 200-299名</option>
-                      <option value="E 100-199名">E 100-199名</option>
-                      <option value="F 50-99名">F 50-99名</option>
-                      <option value="G 50名未満">G 50名未満</option>
+                      <option value="TEL発信(不在)">TEL発信(不在)</option>
+                      <option value="TEL発信(能動)">TEL発信(能動)</option>
+                      <option value="TEL発信(受動)">TEL発信(受動)</option>
+                      <option value="TEL発信(売前ﾌｫﾛｰ)">TEL発信(売前ﾌｫﾛｰ)</option>
+                      <option value="TEL発信(売後ﾌｫﾛｰ)">TEL発信(売後ﾌｫﾛｰ)</option>
+                      <option value="TEL発信(ｱﾎﾟ組み)">TEL発信(ｱﾎﾟ組み)</option>
+                      <option value="TEL発信(その他)">TEL発信(その他)</option>
+                      <option value="Email受信">Email受信</option>
+                      <option value="Email送信">Email送信</option>
+                      <option value="その他">その他</option>
+                      <option value="引継ぎ">引継ぎ</option>
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -557,7 +557,7 @@ export const InsertNewActivityModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>事業部名</span>
+                    <span className={`${styles.title} !min-w-[108px]`}>事業部名</span>
                     <input
                       type="text"
                       placeholder=""
@@ -585,8 +585,17 @@ export const InsertNewActivityModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>所属事業所</span>
-                    <select
+                    <span className={`${styles.title} !min-w-[108px]`}>所属事業所</span>
+                    <input
+                      type="text"
+                      placeholder=""
+                      required
+                      className={`${styles.input_box}`}
+                      value={businessOffice}
+                      onChange={(e) => setBusinessOffice(e.target.value)}
+                      // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
+                    />
+                    {/* <select
                       name="number_of_employees_class"
                       id="number_of_employees_class"
                       className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
@@ -601,7 +610,7 @@ export const InsertNewActivityModal = () => {
                       <option value="E 100-199名">E 100-199名</option>
                       <option value="F 50-99名">F 50-99名</option>
                       <option value="G 50名未満">G 50名未満</option>
-                    </select>
+                    </select> */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>

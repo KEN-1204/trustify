@@ -220,8 +220,7 @@ export const SettingAccountModal = () => {
               </div> */}
               {!avatarUrl && (
                 <div
-                  data-text="ユーザー名"
-                  htmlFor="avatar"
+                  // data-text="ユーザー名"
                   className={`flex-center h-[40px] w-[40px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip} mr-[15px]`}
                   // onMouseEnter={(e) => handleOpenTooltip(e, "center")}
                   // onMouseLeave={handleCloseTooltip}
@@ -236,7 +235,6 @@ export const SettingAccountModal = () => {
               )}
               {avatarUrl && (
                 <div
-                  htmlFor="avatar"
                   className={`flex-center mr-[15px] h-[40px] w-[40px] cursor-pointer overflow-hidden rounded-full hover:bg-[#00000020]`}
                 >
                   <Image
@@ -299,7 +297,7 @@ export const SettingAccountModal = () => {
                 <div className={`text-[20px] font-bold`}>プロフィール</div>
 
                 <div className={`mt-[30px] flex min-h-[120px] w-full flex-col `}>
-                  <div className={`text-[14px] font-bold`}>プロフィール写真</div>
+                  <div className={`text-[14px] font-bold`}>プロフィール画像</div>
                   <div className={`flex h-full w-full items-center justify-between`}>
                     <div className="">
                       {!avatarUrl && (
@@ -321,7 +319,7 @@ export const SettingAccountModal = () => {
                       {avatarUrl && (
                         <label
                           htmlFor="avatar"
-                          className={`flex-center h-[75px] w-[75px] cursor-pointer overflow-hidden rounded-full hover:bg-[#00000020]`}
+                          className={`flex-center group relative h-[75px] w-[75px] cursor-pointer overflow-hidden rounded-full`}
                         >
                           <Image
                             src={avatarUrl}
@@ -330,6 +328,7 @@ export const SettingAccountModal = () => {
                             width={75}
                             height={75}
                           />
+                          <div className={`transition-base01 absolute inset-0 z-10 group-hover:bg-[#00000060]`}></div>
                         </label>
                       )}
                     </div>
@@ -343,7 +342,7 @@ export const SettingAccountModal = () => {
                             useMutateDeleteAvatarImg.mutate(userProfileState.avatar_url);
                           }}
                         >
-                          写真を削除
+                          画像を削除
                         </div>
                       )}
 
@@ -351,7 +350,7 @@ export const SettingAccountModal = () => {
                         <div
                           className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
                         >
-                          写真を変更
+                          画像を変更
                         </div>
                       </label>
                     </div>
@@ -400,7 +399,7 @@ export const SettingAccountModal = () => {
                         className={`${styles.input_box}`}
                         value={editedName}
                         onChange={(e) => setEditedName(e.target.value)}
-                        //   onBlur={() => setMainPhoneNumber(toHalfWidth(mainPhoneNumber.trim()))}
+                        onBlur={() => setEditedName(toHalfWidth(editedName.trim()))}
                       />
                       <div className="flex">
                         <div

@@ -484,28 +484,28 @@ export const DashboardHeaderMemo: FC = () => {
           </div> */}
           {!avatarUrl && (
             <div
-              data-text="ユーザー名"
-              className={`flex-center h-[40px] w-[40px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip}`}
+              data-text={`${userProfileState?.profile_name}`}
+              className={`flex-center h-[38px] w-[38px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip}`}
               onMouseEnter={(e) => handleOpenTooltip(e, "center")}
               onMouseLeave={handleCloseTooltip}
             >
               {/* <span>K</span> */}
-              <span className={`text-[20px]`}>
+              <span className={`pointer-events-none text-[18px]`}>
                 {userProfileState?.profile_name ? getInitial(userProfileState.profile_name) : `${getInitial("NoName")}`}
               </span>
             </div>
           )}
           {avatarUrl && (
             <div
-              data-text="ユーザー名"
-              className={`flex-center h-[40px] w-[40px] cursor-pointer overflow-hidden rounded-full hover:bg-[#00000020]`}
+              data-text={`${userProfileState?.profile_name}`}
+              className={`flex-center h-[37px] w-[37px] cursor-pointer overflow-hidden rounded-full hover:bg-[#00000020]`}
               onMouseEnter={(e) => handleOpenTooltip(e, "center")}
               onMouseLeave={handleCloseTooltip}
             >
               <Image
                 src={avatarUrl}
                 alt="Avatar"
-                className={`h-full w-full object-cover text-[#fff]`}
+                className={`pointer-events-none h-full w-full object-cover text-[#fff]`}
                 width={75}
                 height={75}
               />
