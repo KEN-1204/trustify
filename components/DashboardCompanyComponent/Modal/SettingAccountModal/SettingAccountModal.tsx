@@ -12,6 +12,9 @@ import { MdClose, MdOutlinePayment } from "react-icons/md";
 import { VscAccount } from "react-icons/vsc";
 import { AiOutlineTeam } from "react-icons/ai";
 import { Profile, UserProfile } from "@/types";
+import { useUploadAvatarImg } from "@/hooks/useUploadAvatarImg";
+import { useDownloadUrl } from "@/hooks/useDownloadUrl";
+import Image from "next/image";
 
 export const SettingAccountModal = () => {
   const theme = useThemeStore((state) => state.theme);
@@ -60,71 +63,14 @@ export const SettingAccountModal = () => {
   const [editPurposeOfUseMode, setEditPurposeOfUseMode] = useState(false);
   const [editedPurposeOfUse, setEditedPurposeOfUse] = useState("");
 
-  const [summary, setSummary] = useState("");
-  const [scheduledFollowUpDate, setScheduledFollowUpDate] = useState("");
-  const [followUpFlag, setFollowUpFlag] = useState(false);
-  const [documentURL, setDocumentURL] = useState("");
-  const [activityType, setActivityType] = useState("");
-  const [claimFlag, setClaimFlag] = useState(false);
-  const [productIntroduction1, setProductIntroduction1] = useState("");
-  const [productIntroduction2, setProductIntroduction2] = useState("");
-  const [productIntroduction3, setProductIntroduction3] = useState("");
-  const [productIntroduction4, setProductIntroduction4] = useState("");
-  const [productIntroduction5, setProductIntroduction5] = useState("");
-  const [departmentName, setDepartmentName] = useState(
-    userProfileState?.department ? userProfileState?.department : ""
-  );
-  const [businessOffice, setBusinessOffice] = useState("");
-  const [memberName, setMemberName] = useState(
-    userProfileState?.last_name ? userProfileState?.last_name + userProfileState?.first_name : ""
-  );
-  const [priority, setPriority] = useState("");
-
   const supabase = useSupabaseClient();
   const { createActivityMutation } = useMutateActivity();
-
-  // console.log("InsertNewActivityModalコンポーネント レンダリング selectedRowDataCompany", selectedRowDataCompany);
+  const { useMutateUploadAvatarImg, useMutateDeleteAvatarImg } = useUploadAvatarImg();
+  const { fullUrl: avatarUrl, isLoading } = useDownloadUrl(userProfileState?.avatar_url, "avatars");
 
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
     setIsOpenSettingAccountModal(false);
-  };
-  const handleSaveAndClose = async () => {
-    if (!summary) return alert("活動概要を入力してください");
-    if (!activityType) return alert("活動タイプを選択してください");
-
-    setLoadingGlobalState(true);
-
-    // 新規作成するデータをオブジェクトにまとめる
-    const newActivity = {
-      created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
-      created_by_user_id: userProfileState?.id ? userProfileState.id : null,
-      created_by_department_of_user: departmentName ? departmentName : null,
-      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
-      client_contact_id: userProfileState?.unit ? userProfileState.unit : null,
-      client_company_id: userProfileState?.unit ? userProfileState.unit : null,
-      summary: summary,
-      scheduled_follow_up_date: scheduledFollowUpDate ? scheduledFollowUpDate : null,
-      follow_up_flag: followUpFlag ? followUpFlag : null,
-      activity_type: activityType ? activityType : null,
-      claim_flag: claimFlag ? claimFlag : null,
-      product_introduction1: productIntroduction1 ? productIntroduction1 : null,
-      product_introduction2: productIntroduction2 ? productIntroduction2 : null,
-      product_introduction3: productIntroduction3 ? productIntroduction3 : null,
-      product_introduction4: productIntroduction4 ? productIntroduction4 : null,
-      product_introduction5: productIntroduction5 ? productIntroduction5 : null,
-      de: businessOffice ? businessOffice : null,
-      business_office: businessOffice ? businessOffice : null,
-      member_name: userProfileState?.last_name ? userProfileState?.last_name + userProfileState?.first_name : "",
-    };
-
-    // supabaseにINSERT
-    createActivityMutation.mutate(newActivity);
-
-    // setLoadingGlobalState(false);
-
-    // モーダルを閉じる
-    // setIsOpenInsertNewActivityModal(false);
   };
 
   // 全角文字を半角に変換する関数
@@ -329,27 +275,67 @@ export const SettingAccountModal = () => {
                   <div className={`text-[14px] font-bold`}>プロフィール写真</div>
                   <div className={`flex h-full w-full items-center justify-between`}>
                     <div className="">
-                      <div
-                        data-text="ユーザー名"
-                        className={`flex-center h-[75px] w-[75px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip} mr-[15px]`}
-                        // onMouseEnter={(e) => handleOpenTooltip(e, "center")}
-                        // onMouseLeave={handleCloseTooltip}
-                      >
-                        {/* <span>K</span> */}
-                        <span className={`text-[30px]`}>
-                          {userProfileState?.profile_name
-                            ? getInitial(userProfileState.profile_name)
-                            : `${getInitial("NoName")}`}
-                        </span>
-                      </div>
+                      {!avatarUrl && (
+                        <label
+                          data-text="ユーザー名"
+                          htmlFor="avatar"
+                          className={`flex-center h-[75px] w-[75px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip} mr-[15px]`}
+                          // onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+                          // onMouseLeave={handleCloseTooltip}
+                        >
+                          {/* <span>K</span> */}
+                          <span className={`text-[30px]`}>
+                            {userProfileState?.profile_name
+                              ? getInitial(userProfileState.profile_name)
+                              : `${getInitial("NoName")}`}
+                          </span>
+                        </label>
+                      )}
+                      {avatarUrl && (
+                        <label
+                          htmlFor="avatar"
+                          className={`flex-center h-[75px] w-[75px] cursor-pointer overflow-hidden rounded-full hover:bg-[#00000020]`}
+                        >
+                          <Image
+                            src={avatarUrl}
+                            alt="Avatar"
+                            className={`h-full w-full object-cover text-[#fff]`}
+                            width={75}
+                            height={75}
+                          />
+                        </label>
+                      )}
                     </div>
-                    <div>
-                      <div
-                        className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
-                      >
-                        写真を変更
-                      </div>
+                    <div className="flex">
+                      {avatarUrl && (
+                        <div
+                          className={`transition-base01 mr-[10px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                          onClick={async () => {
+                            if (!userProfileState?.id) return alert("ユーザーIDが見つかりません");
+                            useMutateDeleteAvatarImg.mutate(userProfileState.avatar_url);
+                          }}
+                        >
+                          写真を削除
+                        </div>
+                      )}
+
+                      <label htmlFor="avatar">
+                        <div
+                          className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                        >
+                          写真を変更
+                        </div>
+                      </label>
                     </div>
+                    <input
+                      type="file"
+                      id="avatar"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        useMutateUploadAvatarImg.mutate(e);
+                      }}
+                    />
                   </div>
                 </div>
 
@@ -966,7 +952,7 @@ export const SettingAccountModal = () => {
                         <option value="5 チームメンバー">5 チームメンバー</option>
                         <option value="6 所長">6 所長</option>
                         <option value="7 個人事業主・フリーランス">7 個人事業主・フリーランス</option>
-                        <option value="7 個人利用">7 個人利用</option>
+                        <option value="8 個人利用">8 個人利用</option>
                       </select>
                       <div className="flex">
                         <div

@@ -1,7 +1,7 @@
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import React, { useEffect, useState } from "react";
 
-export const useDownloadUrl = (filePath: string | undefined, key: "avatars" | "documents") => {
+export const useDownloadUrl = (filePath: string | undefined | null, key: "avatars" | "documents") => {
   const supabase = useSupabaseClient();
   const [isLoading, setIsLoading] = useState(false);
   const [fullUrl, setFullUrl] = useState("");
