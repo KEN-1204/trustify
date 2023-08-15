@@ -208,19 +208,46 @@ export const SettingAccountModal = () => {
               <div className={`w-full text-[14px] font-bold`}>アカウント設定</div>
             </div>
             <div className={`mb-[12px] flex h-[44px] w-full items-center truncate pl-[4px]`}>
-              <div
+              {/* <div
                 data-text="ユーザー名"
                 className={`flex-center h-[40px] w-[40px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip} mr-[15px]`}
-                // onMouseEnter={(e) => handleOpenTooltip(e, "center")}
-                // onMouseLeave={handleCloseTooltip}
               >
-                {/* <span>K</span> */}
                 <span>
                   {userProfileState?.profile_name
                     ? getInitial(userProfileState.profile_name)
                     : `${getInitial("NoName")}`}
                 </span>
-              </div>
+              </div> */}
+              {!avatarUrl && (
+                <div
+                  data-text="ユーザー名"
+                  htmlFor="avatar"
+                  className={`flex-center h-[40px] w-[40px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip} mr-[15px]`}
+                  // onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+                  // onMouseLeave={handleCloseTooltip}
+                >
+                  {/* <span>K</span> */}
+                  <span className={`text-[20px]`}>
+                    {userProfileState?.profile_name
+                      ? getInitial(userProfileState.profile_name)
+                      : `${getInitial("NoName")}`}
+                  </span>
+                </div>
+              )}
+              {avatarUrl && (
+                <div
+                  htmlFor="avatar"
+                  className={`flex-center mr-[15px] h-[40px] w-[40px] cursor-pointer overflow-hidden rounded-full hover:bg-[#00000020]`}
+                >
+                  <Image
+                    src={avatarUrl}
+                    alt="Avatar"
+                    className={`h-full w-full object-cover text-[#fff]`}
+                    width={75}
+                    height={75}
+                  />
+                </div>
+              )}
               <div className={`flex h-full flex-col pt-[4px] text-[12px]`}>
                 <div className={`font-bold`}>
                   <span>{userProfileState?.profile_name ? userProfileState.profile_name : "未設定"}</span>
@@ -312,6 +339,7 @@ export const SettingAccountModal = () => {
                           className={`transition-base01 mr-[10px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
                           onClick={async () => {
                             if (!userProfileState?.id) return alert("ユーザーIDが見つかりません");
+                            if (!userProfileState?.avatar_url) return alert("プロフィール画像が見つかりません");
                             useMutateDeleteAvatarImg.mutate(userProfileState.avatar_url);
                           }}
                         >

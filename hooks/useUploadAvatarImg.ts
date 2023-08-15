@@ -51,9 +51,10 @@ export const useUploadAvatarImg = () => {
     },
     {
       onSuccess: (data) => {
+        setUserProfileState(data);
         setTimeout(() => {
           // Zustandを更新
-          setUserProfileState(data);
+          // setUserProfileState(data);
           setLoadingGlobalState(false);
           toast.success("プロフィール画像の更新が完了しました!", {
             position: "top-right",

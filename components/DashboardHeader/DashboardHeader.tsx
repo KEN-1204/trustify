@@ -11,6 +11,7 @@ import Link from "next/link";
 import useDashboardStore from "@/store/useDashboardStore";
 import useThemeStore from "@/store/useThemeStore";
 import useRootStore from "@/store/useRootStore";
+import { useDownloadUrl } from "@/hooks/useDownloadUrl";
 
 export const DashboardHeaderMemo: FC = () => {
   // const theme = useThemeStore((state) => state.theme);
@@ -24,9 +25,12 @@ export const DashboardHeaderMemo: FC = () => {
   const setIsOpenSidebar = useDashboardStore((state) => state.setIsOpenSidebar);
   // アカウント設定モーダル
   const setIsOpenSettingAccountModal = useDashboardStore((state) => state.setIsOpenSettingAccountModal);
+  const userProfileState = useDashboardStore((state) => state.userProfileState);
   const [tabPage, setTabPage] = useState(1);
   const logoSrc =
     theme === "light" ? "/assets/images/Trustify_logo_white1.png" : "/assets/images/Trustify_logo_black.png";
+
+  const { fullUrl: avatarUrl, isLoading } = useDownloadUrl(userProfileState?.avatar_url, "avatars");
 
   const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
     // ホバーしたアイテムにツールチップを表示
@@ -53,6 +57,9 @@ export const DashboardHeaderMemo: FC = () => {
   const handleCloseTooltip = () => {
     setHoveredItemPos(null);
   };
+
+  // 頭文字のみ抽出
+  const getInitial = (name: string) => name[0];
 
   return (
     <header className={`${styles.app_header} transition-base03`}>
@@ -467,14 +474,43 @@ export const DashboardHeaderMemo: FC = () => {
         <div className="transition-base03 absolute right-[185px] top-0 z-30 h-full w-[39px] bg-[var(--color-bg-base)]"></div>
         {/* 一番右 プロフィールアイコン */}
         <div className="flex-center h-full  w-[52px] px-[6px] py-[1px]">
-          <div
+          {/* <div
             data-text="ユーザー名"
             className={`flex-center h-[40px] w-[40px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip}`}
             onMouseEnter={(e) => handleOpenTooltip(e, "center")}
             onMouseLeave={handleCloseTooltip}
           >
             <span>K</span>
-          </div>
+          </div> */}
+          {!avatarUrl && (
+            <div
+              data-text="ユーザー名"
+              className={`flex-center h-[40px] w-[40px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip}`}
+              onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+              onMouseLeave={handleCloseTooltip}
+            >
+              {/* <span>K</span> */}
+              <span className={`text-[20px]`}>
+                {userProfileState?.profile_name ? getInitial(userProfileState.profile_name) : `${getInitial("NoName")}`}
+              </span>
+            </div>
+          )}
+          {avatarUrl && (
+            <div
+              data-text="ユーザー名"
+              className={`flex-center h-[40px] w-[40px] cursor-pointer overflow-hidden rounded-full hover:bg-[#00000020]`}
+              onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+              onMouseLeave={handleCloseTooltip}
+            >
+              <Image
+                src={avatarUrl}
+                alt="Avatar"
+                className={`h-full w-full object-cover text-[#fff]`}
+                width={75}
+                height={75}
+              />
+            </div>
+          )}
         </div>
         {/* 右から２番目 歯車 */}
         <div className="flex-center mr-[8px] h-full w-[40px]">

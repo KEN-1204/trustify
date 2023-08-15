@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 export const useDownloadUrl = (filePath: string | undefined | null, key: "avatars" | "documents") => {
   const supabase = useSupabaseClient();
   const [isLoading, setIsLoading] = useState(false);
-  const [fullUrl, setFullUrl] = useState("");
+  const [fullUrl, setFullUrl] = useState<string | null>("");
   const bucketName = key === "avatars" ? "avatars" : "documents";
 
   useEffect(() => {
@@ -24,6 +24,10 @@ export const useDownloadUrl = (filePath: string | undefined | null, key: "avatar
         setIsLoading(false);
       };
       download();
+    }
+    // filePathがnullの場合
+    else {
+      setFullUrl(null);
     }
   }, [filePath, bucketName]);
   return {
