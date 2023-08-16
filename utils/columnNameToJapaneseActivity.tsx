@@ -219,6 +219,7 @@ export const columnNameToJapaneseActivity = (columnName: string) => {
       break;
 
     default:
+      return "";
       break;
   }
 };

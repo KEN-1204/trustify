@@ -2379,7 +2379,9 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                         onMouseEnter={(e) => {
                           // if (isOverflowColumnHeader.includes(key.columnId.toString())) {
                           if (key.isOverflow) {
-                            handleOpenTooltip(e, "top", key.columnName);
+                            // handleOpenTooltip(e, "top", key.columnName);
+                            const columnNameData = key.columnName ? key.columnName : "";
+                            handleOpenTooltip(e, "top", columnNameToJapanese(columnNameData));
                             console.log("マウスエンター key.columnId.toString()");
                             console.log("マウスエンター ツールチップオープン カラムID", key.columnId.toString());
                           }

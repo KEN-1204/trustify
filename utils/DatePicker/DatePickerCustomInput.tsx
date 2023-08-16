@@ -15,9 +15,10 @@ type Props = {
   startDate: Date | null;
   //   setStartDate: (date: Date) => void;
   setStartDate: Dispatch<SetStateAction<Date | null>>;
+  required?: boolean;
 };
 
-export const DatePickerCustomInput: FC<Props> = ({ startDate, setStartDate }) => {
+export const DatePickerCustomInput: FC<Props> = ({ startDate, setStartDate, required = true }) => {
   const language = useStore((state) => state.language);
   //   const [startDate, setStartDate] = useState(new Date());
   const years = range(1990, getYear(new Date()) + 1, 1);
@@ -64,7 +65,7 @@ export const DatePickerCustomInput: FC<Props> = ({ startDate, setStartDate }) =>
           //       date: date ? date.toISOString().substring(0, 10) : null,
           //     })
           //   }
-          required
+          required={required}
           data-testid="commentDateInput"
           dropdownMode="select"
           //   disabled={editStatus}

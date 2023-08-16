@@ -330,6 +330,9 @@
   border-radius: 2px;
   resize: none;
 }
+.textarea_box_bg {
+  background: var(--color-bg-under-input-gray);
+}
 
 /* ------------------------------- 右側エリア ------------------------------- */
 .right_container {

@@ -451,6 +451,7 @@ const ContactMainContainerMemo: FC = () => {
       >
         {/* ------------------------- 左コンテナ ------------------------- */}
         <div
+          // className={`${styles.left_container} h-full min-w-[calc(50vw-var(--sidebar-open-width))] pb-[35px] pt-[10px]`}
           className={`${styles.left_container} h-full min-w-[calc(50vw-var(--sidebar-mini-width))] pb-[35px] pt-[10px]`}
         >
           {/* --------- ラッパー --------- */}
@@ -881,7 +882,7 @@ const ContactMainContainerMemo: FC = () => {
               </div>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
-                  <span className={`${styles.title}`}>決裁金額(万円)</span>
+                  <span className={`${styles.title} !mr-[12px]`}>決裁金額(万円)</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
                       {selectedRowDataContact?.approval_amount ? selectedRowDataContact?.approval_amount : ""}
@@ -1365,7 +1366,7 @@ const ContactMainContainerMemo: FC = () => {
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title} `}>製品分類（大分類）</span>
+                  <span className={`${styles.title} !mr-[15px]`}>製品分類（大分類）</span>
                   {!searchMode && (
                     <span
                       className={`${styles.value}`}
@@ -1422,7 +1423,7 @@ const ContactMainContainerMemo: FC = () => {
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>製品分類（中分類）</span>
+                  <span className={`${styles.title} !mr-[15px]`}>製品分類（中分類）</span>
                   {!searchMode && (
                     <span
                       className={`${styles.value}`}

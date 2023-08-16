@@ -119,6 +119,7 @@ export const columnNameToJapanese = (columnName: string) => {
       break;
 
     default:
+      return "";
       break;
   }
 };

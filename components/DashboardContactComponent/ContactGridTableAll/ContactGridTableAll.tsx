@@ -341,8 +341,14 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
       const { data, error, count } = await supabase
         .rpc("search_companies_and_contacts", { params }, { count: "exact" })
         .is("created_by_company_id", null)
+        .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
         .range(from, to)
         .order("company_name", { ascending: true });
+      // const { data, error, count } = await supabase
+      //   .rpc("search_companies_and_contacts", { params }, { count: "exact" })
+      //   .is("created_by_company_id", null)
+      //   .range(from, to)
+      //   .order("company_name", { ascending: true });
 
       // ユーザーIDが自身のIDと一致するデータのみ 成功
       // const { data, error } = await supabase
@@ -400,9 +406,15 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
       let params = newSearchContact_CompanyParams;
       // created_by_company_idが一致するデータのみ
       const { data, error, count } = await supabase
-        .rpc("search_companies", { params }, { count: "exact" })
-        .eq("created_by_company_id", `${userProfileState?.company_id}`)
-        .range(from, to);
+        .rpc("search_companies_and_contacts", { params }, { count: "exact" })
+        .eq("created_by_company_id", userProfileState.company_id)
+        .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
+        .range(from, to)
+        .order("company_name", { ascending: true });
+      // const { data, error, count } = await supabase
+      //   .rpc("search_companies_and_contacts", { params }, { count: "exact" })
+      //   .eq("created_by_company_id", `${userProfileState?.company_id}`)
+      //   .range(from, to);
 
       // ユーザーIDが自身のIDと一致するデータのみ 成功
       // const { data, error } = await supabase
@@ -2360,7 +2372,9 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                         onMouseEnter={(e) => {
                           // if (isOverflowColumnHeader.includes(key.columnId.toString())) {
                           if (key.isOverflow) {
-                            handleOpenTooltip(e, "top", key.columnName);
+                            // handleOpenTooltip(e, "top", key.columnName);
+                            const columnNameData = key.columnName ? key.columnName : "";
+                            handleOpenTooltip(e, "top", columnNameToJapaneseContacts(columnNameData));
                             console.log("マウスエンター key.columnId.toString()");
                             console.log("マウスエンター ツールチップオープン カラムID", key.columnId.toString());
                           }

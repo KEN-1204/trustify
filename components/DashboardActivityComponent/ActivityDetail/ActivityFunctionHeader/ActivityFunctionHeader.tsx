@@ -109,18 +109,18 @@ const ActivityFunctionHeaderMemo: FC = () => {
           }}
         /> */}
         <RippleButton
-          title={`担当者編集`}
+          title={`活動編集`}
           classText={`select-none ${searchMode || !selectedRowDataActivity ? `cursor-not-allowed` : ``}`}
           borderRadius="2px"
           clickEventHandler={() => {
             if (searchMode) return;
-            if (!selectedRowDataActivity) return alert("担当者を選択してください");
-            console.log("担当者作成 クリック");
+            if (!selectedRowDataActivity) return alert("活動を選択してください");
+            console.log("活動編集 クリック");
             setLoadingGlobalState(false);
             setIsOpenUpdateActivityModal(true);
           }}
         />
-        <RippleButton
+        {/* <RippleButton
           title={`活動作成`}
           classText={`select-none ${searchMode || !selectedRowDataActivity ? `cursor-not-allowed` : ``}`}
           borderRadius="2px"
@@ -131,7 +131,7 @@ const ActivityFunctionHeaderMemo: FC = () => {
             setLoadingGlobalState(false);
             setIsOpenInsertNewActivityModal(true);
           }}
-        />
+        /> */}
       </div>
 
       <div className={`flex max-h-[26px] w-full  items-center justify-end space-x-[6px]`}>

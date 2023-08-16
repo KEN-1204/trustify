@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import styles from "./InsertNewActivityModal.module.css";
+import styles from "./UpdateActivityModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
@@ -10,9 +10,9 @@ import { useMutateActivity } from "@/hooks/useMutateActivity";
 import productCategoriesM from "@/utils/productCategoryM";
 import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
 
-export const InsertNewActivityModal = () => {
-  const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
-  const setIsOpenInsertNewActivityModal = useDashboardStore((state) => state.setIsOpenInsertNewActivityModal);
+export const UpdateActivityModal = () => {
+  const selectedRowDataActivity = useDashboardStore((state) => state.selectedRowDataActivity);
+  const setIsOpenUpdateActivityModal = useDashboardStore((state) => state.setIsOpenUpdateActivityModal);
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   // const theme = useThemeStore((state) => state.theme);
@@ -30,11 +30,11 @@ export const InsertNewActivityModal = () => {
   const [documentURL, setDocumentURL] = useState("");
   const [activityType, setActivityType] = useState("");
   const [claimFlag, setClaimFlag] = useState(false);
-  const [productIntroduction1, setProductIntroduction1] = useState(null);
-  const [productIntroduction2, setProductIntroduction2] = useState(null);
-  const [productIntroduction3, setProductIntroduction3] = useState(null);
-  const [productIntroduction4, setProductIntroduction4] = useState(null);
-  const [productIntroduction5, setProductIntroduction5] = useState(null);
+  const [productIntroduction1, setProductIntroduction1] = useState("");
+  const [productIntroduction2, setProductIntroduction2] = useState("");
+  const [productIntroduction3, setProductIntroduction3] = useState("");
+  const [productIntroduction4, setProductIntroduction4] = useState("");
+  const [productIntroduction5, setProductIntroduction5] = useState("");
   const [departmentName, setDepartmentName] = useState(
     userProfileState?.department ? userProfileState?.department : ""
   );
@@ -45,36 +45,87 @@ export const InsertNewActivityModal = () => {
   const [priority, setPriority] = useState("");
 
   const supabase = useSupabaseClient();
-  const { createActivityMutation } = useMutateActivity();
+  const { updateActivityMutation } = useMutateActivity();
 
+  // 初回マウント時に選択中の担当者&会社の列データの情報をStateに格納
   useEffect(() => {
-    if (!userProfileState) return;
-    setMemberName(userProfileState.profile_name ? userProfileState.profile_name : "");
-    setBusinessOffice(userProfileState.office ? userProfileState.office : "");
-    setDepartmentName(userProfileState.department ? userProfileState.department : "");
+    if (!selectedRowDataActivity) return;
+    let _activity_date = selectedRowDataActivity.activity_date ? new Date(selectedRowDataActivity.activity_date) : null;
+    let _summary = selectedRowDataActivity.summary ? selectedRowDataActivity.summary : "";
+    let _scheduled_follow_up_date = selectedRowDataActivity.scheduled_follow_up_date
+      ? new Date(selectedRowDataActivity.scheduled_follow_up_date)
+      : null;
+    let _follow_up_flag = selectedRowDataActivity.follow_up_flag ? selectedRowDataActivity.follow_up_flag : false;
+    let _document_url = selectedRowDataActivity.document_url ? selectedRowDataActivity.document_url : "";
+    let _activity_type = selectedRowDataActivity.activity_type ? selectedRowDataActivity.activity_type : "";
+    let _claim_flag = selectedRowDataActivity.claim_flag ? selectedRowDataActivity.claim_flag : false;
+    let _product_introduction1 = selectedRowDataActivity.product_introduction1
+      ? selectedRowDataActivity.product_introduction1
+      : "";
+    let _product_introduction2 = selectedRowDataActivity.product_introduction2
+      ? selectedRowDataActivity.product_introduction2
+      : "";
+    let _product_introduction3 = selectedRowDataActivity.product_introduction3
+      ? selectedRowDataActivity.product_introduction3
+      : "";
+    let _product_introduction4 = selectedRowDataActivity.product_introduction4
+      ? selectedRowDataActivity.product_introduction4
+      : "";
+    let _product_introduction5 = selectedRowDataActivity.product_introduction5
+      ? selectedRowDataActivity.product_introduction5
+      : "";
+    let _department = selectedRowDataActivity.department ? selectedRowDataActivity.department : "";
+    let _business_office = selectedRowDataActivity.business_office ? selectedRowDataActivity.business_office : "";
+    let _member_name = selectedRowDataActivity.member_name ? selectedRowDataActivity.member_name : "";
+    let _priority = selectedRowDataActivity.priority ? selectedRowDataActivity.priority : "";
+    setActivityDate(_activity_date);
+    setSummary(_summary);
+    setScheduledFollowUpDate(_scheduled_follow_up_date);
+    setFollowUpFlag(_follow_up_flag);
+    setDocumentURL(_document_url);
+    setActivityType(_activity_type);
+    setClaimFlag(_claim_flag);
+    setProductIntroduction1(_product_introduction1);
+    setProductIntroduction2(_product_introduction2);
+    setProductIntroduction3(_product_introduction3);
+    setProductIntroduction4(_product_introduction4);
+    setProductIntroduction5(_product_introduction5);
+    setDepartmentName(_department);
+    setBusinessOffice(_business_office);
+    setMemberName(_member_name);
+    setPriority(_priority);
   }, []);
 
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
-    setIsOpenInsertNewActivityModal(false);
+    setIsOpenUpdateActivityModal(false);
   };
   const handleSaveAndClose = async () => {
     if (!summary) return alert("活動概要を入力してください");
     if (!activityType) return alert("活動タイプを選択してください");
     if (!userProfileState?.id) return alert("ユーザー情報が存在しません");
-    if (!selectedRowDataContact?.company_id) return alert("相手先の会社情報が存在しません");
-    if (!selectedRowDataContact?.contact_id) return alert("担当者情報が存在しません");
+    if (!selectedRowDataActivity?.company_id) return alert("相手先の会社情報が存在しません");
+    if (!selectedRowDataActivity?.contact_id) return alert("担当者情報が存在しません");
 
     setLoadingGlobalState(true);
 
     // 新規作成するデータをオブジェクトにまとめる
     const newActivity = {
-      created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
-      created_by_user_id: userProfileState?.id ? userProfileState.id : null,
-      created_by_department_of_user: departmentName ? departmentName : null,
-      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
-      client_contact_id: selectedRowDataContact.contact_id,
-      client_company_id: selectedRowDataContact.company_id,
+      id: selectedRowDataActivity.activity_id,
+      created_by_company_id: selectedRowDataActivity?.activity_created_by_company_id
+        ? selectedRowDataActivity.activity_created_by_company_id
+        : null,
+      created_by_user_id: selectedRowDataActivity?.activity_created_by_user_id
+        ? selectedRowDataActivity.activity_created_by_user_id
+        : null,
+      created_by_department_of_user: selectedRowDataActivity.activity_created_by_department_of_user
+        ? selectedRowDataActivity.activity_created_by_department_of_user
+        : null,
+      created_by_unit_of_user: selectedRowDataActivity?.activity_created_by_unit_of_user
+        ? selectedRowDataActivity.activity_created_by_unit_of_user
+        : null,
+      client_contact_id: selectedRowDataActivity.contact_id,
+      client_company_id: selectedRowDataActivity.company_id,
       summary: summary,
       scheduled_follow_up_date: scheduledFollowUpDate ? scheduledFollowUpDate.toISOString() : null,
       // follow_up_flag: followUpFlag ? followUpFlag : null,
@@ -95,13 +146,13 @@ export const InsertNewActivityModal = () => {
       activity_date: activityDate ? activityDate.toISOString() : null,
     };
 
-    // supabaseにINSERT
-    createActivityMutation.mutate(newActivity);
+    // supabaseにUPDATE
+    updateActivityMutation.mutate(newActivity);
 
-    // setLoadingGlobalState(false);
+    setLoadingGlobalState(false);
 
     // モーダルを閉じる
-    // setIsOpenInsertNewActivityModal(false);
+    setIsOpenUpdateActivityModal(false);
   };
 
   // 全角文字を半角に変換する関数
@@ -207,7 +258,7 @@ export const InsertNewActivityModal = () => {
     return total;
   }
 
-  console.log("活動作成モーダル selectedRowDataContact", selectedRowDataContact);
+  console.log("活動作成モーダル selectedRowDataActivity", selectedRowDataActivity);
 
   return (
     <>

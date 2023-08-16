@@ -796,7 +796,7 @@ const CompanyMainContainerMemo: FC = () => {
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title} !mr-[5px] !min-w-max`}>○製品分類(大分類)</span>
+                  <span className={`${styles.title} !mr-[15px] !min-w-max`}>○製品分類(大分類)</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
                       {selectedRowDataCompany?.product_category_large
@@ -844,7 +844,7 @@ const CompanyMainContainerMemo: FC = () => {
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title} !mr-[5px] !min-w-max`}>○製品分類(中分類)</span>
+                  <span className={`${styles.title} !mr-[15px] !min-w-max`}>○製品分類(中分類)</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
                       {selectedRowDataCompany?.product_category_medium

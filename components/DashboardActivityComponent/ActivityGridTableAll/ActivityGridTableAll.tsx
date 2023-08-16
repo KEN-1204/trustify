@@ -341,10 +341,17 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
       console.log("🔥🔥テスト🔥🔥supabase rpcフェッチ実行！！！！！！！！ from, to, params", from, to, params);
       // created_by_company_idがnullのもの
       const { data, error, count } = await supabase
-        .rpc("search_companies_and_contacts_and_activities", { params }, { count: "exact" })
-        .is("created_by_company_id", null)
+        .rpc("search_activities_and_companies_and_contacts", { params }, { count: "exact" })
+        .is("activity_created_by_company_id", null)
+        .or(`activity_created_by_user_id.eq.${userProfileState.id},activity_created_by_user_id.is.null`)
         .range(from, to)
         .order("company_name", { ascending: true });
+      // 成功バージョン
+      // const { data, error, count } = await supabase
+      //   .rpc("search_activities_and_companies_and_contacts", { params }, { count: "exact" })
+      //   .is("created_by_company_id", null)
+      //   .range(from, to)
+      //   .order("company_name", { ascending: true });
 
       // ユーザーIDが自身のIDと一致するデータのみ 成功
       // const { data, error } = await supabase
@@ -402,9 +409,16 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
       let params = newSearchActivity_Contact_CompanyParams;
       // created_by_company_idが一致するデータのみ
       const { data, error, count } = await supabase
-        .rpc("search_companies", { params }, { count: "exact" })
-        .eq("created_by_company_id", `${userProfileState?.company_id}`)
-        .range(from, to);
+        .rpc("search_activities_and_companies_and_contacts", { params }, { count: "exact" })
+        .eq("activity_created_by_company_id", userProfileState.company_id)
+        .or(`activity_created_by_user_id.eq.${userProfileState.id},activity_created_by_user_id.is.null`)
+        .range(from, to)
+        .order("company_name", { ascending: true });
+      // 成功バージョン
+      // const { data, error, count } = await supabase
+      //   .rpc("search_activities_and_companies_and_contacts", { params }, { count: "exact" })
+      //   .eq("created_by_company_id", `${userProfileState?.company_id}`)
+      //   .range(from, to);
 
       // ユーザーIDが自身のIDと一致するデータのみ 成功
       // const { data, error } = await supabase
@@ -2198,7 +2212,7 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
                 className={`flex-center transition-base03 h-[26px]  cursor-pointer space-x-1  rounded-[4px] px-[15px]  text-[12px]  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`}
                 onClick={async () => {
                   console.log("リフレッシュ クリック");
-                  await queryClient.invalidateQueries({ queryKey: ["activity"] });
+                  await queryClient.invalidateQueries({ queryKey: ["activities"] });
                 }}
               >
                 <FiRefreshCw />
@@ -2329,7 +2343,7 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
                         // draggable={index === 0 ? false : true} // テスト
                         data-column-id={`${key.columnId}`}
                         data-handler-id={`T${key.columnId}${key.columnName}`}
-                        data-text={`${key.columnName}`}
+                        data-text={`${columnNameToJapaneseActivity(key.columnName)}`}
                         aria-colindex={key.columnIndex}
                         // aria-colindex={index + 2}
                         aria-selected={false}
@@ -2369,7 +2383,9 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
                         onMouseEnter={(e) => {
                           // if (isOverflowColumnHeader.includes(key.columnId.toString())) {
                           if (key.isOverflow) {
-                            handleOpenTooltip(e, "top", key.columnName);
+                            // handleOpenTooltip(e, "top", key.columnName);
+                            const columnNameData = key.columnName ? key.columnName : "";
+                            handleOpenTooltip(e, "top", columnNameToJapaneseActivity(columnNameData));
                             console.log("マウスエンター key.columnId.toString()");
                             console.log("マウスエンター ツールチップオープン カラムID", key.columnId.toString());
                           }

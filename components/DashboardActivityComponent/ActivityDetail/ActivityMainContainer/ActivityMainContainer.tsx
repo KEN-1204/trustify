@@ -9,6 +9,7 @@ import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import dynamic from "next/dynamic";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import productCategoriesM, { moduleCategoryM } from "@/utils/productCategoryM";
+import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -39,8 +40,8 @@ const ActivityMainContainerMemo: FC = () => {
   const setHoveredItemPosWrap = useStore((state) => state.setHoveredItemPosWrap);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   // 上画面の選択中の列データ会社
-  const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
-  const setSelectedRowDataContact = useDashboardStore((state) => state.setSelectedRowDataContact);
+  const selectedRowDataActivity = useDashboardStore((state) => state.selectedRowDataActivity);
+  const setSelectedRowDataActivity = useDashboardStore((state) => state.setSelectedRowDataActivity);
   // 担当者編集モーダルオープン
   const setIsOpenUpdateContactModal = useDashboardStore((state) => state.setIsOpenUpdateContactModal);
 
@@ -94,7 +95,7 @@ const ActivityMainContainerMemo: FC = () => {
 
   // 🌟サブミット
   const [inputCompanyName, setInputCompanyName] = useState("");
-  const [inputDepartment, setInputDepartment] = useState("");
+  const [inputDepartmentName, setInputDepartmentName] = useState("");
   const [inputTel, setInputTel] = useState("");
   const [inputFax, setInputFax] = useState("");
   const [inputZipcode, setInputZipcode] = useState("");
@@ -131,18 +132,44 @@ const ActivityMainContainerMemo: FC = () => {
   const [inputPositionClass, setInputPositionClass] = useState("");
   const [inputOccupation, setInputOccupation] = useState("");
   const [inputApprovalAmount, setInputApprovalAmount] = useState("");
-  const [inputCreatedByCompanyId, setInputCreatedByCompanyId] = useState("");
-  const [inputCreatedByUserId, setInputCreatedByUserId] = useState("");
+  const [inputContactCreatedByCompanyId, setInputContactCreatedByCompanyId] = useState("");
+  const [inputContactCreatedByUserId, setInputContactCreatedByUserId] = useState("");
+  // activityテーブル
+  const [inputActivityCreatedByCompanyId, setInputActivityCreatedByCompanyId] = useState("");
+  const [inputActivityCreatedByUserId, setInputActivityCreatedByUserId] = useState("");
+  const [inputActivityCreatedByDepartmentOfUser, setInputActivityCreatedByDepartmentOfUser] = useState("");
+  const [inputActivityCreatedByUnitOfUser, setInputActivityCreatedByUnitOfUser] = useState("");
+  const [inputSummary, setInputSummary] = useState("");
+  const [inputScheduledFollowUpDate, setInputScheduledFollowUpDate] = useState<Date | null>(null);
+  const [inputFollowUpFlag, setInputFollowUpFlag] = useState<boolean>(false);
+  const [inputDocumentUrl, setInputDocumentUrl] = useState("");
+  const [inputActivityType, setInputActivityType] = useState("");
+  const [inputClaimFlag, setInputClaimFlag] = useState<boolean>(false);
+  const [inputProductIntroduction1, setInputProductIntroduction1] = useState("");
+  const [inputProductIntroduction2, setInputProductIntroduction2] = useState("");
+  const [inputProductIntroduction3, setInputProductIntroduction3] = useState("");
+  const [inputProductIntroduction4, setInputProductIntroduction4] = useState("");
+  const [inputProductIntroduction5, setInputProductIntroduction5] = useState("");
+  const [inputBusinessOffice, setInputBusinessOffice] = useState("");
+  const [inputMemberName, setInputMemberName] = useState("");
+  const [inputPriority, setInputPriority] = useState("");
+  const [inputActivityDate, setInputActivityDate] = useState<Date | null>(null);
+  const [inputDepartment, setInputDepartment] = useState("");
 
   const supabase = useSupabaseClient();
-  const newSearchContact_CompanyParams = useDashboardStore((state) => state.newSearchContact_CompanyParams);
-  const setNewSearchContact_CompanyParams = useDashboardStore((state) => state.setNewSearchContact_CompanyParams);
+  const newSearchActivity_Contact_CompanyParams = useDashboardStore(
+    (state) => state.newSearchActivity_Contact_CompanyParams
+  );
+  const setNewSearchActivity_Contact_CompanyParams = useDashboardStore(
+    (state) => state.setNewSearchActivity_Contact_CompanyParams
+  );
   const editSearchMode = useDashboardStore((state) => state.editSearchMode);
   const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
 
   // サーチ編集モードでリプレイス前の値に復元する関数
   function beforeAdjustFieldValue(value: string | null) {
+    if (typeof value === "boolean") return value; // Booleanの場合、そのままの値を返す
     if (value === "") return ""; // 全てのデータ
     if (value === null) return ""; // 全てのデータ
     if (value.includes("%")) value = value.replace(/\%/g, "＊");
@@ -150,65 +177,131 @@ const ActivityMainContainerMemo: FC = () => {
     if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
     return value;
   }
-  console.log("🔥メインコンテナーnewSearchContact_CompanyParams", newSearchContact_CompanyParams);
+  console.log("🔥メインコンテナーnewSearchActivity_Contact_CompanyParams", newSearchActivity_Contact_CompanyParams);
 
   // 編集モードtrueの場合、サーチ条件をinputタグのvalueに格納
   // 新規サーチの場合には、サーチ条件を空にする
   useEffect(() => {
-    if (newSearchContact_CompanyParams === null) return;
-    console.log("🔥メインコンテナーnewSearchContact_CompanyParams編集モード", newSearchContact_CompanyParams);
+    if (newSearchActivity_Contact_CompanyParams === null) return;
+    console.log(
+      "🔥メインコンテナーnewSearchActivity_Contact_CompanyParams編集モード",
+      newSearchActivity_Contact_CompanyParams
+    );
     if (editSearchMode) {
-      //   setInputCompanyName(beforeAdjustFieldValue(newSearchContact_CompanyParams.company_name));
-      setInputCompanyName(beforeAdjustFieldValue(newSearchContact_CompanyParams["client_companies.name"]));
-      setInputDepartment(beforeAdjustFieldValue(newSearchContact_CompanyParams.department_name));
-      //   setInputContactName(beforeAdjustFieldValue(newSearchContact_CompanyParams.contact_name));
-      setInputContactName(beforeAdjustFieldValue(newSearchContact_CompanyParams["contacts.name"]));
-      setInputTel(beforeAdjustFieldValue(newSearchContact_CompanyParams?.main_phone_number));
-      setInputFax(beforeAdjustFieldValue(newSearchContact_CompanyParams?.main_fax));
-      setInputZipcode(beforeAdjustFieldValue(newSearchContact_CompanyParams?.zipcode));
-      setInputEmployeesClass(beforeAdjustFieldValue(newSearchContact_CompanyParams?.number_of_employees_class));
-      setInputAddress(beforeAdjustFieldValue(newSearchContact_CompanyParams?.address));
-      setInputCapital(beforeAdjustFieldValue(newSearchContact_CompanyParams?.capital));
-      setInputFound(beforeAdjustFieldValue(newSearchContact_CompanyParams?.established_in));
-      setInputContent(beforeAdjustFieldValue(newSearchContact_CompanyParams?.business_content));
-      setInputHP(beforeAdjustFieldValue(newSearchContact_CompanyParams.website_url));
-      //   setInputCompanyEmail(beforeAdjustFieldValue(newSearchContact_CompanyParams.company_email));
-      setInputCompanyEmail(beforeAdjustFieldValue(newSearchContact_CompanyParams["client_companies.email"]));
-      setInputIndustryType(beforeAdjustFieldValue(newSearchContact_CompanyParams.industry_type));
-      setInputProductL(beforeAdjustFieldValue(newSearchContact_CompanyParams.product_category_large));
-      setInputProductM(beforeAdjustFieldValue(newSearchContact_CompanyParams.product_category_medium));
-      setInputProductS(beforeAdjustFieldValue(newSearchContact_CompanyParams.product_category_small));
-      setInputFiscal(beforeAdjustFieldValue(newSearchContact_CompanyParams.fiscal_end_month));
-      setInputBudgetRequestMonth1(beforeAdjustFieldValue(newSearchContact_CompanyParams.budget_request_month1));
-      setInputBudgetRequestMonth2(beforeAdjustFieldValue(newSearchContact_CompanyParams.budget_request_month2));
-      setInputClient(beforeAdjustFieldValue(newSearchContact_CompanyParams.clients));
-      setInputSupplier(beforeAdjustFieldValue(newSearchContact_CompanyParams.supplier));
-      setInputFacility(beforeAdjustFieldValue(newSearchContact_CompanyParams.facility));
-      setInputBusinessSite(beforeAdjustFieldValue(newSearchContact_CompanyParams.business_sites));
-      setInputOverseas(beforeAdjustFieldValue(newSearchContact_CompanyParams.overseas_bases));
-      setInputGroup(beforeAdjustFieldValue(newSearchContact_CompanyParams.group_company));
-      setInputCorporateNum(beforeAdjustFieldValue(newSearchContact_CompanyParams.corporate_number));
+      //   setInputCompanyName(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.company_name));
+      setInputCompanyName(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams["client_companies.name"]));
+      setInputDepartmentName(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.department_name));
+      //   setInputContactName(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.contact_name));
+      setInputContactName(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams["contacts.name"]));
+      setInputTel(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams?.main_phone_number));
+      setInputFax(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams?.main_fax));
+      setInputZipcode(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams?.zipcode));
+      setInputEmployeesClass(
+        beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams?.number_of_employees_class)
+      );
+      setInputAddress(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams?.address));
+      setInputCapital(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams?.capital));
+      setInputFound(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams?.established_in));
+      setInputContent(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams?.business_content));
+      setInputHP(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.website_url));
+      //   setInputCompanyEmail(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.company_email));
+      setInputCompanyEmail(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams["client_companies.email"]));
+      setInputIndustryType(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.industry_type));
+      setInputProductL(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.product_category_large));
+      setInputProductM(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.product_category_medium));
+      setInputProductS(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.product_category_small));
+      setInputFiscal(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.fiscal_end_month));
+      setInputBudgetRequestMonth1(
+        beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.budget_request_month1)
+      );
+      setInputBudgetRequestMonth2(
+        beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.budget_request_month2)
+      );
+      setInputClient(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.clients));
+      setInputSupplier(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.supplier));
+      setInputFacility(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.facility));
+      setInputBusinessSite(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.business_sites));
+      setInputOverseas(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.overseas_bases));
+      setInputGroup(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.group_company));
+      setInputCorporateNum(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.corporate_number));
 
       // contactsテーブル
-      //   setInputContactName(beforeAdjustFieldValue(newSearchContact_CompanyParams.contact_name));
-      setInputContactName(beforeAdjustFieldValue(newSearchContact_CompanyParams["contacts.name"]));
-      setInputDirectLine(beforeAdjustFieldValue(newSearchContact_CompanyParams.direct_line));
-      setInputDirectFax(beforeAdjustFieldValue(newSearchContact_CompanyParams.direct_fax));
-      setInputExtension(beforeAdjustFieldValue(newSearchContact_CompanyParams.extension));
-      setInputCompanyCellPhone(beforeAdjustFieldValue(newSearchContact_CompanyParams.company_cell_phone));
-      setInputPersonalCellPhone(beforeAdjustFieldValue(newSearchContact_CompanyParams.personal_cell_phone));
-      //   setInputContactEmail(beforeAdjustFieldValue(newSearchContact_CompanyParams.contact_email));
-      setInputContactEmail(beforeAdjustFieldValue(newSearchContact_CompanyParams["contacts.email"]));
-      setInputPositionName(beforeAdjustFieldValue(newSearchContact_CompanyParams.position_name));
-      setInputPositionClass(beforeAdjustFieldValue(newSearchContact_CompanyParams.position_class));
-      setInputOccupation(beforeAdjustFieldValue(newSearchContact_CompanyParams.occupation));
-      setInputApprovalAmount(beforeAdjustFieldValue(newSearchContact_CompanyParams.approval_amount));
-      setInputCreatedByCompanyId(beforeAdjustFieldValue(newSearchContact_CompanyParams.created_by_company_id));
-      setInputCreatedByUserId(beforeAdjustFieldValue(newSearchContact_CompanyParams.created_by_user_id));
+      //   setInputContactName(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.contact_name));
+      setInputContactName(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams["contacts.name"]));
+      setInputDirectLine(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.direct_line));
+      setInputDirectFax(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.direct_fax));
+      setInputExtension(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.extension));
+      setInputCompanyCellPhone(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.company_cell_phone));
+      setInputPersonalCellPhone(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.personal_cell_phone));
+      //   setInputContactEmail(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.contact_email));
+      setInputContactEmail(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams["contacts.email"]));
+      setInputPositionName(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.position_name));
+      setInputPositionClass(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.position_class));
+      setInputOccupation(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.occupation));
+      setInputApprovalAmount(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.approval_amount));
+      setInputContactCreatedByCompanyId(
+        beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams["contacts.created_by_company_id"])
+      );
+      setInputContactCreatedByUserId(
+        beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams["contacts.created_by_user_id"])
+      );
+
+      // activitiesテーブル
+      setInputActivityCreatedByCompanyId(
+        beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams["activities.created_by_company_id"])
+      );
+      setInputActivityCreatedByUserId(
+        beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams["activities.created_by_user_id"])
+      );
+      setInputActivityCreatedByDepartmentOfUser(
+        beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams["activities.created_by_department_of_user"])
+      );
+      setInputActivityCreatedByUnitOfUser(
+        beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams["activities.created_by_unit_of_user"])
+      );
+      setInputSummary(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.summary));
+      // setInputScheduledFollowUpDate(
+      //   beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.scheduled_follow_up_date)
+      // );
+      // setInputScheduledFollowUpDate(newSearchActivity_Contact_CompanyParams.scheduled_follow_up_date);
+      setInputScheduledFollowUpDate(
+        newSearchActivity_Contact_CompanyParams.scheduled_follow_up_date
+          ? new Date(newSearchActivity_Contact_CompanyParams.scheduled_follow_up_date)
+          : null
+      );
+      setInputFollowUpFlag(newSearchActivity_Contact_CompanyParams.follow_up_flag);
+      setInputDocumentUrl(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.document_url));
+      setInputActivityType(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.activity_type));
+      setInputClaimFlag(newSearchActivity_Contact_CompanyParams.claim_flag);
+      setInputProductIntroduction1(
+        beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.product_introduction1)
+      );
+      setInputProductIntroduction2(
+        beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.product_introduction2)
+      );
+      setInputProductIntroduction3(
+        beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.product_introduction3)
+      );
+      setInputProductIntroduction4(
+        beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.product_introduction4)
+      );
+      setInputProductIntroduction5(
+        beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.product_introduction5)
+      );
+      setInputBusinessOffice(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.business_office));
+      setInputMemberName(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.member_name));
+      setInputPriority(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.priority));
+      // setInputActivityDate(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.activity_date));
+      setInputActivityDate(
+        newSearchActivity_Contact_CompanyParams.activity_date
+          ? new Date(newSearchActivity_Contact_CompanyParams.activity_date)
+          : null
+      );
+      setInputDepartment(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.department));
     } else {
       setInputCompanyName("");
       setInputContactName("");
-      setInputDepartment("");
+      setInputDepartmentName("");
       setInputContactName("");
       setInputTel("");
       setInputFax("");
@@ -247,8 +340,30 @@ const ActivityMainContainerMemo: FC = () => {
       setInputPositionClass("");
       setInputOccupation("");
       setInputApprovalAmount("");
-      setInputCreatedByCompanyId("");
-      setInputCreatedByUserId("");
+      setInputContactCreatedByCompanyId("");
+      setInputContactCreatedByUserId("");
+
+      // activitiesテーブル
+      setInputActivityCreatedByCompanyId("");
+      setInputActivityCreatedByUserId("");
+      setInputActivityCreatedByDepartmentOfUser("");
+      setInputActivityCreatedByUnitOfUser("");
+      setInputSummary("");
+      setInputScheduledFollowUpDate(null);
+      setInputFollowUpFlag(false);
+      setInputDocumentUrl("");
+      setInputActivityType("");
+      setInputClaimFlag(false);
+      setInputProductIntroduction1("");
+      setInputProductIntroduction2("");
+      setInputProductIntroduction3("");
+      setInputProductIntroduction4("");
+      setInputProductIntroduction5("");
+      setInputBusinessOffice("");
+      setInputMemberName("");
+      setInputPriority("");
+      setInputActivityDate(null);
+      setInputDepartment("");
     }
   }, [editSearchMode]);
 
@@ -258,6 +373,7 @@ const ActivityMainContainerMemo: FC = () => {
 
     // // Asterisks to percent signs for PostgreSQL's LIKE operator
     function adjustFieldValue(value: string) {
+      // if (typeof value === "boolean") return value; // Booleanの場合、そのままの値を返す
       if (value === "") return null; // 全てのデータ
       if (value === null) return null; // 全てのデータ
       if (value.includes("*")) value = value.replace(/\*/g, "%");
@@ -270,7 +386,7 @@ const ActivityMainContainerMemo: FC = () => {
     setLoadingGlobalState(true);
 
     let _company_name = adjustFieldValue(inputCompanyName);
-    let _department_name = adjustFieldValue(inputDepartment);
+    let _department_name = adjustFieldValue(inputDepartmentName);
     let _main_phone_number = adjustFieldValue(inputTel);
     let _main_fax = adjustFieldValue(inputFax);
     let _zipcode = adjustFieldValue(inputZipcode);
@@ -307,13 +423,31 @@ const ActivityMainContainerMemo: FC = () => {
     let _position_class = adjustFieldValue(inputPositionClass);
     let _occupation = adjustFieldValue(inputOccupation);
     let _approval_amount = adjustFieldValue(inputApprovalAmount);
-    let _created_by_company_id = adjustFieldValue(inputCreatedByCompanyId);
-    let _created_by_user_id = adjustFieldValue(inputCreatedByUserId);
-
-    // // Asterisks to percent signs for PostgreSQL's LIKE operator
-    // if (_field1.includes("*")) _field1 = _field1.replace(/\*/g, "%");
-    // if (_field1 === "is null") _field1 = null;
-    // if (_field1 === "is not null") _field1 = "%%";
+    let _contact_created_by_company_id = adjustFieldValue(inputContactCreatedByCompanyId);
+    let _contact_created_by_user_id = adjustFieldValue(inputContactCreatedByUserId);
+    // activitiesテーブル
+    let _activity_created_by_company_id = adjustFieldValue(inputActivityCreatedByCompanyId);
+    let _activity_created_by_user_id = adjustFieldValue(inputActivityCreatedByUserId);
+    let _activity_created_by_department_of_user = adjustFieldValue(inputActivityCreatedByDepartmentOfUser);
+    let _activity_created_by_unit_of_user = adjustFieldValue(inputActivityCreatedByUnitOfUser);
+    let _summary = adjustFieldValue(inputSummary);
+    // let _scheduled_follow_up_date = adjustFieldValue(inputScheduledFollowUpDate);
+    let _scheduled_follow_up_date = inputScheduledFollowUpDate ? inputScheduledFollowUpDate.toISOString() : null;
+    let _follow_up_flag = inputFollowUpFlag;
+    let _document_url = adjustFieldValue(inputDocumentUrl);
+    let _activity_type = adjustFieldValue(inputActivityType);
+    let _claim_flag = inputClaimFlag;
+    let _product_introduction1 = adjustFieldValue(inputProductIntroduction1);
+    let _product_introduction2 = adjustFieldValue(inputProductIntroduction2);
+    let _product_introduction3 = adjustFieldValue(inputProductIntroduction3);
+    let _product_introduction4 = adjustFieldValue(inputProductIntroduction4);
+    let _product_introduction5 = adjustFieldValue(inputProductIntroduction5);
+    let _business_office = adjustFieldValue(inputBusinessOffice);
+    let _member_name = adjustFieldValue(inputMemberName);
+    let _priority = adjustFieldValue(inputPriority);
+    // let _activity_date = adjustFieldValue(inputActivityDate);
+    let _activity_date = inputActivityDate ? inputActivityDate.toISOString() : null;
+    let _department = adjustFieldValue(inputDepartment);
 
     const params = {
       "client_companies.name": _company_name,
@@ -358,8 +492,29 @@ const ActivityMainContainerMemo: FC = () => {
       position_class: _position_class,
       occupation: _occupation,
       approval_amount: _approval_amount,
-      created_by_company_id: _created_by_company_id,
-      created_by_user_id: _created_by_user_id,
+      "contacts.created_by_company_id": _contact_created_by_company_id,
+      "contacts.created_by_user_id": _contact_created_by_user_id,
+      // activitiesテーブル
+      "activities.created_by_company_id": _activity_created_by_company_id,
+      "activities.created_by_user_id": _activity_created_by_user_id,
+      "activities.created_by_department_of_user": _activity_created_by_user_id,
+      "activities.created_by_unit_of_user": _activity_created_by_user_id,
+      summary: _summary,
+      scheduled_follow_up_date: _scheduled_follow_up_date,
+      follow_up_flag: _follow_up_flag,
+      document_url: _document_url,
+      activity_type: _activity_type,
+      claim_flag: _claim_flag,
+      product_introduction1: _product_introduction1,
+      product_introduction2: _product_introduction2,
+      product_introduction3: _product_introduction3,
+      product_introduction4: _product_introduction4,
+      product_introduction5: _product_introduction5,
+      business_office: _business_office,
+      member_name: _member_name,
+      priority: _priority,
+      activity_date: _activity_date,
+      department: _department,
     };
 
     // console.log("✅ 条件 params", params);
@@ -368,7 +523,7 @@ const ActivityMainContainerMemo: FC = () => {
     // const { data, error } = await supabase.rpc("search_companies", { params });
 
     setInputCompanyName("");
-    setInputDepartment("");
+    setInputDepartmentName("");
     setInputTel("");
     setInputFax("");
     setInputZipcode("");
@@ -405,21 +560,43 @@ const ActivityMainContainerMemo: FC = () => {
     setInputPositionClass("");
     setInputOccupation("");
     setInputApprovalAmount("");
-    setInputCreatedByCompanyId("");
-    setInputCreatedByUserId("");
+    setInputContactCreatedByCompanyId("");
+    setInputContactCreatedByUserId("");
+    // activitiesテーブル
+    setInputActivityCreatedByCompanyId("");
+    setInputActivityCreatedByUserId("");
+    setInputActivityCreatedByDepartmentOfUser("");
+    setInputActivityCreatedByUnitOfUser("");
+    setInputSummary("");
+    setInputScheduledFollowUpDate(null);
+    setInputFollowUpFlag(false);
+    setInputDocumentUrl("");
+    setInputActivityType("");
+    setInputClaimFlag(false);
+    setInputProductIntroduction1("");
+    setInputProductIntroduction2("");
+    setInputProductIntroduction3("");
+    setInputProductIntroduction4("");
+    setInputProductIntroduction5("");
+    setInputBusinessOffice("");
+    setInputMemberName("");
+    setInputPriority("");
+    setInputActivityDate(null);
+    setInputDepartment("");
 
     setSearchMode(false);
     setEditSearchMode(false);
 
     // Zustandに検索条件を格納
-    setNewSearchContact_CompanyParams(params);
+    setNewSearchActivity_Contact_CompanyParams(params);
 
     // 選択中の列データをリセット
-    setSelectedRowDataContact(null);
+    setSelectedRowDataActivity(null);
 
     console.log("✅ 条件 params", params);
     // const { data, error } = await supabase.rpc("search_companies", { params });
     // const { data, error } = await supabase.rpc("search_companies_and_contacts", { params });
+    // const { data, error } = await supabase.rpc("search_activities_and_companies_and_contacts", { params });
 
     // 会社IDがnull、つまりまだ有料アカウントを持っていないユーザー
     // const { data, error } = await supabase
@@ -439,6 +616,9 @@ const ActivityMainContainerMemo: FC = () => {
     // setLoadingGlobalState(false);
   };
 
+  console.log("日付 inputScheduledFollowUpDate", inputScheduledFollowUpDate);
+  console.log("日付 inputScheduledFollowUpDate", inputScheduledFollowUpDate?.toISOString());
+
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
   return (
     <form className={`${styles.main_container} w-full `} onSubmit={handleSearchSubmit}>
@@ -451,7 +631,8 @@ const ActivityMainContainerMemo: FC = () => {
       >
         {/* ------------------------- 左コンテナ ------------------------- */}
         <div
-          className={`${styles.left_container} h-full min-w-[calc(50vw-var(--sidebar-mini-width))] pb-[35px] pt-[10px]`}
+          // className={`${styles.left_container} h-full min-w-[calc((100vw-var(--sidebar-width))/3)] pb-[35px] pt-[10px]`}
+          className={`${styles.left_container} h-full min-w-[calc(50vw-var(--sidebar-mini-width))] max-w-[calc(50vw-var(--sidebar-mini-width))] pb-[35px] pt-[10px]`}
         >
           {/* --------- ラッパー --------- */}
           <div className={`${styles.left_contents_wrapper} flex h-full w-full flex-col`}>
@@ -462,7 +643,7 @@ const ActivityMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>●会社名</span>
                   {!searchMode && (
                     <span className={`${styles.value} ${styles.value_highlight}`}>
-                      {selectedRowDataContact?.company_name ? selectedRowDataContact?.company_name : ""}
+                      {selectedRowDataActivity?.company_name ? selectedRowDataActivity?.company_name : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -487,7 +668,7 @@ const ActivityMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>●部署名</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.department_name ? selectedRowDataContact?.department_name : ""}
+                      {selectedRowDataActivity?.department_name ? selectedRowDataActivity?.department_name : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -495,8 +676,8 @@ const ActivityMainContainerMemo: FC = () => {
                       type="text"
                       placeholder="「代表取締役＊」や「＊製造部＊」「＊品質＊」など"
                       className={`${styles.input_box}`}
-                      value={inputDepartment}
-                      onChange={(e) => setInputDepartment(e.target.value)}
+                      value={inputDepartmentName}
+                      onChange={(e) => setInputDepartmentName(e.target.value)}
                     />
                   )}
                 </div>
@@ -511,7 +692,7 @@ const ActivityMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>担当者名</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.contact_name ? selectedRowDataContact?.contact_name : ""}
+                      {selectedRowDataActivity?.contact_name ? selectedRowDataActivity?.contact_name : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -531,7 +712,7 @@ const ActivityMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>直通TEL</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.direct_line ? selectedRowDataContact?.direct_line : ""}
+                      {selectedRowDataActivity?.direct_line ? selectedRowDataActivity?.direct_line : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -554,7 +735,7 @@ const ActivityMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>内線TEL</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.extension ? selectedRowDataContact?.extension : ""}
+                      {selectedRowDataActivity?.extension ? selectedRowDataActivity?.extension : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -574,7 +755,7 @@ const ActivityMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>代表TEL</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.main_phone_number ? selectedRowDataContact?.main_phone_number : ""}
+                      {selectedRowDataActivity?.main_phone_number ? selectedRowDataActivity?.main_phone_number : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -597,7 +778,7 @@ const ActivityMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>直通FAX</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.direct_fax ? selectedRowDataContact?.direct_fax : ""}
+                      {selectedRowDataActivity?.direct_fax ? selectedRowDataActivity?.direct_fax : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -617,7 +798,7 @@ const ActivityMainContainerMemo: FC = () => {
                   {/* <span className={`${styles.title}`}>会員専用</span> */}
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.main_fax ? selectedRowDataContact?.main_fax : ""}
+                      {selectedRowDataActivity?.main_fax ? selectedRowDataActivity?.main_fax : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -646,7 +827,7 @@ const ActivityMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>社用携帯</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.company_cell_phone ? selectedRowDataContact?.company_cell_phone : ""}
+                      {selectedRowDataActivity?.company_cell_phone ? selectedRowDataActivity?.company_cell_phone : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -665,7 +846,7 @@ const ActivityMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>私用携帯</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.personal_cell_phone ? selectedRowDataContact?.personal_cell_phone : ""}
+                      {selectedRowDataActivity?.personal_cell_phone ? selectedRowDataActivity?.personal_cell_phone : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -688,7 +869,7 @@ const ActivityMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>E-mail</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.contact_email ? selectedRowDataContact?.contact_email : ""}
+                      {selectedRowDataActivity?.contact_email ? selectedRowDataActivity?.contact_email : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -711,7 +892,7 @@ const ActivityMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>郵便番号</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.zipcode ? selectedRowDataContact?.zipcode : ""}
+                      {selectedRowDataActivity?.zipcode ? selectedRowDataActivity?.zipcode : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -730,7 +911,7 @@ const ActivityMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}></span>
                   {/* {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.established_in ? selectedRowDataContact?.established_in : ""}
+                      {selectedRowDataActivity?.established_in ? selectedRowDataActivity?.established_in : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -753,7 +934,7 @@ const ActivityMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>○住所</span>
                   {!searchMode && (
                     <span className={`${styles.textarea_value} h-[45px]`}>
-                      {selectedRowDataContact?.address ? selectedRowDataContact?.address : ""}
+                      {selectedRowDataActivity?.address ? selectedRowDataActivity?.address : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -780,7 +961,7 @@ const ActivityMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>役職名</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.position_name ? selectedRowDataContact?.position_name : ""}
+                      {selectedRowDataActivity?.position_name ? selectedRowDataActivity?.position_name : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -799,7 +980,7 @@ const ActivityMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>職位</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.position_class ? selectedRowDataContact?.position_class : ""}
+                      {selectedRowDataActivity?.position_class ? selectedRowDataActivity?.position_class : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -838,7 +1019,7 @@ const ActivityMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>担当職種</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.occupation ? selectedRowDataContact?.occupation : ""}
+                      {selectedRowDataActivity?.occupation ? selectedRowDataActivity?.occupation : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -884,7 +1065,7 @@ const ActivityMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>決裁金額(万円)</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.approval_amount ? selectedRowDataContact?.approval_amount : ""}
+                      {selectedRowDataActivity?.approval_amount ? selectedRowDataActivity?.approval_amount : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -907,8 +1088,8 @@ const ActivityMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>規模(ﾗﾝｸ)</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.number_of_employees_class
-                        ? selectedRowDataContact?.number_of_employees_class
+                      {selectedRowDataActivity?.number_of_employees_class
+                        ? selectedRowDataActivity?.number_of_employees_class
                         : ""}
                     </span>
                   )}
@@ -944,7 +1125,7 @@ const ActivityMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>決算月</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.fiscal_end_month ? selectedRowDataContact?.fiscal_end_month : ""}
+                      {selectedRowDataActivity?.fiscal_end_month ? selectedRowDataActivity?.fiscal_end_month : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -967,8 +1148,8 @@ const ActivityMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>予算申請月1</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.budget_request_month1
-                        ? selectedRowDataContact?.budget_request_month1
+                      {selectedRowDataActivity?.budget_request_month1
+                        ? selectedRowDataActivity?.budget_request_month1
                         : ""}
                     </span>
                   )}
@@ -988,8 +1169,8 @@ const ActivityMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>予算申請月2</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.budget_request_month2
-                        ? selectedRowDataContact?.budget_request_month2
+                      {selectedRowDataActivity?.budget_request_month2
+                        ? selectedRowDataActivity?.budget_request_month2
                         : ""}
                     </span>
                   )}
@@ -1010,7 +1191,7 @@ const ActivityMainContainerMemo: FC = () => {
             <div className={`${styles.row_area} flex h-[50px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px] ">
                 <div className={`${styles.title_box}  flex h-full`}>
-                  <span className={`${styles.title}`}>事業概要</span>
+                  <span className={`${styles.title}`}>事業内容</span>
                   {!searchMode && (
                     <>
                       {/* <span className={`${styles.textarea_value} h-[45px]`}>
@@ -1019,18 +1200,18 @@ const ActivityMainContainerMemo: FC = () => {
                       </span> */}
                       <span
                         data-text={`${
-                          selectedRowDataContact?.business_content ? selectedRowDataContact?.business_content : ""
+                          selectedRowDataActivity?.business_content ? selectedRowDataActivity?.business_content : ""
                         }`}
                         className={`${styles.textarea_value} h-[45px]`}
                         onMouseEnter={(e) => handleOpenTooltip(e)}
                         onMouseLeave={handleCloseTooltip}
                         dangerouslySetInnerHTML={{
-                          __html: selectedRowDataContact?.business_content
-                            ? selectedRowDataContact?.business_content.replace(/\n/g, "<br>")
+                          __html: selectedRowDataActivity?.business_content
+                            ? selectedRowDataActivity?.business_content.replace(/\n/g, "<br>")
                             : "",
                         }}
                       >
-                        {/* {selectedRowDataContact?.business_content ? selectedRowDataContact?.business_content : ""} */}
+                        {/* {selectedRowDataActivity?.business_content ? selectedRowDataActivity?.business_content : ""} */}
                       </span>
                     </>
                   )}
@@ -1057,12 +1238,12 @@ const ActivityMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>主要取引先</span>
                   {!searchMode && (
                     <span
-                      data-text={`${selectedRowDataContact?.clients ? selectedRowDataContact?.clients : ""}`}
+                      data-text={`${selectedRowDataActivity?.clients ? selectedRowDataActivity?.clients : ""}`}
                       className={`${styles.value}`}
                       onMouseEnter={(e) => handleOpenTooltip(e)}
                       onMouseLeave={handleCloseTooltip}
                     >
-                      {selectedRowDataContact?.clients ? selectedRowDataContact?.clients : ""}
+                      {selectedRowDataActivity?.clients ? selectedRowDataActivity?.clients : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -1085,12 +1266,12 @@ const ActivityMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>主要仕入先</span>
                   {!searchMode && (
                     <span
-                      data-text={`${selectedRowDataContact?.supplier ? selectedRowDataContact?.supplier : ""}`}
+                      data-text={`${selectedRowDataActivity?.supplier ? selectedRowDataActivity?.supplier : ""}`}
                       className={`${styles.value}`}
                       onMouseEnter={(e) => handleOpenTooltip(e)}
                       onMouseLeave={handleCloseTooltip}
                     >
-                      {selectedRowDataContact?.supplier ? selectedRowDataContact?.supplier : ""}
+                      {selectedRowDataActivity?.supplier ? selectedRowDataActivity?.supplier : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -1114,17 +1295,17 @@ const ActivityMainContainerMemo: FC = () => {
                   {!searchMode && (
                     <>
                       <span
-                        data-text={`${selectedRowDataContact?.facility ? selectedRowDataContact?.facility : ""}`}
+                        data-text={`${selectedRowDataActivity?.facility ? selectedRowDataActivity?.facility : ""}`}
                         className={`${styles.textarea_value} h-[45px]`}
                         onMouseEnter={(e) => handleOpenTooltip(e)}
                         onMouseLeave={handleCloseTooltip}
                         dangerouslySetInnerHTML={{
-                          __html: selectedRowDataContact?.facility
-                            ? selectedRowDataContact?.facility.replace(/\n/g, "<br>")
+                          __html: selectedRowDataActivity?.facility
+                            ? selectedRowDataActivity?.facility.replace(/\n/g, "<br>")
                             : "",
                         }}
                       >
-                        {/* {selectedRowDataContact?.facility ? selectedRowDataContact?.facility : ""} */}
+                        {/* {selectedRowDataActivity?.facility ? selectedRowDataActivity?.facility : ""} */}
                       </span>
                     </>
                   )}
@@ -1152,13 +1333,13 @@ const ActivityMainContainerMemo: FC = () => {
                   {!searchMode && (
                     <span
                       data-text={`${
-                        selectedRowDataContact?.business_sites ? selectedRowDataContact?.business_sites : ""
+                        selectedRowDataActivity?.business_sites ? selectedRowDataActivity?.business_sites : ""
                       }`}
                       className={`${styles.value}`}
                       onMouseEnter={(e) => handleOpenTooltip(e)}
                       onMouseLeave={handleCloseTooltip}
                     >
-                      {selectedRowDataContact?.business_sites ? selectedRowDataContact?.business_sites : ""}
+                      {selectedRowDataActivity?.business_sites ? selectedRowDataActivity?.business_sites : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -1178,13 +1359,13 @@ const ActivityMainContainerMemo: FC = () => {
                   {!searchMode && (
                     <span
                       data-text={`${
-                        selectedRowDataContact?.overseas_bases ? selectedRowDataContact?.overseas_bases : ""
+                        selectedRowDataActivity?.overseas_bases ? selectedRowDataActivity?.overseas_bases : ""
                       }`}
                       className={`${styles.value}`}
                       onMouseEnter={(e) => handleOpenTooltip(e)}
                       onMouseLeave={handleCloseTooltip}
                     >
-                      {selectedRowDataContact?.overseas_bases ? selectedRowDataContact?.overseas_bases : ""}
+                      {selectedRowDataActivity?.overseas_bases ? selectedRowDataActivity?.overseas_bases : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -1209,12 +1390,12 @@ const ActivityMainContainerMemo: FC = () => {
                     <span
                       className={`${styles.value}`}
                       data-text={`${
-                        selectedRowDataContact?.group_company ? selectedRowDataContact?.group_company : ""
+                        selectedRowDataActivity?.group_company ? selectedRowDataActivity?.group_company : ""
                       }`}
                       onMouseEnter={(e) => handleOpenTooltip(e)}
                       onMouseLeave={handleCloseTooltip}
                     >
-                      {selectedRowDataContact?.group_company ? selectedRowDataContact?.group_company : ""}
+                      {selectedRowDataActivity?.group_company ? selectedRowDataActivity?.group_company : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -1237,7 +1418,7 @@ const ActivityMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>HP</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.website_url ? selectedRowDataContact?.website_url : ""}
+                      {selectedRowDataActivity?.website_url ? selectedRowDataActivity?.website_url : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -1261,7 +1442,7 @@ const ActivityMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>会社Email</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.company_email ? selectedRowDataContact?.company_email : ""}
+                      {selectedRowDataActivity?.company_email ? selectedRowDataActivity?.company_email : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -1285,7 +1466,7 @@ const ActivityMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>○業種</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.industry_type ? selectedRowDataContact?.industry_type : ""}
+                      {selectedRowDataActivity?.industry_type ? selectedRowDataActivity?.industry_type : ""}
                     </span>
                   )}
                   {searchMode && !inputProductL && (
@@ -1365,20 +1546,20 @@ const ActivityMainContainerMemo: FC = () => {
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title} `}>製品分類（大分類）</span>
+                  <span className={`${styles.title} !mr-[15px]`}>製品分類（大分類）</span>
                   {!searchMode && (
                     <span
                       className={`${styles.value}`}
                       data-text={`${
-                        selectedRowDataContact?.product_category_large
-                          ? selectedRowDataContact?.product_category_large
+                        selectedRowDataActivity?.product_category_large
+                          ? selectedRowDataActivity?.product_category_large
                           : ""
                       }`}
                       onMouseEnter={(e) => handleOpenTooltip(e)}
                       onMouseLeave={handleCloseTooltip}
                     >
-                      {selectedRowDataContact?.product_category_large
-                        ? selectedRowDataContact?.product_category_large
+                      {selectedRowDataActivity?.product_category_large
+                        ? selectedRowDataActivity?.product_category_large
                         : ""}
                     </span>
                   )}
@@ -1422,20 +1603,20 @@ const ActivityMainContainerMemo: FC = () => {
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>製品分類（中分類）</span>
+                  <span className={`${styles.title} !mr-[15px]`}>製品分類（中分類）</span>
                   {!searchMode && (
                     <span
                       className={`${styles.value}`}
                       data-text={`${
-                        selectedRowDataContact?.product_category_medium
-                          ? selectedRowDataContact?.product_category_medium
+                        selectedRowDataActivity?.product_category_medium
+                          ? selectedRowDataActivity?.product_category_medium
                           : ""
                       }`}
                       onMouseEnter={(e) => handleOpenTooltip(e)}
                       onMouseLeave={handleCloseTooltip}
                     >
-                      {selectedRowDataContact?.product_category_medium
-                        ? selectedRowDataContact?.product_category_medium
+                      {selectedRowDataActivity?.product_category_medium
+                        ? selectedRowDataActivity?.product_category_medium
                         : ""}
                     </span>
                   )}
@@ -1493,15 +1674,15 @@ const ActivityMainContainerMemo: FC = () => {
                     <span
                       className={`${styles.value}`}
                       data-text={`${
-                        selectedRowDataContact?.product_category_small
-                          ? selectedRowDataContact?.product_category_small
+                        selectedRowDataActivity?.product_category_small
+                          ? selectedRowDataActivity?.product_category_small
                           : ""
                       }`}
                       onMouseEnter={(e) => handleOpenTooltip(e)}
                       onMouseLeave={handleCloseTooltip}
                     >
-                      {selectedRowDataContact?.product_category_small
-                        ? selectedRowDataContact?.product_category_small
+                      {selectedRowDataActivity?.product_category_small
+                        ? selectedRowDataActivity?.product_category_small
                         : ""}
                     </span>
                   )}
@@ -1525,7 +1706,7 @@ const ActivityMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>○法人番号</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.corporate_number ? selectedRowDataContact?.corporate_number : ""}
+                      {selectedRowDataActivity?.corporate_number ? selectedRowDataActivity?.corporate_number : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -1544,7 +1725,7 @@ const ActivityMainContainerMemo: FC = () => {
                   <span className={`${styles.title_min}`}>会社ID</span>
                   {!searchMode && (
                     <span className={`${styles.value} truncate`}>
-                      {selectedRowDataContact?.company_id ? selectedRowDataContact?.company_id : ""}
+                      {selectedRowDataActivity?.company_id ? selectedRowDataActivity?.company_id : ""}
                     </span>
                   )}
                   {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
@@ -1552,6 +1733,348 @@ const ActivityMainContainerMemo: FC = () => {
                 <div className={`${styles.underline}`}></div>
               </div>
             </div>
+
+            {/* サーチモード時は左側の下に表示 */}
+            {searchMode && (
+              <>
+                {/* 活動日・クレーム */}
+                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title}`}>活動日</span>
+                      {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
+                      <DatePickerCustomInput
+                        startDate={inputActivityDate}
+                        setStartDate={setInputActivityDate}
+                        required={false}
+                      />
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}>
+                      <span className={`${styles.title}`}>クレーム</span>
+                      {!searchMode && (
+                        <span className={`${styles.value}`}>
+                          {selectedRowDataActivity?.claim_flag ? selectedRowDataActivity?.claim_flag : ""}
+                        </span>
+                      )}
+                      <div className={`${styles.grid_select_cell_header}`}>
+                        <input
+                          type="checkbox"
+                          className={`${styles.grid_select_cell_header_input}`}
+                          checked={inputClaimFlag}
+                          onChange={() => setInputClaimFlag(!inputClaimFlag)}
+                        />
+                        <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
+
+                {/* 活動タイプ・優先度 */}
+                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title}`}>活動タイプ</span>
+                      {searchMode && (
+                        <select
+                          name="activity_type"
+                          id="activity_type"
+                          className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                          value={inputActivityType}
+                          onChange={(e) => {
+                            setInputActivityType(e.target.value);
+                          }}
+                        >
+                          <option value=""></option>
+                          <option value="TEL発信(不在)">TEL発信(不在)</option>
+                          <option value="TEL発信(能動)">TEL発信(能動)</option>
+                          <option value="TEL発信(受動)">TEL発信(受動)</option>
+                          <option value="TEL発信(売前ﾌｫﾛｰ)">TEL発信(売前ﾌｫﾛｰ)</option>
+                          <option value="TEL発信(売後ﾌｫﾛｰ)">TEL発信(売後ﾌｫﾛｰ)</option>
+                          <option value="TEL発信(ｱﾎﾟ組み)">TEL発信(ｱﾎﾟ組み)</option>
+                          <option value="TEL発信(その他)">TEL発信(その他)</option>
+                          <option value="Email受信">Email受信</option>
+                          <option value="Email送信">Email送信</option>
+                          <option value="その他">その他</option>
+                          <option value="引継ぎ">引継ぎ</option>
+                        </select>
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}>
+                      <span className={`${styles.title}`}>優先度</span>
+                      {searchMode && (
+                        <select
+                          name="priority"
+                          id="priority"
+                          className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                          value={inputPriority}
+                          onChange={(e) => setInputPriority(e.target.value)}
+                        >
+                          <option value=""></option>
+                          <option value="高">高</option>
+                          <option value="中">中</option>
+                          <option value="低">低</option>
+                        </select>
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
+
+                {/* 次回ﾌｫﾛｰ予定日・フォロー完了 */}
+                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title} !mr-[15px]`}>次回ﾌｫﾛｰ予定日</span>
+                      <DatePickerCustomInput
+                        startDate={inputScheduledFollowUpDate}
+                        setStartDate={setInputScheduledFollowUpDate}
+                        required={false}
+                      />
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  {selectedRowDataActivity?.scheduled_follow_up_date && (
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} transition-base03 flex h-full items-center `}>
+                        <span className={`${styles.check_title}`}>フォロー完了</span>
+
+                        <div className={`${styles.grid_select_cell_header} `}>
+                          <input
+                            type="checkbox"
+                            checked={!!selectedRowDataActivity?.follow_up_flag}
+                            onChange={() => {
+                              setLoadingGlobalState(false);
+                              setIsOpenUpdateContactModal(true);
+                            }}
+                            className={`${styles.grid_select_cell_header_input}`}
+                          />
+                          <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+                          </svg>
+                        </div>
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 概要 */}
+                <div className={`${styles.row_area} flex h-[90px] w-full items-center`}>
+                  <div className="flex h-full w-full flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full `}>
+                      <span className={`${styles.title}`}>概要</span>
+                      {searchMode && (
+                        <textarea
+                          name="activity_summary"
+                          id="activity_summary"
+                          cols={30}
+                          rows={10}
+                          className={`${styles.textarea_box} `}
+                          value={inputSummary}
+                          onChange={(e) => setInputSummary(e.target.value)}
+                        ></textarea>
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
+
+                {/* 事業部名 */}
+                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title}`}>事業部名</span>
+                      {searchMode && (
+                        <input
+                          type="text"
+                          className={`${styles.input_box}`}
+                          placeholder=""
+                          value={inputDepartment}
+                          onChange={(e) => setInputDepartment(e.target.value)}
+                        />
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}>
+                      {/* <span className={`${styles.title}`}>実施4</span>
+                      {!searchMode && (
+                        <span
+                          data-text={`${
+                            selectedRowDataActivity?.senior_managing_director
+                              ? selectedRowDataActivity?.senior_managing_director
+                              : ""
+                          }`}
+                          className={`${styles.value}`}
+                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          {selectedRowDataActivity?.senior_managing_director
+                            ? selectedRowDataActivity?.senior_managing_director
+                            : ""}
+                        </span>
+                      )}
+                      {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
+                    </div>
+                    {/* <div className={`${styles.underline}`}></div> */}
+                  </div>
+                </div>
+
+                {/* 事業所・自社担当 */}
+                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title}`}>事業所</span>
+                      {searchMode && (
+                        <input
+                          type="text"
+                          className={`${styles.input_box}`}
+                          placeholder=""
+                          value={inputBusinessOffice}
+                          onChange={(e) => setInputBusinessOffice(e.target.value)}
+                        />
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}>
+                      <span className={`${styles.title}`}>自社担当</span>
+                      {searchMode && (
+                        <input
+                          type="text"
+                          className={`${styles.input_box}`}
+                          placeholder=""
+                          value={inputMemberName}
+                          onChange={(e) => setInputMemberName(e.target.value)}
+                        />
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
+
+                {/* 実施1・実施2 */}
+                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title}`}>実施1</span>
+                      {searchMode && (
+                        <input
+                          type="text"
+                          className={`${styles.input_box}`}
+                          placeholder=""
+                          value={inputProductIntroduction1}
+                          onChange={(e) => setInputProductIntroduction1(e.target.value)}
+                        />
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}>
+                      <span className={`${styles.title}`}>実施2</span>
+                      {searchMode && (
+                        <input
+                          type="text"
+                          className={`${styles.input_box}`}
+                          placeholder=""
+                          value={inputProductIntroduction2}
+                          onChange={(e) => setInputProductIntroduction2(e.target.value)}
+                        />
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
+
+                {/* 実施3・実施4 */}
+                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title}`}>実施3</span>
+                      {searchMode && (
+                        <input
+                          type="text"
+                          className={`${styles.input_box}`}
+                          placeholder=""
+                          value={inputProductIntroduction3}
+                          onChange={(e) => setInputProductIntroduction3(e.target.value)}
+                        />
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}>
+                      <span className={`${styles.title}`}>実施4</span>
+                      {searchMode && (
+                        <input
+                          type="text"
+                          className={`${styles.input_box}`}
+                          placeholder=""
+                          value={inputProductIntroduction4}
+                          onChange={(e) => setInputProductIntroduction4(e.target.value)}
+                        />
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
+
+                {/* 実施5 */}
+                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title}`}>実施5</span>
+                      {searchMode && (
+                        <input
+                          type="text"
+                          className={`${styles.input_box}`}
+                          placeholder=""
+                          value={inputProductIntroduction5}
+                          onChange={(e) => setInputProductIntroduction5(e.target.value)}
+                        />
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}>
+                      {/* <span className={`${styles.title}`}>実施4</span>
+                      {!searchMode && (
+                        <span
+                          data-text={`${
+                            selectedRowDataActivity?.senior_managing_director
+                              ? selectedRowDataActivity?.senior_managing_director
+                              : ""
+                          }`}
+                          className={`${styles.value}`}
+                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          {selectedRowDataActivity?.senior_managing_director
+                            ? selectedRowDataActivity?.senior_managing_director
+                            : ""}
+                        </span>
+                      )}
+                      {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
+                    </div>
+                    {/* <div className={`${styles.underline}`}></div> */}
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* --------- ラッパーここまで --------- */}
           </div>
@@ -1574,16 +2097,14 @@ const ActivityMainContainerMemo: FC = () => {
                   isOpenSidebar ? `transition-base02` : `transition-base01`
                 }`}
               >
-                {/* 代表者・会長 */}
-                {/* <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                {/* 活動日・クレーム */}
+                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
-                      <span className={`${styles.title}`}>代表者</span>
+                      <span className={`${styles.title}`}>活動日</span>
                       {!searchMode && (
                         <span className={`${styles.value}`}>
-                          {selectedRowDataContact?.representative_name
-                            ? selectedRowDataContact?.representative_name
-                            : ""}
+                          {selectedRowDataActivity?.activity_date ? selectedRowDataActivity?.activity_date : ""}
                         </span>
                       )}
                       {searchMode && <input type="text" className={`${styles.input_box}`} />}
@@ -1592,28 +2113,26 @@ const ActivityMainContainerMemo: FC = () => {
                   </div>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
-                      <span className={`${styles.title}`}>会長</span>
+                      <span className={`${styles.title}`}>クレーム</span>
                       {!searchMode && (
                         <span className={`${styles.value}`}>
-                          {selectedRowDataContact?.chairperson ? selectedRowDataContact?.chairperson : ""}
+                          {selectedRowDataActivity?.claim_flag ? selectedRowDataActivity?.claim_flag : ""}
                         </span>
                       )}
                       {searchMode && <input type="text" className={`${styles.input_box}`} />}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
-                </div> */}
+                </div>
 
-                {/* 副社長・専務取締役 */}
-                {/* <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                {/* 活動タイプ・優先度 */}
+                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
-                      <span className={`${styles.title}`}>副社長</span>
+                      <span className={`${styles.title}`}>活動タイプ</span>
                       {!searchMode && (
                         <span className={`${styles.value}`}>
-                          {selectedRowDataContact?.senior_vice_president
-                            ? selectedRowDataContact?.senior_vice_president
-                            : ""}
+                          {selectedRowDataActivity?.activity_type ? selectedRowDataActivity?.activity_type : ""}
                         </span>
                       )}
                       {searchMode && <input type="text" className={`${styles.input_box}`} />}
@@ -1622,20 +2141,196 @@ const ActivityMainContainerMemo: FC = () => {
                   </div>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
-                      <span className={`${styles.title}`}>専務取締役</span>
+                      <span className={`${styles.title}`}>優先度</span>
+                      {!searchMode && (
+                        <span
+                          // data-text={`${
+                          //   selectedRowDataActivity?.priority
+                          //     ? selectedRowDataActivity?.priority
+                          //     : ""
+                          // }`}
+                          className={`${styles.value} !w-full text-center`}
+                          // onMouseEnter={(e) => handleOpenTooltip(e)}
+                          // onMouseLeave={handleCloseTooltip}
+                        >
+                          {selectedRowDataActivity?.priority ? selectedRowDataActivity?.priority : ""}
+                        </span>
+                      )}
+                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
+
+                {/* 次回ﾌｫﾛｰ予定日・フォロー完了 */}
+                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title} !mr-[15px]`}>次回ﾌｫﾛｰ予定日</span>
+                      {!searchMode && (
+                        <span
+                          // data-text={`${
+                          //   selectedRowDataActivity?.managing_director ? selectedRowDataActivity?.managing_director : ""
+                          // }`}
+                          className={`${styles.value}`}
+                          // onMouseEnter={(e) => handleOpenTooltip(e)}
+                          // onMouseLeave={handleCloseTooltip}
+                        >
+                          {selectedRowDataActivity?.scheduled_follow_up_date
+                            ? selectedRowDataActivity?.scheduled_follow_up_date
+                            : ""}
+                        </span>
+                      )}
+                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  {selectedRowDataActivity?.scheduled_follow_up_date && (
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} transition-base03 flex h-full items-center `}>
+                        <span className={`${styles.check_title}`}>フォロー完了</span>
+
+                        <div className={`${styles.grid_select_cell_header} `}>
+                          <input
+                            type="checkbox"
+                            checked={!!selectedRowDataActivity?.follow_up_flag}
+                            onChange={() => {
+                              setLoadingGlobalState(false);
+                              setIsOpenUpdateContactModal(true);
+                            }}
+                            className={`${styles.grid_select_cell_header_input}`}
+                          />
+                          <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+                          </svg>
+                        </div>
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                  )}
+                </div>
+
+                {/* 概要 */}
+                <div className={`${styles.row_area} flex h-[90px] w-full items-center`}>
+                  <div className="flex h-full w-full flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full `}>
+                      <span className={`${styles.title}`}>概要</span>
+                      {!searchMode && (
+                        <div
+                          // data-text={`${
+                          //   selectedRowDataActivity?.ban_reason ? selectedRowDataActivity?.ban_reason : ""
+                          // }`}
+                          className={`${styles.value} h-[85px] ${styles.textarea_box} ${styles.textarea_box_bg}`}
+                          // onMouseEnter={(e) => handleOpenTooltip(e)}
+                          // onMouseLeave={handleCloseTooltip}
+                          dangerouslySetInnerHTML={{
+                            __html: selectedRowDataActivity?.summary
+                              ? selectedRowDataActivity?.summary.replace(/\n/g, "<br>")
+                              : "",
+                          }}
+                        ></div>
+                      )}
+                      {searchMode && (
+                        <textarea
+                          name="activity_summary"
+                          id="activity_summary"
+                          cols={30}
+                          rows={10}
+                          className={`${styles.textarea_box} `}
+                          value={inputSummary}
+                          onChange={(e) => setInputSummary(e.target.value)}
+                        ></textarea>
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
+
+                {/* 事業部名 */}
+                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title}`}>事業部名</span>
+                      {!searchMode && (
+                        <span className={`${styles.value}`}>
+                          {selectedRowDataActivity?.department ? selectedRowDataActivity?.department : ""}
+                        </span>
+                      )}
+                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}>
+                      {/* <span className={`${styles.title}`}>実施4</span>
                       {!searchMode && (
                         <span
                           data-text={`${
-                            selectedRowDataContact?.senior_managing_director
-                              ? selectedRowDataContact?.senior_managing_director
+                            selectedRowDataActivity?.senior_managing_director
+                              ? selectedRowDataActivity?.senior_managing_director
                               : ""
                           }`}
                           className={`${styles.value}`}
                           onMouseEnter={(e) => handleOpenTooltip(e)}
                           onMouseLeave={handleCloseTooltip}
                         >
-                          {selectedRowDataContact?.senior_managing_director
-                            ? selectedRowDataContact?.senior_managing_director
+                          {selectedRowDataActivity?.senior_managing_director
+                            ? selectedRowDataActivity?.senior_managing_director
+                            : ""}
+                        </span>
+                      )}
+                      {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
+                    </div>
+                    {/* <div className={`${styles.underline}`}></div> */}
+                  </div>
+                </div>
+
+                {/* 事業所・自社担当 */}
+                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title}`}>事業所</span>
+                      {!searchMode && (
+                        <span className={`${styles.value}`}>
+                          {selectedRowDataActivity?.business_office ? selectedRowDataActivity?.business_office : ""}
+                        </span>
+                      )}
+                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}>
+                      <span className={`${styles.title}`}>自社担当</span>
+                      {!searchMode && (
+                        <span
+                          // data-text={`${
+                          //   selectedRowDataActivity?.member_name
+                          //     ? selectedRowDataActivity?.member_name
+                          //     : ""
+                          // }`}
+                          className={`${styles.value}`}
+                          // onMouseEnter={(e) => handleOpenTooltip(e)}
+                          // onMouseLeave={handleCloseTooltip}
+                        >
+                          {selectedRowDataActivity?.member_name ? selectedRowDataActivity?.member_name : ""}
+                        </span>
+                      )}
+                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
+
+                {/* 実施1・実施2 */}
+                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title}`}>実施1</span>
+                      {!searchMode && (
+                        <span className={`${styles.value}`}>
+                          {selectedRowDataActivity?.product_introduction1
+                            ? selectedRowDataActivity?.product_introduction1
                             : ""}
                         </span>
                       )}
@@ -1643,125 +2338,113 @@ const ActivityMainContainerMemo: FC = () => {
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
-                </div> */}
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}>
+                      <span className={`${styles.title}`}>実施2</span>
+                      {!searchMode && (
+                        <span
+                          // data-text={`${
+                          //   selectedRowDataActivity?.senior_managing_director
+                          //     ? selectedRowDataActivity?.senior_managing_director
+                          //     : ""
+                          // }`}
+                          className={`${styles.value}`}
+                          // onMouseEnter={(e) => handleOpenTooltip(e)}
+                          // onMouseLeave={handleCloseTooltip}
+                        >
+                          {selectedRowDataActivity?.product_introduction2
+                            ? selectedRowDataActivity?.product_introduction2
+                            : ""}
+                        </span>
+                      )}
+                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
 
-                {/* 常務取締役・取締役 */}
-                {/* <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                {/* 実施3・実施4 */}
+                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
-                      <span className={`${styles.title}`}>常務取締役</span>
+                      <span className={`${styles.title}`}>実施3</span>
+                      {!searchMode && (
+                        <span className={`${styles.value}`}>
+                          {selectedRowDataActivity?.product_introduction3
+                            ? selectedRowDataActivity?.product_introduction3
+                            : ""}
+                        </span>
+                      )}
+                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}>
+                      <span className={`${styles.title}`}>実施4</span>
+                      {!searchMode && (
+                        <span
+                          // data-text={`${
+                          //   selectedRowDataActivity?.senior_managing_director
+                          //     ? selectedRowDataActivity?.senior_managing_director
+                          //     : ""
+                          // }`}
+                          className={`${styles.value}`}
+                          // onMouseEnter={(e) => handleOpenTooltip(e)}
+                          // onMouseLeave={handleCloseTooltip}
+                        >
+                          {selectedRowDataActivity?.product_introduction4
+                            ? selectedRowDataActivity?.product_introduction4
+                            : ""}
+                        </span>
+                      )}
+                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
+
+                {/* 実施5 */}
+                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title}`}>実施5</span>
+                      {!searchMode && (
+                        <span className={`${styles.value}`}>
+                          {selectedRowDataActivity?.product_introduction5
+                            ? selectedRowDataActivity?.product_introduction5
+                            : ""}
+                        </span>
+                      )}
+                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}>
+                      {/* <span className={`${styles.title}`}>実施4</span>
                       {!searchMode && (
                         <span
                           data-text={`${
-                            selectedRowDataContact?.managing_director ? selectedRowDataContact?.managing_director : ""
+                            selectedRowDataActivity?.senior_managing_director
+                              ? selectedRowDataActivity?.senior_managing_director
+                              : ""
                           }`}
                           className={`${styles.value}`}
                           onMouseEnter={(e) => handleOpenTooltip(e)}
                           onMouseLeave={handleCloseTooltip}
                         >
-                          {selectedRowDataContact?.managing_director ? selectedRowDataContact?.managing_director : ""}
+                          {selectedRowDataActivity?.senior_managing_director
+                            ? selectedRowDataActivity?.senior_managing_director
+                            : ""}
                         </span>
                       )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                      {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
                     </div>
-                    <div className={`${styles.underline}`}></div>
+                    {/* <div className={`${styles.underline}`}></div> */}
                   </div>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                    <div className={`${styles.title_box} flex h-full items-center`}>
-                      <span className={`${styles.title}`}>取締役</span>
-                      {!searchMode && (
-                        <span
-                          data-text={`${selectedRowDataContact?.director ? selectedRowDataContact?.director : ""}`}
-                          className={`${styles.value} truncate`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
-                          onMouseLeave={handleCloseTooltip}
-                        >
-                          {selectedRowDataContact?.director ? selectedRowDataContact?.director : ""}
-                        </span>
-                      )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
-                    </div>
-                    <div className={`${styles.underline}`}></div>
-                  </div>
-                </div> */}
+                </div>
 
-                {/* 役員・監査役 */}
-                {/* <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                    <div className={`${styles.title_box} flex h-full items-center `}>
-                      <span className={`${styles.title}`}>役員</span>
-                      {!searchMode && (
-                        <span
-                          data-text={`${
-                            selectedRowDataContact?.board_member ? selectedRowDataContact?.board_member : ""
-                          }`}
-                          className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
-                          onMouseLeave={handleCloseTooltip}
-                        >
-                          {selectedRowDataContact?.board_member ? selectedRowDataContact?.board_member : ""}
-                        </span>
-                      )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
-                    </div>
-                    <div className={`${styles.underline}`}></div>
-                  </div>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                    <div className={`${styles.title_box} flex h-full items-center`}>
-                      <span className={`${styles.title}`}>監査役</span>
-                      {!searchMode && (
-                        <span
-                          data-text={`${selectedRowDataContact?.auditor ? selectedRowDataContact?.auditor : ""}`}
-                          className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
-                          onMouseLeave={handleCloseTooltip}
-                        >
-                          {selectedRowDataContact?.auditor ? selectedRowDataContact?.auditor : ""}
-                        </span>
-                      )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
-                    </div>
-                    <div className={`${styles.underline}`}></div>
-                  </div>
-                </div> */}
-
-                {/* 部長・担当者 */}
-                {/* <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                    <div className={`${styles.title_box} flex h-full items-center `}>
-                      <span className={`${styles.title}`}>部長</span>
-                      {!searchMode && (
-                        <span
-                          data-text={`${selectedRowDataContact?.manager ? selectedRowDataContact?.manager : ""}`}
-                          className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
-                          onMouseLeave={handleCloseTooltip}
-                        >
-                          {selectedRowDataContact?.manager ? selectedRowDataContact?.manager : ""}
-                        </span>
-                      )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
-                    </div>
-                    <div className={`${styles.underline}`}></div>
-                  </div>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                    <div className={`${styles.title_box} flex h-full items-center`}>
-                      <span className={`${styles.title}`}>担当者</span>
-                      {!searchMode && (
-                        <span
-                          data-text={`${selectedRowDataContact?.member ? selectedRowDataContact?.member : ""}`}
-                          className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
-                          onMouseLeave={handleCloseTooltip}
-                        >
-                          {selectedRowDataContact?.member ? selectedRowDataContact?.member : ""}
-                        </span>
-                      )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
-                    </div>
-                    <div className={`${styles.underline}`}></div>
-                  </div>
-                </div> */}
                 {/* TEL要注意フラグ・TEL要注意理由 */}
                 <div className={`${styles.right_row_area}  mt-[10px] flex h-[35px] w-full grow items-center`}>
                   <div className="transition-base03 flex h-full w-1/2  flex-col pr-[20px]">
@@ -1772,7 +2455,7 @@ const ActivityMainContainerMemo: FC = () => {
                         <input
                           type="checkbox"
                           // checked={!!checkedColumnHeader} // 初期値
-                          checked={!!selectedRowDataContact?.call_careful_flag}
+                          checked={!!selectedRowDataActivity?.call_careful_flag}
                           onChange={() => {
                             setLoadingGlobalState(false);
                             setIsOpenUpdateContactModal(true);
@@ -1792,17 +2475,16 @@ const ActivityMainContainerMemo: FC = () => {
                       {!searchMode && (
                         <span
                           data-text={`${
-                            selectedRowDataContact?.call_careful_reason
-                              ? selectedRowDataContact?.call_careful_reason
+                            selectedRowDataActivity?.call_careful_reason
+                              ? selectedRowDataActivity?.call_careful_reason
                               : ""
                           }`}
                           className={`${styles.value}`}
                           onMouseEnter={(e) => handleOpenTooltip(e, "right")}
                           onMouseLeave={handleCloseTooltip}
-                          // onDoubleClick={(e) => handleDoubleClick(e, index, columnHeaderItemList[index].columnName)}
                         >
-                          {selectedRowDataContact?.call_careful_reason
-                            ? selectedRowDataContact?.call_careful_reason
+                          {selectedRowDataActivity?.call_careful_reason
+                            ? selectedRowDataActivity?.call_careful_reason
                             : ""}
                         </span>
                       )}
@@ -1821,8 +2503,7 @@ const ActivityMainContainerMemo: FC = () => {
                       <div className={`${styles.grid_select_cell_header} `}>
                         <input
                           type="checkbox"
-                          // checked={!!checkedColumnHeader} // 初期値
-                          checked={!!selectedRowDataContact?.email_ban_flag}
+                          checked={!!selectedRowDataActivity?.email_ban_flag}
                           onChange={() => {
                             setLoadingGlobalState(false);
                             setIsOpenUpdateContactModal(true);
@@ -1843,8 +2524,7 @@ const ActivityMainContainerMemo: FC = () => {
                       <div className={`${styles.grid_select_cell_header} `}>
                         <input
                           type="checkbox"
-                          // checked={!!checkedColumnHeader} // 初期値
-                          checked={!!selectedRowDataContact?.sending_materials_ban_flag}
+                          checked={!!selectedRowDataActivity?.sending_materials_ban_flag}
                           onChange={() => {
                             setLoadingGlobalState(false);
                             setIsOpenUpdateContactModal(true);
@@ -1869,8 +2549,7 @@ const ActivityMainContainerMemo: FC = () => {
                       <div className={`${styles.grid_select_cell_header} `}>
                         <input
                           type="checkbox"
-                          // checked={!!checkedColumnHeader} // 初期値
-                          checked={!!selectedRowDataContact?.fax_dm_ban_flag}
+                          checked={!!selectedRowDataActivity?.fax_dm_ban_flag}
                           onChange={() => {
                             setLoadingGlobalState(false);
                             setIsOpenUpdateContactModal(true);
@@ -1896,20 +2575,18 @@ const ActivityMainContainerMemo: FC = () => {
                       <span className={`${styles.title}`}>禁止理由</span>
                       {!searchMode && (
                         <div
-                          data-text={`${selectedRowDataContact?.ban_reason ? selectedRowDataContact?.ban_reason : ""}`}
+                          data-text={`${
+                            selectedRowDataActivity?.ban_reason ? selectedRowDataActivity?.ban_reason : ""
+                          }`}
                           className={`${styles.value} h-[65px]`}
                           onMouseEnter={(e) => handleOpenTooltip(e)}
                           onMouseLeave={handleCloseTooltip}
                           dangerouslySetInnerHTML={{
-                            __html: selectedRowDataContact?.ban_reason
-                              ? selectedRowDataContact?.ban_reason.replace(/\n/g, "<br>")
+                            __html: selectedRowDataActivity?.ban_reason
+                              ? selectedRowDataActivity?.ban_reason.replace(/\n/g, "<br>")
                               : "",
                           }}
-                        >
-                          {/* {selectedRowDataContact?.ban_reason
-                            ? selectedRowDataContact?.ban_reason.replace(/\n/g, "<br>")
-                            : ""} */}
-                        </div>
+                        ></div>
                       )}
                       {searchMode && <input type="text" className={`${styles.input_box}`} />}
                     </div>
@@ -1923,18 +2600,16 @@ const ActivityMainContainerMemo: FC = () => {
                       <span className={`${styles.title}`}>クレーム</span>
                       {!searchMode && (
                         <div
-                          data-text={`${selectedRowDataContact?.claim ? selectedRowDataContact?.claim : ""}`}
+                          data-text={`${selectedRowDataActivity?.claim ? selectedRowDataActivity?.claim : ""}`}
                           className={`${styles.value} h-[65px]`}
                           onMouseEnter={(e) => handleOpenTooltip(e)}
                           onMouseLeave={handleCloseTooltip}
                           dangerouslySetInnerHTML={{
-                            __html: selectedRowDataContact?.claim
-                              ? selectedRowDataContact?.claim.replace(/\n/g, "<br>")
+                            __html: selectedRowDataActivity?.claim
+                              ? selectedRowDataActivity?.claim.replace(/\n/g, "<br>")
                               : "",
                           }}
-                        >
-                          {/* {selectedRowDataContact?.claim ? selectedRowDataContact?.claim : ""} */}
-                        </div>
+                        ></div>
                       )}
                       {searchMode && <input type="text" className={`${styles.input_box}`} />}
                     </div>

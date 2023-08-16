@@ -227,6 +227,7 @@
   --color-text-under-value: #424242;
   /* インプットボックス */
   --color-bg-under-input: #fff;
+  --color-bg-under-input-gray: #fafafa;
   --color-bg-under-input-box-shadow: inset 0px 0px 0px 1px #ffffff90, 0px 0px 0px 1px #ccc;
   --color-bg-under-input-active-box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f);
   --color-text-under-input: #252525;
@@ -584,6 +585,7 @@
   /* インプットボックス */
   --color-bg-under-input: #fff;
   --color-bg-under-input: #3c3c3c;
+  --color-bg-under-input-gray: #3c3c3c;
   --color-bg-under-input-box-shadow: inset 0px 0px 0px 1px #ffffff90, 0px 0px 0px 1px #000;
   --color-bg-under-input-active-box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f);
   /* --color-bg-under-input-active-box-shadow: inset 0px 0px 0px 1px #0066ff; */

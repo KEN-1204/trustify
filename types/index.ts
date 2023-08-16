@@ -463,8 +463,8 @@ export type Activity_row_data = {
   ban_reason: string | null;
   claim: string | null;
 
-  created_at: string;
-  updated_at: string | null;
+  activity_created_at: string;
+  activity_updated_at: string | null;
   activity_created_by_company_id: string | null;
   activity_created_by_user_id: string | null;
   activity_created_by_department_of_user: string | null;
@@ -631,18 +631,18 @@ export type NewSearchActivity_Contact_CompanyParams = {
   "contacts.created_by_company_id": string | null;
   "contacts.created_by_user_id": string | null;
 
-  created_at: string;
-  updated_at: string | null;
+  // created_at: string;
+  // updated_at: string | null;
   "activities.created_by_company_id": string | null;
   "activities.created_by_user_id": string | null;
   "activities.created_by_department_of_user": string | null;
   "activities.created_by_unit_of_user": string | null;
   summary: string | null;
   scheduled_follow_up_date: string | null;
-  follow_up_flag: boolean | null;
+  follow_up_flag: boolean;
   document_url: string | null;
   activity_type: string | null;
-  claim_flag: boolean | null;
+  claim_flag: boolean;
   product_introduction1: string | null;
   product_introduction2: string | null;
   product_introduction3: string | null;
@@ -679,5 +679,7 @@ export type Activity = {
   product_introduction5: string | null;
   business_office: string | null;
   member_name: string | null;
+  priority: string | null;
   activity_date: string | null;
+  department: string | null;
 };

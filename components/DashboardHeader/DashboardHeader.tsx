@@ -188,7 +188,7 @@ export const DashboardHeaderMemo: FC = () => {
                   className={`${styles.navbarItemInner}`}
                   data-text="架電内容、次回フォロー予定日、面談結果など顧客に関する"
                   data-text2="全ての情報をきちんと記録することで、リスト作成、架電、面談、フォロー時に"
-                  data-text3="有効な情報を短時間で取得し、最高の結果が出せるようにしましょう"
+                  data-text3="有効な情報を短時間で取得し、組織全体で最高の結果が出せるようにしましょう"
                   onMouseEnter={(e) => handleOpenTooltip(e, "center")}
                   onMouseLeave={handleCloseTooltip}
                 >

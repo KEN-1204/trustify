@@ -195,6 +195,7 @@ export const columnNameToJapaneseContacts = (columnName: string) => {
       break;
 
     default:
+      return "";
       break;
   }
 };
