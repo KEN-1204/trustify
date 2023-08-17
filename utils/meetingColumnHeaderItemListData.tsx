@@ -5,7 +5,7 @@ interface Obj {
 }
 // https://zawatech.com/?p=344
 
-const activityColumnHeaderItemListArray: Obj[] = [
+const meetingColumnHeaderItemListArray: Obj[] = [
   {
     columnName: "company_name",
     columnWidth: "100px",
@@ -30,33 +30,45 @@ const activityColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
-  // 活動エリア
   {
-    columnName: "activity_date",
+    columnName: "position_class",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
   },
   {
-    columnName: "department",
+    columnName: "position_name",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  // 面談エリア
+  {
+    columnName: "planned_date",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
   },
   {
-    columnName: "business_office",
+    columnName: "planned_start_time",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
   },
   {
-    columnName: "member_name",
+    columnName: "result_presentation_product1",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
   },
   {
-    columnName: "activity_type",
+    columnName: "meeting_department",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "meeting_department",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
@@ -80,18 +92,6 @@ const activityColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   // 活動エリアここまで
-  {
-    columnName: "position_class",
-    columnWidth: "100px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-  {
-    columnName: "position_name",
-    columnWidth: "100px",
-    isFrozen: false,
-    isOverflow: false,
-  },
 
   {
     columnName: "direct_line",
@@ -272,7 +272,7 @@ const activityColumnHeaderItemListArray: Obj[] = [
   },
 ];
 
-export const activityColumnHeaderItemListData: ColumnHeaderItemList[] = activityColumnHeaderItemListArray.map(
+export const meetingColumnHeaderItemListData: ColumnHeaderItemList[] = meetingColumnHeaderItemListArray.map(
   (obj, index) => {
     //   obj.columnId = index;
     //   obj.columnIndex = index + 2;

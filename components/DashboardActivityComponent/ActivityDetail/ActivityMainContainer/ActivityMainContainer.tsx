@@ -10,6 +10,7 @@ import dynamic from "next/dynamic";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import productCategoriesM, { moduleCategoryM } from "@/utils/productCategoryM";
 import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
+import { format } from "date-fns";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -43,7 +44,7 @@ const ActivityMainContainerMemo: FC = () => {
   const selectedRowDataActivity = useDashboardStore((state) => state.selectedRowDataActivity);
   const setSelectedRowDataActivity = useDashboardStore((state) => state.setSelectedRowDataActivity);
   // 担当者編集モーダルオープン
-  const setIsOpenUpdateContactModal = useDashboardStore((state) => state.setIsOpenUpdateContactModal);
+  const setIsOpenUpdateActivityModal = useDashboardStore((state) => state.setIsOpenUpdateActivityModal);
 
   const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string = "center") => {
     // ホバーしたアイテムにツールチップを表示
@@ -141,10 +142,10 @@ const ActivityMainContainerMemo: FC = () => {
   const [inputActivityCreatedByUnitOfUser, setInputActivityCreatedByUnitOfUser] = useState("");
   const [inputSummary, setInputSummary] = useState("");
   const [inputScheduledFollowUpDate, setInputScheduledFollowUpDate] = useState<Date | null>(null);
-  const [inputFollowUpFlag, setInputFollowUpFlag] = useState<boolean>(false);
+  const [inputFollowUpFlag, setInputFollowUpFlag] = useState<boolean | null>(null);
   const [inputDocumentUrl, setInputDocumentUrl] = useState("");
   const [inputActivityType, setInputActivityType] = useState("");
-  const [inputClaimFlag, setInputClaimFlag] = useState<boolean>(false);
+  const [inputClaimFlag, setInputClaimFlag] = useState<boolean | null>(null);
   const [inputProductIntroduction1, setInputProductIntroduction1] = useState("");
   const [inputProductIntroduction2, setInputProductIntroduction2] = useState("");
   const [inputProductIntroduction3, setInputProductIntroduction3] = useState("");
@@ -350,10 +351,10 @@ const ActivityMainContainerMemo: FC = () => {
       setInputActivityCreatedByUnitOfUser("");
       setInputSummary("");
       setInputScheduledFollowUpDate(null);
-      setInputFollowUpFlag(false);
+      setInputFollowUpFlag(null);
       setInputDocumentUrl("");
       setInputActivityType("");
-      setInputClaimFlag(false);
+      setInputClaimFlag(null);
       setInputProductIntroduction1("");
       setInputProductIntroduction2("");
       setInputProductIntroduction3("");
@@ -569,10 +570,10 @@ const ActivityMainContainerMemo: FC = () => {
     setInputActivityCreatedByUnitOfUser("");
     setInputSummary("");
     setInputScheduledFollowUpDate(null);
-    setInputFollowUpFlag(false);
+    setInputFollowUpFlag(null);
     setInputDocumentUrl("");
     setInputActivityType("");
-    setInputClaimFlag(false);
+    setInputClaimFlag(null);
     setInputProductIntroduction1("");
     setInputProductIntroduction2("");
     setInputProductIntroduction3("");
@@ -616,8 +617,35 @@ const ActivityMainContainerMemo: FC = () => {
     // setLoadingGlobalState(false);
   };
 
-  console.log("日付 inputScheduledFollowUpDate", inputScheduledFollowUpDate);
-  console.log("日付 inputScheduledFollowUpDate", inputScheduledFollowUpDate?.toISOString());
+  const handleClaimChangeSelectTagValue = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value;
+
+    switch (value) {
+      case "チェック有り":
+        setInputClaimFlag(true);
+        break;
+      case "チェック無し":
+        setInputClaimFlag(false);
+        break;
+      default:
+        setInputClaimFlag(null);
+    }
+  };
+
+  const handleFollowUpFlagChangeSelectTagValue = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = event.target.value;
+
+    switch (value) {
+      case "チェック有り":
+        setInputFollowUpFlag(true);
+        break;
+      case "チェック無し":
+        setInputFollowUpFlag(false);
+        break;
+      default:
+        setInputFollowUpFlag(null);
+    }
+  };
 
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
   return (
@@ -1062,7 +1090,7 @@ const ActivityMainContainerMemo: FC = () => {
               </div>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
-                  <span className={`${styles.title}`}>決裁金額(万円)</span>
+                  <span className={`${styles.title} !mr-[15px]`}>決裁金額(万円)</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
                       {selectedRowDataActivity?.approval_amount ? selectedRowDataActivity?.approval_amount : ""}
@@ -1737,7 +1765,7 @@ const ActivityMainContainerMemo: FC = () => {
             {/* サーチモード時は左側の下に表示 */}
             {searchMode && (
               <>
-                {/* 活動日・クレーム */}
+                {/* 活動日・クレーム サーチモード */}
                 <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
@@ -1759,23 +1787,36 @@ const ActivityMainContainerMemo: FC = () => {
                           {selectedRowDataActivity?.claim_flag ? selectedRowDataActivity?.claim_flag : ""}
                         </span>
                       )}
-                      <div className={`${styles.grid_select_cell_header}`}>
+                      {/* <div className={`${styles.grid_select_cell_header}`}>
                         <input
                           type="checkbox"
                           className={`${styles.grid_select_cell_header_input}`}
-                          checked={inputClaimFlag}
+                          checked={inputClaimFlag ? inputClaimFlag : false}
                           onChange={() => setInputClaimFlag(!inputClaimFlag)}
                         />
                         <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
                           <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
                         </svg>
-                      </div>
+                      </div> */}
+                      <select
+                        name="claim_flag"
+                        id="claim_flag"
+                        className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                        // value={inputClaimFlag}
+                        // onChange={(e) => setInputClaimFlag(e.target.value)}
+                        value={inputClaimFlag === null ? "すべて" : inputClaimFlag ? "チェック有り" : "チェック無し"}
+                        onChange={handleClaimChangeSelectTagValue}
+                      >
+                        <option value="すべて">すべて</option>
+                        <option value="チェック無し">チェック無し</option>
+                        <option value="チェック有り">チェック有り</option>
+                      </select>
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
                 </div>
 
-                {/* 活動タイプ・優先度 */}
+                {/* 活動タイプ・優先度 サーチモード */}
                 <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
@@ -1829,7 +1870,7 @@ const ActivityMainContainerMemo: FC = () => {
                   </div>
                 </div>
 
-                {/* 次回ﾌｫﾛｰ予定日・フォロー完了 */}
+                {/* 次回ﾌｫﾛｰ予定日・フォロー完了 サーチモード */}
                 <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
@@ -1842,32 +1883,46 @@ const ActivityMainContainerMemo: FC = () => {
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
-                  {selectedRowDataActivity?.scheduled_follow_up_date && (
-                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                      <div className={`${styles.title_box} transition-base03 flex h-full items-center `}>
-                        <span className={`${styles.check_title}`}>フォロー完了</span>
 
-                        <div className={`${styles.grid_select_cell_header} `}>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} transition-base03 flex h-full items-center `}>
+                      <span className={`${styles.check_title}`}>フォロー完了</span>
+
+                      {/* <div className={`${styles.grid_select_cell_header} `}>
                           <input
                             type="checkbox"
                             checked={!!selectedRowDataActivity?.follow_up_flag}
                             onChange={() => {
                               setLoadingGlobalState(false);
-                              setIsOpenUpdateContactModal(true);
+                              setIsOpenUpdateActivityModal(true);
                             }}
                             className={`${styles.grid_select_cell_header_input}`}
                           />
                           <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
                             <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
                           </svg>
-                        </div>
-                      </div>
-                      <div className={`${styles.underline}`}></div>
+                        </div> */}
+                      <select
+                        name="follow_up_flag"
+                        id="follow_up_flag"
+                        className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                        // value={inputClaimFlag}
+                        // onChange={(e) => setInputClaimFlag(e.target.value)}
+                        value={
+                          inputFollowUpFlag === null ? "すべて" : inputFollowUpFlag ? "チェック有り" : "チェック無し"
+                        }
+                        onChange={handleFollowUpFlagChangeSelectTagValue}
+                      >
+                        <option value="すべて">すべて</option>
+                        <option value="チェック無し">チェック無し</option>
+                        <option value="チェック有り">チェック有り</option>
+                      </select>
                     </div>
-                  )}
+                    <div className={`${styles.underline}`}></div>
+                  </div>
                 </div>
 
-                {/* 概要 */}
+                {/* 概要 サーチモード */}
                 <div className={`${styles.row_area} flex h-[90px] w-full items-center`}>
                   <div className="flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full `}>
@@ -1888,7 +1943,7 @@ const ActivityMainContainerMemo: FC = () => {
                   </div>
                 </div>
 
-                {/* 事業部名 */}
+                {/* 事業部名 サーチモード */}
                 <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
@@ -1930,7 +1985,7 @@ const ActivityMainContainerMemo: FC = () => {
                   </div>
                 </div>
 
-                {/* 事業所・自社担当 */}
+                {/* 事業所・自社担当 サーチモード */}
                 <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
@@ -1964,7 +2019,7 @@ const ActivityMainContainerMemo: FC = () => {
                   </div>
                 </div>
 
-                {/* 実施1・実施2 */}
+                {/* 実施1・実施2 サーチモード */}
                 <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
@@ -1998,7 +2053,7 @@ const ActivityMainContainerMemo: FC = () => {
                   </div>
                 </div>
 
-                {/* 実施3・実施4 */}
+                {/* 実施3・実施4 サーチモード */}
                 <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
@@ -2032,7 +2087,7 @@ const ActivityMainContainerMemo: FC = () => {
                   </div>
                 </div>
 
-                {/* 実施5 */}
+                {/* 実施5 サーチモード */}
                 <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
@@ -2104,7 +2159,9 @@ const ActivityMainContainerMemo: FC = () => {
                       <span className={`${styles.title}`}>活動日</span>
                       {!searchMode && (
                         <span className={`${styles.value}`}>
-                          {selectedRowDataActivity?.activity_date ? selectedRowDataActivity?.activity_date : ""}
+                          {selectedRowDataActivity?.activity_date
+                            ? format(new Date(selectedRowDataActivity.activity_date), "yyyy-MM-dd")
+                            : ""}
                         </span>
                       )}
                       {searchMode && <input type="text" className={`${styles.input_box}`} />}
@@ -2115,10 +2172,27 @@ const ActivityMainContainerMemo: FC = () => {
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>クレーム</span>
                       {!searchMode && (
+                        <div className={`${styles.grid_select_cell_header} `}>
+                          <input
+                            type="checkbox"
+                            // checked={!!checkedColumnHeader} // 初期値
+                            checked={!!selectedRowDataActivity?.claim_flag}
+                            onChange={() => {
+                              setLoadingGlobalState(false);
+                              setIsOpenUpdateActivityModal(true);
+                            }}
+                            className={`${styles.grid_select_cell_header_input}`}
+                          />
+                          <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+                          </svg>
+                        </div>
+                      )}
+                      {/* {!searchMode && (
                         <span className={`${styles.value}`}>
                           {selectedRowDataActivity?.claim_flag ? selectedRowDataActivity?.claim_flag : ""}
                         </span>
-                      )}
+                      )} */}
                       {searchMode && <input type="text" className={`${styles.input_box}`} />}
                     </div>
                     <div className={`${styles.underline}`}></div>
@@ -2177,7 +2251,7 @@ const ActivityMainContainerMemo: FC = () => {
                           // onMouseLeave={handleCloseTooltip}
                         >
                           {selectedRowDataActivity?.scheduled_follow_up_date
-                            ? selectedRowDataActivity?.scheduled_follow_up_date
+                            ? format(new Date(selectedRowDataActivity.scheduled_follow_up_date), "yyyy-MM-dd")
                             : ""}
                         </span>
                       )}
@@ -2196,7 +2270,7 @@ const ActivityMainContainerMemo: FC = () => {
                             checked={!!selectedRowDataActivity?.follow_up_flag}
                             onChange={() => {
                               setLoadingGlobalState(false);
-                              setIsOpenUpdateContactModal(true);
+                              setIsOpenUpdateActivityModal(true);
                             }}
                             className={`${styles.grid_select_cell_header_input}`}
                           />
@@ -2211,16 +2285,15 @@ const ActivityMainContainerMemo: FC = () => {
                 </div>
 
                 {/* 概要 */}
-                <div className={`${styles.row_area} flex h-[90px] w-full items-center`}>
+                {/* <div className={`${styles.row_area} flex h-[90px] w-full items-center`}> */}
+                <div className={`${styles.row_area} flex max-h-max min-h-[75px] w-full items-center`}>
                   <div className="flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full `}>
                       <span className={`${styles.title}`}>概要</span>
                       {!searchMode && (
                         <div
-                          // data-text={`${
-                          //   selectedRowDataActivity?.ban_reason ? selectedRowDataActivity?.ban_reason : ""
-                          // }`}
-                          className={`${styles.value} h-[85px] ${styles.textarea_box} ${styles.textarea_box_bg}`}
+                          className={`${styles.value} max-h-max min-h-[70px] ${styles.textarea_box} ${styles.textarea_box_bg}`}
+                          // className={`${styles.value} h-[85px] ${styles.textarea_box} ${styles.textarea_box_bg}`}
                           // onMouseEnter={(e) => handleOpenTooltip(e)}
                           // onMouseLeave={handleCloseTooltip}
                           dangerouslySetInnerHTML={{
@@ -2230,7 +2303,7 @@ const ActivityMainContainerMemo: FC = () => {
                           }}
                         ></div>
                       )}
-                      {searchMode && (
+                      {/* {searchMode && (
                         <textarea
                           name="activity_summary"
                           id="activity_summary"
@@ -2240,7 +2313,7 @@ const ActivityMainContainerMemo: FC = () => {
                           value={inputSummary}
                           onChange={(e) => setInputSummary(e.target.value)}
                         ></textarea>
-                      )}
+                      )} */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -2458,7 +2531,7 @@ const ActivityMainContainerMemo: FC = () => {
                           checked={!!selectedRowDataActivity?.call_careful_flag}
                           onChange={() => {
                             setLoadingGlobalState(false);
-                            setIsOpenUpdateContactModal(true);
+                            setIsOpenUpdateActivityModal(true);
                           }}
                           className={`${styles.grid_select_cell_header_input}`}
                         />
@@ -2506,7 +2579,7 @@ const ActivityMainContainerMemo: FC = () => {
                           checked={!!selectedRowDataActivity?.email_ban_flag}
                           onChange={() => {
                             setLoadingGlobalState(false);
-                            setIsOpenUpdateContactModal(true);
+                            setIsOpenUpdateActivityModal(true);
                           }}
                           className={`${styles.grid_select_cell_header_input}`}
                         />
@@ -2527,7 +2600,7 @@ const ActivityMainContainerMemo: FC = () => {
                           checked={!!selectedRowDataActivity?.sending_materials_ban_flag}
                           onChange={() => {
                             setLoadingGlobalState(false);
-                            setIsOpenUpdateContactModal(true);
+                            setIsOpenUpdateActivityModal(true);
                           }}
                           className={`${styles.grid_select_cell_header_input}`}
                         />
@@ -2552,7 +2625,7 @@ const ActivityMainContainerMemo: FC = () => {
                           checked={!!selectedRowDataActivity?.fax_dm_ban_flag}
                           onChange={() => {
                             setLoadingGlobalState(false);
-                            setIsOpenUpdateContactModal(true);
+                            setIsOpenUpdateActivityModal(true);
                           }}
                           className={`${styles.grid_select_cell_header_input}`}
                         />

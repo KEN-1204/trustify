@@ -9,6 +9,7 @@ import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
 import { GrPowerReset } from "react-icons/gr";
 import { columnNameToJapanese } from "@/utils/columnNameToJapanese";
 import { columnNameToJapaneseContacts } from "@/utils/columnNameToJapaneseContacts";
+import { columnNameToJapaneseActivity } from "@/utils/columnNameToJapaneseActivity";
 
 // const data: Array<{ id: number; name: string; img: StaticImageData }> = [
 
@@ -47,6 +48,7 @@ const EditColumnsModalDisplayOnlyMemo: FC<Props> = ({ columnHeaderItemList }) =>
   console.log("🔥🔥🔥 EditColumnsModalレンダリング", resetColumnHeaderItemList);
   console.log(`listItemsRight`, listItemsRight);
   console.log(`dragIndexRight`, dragIndexRight);
+  console.log(`columnHeaderItemList`, columnHeaderItemList);
 
   // ====================== 右側 ドラッグでカラム順番入れ替え ======================
   const handleDragStartRight = (index: number) => {
@@ -350,6 +352,9 @@ const EditColumnsModalDisplayOnlyMemo: FC<Props> = ({ columnHeaderItemList }) =>
                     )}
                     {activeMenuTab === "Contacts" && (
                       <span className="truncate">{columnNameToJapaneseContacts(item.columnName)}</span>
+                    )}
+                    {activeMenuTab === "Activity" && (
+                      <span className="truncate">{columnNameToJapaneseActivity(item.columnName)}</span>
                     )}
                     {/* {item.isFrozen && <span className="absolute -right-3">固定されています</span>} */}
                   </div>

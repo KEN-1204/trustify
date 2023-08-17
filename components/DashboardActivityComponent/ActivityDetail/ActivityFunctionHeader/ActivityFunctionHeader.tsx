@@ -17,10 +17,12 @@ const ActivityFunctionHeaderMemo: FC = () => {
   //   const setIsOpenInsertNewActivityModal = useDashboardStore((state) => state.setIsOpenInsertNewActivityModal);
   const setIsOpenUpdateActivityModal = useDashboardStore((state) => state.setIsOpenUpdateActivityModal);
   const setIsOpenInsertNewActivityModal = useDashboardStore((state) => state.setIsOpenInsertNewActivityModal);
+  const setIsOpenInsertNewMeetingModal = useDashboardStore((state) => state.setIsOpenInsertNewMeetingModal);
 
   // 上画面の選択中の列データ会社
   //   const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
   const selectedRowDataActivity = useDashboardStore((state) => state.selectedRowDataActivity);
+  const setSelectedRowDataContact = useDashboardStore((state) => state.setSelectedRowDataContact);
 
   const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
     // ホバーしたアイテムにツールチップを表示
@@ -76,6 +78,7 @@ const ActivityFunctionHeaderMemo: FC = () => {
             } else {
               // 新規サーチクリック
               setSearchMode(true);
+              setLoadingGlobalState(false);
               // setLoadingGlobalState(true);
             }
           }}
@@ -109,6 +112,20 @@ const ActivityFunctionHeaderMemo: FC = () => {
           }}
         /> */}
         <RippleButton
+          title={`活動作成`}
+          classText={`select-none ${searchMode || !selectedRowDataActivity ? `cursor-not-allowed` : ``}`}
+          borderRadius="2px"
+          clickEventHandler={() => {
+            if (searchMode) return;
+            if (!selectedRowDataActivity) return alert("担当者を選択してください");
+            console.log("活動作成 クリック");
+            // 担当者ページの選択列をリセット
+            setSelectedRowDataContact(null);
+            setLoadingGlobalState(false);
+            setIsOpenInsertNewActivityModal(true);
+          }}
+        />
+        <RippleButton
           title={`活動編集`}
           classText={`select-none ${searchMode || !selectedRowDataActivity ? `cursor-not-allowed` : ``}`}
           borderRadius="2px"
@@ -120,18 +137,18 @@ const ActivityFunctionHeaderMemo: FC = () => {
             setIsOpenUpdateActivityModal(true);
           }}
         />
-        {/* <RippleButton
-          title={`活動作成`}
+        <RippleButton
+          title={`面談作成`}
           classText={`select-none ${searchMode || !selectedRowDataActivity ? `cursor-not-allowed` : ``}`}
           borderRadius="2px"
           clickEventHandler={() => {
             if (searchMode) return;
             if (!selectedRowDataActivity) return alert("担当者を選択してください");
-            console.log("活動作成 クリック");
+            console.log("面談作成 クリック");
             setLoadingGlobalState(false);
-            setIsOpenInsertNewActivityModal(true);
+            setIsOpenInsertNewMeetingModal(true);
           }}
-        /> */}
+        />
       </div>
 
       <div className={`flex max-h-[26px] w-full  items-center justify-end space-x-[6px]`}>

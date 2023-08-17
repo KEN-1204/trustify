@@ -1,18 +1,19 @@
 import React, { useEffect, useState } from "react";
-import styles from "./UpdateActivityModal.module.css";
+import styles from "./InsertNewMeetingModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 import { toast } from "react-toastify";
 import useThemeStore from "@/store/useThemeStore";
 import { isNaN } from "lodash";
-import { useMutateActivity } from "@/hooks/useMutateActivity";
+import { useMutateMeeting } from "@/hooks/useMutateMeeting";
 import productCategoriesM from "@/utils/productCategoryM";
 import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
 
-export const UpdateActivityModal = () => {
-  const selectedRowDataActivity = useDashboardStore((state) => state.selectedRowDataActivity);
-  const setIsOpenUpdateActivityModal = useDashboardStore((state) => state.setIsOpenUpdateActivityModal);
+export const InsertNewMeetingModal = () => {
+  const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
+  const selectedRowDataMeeting = useDashboardStore((state) => state.selectedRowDataMeeting);
+  const setIsOpenInsertNewMeetingModal = useDashboardStore((state) => state.setIsOpenInsertNewMeetingModal);
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   // const theme = useThemeStore((state) => state.theme);
@@ -22,19 +23,19 @@ export const UpdateActivityModal = () => {
 
   const initialDate = new Date();
   initialDate.setHours(0, 0, 0, 0);
-  // const [activityDate, setActivityDate] = useState<Date | null>(new Date());
-  const [activityDate, setActivityDate] = useState<Date | null>(initialDate);
+  // const [MeetingDate, setMeetingDate] = useState<Date | null>(new Date());
+  const [MeetingDate, setMeetingDate] = useState<Date | null>(initialDate);
   const [summary, setSummary] = useState("");
   const [scheduledFollowUpDate, setScheduledFollowUpDate] = useState<Date | null>(null);
   const [followUpFlag, setFollowUpFlag] = useState(false);
   const [documentURL, setDocumentURL] = useState("");
-  const [activityType, setActivityType] = useState("");
+  const [MeetingType, setMeetingType] = useState("");
   const [claimFlag, setClaimFlag] = useState(false);
-  const [productIntroduction1, setProductIntroduction1] = useState("");
-  const [productIntroduction2, setProductIntroduction2] = useState("");
-  const [productIntroduction3, setProductIntroduction3] = useState("");
-  const [productIntroduction4, setProductIntroduction4] = useState("");
-  const [productIntroduction5, setProductIntroduction5] = useState("");
+  const [productIntroduction1, setProductIntroduction1] = useState(null);
+  const [productIntroduction2, setProductIntroduction2] = useState(null);
+  const [productIntroduction3, setProductIntroduction3] = useState(null);
+  const [productIntroduction4, setProductIntroduction4] = useState(null);
+  const [productIntroduction5, setProductIntroduction5] = useState(null);
   const [departmentName, setDepartmentName] = useState(
     userProfileState?.department ? userProfileState?.department : ""
   );
@@ -45,93 +46,42 @@ export const UpdateActivityModal = () => {
   const [priority, setPriority] = useState("");
 
   const supabase = useSupabaseClient();
-  const { updateActivityMutation } = useMutateActivity();
+  const { createMeetingMutation } = useMutateMeeting();
 
-  // 初回マウント時に選択中の担当者&会社の列データの情報をStateに格納
   useEffect(() => {
-    if (!selectedRowDataActivity) return;
-    let _activity_date = selectedRowDataActivity.activity_date ? new Date(selectedRowDataActivity.activity_date) : null;
-    let _summary = selectedRowDataActivity.summary ? selectedRowDataActivity.summary : "";
-    let _scheduled_follow_up_date = selectedRowDataActivity.scheduled_follow_up_date
-      ? new Date(selectedRowDataActivity.scheduled_follow_up_date)
-      : null;
-    let _follow_up_flag = selectedRowDataActivity.follow_up_flag ? selectedRowDataActivity.follow_up_flag : false;
-    let _document_url = selectedRowDataActivity.document_url ? selectedRowDataActivity.document_url : "";
-    let _activity_type = selectedRowDataActivity.activity_type ? selectedRowDataActivity.activity_type : "";
-    let _claim_flag = selectedRowDataActivity.claim_flag ? selectedRowDataActivity.claim_flag : false;
-    let _product_introduction1 = selectedRowDataActivity.product_introduction1
-      ? selectedRowDataActivity.product_introduction1
-      : "";
-    let _product_introduction2 = selectedRowDataActivity.product_introduction2
-      ? selectedRowDataActivity.product_introduction2
-      : "";
-    let _product_introduction3 = selectedRowDataActivity.product_introduction3
-      ? selectedRowDataActivity.product_introduction3
-      : "";
-    let _product_introduction4 = selectedRowDataActivity.product_introduction4
-      ? selectedRowDataActivity.product_introduction4
-      : "";
-    let _product_introduction5 = selectedRowDataActivity.product_introduction5
-      ? selectedRowDataActivity.product_introduction5
-      : "";
-    let _department = selectedRowDataActivity.department ? selectedRowDataActivity.department : "";
-    let _business_office = selectedRowDataActivity.business_office ? selectedRowDataActivity.business_office : "";
-    let _member_name = selectedRowDataActivity.member_name ? selectedRowDataActivity.member_name : "";
-    let _priority = selectedRowDataActivity.priority ? selectedRowDataActivity.priority : "";
-    setActivityDate(_activity_date);
-    setSummary(_summary);
-    setScheduledFollowUpDate(_scheduled_follow_up_date);
-    setFollowUpFlag(_follow_up_flag);
-    setDocumentURL(_document_url);
-    setActivityType(_activity_type);
-    setClaimFlag(_claim_flag);
-    setProductIntroduction1(_product_introduction1);
-    setProductIntroduction2(_product_introduction2);
-    setProductIntroduction3(_product_introduction3);
-    setProductIntroduction4(_product_introduction4);
-    setProductIntroduction5(_product_introduction5);
-    setDepartmentName(_department);
-    setBusinessOffice(_business_office);
-    setMemberName(_member_name);
-    setPriority(_priority);
+    if (!userProfileState) return;
+    setMemberName(userProfileState.profile_name ? userProfileState.profile_name : "");
+    setBusinessOffice(userProfileState.office ? userProfileState.office : "");
+    setDepartmentName(userProfileState.department ? userProfileState.department : "");
   }, []);
 
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
-    setIsOpenUpdateActivityModal(false);
+    setIsOpenInsertNewMeetingModal(false);
   };
   const handleSaveAndClose = async () => {
     if (!summary) return alert("活動概要を入力してください");
-    if (!activityType) return alert("活動タイプを選択してください");
+    if (!MeetingType) return alert("活動タイプを選択してください");
     if (!userProfileState?.id) return alert("ユーザー情報が存在しません");
-    if (!selectedRowDataActivity?.company_id) return alert("相手先の会社情報が存在しません");
-    if (!selectedRowDataActivity?.contact_id) return alert("担当者情報が存在しません");
+    if (!selectedRowDataContact?.company_id) return alert("相手先の会社情報が存在しません");
+    if (!selectedRowDataContact?.contact_id) return alert("担当者情報が存在しません");
 
     setLoadingGlobalState(true);
 
     // 新規作成するデータをオブジェクトにまとめる
-    const newActivity = {
-      id: selectedRowDataActivity.activity_id,
-      created_by_company_id: selectedRowDataActivity?.activity_created_by_company_id
-        ? selectedRowDataActivity.activity_created_by_company_id
-        : null,
-      created_by_user_id: selectedRowDataActivity?.activity_created_by_user_id
-        ? selectedRowDataActivity.activity_created_by_user_id
-        : null,
-      created_by_department_of_user: selectedRowDataActivity.activity_created_by_department_of_user
-        ? selectedRowDataActivity.activity_created_by_department_of_user
-        : null,
-      created_by_unit_of_user: selectedRowDataActivity?.activity_created_by_unit_of_user
-        ? selectedRowDataActivity.activity_created_by_unit_of_user
-        : null,
-      client_contact_id: selectedRowDataActivity.contact_id,
-      client_company_id: selectedRowDataActivity.company_id,
+    const newMeeting = {
+      created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
+      created_by_user_id: userProfileState?.id ? userProfileState.id : null,
+      created_by_department_of_user: departmentName ? departmentName : null,
+      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      client_contact_id: selectedRowDataContact.contact_id,
+      client_company_id: selectedRowDataContact.company_id,
       summary: summary,
       scheduled_follow_up_date: scheduledFollowUpDate ? scheduledFollowUpDate.toISOString() : null,
       // follow_up_flag: followUpFlag ? followUpFlag : null,
       follow_up_flag: followUpFlag,
       document_url: null,
-      activity_type: activityType ? activityType : null,
+      Meeting_type: MeetingType ? MeetingType : null,
       // claim_flag: claimFlag ? claimFlag : null,
       claim_flag: claimFlag,
       product_introduction1: productIntroduction1,
@@ -143,16 +93,56 @@ export const UpdateActivityModal = () => {
       business_office: businessOffice ? businessOffice : null,
       member_name: memberName ? memberName : null,
       priority: priority ? priority : null,
-      activity_date: activityDate ? activityDate.toISOString() : null,
+      Meeting_date: MeetingDate ? MeetingDate.toISOString() : null,
     };
 
-    // supabaseにUPDATE
-    updateActivityMutation.mutate(newActivity);
+    // supabaseにINSERT
+    createMeetingMutation.mutate(newMeeting);
 
     // setLoadingGlobalState(false);
 
     // モーダルを閉じる
-    // setIsOpenUpdateActivityModal(false);
+    // setIsOpenInsertNewMeetingModal(false);
+  };
+  const handleSaveAndCloseFromMeeting = async () => {
+    if (!summary) return alert("活動概要を入力してください");
+    if (!MeetingType) return alert("活動タイプを選択してください");
+    if (!userProfileState?.id) return alert("ユーザー情報が存在しません");
+    if (!selectedRowDataMeeting?.company_id) return alert("相手先の会社情報が存在しません");
+    if (!selectedRowDataMeeting?.contact_id) return alert("担当者情報が存在しません");
+
+    setLoadingGlobalState(true);
+
+    // 新規作成するデータをオブジェクトにまとめる
+    const newMeeting = {
+      created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
+      created_by_user_id: userProfileState?.id ? userProfileState.id : null,
+      created_by_department_of_user: departmentName ? departmentName : null,
+      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      client_contact_id: selectedRowDataMeeting.contact_id,
+      client_company_id: selectedRowDataMeeting.company_id,
+      summary: summary,
+      scheduled_follow_up_date: scheduledFollowUpDate ? scheduledFollowUpDate.toISOString() : null,
+      // follow_up_flag: followUpFlag ? followUpFlag : null,
+      follow_up_flag: followUpFlag,
+      document_url: null,
+      Meeting_type: MeetingType ? MeetingType : null,
+      // claim_flag: claimFlag ? claimFlag : null,
+      claim_flag: claimFlag,
+      product_introduction1: productIntroduction1,
+      product_introduction2: productIntroduction2,
+      product_introduction3: productIntroduction3,
+      product_introduction4: productIntroduction4,
+      product_introduction5: productIntroduction5,
+      department: departmentName ? departmentName : null,
+      business_office: businessOffice ? businessOffice : null,
+      member_name: memberName ? memberName : null,
+      priority: priority ? priority : null,
+      Meeting_date: MeetingDate ? MeetingDate.toISOString() : null,
+    };
+
+    // supabaseにINSERT
+    createMeetingMutation.mutate(newMeeting);
   };
 
   // 全角文字を半角に変換する関数
@@ -258,7 +248,12 @@ export const UpdateActivityModal = () => {
     return total;
   }
 
-  console.log("活動作成モーダル selectedRowDataActivity", selectedRowDataActivity);
+  console.log(
+    "活動作成モーダル selectedRowDataContact",
+    selectedRowDataContact,
+    "selectedRowDataMeeting",
+    selectedRowDataMeeting
+  );
 
   return (
     <>
@@ -275,12 +270,22 @@ export const UpdateActivityModal = () => {
             キャンセル
           </div>
           <div className="-translate-x-[25px] font-bold">活動 新規作成</div>
-          <div
-            className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
-            onClick={handleSaveAndClose}
-          >
-            保存
-          </div>
+          {selectedRowDataContact && (
+            <div
+              className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
+              onClick={handleSaveAndClose}
+            >
+              保存
+            </div>
+          )}
+          {selectedRowDataMeeting && (
+            <div
+              className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
+              onClick={handleSaveAndCloseFromMeeting}
+            >
+              保存
+            </div>
+          )}
         </div>
         {/* メインコンテンツ コンテナ */}
         <div className={`${styles.main_contents_container}`}>
@@ -293,7 +298,7 @@ export const UpdateActivityModal = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px]`}>●活動日</span>
-                    <DatePickerCustomInput startDate={activityDate} setStartDate={setActivityDate} />
+                    <DatePickerCustomInput startDate={MeetingDate} setStartDate={setMeetingDate} />
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -344,10 +349,10 @@ export const UpdateActivityModal = () => {
                       name="number_of_employees_class"
                       id="number_of_employees_class"
                       className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      value={activityType}
+                      value={MeetingType}
                       onChange={(e) => {
                         if (e.target.value === "") return alert("活動タイプを選択してください");
-                        setActivityType(e.target.value);
+                        setMeetingType(e.target.value);
                       }}
                     >
                       <option value=""></option>

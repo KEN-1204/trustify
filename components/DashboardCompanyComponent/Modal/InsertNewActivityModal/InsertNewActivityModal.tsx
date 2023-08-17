@@ -12,6 +12,7 @@ import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput"
 
 export const InsertNewActivityModal = () => {
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
+  const selectedRowDataActivity = useDashboardStore((state) => state.selectedRowDataActivity);
   const setIsOpenInsertNewActivityModal = useDashboardStore((state) => state.setIsOpenInsertNewActivityModal);
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
@@ -102,6 +103,46 @@ export const InsertNewActivityModal = () => {
 
     // モーダルを閉じる
     // setIsOpenInsertNewActivityModal(false);
+  };
+  const handleSaveAndCloseFromActivity = async () => {
+    if (!summary) return alert("活動概要を入力してください");
+    if (!activityType) return alert("活動タイプを選択してください");
+    if (!userProfileState?.id) return alert("ユーザー情報が存在しません");
+    if (!selectedRowDataActivity?.company_id) return alert("相手先の会社情報が存在しません");
+    if (!selectedRowDataActivity?.contact_id) return alert("担当者情報が存在しません");
+
+    setLoadingGlobalState(true);
+
+    // 新規作成するデータをオブジェクトにまとめる
+    const newActivity = {
+      created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
+      created_by_user_id: userProfileState?.id ? userProfileState.id : null,
+      created_by_department_of_user: departmentName ? departmentName : null,
+      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      client_contact_id: selectedRowDataActivity.contact_id,
+      client_company_id: selectedRowDataActivity.company_id,
+      summary: summary,
+      scheduled_follow_up_date: scheduledFollowUpDate ? scheduledFollowUpDate.toISOString() : null,
+      // follow_up_flag: followUpFlag ? followUpFlag : null,
+      follow_up_flag: followUpFlag,
+      document_url: null,
+      activity_type: activityType ? activityType : null,
+      // claim_flag: claimFlag ? claimFlag : null,
+      claim_flag: claimFlag,
+      product_introduction1: productIntroduction1,
+      product_introduction2: productIntroduction2,
+      product_introduction3: productIntroduction3,
+      product_introduction4: productIntroduction4,
+      product_introduction5: productIntroduction5,
+      department: departmentName ? departmentName : null,
+      business_office: businessOffice ? businessOffice : null,
+      member_name: memberName ? memberName : null,
+      priority: priority ? priority : null,
+      activity_date: activityDate ? activityDate.toISOString() : null,
+    };
+
+    // supabaseにINSERT
+    createActivityMutation.mutate(newActivity);
   };
 
   // 全角文字を半角に変換する関数
@@ -207,7 +248,12 @@ export const InsertNewActivityModal = () => {
     return total;
   }
 
-  console.log("活動作成モーダル selectedRowDataContact", selectedRowDataContact);
+  console.log(
+    "活動作成モーダル selectedRowDataContact",
+    selectedRowDataContact,
+    "selectedRowDataActivity",
+    selectedRowDataActivity
+  );
 
   return (
     <>
@@ -224,12 +270,22 @@ export const InsertNewActivityModal = () => {
             キャンセル
           </div>
           <div className="-translate-x-[25px] font-bold">活動 新規作成</div>
-          <div
-            className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
-            onClick={handleSaveAndClose}
-          >
-            保存
-          </div>
+          {selectedRowDataContact && (
+            <div
+              className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
+              onClick={handleSaveAndClose}
+            >
+              保存
+            </div>
+          )}
+          {selectedRowDataActivity && (
+            <div
+              className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
+              onClick={handleSaveAndCloseFromActivity}
+            >
+              保存
+            </div>
+          )}
         </div>
         {/* メインコンテンツ コンテナ */}
         <div className={`${styles.main_contents_container}`}>

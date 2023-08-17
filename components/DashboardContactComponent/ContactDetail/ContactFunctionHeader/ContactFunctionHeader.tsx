@@ -21,6 +21,7 @@ const ContactFunctionHeaderMemo: FC = () => {
   // 上画面の選択中の列データ会社
   //   const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
+  const setSelectedRowDataActivity = useDashboardStore((state) => state.setSelectedRowDataActivity);
 
   const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
     // ホバーしたアイテムにツールチップを表示
@@ -128,6 +129,8 @@ const ContactFunctionHeaderMemo: FC = () => {
             if (searchMode) return;
             if (!selectedRowDataContact) return alert("担当者を選択してください");
             console.log("活動作成 クリック");
+            // 活動の選択列はリセット
+            setSelectedRowDataActivity(null);
             setLoadingGlobalState(false);
             setIsOpenInsertNewActivityModal(true);
           }}

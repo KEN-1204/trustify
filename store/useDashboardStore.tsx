@@ -5,9 +5,11 @@ import {
   Client_company_row_data,
   ColumnHeaderItemList,
   Contact_row_data,
+  Meeting_row_data,
   NewSearchActivity_Contact_CompanyParams,
   NewSearchCompanyParams,
   NewSearchContact_CompanyParams,
+  NewSearchMeeting_Contact_CompanyParams,
   UserProfile,
 } from "@/types";
 import { activityColumnHeaderItemListData } from "@/utils/activityColumnHeaderItemListDate";
@@ -81,6 +83,14 @@ type State = {
   isOpenUpdateActivityModal: boolean;
   setIsOpenUpdateActivityModal: (payload: boolean) => void;
 
+  // =================== 面談作成モーダル ===================
+  // 新規作成モーダル
+  isOpenInsertNewMeetingModal: boolean;
+  setIsOpenInsertNewMeetingModal: (payload: boolean) => void;
+  // 編集モーダル
+  isOpenUpdateMeetingModal: boolean;
+  setIsOpenUpdateMeetingModal: (payload: boolean) => void;
+
   // =================== アカウント設定モーダル ===================
   // アカウント設定開閉
   isOpenSettingAccountModal: boolean;
@@ -146,10 +156,20 @@ type State = {
   // オブジェクト
   selectedRowDataActivity: Activity_row_data | null;
   setSelectedRowDataActivity: (payload: Activity_row_data | null) => void;
-
   // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
   newSearchActivity_Contact_CompanyParams: NewSearchActivity_Contact_CompanyParams | null;
   setNewSearchActivity_Contact_CompanyParams: (payload: NewSearchActivity_Contact_CompanyParams) => void;
+
+  // =================== 面談テーブル ヘッダーリスト保持用state関連 ===================
+  meetingColumnHeaderItemList: ColumnHeaderItemList[];
+  setMeetingColumnHeaderItemList: (payload: ColumnHeaderItemList[]) => void;
+  // =================== 上画面の列選択した時に下画面に担当者情報を映す用のState ===================
+  // オブジェクト
+  selectedRowDataMeeting: Meeting_row_data | null;
+  setSelectedRowDataMeeting: (payload: Meeting_row_data | null) => void;
+  // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
+  newSearchMeetingParams: NewSearchMeeting_Contact_CompanyParams | null;
+  setNewSearchMeetingParams: (payload: NewSearchMeeting_Contact_CompanyParams) => void;
 };
 
 const useDashboardStore = create<State>((set) => ({
@@ -210,6 +230,14 @@ const useDashboardStore = create<State>((set) => ({
   // 編集モーダル
   isOpenUpdateActivityModal: false,
   setIsOpenUpdateActivityModal: (payload) => set({ isOpenUpdateActivityModal: payload }),
+
+  // =================== 面談作成モーダル ===================
+  // 新規作成モーダル
+  isOpenInsertNewMeetingModal: false,
+  setIsOpenInsertNewMeetingModal: (payload) => set({ isOpenInsertNewMeetingModal: payload }),
+  // 編集モーダル
+  isOpenUpdateMeetingModal: false,
+  setIsOpenUpdateMeetingModal: (payload) => set({ isOpenUpdateMeetingModal: payload }),
 
   // =================== アカウント設定モーダル ===================
   // 開閉

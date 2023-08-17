@@ -28,7 +28,7 @@ export const EditModal = () => {
       {/* オーバーレイ */}
       <div className={`flex-center ${styles.overlay}`} onClick={handleClickOverlay}></div>
       {/* モーダル */}
-      <div className={`${styles.modal_container} transition-base`}>
+      <div className={`${styles.modal_container} transition-base`} onClick={handleClickOverlay}>
         <div className={`${styles.contents} group relative !h-full min-w-[70vw] !bg-transparent`}>
           {/* 保存キャンセルエリア */}
           <div className="flex w-full  items-center justify-between py-[10px] text-center text-[18px]">
@@ -36,13 +36,13 @@ export const EditModal = () => {
               {/* キャンセル */}
             </div>
             {/* <div className="font-bold">編集</div> */}
-            <div className="font-bold">詳細</div>
+            <div className="select-none font-bold">詳細</div>
             <div
-              className={`cursor-pointer font-bold text-[#0D99FF] ${styles.save_text}`}
+              className={`cursor-pointer font-bold text-[#0D99FF] ${styles.save_text} select-none`}
               onClick={() => console.log("クリック")}
             >
               {/* 保存 */}
-              閉じる
+              {/* 閉じる */}
             </div>
           </div>
           {/* Divider、区切り線 */}
@@ -63,7 +63,7 @@ export const EditModal = () => {
             autoFocus
             // readOnly // 自身の作成したレコードでない場合はreadOnlyに設定して編集できないようにする
             // className="w-full h-full outline-none border-none bg-transparent text-white"
-            className={`input-selection mt-[10px] h-full w-full resize-none border-none !bg-transparent outline-none selection:bg-[#0D99FF] selection:text-[#ECECEC] placeholder:text-[16px] placeholder:text-[#ECECEC]/[0.5] placeholder:focus:text-[#ECECEC]/[0.7] ${styles.textarea}`}
+            className={`input-selection mt-[10px] h-full w-full resize-none border-none !bg-transparent outline-none selection:bg-[#0D99FF] selection:text-[#ECECEC] placeholder:text-[16px] placeholder:text-[#ECECEC]/[0.5] placeholder:focus:text-[#ECECEC]/[0.7] ${styles.textarea} pointer-events-none`}
           >
             {/* {textareaInput} */}
           </textarea>

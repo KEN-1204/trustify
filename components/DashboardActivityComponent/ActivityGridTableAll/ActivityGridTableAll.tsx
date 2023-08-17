@@ -16,6 +16,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { EditColumnsModalDisplayOnly } from "../../GridTable/EditColumns/EditColumnsModalDisplayOnly";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
+import { format } from "date-fns";
 
 type TableDataType = {
   id: number;
@@ -345,6 +346,8 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
         .is("activity_created_by_company_id", null)
         .or(`activity_created_by_user_id.eq.${userProfileState.id},activity_created_by_user_id.is.null`)
         .range(from, to)
+        // .order("company_name", { ascending: true });
+        .order("activity_created_at", { ascending: false })
         .order("company_name", { ascending: true });
       // 成功バージョン
       // const { data, error, count } = await supabase
@@ -413,7 +416,8 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
         .eq("activity_created_by_company_id", userProfileState.company_id)
         .or(`activity_created_by_user_id.eq.${userProfileState.id},activity_created_by_user_id.is.null`)
         .range(from, to)
-        .order("company_name", { ascending: true });
+        // .order("company_name", { ascending: true });
+        .order("activity_created_at", { ascending: false });
       // 成功バージョン
       // const { data, error, count } = await supabase
       //   .rpc("search_activities_and_companies_and_contacts", { params }, { count: "exact" })
@@ -755,7 +759,7 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
     // const newColsWidths = new Array(Object.keys(data?.pages[0].rows[0] as object).length + 1).fill("120px");
     const newColsWidths = new Array(activityColumnHeaderItemList.length + 1).fill("120px");
     newColsWidths.fill("65px", 0, 1); // 1列目を65pxに変更
-    newColsWidths.fill("250px", 1, 2); // 2列目を100pxに変更 id
+    newColsWidths.fill("200px", 1, 2); // 2列目を100pxに変更 id
     // newColsWidths.fill("100px", 2, 3); // 2列目を100pxに変更 法人番号
     // newColsWidths.fill("200px", 3, 4); // 4列目を100pxに変更 会社名
     console.log("Stateにカラムwidthを保存", newColsWidths);
@@ -2163,6 +2167,19 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
   const searchMode = useDashboardStore((state) => state.searchMode);
   // ======================== 🔥テスト🔥 ========================
 
+  const formatMapping: {
+    activity_date: string;
+    scheduled_follow_up_date: string;
+    activity_created_at: string;
+    activity_updated_at: string;
+    [key: string]: string;
+  } = {
+    activity_date: "yyyy/MM/dd",
+    scheduled_follow_up_date: "yyyy/MM/dd",
+    activity_created_at: "yyyy/MM/dd HH:mm:ss",
+    activity_updated_at: "yyyy/MM/dd HH:mm:ss",
+  };
+
   return (
     <>
       {/* ================== メインコンテナ ================== */}
@@ -2604,94 +2621,112 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
                           columnOrder ? (
                             columnOrder
                               .map((columnName) => rowData[columnName])
-                              // columnOrder
-                              //   .map((obj) => {
-                              //     // return { [obj.columnName]: rowData[obj.columnName] };
-                              //     return rowData[obj.columnName];
-                              //   })
-                              // columnOrder
-                              //   .map((obj) => Object.values(rowData)[obj.columnId])
-                              .map((value, index) => (
-                                <div
-                                  key={"row" + virtualRow.index.toString() + index.toString()}
-                                  role="gridcell"
-                                  // ref={(ref) => (colsRef.current[index] = ref)}
-                                  // aria-colindex={index + 2}
-                                  aria-colindex={
-                                    activityColumnHeaderItemList[index]
-                                      ? activityColumnHeaderItemList[index]?.columnIndex
-                                      : index + 2
-                                  } // カラムヘッダーの列StateのcolumnIndexと一致させる
-                                  aria-selected={false}
-                                  // variant="contained"
-                                  tabIndex={-1}
-                                  className={`${styles.grid_cell} ${
-                                    activityColumnHeaderItemList[index].isFrozen ? styles.grid_column_frozen : ""
-                                  } ${
-                                    isFrozenCountRef.current === 1 && index === 0 ? styles.grid_cell_frozen_last : ""
-                                  } ${isFrozenCountRef.current === index + 1 ? styles.grid_cell_frozen_last : ""}  ${
-                                    styles.grid_cell_resizable
-                                  }`}
-                                  // className={`${styles.grid_cell} ${index === 0 ? styles.grid_column_frozen : ""}  ${index === 0 ? styles.grid_cell_frozen_last : ""} ${styles.grid_cell_resizable}`}
-                                  // style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
-                                  style={
-                                    activityColumnHeaderItemList[index].isFrozen
-                                      ? {
-                                          gridColumnStart: activityColumnHeaderItemList[index]
-                                            ? activityColumnHeaderItemList[index]?.columnIndex
-                                            : index + 2,
-                                          left: `var(--frozen-left-${index})`,
-                                        }
-                                      : {
-                                          gridColumnStart: activityColumnHeaderItemList[index]
-                                            ? activityColumnHeaderItemList[index]?.columnIndex
-                                            : index + 2,
-                                        }
-                                  }
-                                  // style={
-                                  //   contactColumnHeaderItemList[index].isFrozen
-                                  //     ? {
-                                  //         gridColumnStart: contactColumnHeaderItemList[index]
-                                  //           ? contactColumnHeaderItemList[index]?.columnIndex
-                                  //           : index + 2,
-                                  //         left: columnLeftPositions.current[index],
-                                  //       }
-                                  //     : {
-                                  //         gridColumnStart: contactColumnHeaderItemList[index]
-                                  //           ? contactColumnHeaderItemList[index]?.columnIndex
-                                  //           : index + 2,
-                                  //       }
-                                  // }
-                                  // style={
-                                  //   contactColumnHeaderItemList[index].isFrozen
-                                  //     ? {
-                                  //         gridColumnStart: contactColumnHeaderItemList[index]
-                                  //           ? contactColumnHeaderItemList[index]?.columnIndex
-                                  //           : index + 2,
-                                  //         left: columnHeaderLeft(index),
-                                  //       }
-                                  //     : {
-                                  //         gridColumnStart: contactColumnHeaderItemList[index]
-                                  //           ? contactColumnHeaderItemList[index]?.columnIndex
-                                  //           : index + 2,
-                                  //       }
-                                  // }
-                                  // style={{
-                                  //   gridColumnStart: contactColumnHeaderItemList[index]
-                                  //     ? contactColumnHeaderItemList[index]?.columnIndex
-                                  //     : index + 2,
-                                  //   left: columnHeaderLeft(index + 1),
-                                  // }}
-                                  onClick={handleClickGridCell}
-                                  onDoubleClick={(e) =>
-                                    handleDoubleClick(e, index, activityColumnHeaderItemList[index].columnName)
-                                  }
-                                >
-                                  {value}
-                                  {/* {value.} */}
-                                </div>
-                              ))
+                              .map((value, index) => {
+                                const columnName = activityColumnHeaderItemList[index]?.columnName;
+                                let displayValue = value;
+                                // 活動日、次回フォロー予定日、作成日時、更新日時はformat関数を通す
+                                if (columnName in formatMapping && value) {
+                                  displayValue = format(new Date(value), formatMapping[columnName]);
+                                }
+                                return (
+                                  <div
+                                    key={"row" + virtualRow.index.toString() + index.toString()}
+                                    role="gridcell"
+                                    aria-colindex={
+                                      activityColumnHeaderItemList[index]
+                                        ? activityColumnHeaderItemList[index]?.columnIndex
+                                        : index + 2
+                                    } // カラムヘッダーの列StateのcolumnIndexと一致させる
+                                    aria-selected={false}
+                                    tabIndex={-1}
+                                    className={`${styles.grid_cell} ${
+                                      activityColumnHeaderItemList[index].isFrozen ? styles.grid_column_frozen : ""
+                                    } ${
+                                      isFrozenCountRef.current === 1 && index === 0 ? styles.grid_cell_frozen_last : ""
+                                    } ${isFrozenCountRef.current === index + 1 ? styles.grid_cell_frozen_last : ""}  ${
+                                      styles.grid_cell_resizable
+                                    }`}
+                                    style={
+                                      activityColumnHeaderItemList[index].isFrozen
+                                        ? {
+                                            gridColumnStart: activityColumnHeaderItemList[index]
+                                              ? activityColumnHeaderItemList[index]?.columnIndex
+                                              : index + 2,
+                                            left: `var(--frozen-left-${index})`,
+                                          }
+                                        : {
+                                            gridColumnStart: activityColumnHeaderItemList[index]
+                                              ? activityColumnHeaderItemList[index]?.columnIndex
+                                              : index + 2,
+                                          }
+                                    }
+                                    onClick={handleClickGridCell}
+                                    onDoubleClick={(e) =>
+                                      handleDoubleClick(e, index, activityColumnHeaderItemList[index].columnName)
+                                    }
+                                  >
+                                    {displayValue}
+                                  </div>
+                                );
+                              })
                           ) : (
+                            // .map((value, index) => (
+                            //   <div
+                            //     key={"row" + virtualRow.index.toString() + index.toString()}
+                            //     role="gridcell"
+                            //     aria-colindex={
+                            //       activityColumnHeaderItemList[index]
+                            //         ? activityColumnHeaderItemList[index]?.columnIndex
+                            //         : index + 2
+                            //     } // カラムヘッダーの列StateのcolumnIndexと一致させる
+                            //     aria-selected={false}
+                            //     tabIndex={-1}
+                            //     className={`${styles.grid_cell} ${
+                            //       activityColumnHeaderItemList[index].isFrozen ? styles.grid_column_frozen : ""
+                            //     } ${
+                            //       isFrozenCountRef.current === 1 && index === 0 ? styles.grid_cell_frozen_last : ""
+                            //     } ${isFrozenCountRef.current === index + 1 ? styles.grid_cell_frozen_last : ""}  ${
+                            //       styles.grid_cell_resizable
+                            //     }`}
+                            //     style={
+                            //       activityColumnHeaderItemList[index].isFrozen
+                            //         ? {
+                            //             gridColumnStart: activityColumnHeaderItemList[index]
+                            //               ? activityColumnHeaderItemList[index]?.columnIndex
+                            //               : index + 2,
+                            //             left: `var(--frozen-left-${index})`,
+                            //           }
+                            //         : {
+                            //             gridColumnStart: activityColumnHeaderItemList[index]
+                            //               ? activityColumnHeaderItemList[index]?.columnIndex
+                            //               : index + 2,
+                            //           }
+                            //     }
+                            //     onClick={handleClickGridCell}
+                            //     onDoubleClick={(e) =>
+                            //       handleDoubleClick(e, index, activityColumnHeaderItemList[index].columnName)
+                            //     }
+                            //   >
+                            //     {/* {value} */}
+                            //     {activityColumnHeaderItemList[index].columnName === "activity_date" &&
+                            //       value &&
+                            //       format(new Date(value), "yyyy-MM-dd")}
+                            //     {activityColumnHeaderItemList[index].columnName === "scheduled_follow_up_date" &&
+                            //       value &&
+                            //       format(new Date(value), "yyyy-MM-dd")}
+                            //     {activityColumnHeaderItemList[index].columnName === "activity_created_at" &&
+                            //       value &&
+                            //       format(new Date(value), "yyyy-MM-dd HH:mm:ss")}
+                            //     {activityColumnHeaderItemList[index].columnName === "activity_updated_at" &&
+                            //       value &&
+                            //       format(new Date(value), "yyyy-MM-dd HH:mm:ss")}
+                            //     {activityColumnHeaderItemList[index].columnName !== "scheduled_follow_up_date" &&
+                            //       activityColumnHeaderItemList[index].columnName !== "activity_date" &&
+                            //       activityColumnHeaderItemList[index].columnName !== "activity_created_at" &&
+                            //       activityColumnHeaderItemList[index].columnName !== "activity_updated_at" &&
+                            //       value}
+                            //   </div>
+                            // ))
                             // カラム順番が変更されていない場合には、初期のallRows[0]のrowからmap()で展開
                             Object.values(rowData).map((value, index) => (
                               <div

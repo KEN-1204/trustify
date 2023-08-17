@@ -25,6 +25,7 @@ import { UpdateClientCompanyModal } from "./DashboardCompanyComponent/Modal/Upda
 import { InsertNewActivityModal } from "./DashboardCompanyComponent/Modal/InsertNewActivityModal/InsertNewActivityModal";
 import { SettingAccountModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingAccountModal";
 import { UpdateActivityModal } from "./DashboardCompanyComponent/Modal/UpdateActivityModal/UpdateActivityModal";
+import { InsertNewMeetingModal } from "./DashboardCompanyComponent/Modal/InsertNewMeetingModal/InsertNewMeetingModal";
 
 type Prop = {
   title?: string;
@@ -116,6 +117,9 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   // 活動作成モーダル 新規作成と編集モーダル
   const isOpenInsertNewActivityModal = useDashboardStore((state) => state.isOpenInsertNewActivityModal);
   const isOpenUpdateActivityModal = useDashboardStore((state) => state.isOpenUpdateActivityModal);
+  // 面談作成モーダル 新規作成と編集モーダル
+  const isOpenInsertNewMeetingModal = useDashboardStore((state) => state.isOpenInsertNewMeetingModal);
+  const isOpenUpdateMeetingModal = useDashboardStore((state) => state.isOpenUpdateMeetingModal);
 
   return (
     <div className={`${styles.trustify_app} relative`}>
@@ -191,6 +195,10 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
       {/* 活動作成・編集モーダル */}
       {isOpenInsertNewActivityModal && <InsertNewActivityModal />}
       {isOpenUpdateActivityModal && <UpdateActivityModal />}
+
+      {/* 面談作成・編集モーダル */}
+      {isOpenInsertNewMeetingModal && <InsertNewMeetingModal />}
+      {/* {isOpenUpdateActivityModal && <UpdateActivityModal />} */}
     </div>
   );
 };

@@ -217,6 +217,12 @@ export const columnNameToJapaneseActivity = (columnName: string) => {
     case "priority":
       return "優先度";
       break;
+    case "activity_created_at":
+      return "作成日時";
+      break;
+    case "activity_updated_at":
+      return "更新日時";
+      break;
 
     default:
       return "";
