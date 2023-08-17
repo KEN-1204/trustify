@@ -6,6 +6,44 @@ interface Obj {
 // https://zawatech.com/?p=344
 
 const meetingColumnHeaderItemListArray: Obj[] = [
+  // 面談エリア
+  {
+    columnName: "planned_date",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "planned_start_time",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "result_presentation_product1",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "meeting_department",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "meeting_member_name",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "planned_appoint_check_flag",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  // 面談エリアここまで
   {
     columnName: "company_name",
     columnWidth: "100px",
@@ -44,55 +82,132 @@ const meetingColumnHeaderItemListArray: Obj[] = [
   },
   // 面談エリア
   {
-    columnName: "planned_date",
+    columnName: "planned_purpose",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
   },
   {
-    columnName: "planned_start_time",
+    columnName: "result_summary",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
   },
   {
-    columnName: "result_presentation_product1",
+    columnName: "result_negotiate_decision_maker",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
   },
   {
-    columnName: "meeting_department",
+    columnName: "pre_meeting_participation_request",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
   },
   {
-    columnName: "meeting_department",
+    columnName: "meeting_participation_request",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
   },
   {
-    columnName: "summary",
-    columnWidth: "600px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-  {
-    columnName: "scheduled_follow_up_date",
+    columnName: "meeting_type",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
   },
   {
-    columnName: "priority",
+    columnName: "web_tool",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
   },
-  // 活動エリアここまで
-
+  {
+    columnName: "web_tool",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "planned_duration",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "planned_product1",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "planned_product2",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "planned_comment",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "result_date",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "result_start_time",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "result_end_time",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "result_duration",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "result_number_of_meeting_participants",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "result_presentation_product2",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "result_presentation_product3",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "result_presentation_product4",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "result_presentation_product5",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  // 面談エリアここまで
   {
     columnName: "direct_line",
     columnWidth: "100px",
@@ -166,7 +281,6 @@ const meetingColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
-  //
   {
     columnName: "fiscal_end_month",
     columnWidth: "100px",
@@ -245,31 +359,32 @@ const meetingColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
-  {
-    columnName: "product_category_small",
-    columnWidth: "100px",
-    isFrozen: false,
-    isOverflow: false,
-  },
+  //   {
+  //     columnName: "product_category_small",
+  //     columnWidth: "100px",
+  //     isFrozen: false,
+  //     isOverflow: false,
+  //   },
   {
     columnName: "corporate_number",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
   },
-  // 活動エリア
+  // 面談エリア
   {
-    columnName: "activity_created_at",
+    columnName: "meeting_created_at",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
   },
   {
-    columnName: "activity_updated_at",
+    columnName: "meeting_updated_at",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
   },
+  // 面談エリアここまで
 ];
 
 export const meetingColumnHeaderItemListData: ColumnHeaderItemList[] = meetingColumnHeaderItemListArray.map(

@@ -14,6 +14,7 @@ import {
 } from "@/types";
 import { activityColumnHeaderItemListData } from "@/utils/activityColumnHeaderItemListDate";
 import { contactColumnHeaderItemListData } from "@/utils/contactColumnHeaderItemListData";
+import { meetingColumnHeaderItemListData } from "@/utils/meetingColumnHeaderItemListData";
 import { Session } from "@supabase/supabase-js";
 import { ReactNode } from "react";
 import { create } from "zustand";
@@ -168,7 +169,7 @@ type State = {
   selectedRowDataMeeting: Meeting_row_data | null;
   setSelectedRowDataMeeting: (payload: Meeting_row_data | null) => void;
   // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
-  newSearchMeetingParams: NewSearchMeeting_Contact_CompanyParams | null;
+  newSearchMeeting_Contact_CompanyParams: NewSearchMeeting_Contact_CompanyParams | null;
   setNewSearchMeetingParams: (payload: NewSearchMeeting_Contact_CompanyParams) => void;
 };
 
@@ -801,6 +802,18 @@ const useDashboardStore = create<State>((set) => ({
   // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
   newSearchActivity_Contact_CompanyParams: null,
   setNewSearchActivity_Contact_CompanyParams: (payload) => set({ newSearchActivity_Contact_CompanyParams: payload }),
+
+  // =================== 面談テーブル ヘッダーリスト保持用state関連 ===================
+  meetingColumnHeaderItemList: meetingColumnHeaderItemListData,
+  setMeetingColumnHeaderItemList: (payload) => set({ meetingColumnHeaderItemList: payload }),
+  // =================== 上画面の列選択した時に下画面に担当者情報を映す用のState ===================
+  // オブジェクト
+  selectedRowDataMeeting: null,
+  setSelectedRowDataMeeting: (payload) => set({ selectedRowDataMeeting: payload }),
+
+  // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
+  newSearchMeeting_Contact_CompanyParams: null,
+  setNewSearchMeetingParams: (payload) => set({ newSearchMeeting_Contact_CompanyParams: payload }),
 }));
 
 export default useDashboardStore;

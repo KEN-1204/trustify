@@ -864,14 +864,15 @@ export type Meeting = {
   client_company_id: string | null;
   meeting_type: string | null;
   web_tool: string | null;
-  planned_date: Date | null;
+  planned_date: string | null;
   planned_start_time: string | null;
+  planned_purpose: string | null;
   planned_duration: number | null;
   planned_appoint_check_flag: boolean | null;
   planned_product1: string | null;
   planned_product2: string | null;
   planned_comment: string | null;
-  result_date: Date | null;
+  result_date: string | null;
   result_start_time: string | null;
   result_end_time: string | null;
   result_duration: number | null;

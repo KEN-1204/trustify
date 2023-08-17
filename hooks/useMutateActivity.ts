@@ -17,7 +17,7 @@ export const useMutateActivity = () => {
 
   // 【Activity新規作成INSERT用createActivityMutation関数】
   const createActivityMutation = useMutation(
-    async (newActivity: Omit<Activity, "id" | "created_at" | "updated_at">) => {
+    async (newActivity: Omit<Activity, "id" | "created_at" | "updated_at" | "meeting_id">) => {
       setLoadingGlobalState(true);
       const { error } = await supabase.from("activities").insert(newActivity);
       if (error) throw new Error(error.message);
@@ -67,7 +67,7 @@ export const useMutateActivity = () => {
 
   // 【Activity編集UPDATE用updateActivityMutation関数】
   const updateActivityMutation = useMutation(
-    async (newActivity: Omit<Activity, "created_at" | "updated_at">) => {
+    async (newActivity: Omit<Activity, "created_at" | "updated_at" | "meeting_id">) => {
       setLoadingGlobalState(true);
       const { error } = await supabase.from("activities").update(newActivity).eq("id", newActivity.id);
       if (error) throw new Error(error.message);
