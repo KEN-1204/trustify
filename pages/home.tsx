@@ -3,6 +3,7 @@ import { DashboardCompanyComponent } from "@/components/DashboardCompanyComponen
 import { DashboardContactComponent } from "@/components/DashboardContactComponent/DashboardContactComponent";
 import { DashboardHomeComponent } from "@/components/DashboardHomeComponent/DashboardHomeComponent";
 import { DashboardLayout } from "@/components/DashboardLayout";
+import { DashboardMeetingComponent } from "@/components/DashboardMeetingComponent/DashboardMeetingComponent";
 import useStore from "@/store";
 import useDashboardStore from "@/store/useDashboardStore";
 import useThemeStore from "@/store/useThemeStore";
@@ -77,6 +78,7 @@ const DashboardHome = ({
       {activeMenuTab === "Company" && <DashboardCompanyComponent />}
       {activeMenuTab === "Contacts" && <DashboardContactComponent />}
       {activeMenuTab === "Activity" && <DashboardActivityComponent />}
+      {activeMenuTab === "Meeting" && <DashboardMeetingComponent />}
       {/* {activeMenuTab === "Contacts" && <div className="flex-center w-screen h-screen bg-red-100">あい</div>} */}
     </DashboardLayout>
   );
