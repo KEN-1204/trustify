@@ -759,7 +759,7 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
     // const newColsWidths = new Array(Object.keys(data?.pages[0].rows[0] as object).length + 1).fill("120px");
     const newColsWidths = new Array(meetingColumnHeaderItemList.length + 1).fill("120px");
     newColsWidths.fill("65px", 0, 1); // 1列目を65pxに変更
-    newColsWidths.fill("200px", 1, 2); // 2列目を100pxに変更 id
+    newColsWidths.fill("100px", 1, 2); // 2列目を100pxに変更 id
     // newColsWidths.fill("100px", 2, 3); // 2列目を100pxに変更 法人番号
     // newColsWidths.fill("200px", 3, 4); // 4列目を100pxに変更 会社名
     console.log("Stateにカラムwidthを保存", newColsWidths);

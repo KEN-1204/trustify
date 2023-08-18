@@ -143,7 +143,9 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const [inputMeetingType, setInputMeetingType] = useState("");
   const [inputWebTool, setInputWebTool] = useState("");
   const [inputPlannedDate, setInputPlannedDate] = useState<Date | null>(null);
-  const [inputPlannedStartTime, setInputPlannedStartTime] = useState("");
+  const [inputPlannedStartTime, setInputPlannedStartTime] = useState<string | null>(null);
+  const [inputPlannedStartTimeHour, setInputPlannedStartTimeHour] = useState<string | null>(null);
+  const [inputPlannedStartTimeMinute, setInputPlannedStartTimeMinute] = useState<string | null>(null);
   const [inputPlannedPurpose, setInputPlannedPurpose] = useState("");
   const [inputPlannedDuration, setInputPlannedDuration] = useState<number | null>(null);
   const [inputPlannedAppointCheckFlag, setInputPlannedAppointCheckFlag] = useState<boolean | null>(null);
@@ -151,8 +153,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const [inputPlannedProduct2, setInputPlannedProduct2] = useState("");
   const [inputPlannedComment, setInputPlannedComment] = useState("");
   const [inputResultDate, setInputResultDate] = useState<Date | null>(null);
-  const [inputResultStartTime, setInputResultStartTime] = useState("");
-  const [inputResultEndTime, setInputResultEndTime] = useState("");
+  const [inputResultStartTime, setInputResultStartTime] = useState<string | null>(null);
+  const [inputResultStartTimeHour, setInputResultStartTimeHour] = useState<string | null>(null);
+  const [inputResultStartTimeMinute, setInputResultStartTimeMinute] = useState<string | null>(null);
+  const [inputResultEndTime, setInputResultEndTime] = useState<string | null>(null);
+  const [inputResultEndTimeHour, setInputResultEndTimeHour] = useState<string | null>(null);
+  const [inputResultEndTimeMinute, setInputResultEndTimeMinute] = useState<string | null>(null);
   const [inputResultDuration, setInputResultDuration] = useState<number | null>(null);
   const [inputResultNumberOfMeetingParticipants, setInputResultNumberOfMeetingParticipants] = useState<number | null>(
     null
@@ -279,21 +285,37 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
           ? new Date(newSearchMeeting_Contact_CompanyParams.planned_date)
           : null
       );
+      // 時間、秒を分割して格納
       setInputPlannedStartTime(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.planned_start_time));
+      const [plannedStartHour, plannedStartMinute] = newSearchMeeting_Contact_CompanyParams.planned_start_time
+        ? newSearchMeeting_Contact_CompanyParams.planned_start_time.split(":")
+        : [null, null];
+      setInputPlannedStartTimeHour(plannedStartHour);
+      setInputPlannedStartTimeMinute(plannedStartMinute);
       setInputPlannedPurpose(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.planned_purpose));
       setInputPlannedAppointCheckFlag(newSearchMeeting_Contact_CompanyParams.planned_appoint_check_flag);
       setInputPlannedProduct1(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.planned_product1));
       setInputPlannedProduct2(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.planned_product2));
       setInputPlannedComment(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.planned_comment));
       setInputResultDate(
-        beforeAdjustFieldValue(
-          newSearchMeeting_Contact_CompanyParams.result_date
-            ? new Date(newSearchMeeting_Contact_CompanyParams.result_date)
-            : null
-        )
+        newSearchMeeting_Contact_CompanyParams.result_date
+          ? new Date(newSearchMeeting_Contact_CompanyParams.result_date)
+          : null
       );
+      // 時間、分を分割してそれぞれのstateに格納
       setInputResultStartTime(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.result_start_time));
+      const [resultStartHour, resultStartMinute] = newSearchMeeting_Contact_CompanyParams.result_start_time
+        ? newSearchMeeting_Contact_CompanyParams.result_start_time.split(":")
+        : [null, null];
+      setInputResultStartTimeHour(resultStartHour);
+      setInputResultStartTimeMinute(resultStartMinute);
+      // 時間、分を分割してそれぞれのstateに格納
       setInputResultEndTime(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.result_end_time));
+      const [resultEndHour, resultEndMinute] = newSearchMeeting_Contact_CompanyParams.result_end_time
+        ? newSearchMeeting_Contact_CompanyParams.result_end_time.split(":")
+        : [null, null];
+      setInputResultEndTimeHour(resultEndHour);
+      setInputResultEndTimeMinute(resultEndMinute);
       setInputResultPresentationProduct1(
         beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.result_presentation_product1)
       );
@@ -378,15 +400,21 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       setInputMeetingType("");
       setInputWebTool("");
       setInputPlannedDate(null);
-      setInputPlannedStartTime("");
+      setInputPlannedStartTime(null);
+      setInputPlannedStartTimeHour(null);
+      setInputPlannedStartTimeMinute(null);
       setInputPlannedPurpose("");
       setInputPlannedAppointCheckFlag(null);
       setInputPlannedProduct1("");
       setInputPlannedProduct2("");
       setInputPlannedComment("");
       setInputResultDate(null);
-      setInputResultStartTime("");
-      setInputResultEndTime("");
+      setInputResultStartTime(null);
+      setInputResultStartTimeHour(null);
+      setInputResultStartTimeMinute(null);
+      setInputResultEndTime(null);
+      setInputResultEndTimeHour(null);
+      setInputResultEndTimeMinute(null);
       setInputResultPresentationProduct1("");
       setInputResultPresentationProduct2("");
       setInputResultPresentationProduct3("");
@@ -403,12 +431,28 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     }
   }, [editSearchMode]);
 
+  // 予定面談開始時間、時間、分、結合用useEffect
+  useEffect(() => {
+    const formattedTime = `${inputPlannedStartTimeHour}:${inputPlannedStartTimeMinute}`;
+    setInputPlannedStartTime(formattedTime);
+  }, [inputPlannedStartTimeHour, inputPlannedStartTimeMinute]);
+  // 結果面談開始時間、時間、分、結合用useEffect
+  useEffect(() => {
+    const formattedTime = `${inputResultStartTimeHour}:${inputResultStartTimeMinute}`;
+    setInputResultStartTime(formattedTime);
+  }, [inputResultStartTimeHour, inputResultStartTimeMinute]);
+  // 結果面談終了時間、時間、分、結合用useEffect
+  useEffect(() => {
+    const formattedTime = `${inputResultEndTimeHour}:${inputResultEndTimeMinute}`;
+    setInputResultEndTime(formattedTime);
+  }, [inputResultEndTimeHour, inputResultEndTimeMinute]);
+
   // サーチ関数実行
   const handleSearchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     // // Asterisks to percent signs for PostgreSQL's LIKE operator
-    function adjustFieldValue(value: string) {
+    function adjustFieldValue(value: string | null) {
       // if (typeof value === "boolean") return value; // Booleanの場合、そのままの値を返す
       if (value === "") return null; // 全てのデータ
       if (value === null) return null; // 全てのデータ
@@ -417,6 +461,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信
       // if (value === "is not null") return "%%";
       if (value === "is not null") return "ISNOTNULL"; // ISNOTNULLパラメータを送信
+      return value;
+    }
+    // 数値型のフィールド用
+    function adjustFieldValueNumber(value: number | null) {
+      if (value === null) return null; // 全てのデータ
       return value;
     }
     setLoadingGlobalState(true);
@@ -466,24 +515,34 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     let _meeting_created_by_user_id = adjustFieldValue(inputMeetingCreatedByUserId);
     let _meeting_created_by_department_of_user = adjustFieldValue(inputMeetingCreatedByDepartmentOfUser);
     let _meeting_created_by_unit_of_user = adjustFieldValue(inputMeetingCreatedByUnitOfUser);
-    let _summary = adjustFieldValue(inputSummary);
-    // let _scheduled_follow_up_date = adjustFieldValue(inputScheduledFollowUpDate);
-    let _scheduled_follow_up_date = inputScheduledFollowUpDate ? inputScheduledFollowUpDate.toISOString() : null;
-    let _follow_up_flag = inputFollowUpFlag;
-    let _document_url = adjustFieldValue(inputDocumentUrl);
     let _meeting_type = adjustFieldValue(inputMeetingType);
-    let _claim_flag = inputClaimFlag;
-    let _product_introduction1 = adjustFieldValue(inputProductIntroduction1);
-    let _product_introduction2 = adjustFieldValue(inputProductIntroduction2);
-    let _product_introduction3 = adjustFieldValue(inputProductIntroduction3);
-    let _product_introduction4 = adjustFieldValue(inputProductIntroduction4);
-    let _product_introduction5 = adjustFieldValue(inputProductIntroduction5);
-    let _business_office = adjustFieldValue(inputBusinessOffice);
-    let _member_name = adjustFieldValue(inputMemberName);
-    let _priority = adjustFieldValue(inputPriority);
-    // let _meeting_date = adjustFieldValue(inputMeetingDate);
-    let _meeting_date = inputMeetingDate ? inputMeetingDate.toISOString() : null;
-    let _department = adjustFieldValue(inputDepartment);
+    let _web_tool = adjustFieldValue(inputWebTool);
+    let _planned_date = inputPlannedDate ? inputPlannedDate.toISOString() : null;
+    let _planned_start_time = adjustFieldValue(inputPlannedStartTime);
+    let _planned_purpose = adjustFieldValue(inputPlannedPurpose);
+    let _planned_duration = adjustFieldValueNumber(inputPlannedDuration);
+    let _planned_appoint_check_flag = inputPlannedAppointCheckFlag;
+    let _planned_product1 = adjustFieldValue(inputPlannedProduct1);
+    let _planned_product2 = adjustFieldValue(inputPlannedProduct2);
+    let _planned_comment = adjustFieldValue(inputPlannedComment);
+    let _result_date = inputResultDate ? inputResultDate.toISOString() : null;
+    let _result_start_time = adjustFieldValue(inputResultStartTime);
+    let _result_end_time = adjustFieldValue(inputResultEndTime);
+    let _result_duration = adjustFieldValueNumber(inputResultDuration);
+    let _result_number_of_meeting_participants = adjustFieldValueNumber(inputResultNumberOfMeetingParticipants);
+    let _result_presentation_product1 = adjustFieldValue(inputResultPresentationProduct1);
+    let _result_presentation_product2 = adjustFieldValue(inputResultPresentationProduct2);
+    let _result_presentation_product3 = adjustFieldValue(inputResultPresentationProduct3);
+    let _result_presentation_product4 = adjustFieldValue(inputResultPresentationProduct4);
+    let _result_presentation_product5 = adjustFieldValue(inputResultPresentationProduct5);
+    let _result_category = adjustFieldValue(inputResultCategory);
+    let _result_summary = adjustFieldValue(inputResultSummary);
+    let _result_negotiate_decision_maker = adjustFieldValue(inputResultNegotiateDecisionMaker);
+    let _pre_meeting_participation_request = adjustFieldValue(inputPreMeetingParticipationRequest);
+    let _meeting_participation_request = adjustFieldValue(inputMeetingParticipationRequest);
+    let _meeting_business_office = adjustFieldValue(inputMeetingBusinessOffice);
+    let _meeting_department = adjustFieldValue(inputMeetingDepartment);
+    let _meeting_member_name = adjustFieldValue(inputMeetingMemberName);
 
     const params = {
       "client_companies.name": _company_name,
@@ -531,26 +590,38 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       "contacts.created_by_company_id": _contact_created_by_company_id,
       "contacts.created_by_user_id": _contact_created_by_user_id,
       // activitiesテーブル
-      "activities.created_by_company_id": _meeting_created_by_company_id,
-      "activities.created_by_user_id": _meeting_created_by_user_id,
-      "activities.created_by_department_of_user": _meeting_created_by_user_id,
-      "activities.created_by_unit_of_user": _meeting_created_by_user_id,
-      summary: _summary,
-      scheduled_follow_up_date: _scheduled_follow_up_date,
-      follow_up_flag: _follow_up_flag,
-      document_url: _document_url,
+      "meetings.created_by_company_id": _meeting_created_by_company_id,
+      "meetings.created_by_user_id": _meeting_created_by_user_id,
+      "meetings.created_by_department_of_user": _meeting_created_by_department_of_user,
+      "meetings.created_by_unit_of_user": _meeting_created_by_unit_of_user,
       meeting_type: _meeting_type,
-      claim_flag: _claim_flag,
-      product_introduction1: _product_introduction1,
-      product_introduction2: _product_introduction2,
-      product_introduction3: _product_introduction3,
-      product_introduction4: _product_introduction4,
-      product_introduction5: _product_introduction5,
-      business_office: _business_office,
-      member_name: _member_name,
-      priority: _priority,
-      meeting_date: _meeting_date,
-      department: _department,
+      web_tool: _web_tool,
+      planned_date: _planned_date,
+      planned_start_time: _planned_start_time,
+      planned_purpose: _planned_purpose,
+      planned_duration: _planned_duration,
+      planned_appoint_check_flag: _planned_appoint_check_flag,
+      planned_product1: _planned_product1,
+      planned_product2: _planned_product2,
+      planned_comment: _planned_comment,
+      result_date: _result_date,
+      result_start_time: _result_start_time,
+      result_end_time: _result_end_time,
+      result_duration: _result_duration,
+      result_number_of_meeting_participants: _result_number_of_meeting_participants,
+      result_presentation_product1: _result_presentation_product1,
+      result_presentation_product2: _result_presentation_product2,
+      result_presentation_product3: _result_presentation_product3,
+      result_presentation_product4: _result_presentation_product4,
+      result_presentation_product5: _result_presentation_product5,
+      result_category: _result_category,
+      result_summary: _result_summary,
+      result_negotiate_decision_maker: _result_negotiate_decision_maker,
+      pre_meeting_participation_request: _pre_meeting_participation_request,
+      meeting_participation_request: _meeting_participation_request,
+      meeting_business_office: _meeting_business_office,
+      meeting_department: _meeting_department,
+      meeting_member_name: _meeting_member_name,
     };
 
     // console.log("✅ 条件 params", params);
@@ -598,41 +669,52 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     setInputApprovalAmount("");
     setInputContactCreatedByCompanyId("");
     setInputContactCreatedByUserId("");
-    // activitiesテーブル
+    // meetingsテーブル
     setInputMeetingCreatedByCompanyId("");
     setInputMeetingCreatedByUserId("");
     setInputMeetingCreatedByDepartmentOfUser("");
     setInputMeetingCreatedByUnitOfUser("");
-    setInputSummary("");
-    setInputScheduledFollowUpDate(null);
-    setInputFollowUpFlag(null);
-    setInputDocumentUrl("");
     setInputMeetingType("");
-    setInputClaimFlag(null);
-    setInputProductIntroduction1("");
-    setInputProductIntroduction2("");
-    setInputProductIntroduction3("");
-    setInputProductIntroduction4("");
-    setInputProductIntroduction5("");
-    setInputBusinessOffice("");
-    setInputMemberName("");
-    setInputPriority("");
-    setInputMeetingDate(null);
-    setInputDepartment("");
+    setInputWebTool("");
+    setInputPlannedDate(null);
+    setInputPlannedStartTime("");
+    setInputPlannedPurpose("");
+    setInputPlannedAppointCheckFlag(null);
+    setInputPlannedProduct1("");
+    setInputPlannedProduct2("");
+    setInputPlannedComment("");
+    setInputResultDate(null);
+    setInputResultStartTime("");
+    setInputResultEndTime("");
+    setInputResultPresentationProduct1("");
+    setInputResultPresentationProduct2("");
+    setInputResultPresentationProduct3("");
+    setInputResultPresentationProduct4("");
+    setInputResultPresentationProduct5("");
+    setInputResultCategory("");
+    setInputResultSummary("");
+    setInputResultNegotiateDecisionMaker("");
+    setInputPreMeetingParticipationRequest("");
+    setInputMeetingParticipationRequest("");
+    setInputMeetingBusinessOffice("");
+    setInputMeetingDepartment("");
+    setInputMeetingMemberName("");
 
+    // サーチモードオフ
     setSearchMode(false);
     setEditSearchMode(false);
 
     // Zustandに検索条件を格納
-    setNewSearchMeeting_Contact_CompanyParams(params);
+    // setNewSearchMeeting_Contact_CompanyParams(params);
 
     // 選択中の列データをリセット
-    setSelectedRowDataMeeting(null);
+    // setSelectedRowDataMeeting(null);
 
     console.log("✅ 条件 params", params);
     // const { data, error } = await supabase.rpc("search_companies", { params });
     // const { data, error } = await supabase.rpc("search_companies_and_contacts", { params });
     // const { data, error } = await supabase.rpc("search_activities_and_companies_and_contacts", { params });
+    const { data, error } = await supabase.rpc("search_activities_and_companies_and_contacts", { params });
 
     // 会社IDがnull、つまりまだ有料アカウントを持っていないユーザー
     // const { data, error } = await supabase
@@ -646,41 +728,29 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     //   .eq("created_by_user_id", `${userProfileState?.id}`)
     //   .range(0, 20);
 
-    // if (error) return alert(error.message);
-    // console.log("✅ 検索結果データ取得 data", data);
+    if (error) return alert(error.message);
+    console.log("✅ 検索結果データ取得 data", data);
 
-    // setLoadingGlobalState(false);
+    setLoadingGlobalState(false);
   };
 
-  const handleClaimChangeSelectTagValue = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleAppointCheckChangeSelectTagValue = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
 
     switch (value) {
       case "チェック有り":
-        setInputClaimFlag(true);
+        setInputPlannedAppointCheckFlag(true);
         break;
       case "チェック無し":
-        setInputClaimFlag(false);
+        setInputPlannedAppointCheckFlag(false);
         break;
       default:
-        setInputClaimFlag(null);
+        setInputPlannedAppointCheckFlag(null);
     }
   };
 
-  const handleFollowUpFlagChangeSelectTagValue = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = event.target.value;
-
-    switch (value) {
-      case "チェック有り":
-        setInputFollowUpFlag(true);
-        break;
-      case "チェック無し":
-        setInputFollowUpFlag(false);
-        break;
-      default:
-        setInputFollowUpFlag(null);
-    }
-  };
+  const hours = Array.from({ length: 24 }, (_, index) => (index < 10 ? "0" + index : "" + index));
+  const minutes = Array.from({ length: 12 }, (_, index) => (index * 5 < 10 ? "0" + index * 5 : "" + index * 5));
 
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
   return (
@@ -696,1105 +766,304 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
         {!searchMode && (
           <div
             // className={`${styles.left_container1 h-full min-w-[calc((100vw-var(--sidebar-width))/3)1 pb-[35px] pt-[10px]`}
-            className={`${styles.left_container} transition-base01 h-full min-w-[calc((100vw-var(--sidebar-width))/3-11px)] max-w-[calc((100vw-var(--sidebar-width))/3-11px)] pb-[35px] pt-[10px]`}
+            className={`${styles.left_container} ${
+              isOpenSidebar ? `transition-base02` : `transition-base01`
+            } h-full min-w-[calc((100vw-var(--sidebar-width))/3-11px)] max-w-[calc((100vw-var(--sidebar-width))/3-11px)] pb-[35px] pt-[0px]`}
           >
             {/* --------- ラッパー --------- */}
             <div className={`${styles.left_contents_wrapper} flex h-full w-full flex-col`}>
-              {/* 会社名 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              {/* 予定 */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>●会社名</span>
-                    {!searchMode && (
-                      <span className={`${styles.value} ${styles.value_highlight}`}>
-                        {selectedRowDataMeeting?.company_name ? selectedRowDataMeeting?.company_name : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      <input
-                        type="text"
-                        placeholder="株式会社○○"
-                        autoFocus
-                        className={`${styles.input_box}`}
-                        value={inputCompanyName}
-                        onChange={(e) => setInputCompanyName(e.target.value)}
-                      />
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
+                    <span className={`${styles.section_title}`}>予定</span>
 
-              {/* 部署名 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>●部署名</span>
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
-                        {selectedRowDataMeeting?.department_name ? selectedRowDataMeeting?.department_name : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      <input
-                        type="text"
-                        placeholder="「代表取締役＊」や「＊製造部＊」「＊品質＊」など"
-                        className={`${styles.input_box}`}
-                        value={inputDepartmentName}
-                        onChange={(e) => setInputDepartmentName(e.target.value)}
-                      />
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 担当者名 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>担当者名</span>
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
-                        {selectedRowDataMeeting?.contact_name ? selectedRowDataMeeting?.contact_name : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      <input
-                        type="tel"
-                        placeholder=""
-                        className={`${styles.input_box}`}
-                        value={inputContactName}
-                        onChange={(e) => setInputContactName(e.target.value)}
-                      />
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-                <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title}`}>直通TEL</span>
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
-                        {selectedRowDataMeeting?.direct_line ? selectedRowDataMeeting?.direct_line : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      <input
-                        type="tel"
-                        className={`${styles.input_box}`}
-                        value={inputDirectLine}
-                        onChange={(e) => setInputDirectLine(e.target.value)}
-                      />
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 内線TEL・代表TEL */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>内線TEL</span>
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
-                        {selectedRowDataMeeting?.extension ? selectedRowDataMeeting?.extension : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      <input
-                        type="tel"
-                        placeholder=""
-                        className={`${styles.input_box}`}
-                        value={inputExtension}
-                        onChange={(e) => setInputExtension(e.target.value)}
-                      />
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-                <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title}`}>代表TEL</span>
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
-                        {selectedRowDataMeeting?.main_phone_number ? selectedRowDataMeeting?.main_phone_number : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      <input
-                        type="tel"
-                        className={`${styles.input_box}`}
-                        value={inputTel}
-                        onChange={(e) => setInputTel(e.target.value)}
-                      />
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 直通FAX・代表FAX */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>直通FAX</span>
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
-                        {selectedRowDataMeeting?.direct_fax ? selectedRowDataMeeting?.direct_fax : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      <input
-                        type="text"
-                        className={`${styles.input_box}`}
-                        value={inputDirectFax}
-                        onChange={(e) => setInputDirectFax(e.target.value)}
-                      />
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-                <div className={`flex h-full w-1/2 flex-col pr-[20px]`}>
-                  <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title}`}>代表FAX</span>
-                    {/* <span className={`${styles.title}`}>会員専用</span> */}
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
-                        {selectedRowDataMeeting?.main_fax ? selectedRowDataMeeting?.main_fax : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      <input
-                        type="text"
-                        className={`${styles.input_box}`}
-                        value={inputFax}
-                        onChange={(e) => setInputFax(e.target.value)}
-                      />
-                    )}
-                    {/* {!searchMode && <span className={`${styles.value}`}>有料会員様専用のフィールドです</span>} */}
-                    {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
-                    {/* サブスク未加入者にはブラーを表示 */}
-                    {/* <div className={`${styles.limited_lock_cover_half} flex-center`}>
-                    <FaLock />
-                  </div> */}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 社用携帯・私用携帯 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>社用携帯</span>
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
-                        {selectedRowDataMeeting?.company_cell_phone ? selectedRowDataMeeting?.company_cell_phone : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      <input
-                        type="text"
-                        className={`${styles.input_box}`}
-                        value={inputCompanyCellPhone}
-                        onChange={(e) => setInputCompanyCellPhone(e.target.value)}
-                      />
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-                <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title}`}>私用携帯</span>
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
-                        {selectedRowDataMeeting?.personal_cell_phone ? selectedRowDataMeeting?.personal_cell_phone : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      <input
-                        type="text"
-                        className={`${styles.input_box}`}
-                        value={inputPersonalCellPhone}
-                        onChange={(e) => setInputPersonalCellPhone(e.target.value)}
-                      />
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* Email */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>E-mail</span>
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
-                        {selectedRowDataMeeting?.contact_email ? selectedRowDataMeeting?.contact_email : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      <input
-                        type="text"
-                        className={`${styles.input_box}`}
-                        value={inputContactEmail}
-                        onChange={(e) => setInputContactEmail(e.target.value)}
-                      />
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 郵便番号・ */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>郵便番号</span>
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
-                        {selectedRowDataMeeting?.zipcode ? selectedRowDataMeeting?.zipcode : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      <input
-                        type="text"
-                        className={`${styles.input_box}`}
-                        value={inputZipcode}
-                        onChange={(e) => setInputZipcode(e.target.value)}
-                      />
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-                <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title}`}></span>
-                    {/* {!searchMode && (
-                    <span className={`${styles.value}`}>
-                      {selectedRowDataMeeting?.established_in ? selectedRowDataMeeting?.established_in : ""}
+                    <span className={`${styles.value} ${styles.value_highlight}`}>
+                      {selectedRowDataMeeting?.company_name ? selectedRowDataMeeting?.company_name : ""}
                     </span>
-                  )}
-                  {searchMode && (
-                    <input
-                      type="text"
-                      className={`${styles.input_box}`}
-                      value={inputFound}
-                      onChange={(e) => setInputFound(e.target.value)}
-                    />
-                  )} */}
+                  </div>
+                  <div className={`${styles.section_underline}`}></div>
+                </div>
+              </div>
+
+              {/* ●訪問日・●訪問ﾀｲﾌﾟ */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>●訪問日</span>
+                    {!searchMode && (
+                      <span className={`${styles.value}`}>
+                        {selectedRowDataMeeting?.planned_date
+                          ? format(new Date(selectedRowDataMeeting.planned_date), "yyyy/MM/dd")
+                          : ""}
+                      </span>
+                    )}
+                    {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title}`}>●訪問ﾀｲﾌﾟ</span>
+                    {/* {!searchMode && (
+                        <span className={`${styles.value}`}>
+                          {selectedRowDataMeeting?.claim_flag ? selectedRowDataMeeting?.claim_flag : ""}
+                        </span>
+                      )} */}
+                    {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 面談開始・WEBツール */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>面談開始</span>
+                    {!searchMode && (
+                      <span className={`${styles.value}`}>
+                        {selectedRowDataMeeting?.planned_start_time ? selectedRowDataMeeting?.planned_start_time : ""}
+                      </span>
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title}`}>WEBﾂｰﾙ</span>
+                    {!searchMode && (
+                      <span
+                        // data-text={`${
+                        //   selectedRowDataMeeting?.priority
+                        //     ? selectedRowDataMeeting?.priority
+                        //     : ""
+                        // }`}
+                        className={`${styles.value} !w-full text-center`}
+                        // onMouseEnter={(e) => handleOpenTooltip(e)}
+                        // onMouseLeave={handleCloseTooltip}
+                      >
+                        {selectedRowDataMeeting?.web_tool ? selectedRowDataMeeting?.web_tool : ""}
+                      </span>
+                    )}
+                    {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 面談時間 */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>面談時間</span>
+                    {!searchMode && (
+                      <span className={`${styles.value}`}>
+                        {selectedRowDataMeeting?.planned_duration ? selectedRowDataMeeting?.planned_duration : ""}
+                      </span>
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}></div>
+                </div>
+              </div>
+
+              {/* 訪問目的・アポ有 */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <div className={`${styles.title} !mr-[15px] flex flex-col`}>
+                      <span className={``}>訪問目的</span>
+                    </div>
+                    {!searchMode && (
+                      <span
+                        // data-text={`${
+                        //   selectedRowDataMeeting?.managing_director ? selectedRowDataMeeting?.managing_director : ""
+                        // }`}
+                        className={`${styles.value}`}
+                        // onMouseEnter={(e) => handleOpenTooltip(e)}
+                        // onMouseLeave={handleCloseTooltip}
+                      >
+                        {/* {selectedRowDataMeeting?.scheduled_follow_up_date
+                          ? format(new Date(selectedRowDataMeeting.scheduled_follow_up_date), "yyyy-MM-dd")
+                          : ""} */}
+                      </span>
+                    )}
+                    {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} transition-base03 flex h-full items-center `}>
+                    <span className={`${styles.check_title}`}>アポ有</span>
+
+                    <div className={`${styles.grid_select_cell_header} `}>
+                      <input
+                        type="checkbox"
+                        checked={!!selectedRowDataMeeting?.planned_appoint_check_flag}
+                        onChange={() => {
+                          setLoadingGlobalState(false);
+                          setIsOpenUpdateMeetingModal(true);
+                        }}
+                        className={`${styles.grid_select_cell_header_input}`}
+                      />
+                      <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 紹介予定ﾒｲﾝ・紹介予定ｻﾌﾞ */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>紹介予定ﾒｲﾝ</span>
+                    {!searchMode && (
+                      <span className={`${styles.value}`}>
+                        {selectedRowDataMeeting?.planned_product1 ? selectedRowDataMeeting?.planned_product1 : ""}
+                      </span>
+                    )}
+                    {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title}`}>紹介予定ｻﾌﾞ</span>
+                    {!searchMode && (
+                      <span
+                        // data-text={`${
+                        //   selectedRowDataMeeting?.member_name
+                        //     ? selectedRowDataMeeting?.member_name
+                        //     : ""
+                        // }`}
+                        className={`${styles.value}`}
+                        // onMouseEnter={(e) => handleOpenTooltip(e)}
+                        // onMouseLeave={handleCloseTooltip}
+                      >
+                        {selectedRowDataMeeting?.planned_product2 ? selectedRowDataMeeting?.planned_product2 : ""}
+                      </span>
+                    )}
+                    {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 事前ｺﾒﾝﾄ */}
+              {/* <div className={`${styles.row_area} flex h-[90px] w-full items-center`}> */}
+              <div className={`${styles.row_area} flex max-h-max min-h-[75px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full `}>
+                    <span className={`${styles.title}`}>事前ｺﾒﾝﾄ</span>
+                    {!searchMode && (
+                      <div
+                        className={`${styles.value} max-h-max min-h-[70px] ${styles.textarea_box} ${styles.textarea_box_bg}`}
+                        // className={`${styles.value} h-[85px] ${styles.textarea_box} ${styles.textarea_box_bg}`}
+                        // onMouseEnter={(e) => handleOpenTooltip(e)}
+                        // onMouseLeave={handleCloseTooltip}
+                        dangerouslySetInnerHTML={{
+                          __html: selectedRowDataMeeting?.planned_comment
+                            ? selectedRowDataMeeting?.planned_comment.replace(/\n/g, "<br>")
+                            : "",
+                        }}
+                      ></div>
+                    )}
+                    {/* {searchMode && (
+                        <textarea
+                          name="Meeting_summary"
+                          id="Meeting_summary"
+                          cols={30}
+                          rows={10}
+                          className={`${styles.textarea_box} `}
+                          value={inputSummary}
+                          onChange={(e) => setInputSummary(e.target.value)}
+                        ></textarea>
+                      )} */}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 事業部名 */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>事業部名</span>
+                    {!searchMode && (
+                      <span className={`${styles.value}`}>
+                        {selectedRowDataMeeting?.meeting_department ? selectedRowDataMeeting?.meeting_department : ""}
+                      </span>
+                    )}
+                    {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    {/* <span className={`${styles.title}`}>実施4</span>
+                      {!searchMode && (
+                        <span
+                          data-text={`${
+                            selectedRowDataMeeting?.senior_managing_director
+                              ? selectedRowDataMeeting?.senior_managing_director
+                              : ""
+                          }`}
+                          className={`${styles.value}`}
+                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          {selectedRowDataMeeting?.senior_managing_director
+                            ? selectedRowDataMeeting?.senior_managing_director
+                            : ""}
+                        </span>
+                      )}
+                      {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
                   </div>
                   {/* <div className={`${styles.underline}`}></div> */}
                 </div>
               </div>
 
-              {/* 住所 */}
-              <div className={`${styles.row_area} flex h-[50px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px] ">
-                  <div className={`${styles.title_box} flex h-full `}>
-                    <span className={`${styles.title}`}>○住所</span>
-                    {!searchMode && (
-                      <span className={`${styles.textarea_value} h-[45px]`}>
-                        {selectedRowDataMeeting?.address ? selectedRowDataMeeting?.address : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      <textarea
-                        name="address"
-                        id="address"
-                        cols={30}
-                        rows={10}
-                        placeholder="「神奈川県＊」や「＊大田区＊」など"
-                        className={`${styles.textarea_box} `}
-                        value={inputAddress}
-                        onChange={(e) => setInputAddress(e.target.value)}
-                      ></textarea>
-                    )}
-                  </div>
-                  <div className={`${styles.underline} `}></div>
-                </div>
-              </div>
-
-              {/* 役職名・職位 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              {/* 事業所・自社担当 */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>役職名</span>
+                    <span className={`${styles.title}`}>事業所</span>
                     {!searchMode && (
                       <span className={`${styles.value}`}>
-                        {selectedRowDataMeeting?.position_name ? selectedRowDataMeeting?.position_name : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      <input
-                        type="text"
-                        className={`${styles.input_box}`}
-                        value={inputPositionName}
-                        onChange={(e) => setInputPositionName(e.target.value)}
-                      />
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-                <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title}`}>職位</span>
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
-                        {selectedRowDataMeeting?.position_class ? selectedRowDataMeeting?.position_class : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      // <input
-                      //   type="text"
-                      //   className={`${styles.input_box} ml-[20px]`}
-                      //   value={inputProductL}
-                      //   onChange={(e) => setInputProductL(e.target.value)}
-                      // />
-                      <select
-                        name="position_class"
-                        id="position_class"
-                        className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                        value={inputPositionClass}
-                        onChange={(e) => setInputPositionClass(e.target.value)}
-                      >
-                        <option value=""></option>
-                        <option value="1 代表者">1 代表者</option>
-                        <option value="2 取締役/役員">2 取締役/役員</option>
-                        <option value="3 部長">3 部長</option>
-                        <option value="4 課長">4 課長</option>
-                        <option value="5 課長未満">5 課長未満</option>
-                        <option value="6 所長・工場長">6 所長・工場長</option>
-                        <option value="7 不明">7 不明</option>
-                      </select>
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 担当職種・決裁金額 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>担当職種</span>
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
-                        {selectedRowDataMeeting?.occupation ? selectedRowDataMeeting?.occupation : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      // <input
-                      //   type="text"
-                      //   className={`${styles.input_box} ml-[20px]`}
-                      //   value={inputProductL}
-                      //   onChange={(e) => setInputProductL(e.target.value)}
-                      // />
-                      <select
-                        name="position_class"
-                        id="position_class"
-                        className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                        value={inputEmployeesClass}
-                        onChange={(e) => setInputEmployeesClass(e.target.value)}
-                      >
-                        <option value=""></option>
-                        <option value="1 社長・専務">1 社長・専務</option>
-                        <option value="2 取締役・役員">2 取締役・役員</option>
-                        <option value="3 開発・設計">3 開発・設計</option>
-                        <option value="4 生産技術">4 生産技術</option>
-                        <option value="5 製造">5 製造</option>
-                        <option value="6 品質管理・品質保証">6 品質管理・品質保証</option>
-                        <option value="7 人事">7 人事</option>
-                        <option value="8 経理">8 経理</option>
-                        <option value="9 総務">9 総務</option>
-                        <option value="10 法務">10 法務</option>
-                        <option value="11 財務">11 財務</option>
-                        <option value="12 情報システム">12 情報システム</option>
-                        <option value="13 マーケティング">13 マーケティング</option>
-                        <option value="14 購買">14 購買</option>
-                        <option value="15 営業">15 営業</option>
-                        <option value="16 企画">16 企画</option>
-                        <option value="17 CS">17 CS</option>
-                        <option value="18 その他">18 その他</option>
-                      </select>
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-                <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title} !mr-[15px]`}>決裁金額(万円)</span>
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
-                        {selectedRowDataMeeting?.approval_amount ? selectedRowDataMeeting?.approval_amount : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      <input
-                        type="text"
-                        className={`${styles.input_box}`}
-                        value={inputApprovalAmount}
-                        onChange={(e) => setInputApprovalAmount(e.target.value)}
-                      />
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 規模（ランク）・決算月 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>規模(ﾗﾝｸ)</span>
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
-                        {selectedRowDataMeeting?.number_of_employees_class
-                          ? selectedRowDataMeeting?.number_of_employees_class
+                        {selectedRowDataMeeting?.meeting_business_office
+                          ? selectedRowDataMeeting?.meeting_business_office
                           : ""}
                       </span>
                     )}
-                    {searchMode && (
-                      // <input
-                      //   type="text"
-                      //   className={`${styles.input_box} ml-[20px]`}
-                      //   value={inputProductL}
-                      //   onChange={(e) => setInputProductL(e.target.value)}
-                      // />
-                      <select
-                        name="position_class"
-                        id="position_class"
-                        className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                        value={inputEmployeesClass}
-                        onChange={(e) => setInputEmployeesClass(e.target.value)}
-                      >
-                        <option value=""></option>
-                        <option value="A 1000名以上">A 1000名以上</option>
-                        <option value="B 500-999名">B 500-999名</option>
-                        <option value="C 300-499名">C 300-499名</option>
-                        <option value="D 200-299名">D 200-299名</option>
-                        <option value="E 100-199名">E 100-199名</option>
-                        <option value="F 50-99名">F 50-99名</option>
-                        <option value="G 50名未満">G 50名未満</option>
-                      </select>
-                    )}
+                    {searchMode && <input type="text" className={`${styles.input_box}`} />}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title}`}>決算月</span>
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
-                        {selectedRowDataMeeting?.fiscal_end_month ? selectedRowDataMeeting?.fiscal_end_month : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      <input
-                        type="text"
-                        className={`${styles.input_box}`}
-                        value={inputFiscal}
-                        onChange={(e) => setInputFiscal(e.target.value)}
-                      />
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 予算申請月1・予算申請月2 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>予算申請月1</span>
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
-                        {selectedRowDataMeeting?.budget_request_month1
-                          ? selectedRowDataMeeting?.budget_request_month1
-                          : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      <input
-                        type="text"
-                        className={`${styles.input_box}`}
-                        value={inputBudgetRequestMonth1}
-                        onChange={(e) => setInputBudgetRequestMonth1(e.target.value)}
-                      />
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-                <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title}`}>予算申請月2</span>
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
-                        {selectedRowDataMeeting?.budget_request_month2
-                          ? selectedRowDataMeeting?.budget_request_month2
-                          : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      <input
-                        type="text"
-                        className={`${styles.input_box}`}
-                        value={inputBudgetRequestMonth2}
-                        onChange={(e) => setInputBudgetRequestMonth2(e.target.value)}
-                      />
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 事業内容 */}
-              <div className={`${styles.row_area} flex h-[50px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px] ">
-                  <div className={`${styles.title_box}  flex h-full`}>
-                    <span className={`${styles.title}`}>事業内容</span>
-                    {!searchMode && (
-                      <>
-                        {/* <span className={`${styles.textarea_value} h-[45px]`}>
-                        東京都港区芝浦4-20-2
-                        芝浦アイランドブルームタワー602号室あああああああああああああああああああああああああああああ芝浦アイランドブルームタワー602号室222あああああああああああああああああああああああああああああ
-                      </span> */}
-                        <span
-                          data-text={`${
-                            selectedRowDataMeeting?.business_content ? selectedRowDataMeeting?.business_content : ""
-                          }`}
-                          className={`${styles.textarea_value} h-[45px]`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
-                          onMouseLeave={handleCloseTooltip}
-                          dangerouslySetInnerHTML={{
-                            __html: selectedRowDataMeeting?.business_content
-                              ? selectedRowDataMeeting?.business_content.replace(/\n/g, "<br>")
-                              : "",
-                          }}
-                        >
-                          {/* {selectedRowDataMeeting?.business_content ? selectedRowDataMeeting?.business_content : ""} */}
-                        </span>
-                      </>
-                    )}
-                    {searchMode && (
-                      <textarea
-                        name="address"
-                        id="address"
-                        cols={30}
-                        rows={10}
-                        className={`${styles.textarea_box} `}
-                        value={inputContent}
-                        onChange={(e) => setInputContent(e.target.value)}
-                      ></textarea>
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 主要取引先 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>主要取引先</span>
+                    <span className={`${styles.title}`}>自社担当</span>
                     {!searchMode && (
                       <span
-                        data-text={`${selectedRowDataMeeting?.clients ? selectedRowDataMeeting?.clients : ""}`}
+                        // data-text={`${
+                        //   selectedRowDataMeeting?.member_name
+                        //     ? selectedRowDataMeeting?.member_name
+                        //     : ""
+                        // }`}
                         className={`${styles.value}`}
-                        onMouseEnter={(e) => handleOpenTooltip(e)}
-                        onMouseLeave={handleCloseTooltip}
+                        // onMouseEnter={(e) => handleOpenTooltip(e)}
+                        // onMouseLeave={handleCloseTooltip}
                       >
-                        {selectedRowDataMeeting?.clients ? selectedRowDataMeeting?.clients : ""}
+                        {selectedRowDataMeeting?.meeting_member_name ? selectedRowDataMeeting?.meeting_member_name : ""}
                       </span>
                     )}
-                    {searchMode && (
-                      <input
-                        type="text"
-                        className={`${styles.input_box}`}
-                        value={inputClient}
-                        onChange={(e) => setInputClient(e.target.value)}
-                      />
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 主要仕入先 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>主要仕入先</span>
-                    {!searchMode && (
-                      <span
-                        data-text={`${selectedRowDataMeeting?.supplier ? selectedRowDataMeeting?.supplier : ""}`}
-                        className={`${styles.value}`}
-                        onMouseEnter={(e) => handleOpenTooltip(e)}
-                        onMouseLeave={handleCloseTooltip}
-                      >
-                        {selectedRowDataMeeting?.supplier ? selectedRowDataMeeting?.supplier : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      <input
-                        type="text"
-                        className={`${styles.input_box}`}
-                        value={inputSupplier}
-                        onChange={(e) => setInputSupplier(e.target.value)}
-                      />
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 設備 */}
-              <div className={`${styles.row_area} flex h-[50px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px] ">
-                  <div className={`${styles.title_box}  flex h-full`}>
-                    <span className={`${styles.title}`}>設備</span>
-                    {!searchMode && (
-                      <>
-                        <span
-                          data-text={`${selectedRowDataMeeting?.facility ? selectedRowDataMeeting?.facility : ""}`}
-                          className={`${styles.textarea_value} h-[45px]`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
-                          onMouseLeave={handleCloseTooltip}
-                          dangerouslySetInnerHTML={{
-                            __html: selectedRowDataMeeting?.facility
-                              ? selectedRowDataMeeting?.facility.replace(/\n/g, "<br>")
-                              : "",
-                          }}
-                        >
-                          {/* {selectedRowDataMeeting?.facility ? selectedRowDataMeeting?.facility : ""} */}
-                        </span>
-                      </>
-                    )}
-                    {searchMode && (
-                      <textarea
-                        name="address"
-                        id="address"
-                        cols={30}
-                        rows={10}
-                        className={`${styles.textarea_box} `}
-                        value={inputFacility}
-                        onChange={(e) => setInputFacility(e.target.value)}
-                      ></textarea>
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 事業拠点・海外拠点 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>事業拠点</span>
-                    {!searchMode && (
-                      <span
-                        data-text={`${
-                          selectedRowDataMeeting?.business_sites ? selectedRowDataMeeting?.business_sites : ""
-                        }`}
-                        className={`${styles.value}`}
-                        onMouseEnter={(e) => handleOpenTooltip(e)}
-                        onMouseLeave={handleCloseTooltip}
-                      >
-                        {selectedRowDataMeeting?.business_sites ? selectedRowDataMeeting?.business_sites : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      <input
-                        type="text"
-                        className={`${styles.input_box}`}
-                        value={inputBusinessSite}
-                        onChange={(e) => setInputBusinessSite(e.target.value)}
-                      />
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-                <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title}`}>海外拠点</span>
-                    {!searchMode && (
-                      <span
-                        data-text={`${
-                          selectedRowDataMeeting?.overseas_bases ? selectedRowDataMeeting?.overseas_bases : ""
-                        }`}
-                        className={`${styles.value}`}
-                        onMouseEnter={(e) => handleOpenTooltip(e)}
-                        onMouseLeave={handleCloseTooltip}
-                      >
-                        {selectedRowDataMeeting?.overseas_bases ? selectedRowDataMeeting?.overseas_bases : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      <input
-                        type="text"
-                        className={`${styles.input_box}`}
-                        value={inputOverseas}
-                        onChange={(e) => setInputOverseas(e.target.value)}
-                      />
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* グループ会社 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>グループ会社</span>
-                    {!searchMode && (
-                      <span
-                        className={`${styles.value}`}
-                        data-text={`${
-                          selectedRowDataMeeting?.group_company ? selectedRowDataMeeting?.group_company : ""
-                        }`}
-                        onMouseEnter={(e) => handleOpenTooltip(e)}
-                        onMouseLeave={handleCloseTooltip}
-                      >
-                        {selectedRowDataMeeting?.group_company ? selectedRowDataMeeting?.group_company : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      <input
-                        type="text"
-                        className={`${styles.input_box}`}
-                        value={inputGroup}
-                        onChange={(e) => setInputGroup(e.target.value)}
-                      />
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* HP */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>HP</span>
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
-                        {selectedRowDataMeeting?.website_url ? selectedRowDataMeeting?.website_url : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      <input
-                        type="text"
-                        className={`${styles.input_box}`}
-                        placeholder="「is not null」でHP有りのデータのみ抽出"
-                        value={inputHP}
-                        onChange={(e) => setInputHP(e.target.value)}
-                      />
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 会社Email */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>会社Email</span>
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
-                        {selectedRowDataMeeting?.company_email ? selectedRowDataMeeting?.company_email : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      <input
-                        type="text"
-                        className={`${styles.input_box}`}
-                        placeholder="「is not null」でHP有りのデータのみ抽出"
-                        value={inputCompanyEmail}
-                        onChange={(e) => setInputCompanyEmail(e.target.value)}
-                      />
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 業種 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>○業種</span>
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
-                        {selectedRowDataMeeting?.industry_type ? selectedRowDataMeeting?.industry_type : ""}
-                      </span>
-                    )}
-                    {searchMode && !inputProductL && (
-                      // <input
-                      //   type="text"
-                      //   className={`${styles.input_box}`}
-                      //   value={inputIndustryType}
-                      //   onChange={(e) => setInputIndustryType(e.target.value)}
-                      // />
-                      <select
-                        name="position_class"
-                        id="position_class"
-                        className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                        value={inputIndustryType}
-                        onChange={(e) => setInputIndustryType(e.target.value)}
-                      >
-                        <option value=""></option>
-                        <option value="機械要素・部品">機械要素・部品</option>
-                        <option value="自動車・輸送機器">自動車・輸送機器</option>
-                        <option value="電子部品・半導体">電子部品・半導体</option>
-                        <option value="製造・加工受託">製造・加工受託</option>
-                        <option value="産業用機械">産業用機械</option>
-                        <option value="産業用電気機器">産業用電気機器</option>
-                        <option value="IT・情報通信">IT・情報通信</option>
-                        <option value="ソフトウェア">ソフトウェア</option>
-                        <option value="医薬品・バイオ">医薬品・バイオ</option>
-                        <option value="樹脂・プラスチック">樹脂・プラスチック</option>
-                        <option value="ゴム製品">ゴム製品</option>
-                        <option value="鉄/非鉄金属">鉄/非鉄金属</option>
-                        <option value="民生用電気機器">民生用電気機器</option>
-                        <option value="航空・宇宙">航空・宇宙</option>
-                        <option value="CAD/CAM">CAD/CAM</option>
-                        <option value="建材・資材・什器">建材・資材・什器</option>
-                        <option value="小売">小売</option>
-                        <option value="飲食料品">飲食料品</option>
-                        <option value="飲食店・宿泊業">飲食店・宿泊業</option>
-                        <option value="公益・特殊・独立行政法人">公益・特殊・独立行政法人</option>
-                        <option value="水産・農林業">水産・農林業</option>
-                        <option value="繊維">繊維</option>
-                        <option value="ガラス・土石製品">ガラス・土石製品</option>
-                        <option value="造船・重機">造船・重機</option>
-                        <option value="環境">環境</option>
-                        <option value="印刷業">印刷業</option>
-                        <option value="運輸業">運輸業</option>
-                        <option value="金融・証券・保険業">金融・証券・保険業</option>
-                        <option value="警察・消防・自衛隊">警察・消防・自衛隊</option>
-                        <option value="鉱業">鉱業</option>
-                        <option value="紙・バルブ">紙・バルブ</option>
-                        <option value="木材">木材</option>
-                        <option value="ロボット">ロボット</option>
-                        <option value="試験・分析・測定">試験・分析・測定</option>
-                        <option value="エネルギー">エネルギー</option>
-                        <option value="電気・ガス・水道業">電気・ガス・水道業</option>
-                        <option value="医療・福祉">医療・福祉</option>
-                        <option value="サービス業">サービス業</option>
-                        <option value="その他">その他</option>
-                        <option value="化学">化学</option>
-                        <option value="セラミックス">セラミックス</option>
-                        <option value="食品機械">食品機械</option>
-                        <option value="光学機器">光学機器</option>
-                        <option value="医療機器">医療機器</option>
-                        <option value="その他製造">その他製造</option>
-                        <option value="倉庫・運輸関連業">倉庫・運輸関連業</option>
-                        <option value="教育・研究機関">教育・研究機関</option>
-                        <option value="石油・石炭製品">石油・石炭製品</option>
-                        <option value="商社・卸売">商社・卸売</option>
-                        <option value="官公庁">官公庁</option>
-                        <option value="個人">個人</option>
-                        <option value="不明">不明</option>
-                      </select>
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-              {/* 製品分類（大分類） */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !mr-[15px]`}>製品分類（大分類）</span>
-                    {!searchMode && (
-                      <span
-                        className={`${styles.value}`}
-                        data-text={`${
-                          selectedRowDataMeeting?.product_category_large
-                            ? selectedRowDataMeeting?.product_category_large
-                            : ""
-                        }`}
-                        onMouseEnter={(e) => handleOpenTooltip(e)}
-                        onMouseLeave={handleCloseTooltip}
-                      >
-                        {selectedRowDataMeeting?.product_category_large
-                          ? selectedRowDataMeeting?.product_category_large
-                          : ""}
-                      </span>
-                    )}
-                    {searchMode && !inputIndustryType && (
-                      // <input
-                      //   type="text"
-                      //   className={`${styles.input_box} ml-[20px]`}
-                      //   value={inputProductL}
-                      //   onChange={(e) => setInputProductL(e.target.value)}
-                      // />
-                      <select
-                        name="position_class"
-                        id="position_class"
-                        className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
-                        value={inputProductL}
-                        onChange={(e) => setInputProductL(e.target.value)}
-                      >
-                        <option value=""></option>
-                        <option value="電子部品・モジュール">電子部品・モジュール</option>
-                        <option value="機械部品">機械部品</option>
-                        <option value="製造・加工機械">製造・加工機械</option>
-                        <option value="科学・理化学機器">科学・理化学機器</option>
-                        <option value="素材・材料">素材・材料</option>
-                        <option value="測定・分析">測定・分析</option>
-                        <option value="画像処理">画像処理</option>
-                        <option value="制御・電機機器">制御・電機機器</option>
-                        <option value="工具・消耗品・備品">工具・消耗品・備品</option>
-                        <option value="設計・生産支援">設計・生産支援</option>
-                        <option value="IT・ネットワーク">IT・ネットワーク</option>
-                        <option value="オフィス">オフィス</option>
-                        <option value="業務支援サービス">業務支援サービス</option>
-                        <option value="セミナー・スキルアップ">セミナー・スキルアップ</option>
-                        <option value="その他">その他</option>
-                      </select>
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-              {/* 製品分類（中分類） */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !mr-[15px]`}>製品分類（中分類）</span>
-                    {!searchMode && (
-                      <span
-                        className={`${styles.value}`}
-                        data-text={`${
-                          selectedRowDataMeeting?.product_category_medium
-                            ? selectedRowDataMeeting?.product_category_medium
-                            : ""
-                        }`}
-                        onMouseEnter={(e) => handleOpenTooltip(e)}
-                        onMouseLeave={handleCloseTooltip}
-                      >
-                        {selectedRowDataMeeting?.product_category_medium
-                          ? selectedRowDataMeeting?.product_category_medium
-                          : ""}
-                      </span>
-                    )}
-                    {searchMode && !!inputProductL && (
-                      // <input
-                      //   type="text"
-                      //   className={`${styles.input_box} ml-[20px]`}
-                      //   value={inputProductM}
-                      //   onChange={(e) => setInputProductM(e.target.value)}
-                      // />
-                      <select
-                        name="position_class"
-                        id="position_class"
-                        value={inputProductM}
-                        onChange={(e) => setInputProductM(e.target.value)}
-                        className={`${
-                          inputProductL ? "" : "hidden"
-                        } ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      >
-                        {inputProductL === "電子部品・モジュール" &&
-                          productCategoriesM.moduleCategoryM.map((option) => option)}
-                        {inputProductL === "機械部品" &&
-                          productCategoriesM.machinePartsCategoryM.map((option) => option)}
-                        {inputProductL === "製造・加工機械" &&
-                          productCategoriesM.processingMachineryCategoryM.map((option) => option)}
-                        {inputProductL === "科学・理化学機器" &&
-                          productCategoriesM.scienceCategoryM.map((option) => option)}
-                        {inputProductL === "素材・材料" && productCategoriesM.materialCategoryM.map((option) => option)}
-                        {inputProductL === "測定・分析" && productCategoriesM.analysisCategoryM.map((option) => option)}
-                        {inputProductL === "画像処理" &&
-                          productCategoriesM.imageProcessingCategoryM.map((option) => option)}
-                        {inputProductL === "制御・電機機器" &&
-                          productCategoriesM.controlEquipmentCategoryM.map((option) => option)}
-                        {inputProductL === "工具・消耗品・備品" &&
-                          productCategoriesM.toolCategoryM.map((option) => option)}
-                        {inputProductL === "設計・生産支援" &&
-                          productCategoriesM.designCategoryM.map((option) => option)}
-                        {inputProductL === "IT・ネットワーク" && productCategoriesM.ITCategoryM.map((option) => option)}
-                        {inputProductL === "オフィス" && productCategoriesM.OfficeCategoryM.map((option) => option)}
-                        {inputProductL === "業務支援サービス" &&
-                          productCategoriesM.businessSupportCategoryM.map((option) => option)}
-                        {inputProductL === "セミナー・スキルアップ" &&
-                          productCategoriesM.skillUpCategoryM.map((option) => option)}
-                        {inputProductL === "その他" && productCategoriesM.othersCategoryM.map((option) => option)}
-                      </select>
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-              {/* 製品分類（小分類） */}
-              {/* <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-full flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>製品分類（小分類）</span>
-                  {!searchMode && (
-                    <span
-                      className={`${styles.value}`}
-                      data-text={`${
-                        selectedRowDataMeeting?.product_category_small
-                          ? selectedRowDataMeeting?.product_category_small
-                          : ""
-                      }`}
-                      onMouseEnter={(e) => handleOpenTooltip(e)}
-                      onMouseLeave={handleCloseTooltip}
-                    >
-                      {selectedRowDataMeeting?.product_category_small
-                        ? selectedRowDataMeeting?.product_category_small
-                        : ""}
-                    </span>
-                  )}
-                  {searchMode && (
-                    <input
-                      type="text"
-                      className={`${styles.input_box} ml-[20px]`}
-                      value={inputProductS}
-                      onChange={(e) => setInputProductS(e.target.value)}
-                    />
-                  )}
-                </div>
-                <div className={`${styles.underline}`}></div>
-              </div>
-            </div> */}
-
-              {/* 法人番号・ID */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>○法人番号</span>
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
-                        {selectedRowDataMeeting?.corporate_number ? selectedRowDataMeeting?.corporate_number : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      <input
-                        type="text"
-                        className={`${styles.input_box}`}
-                        value={inputCorporateNum}
-                        onChange={(e) => setInputCorporateNum(e.target.value)}
-                      />
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-                <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title_min}`}>会社ID</span>
-                    {!searchMode && (
-                      <span className={`${styles.value} truncate`}>
-                        {selectedRowDataMeeting?.company_id ? selectedRowDataMeeting?.company_id : ""}
-                      </span>
-                    )}
-                    {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
+                    {searchMode && <input type="text" className={`${styles.input_box}`} />}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1809,32 +1078,39 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
         {/* ---------------- 通常モード 真ん中コンテナ ---------------- */}
         {!searchMode && (
           <div
-            className={`${styles.right_container} transition-base01 h-full min-w-[calc((100vw-var(--sidebar-width))/3-11px)] max-w-[calc((100vw-var(--sidebar-width))/3-11px)] grow bg-[aqua]/[0] pb-[35px] pt-[10px]`}
+            className={`${styles.right_container} ${
+              isOpenSidebar ? `transition-base02` : `transition-base01`
+            } h-full min-w-[calc((100vw-var(--sidebar-width))/3-11px)] max-w-[calc((100vw-var(--sidebar-width))/3-11px)] grow bg-[aqua]/[0] pb-[35px] pt-[0px]`}
           >
             <div className={`${styles.right_contents_wrapper} flex h-full w-full flex-col bg-[#000]/[0]`}>
-              {/* 活動履歴 */}
-              {/* <ErrorBoundary FallbackComponent={ErrorFallback}>
-                <Suspense
-                  fallback={<Fallback className="min-h-[calc(100vh-100vh/3-var(--header-height)/3--20px-22px-40px)]" />}
-                >
-                  <ContactUnderRightMeetingLog />
-                </Suspense>
-              </ErrorBoundary> */}
               {/* 下エリア 禁止フラグなど */}
               <div
                 className={`${styles.right_under_container} h-screen w-full  bg-[#f0f0f0]/[0] ${
                   isOpenSidebar ? `transition-base02` : `transition-base01`
                 }`}
               >
-                {/* 活動日・クレーム */}
-                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                {/* 結果 */}
+                <div className={`${styles.row_area} flex w-full items-center`}>
+                  <div className="flex h-full w-full flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.section_title}`}>結果</span>
+
+                      {/* <span className={`${styles.value} ${styles.value_highlight}`}>
+                        {selectedRowDataMeeting?.company_name ? selectedRowDataMeeting?.company_name : ""}
+                      </span> */}
+                    </div>
+                    <div className={`${styles.section_underline}`}></div>
+                  </div>
+                </div>
+                {/* 面談日 */}
+                <div className={`${styles.row_area} flex w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
-                      <span className={`${styles.title}`}>活動日</span>
+                      <span className={`${styles.title}`}>面談日</span>
                       {!searchMode && (
                         <span className={`${styles.value}`}>
-                          {selectedRowDataMeeting?.meeting_date
-                            ? format(new Date(selectedRowDataMeeting.meeting_date), "yyyy-MM-dd")
+                          {selectedRowDataMeeting?.result_date
+                            ? format(new Date(selectedRowDataMeeting.result_date), "yyyy/MM/dd")
                             : ""}
                         </span>
                       )}
@@ -1843,44 +1119,18 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     <div className={`${styles.underline}`}></div>
                   </div>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                    <div className={`${styles.title_box} flex h-full items-center`}>
-                      <span className={`${styles.title}`}>クレーム</span>
-                      {!searchMode && (
-                        <div className={`${styles.grid_select_cell_header} `}>
-                          <input
-                            type="checkbox"
-                            // checked={!!checkedColumnHeader} // 初期値
-                            checked={!!selectedRowDataMeeting?.claim_flag}
-                            onChange={() => {
-                              setLoadingGlobalState(false);
-                              setIsOpenUpdateMeetingModal(true);
-                            }}
-                            className={`${styles.grid_select_cell_header_input}`}
-                          />
-                          <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
-                          </svg>
-                        </div>
-                      )}
-                      {/* {!searchMode && (
-                        <span className={`${styles.value}`}>
-                          {selectedRowDataMeeting?.claim_flag ? selectedRowDataMeeting?.claim_flag : ""}
-                        </span>
-                      )} */}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
-                    </div>
-                    <div className={`${styles.underline}`}></div>
+                    <div className={`${styles.title_box} flex h-full items-center`}></div>
                   </div>
                 </div>
 
-                {/* 活動タイプ・優先度 */}
-                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                {/* 面談開始・面談終了 */}
+                <div className={`${styles.row_area} flex w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
-                      <span className={`${styles.title}`}>活動タイプ</span>
+                      <span className={`${styles.title}`}>面談開始</span>
                       {!searchMode && (
                         <span className={`${styles.value}`}>
-                          {selectedRowDataMeeting?.meeting_type ? selectedRowDataMeeting?.meeting_type : ""}
+                          {selectedRowDataMeeting?.result_start_time ? selectedRowDataMeeting?.result_start_time : ""}
                         </span>
                       )}
                       {searchMode && <input type="text" className={`${styles.input_box}`} />}
@@ -1889,7 +1139,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   </div>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
-                      <span className={`${styles.title}`}>優先度</span>
+                      <span className={`${styles.title}`}>面談終了</span>
                       {!searchMode && (
                         <span
                           // data-text={`${
@@ -1901,7 +1151,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           // onMouseEnter={(e) => handleOpenTooltip(e)}
                           // onMouseLeave={handleCloseTooltip}
                         >
-                          {selectedRowDataMeeting?.priority ? selectedRowDataMeeting?.priority : ""}
+                          {selectedRowDataMeeting?.result_end_time ? selectedRowDataMeeting?.result_end_time : ""}
                         </span>
                       )}
                       {searchMode && <input type="text" className={`${styles.input_box}`} />}
@@ -1910,13 +1160,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   </div>
                 </div>
 
-                {/* 次回ﾌｫﾛｰ予定日・フォロー完了 */}
-                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                {/* 面談時間・面談人数 */}
+                <div className={`${styles.row_area} flex w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <div className={`${styles.title} !mr-[15px] flex flex-col`}>
-                        <span className={``}>次回ﾌｫﾛｰ</span>
-                        <span className={``}>予定日</span>
+                        <span className={``}>面談時間</span>
                       </div>
                       {!searchMode && (
                         <span
@@ -1927,8 +1176,8 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           // onMouseEnter={(e) => handleOpenTooltip(e)}
                           // onMouseLeave={handleCloseTooltip}
                         >
-                          {selectedRowDataMeeting?.scheduled_follow_up_date
-                            ? format(new Date(selectedRowDataMeeting.scheduled_follow_up_date), "yyyy-MM-dd")
+                          {selectedRowDataMeeting?.result_duration
+                            ? format(new Date(selectedRowDataMeeting.result_duration), "yyyy-MM-dd")
                             : ""}
                         </span>
                       )}
@@ -1936,29 +1185,131 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
-                  {selectedRowDataMeeting?.scheduled_follow_up_date && (
-                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                      <div className={`${styles.title_box} transition-base03 flex h-full items-center `}>
-                        <span className={`${styles.check_title}`}>フォロー完了</span>
 
-                        <div className={`${styles.grid_select_cell_header} `}>
-                          <input
-                            type="checkbox"
-                            checked={!!selectedRowDataMeeting?.follow_up_flag}
-                            onChange={() => {
-                              setLoadingGlobalState(false);
-                              setIsOpenUpdateMeetingModal(true);
-                            }}
-                            className={`${styles.grid_select_cell_header_input}`}
-                          />
-                          <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
-                          </svg>
-                        </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} transition-base03 flex h-full items-center `}>
+                      <span className={`${styles.check_title}`}>面談人数</span>
+
+                      <div className={`${styles.grid_select_cell_header} `}>
+                        <input
+                          type="checkbox"
+                          checked={!!selectedRowDataMeeting?.result_number_of_meeting_participants}
+                          onChange={() => {
+                            setLoadingGlobalState(false);
+                            setIsOpenUpdateMeetingModal(true);
+                          }}
+                          className={`${styles.grid_select_cell_header_input}`}
+                        />
+                        <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+                        </svg>
                       </div>
-                      <div className={`${styles.underline}`}></div>
                     </div>
-                  )}
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
+
+                {/* 実施1・実施2 */}
+                <div className={`${styles.row_area} flex w-full items-center`}>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title}`}>実施1</span>
+                      {!searchMode && (
+                        <span className={`${styles.value}`}>
+                          {selectedRowDataMeeting?.result_presentation_product1
+                            ? selectedRowDataMeeting?.result_presentation_product1
+                            : ""}
+                        </span>
+                      )}
+                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}>
+                      <span className={`${styles.title}`}>実施2</span>
+                      {!searchMode && (
+                        <span
+                          // data-text={`${
+                          //   selectedRowDataMeeting?.senior_managing_director
+                          //     ? selectedRowDataMeeting?.senior_managing_director
+                          //     : ""
+                          // }`}
+                          className={`${styles.value}`}
+                          // onMouseEnter={(e) => handleOpenTooltip(e)}
+                          // onMouseLeave={handleCloseTooltip}
+                        >
+                          {selectedRowDataMeeting?.result_presentation_product2
+                            ? selectedRowDataMeeting?.result_presentation_product2
+                            : ""}
+                        </span>
+                      )}
+                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
+
+                {/* 実施3・実施4 */}
+                <div className={`${styles.row_area} flex w-full items-center`}>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title}`}>実施3</span>
+                      {!searchMode && (
+                        <span className={`${styles.value}`}>
+                          {selectedRowDataMeeting?.result_presentation_product3
+                            ? selectedRowDataMeeting?.result_presentation_product3
+                            : ""}
+                        </span>
+                      )}
+                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}>
+                      <span className={`${styles.title}`}>実施4</span>
+                      {!searchMode && (
+                        <span
+                          // data-text={`${
+                          //   selectedRowDataMeeting?.senior_managing_director
+                          //     ? selectedRowDataMeeting?.senior_managing_director
+                          //     : ""
+                          // }`}
+                          className={`${styles.value}`}
+                          // onMouseEnter={(e) => handleOpenTooltip(e)}
+                          // onMouseLeave={handleCloseTooltip}
+                        >
+                          {selectedRowDataMeeting?.result_presentation_product4
+                            ? selectedRowDataMeeting?.result_presentation_product4
+                            : ""}
+                        </span>
+                      )}
+                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
+
+                {/* 実施5 */}
+                <div className={`${styles.row_area} flex w-full items-center`}>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title}`}>実施5</span>
+                      {!searchMode && (
+                        <span className={`${styles.value}`}>
+                          {selectedRowDataMeeting?.result_presentation_product5
+                            ? selectedRowDataMeeting?.result_presentation_product5
+                            : ""}
+                        </span>
+                      )}
+                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}></div>
+                  </div>
                 </div>
 
                 {/* 概要 */}
@@ -1997,7 +1348,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
 
                 {/* 事業部名 */}
-                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className={`${styles.row_area} flex w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>事業部名</span>
@@ -2036,7 +1387,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
 
                 {/* 事業所・自社担当 */}
-                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className={`${styles.row_area} flex w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>事業所</span>
@@ -2073,7 +1424,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
 
                 {/* 実施1・実施2 */}
-                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className={`${styles.row_area} flex w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>実施1</span>
@@ -2114,7 +1465,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
 
                 {/* 実施3・実施4 */}
-                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className={`${styles.row_area} flex w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>実施3</span>
@@ -2155,7 +1506,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
 
                 {/* 実施5 */}
-                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className={`${styles.row_area} flex w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>実施5</span>
@@ -2378,12 +1729,14 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
         {!searchMode && (
           <div
             // className={`${styles.left_container1 h-full min-w-[calc((100vw-var(--sidebar-width))/3)1 pb-[35px] pt-[10px]`}
-            className={`${styles.left_container} transition-base01 h-full min-w-[calc((100vw-var(--sidebar-width))/3-11px)] max-w-[calc((100vw-var(--sidebar-width))/3-11px)] pb-[35px] pt-[10px]`}
+            className={`${styles.left_container} ${
+              isOpenSidebar ? `transition-base02` : `transition-base01`
+            } h-full min-w-[calc((100vw-var(--sidebar-width))/3-11px)] max-w-[calc((100vw-var(--sidebar-width))/3-11px)] pb-[35px] pt-[0px]`}
           >
             {/* --------- ラッパー --------- */}
             <div className={`${styles.left_contents_wrapper} flex h-full w-full flex-col`}>
               {/* 会社名 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>●会社名</span>
@@ -2408,7 +1761,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 部署名 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>●部署名</span>
@@ -2432,7 +1785,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 担当者名 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>担当者名</span>
@@ -2475,7 +1828,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 内線TEL・代表TEL */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>内線TEL</span>
@@ -2518,7 +1871,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 直通FAX・代表FAX */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>直通FAX</span>
@@ -2567,7 +1920,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 社用携帯・私用携帯 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>社用携帯</span>
@@ -2609,7 +1962,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* Email */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>E-mail</span>
@@ -2632,7 +1985,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 郵便番号・ */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>郵便番号</span>
@@ -2701,7 +2054,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 役職名・職位 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>役職名</span>
@@ -2759,7 +2112,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 担当職種・決裁金額 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>担当職種</span>
@@ -2828,7 +2181,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 規模（ランク）・決算月 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>規模(ﾗﾝｸ)</span>
@@ -2888,7 +2241,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 予算申請月1・予算申請月2 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>予算申請月1</span>
@@ -2978,7 +2331,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 主要取引先 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>主要取引先</span>
@@ -3006,7 +2359,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 主要仕入先 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>主要仕入先</span>
@@ -3072,7 +2425,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 事業拠点・海外拠点 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>事業拠点</span>
@@ -3128,7 +2481,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* グループ会社 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>グループ会社</span>
@@ -3158,7 +2511,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* HP */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>HP</span>
@@ -3182,7 +2535,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 会社Email */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>会社Email</span>
@@ -3206,7 +2559,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 業種 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>○業種</span>
@@ -3289,7 +2642,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
               </div>
               {/* 製品分類（大分類） */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !mr-[15px]`}>製品分類（大分類）</span>
@@ -3346,7 +2699,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
               </div>
               {/* 製品分類（中分類） */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !mr-[15px]`}>製品分類（中分類）</span>
@@ -3414,7 +2767,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
               </div>
               {/* 製品分類（小分類） */}
-              {/* <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              {/* <div className={`${styles.row_area} flex w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>製品分類（小分類）</span>
@@ -3448,7 +2801,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
             </div> */}
 
               {/* 法人番号・ID */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>○法人番号</span>
@@ -3496,8 +2849,8 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
           >
             {/* --------- ラッパー --------- */}
             <div className={`${styles.left_contents_wrapper} flex h-full w-full flex-col`}>
-              {/* 会社名 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              {/* ● */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>●会社名</span>
@@ -3522,7 +2875,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 部署名 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>●部署名</span>
@@ -3546,7 +2899,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 担当者名 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>担当者名</span>
@@ -3589,7 +2942,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 内線TEL・代表TEL */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>内線TEL</span>
@@ -3632,7 +2985,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 直通FAX・代表FAX */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>直通FAX</span>
@@ -3681,7 +3034,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 社用携帯・私用携帯 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>社用携帯</span>
@@ -3723,7 +3076,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* Email */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>E-mail</span>
@@ -3746,7 +3099,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 郵便番号・ */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>郵便番号</span>
@@ -3815,7 +3168,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 役職名・職位 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>役職名</span>
@@ -3873,7 +3226,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 担当職種・決裁金額 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>担当職種</span>
@@ -3942,7 +3295,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 規模（ランク）・決算月 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>規模(ﾗﾝｸ)</span>
@@ -4002,7 +3355,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 予算申請月1・予算申請月2 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>予算申請月1</span>
@@ -4092,7 +3445,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 主要取引先 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>主要取引先</span>
@@ -4120,7 +3473,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 主要仕入先 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>主要仕入先</span>
@@ -4186,7 +3539,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 事業拠点・海外拠点 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>事業拠点</span>
@@ -4242,7 +3595,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* グループ会社 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>グループ会社</span>
@@ -4272,7 +3625,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* HP */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>HP</span>
@@ -4296,7 +3649,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 会社Email */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>会社Email</span>
@@ -4320,7 +3673,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 業種 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>○業種</span>
@@ -4403,7 +3756,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
               </div>
               {/* 製品分類（大分類） */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !mr-[15px]`}>製品分類（大分類）</span>
@@ -4460,7 +3813,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
               </div>
               {/* 製品分類（中分類） */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !mr-[15px]`}>製品分類（中分類）</span>
@@ -4528,7 +3881,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
               </div>
               {/* 製品分類（小分類） */}
-              {/* <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              {/* <div className={`${styles.row_area} flex w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>製品分類（小分類）</span>
@@ -4562,7 +3915,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
             </div> */}
 
               {/* 法人番号・ID */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>○法人番号</span>
@@ -4600,7 +3953,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               {searchMode && (
                 <>
                   {/* 活動日・クレーム サーチモード */}
-                  <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className={`${styles.row_area} flex w-full items-center`}>
                     <div className="flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title}`}>活動日</span>
@@ -4651,7 +4004,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   </div>
 
                   {/* 活動タイプ・優先度 サーチモード */}
-                  <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className={`${styles.row_area} flex w-full items-center`}>
                     <div className="flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title}`}>活動タイプ</span>
@@ -4705,7 +4058,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   </div>
 
                   {/* 次回ﾌｫﾛｰ予定日・フォロー完了 サーチモード */}
-                  <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className={`${styles.row_area} flex w-full items-center`}>
                     <div className="flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title} !mr-[15px]`}>次回ﾌｫﾛｰ予定日</span>
@@ -4778,7 +4131,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   </div>
 
                   {/* 事業部名 サーチモード */}
-                  <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className={`${styles.row_area} flex w-full items-center`}>
                     <div className="flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title}`}>事業部名</span>
@@ -4820,7 +4173,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   </div>
 
                   {/* 事業所・自社担当 サーチモード */}
-                  <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className={`${styles.row_area} flex w-full items-center`}>
                     <div className="flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title}`}>事業所</span>
@@ -4854,7 +4207,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   </div>
 
                   {/* 実施1・実施2 サーチモード */}
-                  <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className={`${styles.row_area} flex w-full items-center`}>
                     <div className="flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title}`}>実施1</span>
@@ -4888,7 +4241,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   </div>
 
                   {/* 実施3・実施4 サーチモード */}
-                  <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className={`${styles.row_area} flex w-full items-center`}>
                     <div className="flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title}`}>実施3</span>
@@ -4922,7 +4275,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   </div>
 
                   {/* 実施5 サーチモード */}
-                  <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                  <div className={`${styles.row_area} flex w-full items-center`}>
                     <div className="flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title}`}>実施5</span>

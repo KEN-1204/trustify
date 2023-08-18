@@ -239,6 +239,7 @@
   display: flex;
   width: 100%;
   align-items: center;
+  height: 28px;
 
   /* margin-top: 5px; */
   margin-top: 10px;
@@ -283,6 +284,17 @@
   /* min-width: 80px; */
   font-weight: 600;
 }
+.section_title {
+  color: var(--color-text-under-title);
+  white-space: nowrap;
+  /* 右側に20px余白 */
+  /* padding-right: 20px; */
+  /* min-width: 80px; */
+  /* min-width: 90px; */
+  min-width: 95px;
+  font-weight: 600;
+  font-size: 18px;
+}
 .value {
   color: var(--color-text-under-value);
 
@@ -316,6 +328,11 @@
   min-height: 1px;
   width: 100%;
   background-color: var(--color-bg-underline);
+}
+.section_underline {
+  min-height: 2px;
+  width: 100%;
+  background-color: var(--color-bg-brand-f);
 }
 .divider {
   background-color: rgb(94 94 94 / 0.3);

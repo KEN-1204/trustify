@@ -498,8 +498,8 @@ const ActivityMainContainerMemo: FC = () => {
       // activitiesテーブル
       "activities.created_by_company_id": _activity_created_by_company_id,
       "activities.created_by_user_id": _activity_created_by_user_id,
-      "activities.created_by_department_of_user": _activity_created_by_user_id,
-      "activities.created_by_unit_of_user": _activity_created_by_user_id,
+      "activities.created_by_department_of_user": _activity_created_by_department_of_user,
+      "activities.created_by_unit_of_user": _activity_created_by_unit_of_user,
       summary: _summary,
       scheduled_follow_up_date: _scheduled_follow_up_date,
       follow_up_flag: _follow_up_flag,
@@ -665,7 +665,7 @@ const ActivityMainContainerMemo: FC = () => {
           {/* --------- ラッパー --------- */}
           <div className={`${styles.left_contents_wrapper} flex h-full w-full flex-col`}>
             {/* 会社名 */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>●会社名</span>
@@ -690,7 +690,7 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 部署名 */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>●部署名</span>
@@ -714,7 +714,7 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 担当者名 */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>担当者名</span>
@@ -757,7 +757,7 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 内線TEL・代表TEL */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>内線TEL</span>
@@ -800,7 +800,7 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 直通FAX・代表FAX */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>直通FAX</span>
@@ -849,7 +849,7 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 社用携帯・私用携帯 */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>社用携帯</span>
@@ -891,7 +891,7 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* Email */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>E-mail</span>
@@ -914,7 +914,7 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 郵便番号・ */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>郵便番号</span>
@@ -983,7 +983,7 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 役職名・職位 */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>役職名</span>
@@ -1041,7 +1041,7 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 担当職種・決裁金額 */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>担当職種</span>
@@ -1110,7 +1110,7 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 規模（ランク）・決算月 */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>規模(ﾗﾝｸ)</span>
@@ -1170,7 +1170,7 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 予算申請月1・予算申請月2 */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>予算申請月1</span>
@@ -1260,7 +1260,7 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 主要取引先 */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>主要取引先</span>
@@ -1288,7 +1288,7 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 主要仕入先 */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>主要仕入先</span>
@@ -1354,7 +1354,7 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 事業拠点・海外拠点 */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>事業拠点</span>
@@ -1410,7 +1410,7 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* グループ会社 */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>グループ会社</span>
@@ -1440,7 +1440,7 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* HP */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>HP</span>
@@ -1464,7 +1464,7 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 会社Email */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>会社Email</span>
@@ -1488,7 +1488,7 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 業種 */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>○業種</span>
@@ -1571,7 +1571,7 @@ const ActivityMainContainerMemo: FC = () => {
               </div>
             </div>
             {/* 製品分類（大分類） */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title} !mr-[15px]`}>製品分類（大分類）</span>
@@ -1628,7 +1628,7 @@ const ActivityMainContainerMemo: FC = () => {
               </div>
             </div>
             {/* 製品分類（中分類） */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title} !mr-[15px]`}>製品分類（中分類）</span>
@@ -1694,7 +1694,7 @@ const ActivityMainContainerMemo: FC = () => {
               </div>
             </div>
             {/* 製品分類（小分類） */}
-            {/* <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+            {/* <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>製品分類（小分類）</span>
@@ -1728,7 +1728,7 @@ const ActivityMainContainerMemo: FC = () => {
             </div> */}
 
             {/* 法人番号・ID */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>○法人番号</span>
@@ -1766,7 +1766,7 @@ const ActivityMainContainerMemo: FC = () => {
             {searchMode && (
               <>
                 {/* 活動日・クレーム サーチモード */}
-                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>活動日</span>
@@ -1817,7 +1817,7 @@ const ActivityMainContainerMemo: FC = () => {
                 </div>
 
                 {/* 活動タイプ・優先度 サーチモード */}
-                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>活動タイプ</span>
@@ -1871,7 +1871,7 @@ const ActivityMainContainerMemo: FC = () => {
                 </div>
 
                 {/* 次回ﾌｫﾛｰ予定日・フォロー完了 サーチモード */}
-                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title} !mr-[15px]`}>次回ﾌｫﾛｰ予定日</span>
@@ -1944,7 +1944,7 @@ const ActivityMainContainerMemo: FC = () => {
                 </div>
 
                 {/* 事業部名 サーチモード */}
-                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>事業部名</span>
@@ -1986,7 +1986,7 @@ const ActivityMainContainerMemo: FC = () => {
                 </div>
 
                 {/* 事業所・自社担当 サーチモード */}
-                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>事業所</span>
@@ -2020,7 +2020,7 @@ const ActivityMainContainerMemo: FC = () => {
                 </div>
 
                 {/* 実施1・実施2 サーチモード */}
-                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>実施1</span>
@@ -2054,7 +2054,7 @@ const ActivityMainContainerMemo: FC = () => {
                 </div>
 
                 {/* 実施3・実施4 サーチモード */}
-                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>実施3</span>
@@ -2088,7 +2088,7 @@ const ActivityMainContainerMemo: FC = () => {
                 </div>
 
                 {/* 実施5 サーチモード */}
-                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>実施5</span>
@@ -2153,7 +2153,7 @@ const ActivityMainContainerMemo: FC = () => {
                 }`}
               >
                 {/* 活動日・クレーム */}
-                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>活動日</span>
@@ -2200,7 +2200,7 @@ const ActivityMainContainerMemo: FC = () => {
                 </div>
 
                 {/* 活動タイプ・優先度 */}
-                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>活動タイプ</span>
@@ -2237,7 +2237,7 @@ const ActivityMainContainerMemo: FC = () => {
                 </div>
 
                 {/* 次回ﾌｫﾛｰ予定日・フォロー完了 */}
-                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title} !mr-[15px]`}>次回ﾌｫﾛｰ予定日</span>
@@ -2320,7 +2320,7 @@ const ActivityMainContainerMemo: FC = () => {
                 </div>
 
                 {/* 事業部名 */}
-                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>事業部名</span>
@@ -2359,7 +2359,7 @@ const ActivityMainContainerMemo: FC = () => {
                 </div>
 
                 {/* 事業所・自社担当 */}
-                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>事業所</span>
@@ -2396,7 +2396,7 @@ const ActivityMainContainerMemo: FC = () => {
                 </div>
 
                 {/* 実施1・実施2 */}
-                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>実施1</span>
@@ -2437,7 +2437,7 @@ const ActivityMainContainerMemo: FC = () => {
                 </div>
 
                 {/* 実施3・実施4 */}
-                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>実施3</span>
@@ -2478,7 +2478,7 @@ const ActivityMainContainerMemo: FC = () => {
                 </div>
 
                 {/* 実施5 */}
-                <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>実施5</span>

@@ -170,7 +170,7 @@ type State = {
   setSelectedRowDataMeeting: (payload: Meeting_row_data | null) => void;
   // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
   newSearchMeeting_Contact_CompanyParams: NewSearchMeeting_Contact_CompanyParams | null;
-  setNewSearchMeetingParams: (payload: NewSearchMeeting_Contact_CompanyParams) => void;
+  setNewSearchMeeting_Contact_CompanyParams: (payload: NewSearchMeeting_Contact_CompanyParams) => void;
 };
 
 const useDashboardStore = create<State>((set) => ({
@@ -813,7 +813,7 @@ const useDashboardStore = create<State>((set) => ({
 
   // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
   newSearchMeeting_Contact_CompanyParams: null,
-  setNewSearchMeetingParams: (payload) => set({ newSearchMeeting_Contact_CompanyParams: payload }),
+  setNewSearchMeeting_Contact_CompanyParams: (payload) => set({ newSearchMeeting_Contact_CompanyParams: payload }),
 }));
 
 export default useDashboardStore;

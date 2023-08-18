@@ -799,6 +799,7 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   planned_date: string | null;
   planned_start_time: string | null;
   planned_purpose: string | null;
+  planned_duration: number | null;
   planned_appoint_check_flag: boolean | null;
   planned_product1: string | null;
   planned_product2: string | null;
@@ -806,6 +807,8 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   result_date: string | null;
   result_start_time: string | null;
   result_end_time: string | null;
+  result_duration: number | null;
+  result_number_of_meeting_participants: number | null;
   result_presentation_product1: string | null;
   result_presentation_product2: string | null;
   result_presentation_product3: string | null;
