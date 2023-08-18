@@ -485,6 +485,7 @@ export type Activity_row_data = {
   priority: string | null;
   activity_date: string | null;
   department: string | null;
+  activity_year_month: number | null;
 };
 export type Meeting_row_data = {
   company_id: string;
@@ -574,6 +575,7 @@ export type Meeting_row_data = {
   meeting_business_office: string | null;
   meeting_department: string | null;
   meeting_member_name: string | null;
+  meeting_year_month: number | null;
 };
 // export type Contact_row_data = {
 //   // client_companyテーブル
@@ -742,6 +744,7 @@ export type NewSearchActivity_Contact_CompanyParams = {
   priority: string | null;
   activity_date: string | null;
   department: string | null;
+  activity_year_month: number | null;
 };
 
 export type NewSearchMeeting_Contact_CompanyParams = {
@@ -822,6 +825,7 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   meeting_business_office: string | null;
   meeting_department: string | null;
   meeting_member_name: string | null;
+  meeting_year_month: number | null;
 };
 
 // 活動 activitiesテーブル
@@ -852,9 +856,10 @@ export type Activity = {
   activity_date: string | null;
   department: string | null;
   meeting_id: string | null;
+  activity_year_month: number | null;
 };
 
-// 活動 activitiesテーブル
+// 面談 meetingテーブル
 export type Meeting = {
   id: string;
   created_at: string | null;
@@ -893,4 +898,5 @@ export type Meeting = {
   meeting_business_office: string | null;
   meeting_department: string | null;
   meeting_member_name: string | null;
+  activity_year_month: number | null;
 };

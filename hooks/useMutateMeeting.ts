@@ -34,7 +34,7 @@ export const useMutateMeeting = () => {
           setIsOpenInsertNewMeetingModal(false);
           toast.success("活動の作成に完了しました!", {
             position: "top-right",
-            autoClose: 3000,
+            autoClose: 2000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,
@@ -52,7 +52,7 @@ export const useMutateMeeting = () => {
           console.log("INSERTエラー", err.message);
           toast.error("活動の作成に失敗しました!", {
             position: "top-right",
-            autoClose: 3000,
+            autoClose: 2000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,

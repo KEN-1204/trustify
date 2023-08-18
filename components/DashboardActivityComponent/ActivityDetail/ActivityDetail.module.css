@@ -558,3 +558,33 @@
   box-shadow: var(--color-bg-under-input-box-shadow);
   padding-left: 5px;
 }
+
+.close_btn_number {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  z-index: 100;
+  transform: translateY(-57%);
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+.close_btn_number:hover {
+  background: var(--close-bg);
+}
+.input_box:focus ~ .close_btn_number {
+  display: none;
+}
+
+.row_area input[type="number"]::-webkit-inner-spin-button,
+.row_area input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.row_area input[type="number"] {
+  -moz-appearance: textfiled;
+}

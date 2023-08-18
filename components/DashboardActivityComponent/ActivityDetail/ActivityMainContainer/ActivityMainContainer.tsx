@@ -11,6 +11,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import productCategoriesM, { moduleCategoryM } from "@/utils/productCategoryM";
 import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
 import { format } from "date-fns";
+import { MdClose } from "react-icons/md";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -156,6 +157,7 @@ const ActivityMainContainerMemo: FC = () => {
   const [inputPriority, setInputPriority] = useState("");
   const [inputActivityDate, setInputActivityDate] = useState<Date | null>(null);
   const [inputDepartment, setInputDepartment] = useState("");
+  const [inputActivityYearMonth, setInputActivityYearMonth] = useState<number | null>(null);
 
   const supabase = useSupabaseClient();
   const newSearchActivity_Contact_CompanyParams = useDashboardStore(
@@ -176,6 +178,12 @@ const ActivityMainContainerMemo: FC = () => {
     if (value.includes("%")) value = value.replace(/\%/g, "＊");
     if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
     if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+    return value;
+  }
+
+  // 数値型のフィールド用
+  function adjustFieldValueNumber(value: number | null) {
+    if (value === null) return null; // 全てのデータ
     return value;
   }
   console.log("🔥メインコンテナーnewSearchActivity_Contact_CompanyParams", newSearchActivity_Contact_CompanyParams);
@@ -299,6 +307,7 @@ const ActivityMainContainerMemo: FC = () => {
           : null
       );
       setInputDepartment(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.department));
+      setInputActivityYearMonth(adjustFieldValueNumber(newSearchActivity_Contact_CompanyParams.activity_year_month));
     } else {
       setInputCompanyName("");
       setInputContactName("");
@@ -365,6 +374,7 @@ const ActivityMainContainerMemo: FC = () => {
       setInputPriority("");
       setInputActivityDate(null);
       setInputDepartment("");
+      setInputActivityYearMonth(null);
     }
   }, [editSearchMode]);
 
@@ -384,6 +394,7 @@ const ActivityMainContainerMemo: FC = () => {
       if (value === "is not null") return "ISNOTNULL"; // ISNOTNULLパラメータを送信
       return value;
     }
+
     setLoadingGlobalState(true);
 
     let _company_name = adjustFieldValue(inputCompanyName);
@@ -449,6 +460,7 @@ const ActivityMainContainerMemo: FC = () => {
     // let _activity_date = adjustFieldValue(inputActivityDate);
     let _activity_date = inputActivityDate ? inputActivityDate.toISOString() : null;
     let _department = adjustFieldValue(inputDepartment);
+    let _activity_year_month = adjustFieldValueNumber(inputActivityYearMonth);
 
     const params = {
       "client_companies.name": _company_name,
@@ -516,6 +528,7 @@ const ActivityMainContainerMemo: FC = () => {
       priority: _priority,
       activity_date: _activity_date,
       department: _department,
+      activity_year_month: _activity_year_month,
     };
 
     // console.log("✅ 条件 params", params);
@@ -584,6 +597,7 @@ const ActivityMainContainerMemo: FC = () => {
     setInputPriority("");
     setInputActivityDate(null);
     setInputDepartment("");
+    setInputActivityYearMonth(null);
 
     setSearchMode(false);
     setEditSearchMode(false);
@@ -1804,10 +1818,10 @@ const ActivityMainContainerMemo: FC = () => {
                         className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
                         // value={inputClaimFlag}
                         // onChange={(e) => setInputClaimFlag(e.target.value)}
-                        value={inputClaimFlag === null ? "すべて" : inputClaimFlag ? "チェック有り" : "チェック無し"}
+                        value={inputClaimFlag === null ? "指定なし" : inputClaimFlag ? "チェック有り" : "チェック無し"}
                         onChange={handleClaimChangeSelectTagValue}
                       >
-                        <option value="すべて">すべて</option>
+                        <option value="指定なし">指定なし</option>
                         <option value="チェック無し">チェック無し</option>
                         <option value="チェック有り">チェック有り</option>
                       </select>
@@ -1874,7 +1888,11 @@ const ActivityMainContainerMemo: FC = () => {
                 <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
-                      <span className={`${styles.title} !mr-[15px]`}>次回ﾌｫﾛｰ予定日</span>
+                      <div className={`${styles.title} flex flex-col`}>
+                        <span>次回ﾌｫﾛｰ</span>
+                        <span>予定日</span>
+                      </div>
+                      {/* <span className={`${styles.title} !mr-[15px]`}>次回ﾌｫﾛｰ予定日</span> */}
                       <DatePickerCustomInput
                         startDate={inputScheduledFollowUpDate}
                         setStartDate={setInputScheduledFollowUpDate}
@@ -1909,11 +1927,11 @@ const ActivityMainContainerMemo: FC = () => {
                         // value={inputClaimFlag}
                         // onChange={(e) => setInputClaimFlag(e.target.value)}
                         value={
-                          inputFollowUpFlag === null ? "すべて" : inputFollowUpFlag ? "チェック有り" : "チェック無し"
+                          inputFollowUpFlag === null ? "指定なし" : inputFollowUpFlag ? "チェック有り" : "チェック無し"
                         }
                         onChange={handleFollowUpFlagChangeSelectTagValue}
                       >
-                        <option value="すべて">すべて</option>
+                        <option value="指定なし">指定なし</option>
                         <option value="チェック無し">チェック無し</option>
                         <option value="チェック有り">チェック有り</option>
                       </select>
@@ -1962,26 +1980,39 @@ const ActivityMainContainerMemo: FC = () => {
                   </div>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
-                      {/* <span className={`${styles.title}`}>実施4</span>
-                      {!searchMode && (
-                        <span
-                          data-text={`${
-                            selectedRowDataActivity?.senior_managing_director
-                              ? selectedRowDataActivity?.senior_managing_director
-                              : ""
-                          }`}
-                          className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
-                          onMouseLeave={handleCloseTooltip}
-                        >
-                          {selectedRowDataActivity?.senior_managing_director
-                            ? selectedRowDataActivity?.senior_managing_director
-                            : ""}
-                        </span>
+                      <span className={`${styles.title}`}>活動年月度</span>
+                      {searchMode && (
+                        <input
+                          type="number"
+                          min="0"
+                          className={`${styles.input_box}`}
+                          placeholder='"202312" など年月を入力'
+                          value={inputActivityYearMonth === null ? "" : inputActivityYearMonth}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (val === "") {
+                              setInputActivityYearMonth(null);
+                            } else {
+                              const numValue = Number(val);
+
+                              // 入力値がマイナスかチェック
+                              if (numValue < 0) {
+                                setInputActivityYearMonth(0); // ここで0に設定しているが、必要に応じて他の正の値に変更することもできる
+                              } else {
+                                setInputActivityYearMonth(numValue);
+                              }
+                            }
+                          }}
+                        />
                       )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
+                      {/* バツボタン */}
+                      {inputActivityYearMonth && (
+                        <div className={`${styles.close_btn_number}`} onClick={() => setInputActivityYearMonth(null)}>
+                          <MdClose className="text-[20px] " />
+                        </div>
+                      )}
                     </div>
-                    {/* <div className={`${styles.underline}`}></div> */}
+                    <div className={`${styles.underline}`}></div>
                   </div>
                 </div>
 
@@ -2240,7 +2271,11 @@ const ActivityMainContainerMemo: FC = () => {
                 <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
-                      <span className={`${styles.title} !mr-[15px]`}>次回ﾌｫﾛｰ予定日</span>
+                      <div className={`${styles.title} flex flex-col`}>
+                        <span>次回ﾌｫﾛｰ</span>
+                        <span>予定日</span>
+                      </div>
+                      {/* <span className={`${styles.title} !mr-[15px]`}>次回ﾌｫﾛｰ予定日</span> */}
                       {!searchMode && (
                         <span
                           // data-text={`${
@@ -2335,26 +2370,25 @@ const ActivityMainContainerMemo: FC = () => {
                   </div>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
-                      {/* <span className={`${styles.title}`}>実施4</span>
+                      <span className={`${styles.title}`}>活動年月度</span>
                       {!searchMode && (
                         <span
-                          data-text={`${
-                            selectedRowDataActivity?.senior_managing_director
-                              ? selectedRowDataActivity?.senior_managing_director
-                              : ""
-                          }`}
+                          // data-text={`${
+                          //   selectedRowDataActivity?.senior_managing_director
+                          //     ? selectedRowDataActivity?.senior_managing_director
+                          //     : ""
+                          // }`}
                           className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
-                          onMouseLeave={handleCloseTooltip}
+                          // onMouseEnter={(e) => handleOpenTooltip(e)}
+                          // onMouseLeave={handleCloseTooltip}
                         >
-                          {selectedRowDataActivity?.senior_managing_director
-                            ? selectedRowDataActivity?.senior_managing_director
+                          {selectedRowDataActivity?.activity_year_month
+                            ? selectedRowDataActivity?.activity_year_month
                             : ""}
                         </span>
                       )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
                     </div>
-                    {/* <div className={`${styles.underline}`}></div> */}
+                    <div className={`${styles.underline}`}></div>
                   </div>
                 </div>
 

@@ -42,7 +42,7 @@ export const DatePickerCustomInput: FC<Props> = ({ startDate, setStartDate, requ
     <>
       {/* バツボタン */}
       {startDate && (
-        <div className={`${styles.close_btn} text-[var(--setting-side-bg-select)]`} onClick={() => setStartDate(null)}>
+        <div className={`${styles.close_btn} `} onClick={() => setStartDate(null)}>
           <MdClose className="text-[20px] " />
         </div>
       )}

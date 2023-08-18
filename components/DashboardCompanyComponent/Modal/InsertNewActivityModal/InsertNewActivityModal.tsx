@@ -23,6 +23,9 @@ export const InsertNewActivityModal = () => {
 
   const initialDate = new Date();
   initialDate.setHours(0, 0, 0, 0);
+  const year = initialDate.getFullYear(); // 例: 2023
+  const month = initialDate.getMonth() + 1; // getMonth()は0から11で返されるため、+1して1から12に調整
+  const activityYearMonthInitialValue = `${year}${month < 10 ? "0" + month : month}`; // 月が1桁の場合は先頭に0を追加
   // const [activityDate, setActivityDate] = useState<Date | null>(new Date());
   const [activityDate, setActivityDate] = useState<Date | null>(initialDate);
   const [summary, setSummary] = useState("");
@@ -44,6 +47,7 @@ export const InsertNewActivityModal = () => {
     userProfileState?.last_name ? userProfileState?.last_name + userProfileState?.first_name : ""
   );
   const [priority, setPriority] = useState("");
+  const [activityYearMonth, setActivityYearMonth] = useState<number | null>(Number(activityYearMonthInitialValue));
 
   const supabase = useSupabaseClient();
   const { createActivityMutation } = useMutateActivity();
@@ -94,6 +98,7 @@ export const InsertNewActivityModal = () => {
       member_name: memberName ? memberName : null,
       priority: priority ? priority : null,
       activity_date: activityDate ? activityDate.toISOString() : null,
+      activity_year_month: activityYearMonth ? activityYearMonth : null,
     };
 
     // supabaseにINSERT
@@ -139,6 +144,7 @@ export const InsertNewActivityModal = () => {
       member_name: memberName ? memberName : null,
       priority: priority ? priority : null,
       activity_date: activityDate ? activityDate.toISOString() : null,
+      activity_year_month: activityYearMonth ? activityYearMonth : null,
     };
 
     // supabaseにINSERT
@@ -502,6 +508,42 @@ export const InsertNewActivityModal = () => {
 
               {/* 左ラッパーここまで */}
             </div>
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* 活動年月度 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>活動年月度</span>
+                    <input
+                      type="number"
+                      min="0"
+                      className={`${styles.input_box}`}
+                      placeholder='"202109" や "202312" などを入力'
+                      value={activityYearMonth === null ? "" : activityYearMonth}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "") {
+                          setActivityYearMonth(null);
+                        } else {
+                          const numValue = Number(val);
+
+                          // 入力値がマイナスかチェック
+                          if (numValue < 0) {
+                            setActivityYearMonth(0);
+                          } else {
+                            setActivityYearMonth(numValue);
+                          }
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+            </div>
+
+            {/* 右ラッパーここまで */}
           </div>
           {/* --------- 横幅全体ラッパーここまで --------- */}
 

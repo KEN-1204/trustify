@@ -213,7 +213,7 @@ export const columnNameToJapaneseMeeting = (columnName: string) => {
       return "面談時間(予定)";
       break;
     case "planned_appoint_check_flag":
-      return "面談時間(予定)";
+      return "アポ有無";
       break;
     case "planned_product1":
       return "紹介予定ﾒｲﾝ";
@@ -286,6 +286,9 @@ export const columnNameToJapaneseMeeting = (columnName: string) => {
       break;
     case "meeting_updated_at":
       return "更新日時";
+      break;
+    case "meeting_year_month":
+      return "面談年月度";
       break;
 
     default:

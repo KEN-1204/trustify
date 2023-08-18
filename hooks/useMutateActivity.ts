@@ -83,7 +83,7 @@ export const useMutateActivity = () => {
           setIsOpenUpdateActivityModal(false);
           toast.success("活動の更新完了しました!", {
             position: "top-right",
-            autoClose: 3000,
+            autoClose: 2000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,
@@ -101,7 +101,7 @@ export const useMutateActivity = () => {
           console.log("INSERTエラー", err.message);
           toast.error("活動の更新に失敗しました!", {
             position: "top-right",
-            autoClose: 3000,
+            autoClose: 2000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,

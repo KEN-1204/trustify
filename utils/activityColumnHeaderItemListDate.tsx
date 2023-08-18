@@ -79,6 +79,12 @@ const activityColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
+  {
+    columnName: "activity_year_month",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
   // 活動エリアここまで
   {
     columnName: "position_class",

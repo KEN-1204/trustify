@@ -342,7 +342,8 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
       console.log("🔥🔥テスト🔥🔥supabase rpcフェッチ実行！！！！！！！！ from, to, params", from, to, params);
       // created_by_company_idがnullのもの
       const { data, error, count } = await supabase
-        .rpc("search_activities_and_companies_and_contacts", { params }, { count: "exact" })
+        // .rpc("search_activities_and_companies_and_contacts", { params }, { count: "exact" })
+        .rpc("search_activities_and_companies_and_contacts_v2", { params }, { count: "exact" })
         .is("activity_created_by_company_id", null)
         .or(`activity_created_by_user_id.eq.${userProfileState.id},activity_created_by_user_id.is.null`)
         .range(from, to)
@@ -412,7 +413,8 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
       let params = newSearchActivity_Contact_CompanyParams;
       // created_by_company_idが一致するデータのみ
       const { data, error, count } = await supabase
-        .rpc("search_activities_and_companies_and_contacts", { params }, { count: "exact" })
+        // .rpc("search_activities_and_companies_and_contacts", { params }, { count: "exact" })
+        .rpc("search_activities_and_companies_and_contacts_v2", { params }, { count: "exact" })
         .eq("activity_created_by_company_id", userProfileState.company_id)
         .or(`activity_created_by_user_id.eq.${userProfileState.id},activity_created_by_user_id.is.null`)
         .range(from, to)

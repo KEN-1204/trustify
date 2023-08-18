@@ -22,6 +22,9 @@ export const UpdateActivityModal = () => {
 
   const initialDate = new Date();
   initialDate.setHours(0, 0, 0, 0);
+  const year = initialDate.getFullYear(); // 例: 2023
+  const month = initialDate.getMonth() + 1; // getMonth()は0から11で返されるため、+1して1から12に調整
+  const activityYearMonthInitialValue = `${year}${month < 10 ? "0" + month : month}`; // 月が1桁の場合は先頭に0を追加
   // const [activityDate, setActivityDate] = useState<Date | null>(new Date());
   const [activityDate, setActivityDate] = useState<Date | null>(initialDate);
   const [summary, setSummary] = useState("");
@@ -43,6 +46,7 @@ export const UpdateActivityModal = () => {
     userProfileState?.last_name ? userProfileState?.last_name + userProfileState?.first_name : ""
   );
   const [priority, setPriority] = useState("");
+  const [activityYearMonth, setActivityYearMonth] = useState<number | null>(Number(activityYearMonthInitialValue));
 
   const supabase = useSupabaseClient();
   const { updateActivityMutation } = useMutateActivity();
@@ -50,7 +54,14 @@ export const UpdateActivityModal = () => {
   // 初回マウント時に選択中の担当者&会社の列データの情報をStateに格納
   useEffect(() => {
     if (!selectedRowDataActivity) return;
-    let _activity_date = selectedRowDataActivity.activity_date ? new Date(selectedRowDataActivity.activity_date) : null;
+    const selectedInitialActivityDate = selectedRowDataActivity.activity_date
+      ? new Date(selectedRowDataActivity.activity_date)
+      : null;
+    const selectedYear = initialDate.getFullYear(); // 例: 2023
+    const selectedMonth = initialDate.getMonth() + 1; // getMonth()は0から11で返されるため、+1して1から12に調整
+    const selectedYearMonthInitialValue = `${year}${month < 10 ? "0" + month : month}`; // 月が1桁の場合は先頭に0を追加
+    let _activity_date = selectedInitialActivityDate;
+    // let _activity_date = selectedRowDataActivity.activity_date ? new Date(selectedRowDataActivity.activity_date) : null;
     let _summary = selectedRowDataActivity.summary ? selectedRowDataActivity.summary : "";
     let _scheduled_follow_up_date = selectedRowDataActivity.scheduled_follow_up_date
       ? new Date(selectedRowDataActivity.scheduled_follow_up_date)
@@ -78,6 +89,9 @@ export const UpdateActivityModal = () => {
     let _business_office = selectedRowDataActivity.business_office ? selectedRowDataActivity.business_office : "";
     let _member_name = selectedRowDataActivity.member_name ? selectedRowDataActivity.member_name : "";
     let _priority = selectedRowDataActivity.priority ? selectedRowDataActivity.priority : "";
+    let _activity_year_month = selectedRowDataActivity.activity_year_month
+      ? selectedRowDataActivity.activity_year_month
+      : Number(selectedYearMonthInitialValue);
     setActivityDate(_activity_date);
     setSummary(_summary);
     setScheduledFollowUpDate(_scheduled_follow_up_date);
@@ -94,6 +108,7 @@ export const UpdateActivityModal = () => {
     setBusinessOffice(_business_office);
     setMemberName(_member_name);
     setPriority(_priority);
+    setActivityYearMonth(_activity_year_month);
   }, []);
 
   // キャンセルでモーダルを閉じる
@@ -144,6 +159,7 @@ export const UpdateActivityModal = () => {
       member_name: memberName ? memberName : null,
       priority: priority ? priority : null,
       activity_date: activityDate ? activityDate.toISOString() : null,
+      activity_year_month: activityYearMonth ? activityYearMonth : null,
     };
 
     // supabaseにUPDATE
@@ -497,6 +513,42 @@ export const UpdateActivityModal = () => {
 
               {/* 左ラッパーここまで */}
             </div>
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* 活動年月度 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>活動年月度</span>
+                    <input
+                      type="number"
+                      min="0"
+                      className={`${styles.input_box}`}
+                      placeholder='"202109" や "202312" などを入力'
+                      value={activityYearMonth === null ? "" : activityYearMonth}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "") {
+                          setActivityYearMonth(null);
+                        } else {
+                          const numValue = Number(val);
+
+                          // 入力値がマイナスかチェック
+                          if (numValue < 0) {
+                            setActivityYearMonth(0);
+                          } else {
+                            setActivityYearMonth(numValue);
+                          }
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+            </div>
+
+            {/* 右ラッパーここまで */}
           </div>
           {/* --------- 横幅全体ラッパーここまで --------- */}
 

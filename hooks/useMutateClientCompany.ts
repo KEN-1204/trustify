@@ -34,7 +34,7 @@ export const useMutateClientCompany = () => {
           setIsOpenInsertNewClientCompanyModal(false);
           toast.success("会社の作成に完了しました!", {
             position: "top-right",
-            autoClose: 3000,
+            autoClose: 2000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,
@@ -52,7 +52,7 @@ export const useMutateClientCompany = () => {
           console.log("INSERTエラー", err.message);
           toast.error("会社の作成に失敗しました!", {
             position: "top-right",
-            autoClose: 3000,
+            autoClose: 2000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,

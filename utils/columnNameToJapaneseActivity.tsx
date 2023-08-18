@@ -223,6 +223,9 @@ export const columnNameToJapaneseActivity = (columnName: string) => {
     case "activity_updated_at":
       return "更新日時";
       break;
+    case "activity_year_month":
+      return "活動年月度";
+      break;
 
     default:
       return "";

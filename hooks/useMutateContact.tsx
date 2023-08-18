@@ -35,7 +35,7 @@ export const useMutateContact = () => {
           setIsOpenInsertNewContactModal(false);
           toast.success("担当者の作成に完了しました!", {
             position: "top-right",
-            autoClose: 3000,
+            autoClose: 2000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,
@@ -55,7 +55,7 @@ export const useMutateContact = () => {
           console.log("INSERTエラー", err.message);
           toast.error("担当者の作成に失敗しました!", {
             position: "top-right",
-            autoClose: 3000,
+            autoClose: 2000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,
