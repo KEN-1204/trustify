@@ -19,6 +19,7 @@ export const useMutateMeeting = () => {
   const createMeetingMutation = useMutation(
     async (newMeeting: Omit<Meeting, "id" | "created_at" | "updated_at">) => {
       setLoadingGlobalState(true);
+      // console.log(newMeeting.planned_start_time);
       const { error } = await supabase.from("meetings").insert(newMeeting);
       if (error) throw new Error(error.message);
     },
@@ -32,7 +33,7 @@ export const useMutateMeeting = () => {
         setTimeout(() => {
           setLoadingGlobalState(false);
           setIsOpenInsertNewMeetingModal(false);
-          toast.success("活動の作成に完了しました!", {
+          toast.success("面談予定の作成に完了しました!", {
             position: "top-right",
             autoClose: 2000,
             hideProgressBar: false,
@@ -50,7 +51,7 @@ export const useMutateMeeting = () => {
           // setIsOpenInsertNewMeetingModal(false);
           alert(err.message);
           console.log("INSERTエラー", err.message);
-          toast.error("活動の作成に失敗しました!", {
+          toast.error("面談予定の作成に失敗しました!", {
             position: "top-right",
             autoClose: 2000,
             hideProgressBar: false,
@@ -81,9 +82,9 @@ export const useMutateMeeting = () => {
         setTimeout(() => {
           setLoadingGlobalState(false);
           setIsOpenUpdateMeetingModal(false);
-          toast.success("活動の更新完了しました!", {
+          toast.success("面談の更新完了しました!", {
             position: "top-right",
-            autoClose: 3000,
+            autoClose: 2000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,
@@ -99,9 +100,9 @@ export const useMutateMeeting = () => {
           // setIsOpenUpdateMeetingModal(false);
           alert(err.message);
           console.log("INSERTエラー", err.message);
-          toast.error("活動の更新に失敗しました!", {
+          toast.error("面談の更新に失敗しました!", {
             position: "top-right",
-            autoClose: 3000,
+            autoClose: 2000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,

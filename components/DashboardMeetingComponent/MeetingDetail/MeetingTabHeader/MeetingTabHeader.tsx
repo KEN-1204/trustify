@@ -20,7 +20,7 @@ const MeetingTabHeaderMemo: FC<Props> = ({ activeTabDetail, setActiveTabDetail }
           setActiveTabDetail("Company");
         }}
       >
-        <div>活動</div>
+        <div>面談</div>
         <div className={`${styles.active_underline}`} />
       </li>
       {/* <li

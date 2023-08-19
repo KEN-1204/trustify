@@ -4,6 +4,7 @@ import { RippleButton } from "@/components/Parts/RippleButton/RippleButton";
 import useDashboardStore from "@/store/useDashboardStore";
 import { SlSizeActual, SlSizeFullscreen } from "react-icons/sl";
 import useStore from "@/store";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
 const ActivityFunctionHeaderMemo: FC = () => {
   const searchMode = useDashboardStore((state) => state.searchMode);
@@ -57,6 +58,26 @@ const ActivityFunctionHeaderMemo: FC = () => {
       setUnderDisplayFullScreen(false);
     }
   }, [tableContainerSize]);
+
+  // テスト
+  const supabase = useSupabaseClient();
+  const insertData = async () => {
+    try {
+      const { data, error } = await supabase.from("interview_schedule").insert([
+        { planned_start_time: "08:30" }, // ここが問題の箇所かもしれません
+      ]);
+
+      if (error) {
+        throw error;
+      }
+
+      console.log("Insert succeeded!", data);
+    } catch (error: any) {
+      alert(error.message);
+      console.error("Insert failed:", error.message);
+    }
+  };
+  // テスト
 
   return (
     <div className={`${styles.grid_function_header} h-[40px] w-full bg-[var(--color-bg-under-function-header)]`}>
@@ -147,6 +168,19 @@ const ActivityFunctionHeaderMemo: FC = () => {
             console.log("面談作成 クリック");
             setLoadingGlobalState(false);
             setIsOpenInsertNewMeetingModal(true);
+          }}
+        />
+        <RippleButton
+          title={`テスト`}
+          classText={`select-none ${searchMode || !selectedRowDataActivity ? `cursor-not-allowed` : ``}`}
+          borderRadius="2px"
+          clickEventHandler={() => {
+            if (searchMode) return;
+            insertData();
+            // if (!selectedRowDataActivity) return alert("担当者を選択してください");
+            // console.log("面談作成 クリック");
+            // setLoadingGlobalState(false);
+            // setIsOpenInsertNewMeetingModal(true);
           }}
         />
       </div>

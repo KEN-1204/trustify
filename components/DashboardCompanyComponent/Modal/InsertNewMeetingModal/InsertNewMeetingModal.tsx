@@ -9,10 +9,11 @@ import { isNaN } from "lodash";
 import { useMutateMeeting } from "@/hooks/useMutateMeeting";
 import productCategoriesM from "@/utils/productCategoryM";
 import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
+import { MdClose } from "react-icons/md";
 
 export const InsertNewMeetingModal = () => {
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
-  const selectedRowDataMeeting = useDashboardStore((state) => state.selectedRowDataMeeting);
+  const selectedRowDataActivity = useDashboardStore((state) => state.selectedRowDataActivity);
   const setIsOpenInsertNewMeetingModal = useDashboardStore((state) => state.setIsOpenInsertNewMeetingModal);
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
@@ -23,11 +24,16 @@ export const InsertNewMeetingModal = () => {
 
   const initialDate = new Date();
   initialDate.setHours(0, 0, 0, 0);
+  const year = initialDate.getFullYear(); // 例: 2023
+  const month = initialDate.getMonth() + 1; // getMonth()は0から11で返されるため、+1して1から12に調整
+  const meetingYearMonthInitialValue = `${year}${month < 10 ? "0" + month : month}`; // 月が1桁の場合は先頭に0を追加
   // const [MeetingDate, setMeetingDate] = useState<Date | null>(new Date());
-  const [meetingType, setMeetingType] = useState("");
+  const [meetingType, setMeetingType] = useState("訪問");
   const [webTool, setWebTool] = useState("");
   const [plannedDate, setPlannedDate] = useState<Date | null>(initialDate);
-  const [plannedStartTime, setPlannedStartTime] = useState("");
+  const [plannedStartTime, setPlannedStartTime] = useState<string>("");
+  const [plannedStartTimeHour, setPlannedStartTimeHour] = useState<string>("");
+  const [plannedStartTimeMinute, setPlannedStartTimeMinute] = useState<string>("");
   const [plannedPurpose, setPlannedPurpose] = useState("");
   const [plannedDuration, setPlannedDuration] = useState<number | null>(null);
   const [plannedAppointCheckFlag, setPlannedAppointCheckFlag] = useState(false);
@@ -35,8 +41,12 @@ export const InsertNewMeetingModal = () => {
   const [plannedProduct2, setPlannedProduct2] = useState("");
   const [plannedComment, setPlannedComment] = useState("");
   const [resultDate, setResultDate] = useState<Date | null>(null);
-  const [resultStartTime, setResultStartTime] = useState("");
-  const [resultEndTime, setResultEndTime] = useState("");
+  const [resultStartTime, setResultStartTime] = useState<string>("");
+  const [resultStartTimeHour, setResultStartTimeHour] = useState<string>("");
+  const [resultStartTimeMinute, setResultStartTimeMinute] = useState<string>("");
+  const [resultEndTime, setResultEndTime] = useState<string>("");
+  const [resultEndTimeHour, setResultEndTimeHour] = useState<string>("");
+  const [resultEndTimeMinute, setResultEndTimeMinute] = useState<string>("");
   const [resultDuration, setResultDuration] = useState<number | null>(null);
   const [resultNumberOfMeetingParticipants, setResultNumberOfMeetingParticipants] = useState<number | null>(null);
   const [resultPresentationProduct1, setResultPresentationProduct1] = useState("");
@@ -59,6 +69,7 @@ export const InsertNewMeetingModal = () => {
     userProfileState?.profile_name ? userProfileState.profile_name : ""
   );
   const [departmentName, setDepartmentName] = useState(userProfileState?.department ? userProfileState.department : "");
+  const [meetingYearMonth, setMeetingYearMonth] = useState<number | null>(Number(meetingYearMonthInitialValue));
 
   const supabase = useSupabaseClient();
   const { createMeetingMutation } = useMutateMeeting();
@@ -70,6 +81,40 @@ export const InsertNewMeetingModal = () => {
   //     setMeetingDepartment(userProfileState.department ? userProfileState.department : "");
   //   }, []);
 
+  // 予定面談開始時間、時間、分、結合用useEffect
+  useEffect(() => {
+    // const formattedTime = `${plannedStartTimeHour}:${plannedStartTimeMinute}`;
+    // setPlannedStartTime(formattedTime);
+    if (plannedStartTimeHour && plannedStartTimeMinute) {
+      const formattedTime = `${plannedStartTimeHour}:${plannedStartTimeMinute}`;
+      setPlannedStartTime(formattedTime);
+    } else {
+      setPlannedStartTime(""); // or setResultStartTime('');
+    }
+  }, [plannedStartTimeHour, plannedStartTimeMinute]);
+  // 結果面談開始時間、時間、分、結合用useEffect
+  useEffect(() => {
+    // const formattedTime = `${resultStartTimeHour}:${resultStartTimeMinute}`;
+    // setResultStartTime(formattedTime);
+    if (resultStartTimeHour && resultStartTimeMinute) {
+      const formattedTime = `${resultStartTimeHour}:${resultStartTimeMinute}`;
+      setResultStartTime(formattedTime);
+    } else {
+      setResultStartTime(""); // or setResultStartTime('');
+    }
+  }, [resultStartTimeHour, resultStartTimeMinute]);
+  // 結果面談終了時間、時間、分、結合用useEffect
+  useEffect(() => {
+    // const formattedTime = `${resultEndTimeHour}:${resultEndTimeMinute}`;
+    // setResultEndTime(formattedTime);
+    if (resultEndTimeHour && resultEndTimeMinute) {
+      const formattedTime = `${resultEndTimeHour}:${resultEndTimeMinute}`;
+      setResultEndTime(formattedTime);
+    } else {
+      setResultEndTime(""); // or setResultStartTime('');
+    }
+  }, [resultEndTimeHour, resultEndTimeMinute]);
+
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
     setIsOpenInsertNewMeetingModal(false);
@@ -78,8 +123,13 @@ export const InsertNewMeetingModal = () => {
     // if (!summary) return alert("活動概要を入力してください");
     // if (!MeetingType) return alert("活動タイプを選択してください");
     if (!userProfileState?.id) return alert("ユーザー情報が存在しません");
-    if (!selectedRowDataContact?.company_id) return alert("相手先の会社情報が存在しません");
-    if (!selectedRowDataContact?.contact_id) return alert("担当者情報が存在しません");
+    if (!selectedRowDataActivity?.company_id) return alert("相手先の会社情報が存在しません");
+    if (!selectedRowDataActivity?.contact_id) return alert("担当者情報が存在しません");
+    if (plannedPurpose === "") return alert("訪問目的を選択してください");
+    if (plannedStartTimeHour === "") return alert("面談開始 時間を選択してください");
+    if (plannedStartTimeMinute === "") return alert("面談開始 分を選択してください");
+    if (!meetingYearMonth) return alert("活動年月度を入力してください");
+    if (meetingMemberName === "") return alert("自社担当を入力してください");
 
     setLoadingGlobalState(true);
 
@@ -87,14 +137,15 @@ export const InsertNewMeetingModal = () => {
     const newMeeting = {
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
       created_by_user_id: userProfileState?.id ? userProfileState.id : null,
-      created_by_department_of_user: departmentName ? departmentName : null,
+      created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
       created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
-      client_contact_id: selectedRowDataContact.contact_id,
-      client_company_id: selectedRowDataContact.company_id,
+      client_contact_id: selectedRowDataActivity.contact_id,
+      client_company_id: selectedRowDataActivity.company_id,
       meeting_type: meetingType,
       web_tool: webTool,
       planned_date: plannedDate ? plannedDate.toISOString() : null,
-      planned_start_time: plannedStartTime,
+      // planned_start_time: plannedStartTime === ":" ? null : plannedStartTime,
+      planned_start_time: plannedStartTime === "" ? null : plannedStartTime,
       planned_purpose: plannedPurpose,
       planned_duration: plannedDuration,
       planned_appoint_check_flag: plannedAppointCheckFlag,
@@ -102,8 +153,10 @@ export const InsertNewMeetingModal = () => {
       planned_product2: plannedProduct2,
       planned_comment: plannedComment,
       result_date: resultDate ? resultDate.toISOString() : null,
-      result_start_time: resultStartTime,
-      result_end_time: resultEndTime,
+      result_start_time: resultStartTime === "" ? null : resultStartTime,
+      result_end_time: resultEndTime === "" ? null : resultEndTime,
+      // result_start_time: resultStartTime === ":" ? null : resultStartTime,
+      // result_end_time: resultEndTime === ":" ? null : resultEndTime,
       result_duration: resultDuration,
       result_number_of_meeting_participants: resultNumberOfMeetingParticipants,
       result_presentation_product1: resultPresentationProduct1,
@@ -119,7 +172,15 @@ export const InsertNewMeetingModal = () => {
       meeting_business_office: meetingBusinessOffice,
       meeting_department: meetingDepartment ? meetingDepartment : null,
       meeting_member_name: meetingMemberName ? meetingMemberName : null,
+      meeting_year_month: meetingYearMonth ? meetingYearMonth : null,
     };
+
+    console.log("面談予定 新規作成 newMeeting", newMeeting);
+    console.log("面談予定 新規作成 newMeeting.planned_start_time", newMeeting.planned_start_time);
+    console.log(
+      "面談予定 新規作成 newMeeting.planned_start_time 一致するか",
+      newMeeting.planned_start_time === "08:30"
+    );
 
     // supabaseにINSERT
     createMeetingMutation.mutate(newMeeting);
@@ -233,11 +294,17 @@ export const InsertNewMeetingModal = () => {
     return total;
   }
 
+  const hours = Array.from({ length: 24 }, (_, index) => (index < 10 ? "0" + index : "" + index));
+  const minutes5 = Array.from({ length: 12 }, (_, index) => (index * 5 < 10 ? "0" + index * 5 : "" + index * 5));
+  const minutes = Array.from({ length: 60 }, (_, i) => (i < 10 ? "0" + i : "" + i));
+
   console.log(
-    "活動作成モーダル selectedRowDataContact",
+    "面談予定作成モーダル selectedRowDataContact",
     selectedRowDataContact,
-    "selectedRowDataMeeting",
-    selectedRowDataMeeting
+    "selectedRowDataActivity",
+    selectedRowDataActivity,
+    "plannedStartTime",
+    plannedStartTime
   );
 
   return (
@@ -254,7 +321,7 @@ export const InsertNewMeetingModal = () => {
           <div className="font-samibold cursor-pointer hover:text-[#aaa]" onClick={handleCancelAndReset}>
             キャンセル
           </div>
-          <div className="-translate-x-[25px] font-bold">面談 新規作成</div>
+          <div className="-translate-x-[25px] font-bold">面談予定 新規作成</div>
 
           <div
             className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
@@ -289,19 +356,18 @@ export const InsertNewMeetingModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} ${styles.check_title}`}>●面談タイプ</span>
-
-                    {/* <div className={`${styles.grid_select_cell_header}`}>
-                      <input
-                        type="checkbox"
-                        className={`${styles.grid_select_cell_header_input}`}
-                        checked={claimFlag}
-                        onChange={() => setClaimFlag(!claimFlag)}
-                      />
-                      <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
-                      </svg>
-                    </div> */}
+                    <span className={`${styles.title} !min-w-[140px]`}>●面談タイプ</span>
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={meetingType}
+                      onChange={(e) => {
+                        setMeetingType(e.target.value);
+                      }}
+                    >
+                      {/* <option value=""></option> */}
+                      <option value="訪問">訪問</option>
+                      <option value="WEB">WEB</option>
+                    </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -322,28 +388,35 @@ export const InsertNewMeetingModal = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px]`}>●面談開始</span>
                     <select
-                      name="number_of_employees_class"
-                      id="number_of_employees_class"
                       className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      value={plannedStartTime}
-                      onChange={(e) => {
-                        if (e.target.value === "") return alert("活動タイプを選択してください");
-                        setPlannedStartTime(e.target.value);
-                      }}
+                      placeholder="時"
+                      value={plannedStartTimeHour}
+                      onChange={(e) => setPlannedStartTimeHour(e.target.value === "" ? "" : e.target.value)}
                     >
                       <option value=""></option>
-                      <option value="TEL発信(不在)">TEL発信(不在)</option>
-                      <option value="TEL発信(能動)">TEL発信(能動)</option>
-                      <option value="TEL発信(受動)">TEL発信(受動)</option>
-                      <option value="TEL発信(売前ﾌｫﾛｰ)">TEL発信(売前ﾌｫﾛｰ)</option>
-                      <option value="TEL発信(売後ﾌｫﾛｰ)">TEL発信(売後ﾌｫﾛｰ)</option>
-                      <option value="TEL発信(ｱﾎﾟ組み)">TEL発信(ｱﾎﾟ組み)</option>
-                      <option value="TEL発信(その他)">TEL発信(その他)</option>
-                      <option value="Email受信">Email受信</option>
-                      <option value="Email送信">Email送信</option>
-                      <option value="その他">その他</option>
-                      <option value="引継ぎ">引継ぎ</option>
+                      {hours.map((hour) => (
+                        <option key={hour} value={hour}>
+                          {hour}
+                        </option>
+                      ))}
                     </select>
+
+                    <span className="mx-[10px]">時</span>
+
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      placeholder="分"
+                      value={plannedStartTimeMinute}
+                      onChange={(e) => setPlannedStartTimeMinute(e.target.value === "" ? "" : e.target.value)}
+                    >
+                      <option value=""></option>
+                      {minutes5.map((minute) => (
+                        <option key={minute} value={minute}>
+                          {minute}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="mx-[10px]">分</span>
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -360,16 +433,20 @@ export const InsertNewMeetingModal = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px]`}>WEBツール</span>
                     <select
-                      name="number_of_employees_class"
-                      id="number_of_employees_class"
-                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={webTool}
-                      onChange={(e) => setWebTool(e.target.value)}
+                      onChange={(e) => {
+                        setWebTool(e.target.value);
+                      }}
                     >
                       <option value=""></option>
-                      <option value="高">高</option>
-                      <option value="中">中</option>
-                      <option value="低">低</option>
+                      <option value="Zoom">Zoom</option>
+                      <option value="Teams">Teams</option>
+                      <option value="Google Meet">Google Meet</option>
+                      <option value="Webex">Webex</option>
+                      <option value="Skype">Skype</option>
+                      <option value="bellFace">bellFace</option>
+                      <option value="その他">その他</option>
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -389,7 +466,7 @@ export const InsertNewMeetingModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>同席依頼</span>
+                    <span className={`${styles.title} !min-w-[140px]`}>事前同席依頼</span>
                     <select
                       name="number_of_employees_class"
                       id="number_of_employees_class"
@@ -401,17 +478,9 @@ export const InsertNewMeetingModal = () => {
                       }}
                     >
                       <option value=""></option>
-                      <option value="TEL発信(不在)">TEL発信(不在)</option>
-                      <option value="TEL発信(能動)">TEL発信(能動)</option>
-                      <option value="TEL発信(受動)">TEL発信(受動)</option>
-                      <option value="TEL発信(売前ﾌｫﾛｰ)">TEL発信(売前ﾌｫﾛｰ)</option>
-                      <option value="TEL発信(売後ﾌｫﾛｰ)">TEL発信(売後ﾌｫﾛｰ)</option>
-                      <option value="TEL発信(ｱﾎﾟ組み)">TEL発信(ｱﾎﾟ組み)</option>
-                      <option value="TEL発信(その他)">TEL発信(その他)</option>
-                      <option value="Email受信">Email受信</option>
-                      <option value="Email送信">Email送信</option>
-                      <option value="その他">その他</option>
-                      <option value="引継ぎ">引継ぎ</option>
+                      <option value="同席依頼無し">同席依頼無し</option>
+                      <option value="同席依頼済み 承諾無し">同席依頼済み 承諾無し</option>
+                      <option value="同席依頼済み 承諾有り">同席依頼済み 承諾有り</option>
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -423,23 +492,39 @@ export const InsertNewMeetingModal = () => {
 
             {/* --------- 右ラッパー --------- */}
             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 面談時間 */}
+              {/* 面談時間(分) */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>面談時間</span>
-                    <select
-                      name="number_of_employees_class"
-                      id="number_of_employees_class"
-                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      value={plannedDuration ? plannedDuration?.toString() : ""}
-                      onChange={(e) => setPlannedDuration(Number(e.target.value))}
-                    >
-                      <option value=""></option>
-                      <option value="5">5</option>
-                      <option value="10">10</option>
-                      <option value="15">15</option>
-                    </select>
+                    <span className={`${styles.title} !min-w-[140px]`}>面談時間(分)</span>
+                    <input
+                      type="number"
+                      min="0"
+                      className={`${styles.input_box}`}
+                      placeholder=""
+                      value={plannedDuration === null ? "" : plannedDuration}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "") {
+                          setPlannedDuration(null);
+                        } else {
+                          const numValue = Number(val);
+
+                          // 入力値がマイナスかチェック
+                          if (numValue < 0) {
+                            setPlannedDuration(0); // ここで0に設定しているが、必要に応じて他の正の値に変更することもできる
+                          } else {
+                            setPlannedDuration(numValue);
+                          }
+                        }
+                      }}
+                    />
+                    {/* バツボタン */}
+                    {plannedDuration && (
+                      <div className={`${styles.close_btn_number}`} onClick={() => setPlannedDuration(null)}>
+                        <MdClose className="text-[20px] " />
+                      </div>
+                    )}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -458,8 +543,31 @@ export const InsertNewMeetingModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title} !min-w-[172px]`}>●訪問目的</span>
-                    {/* <DatePickerCustomInput startDate={plannedPurpose} setStartDate={setScheduledFollowUpDate} /> */}
+                    <span className={`${styles.title} !min-w-[140px]`}>●訪問目的</span>
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={plannedPurpose}
+                      onChange={(e) => {
+                        // if (e.target.value === "") return alert("訪問目的を選択してください");
+                        setPlannedPurpose(e.target.value);
+                      }}
+                    >
+                      <option value=""></option>
+                      <option value="新規会社(過去面談無し)/能動">新規会社(過去面談無し)/能動</option>
+                      <option value="被り会社(過去面談有り)/能動">被り会社(過去面談有り)/能動</option>
+                      <option value="社内ID/能動">社内ID/能動</option>
+                      <option value="社外･客先ID/能動">社外･客先ID/能動</option>
+                      <option value="営業メール/受動">営業メール/能動</option>
+                      <option value="見･聞引合/受動">見･聞引合/受動</option>
+                      <option value="DM/受動">DM/受動</option>
+                      <option value="メール/受動">メール/受動</option>
+                      <option value="ホームページ/受動">ホームページ/受動</option>
+                      <option value="展示会/受動">展示会/受動</option>
+                      <option value="他(売前ﾌｫﾛｰ)">他(売前ﾌｫﾛｰ)</option>
+                      <option value="他(納品説明)">他(納品説明)</option>
+                      <option value="他(客先要望サポート)">他(客先要望サポート)</option>
+                      <option value="その他">その他</option>
+                    </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -474,7 +582,7 @@ export const InsertNewMeetingModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} ${styles.check_title}`}>アポ有</span>
+                    <span className={`${styles.title} ${styles.check_title} !min-w-[140px]`}>アポ有</span>
                     <div className={`${styles.grid_select_cell_header}`}>
                       <input
                         type="checkbox"
@@ -509,9 +617,9 @@ export const InsertNewMeetingModal = () => {
                       placeholder=""
                       required
                       className={`${styles.input_box}`}
-                      value={plannedProduct2}
-                      onChange={(e) => setPlannedProduct2(e.target.value)}
-                      // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
+                      value={plannedProduct1}
+                      onChange={(e) => setPlannedProduct1(e.target.value)}
+                      onBlur={() => setDepartmentName(toHalfWidth(plannedProduct1.trim()))}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -535,7 +643,7 @@ export const InsertNewMeetingModal = () => {
                       className={`${styles.input_box}`}
                       value={plannedProduct2}
                       onChange={(e) => setPlannedProduct2(e.target.value)}
-                      // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
+                      onBlur={() => setDepartmentName(toHalfWidth(plannedProduct2.trim()))}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -548,66 +656,12 @@ export const InsertNewMeetingModal = () => {
 
           {/* --------- 横幅全部ラッパー --------- */}
           <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
-            {/* 紹介商品ﾒｲﾝ */}
-            <div className={`${styles.row_area} ${styles.text_area_xl} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-full flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full `}>
-                  <span className={`${styles.title} !min-w-[140px]`}>紹介商品ﾒｲﾝ</span>
-                  <textarea
-                    name="summary"
-                    id="summary"
-                    cols={30}
-                    rows={10}
-                    placeholder=""
-                    className={`${styles.textarea_box}`}
-                    value={plannedProduct1}
-                    onChange={(e) => setPlannedProduct2(e.target.value)}
-                  ></textarea>
-                </div>
-                <div className={`${styles.underline}`}></div>
-              </div>
-            </div>
-          </div>
-          {/* --------- 横幅全部ラッパーここまで --------- */}
-
-          {/* --------- 横幅全体ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full`}>
-            {/* --------- 左ラッパー --------- */}
-            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 紹介予定サブ */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>紹介予定サブ</span>
-                    <input
-                      type="text"
-                      placeholder=""
-                      required
-                      className={`${styles.input_box}`}
-                      value={plannedProduct2}
-                      onChange={(e) => setPlannedProduct2(e.target.value)}
-                      // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 左ラッパーここまで */}
-            </div>
-          </div>
-          {/* --------- 横幅全体ラッパーここまで --------- */}
-
-          {/* --------- 横幅全部ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
             {/* 事前コメント */}
             <div className={`${styles.row_area} ${styles.text_area_xl} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full `}>
                   <span className={`${styles.title} !min-w-[140px]`}>事前コメント</span>
                   <textarea
-                    name="summary"
-                    id="summary"
                     cols={30}
                     rows={10}
                     placeholder=""
@@ -647,6 +701,42 @@ export const InsertNewMeetingModal = () => {
 
               {/* 左ラッパーここまで */}
             </div>
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* ●活動年月度 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title} !min-w-[140px]`}>●活動年月度</span>
+                    <input
+                      type="number"
+                      min="0"
+                      className={`${styles.input_box}`}
+                      placeholder='"202109" や "202312" などを入力'
+                      value={meetingYearMonth === null ? "" : meetingYearMonth}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "") {
+                          setMeetingYearMonth(null);
+                        } else {
+                          const numValue = Number(val);
+
+                          // 入力値がマイナスかチェック
+                          if (numValue < 0) {
+                            setMeetingYearMonth(0);
+                          } else {
+                            setMeetingYearMonth(numValue);
+                          }
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+            </div>
+
+            {/* 右ラッパーここまで */}
           </div>
           {/* --------- 横幅全体ラッパーここまで --------- */}
 
@@ -668,22 +758,6 @@ export const InsertNewMeetingModal = () => {
                       onChange={(e) => setMeetingBusinessOffice(e.target.value)}
                       // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
                     />
-                    {/* <select
-                      name="number_of_employees_class"
-                      id="number_of_employees_class"
-                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      //   value={numberOfEmployeesClass}
-                      //   onChange={(e) => setNumberOfEmployeesClass(e.target.value)}
-                    >
-                      <option value=""></option>
-                      <option value="A 1000名以上">A 1000名以上</option>
-                      <option value="B 500-999名">B 500-999名</option>
-                      <option value="C 300-499名">C 300-499名</option>
-                      <option value="D 200-299名">D 200-299名</option>
-                      <option value="E 100-199名">E 100-199名</option>
-                      <option value="F 50-99名">F 50-99名</option>
-                      <option value="G 50名未満">G 50名未満</option>
-                    </select> */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -694,11 +768,11 @@ export const InsertNewMeetingModal = () => {
 
             {/* --------- 右ラッパー --------- */}
             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 自社担当 */}
+              {/* ●自社担当 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>自社担当</span>
+                    <span className={`${styles.title} !min-w-[140px]`}>●自社担当</span>
                     <input
                       type="text"
                       placeholder="*入力必須"
@@ -706,7 +780,7 @@ export const InsertNewMeetingModal = () => {
                       className={`${styles.input_box}`}
                       value={meetingMemberName}
                       onChange={(e) => setMeetingMemberName(e.target.value)}
-                      // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
+                      onBlur={() => setDepartmentName(toHalfWidth(meetingMemberName.trim()))}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>

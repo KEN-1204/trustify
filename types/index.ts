@@ -898,5 +898,5 @@ export type Meeting = {
   meeting_business_office: string | null;
   meeting_department: string | null;
   meeting_member_name: string | null;
-  activity_year_month: number | null;
+  meeting_year_month: number | null;
 };
