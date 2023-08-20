@@ -490,7 +490,7 @@ export type Activity_row_data = {
 export type Meeting_row_data = {
   company_id: string;
   contact_id: string;
-  activity_id: string;
+  meeting_id: string;
   company_name: string | null;
   contact_name: string | null;
   department_name: string | null;

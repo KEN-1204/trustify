@@ -2205,6 +2205,13 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
       ),
     },
   };
+  // time型のplanned_start_time、result_start_time、result_end_timeを時間と分のみに変換する関数
+  function formatTime(timeStr: string) {
+    const [hour, minute] = timeStr.split(":");
+    return `${hour}:${minute}`;
+  }
+  // トップレベルの定義に追加
+  const timeColumns = ["planned_start_time", "result_start_time", "result_end_time"];
   // const flagMapping: { [key: string]: { [value: string]: string } } = {
   //   planned_appoint_check_flag: {
   //     true: "有り",
@@ -2663,6 +2670,10 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
                                 // planned_appoint_check_flagの変換処理
                                 if (columnName in flagMapping && value !== null) {
                                   displayValue = flagMapping[columnName][String(value)];
+                                }
+                                // 時間のカラム（planned_start_time, result_start_time, result_end_time）の変換
+                                if (timeColumns.includes(columnName) && value) {
+                                  displayValue = formatTime(value);
                                 }
                                 return (
                                   <div

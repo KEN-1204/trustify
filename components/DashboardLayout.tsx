@@ -26,6 +26,7 @@ import { InsertNewActivityModal } from "./DashboardCompanyComponent/Modal/Insert
 import { SettingAccountModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingAccountModal";
 import { UpdateActivityModal } from "./DashboardCompanyComponent/Modal/UpdateActivityModal/UpdateActivityModal";
 import { InsertNewMeetingModal } from "./DashboardCompanyComponent/Modal/InsertNewMeetingModal/InsertNewMeetingModal";
+import { UpdateMeetingModal } from "./DashboardCompanyComponent/Modal/UpdateMeetingModal/UpdateMeetingModal";
 
 type Prop = {
   title?: string;
@@ -198,7 +199,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
 
       {/* 面談作成・編集モーダル */}
       {isOpenInsertNewMeetingModal && <InsertNewMeetingModal />}
-      {/* {isOpenUpdateActivityModal && <UpdateActivityModal />} */}
+      {isOpenUpdateMeetingModal && <UpdateMeetingModal />}
     </div>
   );
 };

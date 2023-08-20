@@ -1,1267 +1,1267 @@
-import React, { useState } from "react";
-import styles from "./InsertNewClientCompanyModal.module.css";
-import useDashboardStore from "@/store/useDashboardStore";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
-import { toast } from "react-toastify";
-import useThemeStore from "@/store/useThemeStore";
-import { isNaN } from "lodash";
-import { useMutateClientCompany } from "@/hooks/useMutateClientCompany";
-import productCategoriesM from "@/utils/productCategoryM";
-
-export const UpdateClientCompanyModal = () => {
-  const setIsOpenInsertNewClientCompanyModal = useDashboardStore((state) => state.setIsOpenInsertNewClientCompanyModal);
-  const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
-  const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
-  // const theme = useThemeStore((state) => state.theme);
-  // 上画面の選択中の列データ会社
-  // const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
-  const userProfileState = useDashboardStore((state) => state.userProfileState);
-
-  const [name, setName] = useState("");
-  const [departmentName, setDepartmentName] = useState("");
-  const [mainFax, setMainFax] = useState("");
-  const [zipcode, setZipcode] = useState("");
-  const [address, setAddress] = useState("");
-  const [departmentContacts, setDepartmentContacts] = useState("");
-  const [industryL, setIndustryL] = useState("");
-  const [industryS, setIndustryS] = useState("");
-  const [industryType, setIndustryType] = useState("");
-  const [productCategoryL, setProductCategoryL] = useState("");
-  const [productCategoryM, setProductCategoryM] = useState("");
-  const [productCategoryS, setProductCategoryS] = useState("");
-  const [numberOfEmployeesClass, setNumberOfEmployeesClass] = useState("");
-  const [fiscalEndMonth, setFiscalEndMonth] = useState("");
-  const [capital, setCapital] = useState("");
-  const [budgetRequestMonth1, setBudgetRequestMonth1] = useState("");
-  const [budgetRequestMonth2, setBudgetRequestMonth2] = useState("");
-  const [websiteURL, setWebsiteURL] = useState("");
-  const [clients, setClients] = useState("");
-  const [supplier, setSupplier] = useState("");
-  const [businessContent, setBusinessContent] = useState("");
-  const [establishedIn, setEstablishedIn] = useState("");
-  const [representativeName, setRepresentativeName] = useState("");
-  const [chairperson, setChairperson] = useState("");
-  const [seniorVicePresident, setSeniorVicePresident] = useState("");
-  const [seniorManagingDirector, setSeniorManagingDirector] = useState("");
-  const [managingDirector, setManagingDirector] = useState("");
-  const [director, setDirector] = useState("");
-  const [auditor, setAuditor] = useState("");
-  const [manager, setManager] = useState("");
-  const [member, setMember] = useState("");
-  const [facility, setFacility] = useState("");
-  const [businessSites, setBusinessSites] = useState("");
-  const [overseasBases, setOverseasBases] = useState("");
-  const [groupCompany, setGroupCompany] = useState("");
-  const [email, setEmail] = useState("");
-  const [mainPhoneNumber, setMainPhoneNumber] = useState("");
-  const [corporateNumber, setCorporateNumber] = useState("");
-  const [boardMember, setBoardMember] = useState("");
-  const [numberOfEmployees, setNumberOfEmployees] = useState("");
-
-  const supabase = useSupabaseClient();
-  const { createClientCompanyMutation } = useMutateClientCompany();
-
-  // console.log("InsertNewClientCompanyModalコンポーネント レンダリング selectedRowDataCompany", selectedRowDataCompany);
-
-  // キャンセルでモーダルを閉じる
-  const handleCancelAndReset = () => {
-    setIsOpenInsertNewClientCompanyModal(false);
-  };
-  const handleSaveAndClose = async () => {
-    setLoadingGlobalState(true);
-
-    // 新規作成するデータをオブジェクトにまとめる
-    const newClientCompany = {
-      created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
-      created_by_user_id: userProfileState?.id ? userProfileState.id : null,
-      created_by_department_of_user: userProfileState?.department ? userProfileState.department : null,
-      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
-      name: name,
-      department_name: departmentName,
-      main_fax: mainFax ? mainFax : null,
-      zipcode: zipcode ? zipcode : null,
-      address: address ? address : null,
-      department_contacts: departmentContacts ? departmentContacts : null,
-      industry_large: industryL ? industryL : null,
-      industry_small: industryS ? industryS : null,
-      industry_type: industryType ? industryType : null,
-      product_category_large: productCategoryL ? productCategoryL : null,
-      product_category_medium: productCategoryM ? productCategoryM : null,
-      product_category_small: productCategoryS ? productCategoryS : null,
-      number_of_employees_class: numberOfEmployeesClass ? numberOfEmployeesClass : null,
-      fiscal_end_month: fiscalEndMonth ? fiscalEndMonth : null,
-      capital: capital ? capital : null,
-      budget_request_month1: budgetRequestMonth1 ? budgetRequestMonth1 : null,
-      budget_request_month2: budgetRequestMonth2 ? budgetRequestMonth2 : null,
-      website_url: websiteURL ? websiteURL : null,
-      clients: clients ? clients : null,
-      supplier: supplier ? supplier : null,
-      business_content: businessContent ? businessContent : null,
-      established_in: establishedIn ? establishedIn : null,
-      representative_name: representativeName ? representativeName : null,
-      chairperson: chairperson ? chairperson : null,
-      senior_vice_president: seniorVicePresident ? seniorVicePresident : null,
-      senior_managing_director: seniorManagingDirector ? seniorManagingDirector : null,
-      managing_director: managingDirector ? managingDirector : null,
-      director: director ? director : null,
-      auditor: auditor ? auditor : null,
-      manager: manager ? manager : null,
-      member: member ? member : null,
-      facility: facility ? facility : null,
-      business_sites: businessSites ? businessSites : null,
-      overseas_bases: overseasBases ? overseasBases : null,
-      group_company: groupCompany ? groupCompany : null,
-      email: email ? email : null,
-      main_phone_number: mainPhoneNumber ? mainPhoneNumber : null,
-      corporate_number: corporateNumber ? corporateNumber : null,
-      board_member: boardMember ? boardMember : null,
-      number_of_employees: numberOfEmployees ? numberOfEmployees : null,
-    };
-
-    // supabaseにINSERT
-    createClientCompanyMutation.mutate(newClientCompany);
-
-    // const { error } = await supabase.from("contacts").insert(newClientCompany);
-
-    // if (error) {
-    //   alert(error);
-    //   console.log("INSERTエラー", error);
-    //   toast.error("担当者の作成に失敗しました!", {
-    //     position: "top-right",
-    //     autoClose: 4000,
-    //     hideProgressBar: false,
-    //     closeOnClick: true,
-    //     pauseOnHover: true,
-    //     draggable: true,
-    //     progress: undefined,
-    //     theme: `${theme === "light" ? "light" : "dark"}`,
-    //   });
-    // } else {
-    //   toast.success("担当者の作成に完了しました!", {
-    //     position: "top-right",
-    //     autoClose: 4000,
-    //     hideProgressBar: false,
-    //     closeOnClick: true,
-    //     pauseOnHover: true,
-    //     draggable: true,
-    //     progress: undefined,
-    //     theme: `${theme === "light" ? "light" : "dark"}`,
-    //   });
-    // }
-
-    setLoadingGlobalState(false);
-
-    // モーダルを閉じる
-    setIsOpenInsertNewClientCompanyModal(false);
-  };
-
-  // 全角文字を半角に変換する関数
-  const toHalfWidth = (strVal: string) => {
-    // 全角文字コードの範囲は65281 - 65374、スペースの全角文字コードは12288
-    return strVal.replace(/[！-～]/g, (match) => {
-      return String.fromCharCode(match.charCodeAt(0) - 0xfee0);
-    });
-    // .replace(/　/g, " "); // 全角スペースを半角スペースに
-  };
-
-  // 昭和や平成、令和の元号を西暦に変換する
-  // const convertJapaneseEraToWesternYear = (value: string) => {
-  //   const eraPatterns = [
-  //     { era: "昭和", startYear: 1925 },
-  //     { era: "平成", startYear: 1988 },
-  //     { era: "令和", startYear: 2018 },
-  //   ];
-
-  //   for (let pattern of eraPatterns) {
-  //     if (value.includes(pattern.era)) {
-  //       const year = parseInt(value.replace(pattern.era, ""), 10);
-  //       if (!isNaN(year)) {
-  //         return pattern.startYear + year;
-  //       }
-  //     }
-  //   }
-  //   return value;
-  // };
-
-  type Era = "昭和" | "平成" | "令和";
-  const eras = {
-    昭和: 1925, // 昭和の開始年 - 1
-    平成: 1988, // 平成の開始年 - 1
-    令和: 2018, // 令和の開始年 - 1
-  };
-  // 昭和や平成、令和の元号を西暦に変換する 例："平成4年12月" を "1992年12月" に変換
-  function matchEraToYear(value: string): string {
-    const pattern = /(?<era>昭和|平成|令和)(?<year>\d+)(?:年)?(?<month>\d+)?/;
-    const match = pattern.exec(value);
-
-    if (!match) return value; // 元号の形式でなければ元の文字列をそのまま返す
-
-    const era: Era = match.groups?.era as Era;
-    const year = eras[era] + parseInt(match.groups?.year || "0", 10);
-    const month = match.groups?.month ? `${match.groups?.month}月` : "";
-
-    return `${year}年${month}`;
-  }
-
-  // const convertEraToAD = (input: string): string => {
-  //   const pattern = /(?<era>昭和|平成|令和)(?<year>\d+)年(?<month>\d+)月/;
-  //   const match = input.match(pattern);
-
-  //   if (!match?.groups) return input;
-
-  //   const eras: Record<string, number> = {
-  //     昭和: 1925, // 昭和の開始年 - 1
-  //     平成: 1988, // 平成の開始年 - 1
-  //     令和: 2018, // 令和の開始年 - 1
-  //   };
-
-  //   const year = eras[match.groups.era] + parseInt(match.groups.year, 10);
-  //   return `${year}年${match.groups.month}月`;
-  // };
-  // function eraToGregorian(input: string) {
-  //   // Define eras and their starting year
-  //   const eras = {
-  //     昭和: 1925,
-  //     平成: 1988,
-  //     令和: 2019,
-  //   };
-
-  //   for (let era of Object.keys(eras)) {
-  //     const pattern = new RegExp(`(${era})([0-9]+)年([0-9]+)月`);
-  //     const match = input.match(pattern);
-  //     if (match) {
-  //       const year = eras[era] + parseInt(match[2]) - 1; // -1 because the 1st year of an era is year 1
-  //       const month = match[3];
-  //       return `${year}年${month}月`;
-  //     }
-  //   }
-  //   // Return the input if no matching era found
-  //   return input;
-  // }
-
-  return (
-    <>
-      <div className={`${styles.overlay} `} onClick={handleCancelAndReset} />
-      {loadingGlobalState && (
-        <div className={`${styles.loading_overlay} `}>
-          <SpinnerIDS scale={"scale-[0.5]"} />
-        </div>
-      )}
-      <div className={`${styles.container} `}>
-        {/* 保存・タイトル・キャンセルエリア */}
-        <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[20px] text-center text-[18px]">
-          <div className="font-samibold cursor-pointer hover:text-[#aaa]" onClick={handleCancelAndReset}>
-            キャンセル
-          </div>
-          <div className="-translate-x-[25px] font-bold">担当者 新規作成</div>
-          <div
-            className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
-            onClick={handleSaveAndClose}
-          >
-            保存
-          </div>
-        </div>
-        {/* メインコンテンツ コンテナ */}
-        <div className={`${styles.main_contents_container}`}>
-          {/* --------- 横幅全部ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
-            {/* 会社名 */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-full flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>●会社名</span>
-                  {/* <span className={`${styles.value} ${styles.value_highlight}`}>
-                    {selectedRowDataCompany?.name ? selectedRowDataCompany?.name : ""}
-                  </span> */}
-                  <input
-                    type="text"
-                    placeholder="会社名を入力してください *入力必須"
-                    required
-                    autoFocus
-                    className={`${styles.input_box}`}
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    onBlur={() => setName(toHalfWidth(name.trim()))}
-                    // onBlur={() => setName(name.trim())}
-                  />
-                </div>
-                <div className={`${styles.underline}`}></div>
-              </div>
-            </div>
-
-            {/* 部署名 */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-full flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>部署名</span>
-                  {/* <span className={`${styles.value}`}>
-                    {selectedRowDataCompany?.department_name ? selectedRowDataCompany?.department_name : ""}
-                  </span> */}
-                  <input
-                    type="text"
-                    placeholder="部署名を入力してください *入力必須"
-                    required
-                    className={`${styles.input_box}`}
-                    value={departmentName}
-                    onChange={(e) => setDepartmentName(e.target.value)}
-                    onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
-                    // onBlur={() => setDepartmentName(departmentName.trim())}
-                  />
-                </div>
-                <div className={`${styles.underline}`}></div>
-              </div>
-            </div>
-          </div>
-          {/* --------- 横幅全体ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full`}>
-            {/* --------- 左ラッパー --------- */}
-            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* ●担当名 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>●代表TEL</span>
-                    {/* <span className={`${styles.value} ${styles.value_highlight}`}>
-                      {selectedRowDataCompany?.name ? selectedRowDataCompany?.name : ""}
-                    </span> */}
-                    <input
-                      type="text"
-                      placeholder="代表電話番号を入力してください *入力必須"
-                      required
-                      className={`${styles.input_box}`}
-                      value={mainPhoneNumber}
-                      onChange={(e) => setMainPhoneNumber(e.target.value)}
-                      onBlur={() => setMainPhoneNumber(toHalfWidth(mainPhoneNumber.trim()))}
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 郵便番号 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>郵便番号</span>
-                    <input
-                      type="text"
-                      placeholder=""
-                      className={`${styles.input_box}`}
-                      value={zipcode}
-                      onChange={(e) => setZipcode(e.target.value)}
-                      onBlur={() => setZipcode(toHalfWidth(zipcode.trim()))}
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-              {/* 左ラッパーここまで */}
-            </div>
-
-            {/* --------- 右ラッパー --------- */}
-            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 代表FAX */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>代表FAX</span>
-                    <input
-                      type="text"
-                      placeholder=""
-                      className={`${styles.input_box}`}
-                      value={mainFax}
-                      onChange={(e) => setMainFax(e.target.value)}
-                      onBlur={() => setMainFax(toHalfWidth(mainFax.trim()))}
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 決算月 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>決算月</span>
-                    <input
-                      type="text"
-                      placeholder=""
-                      className={`${styles.input_box}`}
-                      value={fiscalEndMonth}
-                      onChange={(e) => setFiscalEndMonth(e.target.value)}
-                      onBlur={() => setFiscalEndMonth(toHalfWidth(fiscalEndMonth.trim()))}
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-              {/* 右ラッパーここまで */}
-            </div>
-            {/* --------- 横幅全体ラッパーここまで --------- */}
-          </div>
-          {/* --------- 横幅全部ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
-            {/* 住所 */}
-            <div className={`${styles.row_area} ${styles.text_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-full flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full `}>
-                  <span className={`${styles.title}`}>●住所</span>
-                  <textarea
-                    name="call_careful_reason"
-                    id="call_careful_reason"
-                    cols={30}
-                    rows={10}
-                    placeholder=""
-                    required
-                    className={`${styles.textarea_box}`}
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    onBlur={() => setAddress(toHalfWidth(address.trim()))}
-                  ></textarea>
-                </div>
-                <div className={`${styles.underline}`}></div>
-              </div>
-            </div>
-          </div>
-          {/* --------- 横幅全部ラッパーここまで --------- */}
-
-          {/* --------- 横幅全体ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full`}>
-            {/* --------- 左ラッパー --------- */}
-            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 規模(ﾗﾝｸ) */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>規模(ﾗﾝｸ)</span>
-                    <select
-                      name="number_of_employees_class"
-                      id="number_of_employees_class"
-                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      value={numberOfEmployeesClass}
-                      onChange={(e) => setNumberOfEmployeesClass(e.target.value)}
-                    >
-                      <option value=""></option>
-                      <option value="A 1000名以上">A 1000名以上</option>
-                      <option value="B 500-999名">B 500-999名</option>
-                      <option value="C 300-499名">C 300-499名</option>
-                      <option value="D 200-299名">D 200-299名</option>
-                      <option value="E 100-199名">E 100-199名</option>
-                      <option value="F 50-99名">F 50-99名</option>
-                      <option value="G 50名未満">G 50名未満</option>
-                    </select>
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 左ラッパーここまで */}
-            </div>
-
-            {/* --------- 右ラッパー --------- */}
-            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 従業員数 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>従業員数</span>
-                    <input
-                      type="text"
-                      placeholder=""
-                      className={`${styles.input_box}`}
-                      value={numberOfEmployees}
-                      onChange={(e) => setNumberOfEmployees(e.target.value)}
-                      onBlur={() => setNumberOfEmployees(toHalfWidth(numberOfEmployees.trim()))}
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 右ラッパーここまで */}
-            </div>
-          </div>
-          {/* --------- 横幅全体ラッパーここまで --------- */}
-
-          {/* --------- 横幅全体ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full`}>
-            {/* --------- 左ラッパー --------- */}
-            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 資本金 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>資本金</span>
-                    <input
-                      type="text"
-                      placeholder=""
-                      className={`${styles.input_box}`}
-                      value={capital}
-                      onChange={(e) => setCapital(e.target.value)}
-                      onBlur={() => setCapital(toHalfWidth(capital.trim()))}
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 左ラッパーここまで */}
-            </div>
-
-            {/* --------- 右ラッパー --------- */}
-            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 設立 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>設立</span>
-                    <input
-                      type="text"
-                      placeholder=""
-                      className={`${styles.input_box}`}
-                      value={establishedIn}
-                      onChange={(e) => setEstablishedIn(e.target.value)}
-                      onBlur={() => {
-                        const converted = matchEraToYear(toHalfWidth(establishedIn.trim()));
-                        setEstablishedIn(converted.toString());
-                      }}
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 右ラッパーここまで */}
-            </div>
-          </div>
-          {/* --------- 横幅全体ラッパーここまで --------- */}
-
-          {/* --------- 横幅全体ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full`}>
-            {/* --------- 左ラッパー --------- */}
-            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 代表者 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>代表者</span>
-                    <input
-                      type="text"
-                      placeholder=""
-                      className={`${styles.input_box}`}
-                      value={representativeName}
-                      onChange={(e) => setRepresentativeName(e.target.value)}
-                      onBlur={() => setRepresentativeName(toHalfWidth(representativeName.trim()))}
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 左ラッパーここまで */}
-            </div>
-
-            {/* --------- 右ラッパー --------- */}
-            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 会長 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>会長</span>
-                    <input
-                      type="text"
-                      placeholder=""
-                      className={`${styles.input_box}`}
-                      value={chairperson}
-                      onChange={(e) => setChairperson(e.target.value)}
-                      onBlur={() => setChairperson(toHalfWidth(chairperson.trim()))}
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 右ラッパーここまで */}
-            </div>
-          </div>
-          {/* --------- 横幅全体ラッパーここまで --------- */}
-
-          {/* --------- 横幅全体ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full`}>
-            {/* --------- 左ラッパー --------- */}
-            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 副社長 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>副社長</span>
-                    <input
-                      type="text"
-                      placeholder=""
-                      className={`${styles.input_box}`}
-                      value={seniorVicePresident}
-                      onChange={(e) => setSeniorVicePresident(e.target.value)}
-                      onBlur={() => setSeniorVicePresident(toHalfWidth(seniorVicePresident.trim()))}
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 左ラッパーここまで */}
-            </div>
-
-            {/* --------- 右ラッパー --------- */}
-            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 専務取締役 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>専務取締役</span>
-                    <input
-                      type="text"
-                      placeholder=""
-                      className={`${styles.input_box}`}
-                      value={seniorManagingDirector}
-                      onChange={(e) => setSeniorManagingDirector(e.target.value)}
-                      onBlur={() => setSeniorManagingDirector(toHalfWidth(seniorManagingDirector.trim()))}
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 右ラッパーここまで */}
-            </div>
-          </div>
-          {/* --------- 横幅全体ラッパーここまで --------- */}
-
-          {/* --------- 横幅全体ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full`}>
-            {/* --------- 左ラッパー --------- */}
-            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 常務取締役 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>常務取締役</span>
-                    <input
-                      type="text"
-                      placeholder=""
-                      className={`${styles.input_box}`}
-                      value={managingDirector}
-                      onChange={(e) => setManagingDirector(e.target.value)}
-                      onBlur={() => setManagingDirector(toHalfWidth(managingDirector.trim()))}
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 左ラッパーここまで */}
-            </div>
-
-            {/* --------- 右ラッパー --------- */}
-            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 取締役 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>取締役</span>
-                    <input
-                      type="text"
-                      placeholder=""
-                      className={`${styles.input_box}`}
-                      value={director}
-                      onChange={(e) => setDirector(e.target.value)}
-                      onBlur={() => setDirector(toHalfWidth(director.trim()))}
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 右ラッパーここまで */}
-            </div>
-          </div>
-          {/* --------- 横幅全体ラッパーここまで --------- */}
-
-          {/* --------- 横幅全体ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full`}>
-            {/* --------- 左ラッパー --------- */}
-            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 役員 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>役員</span>
-                    <input
-                      type="text"
-                      placeholder=""
-                      className={`${styles.input_box}`}
-                      value={boardMember}
-                      onChange={(e) => setBoardMember(e.target.value)}
-                      onBlur={() => setBoardMember(toHalfWidth(boardMember.trim()))}
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 左ラッパーここまで */}
-            </div>
-
-            {/* --------- 右ラッパー --------- */}
-            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 監査役 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>監査役</span>
-                    <input
-                      type="text"
-                      placeholder=""
-                      className={`${styles.input_box}`}
-                      value={auditor}
-                      onChange={(e) => setAuditor(e.target.value)}
-                      onBlur={() => setAuditor(toHalfWidth(auditor.trim()))}
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 右ラッパーここまで */}
-            </div>
-          </div>
-          {/* --------- 横幅全体ラッパーここまで --------- */}
-
-          {/* --------- 横幅全体ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full`}>
-            {/* --------- 左ラッパー --------- */}
-            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 部長 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>部長</span>
-                    <input
-                      type="text"
-                      placeholder=""
-                      className={`${styles.input_box}`}
-                      value={manager}
-                      onChange={(e) => setManager(e.target.value)}
-                      onBlur={() => setManager(toHalfWidth(manager.trim()))}
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 左ラッパーここまで */}
-            </div>
-
-            {/* --------- 右ラッパー --------- */}
-            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 担当者 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>担当者</span>
-                    <input
-                      type="text"
-                      placeholder=""
-                      className={`${styles.input_box}`}
-                      value={member}
-                      onChange={(e) => setMember(e.target.value)}
-                      onBlur={() => setMember(toHalfWidth(member.trim()))}
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 右ラッパーここまで */}
-            </div>
-          </div>
-          {/* --------- 横幅全体ラッパーここまで --------- */}
-
-          {/* --------- 横幅全部ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
-            {/* 業種 */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-full flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>業種</span>
-                  <select
-                    name="position_class"
-                    id="position_class"
-                    className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                    value={industryType}
-                    onChange={(e) => setIndustryType(e.target.value)}
-                  >
-                    <option value=""></option>
-                    <option value="機械要素・部品">機械要素・部品</option>
-                    <option value="自動車・輸送機器">自動車・輸送機器</option>
-                    <option value="電子部品・半導体">電子部品・半導体</option>
-                    <option value="製造・加工受託">製造・加工受託</option>
-                    <option value="産業用機械">産業用機械</option>
-                    <option value="産業用電気機器">産業用電気機器</option>
-                    <option value="IT・情報通信">IT・情報通信</option>
-                    <option value="ソフトウェア">ソフトウェア</option>
-                    <option value="医薬品・バイオ">医薬品・バイオ</option>
-                    <option value="樹脂・プラスチック">樹脂・プラスチック</option>
-                    <option value="ゴム製品">ゴム製品</option>
-                    <option value="鉄/非鉄金属">鉄/非鉄金属</option>
-                    <option value="民生用電気機器">民生用電気機器</option>
-                    <option value="航空・宇宙">航空・宇宙</option>
-                    <option value="CAD/CAM">CAD/CAM</option>
-                    <option value="建材・資材・什器">建材・資材・什器</option>
-                    <option value="小売">小売</option>
-                    <option value="飲食料品">飲食料品</option>
-                    <option value="飲食店・宿泊業">飲食店・宿泊業</option>
-                    <option value="公益・特殊・独立行政法人">公益・特殊・独立行政法人</option>
-                    <option value="水産・農林業">水産・農林業</option>
-                    <option value="繊維">繊維</option>
-                    <option value="ガラス・土石製品">ガラス・土石製品</option>
-                    <option value="造船・重機">造船・重機</option>
-                    <option value="環境">環境</option>
-                    <option value="印刷業">印刷業</option>
-                    <option value="運輸業">運輸業</option>
-                    <option value="金融・証券・保険業">金融・証券・保険業</option>
-                    <option value="警察・消防・自衛隊">警察・消防・自衛隊</option>
-                    <option value="鉱業">鉱業</option>
-                    <option value="紙・バルブ">紙・バルブ</option>
-                    <option value="木材">木材</option>
-                    <option value="ロボット">ロボット</option>
-                    <option value="試験・分析・測定">試験・分析・測定</option>
-                    <option value="エネルギー">エネルギー</option>
-                    <option value="電気・ガス・水道業">電気・ガス・水道業</option>
-                    <option value="医療・福祉">医療・福祉</option>
-                    <option value="サービス業">サービス業</option>
-                    <option value="その他">その他</option>
-                    <option value="化学">化学</option>
-                    <option value="セラミックス">セラミックス</option>
-                    <option value="食品機械">食品機械</option>
-                    <option value="光学機器">光学機器</option>
-                    <option value="医療機器">医療機器</option>
-                    <option value="その他製造">その他製造</option>
-                    <option value="倉庫・運輸関連業">倉庫・運輸関連業</option>
-                    <option value="教育・研究機関">教育・研究機関</option>
-                    <option value="石油・石炭製品">石油・石炭製品</option>
-                    <option value="商社・卸売">商社・卸売</option>
-                    <option value="官公庁">官公庁</option>
-                    <option value="個人">個人</option>
-                    <option value="不明">不明</option>
-                  </select>
-                </div>
-                <div className={`${styles.underline}`}></div>
-              </div>
-            </div>
-          </div>
-          {/* --------- 横幅全部ラッパーここまで --------- */}
-
-          {/* --------- 横幅全体ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full`}>
-            {/* --------- 左ラッパー --------- */}
-            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 製品分類(大分類) */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>製品分類(大分類)</span>
-                    <select
-                      name="position_class"
-                      id="position_class"
-                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      value={productCategoryL}
-                      onChange={(e) => setProductCategoryL(e.target.value)}
-                    >
-                      <option value=""></option>
-                      <option value="電子部品・モジュール">電子部品・モジュール</option>
-                      <option value="機械部品">機械部品</option>
-                      <option value="製造・加工機械">製造・加工機械</option>
-                      <option value="科学・理化学機器">科学・理化学機器</option>
-                      <option value="素材・材料">素材・材料</option>
-                      <option value="測定・分析">測定・分析</option>
-                      <option value="画像処理">画像処理</option>
-                      <option value="制御・電機機器">制御・電機機器</option>
-                      <option value="工具・消耗品・備品">工具・消耗品・備品</option>
-                      <option value="設計・生産支援">設計・生産支援</option>
-                      <option value="IT・ネットワーク">IT・ネットワーク</option>
-                      <option value="オフィス">オフィス</option>
-                      <option value="業務支援サービス">業務支援サービス</option>
-                      <option value="セミナー・スキルアップ">セミナー・スキルアップ</option>
-                      <option value="その他">その他</option>
-                    </select>
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 左ラッパーここまで */}
-            </div>
-
-            {/* --------- 右ラッパー --------- */}
-            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 製品分類(中分類) */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>製品分類(中分類)</span>
-                    {!!productCategoryL && (
-                      <select
-                        name="position_class"
-                        id="position_class"
-                        value={productCategoryM}
-                        onChange={(e) => setProductCategoryM(e.target.value)}
-                        className={`${
-                          productCategoryL ? "" : "hidden"
-                        } ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      >
-                        {productCategoryL === "電子部品・モジュール" &&
-                          productCategoriesM.moduleCategoryM.map((option) => option)}
-                        {productCategoryL === "機械部品" &&
-                          productCategoriesM.machinePartsCategoryM.map((option) => option)}
-                        {productCategoryL === "製造・加工機械" &&
-                          productCategoriesM.processingMachineryCategoryM.map((option) => option)}
-                        {productCategoryL === "科学・理化学機器" &&
-                          productCategoriesM.scienceCategoryM.map((option) => option)}
-                        {productCategoryL === "素材・材料" &&
-                          productCategoriesM.materialCategoryM.map((option) => option)}
-                        {productCategoryL === "測定・分析" &&
-                          productCategoriesM.analysisCategoryM.map((option) => option)}
-                        {productCategoryL === "画像処理" &&
-                          productCategoriesM.imageProcessingCategoryM.map((option) => option)}
-                        {productCategoryL === "制御・電機機器" &&
-                          productCategoriesM.controlEquipmentCategoryM.map((option) => option)}
-                        {productCategoryL === "工具・消耗品・備品" &&
-                          productCategoriesM.toolCategoryM.map((option) => option)}
-                        {productCategoryL === "設計・生産支援" &&
-                          productCategoriesM.designCategoryM.map((option) => option)}
-                        {productCategoryL === "IT・ネットワーク" &&
-                          productCategoriesM.ITCategoryM.map((option) => option)}
-                        {productCategoryL === "オフィス" && productCategoriesM.OfficeCategoryM.map((option) => option)}
-                        {productCategoryL === "業務支援サービス" &&
-                          productCategoriesM.businessSupportCategoryM.map((option) => option)}
-                        {productCategoryL === "セミナー・スキルアップ" &&
-                          productCategoriesM.skillUpCategoryM.map((option) => option)}
-                        {productCategoryL === "その他" && productCategoriesM.othersCategoryM.map((option) => option)}
-                      </select>
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 右ラッパーここまで */}
-            </div>
-          </div>
-          {/* --------- 横幅全体ラッパーここまで --------- */}
-
-          {/* --------- 横幅全部ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
-            {/* 事業概要 */}
-            <div className={`${styles.row_area} ${styles.text_area_large} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-full flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full `}>
-                  <span className={`${styles.title}`}>事業概要</span>
-                  <textarea
-                    name="call_careful_reason"
-                    id="call_careful_reason"
-                    cols={30}
-                    rows={10}
-                    placeholder=""
-                    className={`${styles.textarea_box}`}
-                    value={businessContent}
-                    onChange={(e) => setBusinessContent(e.target.value)}
-                  ></textarea>
-                </div>
-                <div className={`${styles.underline}`}></div>
-              </div>
-            </div>
-          </div>
-          {/* --------- 横幅全部ラッパーここまで --------- */}
-
-          {/* --------- 横幅全部ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
-            {/* HP */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-full flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>HP</span>
-                  <input
-                    type="text"
-                    placeholder=""
-                    className={`${styles.input_box}`}
-                    value={websiteURL}
-                    onChange={(e) => setWebsiteURL(e.target.value)}
-                    onBlur={() => setWebsiteURL(toHalfWidth(websiteURL.trim()))}
-                  />
-                </div>
-                <div className={`${styles.underline}`}></div>
-              </div>
-            </div>
-          </div>
-          {/* --------- 横幅全部ラッパーここまで --------- */}
-
-          {/* --------- 横幅全部ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
-            {/* Email */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-full flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>Email</span>
-                  <input
-                    type="text"
-                    placeholder=""
-                    className={`${styles.input_box}`}
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    onBlur={() => setEmail(toHalfWidth(email.trim()))}
-                  />
-                </div>
-                <div className={`${styles.underline}`}></div>
-              </div>
-            </div>
-          </div>
-          {/* --------- 横幅全部ラッパーここまで --------- */}
-          {/* --------- 横幅全部ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
-            {/* 主要取引先 */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-full flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>主要取引先</span>
-                  <input
-                    type="text"
-                    placeholder=""
-                    className={`${styles.input_box}`}
-                    value={clients}
-                    onChange={(e) => setClients(e.target.value)}
-                  />
-                </div>
-                <div className={`${styles.underline}`}></div>
-              </div>
-            </div>
-          </div>
-          {/* --------- 横幅全部ラッパーここまで --------- */}
-          {/* --------- 横幅全部ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
-            {/* 主要仕入先 */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-full flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>主要仕入先</span>
-                  <input
-                    type="text"
-                    placeholder=""
-                    className={`${styles.input_box}`}
-                    value={supplier}
-                    onChange={(e) => setSupplier(e.target.value)}
-                  />
-                </div>
-                <div className={`${styles.underline}`}></div>
-              </div>
-            </div>
-          </div>
-          {/* --------- 横幅全部ラッパーここまで --------- */}
-
-          {/* --------- 横幅全部ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
-            {/* 設備 */}
-            <div className={`${styles.row_area} ${styles.text_area_large} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-full flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full `}>
-                  <span className={`${styles.title}`}>設備</span>
-                  <textarea
-                    name="call_careful_reason"
-                    id="call_careful_reason"
-                    cols={30}
-                    rows={10}
-                    placeholder=""
-                    className={`${styles.textarea_box}`}
-                    value={facility}
-                    onChange={(e) => setFacility(e.target.value)}
-                  ></textarea>
-                </div>
-                <div className={`${styles.underline}`}></div>
-              </div>
-            </div>
-          </div>
-          {/* --------- 横幅全部ラッパーここまで --------- */}
-
-          {/* --------- 横幅全体ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full`}>
-            {/* --------- 左ラッパー --------- */}
-            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 事業拠点 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>事業拠点</span>
-                    <input
-                      type="text"
-                      placeholder=""
-                      className={`${styles.input_box}`}
-                      value={businessSites}
-                      onChange={(e) => setBusinessSites(e.target.value)}
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 左ラッパーここまで */}
-            </div>
-
-            {/* --------- 右ラッパー --------- */}
-            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 海外拠点 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>海外拠点</span>
-                    <input
-                      type="text"
-                      placeholder=""
-                      className={`${styles.input_box}`}
-                      value={overseasBases}
-                      onChange={(e) => setOverseasBases(e.target.value)}
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 右ラッパーここまで */}
-            </div>
-          </div>
-          {/* --------- 横幅全体ラッパーここまで --------- */}
-
-          {/* --------- 横幅全部ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
-            {/* グループ会社 */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-full flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>グループ会社</span>
-                  <input
-                    type="text"
-                    placeholder=""
-                    className={`${styles.input_box}`}
-                    value={groupCompany}
-                    onChange={(e) => setGroupCompany(e.target.value)}
-                  />
-                </div>
-                <div className={`${styles.underline}`}></div>
-              </div>
-            </div>
-          </div>
-          {/* --------- 横幅全部ラッパーここまで --------- */}
-
-          {/* --------- 横幅全体ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full`}>
-            {/* --------- 左ラッパー --------- */}
-            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 予算申請月1 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>予算申請月1</span>
-                    <select
-                      name="budget_request_month1"
-                      id="budget_request_month1"
-                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      value={budgetRequestMonth1}
-                      onChange={(e) => setBudgetRequestMonth1(e.target.value)}
-                    >
-                      <option value=""></option>
-                      <option value="1月">1月</option>
-                      <option value="2月">2月</option>
-                      <option value="3月">3月</option>
-                      <option value="4月">4月</option>
-                      <option value="5月">5月</option>
-                      <option value="6月">6月</option>
-                      <option value="7月">7月</option>
-                      <option value="8月">8月</option>
-                      <option value="9月">9月</option>
-                      <option value="10月">10月</option>
-                      <option value="11月">11月</option>
-                      <option value="12月">12月</option>
-                    </select>
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 左ラッパーここまで */}
-            </div>
-
-            {/* --------- 右ラッパー --------- */}
-            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 予算申請月2 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>予算申請月2</span>
-                    <select
-                      name="budget_request_month2"
-                      id="budget_request_month2"
-                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      value={budgetRequestMonth2}
-                      onChange={(e) => setBudgetRequestMonth2(e.target.value)}
-                    >
-                      <option value=""></option>
-                      <option value="1月">1月</option>
-                      <option value="2月">2月</option>
-                      <option value="3月">3月</option>
-                      <option value="4月">4月</option>
-                      <option value="5月">5月</option>
-                      <option value="6月">6月</option>
-                      <option value="7月">7月</option>
-                      <option value="8月">8月</option>
-                      <option value="9月">9月</option>
-                      <option value="10月">10月</option>
-                      <option value="11月">11月</option>
-                      <option value="12月">12月</option>
-                    </select>
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 右ラッパーここまで */}
-            </div>
-          </div>
-          {/* --------- 横幅全体ラッパーここまで --------- */}
-
-          {/* --------- 横幅全部ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
-            {/* 法人番号 */}
-            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-full flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>法人番号</span>
-                  <input
-                    type="text"
-                    placeholder=""
-                    className={`${styles.input_box}`}
-                    value={corporateNumber}
-                    onChange={(e) => setCorporateNumber(e.target.value)}
-                    onBlur={() => setCorporateNumber(toHalfWidth(corporateNumber.trim()))}
-                  />
-                </div>
-                <div className={`${styles.underline}`}></div>
-              </div>
-            </div>
-          </div>
-          {/* --------- 横幅全部ラッパーここまで --------- */}
-
-          {/* メインコンテンツ コンテナ ここまで */}
-        </div>
-      </div>
-    </>
-  );
-};
+// import React, { useState } from "react";
+// import styles from "./InsertNewClientCompanyModal.module.css";
+// import useDashboardStore from "@/store/useDashboardStore";
+// import { useSupabaseClient } from "@supabase/auth-helpers-react";
+// import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
+// import { toast } from "react-toastify";
+// import useThemeStore from "@/store/useThemeStore";
+// import { isNaN } from "lodash";
+// import { useMutateClientCompany } from "@/hooks/useMutateClientCompany";
+// import productCategoriesM from "@/utils/productCategoryM";
+
+// export const UpdateClientCompanyModal = () => {
+//   const setIsOpenInsertNewClientCompanyModal = useDashboardStore((state) => state.setIsOpenInsertNewClientCompanyModal);
+//   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
+//   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
+//   // const theme = useThemeStore((state) => state.theme);
+//   // 上画面の選択中の列データ会社
+//   // const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
+//   const userProfileState = useDashboardStore((state) => state.userProfileState);
+
+//   const [name, setName] = useState("");
+//   const [departmentName, setDepartmentName] = useState("");
+//   const [mainFax, setMainFax] = useState("");
+//   const [zipcode, setZipcode] = useState("");
+//   const [address, setAddress] = useState("");
+//   const [departmentContacts, setDepartmentContacts] = useState("");
+//   const [industryL, setIndustryL] = useState("");
+//   const [industryS, setIndustryS] = useState("");
+//   const [industryType, setIndustryType] = useState("");
+//   const [productCategoryL, setProductCategoryL] = useState("");
+//   const [productCategoryM, setProductCategoryM] = useState("");
+//   const [productCategoryS, setProductCategoryS] = useState("");
+//   const [numberOfEmployeesClass, setNumberOfEmployeesClass] = useState("");
+//   const [fiscalEndMonth, setFiscalEndMonth] = useState("");
+//   const [capital, setCapital] = useState("");
+//   const [budgetRequestMonth1, setBudgetRequestMonth1] = useState("");
+//   const [budgetRequestMonth2, setBudgetRequestMonth2] = useState("");
+//   const [websiteURL, setWebsiteURL] = useState("");
+//   const [clients, setClients] = useState("");
+//   const [supplier, setSupplier] = useState("");
+//   const [businessContent, setBusinessContent] = useState("");
+//   const [establishedIn, setEstablishedIn] = useState("");
+//   const [representativeName, setRepresentativeName] = useState("");
+//   const [chairperson, setChairperson] = useState("");
+//   const [seniorVicePresident, setSeniorVicePresident] = useState("");
+//   const [seniorManagingDirector, setSeniorManagingDirector] = useState("");
+//   const [managingDirector, setManagingDirector] = useState("");
+//   const [director, setDirector] = useState("");
+//   const [auditor, setAuditor] = useState("");
+//   const [manager, setManager] = useState("");
+//   const [member, setMember] = useState("");
+//   const [facility, setFacility] = useState("");
+//   const [businessSites, setBusinessSites] = useState("");
+//   const [overseasBases, setOverseasBases] = useState("");
+//   const [groupCompany, setGroupCompany] = useState("");
+//   const [email, setEmail] = useState("");
+//   const [mainPhoneNumber, setMainPhoneNumber] = useState("");
+//   const [corporateNumber, setCorporateNumber] = useState("");
+//   const [boardMember, setBoardMember] = useState("");
+//   const [numberOfEmployees, setNumberOfEmployees] = useState("");
+
+//   const supabase = useSupabaseClient();
+//   const { createClientCompanyMutation } = useMutateClientCompany();
+
+//   // console.log("InsertNewClientCompanyModalコンポーネント レンダリング selectedRowDataCompany", selectedRowDataCompany);
+
+//   // キャンセルでモーダルを閉じる
+//   const handleCancelAndReset = () => {
+//     setIsOpenInsertNewClientCompanyModal(false);
+//   };
+//   const handleSaveAndClose = async () => {
+//     setLoadingGlobalState(true);
+
+//     // 新規作成するデータをオブジェクトにまとめる
+//     const newClientCompany = {
+//       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
+//       created_by_user_id: userProfileState?.id ? userProfileState.id : null,
+//       created_by_department_of_user: userProfileState?.department ? userProfileState.department : null,
+//       created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+//       name: name,
+//       department_name: departmentName,
+//       main_fax: mainFax ? mainFax : null,
+//       zipcode: zipcode ? zipcode : null,
+//       address: address ? address : null,
+//       department_contacts: departmentContacts ? departmentContacts : null,
+//       industry_large: industryL ? industryL : null,
+//       industry_small: industryS ? industryS : null,
+//       industry_type: industryType ? industryType : null,
+//       product_category_large: productCategoryL ? productCategoryL : null,
+//       product_category_medium: productCategoryM ? productCategoryM : null,
+//       product_category_small: productCategoryS ? productCategoryS : null,
+//       number_of_employees_class: numberOfEmployeesClass ? numberOfEmployeesClass : null,
+//       fiscal_end_month: fiscalEndMonth ? fiscalEndMonth : null,
+//       capital: capital ? capital : null,
+//       budget_request_month1: budgetRequestMonth1 ? budgetRequestMonth1 : null,
+//       budget_request_month2: budgetRequestMonth2 ? budgetRequestMonth2 : null,
+//       website_url: websiteURL ? websiteURL : null,
+//       clients: clients ? clients : null,
+//       supplier: supplier ? supplier : null,
+//       business_content: businessContent ? businessContent : null,
+//       established_in: establishedIn ? establishedIn : null,
+//       representative_name: representativeName ? representativeName : null,
+//       chairperson: chairperson ? chairperson : null,
+//       senior_vice_president: seniorVicePresident ? seniorVicePresident : null,
+//       senior_managing_director: seniorManagingDirector ? seniorManagingDirector : null,
+//       managing_director: managingDirector ? managingDirector : null,
+//       director: director ? director : null,
+//       auditor: auditor ? auditor : null,
+//       manager: manager ? manager : null,
+//       member: member ? member : null,
+//       facility: facility ? facility : null,
+//       business_sites: businessSites ? businessSites : null,
+//       overseas_bases: overseasBases ? overseasBases : null,
+//       group_company: groupCompany ? groupCompany : null,
+//       email: email ? email : null,
+//       main_phone_number: mainPhoneNumber ? mainPhoneNumber : null,
+//       corporate_number: corporateNumber ? corporateNumber : null,
+//       board_member: boardMember ? boardMember : null,
+//       number_of_employees: numberOfEmployees ? numberOfEmployees : null,
+//     };
+
+//     // supabaseにINSERT
+//     createClientCompanyMutation.mutate(newClientCompany);
+
+//     // const { error } = await supabase.from("contacts").insert(newClientCompany);
+
+//     // if (error) {
+//     //   alert(error);
+//     //   console.log("INSERTエラー", error);
+//     //   toast.error("担当者の作成に失敗しました!", {
+//     //     position: "top-right",
+//     //     autoClose: 4000,
+//     //     hideProgressBar: false,
+//     //     closeOnClick: true,
+//     //     pauseOnHover: true,
+//     //     draggable: true,
+//     //     progress: undefined,
+//     //     theme: `${theme === "light" ? "light" : "dark"}`,
+//     //   });
+//     // } else {
+//     //   toast.success("担当者の作成に完了しました!", {
+//     //     position: "top-right",
+//     //     autoClose: 4000,
+//     //     hideProgressBar: false,
+//     //     closeOnClick: true,
+//     //     pauseOnHover: true,
+//     //     draggable: true,
+//     //     progress: undefined,
+//     //     theme: `${theme === "light" ? "light" : "dark"}`,
+//     //   });
+//     // }
+
+//     setLoadingGlobalState(false);
+
+//     // モーダルを閉じる
+//     setIsOpenInsertNewClientCompanyModal(false);
+//   };
+
+//   // 全角文字を半角に変換する関数
+//   const toHalfWidth = (strVal: string) => {
+//     // 全角文字コードの範囲は65281 - 65374、スペースの全角文字コードは12288
+//     return strVal.replace(/[！-～]/g, (match) => {
+//       return String.fromCharCode(match.charCodeAt(0) - 0xfee0);
+//     });
+//     // .replace(/　/g, " "); // 全角スペースを半角スペースに
+//   };
+
+//   // 昭和や平成、令和の元号を西暦に変換する
+//   // const convertJapaneseEraToWesternYear = (value: string) => {
+//   //   const eraPatterns = [
+//   //     { era: "昭和", startYear: 1925 },
+//   //     { era: "平成", startYear: 1988 },
+//   //     { era: "令和", startYear: 2018 },
+//   //   ];
+
+//   //   for (let pattern of eraPatterns) {
+//   //     if (value.includes(pattern.era)) {
+//   //       const year = parseInt(value.replace(pattern.era, ""), 10);
+//   //       if (!isNaN(year)) {
+//   //         return pattern.startYear + year;
+//   //       }
+//   //     }
+//   //   }
+//   //   return value;
+//   // };
+
+//   type Era = "昭和" | "平成" | "令和";
+//   const eras = {
+//     昭和: 1925, // 昭和の開始年 - 1
+//     平成: 1988, // 平成の開始年 - 1
+//     令和: 2018, // 令和の開始年 - 1
+//   };
+//   // 昭和や平成、令和の元号を西暦に変換する 例："平成4年12月" を "1992年12月" に変換
+//   function matchEraToYear(value: string): string {
+//     const pattern = /(?<era>昭和|平成|令和)(?<year>\d+)(?:年)?(?<month>\d+)?/;
+//     const match = pattern.exec(value);
+
+//     if (!match) return value; // 元号の形式でなければ元の文字列をそのまま返す
+
+//     const era: Era = match.groups?.era as Era;
+//     const year = eras[era] + parseInt(match.groups?.year || "0", 10);
+//     const month = match.groups?.month ? `${match.groups?.month}月` : "";
+
+//     return `${year}年${month}`;
+//   }
+
+//   // const convertEraToAD = (input: string): string => {
+//   //   const pattern = /(?<era>昭和|平成|令和)(?<year>\d+)年(?<month>\d+)月/;
+//   //   const match = input.match(pattern);
+
+//   //   if (!match?.groups) return input;
+
+//   //   const eras: Record<string, number> = {
+//   //     昭和: 1925, // 昭和の開始年 - 1
+//   //     平成: 1988, // 平成の開始年 - 1
+//   //     令和: 2018, // 令和の開始年 - 1
+//   //   };
+
+//   //   const year = eras[match.groups.era] + parseInt(match.groups.year, 10);
+//   //   return `${year}年${match.groups.month}月`;
+//   // };
+//   // function eraToGregorian(input: string) {
+//   //   // Define eras and their starting year
+//   //   const eras = {
+//   //     昭和: 1925,
+//   //     平成: 1988,
+//   //     令和: 2019,
+//   //   };
+
+//   //   for (let era of Object.keys(eras)) {
+//   //     const pattern = new RegExp(`(${era})([0-9]+)年([0-9]+)月`);
+//   //     const match = input.match(pattern);
+//   //     if (match) {
+//   //       const year = eras[era] + parseInt(match[2]) - 1; // -1 because the 1st year of an era is year 1
+//   //       const month = match[3];
+//   //       return `${year}年${month}月`;
+//   //     }
+//   //   }
+//   //   // Return the input if no matching era found
+//   //   return input;
+//   // }
+
+//   return (
+//     <>
+//       <div className={`${styles.overlay} `} onClick={handleCancelAndReset} />
+//       {loadingGlobalState && (
+//         <div className={`${styles.loading_overlay} `}>
+//           <SpinnerIDS scale={"scale-[0.5]"} />
+//         </div>
+//       )}
+//       <div className={`${styles.container} `}>
+//         {/* 保存・タイトル・キャンセルエリア */}
+//         <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[20px] text-center text-[18px]">
+//           <div className="font-samibold cursor-pointer hover:text-[#aaa]" onClick={handleCancelAndReset}>
+//             キャンセル
+//           </div>
+//           <div className="-translate-x-[25px] font-bold">担当者 新規作成</div>
+//           <div
+//             className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
+//             onClick={handleSaveAndClose}
+//           >
+//             保存
+//           </div>
+//         </div>
+//         {/* メインコンテンツ コンテナ */}
+//         <div className={`${styles.main_contents_container}`}>
+//           {/* --------- 横幅全部ラッパー --------- */}
+//           <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
+//             {/* 会社名 */}
+//             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//               <div className="flex h-full w-full flex-col pr-[20px]">
+//                 <div className={`${styles.title_box} flex h-full items-center `}>
+//                   <span className={`${styles.title}`}>●会社名</span>
+//                   {/* <span className={`${styles.value} ${styles.value_highlight}`}>
+//                     {selectedRowDataCompany?.name ? selectedRowDataCompany?.name : ""}
+//                   </span> */}
+//                   <input
+//                     type="text"
+//                     placeholder="会社名を入力してください *入力必須"
+//                     required
+//                     autoFocus
+//                     className={`${styles.input_box}`}
+//                     value={name}
+//                     onChange={(e) => setName(e.target.value)}
+//                     onBlur={() => setName(toHalfWidth(name.trim()))}
+//                     // onBlur={() => setName(name.trim())}
+//                   />
+//                 </div>
+//                 <div className={`${styles.underline}`}></div>
+//               </div>
+//             </div>
+
+//             {/* 部署名 */}
+//             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//               <div className="flex h-full w-full flex-col pr-[20px]">
+//                 <div className={`${styles.title_box} flex h-full items-center `}>
+//                   <span className={`${styles.title}`}>部署名</span>
+//                   {/* <span className={`${styles.value}`}>
+//                     {selectedRowDataCompany?.department_name ? selectedRowDataCompany?.department_name : ""}
+//                   </span> */}
+//                   <input
+//                     type="text"
+//                     placeholder="部署名を入力してください *入力必須"
+//                     required
+//                     className={`${styles.input_box}`}
+//                     value={departmentName}
+//                     onChange={(e) => setDepartmentName(e.target.value)}
+//                     onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
+//                     // onBlur={() => setDepartmentName(departmentName.trim())}
+//                   />
+//                 </div>
+//                 <div className={`${styles.underline}`}></div>
+//               </div>
+//             </div>
+//           </div>
+//           {/* --------- 横幅全体ラッパー --------- */}
+//           <div className={`${styles.full_contents_wrapper} flex w-full`}>
+//             {/* --------- 左ラッパー --------- */}
+//             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+//               {/* ●担当名 */}
+//               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//                 <div className="flex h-full w-full flex-col pr-[20px]">
+//                   <div className={`${styles.title_box} flex h-full items-center `}>
+//                     <span className={`${styles.title}`}>●代表TEL</span>
+//                     {/* <span className={`${styles.value} ${styles.value_highlight}`}>
+//                       {selectedRowDataCompany?.name ? selectedRowDataCompany?.name : ""}
+//                     </span> */}
+//                     <input
+//                       type="text"
+//                       placeholder="代表電話番号を入力してください *入力必須"
+//                       required
+//                       className={`${styles.input_box}`}
+//                       value={mainPhoneNumber}
+//                       onChange={(e) => setMainPhoneNumber(e.target.value)}
+//                       onBlur={() => setMainPhoneNumber(toHalfWidth(mainPhoneNumber.trim()))}
+//                     />
+//                   </div>
+//                   <div className={`${styles.underline}`}></div>
+//                 </div>
+//               </div>
+
+//               {/* 郵便番号 */}
+//               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//                 <div className="flex h-full w-full flex-col pr-[20px]">
+//                   <div className={`${styles.title_box} flex h-full items-center `}>
+//                     <span className={`${styles.title}`}>郵便番号</span>
+//                     <input
+//                       type="text"
+//                       placeholder=""
+//                       className={`${styles.input_box}`}
+//                       value={zipcode}
+//                       onChange={(e) => setZipcode(e.target.value)}
+//                       onBlur={() => setZipcode(toHalfWidth(zipcode.trim()))}
+//                     />
+//                   </div>
+//                   <div className={`${styles.underline}`}></div>
+//                 </div>
+//               </div>
+//               {/* 左ラッパーここまで */}
+//             </div>
+
+//             {/* --------- 右ラッパー --------- */}
+//             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+//               {/* 代表FAX */}
+//               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//                 <div className="flex h-full w-full flex-col pr-[20px]">
+//                   <div className={`${styles.title_box} flex h-full items-center `}>
+//                     <span className={`${styles.title}`}>代表FAX</span>
+//                     <input
+//                       type="text"
+//                       placeholder=""
+//                       className={`${styles.input_box}`}
+//                       value={mainFax}
+//                       onChange={(e) => setMainFax(e.target.value)}
+//                       onBlur={() => setMainFax(toHalfWidth(mainFax.trim()))}
+//                     />
+//                   </div>
+//                   <div className={`${styles.underline}`}></div>
+//                 </div>
+//               </div>
+
+//               {/* 決算月 */}
+//               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//                 <div className="flex h-full w-full flex-col pr-[20px]">
+//                   <div className={`${styles.title_box} flex h-full items-center `}>
+//                     <span className={`${styles.title}`}>決算月</span>
+//                     <input
+//                       type="text"
+//                       placeholder=""
+//                       className={`${styles.input_box}`}
+//                       value={fiscalEndMonth}
+//                       onChange={(e) => setFiscalEndMonth(e.target.value)}
+//                       onBlur={() => setFiscalEndMonth(toHalfWidth(fiscalEndMonth.trim()))}
+//                     />
+//                   </div>
+//                   <div className={`${styles.underline}`}></div>
+//                 </div>
+//               </div>
+//               {/* 右ラッパーここまで */}
+//             </div>
+//             {/* --------- 横幅全体ラッパーここまで --------- */}
+//           </div>
+//           {/* --------- 横幅全部ラッパー --------- */}
+//           <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
+//             {/* 住所 */}
+//             <div className={`${styles.row_area} ${styles.text_area} flex h-[35px] w-full items-center`}>
+//               <div className="flex h-full w-full flex-col pr-[20px]">
+//                 <div className={`${styles.title_box} flex h-full `}>
+//                   <span className={`${styles.title}`}>●住所</span>
+//                   <textarea
+//                     name="call_careful_reason"
+//                     id="call_careful_reason"
+//                     cols={30}
+//                     rows={10}
+//                     placeholder=""
+//                     required
+//                     className={`${styles.textarea_box}`}
+//                     value={address}
+//                     onChange={(e) => setAddress(e.target.value)}
+//                     onBlur={() => setAddress(toHalfWidth(address.trim()))}
+//                   ></textarea>
+//                 </div>
+//                 <div className={`${styles.underline}`}></div>
+//               </div>
+//             </div>
+//           </div>
+//           {/* --------- 横幅全部ラッパーここまで --------- */}
+
+//           {/* --------- 横幅全体ラッパー --------- */}
+//           <div className={`${styles.full_contents_wrapper} flex w-full`}>
+//             {/* --------- 左ラッパー --------- */}
+//             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+//               {/* 規模(ﾗﾝｸ) */}
+//               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//                 <div className="flex h-full w-full flex-col pr-[20px]">
+//                   <div className={`${styles.title_box} flex h-full items-center `}>
+//                     <span className={`${styles.title}`}>規模(ﾗﾝｸ)</span>
+//                     <select
+//                       name="number_of_employees_class"
+//                       id="number_of_employees_class"
+//                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+//                       value={numberOfEmployeesClass}
+//                       onChange={(e) => setNumberOfEmployeesClass(e.target.value)}
+//                     >
+//                       <option value=""></option>
+//                       <option value="A 1000名以上">A 1000名以上</option>
+//                       <option value="B 500-999名">B 500-999名</option>
+//                       <option value="C 300-499名">C 300-499名</option>
+//                       <option value="D 200-299名">D 200-299名</option>
+//                       <option value="E 100-199名">E 100-199名</option>
+//                       <option value="F 50-99名">F 50-99名</option>
+//                       <option value="G 50名未満">G 50名未満</option>
+//                     </select>
+//                   </div>
+//                   <div className={`${styles.underline}`}></div>
+//                 </div>
+//               </div>
+
+//               {/* 左ラッパーここまで */}
+//             </div>
+
+//             {/* --------- 右ラッパー --------- */}
+//             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+//               {/* 従業員数 */}
+//               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//                 <div className="flex h-full w-full flex-col pr-[20px]">
+//                   <div className={`${styles.title_box} flex h-full items-center `}>
+//                     <span className={`${styles.title}`}>従業員数</span>
+//                     <input
+//                       type="text"
+//                       placeholder=""
+//                       className={`${styles.input_box}`}
+//                       value={numberOfEmployees}
+//                       onChange={(e) => setNumberOfEmployees(e.target.value)}
+//                       onBlur={() => setNumberOfEmployees(toHalfWidth(numberOfEmployees.trim()))}
+//                     />
+//                   </div>
+//                   <div className={`${styles.underline}`}></div>
+//                 </div>
+//               </div>
+
+//               {/* 右ラッパーここまで */}
+//             </div>
+//           </div>
+//           {/* --------- 横幅全体ラッパーここまで --------- */}
+
+//           {/* --------- 横幅全体ラッパー --------- */}
+//           <div className={`${styles.full_contents_wrapper} flex w-full`}>
+//             {/* --------- 左ラッパー --------- */}
+//             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+//               {/* 資本金 */}
+//               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//                 <div className="flex h-full w-full flex-col pr-[20px]">
+//                   <div className={`${styles.title_box} flex h-full items-center `}>
+//                     <span className={`${styles.title}`}>資本金</span>
+//                     <input
+//                       type="text"
+//                       placeholder=""
+//                       className={`${styles.input_box}`}
+//                       value={capital}
+//                       onChange={(e) => setCapital(e.target.value)}
+//                       onBlur={() => setCapital(toHalfWidth(capital.trim()))}
+//                     />
+//                   </div>
+//                   <div className={`${styles.underline}`}></div>
+//                 </div>
+//               </div>
+
+//               {/* 左ラッパーここまで */}
+//             </div>
+
+//             {/* --------- 右ラッパー --------- */}
+//             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+//               {/* 設立 */}
+//               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//                 <div className="flex h-full w-full flex-col pr-[20px]">
+//                   <div className={`${styles.title_box} flex h-full items-center `}>
+//                     <span className={`${styles.title}`}>設立</span>
+//                     <input
+//                       type="text"
+//                       placeholder=""
+//                       className={`${styles.input_box}`}
+//                       value={establishedIn}
+//                       onChange={(e) => setEstablishedIn(e.target.value)}
+//                       onBlur={() => {
+//                         const converted = matchEraToYear(toHalfWidth(establishedIn.trim()));
+//                         setEstablishedIn(converted.toString());
+//                       }}
+//                     />
+//                   </div>
+//                   <div className={`${styles.underline}`}></div>
+//                 </div>
+//               </div>
+
+//               {/* 右ラッパーここまで */}
+//             </div>
+//           </div>
+//           {/* --------- 横幅全体ラッパーここまで --------- */}
+
+//           {/* --------- 横幅全体ラッパー --------- */}
+//           <div className={`${styles.full_contents_wrapper} flex w-full`}>
+//             {/* --------- 左ラッパー --------- */}
+//             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+//               {/* 代表者 */}
+//               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//                 <div className="flex h-full w-full flex-col pr-[20px]">
+//                   <div className={`${styles.title_box} flex h-full items-center `}>
+//                     <span className={`${styles.title}`}>代表者</span>
+//                     <input
+//                       type="text"
+//                       placeholder=""
+//                       className={`${styles.input_box}`}
+//                       value={representativeName}
+//                       onChange={(e) => setRepresentativeName(e.target.value)}
+//                       onBlur={() => setRepresentativeName(toHalfWidth(representativeName.trim()))}
+//                     />
+//                   </div>
+//                   <div className={`${styles.underline}`}></div>
+//                 </div>
+//               </div>
+
+//               {/* 左ラッパーここまで */}
+//             </div>
+
+//             {/* --------- 右ラッパー --------- */}
+//             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+//               {/* 会長 */}
+//               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//                 <div className="flex h-full w-full flex-col pr-[20px]">
+//                   <div className={`${styles.title_box} flex h-full items-center `}>
+//                     <span className={`${styles.title}`}>会長</span>
+//                     <input
+//                       type="text"
+//                       placeholder=""
+//                       className={`${styles.input_box}`}
+//                       value={chairperson}
+//                       onChange={(e) => setChairperson(e.target.value)}
+//                       onBlur={() => setChairperson(toHalfWidth(chairperson.trim()))}
+//                     />
+//                   </div>
+//                   <div className={`${styles.underline}`}></div>
+//                 </div>
+//               </div>
+
+//               {/* 右ラッパーここまで */}
+//             </div>
+//           </div>
+//           {/* --------- 横幅全体ラッパーここまで --------- */}
+
+//           {/* --------- 横幅全体ラッパー --------- */}
+//           <div className={`${styles.full_contents_wrapper} flex w-full`}>
+//             {/* --------- 左ラッパー --------- */}
+//             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+//               {/* 副社長 */}
+//               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//                 <div className="flex h-full w-full flex-col pr-[20px]">
+//                   <div className={`${styles.title_box} flex h-full items-center `}>
+//                     <span className={`${styles.title}`}>副社長</span>
+//                     <input
+//                       type="text"
+//                       placeholder=""
+//                       className={`${styles.input_box}`}
+//                       value={seniorVicePresident}
+//                       onChange={(e) => setSeniorVicePresident(e.target.value)}
+//                       onBlur={() => setSeniorVicePresident(toHalfWidth(seniorVicePresident.trim()))}
+//                     />
+//                   </div>
+//                   <div className={`${styles.underline}`}></div>
+//                 </div>
+//               </div>
+
+//               {/* 左ラッパーここまで */}
+//             </div>
+
+//             {/* --------- 右ラッパー --------- */}
+//             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+//               {/* 専務取締役 */}
+//               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//                 <div className="flex h-full w-full flex-col pr-[20px]">
+//                   <div className={`${styles.title_box} flex h-full items-center `}>
+//                     <span className={`${styles.title}`}>専務取締役</span>
+//                     <input
+//                       type="text"
+//                       placeholder=""
+//                       className={`${styles.input_box}`}
+//                       value={seniorManagingDirector}
+//                       onChange={(e) => setSeniorManagingDirector(e.target.value)}
+//                       onBlur={() => setSeniorManagingDirector(toHalfWidth(seniorManagingDirector.trim()))}
+//                     />
+//                   </div>
+//                   <div className={`${styles.underline}`}></div>
+//                 </div>
+//               </div>
+
+//               {/* 右ラッパーここまで */}
+//             </div>
+//           </div>
+//           {/* --------- 横幅全体ラッパーここまで --------- */}
+
+//           {/* --------- 横幅全体ラッパー --------- */}
+//           <div className={`${styles.full_contents_wrapper} flex w-full`}>
+//             {/* --------- 左ラッパー --------- */}
+//             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+//               {/* 常務取締役 */}
+//               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//                 <div className="flex h-full w-full flex-col pr-[20px]">
+//                   <div className={`${styles.title_box} flex h-full items-center `}>
+//                     <span className={`${styles.title}`}>常務取締役</span>
+//                     <input
+//                       type="text"
+//                       placeholder=""
+//                       className={`${styles.input_box}`}
+//                       value={managingDirector}
+//                       onChange={(e) => setManagingDirector(e.target.value)}
+//                       onBlur={() => setManagingDirector(toHalfWidth(managingDirector.trim()))}
+//                     />
+//                   </div>
+//                   <div className={`${styles.underline}`}></div>
+//                 </div>
+//               </div>
+
+//               {/* 左ラッパーここまで */}
+//             </div>
+
+//             {/* --------- 右ラッパー --------- */}
+//             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+//               {/* 取締役 */}
+//               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//                 <div className="flex h-full w-full flex-col pr-[20px]">
+//                   <div className={`${styles.title_box} flex h-full items-center `}>
+//                     <span className={`${styles.title}`}>取締役</span>
+//                     <input
+//                       type="text"
+//                       placeholder=""
+//                       className={`${styles.input_box}`}
+//                       value={director}
+//                       onChange={(e) => setDirector(e.target.value)}
+//                       onBlur={() => setDirector(toHalfWidth(director.trim()))}
+//                     />
+//                   </div>
+//                   <div className={`${styles.underline}`}></div>
+//                 </div>
+//               </div>
+
+//               {/* 右ラッパーここまで */}
+//             </div>
+//           </div>
+//           {/* --------- 横幅全体ラッパーここまで --------- */}
+
+//           {/* --------- 横幅全体ラッパー --------- */}
+//           <div className={`${styles.full_contents_wrapper} flex w-full`}>
+//             {/* --------- 左ラッパー --------- */}
+//             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+//               {/* 役員 */}
+//               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//                 <div className="flex h-full w-full flex-col pr-[20px]">
+//                   <div className={`${styles.title_box} flex h-full items-center `}>
+//                     <span className={`${styles.title}`}>役員</span>
+//                     <input
+//                       type="text"
+//                       placeholder=""
+//                       className={`${styles.input_box}`}
+//                       value={boardMember}
+//                       onChange={(e) => setBoardMember(e.target.value)}
+//                       onBlur={() => setBoardMember(toHalfWidth(boardMember.trim()))}
+//                     />
+//                   </div>
+//                   <div className={`${styles.underline}`}></div>
+//                 </div>
+//               </div>
+
+//               {/* 左ラッパーここまで */}
+//             </div>
+
+//             {/* --------- 右ラッパー --------- */}
+//             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+//               {/* 監査役 */}
+//               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//                 <div className="flex h-full w-full flex-col pr-[20px]">
+//                   <div className={`${styles.title_box} flex h-full items-center `}>
+//                     <span className={`${styles.title}`}>監査役</span>
+//                     <input
+//                       type="text"
+//                       placeholder=""
+//                       className={`${styles.input_box}`}
+//                       value={auditor}
+//                       onChange={(e) => setAuditor(e.target.value)}
+//                       onBlur={() => setAuditor(toHalfWidth(auditor.trim()))}
+//                     />
+//                   </div>
+//                   <div className={`${styles.underline}`}></div>
+//                 </div>
+//               </div>
+
+//               {/* 右ラッパーここまで */}
+//             </div>
+//           </div>
+//           {/* --------- 横幅全体ラッパーここまで --------- */}
+
+//           {/* --------- 横幅全体ラッパー --------- */}
+//           <div className={`${styles.full_contents_wrapper} flex w-full`}>
+//             {/* --------- 左ラッパー --------- */}
+//             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+//               {/* 部長 */}
+//               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//                 <div className="flex h-full w-full flex-col pr-[20px]">
+//                   <div className={`${styles.title_box} flex h-full items-center `}>
+//                     <span className={`${styles.title}`}>部長</span>
+//                     <input
+//                       type="text"
+//                       placeholder=""
+//                       className={`${styles.input_box}`}
+//                       value={manager}
+//                       onChange={(e) => setManager(e.target.value)}
+//                       onBlur={() => setManager(toHalfWidth(manager.trim()))}
+//                     />
+//                   </div>
+//                   <div className={`${styles.underline}`}></div>
+//                 </div>
+//               </div>
+
+//               {/* 左ラッパーここまで */}
+//             </div>
+
+//             {/* --------- 右ラッパー --------- */}
+//             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+//               {/* 担当者 */}
+//               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//                 <div className="flex h-full w-full flex-col pr-[20px]">
+//                   <div className={`${styles.title_box} flex h-full items-center `}>
+//                     <span className={`${styles.title}`}>担当者</span>
+//                     <input
+//                       type="text"
+//                       placeholder=""
+//                       className={`${styles.input_box}`}
+//                       value={member}
+//                       onChange={(e) => setMember(e.target.value)}
+//                       onBlur={() => setMember(toHalfWidth(member.trim()))}
+//                     />
+//                   </div>
+//                   <div className={`${styles.underline}`}></div>
+//                 </div>
+//               </div>
+
+//               {/* 右ラッパーここまで */}
+//             </div>
+//           </div>
+//           {/* --------- 横幅全体ラッパーここまで --------- */}
+
+//           {/* --------- 横幅全部ラッパー --------- */}
+//           <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
+//             {/* 業種 */}
+//             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//               <div className="flex h-full w-full flex-col pr-[20px]">
+//                 <div className={`${styles.title_box} flex h-full items-center `}>
+//                   <span className={`${styles.title}`}>業種</span>
+//                   <select
+//                     name="position_class"
+//                     id="position_class"
+//                     className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+//                     value={industryType}
+//                     onChange={(e) => setIndustryType(e.target.value)}
+//                   >
+//                     <option value=""></option>
+//                     <option value="機械要素・部品">機械要素・部品</option>
+//                     <option value="自動車・輸送機器">自動車・輸送機器</option>
+//                     <option value="電子部品・半導体">電子部品・半導体</option>
+//                     <option value="製造・加工受託">製造・加工受託</option>
+//                     <option value="産業用機械">産業用機械</option>
+//                     <option value="産業用電気機器">産業用電気機器</option>
+//                     <option value="IT・情報通信">IT・情報通信</option>
+//                     <option value="ソフトウェア">ソフトウェア</option>
+//                     <option value="医薬品・バイオ">医薬品・バイオ</option>
+//                     <option value="樹脂・プラスチック">樹脂・プラスチック</option>
+//                     <option value="ゴム製品">ゴム製品</option>
+//                     <option value="鉄/非鉄金属">鉄/非鉄金属</option>
+//                     <option value="民生用電気機器">民生用電気機器</option>
+//                     <option value="航空・宇宙">航空・宇宙</option>
+//                     <option value="CAD/CAM">CAD/CAM</option>
+//                     <option value="建材・資材・什器">建材・資材・什器</option>
+//                     <option value="小売">小売</option>
+//                     <option value="飲食料品">飲食料品</option>
+//                     <option value="飲食店・宿泊業">飲食店・宿泊業</option>
+//                     <option value="公益・特殊・独立行政法人">公益・特殊・独立行政法人</option>
+//                     <option value="水産・農林業">水産・農林業</option>
+//                     <option value="繊維">繊維</option>
+//                     <option value="ガラス・土石製品">ガラス・土石製品</option>
+//                     <option value="造船・重機">造船・重機</option>
+//                     <option value="環境">環境</option>
+//                     <option value="印刷業">印刷業</option>
+//                     <option value="運輸業">運輸業</option>
+//                     <option value="金融・証券・保険業">金融・証券・保険業</option>
+//                     <option value="警察・消防・自衛隊">警察・消防・自衛隊</option>
+//                     <option value="鉱業">鉱業</option>
+//                     <option value="紙・バルブ">紙・バルブ</option>
+//                     <option value="木材">木材</option>
+//                     <option value="ロボット">ロボット</option>
+//                     <option value="試験・分析・測定">試験・分析・測定</option>
+//                     <option value="エネルギー">エネルギー</option>
+//                     <option value="電気・ガス・水道業">電気・ガス・水道業</option>
+//                     <option value="医療・福祉">医療・福祉</option>
+//                     <option value="サービス業">サービス業</option>
+//                     <option value="その他">その他</option>
+//                     <option value="化学">化学</option>
+//                     <option value="セラミックス">セラミックス</option>
+//                     <option value="食品機械">食品機械</option>
+//                     <option value="光学機器">光学機器</option>
+//                     <option value="医療機器">医療機器</option>
+//                     <option value="その他製造">その他製造</option>
+//                     <option value="倉庫・運輸関連業">倉庫・運輸関連業</option>
+//                     <option value="教育・研究機関">教育・研究機関</option>
+//                     <option value="石油・石炭製品">石油・石炭製品</option>
+//                     <option value="商社・卸売">商社・卸売</option>
+//                     <option value="官公庁">官公庁</option>
+//                     <option value="個人">個人</option>
+//                     <option value="不明">不明</option>
+//                   </select>
+//                 </div>
+//                 <div className={`${styles.underline}`}></div>
+//               </div>
+//             </div>
+//           </div>
+//           {/* --------- 横幅全部ラッパーここまで --------- */}
+
+//           {/* --------- 横幅全体ラッパー --------- */}
+//           <div className={`${styles.full_contents_wrapper} flex w-full`}>
+//             {/* --------- 左ラッパー --------- */}
+//             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+//               {/* 製品分類(大分類) */}
+//               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//                 <div className="flex h-full w-full flex-col pr-[20px]">
+//                   <div className={`${styles.title_box} flex h-full items-center `}>
+//                     <span className={`${styles.title}`}>製品分類(大分類)</span>
+//                     <select
+//                       name="position_class"
+//                       id="position_class"
+//                       className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+//                       value={productCategoryL}
+//                       onChange={(e) => setProductCategoryL(e.target.value)}
+//                     >
+//                       <option value=""></option>
+//                       <option value="電子部品・モジュール">電子部品・モジュール</option>
+//                       <option value="機械部品">機械部品</option>
+//                       <option value="製造・加工機械">製造・加工機械</option>
+//                       <option value="科学・理化学機器">科学・理化学機器</option>
+//                       <option value="素材・材料">素材・材料</option>
+//                       <option value="測定・分析">測定・分析</option>
+//                       <option value="画像処理">画像処理</option>
+//                       <option value="制御・電機機器">制御・電機機器</option>
+//                       <option value="工具・消耗品・備品">工具・消耗品・備品</option>
+//                       <option value="設計・生産支援">設計・生産支援</option>
+//                       <option value="IT・ネットワーク">IT・ネットワーク</option>
+//                       <option value="オフィス">オフィス</option>
+//                       <option value="業務支援サービス">業務支援サービス</option>
+//                       <option value="セミナー・スキルアップ">セミナー・スキルアップ</option>
+//                       <option value="その他">その他</option>
+//                     </select>
+//                   </div>
+//                   <div className={`${styles.underline}`}></div>
+//                 </div>
+//               </div>
+
+//               {/* 左ラッパーここまで */}
+//             </div>
+
+//             {/* --------- 右ラッパー --------- */}
+//             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+//               {/* 製品分類(中分類) */}
+//               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//                 <div className="flex h-full w-full flex-col pr-[20px]">
+//                   <div className={`${styles.title_box} flex h-full items-center `}>
+//                     <span className={`${styles.title}`}>製品分類(中分類)</span>
+//                     {!!productCategoryL && (
+//                       <select
+//                         name="position_class"
+//                         id="position_class"
+//                         value={productCategoryM}
+//                         onChange={(e) => setProductCategoryM(e.target.value)}
+//                         className={`${
+//                           productCategoryL ? "" : "hidden"
+//                         } ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+//                       >
+//                         {productCategoryL === "電子部品・モジュール" &&
+//                           productCategoriesM.moduleCategoryM.map((option) => option)}
+//                         {productCategoryL === "機械部品" &&
+//                           productCategoriesM.machinePartsCategoryM.map((option) => option)}
+//                         {productCategoryL === "製造・加工機械" &&
+//                           productCategoriesM.processingMachineryCategoryM.map((option) => option)}
+//                         {productCategoryL === "科学・理化学機器" &&
+//                           productCategoriesM.scienceCategoryM.map((option) => option)}
+//                         {productCategoryL === "素材・材料" &&
+//                           productCategoriesM.materialCategoryM.map((option) => option)}
+//                         {productCategoryL === "測定・分析" &&
+//                           productCategoriesM.analysisCategoryM.map((option) => option)}
+//                         {productCategoryL === "画像処理" &&
+//                           productCategoriesM.imageProcessingCategoryM.map((option) => option)}
+//                         {productCategoryL === "制御・電機機器" &&
+//                           productCategoriesM.controlEquipmentCategoryM.map((option) => option)}
+//                         {productCategoryL === "工具・消耗品・備品" &&
+//                           productCategoriesM.toolCategoryM.map((option) => option)}
+//                         {productCategoryL === "設計・生産支援" &&
+//                           productCategoriesM.designCategoryM.map((option) => option)}
+//                         {productCategoryL === "IT・ネットワーク" &&
+//                           productCategoriesM.ITCategoryM.map((option) => option)}
+//                         {productCategoryL === "オフィス" && productCategoriesM.OfficeCategoryM.map((option) => option)}
+//                         {productCategoryL === "業務支援サービス" &&
+//                           productCategoriesM.businessSupportCategoryM.map((option) => option)}
+//                         {productCategoryL === "セミナー・スキルアップ" &&
+//                           productCategoriesM.skillUpCategoryM.map((option) => option)}
+//                         {productCategoryL === "その他" && productCategoriesM.othersCategoryM.map((option) => option)}
+//                       </select>
+//                     )}
+//                   </div>
+//                   <div className={`${styles.underline}`}></div>
+//                 </div>
+//               </div>
+
+//               {/* 右ラッパーここまで */}
+//             </div>
+//           </div>
+//           {/* --------- 横幅全体ラッパーここまで --------- */}
+
+//           {/* --------- 横幅全部ラッパー --------- */}
+//           <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
+//             {/* 事業概要 */}
+//             <div className={`${styles.row_area} ${styles.text_area_large} flex h-[35px] w-full items-center`}>
+//               <div className="flex h-full w-full flex-col pr-[20px]">
+//                 <div className={`${styles.title_box} flex h-full `}>
+//                   <span className={`${styles.title}`}>事業概要</span>
+//                   <textarea
+//                     name="call_careful_reason"
+//                     id="call_careful_reason"
+//                     cols={30}
+//                     rows={10}
+//                     placeholder=""
+//                     className={`${styles.textarea_box}`}
+//                     value={businessContent}
+//                     onChange={(e) => setBusinessContent(e.target.value)}
+//                   ></textarea>
+//                 </div>
+//                 <div className={`${styles.underline}`}></div>
+//               </div>
+//             </div>
+//           </div>
+//           {/* --------- 横幅全部ラッパーここまで --------- */}
+
+//           {/* --------- 横幅全部ラッパー --------- */}
+//           <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
+//             {/* HP */}
+//             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//               <div className="flex h-full w-full flex-col pr-[20px]">
+//                 <div className={`${styles.title_box} flex h-full items-center `}>
+//                   <span className={`${styles.title}`}>HP</span>
+//                   <input
+//                     type="text"
+//                     placeholder=""
+//                     className={`${styles.input_box}`}
+//                     value={websiteURL}
+//                     onChange={(e) => setWebsiteURL(e.target.value)}
+//                     onBlur={() => setWebsiteURL(toHalfWidth(websiteURL.trim()))}
+//                   />
+//                 </div>
+//                 <div className={`${styles.underline}`}></div>
+//               </div>
+//             </div>
+//           </div>
+//           {/* --------- 横幅全部ラッパーここまで --------- */}
+
+//           {/* --------- 横幅全部ラッパー --------- */}
+//           <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
+//             {/* Email */}
+//             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//               <div className="flex h-full w-full flex-col pr-[20px]">
+//                 <div className={`${styles.title_box} flex h-full items-center `}>
+//                   <span className={`${styles.title}`}>Email</span>
+//                   <input
+//                     type="text"
+//                     placeholder=""
+//                     className={`${styles.input_box}`}
+//                     value={email}
+//                     onChange={(e) => setEmail(e.target.value)}
+//                     onBlur={() => setEmail(toHalfWidth(email.trim()))}
+//                   />
+//                 </div>
+//                 <div className={`${styles.underline}`}></div>
+//               </div>
+//             </div>
+//           </div>
+//           {/* --------- 横幅全部ラッパーここまで --------- */}
+//           {/* --------- 横幅全部ラッパー --------- */}
+//           <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
+//             {/* 主要取引先 */}
+//             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//               <div className="flex h-full w-full flex-col pr-[20px]">
+//                 <div className={`${styles.title_box} flex h-full items-center `}>
+//                   <span className={`${styles.title}`}>主要取引先</span>
+//                   <input
+//                     type="text"
+//                     placeholder=""
+//                     className={`${styles.input_box}`}
+//                     value={clients}
+//                     onChange={(e) => setClients(e.target.value)}
+//                   />
+//                 </div>
+//                 <div className={`${styles.underline}`}></div>
+//               </div>
+//             </div>
+//           </div>
+//           {/* --------- 横幅全部ラッパーここまで --------- */}
+//           {/* --------- 横幅全部ラッパー --------- */}
+//           <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
+//             {/* 主要仕入先 */}
+//             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//               <div className="flex h-full w-full flex-col pr-[20px]">
+//                 <div className={`${styles.title_box} flex h-full items-center `}>
+//                   <span className={`${styles.title}`}>主要仕入先</span>
+//                   <input
+//                     type="text"
+//                     placeholder=""
+//                     className={`${styles.input_box}`}
+//                     value={supplier}
+//                     onChange={(e) => setSupplier(e.target.value)}
+//                   />
+//                 </div>
+//                 <div className={`${styles.underline}`}></div>
+//               </div>
+//             </div>
+//           </div>
+//           {/* --------- 横幅全部ラッパーここまで --------- */}
+
+//           {/* --------- 横幅全部ラッパー --------- */}
+//           <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
+//             {/* 設備 */}
+//             <div className={`${styles.row_area} ${styles.text_area_large} flex h-[35px] w-full items-center`}>
+//               <div className="flex h-full w-full flex-col pr-[20px]">
+//                 <div className={`${styles.title_box} flex h-full `}>
+//                   <span className={`${styles.title}`}>設備</span>
+//                   <textarea
+//                     name="call_careful_reason"
+//                     id="call_careful_reason"
+//                     cols={30}
+//                     rows={10}
+//                     placeholder=""
+//                     className={`${styles.textarea_box}`}
+//                     value={facility}
+//                     onChange={(e) => setFacility(e.target.value)}
+//                   ></textarea>
+//                 </div>
+//                 <div className={`${styles.underline}`}></div>
+//               </div>
+//             </div>
+//           </div>
+//           {/* --------- 横幅全部ラッパーここまで --------- */}
+
+//           {/* --------- 横幅全体ラッパー --------- */}
+//           <div className={`${styles.full_contents_wrapper} flex w-full`}>
+//             {/* --------- 左ラッパー --------- */}
+//             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+//               {/* 事業拠点 */}
+//               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//                 <div className="flex h-full w-full flex-col pr-[20px]">
+//                   <div className={`${styles.title_box} flex h-full items-center `}>
+//                     <span className={`${styles.title}`}>事業拠点</span>
+//                     <input
+//                       type="text"
+//                       placeholder=""
+//                       className={`${styles.input_box}`}
+//                       value={businessSites}
+//                       onChange={(e) => setBusinessSites(e.target.value)}
+//                     />
+//                   </div>
+//                   <div className={`${styles.underline}`}></div>
+//                 </div>
+//               </div>
+
+//               {/* 左ラッパーここまで */}
+//             </div>
+
+//             {/* --------- 右ラッパー --------- */}
+//             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+//               {/* 海外拠点 */}
+//               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//                 <div className="flex h-full w-full flex-col pr-[20px]">
+//                   <div className={`${styles.title_box} flex h-full items-center `}>
+//                     <span className={`${styles.title}`}>海外拠点</span>
+//                     <input
+//                       type="text"
+//                       placeholder=""
+//                       className={`${styles.input_box}`}
+//                       value={overseasBases}
+//                       onChange={(e) => setOverseasBases(e.target.value)}
+//                     />
+//                   </div>
+//                   <div className={`${styles.underline}`}></div>
+//                 </div>
+//               </div>
+
+//               {/* 右ラッパーここまで */}
+//             </div>
+//           </div>
+//           {/* --------- 横幅全体ラッパーここまで --------- */}
+
+//           {/* --------- 横幅全部ラッパー --------- */}
+//           <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
+//             {/* グループ会社 */}
+//             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//               <div className="flex h-full w-full flex-col pr-[20px]">
+//                 <div className={`${styles.title_box} flex h-full items-center `}>
+//                   <span className={`${styles.title}`}>グループ会社</span>
+//                   <input
+//                     type="text"
+//                     placeholder=""
+//                     className={`${styles.input_box}`}
+//                     value={groupCompany}
+//                     onChange={(e) => setGroupCompany(e.target.value)}
+//                   />
+//                 </div>
+//                 <div className={`${styles.underline}`}></div>
+//               </div>
+//             </div>
+//           </div>
+//           {/* --------- 横幅全部ラッパーここまで --------- */}
+
+//           {/* --------- 横幅全体ラッパー --------- */}
+//           <div className={`${styles.full_contents_wrapper} flex w-full`}>
+//             {/* --------- 左ラッパー --------- */}
+//             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+//               {/* 予算申請月1 */}
+//               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//                 <div className="flex h-full w-full flex-col pr-[20px]">
+//                   <div className={`${styles.title_box} flex h-full items-center `}>
+//                     <span className={`${styles.title}`}>予算申請月1</span>
+//                     <select
+//                       name="budget_request_month1"
+//                       id="budget_request_month1"
+//                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+//                       value={budgetRequestMonth1}
+//                       onChange={(e) => setBudgetRequestMonth1(e.target.value)}
+//                     >
+//                       <option value=""></option>
+//                       <option value="1月">1月</option>
+//                       <option value="2月">2月</option>
+//                       <option value="3月">3月</option>
+//                       <option value="4月">4月</option>
+//                       <option value="5月">5月</option>
+//                       <option value="6月">6月</option>
+//                       <option value="7月">7月</option>
+//                       <option value="8月">8月</option>
+//                       <option value="9月">9月</option>
+//                       <option value="10月">10月</option>
+//                       <option value="11月">11月</option>
+//                       <option value="12月">12月</option>
+//                     </select>
+//                   </div>
+//                   <div className={`${styles.underline}`}></div>
+//                 </div>
+//               </div>
+
+//               {/* 左ラッパーここまで */}
+//             </div>
+
+//             {/* --------- 右ラッパー --------- */}
+//             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+//               {/* 予算申請月2 */}
+//               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//                 <div className="flex h-full w-full flex-col pr-[20px]">
+//                   <div className={`${styles.title_box} flex h-full items-center `}>
+//                     <span className={`${styles.title}`}>予算申請月2</span>
+//                     <select
+//                       name="budget_request_month2"
+//                       id="budget_request_month2"
+//                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+//                       value={budgetRequestMonth2}
+//                       onChange={(e) => setBudgetRequestMonth2(e.target.value)}
+//                     >
+//                       <option value=""></option>
+//                       <option value="1月">1月</option>
+//                       <option value="2月">2月</option>
+//                       <option value="3月">3月</option>
+//                       <option value="4月">4月</option>
+//                       <option value="5月">5月</option>
+//                       <option value="6月">6月</option>
+//                       <option value="7月">7月</option>
+//                       <option value="8月">8月</option>
+//                       <option value="9月">9月</option>
+//                       <option value="10月">10月</option>
+//                       <option value="11月">11月</option>
+//                       <option value="12月">12月</option>
+//                     </select>
+//                   </div>
+//                   <div className={`${styles.underline}`}></div>
+//                 </div>
+//               </div>
+
+//               {/* 右ラッパーここまで */}
+//             </div>
+//           </div>
+//           {/* --------- 横幅全体ラッパーここまで --------- */}
+
+//           {/* --------- 横幅全部ラッパー --------- */}
+//           <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
+//             {/* 法人番号 */}
+//             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+//               <div className="flex h-full w-full flex-col pr-[20px]">
+//                 <div className={`${styles.title_box} flex h-full items-center `}>
+//                   <span className={`${styles.title}`}>法人番号</span>
+//                   <input
+//                     type="text"
+//                     placeholder=""
+//                     className={`${styles.input_box}`}
+//                     value={corporateNumber}
+//                     onChange={(e) => setCorporateNumber(e.target.value)}
+//                     onBlur={() => setCorporateNumber(toHalfWidth(corporateNumber.trim()))}
+//                   />
+//                 </div>
+//                 <div className={`${styles.underline}`}></div>
+//               </div>
+//             </div>
+//           </div>
+//           {/* --------- 横幅全部ラッパーここまで --------- */}
+
+//           {/* メインコンテンツ コンテナ ここまで */}
+//         </div>
+//       </div>
+//     </>
+//   );
+// };

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import styles from "./InsertNewMeetingModal.module.css";
+import styles from "./UpdateMeetingModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
@@ -11,10 +11,10 @@ import productCategoriesM from "@/utils/productCategoryM";
 import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
 import { MdClose } from "react-icons/md";
 
-export const InsertNewMeetingModal = () => {
-  const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
-  const selectedRowDataActivity = useDashboardStore((state) => state.selectedRowDataActivity);
-  const setIsOpenInsertNewMeetingModal = useDashboardStore((state) => state.setIsOpenInsertNewMeetingModal);
+export const UpdateMeetingModal = () => {
+  //   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
+  const selectedRowDataMeeting = useDashboardStore((state) => state.selectedRowDataMeeting);
+  const setIsOpenUpdateMeetingModal = useDashboardStore((state) => state.setIsOpenUpdateMeetingModal);
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   // const theme = useThemeStore((state) => state.theme);
@@ -68,11 +68,130 @@ export const InsertNewMeetingModal = () => {
   const [meetingMemberName, setMeetingMemberName] = useState(
     userProfileState?.profile_name ? userProfileState.profile_name : ""
   );
-  const [departmentName, setDepartmentName] = useState(userProfileState?.department ? userProfileState.department : "");
   const [meetingYearMonth, setMeetingYearMonth] = useState<number | null>(Number(meetingYearMonthInitialValue));
 
   const supabase = useSupabaseClient();
-  const { createMeetingMutation } = useMutateMeeting();
+  const { updateMeetingMutation } = useMutateMeeting();
+
+  function formatTime(timeStr: string) {
+    const [hour, minute] = timeStr.split(":");
+    return `${hour}:${minute}`;
+  }
+
+  // 初回マウント時に選択中の担当者&会社の列データの情報をStateに格納
+  useEffect(() => {
+    if (!selectedRowDataMeeting) return;
+    const selectedInitialMeetingDate = selectedRowDataMeeting.planned_date
+      ? new Date(selectedRowDataMeeting.planned_date)
+      : null;
+    const selectedYear = initialDate.getFullYear(); // 例: 2023
+    const selectedMonth = initialDate.getMonth() + 1; // getMonth()は0から11で返されるため、+1して1から12に調整
+    const selectedYearMonthInitialValue = `${year}${month < 10 ? "0" + month : month}`; // 月が1桁の場合は先頭に0を追加
+
+    // let _activity_date = selectedRowDataActivity.activity_date ? new Date(selectedRowDataActivity.activity_date) : null;
+    let _meeting_type = selectedRowDataMeeting.meeting_type ? selectedRowDataMeeting.meeting_type : "";
+    let _web_tool = selectedRowDataMeeting.web_tool ? selectedRowDataMeeting.web_tool : "";
+    let _planned_date = selectedInitialMeetingDate;
+    let _planned_start_time = selectedRowDataMeeting.planned_start_time
+      ? formatTime(selectedRowDataMeeting.planned_start_time)
+      : "";
+    let _planned_purpose = selectedRowDataMeeting.planned_purpose ? selectedRowDataMeeting.planned_purpose : "";
+    let _planned_duration = selectedRowDataMeeting.planned_duration ? selectedRowDataMeeting.planned_duration : null;
+    let _planned_appoint_check_flag = selectedRowDataMeeting.planned_appoint_check_flag
+      ? selectedRowDataMeeting.planned_appoint_check_flag
+      : false;
+    let _planned_product1 = selectedRowDataMeeting.planned_product1 ? selectedRowDataMeeting.planned_product1 : "";
+    let _planned_product2 = selectedRowDataMeeting.planned_product2 ? selectedRowDataMeeting.planned_product2 : "";
+    let _planned_comment = selectedRowDataMeeting.planned_comment ? selectedRowDataMeeting.planned_comment : "";
+    let _result_date = selectedRowDataMeeting.result_date ? new Date(selectedRowDataMeeting.result_date) : null;
+    let _result_start_time = selectedRowDataMeeting.result_start_time
+      ? formatTime(selectedRowDataMeeting.result_start_time)
+      : "";
+    let _result_end_time = selectedRowDataMeeting.result_end_time
+      ? formatTime(selectedRowDataMeeting.result_end_time)
+      : "";
+    let _result_duration = selectedRowDataMeeting.result_duration ? selectedRowDataMeeting.result_duration : null;
+    let _result_number_of_meeting_participants = selectedRowDataMeeting.result_number_of_meeting_participants
+      ? selectedRowDataMeeting.result_number_of_meeting_participants
+      : null;
+    let _result_presentation_product1 = selectedRowDataMeeting.result_presentation_product1
+      ? selectedRowDataMeeting.result_presentation_product1
+      : "";
+    let _result_presentation_product2 = selectedRowDataMeeting.result_presentation_product2
+      ? selectedRowDataMeeting.result_presentation_product2
+      : "";
+    let _result_presentation_product3 = selectedRowDataMeeting.result_presentation_product3
+      ? selectedRowDataMeeting.result_presentation_product3
+      : "";
+    let _result_presentation_product4 = selectedRowDataMeeting.result_presentation_product4
+      ? selectedRowDataMeeting.result_presentation_product4
+      : "";
+    let _result_presentation_product5 = selectedRowDataMeeting.result_presentation_product5
+      ? selectedRowDataMeeting.result_presentation_product5
+      : "";
+    let _result_category = selectedRowDataMeeting.result_category ? selectedRowDataMeeting.result_category : "";
+    let _result_summary = selectedRowDataMeeting.result_summary ? selectedRowDataMeeting.result_summary : "";
+    let _result_negotiate_decision_maker = selectedRowDataMeeting.result_negotiate_decision_maker
+      ? selectedRowDataMeeting.result_negotiate_decision_maker
+      : "";
+    let _pre_meeting_participation_request = selectedRowDataMeeting.pre_meeting_participation_request
+      ? selectedRowDataMeeting.pre_meeting_participation_request
+      : "";
+    let _meeting_participation_request = selectedRowDataMeeting.meeting_participation_request
+      ? selectedRowDataMeeting.meeting_participation_request
+      : "";
+    let _meeting_business_office = selectedRowDataMeeting.meeting_business_office
+      ? selectedRowDataMeeting.meeting_business_office
+      : "";
+    let _meeting_department = selectedRowDataMeeting.meeting_department
+      ? selectedRowDataMeeting.meeting_department
+      : "";
+    let _meeting_member_name = selectedRowDataMeeting.meeting_member_name
+      ? selectedRowDataMeeting.meeting_member_name
+      : "";
+    let _meeting_year_month = selectedRowDataMeeting.meeting_year_month
+      ? selectedRowDataMeeting.meeting_year_month
+      : Number(selectedYearMonthInitialValue);
+
+    setMeetingType(_meeting_type);
+    setWebTool(_web_tool);
+    setPlannedDate(_planned_date);
+    setPlannedStartTime(_planned_start_time);
+    const [plannedStartHour, plannedStartMinute] = _planned_start_time ? _planned_start_time.split(":") : ["", ""];
+    setPlannedStartTimeHour(plannedStartHour);
+    setPlannedStartTimeMinute(plannedStartMinute);
+    setPlannedPurpose(_planned_purpose);
+    setPlannedDuration(_planned_duration);
+    setPlannedAppointCheckFlag(_planned_appoint_check_flag);
+    setPlannedProduct1(_planned_product1);
+    setPlannedProduct2(_planned_product2);
+    setPlannedComment(_planned_comment);
+    setResultDate(_result_date);
+    setResultStartTime(_result_start_time);
+    const [resultStartHour, resultStartMinute] = _result_start_time ? _result_start_time.split(":") : ["", ""];
+    setResultStartTimeHour(resultStartHour);
+    setResultStartTimeMinute(resultStartMinute);
+    setResultEndTime(_result_end_time);
+    const [resultEndHour, resultEndMinute] = _result_end_time ? _result_end_time.split(":") : ["", ""];
+    setResultEndTimeHour(resultEndHour);
+    setResultEndTimeMinute(resultEndMinute);
+    setResultDuration(_result_duration);
+    setResultNumberOfMeetingParticipants(_result_number_of_meeting_participants);
+    setResultPresentationProduct1(_result_presentation_product1);
+    setResultPresentationProduct2(_result_presentation_product2);
+    setResultPresentationProduct3(_result_presentation_product3);
+    setResultPresentationProduct4(_result_presentation_product4);
+    setResultPresentationProduct5(_result_presentation_product5);
+    setResultCategory(_result_category);
+    setResultSummary(_result_summary);
+    setResultNegotiateDecisionMaker(_result_negotiate_decision_maker);
+    setPreMeetingParticipationRequest(_pre_meeting_participation_request);
+    setMeetingParticipationRequest(_meeting_participation_request);
+    setMeetingBusinessOffice(_meeting_business_office);
+    setMeetingDepartment(_meeting_department);
+    setMeetingMemberName(_meeting_member_name);
+    setMeetingYearMonth(_meeting_year_month);
+  }, []);
 
   //   useEffect(() => {
   //     if (!userProfileState) return;
@@ -117,17 +236,17 @@ export const InsertNewMeetingModal = () => {
 
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
-    setIsOpenInsertNewMeetingModal(false);
+    setIsOpenUpdateMeetingModal(false);
   };
   const handleSaveAndClose = async () => {
     // if (!summary) return alert("活動概要を入力してください");
     // if (!MeetingType) return alert("活動タイプを選択してください");
     if (!userProfileState?.id) return alert("ユーザー情報が存在しません");
-    if (!selectedRowDataActivity?.company_id) return alert("相手先の会社情報が存在しません");
-    if (!selectedRowDataActivity?.contact_id) return alert("担当者情報が存在しません");
+    if (!selectedRowDataMeeting?.company_id) return alert("相手先の会社情報が存在しません");
+    if (!selectedRowDataMeeting?.contact_id) return alert("担当者情報が存在しません");
     if (plannedPurpose === "") return alert("訪問目的を選択してください");
-    if (plannedStartTimeHour === "") return alert("面談開始 時間を選択してください");
-    if (plannedStartTimeMinute === "") return alert("面談開始 分を選択してください");
+    if (plannedStartTimeHour === "") return alert("予定面談開始 時間を選択してください");
+    if (plannedStartTimeMinute === "") return alert("予定面談開始 分を選択してください");
     if (!meetingYearMonth) return alert("活動年月度を入力してください");
     if (meetingMemberName === "") return alert("自社担当を入力してください");
 
@@ -135,12 +254,13 @@ export const InsertNewMeetingModal = () => {
 
     // 新規作成するデータをオブジェクトにまとめる
     const newMeeting = {
+      id: selectedRowDataMeeting.meeting_id,
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
       created_by_user_id: userProfileState?.id ? userProfileState.id : null,
       created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
       created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
-      client_contact_id: selectedRowDataActivity.contact_id,
-      client_company_id: selectedRowDataActivity.company_id,
+      client_contact_id: selectedRowDataMeeting.contact_id,
+      client_company_id: selectedRowDataMeeting.company_id,
       meeting_type: meetingType,
       web_tool: webTool,
       planned_date: plannedDate ? plannedDate.toISOString() : null,
@@ -183,7 +303,7 @@ export const InsertNewMeetingModal = () => {
     );
 
     // supabaseにINSERT
-    createMeetingMutation.mutate(newMeeting);
+    updateMeetingMutation.mutate(newMeeting);
 
     // setLoadingGlobalState(false);
 
@@ -299,10 +419,9 @@ export const InsertNewMeetingModal = () => {
   const minutes = Array.from({ length: 60 }, (_, i) => (i < 10 ? "0" + i : "" + i));
 
   console.log(
-    "面談予定作成モーダル selectedRowDataContact",
-    selectedRowDataContact,
-    "selectedRowDataActivity",
-    selectedRowDataActivity,
+    "面談予定作成モーダル ",
+    "selectedRowDataMeeting",
+    selectedRowDataMeeting,
     "plannedStartTime",
     plannedStartTime
   );
@@ -321,7 +440,7 @@ export const InsertNewMeetingModal = () => {
           <div className="font-samibold cursor-pointer hover:text-[#aaa]" onClick={handleCancelAndReset}>
             キャンセル
           </div>
-          <div className="-translate-x-[25px] font-bold">面談予定 新規作成</div>
+          <div className="-translate-x-[25px] font-bold">面談 編集</div>
 
           <div
             className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}

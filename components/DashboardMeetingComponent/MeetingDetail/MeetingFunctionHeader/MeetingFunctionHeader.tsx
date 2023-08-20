@@ -17,6 +17,7 @@ const MeetingFunctionHeaderMemo: FC = () => {
   //   const setIsOpenInsertNewMeetingModal = useDashboardStore((state) => state.setIsOpenInsertNewMeetingModal);
   const setIsOpenUpdateMeetingModal = useDashboardStore((state) => state.setIsOpenUpdateMeetingModal);
   const setIsOpenInsertNewMeetingModal = useDashboardStore((state) => state.setIsOpenInsertNewMeetingModal);
+  const setIsOpenInsertNewActivityModal = useDashboardStore((state) => state.setIsOpenInsertNewActivityModal);
   //   const setIsOpenInsertNewMeetingModal = useDashboardStore((state) => state.setIsOpenInsertNewMeetingModal);
 
   // 上画面の選択中の列データ会社
@@ -122,10 +123,10 @@ const MeetingFunctionHeaderMemo: FC = () => {
             // 担当者ページの選択列をリセット
             setSelectedRowDataContact(null);
             setLoadingGlobalState(false);
-            setIsOpenInsertNewMeetingModal(true);
+            setIsOpenInsertNewActivityModal(true);
           }}
         />
-        <RippleButton
+        {/* <RippleButton
           title={`活動編集`}
           classText={`select-none ${searchMode || !selectedRowDataMeeting ? `cursor-not-allowed` : ``}`}
           borderRadius="2px"
@@ -136,7 +137,7 @@ const MeetingFunctionHeaderMemo: FC = () => {
             setLoadingGlobalState(false);
             setIsOpenUpdateMeetingModal(true);
           }}
-        />
+        /> */}
         <RippleButton
           title={`面談作成`}
           classText={`select-none ${searchMode || !selectedRowDataMeeting ? `cursor-not-allowed` : ``}`}
@@ -147,6 +148,18 @@ const MeetingFunctionHeaderMemo: FC = () => {
             console.log("面談作成 クリック");
             setLoadingGlobalState(false);
             setIsOpenInsertNewMeetingModal(true);
+          }}
+        />
+        <RippleButton
+          title={`面談編集`}
+          classText={`select-none ${searchMode || !selectedRowDataMeeting ? `cursor-not-allowed` : ``}`}
+          borderRadius="2px"
+          clickEventHandler={() => {
+            if (searchMode) return;
+            if (!selectedRowDataMeeting) return alert("担当者を選択してください");
+            console.log("活動編集 クリック");
+            setLoadingGlobalState(false);
+            setIsOpenUpdateMeetingModal(true);
           }}
         />
       </div>
