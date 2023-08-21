@@ -113,7 +113,7 @@ const MeetingFunctionHeaderMemo: FC = () => {
           }}
         /> */}
         <RippleButton
-          title={`活動作成`}
+          title={`活動_作成`}
           classText={`select-none ${searchMode || !selectedRowDataMeeting ? `cursor-not-allowed` : ``}`}
           borderRadius="2px"
           clickEventHandler={() => {
@@ -139,7 +139,7 @@ const MeetingFunctionHeaderMemo: FC = () => {
           }}
         /> */}
         <RippleButton
-          title={`面談作成`}
+          title={`面談_作成`}
           classText={`select-none ${searchMode || !selectedRowDataMeeting ? `cursor-not-allowed` : ``}`}
           borderRadius="2px"
           clickEventHandler={() => {
@@ -151,7 +151,7 @@ const MeetingFunctionHeaderMemo: FC = () => {
           }}
         />
         <RippleButton
-          title={`面談編集`}
+          title={`面談_結果入力/編集`}
           classText={`select-none ${searchMode || !selectedRowDataMeeting ? `cursor-not-allowed` : ``}`}
           borderRadius="2px"
           clickEventHandler={() => {

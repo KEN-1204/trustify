@@ -227,6 +227,7 @@
   --color-text-under-value: #424242;
   /* インプットボックス */
   --color-bg-under-input: #fff;
+  --color-bg-under-input: #fafafa;
   --color-bg-under-input-gray: #fafafa;
   --color-bg-under-input-box-shadow: inset 0px 0px 0px 1px #ffffff90, 0px 0px 0px 1px #ccc;
   --color-bg-under-input-active-box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f);

@@ -200,6 +200,31 @@ export const UpdateMeetingModal = () => {
   //     setMeetingDepartment(userProfileState.department ? userProfileState.department : "");
   //   }, []);
 
+  // 面談開始から面談終了時間の間の面談時間を計算
+  function isCompleteTime(timeStr: string) {
+    const [hour, minute] = timeStr.split(":");
+    return hour && minute;
+  }
+  const calculateDuration = (startTimeStr: string, endTimeStr: string) => {
+    // startTimeStr および endTimeStr が完全に設定されているかチェック
+    if (!isCompleteTime(startTimeStr) || !isCompleteTime(endTimeStr)) {
+      return null;
+    }
+
+    // 両方の時間が完全に設定されている場合のみ計算を実行
+    const [startHour, startMinute] = startTimeStr.split(":").map(Number);
+    const [endHour, endMinute] = endTimeStr.split(":").map(Number);
+
+    const startDate = new Date(0, 0, 0, startHour, startMinute);
+    const endDate = new Date(0, 0, 0, endHour, endMinute);
+
+    const diffMs = endDate.getTime() - startDate.getTime();
+
+    // ミリ秒から分に変換
+    const diffMinutes = diffMs / (1000 * 60);
+    return diffMinutes;
+  };
+
   // 予定面談開始時間、時間、分、結合用useEffect
   useEffect(() => {
     // const formattedTime = `${plannedStartTimeHour}:${plannedStartTimeMinute}`;
@@ -233,6 +258,15 @@ export const UpdateMeetingModal = () => {
       setResultEndTime(""); // or setResultStartTime('');
     }
   }, [resultEndTimeHour, resultEndTimeMinute]);
+  // 面談時間計算用useEffect
+  useEffect(() => {
+    if (isCompleteTime(resultStartTime) && isCompleteTime(resultEndTime)) {
+      const duration = calculateDuration(resultStartTime, resultEndTime);
+      setResultDuration(duration);
+    } else {
+      setResultDuration(null);
+    }
+  }, [resultStartTime, resultEndTime]);
 
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
@@ -423,7 +457,9 @@ export const UpdateMeetingModal = () => {
     "selectedRowDataMeeting",
     selectedRowDataMeeting,
     "plannedStartTime",
-    plannedStartTime
+    plannedStartTime,
+    "面談時間 result_duration",
+    resultDuration
   );
 
   return (
@@ -440,7 +476,7 @@ export const UpdateMeetingModal = () => {
           <div className="font-samibold cursor-pointer hover:text-[#aaa]" onClick={handleCancelAndReset}>
             キャンセル
           </div>
-          <div className="-translate-x-[25px] font-bold">面談 編集</div>
+          <div className="-translate-x-[25px] font-bold">面談 結果入力/編集</div>
 
           <div
             className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
@@ -451,6 +487,23 @@ export const UpdateMeetingModal = () => {
         </div>
         {/* メインコンテンツ コンテナ */}
         <div className={`${styles.main_contents_container}`}>
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* 予定 */}
+            <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className="flex h-full w-full flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full items-center `}>
+                  <span className={`${styles.section_title}`}>予定</span>
+
+                  {/* <span className={`${styles.value} ${styles.value_highlight}`}>
+                      {selectedRowDataMeeting?.company_name ? selectedRowDataMeeting?.company_name : ""}
+                    </span> */}
+                </div>
+                <div className={`${styles.section_underline}`}></div>
+              </div>
+            </div>
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
           {/* --------- 横幅全体ラッパー --------- */}
           <div className={`${styles.full_contents_wrapper} flex w-full`}>
             {/* --------- 左ラッパー --------- */}
@@ -587,19 +640,17 @@ export const UpdateMeetingModal = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px]`}>事前同席依頼</span>
                     <select
-                      name="number_of_employees_class"
-                      id="number_of_employees_class"
                       className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={preMeetingParticipationRequest}
                       onChange={(e) => {
-                        if (e.target.value === "") return alert("活動タイプを選択してください");
+                        // if (e.target.value === "") return alert("活動タイプを選択してください");
                         setPreMeetingParticipationRequest(e.target.value);
                       }}
                     >
                       <option value=""></option>
                       <option value="同席依頼無し">同席依頼無し</option>
-                      <option value="同席依頼済み 承諾無し">同席依頼済み 承諾無し</option>
-                      <option value="同席依頼済み 承諾有り">同席依頼済み 承諾有り</option>
+                      <option value="同席依頼済み 同席OK">同席依頼済み 同席OK</option>
+                      <option value="同席依頼済み 同席NG">同席依頼済み 同席NG</option>
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -615,7 +666,7 @@ export const UpdateMeetingModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>面談時間(分)</span>
+                    <span className={`${styles.title} !min-w-[140px] !text-[16px]`}>予定_面談時間(分)</span>
                     <input
                       type="number"
                       min="0"
@@ -624,7 +675,7 @@ export const UpdateMeetingModal = () => {
                       value={plannedDuration === null ? "" : plannedDuration}
                       onChange={(e) => {
                         const val = e.target.value;
-                        if (val === "") {
+                        if (val === "" || val === "0") {
                           setPlannedDuration(null);
                         } else {
                           const numValue = Number(val);
@@ -908,6 +959,512 @@ export const UpdateMeetingModal = () => {
 
               {/* 右ラッパーここまで */}
             </div>
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* ==================================== 結果エリア ==================================== */}
+            <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className="flex h-full w-full flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full items-center `}>
+                  <span className={`${styles.section_title}`}>結果</span>
+
+                  {/* <span className={`${styles.value} ${styles.value_highlight}`}>
+                      {selectedRowDataMeeting?.company_name ? selectedRowDataMeeting?.company_name : ""}
+                    </span> */}
+                </div>
+                <div className={`${styles.section_underline}`}></div>
+              </div>
+            </div>
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* ●面談日 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title} !min-w-[140px]`}>●面談日</span>
+                    <DatePickerCustomInput startDate={resultDate} setStartDate={setResultDate} />
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 左ラッパーここまで */}
+            </div>
+
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* ●面談タイプ */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>●面談タイプ</span>
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={meetingType}
+                      onChange={(e) => {
+                        setMeetingType(e.target.value);
+                      }}
+                    >
+                      <option value="訪問">訪問</option>
+                      <option value="WEB">WEB</option>
+                    </select> */}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 右ラッパーここまで */}
+            </div>
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* 面談開始 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title} !min-w-[140px]`}>面談開始</span>
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      placeholder="時"
+                      value={resultStartTimeHour}
+                      onChange={(e) => setResultStartTimeHour(e.target.value === "" ? "" : e.target.value)}
+                    >
+                      <option value=""></option>
+                      {hours.map((hour) => (
+                        <option key={hour} value={hour}>
+                          {hour}
+                        </option>
+                      ))}
+                    </select>
+
+                    <span className="mx-[10px]">時</span>
+
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      placeholder="分"
+                      value={resultStartTimeMinute}
+                      onChange={(e) => setResultStartTimeMinute(e.target.value === "" ? "" : e.target.value)}
+                    >
+                      <option value=""></option>
+                      {minutes.map((minute) => (
+                        <option key={minute} value={minute}>
+                          {minute}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="mx-[10px]">分</span>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 左ラッパーここまで */}
+            </div>
+
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* 面談終了 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title} !min-w-[140px]`}>面談終了</span>
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      placeholder="時"
+                      value={resultEndTimeHour}
+                      onChange={(e) => setResultEndTimeHour(e.target.value === "" ? "" : e.target.value)}
+                    >
+                      <option value=""></option>
+                      {hours.map((hour) => (
+                        <option key={hour} value={hour}>
+                          {hour}
+                        </option>
+                      ))}
+                    </select>
+
+                    <span className="mx-[10px]">時</span>
+
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      placeholder="分"
+                      value={resultEndTimeMinute}
+                      onChange={(e) => setResultEndTimeMinute(e.target.value === "" ? "" : e.target.value)}
+                    >
+                      <option value=""></option>
+                      {minutes.map((minute) => (
+                        <option key={minute} value={minute}>
+                          {minute}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="mx-[10px]">分</span>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 右ラッパーここまで */}
+            </div>
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* 面談人数 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title} !min-w-[140px]`}>面談人数</span>
+                    <input
+                      type="number"
+                      min="0"
+                      className={`${styles.input_box}`}
+                      placeholder=""
+                      value={resultNumberOfMeetingParticipants === null ? "" : resultNumberOfMeetingParticipants}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "" || val === "0") {
+                          setResultNumberOfMeetingParticipants(null);
+                        } else {
+                          const numValue = Number(val);
+
+                          // 入力値がマイナスかチェック
+                          if (numValue < 0) {
+                            setResultNumberOfMeetingParticipants(0); // ここで0に設定しているが、必要に応じて他の正の値に変更することもできる
+                          } else {
+                            setResultNumberOfMeetingParticipants(numValue);
+                          }
+                        }
+                      }}
+                    />
+                    {/* バツボタン */}
+                    {resultNumberOfMeetingParticipants && (
+                      <div
+                        className={`${styles.close_btn_number}`}
+                        onClick={() => setResultNumberOfMeetingParticipants(null)}
+                      >
+                        <MdClose className="text-[20px] " />
+                      </div>
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 左ラッパーここまで */}
+            </div>
+
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* 面談時間(分) */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title} !min-w-[140px]`}>面談時間(分)</span>
+                    <input
+                      type="number"
+                      min="0"
+                      className={`${styles.input_box} pointer-events-none`}
+                      placeholder=""
+                      value={resultDuration === null ? "" : resultDuration}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "") {
+                          setResultDuration(null);
+                        } else {
+                          const numValue = Number(val);
+
+                          // 入力値がマイナスかチェック
+                          if (numValue < 0) {
+                            setResultDuration(0); // ここで0に設定しているが、必要に応じて他の正の値に変更することもできる
+                          } else {
+                            setResultDuration(numValue);
+                          }
+                        }
+                      }}
+                    />
+                    {/* バツボタン */}
+                    {/* {resultDuration && (
+                      <div className={`${styles.close_btn_number}`} onClick={() => setResultDuration(null)}>
+                        <MdClose className="text-[20px] " />
+                      </div>
+                    )} */}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 右ラッパーここまで */}
+            </div>
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* 実施商品1 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title} !min-w-[140px]`}>実施商品1</span>
+                    <input
+                      type="text"
+                      placeholder="面談で紹介した商品を入力してください"
+                      required
+                      className={`${styles.input_box}`}
+                      value={resultPresentationProduct1}
+                      onChange={(e) => setResultPresentationProduct1(e.target.value)}
+                      onBlur={() => setResultPresentationProduct1(toHalfWidth(resultPresentationProduct1.trim()))}
+                    />
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 左ラッパーここまで */}
+            </div>
+
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* 実施商品2 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title} !min-w-[140px]`}>実施商品2</span>
+                    <input
+                      type="text"
+                      placeholder="2つ目に紹介した商品があれば入力してください"
+                      required
+                      className={`${styles.input_box}`}
+                      value={resultPresentationProduct2}
+                      onChange={(e) => setResultPresentationProduct2(e.target.value)}
+                      onBlur={() => setResultPresentationProduct2(toHalfWidth(resultPresentationProduct2.trim()))}
+                    />
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+            </div>
+            {/* 右ラッパーここまで */}
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* 実施商品3 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title} !min-w-[140px]`}>実施商品3</span>
+                    <input
+                      type="text"
+                      placeholder="3つ目に紹介した商品があれば入力してください"
+                      required
+                      className={`${styles.input_box}`}
+                      value={resultPresentationProduct3}
+                      onChange={(e) => setResultPresentationProduct3(e.target.value)}
+                      onBlur={() => setResultPresentationProduct3(toHalfWidth(resultPresentationProduct3.trim()))}
+                    />
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 左ラッパーここまで */}
+            </div>
+
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* 実施商品4 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title} !min-w-[140px]`}>実施商品4</span>
+                    <input
+                      type="text"
+                      placeholder="4つ目に紹介した商品があれば入力してください"
+                      required
+                      className={`${styles.input_box}`}
+                      value={resultPresentationProduct4}
+                      onChange={(e) => setResultPresentationProduct4(e.target.value)}
+                      onBlur={() => setResultPresentationProduct4(toHalfWidth(resultPresentationProduct4.trim()))}
+                    />
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+            </div>
+            {/* 右ラッパーここまで */}
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* 実施商品5 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title} !min-w-[140px]`}>実施商品5</span>
+                    <input
+                      type="text"
+                      placeholder="5つ目に紹介した商品があれば入力してください"
+                      required
+                      className={`${styles.input_box}`}
+                      value={resultPresentationProduct5}
+                      onChange={(e) => setResultPresentationProduct5(e.target.value)}
+                      onBlur={() => setResultPresentationProduct5(toHalfWidth(resultPresentationProduct5.trim()))}
+                    />
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 左ラッパーここまで */}
+            </div>
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全部ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
+            {/* 結果ｺﾒﾝﾄ */}
+            <div className={`${styles.row_area} ${styles.text_area_xl} flex h-[35px] w-full items-center`}>
+              <div className="flex h-full w-full flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full `}>
+                  <span className={`${styles.title} !min-w-[140px]`}>結果ｺﾒﾝﾄ</span>
+                  <textarea
+                    cols={30}
+                    // rows={10}
+                    placeholder=""
+                    className={`${styles.textarea_box}`}
+                    value={resultSummary}
+                    onChange={(e) => setResultSummary(e.target.value)}
+                  ></textarea>
+                </div>
+                <div className={`${styles.underline}`}></div>
+              </div>
+            </div>
+          </div>
+          {/* --------- 横幅全部ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`flex h-full w-full flex-col`}>
+              {/* 面談結果 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-[50%] flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title} !min-w-[140px]`}>面談結果</span>
+                    <select
+                      className={`mr-auto h-full w-[100%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={resultCategory}
+                      onChange={(e) => {
+                        // if (e.target.value === "") return alert("訪問目的を選択してください");
+                        setResultCategory(e.target.value);
+                      }}
+                    >
+                      <option value="">面談結果を選択してください</option>
+                      <option value="展開F(当期中に導入の可能性あり)">展開F(当期中に導入の可能性あり)</option>
+                      <option value="展開N(来期導入の可能性あり)">展開N(来期導入の可能性あり)</option>
+                      <option value="展開継続">展開継続</option>
+                      <option value="時期尚早">時期尚早</option>
+                      <option value="頻度低い(ニーズあるが頻度低く導入には及ばず)">
+                        頻度低い(ニーズあるが頻度低く導入には及ばず)
+                      </option>
+                      <option value="結果出ず(再度面談や検証が必要)">結果出ず(再度面談や検証が必要)</option>
+                      <option value="担当者の推進力無し(ニーズあり、上長・キーマンにあたる必要有り)">
+                        担当者の推進力無し(ニーズあり、上長・キーマンにあたる必要有り)
+                      </option>
+                      <option value="用途・ニーズなし">用途・ニーズなし</option>
+                      <option value="他(立ち上げ、サポート)">他(立ち上げ、サポート)</option>
+                      <option value="その他">その他</option>
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 左ラッパーここまで */}
+            </div>
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* 面談時_決裁者商談有無 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <div className={`${styles.title} flex !min-w-[140px] flex-col !text-[16px]`}>
+                      <span>面談時_</span>
+                      <span>決裁者商談有無</span>
+                    </div>
+                    <select
+                      className={`mr-auto h-full w-[100%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={resultNegotiateDecisionMaker}
+                      onChange={(e) => {
+                        // if (e.target.value === "") return alert("訪問目的を選択してください");
+                        setResultNegotiateDecisionMaker(e.target.value);
+                      }}
+                    >
+                      <option value="">選択してください</option>
+                      <option value="決裁者と未商談">決裁者と未商談</option>
+                      <option value="決裁者と商談済み">決裁者と商談済み</option>
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 左ラッパーここまで */}
+            </div>
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* 面談時同席依頼 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title} !min-w-[140px] !text-[16px]`}>面談時同席依頼</span>
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={meetingParticipationRequest}
+                      onChange={(e) => {
+                        // if (e.target.value === "") return alert("活動タイプを選択してください");
+                        setMeetingParticipationRequest(e.target.value);
+                      }}
+                    >
+                      <option value=""></option>
+                      <option value="同席依頼無し">同席依頼無し</option>
+                      <option value="同席依頼済み 同席OK">同席依頼済み 同席OK</option>
+                      <option value="同席依頼済み 同席NG">同席依頼済み 同席NG</option>
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+            </div>
+
+            {/* 右ラッパーここまで */}
           </div>
           {/* --------- 横幅全体ラッパーここまで --------- */}
 

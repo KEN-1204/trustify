@@ -227,6 +227,28 @@ export const DashboardHeaderMemo: FC = () => {
               <Link
                 href="/home"
                 prefetch={false}
+                className={`${styles.navbarItem} ${activeMenuTab === "Property" ? styles.active : ""} `}
+                onClick={() => setActiveMenuTab("Property")}
+              >
+                <div
+                  className={`${styles.navbarItemInner}`}
+                  data-text="面談・訪問時に「商談、申請、受注」に展開した案件を記録しましょう。"
+                  data-text2="このデータが顧客に刺さる商品開発へと繋がり、将来の財産となります。"
+                  onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+                  onMouseLeave={handleCloseTooltip}
+                >
+                  <span>
+                    {language === "Ja" && "案件"}
+                    {language === "En" && "Property"}
+                  </span>
+                </div>
+                <div className={`${styles.active_underline}`} />
+              </Link>
+            </li>
+            <li className={`${styles.navList}`}>
+              <Link
+                href="/home"
+                prefetch={false}
                 className={`${styles.navbarItem} ${activeMenuTab === "Calendar" ? styles.active : ""} `}
                 onClick={() => setActiveMenuTab("Calendar")}
               >
@@ -245,28 +267,7 @@ export const DashboardHeaderMemo: FC = () => {
                 <div className={`${styles.active_underline}`} />
               </Link>
             </li>
-            <li className={`${styles.navList}`}>
-              <Link
-                href="/home"
-                prefetch={false}
-                className={`${styles.navbarItem} ${activeMenuTab === "Property" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("Property")}
-              >
-                <div
-                  className={`${styles.navbarItemInner}`}
-                  data-text="面談・訪問時に「商談、申請、受注」に展開した物件を記録しましょう。"
-                  data-text2="このデータが顧客に刺さる商品開発へと繋がり、将来の財産となります。"
-                  onMouseEnter={(e) => handleOpenTooltip(e, "center")}
-                  onMouseLeave={handleCloseTooltip}
-                >
-                  <span>
-                    {language === "Ja" && "物件"}
-                    {language === "En" && "Property"}
-                  </span>
-                </div>
-                <div className={`${styles.active_underline}`} />
-              </Link>
-            </li>
+
             <li className={`${styles.navList}`}>
               <Link
                 href="/home"

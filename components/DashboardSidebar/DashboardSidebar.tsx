@@ -159,9 +159,9 @@ export const DashboardSidebarMemo: FC = () => {
                   </div>
                 </div>
               </Link>
-              <Link
-                href="/home"
-                prefetch={false}
+              <div
+                // href="/home"
+                // prefetch={false}
                 className={`${styles.menu_item} ${activeMenuTab === "Company" ? styles.active : ""} `}
                 onClick={() => setActiveMenuTab("Company")}
               >
@@ -190,10 +190,10 @@ export const DashboardSidebarMemo: FC = () => {
                     <span>会社</span>
                   </div>
                 </div>
-              </Link>
-              <Link
-                href="/home"
-                prefetch={false}
+              </div>
+              <div
+                // href="/home"
+                // prefetch={false}
                 className={`${styles.menu_item} ${activeMenuTab === "Contacts" ? styles.active : ""} `}
                 onClick={() => setActiveMenuTab("Contacts")}
               >
@@ -224,10 +224,10 @@ export const DashboardSidebarMemo: FC = () => {
                     <span>担当者</span>
                   </div>
                 </div>
-              </Link>
-              <Link
-                href="/home"
-                prefetch={false}
+              </div>
+              <div
+                // href="/home"
+                // prefetch={false}
                 className={`${styles.menu_item} ${activeMenuTab === "Activity" ? styles.active : ""} `}
                 onClick={() => setActiveMenuTab("Activity")}
               >
@@ -257,10 +257,10 @@ export const DashboardSidebarMemo: FC = () => {
                     <span>活動</span>
                   </div>
                 </div>
-              </Link>
-              <Link
-                href="/home"
-                prefetch={false}
+              </div>
+              <div
+                // href="/home"
+                // prefetch={false}
                 className={`${styles.menu_item} ${activeMenuTab === "Meeting" ? styles.active : ""} `}
                 onClick={() => setActiveMenuTab("Meeting")}
               >
@@ -290,49 +290,16 @@ export const DashboardSidebarMemo: FC = () => {
                     <span>面談・訪問</span>
                   </div>
                 </div>
-              </Link>
-              <Link
-                href="/home"
-                prefetch={false}
-                className={`${styles.menu_item} ${activeMenuTab === "Calendar" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("Calendar")}
-              >
-                <div
-                  className={styles.menu_item_inner}
-                  data-text="カレンダー"
-                  onMouseEnter={(e) => {
-                    if (isOpenSidebar) return;
-                    handleOpenTooltip(e, "left");
-                  }}
-                  onMouseLeave={() => {
-                    if (isOpenSidebar) return;
-                    handleCloseTooltip();
-                  }}
-                >
-                  <div className={styles.icon_wrapper}>
-                    {/* <RiCalendar2Fill className="text-[24px] text-[var(--color-text)]" /> */}
-                    <BsCalendarDate
-                      className={`${styles.sidebar_icon} scale-[0.9] text-[24px] text-[var(--color-text)]`}
-                    />
-                  </div>
-                  <div
-                    className={`${styles.text_wrapper} ${
-                      isOpenSidebar ? `opacity-1 transition-base-delay01` : `transition-base01 opacity-0`
-                    }`}
-                  >
-                    <span>カレンダー</span>
-                  </div>
-                </div>
-              </Link>
-              <Link
-                href="/home"
-                prefetch={false}
+              </div>
+              <div
+                // href="/home"
+                // prefetch={false}
                 className={`${styles.menu_item} ${activeMenuTab === "Property" ? styles.active : ""} `}
                 onClick={() => setActiveMenuTab("Property")}
               >
                 <div
                   className={styles.menu_item_inner}
-                  data-text="物件"
+                  data-text="案件"
                   onMouseEnter={(e) => {
                     if (isOpenSidebar) return;
                     handleOpenTooltip(e, "left");
@@ -365,13 +332,47 @@ export const DashboardSidebarMemo: FC = () => {
                       isOpenSidebar ? `opacity-1 transition-base-delay01` : `transition-base01 opacity-0`
                     }`}
                   >
-                    <span>物件</span>
+                    <span>案件</span>
                   </div>
                 </div>
-              </Link>
-              <Link
-                href="/home"
-                prefetch={false}
+              </div>
+              <div
+                // href="/home"
+                // prefetch={false}
+                className={`${styles.menu_item} ${activeMenuTab === "Calendar" ? styles.active : ""} `}
+                onClick={() => setActiveMenuTab("Calendar")}
+              >
+                <div
+                  className={styles.menu_item_inner}
+                  data-text="カレンダー"
+                  onMouseEnter={(e) => {
+                    if (isOpenSidebar) return;
+                    handleOpenTooltip(e, "left");
+                  }}
+                  onMouseLeave={() => {
+                    if (isOpenSidebar) return;
+                    handleCloseTooltip();
+                  }}
+                >
+                  <div className={styles.icon_wrapper}>
+                    {/* <RiCalendar2Fill className="text-[24px] text-[var(--color-text)]" /> */}
+                    <BsCalendarDate
+                      className={`${styles.sidebar_icon} scale-[0.9] text-[24px] text-[var(--color-text)]`}
+                    />
+                  </div>
+                  <div
+                    className={`${styles.text_wrapper} ${
+                      isOpenSidebar ? `opacity-1 transition-base-delay01` : `transition-base01 opacity-0`
+                    }`}
+                  >
+                    <span>カレンダー</span>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                // href="/home"
+                // prefetch={false}
                 className={`${styles.menu_item} ${activeMenuTab === "Quotation" ? styles.active : ""} `}
                 onClick={() => setActiveMenuTab("Quotation")}
               >
@@ -400,7 +401,7 @@ export const DashboardSidebarMemo: FC = () => {
                     <span>見積</span>
                   </div>
                 </div>
-              </Link>
+              </div>
               <div
                 className={`${styles.menu_item} ${activeMenuTab === "Lead" ? styles.active : ""} `}
                 // href="/home"
@@ -433,9 +434,9 @@ export const DashboardSidebarMemo: FC = () => {
                   </div>
                 </div>
               </div>
-              <Link
-                href="/home"
-                prefetch={false}
+              <div
+                // href="/home"
+                // prefetch={false}
                 className={`${styles.menu_item} ${activeMenuTab === "Alignment" ? styles.active : ""} `}
                 onClick={() => setActiveMenuTab("Alignment")}
               >
@@ -462,10 +463,10 @@ export const DashboardSidebarMemo: FC = () => {
                     <span className="truncate">連携</span>
                   </div>
                 </div>
-              </Link>
-              <Link
-                href="/home"
-                prefetch={false}
+              </div>
+              <div
+                // href="/home"
+                // prefetch={false}
                 className={`${styles.menu_item} ${activeMenuTab === "Message" ? styles.active : ""} `}
                 onClick={() => setActiveMenuTab("Message")}
               >
@@ -492,10 +493,10 @@ export const DashboardSidebarMemo: FC = () => {
                     <span className="truncate">メッセージ</span>
                   </div>
                 </div>
-              </Link>
-              <Link
-                href="/home"
-                prefetch={false}
+              </div>
+              <div
+                // href="/home"
+                // prefetch={false}
                 className={`${styles.menu_item} ${activeMenuTab === "SDB" ? styles.active : ""} `}
                 onClick={() => setActiveMenuTab("SDB")}
               >
@@ -516,10 +517,10 @@ export const DashboardSidebarMemo: FC = () => {
                     <span className="truncate">セールスダッシュボード</span>
                   </div>
                 </div>
-              </Link>
-              <Link
-                href="/home"
-                prefetch={false}
+              </div>
+              <div
+                // href="/home"
+                // prefetch={false}
                 className={`${styles.menu_item} ${activeMenuTab === "Admin" ? styles.active : ""} `}
                 onClick={() => setActiveMenuTab("Admin")}
               >
@@ -548,7 +549,7 @@ export const DashboardSidebarMemo: FC = () => {
                     <span>管理者</span>
                   </div>
                 </div>
-              </Link>
+              </div>
               <div
                 // href="/home"
                 // prefetch={false}

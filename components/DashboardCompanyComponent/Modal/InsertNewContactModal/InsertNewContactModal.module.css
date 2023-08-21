@@ -187,4 +187,5 @@
 .select_box {
   box-shadow: var(--color-bg-under-input-box-shadow);
   padding-left: 5px;
+  background: var(--color-bg-under-input);
 }

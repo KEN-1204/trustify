@@ -298,6 +298,7 @@
 .select_box {
   box-shadow: var(--color-bg-under-input-box-shadow);
   padding-left: 5px;
+  background: var(--color-bg-under-input);
 }
 
 .row_area input[type="number"]::-webkit-inner-spin-button,
@@ -307,4 +308,42 @@
 }
 .row_area input[type="number"] {
   -moz-appearance: textfiled;
+}
+
+.section_title {
+  color: var(--color-text-under-title);
+  white-space: nowrap;
+  /* 右側に20px余白 */
+  /* padding-right: 20px; */
+  /* min-width: 80px; */
+  /* min-width: 90px; */
+  min-width: 95px;
+  font-weight: 600;
+  font-size: 22px;
+}
+.section_underline {
+  min-height: 2px;
+  width: 100%;
+  background-color: var(--color-bg-brand-f);
+}
+
+.close_btn_number {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  z-index: 100;
+  transform: translateY(-57%);
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+.close_btn_number:hover {
+  background: var(--close-bg);
+}
+.input_box:focus ~ .close_btn_number {
+  display: none;
 }

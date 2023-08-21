@@ -92,7 +92,7 @@ const CompanyFunctionHeaderMemo: FC = () => {
           }}
         />
         <RippleButton
-          title={`会社作成`}
+          title={`会社_作成`}
           classText="select-none"
           borderRadius="2px"
           clickEventHandler={() => {
@@ -103,7 +103,7 @@ const CompanyFunctionHeaderMemo: FC = () => {
           }}
         />
         <RippleButton
-          title={`会社編集`}
+          title={`会社_編集`}
           classText={`select-none ${searchMode || !selectedRowDataCompany ? `cursor-not-allowed` : ``}`}
           borderRadius="2px"
           clickEventHandler={() => {

@@ -133,7 +133,7 @@ const ActivityFunctionHeaderMemo: FC = () => {
           }}
         /> */}
         <RippleButton
-          title={`活動作成`}
+          title={`活動_作成`}
           classText={`select-none ${searchMode || !selectedRowDataActivity ? `cursor-not-allowed` : ``}`}
           borderRadius="2px"
           clickEventHandler={() => {
@@ -147,7 +147,7 @@ const ActivityFunctionHeaderMemo: FC = () => {
           }}
         />
         <RippleButton
-          title={`活動編集`}
+          title={`活動_編集`}
           classText={`select-none ${searchMode || !selectedRowDataActivity ? `cursor-not-allowed` : ``}`}
           borderRadius="2px"
           clickEventHandler={() => {
@@ -159,7 +159,7 @@ const ActivityFunctionHeaderMemo: FC = () => {
           }}
         />
         <RippleButton
-          title={`面談作成`}
+          title={`面談_作成`}
           classText={`select-none ${searchMode || !selectedRowDataActivity ? `cursor-not-allowed` : ``}`}
           borderRadius="2px"
           clickEventHandler={() => {
@@ -170,7 +170,7 @@ const ActivityFunctionHeaderMemo: FC = () => {
             setIsOpenInsertNewMeetingModal(true);
           }}
         />
-        <RippleButton
+        {/* <RippleButton
           title={`テスト`}
           classText={`select-none ${searchMode || !selectedRowDataActivity ? `cursor-not-allowed` : ``}`}
           borderRadius="2px"
@@ -182,7 +182,7 @@ const ActivityFunctionHeaderMemo: FC = () => {
             // setLoadingGlobalState(false);
             // setIsOpenInsertNewMeetingModal(true);
           }}
-        />
+        /> */}
       </div>
 
       <div className={`flex max-h-[26px] w-full  items-center justify-end space-x-[6px]`}>

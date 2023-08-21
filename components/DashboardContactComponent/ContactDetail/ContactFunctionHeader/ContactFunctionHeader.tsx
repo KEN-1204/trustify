@@ -110,7 +110,7 @@ const ContactFunctionHeaderMemo: FC = () => {
           }}
         /> */}
         <RippleButton
-          title={`担当者編集`}
+          title={`担当者_編集`}
           classText={`select-none ${searchMode || !selectedRowDataContact ? `cursor-not-allowed` : ``}`}
           borderRadius="2px"
           clickEventHandler={() => {
@@ -122,7 +122,7 @@ const ContactFunctionHeaderMemo: FC = () => {
           }}
         />
         <RippleButton
-          title={`活動作成`}
+          title={`活動_作成`}
           classText={`select-none ${searchMode || !selectedRowDataContact ? `cursor-not-allowed` : ``}`}
           borderRadius="2px"
           clickEventHandler={() => {

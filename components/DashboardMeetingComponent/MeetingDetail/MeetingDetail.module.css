@@ -279,7 +279,8 @@
   white-space: nowrap;
   /* 右側に20px余白 */
   /* padding-right: 20px; */
-  min-width: 80px;
+  min-width: 70px;
+  /* min-width: 80px; */
   /* min-width: 90px; */
   /* min-width: 95px; */
   /* min-width: 75px; */
@@ -320,6 +321,15 @@
   font-size: 18px;
 }
 .value {
+  color: var(--color-text-under-value);
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  text-align: center;
+}
+.full_value {
   color: var(--color-text-under-value);
 
   overflow: hidden;
@@ -602,6 +612,7 @@
 .select_box {
   box-shadow: var(--color-bg-under-input-box-shadow);
   padding-left: 5px;
+  background: var(--color-bg-under-input);
 }
 .close_btn_number {
   position: absolute;
