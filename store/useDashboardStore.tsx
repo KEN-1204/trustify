@@ -99,6 +99,13 @@ type State = {
   // 選択中のメニュー
   selectedSettingAccountMenu: string;
   setSelectedSettingAccountMenu: (payload: string) => void;
+  // =================== 製品追加・編集モーダル ===================
+  // 新規作成モーダル
+  isOpenInsertNewProductModal: boolean;
+  setIsOpenInsertNewProductModal: (payload: boolean) => void;
+  // 編集モーダル
+  isOpenUpdateProductModal: boolean;
+  setIsOpenUpdateProductModal: (payload: boolean) => void;
 
   // =================== アンダーテーブル関連 ===================
   // 【サーチモード切り替え】
@@ -247,6 +254,14 @@ const useDashboardStore = create<State>((set) => ({
   // 選択中のメニュー
   selectedSettingAccountMenu: "Profile",
   setSelectedSettingAccountMenu: (payload) => set({ selectedSettingAccountMenu: payload }),
+
+  // =================== 製品追加・編集モーダル ===================
+  // 新規作成モーダル
+  isOpenInsertNewProductModal: false,
+  setIsOpenInsertNewProductModal: (payload) => set({ isOpenInsertNewProductModal: payload }),
+  // 編集モーダル
+  isOpenUpdateProductModal: false,
+  setIsOpenUpdateProductModal: (payload) => set({ isOpenUpdateProductModal: payload }),
 
   // =================== テーブルサイズ切り替えボタン ===================
   // 【テーブルサイズ切り替えメニュー開閉状態】

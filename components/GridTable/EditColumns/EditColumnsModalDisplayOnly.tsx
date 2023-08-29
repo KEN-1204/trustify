@@ -10,6 +10,7 @@ import { GrPowerReset } from "react-icons/gr";
 import { columnNameToJapanese } from "@/utils/columnNameToJapanese";
 import { columnNameToJapaneseContacts } from "@/utils/columnNameToJapaneseContacts";
 import { columnNameToJapaneseActivity } from "@/utils/columnNameToJapaneseActivity";
+import { columnNameToJapaneseMeeting } from "@/utils/columnNameToJapaneseMeeting";
 
 // const data: Array<{ id: number; name: string; img: StaticImageData }> = [
 
@@ -355,6 +356,9 @@ const EditColumnsModalDisplayOnlyMemo: FC<Props> = ({ columnHeaderItemList }) =>
                     )}
                     {activeMenuTab === "Activity" && (
                       <span className="truncate">{columnNameToJapaneseActivity(item.columnName)}</span>
+                    )}
+                    {activeMenuTab === "Meeting" && (
+                      <span className="truncate">{columnNameToJapaneseMeeting(item.columnName)}</span>
                     )}
                     {/* {item.isFrozen && <span className="absolute -right-3">固定されています</span>} */}
                   </div>

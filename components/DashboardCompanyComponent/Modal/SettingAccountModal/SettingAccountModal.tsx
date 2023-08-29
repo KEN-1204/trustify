@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { Suspense, useState } from "react";
 import styles from "./SettingAccountModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -15,6 +15,11 @@ import { Profile, UserProfile } from "@/types";
 import { useUploadAvatarImg } from "@/hooks/useUploadAvatarImg";
 import { useDownloadUrl } from "@/hooks/useDownloadUrl";
 import Image from "next/image";
+import { IoSettingsOutline } from "react-icons/io5";
+import { SettingProducts } from "./SettingMenus/SettingProducts";
+import { ErrorBoundary } from "react-error-boundary";
+import { Fallback } from "@/components/Fallback/Fallback";
+import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 
 export const SettingAccountModal = () => {
   const theme = useThemeStore((state) => state.theme);
@@ -277,6 +282,17 @@ export const SettingAccountModal = () => {
                 <AiOutlineTeam className="text-[22px]" />
               </div>
               <span>メンバー</span>
+            </div>
+            <div
+              className={`rounded-[4px]] mb-[3px] flex h-[40px] w-full cursor-pointer items-center truncate rounded-[4px] px-[10px] py-[6px] font-bold hover:bg-[var(--setting-side-bg-select)] ${
+                selectedSettingAccountMenu === "Products" ? `bg-[var(--setting-side-bg-select)]` : ``
+              }`}
+              onClick={() => setSelectedSettingAccountMenu("Products")}
+            >
+              <div className="flex-center mr-[15px] h-[24px] w-[24px]">
+                <IoSettingsOutline className="text-[22px]" />
+              </div>
+              <span>サービス・製品</span>
             </div>
             <div
               className={`rounded-[4px]] mb-[3px] flex h-[40px] w-full cursor-pointer items-center truncate rounded-[4px] px-[10px] py-[6px] font-bold hover:bg-[var(--setting-side-bg-select)] ${
@@ -1510,6 +1526,16 @@ export const SettingAccountModal = () => {
               </div>
             )}
             {/* 右側メインエリア プロフィール ここまで */}
+
+            {/* 右側メインエリア サービス・製品 */}
+            {/* {selectedSettingAccountMenu === "Products" && <SettingProducts />} */}
+            {selectedSettingAccountMenu === "Products" && (
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
+                  <SettingProducts />
+                </Suspense>
+              </ErrorBoundary>
+            )}
 
             {/* 右側サブエリア 閉じるボタンエリア */}
             <div className={`relative flex h-full w-[80px] flex-col items-center`}>

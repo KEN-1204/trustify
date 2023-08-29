@@ -26,6 +26,7 @@ export const DashboardHeaderMemo: FC = () => {
   // アカウント設定モーダル
   const setIsOpenSettingAccountModal = useDashboardStore((state) => state.setIsOpenSettingAccountModal);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
+  const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   const [tabPage, setTabPage] = useState(1);
   const logoSrc =
     theme === "light" ? "/assets/images/Trustify_logo_white1.png" : "/assets/images/Trustify_logo_black.png";
@@ -520,7 +521,10 @@ export const DashboardHeaderMemo: FC = () => {
             className="flex-center h-full w-full cursor-pointer rounded-full hover:bg-[var(--color-bg-sub)]"
             onMouseEnter={(e) => handleOpenTooltip(e, "center")}
             onMouseLeave={handleCloseTooltip}
-            onClick={() => setIsOpenSettingAccountModal(true)}
+            onClick={() => {
+              setLoadingGlobalState(false);
+              setIsOpenSettingAccountModal(true);
+            }}
           >
             <IoSettingsOutline className="text-[24px] text-[var(--color-icon)]" />
           </div>

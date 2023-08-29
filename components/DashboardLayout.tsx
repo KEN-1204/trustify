@@ -27,6 +27,7 @@ import { SettingAccountModal } from "./DashboardCompanyComponent/Modal/SettingAc
 import { UpdateActivityModal } from "./DashboardCompanyComponent/Modal/UpdateActivityModal/UpdateActivityModal";
 import { InsertNewMeetingModal } from "./DashboardCompanyComponent/Modal/InsertNewMeetingModal/InsertNewMeetingModal";
 import { UpdateMeetingModal } from "./DashboardCompanyComponent/Modal/UpdateMeetingModal/UpdateMeetingModal";
+import { InsertNewProductModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/InsertNewProductModal/InsertNewProductModal";
 
 type Prop = {
   title?: string;
@@ -109,6 +110,8 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   const clickedItemPos = useStore((state) => state.clickedItemPos);
   // アカウント設定モーダル
   const isOpenSettingAccountModal = useDashboardStore((state) => state.isOpenSettingAccountModal);
+  // 製品・サービス作成・編集モーダル
+  const isOpenInsertNewProductModal = useDashboardStore((state) => state.isOpenInsertNewProductModal);
   // 会社作成モーダル 新規作成と編集モーダル
   const isOpenInsertNewClientCompanyModal = useDashboardStore((state) => state.isOpenInsertNewClientCompanyModal);
   const isOpenUpdateClientCompanyModal = useDashboardStore((state) => state.isOpenUpdateClientCompanyModal);
@@ -182,8 +185,9 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
       {/* サイズ切り替えメニュー */}
       {clickedItemPos && <ChangeSizeMenu />}
 
-      {/* 会社作成・編集モーダル */}
+      {/* アカウント設定モーダル */}
       {isOpenSettingAccountModal && <SettingAccountModal />}
+      {isOpenInsertNewProductModal && <InsertNewProductModal />}
 
       {/* 会社作成・編集モーダル */}
       {isOpenInsertNewClientCompanyModal && <InsertNewClientCompanyModal />}

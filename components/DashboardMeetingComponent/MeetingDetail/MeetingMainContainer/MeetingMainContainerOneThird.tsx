@@ -1797,8 +1797,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     )}
                     {searchMode && (
                       <textarea
-                        name="address"
-                        id="address"
                         cols={30}
                         rows={10}
                         placeholder="「神奈川県＊」や「＊大田区＊」など"
@@ -2776,11 +2774,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <div className={`${styles.title} flex flex-col`}>
+                    <div className={`${styles.title_search_mode} flex flex-col`}>
                       <span className={``}>訪問目的</span>
                     </div>
                     <select
-                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`ml-auto h-full w-[100%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={inputPlannedPurpose}
                       onChange={(e) => {
                         setInputPlannedPurpose(e.target.value);
@@ -2808,7 +2806,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
 
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} transition-base03 flex h-full items-center `}>
-                    <span className={`${styles.check_title}`}>アポ有</span>
+                    <span className={`${styles.check_title_search_mode} `}>アポ有</span>
 
                     <div className={`${styles.grid_select_cell_header} `}>
                       <select
@@ -3101,7 +3099,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <div className={`${styles.title} !mr-[15px] flex flex-col`}>
+                    <div className={`${styles.title_search_mode} flex flex-col`}>
                       <span className={``}>面談時間</span>
                     </div>
                     <input
@@ -3138,7 +3136,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
 
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} transition-base03 flex h-full items-center `}>
-                    <span className={`${styles.check_title}`}>面談人数</span>
+                    <span className={`${styles.check_title_search_mode}`}>面談人数</span>
 
                     <div className={`${styles.grid_select_cell_header} `}>
                       <input
@@ -3286,7 +3284,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full `}>
                     <span className={`${styles.title_search_mode}`}>訪問結果</span>
                     <select
-                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`ml-auto h-full w-[100%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={inputResultCategory}
                       onChange={(e) => {
                         setInputResultCategory(e.target.value);
@@ -4018,7 +4016,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <div className={`${styles.title} flex flex-col text-[12px]`}>
+                    <div className={`${styles.title_search_mode} flex flex-col text-[12px]`}>
                       <span className={``}>製品分類</span>
                       <span className={``}>(大分類)</span>
                     </div>
@@ -4030,9 +4028,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       //   onChange={(e) => setInputProductL(e.target.value)}
                       // />
                       <select
-                        name="position_class"
-                        id="position_class"
-                        className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                        className={`ml-auto h-full w-[100%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                         value={inputProductL}
                         onChange={(e) => setInputProductL(e.target.value)}
                       >
@@ -4062,7 +4058,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <div className={`${styles.title} flex flex-col text-[12px]`}>
+                    <div className={`${styles.title_search_mode} flex flex-col text-[12px]`}>
                       <span className={``}>製品分類</span>
                       <span className={``}>(中分類)</span>
                     </div>
@@ -4074,13 +4070,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       //   onChange={(e) => setInputProductM(e.target.value)}
                       // />
                       <select
-                        name="position_class"
-                        id="position_class"
                         value={inputProductM}
                         onChange={(e) => setInputProductM(e.target.value)}
                         className={`${
                           inputProductL ? "" : "hidden"
-                        } ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                        } ml-auto h-full w-[100%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                       >
                         {inputProductL === "電子部品・モジュール" &&
                           productCategoriesM.moduleCategoryM.map((option) => option)}

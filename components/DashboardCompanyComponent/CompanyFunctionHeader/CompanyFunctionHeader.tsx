@@ -115,7 +115,7 @@ const CompanyFunctionHeaderMemo: FC = () => {
           }}
         />
         <RippleButton
-          title={`担当者作成`}
+          title={`担当者_作成`}
           classText={`select-none ${searchMode ? `cursor-not-allowed` : ``}`}
           borderRadius="2px"
           clickEventHandler={() => {

@@ -900,3 +900,16 @@ export type Meeting = {
   meeting_member_name: string | null;
   meeting_year_month: number | null;
 };
+// 面談 productsテーブル
+export type Product = {
+  id: string;
+  created_at: string;
+  created_by_company_id: string | null;
+  created_by_user_id: string | null;
+  created_by_department_of_user: string | null;
+  created_by_unit_of_user: string | null;
+  product_name: string | null;
+  inside_short_name: string | null;
+  outside_short_name: string | null;
+  unit_price: number | null;
+};
