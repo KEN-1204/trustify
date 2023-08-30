@@ -14,6 +14,7 @@ import { MdClose } from "react-icons/md";
 export const InsertNewMeetingModal = () => {
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
   const selectedRowDataActivity = useDashboardStore((state) => state.selectedRowDataActivity);
+  const selectedRowDataMeeting = useDashboardStore((state) => state.selectedRowDataMeeting);
   const setIsOpenInsertNewMeetingModal = useDashboardStore((state) => state.setIsOpenInsertNewMeetingModal);
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
@@ -191,6 +192,150 @@ export const InsertNewMeetingModal = () => {
     // setIsOpenInsertNewMeetingModal(false);
   };
 
+  const handleSaveAndCloseFromMeeting = async () => {
+    // if (!summary) return alert("活動概要を入力してください");
+    // if (!MeetingType) return alert("活動タイプを選択してください");
+    if (!userProfileState?.id) return alert("ユーザー情報が存在しません");
+    if (!selectedRowDataMeeting?.company_id) return alert("相手先の会社情報が存在しません");
+    if (!selectedRowDataMeeting?.contact_id) return alert("担当者情報が存在しません");
+    if (plannedPurpose === "") return alert("訪問目的を選択してください");
+    if (plannedStartTimeHour === "") return alert("面談開始 時間を選択してください");
+    if (plannedStartTimeMinute === "") return alert("面談開始 分を選択してください");
+    if (!meetingYearMonth) return alert("活動年月度を入力してください");
+    if (meetingMemberName === "") return alert("自社担当を入力してください");
+
+    setLoadingGlobalState(true);
+
+    // 新規作成するデータをオブジェクトにまとめる
+    const newMeeting = {
+      created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
+      created_by_user_id: userProfileState?.id ? userProfileState.id : null,
+      created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
+      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      client_contact_id: selectedRowDataMeeting.contact_id,
+      client_company_id: selectedRowDataMeeting.company_id,
+      meeting_type: meetingType,
+      web_tool: webTool,
+      planned_date: plannedDate ? plannedDate.toISOString() : null,
+      // planned_start_time: plannedStartTime === ":" ? null : plannedStartTime,
+      planned_start_time: plannedStartTime === "" ? null : plannedStartTime,
+      planned_purpose: plannedPurpose,
+      planned_duration: plannedDuration,
+      planned_appoint_check_flag: plannedAppointCheckFlag,
+      planned_product1: plannedProduct1,
+      planned_product2: plannedProduct2,
+      planned_comment: plannedComment,
+      result_date: resultDate ? resultDate.toISOString() : null,
+      result_start_time: resultStartTime === "" ? null : resultStartTime,
+      result_end_time: resultEndTime === "" ? null : resultEndTime,
+      // result_start_time: resultStartTime === ":" ? null : resultStartTime,
+      // result_end_time: resultEndTime === ":" ? null : resultEndTime,
+      result_duration: resultDuration,
+      result_number_of_meeting_participants: resultNumberOfMeetingParticipants,
+      result_presentation_product1: resultPresentationProduct1,
+      result_presentation_product2: resultPresentationProduct2,
+      result_presentation_product3: resultPresentationProduct3,
+      result_presentation_product4: resultPresentationProduct4,
+      result_presentation_product5: resultPresentationProduct5,
+      result_category: resultCategory,
+      result_summary: resultSummary,
+      result_negotiate_decision_maker: resultNegotiateDecisionMaker,
+      pre_meeting_participation_request: preMeetingParticipationRequest,
+      meeting_participation_request: meetingParticipationRequest,
+      meeting_business_office: meetingBusinessOffice,
+      meeting_department: meetingDepartment ? meetingDepartment : null,
+      meeting_member_name: meetingMemberName ? meetingMemberName : null,
+      meeting_year_month: meetingYearMonth ? meetingYearMonth : null,
+    };
+
+    console.log("面談予定 新規作成 newMeeting", newMeeting);
+    console.log("面談予定 新規作成 newMeeting.planned_start_time", newMeeting.planned_start_time);
+    console.log(
+      "面談予定 新規作成 newMeeting.planned_start_time 一致するか",
+      newMeeting.planned_start_time === "08:30"
+    );
+
+    // supabaseにINSERT
+    createMeetingMutation.mutate(newMeeting);
+
+    // setLoadingGlobalState(false);
+
+    // モーダルを閉じる
+    // setIsOpenInsertNewMeetingModal(false);
+  };
+
+  const handleSaveAndCloseFromContacts = async () => {
+    // if (!summary) return alert("活動概要を入力してください");
+    // if (!MeetingType) return alert("活動タイプを選択してください");
+    if (!userProfileState?.id) return alert("ユーザー情報が存在しません");
+    if (!selectedRowDataContact?.company_id) return alert("相手先の会社情報が存在しません");
+    if (!selectedRowDataContact?.contact_id) return alert("担当者情報が存在しません");
+    if (plannedPurpose === "") return alert("訪問目的を選択してください");
+    if (plannedStartTimeHour === "") return alert("面談開始 時間を選択してください");
+    if (plannedStartTimeMinute === "") return alert("面談開始 分を選択してください");
+    if (!meetingYearMonth) return alert("活動年月度を入力してください");
+    if (meetingMemberName === "") return alert("自社担当を入力してください");
+
+    setLoadingGlobalState(true);
+
+    // 新規作成するデータをオブジェクトにまとめる
+    const newMeeting = {
+      created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
+      created_by_user_id: userProfileState?.id ? userProfileState.id : null,
+      created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
+      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      client_contact_id: selectedRowDataContact.contact_id,
+      client_company_id: selectedRowDataContact.company_id,
+      meeting_type: meetingType,
+      web_tool: webTool,
+      planned_date: plannedDate ? plannedDate.toISOString() : null,
+      // planned_start_time: plannedStartTime === ":" ? null : plannedStartTime,
+      planned_start_time: plannedStartTime === "" ? null : plannedStartTime,
+      planned_purpose: plannedPurpose,
+      planned_duration: plannedDuration,
+      planned_appoint_check_flag: plannedAppointCheckFlag,
+      planned_product1: plannedProduct1,
+      planned_product2: plannedProduct2,
+      planned_comment: plannedComment,
+      result_date: resultDate ? resultDate.toISOString() : null,
+      result_start_time: resultStartTime === "" ? null : resultStartTime,
+      result_end_time: resultEndTime === "" ? null : resultEndTime,
+      // result_start_time: resultStartTime === ":" ? null : resultStartTime,
+      // result_end_time: resultEndTime === ":" ? null : resultEndTime,
+      result_duration: resultDuration,
+      result_number_of_meeting_participants: resultNumberOfMeetingParticipants,
+      result_presentation_product1: resultPresentationProduct1,
+      result_presentation_product2: resultPresentationProduct2,
+      result_presentation_product3: resultPresentationProduct3,
+      result_presentation_product4: resultPresentationProduct4,
+      result_presentation_product5: resultPresentationProduct5,
+      result_category: resultCategory,
+      result_summary: resultSummary,
+      result_negotiate_decision_maker: resultNegotiateDecisionMaker,
+      pre_meeting_participation_request: preMeetingParticipationRequest,
+      meeting_participation_request: meetingParticipationRequest,
+      meeting_business_office: meetingBusinessOffice,
+      meeting_department: meetingDepartment ? meetingDepartment : null,
+      meeting_member_name: meetingMemberName ? meetingMemberName : null,
+      meeting_year_month: meetingYearMonth ? meetingYearMonth : null,
+    };
+
+    console.log("面談予定 新規作成 newMeeting", newMeeting);
+    console.log("面談予定 新規作成 newMeeting.planned_start_time", newMeeting.planned_start_time);
+    console.log(
+      "面談予定 新規作成 newMeeting.planned_start_time 一致するか",
+      newMeeting.planned_start_time === "08:30"
+    );
+
+    // supabaseにINSERT
+    createMeetingMutation.mutate(newMeeting);
+
+    // setLoadingGlobalState(false);
+
+    // モーダルを閉じる
+    // setIsOpenInsertNewMeetingModal(false);
+  };
+
   // 全角文字を半角に変換する関数
   const toHalfWidth = (strVal: string) => {
     // 全角文字コードの範囲は65281 - 65374、スペースの全角文字コードは12288
@@ -299,10 +444,10 @@ export const InsertNewMeetingModal = () => {
   const minutes = Array.from({ length: 60 }, (_, i) => (i < 10 ? "0" + i : "" + i));
 
   console.log(
-    "面談予定作成モーダル selectedRowDataContact",
-    selectedRowDataContact,
-    "selectedRowDataActivity",
+    "面談予定作成モーダル selectedRowDataActivity",
     selectedRowDataActivity,
+    "selectedRowDataMeeting",
+    selectedRowDataMeeting,
     "plannedStartTime",
     plannedStartTime
   );
@@ -323,12 +468,30 @@ export const InsertNewMeetingModal = () => {
           </div>
           <div className="-translate-x-[25px] font-bold">面談予定 新規作成</div>
 
-          <div
-            className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
-            onClick={handleSaveAndClose}
-          >
-            保存
-          </div>
+          {selectedRowDataActivity && (
+            <div
+              className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
+              onClick={handleSaveAndClose}
+            >
+              保存
+            </div>
+          )}
+          {selectedRowDataMeeting && (
+            <div
+              className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
+              onClick={handleSaveAndCloseFromMeeting}
+            >
+              保存
+            </div>
+          )}
+          {selectedRowDataContact && (
+            <div
+              className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
+              onClick={handleSaveAndCloseFromContacts}
+            >
+              保存
+            </div>
+          )}
         </div>
         {/* メインコンテンツ コンテナ */}
         <div className={`${styles.main_contents_container}`}>
@@ -562,6 +725,7 @@ export const InsertNewMeetingModal = () => {
                       <option value="DM/受動">DM/受動</option>
                       <option value="メール/受動">メール/受動</option>
                       <option value="ホームページ/受動">ホームページ/受動</option>
+                      <option value="ウェビナー/受動">ウェビナー/受動</option>
                       <option value="展示会/受動">展示会/受動</option>
                       <option value="他(売前ﾌｫﾛｰ)">他(売前ﾌｫﾛｰ)</option>
                       <option value="他(納品説明)">他(納品説明)</option>

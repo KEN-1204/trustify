@@ -160,6 +160,9 @@ export const UpdateActivityModal = () => {
       priority: priority ? priority : null,
       activity_date: activityDate ? activityDate.toISOString() : null,
       activity_year_month: activityYearMonth ? activityYearMonth : null,
+      meeting_id: selectedRowDataActivity.meeting_id ? selectedRowDataActivity.meeting_id : null,
+      property_id: selectedRowDataActivity.property_id ? selectedRowDataActivity.property_id : null,
+      quotation_id: selectedRowDataActivity.quotation_id ? selectedRowDataActivity.quotation_id : null,
     };
 
     // supabaseにUPDATE
@@ -290,7 +293,7 @@ export const UpdateActivityModal = () => {
           <div className="font-samibold cursor-pointer hover:text-[#aaa]" onClick={handleCancelAndReset}>
             キャンセル
           </div>
-          <div className="-translate-x-[25px] font-bold">活動 新規作成</div>
+          <div className="-translate-x-[25px] font-bold">活動 編集</div>
           <div
             className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
             onClick={handleSaveAndClose}
@@ -378,6 +381,9 @@ export const UpdateActivityModal = () => {
                       <option value="Email送信">Email送信</option>
                       <option value="その他">その他</option>
                       <option value="引継ぎ">引継ぎ</option>
+                      <option value="面談・訪問">面談・訪問</option>
+                      <option value="見積">見積</option>
+                      <option value="案件発生">案件発生</option>
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>

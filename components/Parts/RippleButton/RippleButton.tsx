@@ -66,7 +66,7 @@ const RippleButtonMemo: FC<Props> = ({
     <>
       <button
         // href="#"
-        className={`${styles.button} transition-base03 px-[10px] py-[2px] ${classText}`}
+        className={`${styles.button} transition-base03 max-h-[26px] truncate px-[10px] py-[2px] ${classText}`}
         style={{
           fontSize: fontSize,
           fontWeight: fontWeight,

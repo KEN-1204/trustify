@@ -5,16 +5,21 @@ import {
   Client_company_row_data,
   ColumnHeaderItemList,
   Contact_row_data,
+  EditedProduct,
   Meeting_row_data,
   NewSearchActivity_Contact_CompanyParams,
   NewSearchCompanyParams,
   NewSearchContact_CompanyParams,
   NewSearchMeeting_Contact_CompanyParams,
+  NewSearchProperty_Contact_CompanyParams,
+  Product,
+  Property_row_data,
   UserProfile,
 } from "@/types";
 import { activityColumnHeaderItemListData } from "@/utils/activityColumnHeaderItemListDate";
 import { contactColumnHeaderItemListData } from "@/utils/contactColumnHeaderItemListData";
 import { meetingColumnHeaderItemListData } from "@/utils/meetingColumnHeaderItemListData";
+import { propertyColumnHeaderItemListData } from "@/utils/propertyColumnHeaderItemListData";
 import { Session } from "@supabase/supabase-js";
 import { ReactNode } from "react";
 import { create } from "zustand";
@@ -91,6 +96,13 @@ type State = {
   // 編集モーダル
   isOpenUpdateMeetingModal: boolean;
   setIsOpenUpdateMeetingModal: (payload: boolean) => void;
+  // =================== 案件作成モーダル ===================
+  // 新規作成モーダル
+  isOpenInsertNewPropertyModal: boolean;
+  setIsOpenInsertNewPropertyModal: (payload: boolean) => void;
+  // 編集モーダル
+  isOpenUpdatePropertyModal: boolean;
+  setIsOpenUpdatePropertyModal: (payload: boolean) => void;
 
   // =================== アカウント設定モーダル ===================
   // アカウント設定開閉
@@ -106,6 +118,12 @@ type State = {
   // 編集モーダル
   isOpenUpdateProductModal: boolean;
   setIsOpenUpdateProductModal: (payload: boolean) => void;
+  // 編集中のProduct
+  editedProduct: EditedProduct;
+  setEditedProduct: (payload: EditedProduct) => void;
+  // 現在の製品情報をStateに格納
+  productsState: Product[];
+  setProductsState: (payload: Product[]) => void;
 
   // =================== アンダーテーブル関連 ===================
   // 【サーチモード切り替え】
@@ -178,6 +196,17 @@ type State = {
   // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
   newSearchMeeting_Contact_CompanyParams: NewSearchMeeting_Contact_CompanyParams | null;
   setNewSearchMeeting_Contact_CompanyParams: (payload: NewSearchMeeting_Contact_CompanyParams) => void;
+
+  // =================== 案件テーブル ヘッダーリスト保持用state関連 ===================
+  propertyColumnHeaderItemList: ColumnHeaderItemList[];
+  setPropertyColumnHeaderItemList: (payload: ColumnHeaderItemList[]) => void;
+  // =================== 上画面の列選択した時に下画面に担当者情報を映す用のState ===================
+  // オブジェクト
+  selectedRowDataProperty: Property_row_data | null;
+  setSelectedRowDataProperty: (payload: Property_row_data | null) => void;
+  // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
+  newSearchProperty_Contact_CompanyParams: NewSearchProperty_Contact_CompanyParams | null;
+  setNewSearchProperty_Contact_CompanyParams: (payload: NewSearchProperty_Contact_CompanyParams) => void;
 };
 
 const useDashboardStore = create<State>((set) => ({
@@ -247,6 +276,14 @@ const useDashboardStore = create<State>((set) => ({
   isOpenUpdateMeetingModal: false,
   setIsOpenUpdateMeetingModal: (payload) => set({ isOpenUpdateMeetingModal: payload }),
 
+  // =================== 案件作成モーダル ===================
+  // 新規作成モーダル
+  isOpenInsertNewPropertyModal: false,
+  setIsOpenInsertNewPropertyModal: (payload) => set({ isOpenInsertNewPropertyModal: payload }),
+  // 編集モーダル
+  isOpenUpdatePropertyModal: false,
+  setIsOpenUpdatePropertyModal: (payload) => set({ isOpenUpdatePropertyModal: payload }),
+
   // =================== アカウント設定モーダル ===================
   // 開閉
   isOpenSettingAccountModal: false,
@@ -262,6 +299,23 @@ const useDashboardStore = create<State>((set) => ({
   // 編集モーダル
   isOpenUpdateProductModal: false,
   setIsOpenUpdateProductModal: (payload) => set({ isOpenUpdateProductModal: payload }),
+  // 編集中のProduct
+  editedProduct: {
+    id: "",
+    created_at: "",
+    created_by_company_id: "",
+    created_by_user_id: "",
+    created_by_department_of_user: "",
+    created_by_unit_of_user: "",
+    product_name: "",
+    inside_short_name: "",
+    outside_short_name: "",
+    unit_price: null,
+  },
+  setEditedProduct: (payload) => set({ editedProduct: payload }),
+  // 現在の製品情報をStateに格納
+  productsState: [],
+  setProductsState: (payload) => set({ productsState: payload }),
 
   // =================== テーブルサイズ切り替えボタン ===================
   // 【テーブルサイズ切り替えメニュー開閉状態】
@@ -829,6 +883,18 @@ const useDashboardStore = create<State>((set) => ({
   // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
   newSearchMeeting_Contact_CompanyParams: null,
   setNewSearchMeeting_Contact_CompanyParams: (payload) => set({ newSearchMeeting_Contact_CompanyParams: payload }),
+
+  // =================== 案件テーブル ヘッダーリスト保持用state関連 ===================
+  propertyColumnHeaderItemList: propertyColumnHeaderItemListData,
+  setPropertyColumnHeaderItemList: (payload) => set({ propertyColumnHeaderItemList: payload }),
+
+  // =================== 上画面の列選択した時に下画面に担当者情報を映す用のState ===================
+  // オブジェクト
+  selectedRowDataProperty: null,
+  setSelectedRowDataProperty: (payload) => set({ selectedRowDataProperty: payload }),
+  // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
+  newSearchProperty_Contact_CompanyParams: null,
+  setNewSearchProperty_Contact_CompanyParams: (payload) => set({ newSearchProperty_Contact_CompanyParams: payload }),
 }));
 
 export default useDashboardStore;

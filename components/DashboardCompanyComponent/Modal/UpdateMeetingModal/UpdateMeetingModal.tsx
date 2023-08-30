@@ -281,6 +281,10 @@ export const UpdateMeetingModal = () => {
     if (plannedPurpose === "") return alert("訪問目的を選択してください");
     if (plannedStartTimeHour === "") return alert("予定面談開始 時間を選択してください");
     if (plannedStartTimeMinute === "") return alert("予定面談開始 分を選択してください");
+    if (resultStartTimeHour === "") return alert("結果面談開始 時間を選択してください");
+    if (resultStartTimeMinute === "") return alert("結果面談開始 分を選択してください");
+    if (resultEndTimeHour === "") return alert("結果面談終了 時間を選択してください");
+    if (resultEndTimeMinute === "") return alert("結果面談終了 分を選択してください");
     if (!meetingYearMonth) return alert("活動年月度を入力してください");
     if (meetingMemberName === "") return alert("自社担当を入力してください");
 

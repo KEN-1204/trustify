@@ -1,39 +1,38 @@
 import useDashboardStore from "@/store/useDashboardStore";
 import useThemeStore from "@/store/useThemeStore";
-import { Meeting, Client_company, Activity } from "@/types";
+import { Property, Client_company } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React from "react";
 import { toast } from "react-toastify";
 import { ContainerInstance } from "react-toastify/dist/hooks";
 
-export const useMutateMeeting = () => {
+export const useMutateProperty = () => {
   const theme = useThemeStore((state) => state.theme);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
-  const setIsOpenInsertNewMeetingModal = useDashboardStore((state) => state.setIsOpenInsertNewMeetingModal);
-  const setIsOpenUpdateMeetingModal = useDashboardStore((state) => state.setIsOpenUpdateMeetingModal);
-  const userProfileState = useDashboardStore((state) => state.userProfileState);
+  const setIsOpenInsertNewPropertyModal = useDashboardStore((state) => state.setIsOpenInsertNewPropertyModal);
+  const setIsOpenUpdatePropertyModal = useDashboardStore((state) => state.setIsOpenUpdatePropertyModal);
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
 
-  // 【Meeting新規作成INSERT用createMeetingMutation関数】
-  const createMeetingMutation = useMutation(
-    async (newMeeting: Omit<Meeting, "id" | "created_at" | "updated_at">) => {
+  // 【Property新規作成INSERT用createPropertyMutation関数】
+  const createPropertyMutation = useMutation(
+    async (newProperty: Omit<Property, "id" | "created_at" | "updated_at">) => {
       setLoadingGlobalState(true);
-      // console.log(newMeeting.planned_start_time);
-      const { data, error } = await supabase.from("meetings").insert(newMeeting).select().single();
+      // console.log(newProperty.planned_start_time);
+      const { data, error } = await supabase.from("properties").insert(newProperty).select().single();
       if (error) throw new Error(error.message);
 
       console.log("INSERTに成功したdata", data);
       // 活動履歴で面談タイプ 訪問・面談を作成
       const newActivity = {
-        created_by_company_id: newMeeting.created_by_company_id,
-        created_by_user_id: newMeeting.created_by_user_id,
-        created_by_department_of_user: newMeeting.created_by_department_of_user,
-        created_by_unit_of_user: newMeeting.created_by_unit_of_user,
-        client_contact_id: newMeeting.client_contact_id,
-        client_company_id: newMeeting.client_company_id,
-        summary: newMeeting.result_summary,
+        created_by_company_id: newProperty.created_by_company_id,
+        created_by_user_id: newProperty.created_by_user_id,
+        created_by_department_of_user: newProperty.created_by_department_of_user,
+        created_by_unit_of_user: newProperty.created_by_unit_of_user,
+        client_contact_id: newProperty.client_contact_id,
+        client_company_id: newProperty.client_company_id,
+        summary: newProperty.property_summary,
         scheduled_follow_up_date: null,
         // follow_up_flag: followUpFlag ? followUpFlag : null,
         follow_up_flag: false,
@@ -41,19 +40,19 @@ export const useMutateMeeting = () => {
         activity_type: "面談・訪問",
         // claim_flag: claimFlag ? claimFlag : null,
         claim_flag: false,
-        product_introduction1: newMeeting.result_presentation_product1,
-        product_introduction2: newMeeting.result_presentation_product2,
-        product_introduction3: newMeeting.result_presentation_product3,
-        product_introduction4: newMeeting.result_presentation_product4,
-        product_introduction5: newMeeting.result_presentation_product5,
-        department: newMeeting.meeting_department,
-        business_office: newMeeting.meeting_business_office,
-        member_name: newMeeting.meeting_member_name,
+        product_introduction1: null,
+        product_introduction2: null,
+        product_introduction3: null,
+        product_introduction4: null,
+        product_introduction5: null,
+        department: newProperty.property_department,
+        business_office: newProperty.property_business_office,
+        member_name: newProperty.property_member_name,
         priority: null,
-        activity_date: newMeeting.planned_date,
-        activity_year_month: newMeeting.meeting_year_month,
-        meeting_id: (data as Activity).id ? (data as Activity).id : null,
-        property_id: null,
+        activity_date: newProperty.property_date,
+        activity_year_month: newProperty.property_year_month,
+        meeting_id: null,
+        property_id: (data as Property).id ? (data as Property).id : null,
         quotation_id: null,
       };
 
@@ -64,15 +63,15 @@ export const useMutateMeeting = () => {
     {
       onSuccess: async () => {
         // キャッシュのデータを再取得
-        await queryClient.invalidateQueries({ queryKey: ["meetings"] });
+        await queryClient.invalidateQueries({ queryKey: ["properties"] });
         await queryClient.invalidateQueries({ queryKey: ["activities"] });
         // TanStack Queryでデータの変更に合わせて別のデータを再取得する
         // https://zenn.dev/masatakaitoh/articles/3c2f8602d2bb9d
 
         setTimeout(() => {
           setLoadingGlobalState(false);
-          setIsOpenInsertNewMeetingModal(false);
-          toast.success("面談予定の作成に完了しました!", {
+          setIsOpenInsertNewPropertyModal(false);
+          toast.success("案件の作成に完了しました!", {
             position: "top-right",
             autoClose: 2000,
             hideProgressBar: false,
@@ -87,10 +86,10 @@ export const useMutateMeeting = () => {
       onError: (err: any) => {
         setTimeout(() => {
           setLoadingGlobalState(false);
-          // setIsOpenInsertNewMeetingModal(false);
+          // setIsOpenInsertNewPropertyModal(false);
           alert(err.message);
           console.log("INSERTエラー", err.message);
-          toast.error("面談予定の作成に失敗しました!", {
+          toast.error("案件の作成に失敗しました!", {
             position: "top-right",
             autoClose: 2000,
             hideProgressBar: false,
@@ -105,66 +104,63 @@ export const useMutateMeeting = () => {
     }
   );
 
-  // 【Meeting編集UPDATE用updateMeetingMutation関数】
-  const updateMeetingMutation = useMutation(
-    async (newMeeting: Omit<Meeting, "created_at" | "updated_at">) => {
+  // 【Property編集UPDATE用updatePropertyMutation関数】
+  const updatePropertyMutation = useMutation(
+    async (newProperty: Omit<Property, "created_at" | "updated_at">) => {
       setLoadingGlobalState(true);
-      const { data: meetingData, error } = await supabase
-        .from("meetings")
-        .update(newMeeting)
-        .eq("id", newMeeting.id)
+      const { data: propertyData, error } = await supabase
+        .from("properties")
+        .update(newProperty)
+        .eq("id", newProperty.id)
         .select()
         .single();
       if (error) throw new Error(error.message);
 
-      console.log("UPDATEに成功したdata", meetingData);
+      console.log("UPDATEに成功したdata", propertyData);
       // 活動履歴で面談タイプ 訪問・面談を作成
-      const newMeetingData = {
-        created_by_company_id: newMeeting.created_by_company_id,
-        created_by_user_id: newMeeting.created_by_user_id,
-        created_by_department_of_user: newMeeting.created_by_department_of_user,
-        created_by_unit_of_user: newMeeting.created_by_unit_of_user,
-        client_contact_id: newMeeting.client_contact_id,
-        client_company_id: newMeeting.client_company_id,
-        summary: newMeeting.result_summary,
+      const newPropertyData = {
+        created_by_company_id: newProperty.created_by_company_id,
+        created_by_user_id: newProperty.created_by_user_id,
+        created_by_department_of_user: newProperty.created_by_department_of_user,
+        created_by_unit_of_user: newProperty.created_by_unit_of_user,
+        client_contact_id: newProperty.client_contact_id,
+        client_company_id: newProperty.client_company_id,
+        summary: newProperty.property_summary,
         // scheduled_follow_up_date: null,
         // follow_up_flag: false,
         // document_url: null,
         // activity_type: "面談・訪問",
         // claim_flag: false,
-        product_introduction1: newMeeting.result_presentation_product1,
-        product_introduction2: newMeeting.result_presentation_product2,
-        product_introduction3: newMeeting.result_presentation_product3,
-        product_introduction4: newMeeting.result_presentation_product4,
-        product_introduction5: newMeeting.result_presentation_product5,
-        department: newMeeting.meeting_department,
-        business_office: newMeeting.meeting_business_office,
-        member_name: newMeeting.meeting_member_name,
+        // product_introduction1: newProperty.result_presentation_product1,
+        // product_introduction2: newProperty.result_presentation_product2,
+        // product_introduction3: newProperty.result_presentation_product3,
+        // product_introduction4: newProperty.result_presentation_product4,
+        // product_introduction5: newProperty.result_presentation_product5,
+        department: newProperty.property_department,
+        business_office: newProperty.property_business_office,
+        member_name: newProperty.property_member_name,
         // priority: null,
-        activity_date: newMeeting.planned_date,
-        activity_year_month: newMeeting.meeting_year_month,
-        meeting_id: newMeeting.id,
-        // property_id: null,
+        activity_date: newProperty.property_date,
+        activity_year_month: newProperty.property_year_month,
+        // meeting_id: null,
+        property_id: newProperty.id,
         // quotation_id: null,
       };
 
-      // supabaseの活動にUPDATE
-      const { error: errorActivity } = await supabase
-        .from("activities")
-        .update(newMeetingData)
-        .eq("meeting_id", newMeeting.id);
+      // supabaseにINSERT
+      const { error: errorActivity } = await supabase.from("activities").insert(newPropertyData);
       if (errorActivity) throw new Error(errorActivity.message);
     },
     {
       onSuccess: async () => {
         // キャッシュのデータを再取得
-        await queryClient.invalidateQueries({ queryKey: ["meetings"] });
+        await queryClient.invalidateQueries({ queryKey: ["properties"] });
         await queryClient.invalidateQueries({ queryKey: ["activities"] });
         // TanStack Queryでデータの変更に合わせて別のデータを再取得する
         // https://zenn.dev/masatakaitoh/articles/3c2f8602d2bb9d
         setTimeout(() => {
           setLoadingGlobalState(false);
-          setIsOpenUpdateMeetingModal(false);
+          setIsOpenUpdatePropertyModal(false);
           toast.success("面談の更新完了しました!", {
             position: "top-right",
             autoClose: 2000,
@@ -180,7 +176,7 @@ export const useMutateMeeting = () => {
       onError: (err: any) => {
         setTimeout(() => {
           setLoadingGlobalState(false);
-          // setIsOpenUpdateMeetingModal(false);
+          // setIsOpenUpdatePropertyModal(false);
           alert(err.message);
           console.log("INSERTエラー", err.message);
           toast.error("面談の更新に失敗しました!", {
@@ -198,5 +194,5 @@ export const useMutateMeeting = () => {
     }
   );
 
-  return { createMeetingMutation, updateMeetingMutation };
+  return { createPropertyMutation, updatePropertyMutation };
 };

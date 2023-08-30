@@ -18,6 +18,7 @@ const MeetingFunctionHeaderMemo: FC = () => {
   const setIsOpenUpdateMeetingModal = useDashboardStore((state) => state.setIsOpenUpdateMeetingModal);
   const setIsOpenInsertNewMeetingModal = useDashboardStore((state) => state.setIsOpenInsertNewMeetingModal);
   const setIsOpenInsertNewActivityModal = useDashboardStore((state) => state.setIsOpenInsertNewActivityModal);
+  const setIsOpenInsertNewPropertyModal = useDashboardStore((state) => state.setIsOpenInsertNewPropertyModal);
   //   const setIsOpenInsertNewMeetingModal = useDashboardStore((state) => state.setIsOpenInsertNewMeetingModal);
 
   // 上画面の選択中の列データ会社
@@ -96,75 +97,62 @@ const MeetingFunctionHeaderMemo: FC = () => {
             setSearchMode(true);
           }}
         />
-        {/* <RippleButton
-          title={`会社作成`}
-          classText="select-none"
-          borderRadius="2px"
-          clickEventHandler={() => {
-            console.log("サーチ編集 クリック");
-          }}
-        />
-        <RippleButton
-          title={`会社編集`}
-          classText="select-none"
-          borderRadius="2px"
-          clickEventHandler={() => {
-            console.log("サーチ編集 クリック");
-          }}
-        /> */}
-        <RippleButton
-          title={`活動_作成`}
-          classText={`select-none ${searchMode || !selectedRowDataMeeting ? `cursor-not-allowed` : ``}`}
-          borderRadius="2px"
-          clickEventHandler={() => {
-            if (searchMode) return;
-            if (!selectedRowDataMeeting) return alert("担当者を選択してください");
-            console.log("活動作成 クリック");
-            // 担当者ページの選択列をリセット
-            setSelectedRowDataContact(null);
-            setLoadingGlobalState(false);
-            setIsOpenInsertNewActivityModal(true);
-          }}
-        />
-        {/* <RippleButton
-          title={`活動編集`}
-          classText={`select-none ${searchMode || !selectedRowDataMeeting ? `cursor-not-allowed` : ``}`}
-          borderRadius="2px"
-          clickEventHandler={() => {
-            if (searchMode) return;
-            if (!selectedRowDataMeeting) return alert("活動を選択してください");
-            console.log("活動編集 クリック");
-            setLoadingGlobalState(false);
-            setIsOpenUpdateMeetingModal(true);
-          }}
-        /> */}
-        <RippleButton
-          title={`面談_作成`}
-          classText={`select-none ${searchMode || !selectedRowDataMeeting ? `cursor-not-allowed` : ``}`}
-          borderRadius="2px"
-          clickEventHandler={() => {
-            if (searchMode) return;
-            if (!selectedRowDataMeeting) return alert("担当者を選択してください");
-            console.log("面談作成 クリック");
-            setLoadingGlobalState(false);
-            setIsOpenInsertNewMeetingModal(true);
-          }}
-        />
-        <RippleButton
-          title={`面談_結果入力/編集`}
-          classText={`select-none ${searchMode || !selectedRowDataMeeting ? `cursor-not-allowed` : ``}`}
-          borderRadius="2px"
-          clickEventHandler={() => {
-            if (searchMode) return;
-            if (!selectedRowDataMeeting) return alert("担当者を選択してください");
-            console.log("活動編集 クリック");
-            setLoadingGlobalState(false);
-            setIsOpenUpdateMeetingModal(true);
-          }}
-        />
+        <div className="flex space-x-[6px] pl-10">
+          <RippleButton
+            title={`活動_作成`}
+            classText={`select-none ${searchMode || !selectedRowDataMeeting ? `cursor-not-allowed` : ``}`}
+            borderRadius="2px"
+            clickEventHandler={() => {
+              if (searchMode) return;
+              if (!selectedRowDataMeeting) return alert("担当者を選択してください");
+              console.log("活動作成 クリック");
+              // 担当者ページの選択列をリセット
+              setSelectedRowDataContact(null);
+              setLoadingGlobalState(false);
+              setIsOpenInsertNewActivityModal(true);
+            }}
+          />
+          <RippleButton
+            title={`面談_作成`}
+            classText={`select-none ${searchMode || !selectedRowDataMeeting ? `cursor-not-allowed` : ``}`}
+            borderRadius="2px"
+            clickEventHandler={() => {
+              if (searchMode) return;
+              if (!selectedRowDataMeeting) return alert("担当者を選択してください");
+              console.log("面談作成 クリック");
+              setLoadingGlobalState(false);
+              setIsOpenInsertNewMeetingModal(true);
+            }}
+          />
+          <RippleButton
+            title={`面談_結果入力/編集`}
+            classText={`select-none ${searchMode || !selectedRowDataMeeting ? `cursor-not-allowed` : ``}`}
+            borderRadius="2px"
+            clickEventHandler={() => {
+              if (searchMode) return;
+              if (!selectedRowDataMeeting) return alert("担当者を選択してください");
+              console.log("活動編集 クリック");
+              setLoadingGlobalState(false);
+              setIsOpenUpdateMeetingModal(true);
+            }}
+          />
+          <RippleButton
+            title={`案件_作成`}
+            classText={`select-none ${searchMode || !selectedRowDataMeeting ? `cursor-not-allowed` : ``}`}
+            borderRadius="2px"
+            clickEventHandler={() => {
+              if (searchMode) return;
+              if (!selectedRowDataMeeting) return alert("担当者を選択してください");
+              console.log("案件_作成 クリック");
+              setLoadingGlobalState(false);
+              setIsOpenInsertNewPropertyModal(true);
+            }}
+          />
+        </div>
       </div>
 
-      <div className={`flex max-h-[26px] w-full  items-center justify-end space-x-[6px]`}>
+      <div className={`flex max-h-[26px] w-full  items-center justify-between space-x-[6px] `}>
+        <div className="flex space-x-[6px]"></div>
         {/* <button
           className={`flex-center transition-base03 mr-[10px]  h-[26px] w-[70px]  cursor-pointer space-x-2 rounded-[4px]  text-[12px] text-[var(--color-bg-brand-f)] ${styles.fh_text_btn} `}
         >
@@ -175,25 +163,27 @@ const MeetingFunctionHeaderMemo: FC = () => {
         >
           <span>MAP</span>
         </button> */}
-        <button
-          data-text={`${underDisplayFullScreen ? "デフォルト表示" : "全画面表示"}`}
-          className={`flex-center transition-base03   !mr-[10px] h-[26px] min-w-[26px]  space-x-2 rounded-[4px] text-[16px]   ${
-            tableContainerSize === "one_third"
-              ? `cursor-not-allowed  text-[#b9b9b9]`
-              : `text-[var(--color-bg-brand-f)] ${styles.fh_text_btn} cursor-pointer`
-          }`}
-          onClick={() => {
-            setUnderDisplayFullScreen(!underDisplayFullScreen);
-          }}
-          onMouseEnter={(e) => handleOpenTooltip(e, "right")}
-          onMouseLeave={handleCloseTooltip}
-        >
-          {underDisplayFullScreen ? (
-            <SlSizeActual className="pointer-events-none" />
-          ) : (
-            <SlSizeFullscreen className="pointer-events-none" />
-          )}
-        </button>
+        <div className="flex">
+          <button
+            data-text={`${underDisplayFullScreen ? "デフォルト表示" : "全画面表示"}`}
+            className={`flex-center transition-base03   !mr-[10px] h-[26px] min-w-[26px]  space-x-2 rounded-[4px] text-[16px]   ${
+              tableContainerSize === "one_third"
+                ? `cursor-not-allowed  text-[#b9b9b9]`
+                : `text-[var(--color-bg-brand-f)] ${styles.fh_text_btn} cursor-pointer`
+            }`}
+            onClick={() => {
+              setUnderDisplayFullScreen(!underDisplayFullScreen);
+            }}
+            onMouseEnter={(e) => handleOpenTooltip(e, "right")}
+            onMouseLeave={handleCloseTooltip}
+          >
+            {underDisplayFullScreen ? (
+              <SlSizeActual className="pointer-events-none" />
+            ) : (
+              <SlSizeFullscreen className="pointer-events-none" />
+            )}
+          </button>
+        </div>
         {/* <RippleButton
           title={`HP検索`}
           borderRadius="2px"

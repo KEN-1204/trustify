@@ -17,6 +17,7 @@ const CompanyFunctionHeaderMemo: FC = () => {
   const setIsOpenInsertNewContactModal = useDashboardStore((state) => state.setIsOpenInsertNewContactModal);
   const setIsOpenInsertNewClientCompanyModal = useDashboardStore((state) => state.setIsOpenInsertNewClientCompanyModal);
   const setIsOpenUpdateClientCompanyModal = useDashboardStore((state) => state.setIsOpenUpdateClientCompanyModal);
+  const userProfileState = useDashboardStore((state) => state.userProfileState);
 
   // 上画面の選択中の列データ会社
   const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
@@ -91,41 +92,49 @@ const CompanyFunctionHeaderMemo: FC = () => {
             setSearchMode(true);
           }}
         />
-        <RippleButton
-          title={`会社_作成`}
-          classText="select-none"
-          borderRadius="2px"
-          clickEventHandler={() => {
-            if (searchMode) return;
-            console.log("会社作成 クリック");
-            setLoadingGlobalState(false);
-            setIsOpenInsertNewClientCompanyModal(true);
-          }}
-        />
-        <RippleButton
-          title={`会社_編集`}
-          classText={`select-none ${searchMode || !selectedRowDataCompany ? `cursor-not-allowed` : ``}`}
-          borderRadius="2px"
-          clickEventHandler={() => {
-            if (searchMode) return;
-            if (!selectedRowDataCompany) return alert("会社を選択してください");
-            console.log("会社編集 クリック");
-            setLoadingGlobalState(false);
-            setIsOpenUpdateClientCompanyModal(true);
-          }}
-        />
-        <RippleButton
-          title={`担当者_作成`}
-          classText={`select-none ${searchMode ? `cursor-not-allowed` : ``}`}
-          borderRadius="2px"
-          clickEventHandler={() => {
-            if (searchMode) return;
-            if (!selectedRowDataCompany) return alert("会社を選択してください");
-            console.log("担当者作成 クリック");
-            setLoadingGlobalState(false);
-            setIsOpenInsertNewContactModal(true);
-          }}
-        />
+        <div className="flex space-x-[6px] pl-10">
+          <RippleButton
+            title={`会社_作成`}
+            classText="select-none"
+            borderRadius="2px"
+            clickEventHandler={() => {
+              if (searchMode) return;
+              console.log("会社作成 クリック");
+              setLoadingGlobalState(false);
+              setIsOpenInsertNewClientCompanyModal(true);
+            }}
+          />
+          <RippleButton
+            title={`会社_編集`}
+            classText={`select-none ${searchMode || !selectedRowDataCompany ? `cursor-not-allowed` : ``}`}
+            borderRadius="2px"
+            clickEventHandler={() => {
+              if (searchMode) return;
+              if (!selectedRowDataCompany) return alert("会社を選択してください");
+              if (
+                (selectedRowDataCompany.created_by_company_id === null &&
+                  selectedRowDataCompany.created_by_user_id !== userProfileState?.id) ||
+                selectedRowDataCompany.created_by_company_id !== userProfileState?.company_id
+              )
+                return alert("自社で作成した会社のみ編集可能です");
+              console.log("会社編集 クリック");
+              setLoadingGlobalState(false);
+              setIsOpenUpdateClientCompanyModal(true);
+            }}
+          />
+          <RippleButton
+            title={`担当者_作成`}
+            classText={`select-none ${searchMode ? `cursor-not-allowed` : ``}`}
+            borderRadius="2px"
+            clickEventHandler={() => {
+              if (searchMode) return;
+              if (!selectedRowDataCompany) return alert("会社を選択してください");
+              console.log("担当者作成 クリック");
+              setLoadingGlobalState(false);
+              setIsOpenInsertNewContactModal(true);
+            }}
+          />
+        </div>
       </div>
 
       <div className={`flex max-h-[26px] w-full  items-center justify-end space-x-[6px]`}>

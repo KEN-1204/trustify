@@ -13,6 +13,7 @@ import { MdClose } from "react-icons/md";
 
 export const UpdateProductModal = () => {
   const setIsOpenUpdateProductModal = useDashboardStore((state) => state.setIsOpenUpdateProductModal);
+  const editedProduct = useDashboardStore((state) => state.editedProduct);
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   // const theme = useThemeStore((state) => state.theme);
@@ -20,13 +21,13 @@ export const UpdateProductModal = () => {
   // const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
 
-  const [productName, setProductName] = useState("");
-  const [unitPrice, setUnitPrice] = useState<number | null>(null);
-  const [insideShortName, setInsideShortName] = useState("");
-  const [outsideShortName, setOutsideShortName] = useState("");
+  const [productName, setProductName] = useState(editedProduct.product_name);
+  const [unitPrice, setUnitPrice] = useState<number | null>(editedProduct.unit_price);
+  const [insideShortName, setInsideShortName] = useState(editedProduct.inside_short_name);
+  const [outsideShortName, setOutsideShortName] = useState(editedProduct.outside_short_name);
 
   const supabase = useSupabaseClient();
-  const { createProductMutation } = useMutateProduct();
+  const { updateProductMutation } = useMutateProduct();
 
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
@@ -45,6 +46,7 @@ export const UpdateProductModal = () => {
 
     // 新規作成するデータをオブジェクトにまとめる
     const newProduct = {
+      id: editedProduct.id,
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
       created_by_user_id: userProfileState?.id ? userProfileState.id : null,
       created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
@@ -55,8 +57,8 @@ export const UpdateProductModal = () => {
       outside_short_name: outsideShortName ? outsideShortName : null,
     };
 
-    // supabaseにINSERT
-    createProductMutation.mutate(newProduct);
+    // supabaseにUPDATE
+    updateProductMutation.mutate(newProduct);
 
     // setLoadingGlobalState(false);
 
@@ -94,8 +96,6 @@ export const UpdateProductModal = () => {
     return str;
   }
 
-  console.log("面談予定作成モーダル ");
-
   return (
     <>
       <div className={`${styles.overlay} `} onClick={handleCancelAndReset} />
@@ -110,7 +110,7 @@ export const UpdateProductModal = () => {
           <div className="font-samibold cursor-pointer hover:text-[#aaa]" onClick={handleCancelAndReset}>
             キャンセル
           </div>
-          <div className="-translate-x-[25px] font-bold">自社製品 追加</div>
+          <div className="-translate-x-[25px] font-bold">自社製品 編集</div>
 
           <div
             className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}

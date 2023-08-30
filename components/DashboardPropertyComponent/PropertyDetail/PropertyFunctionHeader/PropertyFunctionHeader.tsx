@@ -1,12 +1,11 @@
 import React, { Dispatch, FC, SetStateAction, memo, useEffect } from "react";
-import styles from "../ActivityDetail.module.css";
+import styles from "../PropertyDetail.module.css";
 import { RippleButton } from "@/components/Parts/RippleButton/RippleButton";
 import useDashboardStore from "@/store/useDashboardStore";
 import { SlSizeActual, SlSizeFullscreen } from "react-icons/sl";
 import useStore from "@/store";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
-const ActivityFunctionHeaderMemo: FC = () => {
+const PropertyFunctionHeaderMemo: FC = () => {
   const searchMode = useDashboardStore((state) => state.searchMode);
   const setSearchMode = useDashboardStore((state) => state.setSearchMode);
   const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
@@ -15,16 +14,17 @@ const ActivityFunctionHeaderMemo: FC = () => {
   const setUnderDisplayFullScreen = useDashboardStore((state) => state.setUnderDisplayFullScreen);
   const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
-  //   const setIsOpenInsertNewActivityModal = useDashboardStore((state) => state.setIsOpenInsertNewActivityModal);
-  const setIsOpenUpdateActivityModal = useDashboardStore((state) => state.setIsOpenUpdateActivityModal);
+  //   const setIsOpenInsertNewPropertyModal = useDashboardStore((state) => state.setIsOpenInsertNewPropertyModal);
+  const setIsOpenUpdatePropertyModal = useDashboardStore((state) => state.setIsOpenUpdatePropertyModal);
+  const setIsOpenInsertNewPropertyModal = useDashboardStore((state) => state.setIsOpenInsertNewPropertyModal);
   const setIsOpenInsertNewActivityModal = useDashboardStore((state) => state.setIsOpenInsertNewActivityModal);
-  const setIsOpenInsertNewMeetingModal = useDashboardStore((state) => state.setIsOpenInsertNewMeetingModal);
+  //   const setIsOpenInsertNewPropertyModal = useDashboardStore((state) => state.setIsOpenInsertNewPropertyModal);
+  //   const setIsOpenInsertNewPropertyModal = useDashboardStore((state) => state.setIsOpenInsertNewPropertyModal);
 
   // 上画面の選択中の列データ会社
   //   const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
-  const selectedRowDataActivity = useDashboardStore((state) => state.selectedRowDataActivity);
+  const selectedRowDataProperty = useDashboardStore((state) => state.selectedRowDataProperty);
   const setSelectedRowDataContact = useDashboardStore((state) => state.setSelectedRowDataContact);
-  const setSelectedRowDataMeeting = useDashboardStore((state) => state.setSelectedRowDataMeeting);
 
   const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
     // ホバーしたアイテムにツールチップを表示
@@ -59,26 +59,6 @@ const ActivityFunctionHeaderMemo: FC = () => {
       setUnderDisplayFullScreen(false);
     }
   }, [tableContainerSize]);
-
-  // テスト
-  const supabase = useSupabaseClient();
-  const insertData = async () => {
-    try {
-      const { data, error } = await supabase.from("interview_schedule").insert([
-        { planned_start_time: "08:30" }, // ここが問題の箇所かもしれません
-      ]);
-
-      if (error) {
-        throw error;
-      }
-
-      console.log("Insert succeeded!", data);
-    } catch (error: any) {
-      alert(error.message);
-      console.error("Insert failed:", error.message);
-    }
-  };
-  // テスト
 
   return (
     <div className={`${styles.grid_function_header} h-[40px] w-full bg-[var(--color-bg-under-function-header)]`}>
@@ -120,11 +100,11 @@ const ActivityFunctionHeaderMemo: FC = () => {
         <div className="flex space-x-[6px] pl-10">
           <RippleButton
             title={`活動_作成`}
-            classText={`select-none ${searchMode || !selectedRowDataActivity ? `cursor-not-allowed` : ``}`}
+            classText={`select-none ${searchMode || !selectedRowDataProperty ? `cursor-not-allowed` : ``}`}
             borderRadius="2px"
             clickEventHandler={() => {
               if (searchMode) return;
-              if (!selectedRowDataActivity) return alert("担当者を選択してください");
+              if (!selectedRowDataProperty) return alert("担当者を選択してください");
               console.log("活動作成 クリック");
               // 担当者ページの選択列をリセット
               setSelectedRowDataContact(null);
@@ -133,48 +113,46 @@ const ActivityFunctionHeaderMemo: FC = () => {
             }}
           />
           <RippleButton
-            title={`活動_編集`}
-            classText={`select-none ${searchMode || !selectedRowDataActivity ? `cursor-not-allowed` : ``}`}
+            title={`面談_作成`}
+            classText={`select-none ${searchMode || !selectedRowDataProperty ? `cursor-not-allowed` : ``}`}
             borderRadius="2px"
             clickEventHandler={() => {
               if (searchMode) return;
-              if (!selectedRowDataActivity) return alert("活動を選択してください");
-              console.log("活動編集 クリック");
+              if (!selectedRowDataProperty) return alert("担当者を選択してください");
+              console.log("面談作成 クリック");
               setLoadingGlobalState(false);
-              setIsOpenUpdateActivityModal(true);
+              setIsOpenInsertNewPropertyModal(true);
             }}
           />
-          <RippleButton
-            title={`面談_作成`}
-            classText={`select-none ${searchMode || !selectedRowDataActivity ? `cursor-not-allowed` : ``}`}
+          {/* <RippleButton
+            title={`面談_結果入力/編集`}
+            classText={`select-none ${searchMode || !selectedRowDataProperty ? `cursor-not-allowed` : ``}`}
             borderRadius="2px"
             clickEventHandler={() => {
               if (searchMode) return;
-              if (!selectedRowDataActivity) return alert("担当者を選択してください");
-              console.log("面談作成 クリック");
-              setSelectedRowDataMeeting(null);
-              setSelectedRowDataContact(null);
+              if (!selectedRowDataProperty) return alert("担当者を選択してください");
+              console.log("活動編集 クリック");
               setLoadingGlobalState(false);
-              setIsOpenInsertNewMeetingModal(true);
+              setIsOpenUpdatePropertyModal(true);
+            }}
+          /> */}
+          <RippleButton
+            title={`案件_作成`}
+            classText={`select-none ${searchMode || !selectedRowDataProperty ? `cursor-not-allowed` : ``}`}
+            borderRadius="2px"
+            clickEventHandler={() => {
+              if (searchMode) return;
+              if (!selectedRowDataProperty) return alert("担当者を選択してください");
+              console.log("案件_作成 クリック");
+              setLoadingGlobalState(false);
+              setIsOpenInsertNewPropertyModal(true);
             }}
           />
         </div>
-        {/* <RippleButton
-          title={`テスト`}
-          classText={`select-none ${searchMode || !selectedRowDataActivity ? `cursor-not-allowed` : ``}`}
-          borderRadius="2px"
-          clickEventHandler={() => {
-            if (searchMode) return;
-            insertData();
-            // if (!selectedRowDataActivity) return alert("担当者を選択してください");
-            // console.log("面談作成 クリック");
-            // setLoadingGlobalState(false);
-            // setIsOpenInsertNewMeetingModal(true);
-          }}
-        /> */}
       </div>
 
-      <div className={`flex max-h-[26px] w-full  items-center justify-end space-x-[6px]`}>
+      <div className={`flex max-h-[26px] w-full  items-center justify-between space-x-[6px] `}>
+        <div className="flex space-x-[6px]"></div>
         {/* <button
           className={`flex-center transition-base03 mr-[10px]  h-[26px] w-[70px]  cursor-pointer space-x-2 rounded-[4px]  text-[12px] text-[var(--color-bg-brand-f)] ${styles.fh_text_btn} `}
         >
@@ -185,25 +163,27 @@ const ActivityFunctionHeaderMemo: FC = () => {
         >
           <span>MAP</span>
         </button> */}
-        <button
-          data-text={`${underDisplayFullScreen ? "デフォルト表示" : "全画面表示"}`}
-          className={`flex-center transition-base03   !mr-[10px] h-[26px] min-w-[26px]  space-x-2 rounded-[4px] text-[16px]   ${
-            tableContainerSize === "one_third"
-              ? `cursor-not-allowed  text-[#b9b9b9]`
-              : `text-[var(--color-bg-brand-f)] ${styles.fh_text_btn} cursor-pointer`
-          }`}
-          onClick={() => {
-            setUnderDisplayFullScreen(!underDisplayFullScreen);
-          }}
-          onMouseEnter={(e) => handleOpenTooltip(e, "right")}
-          onMouseLeave={handleCloseTooltip}
-        >
-          {underDisplayFullScreen ? (
-            <SlSizeActual className="pointer-events-none" />
-          ) : (
-            <SlSizeFullscreen className="pointer-events-none" />
-          )}
-        </button>
+        <div className="flex">
+          <button
+            data-text={`${underDisplayFullScreen ? "デフォルト表示" : "全画面表示"}`}
+            className={`flex-center transition-base03   !mr-[10px] h-[26px] min-w-[26px]  space-x-2 rounded-[4px] text-[16px]   ${
+              tableContainerSize === "one_third"
+                ? `cursor-not-allowed  text-[#b9b9b9]`
+                : `text-[var(--color-bg-brand-f)] ${styles.fh_text_btn} cursor-pointer`
+            }`}
+            onClick={() => {
+              setUnderDisplayFullScreen(!underDisplayFullScreen);
+            }}
+            onMouseEnter={(e) => handleOpenTooltip(e, "right")}
+            onMouseLeave={handleCloseTooltip}
+          >
+            {underDisplayFullScreen ? (
+              <SlSizeActual className="pointer-events-none" />
+            ) : (
+              <SlSizeFullscreen className="pointer-events-none" />
+            )}
+          </button>
+        </div>
         {/* <RippleButton
           title={`HP検索`}
           borderRadius="2px"
@@ -215,7 +195,7 @@ const ActivityFunctionHeaderMemo: FC = () => {
   );
 };
 
-export const ActivityFunctionHeader = memo(ActivityFunctionHeaderMemo);
+export const PropertyFunctionHeader = memo(PropertyFunctionHeaderMemo);
 
 /*
 

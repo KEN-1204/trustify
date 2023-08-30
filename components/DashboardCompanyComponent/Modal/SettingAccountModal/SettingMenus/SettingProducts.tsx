@@ -3,7 +3,9 @@ import { useMutateProduct } from "@/hooks/useMutateProduct";
 import { useQueryProducts } from "@/hooks/useQueryProducts";
 import useDashboardStore from "@/store/useDashboardStore";
 import useThemeStore from "@/store/useThemeStore";
+import { Product } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useQueryClient } from "@tanstack/react-query";
 import React, { FC, memo, useEffect, useState } from "react";
 
 const SettingProductsMemo: FC = () => {
@@ -19,6 +21,7 @@ const SettingProductsMemo: FC = () => {
   // 製品追加・編集モーダル
   const setIsOpenInsertNewProductModal = useDashboardStore((state) => state.setIsOpenInsertNewProductModal);
   const setIsOpenUpdateProductModal = useDashboardStore((state) => state.setIsOpenUpdateProductModal);
+  const setEditedProduct = useDashboardStore((state) => state.setEditedProduct);
   const supabase = useSupabaseClient();
   const { deleteProductMutation } = useMutateProduct();
 
@@ -36,6 +39,8 @@ const SettingProductsMemo: FC = () => {
     isError,
     isLoading,
   } = useQueryProducts(userProfileState?.company_id, userProfileState?.id);
+  // const queryClient = useQueryClient();
+  // const products = queryClient.getQueryData<Product[]>(["products"]);
   console.log("取得したproducts", products);
 
   // // キャンセルでモーダルを閉じる
@@ -43,9 +48,9 @@ const SettingProductsMemo: FC = () => {
   //   setIsOpenSettingAccountModal(false);
   // };
 
-  if (isError) {
-    console.error("Error fetching products:", error);
-  }
+  // if (isError) {
+  //   console.error("Error fetching products:", error);
+  // }
 
   return (
     <>
@@ -85,7 +90,23 @@ const SettingProductsMemo: FC = () => {
                       </div>
                       <div
                         className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center text-[14px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
-                        onClick={() => setIsOpenUpdateProductModal(true)}
+                        onClick={() => {
+                          setEditedProduct({
+                            id: item.id,
+                            created_at: item.created_at,
+                            created_by_company_id: item.created_by_company_id ? item.created_by_company_id : "",
+                            created_by_user_id: item.created_by_user_id ? item.created_by_user_id : "",
+                            created_by_department_of_user: item.created_by_department_of_user
+                              ? item.created_by_department_of_user
+                              : "",
+                            created_by_unit_of_user: item.created_by_unit_of_user ? item.created_by_unit_of_user : "",
+                            product_name: item.product_name ? item.product_name : "",
+                            inside_short_name: item.inside_short_name ? item.inside_short_name : "",
+                            outside_short_name: item.outside_short_name ? item.outside_short_name : "",
+                            unit_price: item.unit_price,
+                          });
+                          setIsOpenUpdateProductModal(true);
+                        }}
                       >
                         編集
                       </div>

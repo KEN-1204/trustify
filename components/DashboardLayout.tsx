@@ -1,6 +1,6 @@
 import useStore from "@/store";
 import Head from "next/head";
-import React, { FC, ReactNode, useEffect } from "react";
+import React, { FC, ReactNode, Suspense, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { toast } from "react-toastify";
@@ -28,6 +28,11 @@ import { UpdateActivityModal } from "./DashboardCompanyComponent/Modal/UpdateAct
 import { InsertNewMeetingModal } from "./DashboardCompanyComponent/Modal/InsertNewMeetingModal/InsertNewMeetingModal";
 import { UpdateMeetingModal } from "./DashboardCompanyComponent/Modal/UpdateMeetingModal/UpdateMeetingModal";
 import { InsertNewProductModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/InsertNewProductModal/InsertNewProductModal";
+import { UpdateProductModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/UpdateProductModal/UpdateProductModal";
+import { InsertNewPropertyModal } from "./DashboardCompanyComponent/Modal/InsertNewPropertyModal/InsertNewPropertyModal";
+import { ErrorBoundary } from "react-error-boundary";
+import { ErrorFallback } from "./ErrorFallback/ErrorFallback";
+import { Fallback } from "./Fallback/Fallback";
 
 type Prop = {
   title?: string;
@@ -43,6 +48,8 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   // const theme = useStore((state) => state.theme);
   // const setTheme = useStore((state) => state.setTheme);
   const activeMenuTab = useDashboardStore((state) => state.activeMenuTab);
+  const userProfileState = useDashboardStore((state) => state.userProfileState);
+  const setProductsState = useDashboardStore((state) => state.setProductsState);
   // ユーザープロフィール
 
   const router = useRouter();
@@ -112,6 +119,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   const isOpenSettingAccountModal = useDashboardStore((state) => state.isOpenSettingAccountModal);
   // 製品・サービス作成・編集モーダル
   const isOpenInsertNewProductModal = useDashboardStore((state) => state.isOpenInsertNewProductModal);
+  const isOpenUpdateProductModal = useDashboardStore((state) => state.isOpenUpdateProductModal);
   // 会社作成モーダル 新規作成と編集モーダル
   const isOpenInsertNewClientCompanyModal = useDashboardStore((state) => state.isOpenInsertNewClientCompanyModal);
   const isOpenUpdateClientCompanyModal = useDashboardStore((state) => state.isOpenUpdateClientCompanyModal);
@@ -124,6 +132,9 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   // 面談作成モーダル 新規作成と編集モーダル
   const isOpenInsertNewMeetingModal = useDashboardStore((state) => state.isOpenInsertNewMeetingModal);
   const isOpenUpdateMeetingModal = useDashboardStore((state) => state.isOpenUpdateMeetingModal);
+  // 案件作成モーダル 新規作成と編集モーダル
+  const isOpenInsertNewPropertyModal = useDashboardStore((state) => state.isOpenInsertNewPropertyModal);
+  const isOpenUpdatePropertyModal = useDashboardStore((state) => state.isOpenUpdatePropertyModal);
 
   return (
     <div className={`${styles.trustify_app} relative`}>
@@ -187,23 +198,36 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
 
       {/* アカウント設定モーダル */}
       {isOpenSettingAccountModal && <SettingAccountModal />}
+      {/* 製品_追加・編集モーダル */}
       {isOpenInsertNewProductModal && <InsertNewProductModal />}
+      {isOpenUpdateProductModal && <UpdateProductModal />}
 
-      {/* 会社作成・編集モーダル */}
+      {/* 会社_作成・編集モーダル */}
       {isOpenInsertNewClientCompanyModal && <InsertNewClientCompanyModal />}
       {isOpenUpdateClientCompanyModal && <UpdateClientCompanyModal />}
 
-      {/* 担当者作成・編集モーダル */}
+      {/* 担当者_作成・編集モーダル */}
       {isOpenInsertNewContactModal && <InsertNewContactModal />}
       {isOpenUpdateContactModal && <UpdateContactModal />}
 
-      {/* 活動作成・編集モーダル */}
+      {/* 活動_作成・編集モーダル */}
       {isOpenInsertNewActivityModal && <InsertNewActivityModal />}
       {isOpenUpdateActivityModal && <UpdateActivityModal />}
 
-      {/* 面談作成・編集モーダル */}
+      {/* 面談_作成・編集モーダル */}
       {isOpenInsertNewMeetingModal && <InsertNewMeetingModal />}
       {isOpenUpdateMeetingModal && <UpdateMeetingModal />}
+      {/* 案件_作成・編集モーダル */}
+      {/* {isOpenInsertNewPropertyModal && <InsertNewPropertyModal />} */}
+
+      {isOpenInsertNewPropertyModal && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
+            <InsertNewPropertyModal />
+          </Suspense>
+        </ErrorBoundary>
+      )}
+      {/* {isOpenUpdatePropertyModal && <UpdateMeetingModal />} */}
     </div>
   );
 };

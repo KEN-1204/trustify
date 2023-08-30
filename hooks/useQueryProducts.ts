@@ -19,7 +19,7 @@ export const useQueryProducts = (company_id: string | null | undefined, userId: 
       .order("product_name", { ascending: true });
 
     if (error) {
-      alert(error.message);
+      // alert(error.message);
       console.log("getProductsFreeエラー発生", error.message);
       // setLoadingGlobalState(false);
       throw new Error(error.message);

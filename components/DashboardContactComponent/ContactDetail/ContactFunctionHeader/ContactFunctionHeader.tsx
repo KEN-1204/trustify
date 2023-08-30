@@ -17,6 +17,8 @@ const ContactFunctionHeaderMemo: FC = () => {
   //   const setIsOpenInsertNewContactModal = useDashboardStore((state) => state.setIsOpenInsertNewContactModal);
   const setIsOpenUpdateContactModal = useDashboardStore((state) => state.setIsOpenUpdateContactModal);
   const setIsOpenInsertNewActivityModal = useDashboardStore((state) => state.setIsOpenInsertNewActivityModal);
+  const setSelectedRowDataMeeting = useDashboardStore((state) => state.setSelectedRowDataMeeting);
+  const setIsOpenInsertNewMeetingModal = useDashboardStore((state) => state.setIsOpenInsertNewMeetingModal);
 
   // 上画面の選択中の列データ会社
   //   const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
@@ -93,48 +95,49 @@ const ContactFunctionHeaderMemo: FC = () => {
             setSearchMode(true);
           }}
         />
-        {/* <RippleButton
-          title={`会社作成`}
-          classText="select-none"
-          borderRadius="2px"
-          clickEventHandler={() => {
-            console.log("サーチ編集 クリック");
-          }}
-        />
-        <RippleButton
-          title={`会社編集`}
-          classText="select-none"
-          borderRadius="2px"
-          clickEventHandler={() => {
-            console.log("サーチ編集 クリック");
-          }}
-        /> */}
-        <RippleButton
-          title={`担当者_編集`}
-          classText={`select-none ${searchMode || !selectedRowDataContact ? `cursor-not-allowed` : ``}`}
-          borderRadius="2px"
-          clickEventHandler={() => {
-            if (searchMode) return;
-            if (!selectedRowDataContact) return alert("担当者を選択してください");
-            console.log("担当者作成 クリック");
-            setLoadingGlobalState(false);
-            setIsOpenUpdateContactModal(true);
-          }}
-        />
-        <RippleButton
-          title={`活動_作成`}
-          classText={`select-none ${searchMode || !selectedRowDataContact ? `cursor-not-allowed` : ``}`}
-          borderRadius="2px"
-          clickEventHandler={() => {
-            if (searchMode) return;
-            if (!selectedRowDataContact) return alert("担当者を選択してください");
-            console.log("活動作成 クリック");
-            // 活動の選択列はリセット
-            setSelectedRowDataActivity(null);
-            setLoadingGlobalState(false);
-            setIsOpenInsertNewActivityModal(true);
-          }}
-        />
+        <div className="flex space-x-[6px] pl-10">
+          <RippleButton
+            title={`担当者_編集`}
+            classText={`select-none ${searchMode || !selectedRowDataContact ? `cursor-not-allowed` : ``}`}
+            borderRadius="2px"
+            clickEventHandler={() => {
+              if (searchMode) return;
+              if (!selectedRowDataContact) return alert("担当者を選択してください");
+              console.log("担当者作成 クリック");
+              setLoadingGlobalState(false);
+              setIsOpenUpdateContactModal(true);
+            }}
+          />
+          <RippleButton
+            title={`活動_作成`}
+            classText={`select-none ${searchMode || !selectedRowDataContact ? `cursor-not-allowed` : ``}`}
+            borderRadius="2px"
+            clickEventHandler={() => {
+              if (searchMode) return;
+              if (!selectedRowDataContact) return alert("担当者を選択してください");
+              console.log("活動作成 クリック");
+              // 活動の選択列はリセット
+              setSelectedRowDataActivity(null);
+              setLoadingGlobalState(false);
+              setIsOpenInsertNewActivityModal(true);
+            }}
+          />
+          <RippleButton
+            title={`面談_作成`}
+            classText={`select-none ${searchMode || !selectedRowDataContact ? `cursor-not-allowed` : ``}`}
+            borderRadius="2px"
+            clickEventHandler={() => {
+              if (searchMode) return;
+              if (!selectedRowDataContact) return alert("担当者を選択してください");
+              console.log("活動作成 クリック");
+              // 活動の選択列はリセット
+              setSelectedRowDataMeeting(null);
+              setSelectedRowDataActivity(null);
+              setLoadingGlobalState(false);
+              setIsOpenInsertNewMeetingModal(true);
+            }}
+          />
+        </div>
       </div>
 
       <div className={`flex max-h-[26px] w-full  items-center justify-end space-x-[6px]`}>

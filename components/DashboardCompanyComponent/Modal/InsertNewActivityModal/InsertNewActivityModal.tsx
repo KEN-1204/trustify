@@ -99,6 +99,9 @@ export const InsertNewActivityModal = () => {
       priority: priority ? priority : null,
       activity_date: activityDate ? activityDate.toISOString() : null,
       activity_year_month: activityYearMonth ? activityYearMonth : null,
+      meeting_id: null,
+      property_id: null,
+      quotation_id: null,
     };
 
     // supabaseにINSERT
@@ -145,6 +148,9 @@ export const InsertNewActivityModal = () => {
       priority: priority ? priority : null,
       activity_date: activityDate ? activityDate.toISOString() : null,
       activity_year_month: activityYearMonth ? activityYearMonth : null,
+      meeting_id: null,
+      property_id: null,
+      quotation_id: null,
     };
 
     // supabaseにINSERT

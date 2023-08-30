@@ -14,16 +14,26 @@ import { GridTableAll } from "../GridTable/GridTableAll/GridTableAll";
 
 import { BsChevronRight } from "react-icons/bs";
 import { home_cards } from "./data";
+import { useQueryProducts } from "@/hooks/useQueryProducts";
 
 export const DashboardHomeComponent = () => {
-  console.log('DashboardHomeComponentレンダリング')
+  console.log("DashboardHomeComponentレンダリング");
   // const theme = useThemeStore((state) => state.theme);
   // const theme = useStore((state) => state.theme);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   const activeMenuTab = useDashboardStore((state) => state.activeMenuTab);
   const isOpenChangeSizeMenu = useDashboardStore((state) => state.isOpenChangeSizeMenu);
   const setIsOpenChangeSizeMenu = useDashboardStore((state) => state.setIsOpenChangeSizeMenu);
+  const userProfileState = useDashboardStore((state) => state.userProfileState);
   const setClickedItemPos = useStore((state) => state.setClickedItemPos);
+
+  // const {
+  //   data: products,
+  //   error,
+  //   isError,
+  //   isLoading,
+  // } = useQueryProducts(userProfileState?.company_id, userProfileState?.id);
+  // console.log("DashboardHomeComponent products", products);
 
   return (
     <div

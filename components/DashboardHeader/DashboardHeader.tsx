@@ -225,9 +225,9 @@ export const DashboardHeaderMemo: FC = () => {
               </div>
             </li>
             <li className={`${styles.navList}`}>
-              <Link
-                href="/home"
-                prefetch={false}
+              <div
+                // href="/home"
+                // prefetch={false}
                 className={`${styles.navbarItem} ${activeMenuTab === "Property" ? styles.active : ""} `}
                 onClick={() => setActiveMenuTab("Property")}
               >
@@ -244,7 +244,7 @@ export const DashboardHeaderMemo: FC = () => {
                   </span>
                 </div>
                 <div className={`${styles.active_underline}`} />
-              </Link>
+              </div>
             </li>
             <li className={`${styles.navList}`}>
               <Link

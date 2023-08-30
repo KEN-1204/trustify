@@ -4,13 +4,17 @@ import { DashboardContactComponent } from "@/components/DashboardContactComponen
 import { DashboardHomeComponent } from "@/components/DashboardHomeComponent/DashboardHomeComponent";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { DashboardMeetingComponent } from "@/components/DashboardMeetingComponent/DashboardMeetingComponent";
+import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
+import { Fallback } from "@/components/Fallback/Fallback";
+import { useQueryProducts } from "@/hooks/useQueryProducts";
 import useStore from "@/store";
 import useDashboardStore from "@/store/useDashboardStore";
 import useThemeStore from "@/store/useThemeStore";
 import { Profile, UserProfile } from "@/types";
 import { Session, User, createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { GetServerSidePropsContext } from "next";
-import React, { useEffect } from "react";
+import React, { Suspense, useEffect } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 
 const DashboardHome = ({
   initialSession,
@@ -26,6 +30,7 @@ const DashboardHome = ({
   const activeMenuTab = useDashboardStore((state) => state.activeMenuTab);
   const setActiveMenuTab = useDashboardStore((state) => state.setActiveMenuTab);
   const setUserProfileState = useDashboardStore((state) => state.setUserProfileState);
+  const setProductsState = useDashboardStore((state) => state.setProductsState);
   console.log("🔥Homeページ レンダリング", activeMenuTab, user, userProfile);
 
   useEffect(() => {
@@ -62,6 +67,58 @@ const DashboardHome = ({
         break;
     }
   }
+  if (activeMenuTab === "Contacts") {
+    switch (language) {
+      case "Ja":
+        langTitle = "担当者 - TRUSTiFY";
+        break;
+      case "En":
+        langTitle = "Contacts - TRUSTiFY";
+        break;
+      default:
+        langTitle = "Contacts - TRUSTiFY";
+        break;
+    }
+  }
+  if (activeMenuTab === "Activity") {
+    switch (language) {
+      case "Ja":
+        langTitle = "活動 - TRUSTiFY";
+        break;
+      case "En":
+        langTitle = "Activity - TRUSTiFY";
+        break;
+      default:
+        langTitle = "Activity - TRUSTiFY";
+        break;
+    }
+  }
+  if (activeMenuTab === "Meeting") {
+    switch (language) {
+      case "Ja":
+        langTitle = "面談 - TRUSTiFY";
+        break;
+      case "En":
+        langTitle = "Meeting - TRUSTiFY";
+        break;
+      default:
+        langTitle = "Meeting - TRUSTiFY";
+        break;
+    }
+  }
+  if (activeMenuTab === "Property") {
+    switch (language) {
+      case "Ja":
+        langTitle = "案件 - TRUSTiFY";
+        break;
+      case "En":
+        langTitle = "Case - TRUSTiFY";
+        break;
+      default:
+        langTitle = "Case - TRUSTiFY";
+        break;
+    }
+  }
 
   // /companyページにいて、アクティブメニュータブがCompanyでない場合にはCompanyに変更する
   useEffect(() => {
@@ -75,6 +132,13 @@ const DashboardHome = ({
   return (
     <DashboardLayout title={langTitle}>
       {activeMenuTab === "HOME" && <DashboardHomeComponent />}
+      {/* {activeMenuTab === "HOME" && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
+            <DashboardHomeComponent />
+          </Suspense>
+        </ErrorBoundary>
+      )} */}
       {activeMenuTab === "Company" && <DashboardCompanyComponent />}
       {activeMenuTab === "Contacts" && <DashboardContactComponent />}
       {activeMenuTab === "Activity" && <DashboardActivityComponent />}
