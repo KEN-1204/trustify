@@ -33,6 +33,7 @@ import { InsertNewPropertyModal } from "./DashboardCompanyComponent/Modal/Insert
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallback } from "./ErrorFallback/ErrorFallback";
 import { Fallback } from "./Fallback/Fallback";
+import { UpdatePropertyModal } from "./DashboardCompanyComponent/Modal/UpdatePropertyModal/UpdatePropertyModal";
 
 type Prop = {
   title?: string;
@@ -224,6 +225,13 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
         <ErrorBoundary FallbackComponent={ErrorFallback}>
           <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
             <InsertNewPropertyModal />
+          </Suspense>
+        </ErrorBoundary>
+      )}
+      {isOpenUpdatePropertyModal && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
+            <UpdatePropertyModal />
           </Suspense>
         </ErrorBoundary>
       )}

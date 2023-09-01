@@ -347,7 +347,8 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
         .or(`property_created_by_user_id.eq.${userProfileState.id},property_created_by_user_id.is.null`)
         .range(from, to)
         // .order("company_name", { ascending: true });
-        .order("property_created_at", { ascending: false })
+        // .order("property_created_at", { ascending: false })
+        .order("expected_order_date", { ascending: false })
         .order("company_name", { ascending: true });
       // 成功バージョン
       // const { data, error, count } = await supabase
@@ -417,7 +418,8 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
         .or(`property_created_by_user_id.eq.${userProfileState.id},property_created_by_user_id.is.null`)
         .range(from, to)
         // .order("company_name", { ascending: true });
-        .order("property_created_at", { ascending: false });
+        // .order("property_created_at", { ascending: false });
+        .order("expected_order_date", { ascending: false });
       // 成功バージョン
       // const { data, error, count } = await supabase
       //   .rpc("search_properties_and_companies_and_contacts", { params }, { count: "exact" })
@@ -759,7 +761,8 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
     // const newColsWidths = new Array(Object.keys(data?.pages[0].rows[0] as object).length + 1).fill("120px");
     const newColsWidths = new Array(propertyColumnHeaderItemList.length + 1).fill("120px");
     newColsWidths.fill("65px", 0, 1); // 1列目を65pxに変更
-    newColsWidths.fill("100px", 1, 2); // 2列目を100pxに変更 id
+    // newColsWidths.fill("100px", 1, 2); // 2列目を100pxに変更 id
+    newColsWidths.fill("200px", 1, 2); // 2列目を100pxに変更 id
     // newColsWidths.fill("100px", 2, 3); // 2列目を100pxに変更 法人番号
     // newColsWidths.fill("200px", 3, 4); // 4列目を100pxに変更 会社名
     console.log("Stateにカラムwidthを保存", newColsWidths);
@@ -2168,46 +2171,62 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
   // ======================== 🔥テスト🔥 ========================
 
   const formatMapping: {
-    planned_date: string;
-    result_date: string;
+    expected_order_date: string;
+    expansion_date: string;
+    sales_date: string;
+    subscription_start_date: string;
+    subscription_canceled_at: string;
+    lease_expiration_date: string;
+    competitor_appearance_date: string;
+    property_date: string;
     property_created_at: string;
     property_updated_at: string;
     [key: string]: string;
   } = {
-    planned_date: "yyyy/MM/dd",
-    result_date: "yyyy/MM/dd",
+    expected_order_date: "yyyy/MM/dd",
+    expansion_date: "yyyy/MM/dd",
+    sales_date: "yyyy/MM/dd",
+    subscription_start_date: "yyyy/MM/dd",
+    subscription_canceled_at: "yyyy/MM/dd",
+    lease_expiration_date: "yyyy/MM/dd",
+    competitor_appearance_date: "yyyy/MM/dd",
+    property_date: "yyyy/MM/dd",
     property_created_at: "yyyy/MM/dd HH:mm:ss",
     property_updated_at: "yyyy/MM/dd HH:mm:ss",
   };
+  const checkComponent = {
+    true: (
+      <div className={`${styles.grid_select_cell_header} `}>
+        <input
+          type="checkbox"
+          checked={true}
+          readOnly
+          className={`${styles.grid_select_cell_header_input} pointer-events-none`}
+        />
+        <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+        </svg>
+      </div>
+    ),
+    false: (
+      <div className={`${styles.grid_select_cell_header} `}>
+        <input
+          type="checkbox"
+          checked={false}
+          readOnly
+          className={`${styles.grid_select_cell_header_input} pointer-events-none`}
+        />
+        <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+        </svg>
+      </div>
+    ),
+  };
   const flagMapping: { [key: string]: { [value: string]: React.JSX.Element } } = {
-    planned_appoint_check_flag: {
-      true: (
-        <div className={`${styles.grid_select_cell_header} `}>
-          <input
-            type="checkbox"
-            checked={true}
-            readOnly
-            className={`${styles.grid_select_cell_header_input} pointer-events-none`}
-          />
-          <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
-          </svg>
-        </div>
-      ),
-      false: (
-        <div className={`${styles.grid_select_cell_header} `}>
-          <input
-            type="checkbox"
-            checked={false}
-            readOnly
-            className={`${styles.grid_select_cell_header_input} pointer-events-none`}
-          />
-          <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
-          </svg>
-        </div>
-      ),
-    },
+    pending_flag: checkComponent,
+    rejected_flag: checkComponent,
+    step_in_flag: checkComponent,
+    repeat_flag: checkComponent,
   };
   // time型のplanned_start_time、result_start_time、result_end_timeを時間と分のみに変換する関数
   function formatTime(timeStr: string) {

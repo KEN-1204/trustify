@@ -286,6 +286,7 @@
   /* min-width: 75px; */
   /* margin-right: 20px; */
   font-weight: 600;
+  font-size: 13px;
 }
 .title_search_mode {
   color: var(--color-text-brand-f);
@@ -299,6 +300,7 @@
   /* min-width: 70px; */
   /* margin-right: 20px; */
   font-weight: 600;
+  font-size: 13px;
 }
 .title_min {
   color: var(--color-text-brand-f);

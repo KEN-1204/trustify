@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import styles from "./InsertNewPropertyModal.module.css";
+import styles from "./UpdatePropertyModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
@@ -12,11 +12,11 @@ import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput"
 import { MdClose } from "react-icons/md";
 import { useQueryProducts } from "@/hooks/useQueryProducts";
 
-export const InsertNewPropertyModal = () => {
+export const UpdatePropertyModal = () => {
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
   const selectedRowDataActivity = useDashboardStore((state) => state.selectedRowDataActivity);
-  const selectedRowDataMeeting = useDashboardStore((state) => state.selectedRowDataMeeting);
-  const setIsOpenInsertNewPropertyModal = useDashboardStore((state) => state.setIsOpenInsertNewPropertyModal);
+  const selectedRowDataProperty = useDashboardStore((state) => state.selectedRowDataProperty);
+  const setIsOpenUpdatePropertyModal = useDashboardStore((state) => state.setIsOpenUpdatePropertyModal);
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   // const theme = useThemeStore((state) => state.theme);
@@ -91,7 +91,149 @@ export const InsertNewPropertyModal = () => {
   const [propertyDate, setPropertyDate] = useState<Date | null>(initialDate);
 
   const supabase = useSupabaseClient();
-  const { createPropertyMutation } = useMutateProperty();
+  const { updatePropertyMutation } = useMutateProperty();
+
+  // 初回マウント時に選択中の担当者&会社の列データの情報をStateに格納
+  useEffect(() => {
+    if (!selectedRowDataProperty) return;
+    const selectedInitialPropertyDate = selectedRowDataProperty.property_date
+      ? new Date(selectedRowDataProperty.property_date)
+      : initialDate;
+    const selectedYear = selectedInitialPropertyDate.getFullYear(); // 例: 2023
+    const selectedMonth = selectedInitialPropertyDate.getMonth() + 1; // getMonth()は0から11で返されるため、+1して1から12に調整
+    const selectedYearMonthInitialValue = `${selectedYear}${selectedMonth < 10 ? "0" + selectedMonth : selectedMonth}`; // 月が1桁の場合は先頭に0を追加
+
+    // let _activity_date = selectedRowDataActivity.activity_date ? new Date(selectedRowDataActivity.activity_date) : null;
+    let _current_status = selectedRowDataProperty.current_status ? selectedRowDataProperty.current_status : "";
+    let _property_name = selectedRowDataProperty.property_name ? selectedRowDataProperty.property_name : "";
+    let _property_summary = selectedRowDataProperty.property_summary ? selectedRowDataProperty.property_summary : "";
+    let _pending_flag = selectedRowDataProperty.pending_flag ? selectedRowDataProperty.pending_flag : false;
+    let _rejected_flag = selectedRowDataProperty.rejected_flag ? selectedRowDataProperty.rejected_flag : false;
+    let _product_name = selectedRowDataProperty.product_name ? selectedRowDataProperty.product_name : "";
+    let _product_sales = selectedRowDataProperty.product_sales ? selectedRowDataProperty.product_sales : null;
+    let _expected_order_date = selectedRowDataProperty.expected_order_date
+      ? new Date(selectedRowDataProperty.expected_order_date)
+      : null;
+    let _expected_sales_price = selectedRowDataProperty.expected_sales_price
+      ? selectedRowDataProperty.expected_sales_price
+      : null;
+    let _term_division = selectedRowDataProperty.term_division ? selectedRowDataProperty.term_division : "";
+    let _sold_product_name = selectedRowDataProperty.sold_product_name ? selectedRowDataProperty.sold_product_name : "";
+    let _unit_sales = selectedRowDataProperty.unit_sales ? selectedRowDataProperty.unit_sales : null;
+    let _sales_contribution_category = selectedRowDataProperty.sales_contribution_category
+      ? selectedRowDataProperty.sales_contribution_category
+      : "";
+    let _sales_price = selectedRowDataProperty.sales_price ? selectedRowDataProperty.sales_price : null;
+    let _discounted_price = selectedRowDataProperty.discounted_price ? selectedRowDataProperty.discounted_price : null;
+    let _discount_rate = selectedRowDataProperty.discount_rate ? selectedRowDataProperty.discount_rate : null;
+    let _sales_class = selectedRowDataProperty.sales_class ? selectedRowDataProperty.sales_class : "";
+    let _expansion_date = selectedRowDataProperty.expansion_date
+      ? new Date(selectedRowDataProperty.expansion_date)
+      : null;
+    let _sales_date = selectedRowDataProperty.sales_date ? new Date(selectedRowDataProperty.sales_date) : null;
+    let _expansion_quarter = selectedRowDataProperty.expansion_quarter ? selectedRowDataProperty.expansion_quarter : "";
+    let _sales_quarter = selectedRowDataProperty.sales_quarter ? selectedRowDataProperty.sales_quarter : "";
+    let _subscription_start_date = selectedRowDataProperty.subscription_start_date
+      ? new Date(selectedRowDataProperty.subscription_start_date)
+      : null;
+    let _subscription_canceled_at = selectedRowDataProperty.subscription_canceled_at
+      ? new Date(selectedRowDataProperty.subscription_canceled_at)
+      : null;
+    let _leasing_company = selectedRowDataProperty.leasing_company ? selectedRowDataProperty.leasing_company : "";
+    let _lease_division = selectedRowDataProperty.lease_division ? selectedRowDataProperty.lease_division : "";
+    let _lease_expiration_date = selectedRowDataProperty.lease_expiration_date
+      ? new Date(selectedRowDataProperty.lease_expiration_date)
+      : null;
+    let _step_in_flag = selectedRowDataProperty.step_in_flag ? selectedRowDataProperty.step_in_flag : false;
+    let _repeat_flag = selectedRowDataProperty.repeat_flag ? selectedRowDataProperty.repeat_flag : false;
+    let _order_certainty_start_of_month = selectedRowDataProperty.order_certainty_start_of_month
+      ? selectedRowDataProperty.order_certainty_start_of_month
+      : "";
+    let _review_order_certainty = selectedRowDataProperty.review_order_certainty
+      ? selectedRowDataProperty.review_order_certainty
+      : "";
+    let _competitor_appearance_date = selectedRowDataProperty.competitor_appearance_date
+      ? new Date(selectedRowDataProperty.competitor_appearance_date)
+      : null;
+    let _competitor = selectedRowDataProperty.competitor ? selectedRowDataProperty.competitor : "";
+    let _competitor_product = selectedRowDataProperty.competitor_product
+      ? selectedRowDataProperty.competitor_product
+      : "";
+    let _reason_class = selectedRowDataProperty.reason_class ? selectedRowDataProperty.reason_class : "";
+    let _reason_detail = selectedRowDataProperty.reason_detail ? selectedRowDataProperty.reason_detail : "";
+    let _customer_budget = selectedRowDataProperty.customer_budget ? selectedRowDataProperty.customer_budget : null;
+    let _decision_maker_negotiation = selectedRowDataProperty.decision_maker_negotiation
+      ? selectedRowDataProperty.decision_maker_negotiation
+      : "";
+    let _expansion_year_month = selectedRowDataProperty.expansion_year_month
+      ? selectedRowDataProperty.expansion_year_month
+      : null;
+    let _sales_year_month = selectedRowDataProperty.sales_year_month ? selectedRowDataProperty.sales_year_month : null;
+    let _subscription_interval = selectedRowDataProperty.subscription_interval
+      ? selectedRowDataProperty.subscription_interval
+      : "";
+    let _competition_state = selectedRowDataProperty.competition_state ? selectedRowDataProperty.competition_state : "";
+    let _property_year_month = selectedRowDataProperty.property_year_month
+      ? selectedRowDataProperty.property_year_month
+      : Number(selectedYearMonthInitialValue);
+    let _property_department = selectedRowDataProperty.property_department
+      ? selectedRowDataProperty.property_department
+      : "";
+    let _property_business_office = selectedRowDataProperty.property_business_office
+      ? selectedRowDataProperty.property_business_office
+      : "";
+    let _property_member_name = selectedRowDataProperty.property_member_name
+      ? selectedRowDataProperty.property_member_name
+      : "";
+    let _property_date = selectedRowDataProperty.property_date ? new Date(selectedRowDataProperty.property_date) : null;
+
+    setCurrentStatus(_current_status);
+    setPropertyName(_property_name);
+    setPropertySummary(_property_summary);
+    setPendingFlag(_pending_flag);
+    setRejectedFlag(_rejected_flag);
+    setProductName(_product_name);
+    setProductSales(_product_sales);
+    setExpectedOrderDate(_expected_order_date);
+    setExpectedSalesPrice(_expected_sales_price);
+    setTermDivision(_term_division);
+    setSoldProductName(_sold_product_name);
+    setUnitSales(_unit_sales);
+    setSalesContributionCategory(_sales_contribution_category);
+    setSalesPrice(_sales_price);
+    setDiscountedPrice(_discounted_price);
+    setDiscountedRate(_discount_rate);
+    setSalesClass(_sales_class);
+    setExpansionDate(_expansion_date);
+    setSalesDate(_sales_date);
+    setExpansionQuarter(_expansion_quarter);
+    setSalesQuarter(_sales_quarter);
+    setSubscriptionStartDate(_subscription_start_date);
+    setSubscriptionCanceledAt(_subscription_canceled_at);
+    setLeasingCompany(_leasing_company);
+    setLeaseDivision(_lease_division);
+    setLeaseExpirationDate(_lease_expiration_date);
+    setStepInFlag(_step_in_flag);
+    setRepeatFlag(_repeat_flag);
+    setOrderCertaintyStartOfMonth(_order_certainty_start_of_month);
+    setReviewOrderCertainty(_review_order_certainty);
+    setCompetitorAppearanceDate(_competitor_appearance_date);
+    setCompetitor(_competitor);
+    setCompetitorProduct(_competitor_product);
+    setReasonClass(_reason_class);
+    setReasonDetail(_reason_detail);
+    setCustomerBudget(_customer_budget);
+    setDecisionMakerNegotiation(_decision_maker_negotiation);
+    setExpansionYearMonth(_expansion_year_month);
+    setSalesYearMonth(_sales_year_month);
+    setSubscriptionInterval(_subscription_interval);
+    setCompetitionState(_competition_state);
+    setPropertyYearMonth(_property_year_month);
+    setPropertyDepartment(_property_department);
+    setPropertyBusinessOffice(_property_business_office);
+    setPropertyMemberName(_property_member_name);
+    setPropertyDate(_property_date);
+  }, []);
 
   //   useEffect(() => {
   //     if (!userProfileState) return;
@@ -102,14 +244,14 @@ export const InsertNewPropertyModal = () => {
 
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
-    setIsOpenInsertNewPropertyModal(false);
+    setIsOpenUpdatePropertyModal(false);
   };
-  const handleSaveAndCloseFromMeeting = async () => {
+  const handleSaveAndCloseFromProperty = async () => {
     // if (!summary) return alert("活動概要を入力してください");
     // if (!PropertyType) return alert("活動タイプを選択してください");
     if (!userProfileState?.id) return alert("ユーザー情報が存在しません");
-    if (!selectedRowDataMeeting?.company_id) return alert("相手先の会社情報が存在しません");
-    if (!selectedRowDataMeeting?.contact_id) return alert("担当者情報が存在しません");
+    if (!selectedRowDataProperty?.company_id) return alert("相手先の会社情報が存在しません");
+    if (!selectedRowDataProperty?.contact_id) return alert("担当者情報が存在しません");
     if (currentStatus === "") return alert("ステータスを選択してください");
     if (!expectedOrderDate) return alert("獲得予定時期を入力してください");
     if (!propertyDate) return alert("案件発生日付を入力してください");
@@ -120,12 +262,13 @@ export const InsertNewPropertyModal = () => {
 
     // 新規作成するデータをオブジェクトにまとめる
     const newProperty = {
+      id: selectedRowDataProperty.property_id,
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
       created_by_user_id: userProfileState?.id ? userProfileState.id : null,
       created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
       created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
-      client_contact_id: selectedRowDataMeeting.contact_id,
-      client_company_id: selectedRowDataMeeting.company_id,
+      client_contact_id: selectedRowDataProperty.contact_id,
+      client_company_id: selectedRowDataProperty.company_id,
       current_status: currentStatus,
       property_name: propertyName,
       property_summary: propertySummary,
@@ -177,92 +320,12 @@ export const InsertNewPropertyModal = () => {
     console.log("案件 新規作成 newProperty", newProperty);
 
     // supabaseにINSERT
-    createPropertyMutation.mutate(newProperty);
+    updatePropertyMutation.mutate(newProperty);
 
     // setLoadingGlobalState(false);
 
     // モーダルを閉じる
-    // setIsOpenInsertNewPropertyModal(false);
-  };
-  const handleSaveAndCloseFromActivity = async () => {
-    // if (!summary) return alert("活動概要を入力してください");
-    // if (!PropertyType) return alert("活動タイプを選択してください");
-    if (!userProfileState?.id) return alert("ユーザー情報が存在しません");
-    if (!selectedRowDataActivity?.company_id) return alert("相手先の会社情報が存在しません");
-    if (!selectedRowDataActivity?.contact_id) return alert("担当者情報が存在しません");
-    if (currentStatus === "") return alert("ステータスを選択してください");
-    if (!expectedOrderDate) return alert("獲得予定時期を入力してください");
-    if (!propertyDate) return alert("案件発生日付を入力してください");
-    if (!PropertyYearMonth) return alert("案件年月度を入力してください");
-    if (PropertyMemberName === "") return alert("自社担当を入力してください");
-
-    setLoadingGlobalState(true);
-
-    // 新規作成するデータをオブジェクトにまとめる
-    const newProperty = {
-      created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
-      created_by_user_id: userProfileState?.id ? userProfileState.id : null,
-      created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
-      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
-      client_contact_id: selectedRowDataActivity.contact_id,
-      client_company_id: selectedRowDataActivity.company_id,
-      current_status: currentStatus,
-      property_name: propertyName,
-      property_summary: propertySummary,
-      pending_flag: pendingFlag,
-      rejected_flag: rejectedFlag,
-      product_name: productName,
-      product_sales: productSales,
-      expected_order_date: expectedOrderDate ? expectedOrderDate.toISOString() : null,
-      expected_sales_price: expectedSalesPrice,
-      term_division: termDivision,
-      sold_product_name: soldProductName,
-      unit_sales: unitSales,
-      sales_contribution_category: salesContributionCategory,
-      sales_price: salesPrice,
-      discounted_price: discountedPrice,
-      discount_rate: discountedRate,
-      sales_class: salesClass,
-      expansion_date: expansionDate ? expansionDate.toISOString() : null,
-      sales_date: salesDate ? salesDate.toISOString() : null,
-      expansion_quarter: expansionQuarter,
-      sales_quarter: salesQuarter,
-      subscription_start_date: subscriptionStartDate ? subscriptionStartDate.toISOString() : null,
-      subscription_canceled_at: subscriptionCanceledAt ? subscriptionCanceledAt.toISOString() : null,
-      leasing_company: leasingCompany,
-      lease_division: leaseDivision,
-      lease_expiration_date: leaseExpirationDate ? leaseExpirationDate.toISOString() : null,
-      step_in_flag: stepInFlag,
-      repeat_flag: repeatFlag,
-      order_certainty_start_of_month: orderCertaintyStartOfMonth,
-      review_order_certainty: reviewOrderCertainty,
-      competitor_appearance_date: competitorAppearanceDate ? competitorAppearanceDate.toISOString() : null,
-      competitor: competitor,
-      competitor_product: competitorProduct,
-      reason_class: reasonClass,
-      reason_detail: reasonDetail,
-      customer_budget: customerBudget,
-      decision_maker_negotiation: decisionMakerNegotiation,
-      expansion_year_month: expansionYearMonth,
-      sales_year_month: salesYearMonth,
-      subscription_interval: subscriptionInterval,
-      competition_state: competitionState,
-      property_year_month: PropertyYearMonth,
-      property_department: PropertyDepartment ? PropertyDepartment : null,
-      property_business_office: PropertyBusinessOffice ? PropertyBusinessOffice : null,
-      property_member_name: PropertyMemberName ? PropertyMemberName : null,
-      property_date: propertyDate ? propertyDate.toISOString() : null,
-    };
-
-    console.log("案件 新規作成 newProperty", newProperty);
-
-    // supabaseにINSERT
-    createPropertyMutation.mutate(newProperty);
-
-    // setLoadingGlobalState(false);
-
-    // モーダルを閉じる
-    // setIsOpenInsertNewPropertyModal(false);
+    // setIsOpenUpdatePropertyModal(false);
   };
 
   useEffect(() => {
@@ -365,8 +428,8 @@ export const InsertNewPropertyModal = () => {
     selectedRowDataContact,
     "selectedRowDataActivity",
     selectedRowDataActivity,
-    "selectedRowDataMeeting",
-    selectedRowDataMeeting
+    "selectedRowDataProperty",
+    selectedRowDataProperty
   );
 
   return (
@@ -385,15 +448,15 @@ export const InsertNewPropertyModal = () => {
           </div>
           <div className="-translate-x-[25px] font-bold">案件 新規作成</div>
 
-          {selectedRowDataMeeting && (
+          {selectedRowDataProperty && (
             <div
               className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
-              onClick={handleSaveAndCloseFromMeeting}
+              onClick={handleSaveAndCloseFromProperty}
             >
               保存
             </div>
           )}
-          {selectedRowDataContact && (
+          {/* {selectedRowDataContact && (
             <div
               className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
               // onClick={handleSaveAndCloseFromContact}
@@ -404,11 +467,11 @@ export const InsertNewPropertyModal = () => {
           {selectedRowDataActivity && (
             <div
               className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
-              onClick={handleSaveAndCloseFromActivity}
+              // onClick={handleSaveAndCloseFromActivity}
             >
               保存
             </div>
-          )}
+          )} */}
         </div>
         {/* メインコンテンツ コンテナ */}
         <div className={`${styles.main_contents_container}`}>
@@ -1045,7 +1108,7 @@ export const InsertNewPropertyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>値引率</span>
+                    <span className={`${styles.title} !min-w-[140px]`}>値引率(%)</span>
                     <input
                       type="number"
                       min="0"

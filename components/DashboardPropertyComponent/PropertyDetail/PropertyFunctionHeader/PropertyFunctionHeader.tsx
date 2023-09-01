@@ -25,6 +25,8 @@ const PropertyFunctionHeaderMemo: FC = () => {
   //   const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
   const selectedRowDataProperty = useDashboardStore((state) => state.selectedRowDataProperty);
   const setSelectedRowDataContact = useDashboardStore((state) => state.setSelectedRowDataContact);
+  const setSelectedRowDataActivity = useDashboardStore((state) => state.setSelectedRowDataActivity);
+  const setSelectedRowDataMeeting = useDashboardStore((state) => state.setSelectedRowDataMeeting);
 
   const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
     // ホバーしたアイテムにツールチップを表示
@@ -124,18 +126,7 @@ const PropertyFunctionHeaderMemo: FC = () => {
               setIsOpenInsertNewPropertyModal(true);
             }}
           />
-          {/* <RippleButton
-            title={`面談_結果入力/編集`}
-            classText={`select-none ${searchMode || !selectedRowDataProperty ? `cursor-not-allowed` : ``}`}
-            borderRadius="2px"
-            clickEventHandler={() => {
-              if (searchMode) return;
-              if (!selectedRowDataProperty) return alert("担当者を選択してください");
-              console.log("活動編集 クリック");
-              setLoadingGlobalState(false);
-              setIsOpenUpdatePropertyModal(true);
-            }}
-          /> */}
+
           <RippleButton
             title={`案件_作成`}
             classText={`select-none ${searchMode || !selectedRowDataProperty ? `cursor-not-allowed` : ``}`}
@@ -144,8 +135,23 @@ const PropertyFunctionHeaderMemo: FC = () => {
               if (searchMode) return;
               if (!selectedRowDataProperty) return alert("担当者を選択してください");
               console.log("案件_作成 クリック");
+              setSelectedRowDataContact(null);
+              setSelectedRowDataActivity(null);
+              setSelectedRowDataMeeting(null);
               setLoadingGlobalState(false);
               setIsOpenInsertNewPropertyModal(true);
+            }}
+          />
+          <RippleButton
+            title={`案件_編集`}
+            classText={`select-none ${searchMode || !selectedRowDataProperty ? `cursor-not-allowed` : ``}`}
+            borderRadius="2px"
+            clickEventHandler={() => {
+              if (searchMode) return;
+              if (!selectedRowDataProperty) return alert("担当者を選択してください");
+              console.log("活動編集 クリック");
+              setLoadingGlobalState(false);
+              setIsOpenUpdatePropertyModal(true);
             }}
           />
         </div>

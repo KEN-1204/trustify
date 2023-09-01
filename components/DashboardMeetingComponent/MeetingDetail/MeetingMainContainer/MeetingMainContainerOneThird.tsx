@@ -2893,8 +2893,8 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       type="text"
                       className={`${styles.input_box}`}
                       placeholder=""
-                      value={inputDepartmentName}
-                      onChange={(e) => setInputDepartmentName(e.target.value)}
+                      value={inputMeetingDepartment}
+                      onChange={(e) => setInputMeetingDepartment(e.target.value)}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -2933,8 +2933,8 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       type="text"
                       className={`${styles.input_box}`}
                       placeholder=""
-                      value={inputBusinessSite}
-                      onChange={(e) => setInputBusinessSite(e.target.value)}
+                      value={inputMeetingBusinessOffice}
+                      onChange={(e) => setInputMeetingBusinessOffice(e.target.value)}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>

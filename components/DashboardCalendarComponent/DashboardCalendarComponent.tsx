@@ -1,21 +1,22 @@
 import useStore from "@/store";
 import React, { FC, Suspense } from "react";
-import styles from "./DashboardPropertyComponent.module.css";
+import styles from "./DashboardCalendarComponent.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallback } from "../ErrorFallback/ErrorFallback";
 import { Fallback } from "../Fallback/Fallback";
-import { PropertyGridTableAll } from "./PropertyGridTableAll/PropertyGridTableAll";
-import { PropertyDetail } from "./PropertyDetail/PropertyDetail";
+import { Calendar } from "./Calendar/Calendar";
+// import { CalendarGridTableAll } from "./CalendarGridTableAll/CalendarGridTableAll";
+// import { CalendarDetail } from "./CalendarDetail/CalendarDetail";
 // import { ContactDetail } from "./ContactDetail/ContactDetail";
 
-export const DashboardPropertyComponent: FC = () => {
+export const DashboardCalendarComponent: FC = () => {
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   const activeMenuTab = useDashboardStore((state) => state.activeMenuTab);
   const isOpenChangeSizeMenu = useDashboardStore((state) => state.isOpenChangeSizeMenu);
   const setIsOpenChangeSizeMenu = useDashboardStore((state) => state.setIsOpenChangeSizeMenu);
   const setClickedItemPos = useStore((state) => state.setClickedItemPos);
-  console.log("🔥 DashboardPropertyComponentレンダリング レンダリング activeMenuTab", activeMenuTab);
+  console.log("🔥 DashboardCalendarComponentレンダリング レンダリング activeMenuTab", activeMenuTab);
 
   // ハーフとallの時はheight指定を無しにして、コンテンツ全体を表示できるようにする
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
@@ -46,43 +47,45 @@ export const DashboardPropertyComponent: FC = () => {
         <div className={`${styles.spacer_top}`}></div>
         {/* ===================== スクロールコンテナ ここから ===================== */}
         <div className={`${styles.main_contents_container}`}>
+          <section className={`${styles.company_table_screen} py-[20px] pl-[20px]`}>
+            {activeMenuTab === "Calendar" && (
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
+                  <Calendar />
+                </Suspense>
+              </ErrorBoundary>
+            )}
+          </section>
           {/* １画面目 上画面 */}
-          <section
-            // className={`${styles.company_screen} space-y-[20px] ${
+          {/* <section
             className={`${styles.company_table_screen} ${
               tableContainerSize === "half" ? `${styles.company_table_screen_pr}` : ``
             } ${tableContainerSize === "all" ? `${styles.company_table_screen_pr}` : ``} ${
               activeMenuTab === "HOME" ||
               activeMenuTab == "Contacts000" ||
-              activeMenuTab === "Property0" ||
-              activeMenuTab === "Property0000"
+              activeMenuTab === "Calendar0" ||
+              activeMenuTab === "Calendar0000"
                 ? `${styles.all_container} space-y-0 !px-0 !py-0`
                 : "py-[20px] pl-[20px]"
             }`}
           >
-            {activeMenuTab === "Property" && (
+            {activeMenuTab === "Calendar" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
-                  <PropertyGridTableAll title="面談" />
+                  <CalendarGridTableAll title="面談" />
                 </Suspense>
               </ErrorBoundary>
             )}
-          </section>
+          </section> */}
 
           {/* ２画面目 下画面 */}
-          <section
+          {/* <section
             className={`${tableContainerSize === "all" ? `${styles.company_screen_under_all}` : ``}  ${
               tableContainerSize === "half" ? `${styles.company_screen_under_half}` : ``
             } ${tableContainerSize === "one_third" ? `${styles.company_screen_under_one_third}` : ``}`}
           >
-            <PropertyDetail />
-          </section>
-
-          {/* <div className={`${styles.screen1} bg-[--color-bg-secondary]`}></div>
-          <div className={`${styles.screen1} bg-[--color-bg-base]`}></div>
-          <div className={`${styles.screen1} bg-[--color-bg-secondary]`}></div>
-          <div className={`${styles.screen1} bg-[--color-bg-base]`}></div>
-          <div className={`${styles.screen1} bg-[--color-bg-secondary]`}></div> */}
+            <CalendarDetail />
+          </section> */}
         </div>
         {/* ===================== スクロールコンテナ ここまで ===================== */}
       </div>

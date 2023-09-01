@@ -25,6 +25,7 @@ const MeetingFunctionHeaderMemo: FC = () => {
   //   const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
   const selectedRowDataMeeting = useDashboardStore((state) => state.selectedRowDataMeeting);
   const setSelectedRowDataContact = useDashboardStore((state) => state.setSelectedRowDataContact);
+  const setSelectedRowDataActivity = useDashboardStore((state) => state.setSelectedRowDataActivity);
 
   const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
     // ホバーしたアイテムにツールチップを表示
@@ -144,6 +145,8 @@ const MeetingFunctionHeaderMemo: FC = () => {
               if (searchMode) return;
               if (!selectedRowDataMeeting) return alert("担当者を選択してください");
               console.log("案件_作成 クリック");
+              setSelectedRowDataActivity(null);
+              setSelectedRowDataContact(null);
               setLoadingGlobalState(false);
               setIsOpenInsertNewPropertyModal(true);
             }}

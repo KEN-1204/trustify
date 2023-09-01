@@ -37,7 +37,7 @@ export const useMutateProperty = () => {
         // follow_up_flag: followUpFlag ? followUpFlag : null,
         follow_up_flag: false,
         document_url: null,
-        activity_type: "面談・訪問",
+        activity_type: "案件発生",
         // claim_flag: claimFlag ? claimFlag : null,
         claim_flag: false,
         product_introduction1: null,
@@ -148,8 +148,11 @@ export const useMutateProperty = () => {
       };
 
       // supabaseにINSERT
-      const { error: errorActivity } = await supabase.from("activities").insert(newPropertyData);
-      if (errorActivity) throw new Error(errorActivity.message);
+      const { error: errorProperty } = await supabase
+        .from("activities")
+        .update(newPropertyData)
+        .eq("property_id", newProperty.id);
+      if (errorProperty) throw new Error(errorProperty.message);
     },
     {
       onSuccess: async () => {
@@ -161,7 +164,7 @@ export const useMutateProperty = () => {
         setTimeout(() => {
           setLoadingGlobalState(false);
           setIsOpenUpdatePropertyModal(false);
-          toast.success("面談の更新完了しました!", {
+          toast.success("案件の更新完了しました!", {
             position: "top-right",
             autoClose: 2000,
             hideProgressBar: false,
@@ -178,8 +181,8 @@ export const useMutateProperty = () => {
           setLoadingGlobalState(false);
           // setIsOpenUpdatePropertyModal(false);
           alert(err.message);
-          console.log("INSERTエラー", err.message);
-          toast.error("面談の更新に失敗しました!", {
+          console.log("UPDATEエラー", err.message);
+          toast.error("案件の更新に失敗しました!", {
             position: "top-right",
             autoClose: 2000,
             hideProgressBar: false,

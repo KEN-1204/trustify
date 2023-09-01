@@ -19,6 +19,7 @@ const ActivityFunctionHeaderMemo: FC = () => {
   const setIsOpenUpdateActivityModal = useDashboardStore((state) => state.setIsOpenUpdateActivityModal);
   const setIsOpenInsertNewActivityModal = useDashboardStore((state) => state.setIsOpenInsertNewActivityModal);
   const setIsOpenInsertNewMeetingModal = useDashboardStore((state) => state.setIsOpenInsertNewMeetingModal);
+  const setIsOpenInsertNewPropertyModal = useDashboardStore((state) => state.setIsOpenInsertNewPropertyModal);
 
   // 上画面の選択中の列データ会社
   //   const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
@@ -156,6 +157,20 @@ const ActivityFunctionHeaderMemo: FC = () => {
               setSelectedRowDataContact(null);
               setLoadingGlobalState(false);
               setIsOpenInsertNewMeetingModal(true);
+            }}
+          />
+          <RippleButton
+            title={`案件_作成`}
+            classText={`select-none ${searchMode || !selectedRowDataActivity ? `cursor-not-allowed` : ``}`}
+            borderRadius="2px"
+            clickEventHandler={() => {
+              if (searchMode) return;
+              if (!selectedRowDataActivity) return alert("担当者を選択してください");
+              console.log("案件_作成 クリック");
+              setSelectedRowDataMeeting(null);
+              setSelectedRowDataContact(null);
+              setLoadingGlobalState(false);
+              setIsOpenInsertNewPropertyModal(true);
             }}
           />
         </div>

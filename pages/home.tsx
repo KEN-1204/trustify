@@ -1,9 +1,11 @@
 import { DashboardActivityComponent } from "@/components/DashboardActivityComponent/DashboardActivityComponent";
+import { DashboardCalendarComponent } from "@/components/DashboardCalendarComponent/DashboardCalendarComponent";
 import { DashboardCompanyComponent } from "@/components/DashboardCompanyComponent/DashboardCompanyComponent";
 import { DashboardContactComponent } from "@/components/DashboardContactComponent/DashboardContactComponent";
 import { DashboardHomeComponent } from "@/components/DashboardHomeComponent/DashboardHomeComponent";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { DashboardMeetingComponent } from "@/components/DashboardMeetingComponent/DashboardMeetingComponent";
+import { DashboardPropertyComponent } from "@/components/DashboardPropertyComponent/DashboardPropertyComponent";
 import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import { Fallback } from "@/components/Fallback/Fallback";
 import { useQueryProducts } from "@/hooks/useQueryProducts";
@@ -143,6 +145,8 @@ const DashboardHome = ({
       {activeMenuTab === "Contacts" && <DashboardContactComponent />}
       {activeMenuTab === "Activity" && <DashboardActivityComponent />}
       {activeMenuTab === "Meeting" && <DashboardMeetingComponent />}
+      {activeMenuTab === "Property" && <DashboardPropertyComponent />}
+      {activeMenuTab === "Calendar" && <DashboardCalendarComponent />}
       {/* {activeMenuTab === "Contacts" && <div className="flex-center w-screen h-screen bg-red-100">あい</div>} */}
     </DashboardLayout>
   );

@@ -683,7 +683,7 @@ export const InsertNewMeetingModal = () => {
                       }}
                     />
                     {/* バツボタン */}
-                    {plannedDuration && (
+                    {plannedDuration !== null && plannedDuration !== 0 && (
                       <div className={`${styles.close_btn_number}`} onClick={() => setPlannedDuration(null)}>
                         <MdClose className="text-[20px] " />
                       </div>

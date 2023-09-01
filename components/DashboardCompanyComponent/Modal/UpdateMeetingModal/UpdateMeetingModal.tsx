@@ -679,7 +679,7 @@ export const UpdateMeetingModal = () => {
                       value={plannedDuration === null ? "" : plannedDuration}
                       onChange={(e) => {
                         const val = e.target.value;
-                        if (val === "" || val === "0") {
+                        if (val === "") {
                           setPlannedDuration(null);
                         } else {
                           const numValue = Number(val);
@@ -694,7 +694,7 @@ export const UpdateMeetingModal = () => {
                       }}
                     />
                     {/* バツボタン */}
-                    {plannedDuration && (
+                    {plannedDuration !== null && plannedDuration !== 0 && (
                       <div className={`${styles.close_btn_number}`} onClick={() => setPlannedDuration(null)}>
                         <MdClose className="text-[20px] " />
                       </div>
@@ -1140,7 +1140,7 @@ export const UpdateMeetingModal = () => {
                       value={resultNumberOfMeetingParticipants === null ? "" : resultNumberOfMeetingParticipants}
                       onChange={(e) => {
                         const val = e.target.value;
-                        if (val === "" || val === "0") {
+                        if (val === "") {
                           setResultNumberOfMeetingParticipants(null);
                         } else {
                           const numValue = Number(val);
@@ -1155,7 +1155,7 @@ export const UpdateMeetingModal = () => {
                       }}
                     />
                     {/* バツボタン */}
-                    {resultNumberOfMeetingParticipants && (
+                    {resultNumberOfMeetingParticipants !== null && resultNumberOfMeetingParticipants !== 0 && (
                       <div
                         className={`${styles.close_btn_number}`}
                         onClick={() => setResultNumberOfMeetingParticipants(null)}
@@ -1201,11 +1201,11 @@ export const UpdateMeetingModal = () => {
                       }}
                     />
                     {/* バツボタン */}
-                    {/* {resultDuration && (
+                    {resultDuration !== null && resultDuration !== 0 && (
                       <div className={`${styles.close_btn_number}`} onClick={() => setResultDuration(null)}>
                         <MdClose className="text-[20px] " />
                       </div>
-                    )} */}
+                    )}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>

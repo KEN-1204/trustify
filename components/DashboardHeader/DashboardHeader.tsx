@@ -247,9 +247,9 @@ export const DashboardHeaderMemo: FC = () => {
               </div>
             </li>
             <li className={`${styles.navList}`}>
-              <Link
-                href="/home"
-                prefetch={false}
+              <div
+                // href="/home"
+                // prefetch={false}
                 className={`${styles.navbarItem} ${activeMenuTab === "Calendar" ? styles.active : ""} `}
                 onClick={() => setActiveMenuTab("Calendar")}
               >
@@ -266,13 +266,13 @@ export const DashboardHeaderMemo: FC = () => {
                   </span>
                 </div>
                 <div className={`${styles.active_underline}`} />
-              </Link>
+              </div>
             </li>
 
             <li className={`${styles.navList}`}>
-              <Link
-                href="/home"
-                prefetch={false}
+              <div
+                // href="/home"
+                // prefetch={false}
                 className={`${styles.navbarItem} ${activeMenuTab === "Quotation" ? styles.active : ""} `}
                 onClick={() => setActiveMenuTab("Quotation")}
               >
@@ -289,7 +289,7 @@ export const DashboardHeaderMemo: FC = () => {
                   </span>
                 </div>
                 <div className={`${styles.active_underline}`} />
-              </Link>
+              </div>
             </li>
             <li className={`${styles.navList}`}>
               <div
