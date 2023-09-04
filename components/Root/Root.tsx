@@ -190,7 +190,7 @@ export const Root: FC = () => {
               強力なデータベースを <span className={`${styles.text_gradient} `}>ワンコイン</span> で
             </span> */}
             {/* {language === "En" && "Unlimited movies, TV shows and more."} */}
-            {language === "En" && "Access the powerful database developed by Keyence for just $7"}
+            {language === "En" && "Access the powerful database encapsulating the essence of KEYENCE for just $7."}
           </h1>
           <h3>
             {/* {language === "Ja" && "映画やドラマをもっと自由に。いつでもキャンセルOK。"} */}
@@ -540,9 +540,9 @@ export const Root: FC = () => {
               </p>
               <p>
                 {language === "Ja" &&
-                  "また、サポータープランに関しては、まだTRUSTiFYはベータ版であり、少数精鋭のTRUSTiFYチームが直接お客様のご要望を聞きながらすぐに改善し、低価格で最大の経済効果を上げられるサービスへと育てていけるよう「支援者」となっていただく方を本プランにて募集しております。ご満足いただけるサービスにできるよう何卒よろしくお願い申し上げます。"}
+                  "プレミアムプランに関しては、電話、Web会議にてサポートを受けることが受けることが可能になっております。また、使い勝手や要望をTRUSTiFY開発チームに直接伝えることで自社にフィットした追加機能の開発、サービスの改善に役立てることも可能です。まだTRUSTiFYはベータ版であり、少数精鋭のTRUSTiFYチームが直接お客様のご要望を伺いながらすぐに改善し、低価格で最大の経済効果を上げられるサービスへと育てていけるよう「支援者」となっていただく方を本プランにて募集しております。ご満足いただけるサービスにできるよう何卒よろしくお願い申し上げます。"}
                 {language === "En" &&
-                  "Also, we are seeking 'supporters' in the Supporter Plan, as TRUSTiFY is still in beta. Our small but dedicated TRUSTiFY team is committed to promptly implementing improvements based on our customers' feedback, in order to evolve this into a service that yields maximum economic benefits at a low cost. We sincerely ask for your support in making this a service that will satisfy you."}
+                  "With the Premium Plan, you have access to support via phone and web conferencing. Moreover, you can directly communicate your feedback and requests to the TRUSTiFY development team, facilitating the development of additional features tailored to your company and improving our service. As TRUSTiFY is still in its beta phase, our elite, compact team is actively seeking supporters through this plan, eager to promptly refine the platform based on your feedback. Our goal is to nurture TRUSTiFY into a cost-effective service that maximizes economic benefits. We earnestly strive to meet your expectations and appreciate your support."}
               </p>
             </div>
           </li>

@@ -34,6 +34,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallback } from "./ErrorFallback/ErrorFallback";
 import { Fallback } from "./Fallback/Fallback";
 import { UpdatePropertyModal } from "./DashboardCompanyComponent/Modal/UpdatePropertyModal/UpdatePropertyModal";
+import { SubscriptionPlanModalForFreeUser } from "./Modal/SubscriptionPlanModalForFreeUser/SubscriptionPlanModalForFreeUser";
 
 type Prop = {
   title?: string;
@@ -52,6 +53,8 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const setProductsState = useDashboardStore((state) => state.setProductsState);
   // ユーザープロフィール
+
+  const showSubscriptionPlan = !!userProfileState && userProfileState.role === "free_user";
 
   const router = useRouter();
   const supabase = useSupabaseClient();
@@ -181,6 +184,9 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
         {theme === "light" && <MdOutlineLightMode className="text-[20px] text-[#fff]" />}
         {theme === "dark" && <MdOutlineDarkMode className="text-[20px] text-[#fff]" />}
       </div>
+
+      {/* ============================ サブスクプランモーダルコンポーネント ============================ */}
+      {showSubscriptionPlan && <SubscriptionPlanModalForFreeUser />}
 
       {/* ============================ 共通UIコンポーネント ============================ */}
       {/* モーダル */}

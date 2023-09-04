@@ -1,0 +1,332 @@
+.overlay {
+  position: fixed;
+  z-index: 500;
+  /* z-index: 100; */
+  inset: 0;
+  /* background: #00000050; */
+  backdrop-filter: blur(4px);
+  /* transform: translateY(-20px) scaleY(1.1); */
+}
+.loading_overlay {
+  position: fixed;
+  z-index: 2000;
+  inset: 0;
+  background: #00000090;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.container {
+  position: fixed;
+  z-index: 1000;
+  /* z-index: 150; */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80vw;
+  height: 90vh;
+  /* background-color: rgb(39 39 39 / 0.7); */
+  background-color: var(--color-edit-bg);
+  border-radius: 8px;
+  /* box-shadow: inset 0px 0px 0px 1px #ffffff70, 0px 0px 0px 1px #000;
+  box-shadow: inset 0 0 0 1px var(--color-modal-border); */
+  /* box-shadow: var(--color-modal-inset-border); */
+  box-shadow: var(--color-edit-border);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* padding: 5px;
+  padding: 15px 40px; */
+  padding: 1px;
+  /* overflow: hidden; */
+
+  color: #333;
+  color: var(--color-edit-text);
+  font-family: sans-serif;
+}
+.main_contents_container {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  position: relative;
+  /* padding: 0px 0 20px 0; */
+  display: flex;
+  /* flex-direction: column; */
+  /* justify-content: space-between; */
+  justify-content: flex-start;
+  align-items: center;
+  /* overflow: hidden; */
+  overflow-y: scroll;
+}
+
+.left_container {
+  /* padding: 60px 6px 60px 20px; */
+  padding: 40px 40px 20px 40px;
+  /* background-color: #333;
+  background-color: #eee; */
+  /* background-color: var(--setting-side-bg); */
+  display: flex;
+  flex-direction: column;
+  /* align-items: center; */
+}
+.right_container {
+  /* background-color: var(--setting-side-bg); */
+  background-image: url("/assets/images/team/annie-spratt-MChSQHxGZrQ-unsplash.jpg");
+  background-position: 30% 50%;
+  /* background-image: url("/assets/images/team/priscilla-du-preez-XkKCui44iM0-unsplash.jpg");
+  background-position: 30% 50%; */
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.content_box {
+  background: var(--color-bg-sub);
+  border-radius: 6px;
+}
+
+.full_contents_wrapper {
+  /* height: 100%; */
+  width: 100%;
+}
+.left_contents_wrapper {
+  height: 100%;
+  width: 50%;
+}
+.right_contents_wrapper {
+  height: 100%;
+  width: 50%;
+}
+
+.row_area {
+  display: flex;
+  width: 100%;
+  align-items: center;
+
+  /* margin-top: 5px; */
+  /* margin-top: 10px; */
+  margin-top: 20px;
+}
+.text_area {
+  height: 60px;
+}
+.text_area_large {
+  height: 90px;
+}
+.text_area_xl {
+  height: 120px;
+}
+.title_box {
+  position: relative;
+  padding-bottom: 5px;
+}
+.limited_lock_cover_half {
+  position: absolute;
+  z-index: 1;
+  left: 0px;
+  bottom: 4px;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(7px);
+}
+.limited_lock_cover_half svg {
+  color: var(--color-bg-brand-f);
+  /* color: var(--color-text); */
+  width: 18px;
+  height: 18px;
+}
+
+.title {
+  color: var(--color-text-brand-f);
+  color: var(--color-text-under-title);
+  white-space: nowrap;
+  /* 右側に20px余白 */
+  /* padding-right: 20px; */
+  /* min-width: 80px; */
+  /* min-width: 90px; */
+  min-width: 95px;
+  font-weight: 600;
+}
+.title {
+  display: flex;
+  justify-content: flex-start;
+  /* align-items: center; */
+  /* height: 50px; */
+  /* width: 100%; */
+  /* padding-left: 25px; */
+  padding-right: 25px;
+  /* padding-top: 5px; */
+  font-weight: 700;
+  font-size: 18px;
+}
+.title_min {
+  color: var(--color-text-brand-f);
+  color: var(--color-text-under-title);
+  white-space: nowrap;
+  /* 右側に20px余白 */
+  padding-right: 20px;
+  /* min-width: 80px; */
+  font-weight: 600;
+}
+.check_title {
+  /* min-width: 150px; */
+  padding-right: 0px;
+}
+.value {
+  color: var(--color-text-under-value);
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.value_highlight {
+  color: var(--color-text-brand);
+}
+.textarea_value {
+  color: var(--color-text-under-value);
+  overflow: hidden;
+  display: -webkit-inline-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.input_box {
+  height: 40px;
+  width: 100%;
+  background: var(--color-bg-under-input);
+  color: var(--color-text-under-input);
+  box-shadow: var(--color-bg-under-input-box-shadow);
+  /* padding: 0px 6px; */
+  padding: 4px 10px;
+  border-radius: 2px;
+}
+.input_box:focus {
+  box-shadow: var(--color-bg-under-input-active-box-shadow);
+}
+.underline {
+  min-height: 1px;
+  width: 100%;
+  margin-top: 3px;
+  background-color: var(--color-bg-underline);
+}
+.divider {
+  background-color: rgb(94 94 94 / 0.3);
+}
+.textarea_box {
+  height: 100%;
+  width: 100%;
+  background: var(--color-bg-under-input);
+  color: var(--color-text-under-input);
+  box-shadow: var(--color-bg-under-input-box-shadow);
+  padding: 3px 6px;
+  border-radius: 2px;
+  resize: none;
+}
+.select_box {
+  box-shadow: var(--color-bg-under-input-box-shadow);
+  padding-left: 5px;
+  height: 30px;
+  background: var(--color-bg-under-input);
+}
+
+.grid_select_cell_header {
+  position: relative;
+  display: flex;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+}
+.grid_select_cell_header svg {
+  width: 16px;
+  height: 16px;
+}
+
+.container input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  outline: none;
+
+  cursor: pointer;
+  /*label手前にチェックボックス用の余白を開ける*/
+  /* padding-left: 30px; */
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+  position: relative;
+  /* display: inline-block;
+  user-select: none;
+  flex-shrink: 0;
+  height: 1rem;
+  width: 1rem; */
+}
+.grid_select_cell_header[aria-selected="true"] {
+  box-shadow: inset 0 0 0 1px var(--border-theme);
+}
+.container input[type="checkbox"]:checked ~ svg {
+  display: inline-block;
+  opacity: 1;
+}
+.grid_select_cell_header svg {
+  display: none;
+  position: absolute;
+  height: 1rem;
+  width: 1rem;
+  /* top: 9px;
+  left: 14px; */
+  top: 51%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.container input[type="checkbox"]::before {
+  content: "";
+  display: block;
+  position: absolute;
+}
+.container input[type="checkbox"]::before {
+  background-color: transparent;
+  color: rgb(255, 255, 255);
+  border: 1px solid var(--color-table-checkbox-outline);
+  border-radius: 3px;
+  /* margin-top: 2px; */
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 1rem;
+  width: 1rem;
+  top: 0px;
+  /* transform: translateY(-50%);
+  top: 50%;
+  left: 5px; */
+}
+.container input[type="checkbox"]:checked::before {
+  /* background-color: #3fcf8e; */
+  background-color: var(--checkbox-bg-color);
+  border-radius: 3px;
+}
+.container input[type="checkbox"]:focus::before {
+  /* outline: 2px solid #fff; */
+  outline: 2px solid var(--color-table-checkbox-focus-outline);
+  box-shadow: 0 0 3px 1px var(--color-bg-brand);
+  /* outline-offset: 1px; */
+  /* --tw-ring-color: var(--colors-brand5); */
+  /* box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow); */
+}
+.container input[type="checkbox"]:hover::before {
+  /* border-color: #30a46c; */
+  border-color: var(--border-theme-dark);
+}
+.select_box {
+  box-shadow: var(--color-bg-under-input-box-shadow);
+  padding-left: 5px;
+  background: var(--color-bg-under-input);
+}

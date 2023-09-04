@@ -17,6 +17,15 @@ import { Session, User, createServerSupabaseClient } from "@supabase/auth-helper
 import { GetServerSidePropsContext } from "next";
 import React, { Suspense, useEffect } from "react";
 import { ErrorBoundary } from "react-error-boundary";
+import Stripe from "stripe";
+
+// type Plans = {
+//   id: string;
+//   name: string;
+//   price: number;
+//   interval: string;
+//   currency: string;
+// };
 
 const DashboardHome = ({
   initialSession,
@@ -33,7 +42,15 @@ const DashboardHome = ({
   const setActiveMenuTab = useDashboardStore((state) => state.setActiveMenuTab);
   const setUserProfileState = useDashboardStore((state) => state.setUserProfileState);
   const setProductsState = useDashboardStore((state) => state.setProductsState);
-  console.log("🔥Homeページ レンダリング", activeMenuTab, user, userProfile);
+  console.log(
+    "🔥Homeページ レンダリング",
+    "activeMenuTab",
+    activeMenuTab,
+    "getSession()のsession.user",
+    user,
+    "profilesテーブルから取得したユーザーデータuserProfile",
+    userProfile
+  );
 
   useEffect(() => {
     setUserProfileState(userProfile as UserProfile);
@@ -198,3 +215,35 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     },
   };
 };
+
+// ========================== 静的サイトジェネレーション ==========================
+// export const getStaticProps = async () => {
+//   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+//     apiVersion: "2022-11-15",
+//   });
+
+//   const { data: prices } = await stripe.prices.list();
+
+//   const plans = await Promise.all(
+//     prices.map(async (price: any) => {
+//       const product = await stripe.products.retrieve(price.product);
+//       return {
+//         id: price.id,
+//         name: product.name,
+//         price: price.unit_amount,
+//         interval: price.recurring?.interval,
+//         currency: price.currency,
+//       };
+//     })
+//   );
+
+//   const sortedPlans = plans.sort((a, b) => a.price - b.price);
+
+//   console.log("🌟SSG plans", plans, "sortedPlans", sortedPlans);
+
+//   return {
+//     props: {
+//       plans: sortedPlans,
+//     },
+//   };
+// };
