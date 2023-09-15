@@ -193,12 +193,13 @@
 }
 .input_box {
   height: 40px;
-  width: 100%;
+  width: 48%;
   background: var(--color-bg-under-input);
   color: var(--color-text-under-input);
   box-shadow: var(--color-bg-under-input-box-shadow);
   /* padding: 0px 6px; */
   padding: 4px 10px;
+  padding-left: 15px;
   border-radius: 2px;
 }
 .input_box:focus {

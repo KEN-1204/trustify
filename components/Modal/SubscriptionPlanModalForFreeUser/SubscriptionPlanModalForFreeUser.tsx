@@ -20,10 +20,9 @@ type Plans = {
 export const SubscriptionPlanModalForFreeUser = () => {
   const [loading, setIsLoading] = useState(false);
   const [plansState, setPlansState] = useState<Plans[] | null[]>([]);
+  const [accountQuantity, setAccountQuantity] = useState<number | null>(1);
   const [selectedRadioButton, setSelectedRadioButton] = useState("business_plan");
   const sessionState = useStore((state) => state.sessionState);
-
-  console.log("🌟sessionState", sessionState);
 
   //   useEffect(() => {
   //     const getPlansFromStripe = async () => {
@@ -48,11 +47,14 @@ export const SubscriptionPlanModalForFreeUser = () => {
   };
 
   // 【サブスクリプションの開始、登録、Stripe支払いチェックアウトページにリダイレクト】
-  const processSubscription = async (planId: string) => {
+  // const processSubscription = async (planId: string) => {
+  const processSubscription = async (planId: string, quantity: number | null) => {
     if (!sessionState) return;
+    if (!accountQuantity) return alert("メンバーの人数を入力してください");
     setIsLoading(true);
 
-    const response = await axios.get(`/api/subscription/${planId}`, {
+    // const response = await axios.get(`/api/subscription/${planId}`, {
+    const response = await axios.get(`/api/subscription/${planId}?quantity=${quantity}`, {
       headers: {
         Authorization: `Bearer ${sessionState.access_token}`,
       },
@@ -124,7 +126,7 @@ export const SubscriptionPlanModalForFreeUser = () => {
                     )}
                   </label>
 
-                  <div className="font-semibold">￥980/月</div>
+                  <div className="font-semibold">￥980/月/メンバー</div>
                 </div>
 
                 <div className={`w-full space-y-2 pl-[40px] pt-[15px]`}>
@@ -171,7 +173,7 @@ export const SubscriptionPlanModalForFreeUser = () => {
                     )}
                   </label>
 
-                  <div className="font-semibold">￥19,800/月</div>
+                  <div className="font-semibold">￥19,800/月/メンバー</div>
                 </div>
 
                 <div className={`w-full space-y-2 pl-[40px] pt-[15px]`}>
@@ -191,13 +193,45 @@ export const SubscriptionPlanModalForFreeUser = () => {
               </div>
             </div>
 
+            {/* メンバー人数選択 */}
+            <div className="flex w-full items-center justify-between pt-[20px]">
+              <div className="relative cursor-pointer text-[20px] font-bold text-[var(--color-text)]">メンバー人数</div>
+              <div className="flex items-center justify-end space-x-2 font-semibold">
+                <input
+                  type="number"
+                  min="1"
+                  className={`${styles.input_box}`}
+                  placeholder="人数を入力"
+                  value={accountQuantity === null ? "" : accountQuantity}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === "") {
+                      setAccountQuantity(null);
+                    } else {
+                      const numValue = Number(val);
+                      // 入力値がマイナスかチェック
+                      if (numValue <= 0) {
+                        setAccountQuantity(1);
+                      } else {
+                        setAccountQuantity(numValue);
+                      }
+                    }
+                  }}
+                />
+
+                <div className="">人</div>
+              </div>
+            </div>
+
             {/* メンバーシップを開始するボタン */}
             <div className="w-full pt-[30px]">
               <button
                 className={`flex-center h-[40px] w-full cursor-pointer rounded-[6px] bg-[var(--color-bg-brand-f)] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                 onClick={() => {
-                  if (selectedRadioButton === "business_plan") processSubscription("price_1NmPoFFTgtnGFAcpw1jRtcQs");
-                  if (selectedRadioButton === "premium_plan") processSubscription("price_1NmQAeFTgtnGFAcpFX60R4YY");
+                  if (selectedRadioButton === "business_plan")
+                    processSubscription("price_1NmPoFFTgtnGFAcpw1jRtcQs", accountQuantity);
+                  if (selectedRadioButton === "premium_plan")
+                    processSubscription("price_1NmQAeFTgtnGFAcpFX60R4YY", accountQuantity);
                 }}
               >
                 {!loading && <span>メンバーシップを開始する</span>}

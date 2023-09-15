@@ -63,6 +63,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     console.log("🌟req.query", req.query);
 
     const { priceId } = req.query;
+    const quantity = Number(req.query.quantity) || 1;
+    console.log("🔥quantity", quantity);
 
     // Ensure priceId is a string priceIdが文字列であることを確認する。
     if (typeof priceId !== "string") {
@@ -73,7 +75,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const lineItems = [
       {
         price: priceId,
-        quantity: 1,
+        // quantity: 1,
+        quantity: quantity,
       },
     ];
 
@@ -88,7 +91,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       mode: "subscription",
       payment_method_types: ["card"],
       line_items: lineItems,
-      success_url: `${process.env.CLIENT_URL}/payment/success`,
+      // success_url: `${process.env.CLIENT_URL}/payment/success`,
+      success_url: `${process.env.CLIENT_URL}/home`,
       //   cancel_url: `${process.env.CLIENT_URL}/payment/cancelled`,
       cancel_url: `${process.env.CLIENT_URL}/home`,
     });
