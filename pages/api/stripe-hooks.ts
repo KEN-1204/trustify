@@ -72,6 +72,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       // Webhookイベント毎に処理 Process the event
       switch (stripeEvent.type) {
         // handle specific stripeEvent types as needed
+        // サブスクリプションの新規契約
+        // サブスクリプションのアップグレード、ダウングレード
         case "customer.subscription.created":
         case "customer.subscription.updated":
         case "customer.subscription.pending_update_applied":
@@ -149,6 +151,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           }
           break;
 
+        // サブスクリプションの解約
         case "customer.subscription.paused":
         case "customer.subscription.deleted":
         case "customer.subscription.pending_update_expired":

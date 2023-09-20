@@ -54,7 +54,9 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   const setProductsState = useDashboardStore((state) => state.setProductsState);
   // ユーザープロフィール
 
-  const showSubscriptionPlan = !!userProfileState && userProfileState.role === "free_user";
+  // サブスクプランがnullなら初回プランモーダル表示
+  const showSubscriptionPlan = !!userProfileState && !userProfileState.subscription_plan;
+  // const showSubscriptionPlan = !!userProfileState && userProfileState.role === "free_user";
 
   const router = useRouter();
   const supabase = useSupabaseClient();

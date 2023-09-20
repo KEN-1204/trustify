@@ -12,7 +12,7 @@ import { useQueryProducts } from "@/hooks/useQueryProducts";
 import useStore from "@/store";
 import useDashboardStore from "@/store/useDashboardStore";
 import useThemeStore from "@/store/useThemeStore";
-import { Profile, UserProfile } from "@/types";
+import { Profile, UserProfile, UserProfileCompanySubscription } from "@/types";
 import { Session, User, createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { GetServerSidePropsContext } from "next";
 import React, { Suspense, useEffect } from "react";
@@ -31,10 +31,14 @@ const DashboardHome = ({
   initialSession,
   user,
   userProfile,
-}: {
+}: // userProfile1,
+// userProfile1,
+{
   initialSession: Session;
   user: User;
-  userProfile: UserProfile;
+  userProfile: UserProfileCompanySubscription;
+  // userProfile: UserProfile;
+  // userProfile1: UserProfile;
 }) => {
   const language = useStore((state) => state.language);
   const setTheme = useThemeStore((state) => state.setTheme);
@@ -48,12 +52,15 @@ const DashboardHome = ({
     activeMenuTab,
     "getSession()のsession.user",
     user,
-    "profilesテーブルから取得したユーザーデータuserProfile",
+    // "profilesテーブルから取得したユーザーデータuserProfile",
+    // userProfile1,
+    "profiles, companies, subscribed_accounts, subscriptionsテーブルを外部結合したデータ",
     userProfile
   );
 
   useEffect(() => {
-    setUserProfileState(userProfile as UserProfile);
+    // setUserProfileState(userProfile as UserProfile);
+    setUserProfileState(userProfile as UserProfileCompanySubscription);
   }, [userProfile, setUserProfileState]);
 
   // const setTheme = useStore((state) => state.setTheme);
@@ -198,7 +205,15 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   }
 
   // サーバーのsupabaseクライアントを使用して、行レベルセキュリティの認証済みクエリーをサーバーサイドで実行することができます
-  const { data: userProfile, error } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
+  // const { data: userProfile1, error: error1 } = await supabase
+  //   .from("profiles")
+  //   .select("*")
+  //   .eq("id", session.user.id)
+  //   .single();
+  // Postgres関数で作成したget_user_data関数でprofilesテーブル、companiesテーブル、subscribed_accountsテーブル、subscriptionsテーブルの4つを外部結合したSELECTクエリでデータを取得する
+  const { data: userProfile, error: error } = await supabase
+    .rpc("get_user_data", { _user_id: session.user.id })
+    .single();
 
   if (userProfile) console.log("🌟/homeサーバーサイド userProfileあり");
   if (error) console.log("🌟/homeサーバーサイド errorあり", error);
@@ -212,6 +227,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       // userProfile: userProfile ? userProfile[0] : {},
       // userProfile: userProfile ? userProfile[0] : null,
       userProfile: userProfile ? userProfile : null,
+      // userProfile1: userProfile1 ? userProfile1 : null,
     },
   };
 };

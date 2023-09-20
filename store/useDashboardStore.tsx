@@ -15,6 +15,7 @@ import {
   Product,
   Property_row_data,
   UserProfile,
+  UserProfileCompanySubscription,
 } from "@/types";
 import { activityColumnHeaderItemListData } from "@/utils/activityColumnHeaderItemListDate";
 import { contactColumnHeaderItemListData } from "@/utils/contactColumnHeaderItemListData";
@@ -160,8 +161,10 @@ type State = {
   setLoadingGlobalState: (payload: boolean) => void;
 
   // =================== ユーザープロフィール ===================
-  userProfileState: UserProfile | null;
-  setUserProfileState: (payload: UserProfile | null) => void;
+  userProfileState: UserProfileCompanySubscription | null;
+  setUserProfileState: (payload: UserProfileCompanySubscription | null) => void;
+  // userProfileState: UserProfile | null;
+  // setUserProfileState: (payload: UserProfile | null) => void;
 
   // =================== 担当者テーブル ヘッダーリスト保持用state関連 ===================
   contactColumnHeaderItemList: ColumnHeaderItemList[];
