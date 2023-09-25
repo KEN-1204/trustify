@@ -366,6 +366,20 @@ export type UserProfileCompanySubscription = {
   subscription_stage: string | null;
   accounts_to_create: number | null;
 };
+export type Subscription = {
+  id: string;
+  created_at: string | null;
+  subscriber_id: string | null;
+  stripe_subscription_id: string | null;
+  stripe_customer_id: string | null;
+  status: string | null;
+  subscription_interval: string | null;
+  current_period_start: string | null;
+  current_period_end: string | null;
+  subscription_plan: string | null;
+  subscription_stage: string | null;
+  accounts_to_create: number | null;
+};
 
 export type Contact = {
   id: string;

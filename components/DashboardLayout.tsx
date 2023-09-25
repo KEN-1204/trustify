@@ -111,6 +111,11 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
     }
   };
 
+  // リフレッシュ
+  const handleRefresh = () => {
+    router.reload();
+  };
+
   // ツールチップ
   const hoveredItemPos = useStore((state) => state.hoveredItemPos);
   const hoveredItemPosHorizon = useStore((state) => state.hoveredItemPosHorizon);
@@ -170,6 +175,10 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
           ></div>
         </div>
       )} */}
+      {/*router.refreshボタン */}
+      <div className="flex-center fixed bottom-[2%] right-[10%] z-[1000] h-[35px] w-[35px] cursor-pointer">
+        <div className="h-[35px] w-[35px] rounded-full bg-[#00d43690]" onClick={handleRefresh}></div>
+      </div>
       {/* サインアウトボタン */}
       <div className="flex-center fixed bottom-[2%] right-[6%] z-[1000] h-[35px] w-[35px] cursor-pointer">
         <div className="h-[35px] w-[35px] rounded-full bg-[#00000030]" onClick={handleSignOut}></div>

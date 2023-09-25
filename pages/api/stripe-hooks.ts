@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { buffer } from "micro";
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { Database } from "@/database.types";
+import { Subscription } from "@/types";
 
 // Next.js の API ルートでは、ボディパーサーがデフォルトで有効化されています。
 // そのため、上記のコードを正しく動作させるためには、ボディパーサーを無効化する必要があるため、
@@ -69,6 +70,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           _subscription_plan = null;
       }
 
+      let currentSubscriptionDBData: Subscription | null = null;
+
       // Webhookイベント毎に処理 Process the event
       switch (stripeEvent.type) {
         // handle specific stripeEvent types as needed
@@ -92,9 +95,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             .match({ stripe_customer_id: subscription.customer })
             .limit(1)
             .single();
+          console.log(
+            "🙆stripe-hooksハンドラー 契約ルート supabaseのprofilesテーブルからプロフィールデータ取得OK subscriberProfileData",
+            subscriberProfileData
+          );
           if (selectProfileError) {
             console.log(
-              "❌stripe-hooksハンドラー supabaseのselect()メソッドでprofilesテーブル情報取得エラー",
+              "❌stripe-hooksハンドラー 契約ルート supabaseのselect()メソッドでprofilesテーブル情報取得エラー",
               selectProfileError
             );
             return res.status(500).json({ error: selectProfileError.message });
@@ -105,14 +112,23 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             .from("subscriptions")
             .select()
             .match({ stripe_customer_id: subscription.customer })
-            .limit(1)
-            .single();
+            .limit(1);
           if (subscriptionErrorDB) {
             console.log(
-              "❌stripe-hooksハンドラー supabaseのselect()メソッドでサブスクリプションテーブル情報取得エラー",
+              "❌stripe-hooksハンドラー 契約ルート supabaseのselect()メソッドでサブスクリプションテーブル情報取得エラー",
               subscriptionErrorDB
             );
             return res.status(500).json({ error: subscriptionErrorDB.message });
+          }
+          if (subscriptionDataDB && subscriptionDataDB.length > 0) {
+            console.log(
+              "🙆stripe-hooksハンドラー 契約ルート supabaseのsubscriptionsテーブルからサブスクデータ取得OK subscriptionDataDB",
+              subscriptionDataDB[0]
+            );
+            currentSubscriptionDBData = subscriptionDataDB[0];
+          } else {
+            console.log("🙆🥺stripe-hooksハンドラー 契約ルート サブスクリプションデータが存在しない");
+            currentSubscriptionDBData = null;
           }
           // Insert the Stripe Webhook event into the database
           const { error: insertError } = await supabase.from("stripe_webhook_events").insert([
@@ -123,11 +139,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               stripe_subscription_id: subscription.id, // 今回のstripeのサブスクリプションid
               stripe_customer_id: subscription.customer as string, // stripe_customerと紐付け
               status: subscription.status, // サブスクリプションの現在の状態(active, past_duw, canceledなど)
-              interval: subscription.items.data[0].plan.interval,
+              subscription_interval: subscription.items.data[0].plan.interval,
               current_period_start: new Date(subscription.current_period_start * 1000).toISOString(), // 課金開始時間
               current_period_end: new Date(subscription.current_period_end * 1000).toISOString(), // 課金終了時間
               subscription_plan: _subscription_plan,
-              subscription_stage: subscriptionDataDB.subscription_stage ? subscriptionDataDB.subscription_stage : null,
+              subscription_stage:
+                currentSubscriptionDBData && currentSubscriptionDBData.subscription_stage
+                  ? currentSubscriptionDBData.subscription_stage
+                  : null,
               webhook_id: stripeEvent.id,
               webhook_event_type: stripeEvent.type, // createdかupdated
               webhook_created: new Date(stripeEvent.created * 1000).toISOString(), // Webhookの作成日時 createdとupdatedは別
@@ -139,7 +158,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               cancel_feedback: subscription.cancellation_details && subscription.cancellation_details.feedback,
               cancel_reason: subscription.cancellation_details && subscription.cancellation_details.reason,
               user_role: _subscription_plan === "business_plan" ? "business_user" : "premium_user", // プラン内容によって格納するroleを変更、トリガー関数内でprofilesのUPDATE用に用意
-              subscription_id: subscriptionDataDB.id ? subscriptionDataDB.id : null, // subscriptionsテーブルのid
+              subscription_id:
+                currentSubscriptionDBData && currentSubscriptionDBData.id ? currentSubscriptionDBData.id : null, // subscriptionsテーブルのid
             },
           ]);
           if (insertError) {
@@ -193,14 +213,23 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             .from("subscriptions")
             .select()
             .match({ stripe_customer_id: subscription.customer })
-            .limit(1)
-            .single();
+            .limit(1);
           if (subscriptionErrorDBD) {
             console.log(
-              "❌stripe-hooksハンドラー supabaseのselect()メソッドでサブスクリプションテーブル情報取得エラー",
+              "❌stripe-hooksハンドラー customer.subscription.deletedルート supabaseのselect()メソッドでサブスクリプションテーブル情報取得エラー",
               subscriptionErrorDBD
             );
             return res.status(500).json({ error: subscriptionErrorDBD.message });
+          }
+          if (subscriptionDataDBDelete && subscriptionDataDBDelete.length > 0) {
+            console.log(
+              "🙆stripe-hooksハンドラー 解約ルート supabaseのsubscriptionsテーブルからサブスクデータ取得OK subscriptionDataDB",
+              subscriptionDataDBDelete[0]
+            );
+            currentSubscriptionDBData = subscriptionDataDBDelete[0];
+          } else {
+            console.log("🙆🥺stripe-hooksハンドラー 解約ルート サブスクリプションデータが存在しない");
+            currentSubscriptionDBData = null;
           }
           const { error } = await supabase.from("stripe_webhook_events").insert([
             {
@@ -210,13 +239,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               stripe_subscription_id: subscription.id, // 今回のstripeのサブスクリプションid
               stripe_customer_id: subscription.customer as string, // stripe_customerと紐付け
               status: subscription.status, // サブスクリプションの現在の状態 canceled
-              interval: null,
+              subscription_interval: null,
               current_period_start: null, // 課金開始時間
               current_period_end: null, // 課金終了時間
               subscription_plan: _subscription_plan,
-              subscription_stage: subscriptionDataDBDelete.subscription_stage
-                ? subscriptionDataDBDelete.subscription_stage
-                : null,
+              subscription_stage:
+                currentSubscriptionDBData && currentSubscriptionDBData.subscription_stage
+                  ? currentSubscriptionDBData.subscription_stage
+                  : null,
               webhook_id: stripeEvent.id,
               webhook_event_type: stripeEvent.type, // createdかupdated
               webhook_created: new Date(stripeEvent.created * 1000).toISOString(), // Webhookの作成日時 createdとupdatedは別
@@ -230,7 +260,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               cancel_feedback: subscription.cancellation_details && subscription.cancellation_details.feedback,
               cancel_reason: subscription.cancellation_details && subscription.cancellation_details.reason,
               user_role: "free_user", // キャンセルされた場合には、free_userに変更
-              subscription_id: subscriptionDataDBDelete.id, // subscriptionsテーブルのid
+              subscription_id:
+                currentSubscriptionDBData && currentSubscriptionDBData.id ? currentSubscriptionDBData.id : null, // subscriptionsテーブルのid
             },
           ]);
 
