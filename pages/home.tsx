@@ -9,6 +9,7 @@ import { DashboardPropertyComponent } from "@/components/DashboardPropertyCompon
 import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import { Fallback } from "@/components/Fallback/Fallback";
 import { useQueryProducts } from "@/hooks/useQueryProducts";
+import { useSubscribeSubscription } from "@/hooks/useSubscribeSubscription";
 import useStore from "@/store";
 import useDashboardStore from "@/store/useDashboardStore";
 import useThemeStore from "@/store/useThemeStore";

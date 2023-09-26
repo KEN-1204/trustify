@@ -1,3 +1,4 @@
+import { useSubscribeSubscription } from "@/hooks/useSubscribeSubscription";
 import useStore from "@/store";
 import useRootStore from "@/store/useRootStore";
 import useThemeStore from "@/store/useThemeStore";
@@ -21,6 +22,8 @@ export const RootLayout: FC<Prop> = ({ children }) => {
   // const theme = useThemeStore((state) => state.theme);
   const theme = useRootStore(useThemeStore, (state) => state.theme);
   // const theme = useStore((state) => state.theme);
+
+  useSubscribeSubscription();
 
   useEffect(() => {
     if (theme === "light") {

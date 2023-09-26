@@ -358,6 +358,7 @@ export type UserProfileCompanySubscription = {
   subscription_created_at: string | null;
   subscription_subscriber_id: string | null;
   subscription_stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
   status: string | null;
   subscription_interval: string | null;
   current_period_start: string | null;

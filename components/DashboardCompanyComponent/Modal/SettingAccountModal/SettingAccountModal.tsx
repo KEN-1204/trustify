@@ -11,7 +11,7 @@ import productCategoriesM from "@/utils/productCategoryM";
 import { MdClose, MdOutlinePayment } from "react-icons/md";
 import { VscAccount } from "react-icons/vsc";
 import { AiOutlineTeam } from "react-icons/ai";
-import { Profile, UserProfile } from "@/types";
+import { Profile, UserProfile, UserProfileCompanySubscription } from "@/types";
 import { useUploadAvatarImg } from "@/hooks/useUploadAvatarImg";
 import { useDownloadUrl } from "@/hooks/useDownloadUrl";
 import Image from "next/image";
@@ -440,7 +440,7 @@ export const SettingAccountModal = () => {
                               .from("profiles")
                               .update({ profile_name: editedName })
                               .eq("id", userProfileState.id)
-                              .select()
+                              .select("profile_name")
                               .single();
 
                             if (error) {
@@ -466,7 +466,8 @@ export const SettingAccountModal = () => {
                               console.log("UPDATE成功 profileData", profileData);
                               console.log("UPDATE成功 profileData.profile_name", profileData.profile_name);
                               setUserProfileState({
-                                ...(profileData as UserProfile),
+                                // ...(profileData as UserProfile),
+                                ...(userProfileState as UserProfileCompanySubscription),
                                 profile_name: profileData.profile_name ? profileData.profile_name : null,
                               });
                               setLoadingGlobalState(false);
@@ -550,7 +551,7 @@ export const SettingAccountModal = () => {
                               .from("profiles")
                               .update({ email: editedEmail })
                               .eq("id", userProfileState.id)
-                              .select()
+                              .select("email")
                               .single();
 
                             if (error) {
@@ -575,7 +576,7 @@ export const SettingAccountModal = () => {
                             setTimeout(() => {
                               console.log("メールUPDATE成功 profileData", profileData);
                               setUserProfileState({
-                                ...(profileData as UserProfile),
+                                ...(userProfileState as UserProfileCompanySubscription),
                                 email: profileData.email ? profileData.email : null,
                               });
                               setLoadingGlobalState(false);
@@ -659,7 +660,7 @@ export const SettingAccountModal = () => {
                               .from("profiles")
                               .update({ department: editedDepartment })
                               .eq("id", userProfileState.id)
-                              .select()
+                              .select("department")
                               .single();
 
                             if (error) {
@@ -684,7 +685,7 @@ export const SettingAccountModal = () => {
                             setTimeout(() => {
                               console.log("部署UPDATE成功 profileData", profileData);
                               setUserProfileState({
-                                ...(profileData as UserProfile),
+                                ...(userProfileState as UserProfileCompanySubscription),
                                 department: profileData.department ? profileData.department : null,
                               });
                               setLoadingGlobalState(false);
@@ -768,7 +769,7 @@ export const SettingAccountModal = () => {
                               .from("profiles")
                               .update({ unit: editedUnit })
                               .eq("id", userProfileState.id)
-                              .select()
+                              .select("unit")
                               .single();
 
                             if (error) {
@@ -793,7 +794,7 @@ export const SettingAccountModal = () => {
                             setTimeout(() => {
                               console.log("係・チームUPDATE成功 profileData", profileData);
                               setUserProfileState({
-                                ...(profileData as UserProfile),
+                                ...(userProfileState as UserProfileCompanySubscription),
                                 unit: profileData.unit ? profileData.unit : null,
                               });
                               setLoadingGlobalState(false);
@@ -903,7 +904,7 @@ export const SettingAccountModal = () => {
                               .from("profiles")
                               .update({ occupation: editedOccupation })
                               .eq("id", userProfileState.id)
-                              .select()
+                              .select("occupation")
                               .single();
 
                             if (error) {
@@ -928,7 +929,7 @@ export const SettingAccountModal = () => {
                             setTimeout(() => {
                               console.log("職種UPDATE成功 profileData", profileData);
                               setUserProfileState({
-                                ...(profileData as UserProfile),
+                                ...(userProfileState as UserProfileCompanySubscription),
                                 occupation: profileData.occupation ? profileData.occupation : null,
                               });
                               setLoadingGlobalState(false);
@@ -1024,7 +1025,7 @@ export const SettingAccountModal = () => {
                               .from("profiles")
                               .update({ position_class: editedPositionClass })
                               .eq("id", userProfileState.id)
-                              .select()
+                              .select("position_class")
                               .single();
 
                             if (error) {
@@ -1049,7 +1050,7 @@ export const SettingAccountModal = () => {
                             setTimeout(() => {
                               console.log("役職クラスUPDATE成功 profileData", profileData);
                               setUserProfileState({
-                                ...(profileData as UserProfile),
+                                ...(userProfileState as UserProfileCompanySubscription),
                                 position_class: profileData.position_class ? profileData.position_class : null,
                               });
                               setLoadingGlobalState(false);
@@ -1135,7 +1136,7 @@ export const SettingAccountModal = () => {
                               .from("profiles")
                               .update({ position_name: editedPositionName })
                               .eq("id", userProfileState.id)
-                              .select()
+                              .select("position_name")
                               .single();
 
                             if (error) {
@@ -1160,7 +1161,7 @@ export const SettingAccountModal = () => {
                             setTimeout(() => {
                               console.log("役職名UPDATE成功 profileData", profileData);
                               setUserProfileState({
-                                ...(profileData as UserProfile),
+                                ...(userProfileState as UserProfileCompanySubscription),
                                 position_name: profileData.position_name ? profileData.position_name : null,
                               });
                               setLoadingGlobalState(false);
@@ -1244,7 +1245,7 @@ export const SettingAccountModal = () => {
                               .from("profiles")
                               .update({ office: editedOffice })
                               .eq("id", userProfileState.id)
-                              .select()
+                              .select("office")
                               .single();
 
                             if (error) {
@@ -1269,7 +1270,7 @@ export const SettingAccountModal = () => {
                             setTimeout(() => {
                               console.log("所属事業所・営業所UPDATE成功 profileData", profileData);
                               setUserProfileState({
-                                ...(profileData as UserProfile),
+                                ...(userProfileState as UserProfileCompanySubscription),
                                 office: profileData.office ? profileData.office : null,
                               });
                               setLoadingGlobalState(false);
@@ -1357,7 +1358,7 @@ export const SettingAccountModal = () => {
                               .from("profiles")
                               .update({ employee_id: editedEmployeeId })
                               .eq("id", userProfileState.id)
-                              .select()
+                              .select("employee_id")
                               .single();
 
                             if (error) {
@@ -1382,7 +1383,7 @@ export const SettingAccountModal = () => {
                             setTimeout(() => {
                               console.log("社員番号・ID UPDATE成功 profileData", profileData);
                               setUserProfileState({
-                                ...(profileData as UserProfile),
+                                ...(userProfileState as UserProfileCompanySubscription),
                                 employee_id: profileData.employee_id ? profileData.employee_id : null,
                               });
                               setLoadingGlobalState(false);
@@ -1471,7 +1472,7 @@ export const SettingAccountModal = () => {
                               .from("profiles")
                               .update({ usage: editedUsage })
                               .eq("id", userProfileState.id)
-                              .select()
+                              .select("usage")
                               .single();
 
                             if (error) {
@@ -1496,7 +1497,7 @@ export const SettingAccountModal = () => {
                             setTimeout(() => {
                               console.log("利用用途UPDATE成功 profileData", profileData);
                               setUserProfileState({
-                                ...(profileData as UserProfile),
+                                ...(userProfileState as UserProfileCompanySubscription),
                                 usage: profileData.usage ? profileData.usage : null,
                               });
                               setLoadingGlobalState(false);

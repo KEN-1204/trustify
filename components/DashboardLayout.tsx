@@ -35,6 +35,7 @@ import { ErrorFallback } from "./ErrorFallback/ErrorFallback";
 import { Fallback } from "./Fallback/Fallback";
 import { UpdatePropertyModal } from "./DashboardCompanyComponent/Modal/UpdatePropertyModal/UpdatePropertyModal";
 import { SubscriptionPlanModalForFreeUser } from "./Modal/SubscriptionPlanModalForFreeUser/SubscriptionPlanModalForFreeUser";
+import { useSubscribeSubscription } from "@/hooks/useSubscribeSubscription";
 
 type Prop = {
   title?: string;
@@ -54,8 +55,14 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   const setProductsState = useDashboardStore((state) => state.setProductsState);
   // ユーザープロフィール
 
+  // サブスクリプションの契約状態を監視して変更があればリアルタイムにクライアントを自動更新
+  // 未契約者はuserProfileState.subscription_idはnullのため、subscribed_accountsテーブルのINSERTイベントを監視
+  // 契約者、契約後解約者はすでにuserProfileState.subscription_idを持っているため、subscriptionsテーブルのUPDATEイベントを監視
+  // useSubscribeSubscription();
+
   // サブスクプランがnullなら初回プランモーダル表示
-  const showSubscriptionPlan = !!userProfileState && !userProfileState.subscription_plan;
+  const showSubscriptionPlan =
+    !!userProfileState && (!userProfileState.subscription_plan || userProfileState.subscription_plan === "free_plan");
   // const showSubscriptionPlan = !!userProfileState && userProfileState.role === "free_user";
 
   const router = useRouter();
