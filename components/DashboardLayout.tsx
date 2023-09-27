@@ -36,6 +36,7 @@ import { Fallback } from "./Fallback/Fallback";
 import { UpdatePropertyModal } from "./DashboardCompanyComponent/Modal/UpdatePropertyModal/UpdatePropertyModal";
 import { SubscriptionPlanModalForFreeUser } from "./Modal/SubscriptionPlanModalForFreeUser/SubscriptionPlanModalForFreeUser";
 import { useSubscribeSubscription } from "@/hooks/useSubscribeSubscription";
+import { FirstLoginSettingUserProfileCompanyModal } from "./Modal/FirstLoginSettingUserProfileCompanyModal/FirstLoginSettingUserProfileCompanyModal";
 
 type Prop = {
   title?: string;
@@ -64,6 +65,24 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   const showSubscriptionPlan =
     !!userProfileState && (!userProfileState.subscription_plan || userProfileState.subscription_plan === "free_plan");
   // const showSubscriptionPlan = !!userProfileState && userProfileState.role === "free_user";
+
+  // 初回サブスク登録後、契約者（is_subscriberがtrue）でかつ初回ログイン時（first_time_loginがtrue）の場合、
+  // 名前、チーム名、利用用途などのプロフィール情報を入力、選択するモーダル表示
+  const showFirstLoginSettingUserProfileCompanyModal =
+    !!userProfileState &&
+    userProfileState.is_subscriber &&
+    userProfileState.first_time_login &&
+    userProfileState.subscription_plan !== "free_plan";
+  console.log(
+    "DashboardLayout ユーザープロフィール",
+    userProfileState,
+    "ファーストタイムログイン",
+    userProfileState?.first_time_login,
+    "サブスクプラン",
+    userProfileState?.subscription_plan,
+    "showFirstLoginSettingUserProfileCompanyModal",
+    showFirstLoginSettingUserProfileCompanyModal
+  );
 
   const router = useRouter();
   const supabase = useSupabaseClient();
@@ -203,8 +222,10 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
         {theme === "dark" && <MdOutlineDarkMode className="text-[20px] text-[#fff]" />}
       </div>
 
-      {/* ============================ サブスクプランモーダルコンポーネント ============================ */}
+      {/* ============================ 初回サブスクプランモーダルコンポーネント ============================ */}
       {showSubscriptionPlan && <SubscriptionPlanModalForFreeUser />}
+      {/* ============================ 初回サブスクプランモーダルコンポーネント ============================ */}
+      {showFirstLoginSettingUserProfileCompanyModal && <FirstLoginSettingUserProfileCompanyModal />}
 
       {/* ============================ 共通UIコンポーネント ============================ */}
       {/* モーダル */}

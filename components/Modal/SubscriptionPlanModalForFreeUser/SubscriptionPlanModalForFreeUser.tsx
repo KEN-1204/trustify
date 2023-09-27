@@ -79,7 +79,20 @@ export const SubscriptionPlanModalForFreeUser = () => {
         {/* メインコンテンツ コンテナ */}
         <div className={`${styles.main_contents_container}`}>
           <div className={`${styles.left_container} h-full w-6/12 `}>
-            <h1 className={`w-full text-[24px] font-bold`}>プランを選んで早速始めましょう！</h1>
+            <div className={`flex-center h-[40px] w-full`}>
+              <div className="relative flex h-[60px] w-[145px] select-none items-center justify-center">
+                <Image
+                  src={`/assets/images/Trustify_Logo_icon_bg-black@3x.png`}
+                  alt=""
+                  className="h-full w-[90%] object-contain"
+                  fill
+                  priority={true}
+                  // sizes="10vw"
+                />
+              </div>
+            </div>
+            <h1 className={`mt-[10px] w-full text-center text-[24px] font-bold`}>プランを選んで早速始めましょう！</h1>
+            {/* <h1 className={`w-full text-[24px] font-bold`}>プランを選んで早速始めましょう！</h1> */}
             <div className={`w-full space-y-2 py-[20px]`}>
               <div className="flex space-x-3">
                 <BsCheck2 className="stroke-1 text-[24px] text-[#00d436]" />

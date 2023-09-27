@@ -4,6 +4,7 @@
   /* z-index: 100; */
   inset: 0;
   /* background: #00000050; */
+  background: #00000050;
   backdrop-filter: blur(4px);
   /* transform: translateY(-20px) scaleY(1.1); */
 }
@@ -74,7 +75,10 @@
 }
 .right_container {
   /* background-color: var(--setting-side-bg); */
-  background-image: url("/assets/images/team/annie-spratt-MChSQHxGZrQ-unsplash.jpg");
+  background-image: url("/assets/images/team/team1.jpg");
+  /* background-image: url("/assets/images/beautiful/ocean2.jpg"); */
+  /* background-image: url("/assets/images/beautiful/balloon1.jpg"); */
+  /* background-image: url("/assets/images/beautiful/road-sun1.jpg"); */
   background-position: 30% 50%;
   /* background-image: url("/assets/images/team/priscilla-du-preez-XkKCui44iM0-unsplash.jpg");
   background-position: 30% 50%; */

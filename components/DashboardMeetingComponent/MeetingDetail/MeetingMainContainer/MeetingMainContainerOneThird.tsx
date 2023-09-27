@@ -1893,24 +1893,26 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         onChange={(e) => setInputEmployeesClass(e.target.value)}
                       >
                         <option value=""></option>
-                        <option value="1 社長・専務">1 社長・専務</option>
-                        <option value="2 取締役・役員">2 取締役・役員</option>
-                        <option value="3 開発・設計">3 開発・設計</option>
-                        <option value="4 生産技術">4 生産技術</option>
-                        <option value="5 製造">5 製造</option>
-                        <option value="6 品質管理・品質保証">6 品質管理・品質保証</option>
-                        <option value="7 人事">7 人事</option>
-                        <option value="8 経理">8 経理</option>
-                        <option value="9 総務">9 総務</option>
-                        <option value="10 法務">10 法務</option>
-                        <option value="11 財務">11 財務</option>
-                        <option value="12 情報システム">12 情報システム</option>
-                        <option value="13 マーケティング">13 マーケティング</option>
-                        <option value="14 購買">14 購買</option>
-                        <option value="15 営業">15 営業</option>
-                        <option value="16 企画">16 企画</option>
-                        <option value="17 CS">17 CS</option>
-                        <option value="18 その他">18 その他</option>
+                        <option value="社長/CEO">社長/CEO</option>
+                        <option value="取締役・役員">取締役・役員</option>
+                        <option value="プロジェクト/プログラム管理">プロジェクト/プログラム管理</option>
+                        <option value="営業">営業</option>
+                        <option value="マーケティング">マーケティング</option>
+                        <option value="クリエイティブ">クリエイティブ</option>
+                        <option value="ソフトウェア開発">ソフトウェア開発</option>
+                        <option value="開発・設計">開発・設計</option>
+                        <option value="生産技術">生産技術</option>
+                        <option value="製造">製造</option>
+                        <option value="品質管理・品質保証">品質管理・品質保証</option>
+                        <option value="人事">人事</option>
+                        <option value="経理">経理</option>
+                        <option value="総務">総務</option>
+                        <option value="法務">法務</option>
+                        <option value="財務">財務</option>
+                        <option value="情報システム/IT管理者">情報システム/IT管理者</option>
+                        <option value="CS/カスタマーサービス">CS/カスタマーサービス</option>
+                        <option value="購買">購買</option>
+                        <option value="その他">その他</option>
                       </select>
                     )}
                   </div>
@@ -3646,24 +3648,26 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         onChange={(e) => setInputEmployeesClass(e.target.value)}
                       >
                         <option value=""></option>
-                        <option value="1 社長・専務">1 社長・専務</option>
-                        <option value="2 取締役・役員">2 取締役・役員</option>
-                        <option value="3 開発・設計">3 開発・設計</option>
-                        <option value="4 生産技術">4 生産技術</option>
-                        <option value="5 製造">5 製造</option>
-                        <option value="6 品質管理・品質保証">6 品質管理・品質保証</option>
-                        <option value="7 人事">7 人事</option>
-                        <option value="8 経理">8 経理</option>
-                        <option value="9 総務">9 総務</option>
-                        <option value="10 法務">10 法務</option>
-                        <option value="11 財務">11 財務</option>
-                        <option value="12 情報システム">12 情報システム</option>
-                        <option value="13 マーケティング">13 マーケティング</option>
-                        <option value="14 購買">14 購買</option>
-                        <option value="15 営業">15 営業</option>
-                        <option value="16 企画">16 企画</option>
-                        <option value="17 CS">17 CS</option>
-                        <option value="18 その他">18 その他</option>
+                        <option value="社長/CEO">社長/CEO</option>
+                        <option value="取締役・役員">取締役・役員</option>
+                        <option value="プロジェクト/プログラム管理">プロジェクト/プログラム管理</option>
+                        <option value="営業">営業</option>
+                        <option value="マーケティング">マーケティング</option>
+                        <option value="クリエイティブ">クリエイティブ</option>
+                        <option value="ソフトウェア開発">ソフトウェア開発</option>
+                        <option value="開発・設計">開発・設計</option>
+                        <option value="生産技術">生産技術</option>
+                        <option value="製造">製造</option>
+                        <option value="品質管理・品質保証">品質管理・品質保証</option>
+                        <option value="人事">人事</option>
+                        <option value="経理">経理</option>
+                        <option value="総務">総務</option>
+                        <option value="法務">法務</option>
+                        <option value="財務">財務</option>
+                        <option value="情報システム/IT管理者">情報システム/IT管理者</option>
+                        <option value="CS/カスタマーサービス">CS/カスタマーサービス</option>
+                        <option value="購買">購買</option>
+                        <option value="その他">その他</option>
                       </select>
                     )}
                   </div>
