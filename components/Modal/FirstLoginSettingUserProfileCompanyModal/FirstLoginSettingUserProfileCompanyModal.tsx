@@ -11,6 +11,8 @@ import Spinner from "@/components/Parts/Spinner/Spinner";
 import Image from "next/image";
 import useRootStore from "@/store/useRootStore";
 import useThemeStore from "@/store/useThemeStore";
+import { runFireworks } from "@/utils/confetti";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
 type Plans = {
   id: string;
@@ -27,36 +29,63 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
   const [selectedRadioButton, setSelectedRadioButton] = useState("business_plan");
   const sessionState = useStore((state) => state.sessionState);
   // const theme = useRootStore(useThemeStore, (state) => state.theme);
+  const supabase = useSupabaseClient();
+  const userProfileState = useDashboardStore((state) => state.userProfileState);
+  const setUserProfileState = useDashboardStore((state) => state.setUserProfileState);
 
   const [pages, setPages] = useState(1);
 
-  // ユーザー名
+  // ユーザー名 profiles
   const [inputUserName, setInputUserName] = useState("");
   const [focussingInputUserName, setFocussingInputUserName] = useState(false);
   const [checkedUserName, setCheckedUserName] = useState(false);
-  // 職種
+  // 職種 profiles
   const [inputOccupation, setInputOccupation] = useState("");
   const [checkedOccupation, setCheckedOccupation] = useState(false);
-  // 利用用途
-  const [inputPurpose, setInputPurpose] = useState("");
-  const [checkedPurpose, setCheckedPurpose] = useState(false);
-  // 会社
+  // 利用用途 profiles
+  const [inputUsage, setInputUsage] = useState("");
+  const [checkedUsage, setCheckedUsage] = useState(false);
+  // 会社名 companies
   const [inputCompany, setInputCompany] = useState("");
   const [focussingInputCompany, setFocussingInputCompany] = useState(false);
   const [checkedCompany, setCheckedCompany] = useState(false);
-  // 部署
+  // 部署 profiles
   const [inputDepartment, setInputDepartment] = useState("");
   const [focussingInputDepartment, setFocussingInputDepartment] = useState(false);
   const [checkedDepartment, setCheckedDepartment] = useState(false);
-  // 役職
+  // 役職クラス profiles
   const [inputPosition, setInputPosition] = useState("");
   const [checkedPosition, setCheckedPosition] = useState(false);
-  // 規模・従業員数
+  // 規模・従業員数 companies
   const [inputNumberOfEmployeeClass, setInputNumberOfEmployeeClass] = useState("");
   const [checkedNumberOfEmployeeClass, setCheckedNumberOfEmployeeClass] = useState(false);
   // 電話番号
   const [inputTEL, setInputTEL] = useState("");
   const [input, setInput] = useState("");
+
+  useEffect(() => {
+    if (pages !== 3) return;
+    console.log(
+      "🌟花吹雪",
+      "ユーザー名",
+      inputUserName,
+      "職種",
+      inputOccupation,
+      "利用用途",
+      inputUsage,
+      "会社名",
+      inputCompany,
+      "部署名",
+      inputDepartment,
+      "役職クラス",
+      inputPosition,
+      "規模・従業員数",
+      inputNumberOfEmployeeClass
+    );
+    // setTimeout(() => {
+    //   runFireworks();
+    // }, 300);
+  }, [pages]);
 
   // const logoSrc =
   //   theme === "light" ? "/assets/images/Trustify_Logo_icon_bg-black@3x.png" : "/assets/images/Trustify_logo_black.png";
@@ -113,6 +142,64 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
       .replace(/　/g, " "); // 全角スペースを半角スペースに
   };
 
+  const handleStart = async () => {
+    if (!userProfileState) return alert("エラー：ユーザー情報がありません");
+    setIsLoading(true);
+    // プロフィール情報の更新
+    try {
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({
+          profile_name: inputUserName,
+          occupation: inputOccupation,
+          usage: inputUsage,
+          department: inputDepartment,
+          position_class: inputPosition,
+          first_time_login: false,
+        })
+        .eq("id", userProfileState.id);
+      if (profileError) throw new Error(profileError.message);
+    } catch (error) {
+      alert(`エラーが発生しました: profiles_${error}`);
+      setIsLoading(false);
+      return;
+    }
+
+    // 会社情報の更新
+    try {
+      const { error: companyError } = await supabase
+        .from("companies")
+        .update({
+          customer_name: inputCompany,
+          customer_number_of_employees_class: inputNumberOfEmployeeClass,
+        })
+        .eq("id", userProfileState.company_id);
+      if (companyError) throw new Error(companyError.message);
+    } catch (error) {
+      alert(`エラーが発生しました: companies_${error}`);
+      setIsLoading(false);
+      return;
+    }
+    // プロフィール・会社どちらも更新成功 ZustandのStateを更新
+    const newUserProfile = {
+      ...userProfileState,
+      profile_name: inputUserName,
+      occupation: inputOccupation,
+      usage: inputUsage,
+      department: inputDepartment,
+      position_class: inputPosition,
+      first_time_login: false,
+      customer_name: inputCompany,
+      customer_number_of_employees_class: inputNumberOfEmployeeClass,
+    };
+    setUserProfileState(newUserProfile);
+    console.log("🌟プロフィール会社更新 セットアップ成功🌟 newUserProfile", newUserProfile);
+    setIsLoading(false);
+    setTimeout(() => {
+      runFireworks();
+    }, 300);
+  };
+
   return (
     <>
       <div className={`${styles.overlay} `} onClick={handleCancelAndReset} />
@@ -131,8 +218,12 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
             } ${pages === 3 ? `${styles.left_container3}` : ``} transition-base03 z-10 flex h-full w-5/12`}
           ></div>
           {/* 右コンテナ */}
-          <div className={`${styles.right_container} z-5 relative h-full w-7/12`}>
-            <div className={`${styles.right_contents_container} min-w-[100%]  `}>
+          <div className={`${styles.right_container} z-5 relative h-full w-7/12 `}>
+            <div
+              className={`${styles.right_contents_container} transition-base03 min-w-[100%] ${
+                pages === 3 ? `pt-[20%]` : ``
+              }`}
+            >
               <div className={`flex-center h-[50px] w-full`}>
                 <div className="relative flex h-[60px] w-[145px] select-none items-center justify-center">
                   <Image
@@ -147,14 +238,23 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
               </div>
               <h1 className={`mt-[8px] w-full text-center text-[24px] font-bold`}>TRUSTiFYへようこそ！</h1>
               <div className={`w-full space-y-2 py-[5px]`}>
-                <div className="flex-center w-full flex-col text-[var(--color-text-sub)]">
-                  <p>あともう少しで完了！</p>
-                  <p>始める前にあなたについていくつか教えてください。</p>
-                  <p>あなた専用に体験をカスタマイズします。</p>
-                </div>
+                {pages !== 3 && (
+                  <div className="flex-center w-full flex-col text-[var(--color-text-sub)]">
+                    <p>あともう少しで完了！</p>
+                    <p>始める前にあなたについていくつか教えてください。</p>
+                    <p>あなた専用に体験をカスタマイズします。</p>
+                  </div>
+                )}
+                {pages === 3 && (
+                  <div className="flex-center w-full flex-col text-[var(--color-text-sub)]">
+                    <p>準備が完了しました！</p>
+                    <p>あなた専用のデータベースを使って</p>
+                    <p>最高の成果を手に入れましょう！</p>
+                  </div>
+                )}
               </div>
 
-              <div className={`${styles.right_x_scroll_container} h-full w-full`}>
+              <div className={`${styles.right_x_scroll_container} h-full w-full `}>
                 {/* 1ステップ目 プロフィール入力 用途確認 */}
                 <div
                   className={`${styles.right_scroll_contents_container} transition-base03 h-full min-w-[100%] ${
@@ -246,22 +346,22 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
                     <div className="relative flex w-full flex-col items-start justify-start space-y-1">
                       <div className="flex w-full text-[13px] font-bold">
                         <span className="text-[var(--color-text-sub)]">どんな用途でご利用ですか？</span>
-                        {!inputPurpose && <span className="ml-[3px] font-bold text-[#ff4444]">※</span>}
-                        {inputPurpose && <BsCheck2 className="ml-[5px]  text-[19px] text-[var(--color-bg-brand-f)]" />}
-                        {checkedPurpose && !inputPurpose && (
+                        {!inputUsage && <span className="ml-[3px] font-bold text-[#ff4444]">※</span>}
+                        {inputUsage && <BsCheck2 className="ml-[5px]  text-[19px] text-[var(--color-bg-brand-f)]" />}
+                        {checkedUsage && !inputUsage && (
                           <span className="ml-[3px] font-bold text-[#ff4444]">未選択です</span>
                         )}
                       </div>
                       <select
-                        className={`${styles.select_box} ${!inputPurpose ? `text-[#9ca3af]` : ``} ${
-                          checkedPurpose && !inputPurpose ? `${styles.error}` : ``
+                        className={`${styles.select_box} ${!inputUsage ? `text-[#9ca3af]` : ``} ${
+                          checkedUsage && !inputUsage ? `${styles.error}` : ``
                         }`}
                         placeholder="例：代表取締役CEO、営業部"
-                        value={inputPurpose}
-                        // onChange={(e) => setInputPurpose(e.target.value)}
+                        value={inputUsage}
+                        // onChange={(e) => setInputUsage(e.target.value)}
                         onChange={(e) => {
-                          setInputPurpose(e.target.value);
-                          if (checkedPurpose && !!inputPurpose) setCheckedPurpose(false);
+                          setInputUsage(e.target.value);
+                          if (checkedUsage && !!inputUsage) setCheckedUsage(false);
                           if (e.target.value === "会社・チームで利用") setInputDepartment("");
                           if (e.target.value === "個人で利用") setInputDepartment(".");
                         }}
@@ -282,16 +382,16 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
                     <button
                       // className={`flex-center h-[40px] w-full cursor-pointer rounded-[6px] bg-[var(--color-bg-brand-f)] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                       className={`flex-center h-[40px] w-full cursor-pointer rounded-[6px] font-bold  ${
-                        !!inputUserName && !!inputOccupation && !!inputPurpose
+                        !!inputUserName && !!inputOccupation && !!inputUsage
                           ? `bg-[var(--color-bg-brand-f)] text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`
                           : `bg-[var(--color-bg-brand-f-disabled)] text-[#ffffffc0]`
                       }`}
-                      // disabled={!inputUserName && !inputOccupation && !inputPurpose}
+                      // disabled={!inputUserName && !inputOccupation && !inputUsage}
                       onClick={() => {
                         if (!inputUserName) setCheckedUserName(true);
                         if (!inputOccupation) setCheckedOccupation(true);
-                        if (!inputPurpose) setCheckedPurpose(true);
-                        if (!inputUserName || !inputOccupation || !inputPurpose) return;
+                        if (!inputUsage) setCheckedUsage(true);
+                        if (!inputUserName || !inputOccupation || !inputUsage) return;
                         setPages((prev) => prev + 1);
                       }}
                     >
@@ -336,7 +436,7 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
                       />
                     </div>
                     {/* 部署名 */}
-                    {inputPurpose === "会社・チームで利用" && (
+                    {inputUsage === "会社・チームで利用" && (
                       <div className="flex w-full flex-col items-start justify-start space-y-1">
                         <div className="flex w-full text-[13px] font-bold">
                           <span className="text-[var(--color-text-sub)]">あなたの部署を教えてください。</span>
@@ -395,7 +495,7 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
                         <option value="2 取締役/役員">取締役/役員</option>
                         <option value="3 部長">部長</option>
                         <option value="4 課長">課長</option>
-                        <option value="5 課長未満">課長未満</option>
+                        <option value="5 チームメンバー">チームメンバー</option>
                         <option value="6 所長・工場長">所長・工場長</option>
                         <option value="7 フリーランス・個人事業主">フリーランス・個人事業主</option>
                         {/* <option value="8 不明">不明</option> */}
@@ -457,7 +557,7 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
                           : `bg-[var(--color-bg-brand-f-disabled)] text-[#ffffffc0]`
                       }`}
                       onClick={() => {
-                        if (inputPurpose === "会社・チームで利用") {
+                        if (inputUsage === "会社・チームで利用") {
                           if (!inputCompany) setCheckedCompany(true);
                           if (!inputDepartment) setCheckedDepartment(true);
                           if (!inputPosition) setCheckedPosition(true);
@@ -490,19 +590,19 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
                   {/* メンバーシップを開始するボタン */}
                   <div className="w-full pt-[30px]">
                     <button
-                      className={`flex-center h-[40px] w-full cursor-pointer rounded-[6px] bg-[var(--color-bg-brand-f)] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
-                      onClick={() => setPages(1)}
-                      // onClick={() => {
-                      //   if (selectedRadioButton === "business_plan")
-                      //     processSubscription("price_1NmPoFFTgtnGFAcpw1jRtcQs", accountQuantity);
-                      //   if (selectedRadioButton === "premium_plan")
-                      //     processSubscription("price_1NmQAeFTgtnGFAcpFX60R4YY", accountQuantity);
-                      // }}
+                      className={`flex-center mx-auto h-[40px] w-[80%] cursor-pointer rounded-[6px] bg-[var(--color-bg-brand-f)] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                      // onClick={() => setPages(1)}
+                      onClick={handleStart}
                     >
-                      {!loading && <span>メンバーシップを開始する</span>}
+                      {!loading && <span>ここから始める</span>}
                       {loading && <SpinnerIDS scale={"scale-[0.4]"} />}
                       {/* {!loading && <Spinner />} */}
                     </button>
+                    <div className="flex-center mt-[20px] w-full text-[var(--color-text-sub)]">
+                      <span className="cursor-pointer" onClick={() => setPages((prev) => prev - 1)}>
+                        戻る
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -989,14 +989,22 @@ export const SettingAccountModal = () => {
                         value={editedPositionClass}
                         onChange={(e) => setEditedPositionClass(e.target.value)}
                       >
-                        <option value="1 代表者">1 代表者</option>
+                        <option value="">回答を選択してください</option>
+                        <option value="1 代表者">代表者</option>
+                        <option value="2 取締役/役員">取締役/役員</option>
+                        <option value="3 部長">部長</option>
+                        <option value="4 課長">課長</option>
+                        <option value="5 チームメンバー">チームメンバー</option>
+                        <option value="6 所長・工場長">所長・工場長</option>
+                        <option value="7 フリーランス・個人事業主">フリーランス・個人事業主</option>
+                        {/* <option value="1 代表者">1 代表者</option>
                         <option value="2 取締役/役員">2 取締役/役員</option>
                         <option value="3 部長">3 部長</option>
                         <option value="4 課長">4 課長</option>
                         <option value="5 チームメンバー">5 チームメンバー</option>
                         <option value="6 所長">6 所長</option>
                         <option value="7 個人事業主・フリーランス">7 個人事業主・フリーランス</option>
-                        <option value="8 個人利用">8 個人利用</option>
+                        <option value="8 個人利用">8 個人利用</option> */}
                       </select>
                       <div className="flex">
                         <div
