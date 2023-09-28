@@ -140,6 +140,7 @@
   --color-bg-brand-rgb: 13, 153, 255;
   --color-bg-brand-f: #0d99ff; /* Figma */
   --color-bg-brand-f-hover: #0d99ff90;
+  --color-bg-brand-f-disabled: #0d99ff50;
   --color-bg-brand-f05: #e5f4ff;
   --color-bg-brand-f10: #0d99ff10;
   --color-bg-brand-f30: #0d99ff30;

@@ -931,13 +931,22 @@ const ContactMainContainerMemo: FC = () => {
                       onChange={(e) => setInputEmployeesClass(e.target.value)}
                     >
                       <option value=""></option>
+                      {/* <option value="">回答を選択してください</option> */}
+                      <option value="A 1000名以上">A 1000名以上</option>
+                      <option value="B 500〜999名">B 500〜999名</option>
+                      <option value="C 300〜499名">C 300〜499名</option>
+                      <option value="D 200〜299名">D 200〜299名</option>
+                      <option value="E 100〜199名">E 100〜199名</option>
+                      <option value="F 50〜99名">F 50〜99名</option>
+                      <option value="G 1〜49名">G 1〜49名</option>
+                      {/* <option value=""></option>
                       <option value="A 1000名以上">A 1000名以上</option>
                       <option value="B 500-999名">B 500-999名</option>
                       <option value="C 300-499名">C 300-499名</option>
                       <option value="D 200-299名">D 200-299名</option>
                       <option value="E 100-199名">E 100-199名</option>
                       <option value="F 50-99名">F 50-99名</option>
-                      <option value="G 50名未満">G 50名未満</option>
+                      <option value="G 50名未満">G 50名未満</option> */}
                     </select>
                   )}
                 </div>
