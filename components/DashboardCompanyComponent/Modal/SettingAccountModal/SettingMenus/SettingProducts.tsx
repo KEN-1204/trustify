@@ -60,7 +60,7 @@ const SettingProductsMemo: FC = () => {
           <div className={`text-[20px] font-bold`}>サービス・製品</div>
           {/* 製品1 */}
           {products?.map((item, index) => (
-            <>
+            <React.Fragment key={item.id}>
               <div key={item.id} className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
                 <div className={`text-[14px] font-bold`}>製品{index + 1}</div>
 
@@ -120,7 +120,7 @@ const SettingProductsMemo: FC = () => {
                 </div>
               </div>
               <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
-            </>
+            </React.Fragment>
           ))}
           {/* 名前ここまで */}
 

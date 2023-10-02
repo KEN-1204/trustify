@@ -21,7 +21,7 @@ import { activityColumnHeaderItemListData } from "@/utils/activityColumnHeaderIt
 import { contactColumnHeaderItemListData } from "@/utils/contactColumnHeaderItemListData";
 import { meetingColumnHeaderItemListData } from "@/utils/meetingColumnHeaderItemListData";
 import { propertyColumnHeaderItemListData } from "@/utils/propertyColumnHeaderItemListData";
-import { Session } from "@supabase/supabase-js";
+// import { Session } from "@supabase/supabase-js";
 import { ReactNode } from "react";
 import { create } from "zustand";
 

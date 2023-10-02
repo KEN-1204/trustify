@@ -153,12 +153,12 @@ export const InsertNewProductModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>単価</span>
+                    <span className={`${styles.title} !min-w-[140px]`}>単価（円）</span>
                     <input
                       type="number"
                       min="0"
                       className={`${styles.input_box}`}
-                      placeholder=""
+                      placeholder="例：600万円 → 6000000　※半角で入力"
                       value={unitPrice === null ? "" : unitPrice}
                       onChange={(e) => {
                         const val = e.target.value;

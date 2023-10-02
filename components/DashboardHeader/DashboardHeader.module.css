@@ -14,7 +14,8 @@
   align-items: center;
   justify-content: space-between;
   /* background: #333; */
-  background: var(--color-bg-base);
+  /* background: var(--color-bg-base); */
+  background: var(--color-bg-base-header);
   /* background: #282828; */
   box-shadow: var(--shadow-sm);
   /* font-family: sans-serif; */

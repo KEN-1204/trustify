@@ -324,7 +324,9 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       const { data, error, count } = await supabase
         .from("client_companies")
         .select(`${columnNamesObj}`, { count: "exact" })
-        .is("created_by_company_id", userProfileState.company_id)
+        // .is("created_by_company_id", userProfileState.company_id)
+        // .eq("created_by_company_id", userProfileState.company_id)
+        .or(`created_by_company_id.eq.${userProfileState.company_id},created_by_company_id.is.null`)
         .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
         .range(from, to)
         .order("name", { ascending: true });
@@ -431,7 +433,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       let params = newSearchCompanyParams;
       const { data, error, count } = await supabase
         .rpc("search_companies", { params }, { count: "exact" })
-        .eq("created_by_company_id", userProfileState.company_id)
+        // .eq("created_by_company_id", userProfileState.company_id)
+        .or(`created_by_company_id.eq.${userProfileState.company_id},created_by_company_id.is.null`)
         .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
         .range(from, to)
         .order("name", { ascending: true });

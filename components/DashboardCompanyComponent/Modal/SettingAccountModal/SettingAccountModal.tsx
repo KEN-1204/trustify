@@ -20,6 +20,7 @@ import { SettingProducts } from "./SettingMenus/SettingProducts";
 import { ErrorBoundary } from "react-error-boundary";
 import { Fallback } from "@/components/Fallback/Fallback";
 import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
+import { SettingPaymentAndPlan } from "./SettingPaymentAndPlan/SettingPaymentAndPlan";
 
 export const SettingAccountModal = () => {
   const theme = useThemeStore((state) => state.theme);
@@ -296,9 +297,9 @@ export const SettingAccountModal = () => {
             </div>
             <div
               className={`rounded-[4px]] mb-[3px] flex h-[40px] w-full cursor-pointer items-center truncate rounded-[4px] px-[10px] py-[6px] font-bold hover:bg-[var(--setting-side-bg-select)] ${
-                selectedSettingAccountMenu === "Plan" ? `bg-[var(--setting-side-bg-select)]` : ``
+                selectedSettingAccountMenu === "PaymentAndPlan" ? `bg-[var(--setting-side-bg-select)]` : ``
               }`}
-              onClick={() => setSelectedSettingAccountMenu("Plan")}
+              onClick={() => setSelectedSettingAccountMenu("PaymentAndPlan")}
             >
               <div className="flex-center mr-[15px] h-[24px] w-[24px]">
                 <MdOutlinePayment className="text-[22px]" />
@@ -1542,6 +1543,13 @@ export const SettingAccountModal = () => {
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
                   <SettingProducts />
+                </Suspense>
+              </ErrorBoundary>
+            )}
+            {selectedSettingAccountMenu === "PaymentAndPlan" && (
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
+                  <SettingPaymentAndPlan />
                 </Suspense>
               </ErrorBoundary>
             )}

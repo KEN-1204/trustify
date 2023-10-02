@@ -272,7 +272,7 @@ export const InsertNewClientCompanyModal = () => {
                   </span> */}
                   <input
                     type="text"
-                    placeholder="会社名を入力してください *入力必須  個人の場合は電話番号を入力してください"
+                    placeholder="※入力必須　例：株式会社○○　　個人事業主・フリーランスの場合は電話番号を入力してください"
                     required
                     autoFocus
                     className={`${styles.input_box}`}
@@ -296,7 +296,7 @@ export const InsertNewClientCompanyModal = () => {
                   </span> */}
                   <input
                     type="text"
-                    placeholder="部署名を入力してください *入力必須  部署名が不明の場合は.(ピリオド)を入力してください"
+                    placeholder="※入力必須　例：代表取締役、営業部など　　部署名が不明の場合は.(ピリオド)を入力してください"
                     required
                     className={`${styles.input_box}`}
                     value={departmentName}
@@ -323,7 +323,7 @@ export const InsertNewClientCompanyModal = () => {
                     </span> */}
                     <input
                       type="text"
-                      placeholder="代表電話番号を入力してください *入力必須"
+                      placeholder="※入力必須　例：03-1234-5678、06-1234-5678など"
                       required
                       className={`${styles.input_box}`}
                       value={mainPhoneNumber}
@@ -380,14 +380,34 @@ export const InsertNewClientCompanyModal = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>決算月</span>
-                    <input
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={fiscalEndMonth}
+                      onChange={(e) => setFiscalEndMonth(e.target.value)}
+                    >
+                      <option value=""></option>
+                      {/* <option value="">回答を選択してください</option> */}
+                      <option value="1月">1月</option>
+                      <option value="2月">2月</option>
+                      <option value="3月">3月</option>
+                      <option value="4月">4月</option>
+                      <option value="5月">5月</option>
+                      <option value="6月">6月</option>
+                      <option value="7月">7月</option>
+                      <option value="8月">8月</option>
+                      <option value="9月">9月</option>
+                      <option value="10月">10月</option>
+                      <option value="11月">11月</option>
+                      <option value="12月">12月</option>
+                    </select>
+                    {/* <input
                       type="text"
-                      placeholder=""
+                      placeholder="例："
                       className={`${styles.input_box}`}
                       value={fiscalEndMonth}
                       onChange={(e) => setFiscalEndMonth(e.target.value)}
                       onBlur={() => setFiscalEndMonth(toHalfWidth(fiscalEndMonth.trim()))}
-                    />
+                    /> */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -408,7 +428,7 @@ export const InsertNewClientCompanyModal = () => {
                     id="call_careful_reason"
                     cols={30}
                     rows={10}
-                    placeholder="住所を入力してください *入力必須"
+                    placeholder="※入力必須　住所を入力してください"
                     required
                     className={`${styles.textarea_box}`}
                     value={address}

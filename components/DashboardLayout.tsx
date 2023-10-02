@@ -202,9 +202,9 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
         </div>
       )} */}
       {/*router.refreshボタン */}
-      <div className="flex-center fixed bottom-[2%] right-[10%] z-[1000] h-[35px] w-[35px] cursor-pointer">
+      {/* <div className="flex-center fixed bottom-[2%] right-[10%] z-[1000] h-[35px] w-[35px] cursor-pointer">
         <div className="h-[35px] w-[35px] rounded-full bg-[#00d43690]" onClick={handleRefresh}></div>
-      </div>
+      </div> */}
       {/* サインアウトボタン */}
       <div className="flex-center fixed bottom-[2%] right-[6%] z-[1000] h-[35px] w-[35px] cursor-pointer">
         <div className="h-[35px] w-[35px] rounded-full bg-[#00000030]" onClick={handleSignOut}></div>

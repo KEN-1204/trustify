@@ -17,9 +17,11 @@ export const InsertNewContactModal = () => {
   const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   // 職位selectタグ選択用state
-  const [selectedPositionClass, setSelectedPositionClass] = useState("1 代表者");
+  // const [selectedPositionClass, setSelectedPositionClass] = useState("1 代表者");
+  const [selectedPositionClass, setSelectedPositionClass] = useState("");
   // 担当職種selectタグ選択用state
-  const [selectedOccupation, setSelectedOccupation] = useState("1 社長・専務");
+  // const [selectedOccupation, setSelectedOccupation] = useState("1 社長・専務");
+  const [selectedOccupation, setSelectedOccupation] = useState("");
   const [name, setName] = useState("");
   const [directLine, setDirectLine] = useState("");
   const [directFax, setDirectFax] = useState("");
@@ -85,6 +87,32 @@ export const InsertNewContactModal = () => {
 
     // モーダルを閉じる
     // setIsOpenInsertNewContactModal(false);
+  };
+
+  // 全角文字を半角に変換する関数
+  const toHalfWidth = (strVal: string) => {
+    // 全角文字コードの範囲は65281 - 65374、スペースの全角文字コードは12288
+    return strVal.replace(/[！-～]/g, (match) => {
+      return String.fromCharCode(match.charCodeAt(0) - 0xfee0);
+    });
+    // .replace(/　/g, " "); // 全角スペースを半角スペースに
+  };
+  const toHalfWidthAndSpace = (strVal: string) => {
+    // 全角文字コードの範囲は65281 - 65374、スペースの全角文字コードは12288
+    return strVal
+      .replace(/[！-～]/g, (match) => {
+        return String.fromCharCode(match.charCodeAt(0) - 0xfee0);
+      })
+      .replace(/　/g, " "); // 全角スペースを半角スペースに
+  };
+  const toHalfWidthAndSpaceAndHyphen = (strVal: string) => {
+    // 全角文字コードの範囲は65281 - 65374、スペースの全角文字コードは12288
+    return strVal
+      .replace(/[！-～]/g, (match) => {
+        return String.fromCharCode(match.charCodeAt(0) - 0xfee0);
+      })
+      .replace(/　/g, " ") // 全角スペースを半角スペースに
+      .replace(/ー/g, "-"); // 全角ハイフンを半角ハイフンに
   };
   return (
     <>
@@ -157,7 +185,9 @@ export const InsertNewContactModal = () => {
                       autoFocus
                       className={`${styles.input_box}`}
                       value={name}
+                      // onChange={(e) => setName(e.target.value)}
                       onChange={(e) => setName(e.target.value)}
+                      onBlur={() => setName(toHalfWidthAndSpace(name.trim()))}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -171,10 +201,12 @@ export const InsertNewContactModal = () => {
                     <span className={`${styles.title}`}>直通TEL</span>
                     <input
                       type="text"
-                      placeholder=""
+                      placeholder="例：03-1234-5678"
                       className={`${styles.input_box}`}
                       value={directLine}
+                      // onChange={(e) => setDirectLine(e.target.value)}
                       onChange={(e) => setDirectLine(e.target.value)}
+                      onBlur={() => setDirectLine(toHalfWidthAndSpaceAndHyphen(directLine.trim()))}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -298,7 +330,7 @@ export const InsertNewContactModal = () => {
                     <span className={`${styles.title}`}>役職名</span>
                     <input
                       type="text"
-                      placeholder=""
+                      placeholder="例：代表取締役社長、部長、マネージャーなど"
                       className={`${styles.input_box}`}
                       value={position}
                       onChange={(e) => setPosition(e.target.value)}
@@ -314,11 +346,13 @@ export const InsertNewContactModal = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>担当職種</span>
                     <select
-                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}  ${
+                        !selectedOccupation ? `text-[#9ca3af]` : ``
+                      }`}
                       value={selectedOccupation}
                       onChange={(e) => setSelectedOccupation(e.target.value)}
                     >
-                      <option value=""></option>
+                      <option value="">選択してください</option>
                       <option value="社長/CEO">社長/CEO</option>
                       <option value="取締役・役員">取締役・役員</option>
                       <option value="プロジェクト/プログラム管理">プロジェクト/プログラム管理</option>
@@ -358,11 +392,13 @@ export const InsertNewContactModal = () => {
                     <select
                       name="position_class"
                       id="position_class"
-                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box} ${
+                        !selectedPositionClass ? `text-[#9ca3af]` : ``
+                      }`}
                       value={selectedPositionClass}
                       onChange={(e) => setSelectedPositionClass(e.target.value)}
                     >
-                      <option value=""></option>
+                      <option value="">選択してください</option>
                       <option value="1 代表者">1 代表者</option>
                       <option value="2 取締役/役員">2 取締役/役員</option>
                       <option value="3 部長">3 部長</option>
@@ -391,7 +427,7 @@ export const InsertNewContactModal = () => {
                     <span className={`${styles.title}`}>決裁金額(万)</span>
                     <input
                       type="number"
-                      placeholder=""
+                      placeholder="例：100、300など"
                       className={`${styles.input_box}`}
                       min={"0"}
                       value={approvalAmount !== null ? approvalAmount : ""}
