@@ -17,6 +17,7 @@
   /* background: var(--color-bg-base); */
   background: var(--color-bg-base-header);
   /* background: #282828; */
+  /* border-bottom: 1px solid var(--color-border); */
   box-shadow: var(--shadow-sm);
   /* font-family: sans-serif; */
 }

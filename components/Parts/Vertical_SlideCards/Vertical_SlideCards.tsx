@@ -39,7 +39,7 @@ const Vertical_SlideCards: FC = () => {
             {/* <span className={styles.name}>Sumit Kapoor</span> */}
             {/* <span className={styles.name}>Daichi Miyamoto</span> */}
             <span className={styles.name}>宮本 大地</span>
-            <p>フロントエンドエンジニア</p>
+            <p>商品開発グループ</p>
           </div>
         </div>
         {/* <Link href="#">Follow</Link> */}

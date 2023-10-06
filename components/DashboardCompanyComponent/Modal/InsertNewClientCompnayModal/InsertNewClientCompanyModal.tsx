@@ -266,7 +266,7 @@ export const InsertNewClientCompanyModal = () => {
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>●会社名</span>
+                  <span className={`${styles.title} !text-[var(--main-color-tk)]`}>●会社名</span>
                   {/* <span className={`${styles.value} ${styles.value_highlight}`}>
                     {selectedRowDataCompany?.name ? selectedRowDataCompany?.name : ""}
                   </span> */}
@@ -290,7 +290,7 @@ export const InsertNewClientCompanyModal = () => {
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>●部署名</span>
+                  <span className={`${styles.title} !text-[var(--main-color-tk)]`}>●部署名</span>
                   {/* <span className={`${styles.value}`}>
                     {selectedRowDataCompany?.department_name ? selectedRowDataCompany?.department_name : ""}
                   </span> */}
@@ -317,7 +317,7 @@ export const InsertNewClientCompanyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>●代表TEL</span>
+                    <span className={`${styles.title} !text-[var(--main-color-tk)]`}>●代表TEL</span>
                     {/* <span className={`${styles.value} ${styles.value_highlight}`}>
                       {selectedRowDataCompany?.name ? selectedRowDataCompany?.name : ""}
                     </span> */}
@@ -422,7 +422,7 @@ export const InsertNewClientCompanyModal = () => {
             <div className={`${styles.row_area} ${styles.text_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full `}>
-                  <span className={`${styles.title}`}>●住所</span>
+                  <span className={`${styles.title} !text-[var(--main-color-tk)]`}>●住所</span>
                   <textarea
                     name="call_careful_reason"
                     id="call_careful_reason"

@@ -60,12 +60,12 @@
   justify-content: flex-start;
   align-items: center;
   /* overflow: hidden; */
-  overflow-y: scroll;
+  /* overflow-y: scroll; */
 }
 
 .left_container {
   /* padding: 60px 6px 60px 20px; */
-  padding: 40px 40px 20px 40px;
+  /* padding: 40px 40px 20px 40px; */
   /* background-color: #333;
   background-color: #eee; */
   /* background-color: var(--setting-side-bg); */
@@ -79,6 +79,7 @@
   background-size: cover;
   background-repeat: no-repeat; */
   background-color: #f4f4f6;
+  background-color: var(--setting-bg-second);
 }
 
 .content_box {
@@ -192,14 +193,14 @@
 }
 .input_box {
   height: 40px;
-  width: 48%;
+  width: 100%;
   background: var(--color-bg-under-input);
   color: var(--color-text-under-input);
   box-shadow: var(--color-bg-under-input-box-shadow);
   /* padding: 0px 6px; */
   padding: 4px 10px;
   padding-left: 15px;
-  border-radius: 2px;
+  border-radius: 4px;
 }
 .input_box:focus {
   box-shadow: var(--color-bg-under-input-active-box-shadow);

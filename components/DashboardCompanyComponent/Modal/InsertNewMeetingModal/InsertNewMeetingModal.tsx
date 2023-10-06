@@ -503,7 +503,7 @@ export const InsertNewMeetingModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>●面談日</span>
+                    <span className={`${styles.title} !min-w-[140px] !text-[var(--main-color-tk)]`}>●面談日</span>
                     <DatePickerCustomInput startDate={plannedDate} setStartDate={setPlannedDate} />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -519,7 +519,7 @@ export const InsertNewMeetingModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>●面談タイプ</span>
+                    <span className={`${styles.title} !min-w-[140px] !text-[var(--main-color-tk)]`}>●面談タイプ</span>
                     <select
                       className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={meetingType}
@@ -549,7 +549,7 @@ export const InsertNewMeetingModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>●面談開始</span>
+                    <span className={`${styles.title} !min-w-[140px] !text-[var(--main-color-tk)]`}>●面談開始</span>
                     <select
                       className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                       placeholder="時"
@@ -706,7 +706,7 @@ export const InsertNewMeetingModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title} !min-w-[140px]`}>●訪問目的</span>
+                    <span className={`${styles.title} !min-w-[140px] !text-[var(--main-color-tk)]`}>●訪問目的</span>
                     <select
                       className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={plannedPurpose}
@@ -871,7 +871,7 @@ export const InsertNewMeetingModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>●活動年月度</span>
+                    <span className={`${styles.title} !min-w-[140px] !text-[var(--main-color-tk)]`}>●活動年月度</span>
                     <input
                       type="number"
                       min="0"
@@ -936,7 +936,7 @@ export const InsertNewMeetingModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>●自社担当</span>
+                    <span className={`${styles.title} !min-w-[140px] !text-[var(--main-color-tk)]`}>●自社担当</span>
                     <input
                       type="text"
                       placeholder="*入力必須"

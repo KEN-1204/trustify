@@ -174,13 +174,13 @@ export const InsertNewContactModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>●担当名</span>
+                    <span className={`${styles.title} !text-[var(--main-color-tk)]`}>●担当名</span>
                     {/* <span className={`${styles.value} ${styles.value_highlight}`}>
                       {selectedRowDataCompany?.name ? selectedRowDataCompany?.name : ""}
                     </span> */}
                     <input
                       type="text"
-                      placeholder="担当者名を入力してください *入力必須"
+                      placeholder="※入力必須　担当者名を入力してください"
                       required
                       autoFocus
                       className={`${styles.input_box}`}

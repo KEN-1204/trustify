@@ -309,7 +309,7 @@ export const InsertNewActivityModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>●活動日</span>
+                    <span className={`${styles.title} !min-w-[140px] !text-[var(--main-color-tk)]`}>●活動日</span>
                     <DatePickerCustomInput startDate={activityDate} setStartDate={setActivityDate} />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -356,18 +356,18 @@ export const InsertNewActivityModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>●活動タイプ</span>
+                    <span className={`${styles.title} !min-w-[140px] !text-[var(--main-color-tk)]`}>●活動タイプ</span>
                     <select
-                      name="number_of_employees_class"
-                      id="number_of_employees_class"
-                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box} ${
+                        !activityType ? `text-[#9ca3af]` : ``
+                      }`}
                       value={activityType}
                       onChange={(e) => {
                         if (e.target.value === "") return alert("活動タイプを選択してください");
                         setActivityType(e.target.value);
                       }}
                     >
-                      <option value=""></option>
+                      <option value="">※選択必須　選択してください</option>
                       <option value="TEL発信(不在)">TEL発信(不在)</option>
                       <option value="TEL発信(能動)">TEL発信(能動)</option>
                       <option value="TEL発信(受動)">TEL発信(受動)</option>

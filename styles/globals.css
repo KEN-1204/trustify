@@ -108,6 +108,7 @@
   /* --setting-side-bg-select: #00000013; */
   --setting-side-bg-select: #40576d12;
   --setting-bg-sub: rgb(234, 235, 237);
+  --setting-bg-second: #f4f4f6;
   /* --setting-side-bg-select-hover: #00000025; */
   --setting-side-bg-select-hover: #394c6026;
   --close-bg: #eee;
@@ -325,6 +326,9 @@
   */
   /* 🌟EditColumnsモーダル カラム変更モーダル light */
   --color-edit-bg: #ffffffe0;
+  --color-edit-bg-solid: #ffffff;
+  --color-edit-bg-card: #fff;
+  --color-edit-shadow-color: rgba(0, 0, 0, 0.2);
   --color-edit-text: #333;
   --color-edit-item-bg: #fff;
   --color-edit-item-border: 0 0 0 1px #ccc;
@@ -453,6 +457,7 @@
 
   /* シャドウ */
   --shadow-sm: 0 2px 4px -1px rgba(57, 76, 96, 0.15);
+  --shadow-sidebar: 2px 0px 4px -1px rgba(57, 76, 96, 0.15);
 
   --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff30, #ffffff20, #ffffff10, #ffffff10, #ffffff80);
   --tile-start-rgb: 2, 13, 46;
@@ -498,6 +503,7 @@
   --setting-side-bg: #333;
   --setting-side-bg-select: #ffffff20;
   --setting-bg-sub: #3f3f3f;
+  --setting-bg-second: #3f3f3f;
   /* --setting-side-bg-select-hover: #bbbbbb20; */
   --setting-side-bg-select-hover: #555;
   --close-bg: #777;
@@ -663,6 +669,9 @@
 
   /* 🌟EditColumnsモーダル カラム変更モーダル dark */
   --color-edit-bg: #252525e0;
+  --color-edit-bg-solid: #252525;
+  --color-edit-bg-card: #222;
+  --color-edit-shadow-color: rgba(255, 255, 255, 0.5);
   --color-edit-text: #fff;
   --color-edit-item-bg: #252525;
   --color-edit-item-border: 0 0 0 1px #ccc;

@@ -420,16 +420,18 @@ export const InsertNewPropertyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>現ステータス</span>
+                    <span className={`${styles.title} !min-w-[140px] !text-[var(--main-color-tk)]`}>●現ステータス</span>
                     <select
-                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box} ${
+                        !currentStatus ? `text-[#9ca3af]` : ``
+                      }`}
                       value={currentStatus}
                       onChange={(e) => {
                         // if (e.target.value === "") return alert("訪問目的を選択してください");
                         setCurrentStatus(e.target.value);
                       }}
                     >
-                      <option value="">ステータスを選択してください</option>
+                      <option value="">※選択必須　ステータスを選択してください</option>
                       <option value="展開">展開 (案件発生)</option>
                       <option value="申請">申請 (予算申請案件)</option>
                       <option value="受注">受注</option>
@@ -465,10 +467,10 @@ export const InsertNewPropertyModal = () => {
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title} !min-w-[140px]`}>案件名</span>
+                  <span className={`${styles.title} !min-w-[140px] !text-[var(--main-color-tk)]`}>●案件名</span>
                   <input
                     type="text"
-                    placeholder="案件名を入力してください"
+                    placeholder="※入力必須　案件名を入力してください"
                     required
                     className={`${styles.input_box}`}
                     value={propertyName}
@@ -1714,7 +1716,7 @@ export const InsertNewPropertyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>案件発生日付</span>
+                    <span className={`${styles.title} !min-w-[140px] !text-[var(--main-color-tk)]`}>●案件発生日付</span>
                     <DatePickerCustomInput startDate={propertyDate} setStartDate={setPropertyDate} />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -1730,7 +1732,7 @@ export const InsertNewPropertyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>案件年月度</span>
+                    <span className={`${styles.title} !min-w-[140px] !text-[var(--main-color-tk)]`}>●案件年月度</span>
                     <input
                       type="number"
                       min="0"
@@ -1865,7 +1867,7 @@ export const InsertNewPropertyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>●自社担当</span>
+                    <span className={`${styles.title} !min-w-[140px] !text-[var(--main-color-tk)]`}>●自社担当</span>
                     <input
                       type="text"
                       placeholder="*入力必須"
