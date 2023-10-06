@@ -8,6 +8,8 @@ import { AiFillCaretDown } from "react-icons/ai";
 import Typed from "typed.js";
 import { Auth } from "../Auth/Auth";
 import { useUpdateEffect } from "react-use";
+import { LangMenuOver } from "../Parts/LangMenuOver/LangMenuOver";
+import { LangMenu } from "../Parts/LangMenu/LangMenu";
 
 export const Root: FC = () => {
   console.log("Rootコンポーネントレンダリング");
@@ -22,6 +24,10 @@ export const Root: FC = () => {
   const getStartWithEmail = useStore((state) => state.getStartWithEmail);
   const setGetStartWithEmail = useStore((state) => state.setGetStartWithEmail);
   const setInputEmail = useStore((state) => state.setInputEmail);
+
+  // 言語ドロップダウンメニュー
+  const clickedItemPos = useStore((state) => state.clickedItemPos);
+  const clickedItemPosOver = useStore((state) => state.clickedItemPosOver);
 
   // ============ ヘッダー 下スクロール時に非表示、上スクロール時に表示 ============
   const setIsHeaderShown = useStore((state) => state.setIsHeaderShown);
@@ -797,25 +803,29 @@ export const Root: FC = () => {
             </Link>
           </div>
         </div>
-        {/* <button
-          className={styles.language_btn}
-          onClick={(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-            if (openLangTab) {
-              setOpenLangTab(false);
-              setClickedItemPosOver(null);
-              return;
-            }
-            setOpenLangTab(true);
-            // クリック位置をStateに格納
-            const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
-            setClickedItemPosOver({ x: x, y: y, itemWidth: width, itemHeight: height });
-          }}
-        >
-          <MdOutlineLanguage className="mr-[5px] mt-[-1px] text-[20px]" />
-          {language === "Ja" && "日本語"}
-          {language === "En" && "English"}
-          <AiFillCaretDown />
-        </button> */}
+        <div className="z-100 relative w-fit">
+          {clickedItemPosOver && <LangMenuOver />}
+          {/* {clickedItemPos && <LangMenu />} */}
+          <button
+            className={styles.language_btn}
+            onClick={(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+              if (openLangTab) {
+                setOpenLangTab(false);
+                setClickedItemPosOver(null);
+                return;
+              }
+              setOpenLangTab(true);
+              // クリック位置をStateに格納
+              const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+              setClickedItemPosOver({ x: x, y: y, itemWidth: width, itemHeight: height });
+            }}
+          >
+            <MdOutlineLanguage className="mr-[5px] mt-[-1px] text-[20px]" />
+            {language === "Ja" && "日本語"}
+            {language === "En" && "English"}
+            <AiFillCaretDown />
+          </button>
+        </div>
         <p className={styles.copyright_txt}>
           {language === "Ja" && "TRUSTiFY"}
           {language === "En" && "TRUSTiFY"}

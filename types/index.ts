@@ -366,6 +366,7 @@ export type UserProfileCompanySubscription = {
   subscription_plan: string | null;
   subscription_stage: string | null;
   accounts_to_create: number | null;
+  number_of_active_subscribed_accounts: number | null;
 };
 export type Subscription = {
   id: string;
@@ -380,6 +381,42 @@ export type Subscription = {
   subscription_plan: string | null;
   subscription_stage: string | null;
   accounts_to_create: number | null;
+  number_of_active_subscribed_accounts: number | null;
+};
+export type MemberAccounts = {
+  id: string;
+  created_at: string;
+  updated_at: string | null;
+  avatar_url: string | null;
+  is_subscriber: boolean | null;
+  company_role: string | null;
+  role: string | null;
+  stripe_customer_id: string | null;
+  last_name: string | null;
+  first_name: string | null;
+  email: string | null;
+  department: string | null;
+  position_name: string | null;
+  position_class: string | null;
+  direct_line: string | null;
+  company_cell_phone: string | null;
+  personal_cell_phone: string | null;
+  occupation: string | null;
+  direct_fax: string | null;
+  signature_stamp_id: string | null;
+  employee_id: string | null;
+  is_active: boolean | null;
+  profile_name: string | null;
+  accept_notification: boolean | null;
+  first_time_login: boolean | null;
+  office: string | null;
+  unit: string | null;
+  usage: string | null;
+  purpose_of_use: string | null;
+  subscribed_account_id: string | null;
+  account_created_at: string | null;
+  account_company_role: string | null;
+  account_state: string | null;
 };
 
 export type Contact = {

@@ -37,6 +37,7 @@ import { UpdatePropertyModal } from "./DashboardCompanyComponent/Modal/UpdatePro
 import { SubscriptionPlanModalForFreeUser } from "./Modal/SubscriptionPlanModalForFreeUser/SubscriptionPlanModalForFreeUser";
 import { useSubscribeSubscription } from "@/hooks/useSubscribeSubscription";
 import { FirstLoginSettingUserProfileCompanyModal } from "./Modal/FirstLoginSettingUserProfileCompanyModal/FirstLoginSettingUserProfileCompanyModal";
+import { SettingInvitationModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingInvitationModal/SettingInvitationModal";
 
 type Prop = {
   title?: string;
@@ -157,6 +158,8 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   // 製品・サービス作成・編集モーダル
   const isOpenInsertNewProductModal = useDashboardStore((state) => state.isOpenInsertNewProductModal);
   const isOpenUpdateProductModal = useDashboardStore((state) => state.isOpenUpdateProductModal);
+  // 招待メールモーダル
+  const isOpenSettingInvitationModal = useDashboardStore((state) => state.isOpenSettingInvitationModal);
   // 会社作成モーダル 新規作成と編集モーダル
   const isOpenInsertNewClientCompanyModal = useDashboardStore((state) => state.isOpenInsertNewClientCompanyModal);
   const isOpenUpdateClientCompanyModal = useDashboardStore((state) => state.isOpenUpdateClientCompanyModal);
@@ -247,6 +250,8 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
       {/* 製品_追加・編集モーダル */}
       {isOpenInsertNewProductModal && <InsertNewProductModal />}
       {isOpenUpdateProductModal && <UpdateProductModal />}
+      {/* 招待メールモーダル */}
+      {isOpenSettingInvitationModal && <SettingInvitationModal />}
 
       {/* 会社_作成・編集モーダル */}
       {isOpenInsertNewClientCompanyModal && <InsertNewClientCompanyModal />}

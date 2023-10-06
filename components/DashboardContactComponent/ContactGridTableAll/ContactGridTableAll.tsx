@@ -16,6 +16,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { EditColumnsModalDisplayOnly } from "../../GridTable/EditColumns/EditColumnsModalDisplayOnly";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
+import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 
 type TableDataType = {
   id: number;
@@ -55,6 +56,8 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
     editedColumnHeaderItemList
   );
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
+  // refetchローディング
+  const [refetchLoading, setRefetchLoading] = useState(false);
   // const [colsWidth, setColsWidth] = useState(
   //   new Array(Object.keys(tableBodyDataArray[0]).length + 1).fill("minmax(50px, 1fr)")
   // );
@@ -2200,14 +2203,29 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                 }}
               />
               <button
-                className={`flex-center transition-base03 h-[26px]  cursor-pointer space-x-1  rounded-[4px] px-[15px]  text-[12px]  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`}
+                className={`flex-center transition-base03 relative  h-[26px] min-w-[118px]  cursor-pointer space-x-1  rounded-[4px] px-[15px] text-[12px] text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`}
                 onClick={async () => {
                   console.log("リフレッシュ クリック");
+                  setRefetchLoading(true);
                   await queryClient.invalidateQueries({ queryKey: ["contacts"] });
+                  // await refetch();
+                  setRefetchLoading(false);
                 }}
               >
-                <FiRefreshCw />
-                <span>リフレッシュ</span>
+                {/* <FiRefreshCw /> */}
+                {/* {!refetchLoading && <SpinnerIDS scale={"scale-[0.2]"} width={12} height={12} />} */}
+                {refetchLoading && (
+                  <div className="relative">
+                    <div className="mr-[2px] h-[12px] w-[12px]"></div>
+                    <SpinnerIDS2 fontSize={20} width={20} height={20} />
+                  </div>
+                )}
+                {!refetchLoading && (
+                  <div className="flex-center mr-[2px]">
+                    <FiRefreshCw />
+                  </div>
+                )}
+                <span className="whitespace-nowrap">リフレッシュ</span>
               </button>
             </div>
             <div className={`flex max-h-[26px] w-full  items-center justify-end space-x-[6px]`}>

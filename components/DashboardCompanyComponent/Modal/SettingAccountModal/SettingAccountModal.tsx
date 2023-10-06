@@ -21,6 +21,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { Fallback } from "@/components/Fallback/Fallback";
 import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import { SettingPaymentAndPlan } from "./SettingPaymentAndPlan/SettingPaymentAndPlan";
+import { SettingMemberAccounts } from "./SettingMemberAccounts/SettingMemberAccounts";
 
 export const SettingAccountModal = () => {
   const theme = useThemeStore((state) => state.theme);
@@ -34,6 +35,9 @@ export const SettingAccountModal = () => {
   // const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const setUserProfileState = useDashboardStore((state) => state.setUserProfileState);
+
+  // ローディング
+  const [loading, setLoading] = useState(false);
 
   // 名前編集モード
   const [editNameMode, setEditNameMode] = useState(false);
@@ -311,7 +315,7 @@ export const SettingAccountModal = () => {
             {/* 右側メインエリア プロフィール */}
             {selectedSettingAccountMenu === "Profile" && (
               <div className={`flex h-full w-full flex-col overflow-y-scroll px-[20px] py-[20px]`}>
-                <div className={`text-[20px] font-bold`}>プロフィール</div>
+                <div className={`text-[18px] font-bold`}>プロフィール</div>
 
                 <div className={`mt-[30px] flex min-h-[120px] w-full flex-col `}>
                   <div className={`text-[14px] font-bold`}>プロフィール画像</div>
@@ -365,9 +369,14 @@ export const SettingAccountModal = () => {
 
                       <label htmlFor="avatar">
                         <div
-                          className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                          className={`transition-base01 flex-center max-h-[41px] max-w-[120px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                          onClick={() => {
+                            // setLoading(true);
+                          }}
                         >
-                          画像を変更
+                          <span>画像を変更</span>
+                          {/* {!loading && <span>画像を変更</span>}
+                          {loading && <SpinnerIDS scale={"scale-[0.3]"} />} */}
                         </div>
                       </label>
                     </div>
@@ -458,7 +467,7 @@ export const SettingAccountModal = () => {
                                   pauseOnHover: true,
                                   draggable: true,
                                   progress: undefined,
-                                  theme: `${theme === "light" ? "light" : "dark"}`,
+                                  // theme: `${theme === "light" ? "light" : "dark"}`,
                                 });
                               }, 500);
                               return;
@@ -481,7 +490,7 @@ export const SettingAccountModal = () => {
                                 pauseOnHover: true,
                                 draggable: true,
                                 progress: undefined,
-                                theme: `${theme === "light" ? "light" : "dark"}`,
+                                // theme: `${theme === "light" ? "light" : "dark"}`,
                               });
                             }, 500);
                           }}
@@ -569,7 +578,7 @@ export const SettingAccountModal = () => {
                                   pauseOnHover: true,
                                   draggable: true,
                                   progress: undefined,
-                                  theme: `${theme === "light" ? "light" : "dark"}`,
+                                  // theme: `${theme === "light" ? "light" : "dark"}`,
                                 });
                               }, 500);
                               return;
@@ -590,7 +599,7 @@ export const SettingAccountModal = () => {
                                 pauseOnHover: true,
                                 draggable: true,
                                 progress: undefined,
-                                theme: `${theme === "light" ? "light" : "dark"}`,
+                                // theme: `${theme === "light" ? "light" : "dark"}`,
                               });
                             }, 500);
                           }}
@@ -678,7 +687,7 @@ export const SettingAccountModal = () => {
                                   pauseOnHover: true,
                                   draggable: true,
                                   progress: undefined,
-                                  theme: `${theme === "light" ? "light" : "dark"}`,
+                                  // theme: `${theme === "light" ? "light" : "dark"}`,
                                 });
                               }, 500);
                               return;
@@ -699,7 +708,7 @@ export const SettingAccountModal = () => {
                                 pauseOnHover: true,
                                 draggable: true,
                                 progress: undefined,
-                                theme: `${theme === "light" ? "light" : "dark"}`,
+                                // theme: `${theme === "light" ? "light" : "dark"}`,
                               });
                             }, 500);
                           }}
@@ -787,7 +796,7 @@ export const SettingAccountModal = () => {
                                   pauseOnHover: true,
                                   draggable: true,
                                   progress: undefined,
-                                  theme: `${theme === "light" ? "light" : "dark"}`,
+                                  // theme: `${theme === "light" ? "light" : "dark"}`,
                                 });
                               }, 500);
                               return;
@@ -808,7 +817,7 @@ export const SettingAccountModal = () => {
                                 pauseOnHover: true,
                                 draggable: true,
                                 progress: undefined,
-                                theme: `${theme === "light" ? "light" : "dark"}`,
+                                // theme: `${theme === "light" ? "light" : "dark"}`,
                               });
                             }, 500);
                           }}
@@ -922,7 +931,7 @@ export const SettingAccountModal = () => {
                                   pauseOnHover: true,
                                   draggable: true,
                                   progress: undefined,
-                                  theme: `${theme === "light" ? "light" : "dark"}`,
+                                  // theme: `${theme === "light" ? "light" : "dark"}`,
                                 });
                               }, 500);
                               return;
@@ -943,7 +952,7 @@ export const SettingAccountModal = () => {
                                 pauseOnHover: true,
                                 draggable: true,
                                 progress: undefined,
-                                theme: `${theme === "light" ? "light" : "dark"}`,
+                                // theme: `${theme === "light" ? "light" : "dark"}`,
                               });
                             }, 500);
                           }}
@@ -1051,7 +1060,7 @@ export const SettingAccountModal = () => {
                                   pauseOnHover: true,
                                   draggable: true,
                                   progress: undefined,
-                                  theme: `${theme === "light" ? "light" : "dark"}`,
+                                  // theme: `${theme === "light" ? "light" : "dark"}`,
                                 });
                               }, 500);
                               return;
@@ -1072,7 +1081,7 @@ export const SettingAccountModal = () => {
                                 pauseOnHover: true,
                                 draggable: true,
                                 progress: undefined,
-                                theme: `${theme === "light" ? "light" : "dark"}`,
+                                // theme: `${theme === "light" ? "light" : "dark"}`,
                               });
                             }, 500);
                           }}
@@ -1162,7 +1171,7 @@ export const SettingAccountModal = () => {
                                   pauseOnHover: true,
                                   draggable: true,
                                   progress: undefined,
-                                  theme: `${theme === "light" ? "light" : "dark"}`,
+                                  // theme: `${theme === "light" ? "light" : "dark"}`,
                                 });
                               }, 500);
                               return;
@@ -1183,7 +1192,7 @@ export const SettingAccountModal = () => {
                                 pauseOnHover: true,
                                 draggable: true,
                                 progress: undefined,
-                                theme: `${theme === "light" ? "light" : "dark"}`,
+                                // theme: `${theme === "light" ? "light" : "dark"}`,
                               });
                             }, 500);
                           }}
@@ -1271,7 +1280,7 @@ export const SettingAccountModal = () => {
                                   pauseOnHover: true,
                                   draggable: true,
                                   progress: undefined,
-                                  theme: `${theme === "light" ? "light" : "dark"}`,
+                                  // theme: `${theme === "light" ? "light" : "dark"}`,
                                 });
                               }, 500);
                               return;
@@ -1292,7 +1301,7 @@ export const SettingAccountModal = () => {
                                 pauseOnHover: true,
                                 draggable: true,
                                 progress: undefined,
-                                theme: `${theme === "light" ? "light" : "dark"}`,
+                                // theme: `${theme === "light" ? "light" : "dark"}`,
                               });
                             }, 500);
                           }}
@@ -1384,7 +1393,7 @@ export const SettingAccountModal = () => {
                                   pauseOnHover: true,
                                   draggable: true,
                                   progress: undefined,
-                                  theme: `${theme === "light" ? "light" : "dark"}`,
+                                  // theme: `${theme === "light" ? "light" : "dark"}`,
                                 });
                               }, 500);
                               return;
@@ -1405,7 +1414,7 @@ export const SettingAccountModal = () => {
                                 pauseOnHover: true,
                                 draggable: true,
                                 progress: undefined,
-                                theme: `${theme === "light" ? "light" : "dark"}`,
+                                // theme: `${theme === "light" ? "light" : "dark"}`,
                               });
                             }, 500);
                           }}
@@ -1498,7 +1507,7 @@ export const SettingAccountModal = () => {
                                   pauseOnHover: true,
                                   draggable: true,
                                   progress: undefined,
-                                  theme: `${theme === "light" ? "light" : "dark"}`,
+                                  // theme: `${theme === "light" ? "light" : "dark"}`,
                                 });
                               }, 500);
                               return;
@@ -1519,7 +1528,7 @@ export const SettingAccountModal = () => {
                                 pauseOnHover: true,
                                 draggable: true,
                                 progress: undefined,
-                                theme: `${theme === "light" ? "light" : "dark"}`,
+                                // theme: `${theme === "light" ? "dark" : "light"}`,
                               });
                             }, 500);
                           }}
@@ -1546,10 +1555,19 @@ export const SettingAccountModal = () => {
                 </Suspense>
               </ErrorBoundary>
             )}
+            {/* 右側メインエリア 支払い・プラン */}
             {selectedSettingAccountMenu === "PaymentAndPlan" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
                   <SettingPaymentAndPlan />
+                </Suspense>
+              </ErrorBoundary>
+            )}
+            {/* 右側メインエリア メンバー */}
+            {selectedSettingAccountMenu === "Member" && (
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
+                  <SettingMemberAccounts />
                 </Suspense>
               </ErrorBoundary>
             )}

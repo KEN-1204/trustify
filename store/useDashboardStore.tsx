@@ -125,6 +125,10 @@ type State = {
   // 現在の製品情報をStateに格納
   productsState: Product[];
   setProductsState: (payload: Product[]) => void;
+  // =================== 招待メールモーダル ===================
+  // 招待モーダル開閉
+  isOpenSettingInvitationModal: boolean;
+  setIsOpenSettingInvitationModal: (payload: boolean) => void;
 
   // =================== アンダーテーブル関連 ===================
   // 【サーチモード切り替え】
@@ -319,6 +323,10 @@ const useDashboardStore = create<State>((set) => ({
   // 現在の製品情報をStateに格納
   productsState: [],
   setProductsState: (payload) => set({ productsState: payload }),
+  // =================== 招待メールモーダル ===================
+  // 招待モーダル開閉
+  isOpenSettingInvitationModal: false,
+  setIsOpenSettingInvitationModal: (payload) => set({ isOpenSettingInvitationModal: payload }),
 
   // =================== テーブルサイズ切り替えボタン ===================
   // 【テーブルサイズ切り替えメニュー開閉状態】

@@ -127,9 +127,9 @@ export const DashboardSidebarMemo: FC = () => {
               }`}
             >
               {/* ======================== メニューアイテム ここから ======================== */}
-              <Link
-                href="/home"
-                prefetch={false}
+              <div
+                // href="/home"
+                // prefetch={false}
                 className={`${styles.menu_item} ${activeMenuTab === "HOME" ? styles.active : ""} `}
                 onClick={() => setActiveMenuTab("HOME")}
               >
@@ -158,7 +158,7 @@ export const DashboardSidebarMemo: FC = () => {
                     <span>ホーム</span>
                   </div>
                 </div>
-              </Link>
+              </div>
               <div
                 // href="/home"
                 // prefetch={false}

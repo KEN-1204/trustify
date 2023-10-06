@@ -50,6 +50,7 @@ export const RootLayout: FC<Prop> = ({ children }) => {
         pauseOnFocusLoss
         draggable
         pauseOnHover
+        // theme={`${theme === "light" ? "dark" : "light"}`}
         theme={`${theme === "light" ? "light" : "dark"}`}
       />
     </div>

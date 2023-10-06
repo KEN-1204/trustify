@@ -25,6 +25,7 @@ export const DashboardHeaderMemo: FC = () => {
   const setIsOpenSidebar = useDashboardStore((state) => state.setIsOpenSidebar);
   // アカウント設定モーダル
   const setIsOpenSettingAccountModal = useDashboardStore((state) => state.setIsOpenSettingAccountModal);
+  const setSelectedSettingAccountMenu = useDashboardStore((state) => state.setSelectedSettingAccountMenu);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   const [tabPage, setTabPage] = useState(1);
@@ -116,8 +117,8 @@ export const DashboardHeaderMemo: FC = () => {
             className={`hidden h-full w-full items-center justify-around text-[14px] font-[500] text-[--navColor] md:flex`}
           >
             <li className={`${styles.navList}`}>
-              <Link
-                href="/home"
+              <div
+                // href="/home"
                 className={`${styles.navbarItem} ${activeMenuTab === "HOME" ? styles.active : ""} `}
                 onClick={() => setActiveMenuTab("HOME")}
               >
@@ -133,7 +134,7 @@ export const DashboardHeaderMemo: FC = () => {
                   </span>
                 </div>
                 <div className={`${styles.active_underline}`} />
-              </Link>
+              </div>
             </li>
             <li className={`${styles.navList}`}>
               <div
@@ -524,6 +525,7 @@ export const DashboardHeaderMemo: FC = () => {
             onClick={() => {
               setLoadingGlobalState(false);
               setIsOpenSettingAccountModal(true);
+              setSelectedSettingAccountMenu("Profile");
             }}
           >
             <IoSettingsOutline className="text-[24px] text-[var(--color-icon)]" />

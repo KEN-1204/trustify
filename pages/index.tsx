@@ -49,8 +49,8 @@ export default function Home() {
         blurDataURLDark="/assets/images/Trustify_logo_black_blur.png"
       />
       <Root />
-      {clickedItemPos && <LangMenu />}
-      {clickedItemPosOver && <LangMenuOver />}
+      {/* {clickedItemPos && <LangMenu />} */}
+      {/* {clickedItemPosOver && <LangMenuOver />} */}
     </Layout>
   );
 }

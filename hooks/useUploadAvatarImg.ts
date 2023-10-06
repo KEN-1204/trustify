@@ -1,6 +1,6 @@
 import useDashboardStore from "@/store/useDashboardStore";
 import useThemeStore from "@/store/useThemeStore";
-import { UserProfile } from "@/types";
+import { UserProfile, UserProfileCompanySubscription } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useMutation } from "@tanstack/react-query";
 import React, { ChangeEvent } from "react";
@@ -35,7 +35,7 @@ export const useUploadAvatarImg = () => {
 
       if (error) throw new Error(error.message);
 
-      const newProfile = { ...(userProfileState as UserProfile), avatar_url: filePath };
+      const newProfile = { ...(userProfileState as UserProfileCompanySubscription), avatar_url: filePath };
 
       // supabaseのデータベースに保存
       const { error: errorDB } = await supabase
@@ -96,14 +96,24 @@ export const useUploadAvatarImg = () => {
       if (error) throw new Error(error.message);
 
       // supabaseのデータベースに保存
-      const { data: newProfile, error: errorDB } = await supabase
+      // const { data: newProfile, error: errorDB } = await supabase
+      //   .from("profiles")
+      //   .update({ avatar_url: null })
+      //   .eq("id", userProfileState?.id)
+      //   .select()
+      //   .single();
+      const { error: errorDB } = await supabase
         .from("profiles")
         .update({ avatar_url: null })
-        .eq("id", userProfileState?.id)
-        .select()
+        .eq("id", userProfileState?.id);
+
+      // データベースからプロフィール、会社、サブスクデータを取得
+      const { data: newProfile, errorSelectDB } = await supabase
+        .rpc("get_user_data", { _user_id: userProfileState?.id })
         .single();
 
       if (errorDB) throw new Error(errorDB.message);
+      if (errorSelectDB) throw new Error(errorSelectDB.message);
 
       return newProfile;
     },

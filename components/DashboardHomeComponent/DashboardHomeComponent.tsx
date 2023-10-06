@@ -26,6 +26,9 @@ export const DashboardHomeComponent = () => {
   const setIsOpenChangeSizeMenu = useDashboardStore((state) => state.setIsOpenChangeSizeMenu);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const setClickedItemPos = useStore((state) => state.setClickedItemPos);
+  const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
+  const setIsOpenSettingAccountModal = useDashboardStore((state) => state.setIsOpenSettingAccountModal);
+  const setSelectedSettingAccountMenu = useDashboardStore((state) => state.setSelectedSettingAccountMenu);
 
   // const {
   //   data: products,
@@ -34,6 +37,38 @@ export const DashboardHomeComponent = () => {
   //   isLoading,
   // } = useQueryProducts(userProfileState?.company_id, userProfileState?.id);
   // console.log("DashboardHomeComponent products", products);
+
+  const openSettingAccounts = () => {
+    setLoadingGlobalState(false);
+    setIsOpenSettingAccountModal(true);
+    setSelectedSettingAccountMenu("Profile");
+  };
+  const openSettingInvitation = () => {
+    setLoadingGlobalState(false);
+    setIsOpenSettingAccountModal(true);
+    setSelectedSettingAccountMenu("Member");
+  };
+
+  const handleActions = (name: string) => {
+    switch (name) {
+      case "setting":
+        return openSettingAccounts();
+        break;
+      case "invitation":
+        return openSettingInvitation();
+      case "search":
+        // チュートリアル動画流す
+        return;
+      case "record":
+        // チュートリアル動画流す
+        return;
+      case "dev":
+        // チュートリアル動画流す
+        return;
+      default:
+        break;
+    }
+  };
 
   return (
     <div
@@ -90,6 +125,7 @@ export const DashboardHomeComponent = () => {
                       <div
                         key={item.name}
                         className={`${styles.content_card} transition-base02 mt-[10px] flex h-[72px] w-full max-w-[400px] items-center rounded-[8px] bg-[var(--color-bg-base-sub)] p-[16px] text-[14px] font-bold`}
+                        onClick={() => handleActions(item.name)}
                       >
                         <div className={`h-[40px] w-[40px] ${styles.animate_icon}`}>{item.icon}</div>
                         <div className="mx-[16px] flex flex-grow flex-col">

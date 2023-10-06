@@ -1,12 +1,7 @@
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
-import { useMutateProduct } from "@/hooks/useMutateProduct";
-import { useQueryProducts } from "@/hooks/useQueryProducts";
 import useStore from "@/store";
 import useDashboardStore from "@/store/useDashboardStore";
 import useThemeStore from "@/store/useThemeStore";
-import { Product } from "@/types";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { format } from "date-fns";
 import Image from "next/image";
@@ -15,24 +10,13 @@ import React, { FC, memo, useEffect, useState } from "react";
 
 const SettingPaymentAndPlanMemo: FC = () => {
   const theme = useThemeStore((state) => state.theme);
-  const setIsOpenSettingAccountModal = useDashboardStore((state) => state.setIsOpenSettingAccountModal);
   const selectedSettingAccountMenu = useDashboardStore((state) => state.selectedSettingAccountMenu);
-  const setSelectedSettingAccountMenu = useDashboardStore((state) => state.setSelectedSettingAccountMenu);
-  const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
-  const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   // 上画面の選択中の列データ会社
   const userProfileState = useDashboardStore((state) => state.userProfileState);
-  const setUserProfileState = useDashboardStore((state) => state.setUserProfileState);
-  // 製品追加・編集モーダル
-  const setIsOpenInsertNewProductModal = useDashboardStore((state) => state.setIsOpenInsertNewProductModal);
-  const setIsOpenUpdateProductModal = useDashboardStore((state) => state.setIsOpenUpdateProductModal);
-  const setEditedProduct = useDashboardStore((state) => state.setEditedProduct);
   // セッション情報
   const sessionState = useStore((state) => state.sessionState);
   // router
   const router = useRouter();
-  const supabase = useSupabaseClient();
-  const { deleteProductMutation } = useMutateProduct();
   // ローディング
   const [isLoading, setIsLoading] = useState(false);
 
@@ -102,7 +86,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
       {/* 右側メインエリア プロフィール */}
       {selectedSettingAccountMenu === "PaymentAndPlan" && (
         <div className={`flex h-full w-full flex-col overflow-y-scroll py-[20px] pl-[20px]`}>
-          <h2 className={`text-[20px] font-bold`}>支払いとプラン</h2>
+          <h2 className={`text-[18px] font-bold`}>支払いとプラン</h2>
 
           <div className="mt-[20px] min-h-[55px] w-full">
             <h4 className="text-[18px] font-bold">

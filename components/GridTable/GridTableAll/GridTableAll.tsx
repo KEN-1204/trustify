@@ -16,6 +16,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { EditColumnsModalDisplayOnly } from "../EditColumns/EditColumnsModalDisplayOnly";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
+import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 
 type TableDataType = {
   id: number;
@@ -55,6 +56,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     editedColumnHeaderItemList
   );
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
+  // refetchローディング
+  const [refetchLoading, setRefetchLoading] = useState(false);
   // const [colsWidth, setColsWidth] = useState(
   //   new Array(Object.keys(tableBodyDataArray[0]).length + 1).fill("minmax(50px, 1fr)")
   // );
@@ -486,31 +489,33 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   //   newSearchParamsStringRef.current
   // );
   // ================== 🌟useInfiniteQueryフック🌟 ==================
-  const { status, data, error, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage } = useInfiniteQuery({
-    // queryKey: ["companies"],
-    queryKey: ["companies", newSearchParamsStringRef.current],
-    queryFn: async (ctx) => {
-      console.log("useInfiniteQuery queryFn関数内 引数ctx", ctx);
+  const { status, data, error, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } = useInfiniteQuery(
+    {
+      // queryKey: ["companies"],
+      queryKey: ["companies", newSearchParamsStringRef.current],
+      queryFn: async (ctx) => {
+        console.log("useInfiniteQuery queryFn関数内 引数ctx", ctx);
 
-      // return fetchServerPage(35, ctx.pageParam); // 50個ずつ取得
-      // 新規サーチなしの通常モード
-      if (newSearchCompanyParams === null) {
-        console.log("通常フェッチ queryFn✅✅✅", newSearchCompanyParams);
-        return fetchServerPage(50, ctx.pageParam); // 50個ずつ取得
-      } else {
-        console.log("サーチフェッチ queryFn✅✅✅", newSearchCompanyParams);
-        return fetchNewSearchServerPage(50, ctx.pageParam); // 50個ずつ取得
-      }
-    },
-    // ================= 🔥🔥テスト🔥🔥==================
-    // getNextPageParam: (_lastGroup, groups) => groups.length,
-    getNextPageParam: (lastGroup, allGroups) => {
-      // lastGroup.isLastPageがtrueならundefinedを返す
-      return lastGroup.isLastPage ? undefined : allGroups.length;
-    },
-    // ================= 🔥🔥テスト🔥🔥==================
-    staleTime: Infinity,
-  });
+        // return fetchServerPage(35, ctx.pageParam); // 50個ずつ取得
+        // 新規サーチなしの通常モード
+        if (newSearchCompanyParams === null) {
+          console.log("通常フェッチ queryFn✅✅✅", newSearchCompanyParams);
+          return fetchServerPage(50, ctx.pageParam); // 50個ずつ取得
+        } else {
+          console.log("サーチフェッチ queryFn✅✅✅", newSearchCompanyParams);
+          return fetchNewSearchServerPage(50, ctx.pageParam); // 50個ずつ取得
+        }
+      },
+      // ================= 🔥🔥テスト🔥🔥==================
+      // getNextPageParam: (_lastGroup, groups) => groups.length,
+      getNextPageParam: (lastGroup, allGroups) => {
+        // lastGroup.isLastPageがtrueならundefinedを返す
+        return lastGroup.isLastPage ? undefined : allGroups.length;
+      },
+      // ================= 🔥🔥テスト🔥🔥==================
+      staleTime: Infinity,
+    }
+  );
   // ================== 🌟useInfiniteQueryフック🌟 ここまで ==================
   // ================= 🔥🔥テスト🔥🔥ここまで==================
   // useEffect(() => {
@@ -2207,7 +2212,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                   console.log("サーチ編集 クリック");
                 }}
               />
-              <button
+              {/* <button
                 className={`flex-center transition-base03 h-[26px]  cursor-pointer space-x-1  rounded-[4px] px-[15px]  text-[12px]  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`}
                 onClick={async () => {
                   console.log("リフレッシュ クリック");
@@ -2216,6 +2221,31 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
               >
                 <FiRefreshCw />
                 <span>リフレッシュ</span>
+              </button> */}
+              <button
+                className={`flex-center transition-base03 relative  h-[26px] min-w-[118px]  cursor-pointer space-x-1  rounded-[4px] px-[15px] text-[12px] text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`}
+                onClick={async () => {
+                  console.log("リフレッシュ クリック");
+                  setRefetchLoading(true);
+                  await queryClient.invalidateQueries({ queryKey: ["companies"] });
+                  // await refetch();
+                  setRefetchLoading(false);
+                }}
+              >
+                {/* <FiRefreshCw /> */}
+                {/* {!refetchLoading && <SpinnerIDS scale={"scale-[0.2]"} width={12} height={12} />} */}
+                {refetchLoading && (
+                  <div className="relative">
+                    <div className="mr-[2px] h-[12px] w-[12px]"></div>
+                    <SpinnerIDS2 fontSize={20} width={20} height={20} />
+                  </div>
+                )}
+                {!refetchLoading && (
+                  <div className="flex-center mr-[2px]">
+                    <FiRefreshCw />
+                  </div>
+                )}
+                <span className="whitespace-nowrap">リフレッシュ</span>
               </button>
             </div>
             <div className={`flex max-h-[26px] w-full  items-center justify-end space-x-[6px]`}>

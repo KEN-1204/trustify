@@ -57,7 +57,7 @@ const SettingProductsMemo: FC = () => {
       {/* 右側メインエリア プロフィール */}
       {selectedSettingAccountMenu === "Products" && (
         <div className={`flex h-full w-full flex-col overflow-y-scroll px-[20px] py-[20px]`}>
-          <div className={`text-[20px] font-bold`}>サービス・製品</div>
+          <div className={`text-[18px] font-bold`}>サービス・製品</div>
           {/* 製品1 */}
           {products?.map((item, index) => (
             <React.Fragment key={item.id}>

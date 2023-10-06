@@ -8,6 +8,7 @@ import { LangBtn } from "../Parts/LangBtn/LangBtn";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import useThemeStore from "@/store/useThemeStore";
 import useRootStore from "@/store/useRootStore";
+import { LangMenu } from "../Parts/LangMenu/LangMenu";
 
 type Props = {
   lightModeColor?: string; // bgカラー(ライトモード)
@@ -41,6 +42,9 @@ export const Header: FC<Props> = ({
   const setIsLogin = useStore((state) => state.setIsLogin);
   const language = useStore((state) => state.language);
   const sessionState = useStore((state) => state.sessionState);
+
+  // 言語ドロップダウンメニュー
+  const clickedItemPos = useStore((state) => state.clickedItemPos);
 
   // モバイルメニュードロップダウン開閉用state
   const [isOpenMobileMenu, setIsOpenMobileMenu] = useState(false);
@@ -152,7 +156,7 @@ export const Header: FC<Props> = ({
               blurDataURL={theme === "dark" ? blurDataURLDark : blurDataURL}
               className="!relative !h-[60px] !w-[200px] object-cover"
               onClick={() => {
-                deleteUser();
+                // deleteUser();
                 // toast.success("Success!", {
                 //   position: "top-right",
                 //   autoClose: 2000,
@@ -225,6 +229,7 @@ export const Header: FC<Props> = ({
             </li>
             <li className={`${styles.navList}`}>
               <LangBtn />
+              {clickedItemPos && <LangMenu />}
             </li>
             <li className={`${styles.navList}`}>
               <button

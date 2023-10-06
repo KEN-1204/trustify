@@ -71,6 +71,8 @@ export const useSubscribeSubscription = () => {
                 subscription_plan: (payload.new as Subscription).subscription_plan,
                 subscription_stage: (payload.new as Subscription).subscription_stage,
                 accounts_to_create: (payload.new as Subscription).accounts_to_create,
+                number_of_active_subscribed_accounts: (payload.new as Subscription)
+                  .number_of_active_subscribed_accounts,
               },
             };
             // payloadに基づいてZustandのStateを更新
@@ -139,7 +141,8 @@ export const useSubscribeSubscription = () => {
                 .rpc("get_user_data", { _user_id: userProfileState.id })
                 .single();
 
-              if (error) throw error;
+              // if (error) throw error;
+              if (error) throw new Error(error.message);
 
               // ZustandのStateを更新
               setUserProfileState(userProfileCompanySubscriptionData as UserProfileCompanySubscription);

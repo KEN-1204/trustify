@@ -232,7 +232,8 @@
   /* border: 1px solid #6ae67d; */
   /* background: var(--color-bg-brand-f); */
   /* background: var(--color-bg-brand-f-deep); */
-  background: var(--color-function-header-text-btn-hover);
+  /* background: var(--color-function-header-text-btn-hover); */
+  background: var(--color-btn-brand-f);
 
   color: #fff;
 }

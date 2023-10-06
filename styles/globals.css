@@ -107,6 +107,7 @@
   --setting-side-bg: #eee;
   /* --setting-side-bg-select: #00000013; */
   --setting-side-bg-select: #40576d12;
+  --setting-bg-sub: rgb(234, 235, 237);
   /* --setting-side-bg-select-hover: #00000025; */
   --setting-side-bg-select-hover: #394c6026;
   --close-bg: #eee;
@@ -212,6 +213,9 @@
   --color-function-header-text-btn-hover: #3593ffe0;
   --color-function-header-text-btn-active: #0c88e1;
 
+  /* Settingモーダル */
+  --color-setting-checkbox-outline: #aaa;
+
   /* ===================================== 🌟テーブル 下画面 light🌟 ===================================== */
   /* --color-bg-under-tab-header: var(--color-bg-secondary);
   --color-bg-under-function-header: var(--color-bg-secondary); */
@@ -264,6 +268,8 @@
   /* --color-btn-brand-f: #3593ffe0;
   --color-btn-brand-f-hover: #3593ff; */
   --color-btn-brand-f: var(--color-bg-brand-fc0);
+  --color-btn-brand-f: var(--color-bg-brand-f90);
+  --color-btn-brand-f: var(--color-bg-brand-fa0);
   --color-btn-brand-f-hover: var(--color-bg-brand-f);
   /* --color-btn-brand-f-hover: #3593ff; */
   --color-btn-brand-f-re: var(--color-bg-brand-f);
@@ -491,7 +497,9 @@
   --select-menu-bg: #3c3c3c;
   --setting-side-bg: #333;
   --setting-side-bg-select: #ffffff20;
-  --setting-side-bg-select-hover: #bbbbbb20;
+  --setting-bg-sub: #3f3f3f;
+  /* --setting-side-bg-select-hover: #bbbbbb20; */
+  --setting-side-bg-select-hover: #555;
   --close-bg: #777;
 
   /* Youtube背景 background-color: #0f0f0f */
@@ -580,11 +588,15 @@
   --color-table-loading-spinner: #787878;
   --color-table-row-hover: #232323;
   --color-table-bg-selected: #232323;
-  --color-table-checkbox-outline: #2e2e2e;
+  /* --color-table-checkbox-outline: #2e2e2e; */
+  --color-table-checkbox-outline: #555;
   --color-table-checkbox-focus-outline: #fff;
   --color-table-dragging-gradient: #2b7fff, #acffff;
   --color-function-header-text-btn-hover: #0b73bc;
   --color-function-header-text-btn-active: var(--color-bg-brand-f05);
+
+  /* Settingモーダル */
+  --color-setting-checkbox-outline: #999;
 
   /* ======================================== 🌟テーブル 下画面 dark ======================================== */
   /* タブヘッダー */
