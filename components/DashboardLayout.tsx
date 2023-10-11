@@ -38,6 +38,7 @@ import { SubscriptionPlanModalForFreeUser } from "./Modal/SubscriptionPlanModalF
 import { useSubscribeSubscription } from "@/hooks/useSubscribeSubscription";
 import { FirstLoginSettingUserProfileCompanyModal } from "./Modal/FirstLoginSettingUserProfileCompanyModal/FirstLoginSettingUserProfileCompanyModal";
 import { SettingInvitationModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingInvitationModal/SettingInvitationModal";
+import { FirstLoginSettingUserProfileAfterInvitationModal } from "./Modal/FirstLoginSettingUserProfileAfterInvitaionModal/FirstLoginSettingUserProfileAfterInvitaionModal";
 
 type Prop = {
   title?: string;
@@ -74,6 +75,14 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
     userProfileState.is_subscriber &&
     userProfileState.first_time_login &&
     userProfileState.subscription_plan !== "free_plan";
+
+  // 招待メールでログインした際に起動
+  const showFirstLoginSettingUserProfileAfterInvitation =
+    !!userProfileState &&
+    !userProfileState.is_subscriber &&
+    userProfileState.first_time_login &&
+    userProfileState.subscription_plan !== "free_plan";
+
   console.log(
     "DashboardLayout ユーザープロフィール",
     userProfileState,
@@ -229,6 +238,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
       {showSubscriptionPlan && <SubscriptionPlanModalForFreeUser />}
       {/* ============================ 初回サブスクプランモーダルコンポーネント ============================ */}
       {showFirstLoginSettingUserProfileCompanyModal && <FirstLoginSettingUserProfileCompanyModal />}
+      {showFirstLoginSettingUserProfileAfterInvitation && <FirstLoginSettingUserProfileAfterInvitationModal />}
 
       {/* ============================ 共通UIコンポーネント ============================ */}
       {/* モーダル */}

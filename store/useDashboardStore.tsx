@@ -129,6 +129,9 @@ type State = {
   // 招待モーダル開閉
   isOpenSettingInvitationModal: boolean;
   setIsOpenSettingInvitationModal: (payload: boolean) => void;
+  // 未設定アカウント数を保持するState
+  notSetAccounts: number | null;
+  setNotSetAccounts: (payload: number | null) => void;
 
   // =================== アンダーテーブル関連 ===================
   // 【サーチモード切り替え】
@@ -327,6 +330,9 @@ const useDashboardStore = create<State>((set) => ({
   // 招待モーダル開閉
   isOpenSettingInvitationModal: false,
   setIsOpenSettingInvitationModal: (payload) => set({ isOpenSettingInvitationModal: payload }),
+  // 未設定アカウント数を保持するState
+  notSetAccounts: null,
+  setNotSetAccounts: (payload) => set({ notSetAccounts: payload }),
 
   // =================== テーブルサイズ切り替えボタン ===================
   // 【テーブルサイズ切り替えメニュー開閉状態】

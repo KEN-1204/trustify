@@ -190,7 +190,7 @@
   box-shadow: var(--color-bg-under-input-box-shadow);
   /* padding: 0px 6px; */
   padding: 4px 10px;
-  border-radius: 2px;
+  border-radius: 4px;
 }
 .input_box:focus {
   box-shadow: var(--color-bg-under-input-active-box-shadow);

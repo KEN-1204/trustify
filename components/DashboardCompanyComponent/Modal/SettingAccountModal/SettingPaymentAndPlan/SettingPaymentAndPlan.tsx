@@ -149,7 +149,9 @@ const SettingPaymentAndPlanMemo: FC = () => {
                       <span>プランをアップグレード</span>
                     </p>
                   )}
-                  {userProfileState?.subscription_plan !== "free_plan" && !isLoading && <span>プランを変更</span>}
+                  {userProfileState?.subscription_plan !== "free_plan" && !isLoading && (
+                    <span>プラン・アカウント数を変更</span>
+                  )}
                   {isLoading && <SpinnerIDS scale={"scale-[0.4]"} />}
                 </button>
               </div>

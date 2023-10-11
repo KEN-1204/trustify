@@ -1,7 +1,7 @@
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 import useDashboardStore from "@/store/useDashboardStore";
 import React, { useEffect, useState } from "react";
-import styles from "./FirstLoginSettingUserProfileCompanyModal.module.css";
+import styles from "./FirstLoginSettingUserProfileAfterInvitationModal.module.css";
 import axios from "axios";
 import { BsCheck2 } from "react-icons/bs";
 import { HiOutlineSelector } from "react-icons/hi";
@@ -22,7 +22,7 @@ type Plans = {
   currency: string;
 };
 
-export const FirstLoginSettingUserProfileCompanyModal = () => {
+export const FirstLoginSettingUserProfileAfterInvitationModal = () => {
   const [loading, setIsLoading] = useState(false);
   const [plansState, setPlansState] = useState<Plans[] | null[]>([]);
   const [accountQuantity, setAccountQuantity] = useState<number | null>(1);
@@ -43,12 +43,12 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
   const [inputOccupation, setInputOccupation] = useState("");
   const [checkedOccupation, setCheckedOccupation] = useState(false);
   // 利用用途 profiles
-  const [inputUsage, setInputUsage] = useState("");
+  const [inputUsage, setInputUsage] = useState("会社・チームで利用");
   const [checkedUsage, setCheckedUsage] = useState(false);
   // 会社名 companies
-  const [inputCompany, setInputCompany] = useState("");
-  const [focussingInputCompany, setFocussingInputCompany] = useState(false);
-  const [checkedCompany, setCheckedCompany] = useState(false);
+  //   const [inputCompany, setInputCompany] = useState("");
+  //   const [focussingInputCompany, setFocussingInputCompany] = useState(false);
+  //   const [checkedCompany, setCheckedCompany] = useState(false);
   // 部署 profiles
   const [inputDepartment, setInputDepartment] = useState("");
   const [focussingInputDepartment, setFocussingInputDepartment] = useState(false);
@@ -57,8 +57,8 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
   const [inputPosition, setInputPosition] = useState("");
   const [checkedPosition, setCheckedPosition] = useState(false);
   // 規模・従業員数 companies
-  const [inputNumberOfEmployeeClass, setInputNumberOfEmployeeClass] = useState("");
-  const [checkedNumberOfEmployeeClass, setCheckedNumberOfEmployeeClass] = useState(false);
+  //   const [inputNumberOfEmployeeClass, setInputNumberOfEmployeeClass] = useState("");
+  //   const [checkedNumberOfEmployeeClass, setCheckedNumberOfEmployeeClass] = useState(false);
   // 電話番号
   const [inputTEL, setInputTEL] = useState("");
   const [input, setInput] = useState("");
@@ -73,44 +73,15 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
       inputOccupation,
       "利用用途",
       inputUsage,
-      "会社名",
-      inputCompany,
       "部署名",
       inputDepartment,
       "役職クラス",
-      inputPosition,
-      "規模・従業員数",
-      inputNumberOfEmployeeClass
+      inputPosition
     );
     // setTimeout(() => {
     //   runFireworks();
     // }, 300);
   }, [pages]);
-
-  // const logoSrc =
-  //   theme === "light" ? "/assets/images/Trustify_Logo_icon_bg-black@3x.png" : "/assets/images/Trustify_logo_black.png";
-
-  //   useEffect(() => {
-  //     const getPlansFromStripe = async () => {
-  //       if (!!plansState.length) return console.log("既にプラン取得済み", plansState, !!plansState.length);
-  //       const { data: plans } = await axios.get("/api/get-stripe-plans");
-  //       console.log("stripe-plansモーダル getPlansFromStripe plans", plans);
-
-  //       setPlansState(plans);
-  //     };
-
-  //     getPlansFromStripe();
-  //   }, []);
-
-  // キャンセルでモーダルを閉じる
-  const handleCancelAndReset = () => {
-    // setIsOpenSettingAccountModal(false);
-  };
-
-  // ラジオボタン切り替え用state
-  const handleRadioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedRadioButton(e.target.value);
-  };
 
   // 【サブスクリプションの開始、登録、Stripe支払いチェックアウトページにリダイレクト】
   // const processSubscription = async (planId: string) => {
@@ -165,21 +136,6 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
       return;
     }
 
-    // 会社情報の更新
-    try {
-      const { error: companyError } = await supabase
-        .from("companies")
-        .update({
-          customer_name: inputCompany,
-          customer_number_of_employees_class: inputNumberOfEmployeeClass,
-        })
-        .eq("id", userProfileState.company_id);
-      if (companyError) throw new Error(companyError.message);
-    } catch (error) {
-      alert(`エラーが発生しました: companies_${error}`);
-      setIsLoading(false);
-      return;
-    }
     // プロフィール・会社どちらも更新成功 ZustandのStateを更新
     const newUserProfile = {
       ...userProfileState,
@@ -189,8 +145,6 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
       department: inputDepartment,
       position_class: inputPosition,
       first_time_login: false,
-      customer_name: inputCompany,
-      customer_number_of_employees_class: inputNumberOfEmployeeClass,
     };
     setUserProfileState(newUserProfile);
     console.log("🌟プロフィール会社更新 セットアップ成功🌟 newUserProfile", newUserProfile);
@@ -202,7 +156,7 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
 
   return (
     <>
-      <div className={`${styles.overlay} `} onClick={handleCancelAndReset} />
+      <div className={`${styles.overlay} `} />
       {/* {loadingGlobalState && (
         <div className={`${styles.loading_overlay} `}>
           <SpinnerIDS scale={"scale-[0.5]"} />
@@ -343,7 +297,7 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
                       </div>
                     </div>
                     {/* 利用用途 */}
-                    <div className="relative flex w-full flex-col items-start justify-start space-y-1">
+                    {/* <div className="relative flex w-full flex-col items-start justify-start space-y-1">
                       <div className="flex w-full text-[13px] font-bold">
                         <span className="text-[var(--color-text-sub)]">どんな用途でご利用ですか？</span>
                         {!inputUsage && <span className="ml-[3px] font-bold text-[#ff4444]">※</span>}
@@ -358,7 +312,7 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
                         }`}
                         placeholder="例：代表取締役CEO、営業部"
                         value={inputUsage}
-                        // onChange={(e) => setInputUsage(e.target.value)}
+                        
                         onChange={(e) => {
                           setInputUsage(e.target.value);
                           if (checkedUsage && !!inputUsage) setCheckedUsage(false);
@@ -370,11 +324,11 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
                         <option value="会社・チームで利用">会社・チームで利用</option>
                         <option value="個人で利用">個人で利用</option>
                       </select>
-                      {/* 上下矢印アイコン */}
+                      
                       <div className={`${styles.close_btn_number}`}>
                         <HiOutlineSelector className="text-[24px] " />
                       </div>
-                    </div>
+                    </div> */}
                   </div>
 
                   {/* メンバーシップを開始するボタン */}
@@ -405,7 +359,7 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
                 <div className={`${styles.right_scroll_contents_container} h-full min-w-[100%]`}>
                   <div className="flex w-full flex-col items-center justify-start space-y-[20px] py-[20px]">
                     {/* 会社名 */}
-                    <div className="flex w-full flex-col items-start justify-start space-y-1">
+                    {/* <div className="flex w-full flex-col items-start justify-start space-y-1">
                       <div className="flex w-full text-[13px] font-bold">
                         <span className="text-[var(--color-text-sub)]">
                           あなたの会社名（正式名称・個人名や屋号）を入力してください。
@@ -434,7 +388,7 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
                           if (checkedCompany && !!inputCompany) setCheckedCompany(false);
                         }}
                       />
-                    </div>
+                    </div> */}
                     {/* 部署名 */}
                     {inputUsage === "会社・チームで利用" && (
                       <div className="flex w-full flex-col items-start justify-start space-y-1">
@@ -507,7 +461,7 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
                     </div>
 
                     {/* 規模・従業員数 */}
-                    <div className="relative flex w-full flex-col items-start justify-start space-y-1">
+                    {/* <div className="relative flex w-full flex-col items-start justify-start space-y-1">
                       <div className="flex w-full text-[13px] font-bold">
                         <span className="text-[var(--color-text-sub)]">会社の規模を教えてください。</span>
                         {!inputNumberOfEmployeeClass && <span className="ml-[3px] font-bold text-[#ff4444]">※</span>}
@@ -524,7 +478,6 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
                         }`}
                         placeholder="例：代表取締役CEO、営業部"
                         value={inputNumberOfEmployeeClass}
-                        // onChange={(e) => setInputNumberOfEmployeeClass(e.target.value)}
                         onChange={(e) => {
                           setInputNumberOfEmployeeClass(e.target.value);
                           if (checkedNumberOfEmployeeClass && !!inputNumberOfEmployeeClass)
@@ -539,36 +492,29 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
                         <option value="C 300〜499名">300〜499名</option>
                         <option value="B 500〜999名">500〜999名</option>
                         <option value="A 1000名以上">1000名以上</option>
-                        {/* <option value="G 50名未満">50名未満</option> */}
                       </select>
-                      {/* 上下矢印アイコン */}
                       <div className={`${styles.close_btn_number}`}>
                         <HiOutlineSelector className="text-[24px] " />
                       </div>
-                    </div>
+                    </div> */}
                   </div>
 
                   {/* メンバーシップを開始するボタン */}
                   <div className="w-full pt-[30px]">
                     <button
                       className={`flex-center h-[40px] w-full cursor-pointer rounded-[6px] font-bold  ${
-                        !!inputCompany && !!inputDepartment && !!inputPosition && !!inputNumberOfEmployeeClass
+                        !!inputDepartment && !!inputPosition
                           ? `bg-[var(--color-bg-brand-f)] text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`
                           : `bg-[var(--color-bg-brand-f-disabled)] text-[#ffffffc0]`
                       }`}
                       onClick={() => {
                         if (inputUsage === "会社・チームで利用") {
-                          if (!inputCompany) setCheckedCompany(true);
                           if (!inputDepartment) setCheckedDepartment(true);
                           if (!inputPosition) setCheckedPosition(true);
-                          if (!inputNumberOfEmployeeClass) setCheckedNumberOfEmployeeClass(true);
-                          if (!inputCompany || !inputDepartment || !inputPosition || !inputNumberOfEmployeeClass)
-                            return;
+                          if (!inputDepartment || !inputPosition) return;
                         } else {
-                          if (!inputCompany) setCheckedCompany(true);
                           if (!inputPosition) setCheckedPosition(true);
-                          if (!inputNumberOfEmployeeClass) setCheckedNumberOfEmployeeClass(true);
-                          if (!inputCompany || !inputPosition || !inputNumberOfEmployeeClass) return;
+                          if (!inputPosition) return;
                         }
                         setPages((prev) => prev + 1);
                       }}

@@ -45,6 +45,9 @@ export const SettingAccountModal = () => {
   // Email
   const [editEmailMode, setEditEmailMode] = useState(false);
   const [editedEmail, setEditedEmail] = useState("");
+  // 電話番号
+  const [editTELMode, setEditTELMode] = useState(false);
+  const [editedTEL, setEditedTEL] = useState("");
   // 部署
   const [editDepartmentMode, setEditDepartmentMode] = useState(false);
   const [editedDepartment, setEditedDepartment] = useState("");
@@ -98,6 +101,15 @@ export const SettingAccountModal = () => {
         return String.fromCharCode(match.charCodeAt(0) - 0xfee0);
       })
       .replace(/　/g, " "); // 全角スペースを半角スペースに
+  };
+  const toHalfWidthAndSpaceAndHyphen = (strVal: string) => {
+    // 全角文字コードの範囲は65281 - 65374、スペースの全角文字コードは12288
+    return strVal
+      .replace(/[！-～]/g, (match) => {
+        return String.fromCharCode(match.charCodeAt(0) - 0xfee0);
+      })
+      .replace(/　/g, " ") // 全角スペースを半角スペースに
+      .replace(/ー/g, "-"); // 全角ハイフンを半角ハイフンに
   };
 
   // 昭和や平成、令和の元号を西暦に変換する
@@ -425,7 +437,8 @@ export const SettingAccountModal = () => {
                         className={`${styles.input_box}`}
                         value={editedName}
                         onChange={(e) => setEditedName(e.target.value)}
-                        onBlur={() => setEditedName(toHalfWidth(editedName.trim()))}
+                        // onBlur={() => setEditedName(toHalfWidth(editedName.trim()))}
+                        onBlur={() => setEditedName(toHalfWidthAndSpace(editedName.trim()))}
                       />
                       <div className="flex">
                         <div
@@ -611,6 +624,115 @@ export const SettingAccountModal = () => {
                   )}
                 </div>
                 {/* Emailここまで */}
+
+                <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
+
+                {/* 電話番号 */}
+                <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
+                  <div className={`text-[14px] font-bold`}>電話番号</div>
+                  {!editTELMode && (
+                    <div className={`flex h-full w-full items-center justify-between`}>
+                      <div className="text-[16px] font-semibold">
+                        {userProfileState?.direct_line ? userProfileState.direct_line : "未設定"}
+                      </div>
+                      <div>
+                        <div
+                          className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                          onClick={() => {
+                            setEditedTEL(userProfileState?.direct_line ? userProfileState.direct_line : "");
+                            setEditTELMode(true);
+                          }}
+                        >
+                          編集
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {editTELMode && (
+                    <div className={`flex h-full w-full items-center justify-between`}>
+                      <input
+                        type="text"
+                        placeholder="電話番号を入力してください　例：080-0000-0000"
+                        required
+                        autoFocus
+                        className={`${styles.input_box}`}
+                        value={editedTEL}
+                        onChange={(e) => setEditedTEL(e.target.value)}
+                        onBlur={() => setEditedTEL(toHalfWidthAndSpaceAndHyphen(editedTEL.trim()))}
+                      />
+                      <div className="flex">
+                        <div
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                          onClick={() => {
+                            setEditedTEL("");
+                            setEditTELMode(false);
+                          }}
+                        >
+                          キャンセル
+                        </div>
+                        <div
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center text-[14px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                          onClick={async () => {
+                            if (editedTEL === "") {
+                              alert("有効な電話番号を入力してください");
+                              return;
+                            }
+                            if (!userProfileState?.id) return alert("ユーザーIDが見つかりません");
+                            setLoadingGlobalState(true);
+                            const { data: profileData, error } = await supabase
+                              .from("profiles")
+                              .update({ direct_line: editedTEL })
+                              .eq("id", userProfileState.id)
+                              .select("direct_line")
+                              .single();
+
+                            if (error) {
+                              setTimeout(() => {
+                                setLoadingGlobalState(false);
+                                setEditTELMode(false);
+                                alert(error.message);
+                                console.log("電話番号UPDATEエラー", error.message);
+                                toast.error("電話番号の更新に失敗しました!", {
+                                  position: "top-right",
+                                  autoClose: 3000,
+                                  hideProgressBar: false,
+                                  closeOnClick: true,
+                                  pauseOnHover: true,
+                                  draggable: true,
+                                  progress: undefined,
+                                  // theme: `${theme === "light" ? "light" : "dark"}`,
+                                });
+                              }, 500);
+                              return;
+                            }
+                            setTimeout(() => {
+                              console.log("電話番号UPDATE成功 profileData", profileData);
+                              setUserProfileState({
+                                ...(userProfileState as UserProfileCompanySubscription),
+                                direct_line: profileData.direct_line ? profileData.direct_line : null,
+                              });
+                              setLoadingGlobalState(false);
+                              setEditTELMode(false);
+                              toast.success("電話番号の更新が完了しました!", {
+                                position: "top-right",
+                                autoClose: 3000,
+                                hideProgressBar: false,
+                                closeOnClick: true,
+                                pauseOnHover: true,
+                                draggable: true,
+                                progress: undefined,
+                                // theme: `${theme === "light" ? "light" : "dark"}`,
+                              });
+                            }, 500);
+                          }}
+                        >
+                          保存
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                {/* 電話番号ここまで */}
 
                 <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
 

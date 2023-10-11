@@ -31,6 +31,9 @@ const SettingMemberAccountsMemo: FC = () => {
   const [loading, setLoading] = useState(false);
   // リフェッチローディング
   const [refetchLoading, setRefetchLoading] = useState(false);
+  // 未設定アカウント数を保持するグローバルState
+  const notSetAccounts = useDashboardStore((state) => state.notSetAccounts);
+  const setNotSetAccounts = useDashboardStore((state) => state.setNotSetAccounts);
 
   const {
     data: memberAccountsDataArray,
@@ -38,6 +41,35 @@ const SettingMemberAccountsMemo: FC = () => {
     isLoading: useQueryIsLoading,
     refetch: refetchMemberAccounts,
   } = useQueryMemberAccounts();
+
+  useEffect(() => {
+    if (typeof memberAccountsDataArray === "undefined") return;
+    // // 全メンバーアカウントの数
+    // const allAccountsCount = memberAccountsDataArray ? memberAccountsDataArray.length : 0;
+    // アカウントの配列からidがnullのアカウントのみをフィルタリング
+    const nullIdAccounts = memberAccountsDataArray?.filter((account) => account.id === null);
+    // idがnullのアカウントの数をカウント
+    const nullIdCount = nullIdAccounts ? nullIdAccounts.length : 0;
+    // // アカウントの配列からidがnullでないアカウントのみをフィルタリング
+    // const notNullIdAccounts = memberAccountsDataArray?.filter((account) => account.id !== null);
+    // // idがnullでないアカウントの数をカウント
+    // const notNullIdCount = notNullIdAccounts ? notNullIdAccounts.length : 0;
+    // // 全アカウント数からnullでないアカウントを引いた数
+    // const nullIdCount2 = Math.abs(allAccountsCount - notNullIdCount);
+    console.log("未設定のアカウント数", nullIdCount);
+    // グローバルStateに格納
+    setNotSetAccounts(nullIdCount);
+    // console.log(
+    //   "nullIdCount",
+    //   nullIdCount,
+    //   "引いた数nullIdCount2",
+    //   nullIdCount2,
+    //   "全アカウント数",
+    //   memberAccountsDataArray?.length,
+    //   "nullでないアカウント数",
+    //   notNullIdCount
+    // );
+  }, [memberAccountsDataArray, setNotSetAccounts]);
 
   // useQueryMemberAccountsで製品テーブルからデータ一覧を取得
   console.log(
@@ -129,6 +161,11 @@ const SettingMemberAccountsMemo: FC = () => {
                 console.log("新規サーチ クリック");
               }}
             /> */}
+            {notSetAccounts && (
+              <span className="ml-auto mr-[10px] text-[12px] text-[var(--color-text-sub)]">
+                メンバー未設定アカウント数：{notSetAccounts}
+              </span>
+            )}
           </div>
 
           {/* メンバーテーブル */}

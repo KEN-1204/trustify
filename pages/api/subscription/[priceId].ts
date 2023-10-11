@@ -52,7 +52,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     if (error) {
       console.log("❌supabaseのクエリ失敗error", error);
-      throw error;
+      throw new Error(error.message);
     }
 
     // stripeインスタンスを作成
