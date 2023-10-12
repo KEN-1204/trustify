@@ -7,6 +7,7 @@ import {
   Contact_row_data,
   EditedProduct,
   Meeting_row_data,
+  MemberAccounts,
   NewSearchActivity_Contact_CompanyParams,
   NewSearchCompanyParams,
   NewSearchContact_CompanyParams,
@@ -130,8 +131,10 @@ type State = {
   isOpenSettingInvitationModal: boolean;
   setIsOpenSettingInvitationModal: (payload: boolean) => void;
   // 未設定アカウント数を保持するState
-  notSetAccounts: number | null;
-  setNotSetAccounts: (payload: number | null) => void;
+  // notSetAccountsCount: number | null;
+  // setNotSetAccountsCount: (payload: number | null) => void;
+  notSetAccounts: MemberAccounts[] | null[];
+  setNotSetAccounts: (payload: MemberAccounts[] | null[]) => void;
 
   // =================== アンダーテーブル関連 ===================
   // 【サーチモード切り替え】
@@ -331,7 +334,9 @@ const useDashboardStore = create<State>((set) => ({
   isOpenSettingInvitationModal: false,
   setIsOpenSettingInvitationModal: (payload) => set({ isOpenSettingInvitationModal: payload }),
   // 未設定アカウント数を保持するState
-  notSetAccounts: null,
+  // notSetAccountsCount: null,
+  // setNotSetAccountsCount: (payload) => set({ notSetAccountsCount: payload }),
+  notSetAccounts: [],
   setNotSetAccounts: (payload) => set({ notSetAccounts: payload }),
 
   // =================== テーブルサイズ切り替えボタン ===================

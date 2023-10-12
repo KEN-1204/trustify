@@ -15,6 +15,7 @@ import { GridTableAll } from "../GridTable/GridTableAll/GridTableAll";
 import { BsChevronRight } from "react-icons/bs";
 import { home_cards } from "./data";
 import { useQueryProducts } from "@/hooks/useQueryProducts";
+import { toast } from "react-toastify";
 
 export const DashboardHomeComponent = () => {
   console.log("DashboardHomeComponentレンダリング");
@@ -125,7 +126,24 @@ export const DashboardHomeComponent = () => {
                       <div
                         key={item.name}
                         className={`${styles.content_card} transition-base02 mt-[10px] flex h-[72px] w-full max-w-[400px] items-center rounded-[8px] bg-[var(--color-bg-base-sub)] p-[16px] text-[14px] font-bold`}
-                        onClick={() => handleActions(item.name)}
+                        onClick={() => {
+                          if (item.name === "invitation") {
+                            if (userProfileState?.account_company_role !== "company_admin") {
+                              // toast.error(`管理者権限を持つユーザーのみアクセス可能です`, {
+                              //   position: "top-right",
+                              //   autoClose: 2000,
+                              //   hideProgressBar: false,
+                              //   closeOnClick: true,
+                              //   pauseOnHover: true,
+                              //   draggable: true,
+                              //   progress: undefined,
+                              // });
+                              alert("管理者権限を持つユーザーのみアクセス可能です");
+                              return;
+                            }
+                          }
+                          handleActions(item.name);
+                        }}
                       >
                         <div className={`h-[40px] w-[40px] ${styles.animate_icon}`}>{item.icon}</div>
                         <div className="mx-[16px] flex flex-grow flex-col">

@@ -138,6 +138,8 @@
   --color-auth-modal-bg: #282828;
 
   --color-wrap-border: rgba(220, 220, 220, 0.6);
+  /* --color-: rgba(64,87,109,.07);
+  --color-: #40576d12; */
 
   --color-header-bg-active: rgba(64, 87, 109, 0.07);
   /* ブランドカラー　 */
@@ -878,6 +880,9 @@ textarea {
 
 .border-shadow {
   box-shadow: var(--header-border-bottom);
+}
+.shadow-all-md {
+  box-shadow: 0px 4px 15px 1px rgba(0, 0, 0, 0.15);
 }
 
 /* 共通 */

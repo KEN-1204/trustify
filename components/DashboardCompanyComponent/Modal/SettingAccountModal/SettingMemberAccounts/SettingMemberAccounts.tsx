@@ -25,15 +25,16 @@ const SettingMemberAccountsMemo: FC = () => {
   const sessionState = useStore((state) => state.sessionState);
   // router
   const router = useRouter();
-  // チェックボックス
-  const [checked, setChecked] = useState(false);
   // メンバー招待ボタンローディング
   const [loading, setLoading] = useState(false);
   // リフェッチローディング
   const [refetchLoading, setRefetchLoading] = useState(false);
-  // 未設定アカウント数を保持するグローバルState
+  // 未設定アカウントを保持するグローバルState
   const notSetAccounts = useDashboardStore((state) => state.notSetAccounts);
   const setNotSetAccounts = useDashboardStore((state) => state.setNotSetAccounts);
+  // // 未設定アカウント数を保持するグローバルState
+  // const notSetAccountsCount = useDashboardStore((state) => state.notSetAccountsCount);
+  // const setNotSetAccountsCount = useDashboardStore((state) => state.setNotSetAccountsCount);
 
   const {
     data: memberAccountsDataArray,
@@ -42,12 +43,24 @@ const SettingMemberAccountsMemo: FC = () => {
     refetch: refetchMemberAccounts,
   } = useQueryMemberAccounts();
 
+  // メンバー数分チェックするStateの配列
+  const [checkedMembersArray, setCheckedMembersArray] = useState(
+    memberAccountsDataArray
+      ? Array(!!memberAccountsDataArray.length ? memberAccountsDataArray.length : 1).fill(false)
+      : []
+  );
+
   useEffect(() => {
     if (typeof memberAccountsDataArray === "undefined") return;
+    if (!memberAccountsDataArray) {
+      setNotSetAccounts([]);
+      // setNotSetAccountsCount(null);
+      return;
+    }
     // // 全メンバーアカウントの数
     // const allAccountsCount = memberAccountsDataArray ? memberAccountsDataArray.length : 0;
-    // アカウントの配列からidがnullのアカウントのみをフィルタリング
-    const nullIdAccounts = memberAccountsDataArray?.filter((account) => account.id === null);
+    // アカウントの配列からprofilesのidがnullのアカウントのみをフィルタリング
+    const nullIdAccounts = memberAccountsDataArray.filter((account) => account.id === null);
     // idがnullのアカウントの数をカウント
     const nullIdCount = nullIdAccounts ? nullIdAccounts.length : 0;
     // // アカウントの配列からidがnullでないアカウントのみをフィルタリング
@@ -56,9 +69,17 @@ const SettingMemberAccountsMemo: FC = () => {
     // const notNullIdCount = notNullIdAccounts ? notNullIdAccounts.length : 0;
     // // 全アカウント数からnullでないアカウントを引いた数
     // const nullIdCount2 = Math.abs(allAccountsCount - notNullIdCount);
-    console.log("未設定のアカウント数", nullIdCount);
+    console.log(
+      "nullIdAccounts",
+      nullIdAccounts,
+      "未設定のアカウント数",
+      nullIdCount,
+      "memberAccountsDataArray",
+      memberAccountsDataArray
+    );
     // グローバルStateに格納
-    setNotSetAccounts(nullIdCount);
+    // setNotSetAccountsCount(nullIdCount);
+    setNotSetAccounts(nullIdAccounts);
     // console.log(
     //   "nullIdCount",
     //   nullIdCount,
@@ -81,7 +102,9 @@ const SettingMemberAccountsMemo: FC = () => {
     "useQueryError",
     useQueryError,
     "useQueryIsLoading",
-    useQueryIsLoading
+    useQueryIsLoading,
+    "各チェック配列",
+    checkedMembersArray
   );
 
   return (
@@ -161,9 +184,9 @@ const SettingMemberAccountsMemo: FC = () => {
                 console.log("新規サーチ クリック");
               }}
             /> */}
-            {notSetAccounts && (
+            {!!notSetAccounts.length && (
               <span className="ml-auto mr-[10px] text-[12px] text-[var(--color-text-sub)]">
-                メンバー未設定アカウント数：{notSetAccounts}
+                メンバー未設定アカウント数：{notSetAccounts.length}
               </span>
             )}
           </div>
@@ -188,7 +211,12 @@ const SettingMemberAccountsMemo: FC = () => {
                 {memberAccountsDataArray &&
                   memberAccountsDataArray.map((account, index) => (
                     <React.Fragment key={account.subscribed_account_id}>
-                      <GridRowMember memberAccount={account} />
+                      <GridRowMember
+                        memberAccount={account}
+                        checkedMembersArray={checkedMembersArray}
+                        setCheckedMembersArray={setCheckedMembersArray}
+                        index={index}
+                      />
                     </React.Fragment>
                   ))}
                 {/* <GridRowMember /> */}

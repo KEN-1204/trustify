@@ -293,7 +293,22 @@ export const SettingAccountModal = () => {
               className={`rounded-[4px]] mb-[3px] flex h-[40px] w-full cursor-pointer items-center truncate rounded-[4px] px-[10px] py-[6px] font-bold hover:bg-[var(--setting-side-bg-select)] ${
                 selectedSettingAccountMenu === "Member" ? `bg-[var(--setting-side-bg-select)]` : ``
               }`}
-              onClick={() => setSelectedSettingAccountMenu("Member")}
+              onClick={() => {
+                if (userProfileState?.account_company_role !== "company_admin") {
+                  return alert("管理者権限を持つユーザーのみアクセス可能です");
+                  // toast.error(`管理者権限を持つユーザーのみアクセス可能です`, {
+                  //   position: "top-right",
+                  //   autoClose: 2000,
+                  //   hideProgressBar: false,
+                  //   closeOnClick: true,
+                  //   pauseOnHover: true,
+                  //   draggable: true,
+                  //   progress: undefined,
+                  // });
+                  return;
+                }
+                setSelectedSettingAccountMenu("Member");
+              }}
             >
               <div className="flex-center mr-[15px] h-[24px] w-[24px]">
                 <AiOutlineTeam className="text-[22px]" />

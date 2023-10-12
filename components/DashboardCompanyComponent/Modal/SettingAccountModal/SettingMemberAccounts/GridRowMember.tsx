@@ -1,4 +1,4 @@
-import React, { FC, memo, useState } from "react";
+import React, { Dispatch, FC, SetStateAction, memo, useState } from "react";
 import styles from "./SettingMemberAccounts.module.css";
 import { useDownloadUrl } from "@/hooks/useDownloadUrl";
 import { MemberAccounts } from "@/types";
@@ -7,6 +7,7 @@ import useRootStore from "@/store/useRootStore";
 import useThemeStore from "@/store/useThemeStore";
 import { RippleButton } from "@/components/Parts/RippleButton/RippleButton";
 import useDashboardStore from "@/store/useDashboardStore";
+import { BsCheck2, BsChevronDown } from "react-icons/bs";
 
 // type Props = {
 //   id: string;
@@ -16,14 +17,19 @@ import useDashboardStore from "@/store/useDashboardStore";
 // };
 type Props = {
   memberAccount: MemberAccounts;
+  checkedMembersArray: boolean[];
+  setCheckedMembersArray: Dispatch<SetStateAction<any[]>>;
+  index: number;
 };
 
-export const GridRowMemberMemo: FC<Props> = ({ memberAccount }) => {
+export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArray, setCheckedMembersArray, index }) => {
   const theme = useRootStore(useThemeStore, (state) => state.theme);
   // 招待メールモーダル
   const setIsOpenSettingInvitationModal = useDashboardStore((state) => state.setIsOpenSettingInvitationModal);
   // チェックボックス
-  const [checked, setChecked] = useState(false);
+  // const [checked, setChecked] = useState(false);
+  // チームロールポップアップ
+  const [isOpenRoleMenu, setIsOpenRoleMenu] = useState(false);
 
   // 一つの投稿に紐づいた画像のフルパスをダウンロードするためのuseDownloadUrlフックをpostsバケット用の切り替え用キーワードを渡して実行
   // 第一引数には、propsで受け取ったpost_urlを渡してpostUrlという名前をつけてfullUrlを取得
@@ -55,7 +61,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount }) => {
     <>
       <div role="row" className={`${styles.grid_row}`}>
         <div role="gridcell" className={`${styles.grid_cell} flex items-center`}>
-          {!avatarUrl && memberAccount.id && (
+          {!avatarUrl && memberAccount.id && memberAccount.profile_name && (
             <div
               className={`flex-center h-[40px] w-[40px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip} mr-[15px]`}
             >
@@ -64,7 +70,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount }) => {
               </span>
             </div>
           )}
-          {!avatarUrl && !memberAccount.id && (
+          {!avatarUrl && !memberAccount.profile_name && (
             <div
               className={`flex-center mr-[15px] h-[40px] w-[40px] cursor-pointer overflow-hidden rounded-full hover:bg-[#00000020]`}
             >
@@ -96,21 +102,89 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount }) => {
               />
             </div>
           )}
-          <span>{memberAccount.profile_name ? memberAccount.profile_name : "メンバー未設定"}</span>
+          {!memberAccount.account_company_role && (
+            <span>{memberAccount.profile_name ? memberAccount.profile_name : "メンバー未設定"}</span>
+          )}
+          {memberAccount.account_company_role && (
+            <span>{memberAccount.profile_name ? memberAccount.profile_name : "招待済み"}</span>
+          )}
         </div>
         <div role="gridcell" className={styles.grid_cell}>
           {memberAccount.email ? memberAccount.email : ""}
         </div>
-        <div role="gridcell" className={styles.grid_cell}>
-          {memberAccount.is_subscriber ? "所有者" : getCompanyRole(memberAccount.account_company_role)}
+        <div role="gridcell" className={`${styles.grid_cell} relative`}>
+          <div
+            className={`flex items-center ${memberAccount.is_subscriber ? "cursor-not-allowed" : "cursor-pointer"}`}
+            onClick={() => {
+              if (memberAccount.is_subscriber) return;
+              setIsOpenRoleMenu(true);
+            }}
+          >
+            <span className="mr-[10px]">
+              {memberAccount.is_subscriber ? "所有者" : getCompanyRole(memberAccount.account_company_role)}
+            </span>
+            {!memberAccount.is_subscriber && <BsChevronDown />}
+          </div>
+          {isOpenRoleMenu && (
+            <>
+              <div
+                className="fixed left-[-50%] top-[-50%] z-[50] h-[200vh] w-[200vw]"
+                onClick={() => setIsOpenRoleMenu(false)}
+              ></div>
+
+              <div className="shadow-all-md absolute left-[0px] top-[60px] z-[100] h-[152px] w-[180px] rounded-[8px] bg-[var(--color-edit-bg-solid)]">
+                <ul className={`flex flex-col py-[8px]`}>
+                  <li
+                    className={`flex h-[40px] w-full cursor-pointer items-center justify-between px-[14px] py-[6px] pr-[18px] hover:bg-[var(--color-bg-sub)]`}
+                    onClick={() => {
+                      setIsOpenRoleMenu(false);
+                    }}
+                  >
+                    <span className="select-none">管理者</span>
+                    {memberAccount.account_company_role === "company_admin" && (
+                      <BsCheck2 className="min-h-[16px] min-w-[16px] stroke-[0.5] text-[16px]" />
+                    )}
+                  </li>
+                  <li
+                    className={`flex h-[40px] w-full cursor-pointer items-center justify-between px-[14px] py-[6px] pr-[18px] hover:bg-[var(--color-bg-sub)]`}
+                    onClick={() => {
+                      setIsOpenRoleMenu(false);
+                    }}
+                  >
+                    <span className="select-none">メンバー</span>
+                    {memberAccount.account_company_role === "company_member" && (
+                      <BsCheck2 className="min-h-[16px] min-w-[16px] stroke-[0.5] text-[16px]" />
+                    )}
+                  </li>
+                  <li className="flex-center h-[16px] w-full">
+                    <hr className="w-full border-t border-solid border-[var(--color-border-table)]" />
+                  </li>
+                  <li
+                    className={`flex h-[40px] w-full cursor-pointer items-center px-[14px] py-[6px] hover:bg-[var(--color-bg-sub)]`}
+                    onClick={() => {
+                      setIsOpenRoleMenu(false);
+                    }}
+                  >
+                    <span className="select-none">チームから削除</span>
+                  </li>
+                </ul>
+              </div>
+            </>
+          )}
         </div>
         <div role="gridcell" className={styles.grid_cell}>
           {memberAccount.id ? (
             <div className={`${styles.grid_select_cell_header}`}>
               <input
                 type="checkbox"
-                checked={checked}
-                onChange={() => setChecked(!checked)}
+                checked={checkedMembersArray[index]}
+                onChange={() => {
+                  const newCheckedArray = [...checkedMembersArray];
+                  newCheckedArray[index] = !checkedMembersArray[index];
+                  setCheckedMembersArray(newCheckedArray);
+                }}
+                // checked={checked}
+                // onChange={() => setChecked(!checked)}
                 className={`${styles.grid_select_cell_header_input}`}
               />
               <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">

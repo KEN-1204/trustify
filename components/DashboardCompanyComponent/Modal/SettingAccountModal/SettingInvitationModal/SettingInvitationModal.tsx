@@ -13,9 +13,11 @@ import { AiOutlinePlus } from "react-icons/ai";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { toast } from "react-toastify";
 import axios from "axios";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const SettingInvitationModal = () => {
   const supabase = useSupabaseClient();
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [accountQuantity, setAccountQuantity] = useState<number | null>(1);
   const [selectedRadioButton, setSelectedRadioButton] = useState("business_plan");
@@ -28,16 +30,25 @@ export const SettingInvitationModal = () => {
   // 招待メールモーダル
   const setIsOpenSettingInvitationModal = useDashboardStore((state) => state.setIsOpenSettingInvitationModal);
   // メールアドレス入力値を保持するState 初期状態で5つのメールアドレス入力欄を持つ
-  const [emailInputs, setEmailInputs] = useState<string[]>(Array(notSetAccounts ? notSetAccounts : 1).fill(""));
+  // const [emailInputs, setEmailInputs] = useState<string[]>(Array(notSetAccounts ? notSetAccounts : 1).fill(""));
+  const [emailInputs, setEmailInputs] = useState<string[]>(
+    Array(!!notSetAccounts.length ? notSetAccounts.length : 1).fill("")
+  );
   // Emailチェック後のValid、Invalid
-  const [checkedEmail, setCheckedEmail] = useState<string[]>(Array(notSetAccounts ? notSetAccounts : 1).fill(""));
+  // const [checkedEmail, setCheckedEmail] = useState<string[]>(Array(notSetAccounts ? notSetAccounts : 1).fill(""));
+  const [checkedEmail, setCheckedEmail] = useState<string[]>(
+    Array(!!notSetAccounts.length ? notSetAccounts.length : 1).fill("")
+  );
   // Emailのinputタグにsuccessクラスとerrorクラスを付与するref
   const emailRef = useRef<(HTMLDivElement | null)[]>([]);
   // 送信準備の状態
   const [isReadyToSubmit, setIsReadyToSubmit] = useState(false);
   // ユーザーのメールと同じかどうかチェックするState
+  // const [checkedSameUserEmailArray, setCheckedSameUserEmailArray] = useState(
+  //   Array(notSetAccounts ? notSetAccounts : 1).fill(false)
+  // );
   const [checkedSameUserEmailArray, setCheckedSameUserEmailArray] = useState(
-    Array(notSetAccounts ? notSetAccounts : 1).fill(false)
+    Array(!!notSetAccounts.length ? notSetAccounts.length : 1).fill(false)
   );
   // 未設定アカウント数の上限を超えた場合の真偽値を保持するState
   const [overState, setOverState] = useState(false);
@@ -52,7 +63,7 @@ export const SettingInvitationModal = () => {
 
   // 「他メンバーを追加」ボタンを押下した場合の処理 input欄とinput判定を増やす
   const addMoreEmailInput = () => {
-    if (emailInputs.length === notSetAccounts) {
+    if (emailInputs.length === notSetAccounts.length) {
       setOverState(true);
       return console.log(`上限オーバー`);
     }
@@ -160,6 +171,7 @@ export const SettingInvitationModal = () => {
         });
         const invitedUserId = data.user.id;
         const invitedUserEmail = data.user.email;
+        const accountId = notSetAccounts[i]?.subscribed_account_id;
         console.log(
           "送信したメール",
           email,
@@ -170,7 +182,9 @@ export const SettingInvitationModal = () => {
           "招待したユーザーのid",
           invitedUserId,
           "招待したユーザーのEmail",
-          invitedUserEmail
+          invitedUserEmail,
+          "紐付けするアカウントのid notSetAccounts[i]",
+          accountId
         );
         toast.success(`${email}の送信が完了しました!`, {
           position: "top-right",
@@ -181,6 +195,30 @@ export const SettingInvitationModal = () => {
           draggable: true,
           progress: undefined,
         });
+
+        // 招待したユーザーのidと未設定のアカウントのuser_idを紐付けして、company_roleは初期はmemberに設定する
+        const { data: newAccountData, error: accountUpdateError } = await supabase
+          .from("subscribed_accounts")
+          .update({
+            user_id: invitedUserId,
+            company_role: "company_member",
+          })
+          .eq("id", accountId)
+          .select();
+
+        if (accountUpdateError) {
+          console.log("アカウントのuser_idの紐付けに失敗", accountUpdateError);
+          toast.error(`${email}のアカウント紐付けに失敗しました!`, {
+            position: "top-right",
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+          });
+        }
+        console.log("UPDATEが成功したアカウントデータ", newAccountData);
         // 成功したメールは空にする
         const newEmails = [...emailInputs];
         newEmails[i] = "";
@@ -204,6 +242,8 @@ export const SettingInvitationModal = () => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       await sendInvitationEmail(emailInputs[i], i);
     }
+    // アカウントと招待ユーザーの紐付け完了後はMemberAccountsキャッシュをリフレッシュ
+    await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
 
     // ローディング終了
     setLoading(false);
@@ -274,7 +314,9 @@ export const SettingInvitationModal = () => {
     "自分のメールと同じかチェック",
     checkedSameUserEmailArray,
     "emailRef.current",
-    emailRef.current
+    emailRef.current,
+    "未設定アカウント",
+    notSetAccounts
   );
 
   return (
@@ -330,7 +372,7 @@ export const SettingInvitationModal = () => {
               <div className="mb-[0px] mt-[20px] flex w-full items-center text-[15px]">
                 <h4>
                   メンバー未設定アカウント数：
-                  <span className="font-bold">{notSetAccounts}個</span>
+                  <span className="font-bold">{notSetAccounts.length}個</span>
                 </h4>
               </div>
 
@@ -456,13 +498,13 @@ export const SettingInvitationModal = () => {
                   <p>
                     現在の未設定アカウントは
                     <span className="text-[18px] font-bold text-[var(--color-text-brand-f)] underline">
-                      {notSetAccounts}個
+                      {notSetAccounts.length}個
                     </span>
                     です。
                   </p>
                   <p>
                     <span className="text-[18px] font-bold text-[var(--color-text-brand-f)] underline">
-                      {notSetAccounts}人
+                      {notSetAccounts.length}人
                     </span>
                     以上のメンバーを招待する場合は、先に契約アカウントを増やしましょう。
                   </p>

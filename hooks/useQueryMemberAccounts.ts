@@ -25,7 +25,7 @@ export const useQueryMemberAccounts = () => {
       throw new Error(error.message);
     }
 
-    return memberAccountsData as MemberAccounts[];
+    return memberAccountsData as MemberAccounts[] | [];
   };
 
   return useQuery({
