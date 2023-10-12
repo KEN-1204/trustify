@@ -107,7 +107,12 @@
   --setting-side-bg: #eee;
   /* --setting-side-bg-select: #00000013; */
   --setting-side-bg-select: #40576d12;
-  --setting-bg-sub: rgb(234, 235, 237);
+  /* Canva サブ背景 rgba(64,87,109,.07) */
+  --canva-sub-rgba: rgba(64, 87, 109, 0.07);
+  --canva-sub: #40576d12;
+  /* --setting-bg-sub: rgb(234, 235, 237); */
+  --setting-bg-sub: #f2f4f6;
+  /* --setting-bg-sub: #40576d12; */
   --setting-bg-second: #f4f4f6;
   /* --setting-side-bg-select-hover: #00000025; */
   --setting-side-bg-select-hover: #394c6026;
@@ -138,8 +143,11 @@
   --color-auth-modal-bg: #282828;
 
   --color-wrap-border: rgba(220, 220, 220, 0.6);
+  /* 背景サブ　canva */
   /* --color-: rgba(64,87,109,.07);
   --color-: #40576d12; */
+  /* --color-: rgba(57,76,96,.15);
+  --color-: #394c6026; */
 
   --color-header-bg-active: rgba(64, 87, 109, 0.07);
   /* ブランドカラー　 */
@@ -883,6 +891,12 @@ textarea {
 }
 .shadow-all-md {
   box-shadow: 0px 4px 15px 1px rgba(0, 0, 0, 0.15);
+}
+.shadow-top-sm {
+  box-shadow: 0px -2px 10px 0px rgba(0, 0, 0, 0.1);
+}
+.shadow-top-md {
+  box-shadow: 0px -4px 15px 1px rgba(0, 0, 0, 0.15);
 }
 
 /* 共通 */

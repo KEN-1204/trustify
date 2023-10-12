@@ -1,4 +1,5 @@
 import { ClickedItemPos, hoveredItemPos, hoveredItemPosHorizon, hoveredItemPosWrap } from "@/types";
+// @ts-ignore
 import { Session } from "@supabase/supabase-js";
 import { ReactNode } from "react";
 import { create } from "zustand";

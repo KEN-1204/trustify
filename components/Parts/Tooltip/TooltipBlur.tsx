@@ -37,7 +37,32 @@ export const TooltipBlur = () => {
     hoveredItemDisplay = hoveredItemPosHorizon.display;
   }
 
-  console.log("🌟Horizonレンダリング");
+  console.log("🌟Horizonレンダリング", hoveredItemDisplay, hoveredItemPosHorizon);
+  if (hoveredItemDisplay === "top")
+    return (
+      <div
+        className={`${styles.tooltip}  ${
+          hoveredItemPosHorizon ? `block ${styles.fade}` : "transition-base hidden"
+        } bg-[#272727]/[0.7]`}
+        style={{
+          position: "absolute",
+          zIndex: 100,
+          left: `${`${hoveredItemWidth + 10}px`}`,
+          top: `${`${hoveredItemPositionY + hoveredItemHalfHeight}px`}`,
+        }}
+        ref={menuRef}
+      >
+        <div
+          className={`flex-col-center ${styles.dropdown_item}`}
+          onClick={() => {
+            setHoveredItemPosHorizon(null);
+          }}
+        >
+          <span>{hoveredItemPosHorizon?.content}</span>
+          <span>{hoveredItemPosHorizon?.content2}</span>
+        </div>
+      </div>
+    );
   return (
     <div
       className={`${styles.tooltip}  ${

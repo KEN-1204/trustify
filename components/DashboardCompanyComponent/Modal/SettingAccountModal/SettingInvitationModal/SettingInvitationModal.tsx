@@ -63,7 +63,7 @@ export const SettingInvitationModal = () => {
 
   // 「他メンバーを追加」ボタンを押下した場合の処理 input欄とinput判定を増やす
   const addMoreEmailInput = () => {
-    if (emailInputs.length === notSetAccounts.length) {
+    if (emailInputs.length === notSetAccounts.length || notSetAccounts.length === 0) {
       setOverState(true);
       return console.log(`上限オーバー`);
     }
@@ -361,6 +361,9 @@ export const SettingInvitationModal = () => {
               <div className="mt-[0px] flex w-full">
                 <button
                   className={`transition-base01 flex-center max-h-[41px] w-full min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                  onClick={() => {
+                    if (notSetAccounts.length === 0) return setOverState(true);
+                  }}
                 >
                   <p className="flex items-center space-x-3">
                     <ImLink className="text-[20px]" />
@@ -408,6 +411,9 @@ export const SettingInvitationModal = () => {
                       }}
                       // onBlur={() => setMainPhoneNumber(toHalfWidth(mainPhoneNumber.trim()))}
                       onBlur={(e) => handleCheckEmail(index, e)}
+                      onFocus={() => {
+                        if (notSetAccounts.length === 0) return setOverState(true);
+                      }}
                     />
                     {checkedEmail[index] === "Invalid" && !checkedSameUserEmailArray[index] && (
                       <span className={styles.msg}>
@@ -502,12 +508,15 @@ export const SettingInvitationModal = () => {
                     </span>
                     です。
                   </p>
-                  <p>
-                    <span className="text-[18px] font-bold text-[var(--color-text-brand-f)] underline">
-                      {notSetAccounts.length}人
-                    </span>
-                    以上のメンバーを招待する場合は、先に契約アカウントを増やしましょう。
-                  </p>
+                  {notSetAccounts.length !== 0 && (
+                    <p>
+                      <span className="text-[18px] font-bold text-[var(--color-text-brand-f)] underline">
+                        {notSetAccounts.length}人
+                      </span>
+                      以上のメンバーを招待する場合は、先に契約アカウントを増やしましょう。
+                    </p>
+                  )}
+                  {notSetAccounts.length === 0 && <p>メンバーを招待する場合は、先に契約アカウントを増やしましょう。</p>}
 
                   <div className={`flex w-full items-center justify-around space-x-5 pt-[30px]`}>
                     <button

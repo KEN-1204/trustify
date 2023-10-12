@@ -85,7 +85,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
     <>
       {/* 右側メインエリア プロフィール */}
       {selectedSettingAccountMenu === "PaymentAndPlan" && (
-        <div className={`flex h-full w-full flex-col overflow-y-scroll py-[20px] pl-[20px]`}>
+        <div className={`flex h-full w-full flex-col overflow-y-scroll py-[20px] pl-[20px] pr-[80px]`}>
           <h2 className={`text-[18px] font-bold`}>支払いとプラン</h2>
 
           <div className="mt-[20px] min-h-[55px] w-full">
