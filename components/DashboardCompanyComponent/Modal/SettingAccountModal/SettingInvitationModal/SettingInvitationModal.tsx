@@ -162,6 +162,7 @@ export const SettingInvitationModal = () => {
     // ローディングを開始
     setLoading(true);
 
+    // 未登録、未ログインのユーザーを招待
     const sendInvitationEmail = async (email: string, i: number) => {
       try {
         const { data } = await axios.get(`/api/invitation/${email}`, {
@@ -237,6 +238,9 @@ export const SettingInvitationModal = () => {
       }
     };
 
+    // メールが既に登録されているかどうか、そのメールがsubscribed_accountsのuser_idに存在しなければ、subscribed_accountsのuser_idに紐付けのみでUPDATE、
+    // メールが登録されていなければ、inviteしてsupabaseに新たにUsersに新規作成してメールを送る
+
     // 1秒ごとにメールを送信
     for (let i = 0; i < emailInputs.length; i++) {
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -284,6 +288,42 @@ export const SettingInvitationModal = () => {
 
     // // map を使って Promise の配列を作成し、それを Promise.all で処理する
     // await Promise.all(emailInputs.map((email) => sendInvitationEmail(email)));
+  };
+  const handleInviteLoggedInUser = async () => {
+    console.log("招待状メールを送信", emailInputs);
+    // ローディングを開始
+    setLoading(true);
+
+    // メールが既に登録されているかどうか、そのメールがsubscribed_accountsのuser_idに存在しなければ、subscribed_accountsのuser_idに紐付けのみでUPDATE、
+    // メールが登録されていなければ、inviteしてsupabaseに新たにUsersに新規作成してメールを送る
+    const sendInvitationEmailForLoggedInUser = async (email: string, i: number) => {
+      try {
+        // profilesテーブルに招待先のユーザーの登録があるか確認 => これでサインアップしているか否かを判別
+        const { data, error } = await supabase.from("profiles").select().eq("email", email).single();
+        // profilesテーブルにデータがあれば、次はその招待先のユーザーのidがsubscribed_accountsテーブルに存在するか否かを確認 => これで、既にチームに所属しているか否かを判別
+
+        if (error) throw new Error(error.message);
+
+        // 既にサインアップ済み、メールを送り、invitationsテーブルに招待先のユーザーのidをuser_idにセットし、ログイン時にポップアップを表示するルート
+        // invitationsテーブルには、招待先ユーザーid、紹介元のチーム名、紹介者をセットする
+        if (data && data.email) {
+        }
+        // まだ未登録、新規登録で招待のルート
+        else {
+        }
+      } catch (error) {}
+    };
+
+    // 1秒ごとにメールを送信
+    for (let i = 0; i < emailInputs.length; i++) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await sendInvitationEmailForLoggedInUser(emailInputs[i], i);
+    }
+    // アカウントと招待ユーザーの紐付け完了後はMemberAccountsキャッシュをリフレッシュ
+    await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
+
+    // ローディング終了
+    setLoading(false);
   };
 
   //   useEffect(() => {
@@ -363,6 +403,9 @@ export const SettingInvitationModal = () => {
                   className={`transition-base01 flex-center max-h-[41px] w-full min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
                   onClick={() => {
                     if (notSetAccounts.length === 0) return setOverState(true);
+
+                    // テスト 入力したメールが既にサインアップ済みのユーザーだった場合の確認
+                    handleInviteLoggedInUser();
                   }}
                 >
                   <p className="flex items-center space-x-3">
@@ -439,7 +482,7 @@ export const SettingInvitationModal = () => {
               </div>
             </div>
 
-            {/* メンバーシップを開始するボタン */}
+            {/* 招待状メールを送信するボタン */}
             <div className="absolute bottom-0 left-0 w-full rounded-bl-[8px] bg-[var(--color-edit-bg-solid)] px-[32px] pb-[52px] pt-[24px]">
               <button
                 className={`flex-center h-[40px] w-full rounded-[6px]  font-bold text-[#fff]  ${
@@ -456,7 +499,7 @@ export const SettingInvitationModal = () => {
                 //     processSubscription("price_1NmQAeFTgtnGFAcpFX60R4YY", accountQuantity);
                 // }}
               >
-                {!loading && <span>招待状メールを送信</span>}
+                {!loading && <span>招待状を送信</span>}
                 {loading && <SpinnerIDS scale={"scale-[0.4]"} />}
                 {/* {!loading && <Spinner />} */}
               </button>

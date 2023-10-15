@@ -467,6 +467,7 @@
 
   /* シャドウ */
   --shadow-sm: 0 2px 4px -1px rgba(57, 76, 96, 0.15);
+  --shadow-header: 0 2px 4px -1px rgba(57, 76, 96, 0.15);
   --shadow-sidebar: 2px 0px 4px -1px rgba(57, 76, 96, 0.15);
 
   --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff30, #ffffff20, #ffffff10, #ffffff10, #ffffff80);
@@ -806,7 +807,9 @@
   --overlay: #ffffff20;
 
   /* シャドウ */
-  --shadow-sm: rgba(255, 255, 255, 0.12) 0px 1px 1px;
+  --shadow-sm: 0px 1px 1px 0px rgba(255, 255, 255, 0.12);
+  --shadow-header: 0px 1px 6px 0px rgba(255, 255, 255, 0.12);
+  --shadow-sidebar: 1px 0px 6px -1px rgba(255, 255, 255, 0.12);
 
   /* --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff30, #ffffff20, #ffffff10, #ffffff10, #ffffff80); */
   --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff20, #ffffff80, #ffffff40, #ffffff20, #ffffff80);

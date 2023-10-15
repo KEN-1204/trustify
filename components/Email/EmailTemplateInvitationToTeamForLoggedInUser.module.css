@@ -1,0 +1,12 @@
+.container {
+  width: 100%;
+  height: auto;
+  padding: 0 30px;
+  max-width: 600px;
+  margin: 0 auto;
+  /* color: #37352f; */
+  /* color: rgba(55, 53, 47, 0.65);
+  color: #37352fa6; */
+  /* color: rgba(55, 53, 47, 1);
+  color: #37352f; */
+}

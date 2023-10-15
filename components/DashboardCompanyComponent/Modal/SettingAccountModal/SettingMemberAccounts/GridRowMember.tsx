@@ -1,4 +1,4 @@
-import React, { Dispatch, FC, SetStateAction, memo, useState } from "react";
+import React, { Dispatch, FC, SetStateAction, memo, useEffect, useState } from "react";
 import styles from "./SettingMemberAccounts.module.css";
 import { useDownloadUrl } from "@/hooks/useDownloadUrl";
 import { MemberAccounts } from "@/types";
@@ -65,6 +65,12 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
         break;
     }
   };
+
+  // チームへのメンバー参加、削除時に役割Stateを変更する
+  useEffect(() => {
+    if (roleAtTeam === memberAccount.account_company_role) return;
+    setRoleAtTeam(memberAccount.account_company_role ? memberAccount.account_company_role : "");
+  }, [memberAccount.account_company_role]);
 
   const handleChangeRole = async (companyRole: string) => {
     // setLoadingGlobalState(true);
@@ -182,9 +188,13 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
         </div>
         <div role="gridcell" className={`${styles.grid_cell} relative`}>
           <div
-            className={`flex items-center ${memberAccount.is_subscriber ? "cursor-not-allowed" : "cursor-pointer"}`}
+            className={`flex items-center ${
+              memberAccount.is_subscriber || !memberAccount.account_company_role
+                ? "cursor-not-allowed"
+                : "cursor-pointer"
+            }`}
             onClick={() => {
-              if (memberAccount.is_subscriber) return;
+              if (memberAccount.is_subscriber || !memberAccount.account_company_role) return;
               setIsOpenRoleMenu(true);
             }}
           >
@@ -192,8 +202,10 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
               {/* {memberAccount.is_subscriber ? "所有者" : getCompanyRole(memberAccount.account_company_role)} */}
               {memberAccount.is_subscriber ? "所有者" : getCompanyRole(roleAtTeam)}
             </span>
-            {!memberAccount.is_subscriber && <BsChevronDown />}
+            {!memberAccount.is_subscriber && memberAccount.account_company_role && <BsChevronDown />}
           </div>
+
+          {/* ==================== チームでの役割メニューポップアップ ==================== */}
           {isOpenRoleMenu && (
             <>
               <div
@@ -254,7 +266,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
                         console.log("アカウントのuser_idの解除に失敗", accountUpdateError);
                         toast.error(`チームからメンバーの削除に失敗しました!`, {
                           position: "top-right",
-                          autoClose: 2000,
+                          autoClose: 3000,
                           hideProgressBar: false,
                           closeOnClick: true,
                           pauseOnHover: true,
@@ -264,7 +276,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
                       }
                       toast.success(`チームからメンバーの削除が完了しました!`, {
                         position: "top-right",
-                        autoClose: 2000,
+                        autoClose: 3000,
                         hideProgressBar: false,
                         closeOnClick: true,
                         pauseOnHover: true,

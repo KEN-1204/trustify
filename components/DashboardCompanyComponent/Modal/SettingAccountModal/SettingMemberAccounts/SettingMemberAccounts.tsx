@@ -158,7 +158,7 @@ const SettingMemberAccountsMemo: FC = () => {
             メンバーアカウント（<span>{userProfileState?.accounts_to_create}</span>）
           </h2>
 
-          <div className="sticky top-0 z-10 mt-[20px] flex min-h-[168px] w-full items-center justify-between overflow-hidden rounded-[8px] bg-[var(--setting-bg-sub)]">
+          <div className="mt-[20px] flex min-h-[168px] w-full items-center justify-between overflow-hidden rounded-[8px] bg-[var(--setting-bg-sub)]">
             {/* <div className="sticky top-0 z-10 mt-[20px] flex min-h-[168px] w-full items-center justify-between overflow-hidden rounded-[8px] bg-[var(--setting-bg-sub)]"> */}
             <div className="flex flex-col space-y-3 p-[24px] pr-[0px]">
               <h4 className="font-bold">チーム全員がデータを残すかどうかが勝負の分かれ目</h4>
@@ -183,10 +183,11 @@ const SettingMemberAccountsMemo: FC = () => {
             </div>
           </div>
 
-          {/* リフレッシュ・並び替えエリア */}
+          {/* リフレッシュ・並び替えエリア mtの20px入れたらtop188px、mt覗くと168px hは43 */}
           {/* <div className="relative z-0 mt-[20px] h-[50px] w-full border-b border-[var()] bg-red-100"></div> */}
           <div
-            className={`sticky top-[168px] z-10 mt-[20px] flex w-full items-center border-b border-solid border-[var(--color-border-deep)] bg-[var(--color-edit-bg-solid)] py-[8px]`}
+            className={`sticky top-[0px] z-10 mt-[10px] flex w-full items-center border-b border-solid border-[var(--color-border-deep)] bg-[var(--color-edit-bg-solid)] py-[8px] pt-[18px]`}
+            // className={`sticky top-[168px] z-10 mt-[20px] flex w-full items-center border-b border-solid border-[var(--color-border-deep)] bg-[var(--color-edit-bg-solid)] py-[8px]`}
           >
             <button
               className={`flex-center transition-base03 relative  h-[26px] min-w-[118px]  cursor-pointer space-x-1  rounded-[4px] border border-solid border-transparent px-[15px] text-[12px] text-[var(--color-text-sub)] hover:border-[var(--color-bg-brand-f)] hover:bg-[var(--setting-bg-sub)] hover:text-[var(--color-text)] ${styles.fh_text_btn}`}
@@ -233,10 +234,11 @@ const SettingMemberAccountsMemo: FC = () => {
             )}
           </div>
 
-          {/* メンバーテーブル */}
+          {/* メンバーテーブル sticky mtありでtop231、なしで211 */}
           <div className="relative z-0 mt-[0px] w-full">
             <div role="grid" className="w-full">
-              <div role="row" className={`${styles.grid_row}`}>
+              <div role="row" className={`${styles.grid_row} sticky top-[53px] z-10 bg-[var(--color-edit-bg-solid)]`}>
+                {/* <div role="row" className={`${styles.grid_row} sticky top-[211px]`}> */}
                 <div role="columnheader" className={styles.column_header}>
                   氏名
                 </div>
