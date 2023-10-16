@@ -383,6 +383,16 @@ export type Subscription = {
   accounts_to_create: number | null;
   number_of_active_subscribed_accounts: number | null;
 };
+export type SubscribedAccount = {
+  id: string;
+  created_at: string;
+  user_id: string | null;
+  company_id: string | null;
+  subscription_id: string | null;
+  company_role: string | null;
+  account_state: string | null;
+  invited_email: string | null;
+};
 export type MemberAccounts = {
   id: string;
   created_at: string;
@@ -417,6 +427,19 @@ export type MemberAccounts = {
   account_created_at: string | null;
   account_company_role: string | null;
   account_state: string | null;
+  account_invited_email: string | null;
+};
+
+export type Invitation = {
+  id: string;
+  created_at: string;
+  updated_at: string | null;
+  to_user_id: string | null;
+  from_user_name: string | null;
+  from_company_name: string | null;
+  from_company_id: string | null;
+  subscribed_account_id: string | null;
+  result: string | null;
 };
 
 export type Contact = {

@@ -1,6 +1,6 @@
 import useStore from "@/store";
 import Head from "next/head";
-import React, { FC, ReactNode, Suspense, useEffect } from "react";
+import React, { FC, ReactNode, Suspense, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { toast } from "react-toastify";
@@ -39,6 +39,8 @@ import { useSubscribeSubscription } from "@/hooks/useSubscribeSubscription";
 import { FirstLoginSettingUserProfileCompanyModal } from "./Modal/FirstLoginSettingUserProfileCompanyModal/FirstLoginSettingUserProfileCompanyModal";
 import { SettingInvitationModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingInvitationModal/SettingInvitationModal";
 import { FirstLoginSettingUserProfileAfterInvitationModal } from "./Modal/FirstLoginSettingUserProfileAfterInvitaionModal/FirstLoginSettingUserProfileAfterInvitaionModal";
+import { Invitation } from "@/types";
+import { InvitationForLoggedInUser } from "./Modal/InvitationForLoggedInUser/InvitationForLoggedInUser";
 
 type Prop = {
   title?: string;
@@ -48,6 +50,9 @@ type Prop = {
 // 各ページをラップして、各ページ毎にCSSクラスやタイトル、ヘッダーなどを柔軟に設定する
 // 各ページのJSXの一番外側に配置
 export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
+  const router = useRouter();
+  const supabase = useSupabaseClient();
+
   const theme = useRootStore(useThemeStore, (state) => state.theme);
   // const theme = useThemeStore((state) => state.theme);
   const setTheme = useThemeStore((state) => state.setTheme);
@@ -56,6 +61,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   const activeMenuTab = useDashboardStore((state) => state.activeMenuTab);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const setProductsState = useDashboardStore((state) => state.setProductsState);
+  // const [loading, setLoading] = useState(false)
   // ユーザープロフィール
 
   // サブスクリプションの契約状態を監視して変更があればリアルタイムにクライアントを自動更新
@@ -76,12 +82,46 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
     userProfileState.first_time_login &&
     userProfileState.subscription_plan !== "free_plan";
 
-  // 招待メールでログインした際に起動
+  // 招待メールでログインした際に起動 新規登録ユーザー向け
   const showFirstLoginSettingUserProfileAfterInvitation =
     !!userProfileState &&
     !userProfileState.is_subscriber &&
     userProfileState.first_time_login &&
     userProfileState.subscription_plan !== "free_plan";
+
+  // 招待メールでログインした際に起動 サインアップ済みユーザー向け invitationsテーブルに自身のユーザーidが存在し、かつresultがpendingの場合に起動
+  // const [invitedState, setInvitedState] = useState(false);
+  const [invitationData, setInvitationData] = useState<Invitation | null>(null);
+  useEffect(() => {
+    if (showSubscriptionPlan) {
+      const getMyInvitation = async () => {
+        console.log("getMyInvitation関数実行 DashboardLayout内のuseEffect");
+        try {
+          const { data, error: invitationError } = await supabase
+            .from("invitations")
+            .select()
+            .eq("to_user_id", userProfileState.id)
+            .eq("result", "pending")
+            .single();
+
+          if (invitationError) {
+            console.log(`dashboardLayout invitationsテーブルのselectエラー`, invitationError);
+            throw new Error(invitationError.message);
+          }
+
+          console.log("招待データを取得 data", data);
+          // setInvitedState(true);
+          setInvitationData(data);
+        } catch (error: any) {
+          console.error(error.message);
+        }
+      };
+
+      getMyInvitation();
+    }
+  }, [showSubscriptionPlan]);
+  // const showInvitationModalForLoggedInUser =
+  //   !!userProfileState && !userProfileState.first_time_login && userProfileState.subscription_plan !== "free_plan" && ;
 
   console.log(
     "DashboardLayout ユーザープロフィール",
@@ -91,11 +131,12 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
     "サブスクプラン",
     userProfileState?.subscription_plan,
     "showFirstLoginSettingUserProfileCompanyModal",
-    showFirstLoginSettingUserProfileCompanyModal
+    showFirstLoginSettingUserProfileCompanyModal,
+    "showSubscriptionPlan",
+    showSubscriptionPlan,
+    "invitationData",
+    invitationData
   );
-
-  const router = useRouter();
-  const supabase = useSupabaseClient();
 
   // テーマカラーチェンジ関数
   const changeTheme = () => {
@@ -234,8 +275,13 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
         {theme === "dark" && <MdOutlineDarkMode className="text-[20px] text-[#fff]" />}
       </div>
 
-      {/* ============================ 初回サブスクプランモーダルコンポーネント ============================ */}
-      {showSubscriptionPlan && <SubscriptionPlanModalForFreeUser />}
+      {/* ============================ 初回サブスクプランモーダルコンポーネント 他チームからの招待無しの場合 ============================ */}
+      {showSubscriptionPlan && !invitationData && <SubscriptionPlanModalForFreeUser />}
+      {/* ============================ 初回サブスクプランモーダルコンポーネント 他チームからの招待有りの場合 ============================ */}
+      {showSubscriptionPlan && invitationData && (
+        <InvitationForLoggedInUser invitationData={invitationData} setInvitationData={setInvitationData} />
+      )}
+
       {/* ============================ 初回サブスクプランモーダルコンポーネント ============================ */}
       {showFirstLoginSettingUserProfileCompanyModal && <FirstLoginSettingUserProfileCompanyModal />}
       {showFirstLoginSettingUserProfileAfterInvitation && <FirstLoginSettingUserProfileAfterInvitationModal />}

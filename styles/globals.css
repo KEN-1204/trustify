@@ -402,6 +402,7 @@
   --color-sub-text: rgba(55, 53, 47, 0.65);
   --color-sub-text-dark: rgba(180, 179, 178, 0.65);
   --color-placeholder-text: #9ca3af;
+  --color-text-title: #37352f;
   /* ブランドカラー　テキスト */
   /* 
   --color-bg-brand ダークモード
@@ -744,6 +745,7 @@
   --color-sub-text-dark: rgba(180, 179, 178, 0.65);
   --color-placeholder-text: #9ca3af;
   --color-placeholder-text-light: #e0e9f9;
+  --color-text-title: #fff;
   /* 
   --color-text-brand
   Figma: #7cc4f8

@@ -65,8 +65,10 @@ const SettingMemberAccountsMemo: FC = () => {
     }
     // // 全メンバーアカウントの数
     // const allAccountsCount = memberAccountsDataArray ? memberAccountsDataArray.length : 0;
-    // アカウントの配列からprofilesのidがnullのアカウントのみをフィルタリング
-    const nullIdAccounts = memberAccountsDataArray.filter((account) => account.id === null);
+    // アカウントの配列からprofilesのidがnull、かつ、invited_emailがnullで招待中でないアカウントのみをフィルタリング
+    const nullIdAccounts = memberAccountsDataArray.filter(
+      (account) => account.id === null && account.account_invited_email === null
+    );
     // idがnullのアカウントの数をカウント
     const nullIdCount = nullIdAccounts ? nullIdAccounts.length : 0;
     // // アカウントの配列からidがnullでないアカウントのみをフィルタリング

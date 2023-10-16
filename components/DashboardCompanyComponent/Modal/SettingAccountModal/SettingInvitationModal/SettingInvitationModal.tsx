@@ -14,6 +14,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { useQueryClient } from "@tanstack/react-query";
+import { SubscribedAccount } from "@/types";
 
 export const SettingInvitationModal = () => {
   const supabase = useSupabaseClient();
@@ -238,16 +239,242 @@ export const SettingInvitationModal = () => {
       }
     };
 
-    // メールが既に登録されているかどうか、そのメールがsubscribed_accountsのuser_idに存在しなければ、subscribed_accountsのuser_idに紐付けのみでUPDATE、
-    // メールが登録されていなければ、inviteしてsupabaseに新たにUsersに新規作成してメールを送る
+    // ============================ 登録済み、サインアップ済みユーザーを招待 ============================
+    const sendInvitationEmailForLoggedInUser = async (email: string, i: number, invitedUserProfileId: string) => {
+      // 入力したemailがprofilesテーブルに存在する場合、
+      // ステップ1 招待する側 Resendで作成したカスタム招待メールを送信し、
+      // ステップ2 招待する側 invitationsテーブルにINSERT、invitationsテーブルには、招待先ユーザーid、紹介元のチーム名、紹介者をセットする
+      // ステップ3 招待する側 未設定のアカウントのcompany_roleをmemberに更新 「招待済み」が表示される状態にsubscribed_accountをUPDATE
+      // ステップ4 招待される側 ユーザーはメールからアクセスして、ログイン時に招待モーダルを表示
+      // ステップ5 招待される側 その招待モーダルで「招待を受ける」ボタンを押下
+      // ステップ6 招待される側 subscribed_accountsテーブルのuser_idにidを紐付けする
+      //
+      // ステップ1 Resendで作成したカスタム招待メールを送信
+      try {
+        const payload = {
+          email: email,
+          handleName: userProfileState?.profile_name,
+          siteUrl: `${process.env.CLIENT_URL ?? `http://localhost:3000`}`,
+        };
+        const { data } = await axios.post(`/api/send/invite-to-team`, payload, {
+          headers: {
+            Authorization: `Bearer ${sessionState.access_token}`,
+          },
+        });
 
-    // 1秒ごとにメールを送信
+        const invitedUserId = invitedUserProfileId;
+        const accountId = notSetAccounts[i]?.subscribed_account_id;
+
+        console.log(
+          "送信したメール",
+          email,
+          "インデックス",
+          i,
+          "axios.post()、resend.emails.send()の返り値: ",
+          data,
+          "招待するユーザーid",
+          invitedUserId,
+          "紐付けするアカウントid",
+          accountId
+        );
+        // return console.log("一旦リターン");
+
+        // ステップ2 invitationsテーブルにINSERT、invitationsテーブルには、招待先ユーザーid、紹介元のチーム名、紹介者をセットする
+        const newInvitation = {
+          to_user_id: invitedUserId,
+          from_user_name: userProfileState?.profile_name ?? "",
+          from_company_name: userProfileState?.customer_name ?? "",
+          from_company_id: userProfileState?.company_id ?? "",
+          subscribed_account_id: accountId,
+          result: "pending",
+        };
+        const { error: invitationError } = await supabase.from("invitations").insert(newInvitation);
+
+        if (invitationError) {
+          console.log(`${email}の招待に失敗しました! ステップ2 invitationsテーブルのinsertエラー: `, invitationError);
+          throw new Error(invitationError.message);
+        }
+
+        // ステップ3 未設定のアカウントのcompany_roleをmemberに更新して、「招待済み」が表示されるようにして、招待したユーザーが招待を受け入れた時に、user_idとユーザーのidを紐付けする
+        const { data: newAccountData, error: accountUpdateError } = await supabase
+          .from("subscribed_accounts")
+          .update({
+            // user_id: invitedUserId,
+            company_role: "company_member",
+            invited_email: email,
+          })
+          .eq("id", accountId)
+          .select();
+
+        if (accountUpdateError) {
+          console.log(
+            `${email}の招待に失敗しました! ステップ3 subscribed_accountsテーブルのcompany_roleのupdateエラー: `,
+            accountUpdateError
+          );
+          throw new Error(accountUpdateError.message);
+        }
+
+        console.log("UPDATEが成功したアカウントデータ", newAccountData);
+
+        // 招待状の送信完了
+        toast.success(`${email}の招待状の送信が完了しました!`, {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        // 成功したメールは空にする
+        const newEmails = [...emailInputs];
+        newEmails[i] = "";
+        setEmailInputs(newEmails);
+      } catch (e: any) {
+        console.error(email, "送信エラー", e, e.message);
+        toast.error(`${email}の送信に失敗しました!`, {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      }
+    };
+
+    // ======================= 1秒ごとにメールを送信
     for (let i = 0; i < emailInputs.length; i++) {
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      await sendInvitationEmail(emailInputs[i], i);
+      try {
+        // profilesテーブルに招待先のユーザーの登録があるか確認 => これでサインアップしているか否かを判別
+        const { data, error } = await supabase.from("profiles").select().eq("email", emailInputs[i]);
+
+        if (error) throw new Error(error.message);
+
+        console.log(
+          "ステップ1 サインアップしているか否かを判別",
+          "profilesテーブルから取得 data",
+          data,
+          "data.length",
+          data.length,
+          "!data.length",
+          !data.length,
+          "!!data.length",
+          !!data.length
+        );
+
+        // 🌟1-1 既にサインアップ済みユーザーへの招待ルート 取得したdataが1個のパターン
+        if (data.length === 1) {
+          const userData = data[0];
+          if (!userData.email) return;
+          // 招待先のユーザーが既にチームに所属しているか否かを判別 => チームに既に所属している場合は自チーム、他チームのパターンでハンドリング
+          // 同一ユーザーがsubscribed_accountsに複数紐付けできるようにする場合はこれは不要、今のところユーザーidに1アカウントの一対一の紐付け
+          const invitedUserProfileId = userData.id;
+          const { data: accountData, error: accountError } = await supabase
+            .from("subscribed_accounts")
+            .select()
+            .eq("user_id", invitedUserProfileId);
+          // const { data: accountData, error: accountError } = await supabase
+          //   .from("subscribed_accounts")
+          //   .select()
+          //   .eq("user_id", invitedUserProfileId)
+          //   .single();
+          if (accountError) throw new Error(accountError.message);
+
+          console.log(
+            "ステップ2 招待先のユーザーが既にチームに所属しているか否かを判別 ",
+            "accountData",
+            accountData,
+            "accountData.length",
+            accountData.length
+          );
+
+          // 2-1 どのチームにも所属していない場合は、招待メールを送信
+          if (accountData.length === 0) {
+            console.log("🌟ステップ3 どのチームにも所属していないため、resendで招待メールを送信");
+            await sendInvitationEmailForLoggedInUser(emailInputs[i], i, invitedUserProfileId);
+            // アカウントと招待ユーザーの紐付け完了後はMemberAccountsキャッシュをリフレッシュ
+            await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
+          }
+          // 2-2 既にチームに所属している場合は、自チーム、他チームそれぞれでハンドリング
+          else if (accountData.length === 1) {
+            // 3-1 自チームの場合
+            if ((accountData[0] as SubscribedAccount).company_id === userProfileState?.company_id) {
+              console.error(`${emailInputs[i]}のユーザーは既に${userProfileState.customer_name}に所属しています。`);
+              toast.error(`${emailInputs[i]}のユーザーは既に${userProfileState.customer_name}に所属しています。`, {
+                position: "top-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+              });
+            }
+            // 3-2 他チームに所属している場合
+            else {
+              console.error(`${emailInputs[i]}のユーザーは既に他チームに所属しているため招待を送信できませんでした。`);
+              toast.error(`${emailInputs[i]}のユーザーは既に他チームに所属しているため招待を送信できませんでした。`, {
+                position: "top-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+              });
+            }
+          }
+          // 2-3 ユーザーが複数のチームに参加している場合
+          else {
+            console.error(`${emailInputs[i]}のユーザーは複数のチームに所属しているため、招待を送信できませんでした。`);
+            toast.error(`${emailInputs[i]}のユーザーは複数のチームに所属しているため、招待を送信できませんでした。`, {
+              position: "top-right",
+              autoClose: 3000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+            });
+          }
+        }
+        // 🌟1-2 まだ未登録ユーザーへの新規登録招待ルート dataの配列内が0個のパターン
+        else if (data.length === 0) {
+          // 入力したemailがprofilesテーブルに存在しない場合、招待＋新規登録のinvitationメールを送信する
+          await sendInvitationEmail(emailInputs[i], i);
+
+          // アカウントと招待ユーザーの紐付け完了後はMemberAccountsキャッシュをリフレッシュ
+          await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
+        }
+        // 🌟1-3 メールアドレスがprofilesテーブルに2個以上存在している場合はエラーを通知
+        else {
+          console.error(`${emailInputs[i]}の登録が存在するため招待状を送信できませんでした。`);
+          toast.error(`${emailInputs[i]}の登録が存在するため招待状を送信できませんでした。`, {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+          });
+        }
+      } catch (error: any) {
+        console.error(`${emailInputs[i]}の招待にエラーが発生しました：${error.message}`);
+        toast.error(`${emailInputs[i]}の招待に失敗しました!`, {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      }
     }
-    // アカウントと招待ユーザーの紐付け完了後はMemberAccountsキャッシュをリフレッシュ
-    await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
 
     // ローディング終了
     setLoading(false);
@@ -288,42 +515,6 @@ export const SettingInvitationModal = () => {
 
     // // map を使って Promise の配列を作成し、それを Promise.all で処理する
     // await Promise.all(emailInputs.map((email) => sendInvitationEmail(email)));
-  };
-  const handleInviteLoggedInUser = async () => {
-    console.log("招待状メールを送信", emailInputs);
-    // ローディングを開始
-    setLoading(true);
-
-    // メールが既に登録されているかどうか、そのメールがsubscribed_accountsのuser_idに存在しなければ、subscribed_accountsのuser_idに紐付けのみでUPDATE、
-    // メールが登録されていなければ、inviteしてsupabaseに新たにUsersに新規作成してメールを送る
-    const sendInvitationEmailForLoggedInUser = async (email: string, i: number) => {
-      try {
-        // profilesテーブルに招待先のユーザーの登録があるか確認 => これでサインアップしているか否かを判別
-        const { data, error } = await supabase.from("profiles").select().eq("email", email).single();
-        // profilesテーブルにデータがあれば、次はその招待先のユーザーのidがsubscribed_accountsテーブルに存在するか否かを確認 => これで、既にチームに所属しているか否かを判別
-
-        if (error) throw new Error(error.message);
-
-        // 既にサインアップ済み、メールを送り、invitationsテーブルに招待先のユーザーのidをuser_idにセットし、ログイン時にポップアップを表示するルート
-        // invitationsテーブルには、招待先ユーザーid、紹介元のチーム名、紹介者をセットする
-        if (data && data.email) {
-        }
-        // まだ未登録、新規登録で招待のルート
-        else {
-        }
-      } catch (error) {}
-    };
-
-    // 1秒ごとにメールを送信
-    for (let i = 0; i < emailInputs.length; i++) {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      await sendInvitationEmailForLoggedInUser(emailInputs[i], i);
-    }
-    // アカウントと招待ユーザーの紐付け完了後はMemberAccountsキャッシュをリフレッシュ
-    await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
-
-    // ローディング終了
-    setLoading(false);
   };
 
   //   useEffect(() => {
@@ -405,7 +596,6 @@ export const SettingInvitationModal = () => {
                     if (notSetAccounts.length === 0) return setOverState(true);
 
                     // テスト 入力したメールが既にサインアップ済みのユーザーだった場合の確認
-                    handleInviteLoggedInUser();
                   }}
                 >
                   <p className="flex items-center space-x-3">

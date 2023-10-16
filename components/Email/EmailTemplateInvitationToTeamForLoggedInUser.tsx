@@ -13,49 +13,62 @@ export const EmailTemplateInvitationToTeamForLoggedInUser: React.FC<Readonly<Ema
   // confirmationUrl,
   siteUrl,
 }) => (
-  <div className={`mx-auto my-0 h-auto w-full max-w-[600px] px-[30px] py-0`}>
-    <h1 className={`mt-[40px] font-[28px] text-[#37352f]`}>
+  <div style={{ width: "100%", height: "auto", padding: "0 30px", maxWidth: "600px", margin: "0 auto" }}>
+    <h1 style={{ color: "#37352f", fontSize: "28px", marginTop: "40px" }}>
       {handleName}さんは、あなたがTRUSTiFYのチームに参加するのを待っています
     </h1>
 
-    <p className={`mt-[30px] text-[17px] leading-[150%] text-[#37352f]`}>こんにちは。</p>
+    <p style={{ color: "#37352f", lineHeight: "150%", fontSize: "17px", marginTop: "30px" }}>こんにちは。</p>
 
-    <p className={`mb-[30px] mt-[20px] text-[17px] leading-[150%] text-[#37352f]`}>
+    <p style={{ color: "#37352f", lineHeight: "150%", fontSize: "17px", marginTop: "20px", marginBottom: "30px" }}>
       {handleName}
       さんがあなたをメンバーとしてTRUSTiFYのチームに参加するよう招待しています。招待を受け入れて、チームに参加しましょう。
     </p>
-
-    <a href={siteUrl} className="no-underline">
+    <a href={siteUrl} style={{ textDecoration: "none" }}>
       <div
-        className={`inline-block cursor-pointer rounded-[8px] bg-[#0d99ff] px-[20px] py-[16px] text-[18px] font-bold leading-[1] text-[#fff]`}
+        style={{
+          cursor: "pointer",
+          backgroundColor: "#0d99ff",
+          color: "#ffffff",
+          fontSize: "18px",
+          fontWeight: 700,
+          borderRadius: "8px",
+          padding: "16px 20px",
+          display: "inline-block",
+          lineHeight: 1,
+        }}
       >
         招待を受ける
       </div>
     </a>
 
     {/* <br /> */}
-    <hr className={`mb-[30px] mt-[65px] text-[#37352fa6]`}></hr>
+    <hr style={{ color: "#37352fa6", marginTop: "65px", marginBottom: "30px" }}></hr>
 
-    <p className={`mb-[40px] text-[14px] leading-[150%] text-[#37352fa6]`}>
+    <p style={{ color: "#37352fa6", marginBottom: "40px", lineHeight: "150%", fontSize: "14px" }}>
       このメールは、TRUSTiFYユーザーを代表してお客様にお送りしています。誤って送信されたと思われる場合は報告してください。
     </p>
 
-    <h3 className={`mb-[8px] flex items-center`}>
-      <Image
-        height={50}
-        width={50}
+    <h3 style={{ marginBottom: "8px", display: "flex", alignItems: "center" }}>
+      <img
+        height="50"
+        width="50"
         alt="logo"
         src="https://pmmazevauhmntblygzcx.supabase.co/storage/v1/object/public/company_logos/Trustify_Logo_icon%20bg-white@0.5x.png"
       />
-      <span className={`ml-[3px] mt-[25px] text-[20px] font-[700] text-[#37352f]`}> TRUSTiFYチームより</span>
+      <span style={{ fontWeight: 700, fontSize: "20px", marginLeft: "3px", marginTop: "25px", color: "#37352f" }}>
+        {" "}
+        TRUSTiFYチームより
+      </span>
     </h3>
 
-    <p className={`mt-0 text-[15px] leading-[190%]`}>
+    {/* <p className={`mt-0 text-[15px] leading-[190%]`}> */}
+    <p style={{ lineHeight: "190%", marginTop: "0", fontSize: "15px" }}>
       <a href={siteUrl}>TRUSTiFY</a>
-      <span className={`text-[#37352fd9]`}>は全ての企業の営業と開発を強化し</span>
+      <span style={{ color: "#37352fd9" }}>は全ての企業の営業と開発を強化し</span>
       <br />
-      <strong className={`text-[#37352f]`}>「最小の資本と人で最大の経済効果を上げる」</strong>
-      <span className={`text-[#37352fd9]`}>ためのデータベースです。</span>
+      <strong style={{ color: "#37352f" }}>「最小の資本と人で最大の経済効果を上げる」</strong>
+      <span style={{ color: "#37352fd9" }}>ためのデータベースです。</span>
     </p>
   </div>
 );

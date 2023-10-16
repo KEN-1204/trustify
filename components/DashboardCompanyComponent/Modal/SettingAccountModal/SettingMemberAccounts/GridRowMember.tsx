@@ -11,6 +11,8 @@ import { BsCheck2, BsChevronDown } from "react-icons/bs";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { toast } from "react-toastify";
 import { useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
+import useStore from "@/store";
 
 // type Props = {
 //   id: string;
@@ -32,6 +34,10 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   // 招待メールモーダル
   const setIsOpenSettingInvitationModal = useDashboardStore((state) => state.setIsOpenSettingInvitationModal);
+  // ログイン中のユーザープロフィール
+  const userProfileState = useDashboardStore((state) => state.userProfileState);
+  // ログイン中のユーザーのセッション情報
+  const sessionState = useStore((state) => state.sessionState);
   // チェックボックス
   // const [checked, setChecked] = useState(false);
   // チームロールポップアップ
@@ -130,11 +136,111 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
     });
   };
 
+  // 招待を再送信する
+  const resendInvitationEmail = async () => {
+    setLoadingGlobalState(true);
+    try {
+      const payload = {
+        email: memberAccount.account_invited_email,
+        handleName: userProfileState?.profile_name,
+        siteUrl: `${process.env.CLIENT_URL ?? `http://localhost:3000`}`,
+      };
+      const { data } = await axios.post(`/api/send/invite-to-team`, payload, {
+        headers: {
+          Authorization: `Bearer ${sessionState.access_token}`,
+        },
+      });
+      // 招待状の送信完了
+      toast.success(`${memberAccount.account_invited_email}の招待の送信が完了しました!`, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    } catch (error: any) {
+      console.error(`${memberAccount.account_invited_email}の招待にエラーが発生しました：${error.message}`);
+      toast.error(`${memberAccount.account_invited_email}の招待に失敗しました!`, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    }
+    setLoadingGlobalState(false);
+  };
+
+  // 招待をキャンセルする
+  const cancelInvitation = async () => {
+    setLoadingGlobalState(true);
+    // Invitationsテーブルのsubscribed_account_idカラムとfrom_company_idカラムに一致するinvitationデータをキャンセル
+    // resultがpendingのみ条件で絞る
+    try {
+      // invitationをキャンセル
+      const { error } = await supabase
+        .from("invitations")
+        .update({
+          result: "canceled",
+        })
+        .eq("result", "pending")
+        .eq("from_company_id", userProfileState?.company_id);
+
+      if (error) {
+        console.log(`招待キャンセル invitationsテーブルへのupdateでエラー`, error.message);
+        throw new Error(error.message);
+      }
+      // アカウントのinvited_emailを削除、NULLに更新
+      const { error: accountError } = await supabase
+        .from("subscribed_accounts")
+        .update({
+          account_company_role: null,
+          invited_email: null,
+        })
+        .eq("id", memberAccount.subscribed_account_id);
+
+      if (accountError) {
+        console.log(`招待キャンセル subscribed_accountsテーブルへのupdateでエラー`, accountError.message);
+        throw new Error(accountError.message);
+      }
+
+      toast.success(`${memberAccount.account_invited_email}の招待キャンセルが完了しました!`, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+      // 招待キャンセル完了後はMemberAccountsキャッシュをリフレッシュ
+      await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
+    } catch (error: any) {
+      console.error(`招待キャンセルでエラー`, error);
+      toast.error(`${memberAccount.account_invited_email}の招待キャンセルに失敗しました!`, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    }
+    setLoadingGlobalState(false);
+  };
+
   console.log("🌟memberAccount", memberAccount, "memberAccount.avatar_url", memberAccount.avatar_url);
+
   return (
     <>
       <div role="row" className={`${styles.grid_row}`}>
         <div role="gridcell" className={`${styles.grid_cell} flex items-center`}>
+          {/* アバターアイコン画像 */}
           {!avatarUrl && memberAccount.id && memberAccount.profile_name && (
             <div
               className={`flex-center h-[40px] w-[40px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip} mr-[15px]`}
@@ -176,16 +282,26 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
               />
             </div>
           )}
+          {/* 氏名 */}
           {!memberAccount.account_company_role && (
             <span>{memberAccount.profile_name ? memberAccount.profile_name : "メンバー未設定"}</span>
           )}
           {memberAccount.account_company_role && (
-            <span>{memberAccount.profile_name ? memberAccount.profile_name : "招待済み"}</span>
+            <span className={`${!memberAccount.profile_name ? `text-[var(--color-text-sub)]` : ``}`}>
+              {memberAccount.profile_name ? memberAccount.profile_name : "招待済み"}
+            </span>
           )}
         </div>
-        <div role="gridcell" className={styles.grid_cell}>
-          {memberAccount.email ? memberAccount.email : ""}
+        {/* メールアドレス */}
+        <div
+          role="gridcell"
+          className={`${styles.grid_cell} ${
+            !memberAccount.email && memberAccount.account_invited_email ? `text-[var(--color-text-sub)]` : ``
+          }`}
+        >
+          {memberAccount.email ? memberAccount.email : memberAccount.account_invited_email ?? ""}
         </div>
+        {/* チームでの役割 */}
         <div role="gridcell" className={`${styles.grid_cell} relative`}>
           <div
             className={`flex items-center ${
@@ -213,7 +329,8 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
                 onClick={() => setIsOpenRoleMenu(false)}
               ></div>
 
-              <div className="shadow-all-md absolute left-[0px] top-[60px] z-[100] h-[152px] w-[180px] rounded-[8px] bg-[var(--color-edit-bg-solid)]">
+              {/* 通常時 h-[152px] 招待中時 */}
+              <div className="shadow-all-md absolute left-[0px] top-[60px] z-[100] h-auto w-[180px] rounded-[8px] bg-[var(--color-edit-bg-solid)]">
                 <ul className={`flex flex-col py-[8px]`}>
                   <li
                     className={`flex h-[40px] w-full cursor-pointer items-center justify-between px-[14px] py-[6px] pr-[18px] hover:bg-[var(--color-bg-sub)]`}
@@ -248,23 +365,34 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
                   <li className="flex-center h-[16px] w-full">
                     <hr className="w-full border-t border-solid border-[var(--color-border-table)]" />
                   </li>
-                  <li
-                    className={`flex h-[40px] w-full cursor-pointer items-center px-[14px] py-[6px] hover:bg-[var(--color-bg-sub)]`}
-                    onClick={async () => {
-                      setLoadingGlobalState(true);
-                      // subscribed_accountsのuser_idカラムをnullにして契約アカウントとの紐付けを解除する
-                      const { data: newAccountData, error: accountUpdateError } = await supabase
-                        .from("subscribed_accounts")
-                        .update({
-                          user_id: null,
-                          company_role: null,
-                        })
-                        .eq("id", memberAccount.subscribed_account_id)
-                        .select();
+                  {!memberAccount.account_invited_email && (
+                    <li
+                      className={`flex h-[40px] w-full cursor-pointer items-center px-[14px] py-[6px] hover:bg-[var(--color-bg-sub)]`}
+                      onClick={async () => {
+                        setLoadingGlobalState(true);
+                        // subscribed_accountsのuser_idカラムをnullにして契約アカウントとの紐付けを解除する
+                        const { data: newAccountData, error: accountUpdateError } = await supabase
+                          .from("subscribed_accounts")
+                          .update({
+                            user_id: null,
+                            company_role: null,
+                          })
+                          .eq("id", memberAccount.subscribed_account_id)
+                          .select();
 
-                      if (accountUpdateError) {
-                        console.log("アカウントのuser_idの解除に失敗", accountUpdateError);
-                        toast.error(`チームからメンバーの削除に失敗しました!`, {
+                        if (accountUpdateError) {
+                          console.log("アカウントのuser_idの解除に失敗", accountUpdateError);
+                          toast.error(`チームからメンバーの削除に失敗しました!`, {
+                            position: "top-right",
+                            autoClose: 3000,
+                            hideProgressBar: false,
+                            closeOnClick: true,
+                            pauseOnHover: true,
+                            draggable: true,
+                            progress: undefined,
+                          });
+                        }
+                        toast.success(`チームからメンバーの削除が完了しました!`, {
                           position: "top-right",
                           autoClose: 3000,
                           hideProgressBar: false,
@@ -273,35 +401,45 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
                           draggable: true,
                           progress: undefined,
                         });
-                      }
-                      toast.success(`チームからメンバーの削除が完了しました!`, {
-                        position: "top-right",
-                        autoClose: 3000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: true,
-                        draggable: true,
-                        progress: undefined,
-                      });
-                      console.log("UPDATEが成功したアカウントデータ", newAccountData);
+                        console.log("UPDATEが成功したアカウントデータ", newAccountData);
 
-                      // アカウントとユーザーの紐付け解除完了後はMemberAccountsキャッシュをリフレッシュ
-                      await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
+                        // アカウントとユーザーの紐付け解除完了後はMemberAccountsキャッシュをリフレッシュ
+                        await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
 
-                      setLoadingGlobalState(false);
+                        setLoadingGlobalState(false);
 
-                      setIsOpenRoleMenu(false);
-                    }}
-                  >
-                    <span className="select-none">チームから削除</span>
-                  </li>
+                        setIsOpenRoleMenu(false);
+                      }}
+                    >
+                      <span className="select-none">チームから削除</span>
+                    </li>
+                  )}
+                  {memberAccount.account_invited_email && (
+                    <li
+                      className={`flex h-[40px] w-full cursor-pointer items-center px-[14px] py-[6px] hover:bg-[var(--color-bg-sub)]`}
+                      onClick={resendInvitationEmail}
+                    >
+                      <span className="select-none">招待を再送信する</span>
+                    </li>
+                  )}
+                  {memberAccount.account_invited_email && (
+                    <li
+                      className={`flex h-[40px] w-full cursor-pointer items-center px-[14px] py-[6px] hover:bg-[var(--color-bg-sub)]`}
+                      onClick={cancelInvitation}
+                    >
+                      <span className="select-none">招待をキャンセル</span>
+                    </li>
+                  )}
                 </ul>
               </div>
             </>
           )}
         </div>
+        {/* ==================== チームでの役割メニューポップアップ ここまで ==================== */}
+
+        {/* チェックボックスと招待ボタン */}
         <div role="gridcell" className={styles.grid_cell}>
-          {memberAccount.id ? (
+          {memberAccount.account_company_role ? (
             <div className={`${styles.grid_select_cell_header}`}>
               <input
                 type="checkbox"
