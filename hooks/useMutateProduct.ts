@@ -35,7 +35,7 @@ export const useMutateProduct = () => {
           setIsOpenInsertNewProductModal(false);
           toast.success("製品の追加に完了しました!", {
             position: "top-right",
-            autoClose: 2000,
+            autoClose: 3000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,

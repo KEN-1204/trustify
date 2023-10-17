@@ -351,6 +351,7 @@ export type UserProfileCompanySubscription = {
   customer_budget_request_month1: string | null;
   customer_budget_request_month2: string | null;
   customer_website_url: string | null;
+  subscribed_account_id: string | null;
   account_created_at: string | null;
   account_company_role: string | null;
   account_state: string | null;

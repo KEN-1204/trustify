@@ -22,6 +22,8 @@ import { Fallback } from "@/components/Fallback/Fallback";
 import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import { SettingPaymentAndPlan } from "./SettingPaymentAndPlan/SettingPaymentAndPlan";
 import { SettingMemberAccounts } from "./SettingMemberAccounts/SettingMemberAccounts";
+import { HiOutlineBuildingOffice2 } from "react-icons/hi2";
+import { SettingCompany } from "./SettingCompany/SettingCompany";
 
 export const SettingAccountModal = () => {
   const theme = useThemeStore((state) => state.theme);
@@ -77,7 +79,7 @@ export const SettingAccountModal = () => {
   const [editedPurposeOfUse, setEditedPurposeOfUse] = useState("");
 
   const supabase = useSupabaseClient();
-  const { createActivityMutation } = useMutateActivity();
+  // const { createActivityMutation } = useMutateActivity();
   const { useMutateUploadAvatarImg, useMutateDeleteAvatarImg } = useUploadAvatarImg();
   const { fullUrl: avatarUrl, isLoading } = useDownloadUrl(userProfileState?.avatar_url, "avatars");
 
@@ -201,7 +203,25 @@ export const SettingAccountModal = () => {
   // 頭文字のみ抽出
   const getInitial = (name: string) => name[0];
 
-  console.log("userProfileState", userProfileState);
+  // company_roll：所有者(契約者)、管理者、マネージャー、メンバー、ゲスト
+  const getCompanyRole = (company_role: string | null) => {
+    switch (company_role) {
+      case "company_admin":
+        return "管理者";
+        break;
+      case "company_manager":
+        return "マネージャー";
+      case "company_member":
+        return "メンバー";
+      case "guest":
+        return "ゲスト";
+      default:
+        return "未設定";
+        break;
+    }
+  };
+
+  console.log("SettingAccountModal userProfileState", userProfileState);
 
   return (
     <>
@@ -227,7 +247,7 @@ export const SettingAccountModal = () => {
         <div className={`${styles.main_contents_container}`}>
           <div className={`${styles.left_container} h-full w-3/12 `}>
             <div className={`mb-[10px] truncate px-[10px] pb-[6px] pt-0`}>
-              <div className={`w-full text-[14px] font-bold`}>アカウント設定</div>
+              <div className={`w-full ${styles.section_title}`}>アカウント設定</div>
             </div>
             <div className={`mb-[12px] flex h-[44px] w-full items-center truncate pl-[4px]`}>
               {/* <div
@@ -291,6 +311,22 @@ export const SettingAccountModal = () => {
             </div>
             <div
               className={`rounded-[4px]] mb-[3px] flex h-[40px] w-full cursor-pointer items-center truncate rounded-[4px] px-[10px] py-[6px] font-bold hover:bg-[var(--setting-side-bg-select)] ${
+                selectedSettingAccountMenu === "Company" ? `bg-[var(--setting-side-bg-select)]` : ``
+              }`}
+              onClick={() => {
+                if (userProfileState?.account_company_role !== "company_admin") {
+                  return alert("管理者権限を持つユーザーのみアクセス可能です");
+                }
+                setSelectedSettingAccountMenu("Company");
+              }}
+            >
+              <div className="flex-center mr-[15px] h-[24px] w-[24px]">
+                <HiOutlineBuildingOffice2 className="text-[22px]" />
+              </div>
+              <span>会社・チーム</span>
+            </div>
+            <div
+              className={`rounded-[4px]] mb-[3px] flex h-[40px] w-full cursor-pointer items-center truncate rounded-[4px] px-[10px] py-[6px] font-bold hover:bg-[var(--setting-side-bg-select)] ${
                 selectedSettingAccountMenu === "Member" ? `bg-[var(--setting-side-bg-select)]` : ``
               }`}
               onClick={() => {
@@ -319,7 +355,24 @@ export const SettingAccountModal = () => {
               className={`rounded-[4px]] mb-[3px] flex h-[40px] w-full cursor-pointer items-center truncate rounded-[4px] px-[10px] py-[6px] font-bold hover:bg-[var(--setting-side-bg-select)] ${
                 selectedSettingAccountMenu === "Products" ? `bg-[var(--setting-side-bg-select)]` : ``
               }`}
-              onClick={() => setSelectedSettingAccountMenu("Products")}
+              onClick={() => {
+                if (
+                  userProfileState?.account_company_role === "company_member" ||
+                  userProfileState?.account_company_role === "guest"
+                ) {
+                  return alert("マネージャー以上の権限を持つユーザーのみアクセス可能です");
+                  // toast.error(`管理者権限を持つユーザーのみアクセス可能です`, {
+                  //   position: "top-right",
+                  //   autoClose: 2000,
+                  //   hideProgressBar: false,
+                  //   closeOnClick: true,
+                  //   pauseOnHover: true,
+                  //   draggable: true,
+                  //   progress: undefined,
+                  // });
+                }
+                setSelectedSettingAccountMenu("Products");
+              }}
             >
               <div className="flex-center mr-[15px] h-[24px] w-[24px]">
                 <IoSettingsOutline className="text-[22px]" />
@@ -330,7 +383,21 @@ export const SettingAccountModal = () => {
               className={`rounded-[4px]] mb-[3px] flex h-[40px] w-full cursor-pointer items-center truncate rounded-[4px] px-[10px] py-[6px] font-bold hover:bg-[var(--setting-side-bg-select)] ${
                 selectedSettingAccountMenu === "PaymentAndPlan" ? `bg-[var(--setting-side-bg-select)]` : ``
               }`}
-              onClick={() => setSelectedSettingAccountMenu("PaymentAndPlan")}
+              onClick={() => {
+                if (userProfileState?.account_company_role !== "company_admin") {
+                  return alert("管理者権限を持つユーザーのみアクセス可能です");
+                  // toast.error(`管理者権限を持つユーザーのみアクセス可能です`, {
+                  //   position: "top-right",
+                  //   autoClose: 2000,
+                  //   hideProgressBar: false,
+                  //   closeOnClick: true,
+                  //   pauseOnHover: true,
+                  //   draggable: true,
+                  //   progress: undefined,
+                  // });
+                }
+                setSelectedSettingAccountMenu("PaymentAndPlan");
+              }}
             >
               <div className="flex-center mr-[15px] h-[24px] w-[24px]">
                 <MdOutlinePayment className="text-[22px]" />
@@ -346,7 +413,7 @@ export const SettingAccountModal = () => {
                 <div className={`text-[18px] font-bold`}>プロフィール</div>
 
                 <div className={`mt-[30px] flex min-h-[120px] w-full flex-col `}>
-                  <div className={`text-[14px] font-bold`}>プロフィール画像</div>
+                  <div className={`${styles.section_title}`}>プロフィール画像</div>
                   <div className={`flex h-full w-full items-center justify-between`}>
                     <div className="">
                       {!avatarUrl && (
@@ -384,7 +451,7 @@ export const SettingAccountModal = () => {
                     <div className="flex">
                       {avatarUrl && (
                         <div
-                          className={`transition-base01 mr-[10px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                          className={`transition-base01 mr-[10px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                           onClick={async () => {
                             if (!userProfileState?.id) return alert("ユーザーIDが見つかりません");
                             if (!userProfileState?.avatar_url) return alert("プロフィール画像が見つかりません");
@@ -397,7 +464,7 @@ export const SettingAccountModal = () => {
 
                       <label htmlFor="avatar">
                         <div
-                          className={`transition-base01 flex-center max-h-[41px] max-w-[120px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                          className={`transition-base01 flex-center max-h-[41px] max-w-[120px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                           onClick={() => {
                             // setLoading(true);
                           }}
@@ -424,15 +491,15 @@ export const SettingAccountModal = () => {
 
                 {/* 名前 */}
                 <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
-                  <div className={`text-[14px] font-bold`}>名前</div>
+                  <div className={`${styles.section_title}`}>名前</div>
                   {!editNameMode && (
                     <div className={`flex h-full w-full items-center justify-between`}>
-                      <div className="text-[16px] font-semibold">
+                      <div className={`${styles.section_value}`}>
                         {userProfileState?.profile_name ? userProfileState?.profile_name : "未設定"}
                       </div>
                       <div>
                         <div
-                          className={`transition-base01 min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                          className={`transition-base01 min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                           onClick={() => {
                             setEditedName(userProfileState?.profile_name ? userProfileState.profile_name : "");
                             setEditNameMode(true);
@@ -458,7 +525,7 @@ export const SettingAccountModal = () => {
                       />
                       <div className="flex">
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                           onClick={() => {
                             setEditedName("");
                             setEditNameMode(false);
@@ -467,7 +534,7 @@ export const SettingAccountModal = () => {
                           キャンセル
                         </div>
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center text-[14px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                           onClick={async () => {
                             if (editedName === "") {
                               alert("有効な名前を入力してください");
@@ -536,15 +603,15 @@ export const SettingAccountModal = () => {
 
                 {/* Email */}
                 <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
-                  <div className={`text-[14px] font-bold`}>Email</div>
+                  <div className={`${styles.section_title}`}>Email</div>
                   {!editEmailMode && (
                     <div className={`flex h-full w-full items-center justify-between`}>
-                      <div className="text-[16px] font-semibold">
+                      <div className={`${styles.section_value}`}>
                         {userProfileState?.email ? userProfileState.email : "未設定"}
                       </div>
                       <div>
                         <div
-                          className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                          className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                           onClick={() => {
                             setEditedEmail(userProfileState?.email ? userProfileState.email : "");
                             setEditEmailMode(true);
@@ -569,7 +636,7 @@ export const SettingAccountModal = () => {
                       />
                       <div className="flex">
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                           onClick={() => {
                             setEditedEmail("");
                             setEditEmailMode(false);
@@ -578,7 +645,7 @@ export const SettingAccountModal = () => {
                           キャンセル
                         </div>
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center text-[14px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                           onClick={async () => {
                             if (editedEmail === "") {
                               alert("有効なメールを入力してください");
@@ -645,15 +712,15 @@ export const SettingAccountModal = () => {
 
                 {/* 電話番号 */}
                 <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
-                  <div className={`text-[14px] font-bold`}>電話番号</div>
+                  <div className={`${styles.section_title}`}>電話番号</div>
                   {!editTELMode && (
                     <div className={`flex h-full w-full items-center justify-between`}>
-                      <div className="text-[16px] font-semibold">
+                      <div className={`${styles.section_value}`}>
                         {userProfileState?.direct_line ? userProfileState.direct_line : "未設定"}
                       </div>
                       <div>
                         <div
-                          className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                          className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                           onClick={() => {
                             setEditedTEL(userProfileState?.direct_line ? userProfileState.direct_line : "");
                             setEditTELMode(true);
@@ -678,7 +745,7 @@ export const SettingAccountModal = () => {
                       />
                       <div className="flex">
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                           onClick={() => {
                             setEditedTEL("");
                             setEditTELMode(false);
@@ -687,7 +754,7 @@ export const SettingAccountModal = () => {
                           キャンセル
                         </div>
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center text-[14px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                           onClick={async () => {
                             if (editedTEL === "") {
                               alert("有効な電話番号を入力してください");
@@ -754,15 +821,15 @@ export const SettingAccountModal = () => {
 
                 {/* 部署 */}
                 <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
-                  <div className={`text-[14px] font-bold`}>部署</div>
+                  <div className={`${styles.section_title}`}>部署</div>
                   {!editDepartmentMode && (
                     <div className={`flex h-full w-full items-center justify-between`}>
-                      <div className="text-[16px] font-semibold">
+                      <div className={`${styles.section_value}`}>
                         {userProfileState?.department ? userProfileState.department : "未設定"}
                       </div>
                       <div>
                         <div
-                          className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                          className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                           onClick={() => {
                             setEditedDepartment(userProfileState?.department ? userProfileState.department : "");
                             setEditDepartmentMode(true);
@@ -787,7 +854,7 @@ export const SettingAccountModal = () => {
                       />
                       <div className="flex">
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                           onClick={() => {
                             setEditedDepartment("");
                             setEditDepartmentMode(false);
@@ -796,7 +863,7 @@ export const SettingAccountModal = () => {
                           キャンセル
                         </div>
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center text-[14px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                           onClick={async () => {
                             if (editedDepartment === "") {
                               alert("有効な部署を入力してください");
@@ -863,15 +930,15 @@ export const SettingAccountModal = () => {
 
                 {/* 係・チーム */}
                 <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
-                  <div className={`text-[14px] font-bold`}>係・チーム</div>
+                  <div className={`${styles.section_title}`}>係・チーム</div>
                   {!editUnitMode && (
                     <div className={`flex h-full w-full items-center justify-between`}>
-                      <div className="text-[16px] font-semibold">
+                      <div className={`${styles.section_value}`}>
                         {userProfileState?.unit ? userProfileState.unit : "未設定"}
                       </div>
                       <div>
                         <div
-                          className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                          className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                           onClick={() => {
                             setEditedUnit(userProfileState?.unit ? userProfileState.unit : "");
                             setEditUnitMode(true);
@@ -896,7 +963,7 @@ export const SettingAccountModal = () => {
                       />
                       <div className="flex">
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                           onClick={() => {
                             setEditedUnit("");
                             setEditUnitMode(false);
@@ -905,7 +972,7 @@ export const SettingAccountModal = () => {
                           キャンセル
                         </div>
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center text-[14px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                           onClick={async () => {
                             if (editedUnit === "") {
                               alert("有効な係・チームを入力してください");
@@ -972,15 +1039,15 @@ export const SettingAccountModal = () => {
 
                 {/* 職種 */}
                 <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
-                  <div className={`text-[14px] font-bold`}>職種</div>
+                  <div className={`${styles.section_title}`}>職種</div>
                   {!editOccupationMode && (
                     <div className={`flex h-full w-full items-center justify-between`}>
-                      <div className="text-[16px] font-semibold">
+                      <div className={`${styles.section_value}`}>
                         {userProfileState?.occupation ? userProfileState.occupation : "未設定"}
                       </div>
                       <div>
                         <div
-                          className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                          className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                           onClick={() => {
                             setEditedOccupation(
                               userProfileState?.occupation ? userProfileState.occupation : "経営者/CEO"
@@ -1027,7 +1094,7 @@ export const SettingAccountModal = () => {
                       </select>
                       <div className="flex">
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                           onClick={() => {
                             setEditedOccupation("");
                             setEditOccupationMode(false);
@@ -1036,7 +1103,7 @@ export const SettingAccountModal = () => {
                           キャンセル
                         </div>
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center text-[14px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                           onClick={async () => {
                             if (editedOccupation === "") {
                               alert("有効な職種を入力してください");
@@ -1107,15 +1174,15 @@ export const SettingAccountModal = () => {
 
                 {/* 役職クラス */}
                 <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
-                  <div className={`text-[14px] font-bold`}>役職クラス</div>
+                  <div className={`${styles.section_title}`}>役職クラス</div>
                   {!editPositionClassMode && (
                     <div className={`flex h-full w-full items-center justify-between`}>
-                      <div className="text-[16px] font-semibold">
+                      <div className={`${styles.section_value}`}>
                         {userProfileState?.position_class ? userProfileState.position_class : "未設定"}
                       </div>
                       <div>
                         <div
-                          className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                          className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                           onClick={() => {
                             setEditedPositionClass(
                               userProfileState?.position_class ? userProfileState.position_class : "1 代表者"
@@ -1156,7 +1223,7 @@ export const SettingAccountModal = () => {
                       </select>
                       <div className="flex">
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                           onClick={() => {
                             setEditedPositionClass("");
                             setEditPositionClassMode(false);
@@ -1165,7 +1232,7 @@ export const SettingAccountModal = () => {
                           キャンセル
                         </div>
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center text-[14px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                           onClick={async () => {
                             if (editedPositionClass === "") {
                               alert("有効な役職クラスを入力してください");
@@ -1236,15 +1303,15 @@ export const SettingAccountModal = () => {
 
                 {/* 役職名 */}
                 <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
-                  <div className={`text-[14px] font-bold`}>役職名</div>
+                  <div className={`${styles.section_title}`}>役職名</div>
                   {!editPositionNameMode && (
                     <div className={`flex h-full w-full items-center justify-between`}>
-                      <div className="text-[16px] font-semibold">
+                      <div className={`${styles.section_value}`}>
                         {userProfileState?.position_name ? userProfileState.position_name : "未設定"}
                       </div>
                       <div>
                         <div
-                          className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                          className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                           onClick={() => {
                             setEditedPositionName(
                               userProfileState?.position_name ? userProfileState.position_name : ""
@@ -1271,7 +1338,7 @@ export const SettingAccountModal = () => {
                       />
                       <div className="flex">
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                           onClick={() => {
                             setEditedPositionName("");
                             setEditPositionNameMode(false);
@@ -1280,7 +1347,7 @@ export const SettingAccountModal = () => {
                           キャンセル
                         </div>
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center text-[14px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                           onClick={async () => {
                             if (editedPositionName === "") {
                               alert("有効な役職名を入力してください");
@@ -1347,15 +1414,15 @@ export const SettingAccountModal = () => {
 
                 {/* 所属事業所・営業所 */}
                 <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
-                  <div className={`text-[14px] font-bold`}>所属事業所・営業所</div>
+                  <div className={`${styles.section_title}`}>所属事業所・営業所</div>
                   {!editOfficeMode && (
                     <div className={`flex h-full w-full items-center justify-between`}>
-                      <div className="text-[16px] font-semibold">
+                      <div className={`${styles.section_value}`}>
                         {userProfileState?.office ? userProfileState.office : "未設定"}
                       </div>
                       <div>
                         <div
-                          className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                          className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                           onClick={() => {
                             setEditedOffice(userProfileState?.office ? userProfileState.office : "");
                             setEditOfficeMode(true);
@@ -1380,7 +1447,7 @@ export const SettingAccountModal = () => {
                       />
                       <div className="flex">
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                           onClick={() => {
                             setEditedOffice("");
                             setEditOfficeMode(false);
@@ -1389,7 +1456,7 @@ export const SettingAccountModal = () => {
                           キャンセル
                         </div>
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center text-[14px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                           onClick={async () => {
                             if (editedOffice === "") {
                               alert("有効な所属事業所・営業所を入力してください");
@@ -1456,15 +1523,15 @@ export const SettingAccountModal = () => {
 
                 {/* 社員番号・ID */}
                 <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
-                  <div className={`text-[14px] font-bold`}>社員番号・ID</div>
+                  <div className={`${styles.section_title}`}>社員番号・ID</div>
                   {!editEmployeeIdMode && (
                     <div className={`flex h-full w-full items-center justify-between`}>
-                      <div className="text-[16px] font-semibold">
+                      <div className={`${styles.section_value}`}>
                         {userProfileState?.employee_id ? userProfileState.employee_id : "未設定"}
                       </div>
                       <div>
                         <div
-                          className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                          className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                           onClick={() => {
                             setEditedEmployeeId(userProfileState?.employee_id ? userProfileState.employee_id : "");
                             setEditEmployeeIdMode(true);
@@ -1489,7 +1556,7 @@ export const SettingAccountModal = () => {
                       />
                       <div className="flex">
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                           onClick={() => {
                             setEditedEmployeeId("");
                             setEditEmployeeIdMode(false);
@@ -1498,7 +1565,7 @@ export const SettingAccountModal = () => {
                           キャンセル
                         </div>
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center text-[14px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                           onClick={async () => {
                             if (editedEmployeeId === "") {
                               alert("有効な社員番号・IDを入力してください");
@@ -1569,15 +1636,15 @@ export const SettingAccountModal = () => {
 
                 {/* 利用用途 */}
                 <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
-                  <div className={`text-[14px] font-bold`}>利用用途</div>
+                  <div className={`${styles.section_title}`}>利用用途</div>
                   {!editUsageMode && (
                     <div className={`flex h-full w-full items-center justify-between`}>
-                      <div className="text-[16px] font-semibold">
+                      <div className={`${styles.section_value}`}>
                         {userProfileState?.usage ? userProfileState.usage : "未設定"}
                       </div>
                       <div>
                         <div
-                          className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                          className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                           onClick={() => {
                             setEditedUsage(userProfileState?.usage ? userProfileState.usage : "1 チーム");
                             setEditUsageMode(true);
@@ -1603,7 +1670,7 @@ export const SettingAccountModal = () => {
                       </select>
                       <div className="flex">
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                           onClick={() => {
                             setEditedUsage("");
                             setEditUsageMode(false);
@@ -1612,7 +1679,7 @@ export const SettingAccountModal = () => {
                           キャンセル
                         </div>
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center text-[14px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                           onClick={async () => {
                             if (editedUsage === "") {
                               alert("有効な利用用途を入力してください");
@@ -1680,6 +1747,36 @@ export const SettingAccountModal = () => {
                 {/* 利用用途ここまで */}
 
                 <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
+
+                {/* チーム内権限・役割 */}
+                <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
+                  <div className={`${styles.section_title}`}>チーム内権限・役割</div>
+
+                  <div className={`flex h-full w-full items-center justify-between`}>
+                    <div className={`${styles.section_value}`}>
+                      {/* {userProfileState?.account_company_role ? userProfileState.account_company_role : "未設定"} */}
+                      {userProfileState?.is_subscriber
+                        ? "所有者"
+                        : getCompanyRole(
+                            userProfileState?.account_company_role ? userProfileState.account_company_role : null
+                          )}
+                    </div>
+                    <div>
+                      {/* <div
+                          className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                          onClick={() => {
+                            setEditedUsage(userProfileState?.usage ? userProfileState.usage : "1 チーム");
+                            setEditUsageMode(true);
+                          }}
+                        >
+                          編集
+                        </div> */}
+                    </div>
+                  </div>
+                </div>
+                {/* チーム内権限・役割ここまで */}
+
+                <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
               </div>
             )}
             {/* 右側メインエリア プロフィール ここまで */}
@@ -1690,6 +1787,14 @@ export const SettingAccountModal = () => {
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
                   <SettingProducts />
+                </Suspense>
+              </ErrorBoundary>
+            )}
+            {/* 右側メインエリア 会社・チーム */}
+            {selectedSettingAccountMenu === "Company" && (
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
+                  <SettingCompany />
                 </Suspense>
               </ErrorBoundary>
             )}

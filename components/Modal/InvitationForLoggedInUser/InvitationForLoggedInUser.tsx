@@ -118,7 +118,7 @@ const InvitationForLoggedInUserMemo: FC<Prop> = ({ invitationData, setInvitation
     setLoading(true);
 
     try {
-      const { data: subscribedAccountData, error: subscribedAccountError } = await supabase
+      const { error: subscribedAccountError } = await supabase
         .from("subscribed_accounts")
         .update({
           // user_id: userProfileState.id,
@@ -132,9 +132,12 @@ const InvitationForLoggedInUserMemo: FC<Prop> = ({ invitationData, setInvitation
       }
 
       // Invitationsテーブルの招待データのresultをacceptedに変更する
-      const { error: invitationUpdateError } = await supabase.from("invitations").update({
-        result: "declined",
-      });
+      const { error: invitationUpdateError } = await supabase
+        .from("invitations")
+        .update({
+          result: "declined",
+        })
+        .eq("id", invitationData.id);
       if (invitationUpdateError) {
         console.log("invitationsテーブルのupdate時にエラー", invitationUpdateError);
         throw new Error(invitationUpdateError.message);

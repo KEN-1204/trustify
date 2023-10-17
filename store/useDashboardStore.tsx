@@ -135,6 +135,9 @@ type State = {
   // setNotSetAccountsCount: (payload: number | null) => void;
   notSetAccounts: MemberAccounts[] | null[];
   setNotSetAccounts: (payload: MemberAccounts[] | null[]) => void;
+  // =================== アカウント設定 会社 ===================
+  companyOwnerName: string;
+  setCompanyOwnerName: (payload: string) => void;
 
   // =================== アンダーテーブル関連 ===================
   // 【サーチモード切り替え】
@@ -338,6 +341,9 @@ const useDashboardStore = create<State>((set) => ({
   // setNotSetAccountsCount: (payload) => set({ notSetAccountsCount: payload }),
   notSetAccounts: [],
   setNotSetAccounts: (payload) => set({ notSetAccounts: payload }),
+  // =================== アカウント設定 会社 ===================
+  companyOwnerName: "",
+  setCompanyOwnerName: (payload) => set({ companyOwnerName: payload }),
 
   // =================== テーブルサイズ切り替えボタン ===================
   // 【テーブルサイズ切り替えメニュー開閉状態】

@@ -9,13 +9,13 @@ export const useQueryProducts = (company_id: string | null | undefined, userId: 
   // const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   const supabase = useSupabaseClient();
 
-  const getProductsFree = async () => {
+  const getProducts = async () => {
     // setLoadingGlobalState(true);
-    console.log("useQueryProduct無料ユーザー会社id無し getProductsFree userId", userId);
+    console.log("useQueryProduct getProducts関数実行 company_id", company_id);
     const { data, error } = await supabase
       .from("products")
       .select("*")
-      .eq("created_by_user_id", userId)
+      .eq("created_by_company_id", company_id)
       .order("product_name", { ascending: true });
 
     if (error) {
@@ -32,7 +32,7 @@ export const useQueryProducts = (company_id: string | null | undefined, userId: 
 
   return useQuery({
     queryKey: ["products"],
-    queryFn: getProductsFree,
+    queryFn: getProducts,
     staleTime: Infinity,
     onError: (error) => {
       console.error("useQueryProducts error:", error);

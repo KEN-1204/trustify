@@ -12,8 +12,6 @@ export const useSubscribeSubscription = () => {
 
   const subscriptionRef = useRef<RealtimeChannel | null>(null);
 
-  console.log("🌟リアルタイム サブスクリプション契約状況をサブスクライブ", userProfileState);
-
   useEffect(() => {
     if (!userProfileState)
       return console.log(
@@ -49,12 +47,12 @@ export const useSubscribeSubscription = () => {
           "postgres_changes",
           {
             event: "UPDATE",
-            scheme: "public",
+            schema: "public",
             table: "subscriptions",
             filter: `id=eq.${userProfileState.subscription_id}`,
           },
           async (payload: any) => {
-            console.log("リアルタイム subscriptions UPDATEイベント発火", payload);
+            console.log("リアルタイム subscriptions UPDATE検知", payload);
             // subscriptionsテーブルの変更を検知したら現在のuserProfileStateのsubscriptionsテーブルの内容のみ更新する
             const newUserData = {
               ...userProfileState,
@@ -128,7 +126,7 @@ export const useSubscribeSubscription = () => {
           "postgres_changes",
           {
             event: "INSERT",
-            scheme: "public",
+            schema: "public",
             table: "subscribed_accounts",
             filter: `user_id=eq.${userProfileState.id}`,
           },

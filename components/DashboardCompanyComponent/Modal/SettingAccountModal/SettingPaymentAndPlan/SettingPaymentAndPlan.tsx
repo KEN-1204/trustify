@@ -86,10 +86,10 @@ const SettingPaymentAndPlanMemo: FC = () => {
       {/* 右側メインエリア プロフィール */}
       {selectedSettingAccountMenu === "PaymentAndPlan" && (
         <div className={`flex h-full w-full flex-col overflow-y-scroll py-[20px] pl-[20px] pr-[80px]`}>
-          <h2 className={`text-[18px] font-bold`}>支払いとプラン</h2>
+          <h2 className={`text-[18px] font-bold !text-[var(--color-text-title)]`}>支払いとプラン</h2>
 
           <div className="mt-[20px] min-h-[55px] w-full">
-            <h4 className="text-[18px] font-bold">
+            <h4 className="text-[18px] font-bold !text-[var(--color-text-title)]">
               会社・チームのサブスクリプション：<span>{userProfileState?.profile_name}さんのチーム</span>
             </h4>
             <div
@@ -104,7 +104,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
                 <div
                   className={`${
                     userProfileState?.subscription_plan === "free_plan" ? `` : `ml-[16px]`
-                  } flex h-[56px] w-full items-center text-[18px] font-bold`}
+                  } flex h-[56px] w-full items-center text-[18px] font-bold !text-[var(--color-text-title)]`}
                 >
                   <h4>{columnNameToJapanese(userProfileState?.subscription_plan)}</h4>
                 </div>
@@ -136,7 +136,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
               )}
               <div className="mt-[16px] flex w-full">
                 <button
-                  className={`transition-base01 flex-center max-h-[41px] w-full min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold  ${
+                  className={`transition-base01 flex-center max-h-[41px] w-full min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold !text-[var(--color-text-title)] ${
                     isLoading ? `` : `hover:bg-[var(--setting-side-bg-select-hover)]`
                   }`}
                   onClick={loadPortal}

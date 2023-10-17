@@ -57,19 +57,19 @@ const SettingProductsMemo: FC = () => {
       {/* 右側メインエリア プロフィール */}
       {selectedSettingAccountMenu === "Products" && (
         <div className={`flex h-full w-full flex-col overflow-y-scroll px-[20px] py-[20px] pr-[80px]`}>
-          <div className={`text-[18px] font-bold`}>サービス・製品</div>
+          <div className={`text-[18px] font-bold !text-[var(--color-text-title)]`}>サービス・製品</div>
           {/* 製品1 */}
           {products?.map((item, index) => (
             <React.Fragment key={item.id}>
               <div key={item.id} className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
-                <div className={`text-[14px] font-bold`}>製品{index + 1}</div>
+                <div className={`text-[14px] font-bold !text-[var(--color-text-title)]`}>製品{index + 1}</div>
 
                 <div className={`flex h-full w-full items-center justify-between`}>
                   <div className="flex">
-                    <div className="text-[16px] font-semibold">
+                    <div className="text-[16px] font-semibold !text-[var(--color-text-title)]">
                       {item.product_name ? item.product_name : "商品名無し"}
                     </div>
-                    <div className="ml-[10px] text-[16px] font-semibold">
+                    <div className="ml-[10px] text-[16px] font-semibold !text-[var(--color-text-title)]">
                       {item.outside_short_name ? item.outside_short_name : ""}
                     </div>
                   </div>
@@ -83,7 +83,7 @@ const SettingProductsMemo: FC = () => {
                   {!loadingGlobalState && (
                     <div className="flex">
                       <div
-                        className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] text-center text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
+                        className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] text-center text-[14px] font-bold !text-[var(--color-text-title)] hover:bg-[var(--setting-side-bg-select-hover)]`}
                         onClick={() => deleteProductMutation.mutate(item.id)}
                       >
                         削除
@@ -132,7 +132,7 @@ const SettingProductsMemo: FC = () => {
 
           <div className={`flex-center mt-[20px] min-h-[55px] w-[calc(100%+73px)]`}>
             <div
-              className={`transition-base01 flex-center min-w-[78px] cursor-pointer space-x-1 rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold  hover:text-[var(--color-bg-brand-f)]`}
+              className={`transition-base01 flex-center min-w-[78px] cursor-pointer space-x-1 rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold  !text-[var(--color-text-title)] hover:text-[var(--color-bg-brand-f)]`}
               onClick={() => setIsOpenInsertNewProductModal(true)}
             >
               <span>＋</span>

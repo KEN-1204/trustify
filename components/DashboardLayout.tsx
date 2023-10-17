@@ -101,17 +101,22 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
             .from("invitations")
             .select()
             .eq("to_user_id", userProfileState.id)
-            .eq("result", "pending")
-            .single();
+            .eq("result", "pending");
 
           if (invitationError) {
             console.log(`dashboardLayout invitationsテーブルのselectエラー`, invitationError);
             throw new Error(invitationError.message);
           }
 
-          console.log("招待データを取得 data", data);
-          // setInvitedState(true);
-          setInvitationData(data);
+          if (data.length === 1) {
+            console.log("招待データを取得 data[0]", data[0]);
+            // setInvitedState(true);
+            setInvitationData(data[0]);
+          } else if (data.length === 0) {
+            console.log("invitationsテーブルからデータ無し", data);
+          } else {
+            console.error("invitationsテーブルからデータ取得 1つ以上のpendingの招待有り", data);
+          }
         } catch (error: any) {
           console.error(error.message);
         }

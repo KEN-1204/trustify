@@ -72,12 +72,13 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
     }
   };
 
-  // チームへのメンバー参加、削除時に役割Stateを変更する
+  // =============================== チームへのメンバー参加、削除時に役割Stateを変更する
   useEffect(() => {
     if (roleAtTeam === memberAccount.account_company_role) return;
     setRoleAtTeam(memberAccount.account_company_role ? memberAccount.account_company_role : "");
   }, [memberAccount.account_company_role]);
 
+  // =============================== 役割の変更
   const handleChangeRole = async (companyRole: string) => {
     // setLoadingGlobalState(true);
     const { data, error } = await supabase
@@ -136,7 +137,51 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
     });
   };
 
-  // 招待を再送信する
+  // =============================== チームから削除する
+  const removeFromTeam = async () => {
+    setLoadingGlobalState(true);
+    // subscribed_accountsのuser_idカラムをnullにして契約アカウントとの紐付けを解除する
+    const { data: newAccountData, error: accountUpdateError } = await supabase
+      .from("subscribed_accounts")
+      .update({
+        user_id: null,
+        company_role: null,
+      })
+      .eq("id", memberAccount.subscribed_account_id)
+      .select();
+
+    if (accountUpdateError) {
+      console.log("アカウントのuser_idの解除に失敗", accountUpdateError);
+      toast.error(`チームからメンバーの削除に失敗しました!`, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    }
+    toast.success(`チームからメンバーの削除が完了しました!`, {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
+    console.log("UPDATEが成功したアカウントデータ", newAccountData);
+
+    // アカウントとユーザーの紐付け解除完了後はMemberAccountsキャッシュをリフレッシュ
+    await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
+
+    setLoadingGlobalState(false);
+
+    setIsOpenRoleMenu(false);
+  };
+
+  // =============================== 招待を再送信する
   const resendInvitationEmail = async () => {
     setLoadingGlobalState(true);
     try {
@@ -175,7 +220,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
     setLoadingGlobalState(false);
   };
 
-  // 招待をキャンセルする
+  // =============================== 招待をキャンセルする
   const cancelInvitation = async () => {
     setLoadingGlobalState(true);
     // Invitationsテーブルのsubscribed_account_idカラムとfrom_company_idカラムに一致するinvitationデータをキャンセル
@@ -350,6 +395,21 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
                   <li
                     className={`flex h-[40px] w-full cursor-pointer items-center justify-between px-[14px] py-[6px] pr-[18px] hover:bg-[var(--color-bg-sub)]`}
                     onClick={() => {
+                      if (memberAccount.account_company_role === "company_manager") {
+                        setIsOpenRoleMenu(false);
+                      }
+                      handleChangeRole("company_manager");
+                      setIsOpenRoleMenu(false);
+                    }}
+                  >
+                    <span className="select-none">マネージャー</span>
+                    {memberAccount.account_company_role === "company_manager" && (
+                      <BsCheck2 className="min-h-[16px] min-w-[16px] stroke-[0.5] text-[16px]" />
+                    )}
+                  </li>
+                  <li
+                    className={`flex h-[40px] w-full cursor-pointer items-center justify-between px-[14px] py-[6px] pr-[18px] hover:bg-[var(--color-bg-sub)]`}
+                    onClick={() => {
                       if (memberAccount.account_company_role === "company_member") {
                         setIsOpenRoleMenu(false);
                       }
@@ -368,48 +428,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
                   {!memberAccount.account_invited_email && (
                     <li
                       className={`flex h-[40px] w-full cursor-pointer items-center px-[14px] py-[6px] hover:bg-[var(--color-bg-sub)]`}
-                      onClick={async () => {
-                        setLoadingGlobalState(true);
-                        // subscribed_accountsのuser_idカラムをnullにして契約アカウントとの紐付けを解除する
-                        const { data: newAccountData, error: accountUpdateError } = await supabase
-                          .from("subscribed_accounts")
-                          .update({
-                            user_id: null,
-                            company_role: null,
-                          })
-                          .eq("id", memberAccount.subscribed_account_id)
-                          .select();
-
-                        if (accountUpdateError) {
-                          console.log("アカウントのuser_idの解除に失敗", accountUpdateError);
-                          toast.error(`チームからメンバーの削除に失敗しました!`, {
-                            position: "top-right",
-                            autoClose: 3000,
-                            hideProgressBar: false,
-                            closeOnClick: true,
-                            pauseOnHover: true,
-                            draggable: true,
-                            progress: undefined,
-                          });
-                        }
-                        toast.success(`チームからメンバーの削除が完了しました!`, {
-                          position: "top-right",
-                          autoClose: 3000,
-                          hideProgressBar: false,
-                          closeOnClick: true,
-                          pauseOnHover: true,
-                          draggable: true,
-                          progress: undefined,
-                        });
-                        console.log("UPDATEが成功したアカウントデータ", newAccountData);
-
-                        // アカウントとユーザーの紐付け解除完了後はMemberAccountsキャッシュをリフレッシュ
-                        await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
-
-                        setLoadingGlobalState(false);
-
-                        setIsOpenRoleMenu(false);
-                      }}
+                      onClick={removeFromTeam}
                     >
                       <span className="select-none">チームから削除</span>
                     </li>
