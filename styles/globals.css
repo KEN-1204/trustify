@@ -112,6 +112,7 @@
   --canva-sub: #40576d12;
   /* --setting-bg-sub: rgb(234, 235, 237); */
   --setting-bg-sub: #f2f4f6;
+  --setting-bg-sub-hover: #e7eaeb;
   /* --setting-bg-sub: #40576d12; */
   --setting-bg-second: #f4f4f6;
   /* --setting-side-bg-select-hover: #00000025; */
@@ -478,8 +479,13 @@
 
   /* シャドウ */
   --shadow-sm: 0 2px 4px -1px rgba(57, 76, 96, 0.15);
+  --shadow-all-md: 0px 4px 15px 1px rgba(0, 0, 0, 0.15);
   --shadow-header: 0 2px 4px -1px rgba(57, 76, 96, 0.15);
   --shadow-sidebar: 2px 0px 4px -1px rgba(57, 76, 96, 0.15);
+
+  /* スケルトンローディング */
+  --color-skeleton-bg: #99999947;
+  --color-skeleton-bg-wave: #ffffff70;
 
   --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff30, #ffffff20, #ffffff10, #ffffff10, #ffffff80);
   --tile-start-rgb: 2, 13, 46;
@@ -525,6 +531,7 @@
   --setting-side-bg: #333;
   --setting-side-bg-select: #ffffff20;
   --setting-bg-sub: #3f3f3f;
+  --setting-bg-sub-hover: #555;
   --setting-bg-second: #3f3f3f;
   /* --setting-side-bg-select-hover: #bbbbbb20; */
   --setting-side-bg-select-hover: #555;
@@ -831,8 +838,13 @@
 
   /* シャドウ */
   --shadow-sm: 0px 1px 1px 0px rgba(255, 255, 255, 0.12);
+  --shadow-all-md: 0px 4px 15px 1px rgba(255, 255, 255, 0.15);
   --shadow-header: 0px 1px 6px 0px rgba(255, 255, 255, 0.12);
   --shadow-sidebar: 1px 0px 6px -1px rgba(255, 255, 255, 0.12);
+
+  /* スケルトンローディング */
+  --color-skeleton-bg: #99999970;
+  --color-skeleton-bg-wave: #ffffff22;
 
   /* --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff30, #ffffff20, #ffffff10, #ffffff10, #ffffff80); */
   --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff20, #ffffff80, #ffffff40, #ffffff20, #ffffff80);
@@ -916,7 +928,7 @@ textarea {
   box-shadow: var(--header-border-bottom);
 }
 .shadow-all-md {
-  box-shadow: 0px 4px 15px 1px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-all-md);
 }
 .shadow-top-sm {
   box-shadow: 0px -2px 10px 0px rgba(0, 0, 0, 0.1);
