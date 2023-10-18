@@ -142,6 +142,10 @@
   --color-auth-modal-or-text: #ccc;
   --color-auth-modal-bg: #282828;
 
+  /* モーダル右側 背景 Canva */
+  --color-modal-bg-side-c: #ebf3ff;
+  --color-modal-bg-side-c-second: #ffffff66;
+
   --color-wrap-border: rgba(220, 220, 220, 0.6);
   /* 背景サブ　canva */
   /* --color-: rgba(64,87,109,.07);
@@ -334,6 +338,7 @@
   Apple light 紫テキスト --indigo: #622aff
   Apple light グラデーションテキスト background-image: linear-gradient(90deg,#b434ab 0%,#866cbe 30%,#4dbbd8);
   */
+
   /* 🌟EditColumnsモーダル カラム変更モーダル light */
   --color-edit-bg: #ffffffe0;
   --color-edit-bg-solid: #ffffff;
@@ -362,10 +367,11 @@
   --color-edit-arrow-disable-bg-onlist: rgba(64, 87, 109, 0.09);
   --color-edit-arrow-disable-color: var(--color-sub-text);
 
-  /* ボーダーカラー */
+  /* ボーダーカラー light */
   --color-border: #e6e6e6;
   /* --color-border: #ccc; */
   --color-border-deep: #ccc;
+  --color-border-light: #ccc;
   --color-border-strong: #000;
   --header-border-bottom: 0px 2px 10px 0px rgba(0, 0, 0, 0.2);
   --color-border-brand: #bde3ff;
@@ -375,6 +381,9 @@
   --color-border-brand-sub: #2b7fff;
   --color-border-selected: #0d99ff; /* 選択ボーダーカラー */
   --color-border-selected-strong: #007be5;
+
+  /* プログレスライン */
+  --color-progress-bg: #999;
 
   --color-bg-selected: #e5f4ff; /* サイドバー タブ選択カラー */
   --color-bg-selected-hover: #bde3ff; /* サイドバー タブ選択カラー */
@@ -388,6 +397,7 @@
   --color-bg-toolbar-secondary: #383838; /* Navbar Inputタグ背景 */
   --color-text-toolbar: #fff;
 
+  /* ================= テキストカラー ================= */
   --color-text: rgba(0, 0, 0, 0.9); /* テキストカラー or #333333 */
   --color-text: #282828;
   --color-text-rgb: 0, 0, 0; /* テキストカラー or #333333 */
@@ -555,7 +565,13 @@
   --color-header-bg-active: #252525;
   --color-auth-modal-bg: #141414;
 
-  /* テーブルカラー light */
+  /* モーダル右側 背景 Canva dark */
+  /* --color-modal-bg-side-c: #383838; */
+  /* --color-modal-bg-side-c: #51535b; */
+  --color-modal-bg-side-c: #3c3c3c;
+  --color-modal-bg-side-c-second: #555;
+
+  /* テーブルカラー dark */
   --color-bg-table-header: #252525;
   /* ブランドカラー　背景 */
   --color-bg-brand: #0066ff;
@@ -706,10 +722,11 @@
   --color-edit-arrow-disable-bg-onlist: var(--color-bg-sub-deep);
   --color-edit-arrow-disable-color: var(--color-text-sub);
 
-  /* ボーダーカラー */
+  /* ボーダーカラー dark */
   /* --color-border: #444444;  */
   --color-border: #333;
   --color-border-deep: #444;
+  --color-border-light: #999;
   --color-border-strong: #000;
   --header-border-bottom: inset 0 -1px 0 0 hsla(0, 0%, 100%, 0.1);
   --color-border-brand: #105cad;
@@ -719,6 +736,9 @@
   --color-border-brand-sub: #2b7fff;
   --color-border-selected: #0c8ce9; /* 選択ボーダーカラー */
   --color-border-selected-strong: #7cc4f8;
+
+  /* プログレスライン */
+  --color-progress-bg: #ccc;
 
   --color-bg-selected: #4a5878; /* サイドバー タブ選択カラー */
   --color-bg-selected-hover: #536383; /* サイドバー タブ選択カラーホバー */
@@ -732,6 +752,7 @@
   --color-bg-toolbar-secondary: #383838; /* Navbar Inputタグ背景 */
   --color-text-toolbar: #fff;
 
+  /* ================= テキストカラー ================= */
   --color-text: rgba(255, 255, 255, 1); /* テキストカラー or #333333 */
   --color-text-rgb: 255, 255, 255; /* テキストカラー or #333333 */
   --color-text-hover: #aaa;

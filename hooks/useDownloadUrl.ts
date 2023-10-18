@@ -9,12 +9,14 @@ type UseDownloadUrlReturn = {
 
 export const useDownloadUrl = (
   filePath: string | undefined | null,
-  key: "avatars" | "documents"
+  // key: "avatars" | "documents"
+  key: "avatars" | "documents" | "customer_company_logos"
 ): UseDownloadUrlReturn => {
   const supabase = useSupabaseClient();
   const [isLoading, setIsLoading] = useState(false);
   const [fullUrl, setFullUrl] = useState<string | null>("");
-  const bucketName = key === "avatars" ? "avatars" : "documents";
+  // const bucketName = key === "avatars" ? "avatars" : "documents";
+  const bucketName = key;
 
   useEffect(() => {
     if (filePath) {

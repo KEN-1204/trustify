@@ -7,6 +7,9 @@ import { useUploadAvatarImg } from "@/hooks/useUploadAvatarImg";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { toast } from "react-toastify";
 import { UserProfileCompanySubscription } from "@/types";
+import { MdClose } from "react-icons/md";
+import { teamIllustration } from "@/components/assets";
+import { ChangeTeamOwnerModal } from "./ChangeTeamOwnerModal/ChangeTeamOwnerModal";
 
 const SettingCompanyMemo = () => {
   const supabase = useSupabaseClient();
@@ -19,6 +22,8 @@ const SettingCompanyMemo = () => {
   // Zustand会社所有者名
   const companyOwnerName = useDashboardStore((state) => state.companyOwnerName);
   const setCompanyOwnerName = useDashboardStore((state) => state.setCompanyOwnerName);
+  // チームの所有者の変更モーダル ページ数
+  const [changeTeamOwnerStep, setChangeTeamOwnerStep] = useState<number | null>(null);
 
   // 名前編集モード
   const [editCompanyNameMode, setEditCompanyNameMode] = useState(false);
@@ -31,7 +36,7 @@ const SettingCompanyMemo = () => {
   const [editedNumberOfEmployeeClass, setEditedNumberOfEmployeeClass] = useState("");
 
   const { useMutateUploadAvatarImg, useMutateDeleteAvatarImg } = useUploadAvatarImg();
-  const { fullUrl: avatarUrl, isLoading } = useDownloadUrl(userProfileState?.avatar_url, "avatars");
+  const { fullUrl: logoUrl, isLoading } = useDownloadUrl(userProfileState?.logo_url, "customer_company_logos");
 
   // 会社所有者を取得
   useEffect(() => {
@@ -166,7 +171,7 @@ const SettingCompanyMemo = () => {
             <div className={`${styles.section_title}`}>会社・チーム ロゴ</div>
             <div className={`flex h-full w-full items-center justify-between`}>
               <div className="">
-                {!avatarUrl && (
+                {!logoUrl && (
                   <label
                     data-text="ユーザー名"
                     htmlFor="avatar"
@@ -182,13 +187,13 @@ const SettingCompanyMemo = () => {
                     </span>
                   </label>
                 )}
-                {avatarUrl && (
+                {logoUrl && (
                   <label
                     htmlFor="avatar"
                     className={`flex-center group relative h-[75px] w-[75px] cursor-pointer overflow-hidden rounded-full`}
                   >
                     <Image
-                      src={avatarUrl}
+                      src={logoUrl}
                       alt="Avatar"
                       className={`h-full w-full object-cover text-[#fff]`}
                       width={75}
@@ -199,7 +204,7 @@ const SettingCompanyMemo = () => {
                 )}
               </div>
               <div className="flex">
-                {avatarUrl && (
+                {logoUrl && (
                   <div
                     className={`transition-base01 mr-[10px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                     // onClick={async () => {
@@ -627,14 +632,7 @@ const SettingCompanyMemo = () => {
                 <div>
                   <div
                     className={`transition-base01 ml-[30px] min-w-[78px] cursor-pointer truncate rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
-                    // onClick={() => {
-                    //   setEditedNumberOfEmployeeClass(
-                    //     userProfileState?.customer_number_of_employees_class
-                    //       ? userProfileState.customer_number_of_employees_class
-                    //       : ""
-                    //   );
-                    //   setEditNumberOfEmployeeClassMode(true);
-                    // }}
+                    onClick={() => setChangeTeamOwnerStep(1)}
                   >
                     所有者の変更
                   </div>
@@ -647,106 +645,21 @@ const SettingCompanyMemo = () => {
                 <div></div>
               </div>
             )}
-            {editNumberOfEmployeeClassMode && (
-              <div className={`flex h-full w-full items-center justify-between`}>
-                <select
-                  name="profile_occupation"
-                  id="profile_occupation"
-                  className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                  value={editedNumberOfEmployeeClass}
-                  onChange={(e) => setEditedNumberOfEmployeeClass(e.target.value)}
-                >
-                  <option value="">回答を選択してください</option>
-                  <option value="G 1〜49名">1〜49名</option>
-                  <option value="F 50〜99名">50〜99名</option>
-                  <option value="E 100〜199名">100〜199名</option>
-                  <option value="D 200〜299名">200〜299名</option>
-                  <option value="C 300〜499名">300〜499名</option>
-                  <option value="B 500〜999名">500〜999名</option>
-                  <option value="A 1000名以上">1000名以上</option>
-                </select>
-                <div className="flex">
-                  <div
-                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
-                    onClick={() => {
-                      setEditedNumberOfEmployeeClass("");
-                      setEditNumberOfEmployeeClassMode(false);
-                    }}
-                  >
-                    キャンセル
-                  </div>
-                  <div
-                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center text-[14px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
-                    onClick={async () => {
-                      if (editedNumberOfEmployeeClass === "") {
-                        alert("有効な決算月を入力してください");
-                        return;
-                      }
-                      if (!userProfileState?.company_id) return alert("会社IDが見つかりません");
-                      setLoadingGlobalState(true);
-                      const { data: companyData, error } = await supabase
-                        .from("companies")
-                        .update({ customer_number_of_employees_class: editedNumberOfEmployeeClass })
-                        .eq("id", userProfileState.company_id)
-                        .select("customer_number_of_employees_class")
-                        .single();
-
-                      if (error) {
-                        setTimeout(() => {
-                          setLoadingGlobalState(false);
-                          setEditNumberOfEmployeeClassMode(false);
-                          alert(error.message);
-                          console.log("決算月UPDATEエラー", error.message);
-                          toast.error("決算月の更新に失敗しました!", {
-                            position: "top-right",
-                            autoClose: 3000,
-                            hideProgressBar: false,
-                            closeOnClick: true,
-                            pauseOnHover: true,
-                            draggable: true,
-                            progress: undefined,
-                            // theme: `${theme === "light" ? "light" : "dark"}`,
-                          });
-                        }, 500);
-                        return;
-                      }
-                      setTimeout(() => {
-                        console.log("決算月UPDATE成功 companyData", companyData);
-                        console.log(
-                          "決算月UPDATE成功 companyData.customer_number_of_employees_class",
-                          companyData.customer_number_of_employees_class
-                        );
-                        setUserProfileState({
-                          // ...(companyData as UserProfile),
-                          ...(userProfileState as UserProfileCompanySubscription),
-                          customer_number_of_employees_class: companyData.customer_number_of_employees_class
-                            ? companyData.customer_number_of_employees_class
-                            : null,
-                        });
-                        setLoadingGlobalState(false);
-                        setEditNumberOfEmployeeClassMode(false);
-                        toast.success("決算月の更新が完了しました!", {
-                          position: "top-right",
-                          autoClose: 3000,
-                          hideProgressBar: false,
-                          closeOnClick: true,
-                          pauseOnHover: true,
-                          draggable: true,
-                          progress: undefined,
-                          // theme: `${theme === "light" ? "light" : "dark"}`,
-                        });
-                      }, 500);
-                    }}
-                  >
-                    保存
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
           {/* 規模ここまで */}
 
           <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
+
+          {/* ============================== チームの所有者の変更モーダル ============================== */}
+          {changeTeamOwnerStep && (
+            <ChangeTeamOwnerModal
+              changeTeamOwnerStep={changeTeamOwnerStep}
+              setChangeTeamOwnerStep={setChangeTeamOwnerStep}
+              logoUrl={logoUrl}
+              getCompanyInitial={getCompanyInitial}
+            />
+          )}
+          {/* ============================== チームの所有者の変更モーダル ここまで ============================== */}
         </div>
       )}
       {/* 右側メインエリア 会社・チーム ここまで */}
