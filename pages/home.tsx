@@ -3,11 +3,13 @@ import { DashboardCalendarComponent } from "@/components/DashboardCalendarCompon
 import { DashboardCompanyComponent } from "@/components/DashboardCompanyComponent/DashboardCompanyComponent";
 import { DashboardContactComponent } from "@/components/DashboardContactComponent/DashboardContactComponent";
 import { DashboardHomeComponent } from "@/components/DashboardHomeComponent/DashboardHomeComponent";
+import { FallbackDashboardHomeComponent } from "@/components/DashboardHomeComponent/FallbackDashboardHomeComponent";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { DashboardMeetingComponent } from "@/components/DashboardMeetingComponent/DashboardMeetingComponent";
 import { DashboardPropertyComponent } from "@/components/DashboardPropertyComponent/DashboardPropertyComponent";
 import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import { Fallback } from "@/components/Fallback/Fallback";
+import { useQueryNotifications } from "@/hooks/useQueryNotifications";
 import { useQueryProducts } from "@/hooks/useQueryProducts";
 import { useSubscribeSubscription } from "@/hooks/useSubscribeSubscription";
 import useStore from "@/store";
@@ -16,7 +18,7 @@ import useThemeStore from "@/store/useThemeStore";
 import { Profile, UserProfile, UserProfileCompanySubscription } from "@/types";
 import { Session, User, createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { GetServerSidePropsContext } from "next";
-import React, { Suspense, useEffect } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import Stripe from "stripe";
 
@@ -47,6 +49,15 @@ const DashboardHome = ({
   const setActiveMenuTab = useDashboardStore((state) => state.setActiveMenuTab);
   const setUserProfileState = useDashboardStore((state) => state.setUserProfileState);
   const setProductsState = useDashboardStore((state) => state.setProductsState);
+
+  // お知らせ notificationsテーブルから自分のidに一致するお知らせデータを全て取得
+  const [isReady, setIsReady] = useState(false);
+  useEffect(() => {
+    setIsReady(true);
+  }, []);
+  const { data: notificationData, error: notificationError, status } = useQueryNotifications(userProfile.id, isReady);
+  console.log("useQueryNotifications", "data", notificationData, "error", notificationError, "status", status);
+
   console.log(
     "🔥Homeページ レンダリング",
     "activeMenuTab",
@@ -159,9 +170,11 @@ const DashboardHome = ({
   return (
     <DashboardLayout title={langTitle}>
       {activeMenuTab === "HOME" && <DashboardHomeComponent />}
+      {/* {activeMenuTab === "HOME" && status !== "loading" && <DashboardHomeComponent />}
+      {activeMenuTab === "HOME" && status === "loading" && <FallbackDashboardHomeComponent />} */}
       {/* {activeMenuTab === "HOME" && (
         <ErrorBoundary FallbackComponent={ErrorFallback}>
-          <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
+          <Suspense fallback={<FallbackDashboardHomeComponent />}>
             <DashboardHomeComponent />
           </Suspense>
         </ErrorBoundary>
@@ -218,6 +231,9 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   if (userProfile) console.log("🌟/homeサーバーサイド userProfileあり");
   if (error) console.log("🌟/homeサーバーサイド errorあり", error);
+
+  // notificationsテーブルのデータを取得
+  // const {data: notificationData, error: notificationError} = await supabase.from('notifications').select().eq('to_user_id', )
 
   // ユーザーが存在するならそのままdashboardコンポーネントをマウント
   console.log("/homeサーバーサイド セッションが存在するためそのままリターン");

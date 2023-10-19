@@ -125,8 +125,6 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
       getMyInvitation();
     }
   }, [showSubscriptionPlan]);
-  // const showInvitationModalForLoggedInUser =
-  //   !!userProfileState && !userProfileState.first_time_login && userProfileState.subscription_plan !== "free_plan" && ;
 
   console.log(
     "DashboardLayout ユーザープロフィール",

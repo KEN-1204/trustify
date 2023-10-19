@@ -442,6 +442,30 @@ export type Invitation = {
   subscribed_account_id: string | null;
   result: string | null;
 };
+export type Notification = {
+  id: string;
+  created_at: string;
+  updated_at: string | null;
+  to_user_id: string | null;
+  to_user_name: string | null;
+  to_user_email: string | null;
+  to_subscribed_account_id: string | null;
+  from_user_id: string | null;
+  from_user_name: string | null;
+  from_user_email: string | null;
+  from_user_avatar_url: string | null;
+  from_company_id: string | null;
+  from_company_name: string | null;
+  already_read: boolean | null;
+  already_read_at: string | null;
+  completed: boolean | null;
+  completed_at: string | null;
+  result: string | null;
+  type: string | null;
+  content: string | null;
+  from_provider: boolean | null;
+  expiration_date: string | null;
+};
 
 export type Contact = {
   id: string;

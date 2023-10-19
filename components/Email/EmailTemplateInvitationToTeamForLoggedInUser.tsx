@@ -14,7 +14,25 @@ export const EmailTemplateInvitationToTeamForLoggedInUser: React.FC<Readonly<Ema
   siteUrl,
 }) => (
   <div style={{ width: "100%", height: "auto", padding: "0 30px", maxWidth: "600px", margin: "0 auto" }}>
-    <h1 style={{ color: "#37352f", fontSize: "28px", marginTop: "40px" }}>
+    <div
+      style={{
+        width: "100%",
+        height: "60px",
+        marginTop: "46px",
+        display: "flex",
+        justifyContent: "center",
+      }}
+    >
+      <img
+        height="60"
+        width="60"
+        alt="logo"
+        src="https://pmmazevauhmntblygzcx.supabase.co/storage/v1/object/public/company_logos/Trustify_Logo_icon%20bg-white@0.5x.png"
+        style={{ margin: "auto" }}
+      />
+    </div>
+
+    <h1 style={{ color: "#37352f", fontSize: "28px", marginTop: "30px" }}>
       {handleName}さんは、あなたがTRUSTiFYのチームに参加するのを待っています
     </h1>
 

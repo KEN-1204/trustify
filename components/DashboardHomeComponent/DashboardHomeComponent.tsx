@@ -16,7 +16,10 @@ import { BsChevronRight } from "react-icons/bs";
 import { home_cards } from "./data";
 import { useQueryProducts } from "@/hooks/useQueryProducts";
 import { toast } from "react-toastify";
+import { useQueryNotifications } from "@/hooks/useQueryNotifications";
+import { FallbackDashboardHomeComponent } from "./FallbackDashboardHomeComponent";
 
+// export const DashboardHomeComponent = ({ user_id }: { user_id: string }) => {
 export const DashboardHomeComponent = () => {
   console.log("DashboardHomeComponentレンダリング");
   // const theme = useThemeStore((state) => state.theme);
@@ -31,13 +34,8 @@ export const DashboardHomeComponent = () => {
   const setIsOpenSettingAccountModal = useDashboardStore((state) => state.setIsOpenSettingAccountModal);
   const setSelectedSettingAccountMenu = useDashboardStore((state) => state.setSelectedSettingAccountMenu);
 
-  // const {
-  //   data: products,
-  //   error,
-  //   isError,
-  //   isLoading,
-  // } = useQueryProducts(userProfileState?.company_id, userProfileState?.id);
-  // console.log("DashboardHomeComponent products", products);
+  // お知らせ notificationsテーブルから自分のidに一致するお知らせデータを全て取得
+  // const { data: notificationData, error: notificationError, status } = useQueryNotifications(user_id);
 
   const openSettingAccounts = () => {
     setLoadingGlobalState(false);

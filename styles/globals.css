@@ -398,7 +398,7 @@
   --color-bg-toolbar-secondary: #383838; /* Navbar Inputタグ背景 */
   --color-text-toolbar: #fff;
 
-  /* ================= テキストカラー ================= */
+  /* ================= テキストカラー light ================= */
   --color-text: rgba(0, 0, 0, 0.9); /* テキストカラー or #333333 */
   --color-text: #282828;
   --color-text-rgb: 0, 0, 0; /* テキストカラー or #333333 */
@@ -406,6 +406,7 @@
   --color-text-hover: #999;
   --color-text-reverse: #fff;
   --color-text-sub: rgba(25, 23, 17, 0.6);
+  --color-text-disabled: #bcbcbc;
   --color-text-third: #333;
   --color-text-secondary: rgba(0, 0, 0, 0.5); /* テキストサブカラー or #7d7d7d */
   --color-text-secondary-hover: rgba(0, 0, 0, 0.9);
@@ -486,6 +487,11 @@
   /* スケルトンローディング */
   --color-skeleton-bg: #99999947;
   --color-skeleton-bg-wave: #ffffff70;
+
+  /* canva 背景カラー */
+  --color-bg-c-sub: #ebecf0;
+  /* 選択済みメンバーカード */
+  --member-card: var(--color-bg-c-sub);
 
   --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff30, #ffffff20, #ffffff10, #ffffff10, #ffffff80);
   --tile-start-rgb: 2, 13, 46;
@@ -759,12 +765,13 @@
   --color-bg-toolbar-secondary: #383838; /* Navbar Inputタグ背景 */
   --color-text-toolbar: #fff;
 
-  /* ================= テキストカラー ================= */
+  /* ================= テキストカラー dark ================= */
   --color-text: rgba(255, 255, 255, 1); /* テキストカラー or #333333 */
   --color-text-rgb: 255, 255, 255; /* テキストカラー or #333333 */
   --color-text-hover: #aaa;
   --color-text-reverse: rgba(0, 0, 0, 0.9);
   --color-text-sub: #ccc;
+  --color-text-disabled: #999;
   --color-text-third: #eee;
   --color-text-secondary: rgba(255, 255, 255, 0.7); /* テキストサブカラー or #7d7d7d */
   --color-text-secondary-hover: rgba(255, 255, 255, 1);
@@ -845,6 +852,11 @@
   /* スケルトンローディング */
   --color-skeleton-bg: #99999970;
   --color-skeleton-bg-wave: #ffffff22;
+
+  /* canva 背景カラー dark */
+  --color-bg-c-sub: #6c6c6c;
+  /* 選択済みメンバーカード */
+  --member-card: var(--color-bg-c-sub);
 
   /* --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff30, #ffffff20, #ffffff10, #ffffff10, #ffffff80); */
   --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff20, #ffffff80, #ffffff40, #ffffff20, #ffffff80);
@@ -1122,3 +1134,16 @@ textarea {
   -webkit-animation: 0;
   animation: 0;
 }
+
+/* .dark-mode-email {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .light-mode-email {
+    display: none;
+  }
+  .dark-mode-email {
+    display: block;
+  }
+} */
