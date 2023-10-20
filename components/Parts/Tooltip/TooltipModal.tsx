@@ -45,7 +45,8 @@ export const TooltipModal: FC = () => {
         className={`${styles.tooltip_over} ${hoveredItemPosModal ? `block ${styles.fade}` : "transition-base hidden"}`}
         style={{
           position: "absolute",
-          zIndex: 100,
+          // zIndex: 100,
+          zIndex: 10000,
           left: `${`${hoveredItemPositionX + hoveredItemHalfWidth}px`}`,
           top: `${`${hoveredItemPositionY - hoveredItemHeight - 8}px`}`,
         }}
@@ -72,7 +73,8 @@ export const TooltipModal: FC = () => {
         className={`${styles.tooltip_left}  ${hoveredItemPosModal ? `block ${styles.fade}` : "transition-base hidden"}`}
         style={{
           position: "absolute",
-          zIndex: 100,
+          // zIndex: 100,
+          zIndex: 10000,
           left: `${`${hoveredItemPositionX}px`}`,
           top: `${`${hoveredItemPositionY + hoveredItemHeight + 10}px`}`,
         }}
@@ -96,7 +98,8 @@ export const TooltipModal: FC = () => {
       className={`${styles.tooltip}  ${hoveredItemPosModal ? `block ${styles.fade}` : "transition-base hidden"}`}
       style={{
         position: "absolute",
-        zIndex: 100,
+        // zIndex: 100,
+        zIndex: 10000,
         left: `${`${hoveredItemPositionX + hoveredItemHalfWidth}px`}`,
         top: `${`${hoveredItemPositionY + hoveredItemHeight + 10}px`}`,
       }}

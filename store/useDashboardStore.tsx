@@ -13,6 +13,7 @@ import {
   NewSearchContact_CompanyParams,
   NewSearchMeeting_Contact_CompanyParams,
   NewSearchProperty_Contact_CompanyParams,
+  Notification,
   Product,
   Property_row_data,
   UserProfile,
@@ -178,6 +179,23 @@ type State = {
   setUserProfileState: (payload: UserProfileCompanySubscription | null) => void;
   // userProfileState: UserProfile | null;
   // setUserProfileState: (payload: UserProfile | null) => void;
+
+  // =================== 「お知らせ」notifications関連 ===================
+  // 全お知らせ
+  myAllNotifications: Notification[] | [];
+  setMyAllNotifications: (payload: Notification[] | []) => void;
+  // 未読+ToDo Newのお知らせ
+  unReadNotifications: Notification[] | [];
+  setUnReadNotifications: (payload: Notification[] | []) => void;
+  // 既読+ToDoのお知らせ
+  alreadyReadNotifications: Notification[] | [];
+  setAlreadyReadNotifications: (payload: Notification[] | []) => void;
+  // 完了済みのお知らせ
+  completedNotifications: Notification[] | [];
+  setCompletedNotifications: (payload: Notification[] | []) => void;
+
+  // =================== プロフィールメニュー ===================
+  // 【プロフィールメニュー開閉状態】
 
   // =================== 担当者テーブル ヘッダーリスト保持用state関連 ===================
   contactColumnHeaderItemList: ColumnHeaderItemList[];
@@ -871,6 +889,20 @@ const useDashboardStore = create<State>((set) => ({
   // =================== ユーザープロフィール ===================
   userProfileState: null,
   setUserProfileState: (payload) => set({ userProfileState: payload }),
+
+  // =================== 「お知らせ」notifications関連 ===================
+  // 全お知らせ
+  myAllNotifications: [],
+  setMyAllNotifications: (payload) => set({ myAllNotifications: payload }),
+  // 未読+ToDo Newのお知らせ
+  unReadNotifications: [],
+  setUnReadNotifications: (payload) => set({ unReadNotifications: payload }),
+  // 既読+ToDoのお知らせ
+  alreadyReadNotifications: [],
+  setAlreadyReadNotifications: (payload) => set({ alreadyReadNotifications: payload }),
+  // 完了済みのお知らせ
+  completedNotifications: [],
+  setCompletedNotifications: (payload) => set({ completedNotifications: payload }),
 
   // =================== 担当者テーブル ヘッダーリスト保持用state関連 ===================
   // 上画面のテーブルはチェックボックスありで1のため、columnIndexは2から

@@ -369,6 +369,7 @@
   --color-edit-arrow-disable-color: var(--color-sub-text);
 
   /* ボーダーカラー light */
+  --color-border-base: #d7d7d7;
   --color-border: #e6e6e6;
   /* --color-border: #ccc; */
   --color-border-deep: #ccc;
@@ -492,6 +493,14 @@
   --color-bg-c-sub: #ebecf0;
   /* 選択済みメンバーカード */
   --member-card: var(--color-bg-c-sub);
+
+  /* ドロップダウンメニュー */
+  --color-dropdown-list-hover: var(--color-bg-sub);
+  /* --color-dropdown-list-hover: var(--color-bg-brand-f); */
+  /* --color-dropdown-list-hover-text: #fff; */
+
+  /* ツールチップのボーダーからー */
+  --box-shadow-tooltip-border: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #33333390;
 
   --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff30, #ffffff20, #ffffff10, #ffffff10, #ffffff80);
   --tile-start-rgb: 2, 13, 46;
@@ -737,6 +746,7 @@
 
   /* ボーダーカラー dark */
   /* --color-border: #444444;  */
+  --color-border-base: #484848;
   --color-border: #333;
   --color-border-deep: #444;
   --color-border-light: #999;
@@ -857,6 +867,15 @@
   --color-bg-c-sub: #6c6c6c;
   /* 選択済みメンバーカード */
   --member-card: var(--color-bg-c-sub);
+
+  /* ドロップダウンメニュー */
+  /* --color-dropdown-list-hover: var(--color-bg-sub); */
+  --color-dropdown-list-hover: var(--color-bg-brand-f);
+  /* --color-dropdown-list-hover-text: #fff; */
+
+  /* ツールチップのボーダーからー */
+
+  --box-shadow-tooltip-border: inset 0px 0px 0px 1px #ffffff70, 0px 0px 0px 1px #000;
 
   /* --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff30, #ffffff20, #ffffff10, #ffffff10, #ffffff80); */
   --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff20, #ffffff80, #ffffff40, #ffffff20, #ffffff80);
@@ -992,8 +1011,59 @@ textarea {
 .transition-base1 {
   transition: all 1s ease;
 }
+.transition-base-opacity02 {
+  transition: opacity 0.2s ease;
+}
+.transition-base-opacity03 {
+  transition: opacity 0.3s ease;
+}
+.transition-base-opacity04 {
+  transition: opacity 0.4s ease;
+}
+.transition-base-opacity {
+  transition: opacity 0.5s ease;
+}
+.transition-base-opacity08 {
+  transition: opacity 0.8s ease;
+}
+.transition-base-opacity1 {
+  transition: opacity 1s ease;
+}
+.transition-base03-margin-l {
+  transition: margin-left 0.3s ease;
+}
+.transition-base-margin-l {
+  transition: margin-left 0.5s ease;
+}
+.transition-base1-margin-l {
+  transition: margin-left 1s ease;
+}
+.transition-base-color01 {
+  transition: background-color 0.1s ease, color 0.1s ease;
+}
+.transition-base-color02 {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.transition-base-color03 {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+.transition-base-color05 {
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+.transition-base-color08 {
+  transition: background-color 0.8s ease, color 0.8s ease;
+}
 .transition-base-color1 {
-  transition: background-color 1s ease;
+  transition: background-color 1s ease, color 1s ease;
+}
+.transition-base-color-opacity03 {
+  transition: background-color 0.3s ease, color 0.3s ease, opacity 0.3s ease;
+}
+.transition-base-color-opacity05 {
+  transition: background-color 0.5s ease, color 0.5s ease, opacity 0.5s ease;
+}
+.transition-base-color-opacity1 {
+  transition: background-color 1s ease, color 1s ease, opacity 1s ease;
 }
 
 /* フェードアニメーション */
@@ -1147,3 +1217,10 @@ textarea {
     display: block;
   }
 } */
+
+/* ツールチップのボーダーカラー */
+.border-real {
+  /* box-shadow: inset 0px 0px 0px 1px #ffffff70, 0px 0px 0px 1px #000; */
+  box-shadow: var(--box-shadow-tooltip-border);
+  /* box-shadow: var(--color-edit-border); */
+}

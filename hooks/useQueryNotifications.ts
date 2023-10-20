@@ -7,7 +7,8 @@ export const useQueryNotifications = (user_id: string, isReady: boolean) => {
   const supabase = useSupabaseClient();
 
   const getMyNotifications = async () => {
-    console.log("useQueryNotificationsカスタムフック実行🔥 user_id", user_id);
+    console.log("useQueryNotificationsカスタムフック実行🔥 user_id", user_id, "isReady", isReady);
+    // console.log("useQueryNotificationsカスタムフック実行🔥 user_id", userProfileState?.id, "isReady", isReady);
     // const { data: memberAccountsData, error: a } = await supabase
     //   .rpc("get_member_accounts_data", {
     //     _subscription_id: userProfileState.subscription_id,
@@ -21,7 +22,7 @@ export const useQueryNotifications = (user_id: string, isReady: boolean) => {
       .order("created_at", { ascending: true });
 
     if (error) {
-      console.log("getMemberAccountsエラー発生", error.message);
+      console.log("getMyNotificationsエラー発生", error.message);
       throw new Error(error.message);
     }
 
@@ -36,6 +37,7 @@ export const useQueryNotifications = (user_id: string, isReady: boolean) => {
       alert(error.message);
       console.error("useQueryNotificationsカスタムフック error:", error);
     },
-    enabled: isReady,
+    // enabled: isReady,
+    enabled: isReady && !!user_id,
   });
 };

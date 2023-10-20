@@ -17,8 +17,10 @@ import useDashboardStore from "@/store/useDashboardStore";
 import useThemeStore from "@/store/useThemeStore";
 import { Profile, UserProfile, UserProfileCompanySubscription } from "@/types";
 import { Session, User, createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useQuery } from "@tanstack/react-query";
 import { GetServerSidePropsContext } from "next";
-import React, { Suspense, useEffect, useState } from "react";
+import React, { Suspense, useEffect, useRef, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import Stripe from "stripe";
 
@@ -50,24 +52,36 @@ const DashboardHome = ({
   const setUserProfileState = useDashboardStore((state) => state.setUserProfileState);
   const setProductsState = useDashboardStore((state) => state.setProductsState);
 
-  // お知らせ notificationsテーブルから自分のidに一致するお知らせデータを全て取得
+  // // お知らせ notificationsテーブルから自分のidに一致するお知らせデータを全て取得
   const [isReady, setIsReady] = useState(false);
   useEffect(() => {
     setIsReady(true);
   }, []);
-  const { data: notificationData, error: notificationError, status } = useQueryNotifications(userProfile.id, isReady);
-  console.log("useQueryNotifications", "data", notificationData, "error", notificationError, "status", status);
+  const {
+    data: notificationData,
+    error: notificationError,
+    status,
+    isLoading,
+  } = useQueryNotifications(userProfile.id, isReady);
 
   console.log(
     "🔥Homeページ レンダリング",
     "activeMenuTab",
     activeMenuTab,
-    "getSession()のsession.user",
+    "SSRで取得したセッション",
     user,
     // "profilesテーブルから取得したユーザーデータuserProfile",
     // userProfile1,
-    "profiles, companies, subscribed_accounts, subscriptionsテーブルを外部結合したデータ",
-    userProfile
+    "SSRで取得したユーザーデータ",
+    userProfile,
+    "notificationData",
+    notificationData,
+    "notificationError",
+    notificationError,
+    "status",
+    status,
+    "isLoading",
+    isLoading
   );
 
   useEffect(() => {

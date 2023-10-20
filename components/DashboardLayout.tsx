@@ -41,6 +41,7 @@ import { SettingInvitationModal } from "./DashboardCompanyComponent/Modal/Settin
 import { FirstLoginSettingUserProfileAfterInvitationModal } from "./Modal/FirstLoginSettingUserProfileAfterInvitaionModal/FirstLoginSettingUserProfileAfterInvitaionModal";
 import { Invitation } from "@/types";
 import { InvitationForLoggedInUser } from "./Modal/InvitationForLoggedInUser/InvitationForLoggedInUser";
+import { useQueryClient } from "@tanstack/react-query";
 
 type Prop = {
   title?: string;
@@ -262,9 +263,9 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
         <div className="h-[35px] w-[35px] rounded-full bg-[#00d43690]" onClick={handleRefresh}></div>
       </div> */}
       {/* サインアウトボタン */}
-      <div className="flex-center fixed bottom-[2%] right-[6%] z-[10000] h-[35px] w-[35px] cursor-pointer">
+      {/* <div className="flex-center fixed bottom-[2%] right-[6%] z-[10000] h-[35px] w-[35px] cursor-pointer">
         <div className="h-[35px] w-[35px] rounded-full bg-[#00000030]" onClick={handleSignOut}></div>
-      </div>
+      </div> */}
       {/* テーマ切り替えボタン */}
       <div
         className={`flex-center transition-base01 fixed bottom-[2%] right-[2%] z-[10000] h-[35px] w-[35px] cursor-pointer rounded-full ${
