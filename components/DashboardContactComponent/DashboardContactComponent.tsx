@@ -7,6 +7,7 @@ import { ErrorFallback } from "../ErrorFallback/ErrorFallback";
 import { Fallback } from "../Fallback/Fallback";
 import { ContactGridTableAll } from "./ContactGridTableAll/ContactGridTableAll";
 import { ContactDetail } from "./ContactDetail/ContactDetail";
+import { FallbackGridTableAll } from "../GridTable/GridTableAll/FallbackGridTableAll";
 // import { ContactDetail } from "./ContactDetail/ContactDetail";
 
 export const DashboardContactComponent: FC = () => {
@@ -62,7 +63,8 @@ export const DashboardContactComponent: FC = () => {
           >
             {activeMenuTab === "Contacts" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
-                <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
+                {/* <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}> */}
+                <Suspense fallback={<FallbackGridTableAll />}>
                   <ContactGridTableAll title="担当者" />
                 </Suspense>
               </ErrorBoundary>

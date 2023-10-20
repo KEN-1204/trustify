@@ -1,6 +1,8 @@
 import React from "react";
 import styles from "./SkeletonLoading.module.css";
 
+// Avatar○有り
+
 export const SkeletonLoading = () => {
   return (
     <div

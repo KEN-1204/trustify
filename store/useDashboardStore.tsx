@@ -190,6 +190,9 @@ type State = {
   // 既読+ToDoのお知らせ
   alreadyReadNotifications: Notification[] | [];
   setAlreadyReadNotifications: (payload: Notification[] | []) => void;
+  // 未完了のお知らせ
+  incompleteNotifications: Notification[] | [];
+  setIncompleteNotifications: (payload: Notification[] | []) => void;
   // 完了済みのお知らせ
   completedNotifications: Notification[] | [];
   setCompletedNotifications: (payload: Notification[] | []) => void;
@@ -900,6 +903,9 @@ const useDashboardStore = create<State>((set) => ({
   // 既読+ToDoのお知らせ
   alreadyReadNotifications: [],
   setAlreadyReadNotifications: (payload) => set({ alreadyReadNotifications: payload }),
+  // 未完了のお知らせ
+  incompleteNotifications: [],
+  setIncompleteNotifications: (payload) => set({ incompleteNotifications: payload }),
   // 完了済みのお知らせ
   completedNotifications: [],
   setCompletedNotifications: (payload) => set({ completedNotifications: payload }),

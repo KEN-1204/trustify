@@ -7,6 +7,7 @@ import { ErrorFallback } from "../ErrorFallback/ErrorFallback";
 import { Fallback } from "../Fallback/Fallback";
 import { GridTableAll } from "../GridTable/GridTableAll/GridTableAll";
 import { CompanyDetail } from "./CompanyDetail/CompanyDetail";
+import { FallbackGridTableAll } from "../GridTable/GridTableAll/FallbackGridTableAll";
 
 export const DashboardCompanyComponent: FC = () => {
   console.log("🔥 DashboardCompanyComponentレンダリング レンダリング");
@@ -59,13 +60,21 @@ export const DashboardCompanyComponent: FC = () => {
                 : "py-[20px] pl-[20px]"
             }`}
           >
-            {activeMenuTab === "Company" && (
+            {/* {activeMenuTab === "Company" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
                   <GridTableAll title="会社" />
                 </Suspense>
               </ErrorBoundary>
+            )} */}
+            {activeMenuTab === "Company" && (
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Suspense fallback={<FallbackGridTableAll />}>
+                  <GridTableAll title="会社" />
+                </Suspense>
+              </ErrorBoundary>
             )}
+            {/* {activeMenuTab === "Company" && <FallbackGridTableAll />} */}
           </section>
 
           {/* ２画面目 下画面 */}

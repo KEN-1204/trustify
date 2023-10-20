@@ -21,6 +21,10 @@ import { TooltipModal } from "../Parts/Tooltip/TooltipModal";
 import { MdOutlineModeEditOutline } from "react-icons/md";
 import { VscSettings } from "react-icons/vsc";
 import { toast } from "react-toastify";
+import { Notification } from "@/types";
+import { NotificationTextChangeTeamOwner } from "./NotificationCardText/NotificationTextChangeTeamOwner";
+import { format } from "date-fns";
+import { NotificationCardTest } from "./NotificationCard/NotificationCardTest";
 
 export const DashboardHeaderMemo: FC = () => {
   const supabase = useSupabaseClient();
@@ -82,14 +86,46 @@ export const DashboardHeaderMemo: FC = () => {
   // 【プロフィールメニュー開閉状態】
   const [openProfileMenu, setOpenProfileMenu] = useState(false);
 
+  // 【お知らせの所有者変更モーダル開閉状態】
+  const [openNotificationChangeTeamOwnerModal, setOpenNotificationChangeTeamOwnerModal] = useState(false);
+
   // =============== お知らせ notificationsを取得 ===============
   const [openNotificationModal, setOpenNotificationModal] = useState(false); // お知らせ開閉
   const [activeNotificationTab, setActiveNotificationTab] = useState("ToDo"); // お知らせアクティブタブ ToDo/完了
-  // const myAllNotifications = useDashboardStore((state) => state.myAllNotifications)
+  // const myAllNotifications = useDashboardStore((state) => state.myAllNotifications);
+  // const setMyAllNotifications = useDashboardStore((state) => state.setMyAllNotifications);
+  const incompleteNotifications = useDashboardStore((state) => state.incompleteNotifications);
+  const setIncompleteNotifications = useDashboardStore((state) => state.setIncompleteNotifications);
+  const completedNotifications = useDashboardStore((state) => state.completedNotifications);
+  const setCompletedNotifications = useDashboardStore((state) => state.setCompletedNotifications);
   const queryClient = useQueryClient();
   const notificationData = queryClient.getQueryData<Notification[]>(["my_notifications"]);
 
-  console.log("notificationキャッシュのdata", notificationData, "notificationData?.length", notificationData?.length);
+  console.log(
+    "DashboardHeaderレンダリング",
+    "notificationData?.length",
+    notificationData?.length,
+    "notificationキャッシュのdata",
+    notificationData,
+    "incompleteNotifications",
+    incompleteNotifications,
+    "completedNotifications",
+    completedNotifications,
+    "所有者変更モーダル",
+    openNotificationChangeTeamOwnerModal
+  );
+
+  // キャッシュから取得したnotificationsを、未読、既読、完了済みに振り分ける
+  useEffect(() => {
+    if (!notificationData || notificationData.length === 0) return;
+
+    // 未完了のお知らせを取得
+    const incompleteNotificationsData = notificationData.filter((data) => data.completed === false);
+    setIncompleteNotifications(incompleteNotificationsData);
+    // 完了済みのお知らせを取得
+    const completedNotificationsData = notificationData.filter((data) => data.completed === true);
+    setCompletedNotifications(completedNotificationsData);
+  }, [notificationData]);
 
   // ================================ ツールチップ ================================
   const modalContainerRef = useRef<HTMLDivElement | null>(null);
@@ -151,6 +187,12 @@ export const DashboardHeaderMemo: FC = () => {
     setLoadingGlobalState(false);
     setIsOpenSettingAccountModal(true);
     setSelectedSettingAccountMenu("Profile");
+  };
+  // 管理者クリック 会社管理画面オープン
+  const openSettingInvitation = () => {
+    setLoadingGlobalState(false);
+    setIsOpenSettingAccountModal(true);
+    setSelectedSettingAccountMenu("Company");
   };
 
   return (
@@ -473,7 +515,7 @@ export const DashboardHeaderMemo: FC = () => {
                 // href="/home"
                 // prefetch={false}
                 className={`${styles.navbarItem} ${activeMenuTab === "Admin" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("Admin")}
+                onClick={openSettingInvitation}
               >
                 <div
                   className={`${styles.navbarItemInner}`}
@@ -743,7 +785,7 @@ export const DashboardHeaderMemo: FC = () => {
                       {/* ドロップダウンサイドメニュー ここから */}
                       {hoveredThemeMenu && (
                         <ul
-                          className={`shadow-all-md absolute -left-[150px] top-0 flex min-h-[40px] min-w-[150px] flex-col overflow-hidden rounded-bl-[4px] rounded-tl-[4px] bg-[var(--color-edit-bg-solid)]`}
+                          className={`shadow-all-md border-real absolute -left-[150px] top-0 flex min-h-[40px] min-w-[150px] flex-col overflow-hidden rounded-bl-[4px] rounded-tl-[4px] bg-[var(--color-edit-bg-solid)]`}
                         >
                           <li
                             className="flex min-h-[40px] w-full cursor-pointer items-center justify-between px-[18px] hover:bg-[var(--color-dropdown-list-hover)] hover:text-[var(--color-dropdown-list-hover-text)]"
@@ -805,7 +847,7 @@ export const DashboardHeaderMemo: FC = () => {
         <div className="flex-center mr-[8px] h-full w-[40px]">
           <div
             data-text="アカウント設定"
-            className="flex-center h-full w-full cursor-pointer rounded-full hover:bg-[var(--color-bg-sub)]"
+            className={`flex-center h-full w-full cursor-pointer rounded-full hover:bg-[var(--color-bg-sub-re)]`}
             onMouseEnter={(e) => handleOpenTooltip(e, "center")}
             onMouseLeave={handleCloseTooltip}
             onClick={() => {
@@ -821,7 +863,9 @@ export const DashboardHeaderMemo: FC = () => {
         <div className="flex-center relative mr-[8px] h-full w-[40px]">
           <div
             data-text="お知らせ"
-            className="flex-center h-full w-full cursor-pointer rounded-full hover:bg-[var(--color-bg-sub)]"
+            className={`flex-center h-full w-full cursor-pointer rounded-full hover:bg-[var(--color-bg-sub-re)] ${
+              openNotificationModal ? `bg-[var(--color-bg-sub-re)]` : ``
+            }`}
             onClick={() => setOpenNotificationModal(true)}
             onMouseEnter={(e) => handleOpenTooltip(e, "center")}
             onMouseLeave={handleCloseTooltip}
@@ -915,107 +959,257 @@ export const DashboardHeaderMemo: FC = () => {
                   </div>
                   {/* お知らせコンテンツ エリア ToDo */}
                   <div
-                    className={`transition-base flex h-auto w-[800px] flex-col ${
+                    className={`transition-base flex h-auto w-[800px] ${
                       activeNotificationTab === "ToDo" ? `ml-0 opacity-100` : `-ml-[400px] opacity-100`
                     }`}
                     onClick={() => {
                       console.log("カードクリック");
                     }}
                   >
-                    {/* カード */}
-                    <div
-                      className={`flex min-h-[96px] max-w-[400px] cursor-pointer ${
-                        activeNotificationTab === "ToDo"
-                          ? `transition-base-opacity1 opacity-100`
-                          : `transition-base-opacity04 opacity-0`
-                      }`}
-                    >
-                      <div
-                        className={`transition-base-color03 flex h-full w-full py-[16px] hover:bg-[var(--color-bg-sub-re)]`}
-                      >
-                        {/* チェックボックス */}
-                        <div className="flex-center relative mx-[10px] my-[16px] max-h-[24px] max-w-[24px]">
-                          <div role="gridcell" className={styles.grid_cell}>
+                    {/* お知らせコンテンツエリア 左側ToDo */}
+                    <div className="flex h-auto w-[400px] flex-col">
+                      {/* お知らせカード ToDo */}
+                      {!!incompleteNotifications.length &&
+                        incompleteNotifications.map((notification) => (
+                          <div
+                            key={notification.id}
+                            className={`flex min-h-[96px] max-w-[400px] cursor-pointer ${
+                              activeNotificationTab === "ToDo"
+                                ? `transition-base-opacity1 opacity-100`
+                                : `transition-base-opacity04 opacity-0`
+                            }`}
+                            onClick={() => {
+                              console.log("カードクリック type", notification.type);
+                              if (notification.type === "change_team_owner") console.log("所有者変更モーダル オープン");
+                              setOpenNotificationChangeTeamOwnerModal(true);
+                            }}
+                          >
                             <div
-                              className={`${styles.grid_select_cell_header}`}
-                              data-text="完了済みとしてマーク"
-                              onMouseEnter={(e) => handleOpenTooltipModal(e, "top")}
-                              onMouseLeave={handleCloseTooltipModal}
+                              className={`transition-base-color03 flex h-full w-full py-[16px] hover:bg-[var(--color-bg-sub-re)]`}
                             >
-                              <input
-                                type="checkbox"
-                                // checked={checkedMembersArray[index]}
-                                // onChange={() => {
-                                //   const newCheckedArray = [...checkedMembersArray];
-                                //   newCheckedArray[index] = !checkedMembersArray[index];
-                                //   setCheckedMembersArray(newCheckedArray);
-                                // }}
-                                // checked={checked}
-                                // onChange={() => setChecked(!checked)}
-                                onClick={() => {
-                                  console.log("チェックボックスクリック");
-                                  console.log("チェックボックスクリック2");
-                                  console.log("チェックボックスクリック3");
-                                }}
-                                className={`${styles.grid_select_cell_header_input}`}
-                              />
-                              <svg viewBox="0 0 18 18" fill="white" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
-                              </svg>
-                            </div>
-                          </div>
-                        </div>
-                        {/* アバター画像エリア */}
-                        <div className={`mr-[16px] mt-[2px] flex min-h-[48px] min-w-[48px] justify-center`}>
-                          {!avatarUrl && (
-                            <div
-                              data-text={`${userProfileState?.profile_name}`}
-                              className={`flex-center h-[48px] w-[48px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip}`}
-                            >
-                              {/* <span>K</span> */}
-                              <span className={`pointer-events-none text-[22px]`}>
-                                {userProfileState?.profile_name
-                                  ? getInitial(userProfileState.profile_name)
-                                  : `${getInitial("NoName")}`}
-                              </span>
-                            </div>
-                          )}
-                          {avatarUrl && (
-                            <div
-                              data-text={`${userProfileState?.profile_name}`}
-                              className={`flex-center h-[48px] w-[48px] cursor-pointer overflow-hidden rounded-full hover:bg-[#00000020]`}
-                            >
-                              <Image
-                                src={avatarUrl}
-                                alt="Avatar"
-                                className={`pointer-events-none h-full w-full object-cover text-[#fff]`}
-                                width={75}
-                                height={75}
-                              />
-                            </div>
-                          )}
-                        </div>
-                        {/* コンテンツエリア */}
-                        <div className={`mr-[16px] flex h-auto w-full flex-col text-[var(--color-text-title)]`}>
-                          {/* テキストコンテンツ */}
-                          <div className={`text-[13px]`}>
-                            <p>
-                              <span className="font-bold">Ken</span>さんが
-                              <span className="font-bold">Kenta Itoさんのチーム</span>
-                              の所有者として代わりにあなたを任命しました。確認してください。
-                            </p>
-                          </div>
-                          {/* 時間とNewマーク */}
-                          <div className="flex items-center text-[12px]">
-                            <span className="pl-[0px] pt-[4px]">昨日、15:26</span>
-                            <div className="pl-[8px] pt-[4px]">
-                              <div className="min-h-[20px] rounded-full bg-[var(--color-red-tk)] px-[10px] text-[#fff]">
-                                <span>New</span>
+                              {/* チェックボックス */}
+                              <div className="flex-center relative mx-[10px] my-[16px] max-h-[24px] max-w-[24px]">
+                                <div role="gridcell" className={styles.grid_cell}>
+                                  <div
+                                    className={`${styles.grid_select_cell_header}`}
+                                    data-text="完了済みとしてマーク"
+                                    onMouseEnter={(e) => handleOpenTooltipModal(e, "top")}
+                                    onMouseLeave={handleCloseTooltipModal}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      // checked={checkedMembersArray[index]}
+                                      // onChange={() => {
+                                      //   const newCheckedArray = [...checkedMembersArray];
+                                      //   newCheckedArray[index] = !checkedMembersArray[index];
+                                      //   setCheckedMembersArray(newCheckedArray);
+                                      // }}
+                                      // checked={checked}
+                                      // onChange={() => setChecked(!checked)}
+                                      onClick={() => {
+                                        console.log("チェックボックスクリック");
+                                        console.log("チェックボックスクリック2");
+                                        console.log("チェックボックスクリック3");
+                                      }}
+                                      className={`${styles.grid_select_cell_header_input}`}
+                                    />
+                                    <svg viewBox="0 0 18 18" fill="white" xmlns="http://www.w3.org/2000/svg">
+                                      <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+                                    </svg>
+                                  </div>
+                                </div>
+                              </div>
+                              {/* アバター画像エリア */}
+                              <div className={`mr-[16px] mt-[2px] flex min-h-[48px] min-w-[48px] justify-center`}>
+                                {!notification.from_user_avatar_url && (
+                                  <div
+                                    data-text={`${userProfileState?.profile_name}`}
+                                    className={`flex-center h-[48px] w-[48px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip}`}
+                                  >
+                                    {/* <span>K</span> */}
+                                    <span className={`pointer-events-none text-[22px]`}>
+                                      {notification?.from_user_name
+                                        ? getInitial(notification.from_user_name)
+                                        : `${getInitial("未設定")}`}
+                                    </span>
+                                  </div>
+                                )}
+                                {notification.from_user_avatar_url && (
+                                  <div
+                                    // data-text={`${userProfileState?.profile_name}`}
+                                    className={`flex-center h-[48px] w-[48px] cursor-pointer overflow-hidden rounded-full hover:bg-[#00000020]`}
+                                  >
+                                    <Image
+                                      src={notification.from_user_avatar_url}
+                                      alt="Avatar"
+                                      className={`pointer-events-none h-full w-full object-cover text-[#fff]`}
+                                      width={75}
+                                      height={75}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                              {/* コンテンツエリア */}
+                              <div className={`mr-[16px] flex h-auto w-full flex-col text-[var(--color-text-title)]`}>
+                                {/* テキストコンテンツ */}
+                                <div className={`text-[13px]`}>
+                                  {notification.type === "change_team_owner" && (
+                                    <NotificationTextChangeTeamOwner
+                                      from_user_name={notification.from_user_name}
+                                      from_user_email={notification.from_user_email}
+                                      team_name={notification.from_company_name}
+                                    />
+                                  )}
+                                </div>
+                                {/* 時間とNewマーク */}
+                                <div className="flex items-center text-[12px]">
+                                  <span className="pl-[0px] pt-[4px]">
+                                    {/* {format(new Date(notification.created_at), "yyyy-MM-dd HH:mm")} */}
+                                    {format(new Date(notification.created_at), "yyyy年MM月dd日 HH:mm")}
+                                  </span>
+                                  {/* <span className="pl-[0px] pt-[4px]">昨日、15:26</span> */}
+                                  <div className="pl-[8px] pt-[4px]">
+                                    {notification.already_read === false && (
+                                      <div className="min-h-[20px] rounded-full bg-[var(--color-red-tk)] px-[10px] text-[#fff]">
+                                        <span>New</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      </div>
+                        ))}
+                      {/* <NotificationCardTest
+                        activeNotificationTab={activeNotificationTab}
+                        avatarUrl={avatarUrl}
+                        getInitial={getInitial}
+                        handleCloseTooltipModal={handleCloseTooltipModal}
+                        handleOpenTooltipModal={handleOpenTooltipModal}
+                      /> */}
+                      {/* お知らせカード ここまで */}
+                    </div>
+                    {/* お知らせコンテンツエリア 右側完了済み */}
+                    <div className="flex h-auto w-[400px] flex-col">
+                      {/* 完了済みお知らせカード */}
+                      {!!completedNotifications.length &&
+                        completedNotifications.map((notification) => (
+                          <div
+                            key={notification.id}
+                            className={`flex min-h-[96px] max-w-[400px] cursor-pointer ${
+                              activeNotificationTab === "Completed"
+                                ? `transition-base-opacity1 opacity-100`
+                                : `transition-base-opacity04 opacity-0`
+                            }`}
+                          >
+                            <div
+                              className={`transition-base-color03 flex h-full w-full py-[16px] hover:bg-[var(--color-bg-sub-re)]`}
+                            >
+                              {/* チェックボックス */}
+                              <div className="flex-center relative mx-[10px] my-[16px] max-h-[24px] max-w-[24px]">
+                                <div role="gridcell" className={styles.grid_cell}>
+                                  <div
+                                    className={`${styles.grid_select_cell_header}`}
+                                    data-text="完了済みとしてマーク"
+                                    onMouseEnter={(e) => handleOpenTooltipModal(e, "top")}
+                                    onMouseLeave={handleCloseTooltipModal}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      // checked={checkedMembersArray[index]}
+                                      // onChange={() => {
+                                      //   const newCheckedArray = [...checkedMembersArray];
+                                      //   newCheckedArray[index] = !checkedMembersArray[index];
+                                      //   setCheckedMembersArray(newCheckedArray);
+                                      // }}
+                                      // checked={checked}
+                                      // onChange={() => setChecked(!checked)}
+                                      onClick={() => {
+                                        console.log("チェックボックスクリック");
+                                        console.log("チェックボックスクリック2");
+                                        console.log("チェックボックスクリック3");
+                                      }}
+                                      className={`${styles.grid_select_cell_header_input}`}
+                                    />
+                                    <svg viewBox="0 0 18 18" fill="white" xmlns="http://www.w3.org/2000/svg">
+                                      <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+                                    </svg>
+                                  </div>
+                                </div>
+                              </div>
+                              {/* アバター画像エリア */}
+                              <div className={`mr-[16px] mt-[2px] flex min-h-[48px] min-w-[48px] justify-center`}>
+                                {!notification.from_user_avatar_url && (
+                                  <div
+                                    data-text={`${userProfileState?.profile_name}`}
+                                    className={`flex-center h-[48px] w-[48px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip}`}
+                                  >
+                                    {/* <span>K</span> */}
+                                    <span className={`pointer-events-none text-[22px]`}>
+                                      {notification?.from_user_name
+                                        ? getInitial(notification.from_user_name)
+                                        : `${getInitial("未設定")}`}
+                                    </span>
+                                  </div>
+                                )}
+                                {notification.from_user_avatar_url && (
+                                  <div
+                                    // data-text={`${userProfileState?.profile_name}`}
+                                    className={`flex-center h-[48px] w-[48px] cursor-pointer overflow-hidden rounded-full hover:bg-[#00000020]`}
+                                  >
+                                    <Image
+                                      src={notification.from_user_avatar_url}
+                                      alt="Avatar"
+                                      className={`pointer-events-none h-full w-full object-cover text-[#fff]`}
+                                      width={75}
+                                      height={75}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                              {/* コンテンツエリア */}
+                              <div className={`mr-[16px] flex h-auto w-full flex-col text-[var(--color-text-title)]`}>
+                                {/* テキストコンテンツ */}
+                                <div className={`text-[13px]`}>
+                                  {notification.type === "change_team_owner" && (
+                                    <NotificationTextChangeTeamOwner
+                                      from_user_name={notification.from_user_name}
+                                      from_user_email={notification.from_user_email}
+                                      team_name={notification.from_company_name}
+                                    />
+                                  )}
+                                </div>
+                                {/* 時間とNewマーク */}
+                                <div className="flex items-center text-[12px]">
+                                  <span className="pl-[0px] pt-[4px]">
+                                    {format(new Date(notification.created_at), "yyyy年MM月dd日 HH:mm")}
+                                  </span>
+                                  <div className="pl-[8px] pt-[4px]">
+                                    {/* {notification.already_read === false && (
+                                      <div className="min-h-[20px] rounded-full bg-[var(--color-red-tk)] px-[10px] text-[#fff]">
+                                        <span>New</span>
+                                      </div>
+                                    )} */}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      {/* <NotificationCardTest
+                        activeNotificationTab={activeNotificationTab}
+                        avatarUrl={avatarUrl}
+                        getInitial={getInitial}
+                        handleCloseTooltipModal={handleCloseTooltipModal}
+                        handleOpenTooltipModal={handleOpenTooltipModal}
+                      />
+                      <NotificationCardTest
+                        activeNotificationTab={activeNotificationTab}
+                        avatarUrl={avatarUrl}
+                        getInitial={getInitial}
+                        handleCloseTooltipModal={handleCloseTooltipModal}
+                        handleOpenTooltipModal={handleOpenTooltipModal}
+                      /> */}
                     </div>
                   </div>
                 </div>
@@ -1025,6 +1219,20 @@ export const DashboardHeaderMemo: FC = () => {
           {/* ==================== お知らせポップアップ ここまで ==================== */}
         </div>
       </div>
+      {/* お知らせ所有者変更モーダル */}
+      {openNotificationChangeTeamOwnerModal && (
+        <>
+          {/* オーバーレイ */}
+          <div
+            className="fixed left-0 top-0 z-[1000] h-[100vh] w-[100vw] bg-[#00000070] backdrop-blur-sm"
+            onClick={() => {
+              console.log("オーバーレイ クリック");
+              setOpenNotificationChangeTeamOwnerModal(false);
+            }}
+          ></div>
+          <div className="fixed left-[50%] top-[50%] z-[2000] h-[30vh] w-[30vw] translate-x-[-50%] translate-y-[-50%] bg-[#fff]"></div>
+        </>
+      )}
     </header>
   );
 };

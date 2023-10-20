@@ -283,7 +283,7 @@ const SettingMemberAccountsMemo: FC = () => {
       {/* 右側メインエリア プロフィール ここまで */}
       {/* =================== チェックボックス選択時の一括変更エリア =================== */}
       <div
-        className={`shadow-top-sm transition-base03 sticky bottom-0 left-0 z-0 flex h-[80px] w-full  origin-bottom items-center justify-between bg-[var(--color-edit-bg-solid)] px-[24px] py-[8px] text-[13px] ${
+        className={`shadow-top-md transition-base03 sticky bottom-0 left-0 z-0 flex h-[80px] w-full  origin-bottom items-center justify-between bg-[var(--color-edit-bg-solid)] px-[24px] py-[8px] text-[13px] ${
           checkedMembersArray.includes(true) ? `scale-y-100` : `mb-[-80px] scale-y-0`
         } `}
         ref={modalContainerRef}

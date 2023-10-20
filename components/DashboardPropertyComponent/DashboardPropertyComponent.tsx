@@ -7,6 +7,7 @@ import { ErrorFallback } from "../ErrorFallback/ErrorFallback";
 import { Fallback } from "../Fallback/Fallback";
 import { PropertyGridTableAll } from "./PropertyGridTableAll/PropertyGridTableAll";
 import { PropertyDetail } from "./PropertyDetail/PropertyDetail";
+import { FallbackGridTableAll } from "../GridTable/GridTableAll/FallbackGridTableAll";
 // import { ContactDetail } from "./ContactDetail/ContactDetail";
 
 export const DashboardPropertyComponent: FC = () => {
@@ -62,7 +63,8 @@ export const DashboardPropertyComponent: FC = () => {
           >
             {activeMenuTab === "Property" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
-                <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
+                {/* <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}> */}
+                <Suspense fallback={<FallbackGridTableAll />}>
                   <PropertyGridTableAll title="面談" />
                 </Suspense>
               </ErrorBoundary>
