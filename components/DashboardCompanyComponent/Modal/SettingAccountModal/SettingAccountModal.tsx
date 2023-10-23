@@ -1791,14 +1791,14 @@ export const SettingAccountModal = () => {
               </ErrorBoundary>
             )}
             {/* 右側メインエリア 会社・チーム */}
-            {selectedSettingAccountMenu === "Company" && <SettingCompany />}
-            {/* {selectedSettingAccountMenu === "Company" && (
+            {/* {selectedSettingAccountMenu === "Company" && <SettingCompany />} */}
+            {selectedSettingAccountMenu === "Company" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
                   <SettingCompany />
                 </Suspense>
               </ErrorBoundary>
-            )} */}
+            )}
             {/* 右側メインエリア 支払い・プラン */}
             {selectedSettingAccountMenu === "PaymentAndPlan" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>

@@ -147,6 +147,10 @@
   --color-modal-bg-side-c: #ebf3ff;
   --color-modal-bg-side-c-second: #ffffff66;
 
+  /* お知らせ確認モーダル light */
+  --color-bg-notification-modal: #fff;
+  --color-overlay: #00000070;
+
   --color-wrap-border: rgba(220, 220, 220, 0.6);
   /* 背景サブ　canva */
   /* --color-: rgba(64,87,109,.07);
@@ -593,6 +597,10 @@
   /* --color-modal-bg-side-c: #51535b; */
   --color-modal-bg-side-c: #3c3c3c;
   --color-modal-bg-side-c-second: #555;
+
+  /* お知らせ確認モーダル dark */
+  --color-bg-notification-modal: #ececec;
+  --color-overlay: #ffffff10;
 
   /* テーブルカラー dark */
   --color-bg-table-header: #252525;

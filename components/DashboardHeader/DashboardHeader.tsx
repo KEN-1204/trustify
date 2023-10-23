@@ -18,13 +18,14 @@ import { useQueryNotifications } from "@/hooks/useQueryNotifications";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { TooltipModal } from "../Parts/Tooltip/TooltipModal";
-import { MdOutlineModeEditOutline } from "react-icons/md";
+import { MdClose, MdOutlineModeEditOutline } from "react-icons/md";
 import { VscSettings } from "react-icons/vsc";
 import { toast } from "react-toastify";
 import { Notification } from "@/types";
 import { NotificationTextChangeTeamOwner } from "./NotificationCardText/NotificationTextChangeTeamOwner";
 import { format } from "date-fns";
 import { NotificationCardTest } from "./NotificationCard/NotificationCardTest";
+import { runFireworks } from "@/utils/confetti";
 
 export const DashboardHeaderMemo: FC = () => {
   const supabase = useSupabaseClient();
@@ -86,8 +87,11 @@ export const DashboardHeaderMemo: FC = () => {
   // 【プロフィールメニュー開閉状態】
   const [openProfileMenu, setOpenProfileMenu] = useState(false);
 
+  // ================================ お知らせ所有権変更関連 ================================
   // 【お知らせの所有者変更モーダル開閉状態】
   const [openNotificationChangeTeamOwnerModal, setOpenNotificationChangeTeamOwnerModal] = useState(false);
+  // 【お知らせの所有者変更モーダルをクリック時にお知らせの情報を保持するState】
+  const [notificationDataState, setNotificationDataState] = useState<Notification | null>(null);
 
   // =============== お知らせ notificationsを取得 ===============
   const [openNotificationModal, setOpenNotificationModal] = useState(false); // お知らせ開閉
@@ -99,14 +103,14 @@ export const DashboardHeaderMemo: FC = () => {
   const completedNotifications = useDashboardStore((state) => state.completedNotifications);
   const setCompletedNotifications = useDashboardStore((state) => state.setCompletedNotifications);
   const queryClient = useQueryClient();
-  const notificationData = queryClient.getQueryData<Notification[]>(["my_notifications"]);
+  const notificationsCacheData = queryClient.getQueryData<Notification[]>(["my_notifications"]);
 
   console.log(
     "DashboardHeaderレンダリング",
     "notificationData?.length",
-    notificationData?.length,
+    notificationsCacheData?.length,
     "notificationキャッシュのdata",
-    notificationData,
+    notificationsCacheData,
     "incompleteNotifications",
     incompleteNotifications,
     "completedNotifications",
@@ -115,17 +119,286 @@ export const DashboardHeaderMemo: FC = () => {
     openNotificationChangeTeamOwnerModal
   );
 
-  // キャッシュから取得したnotificationsを、未読、既読、完了済みに振り分ける
+  // ================================ お知らせ キャッシュから取得したnotificationsを、未読、既読、完了済みに振り分ける
   useEffect(() => {
-    if (!notificationData || notificationData.length === 0) return;
+    if (!notificationsCacheData || notificationsCacheData.length === 0) return;
 
     // 未完了のお知らせを取得
-    const incompleteNotificationsData = notificationData.filter((data) => data.completed === false);
+    const incompleteNotificationsData = notificationsCacheData.filter((data) => data.completed === false);
+    // 未読が0になったら紙吹雪
+    // 全て完了済みになったらFireworksアニメーションを起動
+    if (incompleteNotificationsData.length === 0 && incompleteNotifications.length !== 0) {
+      setTimeout(() => {
+        console.log("全てのタスクを完了済みにマーク🌟");
+        toast.success("全てのタスクが完了済みとしてマークされました！", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: `${theme === "light" ? "light" : "dark"}`,
+        });
+        runFireworks();
+      }, 1000);
+    }
     setIncompleteNotifications(incompleteNotificationsData);
     // 完了済みのお知らせを取得
-    const completedNotificationsData = notificationData.filter((data) => data.completed === true);
+    const completedNotificationsData = notificationsCacheData.filter((data) => data.completed === true);
     setCompletedNotifications(completedNotificationsData);
-  }, [notificationData]);
+  }, [notificationsCacheData]);
+
+  // ================================ お知らせ カードクリック
+  const handleClickedNotificationCard = async (notification: Notification) => {
+    console.log("カードクリック type", notification.type);
+    // お知らせ お知らせモーダルが開かれたら未読を既読に変更する
+    if (notification.already_read === false) {
+      const { data, error } = await supabase
+        .from("notifications")
+        .update({
+          already_read: true,
+          already_read_at: new Date().toISOString(),
+        })
+        .eq("id", notification.id)
+        .select();
+
+      if (error) {
+        console.error("notificationのUPDATE失敗 error:", error);
+        return toast.error("お知らせ情報の取得に失敗しました！", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: `${theme === "light" ? "light" : "dark"}`,
+        });
+      }
+
+      const updatedNotice: Notification = data[0];
+      console.log("UPDATEしたお知らせ", updatedNotice);
+
+      // エラーが出なければ、React-Queryのキャッシュも最新状態に更新
+      queryClient.setQueryData(
+        ["my_notifications"],
+        notificationsCacheData?.map((notice, index) =>
+          notice.id === notification.id
+            ? {
+                ...notificationsCacheData[index],
+                already_read: true,
+                already_read_at: updatedNotice.already_read_at,
+              }
+            : notice
+        )
+      );
+    }
+
+    if (notification.type === "change_team_owner") {
+      console.log("所有者変更モーダル オープン");
+      setOpenNotificationChangeTeamOwnerModal(true);
+      setNotificationDataState(notification);
+    }
+  };
+
+  // ================================ お知らせ ToDoカードをチェックして完了済みに変更
+  const handleCheckToDoCard = async (notification: Notification) => {
+    console.log("チェックボックスクリック");
+
+    // 完了済みに変更
+    const { data, error } = await supabase
+      .from("notifications")
+      .update({
+        already_read: true,
+        already_read_at: new Date().toDateString(),
+        completed: true,
+        completed_at: new Date().toDateString(),
+      })
+      .eq("id", notification.id)
+      .select();
+    if (error) {
+      console.error("お知らせを完了済み処理でエラー発生", error);
+      toast.error("タスクの完了処理でエラーが発生しました！", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: `${theme === "light" ? "light" : "dark"}`,
+      });
+      return;
+    }
+
+    const updatedNotification = data[0];
+
+    console.log("UPDATEしたお知らせ", updatedNotification);
+
+    // エラーが出なければ、React-Queryのキャッシュも最新状態に更新
+    const newNotificationCacheArray = notificationsCacheData?.map((notice, index) =>
+      notice.id === notification.id
+        ? {
+            ...notificationsCacheData[index],
+            already_read: true,
+            already_read_at: updatedNotification.already_read_at,
+            completed: true,
+            completed_at: updatedNotification.completed_at,
+          }
+        : notice
+    );
+    queryClient.setQueryData(["my_notifications"], newNotificationCacheArray);
+
+    toast.success("完了済みとしてマークしました！", {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: `${theme === "light" ? "light" : "dark"}`,
+    });
+  };
+
+  // ================================ お知らせ 完了済みのカードのチェックを外す関数
+  const handleUncheckCompletedCard = async (notification: Notification) => {
+    console.log("完了済みチェックボックスクリック");
+
+    // 完了済みに変更
+    const { data, error } = await supabase
+      .from("notifications")
+      .update({
+        already_read: true,
+        already_read_at: null,
+        completed: false,
+        completed_at: null,
+      })
+      .eq("id", notification.id)
+      .select();
+    if (error) {
+      console.error("完了済みのお知らせをタスクへ変更処理でエラー発生", error);
+      toast.error("完了済みのタスクをToDoへの変更処理でエラーが発生しました！", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: `${theme === "light" ? "light" : "dark"}`,
+      });
+      return;
+    }
+
+    const updatedNotification = data[0];
+
+    console.log("UPDATEしたお知らせ", updatedNotification);
+
+    // エラーが出なければ、React-Queryのキャッシュも最新状態に更新
+    const newNotificationCacheArray = notificationsCacheData?.map((notice, index) =>
+      notice.id === notification.id
+        ? {
+            ...notificationsCacheData[index],
+            already_read: true,
+            already_read_at: updatedNotification.already_read_at,
+            completed: false,
+            completed_at: updatedNotification.completed_at,
+          }
+        : notice
+    );
+    queryClient.setQueryData(["my_notifications"], newNotificationCacheArray);
+
+    toast.success("完了済みタスクをToDoへ変更しました！", {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: `${theme === "light" ? "light" : "dark"}`,
+    });
+  };
+
+  // ================================ お知らせ 全てのToDoカードチェックして完了済みに変更
+  // 一つ一つのToDoカードにチェックを入れる関数
+  const checkToDoCard = async (notification: Notification, i: number) => {
+    console.log(`${i}番目のカードをチェックする処理`);
+
+    // 完了済みに変更
+    const { data, error } = await supabase
+      .from("notifications")
+      .update({
+        already_read: true,
+        already_read_at: new Date().toDateString(),
+        completed: true,
+        completed_at: new Date().toDateString(),
+      })
+      .eq("id", notification.id)
+      .select();
+    if (error) {
+      console.error("お知らせを完了済み処理でエラー発生", error);
+      throw new Error(error.message);
+    }
+
+    const updatedNotification = data[0];
+
+    console.log("UPDATEしたお知らせ", updatedNotification);
+
+    // エラーが出なければ、React-Queryのキャッシュも最新状態に更新
+    const newNotificationCacheArray = notificationsCacheData?.map((notice, index) =>
+      notice.id === notification.id
+        ? {
+            ...notificationsCacheData[index],
+            already_read: true,
+            already_read_at: updatedNotification.already_read_at,
+            completed: true,
+            completed_at: updatedNotification.completed_at,
+          }
+        : notice
+    );
+    queryClient.setQueryData(["my_notifications"], newNotificationCacheArray);
+  };
+  // 全てのToDoカードをチェック
+  const handleAllCheckToDoCard = async () => {
+    if (incompleteNotifications.length === 0) return console.log("無し");
+    try {
+      incompleteNotifications.forEach((notification, index) => {
+        checkToDoCard(notification, index);
+      });
+      setIncompleteNotifications([]);
+      setTimeout(() => {
+        toast.success("全てのタスクを完了済みにマークしました！", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: `${theme === "light" ? "light" : "dark"}`,
+        });
+        runFireworks();
+      }, 500);
+    } catch (error: any) {
+      console.error(error.message);
+      toast.error("タスクの完了処理でエラーが発生しました！", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: `${theme === "light" ? "light" : "dark"}`,
+      });
+    }
+  };
+
+  // ================================ お知らせ 「所有者を受け入れる」クリック時の関数
+  const handleAcceptChangeTeamOwner = async () => {};
 
   // ================================ ツールチップ ================================
   const modalContainerRef = useRef<HTMLDivElement | null>(null);
@@ -872,11 +1145,12 @@ export const DashboardHeaderMemo: FC = () => {
           >
             <AiOutlineBell className="text-[24px] text-[var(--color-icon)]" />
             {/* 通知アイコン */}
-            {!!notificationData?.length && (
-              <div className={`${styles.notice_outer} flex-center transition-base`}>
-                <div className={`${styles.notice_inner} transition-base`}></div>
-              </div>
-            )}
+            {!!notificationsCacheData?.length &&
+              incompleteNotifications.some((notice) => notice.already_read === false) && (
+                <div className={`${styles.notice_outer} flex-center transition-base`}>
+                  <div className={`${styles.notice_inner} transition-base`}></div>
+                </div>
+              )}
           </div>
 
           {/* お知らせモーダルにはoverflow: hiddenが適用されていて、ツールチップが見切れてしまうため、
@@ -912,6 +1186,7 @@ export const DashboardHeaderMemo: FC = () => {
                   {activeNotificationTab === "ToDo" && (
                     <button
                       className={`transition-base01 min-h-[40px] rounded-[6px] px-[12px] text-[13px] font-bold hover:bg-[var(--color-bg-sub-re)] `}
+                      onClick={handleAllCheckToDoCard}
                     >
                       <span>すべて完了済みとしてマーク</span>
                     </button>
@@ -962,9 +1237,6 @@ export const DashboardHeaderMemo: FC = () => {
                     className={`transition-base flex h-auto w-[800px] ${
                       activeNotificationTab === "ToDo" ? `ml-0 opacity-100` : `-ml-[400px] opacity-100`
                     }`}
-                    onClick={() => {
-                      console.log("カードクリック");
-                    }}
                   >
                     {/* お知らせコンテンツエリア 左側ToDo */}
                     <div className="flex h-auto w-[400px] flex-col">
@@ -973,16 +1245,11 @@ export const DashboardHeaderMemo: FC = () => {
                         incompleteNotifications.map((notification) => (
                           <div
                             key={notification.id}
-                            className={`flex min-h-[96px] max-w-[400px] cursor-pointer ${
+                            className={`flex min-h-[96px] max-w-[400px] ${
                               activeNotificationTab === "ToDo"
                                 ? `transition-base-opacity1 opacity-100`
                                 : `transition-base-opacity04 opacity-0`
                             }`}
-                            onClick={() => {
-                              console.log("カードクリック type", notification.type);
-                              if (notification.type === "change_team_owner") console.log("所有者変更モーダル オープン");
-                              setOpenNotificationChangeTeamOwnerModal(true);
-                            }}
                           >
                             <div
                               className={`transition-base-color03 flex h-full w-full py-[16px] hover:bg-[var(--color-bg-sub-re)]`}
@@ -1006,11 +1273,7 @@ export const DashboardHeaderMemo: FC = () => {
                                       // }}
                                       // checked={checked}
                                       // onChange={() => setChecked(!checked)}
-                                      onClick={() => {
-                                        console.log("チェックボックスクリック");
-                                        console.log("チェックボックスクリック2");
-                                        console.log("チェックボックスクリック3");
-                                      }}
+                                      onClick={() => handleCheckToDoCard(notification)}
                                       className={`${styles.grid_select_cell_header_input}`}
                                     />
                                     <svg viewBox="0 0 18 18" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -1019,61 +1282,67 @@ export const DashboardHeaderMemo: FC = () => {
                                   </div>
                                 </div>
                               </div>
-                              {/* アバター画像エリア */}
-                              <div className={`mr-[16px] mt-[2px] flex min-h-[48px] min-w-[48px] justify-center`}>
-                                {!notification.from_user_avatar_url && (
-                                  <div
-                                    data-text={`${userProfileState?.profile_name}`}
-                                    className={`flex-center h-[48px] w-[48px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip}`}
-                                  >
-                                    {/* <span>K</span> */}
-                                    <span className={`pointer-events-none text-[22px]`}>
-                                      {notification?.from_user_name
-                                        ? getInitial(notification.from_user_name)
-                                        : `${getInitial("未設定")}`}
-                                    </span>
-                                  </div>
-                                )}
-                                {notification.from_user_avatar_url && (
-                                  <div
-                                    // data-text={`${userProfileState?.profile_name}`}
-                                    className={`flex-center h-[48px] w-[48px] cursor-pointer overflow-hidden rounded-full hover:bg-[#00000020]`}
-                                  >
-                                    <Image
-                                      src={notification.from_user_avatar_url}
-                                      alt="Avatar"
-                                      className={`pointer-events-none h-full w-full object-cover text-[#fff]`}
-                                      width={75}
-                                      height={75}
-                                    />
-                                  </div>
-                                )}
-                              </div>
-                              {/* コンテンツエリア */}
-                              <div className={`mr-[16px] flex h-auto w-full flex-col text-[var(--color-text-title)]`}>
-                                {/* テキストコンテンツ */}
-                                <div className={`text-[13px]`}>
-                                  {notification.type === "change_team_owner" && (
-                                    <NotificationTextChangeTeamOwner
-                                      from_user_name={notification.from_user_name}
-                                      from_user_email={notification.from_user_email}
-                                      team_name={notification.from_company_name}
-                                    />
+                              {/* アバター画像・コンテンツテキストエリア クリックエリア */}
+                              <div
+                                className="group flex h-auto w-full cursor-pointer"
+                                onClick={() => handleClickedNotificationCard(notification)}
+                              >
+                                {/* アバター画像エリア */}
+                                <div className={`mr-[16px] mt-[2px] flex min-h-[48px] min-w-[48px] justify-center`}>
+                                  {!notification.from_user_avatar_url && (
+                                    <div
+                                      data-text={`${userProfileState?.profile_name}`}
+                                      className={`flex-center h-[48px] w-[48px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip}`}
+                                    >
+                                      {/* <span>K</span> */}
+                                      <span className={`pointer-events-none text-[22px]`}>
+                                        {notification?.from_user_name
+                                          ? getInitial(notification.from_user_name)
+                                          : `${getInitial("未設定")}`}
+                                      </span>
+                                    </div>
+                                  )}
+                                  {notification.from_user_avatar_url && (
+                                    <div
+                                      // data-text={`${userProfileState?.profile_name}`}
+                                      className={`flex-center h-[48px] w-[48px] cursor-pointer overflow-hidden rounded-full hover:bg-[#00000020]`}
+                                    >
+                                      <Image
+                                        src={notification.from_user_avatar_url}
+                                        alt="Avatar"
+                                        className={`pointer-events-none h-full w-full object-cover text-[#fff]`}
+                                        width={75}
+                                        height={75}
+                                      />
+                                    </div>
                                   )}
                                 </div>
-                                {/* 時間とNewマーク */}
-                                <div className="flex items-center text-[12px]">
-                                  <span className="pl-[0px] pt-[4px]">
-                                    {/* {format(new Date(notification.created_at), "yyyy-MM-dd HH:mm")} */}
-                                    {format(new Date(notification.created_at), "yyyy年MM月dd日 HH:mm")}
-                                  </span>
-                                  {/* <span className="pl-[0px] pt-[4px]">昨日、15:26</span> */}
-                                  <div className="pl-[8px] pt-[4px]">
-                                    {notification.already_read === false && (
-                                      <div className="min-h-[20px] rounded-full bg-[var(--color-red-tk)] px-[10px] text-[#fff]">
-                                        <span>New</span>
-                                      </div>
+                                {/* コンテンツエリア */}
+                                <div className={`mr-[16px] flex h-auto w-full flex-col text-[var(--color-text-title)]`}>
+                                  {/* テキストコンテンツ */}
+                                  <div className={`text-[13px] group-hover:underline`}>
+                                    {notification.type === "change_team_owner" && (
+                                      <NotificationTextChangeTeamOwner
+                                        from_user_name={notification.from_user_name}
+                                        from_user_email={notification.from_user_email}
+                                        team_name={notification.from_company_name}
+                                      />
                                     )}
+                                  </div>
+                                  {/* 時間とNewマーク */}
+                                  <div className="flex items-center text-[12px]">
+                                    <span className="pl-[0px] pt-[4px]">
+                                      {/* {format(new Date(notification.created_at), "yyyy-MM-dd HH:mm")} */}
+                                      {format(new Date(notification.created_at), "yyyy年MM月dd日 HH:mm")}
+                                    </span>
+                                    {/* <span className="pl-[0px] pt-[4px]">昨日、15:26</span> */}
+                                    <div className="pl-[8px] pt-[4px]">
+                                      {notification.already_read === false && (
+                                        <div className="min-h-[20px] rounded-full bg-[var(--color-red-tk)] px-[10px] text-[#fff]">
+                                          <span className="">New</span>
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
                               </div>
@@ -1096,7 +1365,7 @@ export const DashboardHeaderMemo: FC = () => {
                         completedNotifications.map((notification) => (
                           <div
                             key={notification.id}
-                            className={`flex min-h-[96px] max-w-[400px] cursor-pointer ${
+                            className={`flex min-h-[96px] max-w-[400px]  ${
                               activeNotificationTab === "Completed"
                                 ? `transition-base-opacity1 opacity-100`
                                 : `transition-base-opacity04 opacity-0`
@@ -1110,7 +1379,7 @@ export const DashboardHeaderMemo: FC = () => {
                                 <div role="gridcell" className={styles.grid_cell}>
                                   <div
                                     className={`${styles.grid_select_cell_header}`}
-                                    data-text="完了済みとしてマーク"
+                                    data-text="ToDoに戻す"
                                     onMouseEnter={(e) => handleOpenTooltipModal(e, "top")}
                                     onMouseLeave={handleCloseTooltipModal}
                                   >
@@ -1122,13 +1391,10 @@ export const DashboardHeaderMemo: FC = () => {
                                       //   newCheckedArray[index] = !checkedMembersArray[index];
                                       //   setCheckedMembersArray(newCheckedArray);
                                       // }}
-                                      // checked={checked}
+                                      // checked={notification.completed ?? false}
+                                      defaultChecked
                                       // onChange={() => setChecked(!checked)}
-                                      onClick={() => {
-                                        console.log("チェックボックスクリック");
-                                        console.log("チェックボックスクリック2");
-                                        console.log("チェックボックスクリック3");
-                                      }}
+                                      onClick={() => handleUncheckCompletedCard(notification)}
                                       className={`${styles.grid_select_cell_header_input}`}
                                     />
                                     <svg viewBox="0 0 18 18" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -1137,59 +1403,67 @@ export const DashboardHeaderMemo: FC = () => {
                                   </div>
                                 </div>
                               </div>
-                              {/* アバター画像エリア */}
-                              <div className={`mr-[16px] mt-[2px] flex min-h-[48px] min-w-[48px] justify-center`}>
-                                {!notification.from_user_avatar_url && (
-                                  <div
-                                    data-text={`${userProfileState?.profile_name}`}
-                                    className={`flex-center h-[48px] w-[48px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip}`}
-                                  >
-                                    {/* <span>K</span> */}
-                                    <span className={`pointer-events-none text-[22px]`}>
-                                      {notification?.from_user_name
-                                        ? getInitial(notification.from_user_name)
-                                        : `${getInitial("未設定")}`}
-                                    </span>
-                                  </div>
-                                )}
-                                {notification.from_user_avatar_url && (
-                                  <div
-                                    // data-text={`${userProfileState?.profile_name}`}
-                                    className={`flex-center h-[48px] w-[48px] cursor-pointer overflow-hidden rounded-full hover:bg-[#00000020]`}
-                                  >
-                                    <Image
-                                      src={notification.from_user_avatar_url}
-                                      alt="Avatar"
-                                      className={`pointer-events-none h-full w-full object-cover text-[#fff]`}
-                                      width={75}
-                                      height={75}
-                                    />
-                                  </div>
-                                )}
-                              </div>
-                              {/* コンテンツエリア */}
-                              <div className={`mr-[16px] flex h-auto w-full flex-col text-[var(--color-text-title)]`}>
-                                {/* テキストコンテンツ */}
-                                <div className={`text-[13px]`}>
-                                  {notification.type === "change_team_owner" && (
-                                    <NotificationTextChangeTeamOwner
-                                      from_user_name={notification.from_user_name}
-                                      from_user_email={notification.from_user_email}
-                                      team_name={notification.from_company_name}
-                                    />
+                              {/* アバター画像・コンテンツテキストエリア クリックエリア */}
+                              <div
+                                className="group flex h-auto w-full cursor-pointer"
+                                onClick={() => console.log("コンテンツクリック")}
+                              >
+                                {/* アバター画像エリア */}
+                                <div
+                                  className={`mr-[16px] mt-[2px] flex min-h-[48px] min-w-[48px] cursor-pointer justify-center`}
+                                >
+                                  {!notification.from_user_avatar_url && (
+                                    <div
+                                      data-text={`${userProfileState?.profile_name}`}
+                                      className={`flex-center h-[48px] w-[48px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip}`}
+                                    >
+                                      {/* <span>K</span> */}
+                                      <span className={`pointer-events-none text-[22px]`}>
+                                        {notification?.from_user_name
+                                          ? getInitial(notification.from_user_name)
+                                          : `${getInitial("未設定")}`}
+                                      </span>
+                                    </div>
+                                  )}
+                                  {notification.from_user_avatar_url && (
+                                    <div
+                                      // data-text={`${userProfileState?.profile_name}`}
+                                      className={`flex-center h-[48px] w-[48px] overflow-hidden rounded-full hover:bg-[#00000020]`}
+                                    >
+                                      <Image
+                                        src={notification.from_user_avatar_url}
+                                        alt="Avatar"
+                                        className={`pointer-events-none h-full w-full object-cover text-[#fff]`}
+                                        width={75}
+                                        height={75}
+                                      />
+                                    </div>
                                   )}
                                 </div>
-                                {/* 時間とNewマーク */}
-                                <div className="flex items-center text-[12px]">
-                                  <span className="pl-[0px] pt-[4px]">
-                                    {format(new Date(notification.created_at), "yyyy年MM月dd日 HH:mm")}
-                                  </span>
-                                  <div className="pl-[8px] pt-[4px]">
-                                    {/* {notification.already_read === false && (
+                                {/* コンテンツエリア */}
+                                <div className={`mr-[16px] flex h-auto w-full flex-col text-[var(--color-text-sub)]`}>
+                                  {/* テキストコンテンツ */}
+                                  <div className={`text-[13px] line-through`}>
+                                    {notification.type === "change_team_owner" && (
+                                      <NotificationTextChangeTeamOwner
+                                        from_user_name={notification.from_user_name}
+                                        from_user_email={notification.from_user_email}
+                                        team_name={notification.from_company_name}
+                                      />
+                                    )}
+                                  </div>
+                                  {/* 時間とNewマーク */}
+                                  <div className="flex items-center text-[12px]">
+                                    <span className="pl-[0px] pt-[4px]">
+                                      {format(new Date(notification.created_at), "yyyy年MM月dd日 HH:mm")}
+                                    </span>
+                                    <div className="pl-[8px] pt-[4px]">
+                                      {/* {notification.already_read === false && (
                                       <div className="min-h-[20px] rounded-full bg-[var(--color-red-tk)] px-[10px] text-[#fff]">
                                         <span>New</span>
                                       </div>
                                     )} */}
+                                    </div>
                                   </div>
                                 </div>
                               </div>
@@ -1220,17 +1494,67 @@ export const DashboardHeaderMemo: FC = () => {
         </div>
       </div>
       {/* お知らせ所有者変更モーダル */}
-      {openNotificationChangeTeamOwnerModal && (
+      {openNotificationChangeTeamOwnerModal && notificationDataState !== null && (
         <>
           {/* オーバーレイ */}
           <div
-            className="fixed left-0 top-0 z-[1000] h-[100vh] w-[100vw] bg-[#00000070] backdrop-blur-sm"
+            className="fixed left-0 top-0 z-[1000] h-[100vh] w-[100vw] bg-[var(--color-overlay)] backdrop-blur-sm"
             onClick={() => {
               console.log("オーバーレイ クリック");
               setOpenNotificationChangeTeamOwnerModal(false);
             }}
           ></div>
-          <div className="fixed left-[50%] top-[50%] z-[2000] h-[30vh] w-[30vw] translate-x-[-50%] translate-y-[-50%] bg-[#fff]"></div>
+          <div className="fixed left-[50%] top-[50%] z-[2000] h-[52vh] w-[40vw] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)]">
+            {/* クローズボタン */}
+            <button
+              className={`flex-center z-100 group absolute right-[-40px] top-0 h-[32px] w-[32px] rounded-full bg-[#00000090] hover:bg-[#000000c0]`}
+              onClick={() => setOpenNotificationChangeTeamOwnerModal(false)}
+            >
+              <MdClose className="text-[20px] text-[#fff]" />
+            </button>
+            <h3 className={`flex min-h-[32px] w-full items-center text-[22px] font-bold`}>
+              このチームの所有権を受け入れますか？
+            </h3>
+            <section className={`mt-[15px] flex h-auto w-full flex-col text-[14px]`}>
+              <p>
+                <span className="font-bold">{notificationDataState.from_user_name}</span>（
+                <span className="font-bold">{notificationDataState.from_user_email}</span>
+                ）が<span className="font-bold">{notificationDataState.from_company_name}</span>
+                の所有者として、代わりにあなたを任命しました。この任命を受け入れると、いかに同意したものとみなされます。
+              </p>
+              <ul className="mt-[20px] flex w-full list-disc flex-col space-y-3 pl-[15px]">
+                <li className="">
+                  このチーム、チームメンバー、チームのコンテンツを管理する管理者権限を新たに受け入れます。
+                </li>
+                <li className="">
+                  このチームのメンバーが作成し、このチーム内に保存される、既存および今後のコンテンツ全てに対する責任を負います。
+                </li>
+                <li className="">
+                  TRUSTiFYの利用規約がこのチームの所有権に適用されることに同意し、プライバシーポリシーを読みました。
+                </li>
+              </ul>
+            </section>
+            <section className="flex w-full items-start justify-end">
+              <div className={`flex w-[100%] items-center justify-around space-x-5 pt-[30px]`}>
+                <button
+                  className={`w-[50%] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[15px] py-[10px] text-[14px] font-bold text-[var(--color-text-sub)] hover:bg-[var(--setting-side-bg-select-hover)]`}
+                  // onClick={() => setOverState(false)}
+                >
+                  所有権を拒否する
+                </button>
+                <button
+                  className="w-[50%] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]"
+                  onClick={() => {
+                    handleAcceptChangeTeamOwner();
+                    setNotificationDataState(null);
+                    setOpenNotificationChangeTeamOwnerModal(false);
+                  }}
+                >
+                  所有権を受け入れる
+                </button>
+              </div>
+            </section>
+          </div>
         </>
       )}
     </header>
