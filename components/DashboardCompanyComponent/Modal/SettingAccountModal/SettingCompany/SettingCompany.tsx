@@ -19,6 +19,8 @@ import { SkeletonLoading } from "@/components/Parts/SkeletonLoading/SkeletonLoad
 import { FallbackChangeOwner } from "./FallbackChangeOwner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
+import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
+import { FiRefreshCw } from "react-icons/fi";
 
 const SettingCompanyMemo = () => {
   const supabase = useSupabaseClient();
@@ -46,6 +48,9 @@ const SettingCompanyMemo = () => {
   const [editNumberOfEmployeeClassMode, setEditNumberOfEmployeeClassMode] = useState(false);
   const [editedNumberOfEmployeeClass, setEditedNumberOfEmployeeClass] = useState("");
 
+  // ローディング
+  const [refetchLoading, setRefetchLoading] = useState(false);
+
   const { useMutateUploadAvatarImg, useMutateDeleteAvatarImg } = useUploadAvatarImg();
   const { fullUrl: logoUrl, isLoading } = useDownloadUrl(userProfileState?.logo_url, "customer_company_logos");
 
@@ -59,6 +64,8 @@ const SettingCompanyMemo = () => {
   const setOpenNotificationChangeTeamOwnerModal = useDashboardStore(
     (state) => state.setOpenNotificationChangeTeamOwnerModal
   );
+  // 所有者変更キャンセルモーダル開閉状態
+  const [openCancelChangeTeamOwnerModal, setOpenCancelChangeTeamOwnerModal] = useState(false);
   const notificationDataState = useDashboardStore((state) => state.notificationDataState);
   const setNotificationDataState = useDashboardStore((state) => state.setNotificationDataState);
 
@@ -135,8 +142,10 @@ const SettingCompanyMemo = () => {
   useEffect(() => {
     // お知らせから所有者変更のお知らせが自分宛、もしくは所有権を自分からメンバーへ移行している物があればStateに格納
     const checkNoticeRelatedToMe = () => {
-      if (typeof changeTeamOwnerData === "undefined" || changeTeamOwnerData.length === 0)
+      if (typeof changeTeamOwnerData === "undefined" || changeTeamOwnerData.length === 0) {
+        setNotificationDataState(null);
         return console.log("自分のお知らせ無し");
+      }
       if (!userProfileState) return console.log("自身のプロフィールデータなし");
 
       const onHoldIndex = changeTeamOwnerData.findIndex(
@@ -344,7 +353,7 @@ const SettingCompanyMemo = () => {
       notification.result
     );
     // お知らせ お知らせモーダルが開かれたら未読を既読に変更する
-    if (notification.already_read === false) {
+    if (notification.already_read === false || notification.already_read_at === null) {
       const { data, error } = await supabase
         .from("notifications")
         .update({
@@ -394,6 +403,60 @@ const SettingCompanyMemo = () => {
     console.log("所有者変更モーダル オープン");
     setOpenNotificationChangeTeamOwnerModal(true);
     setNotificationDataState(notification);
+  };
+
+  const [loading, setLoading] = useState(false);
+  // 任命を取り消す関数
+  const handleCancelChangeTeamOwner = async (notification: Notification) => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("notifications")
+        .update({
+          completed: true,
+          completed_at: new Date().toISOString(),
+          result: "canceled",
+        })
+        .eq("id", notification.id)
+        .select();
+
+      if (error) throw new Error(error.message);
+
+      const updatedNotice: Notification = data[0];
+
+      console.log("任命の取り消しに成功 updatedNotice", updatedNotice);
+      // キャッシュを最新状態に反映
+      await queryClient.invalidateQueries({ queryKey: ["change_team_owner_notifications"] });
+      // await queryClient.invalidateQueries({ queryKey: ["my_notifications"] });
+
+      // ZustandのnotificationDataStateをnullに更新する
+      setNotificationDataState(null);
+
+      toast.success("任命の取り消しに成功しました！", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        //   theme: `${theme === "light" ? "light" : "dark"}`,
+      });
+    } catch (error: any) {
+      console.error("任命の取り消しに失敗 エラー発生", error.message);
+      toast.error("任命の取り消しに失敗しました！", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        //   theme: `${theme === "light" ? "light" : "dark"}`,
+      });
+    }
+    setLoading(false);
+    setOpenCancelChangeTeamOwnerModal(false);
   };
 
   return (
@@ -921,9 +984,119 @@ const SettingCompanyMemo = () => {
                     <div>
                       <div
                         className={`transition-base01 ml-[30px] min-w-[78px] cursor-pointer truncate rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
-                        onClick={() => {
-                          if (notificationDataState?.type === "change_team_owner") {
-                            handleClickedChangeTeamOwnerConfirmation(notificationDataState);
+                        onClick={async () => {
+                          // await queryClient.invalidateQueries({ queryKey: ["change_team_owner_notifications"] });
+                          // await new Promise((resolve) =>
+                          //   setTimeout(async () => {
+                          //     try {
+                          //       const { data, error } = await supabase
+                          //         .from("notifications")
+                          //         .select("completed")
+                          //         .eq("id", notificationDataState?.id);
+                          //       if (error) throw new Error(error.message);
+
+                          //       console.log("確認クリック SELECT", "data[0]", data[0], "error", error);
+                          //       if (data[0].completed === true) {
+                          //         console.log("完了済みのためリターン");
+                          //         toast.warn("変更依頼がキャンセルされていたため確認できませんでした！", {
+                          //           position: "top-right",
+                          //           autoClose: 3000,
+                          //           hideProgressBar: false,
+                          //           closeOnClick: true,
+                          //           pauseOnHover: true,
+                          //           draggable: true,
+                          //           progress: undefined,
+                          //           // theme: `${theme === "light" ? "light" : "dark"}`,
+                          //         });
+                          //         await queryClient.invalidateQueries({ queryKey: ["my_notifications"] });
+                          //         await queryClient.invalidateQueries({
+                          //           queryKey: ["change_team_owner_notifications"],
+                          //         });
+
+                          //         return;
+                          //       }
+
+                          //       console.log(
+                          //         "確認クリック",
+                          //         "キャッシュchangeTeamOwnerData",
+                          //         changeTeamOwnerData,
+                          //         "Zustand notificationDataState",
+                          //         notificationDataState
+                          //       );
+
+                          //       if (
+                          //         notificationDataState?.type === "change_team_owner" &&
+                          //         notificationDataState?.completed === false &&
+                          //         changeTeamOwnerData?.length !== 0
+                          //       ) {
+                          //         handleClickedChangeTeamOwnerConfirmation(notificationDataState);
+                          //       }
+                          //     } catch (error) {
+                          //       console.error("notificationsテーブルのselect失敗");
+                          //     }
+                          //     resolve;
+                          //   }, 100)
+                          // );
+                          // await queryClient.invalidateQueries({ queryKey: ["my_notifications"] });
+                          // if (notificationDataState?.completed === true || changeTeamOwnerData?.length === 0) {
+                          //       console.log("完了済みのためリターン");
+                          //       toast.error("変更依頼がキャンセルされていたため確認できませんでした！", {
+                          //         position: "top-right",
+                          //         autoClose: 3000,
+                          //         hideProgressBar: false,
+                          //         closeOnClick: true,
+                          //         pauseOnHover: true,
+                          //         draggable: true,
+                          //         progress: undefined,
+                          //         // theme: `${theme === "light" ? "light" : "dark"}`,
+                          //       });
+                          //       return;
+                          //     }
+                          try {
+                            const { data, error } = await supabase
+                              .from("notifications")
+                              .select("completed")
+                              .eq("id", notificationDataState?.id);
+                            if (error) throw new Error(error.message);
+
+                            console.log("確認クリック SELECT", "data[0]", data[0], "error", error);
+                            if (data[0].completed === true) {
+                              console.log("完了済みのためリターン");
+                              toast.warn("変更依頼がキャンセルされていたため確認できませんでした！", {
+                                position: "top-right",
+                                autoClose: 3000,
+                                hideProgressBar: false,
+                                closeOnClick: true,
+                                pauseOnHover: true,
+                                draggable: true,
+                                progress: undefined,
+                                // theme: `${theme === "light" ? "light" : "dark"}`,
+                              });
+                              await queryClient.invalidateQueries({ queryKey: ["my_notifications"] });
+                              await queryClient.invalidateQueries({
+                                queryKey: ["change_team_owner_notifications"],
+                              });
+
+                              return;
+                            }
+
+                            console.log(
+                              "確認クリック",
+                              "キャッシュchangeTeamOwnerData",
+                              changeTeamOwnerData,
+                              "Zustand notificationDataState",
+                              notificationDataState
+                            );
+
+                            if (
+                              notificationDataState?.type === "change_team_owner" &&
+                              notificationDataState?.completed === false &&
+                              changeTeamOwnerData?.length !== 0
+                            ) {
+                              handleClickedChangeTeamOwnerConfirmation(notificationDataState);
+                            }
+                          } catch (error) {
+                            console.error("notificationsテーブルのselect失敗");
                           }
                         }}
                       >
@@ -949,6 +1122,29 @@ const SettingCompanyMemo = () => {
                     <div className="flex-center max-h-[18px] rounded-full bg-[var(--color-bg-brand-f)] px-[10px] py-[2px] text-[10px] text-[#fff]">
                       <span className="">保留中</span>
                     </div>
+                    {/* <button
+                      className={`flex-center transition-base03 relative  h-[26px] min-w-[118px]  cursor-pointer space-x-1  rounded-[4px] px-[15px] text-[12px] text-[var(--color-bg-brand-f)] hover:bg-[var(--color-bg-brand-f)] hover:text-[#fff] active:bg-[var(--color-function-header-text-btn-active)]`}
+                      onClick={async () => {
+                        console.log("リフレッシュ クリック");
+                        setRefetchLoading(true);
+                        await queryClient.invalidateQueries({ queryKey: ["change_team_owner_notifications"] });
+                        // await refetch();
+                        setRefetchLoading(false);
+                      }}
+                    >
+                      {refetchLoading && (
+                        <div className="relative">
+                          <div className="mr-[2px] h-[12px] w-[12px]"></div>
+                          <SpinnerIDS2 fontSize={20} width={20} height={20} />
+                        </div>
+                      )}
+                      {!refetchLoading && (
+                        <div className="flex-center mr-[2px]">
+                          <FiRefreshCw />
+                        </div>
+                      )}
+                      <span className="whitespace-nowrap">リフレッシュ</span>
+                    </button> */}
                   </div>
                 )}
 
@@ -965,7 +1161,12 @@ const SettingCompanyMemo = () => {
                       {/* <span className="font-bold">{changeOwnerNotificationState?.to_user_name}</span>さん（
                       <span className="font-bold">{changeOwnerNotificationState?.to_user_email}</span>） */}
                       をチームの新しい所有者に任命しました。新しい所有者による承諾はまだ行われていません。
-                      <span className={`cursor-pointer text-[var(--color-text-brand-f)] underline hover:font-bold`}>
+                      <span
+                        className={`cursor-pointer text-[var(--color-text-brand-f)] underline hover:font-bold`}
+                        onClick={() => {
+                          setOpenCancelChangeTeamOwnerModal(true);
+                        }}
+                      >
                         任命を取り消す
                       </span>
                     </div>
@@ -976,6 +1177,29 @@ const SettingCompanyMemo = () => {
                         確認
                       </div>
                     </div> */}
+                    <button
+                      className={`ml-[30px] min-w-[158px] cursor-pointer truncate rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} flex items-center space-x-2 hover:bg-[var(--setting-side-bg-select-hover)]`}
+                      onClick={async () => {
+                        console.log("リフレッシュ クリック");
+                        setRefetchLoading(true);
+                        await queryClient.invalidateQueries({ queryKey: ["change_team_owner_notifications"] });
+                        // await refetch();
+                        setRefetchLoading(false);
+                      }}
+                    >
+                      {refetchLoading && (
+                        <div className="relative">
+                          <div className="mr-[2px] h-[12px] w-[12px]"></div>
+                          <SpinnerIDS2 fontSize={20} width={20} height={20} />
+                        </div>
+                      )}
+                      {!refetchLoading && (
+                        <div className="flex-center mr-[2px]">
+                          <FiRefreshCw />
+                        </div>
+                      )}
+                      <span className="whitespace-nowrap">リフレッシュ</span>
+                    </button>
                   </div>
                 )}
               </div>
@@ -1014,6 +1238,68 @@ const SettingCompanyMemo = () => {
             </ErrorBoundary>
           )}
           {/* ============================== チームの所有者の変更モーダル ここまで ============================== */}
+          {/* ============================== チームの所有者の変更キャンセルモーダル ============================== */}
+          {openCancelChangeTeamOwnerModal && notificationDataState !== null && (
+            <>
+              {/* オーバーレイ */}
+              <div
+                className="fixed left-[-100vw] top-[-100vh] z-[1000] h-[200vh] w-[200vw] bg-[var(--color-overlay)] backdrop-blur-sm"
+                onClick={() => {
+                  console.log("オーバーレイ クリック");
+                  setOpenCancelChangeTeamOwnerModal(false);
+                  //   setNotificationDataState(null);
+                }}
+              ></div>
+              <div className="fixed left-[50%] top-[50%] z-[2000] h-auto w-[40vw] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)]">
+                {loading && (
+                  <div
+                    className={`flex-center fixed left-0 top-0 z-[3000] h-[100%] w-[100%] rounded-[8px] bg-[#00000090]`}
+                  >
+                    <SpinnerIDS scale={"scale-[0.5]"} />
+                  </div>
+                )}
+                {/* クローズボタン */}
+                <button
+                  className={`flex-center z-100 group absolute right-[-40px] top-0 h-[32px] w-[32px] rounded-full bg-[#00000090] hover:bg-[#000000c0]`}
+                  onClick={() => {
+                    setOpenCancelChangeTeamOwnerModal(false);
+                    // setNotificationDataState(null);
+                  }}
+                >
+                  <MdClose className="text-[20px] text-[#fff]" />
+                </button>
+                <h3 className={`flex min-h-[32px] w-full items-center text-[22px] font-bold`}>
+                  任命を取り消しますか？
+                </h3>
+                <section className={`mt-[20px] flex h-auto w-full flex-col text-[14px]`}>
+                  <p>
+                    <span className="font-bold">{notificationDataState?.from_user_name}</span>（
+                    <span className="font-bold">{notificationDataState?.from_user_email}</span>
+                    ）が承諾する前に取り消した場合、引き続きあなたが
+                    <span className="font-bold">{notificationDataState?.from_company_name}</span>
+                    の所有者になります。
+                  </p>
+                </section>
+                <section className="flex w-full items-start justify-end">
+                  <div className={`flex w-[100%] items-center justify-around space-x-5 pt-[30px]`}>
+                    <button
+                      className={`w-[50%] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[15px] py-[10px] text-[14px] font-bold text-[var(--color-text-title)] hover:bg-[var(--setting-side-bg-select-hover)]`}
+                      onClick={() => setOpenCancelChangeTeamOwnerModal(false)}
+                    >
+                      保持する
+                    </button>
+                    <button
+                      className="w-[50%] cursor-pointer rounded-[8px] bg-[var(--color-red-tk)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff] hover:bg-[var(--color-red-tk-hover)]"
+                      onClick={() => handleCancelChangeTeamOwner(notificationDataState)}
+                    >
+                      取り消す
+                    </button>
+                  </div>
+                </section>
+              </div>
+            </>
+          )}
+          {/* ============================== チームの所有者の変更キャンセルモーダル ここまで ============================== */}
         </div>
       )}
       {/* 右側メインエリア 会社・チーム ここまで */}

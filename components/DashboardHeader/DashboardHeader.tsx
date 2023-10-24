@@ -26,6 +26,8 @@ import { NotificationTextChangeTeamOwner } from "./NotificationCardText/Notifica
 import { format } from "date-fns";
 import { NotificationCardTest } from "./NotificationCard/NotificationCardTest";
 import { runFireworks } from "@/utils/confetti";
+import SpinnerIDS2 from "../Parts/SpinnerIDS/SpinnerIDS2";
+import { FiRefreshCw } from "react-icons/fi";
 
 export const DashboardHeaderMemo: FC = () => {
   const supabase = useSupabaseClient();
@@ -45,6 +47,8 @@ export const DashboardHeaderMemo: FC = () => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   const [tabPage, setTabPage] = useState(1);
+  // リフェッチローディング
+  const [refetchLoading, setRefetchLoading] = useState(false);
   const logoSrc =
     theme === "light" ? "/assets/images/Trustify_logo_white1.png" : "/assets/images/Trustify_logo_black.png";
 
@@ -125,7 +129,9 @@ export const DashboardHeaderMemo: FC = () => {
 
   // ================================ お知らせ キャッシュから取得したnotificationsを、未読、既読、完了済みに振り分ける
   useEffect(() => {
-    if (!notificationsCacheData || notificationsCacheData.length === 0) return;
+    if (!notificationsCacheData || notificationsCacheData.length === 0)
+      return console.log("ヘッダー useEffect実行 notificationsCacheDataなしでリターン", notificationsCacheData);
+    console.log("ヘッダー useEffect実行 notificationsキャッシュかZustandのお知らせが変化", notificationsCacheData);
 
     // 未完了のお知らせを取得
     const incompleteNotificationsData = notificationsCacheData.filter((data) => data.completed === false);
@@ -142,7 +148,7 @@ export const DashboardHeaderMemo: FC = () => {
           pauseOnHover: true,
           draggable: true,
           progress: undefined,
-          theme: `${theme === "light" ? "light" : "dark"}`,
+          // theme: `${theme === "light" ? "light" : "dark"}`,
         });
         runFireworks();
       }, 1000);
@@ -151,10 +157,10 @@ export const DashboardHeaderMemo: FC = () => {
     // 完了済みのお知らせを取得
     const completedNotificationsData = notificationsCacheData.filter((data) => data.completed === true);
     setCompletedNotifications(completedNotificationsData);
-  }, [notificationsCacheData]);
+  }, [notificationsCacheData, incompleteNotifications.length, setCompletedNotifications, setIncompleteNotifications]);
 
   // ================================ お知らせ カードクリック
-  const handleClickedNotificationCard = async (notification: Notification) => {
+  const handleClickedNotificationCard = async (notification: Notification, i: number) => {
     console.log("カードクリック type", notification.type);
     // お知らせ お知らせモーダルが開かれたら未読を既読に変更する
     if (notification.already_read === false) {
@@ -184,19 +190,36 @@ export const DashboardHeaderMemo: FC = () => {
       const updatedNotice: Notification = data[0];
       console.log("UPDATEしたお知らせ", updatedNotice);
 
-      // エラーが出なければ、React-Queryのキャッシュも最新状態に更新
-      queryClient.setQueryData(
-        ["my_notifications"],
-        notificationsCacheData?.map((notice, index) =>
-          notice.id === notification.id
-            ? {
-                ...notificationsCacheData[index],
-                already_read: true,
-                already_read_at: updatedNotice.already_read_at,
-              }
-            : notice
-        )
-      );
+      // エラーが出なければ、incompleteNotificationを既読に変更
+      const newReadNotice = {
+        ...incompleteNotifications[i],
+        already_read: updatedNotice.already_read,
+        already_read_at: updatedNotice.already_read_at,
+      };
+      const newIncompleteNotices = incompleteNotifications.map((notice, index) => {
+        if (index === i) return newReadNotice;
+        return notice;
+      });
+      setIncompleteNotifications(newIncompleteNotices);
+      console.log("newReadNotice", newReadNotice, "newIncompleteNotices", newIncompleteNotices);
+      // await queryClient.invalidateQueries({ queryKey: ["my_notifications"] });
+      // let previousNotificationCacheData = queryClient.getQueryData<Notification[]>(["my_notifications"]);
+      // if (typeof previousNotificationCacheData === "undefined") {
+      //   previousNotificationCacheData = [];
+      // }
+
+      // queryClient.setQueryData(
+      //   ["my_notifications"],
+      //   previousNotificationCacheData?.map((notice, index) =>
+      //     notice.id === notification.id
+      //       ? {
+      //           ...(previousNotificationCacheData as Notification[] | [])[index],
+      //           already_read: true,
+      //           already_read_at: updatedNotice.already_read_at,
+      //         }
+      //       : notice
+      //   )
+      // );
     }
 
     if (notification.type === "change_team_owner") {
@@ -210,17 +233,21 @@ export const DashboardHeaderMemo: FC = () => {
   const handleCheckToDoCard = async (notification: Notification) => {
     console.log("チェックボックスクリック");
 
+    // already_readの値に応じて更新データを設定
+    const updateData = notification.already_read
+      ? {
+          completed: true,
+          completed_at: new Date().toISOString(),
+        }
+      : {
+          already_read: true,
+          already_read_at: new Date().toISOString(),
+          completed: true,
+          completed_at: new Date().toISOString(),
+        };
+
     // 完了済みに変更
-    const { data, error } = await supabase
-      .from("notifications")
-      .update({
-        already_read: true,
-        already_read_at: new Date().toDateString(),
-        completed: true,
-        completed_at: new Date().toDateString(),
-      })
-      .eq("id", notification.id)
-      .select();
+    const { data, error } = await supabase.from("notifications").update(updateData).eq("id", notification.id).select();
     if (error) {
       console.error("お知らせを完了済み処理でエラー発生", error);
       toast.error("タスクの完了処理でエラーが発生しました！", {
@@ -974,7 +1001,7 @@ export const DashboardHeaderMemo: FC = () => {
                         }}
                       >
                         {/* <span>K</span> */}
-                        <span className={`pointer-events-none text-[18px]`}>
+                        <span className={`pointer-events-none text-[24px]`}>
                           {userProfileState?.profile_name
                             ? getInitial(userProfileState.profile_name)
                             : `${getInitial("NoName")}`}
@@ -1036,7 +1063,7 @@ export const DashboardHeaderMemo: FC = () => {
                     }}
                   >
                     <span className="font-bold">{userProfileState?.profile_name}</span>
-                    <span className="text-[13px] text-[var(--color-text-sub)]">{userProfileState?.email}</span>
+                    <span className="truncate text-[13px] text-[var(--color-text-sub)]">{userProfileState?.email}</span>
                   </div>
                 </div>
 
@@ -1149,7 +1176,8 @@ export const DashboardHeaderMemo: FC = () => {
           >
             <AiOutlineBell className="text-[24px] text-[var(--color-icon)]" />
             {/* 通知アイコン */}
-            {!!notificationsCacheData?.length &&
+            {/* {!!notificationsCacheData?.length && */}
+            {!!incompleteNotifications?.length &&
               incompleteNotifications.some((notice) => notice.already_read === false) && (
                 <div className={`${styles.notice_outer} flex-center transition-base`}>
                   <div className={`${styles.notice_inner} transition-base`}></div>
@@ -1187,12 +1215,36 @@ export const DashboardHeaderMemo: FC = () => {
                   className={`flex min-h-[72px] items-center justify-between p-[16px] text-[var(--color-text-title)]`}
                 >
                   <h4 className="select-none text-[18px] font-bold">アクティビティ</h4>
-                  {activeNotificationTab === "ToDo" && (
+                  {/* {activeNotificationTab === "ToDo" && (
                     <button
                       className={`transition-base01 min-h-[40px] rounded-[6px] px-[12px] text-[13px] font-bold hover:bg-[var(--color-bg-sub-re)] `}
                       onClick={handleAllCheckToDoCard}
                     >
                       <span>すべて完了済みとしてマーク</span>
+                    </button>
+                  )} */}
+                  {activeNotificationTab === "ToDo" && (
+                    <button
+                      className={`transition-base03 flex min-h-[40px] items-center space-x-1 rounded-[6px] border border-solid border-transparent px-[12px] text-[13px] font-bold text-[var(--color-text-brand-f)] hover:border-[var(--color-bg-brand-f)] hover:bg-[var(--color-bg-sub-re)]`}
+                      onClick={async () => {
+                        console.log("リフレッシュ クリック");
+                        setRefetchLoading(true);
+                        await queryClient.invalidateQueries({ queryKey: ["my_notifications"] });
+                        setRefetchLoading(false);
+                      }}
+                    >
+                      {refetchLoading && (
+                        <div className="relative">
+                          <div className="mr-[2px] h-[12px] w-[12px]"></div>
+                          <SpinnerIDS2 fontSize={20} width={20} height={20} />
+                        </div>
+                      )}
+                      {!refetchLoading && (
+                        <div className="flex-center mr-[2px]">
+                          <FiRefreshCw />
+                        </div>
+                      )}
+                      <span className="whitespace-nowrap">リフレッシュ</span>
                     </button>
                   )}
                 </div>
@@ -1243,13 +1295,14 @@ export const DashboardHeaderMemo: FC = () => {
                     }`}
                   >
                     {/* お知らせコンテンツエリア 左側ToDo */}
-                    <div className="flex h-auto w-[400px] flex-col">
+                    <div className="flex h-auto max-h-[450px] w-[400px] flex-col overflow-y-scroll">
                       {/* お知らせカード ToDo */}
                       {!!incompleteNotifications.length &&
-                        incompleteNotifications.map((notification) => (
+                        incompleteNotifications.map((notification, index) => (
                           <div
                             key={notification.id}
-                            className={`flex min-h-[96px] max-w-[400px] ${
+                            // className={`flex min-h-[96px] max-w-[400px] ${
+                            className={`flex min-h-[112px] max-w-[400px] ${
                               activeNotificationTab === "ToDo"
                                 ? `transition-base-opacity1 opacity-100`
                                 : `transition-base-opacity04 opacity-0`
@@ -1277,7 +1330,9 @@ export const DashboardHeaderMemo: FC = () => {
                                       // }}
                                       // checked={checked}
                                       // onChange={() => setChecked(!checked)}
-                                      onClick={() => handleCheckToDoCard(notification)}
+                                      onClick={() => {
+                                        handleCheckToDoCard(notification);
+                                      }}
                                       className={`${styles.grid_select_cell_header_input}`}
                                     />
                                     <svg viewBox="0 0 18 18" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -1289,7 +1344,7 @@ export const DashboardHeaderMemo: FC = () => {
                               {/* アバター画像・コンテンツテキストエリア クリックエリア */}
                               <div
                                 className="group flex h-auto w-full cursor-pointer"
-                                onClick={() => handleClickedNotificationCard(notification)}
+                                onClick={() => handleClickedNotificationCard(notification, index)}
                               >
                                 {/* アバター画像エリア */}
                                 <div className={`mr-[16px] mt-[2px] flex min-h-[48px] min-w-[48px] justify-center`}>
@@ -1363,13 +1418,14 @@ export const DashboardHeaderMemo: FC = () => {
                       {/* お知らせカード ここまで */}
                     </div>
                     {/* お知らせコンテンツエリア 右側完了済み */}
-                    <div className="flex h-auto w-[400px] flex-col">
+                    <div className="flex h-auto max-h-[450px] w-[400px] flex-col overflow-y-scroll">
                       {/* 完了済みお知らせカード */}
                       {!!completedNotifications.length &&
                         completedNotifications.map((notification) => (
                           <div
                             key={notification.id}
-                            className={`flex min-h-[96px] max-w-[400px]  ${
+                            // className={`flex min-h-[96px] max-w-[400px]  ${
+                            className={`flex min-h-[112px] max-w-[400px]  ${
                               activeNotificationTab === "Completed"
                                 ? `transition-base-opacity1 opacity-100`
                                 : `transition-base-opacity04 opacity-0`
@@ -1395,10 +1451,15 @@ export const DashboardHeaderMemo: FC = () => {
                                       //   newCheckedArray[index] = !checkedMembersArray[index];
                                       //   setCheckedMembersArray(newCheckedArray);
                                       // }}
-                                      // checked={notification.completed ?? false}
-                                      defaultChecked
+                                      checked={notification.completed ?? false}
+                                      readOnly
+                                      // defaultChecked
                                       // onChange={() => setChecked(!checked)}
-                                      onClick={() => handleUncheckCompletedCard(notification)}
+                                      onClick={() => {
+                                        if (notification.result !== "pending")
+                                          return alert("タスクの処理が完了しているため、ToDoに戻せません");
+                                        handleUncheckCompletedCard(notification);
+                                      }}
                                       className={`${styles.grid_select_cell_header_input}`}
                                     />
                                     <svg viewBox="0 0 18 18" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -1447,7 +1508,9 @@ export const DashboardHeaderMemo: FC = () => {
                                 {/* コンテンツエリア */}
                                 <div className={`mr-[16px] flex h-auto w-full flex-col text-[var(--color-text-sub)]`}>
                                   {/* テキストコンテンツ */}
-                                  <div className={`text-[13px] line-through`}>
+                                  <div
+                                    className={`text-[13px] ${notification.result !== "pending" ? `line-through` : ``}`}
+                                  >
                                     {notification.type === "change_team_owner" && (
                                       <NotificationTextChangeTeamOwner
                                         from_user_name={notification.from_user_name}

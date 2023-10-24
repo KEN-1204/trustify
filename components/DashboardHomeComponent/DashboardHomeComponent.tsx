@@ -112,10 +112,15 @@ export const DashboardHomeComponent = () => {
               <div className={`flex-col-center h-full w-full  ${styles.home_container}`}>
                 <div className="flex h-[70dvh] w-[40%] flex-col items-center rounded-[4px] ">
                   <div className={`${styles.title_area} flex-col-center w-full `}>
-                    <h3 className="flex-center h-[70px] w-full max-w-[400px] text-[32px] font-bold text-[var(--color-text-brand-f)]">
+                    <h3
+                      className={`flex-center relative h-[70px] w-full max-w-[400px] select-none text-[32px] font-bold ${styles.text_brand_f_gradient}`}
+                    >
                       TRUSTiFYへようこそ
+                      {/* <span className="absolute left-[155px] top-[21px] min-h-[6px] min-w-[6px] truncate rounded-full bg-[red]"></span> */}
                     </h3>
-                    <div className={`h-[54px] w-full max-w-[400px] text-[14px] text-[var(--color-text-third)]`}>
+                    <div
+                      className={`h-[54px] w-full max-w-[400px] select-none text-[14px] text-[var(--color-text-third)]`}
+                    >
                       ここはあなたのデータベースです。ご紹介するステップで、最初の一歩を踏み出しましょう！
                     </div>
                   </div>

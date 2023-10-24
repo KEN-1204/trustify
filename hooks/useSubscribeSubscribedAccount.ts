@@ -3,12 +3,16 @@ import useDashboardStore from "@/store/useDashboardStore";
 import { UserProfileCompanySubscription } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { RealtimeChannel } from "@supabase/supabase-js";
+import { useQueryClient } from "@tanstack/react-query";
 import React, { useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 
 export const useSubscribeSubscribedAccount = () => {
+  const queryClient = useQueryClient();
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const setUserProfileState = useDashboardStore((state) => state.setUserProfileState);
+  // お知らせ所有者変更
+  const setNotificationDataState = useDashboardStore((state) => state.setNotificationDataState);
   const supabase = useSupabaseClient();
 
   useEffect(() => {
@@ -49,6 +53,19 @@ export const useSubscribeSubscribedAccount = () => {
 
             // ZustandのStateを更新
             setUserProfileState(userProfileCompanySubscriptionData as UserProfileCompanySubscription);
+
+            // チームの役割が変更された場合は、React-Queryのキャッシュも同時に更新する
+            if (payload.old.company_role !== payload.new.company_role) {
+              console.log("リアルタイムsubscribed_accounts UPDATE検知 役割変更に伴いキャッシュを更新");
+              // キャッシュを最新状態に反映
+              await queryClient.invalidateQueries({ queryKey: ["change_team_owner_notifications"] });
+              // await queryClient.invalidateQueries({ queryKey: ["my_notifications"] });
+              await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
+              if (payload.old.company_role === "company_owner" && payload.old.company_role === "company_admin") {
+                console.log("リアルタイムsubscribed_accounts UPDATE検知 チーム所有権お知らせStateをnullに更新");
+                setNotificationDataState(null);
+              }
+            }
 
             toast.success("アカウントが更新されました!", {
               position: "top-right",

@@ -11,6 +11,7 @@ import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import { Fallback } from "@/components/Fallback/Fallback";
 import { useQueryNotifications } from "@/hooks/useQueryNotifications";
 import { useQueryProducts } from "@/hooks/useQueryProducts";
+import { useSubscribeNotifications } from "@/hooks/useSubscribeNotifications";
 import { useSubscribeSubscription } from "@/hooks/useSubscribeSubscription";
 import useStore from "@/store";
 import useDashboardStore from "@/store/useDashboardStore";
@@ -62,7 +63,8 @@ const DashboardHome = ({
     error: notificationError,
     status,
     isLoading,
-  } = useQueryNotifications(userProfile.id, isReady);
+  } = useQueryNotifications(userProfile.id, isReady); // 自分宛のお知らせ一覧を取得してキャッシュに格納
+  useSubscribeNotifications(userProfile.id); // 自分宛のnotificationsテーブルをリアルタイム監視を開始
 
   console.log(
     "🔥Homeページ レンダリング",

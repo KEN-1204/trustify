@@ -8,7 +8,7 @@ import useDashboardStore from "@/store/useDashboardStore";
 import { HiOutlineSearch } from "react-icons/hi";
 import { FiSearch } from "react-icons/fi";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { MemberAccounts } from "@/types";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
@@ -32,6 +32,7 @@ const ChangeTeamOwnerModalMemo: FC<Props> = ({
   getCompanyInitial,
 }) => {
   const supabase = useSupabaseClient();
+  const queryClient = useQueryClient();
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const sessionState = useStore((state) => state.sessionState);
 
@@ -261,6 +262,9 @@ const ChangeTeamOwnerModalMemo: FC<Props> = ({
         );
         throw new Error(notificationError.message);
       }
+
+      // キャッシュを最新状態に反映
+      await queryClient.invalidateQueries({ queryKey: ["change_team_owner_notifications"] });
 
       // 招待状の送信完了
       toast.success(`${selectedMember?.profile_name}さんへ${userProfileState?.customer_name}の所有者を依頼しました!`, {

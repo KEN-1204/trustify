@@ -1,5 +1,6 @@
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 import useDashboardStore from "@/store/useDashboardStore";
+import { Notification } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQueryClient } from "@tanstack/react-query";
 import React, { FC, memo, useState } from "react";
@@ -16,7 +17,14 @@ const ChangeTeamOwnerConfirmationModalMemo: FC = () => {
   // 【お知らせの所有者変更モーダルをクリック時にお知らせの情報を保持するState】
   const notificationDataState = useDashboardStore((state) => state.notificationDataState);
   const setNotificationDataState = useDashboardStore((state) => state.setNotificationDataState);
+  // 未読の配列
+  const incompleteNotifications = useDashboardStore((state) => state.incompleteNotifications);
+  const setIncompleteNotifications = useDashboardStore((state) => state.setIncompleteNotifications);
+  // 既読の配列
+  const completedNotifications = useDashboardStore((state) => state.completedNotifications);
+  const setCompletedNotifications = useDashboardStore((state) => state.setCompletedNotifications);
   const [loading, setLoading] = useState(false);
+
   // ================================ お知らせ 「所有者を受け入れる」クリック時の関数
   // ステップ１：自分をチームの所有者にする subscribed_accountsテーブルのcompany_roleをcompany_ownerに変更する
   // ステップ２：招待者を所有者から管理者へ移行する subscribed_accountsテーブルのcompany_roleをcompany_adminに変更する
@@ -93,19 +101,72 @@ const ChangeTeamOwnerConfirmationModalMemo: FC = () => {
     setLoading(false);
   };
 
+  // チームの所有権を拒否する
+  const handleDeclineChangeTeamOwner = async () => {
+    if (!notificationDataState) return console.log("notificationDataStateなし");
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("notifications")
+        .update({
+          completed: true,
+          completed_at: new Date().toISOString(),
+          result: "declined",
+        })
+        .eq("id", notificationDataState.id)
+        .select();
+
+      if (error) throw new Error(error.message);
+
+      const updatedNotice: Notification = data[0];
+
+      console.log("所有権の拒否に成功 updatedNotice", updatedNotice);
+      // キャッシュを最新状態に反映
+      await queryClient.invalidateQueries({ queryKey: ["change_team_owner_notifications"] });
+      await queryClient.invalidateQueries({ queryKey: ["my_notifications"] });
+
+      // Zustandの未読、既読の配列を更新
+      const copiedIncompleteNotifications = [...incompleteNotifications];
+      const itemToMove: Notification | undefined = copiedIncompleteNotifications.find(
+        (item) => item.id === updatedNotice.id
+      );
+
+      if (!itemToMove) {
+        console.error("指定のIDのオブジェクトが見つかりませんでした");
+        return;
+      }
+
+      // 指定のidを持つオブジェクトを配列Aから削除する
+      const indexToRemove = copiedIncompleteNotifications.indexOf(itemToMove);
+      copiedIncompleteNotifications.splice(indexToRemove, 1);
+
+      // 指定のidを持つオブジェクトを配列Bに追加する
+      //   const copiedCompletedNotifications: Notification[] = [...completedNotifications];
+      //   copiedCompletedNotifications.push(itemToMove);
+      //   copiedCompletedNotifications.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      // Zustandを更新
+      console.log("Zusntadの未読を更新", copiedIncompleteNotifications);
+      setIncompleteNotifications(copiedIncompleteNotifications);
+    } catch (error: any) {
+      console.error("チーム所有権 拒否の処理でエラー発生", error.message);
+      toast.error("所有権の拒否に失敗しました！", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        //   theme: `${theme === "light" ? "light" : "dark"}`,
+      });
+    }
+    setLoading(false);
+    setOpenNotificationChangeTeamOwnerModal(false);
+  };
+
   console.log("ChangeTeamOwnerModalレンダリング", notificationDataState);
 
-  /**
-   * .loading_overlay {
-  position: fixed;
-  z-index: 2000;
-  inset: 0;
-  background: #00000090;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-   */
   return (
     <>
       {loading && (
@@ -119,7 +180,7 @@ const ChangeTeamOwnerConfirmationModalMemo: FC = () => {
         onClick={() => {
           console.log("オーバーレイ クリック");
           setOpenNotificationChangeTeamOwnerModal(false);
-          setNotificationDataState(null);
+          //   setNotificationDataState(null);
         }}
       ></div>
       <div className="fixed left-[50%] top-[50%] z-[2000] h-[52vh] w-[40vw] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)]">
@@ -128,7 +189,7 @@ const ChangeTeamOwnerConfirmationModalMemo: FC = () => {
           className={`flex-center z-100 group absolute right-[-40px] top-0 h-[32px] w-[32px] rounded-full bg-[#00000090] hover:bg-[#000000c0]`}
           onClick={() => {
             setOpenNotificationChangeTeamOwnerModal(false);
-            setNotificationDataState(null);
+            // setNotificationDataState(null);
           }}
         >
           <MdClose className="text-[20px] text-[#fff]" />
@@ -158,7 +219,8 @@ const ChangeTeamOwnerConfirmationModalMemo: FC = () => {
         <section className="flex w-full items-start justify-end">
           <div className={`flex w-[100%] items-center justify-around space-x-5 pt-[30px]`}>
             <button
-              className={`w-[50%] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[15px] py-[10px] text-[14px] font-bold text-[var(--color-text-sub)] hover:bg-[var(--setting-side-bg-select-hover)]`}
+              className={`w-[50%] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[15px] py-[10px] text-[14px] font-bold text-[var(--color-text-title)] hover:bg-[var(--setting-side-bg-select-hover)]`}
+              onClick={handleDeclineChangeTeamOwner}
             >
               所有権を拒否する
             </button>

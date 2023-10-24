@@ -316,13 +316,14 @@ export const SettingAccountModal = () => {
               className={`rounded-[4px]] mb-[3px] flex h-[40px] w-full cursor-pointer items-center truncate rounded-[4px] px-[10px] py-[6px] font-bold hover:bg-[var(--setting-side-bg-select)] ${
                 selectedSettingAccountMenu === "Company" ? `bg-[var(--setting-side-bg-select)]` : ``
               }`}
-              onClick={() => {
+              onClick={async () => {
                 if (
                   userProfileState?.account_company_role !== "company_admin" &&
                   userProfileState?.account_company_role !== "company_owner"
                 ) {
                   return alert("管理者権限を持つユーザーのみアクセス可能です");
                 }
+                // await queryClient.invalidateQueries({ queryKey: ["change_team_owner_notifications"] });
                 setSelectedSettingAccountMenu("Company");
               }}
             >

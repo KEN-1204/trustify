@@ -169,6 +169,15 @@
 }
 .table_tab {
   background: var(--color-bg-brand-table-tab);
+  /* background: linear-gradient(
+    to bottom left,
+    #cffcfdd0 0.89%,
+    #bef3f5d0 17.23%,
+    #7de2ebd0 42.04%,
+    #7dc8ebd0 55.12%,
+    #0ab5ffd0 71.54%,
+    #0088ffd0 100%
+  ); */
   min-width: 80px;
   /* min-height: 22px; */
   height: 100%;

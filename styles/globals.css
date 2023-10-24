@@ -42,6 +42,7 @@
   --bright-red: #f63e54;
   /* TikTok */
   --color-red-tk: #ff3b5b;
+  --color-red-tk-hover: #fd627c;
 
   /* インプット */
   --input-area-bg: rgba(242, 241, 238, 0.6);
@@ -194,6 +195,15 @@
   /* --color-bg-brand-table-tab: #0d99ffd0; */
   --color-bg-brand-table-tab: #2b7fffe0;
   --color-bg-brand-table-tab: linear-gradient(to top right, #2b7fff, #0affff50);
+  --color-bg-brand-table-tab2: linear-gradient(
+    to bottom left,
+    #cffcfdd0 0.89%,
+    #bef3f5d0 17.23%,
+    #7de2ebd0 42.04%,
+    #7dc8ebd0 55.12%,
+    #0ab5ffd0 71.54%,
+    #0088ffd0 100%
+  );
   /* --color-bg-brand-table-tab: #fff; */
   /* --color-bg-brand-table-tab: #e2f0fd; */
   /* --color-bg-brand-table-tab: linear-gradient(to top left, #2b7fff, #acffff); */
@@ -599,7 +609,7 @@
   --color-modal-bg-side-c-second: #555;
 
   /* お知らせ確認モーダル dark */
-  --color-bg-notification-modal: #ececec;
+  --color-bg-notification-modal: #222;
   --color-overlay: #ffffff10;
 
   /* テーブルカラー dark */
@@ -638,7 +648,16 @@
   /* --color-bg-brand-table-tab: #0c8ce9e0; */
   /* --color-bg-brand-table-tab: #156cab; */
   --color-bg-brand-table-tab: #2258a9;
-  --color-bg-brand-table-tab: linear-gradient(to top right, #2b7fffba, #0affff50);
+  --color-bg-brand-table-tab: linear-gradient(to top right, #2b7fffba, #0affff90);
+  --color-bg-brand-table-tab2: linear-gradient(
+    to bottom left,
+    #cffcfdb7 0.89%,
+    #bef3f5b7 17.23%,
+    #7de2ebb7 42.04%,
+    #7dc8ebb7 55.12%,
+    #0ab5ffb7 71.54%,
+    #0088ffb7 100%
+  );
   --color-border-table: #333;
   --color-border-table-deep: #555;
   /* --color-table-header: #252525; */
