@@ -350,20 +350,26 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
         <div role="gridcell" className={`${styles.grid_cell} relative`}>
           <div
             className={`flex items-center ${
-              memberAccount.is_subscriber || !memberAccount.account_company_role
+              // memberAccount.is_subscriber || !memberAccount.account_company_role
+              memberAccount.account_company_role === "company_owner" || !memberAccount.account_company_role
                 ? "cursor-not-allowed"
                 : "cursor-pointer"
             }`}
             onClick={() => {
-              if (memberAccount.is_subscriber || !memberAccount.account_company_role) return;
+              // if (memberAccount.is_subscriber || !memberAccount.account_company_role) return;
+              if (memberAccount.account_company_role === "company_owner" || !memberAccount.account_company_role) return;
               setIsOpenRoleMenu(true);
             }}
           >
             <span className="mr-[10px]">
               {/* {memberAccount.is_subscriber ? "所有者" : getCompanyRole(memberAccount.account_company_role)} */}
-              {memberAccount.is_subscriber ? "所有者" : getCompanyRole(roleAtTeam)}
+              {/* {memberAccount.is_subscriber ? "所有者" : getCompanyRole(roleAtTeam)} */}
+              {memberAccount.account_company_role === "company_owner" ? "所有者" : getCompanyRole(roleAtTeam)}
             </span>
-            {!memberAccount.is_subscriber && memberAccount.account_company_role && <BsChevronDown />}
+            {/* {!memberAccount.is_subscriber && memberAccount.account_company_role && <BsChevronDown />} */}
+            {memberAccount.account_company_role !== "company_owner" && memberAccount.account_company_role && (
+              <BsChevronDown />
+            )}
           </div>
 
           {/* ==================== チームでの役割メニューポップアップ ==================== */}

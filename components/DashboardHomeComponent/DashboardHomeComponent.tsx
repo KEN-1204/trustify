@@ -126,16 +126,10 @@ export const DashboardHomeComponent = () => {
                         className={`${styles.content_card} transition-base02 mt-[10px] flex h-[72px] w-full max-w-[400px] items-center rounded-[8px] bg-[var(--color-bg-base-sub)] p-[16px] text-[14px] font-bold`}
                         onClick={() => {
                           if (item.name === "invitation") {
-                            if (userProfileState?.account_company_role !== "company_admin") {
-                              // toast.error(`管理者権限を持つユーザーのみアクセス可能です`, {
-                              //   position: "top-right",
-                              //   autoClose: 2000,
-                              //   hideProgressBar: false,
-                              //   closeOnClick: true,
-                              //   pauseOnHover: true,
-                              //   draggable: true,
-                              //   progress: undefined,
-                              // });
+                            if (
+                              userProfileState?.account_company_role !== "company_admin" &&
+                              userProfileState?.account_company_role !== "company_owner"
+                            ) {
                               alert("管理者権限を持つユーザーのみアクセス可能です");
                               return;
                             }

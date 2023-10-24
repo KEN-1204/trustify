@@ -22,8 +22,9 @@ export const useQueryNotifications = (user_id: string, isReady: boolean) => {
       .order("created_at", { ascending: true });
 
     if (error) {
-      console.log("getMyNotificationsエラー発生", error.message);
-      throw new Error(error.message);
+      console.error("getMyNotificationsエラー発生", error.message);
+      // throw new Error(error.message);
+      return [];
     }
 
     return notificationData as Notification[] | [];

@@ -22,6 +22,7 @@ import { format } from "date-fns";
 
 const SettingCompanyMemo = () => {
   const supabase = useSupabaseClient();
+  const queryClient = useQueryClient();
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const setUserProfileState = useDashboardStore((state) => state.setUserProfileState);
   const selectedSettingAccountMenu = useDashboardStore((state) => state.selectedSettingAccountMenu);
@@ -51,7 +52,15 @@ const SettingCompanyMemo = () => {
   // キャッシュからお知らせを取得
   // const queryClient = useQueryClient();
   // const notificationsCacheData = queryClient.getQueryData<Notification[]>(["my_notifications"]);
-  const [changeOwnerNotificationState, setChangeOwnerNotificationState] = useState<Notification | null>(null);
+  // const [changeOwnerNotificationState, setChangeOwnerNotificationState] = useState<Notification | null>(null);
+
+  // ================================ お知らせ所有権変更関連 ================================
+  // 【お知らせの所有者変更モーダル開閉状態】
+  const setOpenNotificationChangeTeamOwnerModal = useDashboardStore(
+    (state) => state.setOpenNotificationChangeTeamOwnerModal
+  );
+  const notificationDataState = useDashboardStore((state) => state.notificationDataState);
+  const setNotificationDataState = useDashboardStore((state) => state.setNotificationDataState);
 
   // チーム所有者変更関連のお知らせを取得 useQuery用
   const getChangeTeamOwnerNotifications = async () => {
@@ -98,8 +107,8 @@ const SettingCompanyMemo = () => {
     changeTeamOwnerData,
     "changeTeamOwnerIsLoading",
     changeTeamOwnerIsLoading,
-    "changeOwnerNotificationState",
-    changeOwnerNotificationState
+    "notificationDataState",
+    notificationDataState
   );
 
   // 会社所有者を取得 + 所有権変更の通知を取得
@@ -140,13 +149,16 @@ const SettingCompanyMemo = () => {
       if (onHoldIndex !== -1 && needConfirmationIndex === -1) {
         const onHoldData = changeTeamOwnerData[onHoldIndex];
         console.log("保留中のお知らせデータを格納 onHoldData", onHoldData);
-        setChangeOwnerNotificationState(onHoldData);
+        // setChangeOwnerNotificationState(onHoldData);
+        setNotificationDataState(onHoldData);
       } else if (onHoldIndex === -1 && needConfirmationIndex !== -1) {
         const needConfirmedData = changeTeamOwnerData[needConfirmationIndex];
         console.log("要確認のお知らせデータを格納 needConfirmData", needConfirmedData);
-        setChangeOwnerNotificationState(needConfirmedData);
+        // setChangeOwnerNotificationState(needConfirmedData);
+        setNotificationDataState(needConfirmedData);
       } else {
-        setChangeOwnerNotificationState(null);
+        // setChangeOwnerNotificationState(null);
+        setNotificationDataState(null);
       }
     };
 
@@ -315,6 +327,73 @@ const SettingCompanyMemo = () => {
     const cleanedName = companyName.replace("株式会社", "").replace("合同会社", "").replace("有限会社", "").trim(); // 余分な空白を削除
 
     return cleanedName[0]; // 頭文字を返す
+  };
+
+  // ================================ お知らせ チーム所有権 確認クリック
+  const handleClickedChangeTeamOwnerConfirmation = async (notification: Notification) => {
+    console.log(
+      "確認クリック type",
+      notification.type,
+      "toユーザー名",
+      notification.to_user_name,
+      "fromユーザー名",
+      notification.from_user_name,
+      "既読",
+      notification.already_read,
+      "result",
+      notification.result
+    );
+    // お知らせ お知らせモーダルが開かれたら未読を既読に変更する
+    if (notification.already_read === false) {
+      const { data, error } = await supabase
+        .from("notifications")
+        .update({
+          already_read: true,
+          already_read_at: new Date().toISOString(),
+        })
+        .eq("id", notification.id)
+        .select();
+
+      if (error) {
+        console.error("notificationのUPDATE失敗 error:", error);
+        return toast.error("お知らせ情報の取得に失敗しました！", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          // theme: `${theme === "light" ? "light" : "dark"}`,
+        });
+      }
+
+      const updatedNotice: Notification = data[0];
+      console.log("UPDATEしたお知らせ", updatedNotice);
+
+      let previousNotificationsCacheData = queryClient.getQueryData<Notification[]>(["my_notifications"]);
+      if (!previousNotificationsCacheData || typeof previousNotificationsCacheData === "undefined") {
+        previousNotificationsCacheData = [];
+      }
+
+      // エラーが出なければ、React-Queryのキャッシュも最新状態に更新
+      queryClient.setQueryData(
+        ["my_notifications"],
+        previousNotificationsCacheData.map((notice, index) =>
+          notice.id === notification.id
+            ? {
+                ...(previousNotificationsCacheData as Notification[])[index],
+                already_read: true,
+                already_read_at: updatedNotice.already_read_at,
+              }
+            : notice
+        )
+      );
+    }
+
+    console.log("所有者変更モーダル オープン");
+    setOpenNotificationChangeTeamOwnerModal(true);
+    setNotificationDataState(notification);
   };
 
   return (
@@ -777,12 +856,17 @@ const SettingCompanyMemo = () => {
           <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
 
           {/* チームの所有者 */}
-          {changeOwnerNotificationState === null && (
+          {/* {changeOwnerNotificationState === null && ( */}
+          {notificationDataState === null && (
             <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
-              {userProfileState?.is_subscriber && <div className={`${styles.section_title}`}>チームの所有者の変更</div>}
-              {!userProfileState?.is_subscriber && <div className={`${styles.section_title}`}>チームの所有者</div>}
+              {userProfileState?.account_company_role === "company_owner" && (
+                <div className={`${styles.section_title}`}>チームの所有者の変更</div>
+              )}
+              {userProfileState?.account_company_role !== "company_owner" && (
+                <div className={`${styles.section_title}`}>チームの所有者</div>
+              )}
 
-              {userProfileState?.is_subscriber && (
+              {userProfileState?.account_company_role === "company_owner" && (
                 <div className={`flex h-full w-full items-center justify-between`}>
                   <div className="text-[14px] text-[var(--color-text-title)]">
                     現在の所有者である自分を削除し、代わりに別のメンバーを任命します。注：1つのチームに任命できる所有者は1人だけです。
@@ -797,7 +881,7 @@ const SettingCompanyMemo = () => {
                   </div>
                 </div>
               )}
-              {!userProfileState?.is_subscriber && (
+              {userProfileState?.account_company_role !== "company_owner" && (
                 <div className={`flex h-full w-full items-center justify-between`}>
                   <div className={`${styles.section_value}`}>{companyOwnerName}</div>
                   <div></div>
@@ -806,12 +890,15 @@ const SettingCompanyMemo = () => {
             </div>
           )}
           {/* チームの所有者 要確認 needConfirmation */}
-          {!!changeOwnerNotificationState &&
+          {/* {!!changeOwnerNotificationState &&
             changeOwnerNotificationState.to_user_id === userProfileState?.id &&
-            changeOwnerNotificationState.from_user_id !== userProfileState?.id && (
+            changeOwnerNotificationState.from_user_id !== userProfileState?.id && ( */}
+          {!!notificationDataState &&
+            notificationDataState.to_user_id === userProfileState?.id &&
+            notificationDataState.from_user_id !== userProfileState?.id && (
               <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
                 {/* {userProfileState?.is_subscriber && <div className={`${styles.section_title}`}>チームの所有者の変更</div>} */}
-                {!userProfileState?.is_subscriber && (
+                {userProfileState?.account_company_role !== "company_owner" && (
                   <div className={`${styles.section_title} flex items-center`}>
                     <span className="mr-[5px]">チームの所有権の任命を受け入れる</span>
                     <div className="flex-center max-h-[18px] rounded-full bg-[var(--color-red-tk)] px-[10px] py-[2px] text-[10px] text-[#fff]">
@@ -820,18 +907,25 @@ const SettingCompanyMemo = () => {
                   </div>
                 )}
 
-                {!userProfileState?.is_subscriber && (
+                {userProfileState?.account_company_role !== "company_owner" && (
                   <div className={`flex h-full w-full items-center justify-between`}>
                     <div className="text-[14px] text-[var(--color-text-title)]">
-                      <span className="font-bold">{changeOwnerNotificationState?.from_user_name}</span>さん（
+                      {/* <span className="font-bold">{changeOwnerNotificationState?.from_user_name}</span>さん（
                       <span className="font-bold">{changeOwnerNotificationState?.from_user_email}</span>）が
-                      <span className="font-bold">{changeOwnerNotificationState?.from_company_name}</span>
+                      <span className="font-bold">{changeOwnerNotificationState?.from_company_name}</span> */}
+                      <span className="font-bold">{notificationDataState?.from_user_name}</span>さん（
+                      <span className="font-bold">{notificationDataState?.from_user_email}</span>）が
+                      <span className="font-bold">{notificationDataState?.from_company_name}</span>
                       の所有者として代わりにあなたを任命しました。受け入れるか拒否するかを伝えてください。
                     </div>
                     <div>
                       <div
                         className={`transition-base01 ml-[30px] min-w-[78px] cursor-pointer truncate rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
-                        // onClick={() => setChangeTeamOwnerStep(1)}
+                        onClick={() => {
+                          if (notificationDataState?.type === "change_team_owner") {
+                            handleClickedChangeTeamOwnerConfirmation(notificationDataState);
+                          }
+                        }}
                       >
                         確認
                       </div>
@@ -841,12 +935,15 @@ const SettingCompanyMemo = () => {
               </div>
             )}
           {/* チームの所有者 保留中 onHold */}
-          {!!changeOwnerNotificationState &&
+          {/* {!!changeOwnerNotificationState &&
             changeOwnerNotificationState.to_user_id !== userProfileState?.id &&
-            changeOwnerNotificationState.from_user_id === userProfileState?.id && (
+            changeOwnerNotificationState.from_user_id === userProfileState?.id && ( */}
+          {!!notificationDataState &&
+            notificationDataState.to_user_id !== userProfileState?.id &&
+            notificationDataState.from_user_id === userProfileState?.id && (
               <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
                 {/* {userProfileState?.is_subscriber && <div className={`${styles.section_title}`}>チームの所有者の変更</div>} */}
-                {userProfileState?.is_subscriber && (
+                {userProfileState?.account_company_role === "company_owner" && (
                   <div className={`${styles.section_title} flex items-center`}>
                     <span className="mr-[5px]">チームの所有者の変更</span>
                     <div className="flex-center max-h-[18px] rounded-full bg-[var(--color-bg-brand-f)] px-[10px] py-[2px] text-[10px] text-[#fff]">
@@ -855,15 +952,18 @@ const SettingCompanyMemo = () => {
                   </div>
                 )}
 
-                {userProfileState?.is_subscriber && !!changeOwnerNotificationState && (
+                {userProfileState?.account_company_role === "company_owner" && (
                   <div className={`flex h-full w-full items-center justify-between`}>
                     <div className="text-[14px] text-[var(--color-text-title)]">
                       <span className="font-bold">
-                        {format(new Date(changeOwnerNotificationState?.created_at), "yyyy年MM月dd日")}
+                        {/* {format(new Date(changeOwnerNotificationState?.created_at), "yyyy年MM月dd日")} */}
+                        {format(new Date(notificationDataState?.created_at), "yyyy年MM月dd日")}
                       </span>
                       に、
-                      <span className="font-bold">{changeOwnerNotificationState?.to_user_name}</span>さん（
-                      <span className="font-bold">{changeOwnerNotificationState?.to_user_email}</span>）
+                      <span className="font-bold">{notificationDataState?.to_user_name}</span>さん（
+                      <span className="font-bold">{notificationDataState?.to_user_email}</span>）
+                      {/* <span className="font-bold">{changeOwnerNotificationState?.to_user_name}</span>さん（
+                      <span className="font-bold">{changeOwnerNotificationState?.to_user_email}</span>） */}
                       をチームの新しい所有者に任命しました。新しい所有者による承諾はまだ行われていません。
                       <span className={`cursor-pointer text-[var(--color-text-brand-f)] underline hover:font-bold`}>
                         任命を取り消す

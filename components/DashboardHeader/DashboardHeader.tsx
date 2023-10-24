@@ -89,9 +89,15 @@ export const DashboardHeaderMemo: FC = () => {
 
   // ================================ お知らせ所有権変更関連 ================================
   // 【お知らせの所有者変更モーダル開閉状態】
-  const [openNotificationChangeTeamOwnerModal, setOpenNotificationChangeTeamOwnerModal] = useState(false);
+  // const [openNotificationChangeTeamOwnerModal, setOpenNotificationChangeTeamOwnerModal] = useState(false);
+  // const openNotificationChangeTeamOwnerModal = useDashboardStore((state) => state.openNotificationChangeTeamOwnerModal);
+  const setOpenNotificationChangeTeamOwnerModal = useDashboardStore(
+    (state) => state.setOpenNotificationChangeTeamOwnerModal
+  );
   // 【お知らせの所有者変更モーダルをクリック時にお知らせの情報を保持するState】
-  const [notificationDataState, setNotificationDataState] = useState<Notification | null>(null);
+  // const [notificationDataState, setNotificationDataState] = useState<Notification | null>(null);
+  // const notificationDataState = useDashboardStore((state) => state.notificationDataState);
+  const setNotificationDataState = useDashboardStore((state) => state.setNotificationDataState);
 
   // =============== お知らせ notificationsを取得 ===============
   const [openNotificationModal, setOpenNotificationModal] = useState(false); // お知らせ開閉
@@ -114,9 +120,7 @@ export const DashboardHeaderMemo: FC = () => {
     "incompleteNotifications",
     incompleteNotifications,
     "completedNotifications",
-    completedNotifications,
-    "所有者変更モーダル",
-    openNotificationChangeTeamOwnerModal
+    completedNotifications
   );
 
   // ================================ お知らせ キャッシュから取得したnotificationsを、未読、既読、完了済みに振り分ける
@@ -1493,10 +1497,10 @@ export const DashboardHeaderMemo: FC = () => {
           {/* ==================== お知らせポップアップ ここまで ==================== */}
         </div>
       </div>
-      {/* お知らせ所有者変更モーダル */}
-      {openNotificationChangeTeamOwnerModal && notificationDataState !== null && (
+      {/* ==================== お知らせ所有者変更モーダル ==================== */}
+      {/* {openNotificationChangeTeamOwnerModal && notificationDataState !== null && (
         <>
-          {/* オーバーレイ */}
+          
           <div
             className="fixed left-0 top-0 z-[1000] h-[100vh] w-[100vw] bg-[var(--color-overlay)] backdrop-blur-sm"
             onClick={() => {
@@ -1505,7 +1509,7 @@ export const DashboardHeaderMemo: FC = () => {
             }}
           ></div>
           <div className="fixed left-[50%] top-[50%] z-[2000] h-[52vh] w-[40vw] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)]">
-            {/* クローズボタン */}
+            
             <button
               className={`flex-center z-100 group absolute right-[-40px] top-0 h-[32px] w-[32px] rounded-full bg-[#00000090] hover:bg-[#000000c0]`}
               onClick={() => setOpenNotificationChangeTeamOwnerModal(false)}
@@ -1538,7 +1542,6 @@ export const DashboardHeaderMemo: FC = () => {
               <div className={`flex w-[100%] items-center justify-around space-x-5 pt-[30px]`}>
                 <button
                   className={`w-[50%] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[15px] py-[10px] text-[14px] font-bold text-[var(--color-text-sub)] hover:bg-[var(--setting-side-bg-select-hover)]`}
-                  // onClick={() => setOverState(false)}
                 >
                   所有権を拒否する
                 </button>
@@ -1556,7 +1559,8 @@ export const DashboardHeaderMemo: FC = () => {
             </section>
           </div>
         </>
-      )}
+      )} */}
+      {/* ==================== お知らせ所有者変更モーダル ここまで ==================== */}
     </header>
   );
 };

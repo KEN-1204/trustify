@@ -42,6 +42,7 @@ import { FirstLoginSettingUserProfileAfterInvitationModal } from "./Modal/FirstL
 import { Invitation } from "@/types";
 import { InvitationForLoggedInUser } from "./Modal/InvitationForLoggedInUser/InvitationForLoggedInUser";
 import { useQueryClient } from "@tanstack/react-query";
+import { ChangeTeamOwnerConfirmationModal } from "./DashboardCompanyComponent/Modal/Notifications/ChangeTeamOwnerConfirmationModal/ChangeTeamOwnerConfirmationModal";
 
 type Prop = {
   title?: string;
@@ -230,6 +231,11 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   const isOpenInsertNewPropertyModal = useDashboardStore((state) => state.isOpenInsertNewPropertyModal);
   const isOpenUpdatePropertyModal = useDashboardStore((state) => state.isOpenUpdatePropertyModal);
 
+  // 【お知らせの所有者変更モーダル開閉状態】
+  const openNotificationChangeTeamOwnerModal = useDashboardStore((state) => state.openNotificationChangeTeamOwnerModal);
+  // 【お知らせの所有者変更モーダルをクリック時にお知らせの情報を保持するState】
+  const notificationDataState = useDashboardStore((state) => state.notificationDataState);
+
   return (
     <div className={`${styles.trustify_app} relative`}>
       <Head>
@@ -345,6 +351,9 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
           </Suspense>
         </ErrorBoundary>
       )}
+
+      {/* ==================== お知らせ所有者変更モーダル ==================== */}
+      {openNotificationChangeTeamOwnerModal && notificationDataState !== null && <ChangeTeamOwnerConfirmationModal />}
       {/* {isOpenUpdatePropertyModal && <UpdateMeetingModal />} */}
     </div>
   );

@@ -196,6 +196,12 @@ type State = {
   // 完了済みのお知らせ
   completedNotifications: Notification[] | [];
   setCompletedNotifications: (payload: Notification[] | []) => void;
+  // 【お知らせの所有者変更モーダル開閉状態】
+  openNotificationChangeTeamOwnerModal: boolean;
+  setOpenNotificationChangeTeamOwnerModal: (payload: boolean) => void;
+  // 【お知らせの所有者変更モーダルをクリック時にお知らせの情報を保持するState】
+  notificationDataState: Notification | null;
+  setNotificationDataState: (payload: Notification | null) => void;
 
   // =================== プロフィールメニュー ===================
   // 【プロフィールメニュー開閉状態】
@@ -909,6 +915,12 @@ const useDashboardStore = create<State>((set) => ({
   // 完了済みのお知らせ
   completedNotifications: [],
   setCompletedNotifications: (payload) => set({ completedNotifications: payload }),
+  // 【お知らせの所有者変更モーダル開閉状態】
+  openNotificationChangeTeamOwnerModal: false,
+  setOpenNotificationChangeTeamOwnerModal: (payload) => set({ openNotificationChangeTeamOwnerModal: payload }),
+  // 【お知らせの所有者変更モーダルをクリック時にお知らせの情報を保持するState】
+  notificationDataState: null,
+  setNotificationDataState: (payload) => set({ notificationDataState: payload }),
 
   // =================== 担当者テーブル ヘッダーリスト保持用state関連 ===================
   // 上画面のテーブルはチェックボックスありで1のため、columnIndexは2から

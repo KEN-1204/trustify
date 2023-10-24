@@ -206,6 +206,9 @@ export const SettingAccountModal = () => {
   // company_roll：所有者(契約者)、管理者、マネージャー、メンバー、ゲスト
   const getCompanyRole = (company_role: string | null) => {
     switch (company_role) {
+      case "company_owner":
+        return "所有者";
+        break;
       case "company_admin":
         return "管理者";
         break;
@@ -314,7 +317,10 @@ export const SettingAccountModal = () => {
                 selectedSettingAccountMenu === "Company" ? `bg-[var(--setting-side-bg-select)]` : ``
               }`}
               onClick={() => {
-                if (userProfileState?.account_company_role !== "company_admin") {
+                if (
+                  userProfileState?.account_company_role !== "company_admin" &&
+                  userProfileState?.account_company_role !== "company_owner"
+                ) {
                   return alert("管理者権限を持つユーザーのみアクセス可能です");
                 }
                 setSelectedSettingAccountMenu("Company");
@@ -330,7 +336,10 @@ export const SettingAccountModal = () => {
                 selectedSettingAccountMenu === "Member" ? `bg-[var(--setting-side-bg-select)]` : ``
               }`}
               onClick={() => {
-                if (userProfileState?.account_company_role !== "company_admin") {
+                if (
+                  userProfileState?.account_company_role !== "company_admin" &&
+                  userProfileState?.account_company_role !== "company_owner"
+                ) {
                   return alert("管理者権限を持つユーザーのみアクセス可能です");
                   // toast.error(`管理者権限を持つユーザーのみアクセス可能です`, {
                   //   position: "top-right",
@@ -384,7 +393,10 @@ export const SettingAccountModal = () => {
                 selectedSettingAccountMenu === "PaymentAndPlan" ? `bg-[var(--setting-side-bg-select)]` : ``
               }`}
               onClick={() => {
-                if (userProfileState?.account_company_role !== "company_admin") {
+                if (
+                  userProfileState?.account_company_role !== "company_admin" &&
+                  userProfileState?.account_company_role !== "company_owner"
+                ) {
                   return alert("管理者権限を持つユーザーのみアクセス可能です");
                   // toast.error(`管理者権限を持つユーザーのみアクセス可能です`, {
                   //   position: "top-right",
@@ -1755,7 +1767,8 @@ export const SettingAccountModal = () => {
                   <div className={`flex h-full w-full items-center justify-between`}>
                     <div className={`${styles.section_value}`}>
                       {/* {userProfileState?.account_company_role ? userProfileState.account_company_role : "未設定"} */}
-                      {userProfileState?.is_subscriber
+                      {/* {userProfileState?.is_subscriber */}
+                      {userProfileState?.account_company_role === "company_owner"
                         ? "所有者"
                         : getCompanyRole(
                             userProfileState?.account_company_role ? userProfileState.account_company_role : null
