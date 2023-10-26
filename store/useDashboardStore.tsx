@@ -142,7 +142,8 @@ type State = {
 
   // =================== アカウント設定 メンバー ===================
   // 【チームから削除クリック時の削除確認モーダル開閉状態】
-  // openRemoveTeamModal
+  // removeTeamMember: MemberAccounts | null;
+  // setRemoveTeamMember: (payload: MemberAccounts | null) => void;
 
   // =================== アンダーテーブル関連 ===================
   // 【サーチモード切り替え】
@@ -375,6 +376,11 @@ const useDashboardStore = create<State>((set) => ({
   // =================== アカウント設定 会社 ===================
   companyOwnerName: "",
   setCompanyOwnerName: (payload) => set({ companyOwnerName: payload }),
+
+  // =================== アカウント設定 メンバー ===================
+  // 【チームから削除クリック時の削除確認モーダル開閉状態】
+  // removeTeamMember: null,
+  // setRemoveTeamMember: (payload) => set({ removeTeamMember: payload }),
 
   // =================== テーブルサイズ切り替えボタン ===================
   // 【テーブルサイズ切り替えメニュー開閉状態】

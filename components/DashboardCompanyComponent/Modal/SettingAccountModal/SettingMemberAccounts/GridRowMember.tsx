@@ -13,6 +13,8 @@ import { toast } from "react-toastify";
 import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import useStore from "@/store";
+import { MdClose } from "react-icons/md";
+import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 
 // type Props = {
 //   id: string;
@@ -32,6 +34,11 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
   const queryClient = useQueryClient();
   const theme = useRootStore(useThemeStore, (state) => state.theme);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
+  const [loading, setLoading] = useState(false);
+  // チームから削除を選択した場合に削除ターゲットを保持するState
+  // const removeTeamMember = useDashboardStore((state) => state.removeTeamMember);
+  // const setRemoveTeamMember = useDashboardStore((state) => state.setRemoveTeamMember);
+  const [removeTeamMember, setRemoveTeamMember] = useState<MemberAccounts | null>(null);
   // 招待メールモーダル
   const setIsOpenSettingInvitationModal = useDashboardStore((state) => state.setIsOpenSettingInvitationModal);
   // ログイン中のユーザープロフィール
@@ -46,6 +53,8 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
   const [roleAtTeam, setRoleAtTeam] = useState(
     memberAccount.account_company_role ? memberAccount.account_company_role : ""
   );
+  // チームの役割クリック時の位置を保持するState
+  const [clickedItemPosition, setClickedItemPosition] = useState<string | null>(null);
 
   // 一つの投稿に紐づいた画像のフルパスをダウンロードするためのuseDownloadUrlフックをpostsバケット用の切り替え用キーワードを渡して実行
   // 第一引数には、propsで受け取ったpost_urlを渡してpostUrlという名前をつけてfullUrlを取得
@@ -139,7 +148,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
 
   // =============================== チームから削除する
   const removeFromTeam = async () => {
-    setLoadingGlobalState(true);
+    setLoading(true);
     // subscribed_accountsのuser_idカラムをnullにして契約アカウントとの紐付けを解除する
     const { data: newAccountData, error: accountUpdateError } = await supabase
       .from("subscribed_accounts")
@@ -161,6 +170,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
         draggable: true,
         progress: undefined,
       });
+      return;
     }
     toast.success(`チームからメンバーの削除が完了しました!`, {
       position: "top-right",
@@ -176,9 +186,10 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
     // アカウントとユーザーの紐付け解除完了後はMemberAccountsキャッシュをリフレッシュ
     await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
 
-    setLoadingGlobalState(false);
+    setLoading(false);
 
     setIsOpenRoleMenu(false);
+    setRemoveTeamMember(null);
   };
 
   // =============================== 招待を再送信する
@@ -355,10 +366,45 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
                 ? "cursor-not-allowed"
                 : "cursor-pointer"
             }`}
-            onClick={() => {
+            onClick={(e) => {
               // if (memberAccount.is_subscriber || !memberAccount.account_company_role) return;
               if (memberAccount.account_company_role === "company_owner" || !memberAccount.account_company_role) return;
               setIsOpenRoleMenu(true);
+              // クリック位置を取得
+              // const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+              const { x, y } = e.currentTarget.getBoundingClientRect();
+              const clickedPositionPlusItemHeight = y + 220 + 40; // 40はmargin分
+              const modalHeight = window.innerHeight * 0.9;
+              const halfBlankSpaceWithoutModal = (window.innerHeight - modalHeight) / 2;
+              const modalBottomPosition = window.innerHeight - halfBlankSpaceWithoutModal;
+              // const oneThird = window.innerHeight - window.innerHeight / 3;
+              if (modalBottomPosition < clickedPositionPlusItemHeight) {
+                console.log(
+                  "アップ",
+                  "y",
+                  y,
+                  "モーダル下部",
+                  modalBottomPosition,
+                  "クリック位置とメニューYの合計",
+                  clickedPositionPlusItemHeight,
+                  "window.innerHeight",
+                  window.innerHeight
+                );
+                setClickedItemPosition("up");
+              } else {
+                console.log(
+                  "ダウン",
+                  "y",
+                  y,
+                  "モーダル下部",
+                  modalBottomPosition,
+                  "クリック位置とメニューYの合計",
+                  clickedPositionPlusItemHeight,
+                  "window.innerHeight",
+                  window.innerHeight
+                );
+                setClickedItemPosition("down");
+              }
             }}
           >
             <span className="mr-[10px]">
@@ -381,10 +427,15 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
               ></div>
 
               {/* 通常時 h-[152px] 招待中時 */}
-              <div className="shadow-all-md absolute left-[0px] top-[60px] z-[100] h-auto w-[180px] rounded-[8px] bg-[var(--color-bg-dropdown-menu)]">
-                <ul className={`flex flex-col py-[8px]`}>
+              <div
+                className={`shadow-all-md border-real absolute left-[0px]  z-[100] h-auto w-[180px] rounded-[8px] bg-[var(--color-bg-dropdown-menu)] p-[1px] ${
+                  clickedItemPosition === "down" ? `top-[60px]` : `top-[-210px]`
+                }`}
+              >
+                {/* <ul className={`flex flex-col py-[8px]`}> */}
+                <ul className={`flex flex-col`}>
                   <li
-                    className={`flex h-[40px] w-full cursor-pointer items-center justify-between px-[14px] py-[6px] pr-[18px] hover:bg-[var(--color-bg-sub)]`}
+                    className={`flex min-h-[40px] w-full cursor-pointer items-center justify-between rounded-tl-[8px] rounded-tr-[8px] px-[14px] py-[12px] pr-[18px] hover:bg-[var(--color-bg-sub)]`}
                     onClick={() => {
                       if (memberAccount.account_company_role === "company_admin") {
                         setIsOpenRoleMenu(false);
@@ -399,7 +450,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
                     )}
                   </li>
                   <li
-                    className={`flex h-[40px] w-full cursor-pointer items-center justify-between px-[14px] py-[6px] pr-[18px] hover:bg-[var(--color-bg-sub)]`}
+                    className={`flex min-h-[40px] w-full cursor-pointer items-center justify-between px-[14px] py-[12px] pr-[18px] hover:bg-[var(--color-bg-sub)]`}
                     onClick={() => {
                       if (memberAccount.account_company_role === "company_manager") {
                         setIsOpenRoleMenu(false);
@@ -414,7 +465,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
                     )}
                   </li>
                   <li
-                    className={`flex h-[40px] w-full cursor-pointer items-center justify-between px-[14px] py-[6px] pr-[18px] hover:bg-[var(--color-bg-sub)]`}
+                    className={`flex min-h-[40px] w-full cursor-pointer items-center justify-between px-[14px] py-[12px] pr-[18px] hover:bg-[var(--color-bg-sub)]`}
                     onClick={() => {
                       if (memberAccount.account_company_role === "company_member") {
                         setIsOpenRoleMenu(false);
@@ -429,7 +480,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
                     )}
                   </li>
                   <li
-                    className={`flex h-[40px] w-full cursor-pointer items-center justify-between px-[14px] py-[6px] pr-[18px] hover:bg-[var(--color-bg-sub)]`}
+                    className={`flex min-h-[40px] w-full cursor-pointer items-center justify-between px-[14px] py-[12px] pr-[18px] hover:bg-[var(--color-bg-sub)]`}
                     onClick={() => {
                       if (memberAccount.account_company_role === "guest") {
                         setIsOpenRoleMenu(false);
@@ -443,20 +494,22 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
                       <BsCheck2 className="min-h-[16px] min-w-[16px] stroke-[0.5] text-[16px]" />
                     )}
                   </li>
-                  <li className="flex-center h-[16px] w-full">
+                  <hr className="w-full border-t border-solid border-[var(--color-border-table)]" />
+                  {/* <li className="flex-center h-[16px] w-full">
                     <hr className="w-full border-t border-solid border-[var(--color-border-table)]" />
-                  </li>
+                  </li> */}
                   {!memberAccount.account_invited_email && (
                     <li
-                      className={`flex h-[40px] w-full cursor-pointer items-center px-[14px] py-[6px] hover:bg-[var(--color-bg-sub)]`}
-                      onClick={removeFromTeam}
+                      className={`flex min-h-[40px] w-full cursor-pointer items-center rounded-bl-[8px] rounded-br-[8px] px-[14px] py-[12px] hover:bg-[var(--color-bg-sub)]`}
+                      // onClick={removeFromTeam}
+                      onClick={() => setRemoveTeamMember(memberAccount)}
                     >
                       <span className="select-none">チームから削除</span>
                     </li>
                   )}
                   {memberAccount.account_invited_email && (
                     <li
-                      className={`flex h-[40px] w-full cursor-pointer items-center px-[14px] py-[6px] hover:bg-[var(--color-bg-sub)]`}
+                      className={`flex min-h-[40px] w-full cursor-pointer items-center px-[14px] py-[12px] hover:bg-[var(--color-bg-sub)]`}
                       onClick={resendInvitationEmail}
                     >
                       <span className="select-none">招待を再送信する</span>
@@ -464,7 +517,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
                   )}
                   {memberAccount.account_invited_email && (
                     <li
-                      className={`flex h-[40px] w-full cursor-pointer items-center px-[14px] py-[6px] hover:bg-[var(--color-bg-sub)]`}
+                      className={`flex min-h-[40px] w-full cursor-pointer items-center rounded-bl-[8px] rounded-br-[8px] px-[14px] py-[12px] hover:bg-[var(--color-bg-sub)]`}
                       onClick={cancelInvitation}
                     >
                       <span className="select-none">招待をキャンセル</span>
@@ -514,6 +567,67 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
           )}
         </div>
       </div>
+
+      {/* ============================== チームから削除の確認モーダル ============================== */}
+      {removeTeamMember !== null && (
+        <>
+          {/* オーバーレイ */}
+          <div
+            className="fixed left-[-100vw] top-[-100vh] z-[1000] h-[200vh] w-[200vw] bg-[var(--color-overlay)] backdrop-blur-sm"
+            onClick={() => {
+              console.log("オーバーレイ クリック");
+              setRemoveTeamMember(null);
+              setIsOpenRoleMenu(false);
+            }}
+          ></div>
+          <div className="fade02 fixed left-[50%] top-[50%] z-[2000] h-auto w-[40vw] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)]">
+            {loading && (
+              <div className={`flex-center fixed left-0 top-0 z-[3000] h-[100%] w-[100%] rounded-[8px] bg-[#00000090]`}>
+                <SpinnerIDS scale={"scale-[0.5]"} />
+              </div>
+            )}
+            {/* クローズボタン */}
+            <button
+              className={`flex-center z-100 group absolute right-[-40px] top-0 h-[32px] w-[32px] rounded-full bg-[#00000090] hover:bg-[#000000c0]`}
+              onClick={() => {
+                setRemoveTeamMember(null);
+                setIsOpenRoleMenu(false);
+              }}
+            >
+              <MdClose className="text-[20px] text-[#fff]" />
+            </button>
+            <h3 className={`flex min-h-[32px] w-full items-center text-[22px] font-bold`}>
+              {removeTeamMember.profile_name}さんを削除しますか？
+            </h3>
+            <section className={`mt-[20px] flex h-auto w-full flex-col space-y-3 text-[14px]`}>
+              <p>チームから削除されたユーザーは、保存したデータやコンテンツにアクセスできなくなります。</p>
+              <p className="font-bold">
+                注：この操作により、該当ユーザーのデータは、他のチームメンバーと共有されていないものを含めて全てアクセスできなくなります。
+              </p>
+            </section>
+            <section className="flex w-full items-start justify-end">
+              <div className={`flex w-[100%] items-center justify-around space-x-5 pt-[30px]`}>
+                <button
+                  className={`w-[50%] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[15px] py-[10px] text-[14px] font-bold text-[var(--color-text-title)] hover:bg-[var(--setting-side-bg-select-hover)]`}
+                  onClick={() => {
+                    setRemoveTeamMember(null);
+                    setIsOpenRoleMenu(false);
+                  }}
+                >
+                  キャンセル
+                </button>
+                <button
+                  className="w-[50%] cursor-pointer rounded-[8px] bg-[var(--color-red-tk)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff] hover:bg-[var(--color-red-tk-hover)]"
+                  onClick={removeFromTeam}
+                >
+                  チームから削除する
+                </button>
+              </div>
+            </section>
+          </div>
+        </>
+      )}
+      {/* ============================== チームから削除の確認モーダル ここまで ============================== */}
     </>
   );
 };

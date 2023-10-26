@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import React, { FC, memo, useEffect, useState } from "react";
+import { AiOutlineMinusCircle, AiOutlinePlusCircle } from "react-icons/ai";
 
 const SettingPaymentAndPlanMemo: FC = () => {
   const theme = useThemeStore((state) => state.theme);
@@ -81,6 +82,47 @@ const SettingPaymentAndPlanMemo: FC = () => {
     }
   };
 
+  const [openAccountCountsMenu, setOpenAccountCountsMenu] = useState(false);
+  const AccountCountsDropDownMenu = () => {
+    return (
+      <>
+        {/* ==================== チームでの役割メニューポップアップ ==================== */}
+
+        {/* 通常時 h-[152px] 招待中時 */}
+        <div className="shadow-all-md border-real absolute left-[50%] top-[50px] z-[100] h-auto translate-x-[-50%] overflow-hidden rounded-[8px] bg-[var(--color-bg-dropdown-menu)] p-[1px] text-[14px] font-bold !text-[var(--color-text-title)]">
+          <ul className={`flex w-full flex-col`}>
+            <li
+              className={`flex w-full cursor-pointer items-center justify-between space-x-[12px] truncate rounded-tl-[8px] rounded-tr-[8px] px-[18px] py-[15px] hover:bg-[var(--color-bg-sub)] hover:text-[var(--color-bg-brand-f)] `}
+              onClick={() => {
+                // handleChangeRole("company_admin");
+                console.log("増やすクリック");
+                setOpenAccountCountsMenu(false);
+              }}
+            >
+              <AiOutlinePlusCircle className="min-h-[18px] min-w-[18px] text-[18px]" />
+              <span className="select-none">アカウント数を増やす</span>
+            </li>
+
+            <hr className={`min-h-[1px] w-full bg-[var(--color-border-base)]`} />
+
+            <li
+              className={`flex w-full cursor-pointer items-center justify-between space-x-[12px] truncate rounded-bl-[8px] rounded-br-[8px] px-[18px] py-[15px] hover:bg-[var(--color-bg-sub)] hover:text-[var(--bright-red)] `}
+              onClick={() => {
+                // handleChangeRole("company_manager");
+                console.log("減らすクリック");
+                setOpenAccountCountsMenu(false);
+              }}
+            >
+              <AiOutlineMinusCircle className="min-h-[18px] min-w-[18px] text-[18px]" />
+              <span className="select-none">アカウント数を減らす</span>
+            </li>
+          </ul>
+        </div>
+        {/* ==================== チームでの役割メニューポップアップ ここまで ==================== */}
+      </>
+    );
+  };
+
   return (
     <>
       {/* 右側メインエリア プロフィール */}
@@ -149,9 +191,35 @@ const SettingPaymentAndPlanMemo: FC = () => {
                       <span>プランをアップグレード</span>
                     </p>
                   )}
-                  {userProfileState?.subscription_plan !== "free_plan" && !isLoading && (
-                    <span>プラン・アカウント数を変更</span>
-                  )}
+                  {userProfileState?.subscription_plan !== "free_plan" && !isLoading && <span>プランを変更</span>}
+                  {isLoading && <SpinnerIDS scale={"scale-[0.4]"} />}
+                </button>
+              </div>
+              <div className="mt-[16px] flex w-full space-x-8">
+                <div className="relative w-[50%] min-w-[78px]">
+                  {openAccountCountsMenu && <AccountCountsDropDownMenu />}
+                  <button
+                    className={`transition-base02 flex-center relative max-h-[41px] w-full cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[25px] py-[10px] text-[14px] font-bold !text-[#fff] ${
+                      isLoading ? `` : `hover:bg-[var(--color-bg-brand-f-hover)]`
+                    }`}
+                    onClick={() => {
+                      console.log("アカウント数変更クリック");
+                      // setOpenAccountCountsMenu(true);
+                    }}
+                  >
+                    {userProfileState?.subscription_plan !== "free_plan" && !isLoading && (
+                      <span>アカウントを増やす</span>
+                    )}
+                    {isLoading && <SpinnerIDS scale={"scale-[0.4]"} />}
+                  </button>
+                </div>
+                <button
+                  className={`transition-base01 flex-center max-h-[41px] w-[50%] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-sub)] px-[25px] py-[10px] text-[14px] font-bold !text-[var(--color-text-title)] ${
+                    isLoading ? `` : `hover:bg-[var(--bright-red)] hover:!text-[#fff]`
+                  }`}
+                  // onClick={loadPortal}
+                >
+                  {userProfileState?.subscription_plan !== "free_plan" && !isLoading && <span>アカウントを減らす</span>}
                   {isLoading && <SpinnerIDS scale={"scale-[0.4]"} />}
                 </button>
               </div>
@@ -169,6 +237,15 @@ const SettingPaymentAndPlanMemo: FC = () => {
         </div>
       )}
       {/* 右側メインエリア プロフィール ここまで */}
+      {openAccountCountsMenu && (
+        <div
+          className="fixed left-[-50%] top-[-50%] z-[50] h-[200vh] w-[200vw]"
+          onClick={() => {
+            console.log("オーバーレイクリック");
+            setOpenAccountCountsMenu(false);
+          }}
+        ></div>
+      )}
     </>
   );
 };
