@@ -25,6 +25,12 @@ export const Root: FC = () => {
   const setGetStartWithEmail = useStore((state) => state.setGetStartWithEmail);
   const setInputEmail = useStore((state) => state.setInputEmail);
 
+  // 画像ホバー有無
+  const [hoveredFeature1, setHoveredFeature1] = useState(false);
+  const [hoveredFeature2, setHoveredFeature2] = useState(false);
+  const [hoveredFeature3, setHoveredFeature3] = useState(false);
+  const [hoveredFeature4, setHoveredFeature4] = useState(false);
+
   // 言語ドロップダウンメニュー
   const clickedItemPos = useStore((state) => state.clickedItemPos);
   const clickedItemPosOver = useStore((state) => state.clickedItemPosOver);
@@ -259,13 +265,17 @@ export const Root: FC = () => {
       {/* ======================== Feature1 ======================== */}
       <section id="product" className={`transition-base-color bg-[--color-bg-hp-main] ${styles.scroll_slides_row}`}>
         <div className={`${styles.text_col}`}>
-          <h2>
+          <h2 className={`${styles.section_title} ${hoveredFeature1 ? `${styles.section_title_brand}` : ``} `}>
             {/* {language === "Ja" && "最小の資本と人で、最大の経済効果を上げる"} */}
             {/* {language === "Ja" && "営業を科学する"} */}
             {language === "Ja" && "誰でも売れる組織へ"}
             {language === "En" && "To an organization where anyone can sell."}
             {/* {language === "Ja" && "大画面で楽しめる"}
             {language === "En" && "Enjoy on your TV."} */}
+            <span className={`${styles.title_before}`}>
+              {language === "Ja" && "誰でも売れる組織へ"}
+              {language === "En" && "To an organization where anyone can sell."}
+            </span>
           </h2>
           <p>
             {language === "Ja" &&
@@ -277,21 +287,27 @@ export const Root: FC = () => {
           </p>
         </div>
         <div className={`${styles.img_col} flex items-center`}>
-          <div className={`${styles.wrap}`}>
-            <Image
-              src="/assets/images/root2/feature01.png"
-              // src="/assets/images/root/feature1.png"
-              // src="/assets/images/feature-1.png"
-              alt=""
-              // placeholder="blur"
-              // blurDataURL="/assets/images/feature-1-small.png"
-              width={800}
-              height={600}
-              className={`${styles.img}`}
-            />
-            <video autoPlay={true} loop={true} playsInline={true} muted={true}>
-              <source src="/assets/videos/dash-company-feature01.mp4" type="video/mp4" />
-            </video>
+          <div className={`${styles.light_back}`}>
+            <div
+              className={`${styles.wrap}`}
+              onMouseEnter={() => setHoveredFeature1(true)}
+              onMouseLeave={() => setHoveredFeature1(false)}
+            >
+              <Image
+                src="/assets/images/root2/feature01.png"
+                // src="/assets/images/root/feature1.png"
+                // src="/assets/images/feature-1.png"
+                alt=""
+                // placeholder="blur"
+                // blurDataURL="/assets/images/feature-1-small.png"
+                width={800}
+                height={600}
+                className={`${styles.img}`}
+              />
+              <video autoPlay={true} loop={true} playsInline={true} muted={true}>
+                <source src="/assets/videos/dash-company-feature01.mp4" type="video/mp4" />
+              </video>
+            </div>
           </div>
         </div>
         {/* <div className={`${styles.img_col}`}>
@@ -314,10 +330,18 @@ export const Root: FC = () => {
       {/* ======================== Feature2 ======================== */}
       <section className={`transition-base-color bg-[--color-bg-hp-main] ${styles.scroll_slides_row} flex-row-reverse`}>
         <div className={`${styles.text_col}`}>
-          <h2>
-            {/* {language === "Ja" && ""} */}
+          {/* <h2>
+            
             {language === "Ja" && `"今" 売れる営業先がすぐ見つかる`}
             {language === "En" && "Find 'current' sales prospects immediately"}
+          </h2> */}
+          <h2 className={`${styles.section_title} ${hoveredFeature2 ? `${styles.section_title_brand}` : ``} `}>
+            {language === "Ja" && `"今" 売れる営業先がすぐ見つかる`}
+            {language === "En" && "Find 'current' sales prospects immediately"}
+            <span className={`${styles.title_before}`}>
+              {language === "Ja" && `"今" 売れる営業先がすぐ見つかる`}
+              {language === "En" && "Find 'current' sales prospects immediately"}
+            </span>
           </h2>
           <p>
             {language === "Ja" &&
@@ -333,22 +357,28 @@ export const Root: FC = () => {
           </p>
         </div>
         <div className={`${styles.img_col} flex items-center`}>
-          <div className={`${styles.wrap}`}>
-            <Image
-              src="/assets/images/root2/feature05.png"
-              // src="/assets/images/root/feature2.png"
-              // src="/assets/images/feature-4.png"
-              alt=""
-              // placeholder="blur"
-              // blurDataURL="/assets/images/feature-4-small.png"
-              // loading="lazy"
-              width={800}
-              height={600}
-              className={`${styles.img}`}
-            />
-            <video autoPlay={true} loop={true} playsInline={true} muted={true}>
-              <source src="/assets/videos/trustify-company-movie2-up.mp4" type="video/mp4" />
-            </video>
+          <div className={`${styles.light_back}`}>
+            <div
+              className={`${styles.wrap}`}
+              onMouseEnter={() => setHoveredFeature2(true)}
+              onMouseLeave={() => setHoveredFeature2(false)}
+            >
+              <Image
+                src="/assets/images/root2/feature05.png"
+                // src="/assets/images/root/feature2.png"
+                // src="/assets/images/feature-4.png"
+                alt=""
+                // placeholder="blur"
+                // blurDataURL="/assets/images/feature-4-small.png"
+                // loading="lazy"
+                width={800}
+                height={600}
+                className={`${styles.img}`}
+              />
+              <video autoPlay={true} loop={true} playsInline={true} muted={true}>
+                <source src="/assets/videos/trustify-company-movie2-up.mp4" type="video/mp4" />
+              </video>
+            </div>
           </div>
         </div>
         {/* <div className={styles.img_col}>
@@ -371,11 +401,18 @@ export const Root: FC = () => {
       {/* ======================== Feature3 ======================== */}
       <section className={`transition-base-color bg-[--color-bg-hp-main] ${styles.scroll_slides_row}`}>
         <div className={`${styles.text_col}`}>
-          <h2>
+          {/* <h2>
             {language === "Ja" && "リスト作成時間を大幅に短縮し工数削減"}
             {language === "En" && "Significantly reduce list creation time and workload."}
-            {/* {language === "Ja" && "お子様用のプロフィールを作成できます。"}
-            {language === "En" && "Create profiles for kids."} */}
+            
+          </h2> */}
+          <h2 className={`${styles.section_title} ${hoveredFeature3 ? `${styles.section_title_brand}` : ``} `}>
+            {language === "Ja" && "リスト作成時間を大幅に短縮し工数削減"}
+            {language === "En" && "Significantly reduce list creation time and workload."}
+            <span className={`${styles.title_before}`}>
+              {language === "Ja" && "リスト作成時間を大幅に短縮し工数削減"}
+              {language === "En" && "Significantly reduce list creation time and workload."}
+            </span>
           </h2>
           <p>
             {language === "Ja" &&
@@ -391,19 +428,25 @@ export const Root: FC = () => {
           </p>
         </div>
         <div className={`${styles.img_col} flex items-center`}>
-          <div className={`${styles.wrap}`}>
-            <Image
-              src="/assets/images/root2/feature02.png"
-              // src="/assets/images/root/feature3.png"
-              // src="/assets/images/feature-3.png"
-              alt=""
-              // placeholder="blur"
-              // blurDataURL="/assets/images/feature-3-small.png"
-              // loading="lazy"
-              width={800}
-              height={600}
-              className={`${styles.img}`}
-            />
+          <div className={`${styles.light_back}`}>
+            <div
+              className={`${styles.wrap}`}
+              onMouseEnter={() => setHoveredFeature3(true)}
+              onMouseLeave={() => setHoveredFeature3(false)}
+            >
+              <Image
+                src="/assets/images/root2/feature02.png"
+                // src="/assets/images/root/feature3.png"
+                // src="/assets/images/feature-3.png"
+                alt=""
+                // placeholder="blur"
+                // blurDataURL="/assets/images/feature-3-small.png"
+                // loading="lazy"
+                width={800}
+                height={600}
+                className={`${styles.img}`}
+              />
+            </div>
           </div>
         </div>
         {/* <div className={`${styles.img_col}`}>
@@ -425,11 +468,13 @@ export const Root: FC = () => {
 
       <section className={`transition-base-color bg-[--color-bg-hp-main] ${styles.scroll_slides_row} flex-row-reverse`}>
         <div className={`${styles.text_col}`}>
-          <h2>
+          <h2 className={`${styles.section_title} ${hoveredFeature4 ? `${styles.section_title_brand}` : ``} `}>
             {language === "Ja" && "顧客に刺さる商品開発へ"}
             {language === "En" && "Towards Product Development that Resonates with Customers"}
-            {/* {language === "Ja" && "ダウンロードしてオフラインで視聴"}
-            {language === "En" && "Download your shows to watch offline."} */}
+            <span className={`${styles.title_before}`}>
+              {language === "Ja" && "顧客に刺さる商品開発へ"}
+              {language === "En" && "Towards Product Development that Resonates with Customers"}
+            </span>
           </h2>
           <p>
             {language === "Ja" &&
@@ -442,19 +487,25 @@ export const Root: FC = () => {
           </p>
         </div>
         <div className={`${styles.img_col} flex items-center`}>
-          <div className={`${styles.wrap}`}>
-            <Image
-              src="/assets/images/root2/feature06.png"
-              // src="/assets/images/root/feature4.png"
-              // src="/assets/images/feature-2.png"
-              alt=""
-              // placeholder="blur"
-              // blurDataURL="/assets/images/feature-2-small.png"
-              // loading="lazy"
-              width={800}
-              height={600}
-              className={`${styles.img}`}
-            />
+          <div className={`${styles.light_back}`}>
+            <div
+              className={`${styles.wrap}`}
+              onMouseEnter={() => setHoveredFeature4(true)}
+              onMouseLeave={() => setHoveredFeature4(false)}
+            >
+              <Image
+                src="/assets/images/root2/feature06.png"
+                // src="/assets/images/root/feature4.png"
+                // src="/assets/images/feature-2.png"
+                alt=""
+                // placeholder="blur"
+                // blurDataURL="/assets/images/feature-2-small.png"
+                // loading="lazy"
+                width={800}
+                height={600}
+                className={`${styles.img}`}
+              />
+            </div>
           </div>
           {/* <Image
             // src="/assets/images/root2/feature4.png"

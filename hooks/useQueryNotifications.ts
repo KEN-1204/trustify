@@ -15,10 +15,31 @@ export const useQueryNotifications = (user_id: string, isReady: boolean) => {
     //   })
     //   .order("profile_name", { ascending: true });
 
+    // // ===================== 時間まで指定して取得するパターン =====================
+    // // 「2023年10月24日17:00」のDateオブジェクトを作成
+    // const startDate = new Date(2023, 9, 24, 17, 0, 0); // 月は0ベースなので、10月は9となります
+    // // 「2023年10月24日18:00」のDateオブジェクトを作成
+    // const endDate = new Date(2023, 9, 24, 18, 0, 0);
+    // const { data: notificationData, error } = await supabase
+    //   .from("notifications")
+    //   .select()
+    //   .eq("to_user_id", user_id)
+    //   .gte("created_at", startDate.toISOString())
+    //   .lte("created_at", endDate.toISOString())
+    //   .order("created_at", { ascending: false });
+
+    // // ===================== 現在から１ヶ月間前のお知らせを取得するパターン =====================
+    // 現在の日付を取得
+    const now = new Date();
+    // １ヶ月前の日付を取得
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(now.getMonth() - 1);
     const { data: notificationData, error } = await supabase
       .from("notifications")
       .select()
       .eq("to_user_id", user_id)
+      .gte("created_at", oneMonthAgo.toISOString())
+      .lte("created_at", now.toISOString())
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -32,8 +53,14 @@ export const useQueryNotifications = (user_id: string, isReady: boolean) => {
       user_id,
       "isReady",
       isReady,
-      "取得したnotificationData",
-      notificationData
+      // "startDate",
+      // startDate.toISOString(),
+      // "endDate",
+      // endDate.toISOString()
+      "oneMonthAgo.toISOString()",
+      oneMonthAgo.toISOString(),
+      "now.toISOString()",
+      now.toISOString()
     );
 
     return notificationData as Notification[] | [];

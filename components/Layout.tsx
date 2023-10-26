@@ -1,11 +1,12 @@
 import useStore from "@/store";
 import Head from "next/head";
-import React, { FC, ReactNode, useEffect } from "react";
+import React, { FC, ReactNode, useEffect, useState } from "react";
 import { Modal } from "./Modal/Modal";
 import { useRouter } from "next/router";
 import useThemeStore from "@/store/useThemeStore";
 import useRootStore from "@/store/useRootStore";
 import { MdOutlineDarkMode, MdOutlineLightMode } from "react-icons/md";
+import styles from "@/styles/Layout.module.css";
 
 type Prop = {
   title: string;
@@ -43,6 +44,9 @@ export const Layout: FC<Prop> = ({ children, title = "TRUSTiFY | Trustify" }) =>
     };
   }, [isOpenModal, openLangTab]);
 
+  // ツールチップ
+  const [hoveredThemeIcon, setHoveredThemeIcon] = useState(false);
+
   return (
     <div className={``}>
       <Head>
@@ -60,6 +64,7 @@ export const Layout: FC<Prop> = ({ children, title = "TRUSTiFY | Trustify" }) =>
           onClick={changeTheme}
         ></div>
       </div> */}
+      {/* テーマ切り替えボタン */}
       <div
         className={`flex-center transition-base01 fixed bottom-[2%] right-[2%] z-[1000] h-[35px] w-[35px] cursor-pointer rounded-full ${
           theme === "dark"
@@ -67,9 +72,23 @@ export const Layout: FC<Prop> = ({ children, title = "TRUSTiFY | Trustify" }) =>
             : "bg-[var(--color-bg-brand-fc0)] hover:bg-[var(--color-bg-brand-f)]"
         }`}
         onClick={changeTheme}
+        onMouseEnter={() => setHoveredThemeIcon(true)}
+        onMouseLeave={() => setHoveredThemeIcon(false)}
       >
         {theme === "light" && <MdOutlineLightMode className="text-[20px] text-[#fff]" />}
         {theme === "dark" && <MdOutlineDarkMode className="text-[20px] text-[#fff]" />}
+        {/* ツールチップ */}
+        {hoveredThemeIcon && (
+          <div className={`${styles.tooltip_right_area} transition-base fade`}>
+            <div className={`${styles.tooltip_right} `}>
+              <div className={`flex-center ${styles.dropdown_item}`}>
+                {theme === "light" ? "ダークモードに切り替え" : "ライトモードに切り替え"}
+              </div>
+            </div>
+            <div className={`${styles.tooltip_right_arrow}`}></div>
+          </div>
+        )}
+        {/* ツールチップ ここまで */}
       </div>
 
       {/* モーダル */}

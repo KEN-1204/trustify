@@ -145,7 +145,7 @@ const SettingMemberAccountsMemo: FC = () => {
     try {
       const newMemberArray: MemberAccounts[] = [...memberAccountsDataArray];
       const promises = newMemberArray.map((member: MemberAccounts, i) => {
-        if (checkedMembersArray[i] === true) {
+        if (checkedMembersArray[i] === true && member.account_company_role !== "company_owner") {
           console.log("役割変更 i", i);
           return handleChangeRole(role, member.subscribed_account_id!);
         }
@@ -209,7 +209,7 @@ const SettingMemberAccountsMemo: FC = () => {
     try {
       const newMemberArray: MemberAccounts[] = [...memberAccountsDataArray];
       const promises = newMemberArray.map((member: MemberAccounts, i) => {
-        if (checkedMembersArray[i] === true) {
+        if (checkedMembersArray[i] === true && member.account_company_role !== "company_owner") {
           console.log("紐付け削除 i", i);
           return removeFromTeam(member.subscribed_account_id!);
         }
@@ -537,7 +537,9 @@ const SettingMemberAccountsMemo: FC = () => {
               <div
                 className={`${styles.grid_select_cell_header} ${styles.checked_area_input_cell}`}
                 // data-text="全てのメンバーを選択"
-                data-text={`${checkedMembersArray.includes(false) ? `全てのメンバーを選択` : `全てのメンバーのチェックを外す`}`}
+                data-text={`${
+                  checkedMembersArray.includes(false) ? `全てのメンバーを選択` : `全てのメンバーのチェックを外す`
+                }`}
                 onMouseEnter={(e) => handleOpenTooltip(e, "top")}
                 onMouseLeave={handleCloseTooltip}
               >
@@ -553,17 +555,15 @@ const SettingMemberAccountsMemo: FC = () => {
                   onChange={() => {
                     if (checkedMembersArray.includes(false)) {
                       const newCheckArray = checkedMembersArray.map((value) => true);
-                    console.log("全てをチェック", newCheckArray);
-                    setCheckedMembersArray(newCheckArray);
+                      console.log("全てをチェック", newCheckArray);
+                      setCheckedMembersArray(newCheckArray);
                     } else {
                       const newCheckArray = checkedMembersArray.map((value) => false);
-                    console.log("全てのチェックを外す", newCheckArray);
-                    setCheckedMembersArray(newCheckArray);
+                      console.log("全てのチェックを外す", newCheckArray);
+                      setCheckedMembersArray(newCheckArray);
                     }
                   }}
-                  onClick={() => {
-                    
-                  }}
+                  onClick={() => {}}
                   // checked={checked}
                   // onChange={() => setChecked(!checked)}
                   className={`${styles.checked_area_input} relative`}

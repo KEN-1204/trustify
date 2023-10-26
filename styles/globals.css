@@ -54,6 +54,43 @@
   /* ボーダー */
   /* rgba(255, 255, 255, 0.12) 0px 1px 1px */
 }
+/* Apple
+:root {
+    --violet: #8876fe;
+    --indigo: #622aff;
+    --grape: #6e21e6;
+    --plum: #8d1287;
+    --azalea: #e71ee6;
+    --magenta: #dd04d1;
+    --tomato: #f63e54;
+    --guava: #fb4d66;
+    --tangelo: #ff3e17;
+    --coral: #f95c30;
+    --persimmon: #e94b1b;
+    --pumpkin: #e2620c;
+    --orange: #e66702;
+    --verdant: #29d246;
+    --bright-green: #00d436;
+    --new-green: #13be54;
+    --avocado: #73b439;
+    --green: #0c9d46;
+    --blue-green: #26c2ac;
+    --peacock-green: #14b1a1;
+    --sea-green: #099b9d;
+    --teal-green: #2b9ca1;
+    --aqua: #039e8f;
+    --teal: #049cb7;
+    --pool-blue: #00c2ee;
+    --azure: #027fff;
+    --sparkle-blue: #007aff;
+    --denim: #0056d2;
+    --cobalt: #5451fb;
+    --sapphire: #3d44c3;
+    --night: #23466c;
+    --ultramarine: #0d1387;
+}
+
+*/
 
 @media screen and (min-width: 1024px) {
   :root {
@@ -509,6 +546,18 @@
   /* ツールチップ */
   --color-tooltip-arrow: #282828;
 
+  /* HP セクションタイトル light */
+  --section-title-hp: -webkit-linear-gradient(135deg, #37352f, #333, #bbb, #333, #37352f);
+  --section-title-hp-hover: radial-gradient(
+    64.18% 64.18% at 71.16% 35.69%,
+    #cffcfd 0.89%,
+    #bef3f5 17.23%,
+    #7de2eb 42.04%,
+    #7dc8eb 55.12%,
+    #0ab5ff 71.54%,
+    rgb(0, 136, 255) 100%
+  );
+
   /* シャドウ */
   --shadow-sm: 0 2px 4px -1px rgba(57, 76, 96, 0.15);
   --shadow-all-md: 0px 4px 15px 1px rgba(0, 0, 0, 0.15);
@@ -535,6 +584,7 @@
   --box-shadow-tooltip-border: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #33333390;
 
   --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff30, #ffffff20, #ffffff10, #ffffff10, #ffffff80);
+  --tile-border-hp: conic-gradient(#555555c0, #55555540, #55555520, #555555c0, #55555540, #55555520, #555555c0);
   --tile-start-rgb: 2, 13, 46;
   --tile-end-rgb: 2, 5, 19;
 }
@@ -611,8 +661,8 @@
   --color-accordion-bg: #303030;
   --color-accordion-bg-hover: #454545;
   --color-input-bg: rgba(15, 15, 15, 0.6);
-  --color-wrap-box-shadow: rgb(255 255 255 / 40%) 0px 10px 58px -10px, rgb(0 0 0 / 72%) 0px 30px 22px -10px;
-  --color-wrap-box-shadow-hover: rgb(255 255 255 / 50%) 0px 15px 68px 0px, rgb(0 0 0 / 72%) 0px 30px 22px -10px;
+  --color-wrap-box-shadow: rgb(255 255 255 / 60%) 0px 10px 68px -10px, rgb(0 0 0 / 72%) 0px 30px 22px -10px;
+  --color-wrap-box-shadow-hover: rgb(255 255 255 / 60%) 0px 15px 68px 0px, rgb(0 0 0 / 72%) 0px 30px 22px -10px;
   --color-wrap-border: rgba(249, 249, 249, 0.2);
   --color-auth-modal-switch-text: rgba(var(--color-text-rgb), 0.9);
   --color-auth-modal-or-text: var(--color-text-secondary);
@@ -651,6 +701,7 @@
   --color-bg-brand05: #0c8ce980;
   --color-bg-brand-hover: #0a6dc2;
   --color-bg-brand-hover-main: #3183ff;
+  /* --color-bg-brand-hover-main: #2b7fff; */
   --color-bg-brand-pressed: #0a6dc2;
   --color-bg-brand-secondary: #105cad;
   --color-bg-brand-light: #0affff;
@@ -909,6 +960,29 @@
   /* ツールチップ dark */
   --color-tooltip-arrow: #333;
 
+  /* HP セクションタイトル light */
+
+  --section-title-hp: radial-gradient(
+    64.18% 64.18% at 71.16% 35.69%,
+    rgba(255, 255, 255, 1) 0.89%,
+    rgba(255, 255, 255, 0.9) 17.23%,
+    rgba(255, 255, 255, 0.4) 42.04%,
+    rgba(255, 255, 255, 0.7) 55.12%,
+    rgba(255, 255, 255, 0.9) 71.54%,
+    rgba(255, 255, 255, 1) 100%
+  );
+  /* --section-title-hp: linear-gradient(120deg, #fff 0%, rgba(255, 255, 255, 0.42) 106.5%); */
+  /* --section-title-hp: linear-gradient(180deg, #fff 0%, rgba(255, 255, 255, 0.42) 106.5%); */
+  --section-title-hp-hover: radial-gradient(
+    64.18% 64.18% at 71.16% 35.69%,
+    #cffcfd 0.89%,
+    #bef3f5 17.23%,
+    #7de2eb 42.04%,
+    #7dc8eb 55.12%,
+    #0ab5ff 71.54%,
+    rgb(0, 136, 255) 100%
+  );
+
   /* シャドウ dark */
   --shadow-sm: 0px 1px 1px 0px rgba(255, 255, 255, 0.12);
   --shadow-all-md: 0px 4px 15px 1px rgba(255, 255, 255, 0.15);
@@ -937,6 +1011,7 @@
 
   /* --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff30, #ffffff20, #ffffff10, #ffffff10, #ffffff80); */
   --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff20, #ffffff80, #ffffff40, #ffffff20, #ffffff80);
+  --tile-border-hp: conic-gradient(#ffffffe0, #ffffff40, #ffffff20, #ffffffe0, #ffffff40, #ffffff20, #ffffffe0);
   /* --tile-border: conic-gradient(#0affff80, #0affff40, #3284ff30, #3284ff80, #0affff10, #0affff10, #0affff80); */
   --tile-start-rgb: 2, 13, 46;
   --tile-end-rgb: 2, 5, 19;
@@ -1108,7 +1183,7 @@ textarea {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 .transition-base-color03 {
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease, background 0.3s ease;
 }
 .transition-base-color05 {
   transition: background-color 0.5s ease, color 0.5s ease;
@@ -1117,7 +1192,7 @@ textarea {
   transition: background-color 0.8s ease, color 0.8s ease;
 }
 .transition-base-color1 {
-  transition: background-color 1s ease, color 1s ease;
+  transition: background-color 1s ease, color 1s ease, background 1s ease;
 }
 .transition-base-color-opacity03 {
   transition: background-color 0.3s ease, color 0.3s ease, opacity 0.3s ease;
