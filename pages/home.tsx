@@ -63,8 +63,8 @@ const DashboardHome = ({
     error: notificationError,
     status,
     isLoading,
-  } = useQueryNotifications(userProfile.id, isReady); // 自分宛のお知らせ一覧を取得してキャッシュに格納
-  useSubscribeNotifications(userProfile.id); // 自分宛のnotificationsテーブルをリアルタイム監視を開始
+  } = useQueryNotifications(userProfile?.id, isReady); // 自分宛のお知らせ一覧を取得してキャッシュに格納
+  useSubscribeNotifications(userProfile?.id); // 自分宛のnotificationsテーブルをリアルタイム監視を開始
 
   console.log(
     "🔥Homeページ レンダリング",

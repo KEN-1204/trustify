@@ -140,6 +140,10 @@ type State = {
   companyOwnerName: string;
   setCompanyOwnerName: (payload: string) => void;
 
+  // =================== アカウント設定 メンバー ===================
+  // 【チームから削除クリック時の削除確認モーダル開閉状態】
+  // openRemoveTeamModal
+
   // =================== アンダーテーブル関連 ===================
   // 【サーチモード切り替え】
   searchMode: boolean;

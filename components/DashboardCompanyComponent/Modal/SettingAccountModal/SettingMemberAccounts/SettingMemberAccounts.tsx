@@ -17,8 +17,15 @@ import { TestRowData } from "./TestRowData";
 import { HiOutlineUsers } from "react-icons/hi2";
 import { MdClose } from "react-icons/md";
 import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
+import { dataIllustration } from "@/components/assets";
+import { toast } from "react-toastify";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { MemberAccounts } from "@/types";
 
 const SettingMemberAccountsMemo: FC = () => {
+  const supabase = useSupabaseClient();
+  const queryClient = useQueryClient();
   const theme = useThemeStore((state) => state.theme);
   const selectedSettingAccountMenu = useDashboardStore((state) => state.selectedSettingAccountMenu);
   // 上画面の選択中の列データ会社
@@ -41,6 +48,8 @@ const SettingMemberAccountsMemo: FC = () => {
   // // 未設定アカウント数を保持するグローバルState
   // const notSetAccountsCount = useDashboardStore((state) => state.notSetAccountsCount);
   // const setNotSetAccountsCount = useDashboardStore((state) => state.setNotSetAccountsCount);
+  // 一括役割変更ドロップダウンメニュー開閉状態
+  const [openChangeRoleTogetherMenu, setOpenChangeRoleTogetherMenu] = useState(false);
 
   const {
     data: memberAccountsDataArray,
@@ -111,9 +120,135 @@ const SettingMemberAccountsMemo: FC = () => {
     useQueryError,
     "useQueryIsLoading",
     useQueryIsLoading,
-    "各チェック配列",
+    "各チェック配列checkedMembersArray",
     checkedMembersArray
   );
+
+  // ================================ 一括で役割を変更する関数 ================================
+  // 役割の変更関数
+  const handleChangeRole = async (companyRole: string, subscribed_account_id: string) => {
+    const { error } = await supabase
+      .from("subscribed_accounts")
+      .update({ company_role: companyRole })
+      .eq("id", subscribed_account_id)
+      .select("company_role");
+
+    if (error) throw new Error(error.message);
+    console.log("役割変更成功", subscribed_account_id);
+  };
+
+  // 一括役割変更関数
+  const handleChangeRoleTogether = async (role: string) => {
+    if (!memberAccountsDataArray || memberAccountsDataArray.length === 0) return;
+
+    setLoading(true);
+    try {
+      const newMemberArray: MemberAccounts[] = [...memberAccountsDataArray];
+      const promises = newMemberArray.map((member: MemberAccounts, i) => {
+        if (checkedMembersArray[i] === true) {
+          console.log("役割変更 i", i);
+          return handleChangeRole(role, member.subscribed_account_id!);
+        }
+        return null;
+      });
+
+      await Promise.all(promises);
+      console.log("全ての非同期処理が完了 invalidateQueriesで再フェッチ");
+      await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
+      toast.success("すべての役割の変更が完了しました!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        // theme: `${theme === "light" ? "light" : "dark"}`,
+      });
+    } catch (error: any) {
+      console.error("役割変更エラー", error.message);
+      toast.error("役割の変更に失敗しました!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        // theme: `${theme === "light" ? "light" : "dark"}`,
+      });
+    }
+    setLoading(false);
+    setOpenChangeRoleTogetherMenu(false);
+  };
+  // ================================ 一括で役割を変更する関数 ここまで ================================
+
+  // ================================ 一括でメンバーを削除する関数 ================================
+  const [openRemoveTeamTogetherModal, setOpenRemoveTeamTogetherModal] = useState(false);
+  // チームから削除する関数
+  const removeFromTeam = async (subscribed_account_id: string) => {
+    // subscribed_accountsのuser_idカラムをnullにして契約アカウントとの紐付けを解除する
+    const { data: newAccountData, error: accountUpdateError } = await supabase
+      .from("subscribed_accounts")
+      .update({
+        user_id: null,
+        company_role: null,
+      })
+      .eq("id", subscribed_account_id)
+      .select();
+
+    if (accountUpdateError) throw new Error(accountUpdateError.message);
+
+    console.log("紐付け削除UPDATEが成功したアカウントデータ", newAccountData);
+  };
+  // 一括メンバー削除関数
+  const handleRemoveFromTeamTogether = async () => {
+    if (!memberAccountsDataArray || memberAccountsDataArray.length === 0) return;
+
+    setLoading(true);
+    try {
+      const newMemberArray: MemberAccounts[] = [...memberAccountsDataArray];
+      const promises = newMemberArray.map((member: MemberAccounts, i) => {
+        if (checkedMembersArray[i] === true) {
+          console.log("紐付け削除 i", i);
+          return removeFromTeam(member.subscribed_account_id!);
+        }
+        return null;
+      });
+
+      await Promise.all(promises);
+      console.log("全ての非同期処理が完了 invalidateQueriesで再フェッチ");
+      await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
+      toast.success("選択したメンバーをチームから削除しました!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        // theme: `${theme === "light" ? "light" : "dark"}`,
+      });
+    } catch (error: any) {
+      console.error("役割変更エラー", error.message);
+      toast.error("チームからの削除に失敗しました!", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        // theme: `${theme === "light" ? "light" : "dark"}`,
+      });
+    }
+    setLoading(false);
+    setOpenRemoveTeamTogetherModal(false);
+    // 全てのチェックをfalseにして外し、一括操作エリアを閉じる
+    const newCheckArray = checkedMembersArray.map((value) => false);
+    setCheckedMembersArray(newCheckArray);
+  };
+  // ================================ 一括でメンバーを削除する関数 ここまで ================================
 
   // ================================ ツールチップ ================================
   const modalContainerRef = useRef<HTMLDivElement | null>(null);
@@ -153,7 +288,13 @@ const SettingMemberAccountsMemo: FC = () => {
 
   return (
     <>
-      {/* 右側メインエリア プロフィール */}
+      {/* オーバーレイ */}
+      {loading && (
+        <div className={`flex-center fixed inset-0 z-[3000] bg-[#00000090]`}>
+          <SpinnerIDS scale={"scale-[0.5]"} />
+        </div>
+      )}
+      {/* 右側メインエリア メンバーアカウント */}
       {selectedSettingAccountMenu === "Member" && (
         <div className={`relative flex h-full w-full flex-col overflow-y-scroll pb-[20px] pl-[20px] pr-[80px]`}>
           <h2 className={`mt-[20px] text-[18px] font-bold`}>
@@ -179,9 +320,12 @@ const SettingMemberAccountsMemo: FC = () => {
                 </button>
               </div>
             </div>
-            {/* <div className={`${styles.left_container} h-full w-[30%]`}></div> */}
-            <div className={`flex-center h-full w-[30%]`}>
+
+            {/* <div className={`flex-center h-full w-[30%]`}>
               <Image src={`/assets/images/icons/icons8-share-64.png`} alt="share-icon" width={70} height={70} />
+            </div> */}
+            <div className={`flex h-full w-[30%] items-center`}>
+              <div className="ml-[10px]">{dataIllustration}</div>
             </div>
           </div>
 
@@ -252,7 +396,7 @@ const SettingMemberAccountsMemo: FC = () => {
                 </div>
                 <div role="columnheader" className={styles.column_header}></div>
               </div>
-              <div role="rowgroup">
+              <div role="rowgroup" className="pb-[calc(74px*7)]">
                 {/* Row2 */}
                 {memberAccountsDataArray &&
                   memberAccountsDataArray.map((account, index) => (
@@ -266,13 +410,13 @@ const SettingMemberAccountsMemo: FC = () => {
                     </React.Fragment>
                   ))}
                 {/* <GridRowMember /> */}
+                {/* <TestRowData />
                 <TestRowData />
                 <TestRowData />
                 <TestRowData />
                 <TestRowData />
                 <TestRowData />
-                <TestRowData />
-                <TestRowData />
+                <TestRowData /> */}
 
                 {/* ここまで */}
               </div>
@@ -283,11 +427,18 @@ const SettingMemberAccountsMemo: FC = () => {
       {/* 右側メインエリア プロフィール ここまで */}
       {/* =================== チェックボックス選択時の一括変更エリア =================== */}
       <div
-        className={`shadow-top-md transition-base03 sticky bottom-0 left-0 z-0 flex h-[80px] w-full  origin-bottom items-center justify-between bg-[var(--color-edit-bg-solid)] px-[24px] py-[8px] text-[13px] ${
+        className={`shadow-top-md transition-base03 sticky bottom-0 left-0 z-[1000] flex h-[80px] w-full  origin-bottom items-center justify-between bg-[var(--color-edit-bg-solid)] px-[24px] py-[8px] text-[13px] ${
           checkedMembersArray.includes(true) ? `scale-y-100` : `mb-[-80px] scale-y-0`
         } `}
         ref={modalContainerRef}
       >
+        {/* 一括処理オーバーレイ */}
+        {openChangeRoleTogetherMenu && (
+          <div
+            className="fixed left-[-100vw] top-[-100vh] z-[100] h-[200vh] w-[200vw]"
+            onClick={() => setOpenChangeRoleTogetherMenu(false)}
+          ></div>
+        )}
         {hoveredItemPosModal && <TooltipModal />}
         <div className="flex items-center justify-start">
           <p>（{checkedMembersArray.filter((value) => value === true).length}件）選択済み</p>
@@ -295,18 +446,86 @@ const SettingMemberAccountsMemo: FC = () => {
         <div className="flex-center">
           <div className="flex-center space-x-3">
             <div
-              className="flex-center relative h-[35px] w-[35px] cursor-pointer rounded-[4px] text-[20px] hover:bg-[var(--setting-bg-sub)]"
+              className={`flex-center relative h-[35px] w-[35px] cursor-pointer rounded-[4px] text-[20px] hover:bg-[var(--setting-bg-sub)] ${
+                openChangeRoleTogetherMenu ? `bg-[var(--setting-bg-sub)]` : ``
+              }`}
               data-text="役割を変更"
-              onMouseEnter={(e) => handleOpenTooltip(e, "top")}
+              onMouseEnter={(e) => {
+                if (openChangeRoleTogetherMenu) return;
+                handleOpenTooltip(e, "top");
+              }}
               onMouseLeave={handleCloseTooltip}
+              onClick={() => setOpenChangeRoleTogetherMenu(true)}
             >
               <HiOutlineUsers className="stroke-2" />
+              {/* =============== まとめて役割変更ドロップダウンメニュー =============== */}
+              {openChangeRoleTogetherMenu && (
+                <>
+                  {/* <div
+                    className="fixed left-[-100vw] top-[-100vh] z-[1000] h-[200vh] w-[200vw] bg-red-100"
+                    onClick={() => setOpenChangeRoleTogetherMenu(false)}
+                  ></div> */}
+
+                  {/* 通常時 h-[152px] 招待中時 */}
+                  <div className="shadow-all-md  absolute left-[-calc(200px-50%)] top-[-331px] z-[2000] h-auto min-w-[400px] rounded-[8px] bg-[var(--color-bg-dropdown-menu)]">
+                    <ul className={`flex flex-col py-[0px]`}>
+                      <li
+                        className={`flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
+                        onClick={() => {
+                          handleChangeRoleTogether("company_admin");
+                        }}
+                      >
+                        <span className="select-none text-[14px] font-bold">管理者</span>
+                        <p className="select-none text-[12px]">
+                          会社・チームの編集、メンバーの管理、招待、製品の追加、編集ができます。
+                        </p>
+                      </li>
+                      <li
+                        className={`flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
+                        onClick={() => {
+                          handleChangeRoleTogether("company_manager");
+                        }}
+                      >
+                        <span className="select-none text-[14px] font-bold">マネージャー</span>
+                        <p className="select-none text-[12px]">
+                          製品の追加、編集、チーム全体の成果の確認、他メンバーの活動の編集、削除が可能です。
+                        </p>
+                      </li>
+                      <li
+                        className={`flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
+                        onClick={() => {
+                          handleChangeRoleTogether("company_member");
+                        }}
+                      >
+                        <span className="select-none text-[14px] font-bold">メンバー</span>
+                        <p className="select-none text-[12px]">係、ユニット、メンバー自身の成果の確認が可能です。</p>
+                      </li>
+                      <li
+                        className={`flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
+                        onClick={() => {
+                          handleChangeRoleTogether("guest");
+                        }}
+                      >
+                        <span className="select-none text-[14px] font-bold">ゲスト</span>
+                        <p className="select-none text-[12px]">
+                          通常の営業活動の記録、編集のみ行えます。一時的に営業活動に参画してもらう担当者に最適です。
+                        </p>
+                      </li>
+                      {/* <li className="flex-center h-[16px] w-full">
+                        <hr className="w-full border-t border-solid border-[var(--color-border-table)]" />
+                      </li> */}
+                    </ul>
+                  </div>
+                </>
+              )}
+              {/* まとめて役割変更ドロップダウンメニュー ここまで */}
             </div>
             <div
               className="flex-center relative h-[35px] w-[35px] cursor-pointer rounded-[4px] text-[20px] hover:bg-[var(--setting-bg-sub)]"
               data-text="メンバーをチームから削除"
               onMouseEnter={(e) => handleOpenTooltip(e, "top")}
               onMouseLeave={handleCloseTooltip}
+              onClick={() => setOpenRemoveTeamTogetherModal(true)}
             >
               <FiTrash2 />
             </div>
@@ -317,7 +536,8 @@ const SettingMemberAccountsMemo: FC = () => {
             <div className="flex-center h-[35px] w-[35px]">
               <div
                 className={`${styles.grid_select_cell_header} ${styles.checked_area_input_cell}`}
-                data-text="全てのメンバーを選択"
+                // data-text="全てのメンバーを選択"
+                data-text={`${checkedMembersArray.includes(false) ? `全てのメンバーを選択` : `全てのメンバーのチェックを外す`}`}
                 onMouseEnter={(e) => handleOpenTooltip(e, "top")}
                 onMouseLeave={handleCloseTooltip}
               >
@@ -328,9 +548,21 @@ const SettingMemberAccountsMemo: FC = () => {
                   //   const newCheckedArray = [...checkedMembersArray];
                   //   newCheckedArray[index] = !checkedMembersArray[index];
                   //   setCheckedMembersArray(newCheckedArray);
-                  checked={true}
+                  // defaultChecked={true}
+                  checked={!checkedMembersArray.includes(false)}
                   onChange={() => {
-                    console.log("クリック");
+                    if (checkedMembersArray.includes(false)) {
+                      const newCheckArray = checkedMembersArray.map((value) => true);
+                    console.log("全てをチェック", newCheckArray);
+                    setCheckedMembersArray(newCheckArray);
+                    } else {
+                      const newCheckArray = checkedMembersArray.map((value) => false);
+                    console.log("全てのチェックを外す", newCheckArray);
+                    setCheckedMembersArray(newCheckArray);
+                    }
+                  }}
+                  onClick={() => {
+                    
                   }}
                   // checked={checked}
                   // onChange={() => setChecked(!checked)}
@@ -354,6 +586,60 @@ const SettingMemberAccountsMemo: FC = () => {
           </div>
         </div>
       </div>
+      {/* ============================== 一括でチームから削除モーダル ============================== */}
+      {openRemoveTeamTogetherModal && (
+        <>
+          {/* オーバーレイ */}
+          <div
+            className="fixed left-[-100vw] top-[-100vh] z-[1000] h-[200vh] w-[200vw] bg-[var(--color-overlay)] backdrop-blur-sm"
+            onClick={() => {
+              console.log("オーバーレイ クリック");
+              setOpenRemoveTeamTogetherModal(false);
+              //   setNotificationDataState(null);
+            }}
+          ></div>
+          <div className="fade02 fixed left-[50%] top-[50%] z-[2000] h-auto w-[40vw] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)]">
+            {loading && (
+              <div className={`flex-center fixed left-0 top-0 z-[3000] h-[100%] w-[100%] rounded-[8px] bg-[#00000090]`}>
+                <SpinnerIDS scale={"scale-[0.5]"} />
+              </div>
+            )}
+            {/* クローズボタン */}
+            <button
+              className={`flex-center z-100 group absolute right-[-40px] top-0 h-[32px] w-[32px] rounded-full bg-[#00000090] hover:bg-[#000000c0]`}
+              onClick={() => {
+                setOpenRemoveTeamTogetherModal(false);
+                // setNotificationDataState(null);
+              }}
+            >
+              <MdClose className="text-[20px] text-[#fff]" />
+            </button>
+            <h3 className={`flex min-h-[32px] w-full items-center text-[22px] font-bold`}>
+              選択したチームのメンバーを削除しますか？
+            </h3>
+            <section className={`mt-[20px] flex h-auto w-full flex-col text-[14px]`}>
+              <p>これらの人を削除すると、削除された人が保存したデータやコンテンツにアクセスできなくなります。</p>
+            </section>
+            <section className="flex w-full items-start justify-end">
+              <div className={`flex w-[100%] items-center justify-around space-x-5 pt-[30px]`}>
+                <button
+                  className={`w-[50%] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[15px] py-[10px] text-[14px] font-bold text-[var(--color-text-title)] hover:bg-[var(--setting-side-bg-select-hover)]`}
+                  onClick={() => setOpenRemoveTeamTogetherModal(false)}
+                >
+                  キャンセル
+                </button>
+                <button
+                  className="w-[50%] cursor-pointer rounded-[8px] bg-[var(--color-red-tk)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff] hover:bg-[var(--color-red-tk-hover)]"
+                  onClick={handleRemoveFromTeamTogether}
+                >
+                  チームから削除する
+                </button>
+              </div>
+            </section>
+          </div>
+        </>
+      )}
+      {/* ============================== 一括でチームから削除モーダル ここまで ============================== */}
     </>
   );
 };

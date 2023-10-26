@@ -184,6 +184,7 @@
   --color-bg-brand-pressed: #007be5;
   --color-bg-brand-secondary: #0768cf;
   --color-bg-brand-light: #0affff;
+  --color-bg-brand-light90: #0affff50;
   --color-bg-brand-sub: #2b7fff;
   --color-bg-brand-sub08: #2b7fff90;
   --color-bg-brand-sub-deep: #2b7fff;
@@ -382,6 +383,9 @@
   --color-edit-arrow-disable-bg-onlist: rgba(64, 87, 109, 0.09);
   --color-edit-arrow-disable-color: var(--color-sub-text);
 
+  /* ドロップダウンメニュー light */
+  --color-bg-dropdown-menu: #ffffff;
+
   /* ボーダーカラー light */
   --color-border-base: #d7d7d7;
   --color-border: #e6e6e6;
@@ -430,6 +434,8 @@
   --color-sub-text-dark: rgba(180, 179, 178, 0.65);
   --color-placeholder-text: #9ca3af;
   --color-text-title: #37352f;
+  /* --color-text-description: #44433f; */
+
   /* ブランドカラー　テキスト */
   /* 
   --color-bg-brand ダークモード
@@ -476,12 +482,20 @@
   --color-icon-brand-pressed: #0768cf;
   --color-icon-brand-secondary: #80caff;
 
-  /* 🌟selection */
+  /* 🌟selection light */
   /* Next.js #0070f3 #0d99ff */
   /* --selection-bg-color: #0d99ff; */
   /* --selection-bg-color: #0070f3; */
   --selection-bg-color: #2b7fff;
+  /* --selection-bg-color: #0070f3; */
+  --selection-bg-color2: #0062d1;
+  /* --selection-bg-color2: hsla(212,100%,41%,1); */
   --selection-text-color: #fff;
+  /* 212,100%,41% */
+
+  /* サインアウトボタン light */
+  --color-sign-out-bg: #00000090;
+  --color-sign-out-bg-hover: #000000c0;
 
   /* ナブバー */
   --navColor: #313131;
@@ -492,10 +506,13 @@
   --overlay-dark: #00000030;
   --overlay-light: #ffffff20;
   --overlay: #00000060;
+  /* ツールチップ */
+  --color-tooltip-arrow: #282828;
 
   /* シャドウ */
   --shadow-sm: 0 2px 4px -1px rgba(57, 76, 96, 0.15);
   --shadow-all-md: 0px 4px 15px 1px rgba(0, 0, 0, 0.15);
+  /* --shadow-all-md-vivid: 0px 4px 15px 0px rgba(0, 0, 0, 0.4); */
   --shadow-top-md: 0px -4px 15px -3px rgba(0, 0, 0, 0.15);
   --shadow-header: 0 2px 4px -1px rgba(57, 76, 96, 0.15);
   --shadow-sidebar: 2px 0px 4px -1px rgba(57, 76, 96, 0.15);
@@ -772,6 +789,9 @@
   --color-edit-arrow-disable-bg-onlist: var(--color-bg-sub-deep);
   --color-edit-arrow-disable-color: var(--color-text-sub);
 
+  /* ドロップダウンメニュー */
+  --color-bg-dropdown-menu: #181818;
+
   /* ボーダーカラー dark */
   /* --color-border: #444444;  */
   --color-border-base: #484848;
@@ -867,10 +887,15 @@
   --color-icon-brand-pressed: #0c8ce9;
   --color-icon-brand-secondary: #536383;
 
-  /* 🌟セレクション dark */
+  /* 🌟selection dark */
   /* Next.js #0070f3 #0d99ff */
   --selection-bg-color: #0070f3;
+  --selection-bg-color2: #0062d1;
   --selection-text-color: #fff;
+
+  /* サインアウトボタン dark */
+  --color-sign-out-bg: #cccccc50;
+  --color-sign-out-bg-hover: #cccccc90;
 
   /* ナブバー dark */
   --navColor: #fff;
@@ -881,9 +906,13 @@
   --overlay-light: #ffffff20;
   --overlay: #ffffff20;
 
+  /* ツールチップ dark */
+  --color-tooltip-arrow: #333;
+
   /* シャドウ dark */
   --shadow-sm: 0px 1px 1px 0px rgba(255, 255, 255, 0.12);
   --shadow-all-md: 0px 4px 15px 1px rgba(255, 255, 255, 0.15);
+  /* --shadow-all-md-vivid: 0px 4px 10px 3px rgba(255, 255, 255, 0.3); */
   --shadow-top-md: 0px -12px 15px -8px rgba(255, 255, 255, 0.15);
   --shadow-header: 0px 1px 6px 0px rgba(255, 255, 255, 0.12);
   --shadow-sidebar: 1px 0px 6px -1px rgba(255, 255, 255, 0.12);
@@ -975,6 +1004,7 @@ textarea {
 
 ::selection {
   background-color: var(--selection-bg-color);
+  /* background-color: var(--selection-bg-color2); */
   color: var(--selection-text-color);
 }
 
@@ -989,6 +1019,9 @@ textarea {
 }
 .shadow-all-md {
   box-shadow: var(--shadow-all-md);
+}
+.shadow-all-md-vivid {
+  box-shadow: var(--shadow-all-md-vivid);
 }
 
 .shadow-top-sm {
@@ -1112,6 +1145,21 @@ textarea {
   }
   100% {
     opacity: 100;
+  }
+}
+
+/* 出現 appearanceアニメーション */
+.fade-scale-up {
+  animation: fade_scale_up 0.3s;
+}
+@keyframes fade_scale_up {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  100% {
+    opacity: 100;
+    transform: scale(1);
   }
 }
 

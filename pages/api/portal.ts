@@ -46,9 +46,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     console.log("🔥ポータル userId", userId);
 
     // 認証済みのユーザーidでSupabaseからユーザー情報を取得
-    const { data: user, error } = await supabaseServerClient.from("profiles").select().eq("id", userId).single();
+    // const { data: user, error } = await supabaseServerClient.from("profiles").select().eq("id", userId).single();
+    // 【rpcバージョン】rpcメソッドでStripeに渡すsubscriptionsテーブルのstripe_customer_idを取得する
+    const { data: userProfile, error } = await supabaseServerClient.rpc("get_user_data", { _user_id: userId }).single();
 
-    console.log("🔥ポータル supabaseから取得したuser", user);
+    // console.log("🔥ポータル supabaseから取得したuser", user);
+    console.log("🔥ポータル supabaseのrpc()で取得したuserProfile", userProfile); // 【rpcバージョン】
 
     if (error) {
       console.log("❌supabaseのクエリ失敗error", error);
@@ -56,26 +59,36 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 
     // Stripeカスタマーidが存在するかチェック
-    if (!user.stripe_customer_id) {
-      console.log("🔥ポータル user.stripe_customer_idが無しでエラー", user.stripe_customer_id);
+    // if (!user.stripe_customer_id) {
+    //   console.log("🔥ポータル user.stripe_customer_idが無しでエラー", user.stripe_customer_id);
+    //   return res.status(406).json({ error: "Not Acceptable" });
+    // }
+    if (!userProfile.stripe_customer_id) {
+      console.log("🔥ポータル user.stripe_customer_idが無しでエラー", userProfile.stripe_customer_id);
       return res.status(406).json({ error: "Not Acceptable" });
-    }
+    } // 【rpcバージョン】
 
     // stripeインスタンスを作成
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
       apiVersion: "2022-11-15",
     });
 
-    console.log("🔥ポータル stripeインスタンス !!stripe", !!stripe, "user.stripe_customer_id", user.stripe_customer_id);
+    // console.log("🔥ポータル stripeインスタンス !!stripe", !!stripe, "user.stripe_customer_id", user.stripe_customer_id);
+    console.log(
+      "🔥ポータル stripeインスタンス !!stripe",
+      !!stripe,
+      "Stripeの顧客ID userProfile.stripe_customer_id",
+      userProfile.stripe_customer_id
+    ); // 【rpcバージョン】
 
     // カスタマーポータルbillingPortalセッションをcreate
     const session = await stripe.billingPortal.sessions.create({
-      customer: user.stripe_customer_id,
-      //   return_url: `${process.env.CLIENT_URL}/dashboard`,
+      // customer: user.stripe_customer_id,
+      customer: userProfile.stripe_customer_id, // 【rpcバージョン】
       return_url: `${process.env.CLIENT_URL}/home`,
     });
 
-    console.log("🔥ポータル stripe.billingPortal.sessions.create() session", session);
+    console.log("🔥ポータル stripe.billingPortal.sessions.create()で取得したsession", session);
 
     console.log("Stripe billingPortalのurlを取得成功🌟");
     // StripeのbillingPortalのurlをクライアントにレスポンス

@@ -28,6 +28,7 @@ import { NotificationCardTest } from "./NotificationCard/NotificationCardTest";
 import { runFireworks } from "@/utils/confetti";
 import SpinnerIDS2 from "../Parts/SpinnerIDS/SpinnerIDS2";
 import { FiRefreshCw } from "react-icons/fi";
+import { coffeeWithFriendsIllustration, completedTasks, reminderIllustration } from "../assets";
 
 export const DashboardHeaderMemo: FC = () => {
   const supabase = useSupabaseClient();
@@ -523,6 +524,7 @@ export const DashboardHeaderMemo: FC = () => {
             // placeholder="blur"
             // blurDataURL={theme === "dark" ? blurDataURLDark : blurDataURL}
             // className="!relative !h-[60px] !w-[200px] object-cover"
+            onClick={() => setActiveMenuTab("HOME")}
           />
         </div>
         {/* ヘッダータブ左スクロール時に連続でツールチップが表示されないようにするためのオーバーレイ */}
@@ -941,6 +943,7 @@ export const DashboardHeaderMemo: FC = () => {
               className={`flex-center h-[37px] w-[37px] cursor-pointer overflow-hidden rounded-full hover:bg-[#00000020]`}
               onMouseEnter={(e) => handleOpenTooltip(e, "center")}
               onMouseLeave={handleCloseTooltip}
+              onClick={() => setOpenProfileMenu(true)}
             >
               <Image
                 src={avatarUrl}
@@ -1073,7 +1076,7 @@ export const DashboardHeaderMemo: FC = () => {
                 <div className="flex w-full flex-col">
                   <ul className={`flex flex-col pb-[8px] text-[13px] text-[var(--color-text-title)]`}>
                     <li
-                      className={`relative flex h-[40px] w-full items-center px-[18px] py-[6px] pr-[18px] hover:bg-[var(--color-dropdown-list-hover)] hover:text-[var(--color-dropdown-list-hover-text)]`}
+                      className={`relative flex h-[40px] w-full items-center px-[18px] py-[6px] pr-[18px] hover:bg-[var(--color-dropdown-list-hover)] hover:text-[var(--color-dropdown-list-hover-text)] hover:underline`}
                       // onClick={() => {
                       //   if (memberAccount.account_company_role === "company_admin") {
                       //     setIsOpenRoleMenu(false);
@@ -1084,7 +1087,7 @@ export const DashboardHeaderMemo: FC = () => {
                       onMouseEnter={() => setHoveredThemeMenu(true)}
                       onMouseLeave={() => setHoveredThemeMenu(false)}
                     >
-                      <CgDarkMode className="mr-[16px] min-h-[20px] min-w-[20px]  text-[20px]" />
+                      <CgDarkMode className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
                       <span className="select-none">テーマ</span>
                       {/* ドロップダウンサイドメニュー ここから */}
                       {hoveredThemeMenu && (
@@ -1092,7 +1095,7 @@ export const DashboardHeaderMemo: FC = () => {
                           className={`shadow-all-md border-real absolute -left-[150px] top-0 flex min-h-[40px] min-w-[150px] flex-col overflow-hidden rounded-bl-[4px] rounded-tl-[4px] bg-[var(--color-edit-bg-solid)]`}
                         >
                           <li
-                            className="flex min-h-[40px] w-full cursor-pointer items-center justify-between px-[18px] hover:bg-[var(--color-dropdown-list-hover)] hover:text-[var(--color-dropdown-list-hover-text)]"
+                            className="flex min-h-[40px] w-full cursor-pointer items-center justify-between px-[18px] hover:bg-[var(--color-dropdown-list-hover)] hover:text-[var(--color-dropdown-list-hover-text)] hover:underline"
                             onClick={() => setTheme("light")}
                           >
                             <span className="select-none">ライト</span>
@@ -1101,7 +1104,7 @@ export const DashboardHeaderMemo: FC = () => {
                             )}
                           </li>
                           <li
-                            className="flex min-h-[40px] w-full cursor-pointer items-center justify-between px-[18px] hover:bg-[var(--color-dropdown-list-hover)] hover:text-[var(--color-dropdown-list-hover-text)]"
+                            className="flex min-h-[40px] w-full cursor-pointer items-center justify-between px-[18px] hover:bg-[var(--color-dropdown-list-hover)] hover:text-[var(--color-dropdown-list-hover-text)] hover:underline"
                             onClick={() => setTheme("dark")}
                           >
                             <span className="select-none">ダーク</span>
@@ -1117,7 +1120,7 @@ export const DashboardHeaderMemo: FC = () => {
                       {/* ドロップダウンサイドメニュー ここまで */}
                     </li>
                     <li
-                      className={`flex h-[40px] w-full cursor-pointer items-center px-[18px] py-[6px] pr-[18px] hover:bg-[var(--color-dropdown-list-hover)] hover:text-[var(--color-dropdown-list-hover-text)]`}
+                      className={`flex h-[40px] w-full cursor-pointer items-center px-[18px] py-[6px] pr-[18px] hover:bg-[var(--color-dropdown-list-hover)] hover:text-[var(--color-dropdown-list-hover-text)] hover:underline`}
                       onClick={openSettingAccounts}
                     >
                       <VscSettings className="mr-[18px] min-h-[18px] min-w-[18px] stroke-[0.3] text-[18px]" />
@@ -1134,7 +1137,7 @@ export const DashboardHeaderMemo: FC = () => {
                       <span className="select-none">友達に紹介する</span>
                     </li> */}
                     <li
-                      className={`flex h-[40px] w-full cursor-pointer items-center px-[18px] py-[6px] hover:bg-[var(--color-dropdown-list-hover)] hover:text-[var(--color-dropdown-list-hover-text)]`}
+                      className={`flex h-[40px] w-full cursor-pointer items-center px-[18px] py-[6px] hover:bg-[var(--color-dropdown-list-hover)] hover:text-[var(--color-dropdown-list-hover-text)] hover:underline`}
                       onClick={handleSignOut}
                     >
                       <IoLogOutOutline className="mr-[14px] min-h-[22px] min-w-[22px] text-[22px]" />
@@ -1416,6 +1419,39 @@ export const DashboardHeaderMemo: FC = () => {
                         handleOpenTooltipModal={handleOpenTooltipModal}
                       /> */}
                       {/* お知らせカード ここまで */}
+                      {/* お知らせカード無しの場合のイラスト画像を表示 */}
+                      {incompleteNotifications.length === 0 && completedNotifications.length !== 0 && (
+                        <div
+                          className={`relative flex h-full min-h-[450px] max-w-[400px] flex-col items-center justify-center ${
+                            activeNotificationTab === "ToDo"
+                              ? `transition-base-opacity1 opacity-100`
+                              : `transition-base-opacity04 opacity-0`
+                          }`}
+                        >
+                          <div className="absolute left-[50%] top-[35%] -z-10 h-[250px] w-[250px] translate-x-[-50%] translate-y-[-50%] rounded-full bg-[var(--color-bg-brand-f90)]"></div>
+                          <div className="z-10 mb-[10px] mt-[-60px]">{coffeeWithFriendsIllustration}</div>
+                          <div className={`flex-center z-0 max-w-[300px] text-[14px] text-[var(--color-text-title)]`}>
+                            <p className="w-full text-center">
+                              すべて完了しました。空き時間をお楽しみください。おつかれさまでした！
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                      {incompleteNotifications.length === 0 && completedNotifications.length === 0 && (
+                        <div
+                          className={`relative flex h-full min-h-[450px] max-w-[400px] flex-col items-center justify-center ${
+                            activeNotificationTab === "ToDo"
+                              ? `transition-base-opacity1 opacity-100`
+                              : `transition-base-opacity04 opacity-0`
+                          }`}
+                        >
+                          <div className="absolute left-[50%] top-[39%] -z-10 h-[250px] w-[250px] translate-x-[-50%] translate-y-[-50%] rounded-full bg-[var(--color-bg-brand-f90)]"></div>
+                          <div className="z-10 mb-[20px] mt-[-50px]">{completedTasks}</div>
+                          <div className={`flex-center z-0 max-w-[300px] text-[14px] text-[var(--color-text-title)]`}>
+                            <p className="w-full text-center">ここには、通知やタスクが表示されます。</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                     {/* お知らせコンテンツエリア 右側完了済み */}
                     <div className="flex h-auto max-h-[450px] w-[400px] flex-col overflow-y-scroll">
@@ -1551,6 +1587,22 @@ export const DashboardHeaderMemo: FC = () => {
                         handleCloseTooltipModal={handleCloseTooltipModal}
                         handleOpenTooltipModal={handleOpenTooltipModal}
                       /> */}
+                      {/* お知らせカード無しの場合のイラスト画像を表示 */}
+                      {completedNotifications.length === 0 && (
+                        <div
+                          className={`relative flex h-full min-h-[450px] max-w-[400px] flex-col items-center justify-center ${
+                            activeNotificationTab === "Completed"
+                              ? `transition-base-opacity1 opacity-100`
+                              : `transition-base-opacity04 opacity-0`
+                          }`}
+                        >
+                          <div className="absolute left-[50%] top-[38%] -z-10 h-[250px] w-[250px] translate-x-[-50%] translate-y-[-50%] rounded-full bg-[var(--color-bg-brand-f90)]"></div>
+                          <div className="z-10 mb-[40px] mt-[-50px]">{reminderIllustration}</div>
+                          <div className={`flex-center z-0 max-w-[300px] text-[14px] text-[var(--color-text-title)]`}>
+                            <p className="w-full text-center">完了したタスクはこちらに表示されます。</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

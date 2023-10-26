@@ -93,7 +93,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       line_items: lineItems,
       // success_url: `${process.env.CLIENT_URL}/payment/success`,
       success_url: `${process.env.CLIENT_URL}/home`,
-      //   cancel_url: `${process.env.CLIENT_URL}/payment/cancelled`,
+      // cancel_url: `${process.env.CLIENT_URL}/payment/cancelled`,
       cancel_url: `${process.env.CLIENT_URL}/home`,
     });
     console.log("🌟Stripeチェックアウト成功", stripeSession);

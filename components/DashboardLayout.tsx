@@ -1,6 +1,6 @@
 import useStore from "@/store";
 import Head from "next/head";
-import React, { FC, ReactNode, Suspense, useEffect, useState } from "react";
+import React, { FC, ReactNode, Suspense, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { toast } from "react-toastify";
@@ -43,6 +43,8 @@ import { Invitation } from "@/types";
 import { InvitationForLoggedInUser } from "./Modal/InvitationForLoggedInUser/InvitationForLoggedInUser";
 import { useQueryClient } from "@tanstack/react-query";
 import { ChangeTeamOwnerConfirmationModal } from "./DashboardCompanyComponent/Modal/Notifications/ChangeTeamOwnerConfirmationModal/ChangeTeamOwnerConfirmationModal";
+import { IoLogOutOutline } from "react-icons/io5";
+import { TooltipModal } from "./Parts/Tooltip/TooltipModal";
 
 type Prop = {
   title?: string;
@@ -82,14 +84,16 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
     !!userProfileState &&
     userProfileState.is_subscriber &&
     userProfileState.first_time_login &&
-    userProfileState.subscription_plan !== "free_plan";
+    userProfileState.subscription_plan !== "free_plan" &&
+    !showSubscriptionPlan;
 
   // 招待メールでログインした際に起動 新規登録ユーザー向け
   const showFirstLoginSettingUserProfileAfterInvitation =
     !!userProfileState &&
     !userProfileState.is_subscriber &&
     userProfileState.first_time_login &&
-    userProfileState.subscription_plan !== "free_plan";
+    userProfileState.subscription_plan !== "free_plan" &&
+    !showSubscriptionPlan;
 
   // 招待メールでログインした際に起動 サインアップ済みユーザー向け invitationsテーブルに自身のユーザーidが存在し、かつresultがpendingの場合に起動
   // const [invitedState, setInvitedState] = useState(false);
@@ -236,8 +240,46 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   // 【お知らせの所有者変更モーダルをクリック時にお知らせの情報を保持するState】
   const notificationDataState = useDashboardStore((state) => state.notificationDataState);
 
+  // // ================================ ツールチップ ================================
+  // const layoutContainerRef = useRef<HTMLDivElement | null>(null);
+  // const hoveredItemPosModal = useStore((state) => state.hoveredItemPosModal);
+  // const setHoveredItemPosModal = useStore((state) => state.setHoveredItemPosModal);
+  // const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
+  //   // モーダルコンテナのleftを取得する
+  //   if (!layoutContainerRef.current) return;
+  //   const containerLeft = layoutContainerRef.current?.getBoundingClientRect().left;
+  //   const containerTop = layoutContainerRef.current?.getBoundingClientRect().top;
+  //   // ホバーしたアイテムにツールチップを表示
+  //   const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+  //   // console.log("ツールチップx, y width , height", x, y, width, height);
+  //   const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
+  //     ? ((e.target as HTMLDivElement).dataset.text2 as string)
+  //     : "";
+  //   const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
+  //     ? ((e.target as HTMLDivElement).dataset.text3 as string)
+  //     : "";
+  //   setHoveredItemPosModal({
+  //     x: x - containerLeft,
+  //     y: y - containerTop,
+  //     itemWidth: width,
+  //     itemHeight: height,
+  //     content: (e.target as HTMLDivElement).dataset.text as string,
+  //     content2: content2,
+  //     content3: content3,
+  //     display: display,
+  //   });
+  // };
+  // // ============================================================================================
+  // // ================================ ツールチップを非表示 ================================
+  // const handleCloseTooltip = () => {
+  //   setHoveredItemPosModal(null);
+  // };
+  // // ============================================================================================
+  const [hoveredThemeIcon, setHoveredThemeIcon] = useState(false);
+
   return (
     <div className={`${styles.trustify_app} relative`}>
+      {/* <div className={`${styles.trustify_app} relative`} ref={layoutContainerRef}> */}
       <Head>
         <title>{title}</title>
       </Head>
@@ -269,9 +311,24 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
         <div className="h-[35px] w-[35px] rounded-full bg-[#00d43690]" onClick={handleRefresh}></div>
       </div> */}
       {/* サインアウトボタン */}
-      {/* <div className="flex-center fixed bottom-[2%] right-[6%] z-[10000] h-[35px] w-[35px] cursor-pointer">
-        <div className="h-[35px] w-[35px] rounded-full bg-[#00000030]" onClick={handleSignOut}></div>
-      </div> */}
+      {/* {showSubscriptionPlan && (
+        <div className="flex-center fixed bottom-[2%] right-[6%] z-[10000] h-[35px] w-[35px] cursor-pointer">
+          <div
+            className="flex-center h-[35px] w-[35px] rounded-full bg-[var(--color-sign-out-bg)] hover:bg-[var(--color-sign-out-bg-hover)]"
+            onClick={handleSignOut}
+            data-text="ログアウトする"
+            onMouseEnter={(e) => handleOpenTooltip(e, "top")}
+            onMouseLeave={handleCloseTooltip}
+          >
+            <IoLogOutOutline className="mr-[-3px] text-[20px] text-[#fff]" />
+          </div>
+        </div>
+      )} */}
+      {/* {showSubscriptionPlan && (
+        <div className="flex-center fixed bottom-[2%] right-[6%] z-[10000] h-[35px] w-[35px] cursor-pointer">
+          <div className="h-[35px] w-[35px] rounded-full bg-[#00000030]" onClick={handleSignOut}></div>
+        </div>
+      )} */}
       {/* テーマ切り替えボタン */}
       <div
         className={`flex-center transition-base01 fixed bottom-[2%] right-[2%] z-[10000] h-[35px] w-[35px] cursor-pointer rounded-full ${
@@ -280,20 +337,38 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
             : "bg-[var(--color-bg-brand-fc0)] hover:bg-[var(--color-bg-brand-f)]"
         }`}
         onClick={changeTheme}
+        onMouseEnter={() => setHoveredThemeIcon(true)}
+        onMouseLeave={() => setHoveredThemeIcon(false)}
       >
         {theme === "light" && <MdOutlineLightMode className="text-[20px] text-[#fff]" />}
         {theme === "dark" && <MdOutlineDarkMode className="text-[20px] text-[#fff]" />}
+        {/* ツールチップ */}
+        {hoveredThemeIcon && (
+          <div className={`${styles.tooltip_right_area} transition-base fade`}>
+            <div className={`${styles.tooltip_right} `}>
+              <div className={`flex-center ${styles.dropdown_item}`}>
+                {theme === "light" ? "ダークモードに切り替え" : "ライトモードに切り替え"}
+              </div>
+            </div>
+            <div className={`${styles.tooltip_right_arrow}`}></div>
+          </div>
+        )}
+        {/* ツールチップ ここまで */}
       </div>
 
       {/* ============================ 初回サブスクプランモーダルコンポーネント 他チームからの招待無しの場合 ============================ */}
+      {/* 初回ログイン 招待無し */}
       {showSubscriptionPlan && !invitationData && <SubscriptionPlanModalForFreeUser />}
       {/* ============================ 初回サブスクプランモーダルコンポーネント 他チームからの招待有りの場合 ============================ */}
+      {/* 初回ログイン 招待有り */}
       {showSubscriptionPlan && invitationData && (
         <InvitationForLoggedInUser invitationData={invitationData} setInvitationData={setInvitationData} />
       )}
 
-      {/* ============================ 初回サブスクプランモーダルコンポーネント ============================ */}
+      {/* ============================ 初回モーダルコンポーネント ============================ */}
+      {/* 契約者用 初回契約した後のユーザー、会社情報入力用 */}
       {showFirstLoginSettingUserProfileCompanyModal && <FirstLoginSettingUserProfileCompanyModal />}
+      {/* 既に契約ずみアカウントに紐付けされていて招待メールでログインした用 */}
       {showFirstLoginSettingUserProfileAfterInvitation && <FirstLoginSettingUserProfileAfterInvitationModal />}
 
       {/* ============================ 共通UIコンポーネント ============================ */}
@@ -304,6 +379,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
       {hoveredItemPos && <Tooltip />}
       {hoveredItemPosHorizon && <TooltipBlur />}
       {hoveredItemPosWrap && <TooltipWrap />}
+      {/* {hoveredItemPosModal && <TooltipModal />} */}
 
       {/* カラム編集モーダル */}
       {/* {isOpenEditColumns && <EditColumns />} */}

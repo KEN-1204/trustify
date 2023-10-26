@@ -381,7 +381,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
               ></div>
 
               {/* 通常時 h-[152px] 招待中時 */}
-              <div className="shadow-all-md absolute left-[0px] top-[60px] z-[100] h-auto w-[180px] rounded-[8px] bg-[var(--color-edit-bg-solid)]">
+              <div className="shadow-all-md absolute left-[0px] top-[60px] z-[100] h-auto w-[180px] rounded-[8px] bg-[var(--color-bg-dropdown-menu)]">
                 <ul className={`flex flex-col py-[8px]`}>
                   <li
                     className={`flex h-[40px] w-full cursor-pointer items-center justify-between px-[14px] py-[6px] pr-[18px] hover:bg-[var(--color-bg-sub)]`}
@@ -428,6 +428,21 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
                       <BsCheck2 className="min-h-[16px] min-w-[16px] stroke-[0.5] text-[16px]" />
                     )}
                   </li>
+                  <li
+                    className={`flex h-[40px] w-full cursor-pointer items-center justify-between px-[14px] py-[6px] pr-[18px] hover:bg-[var(--color-bg-sub)]`}
+                    onClick={() => {
+                      if (memberAccount.account_company_role === "guest") {
+                        setIsOpenRoleMenu(false);
+                      }
+                      handleChangeRole("guest");
+                      setIsOpenRoleMenu(false);
+                    }}
+                  >
+                    <span className="select-none">ゲスト</span>
+                    {memberAccount.account_company_role === "guest" && (
+                      <BsCheck2 className="min-h-[16px] min-w-[16px] stroke-[0.5] text-[16px]" />
+                    )}
+                  </li>
                   <li className="flex-center h-[16px] w-full">
                     <hr className="w-full border-t border-solid border-[var(--color-border-table)]" />
                   </li>
@@ -464,7 +479,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
 
         {/* チェックボックスと招待ボタン */}
         <div role="gridcell" className={styles.grid_cell}>
-          {memberAccount.account_company_role ? (
+          {memberAccount.account_company_role && memberAccount.account_company_role !== "company_owner" && (
             <div className={`${styles.grid_select_cell_header}`}>
               <input
                 type="checkbox"
@@ -482,7 +497,8 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
                 <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
               </svg>
             </div>
-          ) : (
+          )}
+          {!memberAccount.account_company_role && (
             <div className="flex-center h-full w-full">
               <RippleButton
                 title={`招待`}
