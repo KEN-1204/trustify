@@ -45,6 +45,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ChangeTeamOwnerConfirmationModal } from "./DashboardCompanyComponent/Modal/Notifications/ChangeTeamOwnerConfirmationModal/ChangeTeamOwnerConfirmationModal";
 import { IoLogOutOutline } from "react-icons/io5";
 import { TooltipModal } from "./Parts/Tooltip/TooltipModal";
+import { IncreaseAccountCountsModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingPaymentAndPlan/IncreaseAccountCountsModal/IncreaseAccountCountsModal";
+import { FallbackIncreaseAccountCountsModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingPaymentAndPlan/IncreaseAccountCountsModal/FallbackIncreaseAccountCountsModal";
 
 type Prop = {
   title?: string;
@@ -219,6 +221,8 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   const isOpenUpdateProductModal = useDashboardStore((state) => state.isOpenUpdateProductModal);
   // 招待メールモーダル
   const isOpenSettingInvitationModal = useDashboardStore((state) => state.isOpenSettingInvitationModal);
+  // アカウントを増やす・減らすモーダル
+  const isOpenChangeAccountCountsModal = useDashboardStore((state) => state.isOpenChangeAccountCountsModal);
   // 会社作成モーダル 新規作成と編集モーダル
   const isOpenInsertNewClientCompanyModal = useDashboardStore((state) => state.isOpenInsertNewClientCompanyModal);
   const isOpenUpdateClientCompanyModal = useDashboardStore((state) => state.isOpenUpdateClientCompanyModal);
@@ -359,6 +363,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
       {/* ============================ 初回サブスクプランモーダルコンポーネント 他チームからの招待無しの場合 ============================ */}
       {/* 初回ログイン 招待無し */}
       {showSubscriptionPlan && !invitationData && <SubscriptionPlanModalForFreeUser />}
+      {/* <SubscriptionPlanModalForFreeUser /> */}
       {/* ============================ 初回サブスクプランモーダルコンポーネント 他チームからの招待有りの場合 ============================ */}
       {/* 初回ログイン 招待有り */}
       {showSubscriptionPlan && invitationData && (
@@ -394,6 +399,16 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
       {isOpenUpdateProductModal && <UpdateProductModal />}
       {/* 招待メールモーダル */}
       {isOpenSettingInvitationModal && <SettingInvitationModal />}
+      {/* アカウントを増やすモーダル */}
+      {isOpenChangeAccountCountsModal === "increase" && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<FallbackIncreaseAccountCountsModal />}>
+            <IncreaseAccountCountsModal />
+          </Suspense>
+        </ErrorBoundary>
+      )}
+      {/* アカウントを減らすモーダル */}
+      {/* {isOpenChangeAccountCountsModal === 'decrease' && <DecreaseAccountCountsModal />} */}
 
       {/* 会社_作成・編集モーダル */}
       {isOpenInsertNewClientCompanyModal && <InsertNewClientCompanyModal />}

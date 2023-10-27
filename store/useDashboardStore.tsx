@@ -145,6 +145,11 @@ type State = {
   // removeTeamMember: MemberAccounts | null;
   // setRemoveTeamMember: (payload: MemberAccounts | null) => void;
 
+  // =================== アカウント設定 支払いとプラン ===================
+  // 【アカウントを増やす・アカウントを減らすモーダル開閉状態】 increase decrease nullを渡す
+  isOpenChangeAccountCountsModal: string | null;
+  setIsOpenChangeAccountCountsModal: (payload: string | null) => void;
+
   // =================== アンダーテーブル関連 ===================
   // 【サーチモード切り替え】
   searchMode: boolean;
@@ -381,6 +386,11 @@ const useDashboardStore = create<State>((set) => ({
   // 【チームから削除クリック時の削除確認モーダル開閉状態】
   // removeTeamMember: null,
   // setRemoveTeamMember: (payload) => set({ removeTeamMember: payload }),
+
+  // =================== アカウント設定 支払いとプラン ===================
+  // 【アカウントを増やす・アカウントを減らすモーダル開閉状態】 increase decrease nullを渡す
+  isOpenChangeAccountCountsModal: null,
+  setIsOpenChangeAccountCountsModal: (payload) => set({ isOpenChangeAccountCountsModal: payload }),
 
   // =================== テーブルサイズ切り替えボタン ===================
   // 【テーブルサイズ切り替えメニュー開閉状態】

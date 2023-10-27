@@ -579,7 +579,8 @@ export const SettingInvitationModal = () => {
                     className="h-full w-[90%] object-contain"
                     fill
                     priority={true}
-                    // sizes="10vw"
+                    sizes="10vw"
+                    // sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
                 </div>
               </div>

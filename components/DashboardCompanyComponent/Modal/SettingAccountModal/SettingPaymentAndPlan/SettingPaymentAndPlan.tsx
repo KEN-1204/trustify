@@ -20,6 +20,9 @@ const SettingPaymentAndPlanMemo: FC = () => {
   const router = useRouter();
   // ローディング
   const [isLoading, setIsLoading] = useState(false);
+  // アカウントを増やす・減らすモーダル開閉状態
+  const isOpenChangeAccountCountsModal = useDashboardStore((state) => state.isOpenChangeAccountCountsModal);
+  const setIsOpenChangeAccountCountsModal = useDashboardStore((state) => state.setIsOpenChangeAccountCountsModal);
 
   // useQueryPaymentAndPlanで製品テーブルからデータ一覧を取得
   console.log(
@@ -203,8 +206,8 @@ const SettingPaymentAndPlanMemo: FC = () => {
                       isLoading ? `` : `hover:bg-[var(--color-bg-brand-f-hover)]`
                     }`}
                     onClick={() => {
-                      console.log("アカウント数変更クリック");
-                      // setOpenAccountCountsMenu(true);
+                      console.log("アカウント数を増やすクリック");
+                      setIsOpenChangeAccountCountsModal("increase");
                     }}
                   >
                     {userProfileState?.subscription_plan !== "free_plan" && !isLoading && (
@@ -217,7 +220,10 @@ const SettingPaymentAndPlanMemo: FC = () => {
                   className={`transition-base01 flex-center max-h-[41px] w-[50%] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-sub)] px-[25px] py-[10px] text-[14px] font-bold !text-[var(--color-text-title)] ${
                     isLoading ? `` : `hover:bg-[var(--bright-red)] hover:!text-[#fff]`
                   }`}
-                  // onClick={loadPortal}
+                  onClick={() => {
+                    console.log("アカウント数を減らすクリック");
+                    setIsOpenChangeAccountCountsModal("decrease");
+                  }}
                 >
                   {userProfileState?.subscription_plan !== "free_plan" && !isLoading && <span>アカウントを減らす</span>}
                   {isLoading && <SpinnerIDS scale={"scale-[0.4]"} />}

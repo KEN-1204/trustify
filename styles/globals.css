@@ -555,7 +555,7 @@
     #7de2eb 42.04%,
     #7dc8eb 55.12%,
     #0ab5ff 71.54%,
-    rgb(0, 136, 255) 100%
+    #0088ff 100%
   );
 
   /* シャドウ */
@@ -563,6 +563,7 @@
   --shadow-all-md: 0px 4px 15px 1px rgba(0, 0, 0, 0.15);
   /* --shadow-all-md-vivid: 0px 4px 15px 0px rgba(0, 0, 0, 0.4); */
   --shadow-top-md: 0px -4px 15px -3px rgba(0, 0, 0, 0.15);
+  --shadow-top-md2: 0px -10px 10px -5px rgba(0, 0, 0, 0.08);
   --shadow-header: 0 2px 4px -1px rgba(57, 76, 96, 0.15);
   --shadow-sidebar: 2px 0px 4px -1px rgba(57, 76, 96, 0.15);
 
@@ -585,6 +586,8 @@
 
   --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff30, #ffffff20, #ffffff10, #ffffff10, #ffffff80);
   --tile-border-hp: conic-gradient(#555555c0, #55555540, #55555520, #555555c0, #55555540, #55555520, #555555c0);
+  /* --tile-border-hp-hover: conic-gradient(#0088ffc0, #0088ff40, #0088ff20, #0088ffc0, #0088ff40, #0088ff20, #0088ffc0); */
+  --tile-border-hp-hover: conic-gradient(#0088ff, #7de2eb, #cffcfd, #0088ff, #7de2eb, #cffcfd, #0088ff);
   --tile-start-rgb: 2, 13, 46;
   --tile-end-rgb: 2, 5, 19;
 }
@@ -988,6 +991,7 @@
   --shadow-all-md: 0px 4px 15px 1px rgba(255, 255, 255, 0.15);
   /* --shadow-all-md-vivid: 0px 4px 10px 3px rgba(255, 255, 255, 0.3); */
   --shadow-top-md: 0px -12px 15px -8px rgba(255, 255, 255, 0.15);
+  --shadow-top-md2: 0px -10px 10px -5px rgba(255, 255, 255, 0.1);
   --shadow-header: 0px 1px 6px 0px rgba(255, 255, 255, 0.12);
   --shadow-sidebar: 1px 0px 6px -1px rgba(255, 255, 255, 0.12);
 
@@ -1012,6 +1016,8 @@
   /* --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff30, #ffffff20, #ffffff10, #ffffff10, #ffffff80); */
   --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff20, #ffffff80, #ffffff40, #ffffff20, #ffffff80);
   --tile-border-hp: conic-gradient(#ffffffe0, #ffffff40, #ffffff20, #ffffffe0, #ffffff40, #ffffff20, #ffffffe0);
+  --tile-border-hp-hover: conic-gradient(#0088ff, #7de2eb, #cffcfd, #0088ff, #7de2eb, #cffcfd, #0088ff);
+  /* --tile-border-hp-hover: conic-gradient(#cffcfd, #7de2eb, #0088ff, #cffcfd, #7de2eb, #0088ff, #cffcfd); */
   /* --tile-border: conic-gradient(#0affff80, #0affff40, #3284ff30, #3284ff80, #0affff10, #0affff10, #0affff80); */
   --tile-start-rgb: 2, 13, 46;
   --tile-end-rgb: 2, 5, 19;
@@ -1099,11 +1105,17 @@ textarea {
   box-shadow: var(--shadow-all-md-vivid);
 }
 
+.shadow-top-sm2 {
+  box-shadow: 0px -10px 10px -5px rgba(0, 0, 0, 0.1);
+}
 .shadow-top-sm {
   box-shadow: 0px -2px 10px 0px rgba(0, 0, 0, 0.1);
 }
 .shadow-top-md {
   box-shadow: var(--shadow-top-md);
+}
+.shadow-top-md2 {
+  box-shadow: var(--shadow-top-md2);
 }
 
 /* 共通 */

@@ -186,7 +186,7 @@ export const FirstLoginSettingUserProfileAfterInvitationModal = () => {
                     className="h-full w-[90%] object-contain"
                     fill
                     priority={true}
-                    // sizes="10vw"
+                    sizes="10vw"
                   />
                 </div>
               </div>

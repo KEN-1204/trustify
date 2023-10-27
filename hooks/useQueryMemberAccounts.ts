@@ -25,6 +25,9 @@ export const useQueryMemberAccounts = () => {
       throw new Error(error.message);
     }
 
+    // 0.8秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
+    await new Promise((resolve) => setTimeout(resolve, 800));
+
     return memberAccountsData as MemberAccounts[] | [];
   };
 
