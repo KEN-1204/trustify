@@ -192,7 +192,10 @@ export const Root: FC = () => {
         <div className={styles.hero}>
           <h1 className={`${language === "En" && "!max-w-full "}`}>
             {/* ========== タイピングアニメーション ========== */}
-            <span className={`truncate leading-normal ${language === "Ja" ? "" : "hidden"}`} ref={typingRef}></span>
+            <span
+              className={`select-none truncate leading-normal ${language === "Ja" ? "" : "hidden"}`}
+              ref={typingRef}
+            ></span>
             {/* ========== タイピングアニメーション ========== */}
             {/* <span className="leading-normal">
               <span className={`${styles.text_gradient_red}`}> キーエンス</span> で培われた
@@ -702,6 +705,8 @@ export const Root: FC = () => {
               onClick={() => {
                 if (email === "") {
                   inputRef.current?.focus();
+                  emailRef.current?.classList.add(`${styles.error}`);
+                  setCheckedEmail("Invalid");
                   return;
                 }
                 if (checkedEmail === "Invalid") {

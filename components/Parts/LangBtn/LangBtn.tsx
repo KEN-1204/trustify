@@ -20,7 +20,7 @@ export const LangBtnMemo: FC = () => {
   return (
     <>
       <button
-        className={`${styles.language_btn} ${styles.btn_common}`}
+        className={`${styles.language_btn} ${styles.btn_common} transition-base03`}
         onClick={(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
           if (openLangTab) {
             setOpenLangTab(false);

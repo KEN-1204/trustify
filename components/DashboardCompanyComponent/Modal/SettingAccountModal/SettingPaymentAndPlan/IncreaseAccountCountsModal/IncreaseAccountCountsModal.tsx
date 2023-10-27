@@ -182,7 +182,7 @@ const IncreaseAccountCountsModalMemo = () => {
             </div>
 
             {/* 変更の確定を送信するボタンエリア */}
-            <div className="shadow-top-md2 absolute bottom-0 left-0 w-full space-y-4 rounded-bl-[8px]  bg-[var(--color-edit-bg-solid)] px-[32px] pb-[32px] pt-[18px]">
+            <div className="shadow-top-md absolute bottom-0 left-0 w-full space-y-4  rounded-bl-[8px] bg-[var(--color-edit-bg-solid)] px-[32px] pb-[32px] pt-[18px]">
               <div className="flex w-full flex-col  text-[13px] text-[var(--color-text-title)]">
                 {/* <h3 className="text-[14px] font-bold">アカウントを増やした後の契約プランと契約アカウント数</h3> */}
                 <div className="mt-[10px] flex flex-col space-y-3">

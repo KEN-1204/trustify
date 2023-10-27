@@ -20,7 +20,7 @@
   /* hero画面横 */
   background-color: var(--header-lang-btn-bg) !important;
   /* color: #fff; */
-  color: var(--navColor);
+  color: var(--header-lang-btn-text);
   padding: 7px 20px;
   padding: 7px 20px;
   font-size: 14px;
@@ -33,12 +33,18 @@
   display: inline-flex;
   align-items: center;
   /* border: 1px solid #fff; */
-  border: 1px solid var(--navColor);
+  /* border: 1px solid var(--navColor); */
+  border: 1px solid #fff;
   padding: 7px 10px;
   position: relative;
   z-index: 100;
   /* hero画面横 */
   /* text-shadow: var(--header-text-shadow) 0px 0 10px; */
+}
+.language_btn:hover {
+  border: 1px solid var(--color-bg-brand-f);
+  background-color: #00000078 !important;
+  color: #fff;
 }
 .language_btn svg {
   width: 20px;
@@ -63,4 +69,5 @@
 }
 .dropdown_item:hover {
   background: var(--color-bg-brand);
+  background: var(--color-bg-brand-fe0);
 }

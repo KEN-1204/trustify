@@ -58,9 +58,11 @@ export const Header: FC<Props> = ({
   const [isHeaderShown, setIsHeaderShown] = useState(true);
   const [isHeaderTop, setIsHeaderTop] = useState(true);
   const [currentY, setCurrentY] = useState(0);
+  const [lightTextBorderLine, setLightTextBorderLine] = useState(false);
 
   const handleScrollEvent = useCallback(() => {
     console.log("scrollイベント発火🔥 現在のscrollY, currentY", scrollY, currentY);
+
     // headerの高さ100px、scrollYが100以下か上にスクロールした場合はheaderを表示
     if (window.scrollY < 100 || window.scrollY < currentY) {
       setIsHeaderShown(true);
@@ -81,10 +83,20 @@ export const Header: FC<Props> = ({
       setIsHeaderTop(true);
     }
     // }, [currentY, isHeaderShown, isHeaderTop]);
+    // テーマがライトでwindowが830を超えたらヘッダーの文字色を黒にする
+    if (800 < currentY) {
+      if (lightTextBorderLine === true) return;
+      setLightTextBorderLine(true);
+      console.log("ヘッダー文字色を黒に変更");
+    } else {
+      if (lightTextBorderLine === false) return;
+      console.log("ヘッダー文字色を白に変更");
+      setLightTextBorderLine(false);
+    }
   }, [currentY]);
 
   useEffect(() => {
-    console.log("window", window.scrollY);
+    console.log("window", window.scrollY, lightTextBorderLine);
     window.addEventListener(`scroll`, handleScrollEvent);
 
     return () => {
@@ -126,6 +138,10 @@ export const Header: FC<Props> = ({
     }
   };
 
+  const switchLightTextColor = `${
+    theme === "light" ? `${lightTextBorderLine ? `${styles.navbarTextBlack}` : `${styles.navbarTextWhite}`}` : ``
+  }`;
+
   return (
     <>
       <header
@@ -148,27 +164,13 @@ export const Header: FC<Props> = ({
         <div className="relative flex h-full w-auto cursor-pointer select-none items-center justify-center">
           {logoSrc ? (
             <Image
-              src={theme === "dark" ? logoSrcDark : logoSrc}
+              src={theme === "dark" ? logoSrcDark : lightTextBorderLine ? logoSrc : logoSrcDark}
               alt=""
               fill
               sizes="10vw"
               placeholder="blur"
               blurDataURL={theme === "dark" ? blurDataURLDark : blurDataURL}
               className="!relative !h-[60px] !w-[200px] object-cover"
-              onClick={() => {
-                // deleteUser();
-                // toast.success("Success!", {
-                //   position: "top-right",
-                //   autoClose: 2000,
-                //   hideProgressBar: false,
-                //   closeOnClick: true,
-                //   pauseOnHover: true,
-                //   draggable: true,
-                //   progress: undefined,
-                //   theme: `${theme === "light" ? "light" : "dark"}`,
-                // });
-                // openModal("コンテンツ");
-              }}
             />
           ) : (
             <span
@@ -182,9 +184,9 @@ export const Header: FC<Props> = ({
         </div>
         <nav>
           <ul
-            className={`hidden h-full w-auto items-center justify-around text-[16px] font-[500] text-[--navColor] md:flex`}
+            className={`hidden h-full w-auto items-center justify-around text-[16px] font-[500] text-[--navColor] md:flex `}
           >
-            <li className={`${styles.navList}`}>
+            <li className={`${styles.navList} ${switchLightTextColor}`}>
               <Link href="#product" scroll={false} prefetch={false} className={`${styles.navbarItem}`}>
                 <span>
                   {language === "Ja" && "製品"}
@@ -193,7 +195,7 @@ export const Header: FC<Props> = ({
                 <div className={`${styles.underline}`} />
               </Link>
             </li>
-            <li className={`${styles.navList}`}>
+            <li className={`${styles.navList} ${switchLightTextColor}`}>
               <Link href="#price" scroll={false} prefetch={false} className={`${styles.navbarItem}`}>
                 <span>
                   {language === "Ja" && "料金"}
@@ -202,7 +204,7 @@ export const Header: FC<Props> = ({
                 <div className={`${styles.underline}`} />
               </Link>
             </li>
-            <li className={`${styles.navList}`}>
+            <li className={`${styles.navList} ${switchLightTextColor}`}>
               <Link href="/about" prefetch={false} className={`${styles.navbarItem}`}>
                 <span>
                   {language === "Ja" && "企業"}
@@ -211,7 +213,7 @@ export const Header: FC<Props> = ({
                 <div className={`${styles.underline}`} />
               </Link>
             </li>
-            <li className={`${styles.navList}`}>
+            <li className={`${styles.navList} ${switchLightTextColor}`}>
               <button className={`${styles.navbarItem}`} onClick={handleAuthLoginLogout}>
                 {sessionState ? (
                   <span>

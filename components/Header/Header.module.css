@@ -71,6 +71,12 @@
   /* width: 30px; */
   /* margin-left: 25px; */
 }
+.navbarTextBlack {
+  color: #37352f !important;
+}
+.navbarTextWhite {
+  color: #fff !important;
+}
 .navbarItem:last-of-type {
 }
 .navbarItem span {
@@ -79,13 +85,15 @@
   /* text-shadow: var(--header-text-shadow) 0 0 10px; */
 }
 .navbarItem:hover span {
-  color: var(--navbar-text-color-hover);
+  /* color: var(--navbar-text-color-hover); */
+  color: var(--color-text-brand-f);
   /* hero横画面 */
   /* text-shadow: var(--header-text-shadow-hover) 0 0 10px; */
   /* color: var(--color-text-secondary); */
 }
 .navbarItem:hover .underline {
-  background-color: var(--navbar-text-color-hover);
+  /* background-color: var(--navbar-text-color-hover); */
+  background-color: var(--color-text-brand-f);
   transform: scaleX(1);
   opacity: 1;
 }
@@ -112,10 +120,12 @@
   transition: all 0.3s;
 }
 .navbarButton:hover {
-  background: var(--color-bg-brand-hover-main);
+  /* background: var(--color-bg-brand-hover-main); */
+  background: var(--header-cta-btn-hover);
   /* box-shadow: 0 0 1px 1px #fff, 0 0 0px 1px #000; */
-  box-shadow: inset 0 0 2px 1px #fff, 0 0 0px 1px #333;
+  /* box-shadow: inset 0 0 2px 1px #fff, 0 0 0px 1px #333; */
   /* background: var(--color-bg-brand); */
+  /* box-shadow: var(--color-header-shadow-hover); */
 
   transform: translateY(-5%);
 }

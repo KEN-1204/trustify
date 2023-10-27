@@ -44,6 +44,7 @@ export const Modal: FC = () => {
   const emailRef = useRef<HTMLFormElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [checkedEmail, setCheckedEmail] = useState("");
+  const [isReadyToSubmit, setIsReadyToSubmit] = useState(false);
 
   const regex = /^[a-zA-Z0-9_+-]+(\.[a-zA-Z0-9_+-]+)*@([a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.)+[a-zA-Z]{2,}$/;
 
@@ -69,7 +70,50 @@ export const Modal: FC = () => {
   //   }
   // }, [email]);
 
+  // Emailチェック関数
+  const handleCheckEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Submit時にemailRefのクラスを初期化
+    // emailRef.current[index]?.classList.remove(`${styles.success}`);
+    // emailRef.current[index]?.classList.remove(`${styles.error}`);
+    emailRef.current?.classList.remove(`${styles.success}`);
+    emailRef.current?.classList.remove(`${styles.error}`);
+
+    const emailInput = e.target.value;
+
+    // ====== メールアドレスチェック ======
+    if (emailInput === "") {
+      console.log("Modal handleSubmitメールアドレスチェック メール空");
+      emailRef.current?.classList.remove(`${styles.success}`);
+      emailRef.current?.classList.remove(`${styles.error}`);
+      setCheckedEmail("");
+      return console.log("メール空のためリターン");
+    }
+    console.log("emailInput", emailInput);
+    console.log("regex.test(emailInput)", regex.test(emailInput));
+    // 有効なメールルート
+    if (regex.test(emailInput)) {
+      emailRef.current?.classList.add(`${styles.success}`);
+      emailRef.current?.classList.remove(`${styles.error}`);
+      setCheckedEmail("Valid");
+    }
+    // 無効なメールルート
+    else {
+      emailRef.current?.classList.add(`${styles.error}`);
+      emailRef.current?.classList.remove(`${styles.success}`);
+      setCheckedEmail("Invalid");
+      return console.log("メールが有効では無いためリターン");
+    }
+  };
+
   // ====================== Submit関数 ======================
+  // OTPが6桁か確認する関数
+  const isValidOTP = (value: number | string) => {
+    // 6桁の数字であることを確認する正規表現
+    const regexOTP = /^\d{6}$/;
+    // 値をstringに変換
+    const stringValue = String(value);
+    return regexOTP.test(stringValue);
+  };
   // メンテナンス中用
   const handleSubmitTest = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -77,6 +121,7 @@ export const Modal: FC = () => {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log("handleSubmit実行");
+    if (checkedEmail === "Invalid") return console.log("Invalidのためリターン");
 
     // Submit時にemailRefのクラスを初期化
     emailRef.current?.classList.remove(`${styles.success}`);
@@ -121,6 +166,7 @@ export const Modal: FC = () => {
       }
       // otpリクエスト後
       else {
+        if (!isValidOTP(loginCode)) return alert("有効なログインコードを入力してください");
         console.log("OTP認証送信");
         // ログインモード
         if (isLogin) {
@@ -222,9 +268,25 @@ export const Modal: FC = () => {
                 // placeholder={`${language === "Ja" ? "メールアドレスを入力" : "Email"}`}
                 autoFocus
                 value={email}
+                // onChange={(e) => {
+                //   setEmail(e.target.value);
+                // }}
                 onChange={(e) => {
-                  setEmail(e.target.value);
+                  // Emailチェック+input入力値変更
+                  if (checkedEmail === "Invalid") {
+                    handleCheckEmail(e);
+                    setEmail(e.target.value);
+                  } else {
+                    setEmail(e.target.value);
+                  }
+
+                  // 初回入力時のみサブミットをtrueに
+                  if (checkedEmail !== "Invalid" && checkedEmail !== "Valid" && email !== "" && !isReadyToSubmit) {
+                    console.log("初回input入力のためボタンに色をつけるために発火🔥", checkedEmail);
+                    setIsReadyToSubmit(true);
+                  }
                 }}
+                onBlur={(e) => handleCheckEmail(e)}
                 className={`${alreadyRequestedOtp ? `${styles.submittedEmailInput}` : ""} ${styles.email_input_area}`}
               />
               <span className={`${email !== "" ? `${styles.entered_email}` : ``} pointer-events-none select-none`}>

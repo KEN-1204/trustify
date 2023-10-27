@@ -137,10 +137,13 @@
   --input-border: #00000020;
   --cta-btn: rgba(var(--color-bg-brand-rgb), 1);
   --cta-btn-hover: rgba(var(--color-bg-brand-rgb), 0.8);
+  --header-cta-btn-hover: rgba(var(--color-bg-brand-rgb), 1);
   --header-text-shadow: transparent;
   --header-text-shadow-hover: transparent;
   --header-lang-box-shadow: transparent;
   --header-lang-btn-bg: transparent;
+  --header-lang-btn-bg: #00000078;
+  --header-lang-btn-text: #fff;
   --select-menu-bg: #f2f2f2;
   --setting-side-bg: #eee;
   /* --setting-side-bg-select: #00000013; */
@@ -561,9 +564,10 @@
   /* シャドウ */
   --shadow-sm: 0 2px 4px -1px rgba(57, 76, 96, 0.15);
   --shadow-all-md: 0px 4px 15px 1px rgba(0, 0, 0, 0.15);
+  --color-header-shadow-hover: rgb(0 0 0 / 69%) 0px 16px 58px -10px, rgb(0 0 0 / 45%) 0px 16px 10px -10px;
   /* --shadow-all-md-vivid: 0px 4px 15px 0px rgba(0, 0, 0, 0.4); */
-  --shadow-top-md: 0px -4px 15px -3px rgba(0, 0, 0, 0.15);
-  --shadow-top-md2: 0px -10px 10px -5px rgba(0, 0, 0, 0.08);
+  --shadow-top-md: 0px -10px 10px -5px rgba(0, 0, 0, 0.08);
+  --shadow-top-md2: 0px -4px 15px -3px rgba(0, 0, 0, 0.15);
   --shadow-header: 0 2px 4px -1px rgba(57, 76, 96, 0.15);
   --shadow-sidebar: 2px 0px 4px -1px rgba(57, 76, 96, 0.15);
 
@@ -587,7 +591,8 @@
   --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff30, #ffffff20, #ffffff10, #ffffff10, #ffffff80);
   --tile-border-hp: conic-gradient(#555555c0, #55555540, #55555520, #555555c0, #55555540, #55555520, #555555c0);
   /* --tile-border-hp-hover: conic-gradient(#0088ffc0, #0088ff40, #0088ff20, #0088ffc0, #0088ff40, #0088ff20, #0088ffc0); */
-  --tile-border-hp-hover: conic-gradient(#0088ff, #7de2eb, #cffcfd, #0088ff, #7de2eb, #cffcfd, #0088ff);
+  /* --tile-border-hp-hover: conic-gradient(#0088ff, #7de2eb, #cffcfd, #0088ff, #7de2eb, #cffcfd, #0088ff); */
+  --tile-border-hp-hover: conic-gradient(#0088ff, #7de2ebc0, #cffcfd20, #0088ff, #7de2ebc0, #cffcfd20, #0088ff);
   --tile-start-rgb: 2, 13, 46;
   --tile-end-rgb: 2, 5, 19;
 }
@@ -623,10 +628,12 @@
   --input-border: #ffffff70;
   --cta-btn: var(--color-bg-brand);
   --cta-btn-hover: var(--color-bg-brand-hover-main);
+  --header-cta-btn-hover: #3183ffc0;
   --header-text-shadow: #000000;
   --header-text-shadow-hover: transparent;
   --header-lang-box-shadow: #00000050;
   --header-lang-btn-bg: #00000078;
+  --header-lang-btn-text: #fff;
   --select-menu-bg: #3c3c3c;
   --setting-side-bg: #333;
   --setting-side-bg-select: #ffffff20;
@@ -990,10 +997,11 @@
   --shadow-sm: 0px 1px 1px 0px rgba(255, 255, 255, 0.12);
   --shadow-all-md: 0px 4px 15px 1px rgba(255, 255, 255, 0.15);
   /* --shadow-all-md-vivid: 0px 4px 10px 3px rgba(255, 255, 255, 0.3); */
-  --shadow-top-md: 0px -12px 15px -8px rgba(255, 255, 255, 0.15);
-  --shadow-top-md2: 0px -10px 10px -5px rgba(255, 255, 255, 0.1);
+  --shadow-top-md: 0px -10px 10px -5px rgba(255, 255, 255, 0.1);
+  --shadow-top-md2: 0px -12px 15px -8px rgba(255, 255, 255, 0.15);
   --shadow-header: 0px 1px 6px 0px rgba(255, 255, 255, 0.12);
   --shadow-sidebar: 1px 0px 6px -1px rgba(255, 255, 255, 0.12);
+  --color-header-shadow-hover: rgb(0 0 0 / 69%) 0px 16px 38px -5px, rgb(0 0 0 / 45%) 0px 16px 10px -10px;
 
   /* スケルトンローディング */
   --color-skeleton-bg: #99999970;
@@ -1016,8 +1024,9 @@
   /* --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff30, #ffffff20, #ffffff10, #ffffff10, #ffffff80); */
   --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff20, #ffffff80, #ffffff40, #ffffff20, #ffffff80);
   --tile-border-hp: conic-gradient(#ffffffe0, #ffffff40, #ffffff20, #ffffffe0, #ffffff40, #ffffff20, #ffffffe0);
-  --tile-border-hp-hover: conic-gradient(#0088ff, #7de2eb, #cffcfd, #0088ff, #7de2eb, #cffcfd, #0088ff);
-  /* --tile-border-hp-hover: conic-gradient(#cffcfd, #7de2eb, #0088ff, #cffcfd, #7de2eb, #0088ff, #cffcfd); */
+  /* --tile-border-hp-hover: conic-gradient(#0088ff, #7de2eb, #cffcfd, #0088ff, #7de2eb, #cffcfd, #0088ff); */
+  /* --tile-border-hp-hover: conic-gradient(#0088ff, #7de2ebc0, #cffcfd90, #0088ff, #7de2ebc0, #cffcfd90, #0088ff); */
+  --tile-border-hp-hover: conic-gradient(#0088ff, #7de2eb, #cffcfd30, #0088ff, #7de2eb, #cffcfd30, #0088ff);
   /* --tile-border: conic-gradient(#0affff80, #0affff40, #3284ff30, #3284ff80, #0affff10, #0affff10, #0affff80); */
   --tile-start-rgb: 2, 13, 46;
   --tile-end-rgb: 2, 5, 19;
