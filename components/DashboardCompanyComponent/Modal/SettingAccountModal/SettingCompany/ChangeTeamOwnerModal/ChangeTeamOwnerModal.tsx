@@ -6,7 +6,7 @@ import { useDownloadUrl } from "@/hooks/useDownloadUrl";
 import Image from "next/image";
 import useDashboardStore from "@/store/useDashboardStore";
 import { HiOutlineSearch } from "react-icons/hi";
-import { FiSearch } from "react-icons/fi";
+import { FiRefreshCw, FiSearch } from "react-icons/fi";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { MemberAccounts } from "@/types";
@@ -17,6 +17,7 @@ import { BsChevronLeft } from "react-icons/bs";
 import axios from "axios";
 import useStore from "@/store";
 import { toast } from "react-toastify";
+import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 
 type Props = {
   changeTeamOwnerStep: number | null;
@@ -48,6 +49,10 @@ const ChangeTeamOwnerModalMemo: FC<Props> = ({
   const [selectedMember, setSelectedMember] = useState<MemberAccounts | null>(null);
   // ローディング
   const [loading, setLoading] = useState(false);
+  // リフェッチローディング
+  const [refetchLoading, setRefetchLoading] = useState(false);
+  // リフレッシュツールチップ
+  const [hoveredRefresh, setHoveredRefresh] = useState(false);
 
   // 頭文字のみ抽出
   const getInitial = (name: string) => name[0];
@@ -348,7 +353,7 @@ const ChangeTeamOwnerModalMemo: FC<Props> = ({
               </div>
 
               {/* ======= アバター、名前、説明エリア ステップ1 ここまで ======= */}
-              <div className={`mt-[15px] flex min-h-[44px] w-full items-center truncate pl-[4px]`}>
+              <div className={`mt-[15px] flex min-h-[44px] w-full items-center  pl-[4px]`}>
                 {!logoUrl && (
                   <div
                     // data-text="ユーザー名"
@@ -377,13 +382,52 @@ const ChangeTeamOwnerModalMemo: FC<Props> = ({
                     />
                   </div>
                 )}
-                <div className={`flex h-full flex-col pt-[4px] text-[12px]`}>
-                  <div className={`text-[13px]`}>
-                    <span>{userProfileState?.customer_name}</span>
+                <div className={`flex h-full w-full items-center justify-between pt-[4px] text-[12px]`}>
+                  <div className="flex h-full flex-col">
+                    <div className={`text-[13px]`}>
+                      <span>{userProfileState?.customer_name}</span>
+                    </div>
+                    <div className={`text-[var(--color-text-sub)]`}>
+                      チーム・{totalMemberCount ? `${totalMemberCount}人のメンバー` : ""}
+                    </div>
                   </div>
-                  <div className={`text-[var(--color-text-sub)]`}>
-                    チーム・{totalMemberCount ? `${totalMemberCount}人のメンバー` : ""}
-                  </div>
+                  <button
+                    className={`flex-center transition-base03 relative z-[2000] h-[32px] w-[32px]  cursor-pointer rounded-full border border-solid border-transparent text-[12px] text-[var(--color-text-sub)] hover:border-[var(--color-bg-brand-f)] hover:bg-[var(--setting-bg-sub)] hover:text-[var(--color-text)] ${styles.fh_text_bt} relative`}
+                    onClick={async () => {
+                      console.log("リフレッシュ クリック");
+                      setRefetchLoading(true);
+                      // await queryClient.invalidateQueries({ queryKey: ["members"] });
+                      // await refetchMemberAccounts();
+                      await refetch();
+                      setRefetchLoading(false);
+                    }}
+                    onMouseEnter={() => setHoveredRefresh(true)}
+                    onMouseLeave={() => setHoveredRefresh(false)}
+                  >
+                    {refetchLoading && (
+                      <div className="flex-center relative h-full w-full">
+                        <div className="flex-center absolute left-[10px] top-[10px] min-h-[20px] min-w-[20px]">
+                          <SpinnerIDS2 fontSize={20} width={20} height={20} />
+                        </div>
+                      </div>
+                    )}
+                    {!refetchLoading && (
+                      <div className="flex-center">
+                        <FiRefreshCw className="text-[14px]" />
+                      </div>
+                    )}
+                    {/* <span className="whitespace-nowrap">リフレッシュ</span> */}
+                    {/* ツールチップ */}
+                    {hoveredRefresh && (
+                      <div className={`${styles.tooltip_right_area} transition-base fade`}>
+                        <div className={`${styles.tooltip_right} `}>
+                          <div className={`flex-center ${styles.dropdown_item}`}>リフレッシュ</div>
+                        </div>
+                        <div className={`${styles.tooltip_right_arrow}`}></div>
+                      </div>
+                    )}
+                    {/* ツールチップ ここまで */}
+                  </button>
                 </div>
               </div>
               {/* ======= アバター、名前、説明エリア ステップ1 ここまで ======= */}

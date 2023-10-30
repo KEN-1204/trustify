@@ -15,12 +15,8 @@ const changeTeamOwnerHandler = async (req: NextApiRequest, res: NextApiResponse)
     res.status(405).end("Method Not Allowed");
   }
 
-  const supabaseServerClient = createServerSupabaseClient<Database>({
-    req,
-    res,
-  });
-
   try {
+    console.log("🌟Stripeステップ1 APIルートリクエスト取得");
     // リクエストからJWT、認証ヘッダーの取り出し
     const authHeader = req.headers.authorization;
 
@@ -38,16 +34,16 @@ const changeTeamOwnerHandler = async (req: NextApiRequest, res: NextApiResponse)
     const payload = jwt.verify(token, process.env.SUPABASE_JWT_SECRET!);
     // トークンが有効なら payload にはトークンのペイロードが含まれます。
     // ここでユーザー情報や他のセッション情報を取得することができます。
-    console.log("🌟jwt.verify認証完了 payload", payload);
+    console.log("🌟Stripeステップ2 jwt.verify認証完了 payload", payload);
     const userId = payload.sub; // 'sub' field usually contains the user id.
 
     // axios.post()メソッドのリクエストボディから変数を取得
     const { stripeCustomerId, newQuantity } = req.body;
 
     console.log(
-      "🌟APIルート 追加するアカウント数 newQuantity",
+      "🌟Stripeステップ3 追加するアカウント数とStripe顧客IDをリクエストボディから取得 newQuantity",
       newQuantity,
-      "Stripe顧客ID stripeCustomerId",
+      "Stripe顧客ID",
       stripeCustomerId
     );
 
@@ -76,16 +72,20 @@ const changeTeamOwnerHandler = async (req: NextApiRequest, res: NextApiResponse)
     // ユーザーが現在契約しているサブスクリップションアイテムのidを取得
     const subscriptionItemId = subscriptions.data[0].items.data[0].id;
 
+    console.log("🌟Stripeステップ4 Stripeの顧客IDからサブスクアイテムIDを取得", subscriptionItemId);
+
     const subscriptionItem = await stripe.subscriptionItems.update(subscriptionItemId, {
       quantity: newQuantity,
     });
 
-    console.log("🌟アカウント数量UPDATE完了 subscriptionItem", subscriptionItem);
+    console.log("🌟Stripeステップ5 アカウント数量UPDATE完了 subscriptionItem", subscriptionItem);
 
     const response = {
       subscriptionItem: subscriptionItem,
       error: null,
     };
+
+    console.log("🌟Stripeステップ6 APIルートへ返却");
 
     res.status(200).json(response);
   } catch (error) {

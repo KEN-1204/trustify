@@ -47,6 +47,7 @@ import { IoLogOutOutline } from "react-icons/io5";
 import { TooltipModal } from "./Parts/Tooltip/TooltipModal";
 import { IncreaseAccountCountsModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingPaymentAndPlan/IncreaseAccountCountsModal/IncreaseAccountCountsModal";
 import { FallbackIncreaseAccountCountsModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingPaymentAndPlan/IncreaseAccountCountsModal/FallbackIncreaseAccountCountsModal";
+import { DecreaseAccountCountsModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingPaymentAndPlan/DecreaseAccountCountsModal/DecreaseAccountCountsModal";
 
 type Prop = {
   title?: string;
@@ -404,6 +405,14 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
         <ErrorBoundary FallbackComponent={ErrorFallback}>
           <Suspense fallback={<FallbackIncreaseAccountCountsModal />}>
             <IncreaseAccountCountsModal />
+          </Suspense>
+        </ErrorBoundary>
+      )}
+      {/* アカウントを減らすモーダル */}
+      {isOpenChangeAccountCountsModal === "decrease" && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<FallbackIncreaseAccountCountsModal />}>
+            <DecreaseAccountCountsModal />
           </Suspense>
         </ErrorBoundary>
       )}
