@@ -517,18 +517,6 @@ export const SettingInvitationModal = () => {
     // await Promise.all(emailInputs.map((email) => sendInvitationEmail(email)));
   };
 
-  //   useEffect(() => {
-  //     const getPlansFromStripe = async () => {
-  //       if (!!plansState.length) return console.log("既にプラン取得済み", plansState, !!plansState.length);
-  //       const { data: plans } = await axios.get("/api/get-stripe-plans");
-  //       console.log("stripe-plansモーダル getPlansFromStripe plans", plans);
-
-  //       setPlansState(plans);
-  //     };
-
-  //     getPlansFromStripe();
-  //   }, []);
-
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
     setIsOpenSettingInvitationModal(false);
@@ -683,12 +671,6 @@ export const SettingInvitationModal = () => {
                 }`}
                 disabled={!isReadyToSubmit}
                 onClick={handleSubmit}
-                // onClick={() => {
-                //   if (selectedRadioButton === "business_plan")
-                //     processSubscription("price_1NmPoFFTgtnGFAcpw1jRtcQs", accountQuantity);
-                //   if (selectedRadioButton === "premium_plan")
-                //     processSubscription("price_1NmQAeFTgtnGFAcpFX60R4YY", accountQuantity);
-                // }}
               >
                 {!loading && <span>招待状を送信</span>}
                 {loading && <SpinnerIDS scale={"scale-[0.4]"} />}

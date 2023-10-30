@@ -60,10 +60,10 @@ const testHandler = async (req: NextApiRequest, res: NextApiResponse) => {
       // サブスクプランを変数に格納
       let _subscription_plan;
       switch (subscription.items.data[0].plan.id) {
-        case "price_1NmPoFFTgtnGFAcpw1jRtcQs":
+        case `${process.env.STRIPE_BUSINESS_PLAN_PRICE_ID}`:
           _subscription_plan = "business_plan";
           break;
-        case "price_1NmQAeFTgtnGFAcpFX60R4YY":
+        case `${process.env.STRIPE_PREMIUM_PLAN_PRICE_ID}`:
           _subscription_plan = "premium_plan";
           break;
         default:

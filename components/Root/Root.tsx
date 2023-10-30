@@ -863,7 +863,7 @@ export const Root: FC = () => {
           {clickedItemPosOver && <LangMenuOver />}
           {/* {clickedItemPos && <LangMenu />} */}
           <button
-            className={styles.language_btn}
+            className={`${styles.language_btn} transition-base03`}
             onClick={(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
               if (openLangTab) {
                 setOpenLangTab(false);

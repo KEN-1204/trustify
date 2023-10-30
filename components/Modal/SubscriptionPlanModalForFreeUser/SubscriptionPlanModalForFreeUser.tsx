@@ -29,18 +29,33 @@ export const SubscriptionPlanModalForFreeUser = () => {
   const [accountQuantity, setAccountQuantity] = useState<number | null>(1);
   const [selectedRadioButton, setSelectedRadioButton] = useState("business_plan");
   const sessionState = useStore((state) => state.sessionState);
+  const [planBusiness, setPlanBusiness] = useState<Plans | null>(null);
+  const [planPremium, setPlanPremium] = useState<Plans | null>(null);
 
-  //   useEffect(() => {
-  //     const getPlansFromStripe = async () => {
-  //       if (!!plansState.length) return console.log("既にプラン取得済み", plansState, !!plansState.length);
-  //       const { data: plans } = await axios.get("/api/get-stripe-plans");
-  //       console.log("stripe-plansモーダル getPlansFromStripe plans", plans);
+  // 初回マウント時にStripeのプラン2つのpriceIdを取得する
+  useEffect(() => {
+    if (!sessionState) return console.log("sessionStateなしのためリターン", sessionState);
+    if (!!planBusiness && !!planPremium) return console.log("既にStripeプラン取得済みのためリターン");
+    const getPlansFromStripe = async () => {
+      console.log("getPlansFromStripe実行");
+      const {
+        data: { plans, error },
+      } = await axios.get("/api/get-stripe-plans", {
+        headers: {
+          Authorization: `Bearer ${sessionState.access_token}`,
+        },
+      });
+      console.log(
+        "SubscriptionPlanModalForFreeUserコンポーネント初回マウント useEffectでgetPlansFromStripe実行 取得したplans",
+        plans,
+        error
+      );
+      setPlanBusiness(plans[0]);
+      setPlanPremium(plans[1]);
+    };
 
-  //       setPlansState(plans);
-  //     };
-
-  //     getPlansFromStripe();
-  //   }, []);
+    getPlansFromStripe();
+  }, [sessionState]);
 
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
@@ -125,6 +140,8 @@ export const SubscriptionPlanModalForFreeUser = () => {
       });
     }
   };
+
+  console.log("SubscriptionPlanModalForFreeUserレンダリング planBusiness", planBusiness, "planPremium", planPremium);
 
   return (
     <>
@@ -312,10 +329,11 @@ export const SubscriptionPlanModalForFreeUser = () => {
               <button
                 className={`flex-center h-[40px] w-full cursor-pointer rounded-[6px] bg-[var(--color-bg-brand-f)] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                 onClick={() => {
-                  if (selectedRadioButton === "business_plan")
-                    processSubscription("price_1NmPoFFTgtnGFAcpw1jRtcQs", accountQuantity);
-                  if (selectedRadioButton === "premium_plan")
-                    processSubscription("price_1NmQAeFTgtnGFAcpFX60R4YY", accountQuantity);
+                  // if (!planBusiness || !planPremium) return console.log("Stripeプランなしのためリターン");
+                  if (selectedRadioButton === "business_plan" && !!planBusiness)
+                    processSubscription(planBusiness.id, accountQuantity);
+                  if (selectedRadioButton === "premium_plan" && !!planPremium)
+                    processSubscription(planPremium.id, accountQuantity);
                 }}
               >
                 {!loading && <span>メンバーシップを開始する</span>}

@@ -2,7 +2,7 @@ import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 import useDashboardStore from "@/store/useDashboardStore";
 import React, { memo, useEffect, useRef, useState } from "react";
 import styles from "./IncreaseAccountCountsModal.module.css";
-import { BsCheck2 } from "react-icons/bs";
+import { BsCheck2, BsChevronDown } from "react-icons/bs";
 import useStore from "@/store";
 import Image from "next/image";
 import { MdClose } from "react-icons/md";
@@ -17,16 +17,24 @@ import { useQueryClient } from "@tanstack/react-query";
 import { SubscribedAccount } from "@/types";
 import { FaPlus } from "react-icons/fa";
 import { useQueryMemberAccounts } from "@/hooks/useQueryMemberAccounts";
+import { format } from "date-fns";
 
 const IncreaseAccountCountsModalMemo = () => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
+  const sessionState = useStore((state) => state.sessionState);
   const setIsOpenChangeAccountCountsModal = useDashboardStore((state) => state.setIsOpenChangeAccountCountsModal);
   // ローディング
   const [loading, setLoading] = useState(false);
+  // 新規で契約するアカウント個数
   const [accountQuantity, setAccountQuantity] = useState<number | null>(1);
+  // 本日のお支払いが0円かどうか
+  const [isFreeTodaysPayment, setIsFreeTodaysPayment] = useState(true);
+  const [todaysPayment, setTodaysPayment] = useState(0);
+  const [hoveredTodaysPayment, setHoveredTodaysPayment] = useState(false);
   //   const supabase = useSupabaseClient();
   //   const queryClient = useQueryClient();
 
+  // 現在契約しているメンバーアカウント全てを取得して、契約アカウント数をlengthで取得
   const {
     data: memberAccountsDataArray,
     error: useQueryError,
@@ -52,14 +60,160 @@ const IncreaseAccountCountsModalMemo = () => {
   // 契約中のアカウント個数
   const currentAccountCounts = !!memberAccountsDataArray ? memberAccountsDataArray.length : 0;
 
+  // Stripeのサブスクリプションのquantityを新たな数量に更新 現在のアカウント数と新たに追加するアカウント数を合算
+  const totalAccountQuantity = currentAccountCounts + (accountQuantity ?? 0);
+
+  // 初回マウント時のみユーザーが契約中のサブスクリプションの次回支払い期限が今日か否かと、
+  // 今日の場合は支払い時刻を過ぎているかどうか確認して過ぎていなければ0円でなくする
+  useEffect(() => {
+    if (!userProfileState || !userProfileState.current_period_end) return;
+    // まずは、現在の日付と時刻、およびcurrent_period_endの日付と時刻をUTCで取得します。
+    const currentDate = new Date();
+    const currentPeriodEndDate = new Date(userProfileState.current_period_end); // これはサンプルの値で、実際にはsupabaseから取得した値を使用します。
+
+    const isSameDay =
+      currentDate.getUTCFullYear() === currentPeriodEndDate.getUTCFullYear() &&
+      currentDate.getUTCMonth() === currentPeriodEndDate.getUTCMonth() &&
+      currentDate.getUTCDate() === currentPeriodEndDate.getUTCDate();
+
+    if (isSameDay) {
+      // 今日がcurrent_period_endの日付と一致している場合、次に時間の比較を行います。
+      if (
+        currentDate.getUTCHours() >= currentPeriodEndDate.getUTCHours() &&
+        currentDate.getUTCMinutes() >= currentPeriodEndDate.getUTCMinutes() &&
+        currentDate.getUTCSeconds() >= currentPeriodEndDate.getUTCSeconds()
+      ) {
+        // 現在の時刻がcurrent_period_endの時刻を過ぎている場合の処理
+        // 例: 「本日のお支払い」の値を0円にする
+        setIsFreeTodaysPayment(true);
+        setTodaysPayment(0);
+      } else {
+        // 現在の時刻がcurrent_period_endの時刻を過ぎていない場合の処理
+        setIsFreeTodaysPayment(false);
+        // 現在の契約プラン * (現在の契約アカウント数 + 新たに契約するアカウント数) = 本日のお支払い
+        const paymentValue =
+          getPrice(userProfileState.subscription_plan) * (currentAccountCounts + (accountQuantity ?? 0));
+        setTodaysPayment(paymentValue);
+      }
+    } else {
+      // 今日がcurrent_period_endの日付と一致していない場合の処理
+      setIsFreeTodaysPayment(true);
+      setTodaysPayment(0);
+    }
+  }, [userProfileState]);
+
+  // =========================== 変更を確定をクリック Stripeに送信 ===========================
+  const handleChangeQuantity = async () => {
+    if (!userProfileState) return alert("エラー：ユーザー情報が確認できませんでした");
+    if (!sessionState) return alert("エラー：セッション情報が確認できませんでした");
+    if (!accountQuantity) return alert("エラー：追加するアカウント数が選択されていません");
+    setLoading(true);
+
+    try {
+      console.log("axiosでAPIルートに送信 合計個数", totalAccountQuantity);
+      const payload = {
+        stripeCustomerId: userProfileState.subscription_stripe_customer_id,
+        newQuantity: totalAccountQuantity,
+      };
+      const { data } = await axios.post(`/api/subscription/change-quantity`, payload, {
+        headers: {
+          Authorization: `Bearer ${sessionState.access_token}`,
+        },
+      });
+      console.log(`🔥handleChangeQUantity Apiからのdata`, data);
+
+      toast.success(`アカウント数の変更が完了しました!`, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    } catch (e: any) {
+      console.error("handleChangeQuantityエラー", e);
+      toast.error(`アカウント数の変更に失敗しました!`, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    }
+    setLoading(false);
+  };
+
   console.log(
     "🌟IncreaseAccountCountsModalコンポーネントレンダリング",
 
-    "アカウント個数",
+    "現在契約中のアカウント個数",
     currentAccountCounts,
+    "新たに追加するアカウント数",
+    accountQuantity,
+    "追加後のアカウント数合計",
+    totalAccountQuantity,
     "useQueryメンバーアカウント",
-    memberAccountsDataArray
+    memberAccountsDataArray,
+    "本日のお支払が0かどうかと、本日の支払い額",
+    isFreeTodaysPayment,
+    todaysPayment
   );
+
+  // 本日のお支払いコンポーネント
+  const TodaysPaymentDetailComponent = () => {
+    return (
+      <div className="border-real fade02 absolute bottom-[100%] left-[50%] z-10 flex min-h-[50px] min-w-[100px] translate-x-[-50%] flex-col rounded-[8px] bg-[var(--color-edit-bg-solid)] px-[20px] py-[20px]">
+        <div className="flex w-full items-center pb-[30px]">
+          {!!userProfileState && userProfileState.current_period_end && (
+            <p>
+              本日{format(new Date(userProfileState.current_period_end), "yyyy年MM月dd日 HH:mm")}
+              がお客様のサブスクリプションの次回支払い期限のため、その前にアカウントを増やした場合は下記が本日のお支払額となります。
+            </p>
+          )}
+        </div>
+        <div className="item-center flex h-auto w-full space-x-4 truncate pb-[20px]">
+          <div className="flex-col-center relative">
+            <span className="text-[12px] font-normal">本日のお支払い</span>
+            <span>￥{todaysPayment}</span>
+            <div className="absolute bottom-[-5px] left-0 h-[2px] w-full bg-[var(--color-bg-brand-f)]" />
+          </div>
+          <div className="flex-col-center">
+            <span>=</span>
+          </div>
+          <div className="flex-col-center relative">
+            <span className="text-[12px] font-normal">現在の契約プラン</span>
+            <span>{getPrice(userProfileState?.subscription_plan)}</span>
+            <div className="absolute bottom-[-5px] left-0 h-[2px] w-full bg-[var(--color-bg-brand-f)]" />
+          </div>
+          <div className="flex-col-center">
+            <span>×</span>
+          </div>
+          <div className="flex-col-center">
+            <span>(</span>
+          </div>
+          <div className="flex-col-center relative">
+            <span className="text-[12px] font-normal">現在の契約アカウント数</span>
+            <span>{currentAccountCounts}</span>
+            <div className="absolute bottom-[-5px] left-0 h-[2px] w-full bg-[var(--color-bg-brand-f)]" />
+          </div>
+          <div className="flex-col-center">
+            <span>+</span>
+          </div>
+          <div className="flex-col-center relative">
+            <span className="text-[12px] font-normal">新たに契約するアカウント数</span>
+            <span>{accountQuantity}</span>
+            <div className="absolute bottom-[-5px] left-0 h-[2px] w-full bg-[var(--color-bg-brand-f)]" />
+          </div>
+          <div className="flex-col-center">
+            <span>)</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <>
@@ -67,11 +221,11 @@ const IncreaseAccountCountsModalMemo = () => {
       <div className={`${styles.overlay} `} onClick={() => setIsOpenChangeAccountCountsModal(null)} />
 
       <div className={`${styles.container} `}>
-        {/* {loading && (
+        {loading && (
           <div className={`${styles.loading_overlay} `}>
             <SpinnerIDS scale={"scale-[0.5]"} />
           </div>
-        )} */}
+        )}
         {/* クローズボタン */}
         <button
           className={`flex-center group absolute right-[-40px] top-0 z-10 h-[32px] w-[32px] rounded-full bg-[#00000090] hover:bg-[#000000c0]`}
@@ -98,7 +252,9 @@ const IncreaseAccountCountsModalMemo = () => {
               <h1 className={`mt-[10px] w-full text-[24px] font-bold`}>いくつアカウントを増やしますか？</h1>
               {/* <h1 className={`w-full text-[24px] font-bold`}>プランを選んで早速始めましょう！</h1> */}
               <div className={`flex w-full flex-col space-y-[2px] py-[20px] text-[15px] text-[var(--color-text-sub)]`}>
-                <p>メンバー1人当たり月額￥980の追加料金のみで利用可能</p>
+                {userProfileState?.subscription_plan === "business_plan" && (
+                  <p>メンバー1人当たり月額￥980の追加料金のみで利用可能</p>
+                )}
                 <p>チーム全体で共同作業して、TRSUSTiFYの機能を最大限に活用しましょう。</p>
               </div>
 
@@ -206,7 +362,18 @@ const IncreaseAccountCountsModalMemo = () => {
                   </div>
                   <div className="flex w-full items-start justify-between font-bold">
                     <span>本日のお支払い</span>
-                    <span>￥0</span>
+                    {todaysPayment === 0 && <span>￥{todaysPayment}</span>}
+                    {todaysPayment !== 0 && (
+                      <div
+                        className="relative flex items-center space-x-2"
+                        onMouseEnter={() => setHoveredTodaysPayment(true)}
+                        onMouseLeave={() => setHoveredTodaysPayment(false)}
+                      >
+                        <BsChevronDown />
+                        <span>￥{todaysPayment}</span>
+                        {hoveredTodaysPayment && <TodaysPaymentDetailComponent />}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -220,10 +387,6 @@ const IncreaseAccountCountsModalMemo = () => {
                 onClick={() => {
                   if (!userProfileState || !userProfileState.subscription_plan) return;
                   console.log("変更の確定クリック プランと数量", userProfileState.subscription_plan, accountQuantity);
-                  //   if (selectedRadioButton === "business_plan")
-                  //     processSubscription("price_1NmPoFFTgtnGFAcpw1jRtcQs", accountQuantity);
-                  //   if (selectedRadioButton === "premium_plan")
-                  //     processSubscription("price_1NmQAeFTgtnGFAcpFX60R4YY", accountQuantity);
                 }}
               >
                 {!loading && <span>変更の確定</span>}

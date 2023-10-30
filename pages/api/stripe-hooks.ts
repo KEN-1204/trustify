@@ -60,10 +60,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       // サブスクプランを変数に格納
       let _subscription_plan;
       switch (subscription.items.data[0].plan.id) {
-        case "price_1NmPoFFTgtnGFAcpw1jRtcQs":
+        case `${process.env.STRIPE_BUSINESS_PLAN_PRICE_ID}`:
           _subscription_plan = "business_plan";
           break;
-        case "price_1NmQAeFTgtnGFAcpFX60R4YY":
+        case `${process.env.STRIPE_PREMIUM_PLAN_PRICE_ID}`:
           _subscription_plan = "premium_plan";
           break;
         default:
@@ -138,7 +138,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               subscriber_id: subscriberProfileData?.id,
               stripe_subscription_id: subscription.id, // 今回のstripeのサブスクリプションid
               stripe_customer_id: subscription.customer as string, // stripe_customerと紐付け
-              status: subscription.status, // サブスクリプションの現在の状態(active, past_duw, canceledなど)
+              status: subscription.status, // サブスクリプションの現在の状態(active, past_due, canceledなど)
               subscription_interval: subscription.items.data[0].plan.interval,
               current_period_start: new Date(subscription.current_period_start * 1000).toISOString(), // 課金開始時間
               current_period_end: new Date(subscription.current_period_end * 1000).toISOString(), // 課金終了時間

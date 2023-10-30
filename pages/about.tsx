@@ -89,11 +89,14 @@ const About = () => {
           </div>
         </div>
         <div className="mt-[30px] flex h-[30px] w-full">
-          <div className="flex cursor-pointer" onClick={() => router.push("/")}>
+          <div
+            className="transition-base03 flex cursor-pointer hover:text-[var(--color-text-brand)] hover:underline"
+            onClick={() => router.push("/")}
+          >
             <div className="flex-center h-[30px] w-[30px] rounded-full">
               <AiOutlineArrowLeft className="text-[20px]" />
             </div>
-            <div className="flex-center ml-[10px] h-[30px] font-bold">戻る</div>
+            <div className="flex-center ml-[10px] h-[30px] font-bold ">戻る</div>
           </div>
         </div>
       </div>

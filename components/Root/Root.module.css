@@ -530,6 +530,8 @@
   border-radius: 10px;
   overflow: hidden;
   box-shadow: var(--color-wrap-box-shadow);
+  transition: all 500ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s;
+  /* transition: all 600ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s; */
 }
 .light_back::after {
   content: "";
@@ -541,6 +543,8 @@
   height: 200%;
   background: var(--tile-border-hp);
   animation: 6s rotate linear infinite;
+  transition: all 500ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s;
+  /* transition: all 600ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s; */
 }
 @keyframes rotate {
   from {
@@ -566,7 +570,9 @@
   box-shadow: var(--color-wrap-box-shadow);
   overflow: hidden;
   position: relative;
-  transition: all 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s;
+  /* transition: all 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s; */
+  transition: all 500ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s;
+  /* transition: all 600ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s; */
   /* border: 8px solid rgba(249, 249, 249, 0.2); */
   /* border: 8px solid var(--color-wrap-border); */
   border: 8px solid transparent;
@@ -583,7 +589,9 @@
 }
 .img {
   border-radius: 4px;
-  transition: all 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s;
+  /* transition: all 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s; */
+  transition: all 500ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s;
+  /* transition: all 600ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s; */
   z-index: 1;
 }
 
@@ -602,7 +610,9 @@
   opacity: 0;
   z-index: 0;
   border-radius: 4px;
-  transition: all 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s;
+  /* transition: all 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s; */
+  transition: all 500ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s;
+  /* transition: all 600ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s; */
 }
 .wrap:hover video {
   opacity: 1;
@@ -939,6 +949,10 @@
   margin-bottom: 10px;
   width: max-content;
 }
+.footer .col a:hover {
+  text-decoration: underline;
+  color: var(--color-text-brand-f);
+}
 .row {
   display: flex;
   width: 100%;
@@ -964,6 +978,11 @@
 .language_btn svg {
   width: 20px;
   margin-left: 2px;
+}
+.footer button.language_btn:hover {
+  border: 1px solid var(--color-bg-brand-f);
+  /* background-color: #00000078 !important;
+  color: #fff; */
 }
 .copyright_txt {
   font-size: 14px;

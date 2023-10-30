@@ -234,7 +234,7 @@ export const SettingAccountModal = () => {
           <SpinnerIDS scale={"scale-[0.5]"} />
         </div>
       )}
-      <div className={`${styles.container} `}>
+      <div className={`${styles.container} fade02`}>
         {/* <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[10px] text-center text-[18px]">
           <div className="font-samibold w-[90px] cursor-pointer hover:text-[#aaa]" onClick={handleCancelAndReset}>
           </div>

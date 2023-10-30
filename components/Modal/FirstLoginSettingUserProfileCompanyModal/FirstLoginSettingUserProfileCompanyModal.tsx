@@ -90,18 +90,6 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
   // const logoSrc =
   //   theme === "light" ? "/assets/images/Trustify_Logo_icon_bg-black@3x.png" : "/assets/images/Trustify_logo_black.png";
 
-  //   useEffect(() => {
-  //     const getPlansFromStripe = async () => {
-  //       if (!!plansState.length) return console.log("既にプラン取得済み", plansState, !!plansState.length);
-  //       const { data: plans } = await axios.get("/api/get-stripe-plans");
-  //       console.log("stripe-plansモーダル getPlansFromStripe plans", plans);
-
-  //       setPlansState(plans);
-  //     };
-
-  //     getPlansFromStripe();
-  //   }, []);
-
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
     // setIsOpenSettingAccountModal(false);
