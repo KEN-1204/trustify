@@ -48,6 +48,7 @@ import { TooltipModal } from "./Parts/Tooltip/TooltipModal";
 import { IncreaseAccountCountsModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingPaymentAndPlan/IncreaseAccountCountsModal/IncreaseAccountCountsModal";
 import { FallbackIncreaseAccountCountsModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingPaymentAndPlan/IncreaseAccountCountsModal/FallbackIncreaseAccountCountsModal";
 import { DecreaseAccountCountsModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingPaymentAndPlan/DecreaseAccountCountsModal/DecreaseAccountCountsModal";
+import { FallbackDecreaseAccountCountsModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingPaymentAndPlan/DecreaseAccountCountsModal/FallbackDecreaseAccountCountsModal";
 
 type Prop = {
   title?: string;
@@ -411,13 +412,11 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
       {/* アカウントを減らすモーダル */}
       {isOpenChangeAccountCountsModal === "decrease" && (
         <ErrorBoundary FallbackComponent={ErrorFallback}>
-          <Suspense fallback={<FallbackIncreaseAccountCountsModal />}>
+          <Suspense fallback={<FallbackDecreaseAccountCountsModal />}>
             <DecreaseAccountCountsModal />
           </Suspense>
         </ErrorBoundary>
       )}
-      {/* アカウントを減らすモーダル */}
-      {/* {isOpenChangeAccountCountsModal === 'decrease' && <DecreaseAccountCountsModal />} */}
 
       {/* 会社_作成・編集モーダル */}
       {isOpenInsertNewClientCompanyModal && <InsertNewClientCompanyModal />}

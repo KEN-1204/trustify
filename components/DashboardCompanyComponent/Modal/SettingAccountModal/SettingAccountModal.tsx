@@ -302,7 +302,7 @@ export const SettingAccountModal = () => {
               </div>
             </div>
             <div
-              className={`rounded-[4px]] mb-[3px] flex h-[40px] w-full cursor-pointer items-center truncate rounded-[4px] px-[10px] py-[6px] font-bold hover:bg-[var(--setting-side-bg-select)] ${
+              className={`rounded-[4px]] mb-[3px] flex h-[40px] w-full cursor-pointer select-none items-center truncate rounded-[4px] px-[10px] py-[6px] font-bold hover:bg-[var(--setting-side-bg-select)] ${
                 selectedSettingAccountMenu === "Profile" ? `bg-[var(--setting-side-bg-select)]` : ``
               }`}
               onClick={() => setSelectedSettingAccountMenu("Profile")}
@@ -313,7 +313,7 @@ export const SettingAccountModal = () => {
               <span>プロフィール</span>
             </div>
             <div
-              className={`rounded-[4px]] mb-[3px] flex h-[40px] w-full cursor-pointer items-center truncate rounded-[4px] px-[10px] py-[6px] font-bold hover:bg-[var(--setting-side-bg-select)] ${
+              className={`rounded-[4px]] mb-[3px] flex h-[40px] w-full cursor-pointer select-none items-center truncate rounded-[4px] px-[10px] py-[6px] font-bold hover:bg-[var(--setting-side-bg-select)] ${
                 selectedSettingAccountMenu === "Company" ? `bg-[var(--setting-side-bg-select)]` : ``
               }`}
               onClick={async () => {
@@ -333,7 +333,7 @@ export const SettingAccountModal = () => {
               <span>会社・チーム</span>
             </div>
             <div
-              className={`rounded-[4px]] mb-[3px] flex h-[40px] w-full cursor-pointer items-center truncate rounded-[4px] px-[10px] py-[6px] font-bold hover:bg-[var(--setting-side-bg-select)] ${
+              className={`rounded-[4px]] mb-[3px] flex h-[40px] w-full cursor-pointer select-none items-center truncate rounded-[4px] px-[10px] py-[6px] font-bold hover:bg-[var(--setting-side-bg-select)] ${
                 selectedSettingAccountMenu === "Member" ? `bg-[var(--setting-side-bg-select)]` : ``
               }`}
               onClick={() => {
@@ -362,7 +362,7 @@ export const SettingAccountModal = () => {
               <span>メンバー</span>
             </div>
             <div
-              className={`rounded-[4px]] mb-[3px] flex h-[40px] w-full cursor-pointer items-center truncate rounded-[4px] px-[10px] py-[6px] font-bold hover:bg-[var(--setting-side-bg-select)] ${
+              className={`rounded-[4px]] mb-[3px] flex h-[40px] w-full cursor-pointer select-none items-center truncate rounded-[4px] px-[10px] py-[6px] font-bold hover:bg-[var(--setting-side-bg-select)] ${
                 selectedSettingAccountMenu === "Products" ? `bg-[var(--setting-side-bg-select)]` : ``
               }`}
               onClick={() => {
@@ -390,7 +390,7 @@ export const SettingAccountModal = () => {
               <span>サービス・製品</span>
             </div>
             <div
-              className={`rounded-[4px]] mb-[3px] flex h-[40px] w-full cursor-pointer items-center truncate rounded-[4px] px-[10px] py-[6px] font-bold hover:bg-[var(--setting-side-bg-select)] ${
+              className={`rounded-[4px]] mb-[3px] flex h-[40px] w-full cursor-pointer select-none items-center truncate rounded-[4px] px-[10px] py-[6px] font-bold hover:bg-[var(--setting-side-bg-select)] ${
                 selectedSettingAccountMenu === "PaymentAndPlan" ? `bg-[var(--setting-side-bg-select)]` : ``
               }`}
               onClick={() => {

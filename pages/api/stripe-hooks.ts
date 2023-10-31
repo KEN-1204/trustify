@@ -164,6 +164,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             user_role: _subscription_plan === "business_plan" ? "business_user" : "premium_user", // プラン内容によって格納するroleを変更、トリガー関数内でprofilesのUPDATE用に用意
             subscription_id:
               currentSubscriptionDBData && currentSubscriptionDBData.id ? currentSubscriptionDBData.id : null, // subscriptionsテーブルのid
+            number_of_active_subscribed_accounts: subscription.items.data[0].quantity,
           };
           console.log("🌟Stripe_Webhookステップ7 stripe_webhook_eventsにINSERT insertに渡す引数", insertPayload);
           const { error: insertError } = await supabase.from("stripe_webhook_events").insert(insertPayload);
@@ -266,6 +267,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             user_role: "free_user", // キャンセルされた場合には、free_userに変更
             subscription_id:
               currentSubscriptionDBData && currentSubscriptionDBData.id ? currentSubscriptionDBData.id : null, // subscriptionsテーブルのid
+            number_of_active_subscribed_accounts: subscription.items.data[0].quantity,
           });
 
           if (error) {

@@ -19,12 +19,16 @@
 } */
 
 /* ブラック */
+/* .tooltip_area {
+  position: absolute;
+  z-index: 1500;
+} */
 .tooltip {
   /* position: absolute; */
-  position: fixed;
   /* top: 38px; */
   /* left: 0; */
   /* z-index: 150; */
+  position: fixed;
   z-index: 1500;
   min-height: fit-content;
   padding: 3px 7px;
@@ -37,9 +41,10 @@
 }
 .tooltip::after {
   content: "";
-  /* position: absolute; */
   position: fixed;
   z-index: 0;
+  /* position: absolute;
+  z-index: -1; */
   top: -4px;
   left: 50%;
   transform: translateX(-50%) rotate(135deg);
@@ -50,6 +55,18 @@
   height: 8px;
   /* border-top: 4px solid #000; */
 }
+/* .tooltip_arrow {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: -4px;
+  left: 0;
+  transform: translateX(-50%) rotate(135deg);
+  transform-origin: center center;
+  background: var(--color-tooltip-arrow);
+  width: 8px;
+  height: 8px;
+} */
 
 .tooltip_over {
   /* position: absolute; */

@@ -14,16 +14,19 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { useQueryClient } from "@tanstack/react-query";
-import { SubscribedAccount } from "@/types";
+import { MemberAccounts, SubscribedAccount } from "@/types";
 import { FaPlus } from "react-icons/fa";
 import { useQueryMemberAccounts } from "@/hooks/useQueryMemberAccounts";
 import { format } from "date-fns";
 import { teamIllustration, windyDayIllustration } from "@/components/assets";
+import { isValidUUIDv4 } from "@/utils/Helpers/uuidHelpers";
 
 const DecreaseAccountCountsModalMemo = () => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const sessionState = useStore((state) => state.sessionState);
   const setIsOpenChangeAccountCountsModal = useDashboardStore((state) => state.setIsOpenChangeAccountCountsModal);
+  // サイドメニューZustand
+  const setSelectedSettingAccountMenu = useDashboardStore((state) => state.setSelectedSettingAccountMenu);
   // ローディング
   const [loading, setLoading] = useState(false);
   // 新規で契約するアカウント個数
@@ -36,6 +39,8 @@ const DecreaseAccountCountsModalMemo = () => {
   // 未設定アカウントを保持するグローバルState
   const notSetAccounts = useDashboardStore((state) => state.notSetAccounts);
   const setNotSetAccounts = useDashboardStore((state) => state.setNotSetAccounts);
+  // 未設定アカウントが足りない状態
+  const [notEnoughAccount, setNotEnoughAccount] = useState(false);
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
 
@@ -111,6 +116,20 @@ const DecreaseAccountCountsModalMemo = () => {
     }
   };
 
+  // const [idsToDeleteArray, setIdsToDeleteArray] = useState<string[]>([]);
+  // useEffect(() => {
+  //   if (!decreaseAccountQuantity) return;
+  //   // 選択された個数分、未設定のアカウントの配列からidのみ取り出して指定個数の未設定idの配列を作り引数に渡す。
+  //   const idsToDeleteArrayTemp = notSetAccounts
+  //     .filter(
+  //       (account, index) =>
+  //         account && typeof account.subscribed_account_id === "string" && decreaseAccountQuantity >= index + 1
+  //     )
+  //     .map((account) => account.subscribed_account_id as string);
+
+  //   setIdsToDeleteArray(idsToDeleteArrayTemp);
+  // }, [decreaseAccountQuantity]);
+
   // 契約中のアカウント個数
   const currentAccountCounts = !!memberAccountsDataArray ? memberAccountsDataArray.length : 0;
 
@@ -120,6 +139,7 @@ const DecreaseAccountCountsModalMemo = () => {
   // =========================== 変更を確定をクリック Stripeに送信 ===========================
   const [progressRate, setProgressRate] = useState(0);
   const handleChangeQuantity = async () => {
+    if (notSetAccounts.length === 0) return setNotEnoughAccount(true);
     console.log("変更の確定クリック プランと数量", userProfileState?.subscription_plan, decreaseAccountQuantity);
     if (!userProfileState) return alert("エラー：ユーザー情報が確認できませんでした");
     if (!sessionState) return alert("エラー：セッション情報が確認できませんでした");
@@ -127,11 +147,24 @@ const DecreaseAccountCountsModalMemo = () => {
     setLoading(true);
 
     try {
-      console.log("🌟axiosでAPIルートに送信 合計個数", totalAccountQuantity);
+      console.log("🌟Stripeアカウント変更ステップ0-1 axiosでAPIルートに送信 合計個数", totalAccountQuantity);
+
+      // 選択された個数分、未設定のアカウントの配列からidのみ取り出して指定個数の未設定idの配列を作り引数に渡す。
+      const idsToDeleteArray = notSetAccounts
+        .filter((account, index) => account && decreaseAccountQuantity >= index + 1)
+        .map((account) => account.subscribed_account_id);
+      // 削除対象のid群の配列が全てUUIDかをチェックする uuid以外が含まれていればリターン
+      if (idsToDeleteArray.every((id) => id && isValidUUIDv4(id)) === false) return;
+      console.log("🌟Stripeアカウント変更ステップ0-2 削除対象の配列UUIDチェック完了", idsToDeleteArray);
       const payload = {
         stripeCustomerId: userProfileState.subscription_stripe_customer_id,
         newQuantity: totalAccountQuantity,
+        changeType: "decrease",
       };
+      console.log(
+        "🌟Stripeアカウント変更ステップ0-3 axios.post()でAPIルートchange-quantityへリクエスト 引数のpayload",
+        payload
+      );
       const {
         data: { subscriptionItem, error: axiosStripeError },
       } = await axios.post(`/api/subscription/change-quantity`, payload, {
@@ -139,19 +172,28 @@ const DecreaseAccountCountsModalMemo = () => {
           Authorization: `Bearer ${sessionState.access_token}`,
         },
       });
-      console.log(`🔥handleChangeQUantity Apiからのdata, axiosStripeError`, subscriptionItem, axiosStripeError);
 
-      if (axiosStripeError) throw new Error(axiosStripeError);
+      if (axiosStripeError) {
+        console.log(`🌟Stripeアカウント変更ステップ7 Stripeアカウント数変更エラー axiosStripeError`, axiosStripeError);
+        throw new Error(axiosStripeError);
+      }
+      console.log(`🌟Stripeアカウント変更ステップ7 Stripeアカウント数変更完了 subscriptionItem`, subscriptionItem);
 
-      // 新たに増やすアカウント数分、supabaseのsubscribed_accountsテーブルにINSERT
-      const { error: insertSubscribedAccountsError } = await supabase.rpc("insert_subscribed_accounts_all_at_once", {
-        new_account_quantity: decreaseAccountQuantity,
-        new_company_id: userProfileState.company_id,
-        new_subscription_id: userProfileState.subscription_id,
+      console.log(
+        `🌟Stripeアカウント変更ステップ8 supabaseのsubscribed_accountsテーブルから${decreaseAccountQuantity}個のアカウントを削除するストアドプロシージャを実行 削除対象のidを持つ配列idsToDeleteArray`,
+        idsToDeleteArray
+      );
+      // 新たに削除するアカウント数分、supabaseのsubscribed_accountsテーブルからDELETE
+      const { error: deleteSubscribedAccountsError } = await supabase.rpc("delete_subscribed_accounts_all_at_once", {
+        decrease_account_quantity: decreaseAccountQuantity,
+        ids_to_delete: idsToDeleteArray,
       });
 
-      if (insertSubscribedAccountsError) throw new Error(insertSubscribedAccountsError.message);
-      console.log("🌟Stripeステップ7 supabaseの契約アカウントを指定個数分、新たに作成成功");
+      if (deleteSubscribedAccountsError) {
+        console.log("🌟Stripeステップ9 supabaseの未設定アカウントを指定個数分、削除エラー");
+        throw new Error(deleteSubscribedAccountsError.message);
+      }
+      console.log("🌟Stripeステップ9 supabaseの未設定アカウントを指定個数分、削除成功");
 
       // const promises = [...Array(accountQuantity)].map(() => {
       //   return null;
@@ -200,10 +242,11 @@ const DecreaseAccountCountsModalMemo = () => {
     "今回削除するアカウント数",
     decreaseAccountQuantity,
     "削除後のアカウント数合計",
-    totalAccountQuantity,
-    "本日のお支払が0かどうかと、本日の支払い額",
-    isFreeTodaysPayment,
-    todaysPayment
+    totalAccountQuantity
+    // "削除対象のid配列",
+    // idsToDeleteArray,
+    // "削除対象のid配列が全てUUIDかどうかテスト",
+    // idsToDeleteArray.every((id) => id && isValidUUIDv4(id))
   );
 
   return (
@@ -300,34 +343,41 @@ const DecreaseAccountCountsModalMemo = () => {
                   <HiMinus className="min-h-[24px] min-w-[24px] stroke-[1.5] text-[24px] text-[var(--bright-red)]" />
                   <span>削除するアカウント数：</span>
                 </h4>
-                <div className="flex items-center justify-end space-x-2">
-                  <input
-                    type="number"
-                    min="1"
-                    className={`${styles.input_box}`}
-                    placeholder=""
-                    value={decreaseAccountQuantity === null ? 1 : decreaseAccountQuantity}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      const numValue = Number(val);
-                      if (val === "") {
-                        setDecreaseAccountQuantity(null);
-                      } else if (numValue > notSetAccounts.length) {
-                        // const stayNumValue = numValue - 1;
-                        // setDecreaseAccountQuantity(stayNumValue);
-                        return alert("未設定のアカウント数以上減らすことはできません。");
-                      } else {
-                        // 入力値がマイナスかチェック
-                        if (numValue <= 0) {
-                          setDecreaseAccountQuantity(1);
+                {notSetAccounts.length !== 0 && (
+                  <div className="flex items-center justify-end space-x-2">
+                    <input
+                      type="number"
+                      min="1"
+                      className={`${styles.input_box}`}
+                      placeholder=""
+                      value={decreaseAccountQuantity === null ? 1 : decreaseAccountQuantity}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const numValue = Number(val);
+                        if (val === "") {
+                          setDecreaseAccountQuantity(null);
+                        } else if (numValue > notSetAccounts.length) {
+                          // const stayNumValue = numValue - 1;
+                          // setDecreaseAccountQuantity(stayNumValue);
+                          return alert("未設定のアカウント数以上減らすことはできません。");
                         } else {
-                          setDecreaseAccountQuantity(numValue);
+                          // 入力値がマイナスかチェック
+                          if (numValue <= 0) {
+                            setDecreaseAccountQuantity(1);
+                          } else {
+                            setDecreaseAccountQuantity(numValue);
+                          }
                         }
-                      }
-                    }}
-                  />
-                  <div className="font-bold">個</div>
-                </div>
+                      }}
+                    />
+                    <div className="font-bold">個</div>
+                  </div>
+                )}
+                {notSetAccounts.length === 0 && (
+                  <div className="flex items-center justify-end">
+                    <span className="text-[14px] font-bold">未設定アカウント無し</span>
+                  </div>
+                )}
               </div>
               {/* メンバー人数選択エリア ここまで */}
               {/* <div className="mt-[16px] w-full">
@@ -355,7 +405,8 @@ const DecreaseAccountCountsModalMemo = () => {
                   </div> */}
                   <div className="flex w-full items-start justify-between font-bold">
                     <span>変更後の合計アカウント数</span>
-                    {todaysPayment === 0 && <span>{totalAccountQuantity}個</span>}
+                    {todaysPayment === 0 && notSetAccounts.length !== 0 && <span>{totalAccountQuantity}個</span>}
+                    {todaysPayment === 0 && notSetAccounts.length === 0 && <span>- 個</span>}
                     {/* {todaysPayment !== 0 && (
                       <div
                         className="relative flex items-center space-x-2"
@@ -378,7 +429,8 @@ const DecreaseAccountCountsModalMemo = () => {
                 disabled={!userProfileState || !userProfileState.subscription_plan}
                 onClick={handleChangeQuantity}
               >
-                {!loading && <span>変更の確定</span>}
+                {!loading && notSetAccounts.length !== 0 && <span>変更の確定</span>}
+                {!loading && notSetAccounts.length === 0 && <span>メンバーを削除</span>}
                 {loading && <SpinnerIDS scale={"scale-[0.4]"} />}
               </button>
               {/* <div className="flex w-full flex-col  text-[13px] text-[var(--color-text-sub)]">
@@ -424,6 +476,60 @@ const DecreaseAccountCountsModalMemo = () => {
           </div>
           {/* ======================== 右側エリア ここまで ======================== */}
         </div>
+
+        {/* ======================== アカウントを増やすモーダル ======================== */}
+        {notEnoughAccount && (
+          <>
+            <div className={`${styles.modal_overlay}`} onClick={() => setNotEnoughAccount(false)}></div>
+            <div className={`${styles.modal} relative flex flex-col`}>
+              {/* クローズボタン */}
+              <button
+                className={`flex-center z-100 group absolute right-[-40px] top-0 h-[32px] w-[32px] rounded-full bg-[#00000090] hover:bg-[#000000c0]`}
+                onClick={() => setNotEnoughAccount(false)}
+              >
+                <MdClose className="text-[20px] text-[#fff]" />
+              </button>
+              <div className={`relative h-[50%] w-full ${styles.modal_right_container}`}></div>
+              <div className={`relative flex h-[50%] w-full flex-col items-center pt-[20px]`}>
+                <div className="flex w-[80%] flex-col space-y-1 text-[16px]">
+                  <div className="mb-[10px] flex w-full flex-col text-center text-[18px] font-bold">
+                    <h2>削除できるアカウントがありません！</h2>
+                    <h2>メンバーを削除して未設定アカウントを作りましょう</h2>
+                  </div>
+
+                  <p>
+                    現在の未設定アカウントは
+                    <span className="text-[16px] font-bold text-[var(--color-text-brand-f)] underline">
+                      {notSetAccounts.length}個
+                    </span>
+                    です。
+                  </p>
+                  {notSetAccounts.length === 0 && <p>アカウント数を減らすために、先にメンバー削除を行いましょう。</p>}
+
+                  <div className={`flex w-full items-center justify-around space-x-5 pt-[30px]`}>
+                    <button
+                      className={`w-[50%] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[15px] py-[10px] text-[14px] font-bold text-[var(--color-text-sub)] hover:bg-[var(--setting-side-bg-select-hover)]`}
+                      onClick={() => setNotEnoughAccount(false)}
+                    >
+                      戻る
+                    </button>
+                    <button
+                      className="w-[50%] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]"
+                      onClick={() => {
+                        setNotEnoughAccount(false);
+                        setIsOpenChangeAccountCountsModal(null);
+                        setSelectedSettingAccountMenu("Member");
+                      }}
+                    >
+                      管理画面にいく
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+        {/* ======================== アカウントを増やすモーダル ここまで ======================== */}
       </div>
     </>
   );

@@ -134,8 +134,8 @@ type State = {
   // 未設定アカウント数を保持するState
   // notSetAccountsCount: number | null;
   // setNotSetAccountsCount: (payload: number | null) => void;
-  notSetAccounts: MemberAccounts[] | null[];
-  setNotSetAccounts: (payload: MemberAccounts[] | null[]) => void;
+  notSetAccounts: MemberAccounts[];
+  setNotSetAccounts: (payload: MemberAccounts[]) => void;
   // =================== アカウント設定 会社 ===================
   companyOwnerName: string;
   setCompanyOwnerName: (payload: string) => void;

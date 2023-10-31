@@ -130,6 +130,7 @@ const IncreaseAccountCountsModalMemo = () => {
       const payload = {
         stripeCustomerId: userProfileState.subscription_stripe_customer_id,
         newQuantity: totalAccountQuantity,
+        changeType: "increase",
       };
       const {
         data: { subscriptionItem, error: axiosStripeError },

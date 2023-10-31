@@ -357,7 +357,7 @@ const ChangeTeamOwnerModalMemo: FC<Props> = ({
                 {!logoUrl && (
                   <div
                     // data-text="ユーザー名"
-                    className={`flex-center h-[40px] w-[40px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip} mr-[15px]`}
+                    className={`flex-center min-h-[40px] min-w-[40px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip} mr-[15px]`}
                     // onMouseEnter={(e) => handleOpenTooltip(e, "center")}
                     // onMouseLeave={handleCloseTooltip}
                   >
@@ -371,7 +371,7 @@ const ChangeTeamOwnerModalMemo: FC<Props> = ({
                 )}
                 {logoUrl && (
                   <div
-                    className={`flex-center mr-[15px] h-[40px] w-[40px] cursor-pointer overflow-hidden rounded-full hover:bg-[#00000020]`}
+                    className={`flex-center mr-[15px] min-h-[40px] min-w-[40px] cursor-pointer overflow-hidden rounded-full hover:bg-[#00000020]`}
                   >
                     <Image
                       src={logoUrl}

@@ -26,7 +26,7 @@
 
   max-width: 590px;
 }
-.tooltip::after {
+.tooltip1::after {
   content: "";
   position: absolute;
   z-index: 0;

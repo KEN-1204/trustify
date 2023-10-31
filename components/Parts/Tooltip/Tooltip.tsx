@@ -119,7 +119,8 @@ export const Tooltip = () => {
   // 真ん中で表示
   return (
     <div
-      className={`${styles.tooltip}  ${hoveredItemPos ? `block ${styles.fade}` : "transition-base hidden"}`}
+      className={`${styles.tooltip_area}  ${hoveredItemPos ? `block ${styles.fade}` : "transition-base hidden"}`}
+      // className={`${styles.tooltip}  ${hoveredItemPos ? `block ${styles.fade}` : "transition-base hidden"}`}
       style={{
         position: "absolute",
         zIndex: 100,
@@ -128,16 +129,19 @@ export const Tooltip = () => {
       }}
       ref={menuRef}
     >
-      <div
-        className={`flex-col-center ${styles.dropdown_item}`}
-        onClick={() => {
-          setHoveredItemPos(null);
-        }}
-      >
-        <span>{hoveredItemPos?.content}</span>
-        <span>{hoveredItemPos?.content2}</span>
-        {hoveredItemPos?.content3 && <span>{hoveredItemPos?.content3}</span>}
+      <div className={`${styles.tooltip}`}>
+        <div
+          className={`flex-col-center ${styles.dropdown_item}`}
+          onClick={() => {
+            setHoveredItemPos(null);
+          }}
+        >
+          <span>{hoveredItemPos?.content}</span>
+          <span>{hoveredItemPos?.content2}</span>
+          {hoveredItemPos?.content3 && <span>{hoveredItemPos?.content3}</span>}
+        </div>
       </div>
+      <div className={`${styles.tooltip_arrow}`}></div>
     </div>
   );
 };
