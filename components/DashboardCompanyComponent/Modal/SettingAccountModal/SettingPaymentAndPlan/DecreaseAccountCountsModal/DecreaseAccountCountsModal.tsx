@@ -177,8 +177,11 @@ const DecreaseAccountCountsModalMemo = () => {
       });
 
       if (axiosStripeError) {
-        console.log(`🌟Stripeアカウント変更ステップ7 Stripeアカウント数変更エラー axiosStripeError`, axiosStripeError);
-        throw new Error(axiosStripeError);
+        console.error(
+          `🌟Stripeアカウント変更ステップ7 Stripeアカウント数変更エラー axiosStripeError`,
+          axiosStripeError
+        );
+        // throw new Error(axiosStripeError);
       }
       console.log(`🌟Stripeアカウント変更ステップ7 Stripeアカウント数変更完了 subscriptionItem`, subscriptionItem);
 
@@ -205,9 +208,11 @@ const DecreaseAccountCountsModalMemo = () => {
       console.log("全て完了 キャッシュを更新");
 
       // キャッシュを最新状態に反映
+      // サブスクリプションスケジュールを取得して新たなダウングレードの適用時期を明示する
       //   await queryClient.invalidateQueries({ queryKey: ["change_team_owner_notifications"] });
       //   await queryClient.invalidateQueries({ queryKey: ["my_notifications"] });
       await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
+      await queryClient.invalidateQueries({ queryKey: ["stripe_schedules"] });
 
       toast.success(`アカウント数の変更が完了しました!`, {
         position: "top-right",

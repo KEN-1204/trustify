@@ -90,6 +90,8 @@ const changeTeamOwnerHandler = async (req: NextApiRequest, res: NextApiResponse)
     const subscriptionCurrentPriceUnitAmount = subscriptions.data[0].items.data[0].price.unit_amount;
     // ユーザーが現在契約しているサブスクリップションの数量
     const subscriptionCurrentQuantity = subscriptions.data[0].items.data[0].quantity;
+    // サブスクリプションに紐づくスケジュール 存在していない場合はcreate()で新たに作成する
+    const scheduleId = subscriptions.data[0].schedule;
 
     console.log(
       "🌟Stripeステップ4 Stripeの顧客IDから各アイテム取得",
@@ -102,7 +104,9 @@ const changeTeamOwnerHandler = async (req: NextApiRequest, res: NextApiResponse)
       "現在契約中の数量",
       subscriptionCurrentQuantity,
       "次の請求日",
-      nextInvoiceTimestamp
+      nextInvoiceTimestamp,
+      "スケジュールID",
+      scheduleId
     );
 
     // =================== 比例配分なし 数量ダウンルート ===================
@@ -145,9 +149,19 @@ const changeTeamOwnerHandler = async (req: NextApiRequest, res: NextApiResponse)
       console.log("🌟Stripeステップ5-0 数量ダウンルート 動作確認用に10分後のタイムスタンプを取得", fiveMinutesLater);
 
       // Create a subscription schedule with the existing subscription
-      const schedule = await stripe.subscriptionSchedules.create({
-        from_subscription: stripeSubscriptionId, // "sub_ERf72J8Sc7qx7D"
-      });
+      let schedule;
+      if (!scheduleId) {
+        schedule = await stripe.subscriptionSchedules.create({
+          from_subscription: stripeSubscriptionId, // "sub_ERf72J8Sc7qx7D"
+        });
+      } else {
+        const releaseSchedule = await stripe.subscriptionSchedules.release(scheduleId as string);
+        // schedule = await stripe.subscriptionSchedules.retrieve(scheduleId as string);
+        console.log("🌟Stripeステップ5-01 スケジュールを開放 releaseSchedule", releaseSchedule);
+        schedule = await stripe.subscriptionSchedules.create({
+          from_subscription: stripeSubscriptionId, // "sub_ERf72J8Sc7qx7D"
+        });
+      }
       console.log(
         "🌟Stripeステップ5-1 数量ダウンルート 契約中のサブスクリプションIDでサブスクリプションスケジュールを作成",
         schedule
@@ -167,8 +181,9 @@ const changeTeamOwnerHandler = async (req: NextApiRequest, res: NextApiResponse)
               },
             ],
             start_date: schedule.phases[0].start_date,
-            end_date: fiveMinutesLater, // 動作確認用 今月のサブスクを5分後に終了させ翌月のサブスクに更新する
-            // 本番はこっち end_date: schedule.phases[0].end_date,
+            end_date: schedule.phases[0].end_date, // 本番はこっち
+            // end_date: fiveMinutesLater, // 動作確認用 今月のサブスクを5分後に終了させ翌月のサブスクに更新する
+            proration_behavior: "none",
           },
           {
             items: [
@@ -177,11 +192,13 @@ const changeTeamOwnerHandler = async (req: NextApiRequest, res: NextApiResponse)
                 quantity: newQuantity, // 新たにダウンした数量
               },
             ],
-            start_date: fiveMinutesLater, // 動作確認用 翌月のサブスクを5分後に設定 本番は省略
-            // iterations: 1は省略
+            // start_date: fiveMinutesLater, // 動作確認用 翌月のサブスクを5分後に設定 本番は省略
+            iterations: 1, // 省略
+            proration_behavior: "none",
           },
         ],
       });
+
       console.log(
         "🌟Stripeステップ5-2 数量ダウンルート 作成したサブスクリプションスケジュールをupdate",
         "現在の価格プラン",
@@ -192,7 +209,14 @@ const changeTeamOwnerHandler = async (req: NextApiRequest, res: NextApiResponse)
         newQuantity
       );
 
-      console.log("🌟Stripeステップ5-3 数量ダウンルート UPDATE完了 subscriptionSchedule", subscriptionSchedule);
+      console.log(
+        "🌟Stripeステップ5-3 数量ダウンルート サブスクリプションスケジュールUPDATE完了 subscriptionSchedule",
+        subscriptionSchedule,
+        "現在のフェーズのアイテム",
+        subscriptionSchedule.phases[0].items,
+        "翌月のフェーズのアイテム",
+        subscriptionSchedule.phases[1].items
+      );
 
       // Stripeのサブスクリプションスケジュールのキャンセル、更新用にスケジュールidなどをsupabaseのstripe_schedulesテーブルにINSERT
       const insertPayload = {
@@ -213,21 +237,24 @@ const changeTeamOwnerHandler = async (req: NextApiRequest, res: NextApiResponse)
         current_price: subscriptionCurrentPriceUnitAmount,
         scheduled_price: null,
         completed_at: subscriptionSchedule.completed_at,
-        stripe_created: subscriptionSchedule.created,
+        stripe_created: new Date(subscriptionSchedule.created * 1000).toISOString(),
         user_id: userProfileId,
-        current_start_date: schedule.phases[0].start_date,
-        current_end_date: schedule.phases[0].end_date,
+        current_start_date: new Date(schedule.phases[0].start_date * 1000).toISOString(),
+        current_end_date: new Date(schedule.phases[0].end_date * 1000).toISOString(),
         released_at: subscriptionSchedule.released_at,
         end_behavior: subscriptionSchedule.end_behavior,
         released_subscription: subscriptionSchedule.released_subscription,
       };
+      console.log("🌟Stripeステップ5-4 数量ダウンルート stripe_schedulesテーブルにINSERTするペイロード", insertPayload);
+
+      // UNIXタイムスタンプをJavaScriptのDateオブジェクトに変換する際には、ミリ秒単位に変換する必要があります。そのため、タイムスタンプを1000倍にしなければなりません。その後、.toISOString()を使用してISO形式の文字列に変換します。
       const { data: insertScheduleData, error: insertScheduleError } = await supabaseServerClient
         .from("stripe_schedules")
         .insert(insertPayload);
 
       if (insertScheduleError) {
-        console.log("❌supabaseのクエリ失敗error", insertScheduleError);
-        throw new Error(insertScheduleError.message);
+        console.error("❌supabaseのクエリ失敗error", insertScheduleError);
+        // throw new Error(insertScheduleError.message);
       }
 
       console.log(
