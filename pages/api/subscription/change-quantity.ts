@@ -15,6 +15,11 @@ const changeTeamOwnerHandler = async (req: NextApiRequest, res: NextApiResponse)
     res.status(405).end("Method Not Allowed");
   }
 
+  const supabaseServerClient = createServerSupabaseClient<Database>({
+    req,
+    res,
+  });
+
   try {
     console.log("🌟Stripeステップ1 APIルートリクエスト取得");
     // リクエストからJWT、認証ヘッダーの取り出し
@@ -38,7 +43,7 @@ const changeTeamOwnerHandler = async (req: NextApiRequest, res: NextApiResponse)
     const userId = payload.sub; // 'sub' field usually contains the user id.
 
     // axios.post()メソッドのリクエストボディから変数を取得
-    const { stripeCustomerId, newQuantity, changeType } = req.body;
+    const { stripeCustomerId, newQuantity, changeType, companyId, subscriptionId, userProfileId } = req.body;
 
     console.log(
       "🌟Stripeステップ3 追加するアカウント数とStripe顧客IDをリクエストボディから取得 newQuantity",
@@ -74,33 +79,53 @@ const changeTeamOwnerHandler = async (req: NextApiRequest, res: NextApiResponse)
     console.log("🌟Stripeステップ3-2 Stripeから取得したsubscriptions", subscriptions);
 
     // サブスクリプションID
-    const subscriptionId = subscriptions.data[0].id;
+    const stripeSubscriptionId = subscriptions.data[0].id;
     // 次の請求日を取得
     const nextInvoiceTimestamp = subscriptions.data[0].current_period_end;
-
     // ユーザーが現在契約しているサブスクリップションアイテムのidを取得
     const subscriptionItemId = subscriptions.data[0].items.data[0].id;
+    // ユーザーが現在契約しているサブスクリップションの価格idを取得
+    const subscriptionCurrentPriceId = subscriptions.data[0].items.data[0].price.id;
+    // ユーザーが現在契約しているサブスクリップションのプランの価格を取得
+    const subscriptionCurrentPriceUnitAmount = subscriptions.data[0].items.data[0].price.unit_amount;
+    // ユーザーが現在契約しているサブスクリップションの数量
+    const subscriptionCurrentQuantity = subscriptions.data[0].items.data[0].quantity;
 
     console.log(
-      "🌟Stripeステップ4 Stripeの顧客IDからサブスクアイテムIDを取得",
+      "🌟Stripeステップ4 Stripeの顧客IDから各アイテム取得",
+      "サブスクリプションID",
+      stripeSubscriptionId,
+      "サブスクアイテムID",
       subscriptionItemId,
+      "現在契約中の価格ID",
+      subscriptionCurrentPriceId,
+      "現在契約中の数量",
+      subscriptionCurrentQuantity,
       "次の請求日",
       nextInvoiceTimestamp
     );
 
-    // =========================== 比例配分なしルート ===========================
-    // サブスクリプションの数量を増やすルート
-    // proration_behavior を none に設定してサブスクリプションの数量を増やし、billing_cycle_anchorの変更は不要
+    // =================== 比例配分なし 数量ダウンルート ===================
+    // 🌟サブスクリプションの数量を増やすルート
+    // ・新しいプランは即座に適用される。
+    // ・請求タイミング（請求日）は、現在の請求日より早くなる。（これは必須ではないため現段階では現在の請求日のまま早めず）
+    // ・アカウントを増やすから実行したとしても、前回数量を減らすスケジュールを作成していて現在契約しているアカウント数が今回アカウントを増やす個数の合計よりも低い場合は、前のスケジュールをキャンセルして新たに減らすルートに移行して次回請求日に今回のアカウントを増やすアカウントの合計値に更新するようにスケジュールを作成する
+    // 例：現在アカウント数:3(11/1), => 1にダウン(12/1に適用) => 2にアップ(即時ではなく12/1に適用させる)
+    // Point：アカウントを増やした時の合計値が、現在のアカウント数を超えているか
     if (changeType === "increase") {
-      const subscriptionItem = await stripe.subscriptionItems.update(subscriptionItemId, {
-        quantity: newQuantity,
+      const subscription = await stripe.subscriptions.update(stripeSubscriptionId, {
+        items: [
+          {
+            id: subscriptionItemId,
+            quantity: newQuantity,
+          },
+        ],
         proration_behavior: "none",
       });
-
-      console.log("🌟Stripeステップ5 アカウント数量アップルート UPDATE完了 subscriptionItem", subscriptionItem);
+      console.log("🌟Stripeステップ5 数量アップルート UPDATE完了 subscription", subscription);
 
       const response = {
-        subscriptionItem: subscriptionItem,
+        subscriptionItem: subscription,
         error: null,
       };
 
@@ -108,38 +133,110 @@ const changeTeamOwnerHandler = async (req: NextApiRequest, res: NextApiResponse)
 
       res.status(200).json(response);
     }
-    // サブスクリプションの数量を減らすルート
-    // 取得した次の請求日をbilling_cycle_anchorとして設定し、サブスクリプションの数量を減少させます。
-    // これにより、次の請求日までの間、変更前の数量が請求され、その後の請求からは新しい数量が請求されます。
+    // 🌟サブスクリプションの数量を減らすルート
+    // ・新しいプランは即座に適用されない。
+    // ・ダウングレードが実際に適用されるのは、現在のプランの次回請求が確定した後。
+    // ・次回請求日には、現在の（ダウングレードする前の）プランの金額で請求される。
+    // ・アカウントを増やすから実行したとしても、前回数量を減らすスケジュールを作成していて現在契約しているアカウント数が今回アカウントを増やす個数の合計よりも低い場合は、減らすルートに移行して次回請求日に今回のアカウントを増やすアカウントの合計値に更新するようにスケジュールを作成する
     else if (changeType === "decrease") {
-      const subscriptionItem = await stripe.subscriptionItems.update(subscriptionItemId, {
-        quantity: newQuantity,
-        proration_behavior: "none",
-      });
-      // const subscriptionItem = await stripe.subscriptions.update(subscriptionId, {
-      //   items: [
-      //     {
-      //       id: subscriptionItemId,
-      //       quantity: newQuantity,
-      //       clear_usage: true,
-      //     },
-      //   ],
-      // });
-      // const subscriptionItem = await stripe.subscriptions.update(subscriptionId, {
-      //   items: [
-      //     {
-      //       id: subscriptionItemId,
-      //       quantity: newQuantity,
-      //     },
-      //   ],
-      //   proration_behavior: "none",
-      //   // billing_cycle_anchor: nextInvoiceTimestamp as any,
-      // });
+      // スケジュール動作確認用
+      const currentTimestamp = Math.floor(Date.now() / 1000); // 現在のUNIXタイムスタンプを取得
+      const fiveMinutesLater = currentTimestamp + 600; // 10分後のUNIXタイムスタンプを計算
+      console.log("🌟Stripeステップ5-0 数量ダウンルート 動作確認用に10分後のタイムスタンプを取得", fiveMinutesLater);
 
-      console.log("🌟Stripeステップ5 アカウント数量ダウンルート UPDATE完了 subscriptionItem", subscriptionItem);
+      // Create a subscription schedule with the existing subscription
+      const schedule = await stripe.subscriptionSchedules.create({
+        from_subscription: stripeSubscriptionId, // "sub_ERf72J8Sc7qx7D"
+      });
+      console.log(
+        "🌟Stripeステップ5-1 数量ダウンルート 契約中のサブスクリプションIDでサブスクリプションスケジュールを作成",
+        schedule
+      );
+
+      // Update the schedule with the new phase
+      // 動作確認用 今月の終了日をend_dateで5分後に設定し、翌月の開始日をstart_dateで5分後に設定してすぐに動作確認できるようにする
+      const subscriptionSchedule = await stripe.subscriptionSchedules.update(schedule.id, {
+        phases: [
+          {
+            items: [
+              {
+                // price: schedule.phases[0].items[0].price,
+                // quantity: schedule.phases[0].items[0].quantity,
+                price: subscriptionCurrentPriceId, // 現在の価格プラン
+                quantity: subscriptionCurrentQuantity, // 更新前の現在の数量
+              },
+            ],
+            start_date: schedule.phases[0].start_date,
+            end_date: fiveMinutesLater, // 動作確認用 今月のサブスクを5分後に終了させ翌月のサブスクに更新する
+            // 本番はこっち end_date: schedule.phases[0].end_date,
+          },
+          {
+            items: [
+              {
+                price: subscriptionCurrentPriceId, // 現在の価格プラン
+                quantity: newQuantity, // 新たにダウンした数量
+              },
+            ],
+            start_date: fiveMinutesLater, // 動作確認用 翌月のサブスクを5分後に設定 本番は省略
+            // iterations: 1は省略
+          },
+        ],
+      });
+      console.log(
+        "🌟Stripeステップ5-2 数量ダウンルート 作成したサブスクリプションスケジュールをupdate",
+        "現在の価格プラン",
+        subscriptionCurrentPriceId,
+        "現在の数量",
+        subscriptionCurrentQuantity,
+        "更新後の数量",
+        newQuantity
+      );
+
+      console.log("🌟Stripeステップ5-3 数量ダウンルート UPDATE完了 subscriptionSchedule", subscriptionSchedule);
+
+      // Stripeのサブスクリプションスケジュールのキャンセル、更新用にスケジュールidなどをsupabaseのstripe_schedulesテーブルにINSERT
+      const insertPayload = {
+        stripe_customer_id: stripeCustomerId,
+        stripe_schedule_id: subscriptionSchedule.id,
+        schedule_status: subscriptionSchedule.status,
+        stripe_subscription_id: stripeSubscriptionId,
+        stripe_subscription_item_id: subscriptionItemId,
+        current_price_id: subscriptionCurrentPriceId,
+        scheduled_price_id: null,
+        current_quantity: subscriptionCurrentQuantity,
+        scheduled_quantity: newQuantity,
+        note: null,
+        update_reason: null,
+        canceled_at: subscriptionSchedule.canceled_at,
+        company_id: companyId,
+        subscription_id: subscriptionId,
+        current_price: subscriptionCurrentPriceUnitAmount,
+        scheduled_price: null,
+        completed_at: subscriptionSchedule.completed_at,
+        stripe_created: subscriptionSchedule.created,
+        user_id: userProfileId,
+        current_start_date: schedule.phases[0].start_date,
+        current_end_date: schedule.phases[0].end_date,
+        released_at: subscriptionSchedule.released_at,
+        end_behavior: subscriptionSchedule.end_behavior,
+        released_subscription: subscriptionSchedule.released_subscription,
+      };
+      const { data: insertScheduleData, error: insertScheduleError } = await supabaseServerClient
+        .from("stripe_schedules")
+        .insert(insertPayload);
+
+      if (insertScheduleError) {
+        console.log("❌supabaseのクエリ失敗error", insertScheduleError);
+        throw new Error(insertScheduleError.message);
+      }
+
+      console.log(
+        "🌟Stripeステップ5-4 数量ダウンルート Supabaseのstripe_schedulesテーブルにINSERT完了 insertScheduleData",
+        insertScheduleData
+      );
 
       const response = {
-        subscriptionItem: subscriptionItem,
+        subscriptionItem: subscriptionSchedule,
         error: null,
       };
 
@@ -150,7 +247,72 @@ const changeTeamOwnerHandler = async (req: NextApiRequest, res: NextApiResponse)
       console.log("🌟Stripeステップ6 エラー: Invalid changeType");
       return res.status(400).json({ error: "Invalid changeType" });
     }
-    // =========================== 比例配分なしルート ここまで ===========================
+
+    // =================== 比例配分なし 数量ダウンルート ここまで ===================
+
+    // // =========================== 比例配分なしルート ===========================
+    // // サブスクリプションの数量を増やすルート
+    // // proration_behavior を none に設定してサブスクリプションの数量を増やし、billing_cycle_anchorの変更は不要
+    // if (changeType === "increase") {
+    //   const subscriptionItem = await stripe.subscriptionItems.update(subscriptionItemId, {
+    //     quantity: newQuantity,
+    //     proration_behavior: "none",
+    //   });
+
+    //   console.log("🌟Stripeステップ5 アカウント数量アップルート UPDATE完了 subscriptionItem", subscriptionItem);
+
+    //   const response = {
+    //     subscriptionItem: subscriptionItem,
+    //     error: null,
+    //   };
+
+    //   console.log("🌟Stripeステップ6 APIルートへ返却");
+
+    //   res.status(200).json(response);
+    // }
+    // // サブスクリプションの数量を減らすルート
+    // // 取得した次の請求日をbilling_cycle_anchorとして設定し、サブスクリプションの数量を減少させます。
+    // // これにより、次の請求日までの間、変更前の数量が請求され、その後の請求からは新しい数量が請求されます。
+    // else if (changeType === "decrease") {
+    //   const subscriptionItem = await stripe.subscriptionItems.update(subscriptionItemId, {
+    //     quantity: newQuantity,
+    //     proration_behavior: "none",
+    //   });
+    //   // const subscriptionItem = await stripe.subscriptions.update(subscriptionId, {
+    //   //   items: [
+    //   //     {
+    //   //       id: subscriptionItemId,
+    //   //       quantity: newQuantity,
+    //   //       clear_usage: true,
+    //   //     },
+    //   //   ],
+    //   // });
+    //   // const subscriptionItem = await stripe.subscriptions.update(subscriptionId, {
+    //   //   items: [
+    //   //     {
+    //   //       id: subscriptionItemId,
+    //   //       quantity: newQuantity,
+    //   //     },
+    //   //   ],
+    //   //   proration_behavior: "none",
+    //   //   // billing_cycle_anchor: nextInvoiceTimestamp as any,
+    //   // });
+
+    //   console.log("🌟Stripeステップ5 アカウント数量ダウンルート UPDATE完了 subscriptionItem", subscriptionItem);
+
+    //   const response = {
+    //     subscriptionItem: subscriptionItem,
+    //     error: null,
+    //   };
+
+    //   console.log("🌟Stripeステップ6 APIルートへ返却");
+
+    //   res.status(200).json(response);
+    // } else {
+    //   console.log("🌟Stripeステップ6 エラー: Invalid changeType");
+    //   return res.status(400).json({ error: "Invalid changeType" });
+    // }
+    // // =========================== 比例配分なしルート ここまで ===========================
 
     // =========================== 比例配分ありルート ===========================
     // const subscriptionItem = await stripe.subscriptionItems.update(subscriptionItemId, {

@@ -24,6 +24,7 @@ import { SettingPaymentAndPlan } from "./SettingPaymentAndPlan/SettingPaymentAnd
 import { SettingMemberAccounts } from "./SettingMemberAccounts/SettingMemberAccounts";
 import { HiOutlineBuildingOffice2 } from "react-icons/hi2";
 import { SettingCompany } from "./SettingCompany/SettingCompany";
+import { FallbackSettingPaymentAndPlan } from "./SettingPaymentAndPlan/FallbackSettingPaymentAndPlan";
 
 export const SettingAccountModal = () => {
   const theme = useThemeStore((state) => state.theme);
@@ -1816,11 +1817,12 @@ export const SettingAccountModal = () => {
             {/* 右側メインエリア 支払い・プラン */}
             {selectedSettingAccountMenu === "PaymentAndPlan" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
-                <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
+                <Suspense fallback={<FallbackSettingPaymentAndPlan />}>
                   <SettingPaymentAndPlan />
                 </Suspense>
               </ErrorBoundary>
             )}
+            {/* {selectedSettingAccountMenu === "PaymentAndPlan" && <FallbackSettingPaymentAndPlan />} */}
             {/* 右側メインエリア メンバー */}
             {selectedSettingAccountMenu === "Member" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>

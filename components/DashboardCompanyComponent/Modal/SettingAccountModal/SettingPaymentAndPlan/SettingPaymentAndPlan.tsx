@@ -1,4 +1,5 @@
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
+import { useQueryStripeSchedules } from "@/hooks/useQueryStripeSchedules";
 import useStore from "@/store";
 import useDashboardStore from "@/store/useDashboardStore";
 import useThemeStore from "@/store/useThemeStore";
@@ -24,13 +25,20 @@ const SettingPaymentAndPlanMemo: FC = () => {
   const isOpenChangeAccountCountsModal = useDashboardStore((state) => state.isOpenChangeAccountCountsModal);
   const setIsOpenChangeAccountCountsModal = useDashboardStore((state) => state.setIsOpenChangeAccountCountsModal);
 
+  const {
+    data: stripeSchedulesDataArray,
+    error: useQueryError,
+    isLoading: useQueryIsLoading,
+    refetch: refetchStripeSchedules,
+  } = useQueryStripeSchedules();
+
   // useQueryPaymentAndPlanで製品テーブルからデータ一覧を取得
   console.log(
-    "useQuery前 ",
-    "userProfileState?.company_id",
-    userProfileState?.company_id,
-    "userProfileState?.id",
-    userProfileState?.id
+    "SettingPaymentAndPlanコンポーネントレンダリング",
+    "userProfileState",
+    userProfileState,
+    "Stripeのサブスクスケジュール stripeSchedulesDataArray",
+    stripeSchedulesDataArray
   );
 
   // Stripeポータルへ移行させるためのURLをAPIルートにGETリクエスト

@@ -160,6 +160,9 @@ const DecreaseAccountCountsModalMemo = () => {
         stripeCustomerId: userProfileState.subscription_stripe_customer_id,
         newQuantity: totalAccountQuantity,
         changeType: "decrease",
+        companyId: userProfileState.company_id,
+        subscriptionId: userProfileState.subscription_id,
+        userProfileId: userProfileState.id,
       };
       console.log(
         "🌟Stripeアカウント変更ステップ0-3 axios.post()でAPIルートchange-quantityへリクエスト 引数のpayload",

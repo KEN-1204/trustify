@@ -467,6 +467,36 @@ export type Notification = {
   expiration_date: string | null;
 };
 
+export type StripeSchedule = {
+  id: string;
+  created_at: string;
+  updated_at: string | null;
+  stripe_customer_id: string | null;
+  stripe_schedule_id: string | null;
+  schedule_status: string | null;
+  stripe_subscription_id: string | null;
+  stripe_subscription_item_id: string | null;
+  current_price_id: string | null;
+  scheduled_price_id: string | null;
+  current_quantity: number | null;
+  scheduled_quantity: number | null;
+  note: string | null;
+  update_reason: string | null;
+  canceled_at: string | null;
+  company_id: string | null;
+  subscription_id: string | null;
+  current_price: number | null;
+  scheduled_price: number | null;
+  completed_at: string | null;
+  stripe_created: string | null;
+  user_id: string | null;
+  current_start_date: string | null;
+  current_end_date: string | null;
+  released_at: string | null;
+  end_behavior: string | null;
+  released_subscription: string | null;
+};
+
 export type Contact = {
   id: string;
   created_at: string;
