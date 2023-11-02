@@ -57,6 +57,31 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       // 型アサーションでobjectがStripe.Subscription型であることを示して、customerプロパティへのアクセスを可能にする
       const subscription = stripeEvent.data.object as Stripe.Subscription; // ※2
 
+      // updatedタイプのWebhookの更新内容がサブスクスケジュールの変更だった場合には、stripe_schedulesテーブルの指定のidのみ更新だけしてリターンさせることで後続の処理をさせないことで負担を軽減させる
+      const previousAttributes = stripeEvent.data.previous_attributes;
+      // previous_attributesのオブジェクトがscheduleのみかどうかを判定する関数
+      const isOnlySchedule = (obj: Object | undefined) => {
+        if (typeof obj === "undefined") return false;
+        const keys = Object.keys(obj);
+        return keys.length === 1 && keys[0] === "schedule";
+      };
+      if (isOnlySchedule(previousAttributes)) {
+        /* サブスクにアタッチされてるスケジュールの変更によるサブスクリプションの更新Webhookに関しては、
+         * スケジュールはプランと数量のダウンでINSERTでactive、サブスクのダウンの適用タイミングで送られてくる
+         * Webhookによってstripe_webhook_eventsテーブルへのINSERTを起点に実行されるトリガー関数によって、
+         * subscriptionsテーブルのaccounts_to_create、planが更新され、
+         * それに合わせてsubscribed_accountsを減らす数量分削除が完了したタイミングでサブスクにアタッチされてる
+         * スケジュールをリリースするため、ダウンルートでの更新はsubscriptionsテーブルのリアルタイムの関数内で
+         * スケジュールのリリースとstripe_schedulesテーブルのUPDATEを行えばOK
+         * スケジュールのキャンセルに関しては、ダウングレードユーザーが能動的にキャンセルしときの処理で同時に行うため、
+         * ここでは、そのままリターンでレスポンスしてOK */
+        console.log(
+          "🌟✅Ignoring unnecessary Stripe_Webhook ステップ3 サブスクにアタッチされてるスケジュールのreleaseとcreateによるWebhookなのでそのままリターン isOnlySchedule(previousAttributes)",
+          isOnlySchedule(previousAttributes)
+        );
+        return res.status(200).end();
+      }
+
       // サブスクプランを変数に格納
       let _subscription_plan;
       switch (subscription.items.data[0].plan.id) {

@@ -132,10 +132,11 @@ type State = {
   isOpenSettingInvitationModal: boolean;
   setIsOpenSettingInvitationModal: (payload: boolean) => void;
   // 未設定アカウント数を保持するState
-  // notSetAccountsCount: number | null;
-  // setNotSetAccountsCount: (payload: number | null) => void;
   notSetAccounts: MemberAccounts[];
   setNotSetAccounts: (payload: MemberAccounts[]) => void;
+  // 未設定で削除よていのアカウントを保持するState
+  notSetAndDeleteRequestedAccounts: MemberAccounts[];
+  setNotSetAndDeleteRequestedAccounts: (payload: MemberAccounts[]) => void;
   // =================== アカウント設定 会社 ===================
   companyOwnerName: string;
   setCompanyOwnerName: (payload: string) => void;
@@ -374,10 +375,11 @@ const useDashboardStore = create<State>((set) => ({
   isOpenSettingInvitationModal: false,
   setIsOpenSettingInvitationModal: (payload) => set({ isOpenSettingInvitationModal: payload }),
   // 未設定アカウント数を保持するState
-  // notSetAccountsCount: null,
-  // setNotSetAccountsCount: (payload) => set({ notSetAccountsCount: payload }),
   notSetAccounts: [],
   setNotSetAccounts: (payload) => set({ notSetAccounts: payload }),
+  // 未設定で削除よていのアカウントを保持するState
+  notSetAndDeleteRequestedAccounts: [],
+  setNotSetAndDeleteRequestedAccounts: (payload) => set({ notSetAndDeleteRequestedAccounts: payload }),
   // =================== アカウント設定 会社 ===================
   companyOwnerName: "",
   setCompanyOwnerName: (payload) => set({ companyOwnerName: payload }),

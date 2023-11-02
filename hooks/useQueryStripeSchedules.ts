@@ -22,6 +22,7 @@ export const useQueryStripeSchedules = () => {
       .from("stripe_schedules")
       .select()
       .eq("subscription_id", userProfileState.subscription_id)
+      .eq("schedule_status", "active")
       .order("created_at", { ascending: true });
 
     if (error) {
