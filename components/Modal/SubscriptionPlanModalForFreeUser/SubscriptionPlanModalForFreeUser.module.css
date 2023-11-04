@@ -75,14 +75,15 @@
 }
 .right_container {
   /* background-color: var(--setting-side-bg); */
-  background-image: url("/assets/images/team/team1.jpg");
-
-  /* background-image: url("/assets/images/beautiful/ocean2.jpg"); */
-  /* background-image: url("/assets/images/beautiful/balloon1.jpg"); */
   /* background-image: url("/assets/images/beautiful/road-sun1.jpg"); */
-  background-position: 30% 50%;
+
+  /* background-image: url("/assets/images/beautiful/balloon1.jpg"); */
   /* background-image: url("/assets/images/team/priscilla-du-preez-XkKCui44iM0-unsplash.jpg");
   background-position: 30% 50%; */
+  /* これ */
+  background-image: url("/assets/images/team/team1.jpg");
+  /* background-image: url("/assets/images/beautiful/ocean2.jpg"); */
+  background-position: 30% 50%;
   background-size: cover;
   background-repeat: no-repeat;
 }

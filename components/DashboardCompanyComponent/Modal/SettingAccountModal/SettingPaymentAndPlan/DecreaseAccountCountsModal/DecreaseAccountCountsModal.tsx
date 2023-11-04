@@ -47,53 +47,57 @@ const DecreaseAccountCountsModalMemo = () => {
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
 
-  // 現在契約しているメンバーアカウント全てを取得して、契約アカウント数をlengthで取得
-  const {
-    data: memberAccountsDataArray,
-    error: useQueryError,
-    isLoading: useQueryIsLoading,
-    refetch: refetchMemberAccounts,
-  } = useQueryMemberAccounts();
+  const memberAccountsDataArray = queryClient.getQueryData<MemberAccounts[]>(["member_accounts"]);
 
-  // 未設定アカウントを算出
-  useEffect(() => {
-    if (typeof memberAccountsDataArray === "undefined") return;
-    if (!memberAccountsDataArray) {
-      setNotSetAccounts([]);
-      // setNotSetAccountsCount(null);
-      return;
-    }
-    // // 全メンバーアカウントの数
-    // アカウントの配列からprofilesのidがnull、かつ、invited_emailがnullで招待中でないアカウント、かつ、アカウントステータスがactiveのアカウントのみをフィルタリング
-    const nullIdAccounts = memberAccountsDataArray.filter(
-      (account) => account.id === null && account.account_invited_email === null && account.account_state === "active"
-    );
-    // 削除予定のアカウントを取得してグローバルStateに格納
-    const deleteRequestedAccounts = memberAccountsDataArray.filter(
-      (account) =>
-        account.id === null && account.account_invited_email === null && account.account_state === "delete_requested"
-    );
-    // idがnullのアカウントの数をカウント
-    const nullIdCount = nullIdAccounts ? nullIdAccounts.length : 0;
-    // // アカウントの配列からidがnullでないアカウントのみをフィルタリング
-    // const notNullIdAccounts = memberAccountsDataArray?.filter((account) => account.id !== null);
-    // // idがnullでないアカウントの数をカウント
-    // const notNullIdCount = notNullIdAccounts ? notNullIdAccounts.length : 0;
-    // // 全アカウント数からnullでないアカウントを引いた数
-    // const nullIdCount2 = Math.abs(allAccountsCount - notNullIdCount);
-    console.log(
-      "nullIdAccounts",
-      nullIdAccounts,
-      "未設定のアクティブアカウント数",
-      nullIdCount,
-      "memberAccountsDataArray",
-      memberAccountsDataArray
-    );
-    // グローバルStateに格納
-    // setNotSetAccountsCount(nullIdCount);
-    setNotSetAccounts(nullIdAccounts);
-    setNotSetAndDeleteRequestedAccounts(deleteRequestedAccounts);
-  }, [memberAccountsDataArray, setNotSetAccounts]);
+  // 現在契約しているメンバーアカウント全てを取得して、契約アカウント数をlengthで取得
+  // const {
+  //   data: memberAccountsDataArray,
+  //   error: useQueryError,
+  //   isLoading: useQueryIsLoading,
+  //   refetch: refetchMemberAccounts,
+  // } = useQueryMemberAccounts();
+
+  // // 未設定アカウントを算出
+  // useEffect(() => {
+  //   if (typeof memberAccountsDataArray === "undefined") return;
+  //   if (!memberAccountsDataArray) {
+  //     setNotSetAccounts([]);
+  //     // setNotSetAccountsCount(null);
+  //     return;
+  //   }
+  //   // // 全メンバーアカウントの数
+  //   // アカウントの配列からprofilesのidがnull、かつ、invited_emailがnullで招待中でないアカウント、かつ、アカウントステータスがactiveのアカウントのみをフィルタリング
+  //   const nullIdAccounts = memberAccountsDataArray.filter(
+  //     (account) => account.id === null && account.account_invited_email === null && account.account_state === "active"
+  //   );
+  //   // 削除予定のアカウントを取得してグローバルStateに格納
+  //   const deleteRequestedAccounts = memberAccountsDataArray.filter(
+  //     (account) =>
+  //       account.id === null && account.account_invited_email === null && account.account_state === "delete_requested"
+  //   );
+  //   // idがnullのアカウントの数をカウント
+  //   const nullIdCount = nullIdAccounts ? nullIdAccounts.length : 0;
+  //   // // アカウントの配列からidがnullでないアカウントのみをフィルタリング
+  //   // const notNullIdAccounts = memberAccountsDataArray?.filter((account) => account.id !== null);
+  //   // // idがnullでないアカウントの数をカウント
+  //   // const notNullIdCount = notNullIdAccounts ? notNullIdAccounts.length : 0;
+  //   // // 全アカウント数からnullでないアカウントを引いた数
+  //   // const nullIdCount2 = Math.abs(allAccountsCount - notNullIdCount);
+  //   console.log(
+  //     "nullIdAccounts",
+  //     nullIdAccounts,
+  //     "未設定のアクティブアカウント数",
+  //     nullIdCount,
+  //     "削除リクエスト済みアカウント数",
+  //     deleteRequestedAccounts,
+  //     "memberAccountsDataArray",
+  //     memberAccountsDataArray
+  //   );
+  //   // グローバルStateに格納
+  //   // setNotSetAccountsCount(nullIdCount);
+  //   setNotSetAccounts(nullIdAccounts);
+  //   setNotSetAndDeleteRequestedAccounts(deleteRequestedAccounts);
+  // }, [memberAccountsDataArray, setNotSetAccounts]);
 
   const getPrice = (subscription: string | null | undefined) => {
     if (!subscription) return 0;
@@ -189,67 +193,36 @@ const DecreaseAccountCountsModalMemo = () => {
           `🌟Stripeアカウント変更ステップ7 Stripeアカウント数変更エラー axiosStripeError`,
           axiosStripeError
         );
-        // throw new Error(axiosStripeError);
+        throw new Error(axiosStripeError);
       }
       console.log(`🌟Stripeアカウント変更ステップ7 Stripeアカウント数変更完了 subscriptionItem`, subscriptionItem);
 
-      // =========== subscribed_accountsのstateを削除リクエスト済み（delete_requested）に変更 ===========
-      console.log(
-        `🌟Stripeアカウント変更ステップ8 supabaseのsubscribed_accountsテーブルから${decreaseAccountQuantity}個のアカウントを削除予定に変更するストアドプロシージャを実行 削除対象のidを持つ配列idsToDeleteArray`,
-        idsToDeleteArray
-      );
-      // 新たに削除するアカウント数分、supabaseのsubscribed_accountsテーブルからDELETE
-      const { error: deleteRequestedSubscribedAccountsError } = await supabase.rpc(
-        "update_delete_requested_subscribed_accounts_all_at_once",
-        {
-          delete_requested_account_quantity: decreaseAccountQuantity,
-          ids_to_delete: idsToDeleteArray,
-          _subscription_id: userProfileState.subscription_id,
-        }
-      );
-
-      if (deleteRequestedSubscribedAccountsError) {
-        console.log("🌟Stripeステップ9 supabaseの未設定アカウントを指定個数分、削除エラー");
-        throw new Error(deleteRequestedSubscribedAccountsError.message);
-      }
-      console.log(
-        "🌟Stripeステップ9 supabaseの未設定アカウントを指定個数分、削除リクエストとsubscriptionsテーブルのアクティブアカウント数の更新成功"
-      );
-
-      // const currentActiveAccountCounts = currentAccountCounts - decreaseAccountQuantity;
-      // console.log("🌟Stripeステップ10 削除リクエストが無事成功したら、指定した個数を現在の作成済みアカウント数から削除リクエスト済みアカウント数を引いた数量をnumber_of_active_subscribed_accountsのアクティブなアカウントの数にセット位sてUPDATEする");
-
-      // const promises = [...Array(accountQuantity)].map(() => {
-      //   return null;
-      // });
-      // await Promise.all(promises);
-      console.log("全て完了 キャッシュを更新");
-
-      // キャッシュを最新状態に反映
-      // サブスクリプションスケジュールを取得して新たなダウングレードの適用時期を明示する
-      //   await queryClient.invalidateQueries({ queryKey: ["change_team_owner_notifications"] });
-      //   await queryClient.invalidateQueries({ queryKey: ["my_notifications"] });
-      await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
-      await queryClient.invalidateQueries({ queryKey: ["stripe_schedules"] });
-      // ======== subscribed_accountsのstateを削除リクエスト済み（delete_requested）に変更 ここまで ========
-
-      // ======================= スケジュールの適用日に実行 =======================
-      // ======================= 実際に一括でアカウントを削除するパターン =======================
+      // ======================== 🌟スケジュール適用日に数量を減らすルート ========================
+      // // subscribed_accountsのstateを削除リクエスト済み（delete_requested）に変更
       // console.log(
-      //   `🌟Stripeアカウント変更ステップ8 supabaseのsubscribed_accountsテーブルから${decreaseAccountQuantity}個のアカウントを削除するストアドプロシージャを実行 削除対象のidを持つ配列idsToDeleteArray`,
+      //   `🌟Stripeアカウント変更ステップ8 supabaseのsubscribed_accountsテーブルから${decreaseAccountQuantity}個のアカウントを削除予定に変更するストアドプロシージャを実行 削除対象のidを持つ配列idsToDeleteArray`,
       //   idsToDeleteArray
       // );
       // // 新たに削除するアカウント数分、supabaseのsubscribed_accountsテーブルからDELETE
-      // const { error: deleteSubscribedAccountsError } = await supabase.rpc("delete_subscribed_accounts_all_at_once", {
-      //   decrease_account_quantity: decreaseAccountQuantity,
-      //   ids_to_delete: idsToDeleteArray,
-      // });
+      // const { error: deleteRequestedSubscribedAccountsError } = await supabase.rpc(
+      //   "update_delete_requested_subscribed_accounts_all_at_once",
+      //   {
+      //     delete_requested_account_quantity: decreaseAccountQuantity,
+      //     ids_to_delete: idsToDeleteArray,
+      //     _subscription_id: userProfileState.subscription_id,
+      //   }
+      // );
 
-      // if (deleteSubscribedAccountsError) {
+      // if (deleteRequestedSubscribedAccountsError) {
       //   console.log("🌟Stripeステップ9 supabaseの未設定アカウントを指定個数分、削除エラー");
-      //   throw new Error(deleteSubscribedAccountsError.message);
+      //   throw new Error(deleteRequestedSubscribedAccountsError.message);
       // }
-      // console.log("🌟Stripeステップ9 supabaseの未設定アカウントを指定個数分、削除成功");
+      // console.log(
+      //   "🌟Stripeステップ9 supabaseの未設定アカウントを指定個数分、削除リクエストとsubscriptionsテーブルのアクティブアカウント数の更新成功"
+      // );
+
+      // // const currentActiveAccountCounts = currentAccountCounts - decreaseAccountQuantity;
+      // // console.log("🌟Stripeステップ10 削除リクエストが無事成功したら、指定した個数を現在の作成済みアカウント数から削除リクエスト済みアカウント数を引いた数量をnumber_of_active_subscribed_accountsのアクティブなアカウントの数にセット位sてUPDATEする");
 
       // // const promises = [...Array(accountQuantity)].map(() => {
       // //   return null;
@@ -263,11 +236,43 @@ const DecreaseAccountCountsModalMemo = () => {
       // //   await queryClient.invalidateQueries({ queryKey: ["my_notifications"] });
       // await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
       // await queryClient.invalidateQueries({ queryKey: ["stripe_schedules"] });
-      // ======================= スケジュールの適用日に実行 =======================
+      // // subscribed_accountsのstateを削除リクエスト済み（delete_requested）に変更
+      // ======================== 🌟スケジュール適用日に数量を減らすルート ここまで ========================
+
+      // ======================= 🌟即時に実際に一括でアカウントを削除するルート =======================
+      console.log(
+        `🌟Stripeアカウント変更ステップ8 supabaseのsubscribed_accountsテーブルから${decreaseAccountQuantity}個のアカウントを削除するストアドプロシージャを実行 削除対象のidを持つ配列idsToDeleteArray`,
+        idsToDeleteArray
+      );
+      // 新たに削除するアカウント数分、supabaseのsubscribed_accountsテーブルからDELETE
+      const { error: deleteSubscribedAccountsError } = await supabase.rpc("delete_subscribed_accounts_all_at_once", {
+        decrease_account_quantity: decreaseAccountQuantity,
+        ids_to_delete: idsToDeleteArray,
+      });
+
+      if (deleteSubscribedAccountsError) {
+        console.log("🌟Stripeステップ9 supabaseの未設定アカウントを指定個数分、削除エラー");
+        throw new Error(deleteSubscribedAccountsError.message);
+      }
+      console.log("🌟Stripeステップ9 supabaseの未設定アカウントを指定個数分、削除成功");
+
+      // const promises = [...Array(accountQuantity)].map(() => {
+      //   return null;
+      // });
+      // await Promise.all(promises);
+      console.log("全て完了 キャッシュを更新");
+
+      // キャッシュを最新状態に反映
+      // サブスクリプションスケジュールを取得して新たなダウングレードの適用時期を明示する
+      //   await queryClient.invalidateQueries({ queryKey: ["change_team_owner_notifications"] });
+      //   await queryClient.invalidateQueries({ queryKey: ["my_notifications"] });
+      await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
+      await queryClient.invalidateQueries({ queryKey: ["stripe_schedules"] });
+      // ======================= 🌟即時に実際に一括でアカウントを削除するルート ここまで =======================
 
       toast.success(`数量変更を受け付けました。現在の請求期間の最終日に新たなアカウント数が適用されます。`, {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 5000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
@@ -290,7 +295,7 @@ const DecreaseAccountCountsModalMemo = () => {
   };
 
   console.log(
-    "🌟IncreaseAccountCountsModalコンポーネントレンダリング",
+    "🌟decreaseAccountCountsModalコンポーネントレンダリング",
 
     "現在契約中のアカウント個数",
     currentAccountCounts,
@@ -374,8 +379,9 @@ const DecreaseAccountCountsModalMemo = () => {
                   <span>契約中のアカウント数：</span>
                   {/* <span className="font-bold">{notSetAccounts.length}個</span> */}
                 </h4>
-                {!useQueryIsLoading && <span className="font-bold">{currentAccountCounts}個</span>}
-                {useQueryIsLoading && <SpinnerIDS scale={"scale-[0.3]"} />}
+                <span className="font-bold">{currentAccountCounts}個</span>
+                {/* {!useQueryIsLoading && <span className="font-bold">{currentAccountCounts}個</span>}
+                {useQueryIsLoading && <SpinnerIDS scale={"scale-[0.3]"} />} */}
               </div>
 
               <div className="mt-[20px] flex max-h-[35px] min-h-[35px] w-full items-center justify-between text-[15px]">
@@ -386,8 +392,9 @@ const DecreaseAccountCountsModalMemo = () => {
                   <span>未設定のアクティブアカウント数：</span>
                   {/* <span className="font-bold">{notSetAccounts.length}個</span> */}
                 </h4>
-                {!useQueryIsLoading && <span className="font-bold">{notSetAccounts.length ?? "-"}個</span>}
-                {useQueryIsLoading && <SpinnerIDS scale={"scale-[0.3]"} />}
+                {/* {!useQueryIsLoading && <span className="font-bold">{notSetAccounts.length ?? "-"}個</span>}
+                {useQueryIsLoading && <SpinnerIDS scale={"scale-[0.3]"} />} */}
+                <span className="font-bold">{notSetAccounts.length ?? "-"}個</span>
               </div>
 
               <div className="mt-[20px] flex max-h-[35px] min-h-[35px] w-full items-center justify-between text-[15px]">
@@ -398,10 +405,11 @@ const DecreaseAccountCountsModalMemo = () => {
                   <span>削除リクエスト済みのアカウント数：</span>
                   {/* <span className="font-bold">{notSetAccounts.length}個</span> */}
                 </h4>
-                {!useQueryIsLoading && (
+                {/* {!useQueryIsLoading && (
                   <span className="font-bold">{notSetAndDeleteRequestedAccounts.length ?? "-"}個</span>
                 )}
-                {useQueryIsLoading && <SpinnerIDS scale={"scale-[0.3]"} />}
+                {useQueryIsLoading && <SpinnerIDS scale={"scale-[0.3]"} />} */}
+                <span className="font-bold">{notSetAndDeleteRequestedAccounts.length ?? "-"}個</span>
               </div>
 
               {/* メンバー人数選択エリア */}

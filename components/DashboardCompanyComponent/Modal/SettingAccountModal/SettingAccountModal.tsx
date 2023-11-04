@@ -25,6 +25,7 @@ import { SettingMemberAccounts } from "./SettingMemberAccounts/SettingMemberAcco
 import { HiOutlineBuildingOffice2 } from "react-icons/hi2";
 import { SettingCompany } from "./SettingCompany/SettingCompany";
 import { FallbackSettingPaymentAndPlan } from "./SettingPaymentAndPlan/FallbackSettingPaymentAndPlan";
+import { FallbackSettingMemberAccounts } from "./SettingMemberAccounts/FallbackSettingMemberAccounts";
 
 export const SettingAccountModal = () => {
   const theme = useThemeStore((state) => state.theme);
@@ -1826,14 +1827,15 @@ export const SettingAccountModal = () => {
             {/* 右側メインエリア メンバー */}
             {selectedSettingAccountMenu === "Member" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
-                <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
-                  {/* <SettingMemberAccounts /> */}
+                {/* <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}> */}
+                <Suspense fallback={<FallbackSettingMemberAccounts />}>
                   <div className="relative flex h-full w-full flex-col">
                     <SettingMemberAccounts />
                   </div>
                 </Suspense>
               </ErrorBoundary>
             )}
+            {/* {selectedSettingAccountMenu === "Member" && <FallbackSettingMemberAccounts />} */}
 
             {/* 右側サブエリア 閉じるボタンエリア w-[80px] */}
             <div className={`relative flex h-full w-[0px] flex-col items-center`}>

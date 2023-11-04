@@ -39,6 +39,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
   // const removeTeamMember = useDashboardStore((state) => state.removeTeamMember);
   // const setRemoveTeamMember = useDashboardStore((state) => state.setRemoveTeamMember);
   const [removeTeamMember, setRemoveTeamMember] = useState<MemberAccounts | null>(null);
+
   // 招待メールモーダル
   const setIsOpenSettingInvitationModal = useDashboardStore((state) => state.setIsOpenSettingInvitationModal);
   // ログイン中のユーザープロフィール
@@ -47,8 +48,10 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
   const sessionState = useStore((state) => state.sessionState);
   // チェックボックス
   // const [checked, setChecked] = useState(false);
-  // チームロールポップアップ
+  // チームロールドロップダウンメニュー
   const [isOpenRoleMenu, setIsOpenRoleMenu] = useState(false);
+  // const isOpenRoleMenu = useDashboardStore((state) => state.isOpenRoleMenu);
+  // const setIsOpenRoleMenu = useDashboardStore((state) => state.setIsOpenRoleMenu);
   // チームでの役割を保持するState
   const [roleAtTeam, setRoleAtTeam] = useState(
     memberAccount.account_company_role ? memberAccount.account_company_role : ""
@@ -299,16 +302,16 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
           {/* アバターアイコン画像 */}
           {!avatarUrl && memberAccount.id && memberAccount.profile_name && (
             <div
-              className={`flex-center h-[40px] w-[40px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip} mr-[15px]`}
+              className={`flex-center h-[40px] w-[40px] rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip} mr-[15px]`}
             >
-              <span className={`text-[20px]`}>
+              <span className={`select-none text-[20px]`}>
                 {memberAccount?.profile_name ? getInitial(memberAccount.profile_name) : `${getInitial("NoName")}`}
               </span>
             </div>
           )}
           {!avatarUrl && !memberAccount.profile_name && (
             <div
-              className={`flex-center mr-[15px] h-[40px] w-[40px] cursor-pointer overflow-hidden rounded-full hover:bg-[#00000020]`}
+              className={`flex-center mr-[15px] h-[40px] w-[40px] overflow-hidden rounded-full hover:bg-[#00000020]`}
             >
               <Image
                 src={`${
@@ -327,7 +330,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
           )}
           {avatarUrl && (
             <div
-              className={`flex-center mr-[15px] h-[40px] w-[40px] cursor-pointer overflow-hidden rounded-full hover:bg-[#00000020]`}
+              className={`flex-center mr-[15px] h-[40px] w-[40px] overflow-hidden rounded-full hover:bg-[#00000020]`}
             >
               <Image
                 src={avatarUrl}
@@ -339,8 +342,11 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
             </div>
           )}
           {/* 氏名 */}
-          {!memberAccount.account_company_role && (
+          {!memberAccount.account_company_role && memberAccount.account_state === "active" && (
             <span>{memberAccount.profile_name ? memberAccount.profile_name : "メンバー未設定"}</span>
+          )}
+          {!memberAccount.account_company_role && memberAccount.account_state === "delete_requested" && (
+            <span className={`text-[var(--main-color-tk)]`}>削除リクエスト済み</span>
           )}
           {memberAccount.account_company_role && (
             <span className={`${!memberAccount.profile_name ? `text-[var(--color-text-sub)]` : ``}`}>
@@ -551,7 +557,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
               </svg>
             </div>
           )}
-          {!memberAccount.account_company_role && (
+          {!memberAccount.account_company_role && memberAccount.account_state === "active" && (
             <div className="flex-center h-full w-full">
               <RippleButton
                 title={`招待`}
@@ -580,7 +586,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
               setIsOpenRoleMenu(false);
             }}
           ></div>
-          <div className="fade02 fixed left-[50%] top-[50%] z-[2000] h-auto w-[40vw] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)]">
+          <div className="fade02 fixed left-[50%] top-[50%] z-[5000] h-auto w-[40vw] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)]">
             {loading && (
               <div className={`flex-center fixed left-0 top-0 z-[3000] h-[100%] w-[100%] rounded-[8px] bg-[#00000090]`}>
                 <SpinnerIDS scale={"scale-[0.5]"} />

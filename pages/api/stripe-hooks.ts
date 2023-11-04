@@ -79,7 +79,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           "🌟✅Ignoring unnecessary Stripe_Webhook ステップ3 サブスクにアタッチされてるスケジュールのreleaseとcreateによるWebhookなのでそのままリターン isOnlySchedule(previousAttributes)",
           isOnlySchedule(previousAttributes)
         );
-        return res.status(200).end();
+        return res.status(200).send({ received: "complete" });
+        // return res.status(200).end();
+      }
+
+      // ======================== statusがincompleteの場合はリターンする ========================
+      const subscriptionStatus = (stripeEvent.data.object as Subscription).status ?? null;
+      if (!subscriptionStatus || subscriptionStatus === "incomplete") {
+        console.log(
+          "🌟✅Ignoring incomplete Stripe_Webhook ステップ3 サブスクリプションがまだincompleteかnullのためリターン subscriptionStatus",
+          subscriptionStatus
+        );
+        return res.status(200).send({ received: "incomplete" });
       }
 
       // サブスクプランを変数に格納

@@ -666,6 +666,8 @@
   scroll-snap-stop: always; */
 
   /* scroll-snap-align: center; */
+  /* padding-top: 210px; */
+  /* margin-top: 100px; */
 }
 .faq h2 {
   font-weight: 600;
@@ -677,6 +679,9 @@
   width: 100%;
   /* max-width: 750px; */
   max-width: 1200px;
+  /* font-family: var(--font-family-discord); */
+  padding-top: 240px;
+  margin-top: -200px;
 }
 .accordion li {
   list-style: none;
@@ -721,6 +726,7 @@
 }
 .accordion .content p {
   font-size: 20px;
+  letter-spacing: 1px;
 }
 
 .accordion input[type="radio"]:checked + label + .content {

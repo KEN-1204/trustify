@@ -2,10 +2,10 @@
   position: fixed;
   z-index: 500;
   inset: 0;
-  cursor: pointer;
+  /* background: var(--overlay); */
+
   /* background: #00000030; */
-  background: var(--overlay-light);
-  background: var(--overlay);
+  /* background: var(--overlay-light); */
   /* backdrop-filter: blur(2px); */
 }
 

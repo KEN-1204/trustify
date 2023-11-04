@@ -1,14 +1,21 @@
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
+import { useQueryMemberAccounts } from "@/hooks/useQueryMemberAccounts";
 import { useQueryStripeSchedules } from "@/hooks/useQueryStripeSchedules";
 import useStore from "@/store";
 import useDashboardStore from "@/store/useDashboardStore";
 import useThemeStore from "@/store/useThemeStore";
+import { dateJST } from "@/utils/Helpers/dateJST";
+import { isValidUUIDv4 } from "@/utils/Helpers/uuidHelpers";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { format } from "date-fns";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import React, { FC, memo, useEffect, useState } from "react";
 import { AiOutlineMinusCircle, AiOutlinePlusCircle } from "react-icons/ai";
+import { MdClose } from "react-icons/md";
+import { toast } from "react-toastify";
 
 const SettingPaymentAndPlanMemo: FC = () => {
   const theme = useThemeStore((state) => state.theme);
@@ -24,6 +31,22 @@ const SettingPaymentAndPlanMemo: FC = () => {
   // アカウントを増やす・減らすモーダル開閉状態
   const isOpenChangeAccountCountsModal = useDashboardStore((state) => state.isOpenChangeAccountCountsModal);
   const setIsOpenChangeAccountCountsModal = useDashboardStore((state) => state.setIsOpenChangeAccountCountsModal);
+  // 未設定アカウントを保持するグローバルState
+  const notSetAccounts = useDashboardStore((state) => state.notSetAccounts);
+  const setNotSetAccounts = useDashboardStore((state) => state.setNotSetAccounts);
+  // 未設定かつ削除予定アカウントを保持するグローバルState
+  const notSetAndDeleteRequestedAccounts = useDashboardStore((state) => state.notSetAndDeleteRequestedAccounts);
+  const setNotSetAndDeleteRequestedAccounts = useDashboardStore((state) => state.setNotSetAndDeleteRequestedAccounts);
+  // アカウント削除リクエストのスケジュール
+  const deleteAccountRequestSchedule = useDashboardStore((state) => state.deleteAccountRequestSchedule);
+  const setDeleteAccountRequestSchedule = useDashboardStore((state) => state.setDeleteAccountRequestSchedule);
+  // プランダウングレードリクエストのスケジュール
+  const downgradePlanSchedule = useDashboardStore((state) => state.downgradePlanSchedule);
+  const setDowngradePlanSchedule = useDashboardStore((state) => state.setDowngradePlanSchedule);
+  // 削除リクエストをキャンセル確認モーダル プランダウングレードと数量ダウン両方で使用する
+  const [showConfirmModal, setShowConfirmModal] = useState<string | null>(null);
+  const supabase = useSupabaseClient();
+  const queryClient = useQueryClient();
 
   const {
     data: stripeSchedulesDataArray,
@@ -32,13 +55,93 @@ const SettingPaymentAndPlanMemo: FC = () => {
     refetch: refetchStripeSchedules,
   } = useQueryStripeSchedules();
 
+  // 現在契約しているメンバーアカウント全てを取得して、契約アカウント数をlengthで取得
+  const {
+    data: memberAccountsDataArray,
+    error: useQuerMemberAccountsError,
+    isLoading: useQueryMemberAccountsIsLoading,
+    refetch: refetchMemberAccounts,
+  } = useQueryMemberAccounts();
+
+  // スケジュールをアカウント削除、プランダウングレードに振り分けてZustandに格納
+  useEffect(() => {
+    if (!stripeSchedulesDataArray || stripeSchedulesDataArray.length === 0) {
+      setDeleteAccountRequestSchedule(null);
+      setDowngradePlanSchedule(null);
+      return;
+    }
+    // 削除リクエストのスケジュール
+    const deleteAccountRequestScheduleArray = stripeSchedulesDataArray.filter(
+      (schedule) => schedule.schedule_status === "active" && schedule.type === "change_quantity"
+    );
+    // プランダウングレードリクエストのスケジュール
+    const downgradePlanScheduleArray = stripeSchedulesDataArray.filter(
+      (schedule) => schedule.schedule_status === "active" && schedule.type === "change_plan"
+    );
+    // Zustandに格納 Arrayなのでひとつしかないが0番目のオブジェクトを格納
+    setDeleteAccountRequestSchedule(deleteAccountRequestScheduleArray[0] ?? null);
+    setDowngradePlanSchedule(downgradePlanScheduleArray[0] ?? null);
+  }, [stripeSchedulesDataArray, setDeleteAccountRequestSchedule, setDowngradePlanSchedule]);
+
+  // 未設定アカウントを算出
+  useEffect(() => {
+    if (typeof memberAccountsDataArray === "undefined") return;
+    if (!memberAccountsDataArray) {
+      setNotSetAccounts([]);
+      // setNotSetAccountsCount(null);
+      return;
+    }
+    // // 全メンバーアカウントの数
+    // アカウントの配列からprofilesのidがnull、かつ、invited_emailがnullで招待中でないアカウント、かつ、アカウントステータスがactiveのアカウントのみをフィルタリング
+    const nullIdAccounts = memberAccountsDataArray.filter(
+      (account) => account.id === null && account.account_invited_email === null && account.account_state === "active"
+    );
+    // 削除予定のアカウントを取得してグローバルStateに格納
+    const deleteRequestedAccounts = memberAccountsDataArray.filter(
+      (account) =>
+        account.id === null && account.account_invited_email === null && account.account_state === "delete_requested"
+    );
+    // idがnullのアカウントの数をカウント
+    const nullIdCount = nullIdAccounts ? nullIdAccounts.length : 0;
+    // // アカウントの配列からidがnullでないアカウントのみをフィルタリング
+    // const notNullIdAccounts = memberAccountsDataArray?.filter((account) => account.id !== null);
+    // // idがnullでないアカウントの数をカウント
+    // const notNullIdCount = notNullIdAccounts ? notNullIdAccounts.length : 0;
+    // // 全アカウント数からnullでないアカウントを引いた数
+    // const nullIdCount2 = Math.abs(allAccountsCount - notNullIdCount);
+    // console.log(
+    //   "nullIdAccounts",
+    //   nullIdAccounts,
+    //   "未設定のアクティブアカウント数",
+    //   nullIdCount,
+    //   "削除リクエスト済みアカウント数",
+    //   deleteRequestedAccounts,
+    //   "memberAccountsDataArray",
+    //   memberAccountsDataArray
+    // );
+    // グローバルStateに格納
+    // setNotSetAccountsCount(nullIdCount);
+    setNotSetAccounts(nullIdAccounts);
+    setNotSetAndDeleteRequestedAccounts(deleteRequestedAccounts);
+  }, [memberAccountsDataArray, setNotSetAccounts]);
+
   // useQueryPaymentAndPlanで製品テーブルからデータ一覧を取得
   console.log(
     "SettingPaymentAndPlanコンポーネントレンダリング",
-    "userProfileState",
+    "✅userProfileState",
     userProfileState,
-    "Stripeのサブスクスケジュール stripeSchedulesDataArray",
-    stripeSchedulesDataArray
+    "✅Stripeのサブスクスケジュール stripeSchedulesDataArray",
+    stripeSchedulesDataArray,
+    "✅削除リクエストスケジュール",
+    deleteAccountRequestSchedule,
+    "✅プランダウングレードリクエストスケジュール",
+    downgradePlanSchedule,
+    "✅全メンバーアカウント",
+    memberAccountsDataArray,
+    "✅未設定アクティブアカウント",
+    notSetAccounts,
+    "✅削除リクエスト済みアカウント",
+    notSetAndDeleteRequestedAccounts
   );
 
   // Stripeポータルへ移行させるためのURLをAPIルートにGETリクエスト
@@ -93,6 +196,113 @@ const SettingPaymentAndPlanMemo: FC = () => {
     }
   };
 
+  // アカウントの削除リクエストをキャンセルする関数
+  const [loading, setLoading] = useState(false);
+  const handleCancelDeleteAccountRequestSchedule = async () => {
+    if (!userProfileState) return alert("エラー：ユーザー情報が確認できませんでした");
+    if (!sessionState) return alert("エラー：セッション情報が確認できませんでした");
+    setLoading(true);
+
+    try {
+      console.log("🌟Stripe数量ダウンキャンセルステップ0-1 axiosでAPIルートに送信");
+
+      // 選択された個数分、未設定のアカウントの配列からidのみ取り出して指定個数の未設定idの配列を作り引数に渡す。
+      const idsToDeleteRequestedArray = notSetAndDeleteRequestedAccounts
+        .filter((account, index) => account && notSetAndDeleteRequestedAccounts.length >= index + 1)
+        .map((account) => account.subscribed_account_id);
+      // 削除リクエストのid群の配列が全てUUIDかをチェックする uuid以外が含まれていればリターン
+      if (idsToDeleteRequestedArray.every((id) => id && isValidUUIDv4(id)) === false) return;
+      console.log("🌟Stripeアカウント変更ステップ0-2 削除リクエストの配列UUIDチェック完了", idsToDeleteRequestedArray);
+
+      const payload = {
+        stripeCustomerId: userProfileState.subscription_stripe_customer_id,
+        cancelDeleteRequestQuantity: notSetAndDeleteRequestedAccounts.length,
+        subscriptionId: userProfileState.subscription_id,
+      };
+      console.log(
+        "🌟Stripe数量ダウンキャンセルステップ0-2 axios.post()でAPIルートcancel-change-quantityへリクエスト 引数のpayload",
+        payload
+      );
+      const {
+        data: { subscriptionItem, error: axiosStripeError },
+      } = await axios.post(`/api/subscription/cancel-change-quantity`, payload, {
+        headers: {
+          Authorization: `Bearer ${sessionState.access_token}`,
+        },
+      });
+
+      if (axiosStripeError) {
+        console.error(
+          `🌟Stripeアカウント変更ステップ7 Stripeアカウント数変更エラー axiosStripeError`,
+          axiosStripeError
+        );
+        throw new Error(axiosStripeError);
+      }
+      console.log(`🌟Stripeアカウント変更ステップ7 Stripeアカウント数変更完了 subscriptionItem`, subscriptionItem);
+
+      // =========== subscribed_accountsのstateを削除リクエスト済み（delete_requested）に変更 ===========
+      console.log(
+        `🌟Stripeアカウント変更ステップ8 supabaseのsubscribed_accountsテーブルから${notSetAndDeleteRequestedAccounts.length}個のアカウントの削除リクエストをactiveに変更するストアドプロシージャを実行 削除リクエストのidを持つ配列 idsToDeleteRequestedArray`,
+        idsToDeleteRequestedArray
+      );
+      // 新たに削除するアカウント数分、supabaseのsubscribed_accountsテーブルからDELETE
+      const { error: cancelDeleteRequestedSubscribedAccountsError } = await supabase.rpc(
+        "cancel_delete_requested_subscribed_accounts_all_at_once",
+        {
+          cancel_delete_requested_account_quantity: notSetAndDeleteRequestedAccounts.length,
+          ids_to_delete_requested: idsToDeleteRequestedArray,
+          _subscription_id: userProfileState.subscription_id,
+        }
+      );
+
+      if (cancelDeleteRequestedSubscribedAccountsError) {
+        console.log("🌟Stripeステップ9 supabaseの未設定アカウントを指定個数分、削除リクエストキャンセルエラー");
+        throw new Error(cancelDeleteRequestedSubscribedAccountsError.message);
+      }
+      console.log(
+        "🌟Stripeステップ9 supabaseの未設定アカウントを指定個数分、削除リクエストとsubscriptionsテーブルのアクティブアカウント数の更新成功"
+      );
+
+      // const promises = [...Array(accountQuantity)].map(() => {
+      //   return null;
+      // });
+      // await Promise.all(promises);
+      console.log("全て完了 キャッシュを更新");
+
+      // キャッシュを最新状態に反映
+      // サブスクリプションスケジュールを取得して新たなダウングレードの適用時期を明示する
+      await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
+      await queryClient.invalidateQueries({ queryKey: ["stripe_schedules"] });
+
+      // ======== subscribed_accountsのstateを削除リクエスト済み（delete_requested）に変更 ここまで ========
+
+      // ======================= スケジュールの適用日に実行 =======================
+      toast.success(`削除リクエストをキャンセルしました。`, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    } catch (e: any) {
+      console.error("handleChangeQuantityエラー", e);
+      toast.error(`削除リクエストのキャンセルに失敗しました。`, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    }
+
+    setShowConfirmModal(null); // 確認モーダルを閉じる
+    setLoading(false);
+  };
+
   const [openAccountCountsMenu, setOpenAccountCountsMenu] = useState(false);
   const AccountCountsDropDownMenu = () => {
     return (
@@ -139,6 +349,11 @@ const SettingPaymentAndPlanMemo: FC = () => {
       {/* 右側メインエリア プロフィール */}
       {selectedSettingAccountMenu === "PaymentAndPlan" && (
         <div className={`flex h-full w-full flex-col overflow-y-scroll py-[20px] pl-[20px] pr-[80px]`}>
+          {loading && (
+            <div className={`flex-center fixed inset-0 z-[2000] rounded-[8px] bg-[#00000090]`}>
+              <SpinnerIDS scale={"scale-[0.5]"} />
+            </div>
+          )}
           <h2 className={`text-[18px] font-bold !text-[var(--color-text-title)]`}>支払いとプラン</h2>
 
           <div className="mt-[20px] min-h-[55px] w-full">
@@ -164,7 +379,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
               </div>
               {userProfileState?.subscription_plan !== "free_plan" && (
                 <div>
-                  <div className="mt-[16px] flex w-full text-[15px] text-[var(--color-text-sub)]">
+                  <div className="mt-[16px] flex w-full space-x-2 text-[15px] text-[var(--color-text-sub)]">
                     <p>
                       次回請求予定日：
                       <span>
@@ -173,12 +388,31 @@ const SettingPaymentAndPlanMemo: FC = () => {
                           : ""}
                       </span>
                     </p>
+                    {!!stripeSchedulesDataArray &&
+                      !!deleteAccountRequestSchedule &&
+                      deleteAccountRequestSchedule.current_end_date &&
+                      deleteAccountRequestSchedule.type === "change_quantity" && (
+                        <p className="text-[14px]">
+                          （
+                          <span className="font-bold ">
+                            {format(new Date(deleteAccountRequestSchedule.current_end_date), "yyyy/MM/dd")}
+                            {/* {format(new Date(stripeSchedulesDataArray[0].current_end_date), "yyyy/MM/dd")} */}
+                          </span>
+                          に、ご利用のアカウント数は{deleteAccountRequestSchedule.scheduled_quantity}
+                          個に変更されます。）
+                          {/* に、ご利用のアカウント数は{stripeSchedulesDataArray[0].scheduled_quantity}個に変更されます。） */}
+                        </p>
+                      )}
                   </div>
-                  <div className="mt-[8px] flex w-full text-[15px] text-[var(--color-text-sub)]">
+
+                  <div className="mt-[8px] flex w-full space-x-2 text-[15px] text-[var(--color-text-sub)]">
                     <p>
                       ￥<span>{planToPrice(userProfileState?.subscription_plan)}</span>/月　×　メンバーアカウント：
                       <span>{userProfileState?.accounts_to_create}</span>
                     </p>
+                    {!!notSetAndDeleteRequestedAccounts.length && (
+                      <p>（削除リクエスト済みアカウント：{notSetAndDeleteRequestedAccounts.length}）</p>
+                    )}
                   </div>
                 </div>
               )}
@@ -225,7 +459,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
                   </button>
                 </div>
                 <button
-                  className={`transition-base01 flex-center max-h-[41px] w-[50%] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-sub)] px-[25px] py-[10px] text-[14px] font-bold !text-[var(--color-text-title)] ${
+                  className={`transition-base02 flex-center max-h-[41px] w-[50%] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-sub)] px-[25px] py-[10px] text-[14px] font-bold !text-[var(--color-text-title)] ${
                     isLoading ? `` : `hover:bg-[var(--bright-red)] hover:!text-[#fff]`
                   }`}
                   onClick={() => {
@@ -236,6 +470,54 @@ const SettingPaymentAndPlanMemo: FC = () => {
                   {userProfileState?.subscription_plan !== "free_plan" && !isLoading && <span>アカウントを減らす</span>}
                   {isLoading && <SpinnerIDS scale={"scale-[0.4]"} />}
                 </button>
+              </div>
+            </div>
+
+            <div className={`mt-[12px] flex w-full flex-col space-y-2 text-[15px] text-[var(--color-text-sub)]`}>
+              {!!deleteAccountRequestSchedule && (
+                <div className="flex w-full items-center justify-end">
+                  <span
+                    className="ml-auto cursor-pointer hover:text-[var(--color-text-brand-f)] hover:underline"
+                    // onClick={handleCancelDeleteAccountRequestSchedule}
+                    onClick={() => setShowConfirmModal("delete_request")}
+                  >
+                    アカウントの削除リクエストをキャンセル
+                  </span>
+                </div>
+              )}
+              {!!downgradePlanSchedule && (
+                <div className="flex w-full items-center justify-end">
+                  <span
+                    className="ml-auto cursor-pointer hover:text-[var(--color-text-brand-f)] hover:underline"
+                    onClick={() => console.log("クリック")}
+                  >
+                    プランのダウングレードをキャンセル
+                  </span>
+                </div>
+              )}
+              <div className="flex w-full items-center justify-end">
+                <span
+                  className="ml-auto cursor-pointer hover:text-[var(--color-text-brand-f)] hover:underline"
+                  onClick={() => console.log("クリック")}
+                >
+                  お支払い方法の設定
+                </span>
+              </div>
+              <div className="flex w-full items-center justify-end">
+                <span
+                  className="ml-auto cursor-pointer hover:text-[var(--color-text-brand-f)] hover:underline"
+                  onClick={() => console.log("クリック")}
+                >
+                  お支払いに関する詳細
+                </span>
+              </div>
+              <div className="flex w-full items-center justify-end">
+                <span
+                  className="ml-auto cursor-pointer hover:text-[var(--color-text-brand-f)] hover:underline"
+                  onClick={() => console.log("クリック")}
+                >
+                  メンバーシップのキャンセル
+                </span>
               </div>
             </div>
           </div>
@@ -260,6 +542,64 @@ const SettingPaymentAndPlanMemo: FC = () => {
           }}
         ></div>
       )}
+
+      {/* ============================== チームから削除の確認モーダル ============================== */}
+      {showConfirmModal !== null && (
+        <>
+          {/* オーバーレイ */}
+          <div
+            className="fixed left-[-100vw] top-[-100vh] z-[1000] h-[200vh] w-[200vw] bg-[var(--color-overlay)] backdrop-blur-sm"
+            onClick={() => {
+              console.log("オーバーレイ クリック");
+              setShowConfirmModal(null);
+            }}
+          ></div>
+          <div className="fade02 fixed left-[50%] top-[50%] z-[2000] h-auto w-[40vw] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)]">
+            {loading && (
+              <div className={`flex-center fixed left-0 top-0 z-[3000] h-[100%] w-[100%] rounded-[8px] bg-[#00000090]`}>
+                <SpinnerIDS scale={"scale-[0.5]"} />
+              </div>
+            )}
+            {/* クローズボタン */}
+            <button
+              className={`flex-center z-100 group absolute right-[-40px] top-0 h-[32px] w-[32px] rounded-full bg-[#00000090] hover:bg-[#000000c0]`}
+              onClick={() => {
+                setShowConfirmModal(null);
+              }}
+            >
+              <MdClose className="text-[20px] text-[#fff]" />
+            </button>
+            <h3 className={`flex min-h-[32px] w-full items-center text-[22px] font-bold`}>
+              {showConfirmModal === "delete_request" && "削除リクエストをキャンセルしますか？"}
+            </h3>
+            <section className={`mt-[20px] flex h-auto w-full flex-col space-y-3 text-[14px]`}>
+              <p>この操作を実行した後にキャンセルすることはできません。</p>
+              {/* <p className="font-bold">
+                注：この操作により、該当ユーザーのデータは、他のチームメンバーと共有されていないものを含めて全てアクセスできなくなります。
+              </p> */}
+            </section>
+            <section className="flex w-full items-start justify-end">
+              <div className={`flex w-[100%] items-center justify-around space-x-5 pt-[30px]`}>
+                <button
+                  className={`w-[50%] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[15px] py-[10px] text-[14px] font-bold text-[var(--color-text-title)] hover:bg-[var(--setting-side-bg-select-hover)]`}
+                  onClick={() => {
+                    setShowConfirmModal(null);
+                  }}
+                >
+                  キャンセル
+                </button>
+                <button
+                  className="w-[50%] cursor-pointer rounded-[8px] bg-[var(--color-red-tk)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff] hover:bg-[var(--color-red-tk-hover)]"
+                  onClick={handleCancelDeleteAccountRequestSchedule}
+                >
+                  削除リクエストをキャンセルする
+                </button>
+              </div>
+            </section>
+          </div>
+        </>
+      )}
+      {/* ============================== チームから削除の確認モーダル ここまで ============================== */}
     </>
   );
 };

@@ -342,7 +342,15 @@ export const SubscriptionPlanModalForFreeUser = () => {
               </button>
             </div>
           </div>
-          <div className={`${styles.right_container} flex h-full w-6/12 `}></div>
+          <div className={`${styles.right_container} relative flex h-full w-6/12`}>
+            <Image
+              src={`/assets/images/team/team1.jpg`}
+              alt=""
+              className="z-[-1] h-full w-full object-cover object-center"
+              fill
+              sizes="10vw"
+            />
+          </div>
           {/* <div className={`${styles.right_container_a} flex h-full w-6/12 overflow-hidden`}>
             <Image
               src={"/assets/images/team/annie-spratt-MChSQHxGZrQ-unsplash.jpg"}

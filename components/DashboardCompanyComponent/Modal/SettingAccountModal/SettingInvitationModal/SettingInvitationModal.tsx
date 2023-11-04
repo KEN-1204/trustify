@@ -596,7 +596,7 @@ export const SettingInvitationModal = () => {
 
               <div className="mb-[0px] mt-[20px] flex w-full items-center text-[15px]">
                 <h4>
-                  メンバー未設定アカウント数：
+                  メンバー未設定のアカウント数：
                   <span className="font-bold">{notSetAccounts.length}個</span>
                 </h4>
               </div>

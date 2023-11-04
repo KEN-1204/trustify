@@ -7,6 +7,7 @@
   background: #00000050;
   backdrop-filter: blur(4px);
   /* transform: translateY(-20px) scaleY(1.1); */
+  border-radius: 8px;
 }
 .loading_overlay {
   position: fixed;

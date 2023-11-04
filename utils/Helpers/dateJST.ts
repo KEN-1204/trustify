@@ -4,7 +4,7 @@ export const dateJST = (timestampValue: number) => {
   let timestamp: number;
   // 10桁のUNIXタイムスタンプか13桁のタイムスタンプか確認してUNIXタイムスタンプなら1000倍してミリ秒に変換
   // UNIXタイムスタンプは10桁の数字（秒単位）で、JavaScriptのDateオブジェクトは13桁の数字（ミリ秒単位）である
-  if (String(timestampValue).length === 13) {
+  if (String(timestampValue).length === 10) {
     timestamp = timestampValue * 1000;
   } else {
     timestamp = timestampValue;

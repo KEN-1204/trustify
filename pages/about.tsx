@@ -28,13 +28,15 @@ const About = () => {
   }
 
   // ログイン時にテーマをライトに設定する
-  useEffectOnce(() => {
-    setTheme("light");
-    // setTheme("light");
-  });
+  // useEffectOnce(() => {
+  //   setTheme("light");
+  // });
   return (
     <Layout title={langTitle}>
-      <div className="flex h-screen w-full flex-col items-center px-[10%] py-[5%] text-[var(--color-text)]">
+      <div
+        className="flex h-screen w-full flex-col items-center px-[10%] py-[5%] text-[var(--color-text)]"
+        style={{ fontFamily: "var(--font-family-discord)" }}
+      >
         <div className="relative h-[3px] w-full rounded-full bg-[var(--color-border)]">
           <div className="absolute z-10 h-[3px] w-[30px] rounded-full bg-[var(--color-bg-brand)]"></div>
         </div>
@@ -49,15 +51,15 @@ const About = () => {
           <div className="flex">
             <div className="flex w-1/2 flex-col pr-[50px]">
               <div className="flex h-full items-center py-[35px] font-semibold">
-                <div className="mr-[80px] w-[64px] ">社名</div>
-                <div>株式会社トラスティファイ / TRUSTiFY, Inc</div>
+                <div className="mr-[80px] w-[64px]">社名</div>
+                <div>株式会社トラスティファイ / TRUSTiFY, Inc.</div>
               </div>
               <div className="h-[2px] w-full bg-[var(--color-border)]"></div>
             </div>
             <div className="flex w-1/2 flex-col pr-[10px]">
               <div className="flex h-full items-center py-[35px] font-semibold">
                 <div className="mr-[80px] w-[64px]">所在地</div>
-                <div>東京都港区北青山1-3-1 アールキューブ3F</div>
+                <div>東京都港区北青山1-3-1 アールキューブ青山3F</div>
               </div>
               <div className="h-[2px] w-full bg-[var(--color-border)]"></div>
             </div>

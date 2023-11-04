@@ -495,6 +495,7 @@ export type StripeSchedule = {
   released_at: string | null;
   end_behavior: string | null;
   released_subscription: string | null;
+  type: string | null;
 };
 
 export type Contact = {

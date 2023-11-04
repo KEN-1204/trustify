@@ -19,7 +19,8 @@ export const Root: FC = () => {
   const setOpenLangTab = useStore((state) => state.setOpenLangTab);
   const setClickedItemPos = useStore((state) => state.setClickedItemPos);
   const setClickedItemPosOver = useStore((state) => state.setClickedItemPosOver);
-  const openModal = useStore((state) => state.setIsOpenModal);
+  const isOpenModal = useStore((state) => state.isOpenModal);
+  const setIsOpenModal = useStore((state) => state.setIsOpenModal);
   const setIsLogin = useStore((state) => state.setIsLogin);
   const getStartWithEmail = useStore((state) => state.getStartWithEmail);
   const setGetStartWithEmail = useStore((state) => state.setGetStartWithEmail);
@@ -182,10 +183,19 @@ export const Root: FC = () => {
             muted={true}
             playsInline={true}
             loop={true}
-            className={` h-[100%] w-[100%] scale-[1.02]`}
+            className={`h-[100%] w-[100%] scale-[1.02] object-cover`}
           >
             <source src="/assets/videos/Root/top-bg3.mp4" type="video/mp4" />
           </video>
+          {/* <video
+            autoPlay={true}
+            muted={true}
+            playsInline={true}
+            loop={true}
+            className={`h-[100%] w-[100%] scale-[1.02]`}
+          >
+            <source src="/assets/videos/Root/top-bg3.mp4" type="video/mp4" />
+          </video> */}
         </div>
         {/* <div className="absolute left-0 top-0  z-0 h-[100dvh] w-[100dvw] bg-[#00000010]"></div> */}
         {/* <div className={`${styles.hero_overlay}`}></div> */}
@@ -231,7 +241,7 @@ export const Root: FC = () => {
               type="submit"
               onClick={(e) => {
                 e.preventDefault();
-                openModal(true);
+                setIsOpenModal(true);
               }}
             >
               {language === "Ja" && "今すぐ始める"}
@@ -245,7 +255,7 @@ export const Root: FC = () => {
             <button
               onClick={() => {
                 setIsLogin(false);
-                openModal(true); // メンテナンス完了後は表示
+                setIsOpenModal(true); // メンテナンス完了後は表示
               }}
               className={`${styles.cta_btn}`}
             >
@@ -264,9 +274,60 @@ export const Root: FC = () => {
 
       <hr className={styles.horizon} />
 
+      {/* バーチャルビデオ背景 ここから */}
+      {/* {isOpenModal && (
+        <div className={`fade fixed left-0 top-0 z-10 h-screen w-screen ${styles.virtual}`}>
+          <video
+            autoPlay={true}
+            muted={true}
+            playsInline={true}
+            loop={true}
+            className={`fade h-[100%] w-[100%] object-cover opacity-90`}
+          >
+            <source src="/assets/videos/Root/top-bg-virtual.mp4" type="video/mp4" />
+          </video>
+        </div>
+      )} */}
+      {/* バーチャルビデオ背景 ここまで */}
+
       {/* ======================== Featuresセクション ======================== */}
       {/* ======================== Feature1 ======================== */}
-      <section id="product" className={`transition-base-color bg-[--color-bg-hp-main] ${styles.scroll_slides_row}`}>
+      <section
+        id="product"
+        className={`transition-base-color bg-[--color-bg-hp-main] ${styles.scroll_slides_row} relative`}
+      >
+        {/* バーチャルビデオ背景 ここから */}
+        {/* {hoveredFeature1 && (
+          <div className={`absolute left-0 top-0  h-full w-full`}>
+            <video
+              autoPlay={true}
+              muted={true}
+              playsInline={true}
+              loop={true}
+              className={`fade04 h-[100%] w-[100%] object-cover`}
+            >
+              <source src="/assets/videos/Root/top-bg-virtual.mp4" type="video/mp4" />
+            </video>
+          </div>
+        )} */}
+        <div
+          className={`transition-base absolute left-0 top-0 h-full w-full ${
+            hoveredFeature1 ? `opacity-100` : `pointer-events-none opacity-0`
+            // hoveredFeature1 ? `opacity-0` : `pointer-events-none opacity-100`
+          }`}
+        >
+          <video
+            autoPlay={true}
+            muted={true}
+            playsInline={true}
+            loop={true}
+            className={`h-[100%] w-[100%] object-cover`}
+          >
+            {/* <source src="/assets/videos/Root/top-bg-virtual.mp4" type="video/mp4" /> */}
+            <source src="/assets/videos/Root/top-bg-virtual-compressed.mp4" type="video/mp4" />
+          </video>
+        </div>
+        {/* バーチャルビデオ背景1 ここまで */}
         <div className={`${styles.text_col}`}>
           <h2 className={`${styles.section_title} ${hoveredFeature1 ? `${styles.section_title_brand}` : ``} `}>
             {/* {language === "Ja" && "最小の資本と人で、最大の経済効果を上げる"} */}
@@ -280,7 +341,7 @@ export const Root: FC = () => {
               {language === "En" && "To an organization where anyone can sell."}
             </span>
           </h2>
-          <p>
+          <p className={`relative z-0 ${hoveredFeature1 ? `transition-base text-[#fff]` : ``}`}>
             {language === "Ja" &&
               "属人的になりがちな営業を「リスト作成、架電、アポ取り、商談、クロージング、サポート」の全てのプロセスをデータ化し、「売れる営業先・売れる営業手法・満足度を最大化するサポート手法」を可視化することで、どんな営業マンでも高い売上を上げ、「最小の資本と人で最大の経済効果を上げる」組織を実現します。"}
             {/* {language === "Ja" &&
@@ -331,7 +392,41 @@ export const Root: FC = () => {
       <hr className={styles.horizon} />
 
       {/* ======================== Feature2 ======================== */}
-      <section className={`transition-base-color bg-[--color-bg-hp-main] ${styles.scroll_slides_row} flex-row-reverse`}>
+      <section
+        className={`transition-base-color bg-[--color-bg-hp-main] ${styles.scroll_slides_row} relative flex-row-reverse`}
+      >
+        {/* バーチャルビデオ背景2 ここから */}
+        {/* {hoveredFeature2 && (
+          <div className={`absolute left-0 top-0  h-full w-full`}>
+            <video
+              autoPlay={true}
+              muted={true}
+              playsInline={true}
+              loop={true}
+              className={`fade04 h-[100%] w-[100%] object-cover`}
+            >
+              <source src="/assets/videos/geographic-bg.mp4" type="video/mp4" />
+            </video>
+          </div>
+        )} */}
+        <div
+          className={`transition-base absolute left-0 top-0 h-full w-full ${
+            hoveredFeature2 ? `opacity-100` : `pointer-events-none opacity-0`
+            // hoveredFeature2 ? `opacity-0` : `pointer-events-none opacity-100`
+          }`}
+        >
+          <video
+            autoPlay={true}
+            muted={true}
+            playsInline={true}
+            loop={true}
+            className={`h-[100%] w-[100%] object-cover`}
+          >
+            {/* <source src="/assets/videos/geographic-bg.mp4" type="video/mp4" /> */}
+            <source src="/assets/videos/geographic-compressed.mp4" type="video/mp4" />
+          </video>
+        </div>
+        {/* バーチャルビデオ背景 ここまで */}
         <div className={`${styles.text_col}`}>
           {/* <h2>
             
@@ -346,15 +441,15 @@ export const Root: FC = () => {
               {language === "En" && "Find 'current' sales prospects immediately"}
             </span>
           </h2>
-          <p>
+          <p className={`relative z-0 ${hoveredFeature2 ? `transition-base text-[#fff]` : ``}`}>
             {language === "Ja" &&
               `データベースから未知の客先にアポを組み、600万円の商品をその場でご注文いただくなど "今" 売れる営業を何度も経験してきました。 `}
             {language === "En" &&
               "I've had repeated experiences with 'current' successful sales, such as arranging appointments with unknown clients from the database and receiving on-the-spot orders for products worth around 55,000 USD."}
           </p>
-          <p>
+          <p className={`relative z-0 ${hoveredFeature2 ? `transition-base text-[#fff]` : ``}`}>
             {language === "Ja" &&
-              `98万社の会社データを保有するデータベースから自社の狙い先となり得る会社を、「業界、取引先、規模、今までの活動履歴」などの様々な条件から簡単、瞬時に抽出が可能です。 自社のサービスが解決する課題を持つ会社を瞬時に見つけ、競合よりも早く売ることができます。`}
+              `Excelだとフリーズしてしまうような98万社もの膨大な会社データから自社の狙い先となり得る会社を、「業界、取引先、規模、今までの活動履歴」などの様々な条件から簡単、瞬時に抽出が可能です。 自社のサービスが解決する課題を持つ会社を瞬時に見つけ、競合よりも早く売ることができます。`}
             {language === "En" &&
               "You can easily and instantly extract potential target companies from our database, which holds data from 980,000 companies, based on various criteria such as 'industry, clients, scale, and past activities'. You can quickly find companies that have the problems your service solves, allowing you to sell faster than your competitors."}
           </p>
@@ -402,7 +497,37 @@ export const Root: FC = () => {
       <hr className={styles.horizon} />
 
       {/* ======================== Feature3 ======================== */}
-      <section className={`transition-base-color bg-[--color-bg-hp-main] ${styles.scroll_slides_row}`}>
+      <section className={`transition-base-color bg-[--color-bg-hp-main] ${styles.scroll_slides_row} relative`}>
+        {/* バーチャルビデオ背景 ここから */}
+        {/* {hoveredFeature3 && (
+          <div className={`absolute left-0 top-0  h-full w-full`}>
+            <video
+              autoPlay={true}
+              muted={true}
+              playsInline={true}
+              loop={true}
+              className={`fade04 h-[100%] w-[100%] object-cover`}
+            >
+              <source src="/assets/videos/Root/top-bg-virtual.mp4" type="video/mp4" />
+            </video>
+          </div>
+        )} */}
+        <div
+          className={`transition-base absolute left-0 top-0 h-full w-full ${
+            hoveredFeature3 ? `opacity-100` : `pointer-events-none opacity-0`
+          }`}
+        >
+          <video
+            autoPlay={true}
+            muted={true}
+            playsInline={true}
+            loop={true}
+            className={`h-[100%] w-[100%] object-cover`}
+          >
+            <source src="/assets/videos/Root/top-bg-virtual-compressed.mp4" type="video/mp4" />
+          </video>
+        </div>
+        {/* バーチャルビデオ背景 ここまで */}
         <div className={`${styles.text_col}`}>
           {/* <h2>
             {language === "Ja" && "リスト作成時間を大幅に短縮し工数削減"}
@@ -417,13 +542,13 @@ export const Root: FC = () => {
               {language === "En" && "Significantly reduce list creation time and workload."}
             </span>
           </h2>
-          <p>
+          <p className={`relative z-0 ${hoveredFeature3 ? `transition-base text-[#fff]` : ``}`}>
             {language === "Ja" &&
               "キーエンスではリスト作成・架電・準備・営業・入金確認・サポートを全て一人で行います。そのため最小の時間で最大の売上を上げられるよう限られた時間で売れる営業先のリストを多くピックしなければなりません。 "}
             {language === "En" &&
               "At Keyence, we handle everything from list creation, cold calling, preparation, sales, payment confirmation, to support all by ourselves. Therefore, in order to maximize sales in the shortest time possible, we must pick a large number of prospective clients from our lists in the limited time we have."}
           </p>
-          <p>
+          <p className={`relative z-0 ${hoveredFeature3 ? `transition-base text-[#fff]` : ``}`}>
             {language === "Ja" &&
               "日々のリスト作成時間を1日30分短縮することで、20日稼働で月10時間の短縮、年間120時間の短縮となり、人件費1人当たり26万8680円/年、10人で260万円/年の導入効果に繋がります。(*人件費は中央値430万円/年で計算)"}
             {language === "En" &&
@@ -469,9 +594,46 @@ export const Root: FC = () => {
 
       <hr className={styles.horizon} />
 
-      <section className={`transition-base-color bg-[--color-bg-hp-main] ${styles.scroll_slides_row} flex-row-reverse`}>
+      {/* ======================== Feature4 ======================== */}
+      <section
+        className={`transition-base-color bg-[--color-bg-hp-main] ${styles.scroll_slides_row} relative flex-row-reverse`}
+      >
+        {/* バーチャルビデオ背景 ここから */}
+        {/* {hoveredFeature4 && (
+          <div className={`absolute left-0 top-0  h-full w-full`}>
+            <video
+              autoPlay={true}
+              muted={true}
+              playsInline={true}
+              loop={true}
+              className={`fade04 h-[100%] w-[100%] object-cover`}
+            >
+              <source src="/assets/videos/geographic-bg.mp4" type="video/mp4" />
+            </video>
+          </div>
+        )} */}
+        <div
+          className={`transition-base absolute left-0 top-0 h-full w-full ${
+            hoveredFeature4 ? `opacity-100` : `pointer-events-none opacity-0`
+          }`}
+        >
+          <video
+            autoPlay={true}
+            muted={true}
+            playsInline={true}
+            loop={true}
+            className={`h-[100%] w-[100%] object-cover`}
+          >
+            <source src="/assets/videos/geographic-compressed.mp4" type="video/mp4" />
+          </video>
+        </div>
+        {/* バーチャルビデオ背景 ここまで */}
         <div className={`${styles.text_col}`}>
-          <h2 className={`${styles.section_title} ${hoveredFeature4 ? `${styles.section_title_brand}` : ``} `}>
+          <h2
+            className={`${styles.section_title} ${language === "En" ? "break-words !text-[40px]" : ""} ${
+              hoveredFeature4 ? `${styles.section_title_brand}` : ``
+            }`}
+          >
             {language === "Ja" && "顧客に刺さる商品開発へ"}
             {language === "En" && "Towards Product Development that Resonates with Customers"}
             <span className={`${styles.title_before}`}>
@@ -479,7 +641,7 @@ export const Root: FC = () => {
               {language === "En" && "Towards Product Development that Resonates with Customers"}
             </span>
           </h2>
-          <p>
+          <p className={`relative z-0 ${hoveredFeature4 ? `transition-base text-[#fff]` : ``}`}>
             {language === "Ja" &&
               "売れ先、売れなかった行き先のデータを常に収集することで、日々の営業データから次なる潜在ニーズを発掘し、顧客から欲しいと言われる前に潜在ニーズを満たす商品を開発しリリース、他社よりも先手を打つ提案でまた新たな営業データを収集、売上を上げ続ける仕組みを構築します。"}
             {/* {language === "Ja" &&
@@ -528,11 +690,13 @@ export const Root: FC = () => {
 
       {/* ======================== FAQ ======================== */}
       <section id="faq" className={styles.faq}>
+        {/* <section id="faq" className={styles.faq} style={{ fontFamily: "var(--font-family-discord)" }}> */}
         <h2>
           {language === "Ja" && "よくある質問"}
           {language === "En" && "Frequently Asked Questions"}
         </h2>
-        <ul id="price" className={styles.accordion}>
+        {/* <ul id="price" className={styles.accordion}> */}
+        <ul id="price" className={styles.accordion} style={{ fontFamily: "var(--font-family-discord)" }}>
           <li>
             <input type="radio" name="accordion" id="first" />
             <label htmlFor="first">
@@ -540,7 +704,7 @@ export const Root: FC = () => {
               {language === "En" && "What is TRUSTiFY?"}
             </label>
             <div className={styles.content}>
-              <p>
+              <p className="relative z-0">
                 {/* {language === "Ja" &&
                   "Netflixは、受賞歴のあるドラマ、映画、アニメ、ドキュメンタリーなどの幅広いコンテンツを配信するストリーミングサービスで、メンバーはあらゆるインターネット接続デバイスで視聴することができます。定額、低価格で、いつでもどこでも、好きなだけ視聴することができます。映画やドラマは毎週追加されるので、いつでも新しい作品が見つかります。"} */}
                 {language === "Ja" &&
@@ -559,7 +723,7 @@ export const Root: FC = () => {
           <li>
             <input type="radio" name="accordion" id="second" />
             <label htmlFor="second">
-              {language === "Ja" && "TRUSTiFY利用料金は？"}
+              {language === "Ja" && "TRUSTiFYの利用料金は？"}
               {language === "En" && "How much does TRUSTiFY cost?"}
             </label>
             <div className={styles.content}>
@@ -567,11 +731,11 @@ export const Root: FC = () => {
                 {/* {language === "Ja" &&
                   "TRUSTiFYを定額でお使いいただけます。プランは1人あたり月額￥980（ビジネスプラン）から￥1,980（サポータープラン）まで。追加料金や長期契約はありません。"} */}
                 {language === "Ja" &&
-                  "TRUSTiFYを定額でお使いいただけます。プランは1人あたり月額￥980（ビジネスプラン）と￥19,800（サポータープラン）の2つのみ。追加料金や長期契約はありません。"}
+                  "TRUSTiFYを定額でお使いいただけます。プランは1人あたり月額￥980（ビジネスプラン）と￥19,800（プレミアムプラン）の2つのみ。追加料金や長期契約はありません。"}
                 {/* {language === "Ja" &&
                   "スマホ、タブレット、スマートテレビ、パソコン、ストリーミングデバイスなどから、Netflixを定額でお楽しみいただけます。プランは月額￥790から￥1,980まで。追加料金や長期契約はありません。"} */}
                 {language === "En" &&
-                  "You can use TRUSTiFY at a flat rate. We offer only two plans: the Business Plan at $8.70 per person per month, and the Supporter Plan at $176 per person per month. There are no additional charges or long-term contracts."}
+                  "You can use TRUSTiFY at a flat rate. We offer only two plans: the Business Plan at $8.70 per person per month, and the Premium Plan at $176 per person per month. There are no additional charges or long-term contracts."}
                 {/* {language === "En" &&
                   "You can use TRUSTiFY for a flat rate. Our plans range from $7 to $14 per person per month. There are no additional charges or long-term contracts."} */}
                 {/* {language === "En" &&
@@ -583,10 +747,11 @@ export const Root: FC = () => {
             <input type="radio" name="accordion" id="third" />
             <label htmlFor="third">
               {/* {language === "Ja" && "広告つきプランと通常のプランとの違いは何ですか？"} */}
-              {language === "Ja" && "ビジネスプランとサポータープランとの違いは何ですか？"}
-              {language === "En" && "What's different on an ad-supported plan?"}
+              {language === "Ja" && "ビジネスプランとプレミアムプランとの違いは何ですか？"}
+              {/* {language === "En" && "What's different on an ad-supported plan?"} */}
+              {language === "En" && "What is the difference between the Business Plan and the Premium Plan?"}
             </label>
-            <div className={styles.content}>
+            <div className={`${styles.content}`}>
               <p>
                 {/* {language === "Ja" &&
                   "広告つきプランでは、低価格で映画やドラマをお楽しみいただけます。様々な作品をご視聴いただけますが、再生中に広告が流れることがあります (場所やデバイスによっては一部制限があります)。ダウンロードはご利用いただけません。また、一部の映画やドラマは、ライセンスの関係でご覧いただけません。詳しくはこちら。"} */}
@@ -600,7 +765,7 @@ export const Root: FC = () => {
               </p>
               <p>
                 {language === "Ja" &&
-                  "プレミアムプランに関しては、電話、Web会議にてサポートを受けることが受けることが可能になっております。また、使い勝手や要望をTRUSTiFY開発チームに直接伝えることで自社にフィットした追加機能の開発、サービスの改善に役立てることも可能です。まだTRUSTiFYはベータ版であり、少数精鋭のTRUSTiFYチームが直接お客様のご要望を伺いながらすぐに改善し、低価格で最大の経済効果を上げられるサービスへと育てていけるよう「支援者」となっていただく方を本プランにて募集しております。ご満足いただけるサービスにできるよう何卒よろしくお願い申し上げます。"}
+                  "プレミアムプランに関しては、電話、Web会議にてサポートを受けることが受けることが可能になっております。また、使い勝手や要望をTRUSTiFY開発チームに直接伝えることで自社にフィットした追加機能の開発、サービスの改善に役立てることも可能です。まだTRUSTiFYはベータ版であり、少数精鋭のTRUSTiFYチームが直接お客様のご要望を伺いながらすぐに改善し、低価格で最大の経済効果を上げられるサービスへと共に育てていっていただける「支援者」を募集しております。ご満足いただけるサービスにできるよう何卒よろしくお願い申し上げます。"}
                 {language === "En" &&
                   "With the Premium Plan, you have access to support via phone and web conferencing. Moreover, you can directly communicate your feedback and requests to the TRUSTiFY development team, facilitating the development of additional features tailored to your company and improving our service. As TRUSTiFY is still in its beta phase, our elite, compact team is actively seeking supporters through this plan, eager to promptly refine the platform based on your feedback. Our goal is to nurture TRUSTiFY into a cost-effective service that maximizes economic benefits. We earnestly strive to meet your expectations and appreciate your support."}
               </p>

@@ -161,7 +161,13 @@ export const Header: FC<Props> = ({
           setIsHoveringHeader(false);
         }}
       >
-        <div className="relative flex h-full w-auto cursor-pointer select-none items-center justify-center">
+        <Link
+          href="#"
+          scroll={true}
+          prefetch={false}
+          className="relative flex h-full w-auto cursor-pointer select-none items-center justify-center"
+        >
+          {/* <div className="relative flex h-full w-auto cursor-pointer select-none items-center justify-center"> */}
           {logoSrc ? (
             <Image
               src={theme === "dark" ? logoSrcDark : lightTextBorderLine ? logoSrc : logoSrcDark}
@@ -181,7 +187,8 @@ export const Header: FC<Props> = ({
               TRUSTiFY
             </span>
           )}
-        </div>
+          {/* </div> */}
+        </Link>
         <nav>
           <ul
             className={`hidden h-full w-auto items-center justify-around text-[16px] font-[500] text-[--navColor] md:flex `}

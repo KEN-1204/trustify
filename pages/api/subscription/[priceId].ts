@@ -85,6 +85,23 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       return;
     }
 
+    // 契約開始日を契約当日の0時0分0秒0ミリ秒に設定する
+    // ユーザーが契約するその瞬間の日付を取得（サーバーのタイムゾーン設定に依存しないようにUTC時間で計算）
+    // const now = new Date();
+    // const jstOffset = 9 * 60; // JSTはUTC+9時間
+
+    // // UTC時間で現在時刻を計算し、JSTに変換してから日付のみを取得（時刻は0時00分に設定）
+    // const jstDate = new Date(now.getTime() + jstOffset * 60 * 1000); // 現在時刻にオフセットを加算
+    // jstDate.setHours(0, 0, 0, 0); // 時刻を0時00分00秒000ミリ秒に設定
+
+    // // UNIXタイムスタンプに変換
+    // const billingCycleAnchorTimestamp = Math.floor(jstDate.getTime() / 1000);
+
+    // // UTC時間で現在時刻を計算し、JSTに変換してから日付のみを取得（時刻は0時00分に設定）
+    // const jstToday = new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, -jstOffset, 0, 0);
+    // // UNIXタイムスタンプに変換
+    // const billingCycleAnchor = Math.floor(jstToday / 1000);
+
     // stripeチェックアウト
     const stripeSession = await stripe.checkout.sessions.create({
       customer: user.stripe_customer_id,
@@ -95,6 +112,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       success_url: `${process.env.CLIENT_URL}/home`,
       // cancel_url: `${process.env.CLIENT_URL}/payment/cancelled`,
       cancel_url: `${process.env.CLIENT_URL}/home`,
+      // subscription_data: {
+      //   billing_cycle_anchor: billingCycleAnchorTimestamp,
+      // },
     });
     console.log("🌟Stripeチェックアウト成功", stripeSession);
 

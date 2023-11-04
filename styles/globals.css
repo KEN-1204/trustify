@@ -1226,6 +1226,12 @@ textarea {
 }
 
 /* フェードアニメーション */
+.fade05 {
+  animation: fade 0.5s;
+}
+.fade04 {
+  animation: fade 0.4s;
+}
 .fade {
   animation: fade 0.3s;
 }
@@ -1240,7 +1246,30 @@ textarea {
     opacity: 0;
   }
   100% {
-    opacity: 100;
+    opacity: 1;
+  }
+}
+.fade05-op09 {
+  animation: fade-op09 0.5s;
+}
+.fade04-op09 {
+  animation: fade-op09 0.4s;
+}
+.fade03-op09 {
+  animation: fade-op09 0.3s;
+}
+.fade02-op09 {
+  animation: fade-op09 0.2s;
+}
+.fade01-op09 {
+  animation: fade-op09 0.1s;
+}
+@keyframes fade-op09 {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0.9;
   }
 }
 

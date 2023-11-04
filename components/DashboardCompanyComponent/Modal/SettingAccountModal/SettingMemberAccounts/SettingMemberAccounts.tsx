@@ -43,6 +43,9 @@ const SettingMemberAccountsMemo: FC = () => {
   // 未設定アカウントを保持するグローバルState
   const notSetAccounts = useDashboardStore((state) => state.notSetAccounts);
   const setNotSetAccounts = useDashboardStore((state) => state.setNotSetAccounts);
+  // 未設定かつ削除予定アカウントを保持するグローバルState
+  const notSetAndDeleteRequestedAccounts = useDashboardStore((state) => state.notSetAndDeleteRequestedAccounts);
+  const setNotSetAndDeleteRequestedAccounts = useDashboardStore((state) => state.setNotSetAndDeleteRequestedAccounts);
   // ツールチップ
   const setHoveredItemPosModalTooltip = useStore((state) => state.setHoveredItemPosHorizon);
   // // 未設定アカウント数を保持するグローバルState
@@ -50,6 +53,12 @@ const SettingMemberAccountsMemo: FC = () => {
   // const setNotSetAccountsCount = useDashboardStore((state) => state.setNotSetAccountsCount);
   // 一括役割変更ドロップダウンメニュー開閉状態
   const [openChangeRoleTogetherMenu, setOpenChangeRoleTogetherMenu] = useState(false);
+  // // チームから削除を選択した場合に削除ターゲットを保持するState
+  // const removeTeamMember = useDashboardStore((state) => state.removeTeamMember);
+  // const setRemoveTeamMember = useDashboardStore((state) => state.setRemoveTeamMember);
+  // // チームロールドロップダウンメニュー
+  // const isOpenRoleMenu = useDashboardStore((state) => state.isOpenRoleMenu);
+  // const setIsOpenRoleMenu = useDashboardStore((state) => state.setIsOpenRoleMenu);
 
   const {
     data: memberAccountsDataArray,
@@ -76,8 +85,15 @@ const SettingMemberAccountsMemo: FC = () => {
     // const allAccountsCount = memberAccountsDataArray ? memberAccountsDataArray.length : 0;
     // アカウントの配列からprofilesのidがnull、かつ、invited_emailがnullで招待中でないアカウントのみをフィルタリング
     const nullIdAccounts = memberAccountsDataArray.filter(
-      (account) => account.id === null && account.account_invited_email === null
+      (account) => account.id === null && account.account_invited_email === null && account.account_state === "active"
     );
+
+    // 削除予定のアカウントを取得してグローバルStateに格納
+    const deleteRequestedAccounts = memberAccountsDataArray.filter(
+      (account) =>
+        account.id === null && account.account_invited_email === null && account.account_state === "delete_requested"
+    );
+
     // idがnullのアカウントの数をカウント
     const nullIdCount = nullIdAccounts ? nullIdAccounts.length : 0;
     // // アカウントの配列からidがnullでないアカウントのみをフィルタリング
@@ -89,14 +105,17 @@ const SettingMemberAccountsMemo: FC = () => {
     console.log(
       "nullIdAccounts",
       nullIdAccounts,
-      "未設定のアカウント数",
+      "未設定のアクティブアカウント数",
       nullIdCount,
+      "削除リクエスト済みアカウント数",
+      deleteRequestedAccounts,
       "memberAccountsDataArray",
       memberAccountsDataArray
     );
     // グローバルStateに格納
     // setNotSetAccountsCount(nullIdCount);
     setNotSetAccounts(nullIdAccounts);
+    setNotSetAndDeleteRequestedAccounts(deleteRequestedAccounts);
     // console.log(
     //   "nullIdCount",
     //   nullIdCount,
@@ -373,15 +392,21 @@ const SettingMemberAccountsMemo: FC = () => {
                 console.log("新規サーチ クリック");
               }}
             /> */}
-            {!!notSetAccounts.length && (
-              <span className="ml-auto mr-[10px] text-[12px] text-[var(--color-text-sub)]">
-                メンバー未設定アカウント数：{notSetAccounts.length}
-              </span>
-            )}
+            <div className="ml-auto mr-[10px] text-[12px] text-[var(--color-text-sub)]">
+              {!!notSetAccounts.length && (
+                <span className={`${!!notSetAndDeleteRequestedAccounts.length ? `mr-[40px]` : ``}`}>
+                  メンバー未設定アカウント数：{notSetAccounts.length}
+                </span>
+              )}
+
+              {!!notSetAndDeleteRequestedAccounts.length && (
+                <span className="">削除リクエスト済みアカウント数：{notSetAndDeleteRequestedAccounts.length}</span>
+              )}
+            </div>
           </div>
 
           {/* メンバーテーブル sticky mtありでtop231、なしで211 */}
-          <div className="relative z-0 mt-[0px] w-full">
+          <div className="z-5 relative mt-[0px] w-full">
             <div role="grid" className="w-full">
               <div role="row" className={`${styles.grid_row} sticky top-[53px] z-10 bg-[var(--color-edit-bg-solid)]`}>
                 {/* <div role="row" className={`${styles.grid_row} sticky top-[211px]`}> */}

@@ -195,7 +195,21 @@ export const Modal: FC = () => {
   return (
     <>
       {/* オーバーレイ */}
-      <div className={`flex-center ${styles.overlay}`} onClick={() => setIsOpenModal(false)}></div>
+      <div className={`flex-center ${styles.overlay}`} onClick={() => setIsOpenModal(false)}>
+        {/* バーチャルビデオ背景 ここから */}
+        <div className={`h-screen w-screen`}>
+          <video
+            autoPlay={true}
+            muted={true}
+            playsInline={true}
+            loop={true}
+            className={`fade05-op09 h-[100%] w-[100%] object-cover opacity-90`}
+          >
+            <source src="/assets/videos/Root/top-bg-virtual-compressed.mp4" type="video/mp4" />
+          </video>
+        </div>
+        {/* バーチャルビデオ背景 ここまで */}
+      </div>
       {/* モーダル */}
       <div className={`${styles.modal_container} transition-base `}>
         <div className="mb-[12px] flex h-[38px] w-full items-center justify-end pr-3">

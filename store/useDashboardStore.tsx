@@ -16,6 +16,7 @@ import {
   Notification,
   Product,
   Property_row_data,
+  StripeSchedule,
   UserProfile,
   UserProfileCompanySubscription,
 } from "@/types";
@@ -142,14 +143,23 @@ type State = {
   setCompanyOwnerName: (payload: string) => void;
 
   // =================== アカウント設定 メンバー ===================
-  // 【チームから削除クリック時の削除確認モーダル開閉状態】
+  // // 【チームから削除クリック時の削除確認モーダル開閉状態】
   // removeTeamMember: MemberAccounts | null;
   // setRemoveTeamMember: (payload: MemberAccounts | null) => void;
+  // // チームロールドロップダウンメニュー開閉状態
+  // isOpenRoleMenu: boolean;
+  // setIsOpenRoleMenu: (payload: boolean) => void;
 
   // =================== アカウント設定 支払いとプラン ===================
   // 【アカウントを増やす・アカウントを減らすモーダル開閉状態】 increase decrease nullを渡す
   isOpenChangeAccountCountsModal: string | null;
   setIsOpenChangeAccountCountsModal: (payload: string | null) => void;
+  // 【アカウントを削除リクエストしたスケジュール】
+  deleteAccountRequestSchedule: StripeSchedule | null;
+  setDeleteAccountRequestSchedule: (payload: StripeSchedule | null) => void;
+  // 【プランをダウングレードのリクエストをしたスケジュール】
+  downgradePlanSchedule: StripeSchedule | null;
+  setDowngradePlanSchedule: (payload: StripeSchedule | null) => void;
 
   // =================== アンダーテーブル関連 ===================
   // 【サーチモード切り替え】
@@ -385,14 +395,23 @@ const useDashboardStore = create<State>((set) => ({
   setCompanyOwnerName: (payload) => set({ companyOwnerName: payload }),
 
   // =================== アカウント設定 メンバー ===================
-  // 【チームから削除クリック時の削除確認モーダル開閉状態】
+  // // 【チームから削除クリック時の削除確認モーダル開閉状態】
   // removeTeamMember: null,
   // setRemoveTeamMember: (payload) => set({ removeTeamMember: payload }),
+  // // チームロールドロップダウンメニュー開閉状態
+  // isOpenRoleMenu: false,
+  // setIsOpenRoleMenu: (payload) => set({ isOpenRoleMenu: payload }),
 
   // =================== アカウント設定 支払いとプラン ===================
   // 【アカウントを増やす・アカウントを減らすモーダル開閉状態】 increase decrease nullを渡す
   isOpenChangeAccountCountsModal: null,
   setIsOpenChangeAccountCountsModal: (payload) => set({ isOpenChangeAccountCountsModal: payload }),
+  // 【アカウントを削除リクエストしたスケジュール】
+  deleteAccountRequestSchedule: null,
+  setDeleteAccountRequestSchedule: (payload) => set({ deleteAccountRequestSchedule: payload }),
+  // 【プランをダウングレードのリクエストをしたスケジュール】
+  downgradePlanSchedule: null,
+  setDowngradePlanSchedule: (payload) => set({ downgradePlanSchedule: payload }),
 
   // =================== テーブルサイズ切り替えボタン ===================
   // 【テーブルサイズ切り替えメニュー開閉状態】

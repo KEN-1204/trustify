@@ -62,6 +62,19 @@ export const FallbackSettingPaymentAndPlan = () => {
               </button>
             </div>
           </div>
+
+          <div className={`mt-[12px] flex w-full flex-col space-y-2 text-[15px] text-[var(--color-text-sub)]`}>
+            <div className="flex w-full items-center justify-end">
+              <span className="ml-auto cursor-pointer hover:text-[var(--color-text-brand-f)] hover:underline">
+                お支払い方法の設定
+              </span>
+            </div>
+            <div className="flex w-full items-center justify-end">
+              <span className="ml-auto cursor-pointer hover:text-[var(--color-text-brand-f)] hover:underline">
+                メンバーシップのキャンセル
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </>
