@@ -368,6 +368,7 @@ export type UserProfileCompanySubscription = {
   subscription_stage: string | null;
   accounts_to_create: number | null;
   number_of_active_subscribed_accounts: number | null;
+  cancel_at_period_end: boolean | null;
 };
 export type Subscription = {
   id: string;
@@ -383,6 +384,7 @@ export type Subscription = {
   subscription_stage: string | null;
   accounts_to_create: number | null;
   number_of_active_subscribed_accounts: number | null;
+  cancel_at_period_end: boolean | null;
 };
 export type SubscribedAccount = {
   id: string;

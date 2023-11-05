@@ -38,11 +38,18 @@
 
   /* ビビッドカラー */
   --bright-green: #00d436;
+  --vivid-green-dark: #0fff92;
   --bright-green-rgb: 0, 212, 54;
   --bright-red: #f63e54;
   /* TikTok */
   --color-red-tk: #ff3b5b;
   --color-red-tk-hover: #fd627c;
+  /* Netflix  */
+  /* Netflix メンバーシップキャンセル: #448ef4 */
+  /* LINEカラー
+bg-[#06c755] */
+  /* ビビッドグリーン #0FFF92 */
+  /* Twitter #1DA1F2 */
 
   /* インプット */
   --input-area-bg: rgba(242, 241, 238, 0.6);
@@ -129,6 +136,7 @@
   Apple light 紫テキスト --indigo: #622aff
   Apple light グラデーションテキスト background-image: linear-gradient(90deg,#b434ab 0%,#866cbe 30%,#4dbbd8);
   */
+  --vivid-green: var(--bright-green);
 
   --hero-img: url("/assets/images/hero/hero_white3.png");
   --hero-overlay: transparent;
@@ -491,6 +499,7 @@
   Disney+ caret: #02e7f5
   TikTok: #ff0050
   TikTokボタン: #FF3B5B
+  Netflix メンバーシップキャンセル: #448ef4
   Apple dark, light一緒メイン: #0071e3
   Apple light メインテキスト: #06c
   Apple light 緑テキスト --bright-green: #00d436
@@ -620,6 +629,7 @@
   Apple light 紫テキスト --indigo: #622aff
   Apple light グラデーションテキスト background-image: linear-gradient(90deg,#b434ab 0%,#866cbe 30%,#4dbbd8);
   */
+  --vivid-green: var(--vivid-green-dark);
 
   --hero-img: url("/assets/images/hero/hero_black3.png");
   --hero-overlay: #00000008;

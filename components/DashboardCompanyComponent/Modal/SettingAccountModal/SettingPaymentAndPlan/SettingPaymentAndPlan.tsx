@@ -1,3 +1,4 @@
+import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 import { useQueryMemberAccounts } from "@/hooks/useQueryMemberAccounts";
 import { useQueryStripeSchedules } from "@/hooks/useQueryStripeSchedules";
@@ -13,7 +14,7 @@ import { format } from "date-fns";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import React, { FC, memo, useEffect, useState } from "react";
-import { AiOutlineMinusCircle, AiOutlinePlusCircle } from "react-icons/ai";
+import { AiFillExclamationCircle, AiFillInfoCircle, AiOutlineMinusCircle, AiOutlinePlusCircle } from "react-icons/ai";
 import { MdClose } from "react-icons/md";
 import { toast } from "react-toastify";
 
@@ -28,6 +29,8 @@ const SettingPaymentAndPlanMemo: FC = () => {
   const router = useRouter();
   // ローディング
   const [isLoading, setIsLoading] = useState(false);
+  // ポータルローディング
+  const [isLoadingPortal, setIsLoadingPortal] = useState(false);
   // アカウントを増やす・減らすモーダル開閉状態
   const isOpenChangeAccountCountsModal = useDashboardStore((state) => state.isOpenChangeAccountCountsModal);
   const setIsOpenChangeAccountCountsModal = useDashboardStore((state) => state.setIsOpenChangeAccountCountsModal);
@@ -147,7 +150,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
   // Stripeポータルへ移行させるためのURLをAPIルートにGETリクエスト
   // APIルートからurlを取得したらrouter.push()でStipeカスタマーポータルへページ遷移
   const loadPortal = async () => {
-    setIsLoading(true);
+    setIsLoadingPortal(true);
     try {
       const { data } = await axios.get("/api/portal", {
         headers: {
@@ -156,9 +159,9 @@ const SettingPaymentAndPlanMemo: FC = () => {
       });
       console.log("stripe billingPortalのurlを取得成功", data);
       router.push(data.url);
-      //   setIsLoading(false);
+      //   setIsLoadingPortal(false);
     } catch (e: any) {
-      setIsLoading(false);
+      setIsLoadingPortal(false);
       alert(`エラーが発生しました: ${e.message}`);
     }
   };
@@ -354,14 +357,27 @@ const SettingPaymentAndPlanMemo: FC = () => {
               <SpinnerIDS scale={"scale-[0.5]"} />
             </div>
           )}
+          {isLoadingPortal && (
+            <div className={`flex-center fixed inset-0 z-[2000] rounded-[8px] bg-[#ffffff60]`}>
+              {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
+              <SpinnerComet width="min-w-[50px]" height="min-h-[50px]" />
+            </div>
+          )}
           <h2 className={`text-[18px] font-bold !text-[var(--color-text-title)]`}>支払いとプラン</h2>
 
-          <div className="mt-[20px] min-h-[55px] w-full">
+          <div className="mb-[10px] mt-[20px] min-h-[55px] w-full">
             <h4 className="text-[18px] font-bold !text-[var(--color-text-title)]">
               会社・チームのサブスクリプション：<span>{userProfileState?.profile_name}さんのチーム</span>
             </h4>
+            {!!userProfileState && userProfileState.cancel_at_period_end === true && (
+              <div className="mt-[10px] flex min-h-[55px] w-full items-center rounded-[4px] bg-[#FF3B5B] px-[20px]">
+                {/* <AiFillExclamationCircle className="mr-[12px] text-[28px] text-[#000]" /> */}
+                <AiFillInfoCircle className="mr-[12px] text-[28px] text-[#000]" />
+                <p>メンバーシップは現在の請求期間の最終日にキャンセルされます。</p>
+              </div>
+            )}
             <div
-              className={`mt-[24px] flex w-full flex-col rounded-[4px] border border-solid border-[var(--color-border-deep)] p-[16px]`}
+              className={`mt-[14px] flex w-full flex-col rounded-[4px] border border-solid border-[var(--color-border-deep)] p-[16px]`}
             >
               <div className="flex w-full">
                 {userProfileState?.subscription_plan !== "free_plan" && (
@@ -380,14 +396,27 @@ const SettingPaymentAndPlanMemo: FC = () => {
               {userProfileState?.subscription_plan !== "free_plan" && (
                 <div>
                   <div className="mt-[16px] flex w-full space-x-2 text-[15px] text-[var(--color-text-sub)]">
-                    <p>
-                      次回請求予定日：
-                      <span>
-                        {userProfileState?.current_period_end
-                          ? format(new Date(userProfileState.current_period_end), "yyyy年MM月dd日")
-                          : ""}
-                      </span>
-                    </p>
+                    {!!userProfileState && userProfileState.cancel_at_period_end === false && (
+                      <p>
+                        次回請求予定日：
+                        <span>
+                          {userProfileState?.current_period_end
+                            ? format(new Date(userProfileState.current_period_end), "yyyy年MM月dd日")
+                            : ""}
+                        </span>
+                      </p>
+                    )}
+                    {!!userProfileState && userProfileState.cancel_at_period_end === true && (
+                      <p>
+                        お客様のメンバーシップは
+                        <span>
+                          {userProfileState?.current_period_end
+                            ? format(new Date(userProfileState.current_period_end), "yyyy年MM月dd日")
+                            : ""}
+                        </span>
+                        に終了します。
+                      </p>
+                    )}
                     {!!stripeSchedulesDataArray &&
                       !!deleteAccountRequestSchedule &&
                       deleteAccountRequestSchedule.current_end_date &&
@@ -498,7 +527,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
               <div className="flex w-full items-center justify-end">
                 <span
                   className="ml-auto cursor-pointer hover:text-[var(--color-text-brand-f)] hover:underline"
-                  onClick={() => console.log("クリック")}
+                  onClick={loadPortal}
                 >
                   お支払い方法の設定
                 </span>
@@ -506,18 +535,28 @@ const SettingPaymentAndPlanMemo: FC = () => {
               <div className="flex w-full items-center justify-end">
                 <span
                   className="ml-auto cursor-pointer hover:text-[var(--color-text-brand-f)] hover:underline"
-                  onClick={() => console.log("クリック")}
+                  onClick={loadPortal}
                 >
                   お支払いに関する詳細
                 </span>
               </div>
               <div className="flex w-full items-center justify-end">
-                <span
-                  className="ml-auto cursor-pointer hover:text-[var(--color-text-brand-f)] hover:underline"
-                  onClick={() => console.log("クリック")}
-                >
-                  メンバーシップのキャンセル
-                </span>
+                {!!userProfileState && userProfileState.cancel_at_period_end === false && (
+                  <span
+                    className="ml-auto cursor-pointer hover:text-[var(--color-text-brand-f)] hover:underline"
+                    onClick={loadPortal}
+                  >
+                    メンバーシップのキャンセル
+                  </span>
+                )}
+                {!!userProfileState && userProfileState.cancel_at_period_end === true && (
+                  <span
+                    className="ml-auto cursor-pointer text-[var(--vivid-green)]  hover:text-[var(--color-text-brand-f)] hover:underline"
+                    onClick={loadPortal}
+                  >
+                    メンバーシップの再開
+                  </span>
+                )}
               </div>
             </div>
           </div>

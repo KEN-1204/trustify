@@ -93,6 +93,21 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(200).send({ received: "incomplete" });
       }
 
+      // ================== サブスクキャンセルリクエストの場合 次回請求期間終了時にキャンセル ==================
+      const subscriptionCancelAtPeriodEnd = (stripeEvent.data.object as Subscription).cancel_at_period_end ?? null;
+      const includeCancellationDetails = (obj: Object | undefined) => {
+        if (typeof obj === "undefined") return false;
+        const keys = Object.keys(obj);
+        return keys.includes("cancellation_details");
+      };
+      if (subscriptionCancelAtPeriodEnd === true) {
+        console.log("キャンセルリクエストがtrue");
+        const previousAttributes = stripeEvent.data.previous_attributes;
+        if (includeCancellationDetails(previousAttributes)) {
+          console.log("🌟cancellation_details", (previousAttributes! as any).cancellation_details);
+        }
+      }
+
       // サブスクプランを変数に格納
       let _subscription_plan;
       switch (subscription.items.data[0].plan.id) {
@@ -258,7 +273,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             .limit(1);
           if (subscriptionErrorDBD) {
             console.log(
-              "❌stripe-hooksハンドラー customer.subscription.deletedルート supabaseのselect()メソッドでサブスクリプションテーブル情報取得エラー",
+              "❌stripe-hooksハンドラー 解約ルート customer.subscription.deletedルート supabaseのselect()メソッドでサブスクリプションテーブル情報取得エラー",
               subscriptionErrorDBD
             );
             return res.status(500).json({ error: subscriptionErrorDBD.message });
@@ -270,20 +285,25 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             );
             currentSubscriptionDBData = subscriptionDataDBDelete[0];
           } else {
-            console.log("🙆🥺stripe-hooksハンドラー 解約ルート サブスクリプションデータが存在しない");
+            console.log(
+              "🙆🥺stripe-hooksハンドラー 解約ルート サブスクリプションデータが存在しない, currentSubscriptionDBDataにnullを格納"
+            );
             currentSubscriptionDBData = null;
           }
-          const { error } = await supabase.from("stripe_webhook_events").insert({
-            // is_subscribed: false,
+          // ======================== 解約ルート stripe_webhook_eventsテーブルにINSERTするpayload
+          // Insert the Stripe Webhook event into the database
+          // パターン2
+          const insertPayloadForDeleteRoute = {
+            // is_subscribed: true,
             accounts_to_create: subscription.items.data[0].quantity,
-            subscriber_id: subscriberProfileDataDelete?.id,
+            subscriber_id: subscriberProfileData?.id ?? null,
             stripe_subscription_id: subscription.id, // 今回のstripeのサブスクリプションid
             stripe_customer_id: subscription.customer as string, // stripe_customerと紐付け
-            status: subscription.status, // サブスクリプションの現在の状態 canceled
+            status: subscription.status, // サブスクリプションの現在の状態(active, past_due, canceledなど)
             subscription_interval: null,
             current_period_start: null, // 課金開始時間
             current_period_end: null, // 課金終了時間
-            subscription_plan: _subscription_plan,
+            subscription_plan: _subscription_plan ?? "free_plan",
             subscription_stage:
               currentSubscriptionDBData && currentSubscriptionDBData.subscription_stage
                 ? currentSubscriptionDBData.subscription_stage
@@ -295,16 +315,55 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               ? subscription.items.data[0].plan.interval_count
               : null,
             cancel_at: subscription.cancel_at ? new Date(subscription.cancel_at * 1000).toISOString() : null,
-            cancel_at_period_end: subscription.cancel_at_period_end,
+            cancel_at_period_end: subscription.cancel_at_period_end ?? null, // この属性がtrueならステータスがアクティブであるサブスクが現在の期間の終わりにキャンセルされる予定を表す
             canceled_at: subscription.canceled_at ? new Date(subscription.canceled_at * 1000).toISOString() : null,
-            cancel_comment: subscription.cancellation_details && subscription.cancellation_details.comment,
-            cancel_feedback: subscription.cancellation_details && subscription.cancellation_details.feedback,
-            cancel_reason: subscription.cancellation_details && subscription.cancellation_details.reason,
-            user_role: "free_user", // キャンセルされた場合には、free_userに変更
+            cancel_comment: subscription.cancellation_details?.comment ?? null,
+            cancel_feedback: subscription.cancellation_details?.feedback ?? null,
+            cancel_reason: subscription.cancellation_details?.reason ?? null,
+            user_role: "free_user", // プラン内容によって格納するroleを変更、トリガー関数内でprofilesのUPDATE用に用意
             subscription_id:
               currentSubscriptionDBData && currentSubscriptionDBData.id ? currentSubscriptionDBData.id : null, // subscriptionsテーブルのid
-            number_of_active_subscribed_accounts: subscription.items.data[0].quantity,
-          });
+            number_of_active_subscribed_accounts: subscription.items.data[0].quantity ?? null,
+          };
+          console.log(
+            "🌟Stripe_Webhookステップ7 解約ルート stripe_webhook_eventsにINSERT insertに渡す引数 insertPayloadForDeleteRoute",
+            insertPayloadForDeleteRoute
+          );
+          // ======================== 解約ルート stripe_webhook_eventsテーブルにINSERTするpayload ここまで
+          //
+          const { error } = await supabase.from("stripe_webhook_events").insert(insertPayloadForDeleteRoute);
+          // const { error } = await supabase.from("stripe_webhook_events").insert({
+          //   // is_subscribed: false,
+          //   accounts_to_create: subscription.items.data[0].quantity,
+          //   subscriber_id: subscriberProfileData?.id ?? null,
+          //   stripe_subscription_id: subscription.id, // 今回のstripeのサブスクリプションid
+          //   stripe_customer_id: subscription.customer as string, // stripe_customerと紐付け
+          //   status: subscription.status, // サブスクリプションの現在の状態 canceled
+          //   subscription_interval: null,
+          //   current_period_start: null, // 課金開始時間
+          //   current_period_end: null, // 課金終了時間
+          //   subscription_plan: _subscription_plan ?? 'free_plan',
+          //   subscription_stage:
+          //     currentSubscriptionDBData && currentSubscriptionDBData.subscription_stage
+          //       ? currentSubscriptionDBData.subscription_stage
+          //       : null,
+          //   webhook_id: stripeEvent.id,
+          //   webhook_event_type: stripeEvent.type, // createdかupdated
+          //   webhook_created: new Date(stripeEvent.created * 1000).toISOString(), // Webhookの作成日時 createdとupdatedは別
+          //   interval_count: subscription.items.data[0].plan.interval_count
+          //     ? subscription.items.data[0].plan.interval_count
+          //     : null,
+          //   cancel_at: subscription.cancel_at ? new Date(subscription.cancel_at * 1000).toISOString() : null,
+          //   cancel_at_period_end: subscription.cancel_at_period_end,
+          //   canceled_at: subscription.canceled_at ? new Date(subscription.canceled_at * 1000).toISOString() : null,
+          //   cancel_comment: subscription.cancellation_details ? subscription.cancellation_details.comment : null,
+          //   cancel_feedback: subscription.cancellation_details ? subscription.cancellation_details.feedback : null,
+          //   cancel_reason: subscription.cancellation_details ? subscription.cancellation_details.reason : null,
+          //   user_role: "free_user", // キャンセルされた場合には、free_userに変更
+          //   subscription_id:
+          //     currentSubscriptionDBData && currentSubscriptionDBData.id ? currentSubscriptionDBData.id : null, // subscriptionsテーブルのid
+          //   number_of_active_subscribed_accounts: subscription.items.data[0].quantity,
+          // });
 
           if (error) {
             console.log(
