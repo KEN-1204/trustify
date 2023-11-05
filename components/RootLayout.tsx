@@ -24,10 +24,10 @@ export const RootLayout: FC<Prop> = ({ children }) => {
   const theme = useRootStore(useThemeStore, (state) => state.theme);
   // const theme = useStore((state) => state.theme);
 
-  // 新規サブスク登録とサブスク内容の変更を監視
-  useSubscribeSubscription();
-  // メンバーが自身のアカウントの紐付け、解除の変更やチームでの役割の変更を監視 うまくいかず
-  useSubscribeSubscribedAccount();
+  // // 新規サブスク登録とサブスク内容の変更を監視
+  // useSubscribeSubscription();
+  // // メンバーが自身のアカウントの紐付け、解除の変更やチームでの役割の変更を監視 うまくいかず
+  // useSubscribeSubscribedAccount();
 
   useEffect(() => {
     if (theme === "light") {

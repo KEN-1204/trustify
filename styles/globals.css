@@ -696,6 +696,7 @@
   --color-bg-brand-rgb: 0, 102, 255;
   --color-bg-brand-f: #0c8ce9; /* Figma */
   --color-bg-brand-f-hover: #0c8ce990;
+  --color-bg-brand-f-disabled: #0d99ff30;
   --color-bg-brand-f05: #0e5d95; /* Figma */
   --color-bg-brand-f10: #0c8ce910;
   --color-bg-brand-f30: #0c8ce930;

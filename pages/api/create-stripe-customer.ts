@@ -19,7 +19,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<any>) => {
     req,
     res,
   });
-  console.log("🌟req.body", req.body);
+  console.log("🌟APIルート create-stripe-customer req.body", req.body);
   // リクエストのAPI_ROUTE_SECRETの値がカスタムAPIキーの値と一致しなければリターン
   if (req.query.API_ROUTE_SECRET !== process.env.API_ROUTE_SECRET) {
     return res.status(401).send("You are not authorized to call this API");

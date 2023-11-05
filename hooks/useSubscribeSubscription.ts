@@ -5,7 +5,8 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import React, { useEffect, useRef } from "react";
 
-export const useSubscribeSubscription = () => {
+// export const useSubscribeSubscription = () => {
+export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscription) => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const setUserProfileState = useDashboardStore((state) => state.setUserProfileState);
   const supabase = useSupabaseClient();
@@ -13,13 +14,25 @@ export const useSubscribeSubscription = () => {
   const subscriptionRef = useRef<RealtimeChannel | null>(null);
 
   useEffect(() => {
-    if (!userProfileState)
+    // if (!userProfileState)
+    //   return console.log(
+    //     "リアルタイム useSubscribeSubscriptionリアルタイムフック ユーザー情報無し userProfileState",
+    //     userProfileState
+    //   );
+
+    // console.log("リアルタイム サブスクリプション契約状況をサブスクライブ useEffect実行", userProfileState);
+    if (!userProfile && !userProfileState)
       return console.log(
-        "リアルタイム useSubscribeSubscriptionリアルタイムフック ユーザー情報無し userProfileState",
+        "リアルタイム useSubscribeSubscriptionリアルタイムフック ユーザー情報無し userProfile",
+        userProfile,
         userProfileState
       );
 
-    console.log("🌟リアルタイム サブスクリプション契約状況をサブスクライブ useEffect実行", userProfileState);
+    console.log(
+      "リアルタイム useSubscribeSubscriptionサブスクリプション契約状況をサブスクライブ useEffect実行  userProfile",
+      userProfile,
+      userProfileState
+    );
 
     let channel;
 
@@ -27,20 +40,26 @@ export const useSubscribeSubscription = () => {
     const stopSubscription = () => {
       if (subscriptionRef.current) {
         console.log(
-          "🌟リアルタイム サブスクライブを解除 subscriptionRef.current",
-
+          "🌟リアルタイム サブスクライブを解除 useSubscribeSubscription subscriptionRef.current",
           subscriptionRef.current,
-          "userProfileState",
-          userProfileState
+          "userProfile",
+          userProfile
+          // "userProfileState",
+          // userProfileState
         );
         supabase.removeChannel(subscriptionRef.current);
         subscriptionRef.current = null;
       }
     };
 
-    if (userProfileState.subscription_id) {
+    // if (userProfileState.subscription_id) {
+    if (userProfile.subscription_id || userProfileState?.subscription_id) {
       // subscriber_idが非nullの場合はsubscriptionsテーブルの監視を開始
-      console.log("リアルタイム subscriptions UPDATE 監視を開始");
+      console.log(
+        "🌟リアルタイム subscriptions UPDATEイベント監視を開始 useSubscribeSubscription",
+        userProfile.subscription_id,
+        userProfileState?.subscription_id
+      );
       channel = supabase
         .channel("table-db-changes:subscriptions")
         .on(
@@ -49,13 +68,15 @@ export const useSubscribeSubscription = () => {
             event: "UPDATE",
             schema: "public",
             table: "subscriptions",
-            filter: `id=eq.${userProfileState.subscription_id}`,
+            // filter: `id=eq.${userProfileState.subscription_id}`,
+            filter: `id=eq.${userProfile.subscription_id ?? userProfileState?.subscription_id}`,
           },
           async (payload: any) => {
-            console.log("リアルタイム subscriptions UPDATE検知", payload);
+            console.log("🌟🔥リアルタイム subscriptions UPDATE検知発火🔥", payload);
             // subscriptionsテーブルの変更を検知したら現在のuserProfileStateのsubscriptionsテーブルの内容のみ更新する
             const newUserData = {
-              ...userProfileState,
+              // ...userProfileState,
+              ...userProfile,
               ...{
                 subscription_id: (payload.new as Subscription).id,
                 subscription_created_at: (payload.new as Subscription).created_at,
@@ -119,7 +140,11 @@ export const useSubscribeSubscription = () => {
       //   )
       //   .subscribe();
       // subscriber_idがnullの場合はsubscribed_accountsテーブルの監視を開始
-      console.log("リアルタイム subscribed_accounts INSERT 監視を開始");
+      console.log(
+        "🌟リアルタイム subscribed_accounts INSERTイベント監視を開始 useSubscribeSubscription",
+        userProfile,
+        userProfileState
+      );
       channel = supabase
         .channel("table-db-changes:subscribed_accounts")
         .on(
@@ -128,15 +153,17 @@ export const useSubscribeSubscription = () => {
             event: "INSERT",
             schema: "public",
             table: "subscribed_accounts",
-            filter: `user_id=eq.${userProfileState.id}`,
+            // filter: `user_id=eq.${userProfileState.id}`,
+            filter: `user_id=eq.${userProfile.id ?? userProfileState?.id}`,
           },
           async (payload: any) => {
-            console.log("リアルタイム subscribed_accounts INSERTイベント発火", payload);
+            console.log("🌟🔥リアルタイム subscribed_accounts INSERTイベント発火🔥", payload);
             // 新たにユーザーのsubscribed_accountsのデータが追加されたタイミングで
             // profiles, subscriptions, companies, subscribed_accountsの4つのテーブルを外部結合したデータをrpc()メソッドを使って、ストアドプロシージャのget_user_data関数を実行してユーザー情報を取得
             try {
               const { data: userProfileCompanySubscriptionData, error } = await supabase
-                .rpc("get_user_data", { _user_id: userProfileState.id })
+                // .rpc("get_user_data", { _user_id: userProfileState.id })
+                .rpc("get_user_data", { _user_id: userProfile.id })
                 .single();
 
               // if (error) throw error;
@@ -162,8 +189,12 @@ export const useSubscribeSubscription = () => {
 
     return () => {
       // supabase.removeChannel(channel);
-      console.log("リアルタイム クリーンアップ subscriptionRef.current", subscriptionRef.current);
+      console.log(
+        `リアルタイム  クリーンアップ useSubscribeSubscriptionの subscriptionRef.current`,
+        subscriptionRef.current
+      );
       stopSubscription(); // useEffectがアンマウントされたときに購読を解除
     };
-  }, [supabase, userProfileState]);
+    // }, [supabase, userProfileState, setUserProfileState]);
+  }, [supabase, userProfile, setUserProfileState, userProfileState]);
 };

@@ -7,7 +7,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import React, { useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 
-export const useSubscribeSubscribedAccount = () => {
+// export const useSubscribeSubscribedAccount = () => {
+export const useSubscribeSubscribedAccount = (userProfile: UserProfileCompanySubscription) => {
   const queryClient = useQueryClient();
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const setUserProfileState = useDashboardStore((state) => state.setUserProfileState);
@@ -16,16 +17,28 @@ export const useSubscribeSubscribedAccount = () => {
   const supabase = useSupabaseClient();
 
   useEffect(() => {
-    if (!userProfileState)
+    if (!userProfile && !userProfileState)
       return console.log(
-        "リアルタイムsubscribed_accounts useSubscribeSubscribedAccountリアルタイムフック ユーザー情報無し userProfileState",
+        "リアルタイムsubscribed_accounts useSubscribeSubscribedAccountリアルタイムフック ユーザー情報無し userProfile",
+        userProfile,
         userProfileState
       );
 
     console.log(
-      "🌟リアルタイムsubscribed_accounts 自身に紐づく契約アカウントをサブスクライブ useEffect実行",
+      "🌟リアルタイムsubscribed_accountsのUPDATEイベントを監視 自身に紐づく契約アカウントをサブスクライブ useEffect実行",
+      userProfile,
       userProfileState
     );
+    // if (!userProfileState)
+    //   return console.log(
+    //     "リアルタイムsubscribed_accounts useSubscribeSubscribedAccountリアルタイムフック ユーザー情報無し userProfileState",
+    //     userProfileState
+    //   );
+
+    // console.log(
+    //   "🌟リアルタイムsubscribed_accountsのUPDATEイベントを監視 自身に紐づく契約アカウントをサブスクライブ useEffect実行",
+    //   userProfileState
+    // );
 
     const channel = supabase
       .channel("subscribed_accounts_update_changes")
@@ -36,17 +49,20 @@ export const useSubscribeSubscribedAccount = () => {
           schema: "public",
           table: "subscribed_accounts",
           //   filter: `user_id=eq.67a2fb6e-6be6-47e6-a6eb-b94ad278698f`,
-          filter: `user_id=eq.${userProfileState.id}`,
+          // filter: `user_id=eq.${userProfileState.id}`,
+          filter: `user_id=eq.${userProfile.id ?? userProfileState?.id}`,
         },
         async (payload: any) => {
           // 自分のアカウントが更新された場合のみユーザー情報を更新する
           //   if (payload.old.id !== userProfileState.subscribed_account_id)
           //     return console.log("他メンバーのアカウントUPDATEイベント発火のためそのままリターン");
-          console.log("リアルタイムsubscribed_accounts UPDATE検知 🔥", payload, userProfileState.id);
+          // console.log("リアルタイムsubscribed_accounts UPDATE検知 🔥", payload, userProfileState.id);
+          console.log("リアルタイムsubscribed_accounts UPDATE検知 🔥", payload, userProfile, userProfileState);
           //   自身のuser_idに紐づくアカウントが更新されたタイミングで発火
           try {
             const { data: userProfileCompanySubscriptionData, error } = await supabase
-              .rpc("get_user_data", { _user_id: userProfileState.id })
+              // .rpc("get_user_data", { _user_id: userProfileState.id })
+              .rpc("get_user_data", { _user_id: userProfile.id })
               .single();
 
             if (error) throw new Error(error.message);
@@ -92,5 +108,6 @@ export const useSubscribeSubscribedAccount = () => {
       console.log("リアルタイムsubscribed_accounts クリーンアップ channel", channel);
       supabase.removeChannel(channel);
     };
-  }, [userProfileState, supabase, setUserProfileState]);
+    // }, [userProfileState, supabase, setUserProfileState]);
+  }, [userProfile, supabase, setUserProfileState, queryClient, setNotificationDataState, userProfileState]);
 };

@@ -12,6 +12,7 @@ import { Fallback } from "@/components/Fallback/Fallback";
 import { useQueryNotifications } from "@/hooks/useQueryNotifications";
 import { useQueryProducts } from "@/hooks/useQueryProducts";
 import { useSubscribeNotifications } from "@/hooks/useSubscribeNotifications";
+import { useSubscribeSubscribedAccount } from "@/hooks/useSubscribeSubscribedAccount";
 import { useSubscribeSubscription } from "@/hooks/useSubscribeSubscription";
 import useStore from "@/store";
 import useDashboardStore from "@/store/useDashboardStore";
@@ -65,6 +66,10 @@ const DashboardHome = ({
     isLoading,
   } = useQueryNotifications(userProfile?.id, isReady); // 自分宛のお知らせ一覧を取得してキャッシュに格納
   useSubscribeNotifications(userProfile?.id); // 自分宛のnotificationsテーブルをリアルタイム監視を開始
+  // 新規サブスク登録とサブスク内容の変更を監視
+  useSubscribeSubscription(userProfile);
+  // メンバーが自身のアカウントの紐付け、解除の変更やチームでの役割の変更を監視 うまくいかず
+  useSubscribeSubscribedAccount(userProfile);
 
   console.log(
     "🔥Homeページ レンダリング",

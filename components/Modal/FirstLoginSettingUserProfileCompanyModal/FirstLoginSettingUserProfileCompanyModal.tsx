@@ -1,6 +1,6 @@
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 import useDashboardStore from "@/store/useDashboardStore";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styles from "./FirstLoginSettingUserProfileCompanyModal.module.css";
 import axios from "axios";
 import { BsCheck2 } from "react-icons/bs";
@@ -13,6 +13,9 @@ import useRootStore from "@/store/useRootStore";
 import useThemeStore from "@/store/useThemeStore";
 import { runFireworks } from "@/utils/confetti";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
+import { IoLogOutOutline } from "react-icons/io5";
+import { toast } from "react-toastify";
 
 type Plans = {
   id: string;
@@ -188,6 +191,59 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
     }, 300);
   };
 
+  // ================================ ツールチップ ================================
+  const modalContainerRef = useRef<HTMLDivElement | null>(null);
+  const hoveredItemPosModal = useStore((state) => state.hoveredItemPosModal);
+  const setHoveredItemPosModal = useStore((state) => state.setHoveredItemPosModal);
+  const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
+    // モーダルコンテナのleftを取得する
+    if (!modalContainerRef.current) return;
+    const containerLeft = modalContainerRef.current?.getBoundingClientRect().left;
+    const containerTop = modalContainerRef.current?.getBoundingClientRect().top;
+    // ホバーしたアイテムにツールチップを表示
+    const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+    // console.log("ツールチップx, y width , height", x, y, width, height);
+    const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
+      ? ((e.target as HTMLDivElement).dataset.text2 as string)
+      : "";
+    const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
+      ? ((e.target as HTMLDivElement).dataset.text3 as string)
+      : "";
+    setHoveredItemPosModal({
+      x: x - containerLeft,
+      y: y - containerTop,
+      itemWidth: width,
+      itemHeight: height,
+      content: (e.target as HTMLDivElement).dataset.text as string,
+      content2: content2,
+      content3: content3,
+      display: display,
+    });
+  };
+  // ============================================================================================
+  // ================================ ツールチップを非表示 ================================
+  const handleCloseTooltip = () => {
+    setHoveredItemPosModal(null);
+  };
+  // ============================================================================================
+
+  // ログアウト関数
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast.error("サインアウトに失敗しました", {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        // theme: `${theme === "light" ? "light" : "dark"}`,
+      });
+    }
+  };
+
   return (
     <>
       <div className={`${styles.overlay} `} onClick={handleCancelAndReset} />
@@ -196,7 +252,19 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
           <SpinnerIDS scale={"scale-[0.5]"} />
         </div>
       )} */}
-      <div className={`${styles.container} `}>
+      <div className={`${styles.container} `} ref={modalContainerRef}>
+        {hoveredItemPosModal && <TooltipModal />}
+        {/* クローズボタン */}
+        <button
+          className={`flex-center z-100 shadow-all-md absolute bottom-[-23px] right-[-60px] h-[35px] w-[35px] rounded-full bg-[var(--color-sign-out-bg)] hover:bg-[var(--color-sign-out-bg-hover)]`}
+          // className={`flex-center z-100 group absolute right-[-45px] top-[5px] h-[35px] w-[35px] rounded-full bg-[#00000090] hover:bg-[#000000c0]`}
+          data-text="ログアウトする"
+          onMouseEnter={(e) => handleOpenTooltip(e, "top")}
+          onMouseLeave={handleCloseTooltip}
+          onClick={handleSignOut}
+        >
+          <IoLogOutOutline className="mr-[-3px] text-[20px] text-[#fff]" />
+        </button>
         {/* メインコンテンツ コンテナ */}
         <div className={`${styles.main_contents_container}`}>
           {/* 左コンテナ */}
