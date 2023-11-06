@@ -176,6 +176,7 @@ bg-[#06c755] */
   --color-bg-sub-deep: rgba(57, 76, 96, 0.15);
   --color-bg-sub-re: rgba(64, 87, 109, 0.08);
   --color-bg-sub-re-hover: rgba(57, 76, 96, 0.15);
+  --color-bg-sub-icon: rgba(64, 87, 109, 0.07);
   /* sub figma #f5f5f5 canva #40576d12 */
   --color-bg: #fff; /* メイン背景カラー */
   --color-bg2: #fff; /* メイン背景カラー */
@@ -475,7 +476,7 @@ bg-[#06c755] */
   --color-text-hover: #333;
   --color-text-hover: #999;
   --color-text-reverse: #fff;
-  --color-text-sub: rgba(25, 23, 17, 0.6);
+  --color-text-sub: rgba(25, 23, 17, 0.6); /* #19171199 */
   --color-text-disabled: #bcbcbc;
   --color-text-third: #333;
   --color-text-secondary: rgba(0, 0, 0, 0.5); /* テキストサブカラー or #7d7d7d */
@@ -673,6 +674,7 @@ bg-[#06c755] */
   --color-bg-sub-re: #404040;
   /* --color-bg-sub-re-hover: #383838; */
   --color-bg-sub-re-hover: #555;
+  --color-bg-sub-icon: #555;
   /* メイン背景カラー */
   --color-bg: #2c2c2c;
   /* メイン背景カラー */
@@ -1245,6 +1247,9 @@ textarea {
 }
 
 /* フェードアニメーション */
+.fade1 {
+  animation: fade 1s;
+}
 .fade05 {
   animation: fade 0.5s;
 }
@@ -1318,7 +1323,7 @@ textarea {
     #141414 100%
   );
 }
-.shadow-gradient-tb {
+.shadow-gradient-tb-sm {
   background: linear-gradient(
     to bottom,
     rgba(20, 20, 20, 0.6) 0,
@@ -1328,6 +1333,30 @@ textarea {
     rgba(20, 20, 20, 0.15) 65%,
     rgba(20, 20, 20, 0.3) 85%,
     rgba(20, 20, 20, 0.6) 100%
+  );
+}
+.shadow-gradient-tb-md {
+  background: linear-gradient(
+    to bottom,
+    rgba(20, 20, 20, 0.9) 0,
+    rgba(20, 20, 20, 0.5) 15%,
+    rgba(20, 20, 20, 0.25) 35%,
+    rgba(20, 20, 20, 0) 50%,
+    rgba(20, 20, 20, 0.25) 65%,
+    rgba(20, 20, 20, 0.5) 85%,
+    rgba(20, 20, 20, 0.9) 100%
+  );
+}
+.shadow-gradient-tb-lg {
+  background: linear-gradient(
+    to bottom,
+    rgba(20, 20, 20, 0.9) 0,
+    rgba(20, 20, 20, 0.8) 15%,
+    rgba(20, 20, 20, 0.35) 35%,
+    rgba(20, 20, 20, 0.2) 50%,
+    rgba(20, 20, 20, 0.35) 65%,
+    rgba(20, 20, 20, 0.8) 85%,
+    rgba(20, 20, 20, 0.9) 100%
   );
 }
 /* 左右方向にアンダーラインが広がるアニメーション */
@@ -1460,8 +1489,14 @@ textarea {
 }
 
 /* 会社概要 about */
-.about-bg {
-  background-image: url("/assets/images/hero/slide_transparent3.png");
+.about-bg-light {
+  background-image: url("/assets/images/hero/slide_transparent_shadow_black_b3x_last.png");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+.about-bg-dark {
+  background-image: url("/assets/images/hero/slide_transparent_shadow_white_55_b3x_last.png");
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;

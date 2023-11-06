@@ -24,17 +24,12 @@
   z-index: 1500;
 } */
 .tooltip {
-  /* position: absolute; */
-  /* top: 38px; */
-  /* left: 0; */
-  /* z-index: 150; */
   position: fixed;
   z-index: 1500;
   min-height: fit-content;
   padding: 3px 7px;
   transform: translateX(-50%);
   background: #282828;
-  /* background: rgb(39 39 39 / 0.7); */
   transition-delay: 0.5s;
   border-radius: 6px;
   box-shadow: inset 0px 0px 0px 1px #ffffff80, 0px 0px 0px 1px #000;
@@ -43,50 +38,28 @@
   content: "";
   position: fixed;
   z-index: 0;
-  /* position: absolute;
-  z-index: -1; */
   top: -4px;
   left: 50%;
   transform: translateX(-50%) rotate(135deg);
   transform-origin: center center;
   background: #282828;
-  /* background: rgb(39 39 39 / 0.7); */
   width: 8px;
   height: 8px;
-  /* border-top: 4px solid #000; */
 }
-/* .tooltip_arrow {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  top: -4px;
-  left: 0;
-  transform: translateX(-50%) rotate(135deg);
-  transform-origin: center center;
-  background: var(--color-tooltip-arrow);
-  width: 8px;
-  height: 8px;
-} */
 
-.tooltip_over {
-  /* position: absolute; */
+/* .tooltip_over {
   position: fixed;
-  /* top: 38px; */
-  /* left: 0; */
-  /* z-index: 150; */
   z-index: 1500;
   min-height: fit-content;
   padding: 3px 7px;
   transform: translateX(-50%);
   background: #282828;
-  /* background: rgb(39 39 39 / 0.7); */
   transition-delay: 0.5s;
   border-radius: 6px;
   box-shadow: inset 0px 0px 0px 1px #ffffff80, 0px 0px 0px 1px #000;
 }
 .tooltip_over::after {
   content: "";
-  /* position: absolute; */
   position: fixed;
   z-index: 0;
   bottom: -4px;
@@ -94,7 +67,43 @@
   transform: translateX(-50%) rotate(135deg);
   transform-origin: center center;
   background: #282828;
-  /* background: rgb(39 39 39 / 0.7); */
+  width: 8px;
+  height: 8px;
+} */
+.tooltip_area {
+  position: absolute;
+  z-index: 1500;
+}
+.tooltip_over {
+  /* top: 38px; */
+  /* left: 0; */
+  /* z-index: 150; */
+  /* position: absolute;
+  z-index: 1500; */
+  position: relative;
+  z-index: 1;
+  min-height: fit-content;
+  padding: 3px 7px;
+  transform: translateX(-50%);
+  /* background: #282828; */
+  background: #282828f0;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  transition-delay: 0.5s;
+  border-radius: 6px;
+  box-shadow: inset 0px 0px 0px 1px #ffffff80, 0px 0px 0px 1px #000;
+}
+
+.tooltip_arrow_over {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  bottom: -4px;
+  /* top: -10px; */
+  left: 0;
+  transform: translateX(-50%) rotate(135deg);
+  transform-origin: center center;
+  background: var(--color-tooltip-arrow);
   width: 8px;
   height: 8px;
   /* border-top: 4px solid #000; */

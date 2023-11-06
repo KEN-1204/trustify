@@ -42,28 +42,54 @@ export const TooltipModal: FC = () => {
   if (hoveredItemDisplay === "top") {
     return (
       <div
-        className={`${styles.tooltip_over} ${hoveredItemPosModal ? `block ${styles.fade}` : "transition-base hidden"}`}
+        className={`${styles.tooltip_area}  ${hoveredItemPosModal ? `block ${styles.fade}` : "transition-base hidden"}`}
         style={{
           position: "absolute",
-          // zIndex: 100,
           zIndex: 10000,
           left: `${`${hoveredItemPositionX + hoveredItemHalfWidth}px`}`,
           top: `${`${hoveredItemPositionY - hoveredItemHeight - 8}px`}`,
         }}
         ref={menuRef}
       >
-        <div
-          className={`flex-col-center ${styles.dropdown_item}`}
-          onClick={() => {
-            setHoveredItemPosModal(null);
-          }}
-        >
-          <span>{hoveredItemPosModal?.content}</span>
-          <span>{hoveredItemPosModal?.content2}</span>
-          {hoveredItemPosModal?.content3 && <span>{hoveredItemPosModal?.content3}</span>}
+        <div className={`${styles.tooltip_over}`}>
+          <div
+            className={`flex-col-center ${styles.dropdown_item}`}
+            onClick={() => {
+              setHoveredItemPosModal(null);
+            }}
+          >
+            <span>{hoveredItemPosModal?.content}</span>
+            <span>{hoveredItemPosModal?.content2}</span>
+            {hoveredItemPosModal?.content3 && <span>{hoveredItemPosModal?.content3}</span>}
+          </div>
         </div>
+        <div className={`${styles.tooltip_arrow_over}`}></div>
       </div>
     );
+    // return (
+    //   <div
+    //     className={`${styles.tooltip_over} ${hoveredItemPosModal ? `block ${styles.fade}` : "transition-base hidden"}`}
+    //     style={{
+    //       position: "absolute",
+
+    //       zIndex: 10000,
+    //       left: `${`${hoveredItemPositionX + hoveredItemHalfWidth}px`}`,
+    //       top: `${`${hoveredItemPositionY - hoveredItemHeight - 8}px`}`,
+    //     }}
+    //     ref={menuRef}
+    //   >
+    //     <div
+    //       className={`flex-col-center ${styles.dropdown_item}`}
+    //       onClick={() => {
+    //         setHoveredItemPosModal(null);
+    //       }}
+    //     >
+    //       <span>{hoveredItemPosModal?.content}</span>
+    //       <span>{hoveredItemPosModal?.content2}</span>
+    //       {hoveredItemPosModal?.content3 && <span>{hoveredItemPosModal?.content3}</span>}
+    //     </div>
+    //   </div>
+    // );
   }
 
   // 左寄りのアイテムに対して右に表示するツールチップ
@@ -93,12 +119,39 @@ export const TooltipModal: FC = () => {
   }
 
   // 真ん中で表示
+  // return (
+  //   <div
+  //     className={`${styles.tooltip_area}  ${hoveredItemPosModal ? `block ${styles.fade}` : "transition-base hidden"}`}
+  //     // className={`${styles.tooltip}  ${hoveredItemPos ? `block ${styles.fade}` : "transition-base hidden"}`}
+  //     style={{
+  //       position: "absolute",
+  //       zIndex: 10000,
+  //       left: `${`${hoveredItemPositionX + hoveredItemHalfWidth}px`}`,
+  //       top: `${`${hoveredItemPositionY + hoveredItemHeight + 10}px`}`,
+  //     }}
+  //     ref={menuRef}
+  //   >
+  //     <div className={`${styles.tooltip}`}>
+  //       <div
+  //         className={`flex-col-center ${styles.dropdown_item}`}
+  //         onClick={() => {
+  //           setHoveredItemPosModal(null);
+  //         }}
+  //       >
+  //         <span>{hoveredItemPosModal?.content}</span>
+  //         <span>{hoveredItemPosModal?.content2}</span>
+  //         {hoveredItemPosModal?.content3 && <span>{hoveredItemPosModal?.content3}</span>}
+  //       </div>
+  //     </div>
+  //     <div className={`${styles.tooltip_arrow}`}></div>
+  //   </div>
+  // );
   return (
     <div
       className={`${styles.tooltip}  ${hoveredItemPosModal ? `block ${styles.fade}` : "transition-base hidden"}`}
       style={{
         position: "absolute",
-        // zIndex: 100,
+
         zIndex: 10000,
         left: `${`${hoveredItemPositionX + hoveredItemHalfWidth}px`}`,
         top: `${`${hoveredItemPositionY + hoveredItemHeight + 10}px`}`,

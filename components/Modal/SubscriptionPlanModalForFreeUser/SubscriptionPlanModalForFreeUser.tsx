@@ -146,6 +146,18 @@ export const SubscriptionPlanModalForFreeUser = () => {
   return (
     <>
       <div className={`${styles.overlay} `} onClick={handleCancelAndReset} />
+      {/* <div className={`${styles.overlay} `} onClick={handleCancelAndReset}>
+        <Image
+          src={`/assets/images/hero/bg_slide_black1x_compressed.png`}
+          alt=""
+          blurDataURL={`/assets/images/hero/placeholder/bg_slide_black1x_resize_compressed.png`}
+          placeholder="blur"
+          fill
+          sizes="100vw"
+          className={`transition-base z-[2] h-full w-full select-none object-cover`}
+        />
+        <div className="shadow-gradient-tb-md pointer-events-none absolute z-10 h-full w-full select-none"></div>
+      </div> */}
       {/* {loadingGlobalState && (
         <div className={`${styles.loading_overlay} `}>
           <SpinnerIDS scale={"scale-[0.5]"} />
@@ -167,6 +179,7 @@ export const SubscriptionPlanModalForFreeUser = () => {
         {/* メインコンテンツ コンテナ */}
         <div className={`${styles.main_contents_container}`}>
           <div className={`${styles.left_container} h-full w-6/12 `}>
+            {/* <div className={`${styles.left_container} h-full w-full`}> */}
             <div className={`flex-center h-[40px] w-full`}>
               <div className="relative flex h-[60px] w-[145px] select-none items-center justify-center">
                 <Image
@@ -346,19 +359,13 @@ export const SubscriptionPlanModalForFreeUser = () => {
             <Image
               src={`/assets/images/team/team1.jpg`}
               alt=""
+              blurDataURL={`/assets/images/team/team1_placeholder.jpg`}
+              placeholder="blur"
               className="z-[-1] h-full w-full object-cover object-center"
               fill
               sizes="10vw"
             />
           </div>
-          {/* <div className={`${styles.right_container_a} flex h-full w-6/12 overflow-hidden`}>
-            <Image
-              src={"/assets/images/team/annie-spratt-MChSQHxGZrQ-unsplash.jpg"}
-              alt=
-              fill
-              className="object-contain object-center"
-            />
-          </div> */}
         </div>
       </div>
     </>

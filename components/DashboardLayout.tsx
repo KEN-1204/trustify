@@ -378,7 +378,6 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
       {/* 初回ログイン 招待無し */}
       {showSubscriptionPlan && !invitationData && <SubscriptionPlanModalForFreeUser />}
       {/* <SubscriptionPlanModalForFreeUser /> */}
-      {/* <SubscriptionPlanModalForFreeUser /> */}
       {/* ============================ 初回サブスクプランモーダルコンポーネント 他チームからの招待有りの場合 ============================ */}
       {/* 初回ログイン 招待有り */}
       {showSubscriptionPlan && invitationData && (

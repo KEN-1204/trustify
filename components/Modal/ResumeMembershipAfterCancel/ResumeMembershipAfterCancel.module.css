@@ -1,50 +1,27 @@
-.overlay {
-  position: fixed;
-  z-index: 500;
-  /* z-index: 100; */
-  inset: 0;
-  /* background: #00000050; */
-  background: #00000050;
-  backdrop-filter: blur(4px);
-  /* transform: translateY(-20px) scaleY(1.1); */
-}
-.loading_overlay {
-  position: fixed;
-  z-index: 2000;
-  inset: 0;
-  background: #00000090;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.bg_image {
+  background-image: url("/assets/images/hero/bg_slide_black1x_compressed.png");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 
-.container {
-  position: fixed;
+.resume_container {
+  /* position: fixed; */
   z-index: 1000;
-  /* z-index: 150; */
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  /* width: 40vw; */
   width: 80vw;
   height: 90vh;
-  /* background-color: rgb(39 39 39 / 0.7); */
   background-color: var(--color-edit-bg);
   border-radius: 8px;
-  /* box-shadow: inset 0px 0px 0px 1px #ffffff70, 0px 0px 0px 1px #000;
-  box-shadow: inset 0 0 0 1px var(--color-modal-border); */
-  /* box-shadow: var(--color-modal-inset-border); */
   box-shadow: var(--color-edit-border);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* padding: 5px;
-  padding: 15px 40px; */
   padding: 1px;
-  /* overflow: hidden; */
-
   color: #333;
   color: var(--color-edit-text);
   font-family: sans-serif;
@@ -78,11 +55,9 @@
   /* background-color: var(--setting-side-bg); */
   /* background-image: url("/assets/images/beautiful/road-sun1.jpg"); */
 
-  /* background-image: url("/assets/images/beautiful/balloon1.jpg"); */
-  /* background-image: url("/assets/images/team/priscilla-du-preez-XkKCui44iM0-unsplash.jpg");
-  background-position: 30% 50%; */
+  background-image: url("/assets/images/beautiful/balloon1.jpg");
   /* これ */
-  background-image: url("/assets/images/team/team1.jpg");
+  /* background-image: url("/assets/images/team/team1.jpg"); */
   /* background-image: url("/assets/images/beautiful/ocean2.jpg"); */
   background-position: 30% 50%;
   background-size: cover;
@@ -206,7 +181,7 @@
   box-shadow: var(--color-bg-under-input-box-shadow);
   /* padding: 0px 6px; */
   padding: 4px 10px;
-  padding-left: 15px;
+  /* padding-left: 15px; */
   border-radius: 2px;
 }
 .input_box:focus {

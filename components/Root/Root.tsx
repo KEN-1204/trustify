@@ -196,6 +196,18 @@ export const Root: FC = () => {
           >
             <source src="/assets/videos/Root/top-bg3.mp4" type="video/mp4" />
           </video> */}
+          {/* 画像背景 */}
+          {/* <Image
+            src={`/assets/images/hero/bg_slide_black1x_compressed.png`}
+            alt=""
+            blurDataURL={`/assets/images/hero/placeholder/bg_slide_black1x_resize_compressed.png`}
+            placeholder="blur"
+            fill
+            sizes="100vw"
+            className={`z-[0] h-full w-full select-none object-cover`}
+          />
+          <div className="shadow-gradient-tb-lg pointer-events-none absolute z-10 h-full w-full select-none"></div> */}
+          {/* 画像背景 ここまで */}
         </div>
         {/* <div className="absolute left-0 top-0  z-0 h-[100dvh] w-[100dvw] bg-[#00000010]"></div> */}
         {/* <div className={`${styles.hero_overlay}`}></div> */}
