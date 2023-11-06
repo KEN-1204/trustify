@@ -138,7 +138,7 @@ bg-[#06c755] */
   */
   --vivid-green: var(--bright-green);
 
-  --hero-img: url("/assets/images/hero/hero_white3.png");
+  --hero-img: url("/assets/images/hero/slide_transparent3x.png");
   --hero-overlay: transparent;
   --hero-text: rgba(0, 0, 0, 0.9);
   --hero-text-shadow: transparent;
@@ -405,6 +405,9 @@ bg-[#06c755] */
 
   /* 🌟EditColumnsモーダル カラム変更モーダル light */
   --color-edit-bg: #ffffffe0;
+  --color-bg-light: #ffffff;
+  --color-bg-solid: #ffffff;
+  --color-bg-sub-solid: #ffffff;
   --color-edit-bg-solid: #ffffff;
   --color-edit-bg-card: #fff;
   --color-edit-shadow-color: rgba(0, 0, 0, 0.2);
@@ -555,6 +558,7 @@ bg-[#06c755] */
   --overlay-dark: #00000030;
   --overlay-light: #ffffff20;
   --overlay: #00000060;
+  --overlay-modal-bg: #ffffff60;
   /* ツールチップ */
   --color-tooltip-arrow: #282828;
 
@@ -631,7 +635,7 @@ bg-[#06c755] */
   */
   --vivid-green: var(--vivid-green-dark);
 
-  --hero-img: url("/assets/images/hero/hero_black3.png");
+  --hero-img: url("/assets/images/hero/slide_transparent3x.png");
   --hero-overlay: #00000008;
   --hero-text: #cfcfcf;
   --hero-text-shadow: #00000055;
@@ -836,6 +840,9 @@ bg-[#06c755] */
 
   /* 🌟EditColumnsモーダル カラム変更モーダル dark */
   --color-edit-bg: #252525e0;
+  --color-bg-light: #ffffff;
+  --color-bg-solid: #252525;
+  --color-bg-sub-solid: #383838;
   --color-edit-bg-solid: #252525;
   --color-edit-bg-card: #222;
   --color-edit-shadow-color: rgba(255, 255, 255, 0.5);
@@ -977,6 +984,7 @@ bg-[#06c755] */
   --overlay-dark: #00000030;
   --overlay-light: #ffffff20;
   --overlay: #ffffff20;
+  --overlay-modal-bg: #33333360;
 
   /* ツールチップ dark */
   --color-tooltip-arrow: #333;
@@ -1310,6 +1318,18 @@ textarea {
     #141414 100%
   );
 }
+.shadow-gradient-tb {
+  background: linear-gradient(
+    to bottom,
+    rgba(20, 20, 20, 0.6) 0,
+    rgba(20, 20, 20, 0.3) 15%,
+    rgba(20, 20, 20, 0.15) 35%,
+    rgba(20, 20, 20, 0) 50%,
+    rgba(20, 20, 20, 0.15) 65%,
+    rgba(20, 20, 20, 0.3) 85%,
+    rgba(20, 20, 20, 0.6) 100%
+  );
+}
 /* 左右方向にアンダーラインが広がるアニメーション */
 .input-underline-transition {
   transition: all 0.4s ease;
@@ -1437,4 +1457,12 @@ textarea {
   /* box-shadow: inset 0px 0px 0px 1px #ffffff70, 0px 0px 0px 1px #000; */
   box-shadow: var(--box-shadow-tooltip-border);
   /* box-shadow: var(--color-edit-border); */
+}
+
+/* 会社概要 about */
+.about-bg {
+  background-image: url("/assets/images/hero/slide_transparent3.png");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
 }

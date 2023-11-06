@@ -49,6 +49,7 @@ import { IncreaseAccountCountsModal } from "./DashboardCompanyComponent/Modal/Se
 import { FallbackIncreaseAccountCountsModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingPaymentAndPlan/IncreaseAccountCountsModal/FallbackIncreaseAccountCountsModal";
 import { DecreaseAccountCountsModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingPaymentAndPlan/DecreaseAccountCountsModal/DecreaseAccountCountsModal";
 import { FallbackDecreaseAccountCountsModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingPaymentAndPlan/DecreaseAccountCountsModal/FallbackDecreaseAccountCountsModal";
+import { ResumeMembershipAfterCancel } from "./Modal/ResumeMembershipAfterCancel/ResumeMembershipAfterCancel";
 
 type Prop = {
   title?: string;
@@ -79,7 +80,16 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
 
   // サブスクプランがnullなら初回プランモーダル表示
   const showSubscriptionPlan =
-    !!userProfileState && (!userProfileState.subscription_plan || userProfileState.subscription_plan === "free_plan");
+    !!userProfileState &&
+    (!userProfileState.subscription_plan || userProfileState.subscription_plan === "free_plan") &&
+    userProfileState.status !== "canceled";
+
+  // サブスク解約後のチーム所有者に表示する「メンバーシップ再開」モーダル
+  const showResumeMembershipAfterCancel =
+    !!userProfileState &&
+    userProfileState.subscription_plan === "free_plan" &&
+    userProfileState.status === "canceled" &&
+    userProfileState.account_company_role === "company_owner";
   // const showSubscriptionPlan = !!userProfileState && userProfileState.role === "free_user";
 
   // 初回サブスク登録後、契約者（is_subscriberがtrue）でかつ初回ログイン時（first_time_loginがtrue）の場合、
@@ -148,7 +158,9 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
     "showSubscriptionPlan",
     showSubscriptionPlan,
     "invitationData",
-    invitationData
+    invitationData,
+    "キャンセル後所有者 showResumeMembershipAfterCancel",
+    showResumeMembershipAfterCancel
   );
 
   // テーマカラーチェンジ関数
@@ -378,6 +390,10 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
       {showFirstLoginSettingUserProfileCompanyModal && <FirstLoginSettingUserProfileCompanyModal />}
       {/* 既に契約ずみアカウントに紐付けされていて招待メールでログインした用 */}
       {showFirstLoginSettingUserProfileAfterInvitation && <FirstLoginSettingUserProfileAfterInvitationModal />}
+
+      {/* ============================ サブスク解約後に表示するコンポーネント ============================ */}
+      {/* チーム所有者、契約者に表示する「メンバーシップを再開しますか？」モーダル */}
+      {showResumeMembershipAfterCancel && <ResumeMembershipAfterCancel />}
 
       {/* ============================ 共通UIコンポーネント ============================ */}
       {/* モーダル */}

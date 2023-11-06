@@ -343,7 +343,7 @@ export default function App({
         <RootLayout>
           <Component {...pageProps} />
         </RootLayout>
-        <ReactQueryDevtools initialIsOpen={false} />
+        {/* <ReactQueryDevtools initialIsOpen={false} /> */}
       </QueryClientProvider>
     </SessionContextProvider>
   );

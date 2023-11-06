@@ -358,7 +358,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
             </div>
           )}
           {isLoadingPortal && (
-            <div className={`flex-center fixed inset-0 z-[2000] rounded-[8px] bg-[#ffffff60]`}>
+            <div className={`flex-center fixed inset-0 z-[2000] rounded-[8px] bg-[var(--overlay-modal-bg)]`}>
               {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
               <SpinnerComet width="min-w-[50px]" height="min-h-[50px]" />
             </div>
