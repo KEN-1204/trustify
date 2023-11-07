@@ -16,6 +16,8 @@ import { BsCheck2 } from "react-icons/bs";
 import { AiOutlineArrowLeft } from "react-icons/ai";
 import { FiArrowLeft } from "react-icons/fi";
 import { loadStripe } from "@stripe/stripe-js";
+import Stripe from "stripe";
+import { FallbackResumeMembershipAfterCancel } from "./FallbackResumeMembershipAfterCancel";
 
 type Plans = {
   id: string;
@@ -32,7 +34,8 @@ const ResumeMembershipAfterCancelMemo = () => {
   const theme = useRootStore(useThemeStore, (state) => state.theme);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   // ローディング
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   // ステップ 再開するか、チーム削除して新しく作るか
   const [resumeStep, setResumeStep] = useState("");
   // プラン選択、決済手段選択ステップ
@@ -42,7 +45,9 @@ const ResumeMembershipAfterCancelMemo = () => {
   const [planBusiness, setPlanBusiness] = useState<Plans | null>(null);
   const [planPremium, setPlanPremium] = useState<Plans | null>(null);
   // ユーザーのデフォルトの支払い方法
-  const [paymentMethod, setPaymentMethod] = useState(null);
+  // const [defaultPaymentMethod, setDefaultPaymentMethod] = useState(null);
+  const defaultPaymentMethodState = useDashboardStore((state) => state.defaultPaymentMethodState);
+  const setDefaultPaymentMethodState = useDashboardStore((state) => state.setDefaultPaymentMethodState);
 
   // ================================ ツールチップ ================================
   const modalContainerRef = useRef<HTMLDivElement | null>(null);
@@ -123,54 +128,41 @@ const ResumeMembershipAfterCancelMemo = () => {
   }, [sessionState]);
 
   // 初回マウント時にStripeの現在のデフォルト支払い方法を取得する
-  // useEffect(() => {
-  //   if (!sessionState) return console.log("sessionStateなしのためリターン", sessionState);
-  //   if (!userProfileState) return console.log("ユーザー情報なしのためリターン");
-  //   const getPaymentMethodFromStripe = async () => {
-  //     console.log("getPlansFromStripe実行");
-
-  //     const payload = {
-  //       stripeCustomerId: userProfileState.subscription_stripe_customer_id,
-  //       stripeSubscriptionId: userProfileState.stripe_subscription_id,
-  //     };
-  //     console.log("axios.post()でAPIルートretrieve-payment-methodへリクエスト 引数のpayload", payload);
-  //     const {
-  //       data: { paymentMethod, error: paymentMethodError },
-  //     } = await axios.post(`/api/retrieve-payment-method`, payload, {
-  //       headers: {
-  //         Authorization: `Bearer ${sessionState.access_token}`,
-  //       },
-  //     });
-  //   };
-
-  //   getPaymentMethodFromStripe();
-  // }, [sessionState]);
-  const getPaymentMethodFromStripe = async () => {
+  useEffect(() => {
+    if (!sessionState) return console.log("sessionStateなしのためリターン", sessionState);
     if (!userProfileState) return console.log("ユーザー情報なしのためリターン");
-    console.log("getPlansFromStripe実行");
+    if (!!defaultPaymentMethodState) return console.log("既にデフォルト支払い方法を取得済み");
 
-    try {
-      const payload = {
-        stripeCustomerId: userProfileState.subscription_stripe_customer_id,
-        stripeSubscriptionId: userProfileState.stripe_subscription_id,
-      };
-      console.log("axios.post()でAPIルートretrieve-payment-methodへリクエスト 引数のpayload", payload);
-      const {
-        data: { data: paymentMethod, error: paymentMethodError },
-      } = await axios.post(`/api/retrieve-payment-method`, payload, {
-        headers: {
-          Authorization: `Bearer ${sessionState.access_token}`,
-        },
-      });
-      if (paymentMethodError) {
-        console.error("支払い方法の取得に失敗 エラーオブジェクト", paymentMethodError);
-        throw new Error(paymentMethodError.message);
+    const getPaymentMethodFromStripe = async () => {
+      if (!userProfileState) return console.log("ユーザー情報なしのためリターン");
+      console.log("getPlansFromStripe実行");
+
+      try {
+        const payload = {
+          stripeCustomerId: userProfileState.subscription_stripe_customer_id,
+          stripeSubscriptionId: userProfileState.stripe_subscription_id,
+        };
+        console.log("axios.post()でAPIルートretrieve-payment-methodへリクエスト 引数のpayload", payload);
+        const {
+          data: { data: paymentMethod, error: paymentMethodError },
+        } = await axios.post(`/api/retrieve-payment-method`, payload, {
+          headers: {
+            Authorization: `Bearer ${sessionState.access_token}`,
+          },
+        });
+        if (paymentMethodError) {
+          console.error("支払い方法の取得に失敗 エラーオブジェクト", paymentMethodError);
+          throw new Error(paymentMethodError.message);
+        }
+        console.log("支払い方法の取得に成功 paymentMethod", paymentMethod);
+        setDefaultPaymentMethodState(paymentMethod);
+      } catch (e: any) {
+        console.error("支払い方法の取得に失敗 エラーオブジェクト", e);
       }
-      console.log("支払い方法の取得に成功 paymentMethod", paymentMethod);
-    } catch (e: any) {
-      console.error("支払い方法の取得に失敗 エラーオブジェクト", e);
-    }
-  };
+    };
+
+    getPaymentMethodFromStripe();
+  }, [sessionState]);
 
   // ラジオボタン切り替え用state
   const handleRadioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -182,7 +174,7 @@ const ResumeMembershipAfterCancelMemo = () => {
     if (!userProfileState) return alert("エラー：ユーザー情報が確認できませんでした");
     if (!sessionState) return alert("エラー：セッション情報が確認できませんでした");
     if (!accountQuantity) return alert("メンバーの人数を入力してください");
-    setIsLoading(true);
+    setIsLoadingSubmit(true);
 
     try {
       const payload = {
@@ -209,7 +201,7 @@ const ResumeMembershipAfterCancelMemo = () => {
       console.error("サブスク再開エラー", e);
       alert(`エラーが発生しました: ${e.message}`);
     }
-    setIsLoading(false);
+    setIsLoadingSubmit(false);
   };
 
   // Stripeポータルへ移行させるためのURLをAPIルートにGETリクエスト
@@ -232,6 +224,36 @@ const ResumeMembershipAfterCancelMemo = () => {
     }
   };
 
+  // カードブランドURL
+  const cardBrandURL = () => {
+    switch (defaultPaymentMethodState.card.brand) {
+      case "visa":
+        return "/assets/images/icons/cards/icons8-visa-60.png";
+
+      case "amex":
+        return "/assets/images/icons/cards/AXP_BlueBoxLogo_Alternate_SMALLscale_RGB_DIGITAL_80x80.png";
+
+      case "diners":
+        return "/assets/images/icons/cards/icons8-diners-club-48.png";
+
+      case "discover":
+        return "/assets/images/icons/cards/icons8-discover-card.png";
+
+      case "jcb":
+        return "/assets/images/icons/cards/icons8-jcb-48.png";
+
+      case "mastercard":
+        return "/assets/images/icons/cards/icons8-mastercard-incorporated-an-american-multinational-financial-services-corporation-48.png";
+
+      case "unionpay":
+        return "/assets/images/icons/cards/icons8-unionpay-48.png";
+
+      default:
+        return "/assets/images/icons/cards/icons8-credit-card-48.png";
+        break;
+    }
+  };
+
   console.log(
     "ResumeMembershipAfterCancelレンダリング",
     "✅selectedRadioButton",
@@ -243,8 +265,18 @@ const ResumeMembershipAfterCancelMemo = () => {
     "✅planPremium",
     planPremium,
     "✅userProfileState",
-    userProfileState
+    userProfileState,
+    "✅defaultPaymentMethodState",
+    defaultPaymentMethodState
+    // "✅defaultPaymentMethod",
+    // defaultPaymentMethod,
+    // "✅defaultPaymentMethodError",
+    // defaultPaymentMethodError,
+    // "✅isLoadingPayment",
+    // isLoadingPayment
   );
+
+  if (!userProfileState) return <FallbackResumeMembershipAfterCancel />;
 
   return (
     <div className={`fixed inset-0 z-[2000] ${styles.bg_image}`} ref={modalContainerRef}>
@@ -352,7 +384,11 @@ const ResumeMembershipAfterCancelMemo = () => {
                   onMouseEnter={(e) => handleOpenTooltip(e, "top")}
                   onMouseLeave={handleCloseTooltip}
                   onClick={() => {
-                    setResumeStep("");
+                    if (stepContents === "resume_2") {
+                      setStepContents("");
+                    } else {
+                      setResumeStep("");
+                    }
                     handleCloseTooltip();
                   }}
                 >
@@ -373,7 +409,7 @@ const ResumeMembershipAfterCancelMemo = () => {
                       />
                     </div>
                   </div>
-                  <h1 className={`mt-[10px] w-full text-center text-[24px] font-bold`}>
+                  <h1 className={`mt-[10px] w-full text-center text-[24px] font-bold text-[var(--color-text-title)]`}>
                     プランを選んで再び始めましょう！
                   </h1>
                   <div className={`w-full space-y-2 py-[20px]`}>
@@ -438,7 +474,7 @@ const ResumeMembershipAfterCancelMemo = () => {
                           />
                           <label
                             htmlFor="business_plan"
-                            className="relative cursor-pointer pl-[40px] text-[20px] font-bold text-[var(--color-text)]"
+                            className="relative cursor-pointer pl-[40px] text-[20px] font-bold text-[var(--color-text-title)]"
                             //   className="relative cursor-pointer pl-[40px] text-[20px] font-bold text-[var(--color-text)]  peer-checked/business_plan:text-[var(--color-bg-brand-f)]"
                           >
                             ビジネスプラン
@@ -484,7 +520,7 @@ const ResumeMembershipAfterCancelMemo = () => {
                           />
                           <label
                             htmlFor="premium_plan"
-                            className="relative cursor-pointer pl-[40px] text-[20px] font-bold text-[var(--color-text)]"
+                            className="relative cursor-pointer pl-[40px] text-[20px] font-bold text-[var(--color-text-title)]"
                           >
                             プレミアムプラン
                             {selectedRadioButton === "premium_plan" ? (
@@ -524,7 +560,7 @@ const ResumeMembershipAfterCancelMemo = () => {
 
                     {/* メンバー人数選択 */}
                     <div className="flex w-full items-center justify-between pt-[20px]">
-                      <div className="relative cursor-pointer text-[20px] font-bold text-[var(--color-text)]">
+                      <div className="relative cursor-pointer text-[20px] font-bold text-[var(--color-text-title)]">
                         メンバー人数
                       </div>
                       <div className="flex items-center justify-end space-x-2 font-semibold">
@@ -567,14 +603,82 @@ const ResumeMembershipAfterCancelMemo = () => {
                         onClick={() => setStepContents("resume_2")}
                       >
                         {/* {!isLoading && <span>メンバーシップを開始する</span>} */}
-                        {!isLoading && <span>続ける</span>}
-                        {isLoading && <SpinnerIDS scale={"scale-[0.4]"} />}
+                        {!isLoadingSubmit && <span>続ける</span>}
+                        {isLoadingSubmit && <SpinnerIDS scale={"scale-[0.4]"} />}
                       </button>
                     </div>
                   </div>
                   <div className={`${styles.left_slide_scroll_right}`}>
+                    <div className="mt-[20px] h-auto w-full text-[20px] font-bold text-[var(--color-text-title)]">
+                      <h2>お支払い方法の設定</h2>
+                    </div>
+
+                    {/* 説明エリア */}
+                    {defaultPaymentMethodState && (
+                      <div className={`mt-[20px] w-full text-[14px] leading-[24px] text-[var(--color-text-sub)]`}>
+                        <p>現在設定されているお支払い方法は下記の通りです。</p>
+                        <p className="">
+                          有効期限は
+                          <span className="font-bold">
+                            {defaultPaymentMethodState.card.exp_year}年{defaultPaymentMethodState.card.exp_month}月
+                          </span>
+                          です。変更する場合は「お支払い方法を変更する」から変更してください。
+                        </p>
+                      </div>
+                    )}
+                    {!defaultPaymentMethodState && (
+                      <div className={`mt-[20px] w-full text-[14px] leading-[24px] text-[var(--color-text-sub)]`}>
+                        <p>
+                          お客様のお支払い方法が設定されていません。下記の「お支払い方法を設定する」からお支払い方法を設定してください。
+                        </p>
+                      </div>
+                    )}
+
+                    {/* カード情報 */}
+                    <div className="flex w-full items-center justify-between pt-[30px]">
+                      {defaultPaymentMethodState && (
+                        <div className="flex h-[30px] items-center">
+                          <div
+                            className={`relative mb-[-5px] ${
+                              defaultPaymentMethodState === "amex" ? `h-[28px] w-[28px]` : `h-[25px] w-[25px]`
+                            }`}
+                          >
+                            <Image
+                              src={cardBrandURL()}
+                              alt="card-brand"
+                              fill
+                              sizes="64px"
+                              className="z-[1] h-full w-full object-contain object-center"
+                            />
+                          </div>
+                          <div className="ml-[10px] flex min-h-[24px] items-center space-x-[8px]">
+                            <span className="text-[24px] font-bold tracking-[-2px]">••••</span>
+                            <span className="text-[24px] font-bold tracking-[-2px]">••••</span>
+                            <span className="text-[24px] font-bold tracking-[-2px]">••••</span>
+                            <span className="mb-[-3px] text-[14px] font-bold tracking-[1px]">
+                              {defaultPaymentMethodState.card.last4}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                      <div className="flex-center max-h-[32px] rounded-[8px] px-[12px] py-[8px]">
+                        {!isLoadingPortal && (
+                          <span
+                            className={`transition-base03 cursor-pointer text-[14px] text-[var(--color-text-sub)] hover:text-[var(--color-text-brand-f)] hover:underline`}
+                            onClick={loadPortal}
+                          >
+                            {defaultPaymentMethodState ? "お支払い方法を変更する" : "お支払い方法を設定する"}
+                          </span>
+                        )}
+                        {isLoadingPortal && (
+                          <div className="flex-center max-h-[30px] max-w-[30px]">
+                            <SpinnerIDS scale={"scale-[0.4]"} />
+                          </div>
+                        )}
+                      </div>
+                    </div>
                     {/* メンバーシップを開始するボタン */}
-                    <div className="w-full pt-[30px]">
+                    <div className="mt-[45px] w-full">
                       <button
                         className={`flex-center h-[40px] w-full cursor-pointer rounded-[6px] bg-[var(--color-bg-brand-f)] font-bold text-[#fff] ${
                           isLoadingPortal ? `` : `hover:bg-[var(--color-bg-brand-f-deep)]`
@@ -586,28 +690,22 @@ const ResumeMembershipAfterCancelMemo = () => {
                         //     handleResume(planPremium.id, accountQuantity);
                         // }}
                         // onClick={loadPortal}
-                        onClick={getPaymentMethodFromStripe}
+                        // onClick={getPaymentMethodFromStripe}
                       >
                         {/* {!isLoading && <span>メンバーシップを開始する</span>} */}
-                        {!isLoadingPortal && <span>お支払い方法を変更する</span>}
+                        {!isLoadingPortal && <span>メンバーシップを始める</span>}
                         {isLoadingPortal && <SpinnerIDS scale={"scale-[0.4]"} />}
                       </button>
                     </div>
-                    <div className="w-full pt-[30px]">
-                      <button
-                        className={`flex-center h-[40px] w-full cursor-pointer rounded-[6px] bg-[var(--color-bg-brand-f)] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
-                        // onClick={() => {
-                        //   if (selectedRadioButton === "business_plan" && !!planBusiness)
-                        //     handleResume(planBusiness.id, accountQuantity);
-                        //   if (selectedRadioButton === "premium_plan" && !!planPremium)
-                        //     handleResume(planPremium.id, accountQuantity);
-                        // }}
-                        onClick={() => setStepContents("")}
-                      >
-                        {/* {!isLoading && <span>メンバーシップを開始する</span>} */}
-                        {!isLoading && <span>戻る</span>}
-                        {isLoading && <SpinnerIDS scale={"scale-[0.4]"} />}
-                      </button>
+                    <div className="mb-[30px] w-full pt-[15px]">
+                      <div className={`flex-center h-[40px] w-full`}>
+                        <span
+                          className={`cursor-pointer text-[var(--color-text-sub)] hover:text-[var(--color-text-sub-deep)]`}
+                          onClick={() => setStepContents("")}
+                        >
+                          戻る
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>

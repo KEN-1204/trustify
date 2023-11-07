@@ -500,6 +500,8 @@ export type StripeSchedule = {
   type: string | null;
 };
 
+// Stripe PaymentMethodオブジェクト
+
 export type Contact = {
   id: string;
   created_at: string;

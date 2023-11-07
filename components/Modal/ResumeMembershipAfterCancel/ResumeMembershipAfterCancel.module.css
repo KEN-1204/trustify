@@ -61,7 +61,7 @@
   height: 100%;
 }
 .left_slide_scroll_right {
-  padding: 40px 40px 20px 40px;
+  padding: 0px 40px 20px 40px;
   display: flex;
   flex-direction: column;
   min-width: 100%;

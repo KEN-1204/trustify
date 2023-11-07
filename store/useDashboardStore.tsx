@@ -26,6 +26,7 @@ import { meetingColumnHeaderItemListData } from "@/utils/meetingColumnHeaderItem
 import { propertyColumnHeaderItemListData } from "@/utils/propertyColumnHeaderItemListData";
 // import { Session } from "@supabase/supabase-js";
 import { ReactNode } from "react";
+import Stripe from "stripe";
 import { create } from "zustand";
 
 type State = {
@@ -160,6 +161,9 @@ type State = {
   // 【プランをダウングレードのリクエストをしたスケジュール】
   downgradePlanSchedule: StripeSchedule | null;
   setDowngradePlanSchedule: (payload: StripeSchedule | null) => void;
+  // 【デフォルトの支払い方法】
+  defaultPaymentMethodState: any | null;
+  setDefaultPaymentMethodState: (payload: any | null) => void;
 
   // =================== アンダーテーブル関連 ===================
   // 【サーチモード切り替え】
@@ -412,6 +416,9 @@ const useDashboardStore = create<State>((set) => ({
   // 【プランをダウングレードのリクエストをしたスケジュール】
   downgradePlanSchedule: null,
   setDowngradePlanSchedule: (payload) => set({ downgradePlanSchedule: payload }),
+  // 【デフォルトの支払い方法】
+  defaultPaymentMethodState: null,
+  setDefaultPaymentMethodState: (payload) => set({ defaultPaymentMethodState: payload }),
 
   // =================== テーブルサイズ切り替えボタン ===================
   // 【テーブルサイズ切り替えメニュー開閉状態】

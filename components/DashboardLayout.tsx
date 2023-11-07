@@ -50,6 +50,7 @@ import { FallbackIncreaseAccountCountsModal } from "./DashboardCompanyComponent/
 import { DecreaseAccountCountsModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingPaymentAndPlan/DecreaseAccountCountsModal/DecreaseAccountCountsModal";
 import { FallbackDecreaseAccountCountsModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingPaymentAndPlan/DecreaseAccountCountsModal/FallbackDecreaseAccountCountsModal";
 import { ResumeMembershipAfterCancel } from "./Modal/ResumeMembershipAfterCancel/ResumeMembershipAfterCancel";
+import { FallbackResumeMembershipAfterCancel } from "./Modal/ResumeMembershipAfterCancel/FallbackResumeMembershipAfterCancel";
 
 type Prop = {
   title?: string;
@@ -392,7 +393,15 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
 
       {/* ============================ サブスク解約後に表示するコンポーネント ============================ */}
       {/* チーム所有者、契約者に表示する「メンバーシップを再開しますか？」モーダル */}
-      {showResumeMembershipAfterCancel && <ResumeMembershipAfterCancel />}
+      {/* {showResumeMembershipAfterCancel && <ResumeMembershipAfterCancel />} */}
+      {showResumeMembershipAfterCancel && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<FallbackResumeMembershipAfterCancel />}>
+            <ResumeMembershipAfterCancel />
+          </Suspense>
+        </ErrorBoundary>
+      )}
+      {/* {showResumeMembershipAfterCancel && <FallbackResumeMembershipAfterCancel />} */}
 
       {/* ============================ 共通UIコンポーネント ============================ */}
       {/* モーダル */}
