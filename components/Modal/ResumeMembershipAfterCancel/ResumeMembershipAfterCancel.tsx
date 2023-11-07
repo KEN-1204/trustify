@@ -15,6 +15,7 @@ import styles from "./ResumeMembershipAfterCancel.module.css";
 import { BsCheck2 } from "react-icons/bs";
 import { AiOutlineArrowLeft } from "react-icons/ai";
 import { FiArrowLeft } from "react-icons/fi";
+import { loadStripe } from "@stripe/stripe-js";
 
 type Plans = {
   id: string;
@@ -30,13 +31,18 @@ const ResumeMembershipAfterCancelMemo = () => {
   const sessionState = useStore((state) => state.sessionState);
   const theme = useRootStore(useThemeStore, (state) => state.theme);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
-  const [isLoadingPortal, setIsLoadingPortal] = useState(false);
-  // ステップ
+  // ローディング
+  const [isLoading, setIsLoading] = useState(false);
+  // ステップ 再開するか、チーム削除して新しく作るか
   const [resumeStep, setResumeStep] = useState("");
+  // プラン選択、決済手段選択ステップ
+  const [stepContents, setStepContents] = useState("");
   const [accountQuantity, setAccountQuantity] = useState<number | null>(1);
   const [selectedRadioButton, setSelectedRadioButton] = useState("business_plan");
   const [planBusiness, setPlanBusiness] = useState<Plans | null>(null);
   const [planPremium, setPlanPremium] = useState<Plans | null>(null);
+  // ユーザーのデフォルトの支払い方法
+  const [paymentMethod, setPaymentMethod] = useState(null);
 
   // ================================ ツールチップ ================================
   const modalContainerRef = useRef<HTMLDivElement | null>(null);
@@ -116,13 +122,100 @@ const ResumeMembershipAfterCancelMemo = () => {
     getPlansFromStripe();
   }, [sessionState]);
 
+  // 初回マウント時にStripeの現在のデフォルト支払い方法を取得する
+  // useEffect(() => {
+  //   if (!sessionState) return console.log("sessionStateなしのためリターン", sessionState);
+  //   if (!userProfileState) return console.log("ユーザー情報なしのためリターン");
+  //   const getPaymentMethodFromStripe = async () => {
+  //     console.log("getPlansFromStripe実行");
+
+  //     const payload = {
+  //       stripeCustomerId: userProfileState.subscription_stripe_customer_id,
+  //       stripeSubscriptionId: userProfileState.stripe_subscription_id,
+  //     };
+  //     console.log("axios.post()でAPIルートretrieve-payment-methodへリクエスト 引数のpayload", payload);
+  //     const {
+  //       data: { paymentMethod, error: paymentMethodError },
+  //     } = await axios.post(`/api/retrieve-payment-method`, payload, {
+  //       headers: {
+  //         Authorization: `Bearer ${sessionState.access_token}`,
+  //       },
+  //     });
+  //   };
+
+  //   getPaymentMethodFromStripe();
+  // }, [sessionState]);
+  const getPaymentMethodFromStripe = async () => {
+    if (!userProfileState) return console.log("ユーザー情報なしのためリターン");
+    console.log("getPlansFromStripe実行");
+
+    try {
+      const payload = {
+        stripeCustomerId: userProfileState.subscription_stripe_customer_id,
+        stripeSubscriptionId: userProfileState.stripe_subscription_id,
+      };
+      console.log("axios.post()でAPIルートretrieve-payment-methodへリクエスト 引数のpayload", payload);
+      const {
+        data: { data: paymentMethod, error: paymentMethodError },
+      } = await axios.post(`/api/retrieve-payment-method`, payload, {
+        headers: {
+          Authorization: `Bearer ${sessionState.access_token}`,
+        },
+      });
+      if (paymentMethodError) {
+        console.error("支払い方法の取得に失敗 エラーオブジェクト", paymentMethodError);
+        throw new Error(paymentMethodError.message);
+      }
+      console.log("支払い方法の取得に成功 paymentMethod", paymentMethod);
+    } catch (e: any) {
+      console.error("支払い方法の取得に失敗 エラーオブジェクト", e);
+    }
+  };
+
   // ラジオボタン切り替え用state
   const handleRadioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedRadioButton(e.target.value);
   };
 
   // メンバーシップを再開
-  const handleResume = async () => {
+  const handleResume = async (planId: string, quantity: number | null) => {
+    if (!userProfileState) return alert("エラー：ユーザー情報が確認できませんでした");
+    if (!sessionState) return alert("エラー：セッション情報が確認できませんでした");
+    if (!accountQuantity) return alert("メンバーの人数を入力してください");
+    setIsLoading(true);
+
+    try {
+      const payload = {
+        stripeCustomerId: userProfileState.stripe_customer_id,
+        planId: planId,
+        quantity: quantity,
+        companyId: userProfileState.company_id,
+        dbSubscriptionId: userProfileState.subscription_id,
+      };
+      const {
+        data: { subscriptionItem, error: axiosStripeError },
+      } = await axios.post(`/api/subscription/resume-subscription`, payload, {
+        headers: {
+          Authorization: `Bearer ${sessionState.access_token}`,
+        },
+      });
+      console.log(
+        `🔥handleChangeQUantity Apiからのdata subscriptionItem`,
+        subscriptionItem,
+        "axiosStripeError",
+        axiosStripeError
+      );
+    } catch (e: any) {
+      console.error("サブスク再開エラー", e);
+      alert(`エラーが発生しました: ${e.message}`);
+    }
+    setIsLoading(false);
+  };
+
+  // Stripeポータルへ移行させるためのURLをAPIルートにGETリクエスト
+  // APIルートからurlを取得したらrouter.push()でStipeカスタマーポータルへページ遷移
+  const [isLoadingPortal, setIsLoadingPortal] = useState(false);
+  const loadPortal = async () => {
     setIsLoadingPortal(true);
     try {
       const { data } = await axios.get("/api/portal", {
@@ -139,28 +232,20 @@ const ResumeMembershipAfterCancelMemo = () => {
     }
   };
 
-  // 【サブスクリプションの開始、登録、Stripe支払いチェックアウトページにリダイレクト】
-  // const processSubscription = async (planId: string) => {
-  //   const processSubscription = async (planId: string, quantity: number | null) => {
-  //     if (!sessionState) return;
-  //     if (!accountQuantity) return alert("メンバーの人数を入力してください");
-  //     setIsLoading(true);
+  console.log(
+    "ResumeMembershipAfterCancelレンダリング",
+    "✅selectedRadioButton",
+    selectedRadioButton,
+    "✅accountQuantity",
+    accountQuantity,
+    "✅planBusiness",
+    planBusiness,
+    "✅planPremium",
+    planPremium,
+    "✅userProfileState",
+    userProfileState
+  );
 
-  //     // const response = await axios.get(`/api/subscription/${planId}`, {
-  //     const response = await axios.get(`/api/subscription/${planId}?quantity=${quantity}`, {
-  //       headers: {
-  //         Authorization: `Bearer ${sessionState.access_token}`,
-  //       },
-  //     });
-  //     console.log(`🔥Pricingコンポーネント Apiからのresponse`, response);
-
-  //     // クライアントStripeインスタンスをロード
-  //     const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_KEY!);
-  //     // Stripeのチェックアウトページにリダイレクト
-  //     await stripe?.redirectToCheckout({ sessionId: response.data.id });
-  //   };
-
-  console.log("ResumeMembershipAfterCancelレンダリング");
   return (
     <div className={`fixed inset-0 z-[2000] ${styles.bg_image}`} ref={modalContainerRef}>
       {hoveredItemPosModal && <TooltipModal />}
@@ -191,6 +276,7 @@ const ResumeMembershipAfterCancelMemo = () => {
         fill
         sizes="100vw"
         className={`transition-base z-[0] h-full w-full select-none object-cover`}
+        onContextMenu={(e) => e.preventDefault()}
       />
       {/* <Image
         src={`/assets/images/hero/bg_slide_white1x_compressed.png`}
@@ -231,13 +317,10 @@ const ResumeMembershipAfterCancelMemo = () => {
             {/* ボタンエリア */}
             <div className={`mt-[20px] flex w-full flex-col space-y-[15px]`}>
               <button
-                className={`transition-base02 flex-center relative max-h-[41px] w-full cursor-pointer rounded-[8px] bg-[#0d99ff] px-[25px] py-[10px] text-[14px] font-bold  text-[#fff]  hover:text-[#fff] ${
-                  isLoadingPortal ? `` : `hover:bg-[var(--color-bg-brand-f-hover)]`
-                }`}
+                className={`transition-base02 flex-center relative max-h-[41px] w-full cursor-pointer rounded-[8px] bg-[#0d99ff] px-[25px] py-[10px] text-[14px] font-bold  text-[#fff]  hover:bg-[var(--color-bg-brand-f-hover)] hover:text-[#fff]`}
                 onClick={() => setResumeStep("resume")}
               >
-                {!isLoadingPortal && <span>再開する</span>}
-                {isLoadingPortal && <SpinnerIDS scale={"scale-[0.4]"} />}
+                <span>再開する</span>
               </button>
               <button
                 className={`transition-base02 flex-center relative max-h-[41px] w-full cursor-pointer rounded-[8px] bg-[#40576d12] px-[25px] py-[10px] text-[14px] font-bold  hover:bg-[var(--bright-green)] hover:text-[#fff]`}
@@ -261,10 +344,10 @@ const ResumeMembershipAfterCancelMemo = () => {
           <>
             {/* メインコンテンツ コンテナ */}
             <div className={`${styles.main_contents_container} fade1`}>
-              <div className={`${styles.left_container} h-full w-6/12 `}>
+              <div className={`${styles.left_container} relative  h-full w-6/12`}>
                 {/* 戻るボタン */}
                 <div
-                  className="flex-center absolute left-[20px] top-[20px] z-0 h-[35px] w-[35px] cursor-pointer rounded-full hover:bg-[var(--color-bg-sub-icon)]"
+                  className="flex-center absolute left-[20px] top-[20px] z-50 h-[35px] w-[35px] cursor-pointer rounded-full hover:bg-[var(--color-bg-sub-icon)]"
                   data-text="戻る"
                   onMouseEnter={(e) => handleOpenTooltip(e, "top")}
                   onMouseLeave={handleCloseTooltip}
@@ -275,183 +358,263 @@ const ResumeMembershipAfterCancelMemo = () => {
                 >
                   <FiArrowLeft className="pointer-events-none text-[26px]" />
                 </div>
-                {/* <div className={`${styles.left_container} h-full w-full`}> */}
-                <div className={`flex-center h-[40px] w-full`}>
-                  <div className="relative flex h-[60px] w-[145px] select-none items-center justify-center">
-                    <Image
-                      src={`/assets/images/Trustify_Logo_icon_bg-black@3x.png`}
-                      alt=""
-                      className="h-full w-[90%] object-contain"
-                      fill
-                      priority={true}
-                      sizes="10vw"
-                    />
-                  </div>
-                </div>
-                <h1 className={`mt-[10px] w-full text-center text-[24px] font-bold`}>
-                  プランを選んで再び始めましょう！
-                </h1>
-                {/* <h1 className={`w-full text-[24px] font-bold`}>プランを選んで早速始めましょう！</h1> */}
-                <div className={`w-full space-y-2 py-[20px]`}>
-                  <div className="flex space-x-3">
-                    <BsCheck2 className="stroke-1 text-[24px] text-[#00d436]" />
-                    <p>全てのコンテンツを使い放題。</p>
-                  </div>
-                  <div className="flex space-x-3">
-                    <BsCheck2 className="stroke-1 text-[24px] text-[#00d436]" />
-                    <p>簡単登録、いつでもキャンセルできます。</p>
-                  </div>
-                </div>
 
-                {/* ラジオボタン */}
-                <div className="flex w-full flex-col items-center justify-start space-y-[20px] py-[20px]">
-                  {/* ビジネスプランラジオボタン */}
-                  <div className="flex h-full w-full flex-col">
-                    <div className="group/item relative flex h-full w-full  items-center justify-between whitespace-nowrap ">
-                      <input
-                        id="business_plan"
-                        type="radio"
-                        value="business_plan"
-                        onChange={handleRadioChange}
-                        checked={selectedRadioButton === "business_plan"}
-                        className="peer/business_plan invisible absolute"
+                {/* ロゴからチェックエリアまで */}
+                <div className="flex flex-col px-[40px] pt-[40px]">
+                  <div className={`flex-center h-[40px] w-full`}>
+                    <div className="relative flex h-[60px] w-[145px] select-none items-center justify-center">
+                      <Image
+                        src={`/assets/images/Trustify_Logo_icon_bg-black@3x.png`}
+                        alt=""
+                        className="h-full w-[90%] object-contain"
+                        fill
+                        priority={true}
+                        sizes="10vw"
                       />
-                      <label
-                        htmlFor="business_plan"
-                        className="relative cursor-pointer pl-[40px] text-[20px] font-bold text-[var(--color-text)]"
-                        //   className="relative cursor-pointer pl-[40px] text-[20px] font-bold text-[var(--color-text)]  peer-checked/business_plan:text-[var(--color-bg-brand-f)]"
+                    </div>
+                  </div>
+                  <h1 className={`mt-[10px] w-full text-center text-[24px] font-bold`}>
+                    プランを選んで再び始めましょう！
+                  </h1>
+                  <div className={`w-full space-y-2 py-[20px]`}>
+                    <div className="flex space-x-3">
+                      <BsCheck2 className="stroke-1 text-[24px] text-[#00d436]" />
+                      <p>全てのコンテンツを使い放題。</p>
+                    </div>
+                    <div className="flex space-x-3">
+                      <BsCheck2 className="stroke-1 text-[24px] text-[#00d436]" />
+                      <p>簡単登録、いつでもキャンセルできます。</p>
+                    </div>
+                  </div>
+                </div>
+                {/* ロゴからチェックエリアまで */}
+
+                {/* 左スライドスクロールコンテナ */}
+                <div
+                  className={`relative h-full w-full min-w-[40vw] max-w-[40vw] ${
+                    styles.left_slide_scroll_container
+                  } transition-base03 ${stepContents === "resume_2" ? `ml-[-100%]` : ``}`}
+                >
+                  {/* 左スライドコンテンツラッパー */}
+                  <div className={`${styles.left_slide_scroll_left}`}>
+                    {/* <div className={`flex-center h-[40px] w-full`}>
+                      <div className="relative flex h-[60px] w-[145px] select-none items-center justify-center">
+                        <Image
+                          src={`/assets/images/Trustify_Logo_icon_bg-black@3x.png`}
+                          alt=""
+                          className="h-full w-[90%] object-contain"
+                          fill
+                          priority={true}
+                          sizes="10vw"
+                        />
+                      </div>
+                    </div>
+                    <h1 className={`mt-[10px] w-full text-center text-[24px] font-bold`}>
+                      プランを選んで再び始めましょう！
+                    </h1>
+                    <div className={`w-full space-y-2 py-[20px]`}>
+                      <div className="flex space-x-3">
+                        <BsCheck2 className="stroke-1 text-[24px] text-[#00d436]" />
+                        <p>全てのコンテンツを使い放題。</p>
+                      </div>
+                      <div className="flex space-x-3">
+                        <BsCheck2 className="stroke-1 text-[24px] text-[#00d436]" />
+                        <p>簡単登録、いつでもキャンセルできます。</p>
+                      </div>
+                    </div> */}
+
+                    {/* ラジオボタン */}
+                    <div className="flex w-full flex-col items-center justify-start space-y-[20px] py-[20px]">
+                      {/* ビジネスプランラジオボタン */}
+                      <div className="flex h-full w-full flex-col">
+                        <div className="group/item relative flex h-full w-full  items-center justify-between whitespace-nowrap ">
+                          <input
+                            id="business_plan"
+                            type="radio"
+                            value="business_plan"
+                            onChange={handleRadioChange}
+                            checked={selectedRadioButton === "business_plan"}
+                            className="peer/business_plan invisible absolute"
+                          />
+                          <label
+                            htmlFor="business_plan"
+                            className="relative cursor-pointer pl-[40px] text-[20px] font-bold text-[var(--color-text)]"
+                            //   className="relative cursor-pointer pl-[40px] text-[20px] font-bold text-[var(--color-text)]  peer-checked/business_plan:text-[var(--color-bg-brand-f)]"
+                          >
+                            ビジネスプラン
+                            {selectedRadioButton === "business_plan" ? (
+                              <div className="absolute left-[0px] top-[0px] flex h-[28px] w-[28px] items-center justify-center rounded-full bg-[var(--color-bg-brand-f)] transition-all duration-200">
+                                <div className="absolute m-auto flex h-[20px] w-[20px] items-center justify-center rounded-full bg-[var(--color-edit-bg)]">
+                                  <div className="absolute m-auto flex h-[12px] w-[12px] items-center justify-center rounded-full bg-[var(--color-bg-brand-f)] transition-all duration-500"></div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="group/item absolute left-[0px] top-[0px] flex h-[28px] w-[28px] items-center justify-center rounded-full bg-[#ccc] ">
+                                <div className="absolute m-auto flex h-[20px]  w-[20px] items-center justify-center rounded-full bg-[var(--color-edit-bg)]">
+                                  <div className="absolute m-auto flex h-[12px] w-[12px] items-center justify-center rounded-full bg-[var(--color-edit-bg)]"></div>
+                                </div>
+                              </div>
+                            )}
+                          </label>
+
+                          <div className="font-semibold">￥980/月/メンバー</div>
+                        </div>
+
+                        <div className={`w-full space-y-2 pl-[40px] pt-[15px]`}>
+                          <div className="flex space-x-3">
+                            <BsCheck2 className="text-[24px] text-[var(--color-bg-brand-f)]" />
+                            <p>低価格で思う存分使いこなせる。</p>
+                          </div>
+                          <div className="flex space-x-3">
+                            <BsCheck2 className="text-[24px] text-[var(--color-bg-brand-f)]" />
+                            <p>いつでもプランの変更やキャンセルが可能です。</p>
+                          </div>
+                        </div>
+                      </div>
+                      {/* プレミアムプランボタン */}
+                      <div className="flex h-full w-full flex-col pt-[20px]">
+                        <div className="group/item relative flex h-full w-full  items-center justify-between whitespace-nowrap">
+                          <input
+                            id="premium_plan"
+                            type="radio"
+                            value="premium_plan"
+                            onChange={handleRadioChange}
+                            checked={selectedRadioButton === "premium_plan"}
+                            className="peer/premium_plan invisible absolute"
+                          />
+                          <label
+                            htmlFor="premium_plan"
+                            className="relative cursor-pointer pl-[40px] text-[20px] font-bold text-[var(--color-text)]"
+                          >
+                            プレミアムプラン
+                            {selectedRadioButton === "premium_plan" ? (
+                              <div className="absolute left-[0px] top-[0px] flex h-[28px] w-[28px] items-center justify-center rounded-full bg-[var(--color-bg-brand-f)] transition-all duration-200">
+                                <div className="absolute m-auto flex h-[20px] w-[20px] items-center justify-center rounded-full bg-[var(--color-edit-bg)]">
+                                  <div className="absolute m-auto flex h-[12px] w-[12px] items-center justify-center rounded-full bg-[var(--color-bg-brand-f)] transition-all duration-500"></div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="group/item absolute left-[0px] top-[0px] flex h-[28px] w-[28px] items-center justify-center rounded-full bg-[#ccc] ">
+                                <div className="absolute m-auto flex h-[20px]  w-[20px] items-center justify-center rounded-full bg-[var(--color-edit-bg)]">
+                                  <div className="absolute m-auto flex h-[12px] w-[12px] items-center justify-center rounded-full bg-[var(--color-edit-bg)]"></div>
+                                </div>
+                              </div>
+                            )}
+                          </label>
+
+                          <div className="font-semibold">￥19,800/月/メンバー</div>
+                        </div>
+
+                        <div className={`w-full space-y-2 pl-[40px] pt-[15px]`}>
+                          <div className="flex space-x-3">
+                            <BsCheck2 className="text-[24px] text-[var(--color-bg-brand-f)]" />
+                            <p>電話・オンライン会議によるサポート。</p>
+                          </div>
+                          <div className="flex space-x-3">
+                            <BsCheck2 className="text-[24px] text-[var(--color-bg-brand-f)]" />
+                            <p>要望を開発チームに伝えて欲しい機能を優先的に開発。</p>
+                          </div>
+                          <div className="flex space-x-3">
+                            <BsCheck2 className="text-[24px] text-[var(--color-bg-brand-f)]" />
+                            <p>いつでもプランの変更やキャンセルが可能です。</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* メンバー人数選択 */}
+                    <div className="flex w-full items-center justify-between pt-[20px]">
+                      <div className="relative cursor-pointer text-[20px] font-bold text-[var(--color-text)]">
+                        メンバー人数
+                      </div>
+                      <div className="flex items-center justify-end space-x-2 font-semibold">
+                        <input
+                          type="number"
+                          min="1"
+                          className={`${styles.input_box}`}
+                          placeholder="人数を入力"
+                          value={accountQuantity === null ? "" : accountQuantity}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (val === "") {
+                              setAccountQuantity(null);
+                            } else {
+                              const numValue = Number(val);
+
+                              if (numValue <= 0) {
+                                setAccountQuantity(1); // 入力値がマイナスかチェック
+                              } else {
+                                setAccountQuantity(numValue);
+                              }
+                            }
+                          }}
+                        />
+
+                        <div className="">人</div>
+                      </div>
+                    </div>
+
+                    {/* メンバーシップを開始するボタン */}
+                    <div className="w-full pt-[30px]">
+                      <button
+                        className={`flex-center h-[40px] w-full cursor-pointer rounded-[6px] bg-[var(--color-bg-brand-f)] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                        // onClick={() => {
+                        //   if (selectedRadioButton === "business_plan" && !!planBusiness)
+                        //     handleResume(planBusiness.id, accountQuantity);
+                        //   if (selectedRadioButton === "premium_plan" && !!planPremium)
+                        //     handleResume(planPremium.id, accountQuantity);
+                        // }}
+                        onClick={() => setStepContents("resume_2")}
                       >
-                        ビジネスプラン
-                        {selectedRadioButton === "business_plan" ? (
-                          <div className="absolute left-[0px] top-[0px] flex h-[28px] w-[28px] items-center justify-center rounded-full bg-[var(--color-bg-brand-f)] transition-all duration-200">
-                            <div className="absolute m-auto flex h-[20px] w-[20px] items-center justify-center rounded-full bg-[var(--color-edit-bg)]">
-                              <div className="absolute m-auto flex h-[12px] w-[12px] items-center justify-center rounded-full bg-[var(--color-bg-brand-f)] transition-all duration-500"></div>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="group/item absolute left-[0px] top-[0px] flex h-[28px] w-[28px] items-center justify-center rounded-full bg-[#ccc] ">
-                            <div className="absolute m-auto flex h-[20px]  w-[20px] items-center justify-center rounded-full bg-[var(--color-edit-bg)]">
-                              <div className="absolute m-auto flex h-[12px] w-[12px] items-center justify-center rounded-full bg-[var(--color-edit-bg)]"></div>
-                            </div>
-                          </div>
-                        )}
-                      </label>
-
-                      <div className="font-semibold">￥980/月/メンバー</div>
-                    </div>
-
-                    <div className={`w-full space-y-2 pl-[40px] pt-[15px]`}>
-                      <div className="flex space-x-3">
-                        <BsCheck2 className="text-[24px] text-[var(--color-bg-brand-f)]" />
-                        <p>低価格で思う存分使いこなせる。</p>
-                      </div>
-                      <div className="flex space-x-3">
-                        <BsCheck2 className="text-[24px] text-[var(--color-bg-brand-f)]" />
-                        <p>いつでもプランの変更やキャンセルが可能です。</p>
-                      </div>
+                        {/* {!isLoading && <span>メンバーシップを開始する</span>} */}
+                        {!isLoading && <span>続ける</span>}
+                        {isLoading && <SpinnerIDS scale={"scale-[0.4]"} />}
+                      </button>
                     </div>
                   </div>
-                  {/* プレミアムプランボタン */}
-                  <div className="flex h-full w-full flex-col pt-[20px]">
-                    <div className="group/item relative flex h-full w-full  items-center justify-between whitespace-nowrap">
-                      <input
-                        id="premium_plan"
-                        type="radio"
-                        value="premium_plan"
-                        onChange={handleRadioChange}
-                        checked={selectedRadioButton === "premium_plan"}
-                        className="peer/premium_plan invisible absolute"
-                      />
-                      <label
-                        htmlFor="premium_plan"
-                        className="relative cursor-pointer pl-[40px] text-[20px] font-bold text-[var(--color-text)]"
+                  <div className={`${styles.left_slide_scroll_right}`}>
+                    {/* メンバーシップを開始するボタン */}
+                    <div className="w-full pt-[30px]">
+                      <button
+                        className={`flex-center h-[40px] w-full cursor-pointer rounded-[6px] bg-[var(--color-bg-brand-f)] font-bold text-[#fff] ${
+                          isLoadingPortal ? `` : `hover:bg-[var(--color-bg-brand-f-deep)]`
+                        }`}
+                        // onClick={() => {
+                        //   if (selectedRadioButton === "business_plan" && !!planBusiness)
+                        //     handleResume(planBusiness.id, accountQuantity);
+                        //   if (selectedRadioButton === "premium_plan" && !!planPremium)
+                        //     handleResume(planPremium.id, accountQuantity);
+                        // }}
+                        // onClick={loadPortal}
+                        onClick={getPaymentMethodFromStripe}
                       >
-                        プレミアムプラン
-                        {selectedRadioButton === "premium_plan" ? (
-                          <div className="absolute left-[0px] top-[0px] flex h-[28px] w-[28px] items-center justify-center rounded-full bg-[var(--color-bg-brand-f)] transition-all duration-200">
-                            <div className="absolute m-auto flex h-[20px] w-[20px] items-center justify-center rounded-full bg-[var(--color-edit-bg)]">
-                              <div className="absolute m-auto flex h-[12px] w-[12px] items-center justify-center rounded-full bg-[var(--color-bg-brand-f)] transition-all duration-500"></div>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="group/item absolute left-[0px] top-[0px] flex h-[28px] w-[28px] items-center justify-center rounded-full bg-[#ccc] ">
-                            <div className="absolute m-auto flex h-[20px]  w-[20px] items-center justify-center rounded-full bg-[var(--color-edit-bg)]">
-                              <div className="absolute m-auto flex h-[12px] w-[12px] items-center justify-center rounded-full bg-[var(--color-edit-bg)]"></div>
-                            </div>
-                          </div>
-                        )}
-                      </label>
-
-                      <div className="font-semibold">￥19,800/月/メンバー</div>
+                        {/* {!isLoading && <span>メンバーシップを開始する</span>} */}
+                        {!isLoadingPortal && <span>お支払い方法を変更する</span>}
+                        {isLoadingPortal && <SpinnerIDS scale={"scale-[0.4]"} />}
+                      </button>
                     </div>
-
-                    <div className={`w-full space-y-2 pl-[40px] pt-[15px]`}>
-                      <div className="flex space-x-3">
-                        <BsCheck2 className="text-[24px] text-[var(--color-bg-brand-f)]" />
-                        <p>電話・オンライン会議によるサポート。</p>
-                      </div>
-                      <div className="flex space-x-3">
-                        <BsCheck2 className="text-[24px] text-[var(--color-bg-brand-f)]" />
-                        <p>要望を開発チームに伝えて欲しい機能を優先的に開発。</p>
-                      </div>
-                      <div className="flex space-x-3">
-                        <BsCheck2 className="text-[24px] text-[var(--color-bg-brand-f)]" />
-                        <p>いつでもプランの変更やキャンセルが可能です。</p>
-                      </div>
+                    <div className="w-full pt-[30px]">
+                      <button
+                        className={`flex-center h-[40px] w-full cursor-pointer rounded-[6px] bg-[var(--color-bg-brand-f)] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                        // onClick={() => {
+                        //   if (selectedRadioButton === "business_plan" && !!planBusiness)
+                        //     handleResume(planBusiness.id, accountQuantity);
+                        //   if (selectedRadioButton === "premium_plan" && !!planPremium)
+                        //     handleResume(planPremium.id, accountQuantity);
+                        // }}
+                        onClick={() => setStepContents("")}
+                      >
+                        {/* {!isLoading && <span>メンバーシップを開始する</span>} */}
+                        {!isLoading && <span>戻る</span>}
+                        {isLoading && <SpinnerIDS scale={"scale-[0.4]"} />}
+                      </button>
                     </div>
                   </div>
                 </div>
-
-                {/* メンバー人数選択 */}
-                <div className="flex w-full items-center justify-between pt-[20px]">
-                  <div className="relative cursor-pointer text-[20px] font-bold text-[var(--color-text)]">
-                    メンバー人数
-                  </div>
-                  <div className="flex items-center justify-end space-x-2 font-semibold">
-                    <input
-                      type="number"
-                      min="1"
-                      className={`${styles.input_box}`}
-                      placeholder="人数を入力"
-                      value={accountQuantity === null ? "" : accountQuantity}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === "") {
-                          setAccountQuantity(null);
-                        } else {
-                          const numValue = Number(val);
-
-                          if (numValue <= 0) {
-                            setAccountQuantity(1); // 入力値がマイナスかチェック
-                          } else {
-                            setAccountQuantity(numValue);
-                          }
-                        }
-                      }}
-                    />
-
-                    <div className="">人</div>
-                  </div>
-                </div>
-
-                {/* メンバーシップを開始するボタン */}
-                <div className="w-full pt-[30px]">
-                  <button
-                    className={`flex-center h-[40px] w-full cursor-pointer rounded-[6px] bg-[var(--color-bg-brand-f)] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
-                    // onClick={() => {
-                    //   if (selectedRadioButton === "business_plan" && !!planBusiness)
-                    //     processSubscription(planBusiness.id, accountQuantity);
-                    //   if (selectedRadioButton === "premium_plan" && !!planPremium)
-                    //     processSubscription(planPremium.id, accountQuantity);
-                    // }}
-                    onClick={() => setResumeStep("")}
-                  >
-                    <span>メンバーシップを開始する</span>
-                    {/* {!loading && <span>メンバーシップを開始する</span>}
-                    {loading && <SpinnerIDS scale={"scale-[0.4]"} />} */}
-                  </button>
-                </div>
+                {/* 左スライドスクロールコンテナ ここまで */}
               </div>
+              {/* 左コンテナ ここまで */}
+              {/* 右コンテナ */}
               <div className={`${styles.right_container} relative flex h-full w-6/12`}>
                 <Image
                   //   src={`/assets/images/team/team1.jpg`}

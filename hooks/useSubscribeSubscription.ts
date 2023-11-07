@@ -74,9 +74,11 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
           async (payload: any) => {
             console.log("🌟🔥リアルタイム subscriptions UPDATE検知発火🔥", payload);
             // subscriptionsテーブルの変更を検知したら現在のuserProfileStateのsubscriptionsテーブルの内容のみ更新する
+            const previousUserProfile = userProfile.subscription_id ? { ...userProfile } : { ...userProfileState };
             const newUserData = {
               // ...userProfileState,
-              ...userProfile,
+              // ...userProfile,
+              ...previousUserProfile,
               ...{
                 subscription_id: (payload.new as Subscription).id,
                 subscription_created_at: (payload.new as Subscription).created_at,
@@ -92,6 +94,7 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
                 accounts_to_create: (payload.new as Subscription).accounts_to_create,
                 number_of_active_subscribed_accounts: (payload.new as Subscription)
                   .number_of_active_subscribed_accounts,
+                cancel_at_period_end: (payload.new as Subscription).cancel_at_period_end,
               },
             };
             // payloadに基づいてZustandのStateを更新

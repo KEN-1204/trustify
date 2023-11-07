@@ -1,26 +1,22 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { Resend } from "resend";
 import jwt from "jsonwebtoken";
-import { EmailTemplateChangeTeamOwner } from "@/components/Email/EmailTemplateChangeTeamOwner/EmailTemplateChangeTeamOwner";
-import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
-import { Database } from "@/database.types";
+// import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
+// import { Database } from "@/database.types";
 import Stripe from "stripe";
 import { dateJST } from "@/utils/Helpers/dateJST";
 import { format } from "date-fns";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-const changeTeamOwnerHandler = async (req: NextApiRequest, res: NextApiResponse) => {
+const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== "POST") {
     console.log("❌POSTメソッドで受信できず");
     res.setHeader("Allow", "POST");
     res.status(405).end("Method Not Allowed");
   }
 
-  const supabaseServerClient = createServerSupabaseClient<Database>({
-    req,
-    res,
-  });
+  // const supabaseServerClient = createServerSupabaseClient<Database>({
+  //   req,
+  //   res,
+  // });
 
   try {
     console.log("🌟Stripeステップ1 APIルートリクエスト取得");
@@ -499,4 +495,4 @@ const changeTeamOwnerHandler = async (req: NextApiRequest, res: NextApiResponse)
   }
 };
 
-export default changeTeamOwnerHandler;
+export default changeQuantityHandler;

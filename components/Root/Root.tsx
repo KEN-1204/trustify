@@ -183,7 +183,9 @@ export const Root: FC = () => {
             muted={true}
             playsInline={true}
             loop={true}
+            controlsList="nodownload"
             className={`h-[100%] w-[100%] scale-[1.02] object-cover`}
+            onContextMenu={(e) => e.preventDefault()}
           >
             <source src="/assets/videos/Root/top-bg3.mp4" type="video/mp4" />
           </video>
@@ -333,7 +335,8 @@ export const Root: FC = () => {
             muted={true}
             playsInline={true}
             loop={true}
-            className={`h-[100%] w-[100%] object-cover`}
+            className={`pointer-events-none h-[100%] w-[100%] select-none object-cover`}
+            onContextMenu={(e) => e.preventDefault()}
           >
             {/* <source src="/assets/videos/Root/top-bg-virtual.mp4" type="video/mp4" /> */}
             <source src="/assets/videos/Root/top-bg-virtual-compressed.mp4" type="video/mp4" />
@@ -379,8 +382,15 @@ export const Root: FC = () => {
                 width={800}
                 height={600}
                 className={`${styles.img}`}
+                onContextMenu={(e) => e.preventDefault()}
               />
-              <video autoPlay={true} loop={true} playsInline={true} muted={true}>
+              <video
+                autoPlay={true}
+                loop={true}
+                playsInline={true}
+                muted={true}
+                onContextMenu={(e) => e.preventDefault()}
+              >
                 <source src="/assets/videos/dash-company-feature01.mp4" type="video/mp4" />
               </video>
             </div>
@@ -433,6 +443,7 @@ export const Root: FC = () => {
             playsInline={true}
             loop={true}
             className={`h-[100%] w-[100%] object-cover`}
+            onContextMenu={(e) => e.preventDefault()}
           >
             {/* <source src="/assets/videos/geographic-bg.mp4" type="video/mp4" /> */}
             <source src="/assets/videos/geographic-compressed.mp4" type="video/mp4" />
@@ -484,8 +495,15 @@ export const Root: FC = () => {
                 width={800}
                 height={600}
                 className={`${styles.img}`}
+                onContextMenu={(e) => e.preventDefault()}
               />
-              <video autoPlay={true} loop={true} playsInline={true} muted={true}>
+              <video
+                autoPlay={true}
+                loop={true}
+                playsInline={true}
+                muted={true}
+                onContextMenu={(e) => e.preventDefault()}
+              >
                 <source src="/assets/videos/trustify-company-movie2-up.mp4" type="video/mp4" />
               </video>
             </div>
@@ -535,6 +553,7 @@ export const Root: FC = () => {
             playsInline={true}
             loop={true}
             className={`h-[100%] w-[100%] object-cover`}
+            onContextMenu={(e) => e.preventDefault()}
           >
             <source src="/assets/videos/Root/top-bg-virtual-compressed.mp4" type="video/mp4" />
           </video>
@@ -585,6 +604,7 @@ export const Root: FC = () => {
                 width={800}
                 height={600}
                 className={`${styles.img}`}
+                onContextMenu={(e) => e.preventDefault()}
               />
             </div>
           </div>
@@ -635,6 +655,7 @@ export const Root: FC = () => {
             playsInline={true}
             loop={true}
             className={`h-[100%] w-[100%] object-cover`}
+            onContextMenu={(e) => e.preventDefault()}
           >
             <source src="/assets/videos/geographic-compressed.mp4" type="video/mp4" />
           </video>
@@ -681,6 +702,7 @@ export const Root: FC = () => {
                 width={800}
                 height={600}
                 className={`${styles.img}`}
+                onContextMenu={(e) => e.preventDefault()}
               />
             </div>
           </div>

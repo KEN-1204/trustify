@@ -57,6 +57,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       // 型アサーションでobjectがStripe.Subscription型であることを示して、customerプロパティへのアクセスを可能にする
       const subscription = stripeEvent.data.object as Stripe.Subscription; // ※2
 
+      // ===================== previous_attributesがscheduleのみ場合はリターンする =====================
       // updatedタイプのWebhookの更新内容がサブスクスケジュールの変更だった場合には、stripe_schedulesテーブルの指定のidのみ更新だけしてリターンさせることで後続の処理をさせないことで負担を軽減させる
       const previousAttributes = stripeEvent.data.previous_attributes;
       // previous_attributesのオブジェクトがscheduleのみかどうかを判定する関数
@@ -82,6 +83,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(200).send({ received: "complete" });
         // return res.status(200).end();
       }
+      // ================== previous_attributesがscheduleのみ場合はリターンする ここまで ==================
 
       // ======================== statusがincompleteの場合はリターンする ========================
       const subscriptionStatus = (stripeEvent.data.object as Subscription).status ?? null;
@@ -107,6 +109,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           console.log("🌟cancellation_details", (previousAttributes! as any).cancellation_details);
         }
       }
+      // ============ サブスクキャンセルリクエストの場合 次回請求期間終了時にキャンセル ここまで ============
 
       // サブスクプランを変数に格納
       let _subscription_plan;
@@ -132,6 +135,43 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         case "customer.subscription.updated":
         case "customer.subscription.pending_update_applied":
           console.log(`🌟Stripe_Webhookステップ3 ${stripeEvent.type}イベント customer`, subscription.customer);
+
+          // ============ 初回契約時の支払い完了後に支払い方法をデフォルトに設定する ============
+          /* previous_attributesが「default_payment_method: null」、「status: incomplete」で、
+             今回のwebhookが「status: active」、「default_payment_methodがnullでない」場合に
+             ユーザーのstripe顧客オブジェクトのinvoice_settingsのdefault_payment_methodに紐付けする */
+          if (
+            previousAttributes &&
+            "default_payment_method" in previousAttributes &&
+            "status" in previousAttributes &&
+            previousAttributes.default_payment_method === null &&
+            previousAttributes.status === "incomplete" &&
+            subscription.status === "active" &&
+            subscription.default_payment_method !== null
+          ) {
+            // 顧客オブジェクトの invoice_settings の default_payment_method を更新する
+            const subscriptionDefaultPaymentMethodId = subscription.default_payment_method;
+            if (subscriptionDefaultPaymentMethodId) {
+              try {
+                const customer = await stripe.customers.update(subscription.customer as string, {
+                  invoice_settings: {
+                    default_payment_method: subscriptionDefaultPaymentMethodId as string,
+                  },
+                });
+                console.log(
+                  "🌟Stripe_Webhookステップ3-1 サブスクリプションオブジェクトの支払い方法を顧客オブジェクトのinvoice_settingsのdefault_payment_methodのデフォルトに更新 stripe.customers.updateの実行結果 customer",
+                  customer
+                );
+              } catch (e: any) {
+                console.log(
+                  "❌🌟Stripe_Webhookステップ3-1 サブスクリプション初回契約時の支払い方法をデフォルトにセットする処理でエラー、リターンはせずにそのまま後続の処理を続行 stripe.customers.updateのエラーオブジェクト",
+                  e
+                );
+                // return res.status(400).send(`Webhook e: ${(e as Error).message}`);
+              }
+            }
+          }
+          // ============ 初回契約時の支払い完了後に支払い方法をデフォルトに設定する ここまで ============
 
           // Fetch the latest state of the subscription from Stripe's API
           // Stripe APIから最新のsubscriptionオブジェクトを取得
@@ -304,9 +344,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             stripe_subscription_id: subscription.id, // 今回のstripeのサブスクリプションid
             stripe_customer_id: subscription.customer as string, // stripe_customerと紐付け
             status: subscription.status, // サブスクリプションの現在の状態(active, past_due, canceledなど)
-            subscription_interval: null,
-            current_period_start: null, // 課金開始時間
-            current_period_end: null, // 課金終了時間
+            subscription_interval: subscription.items.data[0].plan.interval,
+            current_period_start: new Date(subscription.current_period_start * 1000).toISOString(), // 課金開始時間
+            current_period_end: new Date(subscription.current_period_end * 1000).toISOString(), // 課金終了時間
             subscription_plan: "free_plan",
             subscription_stage:
               currentSubscriptionDBData && currentSubscriptionDBData.subscription_stage

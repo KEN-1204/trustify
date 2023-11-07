@@ -204,6 +204,7 @@ export const Modal: FC = () => {
             playsInline={true}
             loop={true}
             className={`fade05-op09 h-[100%] w-[100%] object-cover opacity-90`}
+            onContextMenu={(e) => e.preventDefault()}
           >
             <source src="/assets/videos/Root/top-bg-virtual-compressed.mp4" type="video/mp4" />
           </video>
