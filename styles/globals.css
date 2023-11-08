@@ -176,7 +176,7 @@ bg-[#06c755] */
   --color-bg-sub-deep: rgba(57, 76, 96, 0.15);
   --color-bg-sub-re: rgba(64, 87, 109, 0.08);
   --color-bg-sub-re-hover: rgba(57, 76, 96, 0.15);
-  --color-bg-sub-icon: rgba(64, 87, 109, 0.15);
+  --color-bg-sub-icon: rgba(64, 87, 109, 0.1);
 
   /* sub figma #f5f5f5 canva #40576d12 */
   --color-bg: #fff; /* メイン背景カラー */

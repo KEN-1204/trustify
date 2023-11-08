@@ -72,13 +72,30 @@
   /* background-color: var(--setting-side-bg); */
   /* background-image: url("/assets/images/beautiful/road-sun1.jpg"); */
 
-  background-image: url("/assets/images/beautiful/balloon1.jpg");
-  /* これ */
   /* background-image: url("/assets/images/team/team1.jpg"); */
   /* background-image: url("/assets/images/beautiful/ocean2.jpg"); */
+  /* これ */
+  /* background-image: url("/assets/images/beautiful/balloon1.jpg");
+  background-position: 30% 50%;
+  background-size: cover;
+  background-repeat: no-repeat; */
+}
+
+.right_bg_image1 {
+  background-image: url("/assets/images/beautiful/balloon1.jpg");
   background-position: 30% 50%;
   background-size: cover;
   background-repeat: no-repeat;
+  width: 100%;
+  height: 100%;
+}
+.right_bg_image2 {
+  background-image: url("/assets/images/beautiful/firework6.jpg");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  width: 100%;
+  height: 100%;
 }
 
 .content_box {

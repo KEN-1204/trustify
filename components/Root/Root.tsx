@@ -10,6 +10,10 @@ import { Auth } from "../Auth/Auth";
 import { useUpdateEffect } from "react-use";
 import { LangMenuOver } from "../Parts/LangMenuOver/LangMenuOver";
 import { LangMenu } from "../Parts/LangMenu/LangMenu";
+import { FeatureParagraph } from "./Features/FeatureParagraph";
+import { FeatureParagraph2 } from "./Features/FeatureParagraph2";
+import { FeatureParagraph3 } from "./Features/FeatureParagraph3";
+import { FeatureParagraph4 } from "./Features/FeatureParagraph4";
 
 export const Root: FC = () => {
   console.log("Rootコンポーネントレンダリング");
@@ -31,6 +35,11 @@ export const Root: FC = () => {
   const [hoveredFeature2, setHoveredFeature2] = useState(false);
   const [hoveredFeature3, setHoveredFeature3] = useState(false);
   const [hoveredFeature4, setHoveredFeature4] = useState(false);
+  // Featureのタイトルh2タグのrefオブジェクト タイトルホバーでも動画を再生させる
+  const FeatureDivRef1 = useRef<HTMLDivElement | null>(null);
+  const FeatureDivRef2 = useRef<HTMLDivElement | null>(null);
+  const FeatureDivRef3 = useRef<HTMLDivElement | null>(null);
+  const FeatureDivRef4 = useRef<HTMLDivElement | null>(null);
 
   // 言語ドロップダウンメニュー
   const clickedItemPos = useStore((state) => state.clickedItemPos);
@@ -344,7 +353,17 @@ export const Root: FC = () => {
         </div>
         {/* バーチャルビデオ背景1 ここまで */}
         <div className={`${styles.text_col}`}>
-          <h2 className={`${styles.section_title} ${hoveredFeature1 ? `${styles.section_title_brand}` : ``} `}>
+          <h2
+            className={`${styles.section_title} ${hoveredFeature1 ? `${styles.section_title_brand}` : ``} `}
+            onMouseEnter={() => {
+              FeatureDivRef1.current?.classList.add(`${styles.hover}`);
+              setHoveredFeature1(true);
+            }}
+            onMouseLeave={() => {
+              FeatureDivRef1.current?.classList.remove(`${styles.hover}`);
+              setHoveredFeature1(false);
+            }}
+          >
             {/* {language === "Ja" && "最小の資本と人で、最大の経済効果を上げる"} */}
             {/* {language === "Ja" && "営業を科学する"} */}
             {language === "Ja" && "誰でも売れる組織へ"}
@@ -356,18 +375,18 @@ export const Root: FC = () => {
               {language === "En" && "To an organization where anyone can sell."}
             </span>
           </h2>
-          <p className={`relative z-0 ${hoveredFeature1 ? `transition-base text-[#fff]` : ``}`}>
+          {/* <p className={`relative z-0 ${hoveredFeature1 ? `transition-base text-[#fff]` : ``}`}>
             {language === "Ja" &&
               "属人的になりがちな営業を「リスト作成、架電、アポ取り、商談、クロージング、サポート」の全てのプロセスをデータ化し、「売れる営業先・売れる営業手法・満足度を最大化するサポート手法」を可視化することで、どんな営業マンでも高い売上を上げ、「最小の資本と人で最大の経済効果を上げる」組織を実現します。"}
-            {/* {language === "Ja" &&
-              "スマートテレビやApple TVはもちろん、PlayStationやXboxなどのゲーム機、Chromecastなどのストリーミングデバイス、ブルーレイプレーヤーを使えば、お持ちのテレビで簡単に観られます。"} */}
             {language === "En" &&
               "By datafying all the processes of sales, which tends to be personalized, such as 'list creation, cold calling, appointment setting, negotiation, closing, and support', and visualizing 'sales-boosting customers, sales-boosting methods, and support methods to maximize satisfaction', we realize an organization where any salesperson can generate high sales and 'maximize economic effects with the least amount of capital and people'."}
-          </p>
+          </p> */}
+          <FeatureParagraph hoveredFeature={hoveredFeature1} featureSection={1} />
         </div>
         <div className={`${styles.img_col} flex items-center`}>
           <div className={`${styles.light_back}`}>
             <div
+              ref={FeatureDivRef1}
               className={`${styles.wrap}`}
               onMouseEnter={() => setHoveredFeature1(true)}
               onMouseLeave={() => setHoveredFeature1(false)}
@@ -456,7 +475,17 @@ export const Root: FC = () => {
             {language === "Ja" && `"今" 売れる営業先がすぐ見つかる`}
             {language === "En" && "Find 'current' sales prospects immediately"}
           </h2> */}
-          <h2 className={`${styles.section_title} ${hoveredFeature2 ? `${styles.section_title_brand}` : ``} `}>
+          <h2
+            className={`${styles.section_title} ${hoveredFeature2 ? `${styles.section_title_brand}` : ``} `}
+            onMouseEnter={() => {
+              FeatureDivRef2.current?.classList.add(`${styles.hover}`);
+              setHoveredFeature2(true);
+            }}
+            onMouseLeave={() => {
+              FeatureDivRef2.current?.classList.remove(`${styles.hover}`);
+              setHoveredFeature2(false);
+            }}
+          >
             {language === "Ja" && `"今" 売れる営業先がすぐ見つかる`}
             {language === "En" && "Find 'current' sales prospects immediately"}
             <span className={`${styles.title_before}`}>
@@ -464,7 +493,7 @@ export const Root: FC = () => {
               {language === "En" && "Find 'current' sales prospects immediately"}
             </span>
           </h2>
-          <p className={`relative z-0 ${hoveredFeature2 ? `transition-base text-[#fff]` : ``}`}>
+          {/* <p className={`relative z-0 ${hoveredFeature2 ? `transition-base text-[#fff]` : ``}`}>
             {language === "Ja" &&
               `データベースから未知の客先にアポを組み、600万円の商品をその場でご注文いただくなど "今" 売れる営業を何度も経験してきました。 `}
             {language === "En" &&
@@ -475,11 +504,13 @@ export const Root: FC = () => {
               `Excelだとフリーズしてしまうような98万社もの膨大な会社データから自社の狙い先となり得る会社を、「業界、取引先、規模、今までの活動履歴」などの様々な条件から簡単、瞬時に抽出が可能です。 自社のサービスが解決する課題を持つ会社を瞬時に見つけ、競合よりも早く売ることができます。`}
             {language === "En" &&
               "You can easily and instantly extract potential target companies from our database, which holds data from 980,000 companies, based on various criteria such as 'industry, clients, scale, and past activities'. You can quickly find companies that have the problems your service solves, allowing you to sell faster than your competitors."}
-          </p>
+          </p> */}
+          <FeatureParagraph2 hoveredFeature={hoveredFeature2} featureSection={2} />
         </div>
         <div className={`${styles.img_col} flex items-center`}>
           <div className={`${styles.light_back}`}>
             <div
+              ref={FeatureDivRef2}
               className={`${styles.wrap}`}
               onMouseEnter={() => setHoveredFeature2(true)}
               onMouseLeave={() => setHoveredFeature2(false)}
@@ -565,7 +596,17 @@ export const Root: FC = () => {
             {language === "En" && "Significantly reduce list creation time and workload."}
             
           </h2> */}
-          <h2 className={`${styles.section_title} ${hoveredFeature3 ? `${styles.section_title_brand}` : ``} `}>
+          <h2
+            className={`${styles.section_title} ${hoveredFeature3 ? `${styles.section_title_brand}` : ``} `}
+            onMouseEnter={() => {
+              FeatureDivRef3.current?.classList.add(`${styles.hover}`);
+              setHoveredFeature3(true);
+            }}
+            onMouseLeave={() => {
+              FeatureDivRef3.current?.classList.remove(`${styles.hover}`);
+              setHoveredFeature3(false);
+            }}
+          >
             {language === "Ja" && "リスト作成時間を大幅に短縮し工数削減"}
             {language === "En" && "Significantly reduce list creation time and workload."}
             <span className={`${styles.title_before}`}>
@@ -573,9 +614,9 @@ export const Root: FC = () => {
               {language === "En" && "Significantly reduce list creation time and workload."}
             </span>
           </h2>
-          <p className={`relative z-0 ${hoveredFeature3 ? `transition-base text-[#fff]` : ``}`}>
+          {/* <p className={`relative z-0 ${hoveredFeature3 ? `transition-base text-[#fff]` : ``}`}>
             {language === "Ja" &&
-              "キーエンスではリスト作成・架電・準備・営業・入金確認・サポートを全て一人で行います。そのため最小の時間で最大の売上を上げられるよう限られた時間で売れる営業先のリストを多くピックしなければなりません。 "}
+              "キーエンスではリスト作成・架電・準備・営業・入金確認・サポートを全て一人で行います。そのため最小の時間で最大の売上を上げられるよう限られた時間で売れる営業先のリストを多くピックしなければなりません。"}
             {language === "En" &&
               "At Keyence, we handle everything from list creation, cold calling, preparation, sales, payment confirmation, to support all by ourselves. Therefore, in order to maximize sales in the shortest time possible, we must pick a large number of prospective clients from our lists in the limited time we have."}
           </p>
@@ -584,11 +625,13 @@ export const Root: FC = () => {
               "日々のリスト作成時間を1日30分短縮することで、20日稼働で月10時間の短縮、年間120時間の短縮となり、人件費1人当たり26万8680円/年、10人で260万円/年の導入効果に繋がります。(*人件費は中央値430万円/年で計算)"}
             {language === "En" &&
               "By reducing the daily list creation time by 30 minutes, you save 10 hours per month based on 20 working days, resulting in an annual reduction of 120 hours. This leads to a personnel cost saving of approximately $2,380 per person per year and $23,800 per year for a team of 10 people. (*Personnel costs are calculated based on the median annual income of $38,790)."}
-          </p>
+          </p> */}
+          <FeatureParagraph3 hoveredFeature={hoveredFeature3} featureSection={3} />
         </div>
         <div className={`${styles.img_col} flex items-center`}>
           <div className={`${styles.light_back}`}>
             <div
+              ref={FeatureDivRef3}
               className={`${styles.wrap}`}
               onMouseEnter={() => setHoveredFeature3(true)}
               onMouseLeave={() => setHoveredFeature3(false)}
@@ -666,6 +709,14 @@ export const Root: FC = () => {
             className={`${styles.section_title} ${language === "En" ? "break-words !text-[40px]" : ""} ${
               hoveredFeature4 ? `${styles.section_title_brand}` : ``
             }`}
+            onMouseEnter={() => {
+              FeatureDivRef4.current?.classList.add(`${styles.hover}`);
+              setHoveredFeature4(true);
+            }}
+            onMouseLeave={() => {
+              FeatureDivRef4.current?.classList.remove(`${styles.hover}`);
+              setHoveredFeature4(false);
+            }}
           >
             {language === "Ja" && "顧客に刺さる商品開発へ"}
             {language === "En" && "Towards Product Development that Resonates with Customers"}
@@ -674,19 +725,22 @@ export const Root: FC = () => {
               {language === "En" && "Towards Product Development that Resonates with Customers"}
             </span>
           </h2>
-          <p className={`relative z-0 ${hoveredFeature4 ? `transition-base text-[#fff]` : ``}`}>
+          {/* <p className={`relative z-0 ${hoveredFeature4 ? `transition-base text-[#fff]` : ``}`}>
             {language === "Ja" &&
               "売れ先、売れなかった行き先のデータを常に収集することで、日々の営業データから次なる潜在ニーズを発掘し、顧客から欲しいと言われる前に潜在ニーズを満たす商品を開発しリリース、他社よりも先手を打つ提案でまた新たな営業データを収集、売上を上げ続ける仕組みを構築します。"}
-            {/* {language === "Ja" &&
-              "売れ先、売れなかった行き先のデータを常に収集することで、日々の営業データから次なる潜在ニーズを発掘し、顧客が気づく前に、他社よりも先手を打つ商品を開発しリリース、そしてまた営業データを収集、売上を上げ続ける仕組みを構築します。"} */}
-            {/* {language === "Ja" && "日々の営業データから次なる潜在ニーズを発掘し、広告なしのプランでのみご利用いただけます。"} */}
+
             {language === "En" &&
               "By continuously collecting data on successful and unsuccessful sales prospects, we uncover potential needs from daily sales data, develop products that take the initiative over competitors, and establish a cycle of sales data collection and sales success."}
-          </p>
+          </p> */}
+          <FeatureParagraph4 hoveredFeature={hoveredFeature4} featureSection={4} />
+          {/* {language === "Ja" &&
+              "売れ先、売れなかった行き先のデータを常に収集することで、日々の営業データから次なる潜在ニーズを発掘し、顧客が気づく前に、他社よりも先手を打つ商品を開発しリリース、そしてまた営業データを収集、売上を上げ続ける仕組みを構築します。"} */}
+          {/* {language === "Ja" && "日々の営業データから次なる潜在ニーズを発掘し、広告なしのプランでのみご利用いただけます。"} */}
         </div>
         <div className={`${styles.img_col} flex items-center`}>
           <div className={`${styles.light_back}`}>
             <div
+              ref={FeatureDivRef4}
               className={`${styles.wrap}`}
               onMouseEnter={() => setHoveredFeature4(true)}
               onMouseLeave={() => setHoveredFeature4(false)}

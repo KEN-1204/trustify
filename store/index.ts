@@ -74,6 +74,16 @@ type State = {
   isHeaderTop: boolean;
   setIsHeaderTop: (payload: boolean) => void;
 
+  // Feature1ライプライターアニメーション起動
+  startAnimationFeature1: boolean;
+  setStartAnimationFeature1: (payload: boolean) => void;
+  startAnimationFeature2: boolean;
+  setStartAnimationFeature2: (payload: boolean) => void;
+  startAnimationFeature3: boolean;
+  setStartAnimationFeature3: (payload: boolean) => void;
+  startAnimationFeature4: boolean;
+  setStartAnimationFeature4: (payload: boolean) => void;
+
   // チェックボタン チェック有無
   isChecked: boolean;
   setIsChecked: (payload: boolean) => void;
@@ -152,6 +162,16 @@ const useStore = create<State>((set) => ({
   setIsHeaderShown: (payload) => set({ isHeaderShown: payload }),
   isHeaderTop: true,
   setIsHeaderTop: (payload) => set({ isHeaderTop: payload }),
+
+  // Feature1ライプライターアニメーション起動
+  startAnimationFeature1: false,
+  setStartAnimationFeature1: (payload) => set({ startAnimationFeature1: payload }),
+  startAnimationFeature2: false,
+  setStartAnimationFeature2: (payload) => set({ startAnimationFeature2: payload }),
+  startAnimationFeature3: false,
+  setStartAnimationFeature3: (payload) => set({ startAnimationFeature3: payload }),
+  startAnimationFeature4: false,
+  setStartAnimationFeature4: (payload) => set({ startAnimationFeature4: payload }),
 
   // 【チェックボタン チェック有無】
   isChecked: true,

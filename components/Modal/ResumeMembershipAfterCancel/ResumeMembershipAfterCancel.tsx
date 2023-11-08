@@ -18,6 +18,7 @@ import { FiArrowLeft } from "react-icons/fi";
 import { loadStripe } from "@stripe/stripe-js";
 import Stripe from "stripe";
 import { FallbackResumeMembershipAfterCancel } from "./FallbackResumeMembershipAfterCancel";
+import { runFireworks } from "@/utils/confetti";
 
 type Plans = {
   id: string;
@@ -183,20 +184,25 @@ const ResumeMembershipAfterCancelMemo = () => {
         quantity: quantity,
         companyId: userProfileState.company_id,
         dbSubscriptionId: userProfileState.subscription_id,
+        paymentMethodId: defaultPaymentMethodState.id,
       };
       const {
-        data: { subscriptionItem, error: axiosStripeError },
+        data: { data: newSubscription, error: axiosStripeError },
       } = await axios.post(`/api/subscription/resume-subscription`, payload, {
         headers: {
           Authorization: `Bearer ${sessionState.access_token}`,
         },
       });
       console.log(
-        `🔥handleChangeQUantity Apiからのdata subscriptionItem`,
-        subscriptionItem,
+        `🌟Stripeサブスク再開ステップ6 Apiからのdata newSubscription`,
+        newSubscription,
         "axiosStripeError",
         axiosStripeError
       );
+      if (axiosStripeError) throw new Error(axiosStripeError.message);
+      setTimeout(() => {
+        runFireworks();
+      }, 300);
     } catch (e: any) {
       console.error("サブスク再開エラー", e);
       alert(`エラーが発生しました: ${e.message}`);
@@ -224,6 +230,14 @@ const ResumeMembershipAfterCancelMemo = () => {
     }
   };
 
+  // 「チームを削除して新しく始める」ボタン サブスク、会社、アカウントの紐付けを解除、profilesの情報もリセットして新たに始める
+  const handleResetStart = async () => {
+    // 1. subscribed_accountsテーブルのデータをcanceled_customerテーブルに移して、
+    //    後から事業者側が確認できる状態にする
+    // 2. subscribed_accountsテーブルを削除する
+    // 3. profilesテーブルの情報をメールアドレス以外nullに更新し、first_time_loginをtrueに更新して最初プラン選択画面が表示されるようにする
+  };
+
   // カードブランドURL
   const cardBrandURL = () => {
     switch (defaultPaymentMethodState.card.brand) {
@@ -231,7 +245,8 @@ const ResumeMembershipAfterCancelMemo = () => {
         return "/assets/images/icons/cards/icons8-visa-60.png";
 
       case "amex":
-        return "/assets/images/icons/cards/AXP_BlueBoxLogo_Alternate_SMALLscale_RGB_DIGITAL_80x80.png";
+        return "/assets/images/icons/cards/icons8-american-express-48.png";
+      // return "/assets/images/icons/cards/AXP_BlueBoxLogo_Alternate_SMALLscale_RGB_DIGITAL_80x80.png";
 
       case "diners":
         return "/assets/images/icons/cards/icons8-diners-club-48.png";
@@ -253,6 +268,13 @@ const ResumeMembershipAfterCancelMemo = () => {
         break;
     }
   };
+
+  const rightImage =
+    stepContents === "resume_2" ? `/assets/images/beautiful/firework6.jpg` : `/assets/images/beautiful/balloon1.jpg`;
+  const rightImagePlaceholder =
+    stepContents === "resume_2"
+      ? `/assets/images/beautiful/placeholders/firework6_placeholder.jpg`
+      : `/assets/images/beautiful/placeholders/balloon1_placeholder.jpg`;
 
   console.log(
     "ResumeMembershipAfterCancelレンダリング",
@@ -356,7 +378,7 @@ const ResumeMembershipAfterCancelMemo = () => {
               </button>
               <button
                 className={`transition-base02 flex-center relative max-h-[41px] w-full cursor-pointer rounded-[8px] bg-[#40576d12] px-[25px] py-[10px] text-[14px] font-bold  hover:bg-[var(--bright-green)] hover:text-[#fff]`}
-                onClick={() => setResumeStep("")}
+                onClick={handleResetStart}
               >
                 <span>チームを削除して新しく始める</span>
                 {/* {isLoadingPortal && <SpinnerIDS scale={"scale-[0.4]"} />} */}
@@ -366,7 +388,7 @@ const ResumeMembershipAfterCancelMemo = () => {
             {/* 注意書きエリア */}
             <div className={`mt-[20px] w-full space-y-[5px] text-[12px] text-[#19171199]`}>
               <p>
-                「チームを削除して新しく始める」をクリックすることで、以前に保存したデータに一切アクセスができなくなります。
+                「チームを削除して新しく始める」をクリックすることで、以前に保存したデータに一切アクセスが不可となり、現在のユーザー情報もリセットして新たに始めます。
               </p>
             </div>
           </>
@@ -431,7 +453,7 @@ const ResumeMembershipAfterCancelMemo = () => {
                     styles.left_slide_scroll_container
                   } transition-base03 ${stepContents === "resume_2" ? `ml-[-100%]` : ``}`}
                 >
-                  {/* 左スライドコンテンツラッパー */}
+                  {/* 左スライドコンテンツラッパー 1ページ目 */}
                   <div className={`${styles.left_slide_scroll_left}`}>
                     {/* <div className={`flex-center h-[40px] w-full`}>
                       <div className="relative flex h-[60px] w-[145px] select-none items-center justify-center">
@@ -608,6 +630,8 @@ const ResumeMembershipAfterCancelMemo = () => {
                       </button>
                     </div>
                   </div>
+                  {/* 左スライドコンテンツラッパー 1ページ目 ここまで */}
+                  {/* 左スライドコンテンツラッパー 2ページ目 */}
                   <div className={`${styles.left_slide_scroll_right}`}>
                     <div className="mt-[20px] h-auto w-full text-[20px] font-bold text-[var(--color-text-title)]">
                       <h2>お支払い方法の設定</h2>
@@ -634,13 +658,14 @@ const ResumeMembershipAfterCancelMemo = () => {
                       </div>
                     )}
 
-                    {/* カード情報 */}
+                    {/* 支払い設定エリア */}
                     <div className="flex w-full items-center justify-between pt-[30px]">
+                      {/* カード情報 */}
                       {defaultPaymentMethodState && (
                         <div className="flex h-[30px] items-center">
                           <div
                             className={`relative mb-[-5px] ${
-                              defaultPaymentMethodState === "amex" ? `h-[28px] w-[28px]` : `h-[25px] w-[25px]`
+                              defaultPaymentMethodState === "amex" ? `h-[28px] w-[28px]` : `h-[28px] w-[28px]`
                             }`}
                           >
                             <Image
@@ -648,7 +673,7 @@ const ResumeMembershipAfterCancelMemo = () => {
                               alt="card-brand"
                               fill
                               sizes="64px"
-                              className="z-[1] h-full w-full object-contain object-center"
+                              className="z-[0] h-full w-full object-contain object-center"
                             />
                           </div>
                           <div className="ml-[10px] flex min-h-[24px] items-center space-x-[8px]">
@@ -661,6 +686,8 @@ const ResumeMembershipAfterCancelMemo = () => {
                           </div>
                         </div>
                       )}
+                      {/* カード情報 ここまで */}
+                      {/* 支払い方法変更テキスト */}
                       <div className="flex-center max-h-[32px] rounded-[8px] px-[12px] py-[8px]">
                         {!isLoadingPortal && (
                           <span
@@ -676,27 +703,28 @@ const ResumeMembershipAfterCancelMemo = () => {
                           </div>
                         )}
                       </div>
+                      {/* 支払い方法変更テキスト ここまで */}
                     </div>
+                    {/* 支払い設定エリア ここまで */}
                     {/* メンバーシップを開始するボタン */}
                     <div className="mt-[45px] w-full">
                       <button
                         className={`flex-center h-[40px] w-full cursor-pointer rounded-[6px] bg-[var(--color-bg-brand-f)] font-bold text-[#fff] ${
                           isLoadingPortal ? `` : `hover:bg-[var(--color-bg-brand-f-deep)]`
                         }`}
-                        // onClick={() => {
-                        //   if (selectedRadioButton === "business_plan" && !!planBusiness)
-                        //     handleResume(planBusiness.id, accountQuantity);
-                        //   if (selectedRadioButton === "premium_plan" && !!planPremium)
-                        //     handleResume(planPremium.id, accountQuantity);
-                        // }}
-                        // onClick={loadPortal}
-                        // onClick={getPaymentMethodFromStripe}
+                        onClick={() => {
+                          if (selectedRadioButton === "business_plan" && !!planBusiness)
+                            handleResume(planBusiness.id, accountQuantity);
+                          if (selectedRadioButton === "premium_plan" && !!planPremium)
+                            handleResume(planPremium.id, accountQuantity);
+                        }}
                       >
                         {/* {!isLoading && <span>メンバーシップを開始する</span>} */}
-                        {!isLoadingPortal && <span>メンバーシップを始める</span>}
-                        {isLoadingPortal && <SpinnerIDS scale={"scale-[0.4]"} />}
+                        {!isLoadingSubmit && <span>メンバーシップを始める</span>}
+                        {isLoadingSubmit && <SpinnerIDS scale={"scale-[0.4]"} />}
                       </button>
                     </div>
+                    {/* メンバーシップを開始するボタン ここまで */}
                     <div className="mb-[30px] w-full pt-[15px]">
                       <div className={`flex-center h-[40px] w-full`}>
                         <span
@@ -708,17 +736,22 @@ const ResumeMembershipAfterCancelMemo = () => {
                       </div>
                     </div>
                   </div>
+                  {/* 左スライドコンテンツラッパー 2ページ目 ここまで */}
                 </div>
-                {/* 左スライドスクロールコンテナ ここまで */}
+                {/* 左スライドスクロールコンテナ 2ページ目 ここまで */}
               </div>
               {/* 左コンテナ ここまで */}
               {/* 右コンテナ */}
-              <div className={`${styles.right_container} relative flex h-full w-6/12`}>
+              <div className={`${styles.right_container} relative z-10 flex h-full w-6/12`}>
+                <div
+                  className={`transition-base03 z-[20] ${
+                    stepContents === "resume_2" ? `${styles.right_bg_image2} ` : `${styles.right_bg_image1} `
+                  }`}
+                />
                 <Image
-                  //   src={`/assets/images/team/team1.jpg`}
-                  src={`/assets/images/beautiful/balloon1.jpg`}
+                  src={rightImage}
                   alt=""
-                  blurDataURL={`/assets/images/hero/placeholder/bg_slide_black1x_placeholder.png`}
+                  blurDataURL={rightImagePlaceholder}
                   placeholder="blur"
                   className="z-[-1] h-full w-full object-cover object-center"
                   fill

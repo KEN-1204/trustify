@@ -42,6 +42,10 @@ export const Header: FC<Props> = ({
   const setIsLogin = useStore((state) => state.setIsLogin);
   const language = useStore((state) => state.language);
   const sessionState = useStore((state) => state.sessionState);
+  const setStartAnimationFeature1 = useStore((state) => state.setStartAnimationFeature1);
+  const setStartAnimationFeature2 = useStore((state) => state.setStartAnimationFeature2);
+  const setStartAnimationFeature3 = useStore((state) => state.setStartAnimationFeature3);
+  const setStartAnimationFeature4 = useStore((state) => state.setStartAnimationFeature4);
 
   // 言語ドロップダウンメニュー
   const clickedItemPos = useStore((state) => state.clickedItemPos);
@@ -82,6 +86,21 @@ export const Header: FC<Props> = ({
     } else {
       setIsHeaderTop(true);
     }
+
+    // 🌟テスト タイプライター Feature
+    if (580 < currentY) {
+      setStartAnimationFeature1(true);
+    }
+    if (1300 < currentY) {
+      setStartAnimationFeature2(true);
+    }
+    if (1990 < currentY) {
+      setStartAnimationFeature3(true);
+    }
+    if (2680 < currentY) {
+      setStartAnimationFeature4(true);
+    }
+
     // }, [currentY, isHeaderShown, isHeaderTop]);
     // テーマがライトでwindowが830を超えたらヘッダーの文字色を黒にする
     if (800 < currentY) {
