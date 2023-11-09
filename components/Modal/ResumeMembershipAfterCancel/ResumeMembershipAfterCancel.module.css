@@ -347,3 +347,13 @@
   padding-left: 5px;
   background: var(--color-bg-under-input);
 }
+
+.loading_overlay {
+  position: fixed;
+  z-index: 5000;
+  inset: 0;
+  background: #00000090;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

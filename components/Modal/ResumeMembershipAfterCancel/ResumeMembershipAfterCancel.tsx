@@ -231,11 +231,67 @@ const ResumeMembershipAfterCancelMemo = () => {
   };
 
   // 「チームを削除して新しく始める」ボタン サブスク、会社、アカウントの紐付けを解除、profilesの情報もリセットして新たに始める
+  const [isLoadingReset, setIsLoadingReset] = useState(false);
   const handleResetStart = async () => {
-    // 1. subscribed_accountsテーブルのデータをcanceled_customerテーブルに移して、
+    if (isLoadingReset) return;
+    if (!userProfileState) return;
+    setIsLoadingReset(true);
+
+    // 1. subscribed_accountsテーブルのデータをdeleted_customersテーブルに移して、
     //    後から事業者側が確認できる状態にする
     // 2. subscribed_accountsテーブルを削除する
-    // 3. profilesテーブルの情報をメールアドレス以外nullに更新し、first_time_loginをtrueに更新して最初プラン選択画面が表示されるようにする
+    // 3. profilesテーブルの情報をメールアドレス以外nullに更新し、first_time_loginをtrueに更新して最初プラン選択画面が表示されるようにする 残すのはidとemailとstripe_customer_idとprofile_nameのみ、is_subscriber: false, first_time_login: true
+    // archive_and_reset_user_profileプロシージャを実行して、1,2,3の一連の処理をトランザクションとして実行
+    try {
+      // archive_and_reset_user_profileプロシージャに渡すパラメータ
+      const payload = {
+        _deleted_user_id: userProfileState.id,
+        _company_id: userProfileState.company_id,
+        _subscription_id: userProfileState.subscription_id,
+        _profile_name: userProfileState.profile_name,
+        _email: userProfileState.email,
+        _department: userProfileState.department,
+        _position_name: userProfileState.position_name,
+        _company_cell_phone: userProfileState.company_cell_phone,
+        _personal_cell_phone: userProfileState.personal_cell_phone,
+        _occupation: userProfileState.occupation,
+        _office: userProfileState.office,
+        _unit: userProfileState.unit,
+        _position_class: userProfileState.position_class,
+      };
+      console.log("archive_and_reset_user_profileプロシージャを実行 rpcに渡すpayload", payload);
+      // PROCEDUREはデータをリターンしないため、成功した場合にはdataとerror共にnullになり、
+      // エラーが発生した場合には、errorにエラーオブジェクトが入る
+      const { data, error } = await supabase.rpc("archive_and_reset_user_profile", payload);
+
+      if (error) {
+        // エラーオブジェクト全体を再スローする throw new Error(error.message)はメッセージのみ引き継ぐ
+        throw error;
+      }
+      console.log("archive_and_reset_user_profileプロシージャ成功", data);
+
+      toast.success(`チームの削除とデータのリセットが完了しました!`, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    } catch (e: any) {
+      console.error(`archive_and_reset_user_profileプロシージャエラー`, e);
+      toast.error(`チームの削除とデータのリセットに失敗しました!`, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    }
+    setIsLoadingReset(false);
   };
 
   // カードブランドURL
@@ -302,6 +358,11 @@ const ResumeMembershipAfterCancelMemo = () => {
 
   return (
     <div className={`fixed inset-0 z-[2000] ${styles.bg_image}`} ref={modalContainerRef}>
+      {isLoadingReset && (
+        <div className={`${styles.loading_overlay} `}>
+          <SpinnerIDS scale={"scale-[0.5]"} />
+        </div>
+      )}
       {hoveredItemPosModal && <TooltipModal />}
       <button
         className={`flex-center shadow-all-md transition-base03 fixed bottom-[2%] right-[6%] z-[3000] h-[35px] w-[35px] rounded-full bg-[#555] hover:bg-[#999]`}
@@ -377,11 +438,13 @@ const ResumeMembershipAfterCancelMemo = () => {
                 <span>再開する</span>
               </button>
               <button
-                className={`transition-base02 flex-center relative max-h-[41px] w-full cursor-pointer rounded-[8px] bg-[#40576d12] px-[25px] py-[10px] text-[14px] font-bold  hover:bg-[var(--bright-green)] hover:text-[#fff]`}
+                className={`transition-base02 flex-center relative max-h-[41px] w-full rounded-[8px] bg-[#40576d12] px-[25px] py-[10px] text-[14px] font-bold  hover:bg-[var(--bright-green)] hover:text-[#fff] ${
+                  isLoadingReset ? `cursor-wait` : `cursor-pointer`
+                }`}
                 onClick={handleResetStart}
               >
-                <span>チームを削除して新しく始める</span>
-                {/* {isLoadingPortal && <SpinnerIDS scale={"scale-[0.4]"} />} */}
+                {!isLoadingReset && <span>チームを削除して新しく始める</span>}
+                {isLoadingReset && <SpinnerIDS scale={"scale-[0.4]"} />}
               </button>
             </div>
 
