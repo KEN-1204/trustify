@@ -19,6 +19,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import Stripe from "stripe";
 import { FallbackResumeMembershipAfterCancel } from "./FallbackResumeMembershipAfterCancel";
 import { runFireworks } from "@/utils/confetti";
+import { UserProfileCompanySubscription } from "@/types";
 
 type Plans = {
   id: string;
@@ -34,6 +35,7 @@ const ResumeMembershipAfterCancelMemo = () => {
   const sessionState = useStore((state) => state.sessionState);
   const theme = useRootStore(useThemeStore, (state) => state.theme);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
+  const setUserProfileState = useDashboardStore((state) => state.setUserProfileState);
   // ローディング
   const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
@@ -262,13 +264,29 @@ const ResumeMembershipAfterCancelMemo = () => {
       console.log("archive_and_reset_user_profileプロシージャを実行 rpcに渡すpayload", payload);
       // PROCEDUREはデータをリターンしないため、成功した場合にはdataとerror共にnullになり、
       // エラーが発生した場合には、errorにエラーオブジェクトが入る
-      const { data, error } = await supabase.rpc("archive_and_reset_user_profile", payload);
+      const { data: newUserData, error } = await supabase.rpc("archive_and_reset_user_profile", payload);
 
       if (error) {
         // エラーオブジェクト全体を再スローする throw new Error(error.message)はメッセージのみ引き継ぐ
         throw error;
       }
-      console.log("archive_and_reset_user_profileプロシージャ成功", data);
+      console.log("archive_and_reset_user_profile関数成功 リセット後のユーザーデータ", newUserData[0]);
+
+      // ZustandのStateを更新
+      setUserProfileState(newUserData[0] as UserProfileCompanySubscription);
+
+      if (
+        (newUserData[0] as UserProfileCompanySubscription).subscription_plan === null ||
+        (newUserData[0] as UserProfileCompanySubscription).subscription_plan === "free_plan"
+      )
+        router.reload();
+
+      // const { data: userProfile, error: getUserDataError } = await supabase
+      //   .rpc("get_user_data", { _user_id: userProfileState.id })
+      //   .single();
+
+      // if (userProfile) console.log("🌟/homeサーバーサイド userProfileあり");
+      // if (getUserDataError) console.log("🌟/homeサーバーサイド errorあり", error);
 
       toast.success(`チームの削除とデータのリセットが完了しました!`, {
         position: "top-right",

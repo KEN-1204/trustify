@@ -172,6 +172,7 @@ bg-[#06c755] */
   /* Canva 背景 #fff 背景サブ rgba(64,87,109,.07) #40576d12 */
   --color-bg-base: #fff;
   --color-bg-base-header: #fff;
+  /* chat-gptのサブ背景 #f7f7f8 ホバー時：#ececf1 */
   --color-bg-sub: rgba(64, 87, 109, 0.07);
   --color-bg-sub-deep: rgba(57, 76, 96, 0.15);
   --color-bg-sub-re: rgba(64, 87, 109, 0.08);

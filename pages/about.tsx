@@ -12,7 +12,6 @@ const About = () => {
   const theme = useRootStore(useThemeStore, (state) => state.theme);
   const setTheme = useThemeStore((state) => state.setTheme);
   const [isBackgroundLoaded, setIsBackgroundLoaded] = useState(false);
-
   const router = useRouter();
 
   // 言語別タイトル
@@ -50,6 +49,19 @@ const About = () => {
   // ページ遷移時にテーマをライトに設定する
   useEffect(() => {
     setTheme("light");
+  }, []);
+
+  // タイプライターアニメーションの各trueの値をfalseに戻す
+  const setStartAnimationFeature1 = useStore((state) => state.setStartAnimationFeature1);
+  const setStartAnimationFeature2 = useStore((state) => state.setStartAnimationFeature2);
+  const setStartAnimationFeature3 = useStore((state) => state.setStartAnimationFeature3);
+  const setStartAnimationFeature4 = useStore((state) => state.setStartAnimationFeature4);
+
+  useEffect(() => {
+    setStartAnimationFeature1(false);
+    setStartAnimationFeature2(false);
+    setStartAnimationFeature3(false);
+    setStartAnimationFeature4(false);
   }, []);
   return (
     <Layout title={langTitle}>

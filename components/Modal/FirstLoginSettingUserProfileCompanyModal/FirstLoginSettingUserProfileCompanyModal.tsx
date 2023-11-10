@@ -133,9 +133,11 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
       .replace(/　/g, " "); // 全角スペースを半角スペースに
   };
 
+  const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
   const handleStart = async () => {
     if (!userProfileState) return alert("エラー：ユーザー情報がありません");
-    setIsLoading(true);
+    // setIsLoading(true);
+    setIsLoadingSubmit(true);
     // プロフィール情報の更新
     try {
       const { error: profileError } = await supabase
@@ -152,7 +154,7 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
       if (profileError) throw new Error(profileError.message);
     } catch (error) {
       alert(`エラーが発生しました: profiles_${error}`);
-      setIsLoading(false);
+      setIsLoadingSubmit(false);
       return;
     }
 
@@ -168,7 +170,17 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
       if (companyError) throw new Error(companyError.message);
     } catch (error) {
       alert(`エラーが発生しました: companies_${error}`);
-      setIsLoading(false);
+      setIsLoadingSubmit(false);
+      toast.error("セットアップに失敗しました...", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        // theme: `${theme === "light" ? "light" : "dark"}`,
+      });
       return;
     }
     // プロフィール・会社どちらも更新成功 ZustandのStateを更新
@@ -183,10 +195,21 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
       customer_name: inputCompany,
       customer_number_of_employees_class: inputNumberOfEmployeeClass,
     };
-    setUserProfileState(newUserProfile);
-    console.log("🌟プロフィール会社更新 セットアップ成功🌟 newUserProfile", newUserProfile);
-    setIsLoading(false);
+
     setTimeout(() => {
+      setUserProfileState(newUserProfile);
+      console.log("🌟プロフィール会社更新 セットアップ成功🌟 newUserProfile", newUserProfile);
+      setIsLoadingSubmit(false);
+      toast.success("セットアップ完了！TRUSTiFYへようこそ！", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        // theme: `${theme === "light" ? "light" : "dark"}`,
+      });
       runFireworks();
     }, 300);
   };
@@ -247,11 +270,11 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
   return (
     <>
       <div className={`${styles.overlay} `} onClick={handleCancelAndReset} />
-      {/* {loadingGlobalState && (
+      {isLoadingSubmit && (
         <div className={`${styles.loading_overlay} `}>
           <SpinnerIDS scale={"scale-[0.5]"} />
         </div>
-      )} */}
+      )}
       <div className={`${styles.container} `} ref={modalContainerRef}>
         {hoveredItemPosModal && <TooltipModal />}
         {/* クローズボタン */}

@@ -51,6 +51,7 @@ import { DecreaseAccountCountsModal } from "./DashboardCompanyComponent/Modal/Se
 import { FallbackDecreaseAccountCountsModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingPaymentAndPlan/DecreaseAccountCountsModal/FallbackDecreaseAccountCountsModal";
 import { ResumeMembershipAfterCancel } from "./Modal/ResumeMembershipAfterCancel/ResumeMembershipAfterCancel";
 import { FallbackResumeMembershipAfterCancel } from "./Modal/ResumeMembershipAfterCancel/FallbackResumeMembershipAfterCancel";
+import { BlockModal } from "./Modal/BlockModal/BlockModal";
 
 type Prop = {
   title?: string;
@@ -79,10 +80,13 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   // 契約者、契約後解約者はすでにuserProfileState.subscription_idを持っているため、subscriptionsテーブルのUPDATEイベントを監視
   // useSubscribeSubscription();
 
+  // ブロック対象のユーザーはprofilesテーブルのis_activeをfalseにしてブロックする
+  const showBlockModalForBannedUser = !!userProfileState && userProfileState?.is_active === false;
+
   // サブスクプランがnullなら初回プランモーダル表示
   const showSubscriptionPlan =
     !!userProfileState &&
-    (!userProfileState.subscription_plan || userProfileState.subscription_plan === "free_plan") &&
+    (userProfileState.subscription_plan === null || userProfileState.subscription_plan === "free_plan") &&
     userProfileState.status !== "canceled";
 
   // サブスク解約後のチーム所有者に表示する「メンバーシップ再開」モーダル
@@ -375,6 +379,8 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
         {/* ツールチップ ここまで */}
       </div>
 
+      {/* ==================== BANにしたユーザー向けブロックモーダル ==================== */}
+      {showBlockModalForBannedUser && <BlockModal />}
       {/* ============================ 初回サブスクプランモーダルコンポーネント 他チームからの招待無しの場合 ============================ */}
       {/* 初回ログイン 招待無し */}
       {showSubscriptionPlan && !invitationData && <SubscriptionPlanModalForFreeUser />}

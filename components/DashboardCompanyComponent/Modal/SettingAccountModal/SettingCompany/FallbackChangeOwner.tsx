@@ -90,7 +90,7 @@ const FallbackChangeOwnerMemo: FC<Props> = ({ changeTeamOwnerStep, logoUrl, getC
                 <div className={`text-[13px]`}>
                   <span>{userProfileState?.customer_name}</span>
                 </div>
-                <div className={`text-[var(--color-text-sub)]`}>チーム・2人のメンバー</div>
+                <div className={`text-[var(--color-text-sub)]`}>チーム・ 人のメンバー</div>
               </div>
             </div>
             {/* ======= アバター、名前、説明エリア ここまで ======= */}

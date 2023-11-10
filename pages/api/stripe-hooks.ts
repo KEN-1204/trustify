@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import { buffer } from "micro";
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { Database } from "@/database.types";
-import { Subscription } from "@/types";
+import { Subscription, UserProfileCompanySubscription } from "@/types";
 
 // Next.js の API ルートでは、ボディパーサーがデフォルトで有効化されています。
 // そのため、上記のコードを正しく動作させるためには、ボディパーサーを無効化する必要があるため、
@@ -124,7 +124,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           _subscription_plan = null;
       }
 
-      let currentSubscriptionDBData: Subscription | null = null;
+      let currentSubscriptionDBData: UserProfileCompanySubscription | null = null;
 
       // Webhookイベント毎に処理 Process the event
       switch (stripeEvent.type) {
@@ -135,6 +135,29 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         case "customer.subscription.updated":
         case "customer.subscription.pending_update_applied":
           console.log(`🌟Stripe_Webhookステップ3 ${stripeEvent.type}イベント customer`, subscription.customer);
+
+          // ============ deletedタイプwebhookの後のupdatedタイプでprevious_attributesがcancellation_detailsプロパティのみのwebhookの処理 ============
+          // previous_attributesのオブジェクトがscheduleのみかどうかを判定する関数
+          const isOnlyCancellationDetails = (obj: Object | undefined) => {
+            if (typeof obj === "undefined") return false;
+            const keys = Object.keys(obj);
+            return keys.length === 1 && keys[0] === "cancellation_details";
+          };
+          if (isOnlyCancellationDetails(previousAttributes)) {
+            /* deletedタイプwebhookの後のupdatedタイプwebhookはcancelltaion_detailsしか変更がないのでdeletedタウぷのwebhookのcancellation_feedbackとcommentのみUPDATEする */
+            const { error: updateWebhookError } = await supabase.from("stripe_webhook_events").update({
+              cancel_feedback: (previousAttributes as any)?.cancellation_details?.feedback ?? null,
+              cancel_comment: (previousAttributes as any)?.cancellation_details?.comment ?? null,
+            });
+            if (updateWebhookError)
+              return res
+                .status(500)
+                .send(`update stripe_webhook_events error: ${(updateWebhookError as Error).message}`);
+            console.log("✅キャンセル詳細を更新するのみでリターン", previousAttributes);
+            return res.status(200).send({ received: "complete" });
+            // return res.status(200).end();
+          }
+          // ============ deletedタイプwebhookの後のupdatedタイプでprevious_attributesがcancellation_detailsプロパティのみのwebhookの処理 ここまで ============
 
           // ============ 初回契約時の支払い完了後に支払い方法をデフォルトに設定する ============
           /* previous_attributesが「default_payment_method: null」、「status: incomplete」で、
@@ -201,30 +224,54 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             );
             return res.status(500).json({ error: selectProfileError.message });
           }
+          // ================ subscriptionsテーブルデータのみ取得パターン
           // Stripeカスタマーidを使って、Subscriptionsテーブルからサブスクリプションデータがあるかどうかと
           // なければ初回契約(null)、あればsubscription_stageの値で、契約済み(is_subscribed)と解約済み(is_canceled)を取得
-          const { data: subscriptionDataDB, error: subscriptionErrorDB } = await supabase
-            .from("subscriptions")
-            .select()
-            .match({ stripe_customer_id: subscription.customer })
+          // const { data: subscriptionDataDB, error: subscriptionErrorDB } = await supabase
+          //   .from("subscriptions")
+          //   .select()
+          //   .match({ stripe_customer_id: subscription.customer })
+          //   .limit(1);
+          // if (subscriptionErrorDB) {
+          //   console.log(
+          //     "❌stripe-hooksハンドラー 契約ルート supabaseのselect()メソッドでサブスクリプションテーブル情報取得エラー",
+          //     subscriptionErrorDB
+          //   );
+          //   return res.status(500).json({ error: subscriptionErrorDB.message });
+          // }
+          // if (subscriptionDataDB && subscriptionDataDB.length > 0) {
+          //   console.log(
+          //     "🌟Stripe_Webhookステップ6 supabaseのsubscriptionsテーブルからサブスクデータ取得OK subscriptionDataDB[0]",
+          //     subscriptionDataDB[0]
+          //   );
+          //   currentSubscriptionDBData = subscriptionDataDB[0];
+          // } else {
+          //   console.log("🙆🥺stripe-hooksハンドラー サブスクリプションデータが存在しない");
+          //   currentSubscriptionDBData = null;
+          // }
+          // ================ subscriptionsテーブルデータのみ取得パターン ここまで
+          // ================ ユーザー全データ取得からDBサブスクデータ取得パターン
+          const { data: userCompanySubscriptionDataDB, error: userCompanySubscriptionErrorDB } = await supabase
+            .rpc("get_user_data", { _user_id: subscriberProfileData.id })
             .limit(1);
-          if (subscriptionErrorDB) {
+          if (userCompanySubscriptionErrorDB) {
             console.log(
-              "❌stripe-hooksハンドラー 契約ルート supabaseのselect()メソッドでサブスクリプションテーブル情報取得エラー",
-              subscriptionErrorDB
+              "❌stripe-hooksハンドラー 契約ルート ユーザー全データ取得エラー",
+              userCompanySubscriptionErrorDB
             );
-            return res.status(500).json({ error: subscriptionErrorDB.message });
+            return res.status(500).json({ error: userCompanySubscriptionErrorDB.message });
           }
-          if (subscriptionDataDB && subscriptionDataDB.length > 0) {
+          if (userCompanySubscriptionDataDB[0].subscription_id && userCompanySubscriptionDataDB.length > 0) {
             console.log(
-              "🌟Stripe_Webhookステップ6 supabaseのsubscriptionsテーブルからサブスクデータ取得OK subscriptionDataDB[0]",
-              subscriptionDataDB[0]
+              "🌟Stripe_Webhookステップ6 supabaseのsubscriptionsテーブルからサブスクデータ取得OK userCompanySubscriptionDataDB[0]",
+              userCompanySubscriptionDataDB[0]
             );
-            currentSubscriptionDBData = subscriptionDataDB[0];
+            currentSubscriptionDBData = userCompanySubscriptionDataDB[0];
           } else {
             console.log("🙆🥺stripe-hooksハンドラー サブスクリプションデータが存在しない");
             currentSubscriptionDBData = null;
           }
+          // ================ ユーザー全データ取得からDBサブスクデータ取得パターン ここまで
           // Insert the Stripe Webhook event into the database
           // パターン1
           const insertPayload = {
@@ -254,7 +301,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             cancel_reason: subscription.cancellation_details && subscription.cancellation_details.reason,
             user_role: _subscription_plan === "business_plan" ? "business_user" : "premium_user", // プラン内容によって格納するroleを変更、トリガー関数内でprofilesのUPDATE用に用意
             subscription_id:
-              currentSubscriptionDBData && currentSubscriptionDBData.id ? currentSubscriptionDBData.id : null, // subscriptionsテーブルのid
+              currentSubscriptionDBData && currentSubscriptionDBData.subscription_id
+                ? currentSubscriptionDBData.subscription_id
+                : null, // subscriptionsテーブルのid
             number_of_active_subscribed_accounts: subscription.items.data[0].quantity,
           };
           console.log("🌟Stripe_Webhookステップ7 stripe_webhook_eventsにINSERT insertに渡す引数", insertPayload);
@@ -310,30 +359,56 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
           // Stripeカスタマーidを使って、Subscriptionsテーブルからサブスクリプションデータがあるかどうかと
           // なければ初回契約(null)、あればsubscription_stageの値で、契約済み(is_subscribed)と解約済み(is_canceled)を取得
-          const { data: subscriptionDataDBDelete, error: subscriptionErrorDBD } = await supabase
-            .from("subscriptions")
-            .select()
-            .match({ stripe_customer_id: subscription.customer })
-            .limit(1);
-          if (subscriptionErrorDBD) {
+          // ================ subscriptionsテーブルデータのみ取得パターン
+          // const { data: subscriptionDataDBDelete, error: subscriptionErrorDBD } = await supabase
+          //   .from("subscriptions")
+          //   .select()
+          //   .match({ stripe_customer_id: subscription.customer })
+          //   .limit(1);
+          // if (subscriptionErrorDBD) {
+          //   console.log(
+          //     "❌🌟Stripe_Webhookステップ5 stripe-hooksハンドラー 解約ルート customer.subscription.deletedルート supabaseのselect()メソッドでサブスクリプションテーブル情報取得エラー",
+          //     subscriptionErrorDBD
+          //   );
+          //   return res.status(500).json({ error: subscriptionErrorDBD.message });
+          // }
+          // if (subscriptionDataDBDelete && subscriptionDataDBDelete.length > 0) {
+          //   console.log(
+          //     "🙆🌟Stripe_Webhookステップ5 stripe-hooksハンドラー 解約ルート supabaseのsubscriptionsテーブルからサブスクデータ取得OK subscriptionDataDB",
+          //     subscriptionDataDBDelete[0]
+          //   );
+          //   currentSubscriptionDBData = subscriptionDataDBDelete[0];
+          // } else {
+          //   console.log(
+          //     "🙆🥺🌟Stripe_Webhookステップ5 stripe-hooksハンドラー 解約ルート サブスクリプションデータが存在しない, currentSubscriptionDBDataにnullを格納"
+          //   );
+          //   currentSubscriptionDBData = null;
+          // }
+          // ================ subscriptionsテーブルデータのみ取得パターン ここまで
+          // ================ ユーザー全データ取得からDBサブスクデータ取得パターン
+          const { data: userCompanySubscriptionDataDBDelete, error: userCompanySubscriptionErrorDBDelete } =
+            await supabase.rpc("get_user_data", { _user_id: subscriberProfileDataDelete.id }).limit(1);
+          if (userCompanySubscriptionErrorDBDelete) {
             console.log(
-              "❌🌟Stripe_Webhookステップ5 stripe-hooksハンドラー 解約ルート customer.subscription.deletedルート supabaseのselect()メソッドでサブスクリプションテーブル情報取得エラー",
-              subscriptionErrorDBD
+              "❌stripe-hooksハンドラー 解約ルート ユーザー全データ取得エラー",
+              userCompanySubscriptionErrorDBDelete
             );
-            return res.status(500).json({ error: subscriptionErrorDBD.message });
+            return res.status(500).json({ error: userCompanySubscriptionErrorDBDelete.message });
           }
-          if (subscriptionDataDBDelete && subscriptionDataDBDelete.length > 0) {
+          if (
+            userCompanySubscriptionDataDBDelete[0].subscription_id &&
+            userCompanySubscriptionDataDBDelete.length > 0
+          ) {
             console.log(
-              "🙆🌟Stripe_Webhookステップ5 stripe-hooksハンドラー 解約ルート supabaseのsubscriptionsテーブルからサブスクデータ取得OK subscriptionDataDB",
-              subscriptionDataDBDelete[0]
+              "🌟Stripe_Webhookステップ6 supabaseのsubscriptionsテーブルからサブスクデータ取得OK userCompanySubscriptionDataDBDelete[0]",
+              userCompanySubscriptionDataDBDelete[0]
             );
-            currentSubscriptionDBData = subscriptionDataDBDelete[0];
+            currentSubscriptionDBData = userCompanySubscriptionDataDBDelete[0];
           } else {
-            console.log(
-              "🙆🥺🌟Stripe_Webhookステップ5 stripe-hooksハンドラー 解約ルート サブスクリプションデータが存在しない, currentSubscriptionDBDataにnullを格納"
-            );
+            console.log("🙆🥺stripe-hooksハンドラー 解約ルート サブスクリプションデータが存在しない");
             currentSubscriptionDBData = null;
           }
+          // ================ ユーザー全データ取得からDBサブスクデータ取得パターン ここまで
           // ======================== 解約ルート stripe_webhook_eventsテーブルにINSERTするpayload
           // Insert the Stripe Webhook event into the database
           // パターン2
@@ -366,7 +441,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             cancel_reason: subscription.cancellation_details?.reason ?? null,
             user_role: "free_user", // プラン内容によって格納するroleを変更、トリガー関数内でprofilesのUPDATE用に用意
             subscription_id:
-              currentSubscriptionDBData && currentSubscriptionDBData.id ? currentSubscriptionDBData.id : null, // subscriptionsテーブルのid
+              currentSubscriptionDBData && currentSubscriptionDBData.subscription_id
+                ? currentSubscriptionDBData.subscription_id
+                : null, // subscriptionsテーブルのid
             number_of_active_subscribed_accounts: subscription.items.data[0].quantity ?? null,
           };
           console.log(

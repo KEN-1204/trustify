@@ -24,6 +24,8 @@ type Plans = {
 
 export const SubscriptionPlanModalForFreeUser = () => {
   const supabase = useSupabaseClient();
+  const userProfileState = useDashboardStore((state) => state.userProfileState);
+  const setUserProfileState = useDashboardStore((state) => state.setUserProfileState);
   const [loading, setIsLoading] = useState(false);
   const [plansState, setPlansState] = useState<Plans[] | null[]>([]);
   const [accountQuantity, setAccountQuantity] = useState<number | null>(1);
@@ -31,6 +33,40 @@ export const SubscriptionPlanModalForFreeUser = () => {
   const sessionState = useStore((state) => state.sessionState);
   const [planBusiness, setPlanBusiness] = useState<Plans | null>(null);
   const [planPremium, setPlanPremium] = useState<Plans | null>(null);
+
+  // サブスクリプション契約後にsubscribed_accountsのリアルタイムが発火せずにユーザーデータが更新されずに契約済みにも関わらず、契約前のユーザーデータのままチェックアウトからリダイレクトされた時に新しいユーザーデータを取得する
+  useEffect(() => {
+    if (!userProfileState) return console.log("userProfileStateなしリターン");
+    if (userProfileState.subscribed_account_id) return console.log("既に契約済みのためリターン");
+    // 現在ユーザーが契約アカウントを持っていないか確認する
+    const getSubscribedAccountId = async () => {
+      const { data, error } = await supabase
+        .from("subscribed_accounts")
+        .select("id")
+        .eq("user_id", userProfileState.id);
+
+      if (error) console.error("SubscriptionPlanModalForFreeUserコンポーネント 契約済みか確認エラー", error);
+
+      console.log("SubscriptionPlanModalForFreeUserコンポーネント 契約済みかどうか確認 data", data, error);
+      if (data.length > 0 && !!data[0]) {
+        try {
+          const { data: userData, error: userError } = await supabase.rpc("get_user_data", {
+            _user_id: userProfileState.id,
+          });
+          if (userError) throw userError;
+          console.log(
+            "SubscriptionPlanModalForFreeUserコンポーネント 契約済みのためget_user_data関数を再度実行してZustandのユーザーデータを最新状態に更新 userData",
+            userData
+          );
+          setUserProfileState(userData[0]);
+        } catch (e: any) {
+          console.error(`SubscriptionPlanModalForFreeUserコンポーネント get_user_data関数エラー`, e);
+        }
+      }
+    };
+
+    getSubscribedAccountId();
+  }, []);
 
   // 初回マウント時にStripeのプラン2つのpriceIdを取得する
   useEffect(() => {

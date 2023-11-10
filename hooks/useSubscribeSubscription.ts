@@ -60,6 +60,11 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
         userProfile.subscription_id,
         userProfileState?.subscription_id
       );
+
+      const subscriptionId = userProfile.subscription_id
+        ? userProfile.subscription_id
+        : userProfileState?.subscription_id;
+
       channel = supabase
         .channel("table-db-changes:subscriptions")
         .on(
@@ -69,7 +74,7 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
             schema: "public",
             table: "subscriptions",
             // filter: `id=eq.${userProfileState.subscription_id}`,
-            filter: `id=eq.${userProfile.subscription_id ?? userProfileState?.subscription_id}`,
+            filter: `id=eq.${subscriptionId}`,
           },
           async (payload: any) => {
             console.log("🌟🔥リアルタイム subscriptions UPDATE検知発火🔥", payload);
@@ -143,11 +148,15 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
       //   )
       //   .subscribe();
       // subscriber_idがnullの場合はsubscribed_accountsテーブルの監視を開始
+
       console.log(
         "🌟リアルタイム subscribed_accounts INSERTイベント監視を開始 useSubscribeSubscription",
         userProfile,
         userProfileState
       );
+
+      const userId = userProfile.id ? userProfile.id : userProfileState?.id;
+
       channel = supabase
         .channel("table-db-changes:subscribed_accounts")
         .on(
@@ -157,7 +166,7 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
             schema: "public",
             table: "subscribed_accounts",
             // filter: `user_id=eq.${userProfileState.id}`,
-            filter: `user_id=eq.${userProfile.id ?? userProfileState?.id}`,
+            filter: `user_id=eq.${userId}`,
           },
           async (payload: any) => {
             console.log("🌟🔥リアルタイム subscribed_accounts INSERTイベント発火🔥", payload);
