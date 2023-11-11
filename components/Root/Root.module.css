@@ -1085,7 +1085,7 @@
 .typewriter_caret_blink {
   color: var(--color-bg-brand-f);
   /* background-color: var(--color-bg-brand-f); */
-  animation: blink 1s infinite;
+  animation: blink 1.2s infinite;
 }
 
 @keyframes blink {
@@ -1094,6 +1094,6 @@
     opacity: 1;
   }
   50% {
-    opacity: 0.3;
+    opacity: 0.2;
   }
 }

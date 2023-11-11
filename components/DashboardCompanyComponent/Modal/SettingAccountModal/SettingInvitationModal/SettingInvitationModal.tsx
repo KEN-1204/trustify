@@ -148,6 +148,7 @@ export const SettingInvitationModal = () => {
       checkedEmail.includes("Valid") &&
       !checkedEmail.every((currentValue) => currentValue === "")
     ) {
+      if (isReadyToSubmit) return;
       setIsReadyToSubmit(true);
       console.log("チェック isReadyToSubmitをtrueに変更");
     } else {
@@ -190,7 +191,7 @@ export const SettingInvitationModal = () => {
         );
         toast.success(`${email}の送信が完了しました!`, {
           position: "top-right",
-          autoClose: 2000,
+          autoClose: 5000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
@@ -204,6 +205,7 @@ export const SettingInvitationModal = () => {
           .update({
             user_id: invitedUserId,
             company_role: "company_member",
+            // invited_email: invitedUserEmail, //テスト
           })
           .eq("id", accountId)
           .select();
@@ -212,7 +214,7 @@ export const SettingInvitationModal = () => {
           console.log("アカウントのuser_idの紐付けに失敗", accountUpdateError);
           toast.error(`${email}のアカウント紐付けに失敗しました!`, {
             position: "top-right",
-            autoClose: 2000,
+            autoClose: 5000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,
@@ -229,7 +231,7 @@ export const SettingInvitationModal = () => {
         console.error("送信エラー", email, e);
         toast.error(`${email}の送信に失敗しました!`, {
           position: "top-right",
-          autoClose: 2000,
+          autoClose: 5000,
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
@@ -345,16 +347,22 @@ export const SettingInvitationModal = () => {
     };
 
     // ======================= 1秒ごとにメールを送信
+    console.log("handleSubmit実行 emailInputs", emailInputs);
     for (let i = 0; i < emailInputs.length; i++) {
+      if (emailInputs[i] === "") {
+        console.log(`メールが空のため${i}回目はスキップしてcontinue`);
+        continue;
+      }
       await new Promise((resolve) => setTimeout(resolve, 1000));
       try {
+        console.log(`for文${i}回目 emailInputs[i]`, emailInputs[i]);
         // profilesテーブルに招待先のユーザーの登録があるか確認 => これでサインアップしているか否かを判別
         const { data, error } = await supabase.from("profiles").select().eq("email", emailInputs[i]);
 
         if (error) throw new Error(error.message);
 
         console.log(
-          "ステップ1 サインアップしているか否かを判別",
+          "ステップ1 profilesテーブルに招待先のユーザーの登録があるか確認 => これでサインアップしているか否かを判別",
           "profilesテーブルから取得 data",
           data,
           "data.length",
@@ -368,7 +376,7 @@ export const SettingInvitationModal = () => {
         // 🌟1-1 既にサインアップ済みユーザーへの招待ルート 取得したdataが1個のパターン
         if (data.length === 1) {
           const userData = data[0];
-          if (!userData.email) return;
+          if (!userData.email) continue;
           // 招待先のユーザーが既にチームに所属しているか否かを判別 => チームに既に所属している場合は自チーム、他チームのパターンでハンドリング
           // 同一ユーザーがsubscribed_accountsに複数紐付けできるようにする場合はこれは不要、今のところユーザーidに1アカウントの一対一の紐付け
           const invitedUserProfileId = userData.id;
@@ -381,7 +389,7 @@ export const SettingInvitationModal = () => {
           //   .select()
           //   .eq("user_id", invitedUserProfileId)
           //   .single();
-          if (accountError) throw new Error(accountError.message);
+          if (accountError) throw accountError;
 
           console.log(
             "ステップ2 招待先のユーザーが既にチームに所属しているか否かを判別 ",
@@ -402,65 +410,78 @@ export const SettingInvitationModal = () => {
           else if (accountData.length === 1) {
             // 3-1 自チームの場合
             if ((accountData[0] as SubscribedAccount).company_id === userProfileState?.company_id) {
-              console.error(`${emailInputs[i]}のユーザーは既に${userProfileState.customer_name}に所属しています。`);
-              toast.error(`${emailInputs[i]}のユーザーは既に${userProfileState.customer_name}に所属しています。`, {
+              console.log(
+                `ステップ3 ${emailInputs[i]}のユーザーは既に${userProfileState.customer_name}に所属しているためスキップしてcontinue`
+              );
+              toast.warning(`${emailInputs[i]}のユーザーは既に${userProfileState.customer_name}に所属しています。`, {
                 position: "top-right",
-                autoClose: 3000,
+                autoClose: 5000,
                 hideProgressBar: false,
                 closeOnClick: true,
                 pauseOnHover: true,
                 draggable: true,
                 progress: undefined,
               });
+              continue;
             }
             // 3-2 他チームに所属している場合
             else {
-              console.error(`${emailInputs[i]}のユーザーは既に他チームに所属しているため招待を送信できませんでした。`);
-              toast.error(`${emailInputs[i]}のユーザーは既に他チームに所属しているため招待を送信できませんでした。`, {
+              console.log(
+                `${emailInputs[i]}のユーザーは既に他チームに所属しているため招待を送信できなかったためスキップしてcontinue`
+              );
+              toast.warning(`${emailInputs[i]}のユーザーは既に他チームに所属しているため招待を送信できませんでした。`, {
                 position: "top-right",
-                autoClose: 3000,
+                autoClose: 5000,
                 hideProgressBar: false,
                 closeOnClick: true,
                 pauseOnHover: true,
                 draggable: true,
                 progress: undefined,
               });
+              continue;
             }
           }
           // 2-3 ユーザーが複数のチームに参加している場合
           else {
-            console.error(`${emailInputs[i]}のユーザーは複数のチームに所属しているため、招待を送信できませんでした。`);
+            console.log(
+              `${emailInputs[i]}のユーザーは複数のチームに所属しているため、招待を送信できなかったためスキップしてcontinue`
+            );
             toast.error(`${emailInputs[i]}のユーザーは複数のチームに所属しているため、招待を送信できませんでした。`, {
               position: "top-right",
-              autoClose: 3000,
+              autoClose: 5000,
               hideProgressBar: false,
               closeOnClick: true,
               pauseOnHover: true,
               draggable: true,
               progress: undefined,
             });
+            continue;
           }
         }
         // 🌟1-2 まだ未登録ユーザーへの新規登録招待ルート dataの配列内が0個のパターン
         else if (data.length === 0) {
+          console.log("🌟ステップ3 どのチームにも所属していないため、resendで招待メールを送信");
           // 入力したemailがprofilesテーブルに存在しない場合、招待＋新規登録のinvitationメールを送信する
           await sendInvitationEmail(emailInputs[i], i);
 
           // アカウントと招待ユーザーの紐付け完了後はMemberAccountsキャッシュをリフレッシュ
           await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
+
+          continue;
         }
         // 🌟1-3 メールアドレスがprofilesテーブルに2個以上存在している場合はエラーを通知
         else {
-          console.error(`${emailInputs[i]}の登録が存在するため招待状を送信できませんでした。`);
-          toast.error(`${emailInputs[i]}の登録が存在するため招待状を送信できませんでした。`, {
+          console.error(`${emailInputs[i]}の登録が複数存在するため招待状を送信できなかったためスキップしてcontinue`);
+          toast.error(`${emailInputs[i]}の登録が複数存在するため招待状を送信できませんでした。`, {
             position: "top-right",
-            autoClose: 3000,
+            autoClose: 5000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,
             draggable: true,
             progress: undefined,
           });
+          continue;
         }
       } catch (error: any) {
         console.error(`${emailInputs[i]}の招待にエラーが発生しました：${error.message}`);

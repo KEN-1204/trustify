@@ -48,10 +48,10 @@ export const RootLayout: FC<Prop> = ({ children }) => {
         position="top-left"
         autoClose={2000}
         hideProgressBar={false}
-        newestOnTop={false}
+        newestOnTop={true}
         closeOnClick
         rtl={false}
-        pauseOnFocusLoss
+        pauseOnFocusLoss={false}
         draggable
         pauseOnHover
         // theme={`${theme === "light" ? "dark" : "light"}`}

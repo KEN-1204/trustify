@@ -178,6 +178,19 @@ const DashboardHome = ({
         break;
     }
   }
+  if (activeMenuTab === "Calendar") {
+    switch (language) {
+      case "Ja":
+        langTitle = "カレンダー - TRUSTiFY";
+        break;
+      case "En":
+        langTitle = "Calendar - TRUSTiFY";
+        break;
+      default:
+        langTitle = "Calendar - TRUSTiFY";
+        break;
+    }
+  }
 
   // /companyページにいて、アクティブメニュータブがCompanyでない場合にはCompanyに変更する
   useEffect(() => {

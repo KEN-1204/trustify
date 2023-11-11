@@ -22,6 +22,7 @@ import { toast } from "react-toastify";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { MemberAccounts } from "@/types";
+import { compareAccounts } from "@/utils/Helpers/getRoleRank";
 
 const SettingMemberAccountsMemo: FC = () => {
   const supabase = useSupabaseClient();
@@ -74,6 +75,7 @@ const SettingMemberAccountsMemo: FC = () => {
       : []
   );
 
+  const [sortedMemberAccountsState, setSortedMemberAccountsState] = useState<MemberAccounts[]>([]);
   useEffect(() => {
     if (typeof memberAccountsDataArray === "undefined") return;
     if (!memberAccountsDataArray) {
@@ -102,6 +104,19 @@ const SettingMemberAccountsMemo: FC = () => {
     // const notNullIdCount = notNullIdAccounts ? notNullIdAccounts.length : 0;
     // // 全アカウント数からnullでないアカウントを引いた数
     // const nullIdCount2 = Math.abs(allAccountsCount - notNullIdCount);
+
+    // メンバーアカウントを並び替え 全てのセクションであいうえお順
+    // 1番上が所有者: account_company_role
+    // 次が管理者: account_company_role
+    // マネージャー: account_company_role
+    // メンバー: account_company_role
+    // ゲスト: account_company_role
+    // 招待済み: id有りだが、profile_name無し
+    // 未設定: id有りだが、profile_name無し
+
+    const sortedMemberAccountsArray = memberAccountsDataArray.sort(compareAccounts);
+    setSortedMemberAccountsState(sortedMemberAccountsArray);
+
     console.log(
       "nullIdAccounts",
       nullIdAccounts,
@@ -110,7 +125,9 @@ const SettingMemberAccountsMemo: FC = () => {
       "削除リクエスト済みアカウント数",
       deleteRequestedAccounts,
       "memberAccountsDataArray",
-      memberAccountsDataArray
+      memberAccountsDataArray,
+      "sortedMemberAccountsArray",
+      sortedMemberAccountsArray
     );
     // グローバルStateに格納
     // setNotSetAccountsCount(nullIdCount);
@@ -135,6 +152,8 @@ const SettingMemberAccountsMemo: FC = () => {
     userProfileState?.subscription_id,
     "memberAccountsDataArray",
     memberAccountsDataArray,
+    "並び替え後sortedMemberAccountsState",
+    sortedMemberAccountsState,
     "useQueryError",
     useQueryError,
     "useQueryIsLoading",
@@ -423,8 +442,9 @@ const SettingMemberAccountsMemo: FC = () => {
               </div>
               <div role="rowgroup" className="pb-[calc(74px*7)]">
                 {/* Row2 */}
-                {memberAccountsDataArray &&
-                  memberAccountsDataArray.map((account, index) => (
+                {/* 並び替え有りバージョン */}
+                {sortedMemberAccountsState &&
+                  sortedMemberAccountsState.map((account, index) => (
                     <React.Fragment key={account.subscribed_account_id}>
                       <GridRowMember
                         memberAccount={account}
@@ -434,6 +454,18 @@ const SettingMemberAccountsMemo: FC = () => {
                       />
                     </React.Fragment>
                   ))}
+                {/* 並び替え無しバージョン */}
+                {/* {memberAccountsDataArray &&
+                  memberAccountsDataArray.map((account, index) => (
+                    <React.Fragment key={account.subscribed_account_id}>
+                      <GridRowMember
+                        memberAccount={account}
+                        checkedMembersArray={checkedMembersArray}
+                        setCheckedMembersArray={setCheckedMembersArray}
+                        index={index}
+                      />
+                    </React.Fragment>
+                  ))} */}
                 {/* <GridRowMember /> */}
                 {/* <TestRowData />
                 <TestRowData />

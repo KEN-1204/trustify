@@ -1443,6 +1443,7 @@ textarea {
 /* タイピングアニメーションスタイル */
 .typed-cursor {
   color: #0066ff !important;
+  /* color: var(--color-text-brand-f) !important; */
   animation: typedjsBlink 1.2s infinite;
   -webkit-animation: typedjsBlink 1.2s infinite;
   animation: typedjsBlink 1.2s infinite !important;

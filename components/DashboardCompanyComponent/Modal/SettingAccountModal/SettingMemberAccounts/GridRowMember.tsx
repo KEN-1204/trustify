@@ -504,7 +504,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
                   {/* <li className="flex-center h-[16px] w-full">
                     <hr className="w-full border-t border-solid border-[var(--color-border-table)]" />
                   </li> */}
-                  {!memberAccount.account_invited_email && (
+                  {!memberAccount.account_invited_email && memberAccount.profile_name && (
                     <li
                       className={`flex min-h-[40px] w-full cursor-pointer items-center rounded-bl-[8px] rounded-br-[8px] px-[14px] py-[12px] hover:bg-[var(--color-bg-sub)]`}
                       // onClick={removeFromTeam}
@@ -513,7 +513,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
                       <span className="select-none">チームから削除</span>
                     </li>
                   )}
-                  {memberAccount.account_invited_email && (
+                  {(memberAccount.account_invited_email || !memberAccount.profile_name) && (
                     <li
                       className={`flex min-h-[40px] w-full cursor-pointer items-center px-[14px] py-[12px] hover:bg-[var(--color-bg-sub)]`}
                       onClick={resendInvitationEmail}
@@ -521,7 +521,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
                       <span className="select-none">招待を再送信する</span>
                     </li>
                   )}
-                  {memberAccount.account_invited_email && (
+                  {(memberAccount.account_invited_email || !memberAccount.profile_name) && (
                     <li
                       className={`flex min-h-[40px] w-full cursor-pointer items-center rounded-bl-[8px] rounded-br-[8px] px-[14px] py-[12px] hover:bg-[var(--color-bg-sub)]`}
                       onClick={cancelInvitation}
