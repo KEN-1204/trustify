@@ -326,6 +326,11 @@
   font-size: 14px;
   color: var(--color-text-title);
 }
+.save_section_title {
+  font-weight: 700;
+  font-size: 14px;
+  color: #fff;
+}
 .section_value {
   font-weight: 600;
   font-size: 16px;

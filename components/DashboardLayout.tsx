@@ -52,6 +52,7 @@ import { FallbackDecreaseAccountCountsModal } from "./DashboardCompanyComponent/
 import { ResumeMembershipAfterCancel } from "./Modal/ResumeMembershipAfterCancel/ResumeMembershipAfterCancel";
 import { FallbackResumeMembershipAfterCancel } from "./Modal/ResumeMembershipAfterCancel/FallbackResumeMembershipAfterCancel";
 import { BlockModal } from "./Modal/BlockModal/BlockModal";
+import { RestartAfterCancelForMember } from "./Modal/RestartAfterCancelForMember/RestartAfterCancelForMember";
 
 type Prop = {
   title?: string;
@@ -83,7 +84,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   // ブロック対象のユーザーはprofilesテーブルのis_activeをfalseにしてブロックする
   const showBlockModalForBannedUser = !!userProfileState && userProfileState?.is_active === false;
 
-  // サブスクプランがnullなら初回プランモーダル表示
+  // サブスクプランがnullかfree_planなら初回プランモーダル表示
   const showSubscriptionPlan =
     !!userProfileState &&
     (userProfileState.subscription_plan === null || userProfileState.subscription_plan === "free_plan") &&
@@ -95,7 +96,12 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
     userProfileState.subscription_plan === "free_plan" &&
     userProfileState.status === "canceled" &&
     userProfileState.account_company_role === "company_owner";
-  // const showSubscriptionPlan = !!userProfileState && userProfileState.role === "free_user";
+  // サブスク解約後のチーム所有者以外に表示する「チームを抜けて新しく始める」モーダル
+  const showRestartAfterCancelForMember =
+    !!userProfileState &&
+    userProfileState.subscription_plan === "free_plan" &&
+    userProfileState.status === "canceled" &&
+    userProfileState.account_company_role !== "company_owner";
 
   // 初回サブスク登録後、契約者（is_subscriberがtrue）でかつ初回ログイン時（first_time_loginがtrue）の場合、
   // 名前、チーム名、利用用途などのプロフィール情報を入力、選択するモーダル表示
@@ -381,20 +387,21 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
 
       {/* ==================== BANにしたユーザー向けブロックモーダル ==================== */}
       {showBlockModalForBannedUser && <BlockModal />}
-      {/* ============================ 初回サブスクプランモーダルコンポーネント 他チームからの招待無しの場合 ============================ */}
+      {/* ============== 初回サブスクプランモーダルコンポーネント 他チームからの招待無しの場合 ============== */}
       {/* 初回ログイン 招待無し */}
       {showSubscriptionPlan && !invitationData && <SubscriptionPlanModalForFreeUser />}
       {/* <SubscriptionPlanModalForFreeUser /> */}
-      {/* ============================ 初回サブスクプランモーダルコンポーネント 他チームからの招待有りの場合 ============================ */}
+      {/* ============== 既にログイン済みで他チームからの招待有りの場合の初回サブスクプランモーダルコンポーネント ============== */}
       {/* 初回ログイン 招待有り */}
       {showSubscriptionPlan && invitationData && (
         <InvitationForLoggedInUser invitationData={invitationData} setInvitationData={setInvitationData} />
       )}
 
-      {/* ============================ 初回モーダルコンポーネント ============================ */}
+      {/* ============================ 契約者用初回モーダルコンポーネント ============================ */}
       {/* 契約者用 初回契約した後のユーザー、会社情報入力用 */}
       {showFirstLoginSettingUserProfileCompanyModal && <FirstLoginSettingUserProfileCompanyModal />}
-      {/* 既に契約ずみアカウントに紐付けされていて招待メールでログインした用 */}
+      {/* ============================ 招待者用初回モーダルコンポーネント ============================ */}
+      {/* 招待によって既に契約ずみアカウントに紐付けされていて招待メールで初めてログインした用 */}
       {showFirstLoginSettingUserProfileAfterInvitation && <FirstLoginSettingUserProfileAfterInvitationModal />}
 
       {/* ============================ サブスク解約後に表示するコンポーネント ============================ */}
@@ -408,6 +415,14 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
         </ErrorBoundary>
       )}
       {/* {showResumeMembershipAfterCancel && <FallbackResumeMembershipAfterCancel />} */}
+      {showRestartAfterCancelForMember && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<FallbackResumeMembershipAfterCancel />}>
+            <RestartAfterCancelForMember />
+          </Suspense>
+        </ErrorBoundary>
+      )}
+      {/* {showRestartAfterCancelForMember && <FallbackResumeMembershipAfterCancel />} */}
 
       {/* ============================ 共通UIコンポーネント ============================ */}
       {/* モーダル */}

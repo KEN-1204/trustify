@@ -72,7 +72,7 @@ export const FallbackSettingMemberAccounts = () => {
                 .fill(null)
                 .map((_, index) => (
                   <div role="row" key={index} className={`${styles.fallback_grid_row}`}>
-                    <SkeletonLoading />
+                    <SkeletonLoading pl={`pl-[8px]`} />
                   </div>
                 ))}
             </div>

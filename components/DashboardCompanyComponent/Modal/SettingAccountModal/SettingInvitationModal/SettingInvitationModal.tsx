@@ -30,27 +30,30 @@ export const SettingInvitationModal = () => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   // 招待メールモーダル
   const setIsOpenSettingInvitationModal = useDashboardStore((state) => state.setIsOpenSettingInvitationModal);
-  // メールアドレス入力値を保持するState 初期状態で5つのメールアドレス入力欄を持つ
+  // 🌟メールアドレス入力値を保持するState 初期状態で5つのメールアドレス入力欄を持つ
   // const [emailInputs, setEmailInputs] = useState<string[]>(Array(notSetAccounts ? notSetAccounts : 1).fill(""));
-  const [emailInputs, setEmailInputs] = useState<string[]>(
-    Array(!!notSetAccounts.length ? notSetAccounts.length : 1).fill("")
-  );
-  // Emailチェック後のValid、Invalid
+  // const [emailInputs, setEmailInputs] = useState<string[]>(
+  //   Array(!!notSetAccounts.length ? notSetAccounts.length : 1).fill("")
+  // );
+  const [emailInputs, setEmailInputs] = useState<string[]>(Array(1).fill(""));
+  // 🌟Emailチェック後のValid、Invalid
   // const [checkedEmail, setCheckedEmail] = useState<string[]>(Array(notSetAccounts ? notSetAccounts : 1).fill(""));
-  const [checkedEmail, setCheckedEmail] = useState<string[]>(
-    Array(!!notSetAccounts.length ? notSetAccounts.length : 1).fill("")
-  );
+  // const [checkedEmail, setCheckedEmail] = useState<string[]>(
+  //   Array(!!notSetAccounts.length ? notSetAccounts.length : 1).fill("")
+  // );
+  const [checkedEmail, setCheckedEmail] = useState<string[]>(Array(1).fill(""));
   // Emailのinputタグにsuccessクラスとerrorクラスを付与するref
   const emailRef = useRef<(HTMLDivElement | null)[]>([]);
   // 送信準備の状態
   const [isReadyToSubmit, setIsReadyToSubmit] = useState(false);
-  // ユーザーのメールと同じかどうかチェックするState
+  // 🌟ユーザーのメールと同じかどうかチェックするState
   // const [checkedSameUserEmailArray, setCheckedSameUserEmailArray] = useState(
   //   Array(notSetAccounts ? notSetAccounts : 1).fill(false)
   // );
-  const [checkedSameUserEmailArray, setCheckedSameUserEmailArray] = useState(
-    Array(!!notSetAccounts.length ? notSetAccounts.length : 1).fill(false)
-  );
+  // const [checkedSameUserEmailArray, setCheckedSameUserEmailArray] = useState(
+  //   Array(!!notSetAccounts.length ? notSetAccounts.length : 1).fill(false)
+  // );
+  const [checkedSameUserEmailArray, setCheckedSameUserEmailArray] = useState(Array(1).fill(false));
   // 未設定アカウント数の上限を超えた場合の真偽値を保持するState
   const [overState, setOverState] = useState(false);
   // 送信時のローディング
@@ -164,7 +167,7 @@ export const SettingInvitationModal = () => {
     // ローディングを開始
     setLoading(true);
 
-    // 未登録、未ログインのユーザーを招待
+    // 未登録、未ログインのユーザーを招待（未登録ユーザー向け）
     const sendInvitationEmail = async (email: string, i: number) => {
       try {
         const { data } = await axios.get(`/api/invitation/${email}`, {
@@ -205,7 +208,7 @@ export const SettingInvitationModal = () => {
           .update({
             user_id: invitedUserId,
             company_role: "company_member",
-            // invited_email: invitedUserEmail, //テスト
+            // invited_email: invitedUserEmail, // これは既に登録済みのユーザーに対してセットするため不要
           })
           .eq("id", accountId)
           .select();
@@ -353,7 +356,7 @@ export const SettingInvitationModal = () => {
         console.log(`メールが空のため${i}回目はスキップしてcontinue`);
         continue;
       }
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       try {
         console.log(`for文${i}回目 emailInputs[i]`, emailInputs[i]);
         // profilesテーブルに招待先のユーザーの登録があるか確認 => これでサインアップしているか否かを判別
@@ -399,12 +402,11 @@ export const SettingInvitationModal = () => {
             accountData.length
           );
 
-          // 2-1 どのチームにも所属していない場合は、招待メールを送信
+          // 2-1 どのチームにも所属していない場合は、招待メールを送信（既にサインアップ済みユーザー向け）
+          // （profilesにデータありで、subscribed_accountsにはデータ無し => つまり招待されずにサインアップしたユーザーに招待する場合）
           if (accountData.length === 0) {
             console.log("🌟ステップ3 どのチームにも所属していないため、resendで招待メールを送信");
             await sendInvitationEmailForLoggedInUser(emailInputs[i], i, invitedUserProfileId);
-            // アカウントと招待ユーザーの紐付け完了後はMemberAccountsキャッシュをリフレッシュ
-            await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
           }
           // 2-2 既にチームに所属している場合は、自チーム、他チームそれぞれでハンドリング
           else if (accountData.length === 1) {
@@ -424,7 +426,7 @@ export const SettingInvitationModal = () => {
               });
               continue;
             }
-            // 3-2 他チームに所属している場合
+            // 3-2 他チームに所属している場合（既にサインアップ済みユーザー向け）
             else {
               console.log(
                 `${emailInputs[i]}のユーザーは既に他チームに所属しているため招待を送信できなかったためスキップしてcontinue`
@@ -441,7 +443,7 @@ export const SettingInvitationModal = () => {
               continue;
             }
           }
-          // 2-3 ユーザーが複数のチームに参加している場合
+          // 2-3 ユーザーが複数のチームに参加している場合（既にサインアップ済みユーザー向け）
           else {
             console.log(
               `${emailInputs[i]}のユーザーは複数のチームに所属しているため、招待を送信できなかったためスキップしてcontinue`
@@ -458,16 +460,11 @@ export const SettingInvitationModal = () => {
             continue;
           }
         }
-        // 🌟1-2 まだ未登録ユーザーへの新規登録招待ルート dataの配列内が0個のパターン
+        // 🌟1-2 まだ未登録ユーザーへの新規登録招待ルート dataの配列内が0個のパターン（未登録ユーザー向け）
         else if (data.length === 0) {
           console.log("🌟ステップ3 どのチームにも所属していないため、resendで招待メールを送信");
           // 入力したemailがprofilesテーブルに存在しない場合、招待＋新規登録のinvitationメールを送信する
           await sendInvitationEmail(emailInputs[i], i);
-
-          // アカウントと招待ユーザーの紐付け完了後はMemberAccountsキャッシュをリフレッシュ
-          await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
-
-          continue;
         }
         // 🌟1-3 メールアドレスがprofilesテーブルに2個以上存在している場合はエラーを通知
         else {
@@ -496,6 +493,10 @@ export const SettingInvitationModal = () => {
         });
       }
     }
+    // forループ処理ここまで
+
+    // アカウントと招待ユーザーの紐付け完了後はMemberAccountsキャッシュをリフレッシュ
+    await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
 
     // ローディング終了
     setLoading(false);
@@ -603,14 +604,15 @@ export const SettingInvitationModal = () => {
                 <button
                   className={`transition-base01 flex-center max-h-[41px] w-full min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold hover:bg-[var(--setting-side-bg-select-hover)]`}
                   onClick={() => {
-                    if (notSetAccounts.length === 0) return setOverState(true);
-
+                    // if (notSetAccounts.length === 0) return setOverState(true);
+                    setIsOpenSettingInvitationModal(false);
+                    setSelectedSettingAccountMenu("PaymentAndPlan");
                     // テスト 入力したメールが既にサインアップ済みのユーザーだった場合の確認
                   }}
                 >
                   <p className="flex items-center space-x-3">
                     <ImLink className="text-[20px]" />
-                    <span>招待リンクを取得する</span>
+                    <span>紐付けアカウントを増やす</span>
                   </p>
                 </button>
               </div>

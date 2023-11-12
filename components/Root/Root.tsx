@@ -14,6 +14,8 @@ import { FeatureParagraph } from "./Features/FeatureParagraph";
 import { FeatureParagraph2 } from "./Features/FeatureParagraph2";
 import { FeatureParagraph3 } from "./Features/FeatureParagraph3";
 import { FeatureParagraph4 } from "./Features/FeatureParagraph4";
+import { toast } from "react-toastify";
+import { Zoom } from "@/utils/Helpers/toastHelpers";
 
 export const Root: FC = () => {
   console.log("Rootコンポーネントレンダリング");
@@ -1013,8 +1015,39 @@ export const Root: FC = () => {
       <section className={styles.footer}>
         <h2>
           {/* {language === "Ja" && "ご質問ですか？お問合せはこちらまで: 0120-000-000"} */}
-          {language === "Ja" && "ご質問ですか？お問合せはこちらまで: info@thetrustify.com"}
-          {language === "En" && "Questions? Email info@thetrustify.com"}
+          {language === "Ja" && `ご質問ですか？お問合せはこちらまで: `}
+          {language === "En" && "Questions? Email: "}
+          <span
+            className={`cursor-pointer select-none hover:text-[var(--color-text-brand-f)] hover:underline`}
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText("info@thetrustify.com");
+                toast.success(`コピーしました!`, {
+                  position: "bottom-center",
+                  autoClose: 3000,
+                  hideProgressBar: false,
+                  closeOnClick: true,
+                  pauseOnHover: true,
+                  draggable: true,
+                  progress: undefined,
+                  transition: Zoom,
+                });
+              } catch (e: any) {
+                toast.error(`コピーできませんでした!`, {
+                  position: "top-right",
+                  autoClose: 3000,
+                  hideProgressBar: false,
+                  closeOnClick: true,
+                  pauseOnHover: true,
+                  draggable: true,
+                  progress: undefined,
+                  transition: Zoom,
+                });
+              }
+            }}
+          >
+            info@thetrustify.com
+          </span>
         </h2>
 
         <div className={styles.row}>

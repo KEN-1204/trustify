@@ -275,20 +275,7 @@ const ResumeMembershipAfterCancelMemo = () => {
       // ZustandのStateを更新
       setUserProfileState(newUserData[0] as UserProfileCompanySubscription);
 
-      if (
-        (newUserData[0] as UserProfileCompanySubscription).subscription_plan === null ||
-        (newUserData[0] as UserProfileCompanySubscription).subscription_plan === "free_plan"
-      )
-        router.reload();
-
-      // const { data: userProfile, error: getUserDataError } = await supabase
-      //   .rpc("get_user_data", { _user_id: userProfileState.id })
-      //   .single();
-
-      // if (userProfile) console.log("🌟/homeサーバーサイド userProfileあり");
-      // if (getUserDataError) console.log("🌟/homeサーバーサイド errorあり", error);
-
-      toast.success(`チームの削除とデータのリセットが完了しました!`, {
+      toast.success(`チームの削除とデータのリセットが完了しました! リスタートを始めます。`, {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -297,6 +284,22 @@ const ResumeMembershipAfterCancelMemo = () => {
         draggable: true,
         progress: undefined,
       });
+
+      if (
+        (newUserData[0] as UserProfileCompanySubscription).subscription_plan === null ||
+        (newUserData[0] as UserProfileCompanySubscription).subscription_plan === "free_plan"
+      ) {
+        setTimeout(() => {
+          router.reload();
+        }, 100);
+      }
+
+      // const { data: userProfile, error: getUserDataError } = await supabase
+      //   .rpc("get_user_data", { _user_id: userProfileState.id })
+      //   .single();
+
+      // if (userProfile) console.log("🌟/homeサーバーサイド userProfileあり");
+      // if (getUserDataError) console.log("🌟/homeサーバーサイド errorあり", error);
     } catch (e: any) {
       console.error(`archive_and_reset_user_profileプロシージャエラー`, e);
       toast.error(`チームの削除とデータのリセットに失敗しました!`, {

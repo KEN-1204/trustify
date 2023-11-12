@@ -6,6 +6,8 @@ import { AiOutlineArrowLeft } from "react-icons/ai";
 import { useRouter } from "next/router";
 import NextImage from "next/image";
 import useRootStore from "@/store/useRootStore";
+import { toast } from "react-toastify";
+import { Zoom } from "@/utils/Helpers/toastHelpers";
 
 const About = () => {
   const language = useStore((state) => state.language);
@@ -230,7 +232,39 @@ const About = () => {
             <div className="flex w-full flex-col ">
               <div className="flex h-full items-center py-[30px] font-semibold">
                 <div className="mr-[80px] min-w-[64px]">連絡先</div>
-                <div>trustify@thetrustify.com</div>
+                <div>
+                  <span
+                    className={`cursor-pointer select-none hover:text-[var(--color-text-brand-f)] hover:underline`}
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText("info@thetrustify.com");
+                        toast.success(`コピーしました!`, {
+                          position: "bottom-center",
+                          autoClose: 3000,
+                          hideProgressBar: false,
+                          closeOnClick: true,
+                          pauseOnHover: true,
+                          draggable: true,
+                          progress: undefined,
+                          transition: Zoom,
+                        });
+                      } catch (e: any) {
+                        toast.error(`コピーできませんでした!`, {
+                          position: "top-right",
+                          autoClose: 3000,
+                          hideProgressBar: false,
+                          closeOnClick: true,
+                          pauseOnHover: true,
+                          draggable: true,
+                          progress: undefined,
+                          transition: Zoom,
+                        });
+                      }
+                    }}
+                  >
+                    trustify@thetrustify.com
+                  </span>
+                </div>
               </div>
               <div className="h-[2px] w-full bg-[var(--color-border)]"></div>
             </div>

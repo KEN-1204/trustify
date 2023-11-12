@@ -13,6 +13,7 @@ import useRootStore from "@/store/useRootStore";
 import useThemeStore from "@/store/useThemeStore";
 import { runFireworks } from "@/utils/confetti";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { toast } from "react-toastify";
 
 type Plans = {
   id: string;
@@ -83,27 +84,6 @@ export const FirstLoginSettingUserProfileAfterInvitationModal = () => {
     // }, 300);
   }, [pages]);
 
-  // 【サブスクリプションの開始、登録、Stripe支払いチェックアウトページにリダイレクト】
-  // const processSubscription = async (planId: string) => {
-  const processSubscription = async (planId: string, quantity: number | null) => {
-    if (!sessionState) return;
-    if (!accountQuantity) return alert("メンバーの人数を入力してください");
-    setIsLoading(true);
-
-    // const response = await axios.get(`/api/subscription/${planId}`, {
-    const response = await axios.get(`/api/subscription/${planId}?quantity=${quantity}`, {
-      headers: {
-        Authorization: `Bearer ${sessionState.access_token}`,
-      },
-    });
-    console.log(`🔥Pricingコンポーネント Apiからのresponse`, response);
-
-    // クライアントStripeインスタンスをロード
-    const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_KEY!);
-    // Stripeのチェックアウトページにリダイレクト
-    await stripe?.redirectToCheckout({ sessionId: response.data.id });
-  };
-
   const toHalfWidthAndSpace = (strVal: string) => {
     // 全角文字コードの範囲は65281 - 65374、スペースの全角文字コードは12288
     return strVal
@@ -113,9 +93,10 @@ export const FirstLoginSettingUserProfileAfterInvitationModal = () => {
       .replace(/　/g, " "); // 全角スペースを半角スペースに
   };
 
+  const [isLoadingSubmit, setIsLoadingSubmit] = useState(false);
   const handleStart = async () => {
     if (!userProfileState) return alert("エラー：ユーザー情報がありません");
-    setIsLoading(true);
+    setIsLoadingSubmit(true);
     // プロフィール情報の更新
     try {
       const { error: profileError } = await supabase
@@ -132,7 +113,7 @@ export const FirstLoginSettingUserProfileAfterInvitationModal = () => {
       if (profileError) throw new Error(profileError.message);
     } catch (error) {
       alert(`エラーが発生しました: profiles_${error}`);
-      setIsLoading(false);
+      setIsLoadingSubmit(false);
       return;
     }
 
@@ -146,10 +127,21 @@ export const FirstLoginSettingUserProfileAfterInvitationModal = () => {
       position_class: inputPosition,
       first_time_login: false,
     };
-    setUserProfileState(newUserProfile);
-    console.log("🌟プロフィール会社更新 セットアップ成功🌟 newUserProfile", newUserProfile);
-    setIsLoading(false);
+
     setTimeout(() => {
+      setUserProfileState(newUserProfile);
+      console.log("🌟プロフィール会社更新 セットアップ成功🌟 newUserProfile", newUserProfile);
+      setIsLoadingSubmit(false);
+      toast.success("セットアップ完了！TRUSTiFYへようこそ！", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        // theme: `${theme === "light" ? "light" : "dark"}`,
+      });
       runFireworks();
     }, 300);
   };
@@ -157,11 +149,11 @@ export const FirstLoginSettingUserProfileAfterInvitationModal = () => {
   return (
     <>
       <div className={`${styles.overlay} `} />
-      {/* {loadingGlobalState && (
+      {isLoadingSubmit && (
         <div className={`${styles.loading_overlay} `}>
           <SpinnerIDS scale={"scale-[0.5]"} />
         </div>
-      )} */}
+      )}
       <div className={`${styles.container} `}>
         {/* メインコンテンツ コンテナ */}
         <div className={`${styles.main_contents_container}`}>

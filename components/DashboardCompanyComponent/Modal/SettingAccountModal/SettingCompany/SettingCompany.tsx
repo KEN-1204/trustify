@@ -588,7 +588,7 @@ const SettingCompanyMemo = () => {
                     キャンセル
                   </div>
                   <div
-                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                     onClick={async () => {
                       if (editedCompanyName === "") {
                         alert("有効な会社名を入力してください");
@@ -717,7 +717,7 @@ const SettingCompanyMemo = () => {
                     キャンセル
                   </div>
                   <div
-                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                     onClick={async () => {
                       if (editedFiscalEndMonth === "") {
                         alert("有効な決算月を入力してください");
@@ -846,7 +846,7 @@ const SettingCompanyMemo = () => {
                     キャンセル
                   </div>
                   <div
-                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                     onClick={async () => {
                       if (editedNumberOfEmployeeClass === "") {
                         alert("有効な決算月を入力してください");

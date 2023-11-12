@@ -47,6 +47,7 @@ const DashboardHome = ({
   // userProfile: UserProfile;
   // userProfile1: UserProfile;
 }) => {
+  const supabase = useSupabaseClient();
   const language = useStore((state) => state.language);
   const setTheme = useThemeStore((state) => state.setTheme);
   const activeMenuTab = useDashboardStore((state) => state.activeMenuTab);
@@ -91,7 +92,19 @@ const DashboardHome = ({
     isLoading
   );
 
+  // SSRで取得したユーザーデータをZustandに格納 ユーザーデータが無ければ強制的にログアウトさせる
   useEffect(() => {
+    const handleSignOut = async () => {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("ユーザーデータなしのためサインアウトするもエラー", error);
+      }
+    };
+    if (!userProfile) {
+      console.log("ユーザーデータが存在しないため強制的にサインアウトさせる");
+      handleSignOut();
+      return;
+    }
     // setUserProfileState(userProfile as UserProfile);
     setUserProfileState(userProfile as UserProfileCompanySubscription);
   }, [userProfile, setUserProfileState]);

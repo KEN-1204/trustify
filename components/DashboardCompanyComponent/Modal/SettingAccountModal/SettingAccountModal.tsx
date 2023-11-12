@@ -549,7 +549,7 @@ export const SettingAccountModal = () => {
                           キャンセル
                         </div>
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                           onClick={async () => {
                             if (editedName === "") {
                               alert("有効な名前を入力してください");
@@ -660,7 +660,7 @@ export const SettingAccountModal = () => {
                           キャンセル
                         </div>
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                           onClick={async () => {
                             if (editedEmail === "") {
                               alert("有効なメールを入力してください");
@@ -769,7 +769,7 @@ export const SettingAccountModal = () => {
                           キャンセル
                         </div>
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                           onClick={async () => {
                             if (editedTEL === "") {
                               alert("有効な電話番号を入力してください");
@@ -878,7 +878,7 @@ export const SettingAccountModal = () => {
                           キャンセル
                         </div>
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                           onClick={async () => {
                             if (editedDepartment === "") {
                               alert("有効な部署を入力してください");
@@ -987,7 +987,7 @@ export const SettingAccountModal = () => {
                           キャンセル
                         </div>
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                           onClick={async () => {
                             if (editedUnit === "") {
                               alert("有効な係・チームを入力してください");
@@ -1118,7 +1118,7 @@ export const SettingAccountModal = () => {
                           キャンセル
                         </div>
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                           onClick={async () => {
                             if (editedOccupation === "") {
                               alert("有効な職種を入力してください");
@@ -1247,7 +1247,7 @@ export const SettingAccountModal = () => {
                           キャンセル
                         </div>
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                           onClick={async () => {
                             if (editedPositionClass === "") {
                               alert("有効な役職クラスを入力してください");
@@ -1362,7 +1362,7 @@ export const SettingAccountModal = () => {
                           キャンセル
                         </div>
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                           onClick={async () => {
                             if (editedPositionName === "") {
                               alert("有効な役職名を入力してください");
@@ -1471,7 +1471,7 @@ export const SettingAccountModal = () => {
                           キャンセル
                         </div>
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                           onClick={async () => {
                             if (editedOffice === "") {
                               alert("有効な所属事業所・営業所を入力してください");
@@ -1580,7 +1580,7 @@ export const SettingAccountModal = () => {
                           キャンセル
                         </div>
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                           onClick={async () => {
                             if (editedEmployeeId === "") {
                               alert("有効な社員番号・IDを入力してください");
@@ -1694,7 +1694,7 @@ export const SettingAccountModal = () => {
                           キャンセル
                         </div>
                         <div
-                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                          className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                           onClick={async () => {
                             if (editedUsage === "") {
                               alert("有効な利用用途を入力してください");
@@ -1824,10 +1824,10 @@ export const SettingAccountModal = () => {
               </ErrorBoundary>
             )}
             {/* {selectedSettingAccountMenu === "PaymentAndPlan" && <FallbackSettingPaymentAndPlan />} */}
+            {/* <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}> */}
             {/* 右側メインエリア メンバー */}
             {selectedSettingAccountMenu === "Member" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
-                {/* <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}> */}
                 <Suspense fallback={<FallbackSettingMemberAccounts />}>
                   <div className="relative flex h-full w-full flex-col">
                     <SettingMemberAccounts />
