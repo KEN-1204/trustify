@@ -172,7 +172,7 @@ const ResumeMembershipAfterCancelMemo = () => {
     setSelectedRadioButton(e.target.value);
   };
 
-  // メンバーシップを再開
+  // 「再開する」クリック メンバーシップを再開
   const handleResume = async (planId: string, quantity: number | null) => {
     if (!userProfileState) return alert("エラー：ユーザー情報が確認できませんでした");
     if (!sessionState) return alert("エラー：セッション情報が確認できませんでした");
@@ -291,7 +291,7 @@ const ResumeMembershipAfterCancelMemo = () => {
       ) {
         setTimeout(() => {
           router.reload();
-        }, 100);
+        }, 200);
       }
 
       // const { data: userProfile, error: getUserDataError } = await supabase

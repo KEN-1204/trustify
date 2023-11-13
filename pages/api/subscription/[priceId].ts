@@ -45,25 +45,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     console.log("🌟認証成功 payload", payload);
     const userId = payload.sub; // 'sub' field usually contains the user id.
 
-    // 認証済みのユーザーidでSupabaseからユーザー情報を取得
-    const { data: user, error } = await supabaseServerClient.from("profiles").select().eq("id", userId).single();
-
-    console.log("🌟supabaseからユーザー情報取得してレスポンス", user);
-
-    if (error) {
-      console.log("❌supabaseのクエリ失敗error", error);
-      throw new Error(error.message);
-    }
-
-    // stripeインスタンスを作成
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: "2022-11-15",
-    });
-
     console.log("🌟req.query", req.query);
 
     const { priceId } = req.query;
-    const quantity = Number(req.query.quantity) || 1;
+    // ===================== axios.postルート =====================
+    // const quantity = Number(req.query.quantity) || 1;
+    const { quantity, stripeCustomerId } = req.body;
     console.log("🔥quantity", quantity);
 
     // Ensure priceId is a string priceIdが文字列であることを確認する。
@@ -71,6 +58,34 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       res.status(400).json({ error: "Invalid priceId" });
       return;
     }
+    // Ensure stripeCustomerId is a string stripeCustomerIdが文字列であることを確認する。
+    if (typeof stripeCustomerId !== "string") {
+      res.status(400).json({ error: "Invalid stripeCustomerId" });
+      return;
+    }
+    // =================== axios.postルート ここまで ===================
+
+    // ===================== axios.getルート =====================
+    // 認証済みのユーザーidでSupabaseからユーザー情報を取得
+    // const { data: user, error } = await supabaseServerClient.from("profiles").select().eq("id", userId).single();
+
+    // console.log("🌟チェックアウトハンドラー supabaseからprofilesテーブルデータ取得", user);
+
+    // if (error) {
+    //   console.log("❌supabaseのクエリ失敗error", error);
+    //   throw new Error(error.message);
+    // }
+
+    // if (!user.stripe_customer_id) {
+    //   res.status(400).json({ error: "❌stripe_customerをsupabaseから取得できず" });
+    //   return;
+    // }
+    // ===================== axios.getルート ここまで =====================
+
+    // stripeインスタンスを作成
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: "2022-11-15",
+    });
 
     const lineItems = [
       {
@@ -79,11 +94,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         quantity: quantity,
       },
     ];
-
-    if (!user.stripe_customer_id) {
-      res.status(400).json({ error: "❌stripe_customerをsupabaseから取得できず" });
-      return;
-    }
 
     // 契約開始日を契約当日の0時0分0秒0ミリ秒に設定する
     // ユーザーが契約するその瞬間の日付を取得（サーバーのタイムゾーン設定に依存しないようにUTC時間で計算）
@@ -104,7 +114,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     // stripeチェックアウト
     const stripeSession = await stripe.checkout.sessions.create({
-      customer: user.stripe_customer_id,
+      // customer: user.stripe_customer_id, // axios.getルート
+      customer: stripeCustomerId, // axios.postルート
       mode: "subscription",
       payment_method_types: ["card"],
       line_items: lineItems,
@@ -118,7 +129,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     });
     console.log("🌟Stripeチェックアウト成功", stripeSession);
 
-    // ユーザー情報をクライアントにレスポンス
+    // チェックアウトセッションのidをクライアントにレスポンス
     res.status(200).json({
       id: stripeSession.id,
     });

@@ -8,7 +8,6 @@ import { HiOutlineSelector } from "react-icons/hi";
 import useStore from "@/store";
 import { loadStripe } from "@stripe/stripe-js";
 import Spinner from "@/components/Parts/Spinner/Spinner";
-import Image from "next/image";
 import useRootStore from "@/store/useRootStore";
 import useThemeStore from "@/store/useThemeStore";
 import { runFireworks } from "@/utils/confetti";
@@ -16,6 +15,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
 import { IoLogOutOutline } from "react-icons/io5";
 import { toast } from "react-toastify";
+import NextImage from "next/image";
 
 type Plans = {
   id: string;
@@ -267,6 +267,56 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
     }
   };
 
+  // メイン画像が読み込まれたら、placeholderの画像を非表示にする
+  const [isBackgroundLoaded, setIsBackgroundLoaded] = useState(false);
+  useEffect(() => {
+    const rightBgImage = new Image();
+    // bgImage.src = bgImageUrl; // メイン背景画像のパス
+    rightBgImage.src = `/assets/images/beautiful/ocean2.jpg`; // メイン背景画像のパス
+    // 背景画像の読み込みが完了したら、isBackgroundLoadedをtrueに設定
+    rightBgImage.onload = () => {
+      if (!isBackgroundLoaded) {
+        console.log("画像ロード完了 isBackgroundLoaded", isBackgroundLoaded);
+        setIsBackgroundLoaded(true);
+      }
+    };
+  }, []);
+
+  const bgImage = () => {
+    switch (pages) {
+      case 1:
+        return `/assets/images/beautiful/ocean2.jpg`;
+        break;
+      case 2:
+        return `/assets/images/beautiful/balloon1.jpg`;
+        break;
+      case 1:
+        return `/assets/images/beautiful/firework6.jpg`;
+        break;
+
+      default:
+        return `/assets/images/beautiful/firework6.jpg`;
+        break;
+    }
+  };
+  const bgImagePlaceholder = () => {
+    switch (pages) {
+      case 1:
+        return `/assets/images/beautiful/placeholders/ocean2_placeholder.jpg`;
+        break;
+      case 2:
+        return `/assets/images/beautiful/placeholders/balloon1_placeholder.jpg`;
+        break;
+      case 1:
+        return `/assets/images/beautiful/placeholders/firework6_placeholder.jpg`;
+        break;
+
+      default:
+        return `/assets/images/beautiful/placeholders/firework6_placeholder.jpg`;
+        break;
+    }
+  };
+
   return (
     <>
       <div className={`${styles.overlay} `} onClick={handleCancelAndReset} />
@@ -294,8 +344,20 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
           <div
             className={`${pages === 1 ? `${styles.left_container}` : ``} ${
               pages === 2 ? `${styles.left_container2}` : ``
-            } ${pages === 3 ? `${styles.left_container3}` : ``} transition-base03 z-10 flex h-full w-5/12`}
-          ></div>
+            } ${pages === 3 ? `${styles.left_container3}` : ``} transition-base03 relative z-10 flex h-full w-5/12`}
+          >
+            {!isBackgroundLoaded && (
+              <NextImage
+                src={bgImage()}
+                alt=""
+                blurDataURL={bgImagePlaceholder()}
+                placeholder="blur"
+                fill
+                sizes="100vw"
+                className="z-[0] h-full w-5/12 object-cover"
+              />
+            )}
+          </div>
           {/* 右コンテナ */}
           <div className={`${styles.right_container} z-5 relative h-full w-7/12 `}>
             <div
@@ -305,7 +367,7 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
             >
               <div className={`flex-center h-[50px] w-full`}>
                 <div className="relative flex h-[60px] w-[145px] select-none items-center justify-center">
-                  <Image
+                  <NextImage
                     src={`/assets/images/Trustify_Logo_icon_bg-black@3x.png`}
                     alt=""
                     className="h-full w-[90%] object-contain"

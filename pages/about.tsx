@@ -234,7 +234,7 @@ const About = () => {
                 <div className="mr-[80px] min-w-[64px]">連絡先</div>
                 <div>
                   <span
-                    className={`cursor-pointer select-none hover:text-[var(--color-text-brand-f)] hover:underline`}
+                    className={`cursor-copy select-none hover:text-[var(--color-text-brand-f)] hover:underline`}
                     onClick={async () => {
                       try {
                         await navigator.clipboard.writeText("info@thetrustify.com");

@@ -4,6 +4,7 @@ import { buffer } from "micro";
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { Database } from "@/database.types";
 import { Subscription, UserProfileCompanySubscription } from "@/types";
+import { format } from "date-fns";
 
 // Next.js の API ルートでは、ボディパーサーがデフォルトで有効化されています。
 // そのため、上記のコードを正しく動作させるためには、ボディパーサーを無効化する必要があるため、
@@ -42,7 +43,39 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       console.log("stripe-hooksハンドラー stripe.webhooks.constructEventエラー❌", error);
       return res.status(400).send(`Webhook error: ${(error as Error).message}`);
     }
+    // 型アサーションでobjectがStripe.Subscription型であることを示して、customerプロパティへのアクセスを可能にする
+    const subscription = stripeEvent.data.object as Stripe.Subscription; // ※2
+
+    const stripeEventCreated = stripeEvent.created;
+    const billingCycleAnchor = subscription.billing_cycle_anchor;
+    const currentPeriodStart = subscription.current_period_start;
+    const currentPeriodEnd = subscription.current_period_end;
+    const cancelAt = subscription.cancel_at;
+    const canceledAt = subscription.canceled_at;
     console.log("🌟Stripe_Webhookステップ2 署名検証成功 stripeEvent取得成功", stripeEvent);
+    console.log(
+      "🌟Stripe_Webhookステップ2-1 stripeEvent.created",
+      format(new Date(stripeEventCreated * 1000), "yyyy/MM/dd HH:mm:ss")
+    );
+    console.log(
+      "🌟Stripe_Webhookステップ2-1 billing_cycle_anchor",
+      format(new Date(billingCycleAnchor * 1000), "yyyy/MM/dd HH:mm:ss")
+    );
+    console.log(
+      "🌟Stripe_Webhookステップ2-2 current_period_start",
+      format(new Date(currentPeriodStart * 1000), "yyyy/MM/dd HH:mm:ss")
+    );
+    console.log(
+      "🌟Stripe_Webhookステップ2-3 current_period_end",
+      format(new Date(currentPeriodEnd * 1000), "yyyy/MM/dd HH:mm:ss")
+    );
+    if (!!cancelAt)
+      console.log("🌟Stripe_Webhookステップ2-3 cancel_at", format(new Date(cancelAt * 1000), "yyyy/MM/dd HH:mm:ss"));
+    if (!!canceledAt)
+      console.log(
+        "🌟Stripe_Webhookステップ2-3 canceled_at",
+        format(new Date(canceledAt * 1000), "yyyy/MM/dd HH:mm:ss")
+      );
 
     //   テーブルトリガーを使ったsupabaseの自動更新ルート
     try {
@@ -53,9 +86,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         console.log(`✅Ignoring old event with id ${stripeEvent.id}`);
         return res.status(200).end();
       }
-
-      // 型アサーションでobjectがStripe.Subscription型であることを示して、customerプロパティへのアクセスを可能にする
-      const subscription = stripeEvent.data.object as Stripe.Subscription; // ※2
 
       // ===================== previous_attributesがscheduleのみ場合はリターンする =====================
       // updatedタイプのWebhookの更新内容がサブスクスケジュールの変更だった場合には、stripe_schedulesテーブルの指定のidのみ更新だけしてリターンさせることで後続の処理をさせないことで負担を軽減させる
@@ -96,6 +126,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       }
 
       // ================== サブスクキャンセルリクエストの場合 次回請求期間終了時にキャンセル ==================
+      // previous_attributesがcancellation_detailsのみのupdatedタイプのwebhookの場合はここでレスポンスする
       const subscriptionCancelAtPeriodEnd = (stripeEvent.data.object as Subscription).cancel_at_period_end ?? null;
       const includeCancellationDetails = (obj: Object | undefined) => {
         if (typeof obj === "undefined") return false;
@@ -107,6 +138,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         const previousAttributes = stripeEvent.data.previous_attributes;
         if (includeCancellationDetails(previousAttributes)) {
           console.log("🌟cancellation_details", (previousAttributes! as any).cancellation_details);
+          return res.status(200).send({ received: "previous_attributesがcancellation_detailsのみのためリターン" });
         }
       }
       // ============ サブスクキャンセルリクエストの場合 次回請求期間終了時にキャンセル ここまで ============
@@ -136,30 +168,44 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         case "customer.subscription.pending_update_applied":
           console.log(`🌟Stripe_Webhookステップ3 ${stripeEvent.type}イベント customer`, subscription.customer);
 
-          // ============ deletedタイプwebhookの後のupdatedタイプでprevious_attributesがcancellation_detailsプロパティのみのwebhookの処理 ============
-          // previous_attributesのオブジェクトがscheduleのみかどうかを判定する関数
+          // ============ 🌟deletedタイプwebhookの後のupdatedタイプでprevious_attributesがcancellation_detailsプロパティのみのwebhookの処理 ============
+          // previous_attributesのオブジェクトがcancellation_detailsのみかどうかを判定する関数
           const isOnlyCancellationDetails = (obj: Object | undefined) => {
             if (typeof obj === "undefined") return false;
             const keys = Object.keys(obj);
             return keys.length === 1 && keys[0] === "cancellation_details";
           };
+          /* deletedタイプwebhookの後のupdatedタイプwebhookはcancellation_detailsしか変更がないので、
+          cancel_reasonsテーブルにキャンセル理由をINSERTしてここでレスポンスする */
           if (isOnlyCancellationDetails(previousAttributes)) {
-            /* deletedタイプwebhookの後のupdatedタイプwebhookはcancelltaion_detailsしか変更がないのでdeletedタウぷのwebhookのcancellation_feedbackとcommentのみUPDATEする */
-            const { error: updateWebhookError } = await supabase.from("stripe_webhook_events").update({
-              cancel_feedback: (previousAttributes as any)?.cancellation_details?.feedback ?? null,
-              cancel_comment: (previousAttributes as any)?.cancellation_details?.comment ?? null,
-            });
-            if (updateWebhookError)
-              return res
-                .status(500)
-                .send(`update stripe_webhook_events error: ${(updateWebhookError as Error).message}`);
+            const insertCancelPayload = {
+              _stripe_customer_id: subscription.customer,
+              _stripe_subscription_id: subscription.id,
+              _stripe_event_id: stripeEvent.id,
+              _cancel_at: subscription.cancel_at ? new Date(subscription.cancel_at * 1000).toISOString() : null,
+              _canceled_at: subscription.canceled_at ? new Date(subscription.canceled_at * 1000).toISOString() : null,
+              _comment: subscription.cancellation_details?.comment ?? null,
+              _feedback: subscription.cancellation_details?.feedback ?? null,
+              _reason: subscription.cancellation_details?.feedback ?? null,
+            };
+            console.log("insert_cancel_reasons関数実行 payload", insertCancelPayload);
+            const { error: insertCancelReason } = await supabase.rpc("insert_cancel_reasons", insertCancelPayload);
+            // stripe_webhook_eventsテーブルのwebhookにキャンセル詳細がUPDATEがエラーした場合
+            if (insertCancelReason) {
+              console.log(
+                "❌cancellation_detailsのキャンセル理由をcancel_reasonsテーブルへINSERTエラー",
+                previousAttributes
+              );
+              return res.status(500).send(`insert_cancel_reasons関数 error: ${(insertCancelReason as Error).message}`);
+            }
+            // 正常にstripe_webhook_eventsテーブルのwebhookにキャンセル詳細がUPDATEできた場合
             console.log("✅キャンセル詳細を更新するのみでリターン", previousAttributes);
-            return res.status(200).send({ received: "complete" });
+            return res.status(200).send({ received: "insert_cancel_reasons FUNCTION complete" });
             // return res.status(200).end();
           }
-          // ============ deletedタイプwebhookの後のupdatedタイプでprevious_attributesがcancellation_detailsプロパティのみのwebhookの処理 ここまで ============
+          // ============ 🌟deletedタイプwebhookの後のupdatedタイプでprevious_attributesがcancellation_detailsプロパティのみのwebhookの処理 ここまで ============
 
-          // ============ 初回契約時の支払い完了後に支払い方法をデフォルトに設定する ============
+          // ============ 🌟初回契約時の支払い完了後に支払い方法をデフォルトに設定する ============
           /* previous_attributesが「default_payment_method: null」、「status: incomplete」で、
              今回のwebhookが「status: active」、「default_payment_methodがnullでない」場合に
              ユーザーのstripe顧客オブジェクトのinvoice_settingsのdefault_payment_methodに紐付けする */
@@ -196,7 +242,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           }
           // ============ 初回契約時の支払い完了後に支払い方法をデフォルトに設定する ここまで ============
 
-          // Fetch the latest state of the subscription from Stripe's API
+          // 🌟Fetch the latest state of the subscription from Stripe's API
           // Stripe APIから最新のsubscriptionオブジェクトを取得
           const latestSubscription = await stripe.subscriptions.retrieve(subscription.id);
           console.log(
@@ -204,7 +250,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             latestSubscription
           );
 
-          // Stripeカスタマーidを使って、supabaseから契約者のidを取得する
+          // 🌟Stripeカスタマーidを使って、supabaseから契約者のidを取得する
           // これは契約者IDにセットするために取得している
           // そのため、初回契約以外の更新の場合は不要
           const { data: subscriberProfileData, error: selectProfileError } = await supabase
@@ -224,7 +270,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             );
             return res.status(500).json({ error: selectProfileError.message });
           }
-          // ================ subscriptionsテーブルデータのみ取得パターン
+          // ================ 🌟subscriptionsテーブルデータのみ取得パターン
           // Stripeカスタマーidを使って、Subscriptionsテーブルからサブスクリプションデータがあるかどうかと
           // なければ初回契約(null)、あればsubscription_stageの値で、契約済み(is_subscribed)と解約済み(is_canceled)を取得
           // const { data: subscriptionDataDB, error: subscriptionErrorDB } = await supabase
@@ -250,7 +296,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           //   currentSubscriptionDBData = null;
           // }
           // ================ subscriptionsテーブルデータのみ取得パターン ここまで
-          // ================ ユーザー全データ取得からDBサブスクデータ取得パターン
+          // ================ 🌟ユーザー全データ取得からDBサブスクデータ取得パターン
           const { data: userCompanySubscriptionDataDB, error: userCompanySubscriptionErrorDB } = await supabase
             .rpc("get_user_data", { _user_id: subscriberProfileData.id })
             .limit(1);
@@ -272,7 +318,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             currentSubscriptionDBData = null;
           }
           // ================ ユーザー全データ取得からDBサブスクデータ取得パターン ここまで
-          // Insert the Stripe Webhook event into the database
+          // 🌟Insert the Stripe Webhook event into the database
           // パターン1
           const insertPayload = {
             // is_subscribed: true,
@@ -317,7 +363,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           }
           break;
 
-        // サブスクリプションの解約
+        // 🌟サブスクリプションの解約
         case "customer.subscription.paused":
         case "customer.subscription.deleted":
         case "customer.subscription.pending_update_expired":

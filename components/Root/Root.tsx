@@ -1018,7 +1018,7 @@ export const Root: FC = () => {
           {language === "Ja" && `ご質問ですか？お問合せはこちらまで: `}
           {language === "En" && "Questions? Email: "}
           <span
-            className={`cursor-pointer select-none hover:text-[var(--color-text-brand-f)] hover:underline`}
+            className={`cursor-copy select-none hover:text-[var(--color-text-brand-f)] hover:underline`}
             onClick={async () => {
               try {
                 await navigator.clipboard.writeText("info@thetrustify.com");

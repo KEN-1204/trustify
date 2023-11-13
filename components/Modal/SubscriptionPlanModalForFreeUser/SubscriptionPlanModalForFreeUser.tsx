@@ -108,14 +108,26 @@ export const SubscriptionPlanModalForFreeUser = () => {
   const processSubscription = async (planId: string, quantity: number | null) => {
     if (!sessionState) return;
     if (!accountQuantity) return alert("メンバーの人数を入力してください");
+    if (!userProfileState) return alert("エラー：プロフィールデータが存在しません");
     setIsLoading(true);
 
     // const response = await axios.get(`/api/subscription/${planId}`, {
-    const response = await axios.get(`/api/subscription/${planId}?quantity=${quantity}`, {
+    // postメソッドでチェックアウト
+    const checkoutPayload = {
+      quantity: quantity,
+      stripeCustomerId: userProfileState.stripe_customer_id,
+    };
+    const response = await axios.post(`/api/subscription/${planId}`, checkoutPayload, {
       headers: {
         Authorization: `Bearer ${sessionState.access_token}`,
       },
     });
+    // getメソッドでチェックアウト
+    // const response = await axios.get(`/api/subscription/${planId}?quantity=${quantity}`, {
+    //   headers: {
+    //     Authorization: `Bearer ${sessionState.access_token}`,
+    //   },
+    // });
     console.log(`🔥Pricingコンポーネント Apiからのresponse`, response);
 
     // クライアントStripeインスタンスをロード
@@ -376,7 +388,9 @@ export const SubscriptionPlanModalForFreeUser = () => {
             {/* メンバーシップを開始するボタン */}
             <div className="w-full pt-[30px]">
               <button
-                className={`flex-center h-[40px] w-full cursor-pointer rounded-[6px] bg-[var(--color-bg-brand-f)] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                className={`flex-center h-[40px] w-full rounded-[6px] bg-[var(--color-bg-brand-f)] font-bold text-[#fff]  ${
+                  loading ? `cursor-wait` : `cursor-pointer hover:bg-[var(--color-bg-brand-f-deep)]`
+                }`}
                 onClick={() => {
                   // if (!planBusiness || !planPremium) return console.log("Stripeプランなしのためリターン");
                   if (selectedRadioButton === "business_plan" && !!planBusiness)

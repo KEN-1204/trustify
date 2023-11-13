@@ -367,7 +367,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
 
           <div className="mb-[10px] mt-[20px] min-h-[55px] w-full">
             <h4 className="text-[18px] font-bold !text-[var(--color-text-title)]">
-              会社・チームのサブスクリプション：<span>{userProfileState?.profile_name}さんのチーム</span>
+              会社・チームのサブスクリプション：<span>{userProfileState?.customer_name}</span>
             </h4>
             {!!userProfileState && userProfileState.cancel_at_period_end === true && (
               <div className="mt-[10px] flex min-h-[55px] w-full items-center rounded-[4px] bg-[#FF3B5B] px-[20px]">

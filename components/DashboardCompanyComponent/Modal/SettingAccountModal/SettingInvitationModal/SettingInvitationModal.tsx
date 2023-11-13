@@ -56,7 +56,8 @@ export const SettingInvitationModal = () => {
   const [checkedSameUserEmailArray, setCheckedSameUserEmailArray] = useState(Array(1).fill(false));
   // 未設定アカウント数の上限を超えた場合の真偽値を保持するState
   const [overState, setOverState] = useState(false);
-  // 送信時のローディング
+  // 「アカウントを増やす」を押したときに増やすモーダルへ遷移させる
+  const setIsOpenChangeAccountCountsModal = useDashboardStore((state) => state.setIsOpenChangeAccountCountsModal);
 
   // 入力値が変更された場合に呼ばれる関数
   const handleInputChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -607,12 +608,13 @@ export const SettingInvitationModal = () => {
                     // if (notSetAccounts.length === 0) return setOverState(true);
                     setIsOpenSettingInvitationModal(false);
                     setSelectedSettingAccountMenu("PaymentAndPlan");
+                    setIsOpenChangeAccountCountsModal("increase");
                     // テスト 入力したメールが既にサインアップ済みのユーザーだった場合の確認
                   }}
                 >
                   <p className="flex items-center space-x-3">
                     <ImLink className="text-[20px]" />
-                    <span>紐付けアカウントを増やす</span>
+                    <span>メンバーアカウントを増やす</span>
                   </p>
                 </button>
               </div>
@@ -770,6 +772,7 @@ export const SettingInvitationModal = () => {
                         setOverState(false);
                         setIsOpenSettingInvitationModal(false);
                         setSelectedSettingAccountMenu("PaymentAndPlan");
+                        setIsOpenChangeAccountCountsModal("increase");
                       }}
                     >
                       アカウントを増やす

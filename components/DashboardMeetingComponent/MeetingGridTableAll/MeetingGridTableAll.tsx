@@ -278,7 +278,8 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
       const isLastPage = rows === null;
 
       // 0.5秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       // ローディング終了
       setLoadingGlobalState(false);
@@ -315,7 +316,8 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
       const isLastPage = rows === null;
 
       // 0.5秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       // ローディング終了
       setLoadingGlobalState(false);
@@ -389,7 +391,8 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
       );
 
       // 1秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       // ローディング終了
       setLoadingGlobalState(false);
@@ -445,7 +448,8 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
       const isLastPage = rows === null || rows.length < limit;
 
       // 0.5秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       // ローディング終了
       setLoadingGlobalState(false);
