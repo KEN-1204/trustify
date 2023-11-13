@@ -117,6 +117,7 @@ export const SubscriptionPlanModalForFreeUser = () => {
       quantity: quantity,
       stripeCustomerId: userProfileState.stripe_customer_id,
     };
+    console.log("axios.post実行 checkoutPayload", checkoutPayload);
     const response = await axios.post(`/api/subscription/${planId}`, checkoutPayload, {
       headers: {
         Authorization: `Bearer ${sessionState.access_token}`,

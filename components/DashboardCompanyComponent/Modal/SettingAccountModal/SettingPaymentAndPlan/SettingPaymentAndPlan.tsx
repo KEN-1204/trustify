@@ -150,13 +150,26 @@ const SettingPaymentAndPlanMemo: FC = () => {
   // Stripeポータルへ移行させるためのURLをAPIルートにGETリクエスト
   // APIルートからurlを取得したらrouter.push()でStipeカスタマーポータルへページ遷移
   const loadPortal = async () => {
+    if (!userProfileState) return alert("エラー：ユーザーデータが見つかりませんでした");
+    if (!userProfileState.stripe_customer_id) return alert("エラー：ユーザーデータが見つかりませんでした");
     setIsLoadingPortal(true);
     try {
-      const { data } = await axios.get("/api/portal", {
+      // postメソッドでチェックアウト
+      const portalPayload = {
+        stripeCustomerId: userProfileState.stripe_customer_id,
+      };
+      console.log("axios.post実行 portalPayload", portalPayload);
+      const { data } = await axios.post(`/api/portal`, portalPayload, {
         headers: {
           Authorization: `Bearer ${sessionState.access_token}`,
         },
       });
+      // getメソッドでポータル
+      // const { data } = await axios.get("/api/portal", {
+      //   headers: {
+      //     Authorization: `Bearer ${sessionState.access_token}`,
+      //   },
+      // });
       console.log("stripe billingPortalのurlを取得成功", data);
       router.push(data.url);
       //   setIsLoadingPortal(false);

@@ -16,7 +16,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     // const authHeader = req.headers.authorization;
     const authHeader = req.headers["authorization"];
 
-    console.log("🔥ポータル authHeader", authHeader);
+    // console.log("🔥ポータル authHeader Bearerを抜いた値がtokenの値と一緒", authHeader);
 
     // 認証ヘッダー、Bearerから始まるヘッダーが存在しなければreturn
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -27,7 +27,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     // Bearerとaccess_token(JWT)をsplitしてアクセストークンを取り出し
     const token = authHeader.split(" ")[1];
 
-    console.log("🔥ポータル token", token);
+    // console.log("🔥ポータル token authHeaderのBearerを抜いた値と一緒", token);
 
     // アクセストークンがsupabaseで発行したものかどうか認証
     // 認証が通れば認証情報をpayloadで返し、payloadの中から'sub'にsupabaseのuser_idが入っているので、
@@ -45,28 +45,32 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     console.log("🔥ポータル userId", userId);
 
-    // 認証済みのユーザーidでSupabaseからユーザー情報を取得
-    // const { data: user, error } = await supabaseServerClient.from("profiles").select().eq("id", userId).single();
-    // 【rpcバージョン】rpcメソッドでStripeに渡すsubscriptionsテーブルのstripe_customer_idを取得する
-    const { data: userProfile, error } = await supabaseServerClient.rpc("get_user_data", { _user_id: userId }).single();
+    // =================== axios.getルート ===================
+    // // 認証済みのユーザーidでSupabaseからユーザー情報を取得
+    // // const { data: user, error } = await supabaseServerClient.from("profiles").select().eq("id", userId).single();
+    // // 【rpcバージョン】rpcメソッドでStripeに渡すsubscriptionsテーブルのstripe_customer_idを取得する
+    // const { data: userProfile, error } = await supabaseServerClient.rpc("get_user_data", { _user_id: userId }).single();
 
-    // console.log("🔥ポータル supabaseから取得したuser", user);
-    console.log("🔥ポータル supabaseのrpc()で取得したuserProfile", userProfile); // 【rpcバージョン】
+    // console.log("🔥ポータル supabaseのrpc()で取得したuserProfile", userProfile); // 【rpcバージョン】
 
-    if (error) {
-      console.log("❌supabaseのクエリ失敗error", error);
-      throw error;
-    }
-
-    // Stripeカスタマーidが存在するかチェック
-    // if (!user.stripe_customer_id) {
-    //   console.log("🔥ポータル user.stripe_customer_idが無しでエラー", user.stripe_customer_id);
-    //   return res.status(406).json({ error: "Not Acceptable" });
+    // if (error) {
+    //   console.log("❌supabaseのクエリ失敗error", error);
+    //   throw error;
     // }
-    if (!userProfile.stripe_customer_id) {
-      console.log("🔥ポータル user.stripe_customer_idが無しでエラー", userProfile.stripe_customer_id);
-      return res.status(406).json({ error: "Not Acceptable" });
-    } // 【rpcバージョン】
+
+    // // Stripeカスタマーidが存在するかチェック
+    // // if (!user.stripe_customer_id) {
+    // //   console.log("🔥ポータル user.stripe_customer_idが無しでエラー", user.stripe_customer_id);
+    // //   return res.status(406).json({ error: "Not Acceptable" });
+    // // }
+    // if (!userProfile.stripe_customer_id) {
+    //   console.log("🔥ポータル user.stripe_customer_idが無しでエラー", userProfile.stripe_customer_id);
+    //   return res.status(406).json({ error: "Not Acceptable" });
+    // } // 【rpcバージョン】
+    // =================== axios.getルート ===================
+    // =================== axios.postルート ここまで ===================
+    const { stripeCustomerId } = req.body;
+    // =================== axios.postルート ここまで ===================
 
     // stripeインスタンスを作成
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -77,14 +81,17 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     console.log(
       "🔥ポータル stripeインスタンス !!stripe",
       !!stripe,
-      "Stripeの顧客ID userProfile.stripe_customer_id",
-      userProfile.stripe_customer_id
+      // "Stripeの顧客ID userProfile.stripe_customer_id",
+      // userProfile.stripe_customer_id
+      "Stripeの顧客ID stripeCustomerId",
+      stripeCustomerId
     ); // 【rpcバージョン】
 
     // カスタマーポータルbillingPortalセッションをcreate
     const session = await stripe.billingPortal.sessions.create({
       // customer: user.stripe_customer_id,
-      customer: userProfile.stripe_customer_id, // 【rpcバージョン】
+      // customer: userProfile.stripe_customer_id, // axios.getルート【rpcバージョン】
+      customer: stripeCustomerId, // axios.postルート
       return_url: `${process.env.CLIENT_URL}/home`,
     });
 

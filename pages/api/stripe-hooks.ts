@@ -203,7 +203,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             return res.status(200).send({ received: "insert_cancel_reasons FUNCTION complete" });
             // return res.status(200).end();
           }
-          // ============ 🌟deletedタイプwebhookの後のupdatedタイプでprevious_attributesがcancellation_detailsプロパティのみのwebhookの処理 ここまで ============
+          // ============ ✅deletedタイプwebhookの後のupdatedタイプでprevious_attributesがcancellation_detailsプロパティのみのwebhookの処理 ここまで ============
 
           // ============ 🌟初回契約時の支払い完了後に支払い方法をデフォルトに設定する ============
           /* previous_attributesが「default_payment_method: null」、「status: incomplete」で、
@@ -240,7 +240,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               }
             }
           }
-          // ============ 初回契約時の支払い完了後に支払い方法をデフォルトに設定する ここまで ============
+          // ============ ✅初回契約時の支払い完了後に支払い方法をデフォルトに設定する ここまで ============
 
           // 🌟Fetch the latest state of the subscription from Stripe's API
           // Stripe APIから最新のsubscriptionオブジェクトを取得
@@ -309,12 +309,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           }
           if (userCompanySubscriptionDataDB[0].subscription_id && userCompanySubscriptionDataDB.length > 0) {
             console.log(
-              "🌟Stripe_Webhookステップ6 supabaseのsubscriptionsテーブルからサブスクデータ取得OK userCompanySubscriptionDataDB[0]",
+              "🌟Stripe_Webhookステップ6 get_user_data関数で全ユーザーデータを取得 サブスクデータも取得OK userCompanySubscriptionDataDB[0]",
               userCompanySubscriptionDataDB[0]
             );
             currentSubscriptionDBData = userCompanySubscriptionDataDB[0];
           } else {
-            console.log("🙆🥺stripe-hooksハンドラー サブスクリプションデータが存在しない");
+            console.log(
+              "🙆🥺stripe-hooksハンドラー サブスクリプションデータを含めたget_user_data関数のユーザー全データが存在しない"
+            );
             currentSubscriptionDBData = null;
           }
           // ================ ユーザー全データ取得からDBサブスクデータ取得パターン ここまで
@@ -446,12 +448,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             userCompanySubscriptionDataDBDelete.length > 0
           ) {
             console.log(
-              "🌟Stripe_Webhookステップ6 supabaseのsubscriptionsテーブルからサブスクデータ取得OK userCompanySubscriptionDataDBDelete[0]",
+              "🌟Stripe_Webhookステップ6 get_user_data関数で全ユーザーデータを取得 サブスクデータも取得OK userCompanySubscriptionDataDBDelete[0]",
               userCompanySubscriptionDataDBDelete[0]
             );
             currentSubscriptionDBData = userCompanySubscriptionDataDBDelete[0];
           } else {
-            console.log("🙆🥺stripe-hooksハンドラー 解約ルート サブスクリプションデータが存在しない");
+            console.log(
+              "🙆🥺stripe-hooksハンドラー 解約ルート サブスクリプションデータを含めたget_user_data関数のユーザー全データが存在しない"
+            );
             currentSubscriptionDBData = null;
           }
           // ================ ユーザー全データ取得からDBサブスクデータ取得パターン ここまで

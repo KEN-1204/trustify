@@ -52,6 +52,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     // const quantity = Number(req.query.quantity) || 1;
     const { quantity, stripeCustomerId } = req.body;
     console.log("🔥quantity", quantity);
+    console.log("🔥stripeCustomerId", stripeCustomerId);
 
     // Ensure priceId is a string priceIdが文字列であることを確認する。
     if (typeof priceId !== "string") {
