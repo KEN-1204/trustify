@@ -148,7 +148,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         case "customer.subscription.created":
         case "customer.subscription.updated":
         case "customer.subscription.pending_update_applied":
-          console.log(`🌟Stripe_Webhookステップ3 ${stripeEvent.type}イベント customer`, subscription.customer);
+          console.log(`🌟Stripe_Webhookステップ3 ${stripeEvent.type}イベントルート`);
 
           // ============== 🌟サブスクキャンセルリクエストルート 次回請求期間終了時にキャンセル ==============
           // previous_attributesがcancellation_detailsのみのupdatedタイプのwebhookの場合はここでレスポンスする
@@ -172,7 +172,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           // キャンセル理由送信クリック後のwebhook用(請求期間終了時) 2回目のupdatedタイプwebhook用 cancel_reasonsテーブルにINSERT
           if (subscriptionCancelAtPeriodEnd === true && isOnlyCancellationDetails(previousAttributes)) {
             console.log(
-              "キャンセルリクエストがtrue, キャンセル理由を送信により、cancellation_detailsのみが変更されたため、cancel_reasonsテーブルにキャンセル理由をINSERT"
+              `🌟Stripe_Webhookステップ4_${stripeEvent.type} キャンセルリクエストがtrue, キャンセル理由を送信により、cancellation_detailsのみが変更されたため、cancel_reasonsテーブルにキャンセル理由をINSERT`
             );
             const insertCancelPayload = {
               _stripe_customer_id: subscription.customer,
@@ -189,14 +189,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             // stripe_webhook_eventsテーブルのwebhookにキャンセル詳細がUPDATEがエラーした場合
             if (insertCancelReason) {
               console.log(
-                "❌cancellation_detailsのキャンセル理由をcancel_reasonsテーブルへINSERTエラー",
+                "❌Stripe_Webhookステップ4 cancellation_detailsのキャンセル理由をcancel_reasonsテーブルへINSERTエラー",
                 insertCancelReason
               );
               return res.status(500).send(`insert_cancel_reasons関数 error: ${(insertCancelReason as Error).message}`);
             }
             // 正常にstripe_webhook_eventsテーブルのwebhookにキャンセル詳細がUPDATEできた場合
             console.log(
-              "✅キャンセル詳細を更新するのみ cancel_reasonsテーブルへINSERT完了 200でリターン",
+              "✅キャンセル理由送信 キャンセル詳細を更新するのみ cancel_reasonsテーブルへINSERT完了 200でリターン",
               previousAttributes
             );
             return res.status(200).send({ received: "insert_cancel_reasons FUNCTION complete" });
@@ -205,7 +205,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           if (subscriptionCancelAtPeriodEnd === true && includeCancellationDetails(previousAttributes)) {
             // キャンセルクリック後のwebhook用(請求期間終了時) 1回目のupdatedタイプwebhook用
             console.log(
-              "キャンセルリクエストがtrue、キャンセルクリックによりcancel_at_period_end, canceled_at, cancel_at, cancellation_detailsの4つが変更され、請求期間終了時にキャンセルがリクエストされたためsubscriptionsテーブルのcancel_at_period_endをtrueにUPDATE",
+              `🌟Stripe_Webhookステップ4_${stripeEvent.type} キャンセルリクエストがtrue、キャンセルクリックによりcancel_at_period_end, canceled_at, cancel_at, cancellation_detailsの4つが変更され、請求期間終了時にキャンセルがリクエストされたためsubscriptionsテーブルのcancel_at_period_endをtrueにUPDATE`,
               (previousAttributes! as any).cancellation_details
             );
             const { error: updateError } = await supabase
@@ -220,7 +220,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               });
             if (updateError) {
               console.log(
-                "❌サブスクキャンセルクリックによるsubscriptionsテーブルのcancel_at_period_endをtrueにUPDATEエラー",
+                "❌Stripe_Webhookステップ4 サブスクキャンセルクリックによるsubscriptionsテーブルのcancel_at_period_endをtrueにUPDATEエラー",
                 updateError
               );
               return res
@@ -228,7 +228,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                 .send(`cancel_at_period_endをtrueへUPDATE error: ${(updateError as Error).message}`);
             }
             console.log(
-              "✅キャンセルリクエストを受信し、subscriptionsテーブルのcancel_at_period_endをtrueに変更完了 200でリターン"
+              "✅キャンセルクリック キャンセルリクエストを受信し、subscriptionsテーブルのcancel_at_period_endをtrueに変更完了 200でリターン"
             );
             return res.status(200).send({
               received:
@@ -469,13 +469,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             );
             return res.status(500).json({ error: insertError.message });
           }
+          // All done! Respond with a 200 status code APIルート処理全て完了
+          console.log(`✅Stripe_${stripeEvent.type}タイプ_Webhookステップ8 全ての処理成功 200で返す`);
+          return res.status(200).send({
+            received: `${stripeEvent.type}タイプ_Webhook stripe_webhook_eventsテーブルにINSERT成功 All complete!`,
+          });
           break;
 
         // 🌟サブスクリプションの解約
         case "customer.subscription.paused":
         case "customer.subscription.deleted":
         case "customer.subscription.pending_update_expired":
-          console.log(`🌟Stripe_Webhookステップ3 ${stripeEvent.type}イベント subscription`, subscription);
+          console.log(`🌟Stripe_Webhookステップ3 ${stripeEvent.type}ルート`);
           if (stripeEvent.data.previous_attributes && "items" in stripeEvent.data.previous_attributes) {
             console.log(
               `🌟${stripeEvent.type}イベント stripeEvent.data.previous_attributes.items`,
@@ -501,13 +506,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             .single();
           if (selectProfileErrorD) {
             console.log(
-              "❌🌟Stripe_Webhookステップ4 stripe-hooksハンドラー supabaseのselect()メソッドでprofilesテーブル情報取得エラー",
+              `❌🌟Stripe_Webhookステップ4 ${stripeEvent.type}ルート supabaseのselect()メソッドでprofilesテーブル情報取得エラー`,
               selectProfileErrorD
             );
             return res.status(500).json({ error: selectProfileErrorD.message });
           }
           console.log(
-            `🌟Stripe_Webhookステップ4 解約ルート 契約者idをprofileテーブルから取得 subscriberProfileDataDelete`,
+            `🌟Stripe_Webhookステップ4 ${stripeEvent.type}ルート 契約者idをprofileテーブルから取得 subscriberProfileDataDelete`,
             subscriberProfileDataDelete
           );
 
@@ -544,7 +549,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             await supabase.rpc("get_user_data", { _user_id: subscriberProfileDataDelete.id }).limit(1);
           if (userCompanySubscriptionErrorDBDelete) {
             console.log(
-              "❌stripe-hooksハンドラー 解約ルート ユーザー全データ取得エラー",
+              `❌stripe-hooksハンドラー ${stripeEvent.type}ルート ユーザー全データ取得エラー`,
               userCompanySubscriptionErrorDBDelete
             );
             return res.status(500).json({ error: userCompanySubscriptionErrorDBDelete.message });
@@ -554,13 +559,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             userCompanySubscriptionDataDBDelete.length > 0
           ) {
             console.log(
-              "🌟Stripe_Webhookステップ6 get_user_data関数で全ユーザーデータを取得 サブスクデータも取得OK userCompanySubscriptionDataDBDelete[0]",
+              `🌟Stripe_Webhookステップ6 ${stripeEvent.type}ルート get_user_data関数で全ユーザーデータを取得 サブスクデータも取得OK userCompanySubscriptionDataDBDelete[0]`,
               userCompanySubscriptionDataDBDelete[0]
             );
             currentSubscriptionDBData = userCompanySubscriptionDataDBDelete[0];
           } else {
             console.log(
-              "🙆🥺stripe-hooksハンドラー 解約ルート サブスクリプションデータを含めたget_user_data関数のユーザー全データが存在しない"
+              `🙆🥺stripe-hooksハンドラー ${stripeEvent.type}ルート サブスクリプションデータを含めたget_user_data関数のユーザー全データが存在しない`
             );
             currentSubscriptionDBData = null;
           }
@@ -603,7 +608,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             number_of_active_subscribed_accounts: subscription.items.data[0].quantity ?? null,
           };
           console.log(
-            "🌟Stripe_Webhookステップ6 解約ルート stripe_webhook_eventsにINSERT insertに渡す引数 insertPayloadForDeleteRoute",
+            `🌟Stripe_Webhookステップ6 ${stripeEvent.type}ルート stripe_webhook_eventsにINSERT insertに渡す引数 insertPayloadForDeleteRoute`,
             insertPayloadForDeleteRoute
           );
           // ======================== 解約ルート stripe_webhook_eventsテーブルにINSERTするpayload ここまで
@@ -644,12 +649,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
           if (error) {
             console.log(
-              "❌🌟Stripe_Webhookステップ7 stripe-hooksハンドラー サブスクリプション契約が解約、停止、契約期限切れの場合のINSERTクエリエラー",
+              `❌🌟Stripe_Webhookステップ7 ${stripeEvent.type}ルート サブスクリプション契約が解約、停止、契約期限切れの場合のINSERTクエリエラー`,
               error
             );
             return res.status(500).json({ error: error.message });
           }
-
+          // All done! Respond with a 200 status code APIルート処理全て完了
+          console.log(`✅Stripe_${stripeEvent.type}タイプ_Webhookステップ8 全ての処理成功 200で返す`);
+          return res.status(200).send({
+            received: `${stripeEvent.type}タイプ_Webhook stripe_webhook_eventsテーブルにINSERT成功 All complete!`,
+          });
           break;
 
         default:
@@ -657,7 +666,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       }
 
       // All done! Respond with a 200 status code APIルート処理全て完了
-      console.log("🌟Stripe_Webhookステップ8 全ての処理成功 200で返す");
+      console.log("✅Stripe_Webhookステップ8 全ての処理成功 200で返す");
       res.status(200).send({ received: "complete" });
       //   return res.status(400).send(`Unhandled event type: ${stripeEvent.type}`);
     } catch (error) {

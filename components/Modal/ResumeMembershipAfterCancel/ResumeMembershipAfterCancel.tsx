@@ -19,7 +19,14 @@ import { loadStripe } from "@stripe/stripe-js";
 import Stripe from "stripe";
 import { FallbackResumeMembershipAfterCancel } from "./FallbackResumeMembershipAfterCancel";
 import { runFireworks } from "@/utils/confetti";
-import { UserProfileCompanySubscription } from "@/types";
+import { MemberAccounts, UserProfileCompanySubscription } from "@/types";
+import { useQueryMemberAccounts } from "@/hooks/useQueryMemberAccounts";
+import { compareAccounts } from "@/utils/Helpers/getRoleRank";
+import { HiOutlineSearch } from "react-icons/hi";
+import { MdClose } from "react-icons/md";
+import { MemberCard } from "./MemberCard";
+import { normalizeDeleteSpace } from "@/utils/Helpers/normalizeDeleteSpace";
+import { teamIllustration } from "@/components/assets";
 
 type Plans = {
   id: string;
@@ -43,6 +50,7 @@ const ResumeMembershipAfterCancelMemo = () => {
   const [resumeStep, setResumeStep] = useState("");
   // プラン選択、決済手段選択ステップ
   const [stepContents, setStepContents] = useState("");
+  // 契約メンバーアカウント数、メンバー人数
   const [accountQuantity, setAccountQuantity] = useState<number | null>(1);
   const [selectedRadioButton, setSelectedRadioButton] = useState("business_plan");
   const [planBusiness, setPlanBusiness] = useState<Plans | null>(null);
@@ -51,6 +59,10 @@ const ResumeMembershipAfterCancelMemo = () => {
   // const [defaultPaymentMethod, setDefaultPaymentMethod] = useState(null);
   const defaultPaymentMethodState = useDashboardStore((state) => state.defaultPaymentMethodState);
   const setDefaultPaymentMethodState = useDashboardStore((state) => state.setDefaultPaymentMethodState);
+  // メンバー検索入力値
+  const [input, setInput] = useState("");
+  // メンバー削除が必要かどうかを保持するState
+  const [requiredDeletion, setRequiredDeletion] = useState(true);
 
   // ================================ ツールチップ ================================
   const modalContainerRef = useRef<HTMLDivElement | null>(null);
@@ -88,7 +100,99 @@ const ResumeMembershipAfterCancelMemo = () => {
   };
   // ============================================================================================
 
-  // ログアウト関数
+  // ============================ メンバーアカウントを全て取得 ============================
+  // 未設定アカウントを保持するグローバルState
+  // const notSetAccounts = useDashboardStore((state) => state.notSetAccounts);
+  // const setNotSetAccounts = useDashboardStore((state) => state.setNotSetAccounts);
+  const {
+    data: memberAccountsDataArray,
+    error: useQueryError,
+    isLoading: useQueryIsLoading,
+    refetch: refetchMemberAccounts,
+  } = useQueryMemberAccounts();
+
+  // メンバー数分チェックするStateの配列
+  const [checkedMembersArray, setCheckedMembersArray] = useState(
+    memberAccountsDataArray
+      ? Array(!!memberAccountsDataArray.length ? memberAccountsDataArray.length : 1).fill(false)
+      : []
+  );
+  // チェックされたメンバーを保持する配列のState
+  const [selectedMemberArray, setSelectedMemberArray] = useState<MemberAccounts[]>([]);
+  // 並び替え後
+  const [sortedMemberAccountsState, setSortedMemberAccountsState] = useState<MemberAccounts[]>([]);
+  // 未設定
+  const [notSetAccountsState, setNotSetAccountsState] = useState<MemberAccounts[]>([]);
+  // 設定済みでアクティブ
+  const [activeAccountsState, setActiveAccountsState] = useState<MemberAccounts[]>([]);
+
+  useEffect(() => {
+    if (typeof memberAccountsDataArray === "undefined") return;
+    if (!memberAccountsDataArray) {
+      setNotSetAccountsState([]);
+      setActiveAccountsState([]);
+      return;
+    }
+    // アカウントの配列からprofilesのidがnull、かつ、invited_emailがnullで招待中でないアカウントのみをフィルタリング
+    const nullIdAccounts = memberAccountsDataArray.filter((account) => account.id === null);
+    // // アカウントの配列からidがnullでないアカウントのみをフィルタリング
+    const notNullIdAccounts = memberAccountsDataArray.filter((account) => account.id !== null);
+
+    // メンバーアカウントを並び替え 全てのセクションであいうえお順
+    // 1番上が所有者: account_company_role
+    // 次が管理者: account_company_role
+    // マネージャー: account_company_role
+    // メンバー: account_company_role
+    // ゲスト: account_company_role
+    // 招待済み: id有りだが、profile_name無し
+    // 未設定: id有りだが、profile_name無し
+
+    const sortedMemberAccountsArray = memberAccountsDataArray.sort(compareAccounts);
+    setSortedMemberAccountsState(sortedMemberAccountsArray);
+
+    console.log(
+      "sortedMemberAccountsArray",
+      sortedMemberAccountsArray,
+      "未設定のアカウント配列",
+      nullIdAccounts,
+      "アクティブアカウント配列",
+      notNullIdAccounts,
+      "未設定のアクティブアカウント数",
+      nullIdAccounts.length,
+      "未設定のアクティブアカウント数",
+      notNullIdAccounts.length
+    );
+
+    // 未設定アカウントローカルState
+    setNotSetAccountsState(nullIdAccounts);
+    // アクティブアカウントローカルState
+    setActiveAccountsState(notNullIdAccounts);
+  }, [memberAccountsDataArray]);
+
+  // 契約メンバーアカウント数が設定済みアカウント数より低い場合にはメンバー削除ページを表示する
+  useEffect(() => {
+    if (activeAccountsState.length === 0 || accountQuantity === null) return;
+    // 前回の設定済みアカウントが2つ以上ならメンバー削除を必要にする
+    if (activeAccountsState.length > accountQuantity) {
+      if (requiredDeletion) return;
+      console.log(
+        "メンバー削除必要に切り替え 前回アクティブアカウント数と契約数",
+        activeAccountsState.length,
+        accountQuantity
+      );
+      setRequiredDeletion(true);
+    } else {
+      if (!requiredDeletion) return;
+      console.log(
+        "メンバー削除不要に切り替え 前回アクティブアカウント数と契約数",
+        activeAccountsState.length,
+        accountQuantity
+      );
+      setRequiredDeletion(false);
+    }
+  }, [accountQuantity, activeAccountsState.length]);
+
+  // ============================ ログアウト関数 ============================
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
@@ -105,7 +209,7 @@ const ResumeMembershipAfterCancelMemo = () => {
     }
   };
 
-  // 初回マウント時にStripeのプラン2つのpriceIdを取得する
+  // 🌟初回マウント時にStripeのプラン2つのpriceIdを取得する
   useEffect(() => {
     if (!sessionState) return console.log("sessionStateなしのためリターン", sessionState);
     if (!!planBusiness && !!planPremium) return console.log("既にStripeプラン取得済みのためリターン");
@@ -130,7 +234,7 @@ const ResumeMembershipAfterCancelMemo = () => {
     getPlansFromStripe();
   }, [sessionState]);
 
-  // 初回マウント時にStripeの現在のデフォルト支払い方法を取得する
+  // 🌟初回マウント時にStripeの現在のデフォルト支払い方法を取得する
   useEffect(() => {
     if (!sessionState) return console.log("sessionStateなしのためリターン", sessionState);
     if (!userProfileState) return console.log("ユーザー情報なしのためリターン");
@@ -172,7 +276,10 @@ const ResumeMembershipAfterCancelMemo = () => {
     setSelectedRadioButton(e.target.value);
   };
 
-  // 「再開する」クリック メンバーシップを再開
+  // =============== 🌟「再開する」クリック メンバーシップを再開 ===============
+  // 新たなstripeサブスクリプションオブジェクトを作成
+  // そのサブスクリプションidを既存のsubscriptionsテーブルのstripe_subscription_idにセットする
+  // これで、他メンバーに紐付けいているアカウントをそのまま引き継げる
   const handleResume = async (planId: string, quantity: number | null) => {
     if (!userProfileState) return alert("エラー：ユーザー情報が確認できませんでした");
     if (!sessionState) return alert("エラー：セッション情報が確認できませんでした");
@@ -232,7 +339,8 @@ const ResumeMembershipAfterCancelMemo = () => {
     }
   };
 
-  // 「チームを削除して新しく始める」ボタン サブスク、会社、アカウントの紐付けを解除、profilesの情報もリセットして新たに始める
+  // =============== 🌟「チームを削除して新しく始める」ボタン ===============
+  //  サブスク、会社、アカウントの紐付けを解除、profilesの情報もリセットして新たに始める
   const [isLoadingReset, setIsLoadingReset] = useState(false);
   const handleResetStart = async () => {
     if (isLoadingReset) return;
@@ -346,12 +454,44 @@ const ResumeMembershipAfterCancelMemo = () => {
     }
   };
 
-  const rightImage =
-    stepContents === "resume_2" ? `/assets/images/beautiful/firework6.jpg` : `/assets/images/beautiful/balloon1.jpg`;
-  const rightImagePlaceholder =
-    stepContents === "resume_2"
-      ? `/assets/images/beautiful/placeholders/firework6_placeholder.jpg`
-      : `/assets/images/beautiful/placeholders/balloon1_placeholder.jpg`;
+  const rightImage = () => {
+    switch (stepContents) {
+      case "":
+        return `/assets/images/beautiful/balloon1.jpg`;
+        break;
+      case "resume_2":
+        // return `/assets/images/beautiful/road-sun1.jpg`;
+        return `/assets/images/beautiful/ocean2.jpg`;
+        // return `/assets/images/beautiful/balloon1.jpg`;
+        break;
+      case "resume_3":
+        return `/assets/images/beautiful/firework6.jpg`;
+        break;
+
+      default:
+        return `/assets/images/beautiful/balloon1.jpg`;
+        break;
+    }
+  };
+  const rightImagePlaceholder = () => {
+    switch (stepContents) {
+      case "":
+        return `/assets/images/beautiful/placeholders/balloon1_placeholder.jpg`;
+        break;
+      case "resume_2":
+        // return `/assets/images/beautiful/placeholders/road-sun1_placeholder.jpg`;
+        return `/assets/images/beautiful/placeholders/ocean2_placeholder.jpg`;
+        // return `/assets/images/beautiful/placeholders/balloon1_placeholder.jpg`;
+        break;
+      case "resume_3":
+        return `/assets/images/beautiful/placeholders/firework6_placeholder.jpg`;
+        break;
+
+      default:
+        return `/assets/images/beautiful/placeholders/balloon1_placeholder.jpg`;
+        break;
+    }
+  };
 
   console.log(
     "ResumeMembershipAfterCancelレンダリング",
@@ -366,16 +506,22 @@ const ResumeMembershipAfterCancelMemo = () => {
     "✅userProfileState",
     userProfileState,
     "✅defaultPaymentMethodState",
-    defaultPaymentMethodState
-    // "✅defaultPaymentMethod",
-    // defaultPaymentMethod,
-    // "✅defaultPaymentMethodError",
-    // defaultPaymentMethodError,
-    // "✅isLoadingPayment",
-    // isLoadingPayment
+    defaultPaymentMethodState,
+    "✅並び替え済みメンバー配列",
+    sortedMemberAccountsState,
+    "✅設定済みアカウント配列",
+    activeAccountsState,
+    "✅未設定アカウント配列",
+    notSetAccountsState,
+    "✅選択されたアカウント配列",
+    selectedMemberArray,
+    "✅stepContents",
+    stepContents,
+    "✅メンバーの削除が必要かどうか",
+    requiredDeletion
   );
 
-  if (!userProfileState) return <FallbackResumeMembershipAfterCancel />;
+  if (!userProfileState || useQueryIsLoading) return <FallbackResumeMembershipAfterCancel />;
 
   return (
     <div className={`fixed inset-0 z-[2000] ${styles.bg_image}`} ref={modalContainerRef}>
@@ -490,9 +636,11 @@ const ResumeMembershipAfterCancelMemo = () => {
                   onMouseEnter={(e) => handleOpenTooltip(e, "top")}
                   onMouseLeave={handleCloseTooltip}
                   onClick={() => {
-                    if (stepContents === "resume_2") {
+                    if (stepContents === "resume_3") {
+                      setStepContents("resume_2");
+                    } else if (stepContents === "resume_2") {
                       setStepContents("");
-                    } else {
+                    } else if (stepContents === "") {
                       setResumeStep("");
                     }
                     handleCloseTooltip();
@@ -516,16 +664,27 @@ const ResumeMembershipAfterCancelMemo = () => {
                     </div>
                   </div>
                   <h1 className={`mt-[10px] w-full text-center text-[24px] font-bold text-[var(--color-text-title)]`}>
-                    プランを選んで再び始めましょう！
+                    {stepContents === "" && `プランを選んで再び始めましょう！`}
+                    {stepContents === "resume_2" && `一緒に始めるメンバーを決めましょう！`}
+                    {stepContents === "resume_3" && `メンバーシップを始めましょう！`}
                   </h1>
                   <div className={`w-full space-y-2 py-[20px]`}>
                     <div className="flex space-x-3">
                       <BsCheck2 className="stroke-1 text-[24px] text-[#00d436]" />
-                      <p>全てのコンテンツを使い放題。</p>
+                      {stepContents !== "resume_2" && <p>全てのコンテンツを使い放題。</p>}
+                      {stepContents === "resume_2" && (
+                        <p
+                          className={`cursor-pointer hover:text-[var(--color-text-brand-f)]`}
+                          onClick={() => setStepContents("")}
+                        >
+                          メンバーアカウントが足りないため、アカウントを増やす。
+                        </p>
+                      )}
                     </div>
                     <div className="flex space-x-3">
                       <BsCheck2 className="stroke-1 text-[24px] text-[#00d436]" />
-                      <p>簡単登録、いつでもキャンセルできます。</p>
+                      {stepContents !== "resume_2" && <p>簡単登録、いつでもキャンセルできます。</p>}
+                      {stepContents === "resume_2" && <p>契約アカウント数までメンバーをチームから削除する。</p>}
                     </div>
                   </div>
                 </div>
@@ -535,7 +694,9 @@ const ResumeMembershipAfterCancelMemo = () => {
                 <div
                   className={`relative h-full w-full min-w-[40vw] max-w-[40vw] ${
                     styles.left_slide_scroll_container
-                  } transition-base03 ${stepContents === "resume_2" ? `ml-[-100%]` : ``}`}
+                  } transition-base03 ${stepContents === "resume_2" ? `ml-[-100%]` : ``} ${
+                    stepContents === "resume_3" ? `${requiredDeletion ? `ml-[-200%]` : `ml-[-100%]`}` : ``
+                  }`}
                 >
                   {/* 左スライドコンテンツラッパー 1ページ目 */}
                   <div className={`${styles.left_slide_scroll_left}`}>
@@ -664,8 +825,19 @@ const ResumeMembershipAfterCancelMemo = () => {
                       </div>
                     </div>
 
+                    {/* 前回契約していたメンバーアカウント数 */}
+                    <div className="flex w-full flex-col pt-[10px]">
+                      <p className="relative text-[15px] text-[var(--color-text-title)]">
+                        前回のメンバーアカウント数は
+                        <span className={`font-bold text-[var(--color-text-brand-f)]`}>
+                          {userProfileState.accounts_to_create}個
+                        </span>
+                        でした。今回は何人で始めますか？
+                      </p>
+                    </div>
+
                     {/* メンバー人数選択 */}
-                    <div className="flex w-full items-center justify-between pt-[20px]">
+                    <div className="flex w-full items-center justify-between pt-[15px]">
                       <div className="relative cursor-pointer text-[20px] font-bold text-[var(--color-text-title)]">
                         メンバー人数
                       </div>
@@ -673,7 +845,7 @@ const ResumeMembershipAfterCancelMemo = () => {
                         <input
                           type="number"
                           min="1"
-                          className={`${styles.input_box}`}
+                          className={`${styles.input_box} !w-[50%]`}
                           placeholder="人数を入力"
                           value={accountQuantity === null ? "" : accountQuantity}
                           onChange={(e) => {
@@ -696,8 +868,8 @@ const ResumeMembershipAfterCancelMemo = () => {
                       </div>
                     </div>
 
-                    {/* メンバーシップを開始するボタン */}
-                    <div className="w-full pt-[30px]">
+                    {/* 続けるボタン */}
+                    <div className="w-full pt-[25px]">
                       <button
                         className={`flex-center h-[40px] w-full cursor-pointer rounded-[6px] bg-[var(--color-bg-brand-f)] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                         // onClick={() => {
@@ -706,7 +878,13 @@ const ResumeMembershipAfterCancelMemo = () => {
                         //   if (selectedRadioButton === "premium_plan" && !!planPremium)
                         //     handleResume(planPremium.id, accountQuantity);
                         // }}
-                        onClick={() => setStepContents("resume_2")}
+                        onClick={() => {
+                          if (requiredDeletion) {
+                            setStepContents("resume_2");
+                          } else {
+                            setStepContents("resume_3");
+                          }
+                        }}
                       >
                         {/* {!isLoading && <span>メンバーシップを開始する</span>} */}
                         {!isLoadingSubmit && <span>続ける</span>}
@@ -714,8 +892,121 @@ const ResumeMembershipAfterCancelMemo = () => {
                       </button>
                     </div>
                   </div>
-                  {/* 左スライドコンテンツラッパー 1ページ目 ここまで */}
-                  {/* 左スライドコンテンツラッパー 2ページ目 */}
+                  {/* ============== 左スライドコンテンツラッパー 1ページ目 ここまで ============== */}
+                  {/* ============== 左スライドコンテンツラッパー 2ページ目 ============== */}
+                  {/* 前回の設定済みメンバーアカウント数が今回の契約数よりも多い場合(削除必要な場合) */}
+                  {requiredDeletion && (
+                    <div className={`${styles.left_slide_scroll_right} relative`}>
+                      <div className="mt-[20px] flex h-auto w-full items-center justify-between text-[20px] font-bold text-[var(--color-text-title)]">
+                        <h2 className="mr-[20px] min-w-fit">メンバーアカウントの設定</h2>
+                        {/* ======= 入力、検索エリア ====== */}
+                        <div className={`relative flex w-full max-w-[210px] items-center`}>
+                          <HiOutlineSearch className="absolute left-[8px] top-[50%] translate-y-[-50%] text-[20px] text-[var(--color-text-sub)]" />
+                          <input
+                            type="text"
+                            placeholder={`チームメンバーの検索`}
+                            className={`${styles.input_box2} !pl-[36px]`}
+                            value={input}
+                            onChange={(e) => {
+                              setInput(e.target.value);
+                              // if (e.target.value === "" && !emptyInput) return setEmptyInput(true);
+                              // if (emptyInput) return setEmptyInput(false);
+                            }}
+                            //   onBlur={() => setEditedName(toHalfWidth(editedName.trim()))}
+                            // onBlur={() => setEditedCompanyName(toHalfWidthAndSpace(editedCompanyName.trim()))}
+                          />
+                          {/* バツボタン */}
+                          {input !== "" && (
+                            <div
+                              className={`${styles.close_btn_number}`}
+                              onClick={() => {
+                                setInput("");
+                                // if (!emptyInput) return setEmptyInput(true);
+                              }}
+                            >
+                              <MdClose className="text-[20px] " />
+                            </div>
+                          )}
+                          {/* 検索ボタン */}
+                          {/* {input !== "" && selectedMember === null && (
+                        <div
+                          className="flex-center transition-base03 shadow-all-md group absolute right-[10px] top-[50%] min-h-[32px] min-w-[32px] translate-y-[-50%] cursor-pointer rounded-full border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-modal-bg-side-c-second)] hover:bg-[var(--color-bg-brand-f90)]"
+                          onClick={handleSearchMemberName}
+                        >
+                          <HiOutlineSearch className="text-[20px] text-[var(--color-text-title)] group-hover:text-[#fff]" />
+                        </div>
+                      )} */}
+                        </div>
+                        {/* ======= 入力、検索エリア ここまで ====== */}
+                      </div>
+
+                      {/* ======= メンバー一覧エリア ======= */}
+                      <div
+                        className={`relative mt-[10px] flex h-full max-h-[258px] min-h-[290px] w-full flex-col overflow-y-scroll`}
+                      >
+                        <div className={`relative flex w-full flex-col `}>
+                          {activeAccountsState
+                            ?.filter((account) =>
+                              normalizeDeleteSpace(account.profile_name ? account.profile_name : ``).includes(input)
+                            )
+                            .map((member, index) => {
+                              if (member.id === userProfileState?.id) return;
+                              return <MemberCard member={member} key={member.id} />;
+                            })}
+                          {Array(10)
+                            .fill("")
+                            .map((_, index) => (
+                              <div
+                                key={index}
+                                className={`flex min-h-[44px] w-full cursor-pointer items-center truncate rounded-[8px] py-[12px] pl-[24px] hover:bg-[var(--setting-side-bg-select)]`}
+                              >
+                                <div
+                                  className={`flex-center mr-[15px] h-[40px] w-[40px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)]`}
+                                >
+                                  <span className={`text-[20px]`}>X</span>
+                                </div>
+
+                                <div className={`flex h-full flex-col space-y-[3px] pl-[5px] text-[12px]`}>
+                                  <div className={`text-[13px]`}>
+                                    <span>test1</span>
+                                  </div>
+                                  <div className={`text-[var(--color-text-sub)]`}>test@test.com</div>
+                                </div>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                      {/* ======= メンバー一覧エリア ここまで ======= */}
+
+                      {/* ボタンエリア */}
+                      <div className="absolute bottom-0 left-0 flex h-auto w-full flex-col px-[32px] pb-[22px] pt-[15px]">
+                        {/* メンバーシップを開始するボタン */}
+                        <div className="w-full">
+                          <button
+                            className={`flex-center h-[40px] w-full cursor-pointer rounded-[6px] bg-[var(--color-bg-brand-f)] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                            onClick={() => setStepContents("resume_3")}
+                          >
+                            {/* {!isLoading && <span>メンバーシップを開始する</span>} */}
+                            {!isLoadingSubmit && <span>続ける</span>}
+                            {isLoadingSubmit && <SpinnerIDS scale={"scale-[0.4]"} />}
+                          </button>
+                        </div>
+                        {/* メンバーシップを開始するボタン ここまで */}
+                        <div className="w-full pt-[15px]">
+                          <div className={`flex-center h-[40px] w-full`}>
+                            <span
+                              className={`cursor-pointer text-[var(--color-text-sub)] hover:text-[var(--color-text-sub-deep)]`}
+                              onClick={() => setStepContents("")}
+                            >
+                              戻る
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {/* 左スライドコンテンツラッパー 2ページ目 ここまで */}
+                  {/* 左スライドコンテンツラッパー 3ページ目 */}
                   <div className={`${styles.left_slide_scroll_right}`}>
                     <div className="mt-[20px] h-auto w-full text-[20px] font-bold text-[var(--color-text-title)]">
                       <h2>お支払い方法の設定</h2>
@@ -796,12 +1087,12 @@ const ResumeMembershipAfterCancelMemo = () => {
                         className={`flex-center h-[40px] w-full cursor-pointer rounded-[6px] bg-[var(--color-bg-brand-f)] font-bold text-[#fff] ${
                           isLoadingPortal ? `` : `hover:bg-[var(--color-bg-brand-f-deep)]`
                         }`}
-                        onClick={() => {
-                          if (selectedRadioButton === "business_plan" && !!planBusiness)
-                            handleResume(planBusiness.id, accountQuantity);
-                          if (selectedRadioButton === "premium_plan" && !!planPremium)
-                            handleResume(planPremium.id, accountQuantity);
-                        }}
+                        // onClick={() => {
+                        //   if (selectedRadioButton === "business_plan" && !!planBusiness)
+                        //     handleResume(planBusiness.id, accountQuantity);
+                        //   if (selectedRadioButton === "premium_plan" && !!planPremium)
+                        //     handleResume(planPremium.id, accountQuantity);
+                        // }}
                       >
                         {/* {!isLoading && <span>メンバーシップを開始する</span>} */}
                         {!isLoadingSubmit && <span>メンバーシップを始める</span>}
@@ -813,14 +1104,20 @@ const ResumeMembershipAfterCancelMemo = () => {
                       <div className={`flex-center h-[40px] w-full`}>
                         <span
                           className={`cursor-pointer text-[var(--color-text-sub)] hover:text-[var(--color-text-sub-deep)]`}
-                          onClick={() => setStepContents("")}
+                          onClick={() => {
+                            if (requiredDeletion) {
+                              setStepContents("resume_2");
+                            } else {
+                              setStepContents("");
+                            }
+                          }}
                         >
                           戻る
                         </span>
                       </div>
                     </div>
                   </div>
-                  {/* 左スライドコンテンツラッパー 2ページ目 ここまで */}
+                  {/* 左スライドコンテンツラッパー 3ページ目 ここまで */}
                 </div>
                 {/* 左スライドスクロールコンテナ 2ページ目 ここまで */}
               </div>
@@ -829,18 +1126,57 @@ const ResumeMembershipAfterCancelMemo = () => {
               <div className={`${styles.right_container} relative z-10 flex h-full w-6/12`}>
                 <div
                   className={`transition-base03 z-[20] ${
-                    stepContents === "resume_2" ? `${styles.right_bg_image2} ` : `${styles.right_bg_image1} `
+                    stepContents === "resume_3" ? `${styles.right_bg_image3} ` : ``
+                  } ${stepContents === "resume_2" ? `${styles.right_bg_image2} ` : ``} ${
+                    stepContents === "" ? `${styles.right_bg_image1} ` : ``
                   }`}
                 />
                 <Image
-                  src={rightImage}
+                  src={rightImage()}
                   alt=""
-                  blurDataURL={rightImagePlaceholder}
+                  blurDataURL={rightImagePlaceholder()}
                   placeholder="blur"
-                  className="z-[-1] h-full w-full object-cover object-center"
+                  className={`transition-base03 absolute left-0 top-0 z-[-1] h-full w-full object-cover object-center`}
                   fill
                   sizes="10vw"
                 />
+
+                {/* ２ページ目 */}
+                <div
+                  className={`transition-base03 absolute left-0 top-0 z-[21] flex h-full w-[100%] flex-col items-center justify-center bg-[var(--color-modal-bg-side-c0)] ${
+                    stepContents === "resume_2" ? `opacity-100` : `opacity-0`
+                  }`}
+                >
+                  <div className="z-10 mb-[-30px]">{teamIllustration}</div>
+                  <div className="z-0 flex min-h-[57%] w-[70%] flex-col rounded-[8px] bg-[var(--color-modal-bg-side-c-secondc0)] px-[24px] pb-[8px] pt-[58px] text-[var(--color-text-title)]">
+                    <p className={`text-[14px] font-bold`}>現在のアカウント状況は以下の通りです。</p>
+                    <div className="mt-[12px] flex h-auto w-full text-[14px]">
+                      <p className="mr-[4px]">1.</p>
+                      <p>
+                        前回のメンバーアカウント数は<span>{}</span>
+                      </p>
+                    </div>
+                    <div className="mt-[16px] flex h-auto w-full text-[14px]">
+                      <p className="mr-[4px]">2.</p>
+                      <div className="flex w-full flex-col">
+                        <p>任命されたメンバーが承諾するのを待ちます。</p>
+                        <p className="mt-[4px] text-[12px] text-[var(--color-text-sub)]">
+                          任命された人は、このチーム、チームメンバー、チームコンテンツの新しい管理者権限を持つことになります。
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-[16px] flex h-auto w-full text-[14px]">
+                      <p className="mr-[4px]">3.</p>
+                      <div className="flex w-full flex-col">
+                        <p>任命されたメンバーが承諾すると、あなたの役割は所有者から管理者に切り替わります。</p>
+                        <p className="mt-[4px] text-[12px] text-[var(--color-text-sub)]">
+                          新しい所有者が承諾すると、この操作を元に戻すことはできません。
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {/* ２ページ目 */}
               </div>
             </div>
           </>

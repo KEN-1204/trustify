@@ -3,13 +3,16 @@ import useDashboardStore from "@/store/useDashboardStore";
 import { Subscription, UserProfileCompanySubscription } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { RealtimeChannel } from "@supabase/supabase-js";
+import { useRouter } from "next/router";
 import React, { useEffect, useRef } from "react";
+import { toast } from "react-toastify";
 
 // export const useSubscribeSubscription = () => {
 export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscription) => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const setUserProfileState = useDashboardStore((state) => state.setUserProfileState);
   const supabase = useSupabaseClient();
+  const router = useRouter();
 
   const subscriptionRef = useRef<RealtimeChannel | null>(null);
 
@@ -61,9 +64,9 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
         userProfileState?.subscription_id
       );
 
-      const subscriptionId = userProfile.subscription_id
-        ? userProfile.subscription_id
-        : userProfileState?.subscription_id;
+      const subscriptionId = userProfileState?.subscription_id
+        ? userProfileState?.subscription_id
+        : userProfile.subscription_id;
 
       channel = supabase
         .channel("table-db-changes:subscriptions")
@@ -104,6 +107,29 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
             };
             // payloadに基づいてZustandのStateを更新
             setUserProfileState(newUserData as UserProfileCompanySubscription);
+
+            // キャンセルリクエストルート 請求期間終了でdeletedタイプのwebhookによって解約されリアルタイムが発火した場合には「メンバーシップがキャンセルされました」をトーストで表示する。
+            if (
+              payload.new.status === "canceled" &&
+              payload.old.status === "active" &&
+              payload.new.subscription_plan === "free_plan" &&
+              payload.old.subscription_plan !== "free_plan" &&
+              payload.new.subscription_stage === "is_canceled" &&
+              payload.old.subscription_stage === "is_subscribed"
+            ) {
+              toast.info(`メンバーシップがキャンセルされました🙇 再度リスタートします。`, {
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+              });
+              setTimeout(() => {
+                router.reload();
+              }, 300);
+            }
           }
         )
         .subscribe();
@@ -155,7 +181,7 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
         userProfileState
       );
 
-      const userId = userProfile.id ? userProfile.id : userProfileState?.id;
+      const userId = userProfileState?.id ? userProfileState?.id : userProfile.id;
 
       channel = supabase
         .channel("table-db-changes:subscribed_accounts")

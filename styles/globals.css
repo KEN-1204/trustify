@@ -197,7 +197,10 @@ bg-[#06c755] */
 
   /* モーダル右側 背景 Canva */
   --color-modal-bg-side-c: #ebf3ff;
+  --color-modal-bg-side-c90: #ebf3ff90;
+  --color-modal-bg-side-c0: #ebf3ff00;
   --color-modal-bg-side-c-second: #ffffff66;
+  --color-modal-bg-side-c-secondc0: #ebf3fff0;
 
   /* お知らせ確認モーダル light */
   --color-bg-notification-modal: #fff;
@@ -701,7 +704,10 @@ bg-[#06c755] */
   /* --color-modal-bg-side-c: #383838; */
   /* --color-modal-bg-side-c: #51535b; */
   --color-modal-bg-side-c: #3c3c3c;
+  --color-modal-bg-side-c90: #3c3c3c90;
+  --color-modal-bg-side-c0: #3c3c3c00;
   --color-modal-bg-side-c-second: #555;
+  --color-modal-bg-side-c-secondc0: #555555e9;
 
   /* お知らせ確認モーダル dark */
   --color-bg-notification-modal: #222;

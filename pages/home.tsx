@@ -52,6 +52,7 @@ const DashboardHome = ({
   const setTheme = useThemeStore((state) => state.setTheme);
   const activeMenuTab = useDashboardStore((state) => state.activeMenuTab);
   const setActiveMenuTab = useDashboardStore((state) => state.setActiveMenuTab);
+  const userProfileState = useDashboardStore((state) => state.userProfileState);
   const setUserProfileState = useDashboardStore((state) => state.setUserProfileState);
   const setProductsState = useDashboardStore((state) => state.setProductsState);
 
@@ -106,6 +107,7 @@ const DashboardHome = ({
       return;
     }
     // setUserProfileState(userProfile as UserProfile);
+    if (userProfileState) return console.log("homeページ userProfileStateがすでに存在するためリターン");
     setUserProfileState(userProfile as UserProfileCompanySubscription);
   }, [userProfile, setUserProfileState]);
 

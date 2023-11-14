@@ -39,7 +39,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<any>) => {
   // =============== テストクロック顧客オブジェクトルート ===============
   const customer = await stripe.customers.create({
     email: req.body.record.email,
-    test_clock: `clock_1OCCg8FTgtnGFAcpQGpJ1B3n`,
+    test_clock: `clock_1OCIAyFTgtnGFAcpMdOOMN0I`,
   });
   // =============== テストクロック顧客オブジェクトルート ここまで ===============
 
