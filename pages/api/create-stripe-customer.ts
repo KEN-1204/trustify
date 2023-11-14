@@ -31,10 +31,17 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<any>) => {
     // apiVersion: "2023-08-16",
   });
 
+  // =============== 本番ルート ===============
   // Stripeの顧客を新しく作成 email情報をreq.bodyから取り出して設定
+  // const customer = await stripe.customers.create({
+  //   email: req.body.record.email,
+  // });
+  // =============== テストクロック顧客オブジェクトルート ===============
   const customer = await stripe.customers.create({
     email: req.body.record.email,
+    test_clock: `clock_1OCCg8FTgtnGFAcpQGpJ1B3n`,
   });
+  // =============== テストクロック顧客オブジェクトルート ここまで ===============
 
   // 新たに顧客となったユーザーのprofileテーブルのstripe_customerカラムの値に
   // stripe顧客のidを設定してStripe登録時にSupabaseも自動的に同期、連携させる

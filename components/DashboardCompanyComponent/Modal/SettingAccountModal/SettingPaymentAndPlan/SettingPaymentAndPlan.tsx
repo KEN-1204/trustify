@@ -256,7 +256,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
       }
       console.log(`🌟Stripeアカウント変更ステップ7 Stripeアカウント数変更完了 subscriptionItem`, subscriptionItem);
 
-      // =========== subscribed_accountsのstateを削除リクエスト済み（delete_requested）に変更 ===========
+      // =========== subscribed_accountsのstateを削除リクエスト済み（delete_requested）をactiveに変更 ===========
       console.log(
         `🌟Stripeアカウント変更ステップ8 supabaseのsubscribed_accountsテーブルから${notSetAndDeleteRequestedAccounts.length}個のアカウントの削除リクエストをactiveに変更するストアドプロシージャを実行 削除リクエストのidを持つ配列 idsToDeleteRequestedArray`,
         idsToDeleteRequestedArray

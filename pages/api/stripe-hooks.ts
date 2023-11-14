@@ -125,24 +125,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         return res.status(200).send({ received: "incomplete" });
       }
 
-      // ================== サブスクキャンセルリクエストの場合 次回請求期間終了時にキャンセル ==================
-      // previous_attributesがcancellation_detailsのみのupdatedタイプのwebhookの場合はここでレスポンスする
-      const subscriptionCancelAtPeriodEnd = (stripeEvent.data.object as Subscription).cancel_at_period_end ?? null;
-      const includeCancellationDetails = (obj: Object | undefined) => {
-        if (typeof obj === "undefined") return false;
-        const keys = Object.keys(obj);
-        return keys.includes("cancellation_details");
-      };
-      if (subscriptionCancelAtPeriodEnd === true) {
-        console.log("キャンセルリクエストがtrue");
-        const previousAttributes = stripeEvent.data.previous_attributes;
-        if (includeCancellationDetails(previousAttributes)) {
-          console.log("🌟cancellation_details", (previousAttributes! as any).cancellation_details);
-          return res.status(200).send({ received: "previous_attributesがcancellation_detailsのみのためリターン" });
-        }
-      }
-      // ============ サブスクキャンセルリクエストの場合 次回請求期間終了時にキャンセル ここまで ============
-
       // サブスクプランを変数に格納
       let _subscription_plan;
       switch (subscription.items.data[0].plan.id) {
@@ -168,16 +150,140 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         case "customer.subscription.pending_update_applied":
           console.log(`🌟Stripe_Webhookステップ3 ${stripeEvent.type}イベント customer`, subscription.customer);
 
-          // ============ 🌟deletedタイプwebhookの後のupdatedタイプでprevious_attributesがcancellation_detailsプロパティのみのwebhookの処理 ============
-          // previous_attributesのオブジェクトがcancellation_detailsのみかどうかを判定する関数
+          // ============== 🌟サブスクキャンセルリクエストルート 次回請求期間終了時にキャンセル ==============
+          // previous_attributesがcancellation_detailsのみのupdatedタイプのwebhookの場合はここでレスポンスする
+          const subscriptionCancelAtPeriodEnd = (stripeEvent.data.object as Subscription).cancel_at_period_end ?? null;
+          // cancellation_detailsをprevious_attributesに含んでいるかどうかをチェックする関数
+          const includeCancellationDetails = (obj: Object | undefined) => {
+            if (typeof obj === "undefined") return false;
+            const keys = Object.keys(obj);
+            return keys.includes("cancellation_details");
+          };
+          // previous_attributesがcancellation_detailsのみかどうかをチェックする関数
           const isOnlyCancellationDetails = (obj: Object | undefined) => {
             if (typeof obj === "undefined") return false;
             const keys = Object.keys(obj);
             return keys.length === 1 && keys[0] === "cancellation_details";
           };
+          // 請求期間終了時にキャンセルルートでキャンセルクリックした時には、サブスクリプションオブジェクトの
+          // cancel_at_period_end, canceled_at, cancel_at, cancellation_detailsの4つが変更される(updated)
+          // なので、1回目のwebhookでsubscriptionsテーブルのcancel_at_period_endをtrueに変更し、
+          // 2回目のキャンセル理由を送信クリックで、cancel_reasonsテーブルにINSERTする
+          // キャンセル理由送信クリック後のwebhook用(請求期間終了時) 2回目のupdatedタイプwebhook用 cancel_reasonsテーブルにINSERT
+          if (subscriptionCancelAtPeriodEnd === true && isOnlyCancellationDetails(previousAttributes)) {
+            console.log(
+              "キャンセルリクエストがtrue, キャンセル理由を送信により、cancellation_detailsのみが変更されたため、cancel_reasonsテーブルにキャンセル理由をINSERT"
+            );
+            const insertCancelPayload = {
+              _stripe_customer_id: subscription.customer,
+              _stripe_subscription_id: subscription.id,
+              _stripe_event_id: stripeEvent.id,
+              _cancel_at: subscription.cancel_at ? new Date(subscription.cancel_at * 1000).toISOString() : null,
+              _canceled_at: subscription.canceled_at ? new Date(subscription.canceled_at * 1000).toISOString() : null,
+              _comment: subscription.cancellation_details?.comment ?? null,
+              _feedback: subscription.cancellation_details?.feedback ?? null,
+              _reason: subscription.cancellation_details?.feedback ?? null,
+            };
+            console.log("insert_cancel_reasons関数実行 payload", insertCancelPayload);
+            const { error: insertCancelReason } = await supabase.rpc("insert_cancel_reasons", insertCancelPayload);
+            // stripe_webhook_eventsテーブルのwebhookにキャンセル詳細がUPDATEがエラーした場合
+            if (insertCancelReason) {
+              console.log(
+                "❌cancellation_detailsのキャンセル理由をcancel_reasonsテーブルへINSERTエラー",
+                insertCancelReason
+              );
+              return res.status(500).send(`insert_cancel_reasons関数 error: ${(insertCancelReason as Error).message}`);
+            }
+            // 正常にstripe_webhook_eventsテーブルのwebhookにキャンセル詳細がUPDATEできた場合
+            console.log(
+              "✅キャンセル詳細を更新するのみ cancel_reasonsテーブルへINSERT完了 200でリターン",
+              previousAttributes
+            );
+            return res.status(200).send({ received: "insert_cancel_reasons FUNCTION complete" });
+          }
+          // キャンセルクリック後のwebhook用(請求期間終了時) 1回目のupdatedタイプwebhook用 subscriptionsテーブルのcancel_at_period_endをtrueにUPDATE
+          if (subscriptionCancelAtPeriodEnd === true && includeCancellationDetails(previousAttributes)) {
+            // キャンセルクリック後のwebhook用(請求期間終了時) 1回目のupdatedタイプwebhook用
+            console.log(
+              "キャンセルリクエストがtrue、キャンセルクリックによりcancel_at_period_end, canceled_at, cancel_at, cancellation_detailsの4つが変更され、請求期間終了時にキャンセルがリクエストされたためsubscriptionsテーブルのcancel_at_period_endをtrueにUPDATE",
+              (previousAttributes! as any).cancellation_details
+            );
+            const { error: updateError } = await supabase
+              .from("subscriptions")
+              .update({
+                cancel_at_period_end: true,
+              })
+              .match({
+                stripe_subscription_id: subscription.id,
+                stripe_customer_id: subscription.customer,
+                status: subscription.status,
+              });
+            if (updateError) {
+              console.log(
+                "❌サブスクキャンセルクリックによるsubscriptionsテーブルのcancel_at_period_endをtrueにUPDATEエラー",
+                updateError
+              );
+              return res
+                .status(500)
+                .send(`cancel_at_period_endをtrueへUPDATE error: ${(updateError as Error).message}`);
+            }
+            console.log(
+              "✅キャンセルリクエストを受信し、subscriptionsテーブルのcancel_at_period_endをtrueに変更完了 200でリターン"
+            );
+            return res.status(200).send({
+              received:
+                "請求期間終了後にキャンセルリクエストが申し込まれたためsubscriptionsテーブルのcancel_at_period_endをtrueにUPDATEしてリターン",
+            });
+          }
+          // ============ ✅サブスクキャンセルリクエストルート 次回請求期間終了時にキャンセル ここまで ============
+
+          // ========== 🌟サブスクキャンセルリクエストルート 次回請求期間終了時にキャンセルを取り下げ ==========
+          // キャンセル取り下げの場合はprevious_attributesのcancel_at_period_endがtrueで、今回のcancel_at_period_endがfalse、cancel_atがnullになる
+          if (
+            subscriptionCancelAtPeriodEnd === false &&
+            (previousAttributes as any).cancel_at_period_end === true &&
+            subscription.cancel_at === null
+          ) {
+            // キャンセルクリック後のwebhook用(請求期間終了時) 1回目のupdatedタイプwebhook用
+            console.log("キャンセルリクエストの取り下げ subscriptionsテーブルのcancel_at_period_endをfalseに戻す");
+            const { error: updateError } = await supabase
+              .from("subscriptions")
+              .update({
+                cancel_at_period_end: false,
+              })
+              .match({
+                stripe_subscription_id: subscription.id,
+                stripe_customer_id: subscription.customer,
+                status: subscription.status,
+              });
+            if (updateError) {
+              console.log(
+                "❌キャンセルリクエストの取り下げによるsubscriptionsテーブルのcancel_at_period_endをfalseへのUPDATEエラー",
+                updateError
+              );
+              return res
+                .status(500)
+                .send(
+                  `キャンセルリクエストの取り下げによるsubscriptionsテーブルのcancel_at_period_endをfalseへのUPDATEエラー error: ${
+                    (updateError as Error).message
+                  }`
+                );
+            }
+            console.log(
+              "✅キャンセルリクエストの取り下げによるsubscriptionsテーブルのcancel_at_period_endをfalseへのUPDATE完了 200でリターン"
+            );
+            return res.status(200).send({
+              received:
+                "キャンセルリクエストの取り下げによるsubscriptionsテーブルのcancel_at_period_endをfalseへUPDATEしてリターン",
+            });
+          }
+          // ========== ✅サブスクキャンセルリクエストルート 次回請求期間終了時にキャンセルを取り下げ ==========
+
+          // ======================== 🌟即時サブスクキャンセルルート ========================
+          //  deletedタイプwebhookの後のupdatedタイプでprevious_attributesがcancellation_detailsプロパティのみのwebhookの処理
           /* deletedタイプwebhookの後のupdatedタイプwebhookはcancellation_detailsしか変更がないので、
           cancel_reasonsテーブルにキャンセル理由をINSERTしてここでレスポンスする */
-          if (isOnlyCancellationDetails(previousAttributes)) {
+          if (subscription.status === "canceled" && isOnlyCancellationDetails(previousAttributes)) {
             const insertCancelPayload = {
               _stripe_customer_id: subscription.customer,
               _stripe_subscription_id: subscription.id,
@@ -203,7 +309,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             return res.status(200).send({ received: "insert_cancel_reasons FUNCTION complete" });
             // return res.status(200).end();
           }
-          // ============ ✅deletedタイプwebhookの後のupdatedタイプでprevious_attributesがcancellation_detailsプロパティのみのwebhookの処理 ここまで ============
+          // ======================== ✅即時サブスクキャンセルルート ここまで ========================
 
           // ============ 🌟初回契約時の支払い完了後に支払い方法をデフォルトに設定する ============
           /* previous_attributesが「default_payment_method: null」、「status: incomplete」で、
