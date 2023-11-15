@@ -81,11 +81,18 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     try {
       // Check event timestamp 過去のWebhookエラー再送リクエストかどうかをチェック
       const eventAge = Math.floor(Date.now() / 1000) - stripeEvent.created;
-      if (eventAge > 60 * 60) {
-        // Ignore events older than 1 hour 1時間以上前に作成されたevent分なら returnしてend()でリクエスト処理をここで終了
-        console.log(`✅Ignoring old event with id ${stripeEvent.id}`);
+      // イベント作成時間が現在から50分以上前なら200でレスポンス
+      if (eventAge > 3000) {
+        // Ignore events older than 50 minutes 50分以上前に作成されたevent分なら returnしてend()でリクエスト処理をここで終了
+        console.log(`✅Ignoring old event with id ${stripeEvent.id} 50分以上前に作成されたeventのためリターン`);
         return res.status(200).end();
       }
+      // イベント作成時間が現在から1時間以上前なら200でレスポンス
+      // if (eventAge > 60 * 60) {
+      //   // Ignore events older than 1 hour 1時間以上前に作成されたevent分なら returnしてend()でリクエスト処理をここで終了
+      //   console.log(`✅Ignoring old event with id ${stripeEvent.id} 1時間以上前に作成されたeventのためリターン`);
+      //   return res.status(200).end();
+      // }
 
       // ===================== previous_attributesがscheduleのみ場合はリターンする =====================
       // updatedタイプのWebhookの更新内容がサブスクスケジュールの変更だった場合には、stripe_schedulesテーブルの指定のidのみ更新だけしてリターンさせることで後続の処理をさせないことで負担を軽減させる
@@ -152,7 +159,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
           // ============== 🌟サブスクキャンセルリクエストルート 次回請求期間終了時にキャンセル ==============
           // previous_attributesがcancellation_detailsのみのupdatedタイプのwebhookの場合はここでレスポンスする
-          const subscriptionCancelAtPeriodEnd = (stripeEvent.data.object as Subscription).cancel_at_period_end ?? null;
+          const subscriptionCancelAtPeriodEnd = (stripeEvent.data.object as Subscription)?.cancel_at_period_end!
+            ? (stripeEvent.data.object as Subscription)?.cancel_at_period_end
+            : null;
           // cancellation_detailsをprevious_attributesに含んでいるかどうかをチェックする関数
           const includeCancellationDetails = (obj: Object | undefined) => {
             if (typeof obj === "undefined") return false;
@@ -241,7 +250,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           // キャンセル取り下げの場合はprevious_attributesのcancel_at_period_endがtrueで、今回のcancel_at_period_endがfalse、cancel_atがnullになる
           if (
             subscriptionCancelAtPeriodEnd === false &&
-            (previousAttributes as any).cancel_at_period_end === true &&
+            (previousAttributes as any)?.cancel_at_period_end! === true &&
             subscription.cancel_at === null
           ) {
             // キャンセルクリック後のwebhook用(請求期間終了時) 1回目のupdatedタイプwebhook用
@@ -448,7 +457,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             webhook_created: new Date(stripeEvent.created * 1000).toISOString(), // Webhookの作成日時 createdとupdatedは別
             interval_count: subscription.items.data[0].plan.interval_count,
             cancel_at: subscription.cancel_at ? new Date(subscription.cancel_at * 1000).toISOString() : null,
-            cancel_at_period_end: subscription.cancel_at_period_end,
+            cancel_at_period_end: subscription.cancel_at_period_end!,
             canceled_at: subscription.canceled_at ? new Date(subscription.canceled_at * 1000).toISOString() : null,
             cancel_comment: subscription.cancellation_details && subscription.cancellation_details.comment,
             cancel_feedback: subscription.cancellation_details && subscription.cancellation_details.feedback,
@@ -595,7 +604,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               ? subscription.items.data[0].plan.interval_count
               : null,
             cancel_at: subscription.cancel_at ? new Date(subscription.cancel_at * 1000).toISOString() : null,
-            cancel_at_period_end: subscription.cancel_at_period_end ?? null, // この属性がtrueならステータスがアクティブであるサブスクが現在の期間の終わりにキャンセルされる予定を表す
+            cancel_at_period_end: subscription.cancel_at_period_end! ?? null, // この属性がtrueならステータスがアクティブであるサブスクが現在の期間の終わりにキャンセルされる予定を表す
             canceled_at: subscription.canceled_at ? new Date(subscription.canceled_at * 1000).toISOString() : null,
             cancel_comment: subscription.cancellation_details?.comment ?? null,
             cancel_feedback: subscription.cancellation_details?.feedback ?? null,

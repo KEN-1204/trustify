@@ -108,7 +108,8 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
             // payloadに基づいてZustandのStateを更新
             setUserProfileState(newUserData as UserProfileCompanySubscription);
 
-            // キャンセルリクエストルート 請求期間終了でdeletedタイプのwebhookによって解約されリアルタイムが発火した場合には「メンバーシップがキャンセルされました」をトーストで表示する。
+            // ================== 🌟キャンセルリクエストルート ==================
+            // 請求期間終了でdeletedタイプのwebhookによって解約されリアルタイムが発火した場合には「メンバーシップがキャンセルされました」をトーストで表示する。
             if (
               payload.new.status === "canceled" &&
               payload.old.status === "active" &&
@@ -130,6 +131,32 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
                 router.reload();
               }, 300);
             }
+            // ================== ✅キャンセルリクエストルート ここまで ==================
+            // ================== 🌟キャンセル後、新たに「メンバーシップを再開」ルート ==================
+            if (
+              payload.new.status === "active" &&
+              payload.old.status === "canceled" &&
+              payload.new.subscription_plan !== "free_plan" &&
+              payload.old.subscription_plan === "free_plan" &&
+              payload.new.subscription_stage === "is_subscribed" &&
+              payload.old.subscription_stage === "is_canceled" &&
+              payload.new.stripe_subscription_id === newUserData.stripe_subscription_id &&
+              payload.old.stripe_subscription_id !== newUserData.stripe_subscription_id
+            ) {
+              toast.success(`おかえりなさい。TRUSTiFYへようこそ！🌟`, {
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+              });
+              // setTimeout(() => {
+              //   router.reload();
+              // }, 300);
+            }
+            // ================== ✅キャンセル後、新たに「メンバーシップを再開」ルート ここまで ==================
           }
         )
         .subscribe();

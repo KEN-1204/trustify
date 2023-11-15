@@ -286,7 +286,9 @@ const ResumeMembershipAfterCancelMemo = () => {
   // 新たなstripeサブスクリプションオブジェクトを作成
   // そのサブスクリプションidを既存のsubscriptionsテーブルのstripe_subscription_idにセットする
   // これで、他メンバーに紐付けいているアカウントをそのまま引き継げる
-  const handleResume = async (planId: string, quantity: number | null) => {
+  // const [isLoadingResume, setIsLoadingResume] = useState(false);
+  const handleResume = async (planId: string | undefined, quantity: number | null) => {
+    if (!planId) return alert("エラー：プランデータが見つかりませんでした");
     if (!userProfileState) return alert("エラー：ユーザー情報が確認できませんでした");
     if (!sessionState) return alert("エラー：セッション情報が確認できませんでした");
     if (!accountQuantity) return alert("メンバーの人数を入力してください");
@@ -318,7 +320,9 @@ const ResumeMembershipAfterCancelMemo = () => {
         isRequiredDeletion: requiredDeletion, // APIルートでメンバー削除が必要かどうか
         deletedMemberSubscribedAccountIdsArray: deletedMemberSubscribedAccountIdsArray, // APIルートでメンバー削除が必要かどうか
         deletedNotSetAccountQuantity: deletedNotSetAccountQuantity, // 削除が必要な余分な未設定アカウント数量
+        requiredNewCountToCreate: requiredNewCountToCreate, // 新たに作成が必要なアカウント数
       };
+      console.log("axios.postに渡すpayload", payload);
       const {
         data: { data: newSubscription, error: axiosStripeError },
       } = await axios.post(`/api/subscription/resume-subscription`, payload, {
@@ -327,14 +331,24 @@ const ResumeMembershipAfterCancelMemo = () => {
         },
       });
       console.log(
-        `🌟Stripeサブスク再開ステップ6 Apiからのdata newSubscription`,
+        `🌟Stripeサブスク再開ステップ9 Apiからのdata newSubscription`,
         newSubscription,
         "axiosStripeError",
         axiosStripeError
       );
       if (axiosStripeError) throw new Error(axiosStripeError.message);
       setTimeout(() => {
+        // toast.success(`メンバーシップの登録が完了しました！ おかえりなさい。TRUSTiFYへようこそ！`, {
+        //   position: "top-right",
+        //   autoClose: 5000,
+        //   hideProgressBar: false,
+        //   closeOnClick: true,
+        //   pauseOnHover: true,
+        //   draggable: true,
+        //   progress: undefined,
+        // });
         runFireworks();
+        // router.reload();
       }, 300);
     } catch (e: any) {
       console.error("サブスク再開エラー", e);
@@ -409,7 +423,7 @@ const ResumeMembershipAfterCancelMemo = () => {
 
       toast.success(`チームの削除とデータのリセットが完了しました! リスタートを始めます。`, {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 5000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
@@ -517,21 +531,22 @@ const ResumeMembershipAfterCancelMemo = () => {
     }
   };
 
-  // アカウントが足りない個数
+  // アカウントが足りない個数(メンバーシップ再開にあたり)
   const lackAccountCount =
     !!activeAccountsState.length && !!accountQuantity ? activeAccountsState.length - accountQuantity : 0;
-  // 今回削除が必要な未設定アカウント数(余分な数) = 前回の契約アカウント数 - メンバーアカウント削除数 - 今回の契約数
+  // 今回削除が必要な未設定アカウント数(余分な数) = 前回の契約アカウント数 - メンバーアカウント削除数 - 今回の契約数(メンバーシップ再開にあたり)
   const deletedNotSetAccountQuantity =
     !!memberAccountsDataArray && !!accountQuantity
       ? memberAccountsDataArray.length - selectedMembersArrayForDeletion.length - accountQuantity
       : 0;
+  // 新たに作成が必要な個数(メンバーシップ再開にあたり)
+  const requiredNewCountToCreate =
+    !!memberAccountsDataArray && !!accountQuantity ? accountQuantity - memberAccountsDataArray.length : 0;
 
   console.log(
     "ResumeMembershipAfterCancelレンダリング",
     "✅selectedRadioButton",
     selectedRadioButton,
-    "✅今回の契約数accountQuantity",
-    accountQuantity,
     "✅planBusiness",
     planBusiness,
     "✅planPremium",
@@ -540,6 +555,8 @@ const ResumeMembershipAfterCancelMemo = () => {
     userProfileState,
     "✅defaultPaymentMethodState",
     defaultPaymentMethodState,
+    "✅並び替え前メンバー配列",
+    memberAccountsDataArray,
     "✅並び替え済みメンバー配列",
     sortedMemberAccountsState,
     "✅設定済みアカウント配列",
@@ -554,15 +571,21 @@ const ResumeMembershipAfterCancelMemo = () => {
     requiredDeletion,
     "✅選択された削除対象メンバー",
     selectedMembersArrayForDeletion,
+    "✅今回の契約数",
+    accountQuantity,
+    "✅現在のメンバー数",
+    memberAccountsDataArray?.length,
     "✅削除が必要な未設定アカウント数",
-    deletedNotSetAccountQuantity
+    deletedNotSetAccountQuantity,
+    "✅新たに作成が必要なアカウント数",
+    requiredNewCountToCreate
   );
 
   if (!userProfileState || useQueryIsLoading) return <FallbackResumeMembershipAfterCancel />;
 
   return (
     <div className={`fixed inset-0 z-[2000] ${styles.bg_image}`} ref={modalContainerRef}>
-      {isLoadingReset && (
+      {(isLoadingReset || isLoadingSubmit) && (
         <div className={`${styles.loading_overlay} `}>
           <SpinnerIDS scale={"scale-[0.5]"} />
         </div>
@@ -1152,6 +1175,7 @@ const ResumeMembershipAfterCancelMemo = () => {
                         className={`flex-center h-[40px] w-full cursor-pointer rounded-[6px] bg-[var(--color-bg-brand-f)] font-bold text-[#fff] ${
                           isLoadingPortal ? `` : `hover:bg-[var(--color-bg-brand-f-deep)]`
                         }`}
+                        onClick={() => handleResume(planBusiness?.id, accountQuantity)}
                         // onClick={() => {
                         //   if (selectedRadioButton === "business_plan" && !!planBusiness)
                         //     handleResume(planBusiness.id, accountQuantity);
