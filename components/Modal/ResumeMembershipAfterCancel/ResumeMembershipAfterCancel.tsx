@@ -27,6 +27,7 @@ import { MdClose } from "react-icons/md";
 import { MemberCard } from "./MemberCard";
 import { normalizeDeleteSpace } from "@/utils/Helpers/normalizeDeleteSpace";
 import { teamIllustration } from "@/components/assets";
+import { isValidUUIDv4 } from "@/utils/Helpers/uuidHelpers";
 
 type Plans = {
   id: string;
@@ -112,13 +113,16 @@ const ResumeMembershipAfterCancelMemo = () => {
   } = useQueryMemberAccounts();
 
   // メンバー数分チェックするStateの配列
-  const [checkedMembersArray, setCheckedMembersArray] = useState(
-    memberAccountsDataArray
-      ? Array(!!memberAccountsDataArray.length ? memberAccountsDataArray.length : 1).fill(false)
-      : []
-  );
+  // const [checkedMembersArray, setCheckedMembersArray] = useState(
+  //   memberAccountsDataArray
+  //     ? Array(!!memberAccountsDataArray.length ? memberAccountsDataArray.length : 1).fill(false)
+  //     : []
+  // );
+  // 選択された削除メンバーの配列Zustand
+  const selectedMembersArrayForDeletion = useDashboardStore((state) => state.selectedMembersArrayForDeletion);
+  const setSelectedMembersArrayForDeletion = useDashboardStore((state) => state.setSelectedMembersArrayForDeletion);
   // チェックされたメンバーを保持する配列のState
-  const [selectedMemberArray, setSelectedMemberArray] = useState<MemberAccounts[]>([]);
+  // const [selectedMemberArray, setSelectedMemberArray] = useState<MemberAccounts[]>([]);
   // 並び替え後
   const [sortedMemberAccountsState, setSortedMemberAccountsState] = useState<MemberAccounts[]>([]);
   // 未設定
@@ -277,6 +281,8 @@ const ResumeMembershipAfterCancelMemo = () => {
   };
 
   // =============== 🌟「再開する」クリック メンバーシップを再開 ===============
+  // 🔹チームからメンバー削除も実行するパターン(requiredDeletionがtrueの場合)
+  // 🔹チームからメンバー削除は不要なパターン(requiredDeletionがfalseの場合)
   // 新たなstripeサブスクリプションオブジェクトを作成
   // そのサブスクリプションidを既存のsubscriptionsテーブルのstripe_subscription_idにセットする
   // これで、他メンバーに紐付けいているアカウントをそのまま引き継げる
@@ -284,9 +290,24 @@ const ResumeMembershipAfterCancelMemo = () => {
     if (!userProfileState) return alert("エラー：ユーザー情報が確認できませんでした");
     if (!sessionState) return alert("エラー：セッション情報が確認できませんでした");
     if (!accountQuantity) return alert("メンバーの人数を入力してください");
+    if (!memberAccountsDataArray) return alert("エラー：メンバー情報が見つかりませんでした");
     setIsLoadingSubmit(true);
 
     try {
+      // requiredDeletionとselectedMembersForDeletionも渡して、APIルート側でrequiredDeletionのbool値によってメンバー削除の可否をハンドリングする
+      let deletedMemberSubscribedAccountIdsArray;
+      let deleteNotSetAccountQuantity: number;
+      if (requiredDeletion) {
+        deletedMemberSubscribedAccountIdsArray = selectedMembersArrayForDeletion.map(
+          (member) => member.subscribed_account_id
+        );
+        if (deletedMemberSubscribedAccountIdsArray.every((id) => id && isValidUUIDv4(id)) === false) return;
+        console.log(
+          "🌟Stripeメンバーシップ再開ステップ0 削除するメンバーのアカウントIDの配列を全てUUIDチェック完了",
+          deletedMemberSubscribedAccountIdsArray
+        );
+      }
+
       const payload = {
         stripeCustomerId: userProfileState.stripe_customer_id,
         planId: planId,
@@ -294,6 +315,9 @@ const ResumeMembershipAfterCancelMemo = () => {
         companyId: userProfileState.company_id,
         dbSubscriptionId: userProfileState.subscription_id,
         paymentMethodId: defaultPaymentMethodState.id,
+        isRequiredDeletion: requiredDeletion, // APIルートでメンバー削除が必要かどうか
+        deletedMemberSubscribedAccountIdsArray: deletedMemberSubscribedAccountIdsArray, // APIルートでメンバー削除が必要かどうか
+        deletedNotSetAccountQuantity: deletedNotSetAccountQuantity, // 削除が必要な余分な未設定アカウント数量
       };
       const {
         data: { data: newSubscription, error: axiosStripeError },
@@ -493,11 +517,20 @@ const ResumeMembershipAfterCancelMemo = () => {
     }
   };
 
+  // アカウントが足りない個数
+  const lackAccountCount =
+    !!activeAccountsState.length && !!accountQuantity ? activeAccountsState.length - accountQuantity : 0;
+  // 今回削除が必要な未設定アカウント数(余分な数) = 前回の契約アカウント数 - メンバーアカウント削除数 - 今回の契約数
+  const deletedNotSetAccountQuantity =
+    !!memberAccountsDataArray && !!accountQuantity
+      ? memberAccountsDataArray.length - selectedMembersArrayForDeletion.length - accountQuantity
+      : 0;
+
   console.log(
     "ResumeMembershipAfterCancelレンダリング",
     "✅selectedRadioButton",
     selectedRadioButton,
-    "✅accountQuantity",
+    "✅今回の契約数accountQuantity",
     accountQuantity,
     "✅planBusiness",
     planBusiness,
@@ -513,12 +546,16 @@ const ResumeMembershipAfterCancelMemo = () => {
     activeAccountsState,
     "✅未設定アカウント配列",
     notSetAccountsState,
-    "✅選択されたアカウント配列",
-    selectedMemberArray,
+    // "✅選択されたアカウント配列",
+    // selectedMemberArray,
     "✅stepContents",
     stepContents,
     "✅メンバーの削除が必要かどうか",
-    requiredDeletion
+    requiredDeletion,
+    "✅選択された削除対象メンバー",
+    selectedMembersArrayForDeletion,
+    "✅削除が必要な未設定アカウント数",
+    deletedNotSetAccountQuantity
   );
 
   if (!userProfileState || useQueryIsLoading) return <FallbackResumeMembershipAfterCancel />;
@@ -671,7 +708,7 @@ const ResumeMembershipAfterCancelMemo = () => {
                   <div className={`w-full space-y-2 py-[20px]`}>
                     <div className="flex space-x-3">
                       <BsCheck2 className="stroke-1 text-[24px] text-[#00d436]" />
-                      {stepContents !== "resume_2" && <p>全てのコンテンツを使い放題。</p>}
+                      {stepContents === "" && <p>全てのコンテンツを使い放題。</p>}
                       {stepContents === "resume_2" && (
                         <p
                           className={`cursor-pointer hover:text-[var(--color-text-brand-f)]`}
@@ -680,11 +717,13 @@ const ResumeMembershipAfterCancelMemo = () => {
                           メンバーアカウントが足りないため、アカウントを増やす。
                         </p>
                       )}
+                      {stepContents === "resume_3" && <p>最後は支払い方法を確認しましょう！</p>}
                     </div>
                     <div className="flex space-x-3">
                       <BsCheck2 className="stroke-1 text-[24px] text-[#00d436]" />
-                      {stepContents !== "resume_2" && <p>簡単登録、いつでもキャンセルできます。</p>}
+                      {stepContents === "" && <p>簡単登録、いつでもキャンセルできます。</p>}
                       {stepContents === "resume_2" && <p>契約アカウント数までメンバーをチームから削除する。</p>}
+                      {stepContents === "resume_3" && <p>これで準備完了です！早速メンバーシップを始めましょう！</p>}
                     </div>
                   </div>
                 </div>
@@ -726,8 +765,8 @@ const ResumeMembershipAfterCancelMemo = () => {
                       </div>
                     </div> */}
 
-                    {/* ラジオボタン */}
-                    <div className="flex w-full flex-col items-center justify-start space-y-[20px] py-[20px]">
+                    {/* ラジオボタンエリア */}
+                    <div className="flex w-full flex-col items-center justify-start space-y-[20px] pb-[20px] pt-[10px]">
                       {/* ビジネスプランラジオボタン */}
                       <div className="flex h-full w-full flex-col">
                         <div className="group/item relative flex h-full w-full  items-center justify-between whitespace-nowrap ">
@@ -897,15 +936,15 @@ const ResumeMembershipAfterCancelMemo = () => {
                   {/* 前回の設定済みメンバーアカウント数が今回の契約数よりも多い場合(削除必要な場合) */}
                   {requiredDeletion && (
                     <div className={`${styles.left_slide_scroll_right} relative`}>
-                      <div className="mt-[20px] flex h-auto w-full items-center justify-between text-[20px] font-bold text-[var(--color-text-title)]">
-                        <h2 className="mr-[20px] min-w-fit">メンバーアカウントの設定</h2>
+                      <div className="mt-[10px] flex h-auto w-full items-center justify-between text-[20px] font-bold text-[var(--color-text-title)]">
+                        <h2 className="mr-[20px] min-w-fit">メンバーの設定</h2>
                         {/* ======= 入力、検索エリア ====== */}
-                        <div className={`relative flex w-full max-w-[210px] items-center`}>
+                        <div className={`relative flex w-full max-w-[230px] items-center`}>
                           <HiOutlineSearch className="absolute left-[8px] top-[50%] translate-y-[-50%] text-[20px] text-[var(--color-text-sub)]" />
                           <input
                             type="text"
                             placeholder={`チームメンバーの検索`}
-                            className={`${styles.input_box2} !pl-[36px]`}
+                            className={`${styles.input_box2} !pl-[36px] !pr-[36px]`}
                             value={input}
                             onChange={(e) => {
                               setInput(e.target.value);
@@ -942,12 +981,16 @@ const ResumeMembershipAfterCancelMemo = () => {
 
                       {/* ======= メンバー一覧エリア ======= */}
                       <div
-                        className={`relative mt-[10px] flex h-full max-h-[258px] min-h-[290px] w-full flex-col overflow-y-scroll`}
+                        className={`relative mt-[10px] flex h-full max-h-[290px] min-h-[290px] w-full flex-col overflow-y-scroll`}
                       >
                         <div className={`relative flex w-full flex-col `}>
+                          {/* inputが名前とemailに含まれているメンバーを抽出 */}
                           {activeAccountsState
-                            ?.filter((account) =>
-                              normalizeDeleteSpace(account.profile_name ? account.profile_name : ``).includes(input)
+                            ?.filter(
+                              (account) =>
+                                normalizeDeleteSpace(account.profile_name ? account.profile_name : ``).includes(
+                                  input
+                                ) || (account.email ? account.email : ``).includes(input)
                             )
                             .map((member, index) => {
                               if (member.id === userProfileState?.id) return;
@@ -979,12 +1022,34 @@ const ResumeMembershipAfterCancelMemo = () => {
                       {/* ======= メンバー一覧エリア ここまで ======= */}
 
                       {/* ボタンエリア */}
-                      <div className="absolute bottom-0 left-0 flex h-auto w-full flex-col px-[32px] pb-[22px] pt-[15px]">
+                      <div className="shadow-top-md absolute bottom-0 left-0 flex h-auto w-full flex-col px-[32px] pb-[12px] pt-[0px]">
+                        {/* 選択した人数と、残り選択が必要な人数を表示するエリア */}
+                        <div className="flex w-full items-center py-[15px] text-[14px]">
+                          <div className="flex w-6/12 items-center">
+                            <span>削除する人数：</span>
+                            <span>{selectedMembersArrayForDeletion.length}</span>
+                          </div>
+                          <div className="flex min-h-[24px] w-6/12 items-center">
+                            <span>残り削除が必要な人数：</span>
+                            {selectedMembersArrayForDeletion.length >= lackAccountCount ? (
+                              <BsCheck2 className="stroke-[0.5] text-[24px] text-[var(--vivid-green)]" />
+                            ) : (
+                              <span>{lackAccountCount}</span>
+                            )}
+                          </div>
+                        </div>
                         {/* メンバーシップを開始するボタン */}
                         <div className="w-full">
                           <button
-                            className={`flex-center h-[40px] w-full cursor-pointer rounded-[6px] bg-[var(--color-bg-brand-f)] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
-                            onClick={() => setStepContents("resume_3")}
+                            className={`flex-center h-[40px] w-full rounded-[6px] font-bold ${
+                              selectedMembersArrayForDeletion.length >= lackAccountCount
+                                ? `cursor-pointer bg-[var(--color-bg-brand-f)] text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`
+                                : `cursor-not-allowed bg-[var(--color-bg-brand-f-disabled)] text-[var(--color-btn-brand-text-disabled)]`
+                            }`}
+                            onClick={() => {
+                              if (selectedMembersArrayForDeletion.length < lackAccountCount) return;
+                              setStepContents("resume_3");
+                            }}
                           >
                             {/* {!isLoading && <span>メンバーシップを開始する</span>} */}
                             {!isLoadingSubmit && <span>続ける</span>}
@@ -992,7 +1057,7 @@ const ResumeMembershipAfterCancelMemo = () => {
                           </button>
                         </div>
                         {/* メンバーシップを開始するボタン ここまで */}
-                        <div className="w-full pt-[15px]">
+                        <div className="w-full pt-[10px]">
                           <div className={`flex-center h-[40px] w-full`}>
                             <span
                               className={`cursor-pointer text-[var(--color-text-sub)] hover:text-[var(--color-text-sub-deep)]`}
@@ -1008,7 +1073,7 @@ const ResumeMembershipAfterCancelMemo = () => {
                   {/* 左スライドコンテンツラッパー 2ページ目 ここまで */}
                   {/* 左スライドコンテンツラッパー 3ページ目 */}
                   <div className={`${styles.left_slide_scroll_right}`}>
-                    <div className="mt-[20px] h-auto w-full text-[20px] font-bold text-[var(--color-text-title)]">
+                    <div className="mt-[10px] h-auto w-full text-[20px] font-bold text-[var(--color-text-title)]">
                       <h2>お支払い方法の設定</h2>
                     </div>
 
@@ -1151,26 +1216,56 @@ const ResumeMembershipAfterCancelMemo = () => {
                   <div className="z-0 flex min-h-[57%] w-[70%] flex-col rounded-[8px] bg-[var(--color-modal-bg-side-c-secondc0)] px-[24px] pb-[8px] pt-[58px] text-[var(--color-text-title)]">
                     <p className={`text-[14px] font-bold`}>現在のアカウント状況は以下の通りです。</p>
                     <div className="mt-[12px] flex h-auto w-full text-[14px]">
-                      <p className="mr-[4px]">1.</p>
+                      {/* <p className="mr-[4px]">1.</p> */}
                       <p>
-                        前回のメンバーアカウント数は<span>{}</span>
+                        前回参加していたメンバーの人数は
+                        <span className={`font-bold text-[var(--color-text-brand-f)]`}>
+                          {activeAccountsState.length}人
+                        </span>
+                        です。
                       </p>
                     </div>
-                    <div className="mt-[16px] flex h-auto w-full text-[14px]">
-                      <p className="mr-[4px]">2.</p>
+                    <div className="mt-[4px] flex h-auto w-full text-[14px]">
+                      {/* <p className="mr-[4px]">2.</p> */}
                       <div className="flex w-full flex-col">
-                        <p>任命されたメンバーが承諾するのを待ちます。</p>
-                        <p className="mt-[4px] text-[12px] text-[var(--color-text-sub)]">
+                        <p>
+                          今回選択した契約アカウント数は
+                          <span className={`font-bold text-[var(--color-text-brand-f)]`}>{accountQuantity}つ</span>
+                          のため、前回のメンバーが参加するには
+                          <span className={`font-bold text-[var(--bright-red)]`}>{lackAccountCount}つ</span>
+                          足りません。
+                        </p>
+
+                        {/* <p className="mt-[4px] text-[12px] text-[var(--color-text-sub)]">
                           任命された人は、このチーム、チームメンバー、チームコンテンツの新しい管理者権限を持つことになります。
+                        </p> */}
+                      </div>
+                    </div>
+
+                    <p className={`mt-[16px] text-[14px]`}>以下のどちらかの手順で始めましょう。</p>
+
+                    <div className="mt-[16px] flex h-auto w-full text-[14px]">
+                      <p className="mr-[4px] font-bold">○</p>
+                      <div className="flex w-full flex-col">
+                        <p
+                          className="cursor-pointer font-bold hover:text-[var(--color-text-brand-f)] hover:underline"
+                          onClick={() => setStepContents("")}
+                        >
+                          前回のメンバー全員が参加できるようメンバーアカウントを増やして始める。
+                        </p>
+                        <p className="mt-[4px] text-[12px] text-[var(--color-text-sub)]">
+                          メンバーアカウントを増やすことで、メンバーをチームから削除せずに始められます。
                         </p>
                       </div>
                     </div>
                     <div className="mt-[16px] flex h-auto w-full text-[14px]">
-                      <p className="mr-[4px]">3.</p>
+                      <p className="mr-[4px] font-bold">○</p>
                       <div className="flex w-full flex-col">
-                        <p>任命されたメンバーが承諾すると、あなたの役割は所有者から管理者に切り替わります。</p>
+                        <p className="font-bold">前回のメンバーをチームから削除して始める。</p>
                         <p className="mt-[4px] text-[12px] text-[var(--color-text-sub)]">
-                          新しい所有者が承諾すると、この操作を元に戻すことはできません。
+                          始めるにはチームからあと
+                          <span className="font-bold text-[var(--bright-red)]">{lackAccountCount}人</span>
+                          削除が必要です。
                         </p>
                       </div>
                     </div>

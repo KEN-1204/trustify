@@ -165,6 +165,11 @@ type State = {
   defaultPaymentMethodState: any | null;
   setDefaultPaymentMethodState: (payload: any | null) => void;
 
+  // =================== メンバーシップ再開 ===================
+  // 【削除するメンバーのオブジェクトを保持する配列】
+  selectedMembersArrayForDeletion: MemberAccounts[];
+  setSelectedMembersArrayForDeletion: (payload: MemberAccounts[]) => void;
+
   // =================== アンダーテーブル関連 ===================
   // 【サーチモード切り替え】
   searchMode: boolean;
@@ -419,6 +424,11 @@ const useDashboardStore = create<State>((set) => ({
   // 【デフォルトの支払い方法】
   defaultPaymentMethodState: null,
   setDefaultPaymentMethodState: (payload) => set({ defaultPaymentMethodState: payload }),
+
+  // =================== メンバーシップ再開 ===================
+  // 【削除するメンバーのオブジェクトを保持する配列】
+  selectedMembersArrayForDeletion: [],
+  setSelectedMembersArrayForDeletion: (payload) => set({ selectedMembersArrayForDeletion: payload }),
 
   // =================== テーブルサイズ切り替えボタン ===================
   // 【テーブルサイズ切り替えメニュー開閉状態】

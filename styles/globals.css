@@ -222,9 +222,13 @@ bg-[#06c755] */
   --color-bg-brand-f-disabled: #0d99ff50;
   --color-bg-brand-f05: #e5f4ff;
   --color-bg-brand-f10: #0d99ff10;
+  --color-bg-brand-f20: #0d99ff20;
   --color-bg-brand-f30: #0d99ff30;
+  --color-bg-brand-f40: #0d99ff40;
   --color-bg-brand-f50: #0d99ff50;
+  --color-bg-brand-f60: #0d99ff60;
   --color-bg-brand-f70: #0d99ff70;
+  --color-bg-brand-f80: #0d99ff80;
   --color-bg-brand-f08: #0d99ff90;
   --color-bg-brand-f90: #0d99ff90;
   --color-bg-brand-fa0: #0d99ffa0;
@@ -362,6 +366,7 @@ bg-[#06c755] */
   /* --color-btn-brand-f: #2b7fffc0;
   --color-btn-brand-f-hover: #2b7fff; */
   --color-btn-text: #fff;
+  --color-btn-brand-text-disabled: #fff;
   --color-btn-brand: #2b7fff;
   --color-btn-brand-rgb: 43, 127, 255;
   --color-btn-brand-hover: #2571e2;
@@ -723,9 +728,13 @@ bg-[#06c755] */
   --color-bg-brand-f-disabled: #0d99ff30;
   --color-bg-brand-f05: #0e5d95; /* Figma */
   --color-bg-brand-f10: #0c8ce910;
+  --color-bg-brand-f20: #0c8ce920;
   --color-bg-brand-f30: #0c8ce930;
+  --color-bg-brand-f40: #0c8ce940;
   --color-bg-brand-f50: #0c8ce950;
+  --color-bg-brand-f60: #0c8ce960;
   --color-bg-brand-f70: #0c8ce970;
+  --color-bg-brand-f80: #0c8ce980;
   --color-bg-brand-f08: #0c8ce990;
   --color-bg-brand-f90: #0c8ce990;
   --color-bg-brand-fa0: #0c8ce9a0;
@@ -828,6 +837,7 @@ bg-[#06c755] */
   /* --color-btn-brand-f: #2b7fff50;
   --color-btn-brand-f-hover: #2b7fff; */
   --color-btn-text: #fff;
+  --color-btn-brand-text-disabled: #999;
   --color-btn-brand: #2b7fff;
   --color-btn-brand-rgb: 43, 127, 255;
   --color-btn-brand-hover: #2571e2;

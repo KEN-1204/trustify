@@ -272,9 +272,9 @@
 .close_btn_number:hover {
   background: var(--close-bg);
 }
-.input_box2:focus ~ .close_btn_number {
+/* .input_box2:focus ~ .close_btn_number {
   display: none;
-}
+} */
 .underline {
   min-height: 1px;
   width: 100%;
