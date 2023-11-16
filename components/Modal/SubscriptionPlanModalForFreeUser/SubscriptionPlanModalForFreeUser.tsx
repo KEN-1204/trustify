@@ -13,6 +13,7 @@ import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { IoLogOutOutline } from "react-icons/io5";
 import { toast } from "react-toastify";
+import { runFireworks } from "@/utils/confetti";
 
 type Plans = {
   id: string;
@@ -59,6 +60,19 @@ export const SubscriptionPlanModalForFreeUser = () => {
             userData
           );
           setUserProfileState(userData[0]);
+
+          // setTimeout(() => {
+          //   toast.success(`セットアップが完了しました！ TRUSTiFYへようこそ！`, {
+          //     position: "top-right",
+          //     autoClose: 5000,
+          //     hideProgressBar: false,
+          //     closeOnClick: true,
+          //     pauseOnHover: true,
+          //     draggable: true,
+          //     progress: undefined,
+          //   });
+          //   runFireworks();
+          // }, 200);
         } catch (e: any) {
           console.error(`SubscriptionPlanModalForFreeUserコンポーネント get_user_data関数エラー`, e);
         }

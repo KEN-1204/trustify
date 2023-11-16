@@ -414,6 +414,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
           </Suspense>
         </ErrorBoundary>
       )}
+      {/* 解約後のメンバーに表示するモーダル */}
       {/* {showResumeMembershipAfterCancel && <FallbackResumeMembershipAfterCancel />} */}
       {showRestartAfterCancelForMember && (
         <ErrorBoundary FallbackComponent={ErrorFallback}>

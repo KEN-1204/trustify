@@ -300,6 +300,7 @@ export type UserProfile = {
   usage: string | null;
   purpose_of_use: string | null;
 };
+// get_user_data関数のユーザー全データ保持用
 export type UserProfileCompanySubscription = {
   id: string;
   created_at: string;
@@ -396,6 +397,7 @@ export type SubscribedAccount = {
   account_state: string | null;
   invited_email: string | null;
 };
+// profilesとsubscribed_accountsの外部結合データ
 export type MemberAccounts = {
   id: string;
   created_at: string;

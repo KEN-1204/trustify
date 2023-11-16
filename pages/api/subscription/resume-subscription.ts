@@ -42,6 +42,12 @@ const resumeSubscriptionHandler = async (req: NextApiRequest, res: NextApiRespon
     console.log("🌟Stripeメンバーシップ再開ステップ2 jwt.verify認証完了 payload", payload);
     const userId = payload.sub; // 'sub' field usually contains the user id.
 
+    // 配列内のオブジェクトの型を定義
+    interface DeleteMemberData {
+      id: string;
+      subscribed_account_id: string;
+    }
+
     // axios.post()メソッドのリクエストボディから変数を取得
     const {
       stripeCustomerId,
@@ -50,32 +56,31 @@ const resumeSubscriptionHandler = async (req: NextApiRequest, res: NextApiRespon
       companyId,
       dbSubscriptionId,
       paymentMethodId,
-      isRequiredDeletion,
-      deletedMemberSubscribedAccountIdsArray,
+      isRequiredDeletionMemberAccounts,
+      deletedMemberProfileIds_SubscribedAccountIdsArray,
       deletedNotSetAccountQuantity,
+      isRequiredCreate,
+      requiredNewCountToCreate,
     } = req.body;
 
+    // 型アサーションを使用して、deletedMemberProfileIds_SubscribedAccountIdsArrayに型を割り当て
+    // const typedDeletedMemberProfileIds_SubscribedAccountIdsArray: DeletedMemberData[] = deletedMemberProfileIds_SubscribedAccountIdsArray as DeletedMemberData[];
+
+    console.log("🌟Stripeメンバーシップ再開ステップ3 追加するアカウント数とStripe顧客IDをリクエストボディから取得");
+    console.log("✅Stripe顧客ID", stripeCustomerId);
+    console.log("✅planId", planId);
+    console.log("✅quantity", quantity);
+    console.log("✅paymentMethodId", paymentMethodId);
+    console.log("✅companyId", companyId);
+    console.log("✅supabaseのsubscriptionsテーブルのID", dbSubscriptionId);
+    console.log("✅メンバーアカウント削除処理が必要か否か", isRequiredDeletionMemberAccounts);
     console.log(
-      "🌟Stripeメンバーシップ再開ステップ3 追加するアカウント数とStripe顧客IDをリクエストボディから取得",
-      "✅Stripe顧客ID",
-      stripeCustomerId,
-      "✅planId",
-      planId,
-      "✅quantity",
-      quantity,
-      "✅paymentMethodId",
-      paymentMethodId,
-      "✅companyId",
-      companyId,
-      "✅supabaseのdbSubscriptionId",
-      dbSubscriptionId,
-      "✅メンバーアカウント削除処理が必要か否か",
-      isRequiredDeletion,
-      "✅削除するメンバーのアカウントID(subscribed_accountsのid)",
-      deletedMemberSubscribedAccountIdsArray,
-      "✅削除が必要な余分な未設定アカウント数",
-      deletedNotSetAccountQuantity
+      "✅削除するメンバーのプロフィールIDとアカウントID(profiles.idとsubscribed_accounts.id)",
+      deletedMemberProfileIds_SubscribedAccountIdsArray
     );
+    console.log("✅削除が必要な余分な未設定アカウント数", deletedNotSetAccountQuantity);
+    console.log("✅新たにアカウント作成が必要かどうか", isRequiredCreate);
+    console.log("✅新たに作成が必要なアカウント数", requiredNewCountToCreate);
 
     // Ensure stripeCustomerId is a string stripeCustomerIdが文字列であることを確認する。
     if (typeof stripeCustomerId !== "string") {
@@ -103,6 +108,11 @@ const resumeSubscriptionHandler = async (req: NextApiRequest, res: NextApiRespon
         .status(400)
         .json({ error: "❌Stripeメンバーシップ再開ステップ3-2 Invalid deletedNotSetAccountQuantity" });
     }
+    // Ensure requiredNewCountToCreate is a number requiredNewCountToCreateが存在し、requiredNewCountToCreateが数値型であることを確認する。
+    if (typeof requiredNewCountToCreate !== "number") {
+      console.log("❌Stripeメンバーシップ再開ステップ3-2 エラー: Invalid requiredNewCountToCreate");
+      return res.status(400).json({ error: "❌Stripeメンバーシップ再開ステップ3-2 Invalid requiredNewCountToCreate" });
+    }
 
     // Ensure paymentMethodId is a number paymentMethodIdが存在し、paymentMethodIdが数値型であることを確認する。
     if (!paymentMethodId || typeof paymentMethodId !== "string") {
@@ -110,109 +120,165 @@ const resumeSubscriptionHandler = async (req: NextApiRequest, res: NextApiRespon
       return res.status(400).json({ error: "❌Stripeメンバーシップ再開ステップ3-2 Invalid paymentMethodId" });
     }
 
-    // ==================== 🌟「メンバーアカウント削除」 ====================
-    // isRequiredDeletionがtrueの場合にのみ処理を実行
-    if (isRequiredDeletion) {
-      // 削除対象メンバーのprofilesのidに紐づくuser_idを持つsubscribed_accountsテーブルのデータを全て削除する
-      // まずは削除するメンバーのsubscribed_accountsテーブルのidを保持する配列の全てのidがUUIDかどうかをチェックする
-      const isValidUUIDv4 = (uuid: string): boolean => {
-        return /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/.test(uuid);
-      };
-      if ((deletedMemberSubscribedAccountIdsArray as string[]).every((id) => id && isValidUUIDv4(id)) === false) {
-        console.log("❌Stripeメンバーシップ再開ステップ4 エラー: Invalid deletedMemberSubscribedAccountIdsArray");
-        return res
-          .status(400)
-          .json({ error: "❌Stripeメンバーシップ再開ステップ4 Invalid deletedMemberSubscribedAccountIdsArray" });
-      }
-      // 配列内の全てのidがUUIDのチェックが完了したら、削除対象となるメンバーのsubscribed_accountsテーブルデータを全て削除する
-      // これをすることで、今回契約するアカウント数とsubscribed_accountsに紐づいているメンバーの数が揃うので、
-      // subscriptionsテーブルのstripe_subscription_idをstripeで新たに作成するサブスクリプションオブジェクトのidをセットするだけで紐付けが完了する
-      console.log(
-        "🌟Stripeメンバーシップ再開ステップ4 今回はチームからメンバーの削除が必要 削除対象のメンバーのidを保持する配列のUUIDチェックも完了",
-        deletedMemberSubscribedAccountIdsArray
-      );
-      // ==================== 🌟「メンバーアカウント」「未設定アカウント」同時削除 ====================
-      // 🔹ステップ5と6同時 余分な未設定アカウントの削除も必要ならメンバー削除と同時に行い、
-      if (deletedNotSetAccountQuantity > 0) {
-        const payload = {
-          _subscribed_account_ids_to_delete: deletedMemberSubscribedAccountIdsArray,
-          _subscription_id: dbSubscriptionId, // subscriptionsテーブルのid
-          _delete_quantity: deletedNotSetAccountQuantity, // 未設定アカウントの削除数
-        };
-        console.log(
-          "🌟Stripeメンバーシップ再開ステップ5と6 rpcで「メンバーアカウント」と「未設定アカウント」を同時に削除実行 パラメータに渡すpayload",
-          payload
-        );
-        const { error: executeDeleteError } = await supabase.rpc("execute_delete_operations", payload);
-
-        if (executeDeleteError) {
-          console.log(
-            "❌Stripeメンバーシップ再開ステップ5と6 メンバーアカウントと未設定アカウントの同時削除失敗 エラー: ",
-            executeDeleteError
-          );
-          return res.status(400).json({
-            error: `❌Stripeメンバーシップ再開ステップ5と6 メンバーアカウントと未設定アカウントの同時削除失敗 ${executeDeleteError.message}`,
-          });
-        }
-        console.log(
-          "🌟Stripeメンバーシップ再開ステップ5と6の結果 メンバーアカウントと未設定アカウントの同時削除が無事に成功"
-        );
-      }
-      // ==================== ✅「メンバーアカウント」「未設定アカウント」同時削除 ここまで ====================
-      // ==================== 🌟「メンバーアカウント削除」のみ ====================
-      // 🔹ステップ5のみ 余分なアカウントがなければメンバー削除のみ行う
-      else {
-        const payload = {
-          _subscribed_account_ids_to_delete: deletedMemberSubscribedAccountIdsArray,
-        };
-        console.log(
-          "🌟Stripeメンバーシップ再開ステップ5 rpcでメンバーアカウントの削除を実行 パラメータに渡すpayload",
-          payload
-        );
-        const { error: deleteMEmberAccountError } = await supabase.rpc("delete_member_subscribed_accounts", payload);
-
-        if (deleteMEmberAccountError) {
-          console.log(
-            "❌Stripeメンバーシップ再開ステップ5 メンバーアカウント削除失敗 エラー: ",
-            deleteMEmberAccountError
-          );
-          return res.status(400).json({
-            error: `❌Stripeメンバーシップ再開ステップ5 メンバーアカウント削除失敗 ${deleteMEmberAccountError.message}`,
-          });
-        }
-        console.log("🌟Stripeメンバーシップ再開ステップ5の結果 メンバーアカウントの削除が無事に成功");
-      }
-      // ==================== 🌟「メンバーアカウント削除」のみ ここまで ====================
-    }
-    // ==================== ✅「メンバーアカウント」削除 ここまで ====================
-    // ==================== 🌟「未設定アカウント削除」のみ ====================
-    // 🔹ステップ6のみ メンバーアカウント削除は不要で未設定アカウントのみ削除が必要なルート
-    else if (deletedNotSetAccountQuantity > 0) {
-      // チーム所有者のsubscription_idに一致するuser_idがnullのsubscribed_accountsテーブルのデータを全て削除する
-      // subscriptionテーブルのidに一致するsubscription_idを持つuser_idがnullのアカウントを全て削除
-
-      const deletePayload = {
+    // 一番最初の分岐点は「アカウントを作成する必要があるかどうか」
+    // 今回の契約数が前回の契約数（アカウント数）より多い場合は、アカウントが足りないので、アカウント作成が必要
+    // => アカウント作成が必要な場合は、削除は全て不要(メンバーアカウント、未設定アカウントどちらも)
+    // アカウント作成必要 = (今回の契約数 - 前回の契約数) > 0
+    // (今回の契約数 - 前回の契約数)が0以上ならアカウント作成が必要
+    // ==================== 🌟「アカウントの作成」ルート ====================
+    if (isRequiredCreate) {
+      const createPayload = {
+        _create_count: requiredNewCountToCreate,
+        _company_id: companyId, // 未設定アカウントの削除数
         _subscription_id: dbSubscriptionId, // subscriptionsテーブルのid
-        _delete_quantity: deletedNotSetAccountQuantity,
       };
       console.log(
-        "🌟Stripeメンバーシップ再開ステップ6 契約数を超過した数量分の「未設定のアカウント」を全て削除する rpcに渡すpayload",
-        deletePayload
+        "🌟Stripeメンバーシップ再開ステップ4 rpcで_create_countの個数分アカウント作成する パラメータに渡すpayload",
+        createPayload
       );
-      const { error: deleteNotSetAccountError } = await supabase.rpc("delete_not_set_accounts", deletePayload);
+      const { error: createError } = await supabase.rpc("create_new_accounts", createPayload);
 
-      if (deleteNotSetAccountError) {
+      if (createError) {
         console.log(
-          "❌Stripeメンバーシップ再開ステップ6 メンバーアカウント削除失敗 エラー: ",
-          deleteNotSetAccountError
+          "❌Stripeメンバーシップ再開ステップ4 rpcで_create_countの個数分アカウント作成失敗 エラー: ",
+          createError
         );
         return res.status(400).json({
-          error: `❌Stripeメンバーシップ再開ステップ6の結果 未設定アカウント削除失敗 ${deleteNotSetAccountError.message}`,
+          error: `❌Stripeメンバーシップ再開ステップ4 rpcで_create_countの個数分アカウント作成失敗 エラー:  ${createError.message}`,
         });
       }
-      console.log("🌟Stripeメンバーシップ再開ステップ6の結果 未設定アカウントの削除が無事に成功");
-      // ==================== ✅「未設定アカウント削除」のみ ここまで ====================
+      console.log("🌟Stripeメンバーシップ再開ステップ4の結果 rpcで_create_countの個数分アカウント作成成功");
     }
+    // ==================== 🌟「アカウントの作成」ルート ここまで ====================
+    // ==================== 🌟「アカウント削除」ルート ====================
+    else {
+      // ==================== 🌟「メンバーアカウント削除」 ====================
+      // isRequiredDeletionがtrueの場合にのみ処理を実行
+      if (isRequiredDeletionMemberAccounts) {
+        // 削除対象メンバーのprofilesのidに紐づくuser_idを持つsubscribed_accountsテーブルのデータを全て削除する
+        // まずは削除するメンバーのsubscribed_accountsテーブルのidを保持する配列の全てのidがUUIDかどうかをチェックする
+        const isValidUUIDv4 = (uuid: string): boolean => {
+          return /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/.test(uuid);
+        };
+        // every()で全てUUIDかチェックし、trueでOKならnot演算子でfalseにし、チェックがNGなら!でtrueにしリターンさせる
+        if (typeof deletedMemberProfileIds_SubscribedAccountIdsArray === "undefined") {
+          console.log(
+            "❌Stripeメンバーシップ再開ステップ4 エラー: deletedMemberSubscribedAccountIdsArray is undefined"
+          );
+          return res.status(400).json({
+            error: "❌Stripeメンバーシップ再開ステップ4  deletedMemberSubscribedAccountIdsArray is undefined",
+          });
+        }
+        if (
+          !(deletedMemberProfileIds_SubscribedAccountIdsArray as DeleteMemberData[]).every(
+            (obj) =>
+              obj.id && isValidUUIDv4(obj.id) && obj.subscribed_account_id && isValidUUIDv4(obj.subscribed_account_id)
+          )
+        ) {
+          console.log("❌Stripeメンバーシップ再開ステップ4 エラー: Invalid deletedMemberSubscribedAccountIdsArray");
+          return res
+            .status(400)
+            .json({ error: "❌Stripeメンバーシップ再開ステップ4 Invalid deletedMemberSubscribedAccountIdsArray" });
+        }
+        // 配列内の全てのidがUUIDのチェックが完了したら、削除対象となるメンバーのsubscribed_accountsテーブルデータを全て削除する
+        // これをすることで、今回契約するアカウント数とsubscribed_accountsに紐づいているメンバーの数が揃うので、
+        // subscriptionsテーブルのstripe_subscription_idをstripeで新たに作成するサブスクリプションオブジェクトのidをセットするだけで紐付けが完了する
+        console.log(
+          "🌟Stripeメンバーシップ再開ステップ4 今回はチームからメンバーの削除が必要 削除対象のメンバーのidを保持する配列のUUIDチェックも完了",
+          deletedMemberProfileIds_SubscribedAccountIdsArray
+        );
+        const deleteSubscribedAccountIds = (
+          deletedMemberProfileIds_SubscribedAccountIdsArray as DeleteMemberData[]
+        ).map((obj) => obj.subscribed_account_id);
+        const deleteProfileIds = (deletedMemberProfileIds_SubscribedAccountIdsArray as DeleteMemberData[]).map(
+          (obj) => obj.id
+        );
+        // ==================== 🌟「メンバーアカウント」「未設定アカウント」同時削除 ====================
+        // 🔹ステップ5と6同時 余分な未設定アカウントの削除も必要なら「メンバー削除とprofileのリセット」と同時に行い、
+        if (deletedNotSetAccountQuantity > 0) {
+          const payload = {
+            _profile_ids_to_reset: deleteProfileIds,
+            _subscribed_account_ids_to_delete: deleteSubscribedAccountIds,
+            _subscription_id: dbSubscriptionId, // subscriptionsテーブルのid
+            _delete_quantity: deletedNotSetAccountQuantity, // 未設定アカウントの削除数
+          };
+          console.log(
+            "🌟Stripeメンバーシップ再開ステップ5と6 rpcで「メンバーアカウント」と「未設定アカウント」を同時に削除実行 パラメータに渡すpayload",
+            payload
+          );
+          const { error: executeDeleteError } = await supabase.rpc("execute_delete_operations", payload);
+
+          if (executeDeleteError) {
+            console.log(
+              "❌Stripeメンバーシップ再開ステップ5と6 メンバーアカウントと未設定アカウントの同時削除失敗 エラー: ",
+              executeDeleteError
+            );
+            return res.status(400).json({
+              error: `❌Stripeメンバーシップ再開ステップ5と6 メンバーアカウントと未設定アカウントの同時削除失敗 ${executeDeleteError.message}`,
+            });
+          }
+          console.log(
+            "🌟Stripeメンバーシップ再開ステップ5と6の結果 メンバーアカウントと未設定アカウントの同時削除が無事に成功"
+          );
+        }
+        // ==================== ✅「メンバーアカウント」「未設定アカウント」同時削除 ここまで ====================
+        // ==================== 🌟「メンバーアカウント削除」のみ ====================
+        // 🔹ステップ5のみ 余分なアカウントがなければメンバー削除とprofileのリセットのみ行う
+        else {
+          const payload = {
+            _profile_ids_to_reset: deleteProfileIds,
+            _subscribed_account_ids_to_delete: deleteSubscribedAccountIds,
+          };
+          console.log(
+            "🌟Stripeメンバーシップ再開ステップ5 rpcでメンバーアカウントの削除を実行 パラメータに渡すpayload",
+            payload
+          );
+          const { error: deleteMEmberAccountError } = await supabase.rpc("delete_member_subscribed_accounts", payload);
+
+          if (deleteMEmberAccountError) {
+            console.log(
+              "❌Stripeメンバーシップ再開ステップ5 メンバーアカウント削除失敗 エラー: ",
+              deleteMEmberAccountError
+            );
+            return res.status(400).json({
+              error: `❌Stripeメンバーシップ再開ステップ5 メンバーアカウント削除失敗 ${deleteMEmberAccountError.message}`,
+            });
+          }
+          console.log("🌟Stripeメンバーシップ再開ステップ5の結果 メンバーアカウントの削除が無事に成功");
+        }
+        // ==================== 🌟「メンバーアカウント削除」のみ ここまで ====================
+      }
+      // ==================== ✅「メンバーアカウント」削除 ここまで ====================
+      // ==================== 🌟「未設定アカウント削除」のみ ====================
+      // 🔹ステップ6のみ メンバーアカウント削除は不要で未設定アカウントのみ削除が必要なルート
+      else if (deletedNotSetAccountQuantity > 0) {
+        // チーム所有者のsubscription_idに一致するuser_idがnullのsubscribed_accountsテーブルのデータを全て削除する
+        // subscriptionテーブルのidに一致するsubscription_idを持つuser_idがnullのアカウントを全て削除
+
+        const deletePayload = {
+          _subscription_id: dbSubscriptionId, // subscriptionsテーブルのid
+          _delete_quantity: deletedNotSetAccountQuantity,
+        };
+        console.log(
+          "🌟Stripeメンバーシップ再開ステップ6 契約数を超過した数量分の「未設定のアカウント」を全て削除する rpcに渡すpayload",
+          deletePayload
+        );
+        const { error: deleteNotSetAccountError } = await supabase.rpc("delete_not_set_accounts", deletePayload);
+
+        if (deleteNotSetAccountError) {
+          console.log(
+            "❌Stripeメンバーシップ再開ステップ6 メンバーアカウント削除失敗 エラー: ",
+            deleteNotSetAccountError
+          );
+          return res.status(400).json({
+            error: `❌Stripeメンバーシップ再開ステップ6の結果 未設定アカウント削除失敗 ${deleteNotSetAccountError.message}`,
+          });
+        }
+        console.log("🌟Stripeメンバーシップ再開ステップ6の結果 未設定アカウントの削除が無事に成功");
+        // ==================== ✅「未設定アカウント削除」のみ ここまで ====================
+      }
+    }
+    // ==================== ✅「アカウント削除」ルート ====================
 
     // stripeインスタンスを作成
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {

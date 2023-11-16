@@ -91,7 +91,8 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
                 subscription_id: (payload.new as Subscription).id,
                 subscription_created_at: (payload.new as Subscription).created_at,
                 subscription_subscriber_id: (payload.new as Subscription).subscriber_id,
-                subscription_stripe_subscription_id: (payload.new as Subscription).stripe_subscription_id,
+                stripe_subscription_id: (payload.new as Subscription).stripe_subscription_id,
+                // subscription_stripe_subscription_id: (payload.new as Subscription).stripe_subscription_id,
                 subscription_stripe_customer_id: (payload.new as Subscription).stripe_customer_id,
                 status: (payload.new as Subscription).status,
                 subscription_interval: (payload.new as Subscription).subscription_interval,
@@ -129,7 +130,7 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
               });
               setTimeout(() => {
                 router.reload();
-              }, 300);
+              }, 1000);
             }
             // ================== ✅キャンセルリクエストルート ここまで ==================
             // ================== 🌟キャンセル後、新たに「メンバーシップを再開」ルート ==================
@@ -143,7 +144,7 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
               payload.new.stripe_subscription_id === newUserData.stripe_subscription_id &&
               payload.old.stripe_subscription_id !== newUserData.stripe_subscription_id
             ) {
-              toast.success(`おかえりなさい。TRUSTiFYへようこそ！🌟`, {
+              toast.success(`おかえりなさい🌟TRUSTiFYへようこそ！ 再度リスタートします！`, {
                 position: "top-right",
                 autoClose: 5000,
                 hideProgressBar: false,
@@ -152,9 +153,9 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
                 draggable: true,
                 progress: undefined,
               });
-              // setTimeout(() => {
-              //   router.reload();
-              // }, 300);
+              setTimeout(() => {
+                router.reload();
+              }, 800);
             }
             // ================== ✅キャンセル後、新たに「メンバーシップを再開」ルート ここまで ==================
           }

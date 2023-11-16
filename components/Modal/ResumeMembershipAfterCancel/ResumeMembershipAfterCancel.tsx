@@ -63,7 +63,7 @@ const ResumeMembershipAfterCancelMemo = () => {
   // メンバー検索入力値
   const [input, setInput] = useState("");
   // メンバー削除が必要かどうかを保持するState
-  const [requiredDeletion, setRequiredDeletion] = useState(true);
+  const [requiredDeletionMemberAccounts, setRequiredDeletionMemberAccounts] = useState(true);
 
   // ================================ ツールチップ ================================
   const modalContainerRef = useRef<HTMLDivElement | null>(null);
@@ -106,7 +106,7 @@ const ResumeMembershipAfterCancelMemo = () => {
   // const notSetAccounts = useDashboardStore((state) => state.notSetAccounts);
   // const setNotSetAccounts = useDashboardStore((state) => state.setNotSetAccounts);
   const {
-    data: memberAccountsDataArray,
+    data: AccountsDataArray,
     error: useQueryError,
     isLoading: useQueryIsLoading,
     refetch: refetchMemberAccounts,
@@ -114,8 +114,8 @@ const ResumeMembershipAfterCancelMemo = () => {
 
   // メンバー数分チェックするStateの配列
   // const [checkedMembersArray, setCheckedMembersArray] = useState(
-  //   memberAccountsDataArray
-  //     ? Array(!!memberAccountsDataArray.length ? memberAccountsDataArray.length : 1).fill(false)
+  //   AccountsDataArray
+  //     ? Array(!!AccountsDataArray.length ? AccountsDataArray.length : 1).fill(false)
   //     : []
   // );
   // 選択された削除メンバーの配列Zustand
@@ -124,23 +124,23 @@ const ResumeMembershipAfterCancelMemo = () => {
   // チェックされたメンバーを保持する配列のState
   // const [selectedMemberArray, setSelectedMemberArray] = useState<MemberAccounts[]>([]);
   // 並び替え後
-  const [sortedMemberAccountsState, setSortedMemberAccountsState] = useState<MemberAccounts[]>([]);
+  const [sortedAccountsState, setSortedAccountsState] = useState<MemberAccounts[]>([]);
   // 未設定
   const [notSetAccountsState, setNotSetAccountsState] = useState<MemberAccounts[]>([]);
   // 設定済みでアクティブ
-  const [activeAccountsState, setActiveAccountsState] = useState<MemberAccounts[]>([]);
+  const [memberAccountsState, setMemberAccountsState] = useState<MemberAccounts[]>([]);
 
   useEffect(() => {
-    if (typeof memberAccountsDataArray === "undefined") return;
-    if (!memberAccountsDataArray) {
+    if (typeof AccountsDataArray === "undefined") return;
+    if (!AccountsDataArray) {
       setNotSetAccountsState([]);
-      setActiveAccountsState([]);
+      setMemberAccountsState([]);
       return;
     }
     // アカウントの配列からprofilesのidがnull、かつ、invited_emailがnullで招待中でないアカウントのみをフィルタリング
-    const nullIdAccounts = memberAccountsDataArray.filter((account) => account.id === null);
-    // // アカウントの配列からidがnullでないアカウントのみをフィルタリング
-    const notNullIdAccounts = memberAccountsDataArray.filter((account) => account.id !== null);
+    const nullIdAccounts = AccountsDataArray.filter((account) => account.id === null);
+    // // アカウントの配列からprofilesテーブルのidがnullでないアカウントのみをフィルタリング つまりメンバーアカウント
+    const notNullIdAccounts = AccountsDataArray.filter((account) => account.id !== null);
 
     // メンバーアカウントを並び替え 全てのセクションであいうえお順
     // 1番上が所有者: account_company_role
@@ -151,12 +151,12 @@ const ResumeMembershipAfterCancelMemo = () => {
     // 招待済み: id有りだが、profile_name無し
     // 未設定: id有りだが、profile_name無し
 
-    const sortedMemberAccountsArray = memberAccountsDataArray.sort(compareAccounts);
-    setSortedMemberAccountsState(sortedMemberAccountsArray);
+    const sortedAccountsArray = AccountsDataArray.sort(compareAccounts);
+    setNotSetAccountsState(sortedAccountsArray);
 
     console.log(
-      "sortedMemberAccountsArray",
-      sortedMemberAccountsArray,
+      "sortedAccountsArray",
+      sortedAccountsArray,
       "未設定のアカウント配列",
       nullIdAccounts,
       "アクティブアカウント配列",
@@ -170,31 +170,31 @@ const ResumeMembershipAfterCancelMemo = () => {
     // 未設定アカウントローカルState
     setNotSetAccountsState(nullIdAccounts);
     // アクティブアカウントローカルState
-    setActiveAccountsState(notNullIdAccounts);
-  }, [memberAccountsDataArray]);
+    setMemberAccountsState(notNullIdAccounts);
+  }, [AccountsDataArray]);
 
   // 契約メンバーアカウント数が設定済みアカウント数より低い場合にはメンバー削除ページを表示する
   useEffect(() => {
-    if (activeAccountsState.length === 0 || accountQuantity === null) return;
+    if (memberAccountsState.length === 0 || accountQuantity === null) return;
     // 前回の設定済みアカウントが2つ以上ならメンバー削除を必要にする
-    if (activeAccountsState.length > accountQuantity) {
-      if (requiredDeletion) return;
+    if (memberAccountsState.length > accountQuantity) {
+      if (requiredDeletionMemberAccounts) return;
       console.log(
         "メンバー削除必要に切り替え 前回アクティブアカウント数と契約数",
-        activeAccountsState.length,
+        memberAccountsState.length,
         accountQuantity
       );
-      setRequiredDeletion(true);
+      setRequiredDeletionMemberAccounts(true);
     } else {
-      if (!requiredDeletion) return;
+      if (!requiredDeletionMemberAccounts) return;
       console.log(
         "メンバー削除不要に切り替え 前回アクティブアカウント数と契約数",
-        activeAccountsState.length,
+        memberAccountsState.length,
         accountQuantity
       );
-      setRequiredDeletion(false);
+      setRequiredDeletionMemberAccounts(false);
     }
-  }, [accountQuantity, activeAccountsState.length]);
+  }, [accountQuantity, memberAccountsState.length]);
 
   // ============================ ログアウト関数 ============================
   const handleSignOut = async () => {
@@ -281,8 +281,8 @@ const ResumeMembershipAfterCancelMemo = () => {
   };
 
   // =============== 🌟「再開する」クリック メンバーシップを再開 ===============
-  // 🔹チームからメンバー削除も実行するパターン(requiredDeletionがtrueの場合)
-  // 🔹チームからメンバー削除は不要なパターン(requiredDeletionがfalseの場合)
+  // 🔹チームからメンバー削除も実行するパターン(requiredDeletionMemberAccountsがtrueの場合)
+  // 🔹チームからメンバー削除は不要なパターン(requiredDeletionMemberAccountsがfalseの場合)
   // 新たなstripeサブスクリプションオブジェクトを作成
   // そのサブスクリプションidを既存のsubscriptionsテーブルのstripe_subscription_idにセットする
   // これで、他メンバーに紐付けいているアカウントをそのまま引き継げる
@@ -292,21 +292,30 @@ const ResumeMembershipAfterCancelMemo = () => {
     if (!userProfileState) return alert("エラー：ユーザー情報が確認できませんでした");
     if (!sessionState) return alert("エラー：セッション情報が確認できませんでした");
     if (!accountQuantity) return alert("メンバーの人数を入力してください");
-    if (!memberAccountsDataArray) return alert("エラー：メンバー情報が見つかりませんでした");
+    if (!AccountsDataArray) return alert("エラー：メンバー情報が見つかりませんでした");
     setIsLoadingSubmit(true);
 
     try {
-      // requiredDeletionとselectedMembersForDeletionも渡して、APIルート側でrequiredDeletionのbool値によってメンバー削除の可否をハンドリングする
-      let deletedMemberSubscribedAccountIdsArray;
-      let deleteNotSetAccountQuantity: number;
-      if (requiredDeletion) {
-        deletedMemberSubscribedAccountIdsArray = selectedMembersArrayForDeletion.map(
-          (member) => member.subscribed_account_id
-        );
-        if (deletedMemberSubscribedAccountIdsArray.every((id) => id && isValidUUIDv4(id)) === false) return;
+      // requiredDeletionMemberAccountsとselectedMembersForDeletionも渡して、APIルート側でrequiredDeletionMemberAccountsのbool値によってメンバー削除の可否をハンドリングする
+      let deletedMemberProfileIds_SubscribedAccountIdsArray;
+      if (requiredDeletionMemberAccounts) {
+        deletedMemberProfileIds_SubscribedAccountIdsArray = selectedMembersArrayForDeletion.map((member) => ({
+          id: member.id,
+          subscribed_account_id: member.subscribed_account_id ? member.subscribed_account_id : "",
+        }));
+        // every()で全てUUIDかチェックし、trueでOKならnot演算子でfalseにし、チェックがNGなら!でtrueにしリターンさせる
+        if (
+          !deletedMemberProfileIds_SubscribedAccountIdsArray.every(
+            (obj) =>
+              obj.id && isValidUUIDv4(obj.id) && obj.subscribed_account_id && isValidUUIDv4(obj.subscribed_account_id)
+          )
+        ) {
+          setIsLoadingSubmit(false);
+          return console.error("UUIDのチェック結果 UUIDではない値が含まれているためリターン");
+        }
         console.log(
           "🌟Stripeメンバーシップ再開ステップ0 削除するメンバーのアカウントIDの配列を全てUUIDチェック完了",
-          deletedMemberSubscribedAccountIdsArray
+          deletedMemberProfileIds_SubscribedAccountIdsArray
         );
       }
 
@@ -317,9 +326,10 @@ const ResumeMembershipAfterCancelMemo = () => {
         companyId: userProfileState.company_id,
         dbSubscriptionId: userProfileState.subscription_id,
         paymentMethodId: defaultPaymentMethodState.id,
-        isRequiredDeletion: requiredDeletion, // APIルートでメンバー削除が必要かどうか
-        deletedMemberSubscribedAccountIdsArray: deletedMemberSubscribedAccountIdsArray, // APIルートでメンバー削除が必要かどうか
+        isRequiredDeletionMemberAccounts: requiredDeletionMemberAccounts, // APIルートでメンバー削除が必要かどうか
+        deletedMemberProfileIds_SubscribedAccountIdsArray: deletedMemberProfileIds_SubscribedAccountIdsArray, // APIルートでメンバー削除が必要かどうか
         deletedNotSetAccountQuantity: deletedNotSetAccountQuantity, // 削除が必要な余分な未設定アカウント数量
+        isRequiredCreate: isRequiredCreate, // 新たにアカウント作成が必要かどうか
         requiredNewCountToCreate: requiredNewCountToCreate, // 新たに作成が必要なアカウント数
       };
       console.log("axios.postに渡すpayload", payload);
@@ -353,8 +363,8 @@ const ResumeMembershipAfterCancelMemo = () => {
     } catch (e: any) {
       console.error("サブスク再開エラー", e);
       alert(`エラーが発生しました: ${e.message}`);
+      setIsLoadingSubmit(false);
     }
-    setIsLoadingSubmit(false);
   };
 
   // Stripeポータルへ移行させるためのURLをAPIルートにGETリクエスト
@@ -531,17 +541,33 @@ const ResumeMembershipAfterCancelMemo = () => {
     }
   };
 
-  // アカウントが足りない個数(メンバーシップ再開にあたり)
+  // 残り削除が必要な人数(メンバーシップ再開にあたり)
   const lackAccountCount =
-    !!activeAccountsState.length && !!accountQuantity ? activeAccountsState.length - accountQuantity : 0;
-  // 今回削除が必要な未設定アカウント数(余分な数) = 前回の契約アカウント数 - メンバーアカウント削除数 - 今回の契約数(メンバーシップ再開にあたり)
+    !!memberAccountsState.length && !!accountQuantity ? memberAccountsState.length - accountQuantity : 0;
+  // 削除する未設定アカウント数(余分な数) = 前回の契約アカウント数 - メンバーアカウント削除数 - 今回の契約数(メンバーシップ再開にあたり)
   const deletedNotSetAccountQuantity =
-    !!memberAccountsDataArray && !!accountQuantity
-      ? memberAccountsDataArray.length - selectedMembersArrayForDeletion.length - accountQuantity
-      : 0;
+    !!AccountsDataArray && !!accountQuantity
+      ? AccountsDataArray.length - selectedMembersArrayForDeletion.length - accountQuantity
+      : null;
+  // 新たにアカウント作成が必要かどうか
+  const isRequiredCreate =
+    !!accountQuantity &&
+    !!AccountsDataArray &&
+    !!AccountsDataArray.length &&
+    accountQuantity - AccountsDataArray?.length > 0;
   // 新たに作成が必要な個数(メンバーシップ再開にあたり)
   const requiredNewCountToCreate =
-    !!memberAccountsDataArray && !!accountQuantity ? accountQuantity - memberAccountsDataArray.length : 0;
+    !!AccountsDataArray && !!AccountsDataArray.length && !!accountQuantity
+      ? accountQuantity - AccountsDataArray.length
+      : null;
+  // 新たに何個作成が必要か
+  // const requiredCreateCount =
+  //   !!accountQuantity &&
+  //   !!AccountsDataArray &&
+  //   !!AccountsDataArray.length &&
+  //   accountQuantity - AccountsDataArray?.length > 0
+  //     ? `${accountQuantity - AccountsDataArray?.length}個`
+  //     : "必要なし";
 
   console.log(
     "ResumeMembershipAfterCancelレンダリング",
@@ -555,30 +581,35 @@ const ResumeMembershipAfterCancelMemo = () => {
     userProfileState,
     "✅defaultPaymentMethodState",
     defaultPaymentMethodState,
-    "✅並び替え前メンバー配列",
-    memberAccountsDataArray,
-    "✅並び替え済みメンバー配列",
-    sortedMemberAccountsState,
-    "✅設定済みアカウント配列",
-    activeAccountsState,
-    "✅未設定アカウント配列",
-    notSetAccountsState,
-    // "✅選択されたアカウント配列",
-    // selectedMemberArray,
     "✅stepContents",
     stepContents,
-    "✅メンバーの削除が必要かどうか",
-    requiredDeletion,
-    "✅選択された削除対象メンバー",
-    selectedMembersArrayForDeletion,
-    "✅今回の契約数",
+    "✅並び替え前アカウント配列(前回の契約数)",
+    AccountsDataArray,
+    "✅並び替え済みアカウント配列(前回の契約数)",
+    sortedAccountsState,
+    "✅設定済みメンバーアカウント配列",
+    memberAccountsState,
+    "✅未設定アカウント配列",
+    notSetAccountsState,
+    "✅今回の契約数(必要アカウント数)",
     accountQuantity,
-    "✅現在のメンバー数",
-    memberAccountsDataArray?.length,
+    "✅前回の契約数(アカウント数)",
+    AccountsDataArray?.length,
+    "✅新たにアカウント作成が必要かどうか",
+    isRequiredCreate,
+    // accountQuantity - AccountsDataArray?.length > 0,
+    "✅新たに何個作成が必要か",
+    requiredNewCountToCreate,
+    "✅メンバーの削除が必要かどうか",
+    requiredDeletionMemberAccounts,
+    // memberAccountsState.length > accountQuantity,
+    "✅削除対象メンバー数",
+    selectedMembersArrayForDeletion.length,
     "✅削除が必要な未設定アカウント数",
     deletedNotSetAccountQuantity,
-    "✅新たに作成が必要なアカウント数",
-    requiredNewCountToCreate
+    // AccountsDataArray.length - selectedMembersArrayForDeletion.length - accountQuantity, // (前回の契約数 - 削除するメンバーアカウントの数) -
+    "✅選択される削除対象メンバー",
+    selectedMembersArrayForDeletion
   );
 
   if (!userProfileState || useQueryIsLoading) return <FallbackResumeMembershipAfterCancel />;
@@ -757,7 +788,7 @@ const ResumeMembershipAfterCancelMemo = () => {
                   className={`relative h-full w-full min-w-[40vw] max-w-[40vw] ${
                     styles.left_slide_scroll_container
                   } transition-base03 ${stepContents === "resume_2" ? `ml-[-100%]` : ``} ${
-                    stepContents === "resume_3" ? `${requiredDeletion ? `ml-[-200%]` : `ml-[-100%]`}` : ``
+                    stepContents === "resume_3" ? `${requiredDeletionMemberAccounts ? `ml-[-200%]` : `ml-[-100%]`}` : ``
                   }`}
                 >
                   {/* 左スライドコンテンツラッパー 1ページ目 */}
@@ -941,7 +972,7 @@ const ResumeMembershipAfterCancelMemo = () => {
                         //     handleResume(planPremium.id, accountQuantity);
                         // }}
                         onClick={() => {
-                          if (requiredDeletion) {
+                          if (requiredDeletionMemberAccounts) {
                             setStepContents("resume_2");
                           } else {
                             setStepContents("resume_3");
@@ -957,7 +988,7 @@ const ResumeMembershipAfterCancelMemo = () => {
                   {/* ============== 左スライドコンテンツラッパー 1ページ目 ここまで ============== */}
                   {/* ============== 左スライドコンテンツラッパー 2ページ目 ============== */}
                   {/* 前回の設定済みメンバーアカウント数が今回の契約数よりも多い場合(削除必要な場合) */}
-                  {requiredDeletion && (
+                  {requiredDeletionMemberAccounts && (
                     <div className={`${styles.left_slide_scroll_right} relative`}>
                       <div className="mt-[10px] flex h-auto w-full items-center justify-between text-[20px] font-bold text-[var(--color-text-title)]">
                         <h2 className="mr-[20px] min-w-fit">メンバーの設定</h2>
@@ -1008,7 +1039,7 @@ const ResumeMembershipAfterCancelMemo = () => {
                       >
                         <div className={`relative flex w-full flex-col `}>
                           {/* inputが名前とemailに含まれているメンバーを抽出 */}
-                          {activeAccountsState
+                          {memberAccountsState
                             ?.filter(
                               (account) =>
                                 normalizeDeleteSpace(account.profile_name ? account.profile_name : ``).includes(
@@ -1194,7 +1225,7 @@ const ResumeMembershipAfterCancelMemo = () => {
                         <span
                           className={`cursor-pointer text-[var(--color-text-sub)] hover:text-[var(--color-text-sub-deep)]`}
                           onClick={() => {
-                            if (requiredDeletion) {
+                            if (requiredDeletionMemberAccounts) {
                               setStepContents("resume_2");
                             } else {
                               setStepContents("");
@@ -1244,7 +1275,7 @@ const ResumeMembershipAfterCancelMemo = () => {
                       <p>
                         前回参加していたメンバーの人数は
                         <span className={`font-bold text-[var(--color-text-brand-f)]`}>
-                          {activeAccountsState.length}人
+                          {memberAccountsState.length}人
                         </span>
                         です。
                       </p>
