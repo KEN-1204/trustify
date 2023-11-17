@@ -385,6 +385,7 @@
   border-radius: 8px;
   color: #fff;
   background-color: rgba(var(--color-btn-brand-rgb), 0.9);
+  /* background-color: var(--color-bg-brand-f); */
   /* background-color: #00ff66; */
   font-size: 16px;
   font-weight: 600;

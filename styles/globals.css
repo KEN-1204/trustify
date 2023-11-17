@@ -174,6 +174,7 @@ bg-[#06c755] */
   --color-bg-base-header: #fff;
   /* chat-gptのサブ背景 #f7f7f8 ホバー時：#ececf1 */
   --color-bg-sub: rgba(64, 87, 109, 0.07);
+  --color-bg-sub2: rgba(64, 87, 109, 0.1);
   --color-bg-sub-deep: rgba(57, 76, 96, 0.15);
   --color-bg-sub-re: rgba(64, 87, 109, 0.08);
   --color-bg-sub-re-hover: rgba(57, 76, 96, 0.15);
@@ -679,6 +680,7 @@ bg-[#06c755] */
   /* --color-bg-base: #141414; */
   /* --color-bg-sub: #252525; */
   --color-bg-sub: #383838;
+  --color-bg-sub2: #383838;
   --color-bg-sub-deep: #252525;
   --color-bg-sub-re: #252525;
   --color-bg-sub-re: #404040;
@@ -1456,6 +1458,41 @@ textarea {
   -webkit-text-fill-color: transparent;
   text-shadow: none;
 }
+.text_gradient_en {
+  font-size: 70px;
+  color: #fff;
+  background: linear-gradient(to top right, #0affff, #0abeff, #0066ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.text_gradient_en::before {
+  font-size: 70px;
+  position: absolute;
+  content: "just $7";
+  color: rgba(0, 0, 0, 0);
+  background: linear-gradient(to top right, #0affff, #0abeff, #0066ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+}
+.text_gradient_red_en {
+  font-size: 70px;
+  color: #fff;
+  background: linear-gradient(to top left, #fff, #ff0000, #fff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.text_gradient_red_en::before {
+  font-size: 70px;
+  position: absolute;
+  content: "KEYENCE";
+  color: rgba(0, 0, 0, 0);
+  background: linear-gradient(to top left, #ff0000, #ff0011, #df7c7c, #ff0011, #ff0011);
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+}
 /* タイピングアニメーションスタイル */
 .typed-cursor {
   color: #0066ff !important;
@@ -1551,4 +1588,57 @@ textarea {
 .zoomOut {
   animation-name: zoomOut;
   animation-duration: 100ms;
+}
+
+.flow_underline {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  width: 100%;
+  height: 2px;
+  background-color: var(--color-border);
+}
+.flow_underline::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: var(--color-bg-brand-f);
+  transform: scaleX(0);
+  transform-origin: right; /* 初期状態では左側を原点とする */
+  transition: transform 0.3s ease;
+}
+.underline_area:hover .flow_underline::after {
+  transform: scaleX(1);
+}
+/* ホバーを外した時に右側から非表示にする */
+.flow_underline::after {
+  transition: transform 0.3s ease, transform-origin 0s 0.3s; /* transform-originの変更を遅延 */
+}
+.underline_area:not(:hover) .flow_underline::after {
+  transform-origin: left; /* ホバーを外した時に右側を原点とする */
+}
+/* アンダーライン自体をホバー */
+/* .flow_underline.hover::after {
+  transform: scaleX(1);
+} */
+/* .flow_underline:not(.hover)::after {
+  transform-origin: left;
+} */
+/* onMouseEnter, onMouseLeave, useRefのref.classList.add, removeで.hoverをセット、リムーブ */
+/* .flow_underline:hover::after {
+  transform: scaleX(1);
+} */
+/* .flow_underline:not(:hover)::after {
+  transform-origin: left; 
+} */
+
+/* ホバーでテキストをブランドカラーに変換 */
+.brand_text {
+  transition: color 0.3s ease;
+}
+.underline_area:hover .brand_text {
+  color: var(--color-text-brand-f);
 }

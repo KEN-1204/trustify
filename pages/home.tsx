@@ -117,10 +117,10 @@ const DashboardHome = ({
   let langTitle;
   if (activeMenuTab === "HOME") {
     switch (language) {
-      case "Ja":
+      case "ja":
         langTitle = "ホーム - TRUSTiFY";
         break;
-      case "En":
+      case "en":
         langTitle = "Home - TRUSTiFY";
         break;
       default:
@@ -130,10 +130,10 @@ const DashboardHome = ({
   }
   if (activeMenuTab === "Company") {
     switch (language) {
-      case "Ja":
+      case "ja":
         langTitle = "会社 - TRUSTiFY";
         break;
-      case "En":
+      case "en":
         langTitle = "Company - TRUSTiFY";
         break;
       default:
@@ -143,10 +143,10 @@ const DashboardHome = ({
   }
   if (activeMenuTab === "Contacts") {
     switch (language) {
-      case "Ja":
+      case "ja":
         langTitle = "担当者 - TRUSTiFY";
         break;
-      case "En":
+      case "en":
         langTitle = "Contacts - TRUSTiFY";
         break;
       default:
@@ -156,10 +156,10 @@ const DashboardHome = ({
   }
   if (activeMenuTab === "Activity") {
     switch (language) {
-      case "Ja":
+      case "ja":
         langTitle = "活動 - TRUSTiFY";
         break;
-      case "En":
+      case "en":
         langTitle = "Activity - TRUSTiFY";
         break;
       default:
@@ -169,10 +169,10 @@ const DashboardHome = ({
   }
   if (activeMenuTab === "Meeting") {
     switch (language) {
-      case "Ja":
+      case "ja":
         langTitle = "面談 - TRUSTiFY";
         break;
-      case "En":
+      case "en":
         langTitle = "Meeting - TRUSTiFY";
         break;
       default:
@@ -182,10 +182,10 @@ const DashboardHome = ({
   }
   if (activeMenuTab === "Property") {
     switch (language) {
-      case "Ja":
+      case "ja":
         langTitle = "案件 - TRUSTiFY";
         break;
-      case "En":
+      case "en":
         langTitle = "Case - TRUSTiFY";
         break;
       default:
@@ -195,10 +195,10 @@ const DashboardHome = ({
   }
   if (activeMenuTab === "Calendar") {
     switch (language) {
-      case "Ja":
+      case "ja":
         langTitle = "カレンダー - TRUSTiFY";
         break;
-      case "En":
+      case "en":
         langTitle = "Calendar - TRUSTiFY";
         break;
       default:

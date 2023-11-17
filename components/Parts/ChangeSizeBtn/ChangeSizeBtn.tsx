@@ -88,8 +88,8 @@ export const ChangeSizeBtn: FC<Props> = ({
           setClickedItemPos({ x: x, y: y, itemWidth: width, itemHeight: height });
         }}
       >
-        {language === "Ja" && "サイズ切り替え"}
-        {language === "En" && "Change Size"}
+        {language === "ja" && "サイズ切り替え"}
+        {language === "en" && "Change Size"}
       </button>
     </>
   );

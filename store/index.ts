@@ -141,7 +141,7 @@ const useStore = create<State>((set) => ({
 
   // =================== 共通 ===================
   // 【言語切り替え】 Ja日本, En英語, Ko韓国語, Zh中国語,
-  language: "Ja",
+  language: "ja",
   setLanguage: (payload) => set({ language: payload }),
 
   // 【言語切り替えタブ開閉状態】

@@ -93,9 +93,9 @@ const InvitationForLoggedInUserMemo: FC<Prop> = ({ invitationData, setInvitation
         progress: undefined,
       });
 
-      setTimeout(() => {
-        runFireworks();
-      }, 300);
+      // setTimeout(() => {
+      //   runFireworks();
+      // }, 300);
     } catch (error: any) {
       console.error(error.message);
       toast.error(`${invitationData.from_company_name}への参加に失敗しました!`, {

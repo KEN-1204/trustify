@@ -73,27 +73,116 @@
   opacity: 1;
   height: 100%;
 }
-.menu_item {
+
+/* .menu_item:hover {
+  background-color: var(--color-bg-sub);
+  animation: fullWidthLeft 0.4s;
+} */
+/* .menu_item.active {
+  background-color: var(--color-sidebar-active);
+} */
+/* CSSで流れるアニメーションバージョン ここまで */
+/* .menu_item {
   position: relative;
   display: flex;
   align-items: center;
-  /* width: calc(100% - 12px); */
   width: 100%;
-  /* border-radius: 4px; */
-  /* border-radius: 4px; */
   padding-left: 4px;
   min-height: 40px;
   cursor: pointer;
   color: var(--color-text-sub);
 }
-.menu_item:hover {
-  background-color: var(--color-bg-sub);
+.menu_item::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 0%;
+  top: 0%;
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-bg-sub2);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.3s ease;
 }
-.menu_item.active {
+.menu_item:hover::after {
+  transform: scaleX(1);
+}
+.menu_item::after {
+  transition: transform 0.3s ease, transform-origin 0s 0.3s;
+}
+.menu_item:not(:hover)::after {
+  transform-origin: left;
+}
+.menu_item.active::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: 0%;
+  left: 0%;
+  height: 100%;
+  background-color: var(--color-bg-sub2);
+  animation: disappearFullWidthLeft 0.4s forwards;
+} */
+/* CSSで流れるアニメーションバージョン ここまで */
+/* animationとkeyframeアニメーションバージョン */
+.menu_item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding-left: 4px;
+  min-height: 40px;
+  cursor: pointer;
+  color: var(--color-text-sub);
+}
+.menu_item:hover::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 0%;
+  top: 0%;
+  height: 100%;
+  background-color: var(--color-bg-sub2);
+  animation: fullWidthLeft 0.2s forwards;
+}
+.menu_item.active::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  left: 0%;
+  top: 0%;
+  height: 100%;
   background-color: var(--color-sidebar-active);
-  /* color: var(--color-text); */
-  /* color: #fff; */
-  /* background-color: var(--color-bg-sub-deep); */
+  animation: fullWidthLeft 0.4s 0.4s forwards;
+}
+.menu_item.active::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: 0%;
+  left: 0%;
+  height: 100%;
+  background-color: var(--color-bg-sub2);
+  animation: disappearFullWidthLeft 0.4s forwards;
+}
+/* 右側に消えるようにアニメーションする場合にも左側から開始 */
+@keyframes fullWidthLeft {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+@keyframes disappearFullWidthLeft {
+  0% {
+    width: 100%;
+  }
+  100% {
+    width: 0%;
+    left: 100%; /* 右側に消えるように移動 */
+  }
 }
 .menu_item_inner {
   display: flex;
@@ -152,6 +241,22 @@
 .menu_item.active .text_wrapper span {
   color: #fff;
   font-weight: 700;
+  animation: switchColor 0.5s forwards;
+  /* animation: switchColor 0.3s forwards; */
+  /* animation: switchColor 0.4s forwards; */
+}
+@keyframes switchColor {
+  0% {
+    color: var(--color-text);
+    font-weight: 500;
+  }
+  90% {
+    font-weight: 500;
+  }
+  100% {
+    color: #fff;
+    font-weight: 700;
+  }
 }
 
 .menu_item.active .icon_wrapper svg,
@@ -168,4 +273,19 @@
   color: #fff;
   stroke: #fff;
   /* stroke-width: 3px; */
+  animation: switchIconColor 0.5s forwards;
+  /* animation: switchIconColor 0.3s forwards; */
+  /* animation: switchIconColor 0.4s forwards; */
+}
+@keyframes switchIconColor {
+  0% {
+    color: var(--color-text);
+    stroke: var(--color-text);
+  }
+  90% {
+  }
+  100% {
+    color: #fff;
+    stroke: #fff;
+  }
 }

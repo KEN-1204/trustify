@@ -118,14 +118,14 @@ export const FallbackGridTableAll = () => {
                 <button className=" focus:outline-scale-600 flex rounded bg-transparent p-0  outline-offset-1 transition-all focus:outline-4 ">
                   <span className=" font-regular text-scale-1200 bordershadow-scale-600 hover:bordershadow-scale-700 dark:bordershadow-scale-800 hover:dark:bordershadow-scale-900 focus-visible:outline-scale-700 relative inline-flex cursor-pointer items-center space-x-2 rounded border border-[#777] bg-transparent px-[10px] py-[3px] text-center text-xs shadow-sm transition transition-all duration-200 ease-out focus-visible:outline-4 focus-visible:outline-offset-1">
                     <span className="truncate ">
-                      {language === "Ja" && `- 件`}
-                      {language === "En" && "100 rows"}
+                      {language === "ja" && `- 件`}
+                      {language === "en" && "100 rows"}
                     </span>
                   </span>
                 </button>
                 <p className="text-sm font-medium text-[#bbb]">
-                  {language === "Ja" && `/ - 件`}
-                  {language === "En" && `/ - records`}
+                  {language === "ja" && `/ - 件`}
+                  {language === "en" && `/ - records`}
                 </p>
               </div>
             </div>

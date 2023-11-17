@@ -20,7 +20,7 @@ const FeatureParagraph3Memo: FC<Props> = ({ hoveredFeature, featureSection }) =>
   const [done, setDone] = useState(false);
   const [textArea, setTextArea] = useState("");
 
-  const textMaterial = language === "Ja" ? Feature3TextJa : Feature3TextEn;
+  const textMaterial = language === "ja" ? Feature3TextJa : Feature3TextEn;
 
   useEffect(() => {
     if (!startAnimationFeature3) return;
@@ -46,7 +46,7 @@ const FeatureParagraph3Memo: FC<Props> = ({ hoveredFeature, featureSection }) =>
           setIndex(newIndex);
           setRunning(false);
         },
-        language === "Ja" ? 45 : 20
+        language === "ja" ? 45 : 20
       );
       //   }, 45);
       // }, 60);

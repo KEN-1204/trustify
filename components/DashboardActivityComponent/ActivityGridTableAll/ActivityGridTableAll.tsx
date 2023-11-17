@@ -2484,8 +2484,8 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
                                 className={`${styles.grid_column_header_inner_name} pointer-events-none`}
                                 ref={(ref) => (columnHeaderInnerTextRef.current[index] = ref)}
                               >
-                                {language === "En" && key.columnName}
-                                {language === "Ja" && columnNameToJapaneseActivity(key.columnName)}
+                                {language === "en" && key.columnName}
+                                {language === "ja" && columnNameToJapaneseActivity(key.columnName)}
                               </span>
                             </div>
                           </div>

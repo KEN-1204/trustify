@@ -35,8 +35,8 @@ export const LangBtnMemo: FC = () => {
         }}
       >
         <MdOutlineLanguage className="mr-[5px] mt-[-1px] text-[20px]" />
-        {language === "Ja" && "日本語"}
-        {language === "En" && "English"}
+        {language === "ja" && "日本語"}
+        {language === "en" && "English"}
         {/* <Image src={DownIcon} alt="" /> */}
         <AiFillCaretDown />
         {/* <div
@@ -49,7 +49,7 @@ export const LangBtnMemo: FC = () => {
           <div
             className={`flex-center ${styles.dropdown_item}`}
             onClick={() => {
-              setLanguage("Ja");
+              setLanguage("ja");
               setOpenLangTab(false);
               setClickedItemPos(null);
             }}
@@ -59,7 +59,7 @@ export const LangBtnMemo: FC = () => {
           <div
             className={`flex-center ${styles.dropdown_item}`}
             onClick={() => {
-              setLanguage("En");
+              setLanguage("en");
               setOpenLangTab(false);
               setClickedItemPos(null);
             }}

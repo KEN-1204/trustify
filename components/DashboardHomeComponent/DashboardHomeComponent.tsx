@@ -43,6 +43,8 @@ export const DashboardHomeComponent = () => {
     setSelectedSettingAccountMenu("Profile");
   };
   const openSettingInvitation = () => {
+    if (userProfileState?.account_company_role !== ("company_owner" || "company_admin"))
+      return alert("管理者権限が必要です。");
     setLoadingGlobalState(false);
     setIsOpenSettingAccountModal(true);
     setSelectedSettingAccountMenu("Member");

@@ -270,8 +270,8 @@ const UnderRightActivityLogMemo: FC = () => {
                         className={`${styles.grid_column_header_inner_name} pointer-events-none`}
                         ref={(ref) => (columnHeaderInnerTextRef.current[index] = ref)}
                       >
-                        {language === "En" && key}
-                        {language === "Ja" && columnNameToJapanese(key)}
+                        {language === "en" && key}
+                        {language === "ja" && columnNameToJapanese(key)}
                       </span>
                     </div>
                   </div>

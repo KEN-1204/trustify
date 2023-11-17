@@ -2544,8 +2544,8 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
                                 className={`${styles.grid_column_header_inner_name} pointer-events-none`}
                                 ref={(ref) => (columnHeaderInnerTextRef.current[index] = ref)}
                               >
-                                {language === "En" && key.columnName}
-                                {language === "Ja" && columnNameToJapaneseProperty(key.columnName)}
+                                {language === "en" && key.columnName}
+                                {language === "ja" && columnNameToJapaneseProperty(key.columnName)}
                               </span>
                             </div>
                           </div>

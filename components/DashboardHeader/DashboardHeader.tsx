@@ -495,6 +495,8 @@ export const DashboardHeaderMemo: FC = () => {
   };
   // 管理者クリック 会社管理画面オープン
   const openSettingInvitation = () => {
+    if (userProfileState?.account_company_role !== ("company_owner" || "company_admin"))
+      return alert("管理者権限が必要です。");
     setLoadingGlobalState(false);
     setIsOpenSettingAccountModal(true);
     setSelectedSettingAccountMenu("Company");
@@ -567,8 +569,8 @@ export const DashboardHeaderMemo: FC = () => {
                   onMouseLeave={handleCloseTooltip}
                 >
                   <span>
-                    {language === "Ja" && "ホーム"}
-                    {language === "En" && "HOME"}
+                    {language === "ja" && "ホーム"}
+                    {language === "en" && "HOME"}
                   </span>
                 </div>
                 <div className={`${styles.active_underline}`} />
@@ -587,8 +589,8 @@ export const DashboardHeaderMemo: FC = () => {
                   onMouseLeave={handleCloseTooltip}
                 >
                   <span>
-                    {language === "Ja" && "会社"}
-                    {language === "En" && "Company"}
+                    {language === "ja" && "会社"}
+                    {language === "en" && "Company"}
                   </span>
                 </div>
                 <div className={`${styles.active_underline}`} />
@@ -610,8 +612,8 @@ export const DashboardHeaderMemo: FC = () => {
                   onMouseLeave={handleCloseTooltip}
                 >
                   <span>
-                    {language === "Ja" && "担当者"}
-                    {language === "En" && "Contacts"}
+                    {language === "ja" && "担当者"}
+                    {language === "en" && "Contacts"}
                   </span>
                 </div>
                 <div className={`${styles.active_underline}`} />
@@ -633,8 +635,8 @@ export const DashboardHeaderMemo: FC = () => {
                   onMouseLeave={handleCloseTooltip}
                 >
                   <span>
-                    {language === "Ja" && "活動"}
-                    {language === "En" && "Activity"}
+                    {language === "ja" && "活動"}
+                    {language === "en" && "Activity"}
                   </span>
                 </div>
                 <div className={`${styles.active_underline}`} />
@@ -656,8 +658,8 @@ export const DashboardHeaderMemo: FC = () => {
                   onMouseLeave={handleCloseTooltip}
                 >
                   <span>
-                    {language === "Ja" && "面談・訪問"}
-                    {language === "En" && "Meeting"}
+                    {language === "ja" && "面談・訪問"}
+                    {language === "en" && "Meeting"}
                   </span>
                 </div>
                 <div className={`${styles.active_underline}`} />
@@ -678,8 +680,8 @@ export const DashboardHeaderMemo: FC = () => {
                   onMouseLeave={handleCloseTooltip}
                 >
                   <span>
-                    {language === "Ja" && "案件"}
-                    {language === "En" && "Property"}
+                    {language === "ja" && "案件"}
+                    {language === "en" && "Property"}
                   </span>
                 </div>
                 <div className={`${styles.active_underline}`} />
@@ -700,8 +702,8 @@ export const DashboardHeaderMemo: FC = () => {
                   onMouseLeave={handleCloseTooltip}
                 >
                   <span>
-                    {language === "Ja" && "カレンダー"}
-                    {language === "En" && "Calendar"}
+                    {language === "ja" && "カレンダー"}
+                    {language === "en" && "Calendar"}
                   </span>
                 </div>
                 <div className={`${styles.active_underline}`} />
@@ -723,8 +725,8 @@ export const DashboardHeaderMemo: FC = () => {
                   onMouseLeave={handleCloseTooltip}
                 >
                   <span>
-                    {language === "Ja" && "見積"}
-                    {language === "En" && "Quotation"}
+                    {language === "ja" && "見積"}
+                    {language === "en" && "Quotation"}
                   </span>
                 </div>
                 <div className={`${styles.active_underline}`} />
@@ -744,8 +746,8 @@ export const DashboardHeaderMemo: FC = () => {
                   onMouseLeave={handleCloseTooltip}
                 >
                   <span>
-                    {language === "Ja" && "引合・リード"}
-                    {language === "En" && "Lead"}
+                    {language === "ja" && "引合・リード"}
+                    {language === "en" && "Lead"}
                   </span>
                 </div>
                 <div className={`${styles.active_underline}`} />
@@ -765,8 +767,8 @@ export const DashboardHeaderMemo: FC = () => {
                   onMouseLeave={handleCloseTooltip}
                 >
                   <span>
-                    {language === "Ja" && "連携"}
-                    {language === "En" && "Alignment"}
+                    {language === "ja" && "連携"}
+                    {language === "en" && "Alignment"}
                   </span>
                 </div>
                 <div className={`${styles.active_underline}`} />
@@ -788,8 +790,8 @@ export const DashboardHeaderMemo: FC = () => {
                   onMouseLeave={handleCloseTooltip}
                 >
                   <span>
-                    {language === "Ja" && "メッセージ"}
-                    {language === "En" && "Message"}
+                    {language === "ja" && "メッセージ"}
+                    {language === "en" && "Message"}
                   </span>
                 </div>
                 <div className={`${styles.active_underline}`} />
@@ -809,8 +811,8 @@ export const DashboardHeaderMemo: FC = () => {
                   onMouseLeave={handleCloseTooltip}
                 >
                   <span>
-                    {language === "Ja" && "SDB"}
-                    {language === "En" && "SDB"}
+                    {language === "ja" && "SDB"}
+                    {language === "en" && "SDB"}
                   </span>
                 </div>
                 <div className={`${styles.active_underline}`} />
@@ -830,8 +832,8 @@ export const DashboardHeaderMemo: FC = () => {
                   onMouseLeave={handleCloseTooltip}
                 >
                   <span>
-                    {language === "Ja" && "管理者"}
-                    {language === "En" && "Admin"}
+                    {language === "ja" && "管理者"}
+                    {language === "en" && "Admin"}
                   </span>
                 </div>
                 <div className={`${styles.active_underline}`} />
@@ -859,8 +861,8 @@ export const DashboardHeaderMemo: FC = () => {
                   onMouseLeave={handleCloseTooltip}
                 >
                   <span>
-                    {language === "Ja" && "事前承認"}
-                    {language === "En" && "Pre-approval"}
+                    {language === "ja" && "事前承認"}
+                    {language === "en" && "Pre-approval"}
                   </span>
                 </div>
                 <div className={`${styles.active_underline}`} />
@@ -880,8 +882,8 @@ export const DashboardHeaderMemo: FC = () => {
                   onMouseLeave={handleCloseTooltip}
                 >
                   <span>
-                    {language === "Ja" && "サポーター"}
-                    {language === "En" && "サポーター"}
+                    {language === "ja" && "サポーター"}
+                    {language === "en" && "サポーター"}
                   </span>
                 </div>
                 <div className={`${styles.active_underline}`} />
@@ -1015,8 +1017,12 @@ export const DashboardHeaderMemo: FC = () => {
                       <div
                         data-text={`${userProfileState?.profile_name}`}
                         className={`flex-center z-0 min-h-[58px] min-w-[58px] cursor-pointer overflow-hidden rounded-full hover:bg-[#00000020]`}
-                        onMouseEnter={(e) => handleOpenTooltip(e, "center")}
-                        onMouseLeave={handleCloseTooltip}
+                        onMouseEnter={() => {
+                          setHoveredIcon(true);
+                        }}
+                        onMouseLeave={() => {
+                          setHoveredIcon(false);
+                        }}
                         onClick={() => {
                           setHoveredIcon(false);
                           openSettingAccounts();
@@ -1092,10 +1098,10 @@ export const DashboardHeaderMemo: FC = () => {
                       {/* ドロップダウンサイドメニュー ここから */}
                       {hoveredThemeMenu && (
                         <ul
-                          className={`shadow-all-md border-real absolute -left-[150px] top-0 flex min-h-[40px] min-w-[150px] flex-col overflow-hidden rounded-bl-[4px] rounded-tl-[4px] bg-[var(--color-edit-bg-solid)]`}
+                          className={`shadow-all-md border-real absolute -left-[calc(150px)] top-0 flex min-h-[40px] min-w-[150px] flex-col overflow-hidden rounded-bl-[4px] rounded-tl-[4px] bg-[var(--color-edit-bg-solid)]`}
                         >
                           <li
-                            className="flex min-h-[40px] w-full cursor-pointer items-center justify-between px-[18px] hover:bg-[var(--color-dropdown-list-hover)] hover:text-[var(--color-dropdown-list-hover-text)] hover:underline"
+                            className="flex min-h-[40px] w-full cursor-pointer items-center justify-between px-[18px] hover:bg-[var(--color-dropdown-list-hover)]  hover:text-[var(--color-dropdown-list-hover-text)] hover:underline"
                             onClick={() => setTheme("light")}
                           >
                             <span className="select-none">ライト</span>

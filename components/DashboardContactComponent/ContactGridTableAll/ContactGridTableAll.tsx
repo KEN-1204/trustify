@@ -2441,8 +2441,8 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                                 className={`${styles.grid_column_header_inner_name} pointer-events-none`}
                                 ref={(ref) => (columnHeaderInnerTextRef.current[index] = ref)}
                               >
-                                {language === "En" && key.columnName}
-                                {language === "Ja" && columnNameToJapaneseContacts(key.columnName)}
+                                {language === "en" && key.columnName}
+                                {language === "ja" && columnNameToJapaneseContacts(key.columnName)}
                               </span>
                             </div>
                           </div>

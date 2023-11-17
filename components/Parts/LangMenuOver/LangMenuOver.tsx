@@ -30,7 +30,7 @@ export const LangMenuOver = () => {
       <div
         className={`flex-center ${styles.dropdown_item}`}
         onClick={() => {
-          setLanguage("Ja");
+          setLanguage("ja");
           setOpenLangTab(false);
           setClickedItemPosOver(null);
         }}
@@ -40,7 +40,7 @@ export const LangMenuOver = () => {
       <div
         className={`flex-center ${styles.dropdown_item}`}
         onClick={() => {
-          setLanguage("En");
+          setLanguage("en");
           setOpenLangTab(false);
           setClickedItemPosOver(null);
         }}

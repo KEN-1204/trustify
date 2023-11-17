@@ -44,8 +44,8 @@
   position: relative;
   /* padding-left: 15px; */
 }
-
-.underline {
+/* =============== 左から右、外して戻る =============== */
+/* .underline {
   width: 100%;
   height: 2px;
   background: transparent;
@@ -55,7 +55,8 @@
   transition: 0.3s ease-in-out;
   opacity: 0;
   margin-top: 3px;
-}
+} */
+/* =============== 左から右、外して戻る ここまで =============== */
 
 .navList {
   /* display: flex;
@@ -70,6 +71,9 @@
 .navbarItem {
   /* width: 30px; */
   /* margin-left: 25px; */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .navbarTextBlack {
   color: #37352f !important;
@@ -83,6 +87,7 @@
   /* color: #000; */
   /* hero横画面 */
   /* text-shadow: var(--header-text-shadow) 0 0 10px; */
+  margin-bottom: -0px;
 }
 .navbarItem:hover span {
   /* color: var(--navbar-text-color-hover); */
@@ -91,12 +96,46 @@
   /* text-shadow: var(--header-text-shadow-hover) 0 0 10px; */
   /* color: var(--color-text-secondary); */
 }
-.navbarItem:hover .underline {
-  /* background-color: var(--navbar-text-color-hover); */
+/* =============== 左から右、外して戻る =============== */
+/* .navbarItem:hover .underline {
   background-color: var(--color-text-brand-f);
   transform: scaleX(1);
   opacity: 1;
+} */
+/* =============== 左から右、外して戻る ここまで =============== */
+/* =============== 左から右に表示され、外した時にそのまま左から右に流れて消えるラインアニメーション =============== */
+.underline {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  width: 100%;
+  height: 2px;
+  margin-top: 1px;
 }
+.underline::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: var(--color-bg-brand-f);
+  transform: scaleX(0);
+  transform-origin: right; /* 初期状態では左側を原点とする */
+  transition: transform 0.3s ease;
+  border-radius: 10%;
+}
+.navbarItem:hover .underline::after {
+  transform: scaleX(1);
+}
+/* ホバーを外した時に右側から非表示にする */
+.underline::after {
+  transition: transform 0.3s ease, transform-origin 0s 0.3s; /* transform-originの変更を遅延 */
+}
+.navbarItem:not(:hover) .underline::after {
+  transform-origin: left; /* ホバーを外した時に右側を原点とする */
+}
+/* =============== 左から右に表示され、外した時にそのまま左から右に流れて消えるラインアニメーション ここまで =============== */
 
 .navbarButton {
   display: flex;

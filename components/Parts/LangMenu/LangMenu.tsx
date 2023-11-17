@@ -31,7 +31,7 @@ export const LangMenu: FC = () => {
       <div
         className={`flex-center ${styles.dropdown_item}`}
         onClick={() => {
-          setLanguage("Ja");
+          setLanguage("ja");
           setOpenLangTab(false);
           setClickedItemPos(null);
         }}
@@ -41,7 +41,7 @@ export const LangMenu: FC = () => {
       <div
         className={`flex-center ${styles.dropdown_item}`}
         onClick={() => {
-          setLanguage("En");
+          setLanguage("en");
           setOpenLangTab(false);
           setClickedItemPos(null);
         }}

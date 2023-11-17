@@ -11,18 +11,20 @@ import useThemeStore from "@/store/useThemeStore";
 
 // { initialSession, user }: { initialSession: Session; user: User | null }
 
-export default function Home() {
+// initialLangはサーバーサイドでリクエストヘッダーからAccept-Languageから優先言語の言語コードを取得してクライアントで受け取りja以外ならZustandの表示言語を更新する
+export default function Home({ initialLang }: { initialLang: string }) {
   const language = useStore((state) => state.language);
   const setTheme = useThemeStore((state) => state.setTheme);
+  const setLanguage = useStore((state) => state.setLanguage);
   // const setTheme = useStore((state) => state.setTheme);
 
   // 言語別タイトル
   let langTitle;
   switch (language) {
-    case "Ja":
+    case "ja":
       langTitle = "TRUSTiFY | 売上を上げ続けた実績に裏付けされたデータベース";
       break;
-    case "En":
+    case "en":
       langTitle = "TRUSTiFY | Get the best";
       break;
     default:
@@ -33,6 +35,14 @@ export default function Home() {
   // 言語ドロップダウンメニュー
   const clickedItemPos = useStore((state) => state.clickedItemPos);
   const clickedItemPosOver = useStore((state) => state.clickedItemPosOver);
+
+  // サーバーサイドで取得した言語コードからja以外なら英語に更新する
+  useEffectOnce(() => {
+    if (initialLang === "ja")
+      return console.log("サーバーサイドで取得した言語コード jaのため更新せずにリターン", initialLang);
+    console.log("サーバーサイドで取得した言語コードで更新", initialLang);
+    setLanguage(initialLang);
+  });
 
   // ログイン時にテーマをライトに設定する
   useEffectOnce(() => {
@@ -78,12 +88,33 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     };
   }
 
+  // ユーザーのブラウザの優先言語を取得
+  const defaultLang = "ja";
+  let initialLang = defaultLang;
+  const acceptLang = ctx.req.headers["accept-language"];
+  if (acceptLang) {
+    const langCode = acceptLang.split(",")[0].split("-")[0];
+    console.log("取得した言語コード", langCode);
+    switch (langCode) {
+      case "ja":
+        initialLang = "ja";
+        break;
+      case "en":
+        initialLang = "en";
+        break;
+
+      default:
+        initialLang = "en";
+        break;
+    }
+  }
+
   // サーバーのsupabaseクライアントを使用して、行レベルセキュリティの認証済みクエリーをサーバーサイドで実行することができます
   // const { data: userProfile, error } = await supabase.from("profile").select("*").eq("id", session.user.id);
 
   // ユーザーが存在するならそのままdashboardコンポーネントをマウント
   console.log("/ルートサーバーサイド セッションが存在しないため、そのままリターン");
   return {
-    props: {},
+    props: { initialLang },
   };
 };

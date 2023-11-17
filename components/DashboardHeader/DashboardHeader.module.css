@@ -63,10 +63,24 @@
 .navbarItem.active .active_underline {
   position: absolute;
   bottom: 0;
-  left: 0;
+  /* left: 0; */
   width: 100%;
   height: 3px;
   background: var(--color-bg-brand-f);
+  animation: fullWidthCenter 0.4s;
+}
+
+@keyframes fullWidthCenter {
+  0% {
+    width: 0%;
+    left: 50%;
+    opacity: 0;
+  }
+  100% {
+    width: 100%;
+    left: 0%;
+    opacity: 1;
+  }
 }
 
 .navbarItemInner {
@@ -85,8 +99,20 @@
   font-size: 12px;
 }
 .navbarItem.active .navbarItemInner span {
-  color: var(--color-dashboard-header-text);
   font-weight: 700;
+  color: var(--color-dashboard-header-text);
+  /* animation: appearanceText 0.1s forwards; */
+}
+@keyframes appearanceText {
+  0% {
+    /* opacity: 0; */
+    /* color: var(--color-text-sub); */
+    /* color: var(--color-text); */
+  }
+  100% {
+    /* opacity: 1; */
+    color: var(--color-dashboard-header-text);
+  }
 }
 .notice_outer {
   background: var(--color-bg-base);

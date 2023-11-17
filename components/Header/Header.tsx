@@ -215,8 +215,8 @@ export const Header: FC<Props> = ({
             <li className={`${styles.navList} ${switchLightTextColor}`}>
               <Link href="#product" scroll={false} prefetch={false} className={`${styles.navbarItem}`}>
                 <span>
-                  {language === "Ja" && "製品"}
-                  {language === "En" && "Products"}
+                  {language === "ja" && "製品"}
+                  {language === "en" && "Products"}
                 </span>
                 <div className={`${styles.underline}`} />
               </Link>
@@ -224,8 +224,8 @@ export const Header: FC<Props> = ({
             <li className={`${styles.navList} ${switchLightTextColor}`}>
               <Link href="#price" scroll={false} prefetch={false} className={`${styles.navbarItem}`}>
                 <span>
-                  {language === "Ja" && "料金"}
-                  {language === "En" && "Pricing"}
+                  {language === "ja" && "料金"}
+                  {language === "en" && "Pricing"}
                 </span>
                 <div className={`${styles.underline}`} />
               </Link>
@@ -233,8 +233,8 @@ export const Header: FC<Props> = ({
             <li className={`${styles.navList} ${switchLightTextColor}`}>
               <Link href="/about" prefetch={false} className={`${styles.navbarItem}`}>
                 <span>
-                  {language === "Ja" && "企業"}
-                  {language === "En" && "About"}
+                  {language === "ja" && "企業"}
+                  {language === "en" && "About"}
                 </span>
                 <div className={`${styles.underline}`} />
               </Link>
@@ -243,13 +243,13 @@ export const Header: FC<Props> = ({
               <button className={`${styles.navbarItem}`} onClick={handleAuthLoginLogout}>
                 {sessionState ? (
                   <span>
-                    {language === "Ja" && "ログアウト"}
-                    {language === "En" && "Log out"}
+                    {language === "ja" && "ログアウト"}
+                    {language === "en" && "Log out"}
                   </span>
                 ) : (
                   <span>
-                    {language === "Ja" && "ログイン"}
-                    {language === "En" && "Log in"}
+                    {language === "ja" && "ログイン"}
+                    {language === "en" && "Log in"}
                   </span>
                 )}
                 <div className={`${styles.underline}`} />
@@ -268,9 +268,9 @@ export const Header: FC<Props> = ({
                 }}
               >
                 <span>
-                  {language === "Ja" && "始める"}
-                  {/* {language === "En" && "Get started for free"} */}
-                  {language === "En" && "Get started"}
+                  {language === "ja" && "始める"}
+                  {/* {language === "en" && "Get started for free"} */}
+                  {language === "en" && "Get started"}
                 </span>
                 {/* <div className={`${styles.underline}`} /> */}
               </button>

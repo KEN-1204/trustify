@@ -64,6 +64,8 @@ const ResumeMembershipAfterCancelMemo = () => {
   const [input, setInput] = useState("");
   // メンバー削除が必要かどうかを保持するState
   const [requiredDeletionMemberAccounts, setRequiredDeletionMemberAccounts] = useState(true);
+  // 未設定アカウントの削除が必要かどうかを保持するState(メンバーアカウントより先に未設定アカウントを削除する)
+  // const [isRequiredDeletion, setIsRequiredDeletion] = useState(true);
 
   // ================================ ツールチップ ================================
   const modalContainerRef = useRef<HTMLDivElement | null>(null);
@@ -118,7 +120,7 @@ const ResumeMembershipAfterCancelMemo = () => {
   //     ? Array(!!AccountsDataArray.length ? AccountsDataArray.length : 1).fill(false)
   //     : []
   // );
-  // 選択された削除メンバーの配列Zustand
+  // 選択される削除メンバーの配列Zustand
   const selectedMembersArrayForDeletion = useDashboardStore((state) => state.selectedMembersArrayForDeletion);
   const setSelectedMembersArrayForDeletion = useDashboardStore((state) => state.setSelectedMembersArrayForDeletion);
   // チェックされたメンバーを保持する配列のState
@@ -173,10 +175,11 @@ const ResumeMembershipAfterCancelMemo = () => {
     setMemberAccountsState(notNullIdAccounts);
   }, [AccountsDataArray]);
 
+  // メンバーの削除が必要かどうかの紐付け
   // 契約メンバーアカウント数が設定済みアカウント数より低い場合にはメンバー削除ページを表示する
   useEffect(() => {
     if (memberAccountsState.length === 0 || accountQuantity === null) return;
-    // 前回の設定済みアカウントが2つ以上ならメンバー削除を必要にする
+    // 前回の紐付け済みメンバーアカウントが、今回の契約数+未設定アカウント数の合計より多いなら
     if (memberAccountsState.length > accountQuantity) {
       if (requiredDeletionMemberAccounts) return;
       console.log(
@@ -193,6 +196,8 @@ const ResumeMembershipAfterCancelMemo = () => {
         accountQuantity
       );
       setRequiredDeletionMemberAccounts(false);
+      setSelectedMembersArrayForDeletion([]);
+      console.log("メンバー削除不要のため、選択中の削除対象メンバーの配列を空でリセット");
     }
   }, [accountQuantity, memberAccountsState.length]);
 
@@ -541,6 +546,8 @@ const ResumeMembershipAfterCancelMemo = () => {
     }
   };
 
+  // 削除が必要かどうか（先に未設定アカウントを削除するため、未設定アカウントの削除が必要かどうか）
+  // const isRequiredDeletion = memberAccountsState.length > accountQuantity;
   // 残り削除が必要な人数(メンバーシップ再開にあたり)
   const lackAccountCount =
     !!memberAccountsState.length && !!accountQuantity ? memberAccountsState.length - accountQuantity : 0;

@@ -238,6 +238,46 @@
   -webkit-text-fill-color: transparent;
   text-shadow: none;
 }
+.text_gradient_en {
+  font-size: 70px;
+  color: #fff;
+  /* background: #fff; */
+  background: linear-gradient(to top right, #0affff, #0abeff, #0066ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transition: all 1.5s;
+}
+.text_gradient_en::before {
+  font-size: 70px;
+  position: absolute;
+  /* content: "ワンコイン"; */
+  content: "just $9";
+  color: rgba(0, 0, 0, 0);
+  background: linear-gradient(to top right, #0affff, #0abeff, #0066ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+}
+.text_gradient_red_en {
+  font-size: 70px;
+  color: #fff;
+  /* background: #fff; */
+  background: linear-gradient(to top left, #fff, #ff0000, #fff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transition: all 1s;
+}
+.text_gradient_red_en::before {
+  font-size: 70px;
+  position: absolute;
+  content: "KEYENCE";
+  color: rgba(0, 0, 0, 0);
+  background: linear-gradient(to top left, #ff0000, #ff0011, #df7c7c, #ff0011, #ff0011);
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+}
 
 /* background: linear-gradient(to top left, #c7c0c0, #c49fa2, #cb555b, #e50914, #e50914); */
 /* background: linear-gradient(to top left, #ffffff, #d3bdbf, #be8487, #e50914, #e50914); */

@@ -51,7 +51,7 @@ export const DatePickerCustomInput: FC<Props> = ({ startDate, setStartDate, requ
           <AiTwotoneCalendar className="text-[20px] " />
         </div>
       )}
-      {language === "Ja" ? (
+      {language === "ja" ? (
         <DatePicker
           className={`rounded border-gray-100 p-1.5 text-base outline-0 ${styles.input_box}`}
           wrapperClassName="react-datepicker__input-container"

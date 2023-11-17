@@ -222,7 +222,7 @@ export const Modal: FC = () => {
         <div className={`${styles.auth_area}`}>
           {/* エラーメッセージ */}
           <div className={`${styles.auth_error} ${errorMsg ? "block" : "hidden"}`}>
-            {errorMsg === "Token has expired or is invalid" && language === "Ja"
+            {errorMsg === "Token has expired or is invalid" && language === "ja"
               ? "ログインコードが有効ではありません"
               : `${errorMsg}`}
             {errorMsg !== "Token has expired or is invalid" && `${errorMsg}`}
@@ -236,15 +236,15 @@ export const Modal: FC = () => {
             <div className="flex-center space-x-4">
               <span className="h-[24px] w-[24px]">{googleIcon}</span>
               <div className={`${styles.google_text}`}>
-                {language === "Ja" && "Googleでログイン"}
-                {language === "En" && "Sign in with Google"}
+                {language === "ja" && "Googleでログイン"}
+                {language === "en" && "Sign in with Google"}
               </div>
             </div>
           </button>
 
           <span className={styles.sign_in_and_up_orBlock}>
-            {language === "Ja" && "または"}
-            {language === "En" && "or"}
+            {language === "ja" && "または"}
+            {language === "en" && "or"}
           </span>
 
           {/* メール */}
@@ -254,7 +254,7 @@ export const Modal: FC = () => {
             required
             autoComplete="username"
             autoCapitalize="off"
-            placeholder={`${language === "Ja" ? "メールアドレスを入力" : "Email"}`}
+            placeholder={`${language === "ja" ? "メールアドレスを入力" : "Email"}`}
             className={`${styles.form_input} ${styles.auth_block} placeholder:text-[18px]`}
             value={email}
             onChange={(e) => {
@@ -272,15 +272,15 @@ export const Modal: FC = () => {
             {/* ========= メールアドレス入力エリア ========= */}
             <div className={`${styles.input_group} ${styles.email_box} relative`}>
               {/* <label htmlFor="email">
-              {language === "Ja" && "メール"}
-              {language === "En" && "Email"}
+              {language === "ja" && "メール"}
+              {language === "en" && "Email"}
             </label> */}
               <input
                 type="email"
                 name="email"
                 id="email"
                 required
-                // placeholder={`${language === "Ja" ? "メールアドレスを入力" : "Email"}`}
+                // placeholder={`${language === "ja" ? "メールアドレスを入力" : "Email"}`}
                 autoFocus
                 value={email}
                 // onChange={(e) => {
@@ -305,7 +305,7 @@ export const Modal: FC = () => {
                 className={`${alreadyRequestedOtp ? `${styles.submittedEmailInput}` : ""} ${styles.email_input_area}`}
               />
               <span className={`${email !== "" ? `${styles.entered_email}` : ``} pointer-events-none select-none`}>
-                {language === "Ja" ? "メールアドレスを入力" : "Email"}
+                {language === "ja" ? "メールアドレスを入力" : "Email"}
               </span>
             </div>
             {/* {checkedEmail === "Valid" && <span className={styles.msg}>有効なメールアドレスです</span>} */}
@@ -327,14 +327,14 @@ export const Modal: FC = () => {
               <>
                 <div className={`${styles.input_group} ${styles.login_code_box}`}>
                   {/* <label htmlFor="email">
-                  {language === "Ja" && "ログインコード"}
-                  {language === "En" && "Email"}
+                  {language === "ja" && "ログインコード"}
+                  {language === "en" && "Email"}
                 </label> */}
                   <input
                     type="text"
                     name="login_code"
                     id="login_code"
-                    // placeholder={`${language === "Ja" ? "ログインコードを入力" : "Login code"}`}
+                    // placeholder={`${language === "ja" ? "ログインコードを入力" : "Login code"}`}
                     value={loginCode}
                     onChange={(e) => {
                       setLoginCode(e.target.value);
@@ -346,7 +346,7 @@ export const Modal: FC = () => {
                       loginCode !== "" ? `${styles.entered_login_code}` : ``
                     } pointer-events-none select-none`}
                   >
-                    {language === "Ja" ? "ログインコードを入力" : "Login code"}
+                    {language === "ja" ? "ログインコードを入力" : "Login code"}
                   </span>
                 </div>
                 <div className="h-[16px]"></div>
@@ -363,21 +363,21 @@ export const Modal: FC = () => {
                 </div>
               ) : isLogin ? (
                 <>
-                  {language === "Ja" && "メールアドレスでログイン"}
-                  {/* {language === "Ja" && "準備中"} */}
-                  {language === "En" && "Log in"}
+                  {language === "ja" && "メールアドレスでログイン"}
+                  {/* {language === "ja" && "準備中"} */}
+                  {language === "en" && "Log in"}
                 </>
               ) : alreadyRequestedOtp ? (
                 <>
-                  {language === "Ja" && "ログインコードで続ける"}
-                  {language === "En" && "Create account"}
+                  {language === "ja" && "ログインコードで続ける"}
+                  {language === "en" && "Create account"}
                 </>
               ) : (
                 <>
-                  {/* {language === "Ja" && "メールアドレスでアカウントを作成"} */}
-                  {language === "Ja" && "メールアドレスでログイン"}
-                  {/* {language === "Ja" && "準備中"} */}
-                  {language === "En" && "Create account"}
+                  {/* {language === "ja" && "メールアドレスでアカウントを作成"} */}
+                  {language === "ja" && "メールアドレスでログイン"}
+                  {/* {language === "ja" && "準備中"} */}
+                  {language === "en" && "Create account"}
                 </>
               )}
             </button>
@@ -391,8 +391,8 @@ export const Modal: FC = () => {
               {/* シングルサインオンエリア */}
               {/* <div className={`${styles.signIn_with_saml_area} flex-center`}>
                 <Link href="#" prefetch={false}>
-                  {language === "Ja" && "シングルサインオンを使用"}
-                  {language === "En" && "Use single sign-on"}
+                  {language === "ja" && "シングルサインオンを使用"}
+                  {language === "en" && "Use single sign-on"}
                 </Link>
               </div> */}
 
@@ -401,7 +401,7 @@ export const Modal: FC = () => {
 
               {/* ログインに切り替えエリア */}
               <div className={`${styles.sign_in_and_up_switch_area} flex-center`}>
-                {language === "Ja" && (
+                {language === "ja" && (
                   <div className={styles.switch_form_text}>
                     アカウントを持っていませんか?{" "}
                     <span className={styles.switch_link} onClick={() => setIsLogin(false)}>
@@ -409,7 +409,7 @@ export const Modal: FC = () => {
                     </span>
                   </div>
                 )}
-                {language === "En" && (
+                {language === "en" && (
                   <div className={styles.switch_form_text}>
                     No account?{" "}
                     <span className={styles.switch_link} onClick={() => setIsLogin(false)}>
@@ -425,8 +425,8 @@ export const Modal: FC = () => {
               {/* <div className={`${styles.checkbox_area}`}>
                 <CheckBtn htmlFor="opt_in_email_checkbox" checkBtnColor="var(--color-btn-brand)" />
                 <label htmlFor="opt_in_email_checkbox" className={styles.checkbox_label}>
-                  {language === "Ja" && "キャンペーン案内メールを希望する"}
-                  {language === "En" && "I agree to join TRUSTiFY's mailing list"}
+                  {language === "ja" && "キャンペーン案内メールを希望する"}
+                  {language === "en" && "I agree to join TRUSTiFY's mailing list"}
                 </label>
               </div> */}
 
@@ -436,8 +436,8 @@ export const Modal: FC = () => {
               {/* シングルサインオンエリア */}
               {/* <div className={`${styles.signIn_with_saml_area} flex-center`}>
                 <Link href="#" prefetch={false}>
-                  {language === "Ja" && "シングルサインオンを使用"}
-                  {language === "En" && "Use single sign-on"}
+                  {language === "ja" && "シングルサインオンを使用"}
+                  {language === "en" && "Use single sign-on"}
                 </Link>
               </div> */}
 
@@ -446,7 +446,7 @@ export const Modal: FC = () => {
 
               {/* ログインに切り替えエリア */}
               <div className={`${styles.sign_in_and_up_switch_area} flex-center`}>
-                {language === "Ja" && (
+                {language === "ja" && (
                   <div className={styles.switch_form_text}>
                     アカウントをお持ちですか?{" "}
                     <span className={styles.switch_link} onClick={() => setIsLogin(true)}>
@@ -454,7 +454,7 @@ export const Modal: FC = () => {
                     </span>
                   </div>
                 )}
-                {language === "En" && (
+                {language === "en" && (
                   <div className={styles.switch_form_text}>
                     Already have an account?{" "}
                     <span className={styles.switch_link} onClick={() => setIsLogin(true)}>
@@ -470,7 +470,7 @@ export const Modal: FC = () => {
               {/* 利用規約・プライバシーポリシーエリア */}
               <div className={styles.term_wrapper}>
                 <span>
-                  {language === "Ja" && (
+                  {language === "ja" && (
                     <>
                       「メールアドレスでログイン」と「Googleでログイン」をクリックすることで、TRUSTiFYの
                       <Link href="#" prefetch={false}>
@@ -483,7 +483,7 @@ export const Modal: FC = () => {
                       に同意したものとみなされます。
                     </>
                   )}
-                  {language === "En" && (
+                  {language === "en" && (
                     <>
                       By clicking &apos;Create account&apos; or &apos;Continue with Google&apos;, you agree to{" "}
                       <Link href="#" prefetch={false}>
@@ -504,7 +504,7 @@ export const Modal: FC = () => {
             type="password"
             id="current-password"
             required
-            placeholder={`${language === "Ja" ? "パスワード" : "Password"}`}
+            placeholder={`${language === "ja" ? "パスワード" : "Password"}`}
             autoCapitalize="off"
             autoComplete="current-password"
             className={`${styles.form_input} ${styles.auth_block} placeholder:text-[18px]`}

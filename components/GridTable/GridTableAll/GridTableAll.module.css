@@ -611,7 +611,8 @@
   width: 1rem;
   /* top: 9px;
   left: 14px; */
-  top: 51%;
+  /* top: 51%; */
+  top: 54%;
   left: 50%;
   transform: translate(-50%, -50%);
   opacity: 0;

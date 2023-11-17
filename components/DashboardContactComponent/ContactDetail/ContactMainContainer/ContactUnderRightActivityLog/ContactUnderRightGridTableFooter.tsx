@@ -20,8 +20,8 @@ const ContactUnderRightGridTableFooterMemo: FC<Props> = ({ getItemCount }) => {
             <AiOutlineArrowLeft />
           </button>
           <p className="text-[10px] font-medium text-[#bbb]">
-            {language === "Ja" && "ページ"}
-            {language === "En" && "Page"}
+            {language === "ja" && "ページ"}
+            {language === "en" && "Page"}
           </p>
           <div className={`w-[3rem] space-x-3`}>
             <input
@@ -42,14 +42,14 @@ const ContactUnderRightGridTableFooterMemo: FC<Props> = ({ getItemCount }) => {
           <button className=" focus:outline-scale-600 flex rounded bg-transparent p-0  outline-offset-1 transition-all focus:outline-4 ">
             <span className=" font-regular text-scale-1200 bordershadow-scale-600 hover:bordershadow-scale-700 dark:bordershadow-scale-800 hover:dark:bordershadow-scale-900 focus-visible:outline-scale-700 relative inline-flex cursor-pointer items-center space-x-2 rounded border border-[#777] bg-transparent px-[0px] text-center text-[12px] shadow-sm  duration-200 ease-out focus-visible:outline-4 focus-visible:outline-offset-1">
               <span className="truncate">
-                {language === "Ja" && `${getItemCount ? getItemCount : `-`} `}
-                {language === "En" && "100 rows"}
+                {language === "ja" && `${getItemCount ? getItemCount : `-`} `}
+                {language === "en" && "100 rows"}
               </span>
             </span>
           </button>
           <p className="text-[13px] font-medium text-[#bbb]">
-            {language === "Ja" && `/ 124件`}
-            {language === "En" && "55 records"}
+            {language === "ja" && `/ 124件`}
+            {language === "en" && "55 records"}
           </p>
         </div>
       </div>

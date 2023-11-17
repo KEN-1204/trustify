@@ -22,7 +22,7 @@ export const useSubscribeSubscribedAccount = (userProfile: UserProfileCompanySub
     if (!userProfile && !userProfileState)
       return console.log("リアルタイムsubscribed_accounts ユーザー情報無し userProfile", userProfile, userProfileState);
 
-    // const userId = userProfileState?.id ? userProfileState.id : userProfile.id;
+    const userId = userProfileState?.id ? userProfileState.id : userProfile.id;
     const accountId = userProfileState?.subscribed_account_id
       ? userProfileState.subscribed_account_id
       : userProfile.subscribed_account_id;
@@ -37,7 +37,7 @@ export const useSubscribeSubscribedAccount = (userProfile: UserProfileCompanySub
     );
 
     const channel = supabase
-      .channel("subscribed_accounts_update_changes")
+      .channel(`subscribed_accounts_changes_${userId}`)
       .on(
         "postgres_changes",
         {
@@ -190,3 +190,33 @@ export const useSubscribeSubscribedAccount = (userProfile: UserProfileCompanySub
     // }, [userProfileState, supabase, setUserProfileState]);
   }, [userProfile, userProfileState, supabase, setUserProfileState]);
 };
+
+/**
+ * 
+  .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "subscribed_accounts",
+          filter: `id=eq.${accountId}`,
+        },
+        async (payload: any) => {
+          console.log(
+            "リアルタイムsubscribed_accountsリアルタイム DELETEイベント検知🔥 accountId, payload",
+            accountId,
+            payload
+          );
+          toast.info("チーム管理者からチームを外されました🙇 再度リスタートします。", {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            // theme: `${theme === "light" ? "light" : "dark"}`,
+          });
+        }
+      )
+ */

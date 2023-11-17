@@ -21,6 +21,7 @@ import useDashboardStore from "@/store/useDashboardStore";
 export const DashboardSidebarMemo: FC = () => {
   const language = useStore((state) => state.language);
   const setHoveredItemPosHorizon = useStore((state) => state.setHoveredItemPosHorizon);
+  const userProfileState = useDashboardStore((state) => state.userProfileState);
   const activeMenuTab = useDashboardStore((state) => state.activeMenuTab);
   const setActiveMenuTab = useDashboardStore((state) => state.setActiveMenuTab);
   const isOpenSideBarMenu = useDashboardStore((state) => state.isOpenSideBarMenu);
@@ -29,6 +30,9 @@ export const DashboardSidebarMemo: FC = () => {
   const setIsOpenSideBarPickBox = useDashboardStore((state) => state.setIsOpenSideBarPickBox);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   //   const setIsOpenSidebar = useDashboardStore((state) => state.setIsOpenSidebar);
+  // アカウント設定モーダル
+  const setIsOpenSettingAccountModal = useDashboardStore((state) => state.setIsOpenSettingAccountModal);
+  const setSelectedSettingAccountMenu = useDashboardStore((state) => state.setSelectedSettingAccountMenu);
 
   // ツールチップ表示
   const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
@@ -58,6 +62,13 @@ export const DashboardSidebarMemo: FC = () => {
   // ツールチップを非表示
   const handleCloseTooltip = () => {
     setHoveredItemPosHorizon(null);
+  };
+
+  const openSettingInvitation = () => {
+    if (userProfileState?.account_company_role !== ("company_owner" || "company_admin"))
+      return alert("管理者権限が必要です。");
+    setIsOpenSettingAccountModal(true);
+    setSelectedSettingAccountMenu("Company");
   };
   return (
     <div
@@ -310,7 +321,7 @@ export const DashboardSidebarMemo: FC = () => {
                   }}
                 >
                   <div className={styles.icon_wrapper}>
-                    {language === "Ja" && (
+                    {language === "ja" && (
                       <>
                         {/* <RiMoneyCnyCircleLine className="scale-[1.05] text-[24px] text-[var(--color-text)]" /> */}
                         <AiOutlineMoneyCollect
@@ -318,7 +329,7 @@ export const DashboardSidebarMemo: FC = () => {
                         />
                       </>
                     )}
-                    {language === "En" && (
+                    {language === "en" && (
                       <>
                         {/* <RiMoneyDollarCircleLine className="scale-[1.05] text-[24px] text-[var(--color-text)]" /> */}
                         <BiMoneyWithdraw
@@ -522,7 +533,8 @@ export const DashboardSidebarMemo: FC = () => {
                 // href="/home"
                 // prefetch={false}
                 className={`${styles.menu_item} ${activeMenuTab === "Admin" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("Admin")}
+                // onClick={() => setActiveMenuTab("Admin")}
+                onClick={openSettingInvitation}
               >
                 <div
                   className={styles.menu_item_inner}
