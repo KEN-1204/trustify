@@ -806,8 +806,8 @@ export const Root: FC = () => {
               {language === "ja" && "TRUSTiFYとは？"}
               {language === "en" && "What is TRUSTiFY?"}
             </label>
-            <div className={styles.content}>
-              <p className="relative z-0">
+            <div className={`${styles.content}`}>
+              <p className={`relative z-0 ${language === "en" ? `!tracking-[0.5px]` : ``}`}>
                 {/* {language === "ja" &&
                   "Netflixは、受賞歴のあるドラマ、映画、アニメ、ドキュメンタリーなどの幅広いコンテンツを配信するストリーミングサービスで、メンバーはあらゆるインターネット接続デバイスで視聴することができます。定額、低価格で、いつでもどこでも、好きなだけ視聴することができます。映画やドラマは毎週追加されるので、いつでも新しい作品が見つかります。"} */}
                 {language === "ja" &&
@@ -815,7 +815,7 @@ export const Root: FC = () => {
                 {language === "en" &&
                   "TRUSTiFY is a database that forms the core of the mechanism developed at Keyence that enables every member of the organization to increase sales. By utilizing this database, members can realize an organization where 'every salesperson achieves high sales'. The reason why a single salesperson at Keyence can generate approximately 4 billion yen in annual sales is because of this database."}
               </p>
-              <p>
+              <p className={`${language === "en" ? `!tracking-[0.5px]` : ``}`}>
                 {language === "ja" &&
                   "引合・リードによる受動的な顧客を確実に売り、さらに能動営業で大きな上乗せができるようになることで、例年のリード数に依存せずに高い目標の達成、伸びを出し続けることを可能にします。日々の営業データは売上を生む新たな商品開発に繋がり、また営業データを収集する、貴社に売上を上げ続ける好循環をもたらします。"}
                 {language === "en" &&
@@ -829,8 +829,8 @@ export const Root: FC = () => {
               {language === "ja" && "TRUSTiFYの利用料金は？"}
               {language === "en" && "How much does TRUSTiFY cost?"}
             </label>
-            <div className={styles.content}>
-              <p>
+            <div className={`${styles.content}`}>
+              <p className={`${language === "en" ? `!tracking-[0.5px]` : ``}`}>
                 {/* {language === "ja" &&
                   "TRUSTiFYを定額でお使いいただけます。プランは1人あたり月額￥980（ビジネスプラン）から￥1,980（サポータープラン）まで。追加料金や長期契約はありません。"} */}
                 {language === "ja" &&
@@ -855,7 +855,7 @@ export const Root: FC = () => {
               {language === "en" && "What is the difference between the Business Plan and the Premium Plan?"}
             </label>
             <div className={`${styles.content}`}>
-              <p>
+              <p className={`${language === "en" ? `!tracking-[0.5px]` : ``}`}>
                 {/* {language === "ja" &&
                   "広告つきプランでは、低価格で映画やドラマをお楽しみいただけます。様々な作品をご視聴いただけますが、再生中に広告が流れることがあります (場所やデバイスによっては一部制限があります)。ダウンロードはご利用いただけません。また、一部の映画やドラマは、ライセンスの関係でご覧いただけません。詳しくはこちら。"} */}
                 {/* {language === "ja" &&
@@ -866,7 +866,7 @@ export const Root: FC = () => {
                 {/* {language === "en" &&
                   "An ad-supported plan is a great way to enjoy movies and TV shows at a lower price. You can stream your favorites with limited ad breaks (some location and device restrictions apply). Downloads are not supported and a limited number of movies and TV shows are not available due to licensing restrictions. Learn more."} */}
               </p>
-              <p>
+              <p className={`${language === "en" ? `!tracking-[0.5px]` : ``}`}>
                 {language === "ja" &&
                   "プレミアムプランに関しては、電話、Web会議にてサポートを受けることが受けることが可能になっております。また、使い勝手や要望をTRUSTiFY開発チームに直接伝えることで自社にフィットした追加機能の開発、サービスの改善に役立てることも可能です。まだTRUSTiFYはベータ版であり、少数精鋭のTRUSTiFYチームが直接お客様のご要望を伺いながらすぐに改善し、低価格で最大の経済効果を上げられるサービスへと共に育てていっていただける「支援者」を募集しております。ご満足いただけるサービスにできるよう何卒よろしくお願い申し上げます。"}
                 {language === "en" &&
@@ -880,7 +880,7 @@ export const Root: FC = () => {
               {language === "ja" && "どこで視聴できますか？"}
               {language === "en" && "Where can I watch?"}
             </label>
-            <div className={styles.content}>
+            <div className={`${styles.content} ${language === 'en' ? `!tracking-[0.5px]` : ``}`}>
               <p>
                 {language === "ja" &&
                   "どこにいても、お好きなときに視聴をお楽しみいただけます。パソコンからnetflix.comで、またはスマートテレビ、スマホ、タブレット、ストリーミングメディアプレーヤー、ゲーム機など、Netflixアプリが使用可能なインターネット接続デバイスでアカウントにログインして瞬時にお楽しみいただけます。また、iOS、Android、Windows 10で、お気に入りの作品をダウンロードすることができます。ダウンロードすれば、外出先でもインターネット接続なしで視聴できます。どこでもNetflixをお楽しみください。"}
@@ -895,8 +895,8 @@ export const Root: FC = () => {
               {language === "ja" && "キャンセルするには？"}
               {language === "en" && "How do I cancel?"}
             </label>
-            <div className={styles.content}>
-              <p>
+            <div className={`${styles.content}`}>
+              <p className={`${language === "en" ? `!tracking-[0.5px]` : ``}`}>
                 {language === "ja" &&
                   "TRUSTiFYの手続きはとっても簡単。面倒な契約や拘束は一切ありません。たった数回のクリックで、オンラインで簡単にキャンセルできます。キャンセル料金は一切なく、アカウントの開始やキャンセルはいつでも可能です。"}
                 {language === "en" &&
@@ -910,7 +910,7 @@ export const Root: FC = () => {
               {language === "ja" && "TRUSTiFYで何が視聴できますか？"}
               {language === "en" && "What can I watch on TRUSTiFY?"}
             </label>
-            <div className={styles.content}>
+            <div className={`${styles.content} ${language === 'en' ? `!tracking-[0.5px]` : ``}`}>
               <p>
                 {language === "ja" &&
                   "Netflixでは、長編映画、ドキュメンタリー、ドラマ、アニメや受賞歴のあるNetflixオリジナル作品など、豊富なラインナップをご用意しています。いつでもお好きなだけ視聴できます。"}
@@ -925,7 +925,7 @@ export const Root: FC = () => {
               {language === "ja" && "Netflixは子供も安心して楽しめますか？"}
               {language === "en" && "Is Netflix good for kids?"}
             </label>
-            <div className={styles.content}>
+            <div className={`${styles.content} ${language === 'en' ? `!tracking-[0.5px]` : ``}`}>
               <p>
                 {language === "ja" &&
                   "ご両親がお子様の視聴を管理できるように、メンバーシップにはキッズ専用プロフィールが含まれています。お子様は、キッズプロフィールから家族みんなで楽しめる作品をご覧いただけます。キッズプロフィールは暗証番号で保護されたペアレンタルコントロール機能で管理することができ、お子様が視聴できる作品の年齢制限の設定や、お子様の目に触れてほしくない特定の作品のブロックが可能です。"}
@@ -1037,7 +1037,7 @@ export const Root: FC = () => {
                 await navigator.clipboard.writeText("info@thetrustify.com");
                 toast.success(`コピーしました!`, {
                   position: "bottom-center",
-                  autoClose: 3000,
+                  autoClose: 1500,
                   hideProgressBar: false,
                   closeOnClick: true,
                   pauseOnHover: true,
@@ -1048,7 +1048,7 @@ export const Root: FC = () => {
               } catch (e: any) {
                 toast.error(`コピーできませんでした!`, {
                   position: "top-right",
-                  autoClose: 3000,
+                  autoClose: 1500,
                   hideProgressBar: false,
                   closeOnClick: true,
                   pauseOnHover: true,

@@ -343,6 +343,16 @@ bg-[#06c755] */
 
   /* グラデーション light */
   --color-bg-brand-gradient: linear-gradient(to top left, #2b7fff, #acffff);
+  /* Cursorのgradient */
+  --background-image-cursor-btn: linear-gradient(to bottom, #27272a, #18181b);
+  --background-image-cursor-btnc0: linear-gradient(to bottom, #27272ac0, #18181bc0);
+  --box-shadow-cursor-btn-ring-shadow: 0 0 0 0px, 0 0 0 1px, 0 0 #0000;
+  --box-shadow-brand-f: 0 0 4px 1px var(--color-bg-brand-f);
+  --underline-gradient-cursor: linear-gradient(to right, var(--tw-gradient-stops));
+  --tw-gradient-to: rgba(52, 211, 153, 0) var(--tw-gradient-to-position);
+  --tw-gradient-from: rgba(52, 211, 153, 0) var(--tw-gradient-from-position);
+  --tw-gradient-stops: var(--tw-gradient-from), rgba(52, 211, 153, 0.9) var(--tw-gradient-via-position),
+    var(--tw-gradient-to);
 
   /* ===================================== 🌟サイドばー ライト ===================================== */
   /* --color-sidebar-active: #e5f4ff; */
@@ -825,6 +835,16 @@ bg-[#06c755] */
 
   /* ======================= 🌟グラデーション dark ======================= */
   --color-bg-brand-gradient: linear-gradient(to top left, #2b7fffaa, #acffffaa);
+  /* Cursorのgradient */
+  --background-image-cursor-btn: linear-gradient(to bottom, #27272a, #18181b);
+  --background-image-cursor-btnc0: linear-gradient(to bottom, #27272ac0, #18181bc0);
+  --box-shadow-cursor-btn-ring-shadow: 0 0 0 0px, 0 0 0 1px, 0 0 #0000;
+  --box-shadow-brand-f: 0 0 4px 1px var(--color-bg-brand-f);
+  --underline-gradient-cursor: linear-gradient(to right, var(--tw-gradient-stops));
+  --tw-gradient-to: rgba(52, 211, 153, 0) var(--tw-gradient-to-position);
+  --tw-gradient-from: rgba(52, 211, 153, 0) var(--tw-gradient-from-position);
+  --tw-gradient-stops: var(--tw-gradient-from), rgba(52, 211, 153, 0.9) var(--tw-gradient-via-position),
+    var(--tw-gradient-to);
 
   /* ======================= 🌟サイドバー dark ======================= */
   --color-sidebar-active: #0c8ce9;
@@ -1641,4 +1661,15 @@ textarea {
 }
 .underline_area:hover .brand_text {
   color: var(--color-text-brand-f);
+}
+
+.beta_icon {
+  background-image: var(--background-image-cursor-btnc0);
+  /* box-shadow: var(--box-shadow-cursor-btn-ring-shadow); */
+  /* box-shadow: 0 0 5px 0px var(--color-bg-brand-f); */
+  /* box-shadow: 0 0 5px 0.4px var(--color-bg-brand-f); */
+  /* box-shadow: 0 0 5px 0.8px var(--color-bg-brand-f); */
+  /* box-shadow: 0 0 3px 1px var(--color-bg-brand-f);
+  box-shadow: 0 0 4px 1px var(--color-bg-brand-f); */
+  box-shadow: var(--box-shadow-brand-f);
 }

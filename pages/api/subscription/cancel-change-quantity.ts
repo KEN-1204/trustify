@@ -45,23 +45,37 @@ const changeTeamOwnerHandler = async (req: NextApiRequest, res: NextApiResponse)
     const { stripeCustomerId, cancelDeleteRequestQuantity, subscriptionId } = req.body;
 
     console.log(
-      "🌟Stripe数量ダウンキャンセルステップ3 削除リクエストをキャンセルするアカウント数とStripe顧客IDをリクエストボディから取得 cancelDeleteRequestQuantity",
-      cancelDeleteRequestQuantity,
-      "Stripe顧客ID",
-      stripeCustomerId
+      "🌟Stripe数量ダウンキャンセルステップ3 削除リクエストをキャンセルするアカウント数とStripe顧客IDをリクエストボディから取得"
     );
+    console.log("✅Stripe顧客ID", stripeCustomerId);
+    console.log("✅削除リクエスト済みをキャンセルする数", cancelDeleteRequestQuantity);
+    // console.log("✅削除リクエスト済みをキャンセルするアカウントidをもつ配列", cancelDeleteRequestedAccountIds);
 
     // Ensure stripeCustomerId is a string stripeCustomerIdが文字列であることを確認する。
     if (typeof stripeCustomerId !== "string") {
-      res.status(400).json({ error: "Invalid stripeCustomerId" });
+      console.log("❌Stripe数量ダウンキャンセルステップ3-2 エラー: Invalid stripeCustomerId");
+      res.status(400).json({ error: "❌Invalid stripeCustomerId" });
       return;
     }
 
     // Ensure newQuantity is a number newQuantityが存在し、newQuantityが数値型であることを確認する。
     if (!cancelDeleteRequestQuantity || typeof cancelDeleteRequestQuantity !== "number") {
-      console.log("エラー: Invalid cancelDeleteRequestQuantity");
-      return res.status(400).json({ error: "Invalid newQuantity" });
+      console.log("❌Stripe数量ダウンキャンセルステップ3-2 エラー: Invalid cancelDeleteRequestQuantity");
+      return res.status(400).json({ error: "❌Invalid newQuantity" });
     }
+
+    // Ensure cancelDeleteRequestedAccountIds is uuids of Array cancelDeleteRequestedAccountIdsが全てUUIDを持つ配列であることを確認する。
+    // const isValidUUIDv4 = (uuid: string): boolean => {
+    //   return /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/.test(uuid);
+    // };
+    // if (
+    //   !cancelDeleteRequestedAccountIds ||
+    //   cancelDeleteRequestedAccountIds.length === 0 ||
+    //   cancelDeleteRequestedAccountIds.every((id: string) => id && isValidUUIDv4(id)) === false
+    // ) {
+    //   console.log("❌Stripe数量ダウンキャンセルステップ3-2 エラー: Invalid cancelDeleteRequestedAccountIds");
+    //   return res.status(400).json({ error: "❌Invalid cancelDeleteRequestedAccountIds" });
+    // }
 
     // stripeインスタンスを作成
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -97,17 +111,17 @@ const changeTeamOwnerHandler = async (req: NextApiRequest, res: NextApiResponse)
 
     console.log(
       "🌟Stripe数量ダウンキャンセルステップ4 Stripeの顧客IDから各アイテム取得",
-      "✅サブスクリプションID",
+      "💡サブスクリプションID",
       stripeSubscriptionId,
-      "✅サブスクアイテムID",
+      "💡サブスクアイテムID",
       subscriptionItemId,
-      "✅現在契約中の数量",
+      "💡現在契約中の数量",
       subscriptionCurrentQuantity,
-      "✅現在のプランの開始日",
+      "💡現在のプランの開始日",
       new Date(currentPeriodStart),
-      "✅現在のプランの終了日",
+      "💡現在のプランの終了日",
       new Date(nextInvoiceTimestamp),
-      "✅スケジュールID",
+      "💡スケジュールID",
       scheduleId
     );
 

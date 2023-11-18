@@ -503,7 +503,7 @@ export const SettingInvitationModal = () => {
     setLoading(false);
 
     // 招待モーダルを閉じる
-    // setIsOpenSettingInvitationModal(false);
+    setIsOpenSettingInvitationModal(false);
 
     // const sendInvitationEmail = async (email: string) => {
     //   try {
@@ -608,7 +608,7 @@ export const SettingInvitationModal = () => {
                     // if (notSetAccounts.length === 0) return setOverState(true);
                     setIsOpenSettingInvitationModal(false);
                     setSelectedSettingAccountMenu("PaymentAndPlan");
-                    setIsOpenChangeAccountCountsModal("increase");
+                    // setIsOpenChangeAccountCountsModal("increase");
                     // テスト 入力したメールが既にサインアップ済みのユーザーだった場合の確認
                   }}
                 >
@@ -772,7 +772,7 @@ export const SettingInvitationModal = () => {
                         setOverState(false);
                         setIsOpenSettingInvitationModal(false);
                         setSelectedSettingAccountMenu("PaymentAndPlan");
-                        setIsOpenChangeAccountCountsModal("increase");
+                        // setIsOpenChangeAccountCountsModal("increase");
                       }}
                     >
                       アカウントを増やす

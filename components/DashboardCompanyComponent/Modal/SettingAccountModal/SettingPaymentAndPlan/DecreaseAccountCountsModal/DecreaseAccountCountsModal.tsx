@@ -14,7 +14,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { useQueryClient } from "@tanstack/react-query";
-import { MemberAccounts, SubscribedAccount } from "@/types";
+import { MemberAccounts, StripeSchedule, SubscribedAccount } from "@/types";
 import { FaPlus } from "react-icons/fa";
 import { useQueryMemberAccounts } from "@/hooks/useQueryMemberAccounts";
 import { format } from "date-fns";
@@ -48,6 +48,27 @@ const DecreaseAccountCountsModalMemo = () => {
   const queryClient = useQueryClient();
 
   const memberAccountsDataArray = queryClient.getQueryData<MemberAccounts[]>(["member_accounts"]);
+  const stripeSchedulesDataArray = queryClient.getQueryData<StripeSchedule[]>(["stripe_schedules"]);
+  // 削除リクエストのスケジュールがあるかどうか
+  const [alreadyHaveSchedule, setAlreadyHaveSchedule] = useState(false);
+  const [deleteAccountRequestSchedule, setDeleteAccountRequestSchedule] = useState<StripeSchedule | null>(null);
+
+  // アカウントを減らすスケジュールが既に存在するかを確認して取得
+  useEffect(() => {
+    if (!stripeSchedulesDataArray || stripeSchedulesDataArray.length === 0) {
+      setDeleteAccountRequestSchedule(null);
+      return;
+    }
+    // 削除リクエストのスケジュール
+    const deleteAccountRequestScheduleArray = stripeSchedulesDataArray.filter(
+      (schedule) => schedule.schedule_status === "active" && schedule.type === "change_quantity"
+    );
+    if (!!deleteAccountRequestScheduleArray && deleteAccountRequestScheduleArray.length > 0) {
+      setAlreadyHaveSchedule(true);
+      // Zustandに格納 Arrayなのでひとつしかないが0番目のオブジェクトを格納
+      setDeleteAccountRequestSchedule(deleteAccountRequestScheduleArray[0] ?? null);
+    }
+  }, [stripeSchedulesDataArray, setDeleteAccountRequestSchedule]);
 
   // 現在契約しているメンバーアカウント全てを取得して、契約アカウント数をlengthで取得
   // const {
@@ -145,22 +166,30 @@ const DecreaseAccountCountsModalMemo = () => {
   // 契約中のアカウント個数
   const currentAccountCounts = !!memberAccountsDataArray ? memberAccountsDataArray.length : 0;
 
-  // Stripeのサブスクリプションのquantityを新たな数量に更新 現在のアカウント数と新たに追加するアカウント数を合算
+  // Stripeのサブスクリプションのquantityを新たな数量に更新
+  // 現在のアカウント数 - 削除する未設定アカウント数 = 更新後の合計アカウント数
   const totalAccountQuantity = currentAccountCounts - (decreaseAccountQuantity ?? 0);
 
-  // =========================== 変更を確定をクリック Stripeに送信 ===========================
-  const [progressRate, setProgressRate] = useState(0);
+  // =========================== 🌟変更を確定をクリック Stripeに送信 ===========================
+
+  // 数量を減らす関数 減らすのは未設定アカウントのみ
   const handleChangeQuantity = async () => {
+    // 未設定アカウント数が0の場合には、「アカウント数足りないモーダル」を表示して関数はリターン
     if (notSetAccounts.length === 0) return setNotEnoughAccount(true);
-    console.log("変更の確定クリック プランと数量", userProfileState?.subscription_plan, decreaseAccountQuantity);
+    console.log(
+      "🌟Stripeアカウント数量減らすステップ0 変更の確定クリック 現在のサブスクプランと数量",
+      userProfileState?.subscription_plan,
+      decreaseAccountQuantity
+    );
     if (!userProfileState) return alert("エラー：ユーザー情報が確認できませんでした");
     if (!sessionState) return alert("エラー：セッション情報が確認できませんでした");
     if (!decreaseAccountQuantity) return alert("エラー：追加するアカウント数が選択されていません");
     setLoading(true);
 
     try {
-      console.log("🌟Stripeアカウント変更ステップ0-1 axiosでAPIルートに送信 合計個数", totalAccountQuantity);
+      console.log("🌟Stripeアカウント数量減らすステップ0-1 axiosでAPIルートに送信 合計個数", totalAccountQuantity);
 
+      // 🔹削除対象の未設定アカウントのidを配列に格納
       // 選択された個数分、未設定のアカウントの配列からidのみ取り出して指定個数の未設定idの配列を作り引数に渡す。
       const idsToDeleteArray = notSetAccounts
         .filter((account, index) => account && decreaseAccountQuantity >= index + 1)
@@ -170,14 +199,16 @@ const DecreaseAccountCountsModalMemo = () => {
       console.log("🌟Stripeアカウント変更ステップ0-2 削除対象の配列UUIDチェック完了", idsToDeleteArray);
       const payload = {
         stripeCustomerId: userProfileState.subscription_stripe_customer_id,
-        newQuantity: totalAccountQuantity,
+        newQuantity: totalAccountQuantity, // 数量減らした後の合計個数
         changeType: "decrease",
         companyId: userProfileState.company_id,
         subscriptionId: userProfileState.subscription_id,
         userProfileId: userProfileState.id,
+        alreadyHaveSchedule: alreadyHaveSchedule, // decrease用の削除リクエストスケジュールがあるかどうか用
+        deleteAccountRequestSchedule: deleteAccountRequestSchedule, // decrease用の削除リクエストスケジュール用
       };
       console.log(
-        "🌟Stripeアカウント変更ステップ0-3 axios.post()でAPIルートchange-quantityへリクエスト 引数のpayload",
+        "🌟Stripeアカウント数量減らすステップ0-3 axios.post()でAPIルートchange-quantityへリクエスト 引数のpayload",
         payload
       );
       const {
@@ -190,39 +221,74 @@ const DecreaseAccountCountsModalMemo = () => {
 
       if (axiosStripeError) {
         console.error(
-          `🌟Stripeアカウント変更ステップ7 Stripeアカウント数変更エラー axiosStripeError`,
+          `🌟Stripeアカウント数量減らすステップ7 Stripeアカウント数減少エラー axiosStripeError`,
           axiosStripeError
         );
         throw new Error(axiosStripeError);
       }
-      console.log(`🌟Stripeアカウント変更ステップ7 Stripeアカウント数変更完了 subscriptionItem`, subscriptionItem);
+      console.log(
+        `🌟Stripeアカウント数量減らすステップ7 Stripeアカウント数減少完了 subscriptionItem`,
+        subscriptionItem
+      );
 
       // ======================== 🌟スケジュール適用日に数量を減らすルート ========================
-      // // subscribed_accountsのstateを削除リクエスト済み（delete_requested）に変更
+      // subscribed_accountsのstateを削除リクエスト済み（delete_requested）に変更
+      console.log(
+        `🌟Stripeアカウント数量減らすステップ8 supabaseのsubscribed_accountsテーブルから${decreaseAccountQuantity}個のアカウントを削除予定に変更するストアドプロシージャを実行 削除対象のidを持つ配列idsToDeleteArray`,
+        idsToDeleteArray
+      );
+      // 新たに削除するアカウント数分、supabaseのsubscribed_accountsテーブルからDELETE
+      const { error: deleteRequestedSubscribedAccountsError } = await supabase.rpc(
+        "update_delete_requested_subscribed_accounts_all_at_once",
+        {
+          delete_requested_account_quantity: decreaseAccountQuantity,
+          ids_to_delete: idsToDeleteArray,
+          _subscription_id: userProfileState.subscription_id,
+        }
+      );
+
+      if (deleteRequestedSubscribedAccountsError) {
+        console.log("🌟Stripeアカウント数量減らすステップ9 supabaseの未設定アカウントを指定個数分、削除エラー");
+        throw new Error(deleteRequestedSubscribedAccountsError.message);
+      }
+      console.log(
+        "🌟Stripeアカウント数量減らすステップ9 supabaseの未設定アカウントを指定個数分、削除リクエストとsubscriptionsテーブルのアクティブアカウント数の更新成功"
+      );
+
+      // const currentActiveAccountCounts = currentAccountCounts - decreaseAccountQuantity;
+      // console.log("🌟Stripeステップ10 削除リクエストが無事成功したら、指定した個数を現在の作成済みアカウント数から削除リクエスト済みアカウント数を引いた数量をnumber_of_active_subscribed_accountsのアクティブなアカウントの数にセット位sてUPDATEする");
+
+      // const promises = [...Array(accountQuantity)].map(() => {
+      //   return null;
+      // });
+      // await Promise.all(promises);
+      console.log("🌟Stripeアカウント数量減らすステップ 全て完了 キャッシュを更新");
+
+      // キャッシュを最新状態に反映
+      // サブスクリプションスケジュールを取得して新たなダウングレードの適用時期を明示する
+      //   await queryClient.invalidateQueries({ queryKey: ["change_team_owner_notifications"] });
+      //   await queryClient.invalidateQueries({ queryKey: ["my_notifications"] });
+      await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
+      await queryClient.invalidateQueries({ queryKey: ["stripe_schedules"] });
+      // subscribed_accountsのstateを削除リクエスト済み（delete_requested）に変更
+      // ======================== 🌟スケジュール適用日に数量を減らすルート ここまで ========================
+
+      // ======================= 🌟即時に実際に一括でアカウントを削除するルート =======================
       // console.log(
-      //   `🌟Stripeアカウント変更ステップ8 supabaseのsubscribed_accountsテーブルから${decreaseAccountQuantity}個のアカウントを削除予定に変更するストアドプロシージャを実行 削除対象のidを持つ配列idsToDeleteArray`,
+      //   `🌟Stripeアカウント変更ステップ8 supabaseのsubscribed_accountsテーブルから${decreaseAccountQuantity}個のアカウントを削除するストアドプロシージャを実行 削除対象のidを持つ配列idsToDeleteArray`,
       //   idsToDeleteArray
       // );
       // // 新たに削除するアカウント数分、supabaseのsubscribed_accountsテーブルからDELETE
-      // const { error: deleteRequestedSubscribedAccountsError } = await supabase.rpc(
-      //   "update_delete_requested_subscribed_accounts_all_at_once",
-      //   {
-      //     delete_requested_account_quantity: decreaseAccountQuantity,
-      //     ids_to_delete: idsToDeleteArray,
-      //     _subscription_id: userProfileState.subscription_id,
-      //   }
-      // );
+      // const { error: deleteSubscribedAccountsError } = await supabase.rpc("delete_subscribed_accounts_all_at_once", {
+      //   decrease_account_quantity: decreaseAccountQuantity, // 削除行数チェック用
+      //   ids_to_delete: idsToDeleteArray, // 削除対象の未設定アカウントのid配列
+      // });
 
-      // if (deleteRequestedSubscribedAccountsError) {
+      // if (deleteSubscribedAccountsError) {
       //   console.log("🌟Stripeステップ9 supabaseの未設定アカウントを指定個数分、削除エラー");
-      //   throw new Error(deleteRequestedSubscribedAccountsError.message);
+      //   throw new Error(deleteSubscribedAccountsError.message);
       // }
-      // console.log(
-      //   "🌟Stripeステップ9 supabaseの未設定アカウントを指定個数分、削除リクエストとsubscriptionsテーブルのアクティブアカウント数の更新成功"
-      // );
-
-      // // const currentActiveAccountCounts = currentAccountCounts - decreaseAccountQuantity;
-      // // console.log("🌟Stripeステップ10 削除リクエストが無事成功したら、指定した個数を現在の作成済みアカウント数から削除リクエスト済みアカウント数を引いた数量をnumber_of_active_subscribed_accountsのアクティブなアカウントの数にセット位sてUPDATEする");
+      // console.log("🌟Stripeステップ9 supabaseの未設定アカウントを指定個数分、削除成功");
 
       // // const promises = [...Array(accountQuantity)].map(() => {
       // //   return null;
@@ -236,38 +302,6 @@ const DecreaseAccountCountsModalMemo = () => {
       // //   await queryClient.invalidateQueries({ queryKey: ["my_notifications"] });
       // await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
       // await queryClient.invalidateQueries({ queryKey: ["stripe_schedules"] });
-      // // subscribed_accountsのstateを削除リクエスト済み（delete_requested）に変更
-      // ======================== 🌟スケジュール適用日に数量を減らすルート ここまで ========================
-
-      // ======================= 🌟即時に実際に一括でアカウントを削除するルート =======================
-      console.log(
-        `🌟Stripeアカウント変更ステップ8 supabaseのsubscribed_accountsテーブルから${decreaseAccountQuantity}個のアカウントを削除するストアドプロシージャを実行 削除対象のidを持つ配列idsToDeleteArray`,
-        idsToDeleteArray
-      );
-      // 新たに削除するアカウント数分、supabaseのsubscribed_accountsテーブルからDELETE
-      const { error: deleteSubscribedAccountsError } = await supabase.rpc("delete_subscribed_accounts_all_at_once", {
-        decrease_account_quantity: decreaseAccountQuantity,
-        ids_to_delete: idsToDeleteArray,
-      });
-
-      if (deleteSubscribedAccountsError) {
-        console.log("🌟Stripeステップ9 supabaseの未設定アカウントを指定個数分、削除エラー");
-        throw new Error(deleteSubscribedAccountsError.message);
-      }
-      console.log("🌟Stripeステップ9 supabaseの未設定アカウントを指定個数分、削除成功");
-
-      // const promises = [...Array(accountQuantity)].map(() => {
-      //   return null;
-      // });
-      // await Promise.all(promises);
-      console.log("全て完了 キャッシュを更新");
-
-      // キャッシュを最新状態に反映
-      // サブスクリプションスケジュールを取得して新たなダウングレードの適用時期を明示する
-      //   await queryClient.invalidateQueries({ queryKey: ["change_team_owner_notifications"] });
-      //   await queryClient.invalidateQueries({ queryKey: ["my_notifications"] });
-      await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
-      await queryClient.invalidateQueries({ queryKey: ["stripe_schedules"] });
       // ======================= 🌟即時に実際に一括でアカウントを削除するルート ここまで =======================
 
       toast.success(`数量変更を受け付けました。現在の請求期間の最終日に新たなアカウント数が適用されます。`, {
@@ -293,6 +327,7 @@ const DecreaseAccountCountsModalMemo = () => {
     }
     setLoading(false);
   };
+  // =========================== ✅変更を確定をクリック Stripeに送信 ここまで ===========================
 
   console.log(
     "🌟decreaseAccountCountsModalコンポーネントレンダリング",
@@ -306,7 +341,13 @@ const DecreaseAccountCountsModalMemo = () => {
     "今回削除するアカウント数",
     decreaseAccountQuantity,
     "削除後のアカウント数合計",
-    totalAccountQuantity
+    totalAccountQuantity,
+    "スケジュールテーブル",
+    stripeSchedulesDataArray,
+    "削除リクエストスケジュールの有無",
+    alreadyHaveSchedule,
+    "削除リクエストスケジュール",
+    deleteAccountRequestSchedule
     // "削除対象のid配列",
     // idsToDeleteArray,
     // "削除対象のid配列が全てUUIDかどうかテスト",

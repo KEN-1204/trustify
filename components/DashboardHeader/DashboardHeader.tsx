@@ -987,7 +987,9 @@ export const DashboardHeaderMemo: FC = () => {
                 className={`shadow-all-md border-real absolute right-[0px] top-[50px] z-[100] flex h-auto min-w-[276px] max-w-[276px] flex-col rounded-[4px] bg-[var(--color-edit-bg-solid)]`}
               >
                 {/* プロフィール情報エリア */}
-                <div className={`flex h-auto w-full px-[24px] py-[16px]`}>
+                <div className={`relative flex h-auto w-full px-[24px] py-[16px]`}>
+                  {/* 背景色 */}
+                  {/* <div className="absolute left-0 top-0 z-[-1] h-[100%] w-full bg-[#0066ff80]"></div> */}
                   {/* アバター画像エリア */}
                   <div className="flex-center relative h-[58px] w-[58px]">
                     {!avatarUrl && (

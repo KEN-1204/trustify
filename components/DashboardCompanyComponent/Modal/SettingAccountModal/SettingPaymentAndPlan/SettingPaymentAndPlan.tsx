@@ -15,6 +15,7 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 import React, { FC, memo, useEffect, useState } from "react";
 import { AiFillExclamationCircle, AiFillInfoCircle, AiOutlineMinusCircle, AiOutlinePlusCircle } from "react-icons/ai";
+import { BsCheck2 } from "react-icons/bs";
 import { MdClose } from "react-icons/md";
 import { toast } from "react-toastify";
 
@@ -212,12 +213,12 @@ const SettingPaymentAndPlanMemo: FC = () => {
     }
   };
 
-  // アカウントの削除リクエストをキャンセルする関数
-  const [loading, setLoading] = useState(false);
+  // ===================== 🌟アカウントの削除リクエストをキャンセルする関数 =====================
+  const [loadingCancelDeleteRequest, setLoadingCancelDeleteRequest] = useState(false);
   const handleCancelDeleteAccountRequestSchedule = async () => {
     if (!userProfileState) return alert("エラー：ユーザー情報が確認できませんでした");
     if (!sessionState) return alert("エラー：セッション情報が確認できませんでした");
-    setLoading(true);
+    setLoadingCancelDeleteRequest(true);
 
     try {
       console.log("🌟Stripe数量ダウンキャンセルステップ0-1 axiosでAPIルートに送信");
@@ -232,7 +233,8 @@ const SettingPaymentAndPlanMemo: FC = () => {
 
       const payload = {
         stripeCustomerId: userProfileState.subscription_stripe_customer_id,
-        cancelDeleteRequestQuantity: notSetAndDeleteRequestedAccounts.length,
+        cancelDeleteRequestQuantity: notSetAndDeleteRequestedAccounts.length, // 削除リクエストをキャンセルする数
+        // cancelDeleteRequestedAccountIds: idsToDeleteRequestedArray, // 削除リクエスト済みをキャンセルするアカウントのidを持つ配列
         subscriptionId: userProfileState.subscription_id,
       };
       console.log(
@@ -265,8 +267,8 @@ const SettingPaymentAndPlanMemo: FC = () => {
       const { error: cancelDeleteRequestedSubscribedAccountsError } = await supabase.rpc(
         "cancel_delete_requested_subscribed_accounts_all_at_once",
         {
-          cancel_delete_requested_account_quantity: notSetAndDeleteRequestedAccounts.length,
-          ids_to_delete_requested: idsToDeleteRequestedArray,
+          _cancel_delete_requested_account_quantity: notSetAndDeleteRequestedAccounts.length,
+          _ids_to_delete_requested: idsToDeleteRequestedArray,
           _subscription_id: userProfileState.subscription_id,
         }
       );
@@ -283,7 +285,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
       //   return null;
       // });
       // await Promise.all(promises);
-      console.log("全て完了 キャッシュを更新");
+      console.log("✅全て完了 キャッシュを更新");
 
       // キャッシュを最新状態に反映
       // サブスクリプションスケジュールを取得して新たなダウングレードの適用時期を明示する
@@ -293,7 +295,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
       // ======== subscribed_accountsのstateを削除リクエスト済み（delete_requested）に変更 ここまで ========
 
       // ======================= スケジュールの適用日に実行 =======================
-      toast.success(`削除リクエストをキャンセルしました。`, {
+      toast.success(`削除リクエストのキャンセルが成功しました！`, {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -316,8 +318,9 @@ const SettingPaymentAndPlanMemo: FC = () => {
     }
 
     setShowConfirmModal(null); // 確認モーダルを閉じる
-    setLoading(false);
+    setLoadingCancelDeleteRequest(false);
   };
+  // ===================== ✅アカウントの削除リクエストをキャンセルする関数 =====================
 
   const [openAccountCountsMenu, setOpenAccountCountsMenu] = useState(false);
   const AccountCountsDropDownMenu = () => {
@@ -365,11 +368,11 @@ const SettingPaymentAndPlanMemo: FC = () => {
       {/* 右側メインエリア プロフィール */}
       {selectedSettingAccountMenu === "PaymentAndPlan" && (
         <div className={`flex h-full w-full flex-col overflow-y-scroll py-[20px] pl-[20px] pr-[80px]`}>
-          {loading && (
+          {/* {loading && (
             <div className={`flex-center fixed inset-0 z-[2000] rounded-[8px] bg-[#00000090]`}>
               <SpinnerIDS scale={"scale-[0.5]"} />
             </div>
-          )}
+          )} */}
           {isLoadingPortal && (
             <div className={`flex-center fixed inset-0 z-[2000] rounded-[8px] bg-[var(--overlay-modal-bg)]`}>
               {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
@@ -382,6 +385,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
             <h4 className="text-[18px] font-bold !text-[var(--color-text-title)]">
               会社・チームのサブスクリプション：<span>{userProfileState?.customer_name}</span>
             </h4>
+            {/* メンバーシップキャンセルリクエスト後 */}
             {!!userProfileState && userProfileState.cancel_at_period_end === true && (
               <div className="mt-[10px] flex min-h-[55px] w-full items-center rounded-[4px] bg-[#FF3B5B] px-[20px]">
                 {/* <AiFillExclamationCircle className="mr-[12px] text-[28px] text-[#000]" /> */}
@@ -389,6 +393,21 @@ const SettingPaymentAndPlanMemo: FC = () => {
                 <p>メンバーシップは現在の請求期間の最終日にキャンセルされます。</p>
               </div>
             )}
+            {/* メンバーシップキャンセルリクエスト後 ここまで */}
+            {/* アカウントを減らした後 */}
+            {!!stripeSchedulesDataArray &&
+              !!deleteAccountRequestSchedule &&
+              deleteAccountRequestSchedule.current_end_date &&
+              deleteAccountRequestSchedule.type === "change_quantity" && (
+                <div className="mt-[10px] flex min-h-[55px] w-full items-center rounded-[4px] bg-[#25ce6b] px-[20px] text-[var(--color-text-title)]">
+                  {/* <AiFillInfoCircle className="mr-[12px] text-[28px] text-[#000]" /> */}
+                  <div className="flex-center mr-[12px] min-h-[26px] min-w-[26px] rounded-full bg-[var(--color-text-title)] ">
+                    <BsCheck2 className="stroke-1 text-[16px] text-[#25ce6b]" />
+                  </div>
+                  <p>アカウントの削減リクエストを受け付けました。次回請求期間の開始日に適用されます。</p>
+                </div>
+              )}
+            {/* アカウントを減らした後 ここまで */}
             <div
               className={`mt-[14px] flex w-full flex-col rounded-[4px] border border-solid border-[var(--color-border-deep)] p-[16px]`}
             >
@@ -490,6 +509,10 @@ const SettingPaymentAndPlanMemo: FC = () => {
                       isLoading ? `` : `hover:bg-[var(--color-bg-brand-f-hover)]`
                     }`}
                     onClick={() => {
+                      if (!!deleteAccountRequestSchedule)
+                        return alert(
+                          "アカウントの削減リクエストを受付済みです。アカウントを増やすには削減リクエストをキャンセルしてください。"
+                        );
                       console.log("アカウント数を増やすクリック");
                       setIsOpenChangeAccountCountsModal("increase");
                     }}
@@ -519,11 +542,11 @@ const SettingPaymentAndPlanMemo: FC = () => {
               {!!deleteAccountRequestSchedule && (
                 <div className="flex w-full items-center justify-end">
                   <span
-                    className="ml-auto cursor-pointer hover:text-[var(--color-text-brand-f)] hover:underline"
+                    className="ml-auto cursor-pointer hover:text-[#25ce6b] hover:underline"
                     // onClick={handleCancelDeleteAccountRequestSchedule}
                     onClick={() => setShowConfirmModal("delete_request")}
                   >
-                    アカウントの削除リクエストをキャンセル
+                    アカウントの削減リクエストをキャンセル
                   </span>
                 </div>
               )}
@@ -607,8 +630,10 @@ const SettingPaymentAndPlanMemo: FC = () => {
             }}
           ></div>
           <div className="fade02 fixed left-[50%] top-[50%] z-[2000] h-auto w-[40vw] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)]">
-            {loading && (
-              <div className={`flex-center fixed left-0 top-0 z-[3000] h-[100%] w-[100%] rounded-[8px] bg-[#00000090]`}>
+            {loadingCancelDeleteRequest && (
+              <div
+                className={`flex-center absolute left-0 top-0 z-[3000] h-[100%] w-[100%] rounded-[8px] bg-[#00000090]`}
+              >
                 <SpinnerIDS scale={"scale-[0.5]"} />
               </div>
             )}

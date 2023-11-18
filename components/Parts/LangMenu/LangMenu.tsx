@@ -23,7 +23,7 @@ export const LangMenu: FC = () => {
       style={{
         position: "absolute",
         zIndex: 100,
-        left: `${clickedItemPos?.x}px`,
+        left: `${!!clickedItemPos && !!clickedItemPos.x ? clickedItemPos?.x + 2.5 : clickedItemPos?.x}px`,
         top: `${!!clickedItemPos ? `${clickedItemPos?.y + clickedItemPos?.itemHeight}px` : ``}`,
       }}
       ref={menuRef}

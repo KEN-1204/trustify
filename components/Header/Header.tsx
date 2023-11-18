@@ -207,6 +207,13 @@ export const Header: FC<Props> = ({
             </span>
           )}
           {/* </div> */}
+          {/* ベータアイコン */}
+          <div
+            className={`beta_icon flex-center absolute right-[-58px] top-[-3px] h-[24px] w-[52px] rounded-full px-[16px] py-[4px]`}
+          >
+            <span className="text-[13px] font-bold text-[#efefef]">Beta</span>
+            <span className="absolute -bottom-[0px] left-[10px] h-[1.5px] w-[32px] bg-gradient-to-r from-emerald-400/0 via-emerald-400/90 to-emerald-400/0 transition-opacity duration-500 group-hover:opacity-40"></span>
+          </div>
         </Link>
         <nav>
           <ul

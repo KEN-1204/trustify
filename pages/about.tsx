@@ -283,7 +283,7 @@ const About = () => {
                         await navigator.clipboard.writeText("info@thetrustify.com");
                         toast.success(`コピーしました!`, {
                           position: "bottom-center",
-                          autoClose: 3000,
+                          autoClose: 1500,
                           hideProgressBar: false,
                           closeOnClick: true,
                           pauseOnHover: true,
@@ -294,7 +294,7 @@ const About = () => {
                       } catch (e: any) {
                         toast.error(`コピーできませんでした!`, {
                           position: "top-right",
-                          autoClose: 3000,
+                          autoClose: 1500,
                           hideProgressBar: false,
                           closeOnClick: true,
                           pauseOnHover: true,

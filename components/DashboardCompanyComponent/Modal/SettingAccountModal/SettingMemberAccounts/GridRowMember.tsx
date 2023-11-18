@@ -519,7 +519,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
               // クリック位置を取得
               // const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
               const { x, y } = e.currentTarget.getBoundingClientRect();
-              const clickedPositionPlusItemHeight = y + 220 + 40; // 40はmargin分
+              const clickedPositionPlusItemHeight = y + 220 + 40 - 10; // 40はmargin分 -10pxは微調整
               const modalHeight = window.innerHeight * 0.9;
               const halfBlankSpaceWithoutModal = (window.innerHeight - modalHeight) / 2;
               const modalBottomPosition = window.innerHeight - halfBlankSpaceWithoutModal;

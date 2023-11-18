@@ -134,6 +134,8 @@ const IncreaseAccountCountsModalMemo = () => {
         companyId: userProfileState.company_id,
         subscriptionId: userProfileState.subscription_id,
         userProfileId: userProfileState.id,
+        alreadyHaveSchedule: false, // decrease用の削除リクエストスケジュールがあるかどうか用
+        deleteAccountRequestSchedule: null, // decrease用の削除リクエストスケジュール用
       };
       const {
         data: { subscriptionItem, error: axiosStripeError },
