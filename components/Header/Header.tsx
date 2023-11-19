@@ -58,70 +58,76 @@ export const Header: FC<Props> = ({
   // const isHeaderShown = useStore((state) => state.isHeaderShown);
   // const isHeaderTop = useStore((state) => state.isHeaderTop);
 
-  // ============ ヘッダー 下スクロール時に非表示、上スクロール時に表示 ============
-  const [isHeaderShown, setIsHeaderShown] = useState(true);
-  const [isHeaderTop, setIsHeaderTop] = useState(true);
-  const [currentY, setCurrentY] = useState(0);
-  const [lightTextBorderLine, setLightTextBorderLine] = useState(false);
+  // ============ 🌟ヘッダー 下スクロール時に非表示、上スクロール時に表示 スナップスクロールあり ============
+  const isHeaderShown = useStore((state) => state.isHeaderShown);
+  const isHeaderTop = useStore((state) => state.isHeaderTop);
+  const lightTextBorderLine = useStore((state) => state.lightTextBorderLine);
+  const setLightTextBorderLine = useStore((state) => state.lightTextBorderLine);
+  // ============ ✅ヘッダー 下スクロール時に非表示、上スクロール時に表示 スナップスクロールあり ============
+  // ============ 🌟ヘッダー 下スクロール時に非表示、上スクロール時に表示 スナップスクロールなし ============
+  // const [isHeaderShown, setIsHeaderShown] = useState(true);
+  // const [isHeaderTop, setIsHeaderTop] = useState(true);
+  // const [currentY, setCurrentY] = useState(0);
+  // const [lightTextBorderLine, setLightTextBorderLine] = useState(false);
 
-  const handleScrollEvent = useCallback(() => {
-    console.log("scrollイベント発火🔥 現在のscrollY, currentY", scrollY, currentY);
+  // const handleScrollEvent = useCallback(() => {
+  //   console.log("scrollイベント発火🔥 現在のscrollY, currentY", scrollY, currentY);
 
-    // headerの高さ100px、scrollYが100以下か上にスクロールした場合はheaderを表示
-    if (window.scrollY < 100 || window.scrollY < currentY) {
-      setIsHeaderShown(true);
-    } else {
-      setIsHeaderShown(false);
-    }
-    setCurrentY(window.scrollY);
+  //   // headerの高さ100px、scrollYが100以下か上にスクロールした場合はheaderを表示
+  //   if (window.scrollY < 100 || window.scrollY < currentY) {
+  //     setIsHeaderShown(true);
+  //   } else {
+  //     setIsHeaderShown(false);
+  //   }
+  //   setCurrentY(window.scrollY);
 
-    // 画面が最上部の時はヘッダーを透明にする
-    // if (window.scrollY > 0) {
-    //   setIsHeaderTop(false);
-    // } else {
-    //   setIsHeaderTop(true);
-    // }
-    if (window.scrollY > 200) {
-      setIsHeaderTop(false);
-    } else {
-      setIsHeaderTop(true);
-    }
+  //   // 画面が最上部の時はヘッダーを透明にする
+  //   // if (window.scrollY > 0) {
+  //   //   setIsHeaderTop(false);
+  //   // } else {
+  //   //   setIsHeaderTop(true);
+  //   // }
+  //   if (window.scrollY > 200) {
+  //     setIsHeaderTop(false);
+  //   } else {
+  //     setIsHeaderTop(true);
+  //   }
 
-    // 🌟テスト タイプライター Feature
-    if (580 < currentY) {
-      setStartAnimationFeature1(true);
-    }
-    if (1300 < currentY) {
-      setStartAnimationFeature2(true);
-    }
-    if (1990 < currentY) {
-      setStartAnimationFeature3(true);
-    }
-    if (2680 < currentY) {
-      setStartAnimationFeature4(true);
-    }
+  //   // 🌟テスト タイプライター Feature
+  //   if (580 < currentY) {
+  //     setStartAnimationFeature1(true);
+  //   }
+  //   if (1300 < currentY) {
+  //     setStartAnimationFeature2(true);
+  //   }
+  //   if (1990 < currentY) {
+  //     setStartAnimationFeature3(true);
+  //   }
+  //   if (2680 < currentY) {
+  //     setStartAnimationFeature4(true);
+  //   }
 
-    // }, [currentY, isHeaderShown, isHeaderTop]);
-    // テーマがライトでwindowが830を超えたらヘッダーの文字色を黒にする
-    if (800 < currentY) {
-      if (lightTextBorderLine === true) return;
-      setLightTextBorderLine(true);
-      console.log("ヘッダー文字色を黒に変更");
-    } else {
-      if (lightTextBorderLine === false) return;
-      console.log("ヘッダー文字色を白に変更");
-      setLightTextBorderLine(false);
-    }
-  }, [currentY]);
+  //   // }, [currentY, isHeaderShown, isHeaderTop]);
+  //   // テーマがライトでwindowが830を超えたらヘッダーの文字色を黒にする
+  //   if (800 < currentY) {
+  //     if (lightTextBorderLine === true) return;
+  //     setLightTextBorderLine(true);
+  //     console.log("ヘッダー文字色を黒に変更");
+  //   } else {
+  //     if (lightTextBorderLine === false) return;
+  //     console.log("ヘッダー文字色を白に変更");
+  //     setLightTextBorderLine(false);
+  //   }
+  // }, [currentY]);
 
-  useEffect(() => {
-    console.log("window", window.scrollY, lightTextBorderLine);
-    window.addEventListener(`scroll`, handleScrollEvent);
+  // useEffect(() => {
+  //   console.log("window", window.scrollY, lightTextBorderLine);
+  //   window.addEventListener(`scroll`, handleScrollEvent);
 
-    return () => {
-      window.removeEventListener("scroll", handleScrollEvent);
-    };
-  }, [handleScrollEvent]);
+  //   return () => {
+  //     window.removeEventListener("scroll", handleScrollEvent);
+  //   };
+  // }, [handleScrollEvent]);
   // =======================================================================
 
   // 仮コード🌟
@@ -147,6 +153,7 @@ export const Header: FC<Props> = ({
   }
 
   const handleAuthLoginLogout = async () => {
+    console.log("ログインクリック");
     if (!sessionState) {
       setIsLogin(true);
       setIsOpenModal(true);
@@ -181,7 +188,7 @@ export const Header: FC<Props> = ({
         }}
       >
         <Link
-          href="#"
+          href="#hero"
           scroll={true}
           prefetch={false}
           className="relative flex h-full w-auto cursor-pointer select-none items-center justify-center"
@@ -212,6 +219,7 @@ export const Header: FC<Props> = ({
             className={`beta_icon flex-center absolute right-[-58px] top-[-3px] h-[24px] w-[52px] rounded-full px-[16px] py-[4px]`}
           >
             <span className="text-[13px] font-bold text-[#efefef]">Beta</span>
+            {/* <span className="absolute -bottom-[0px] left-[10px] h-[1.5px] w-[32px] bg-gradient-to-r from-red-400/0 via-red-500/90 to-red-400/0 transition-opacity duration-500 group-hover:opacity-40"></span> */}
             <span className="absolute -bottom-[0px] left-[10px] h-[1.5px] w-[32px] bg-gradient-to-r from-emerald-400/0 via-emerald-400/90 to-emerald-400/0 transition-opacity duration-500 group-hover:opacity-40"></span>
           </div>
         </Link>

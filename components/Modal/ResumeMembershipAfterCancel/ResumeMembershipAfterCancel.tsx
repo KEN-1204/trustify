@@ -436,7 +436,7 @@ const ResumeMembershipAfterCancelMemo = () => {
       // ZustandのStateを更新
       setUserProfileState(newUserData[0] as UserProfileCompanySubscription);
 
-      toast.success(`チームの削除とデータのリセットが完了しました! リスタートを始めます。`, {
+      toast.success(`チームの削除とデータのリセットが完了しました!🌟 リスタートを始めます。`, {
         position: "top-right",
         autoClose: 5000,
         hideProgressBar: false,
@@ -452,7 +452,7 @@ const ResumeMembershipAfterCancelMemo = () => {
       ) {
         setTimeout(() => {
           router.reload();
-        }, 200);
+        }, 800);
       }
 
       // const { data: userProfile, error: getUserDataError } = await supabase

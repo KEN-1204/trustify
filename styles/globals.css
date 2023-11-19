@@ -217,6 +217,20 @@ bg-[#06c755] */
   --color-header-bg-active: rgba(64, 87, 109, 0.07);
   /* ブランドカラー　 */
   --color-bg-brand: #0066ff;
+  --color-bg-brande0: #0066ffe0;
+  --color-bg-brandd0: #0066ffd0;
+  --color-bg-brandc0: #0066ffc0;
+  --color-bg-brandb0: #0066ffb0;
+  --color-bg-branda0: #0066ffa0;
+  --color-bg-brand90: #0066ff90;
+  --color-bg-brand80: #0066ff80;
+  --color-bg-brand70: #0066ff70;
+  --color-bg-brand60: #0066ff60;
+  --color-bg-brand50: #0066ff50;
+  --color-bg-brand40: #0066ff40;
+  --color-bg-brand30: #0066ff30;
+  --color-bg-brand20: #0066ff20;
+  --color-bg-brand10: #0066ff10;
   --color-bg-brand-rgb: 13, 153, 255;
   --color-bg-brand-f: #0d99ff; /* Figma */
   --color-bg-brand-f-hover: #0d99ff90;
@@ -343,6 +357,12 @@ bg-[#06c755] */
 
   /* グラデーション light */
   --color-bg-brand-gradient: linear-gradient(to top left, #2b7fff, #acffff);
+  --color-bg-btn-brand-gradient: linear-gradient(to bottom left, #acffffe0, #47affae0, #0d99ffe0);
+  /* --color-bg-btn-brand-gradient-hover: linear-gradient(to bottom left, #f3fcff, #4ac3ff, #0de3ff); */
+  --color-bg-btn-brand-gradient-hover: linear-gradient(to bottom left, #f3fcff, #4ac3ff, #00eaff);
+  --color-bg-btn-brand-gradient-deep: linear-gradient(to bottom left, #80a0b5, #337fb5, #0766aa);
+  --theme-icon-border: var(--color-bg-brand-f90);
+  /* --color-bg-btn-brand-gradient: linear-gradient(to bottom, var(--color-bg-brand-f90), var(--color-bg-brand-f)); */
   /* Cursorのgradient */
   --background-image-cursor-btn: linear-gradient(to bottom, #27272a, #18181b);
   --background-image-cursor-btnc0: linear-gradient(to bottom, #27272ac0, #18181bc0);
@@ -599,6 +619,9 @@ bg-[#06c755] */
   /* シャドウ */
   --shadow-sm: 0 2px 4px -1px rgba(57, 76, 96, 0.15);
   --shadow-all-md: 0px 4px 15px 1px rgba(0, 0, 0, 0.15);
+  --shadow-all-lg: 0px 3px 15px 3px rgba(0, 0, 0, 0.39);
+  --shadow-theme-icon: 0px 3px 15px 1px rgba(0, 0, 0, 0.15);
+  --shadow-theme-icon-hover: 0px 3px 15px 1px rgba(0, 0, 0, 0.3);
   --color-header-shadow-hover: rgb(0 0 0 / 69%) 0px 16px 58px -10px, rgb(0 0 0 / 45%) 0px 16px 10px -10px;
   /* --shadow-all-md-vivid: 0px 4px 15px 0px rgba(0, 0, 0, 0.4); */
   --shadow-top-md: 0px -10px 10px -5px rgba(0, 0, 0, 0.08);
@@ -734,6 +757,20 @@ bg-[#06c755] */
   --color-bg-table-header: #252525;
   /* ブランドカラー　背景 */
   --color-bg-brand: #0066ff;
+  --color-bg-brande0: #0066ffe0;
+  --color-bg-brandd0: #0066ffd0;
+  --color-bg-brandc0: #0066ffc0;
+  --color-bg-brandb0: #0066ffb0;
+  --color-bg-branda0: #0066ffa0;
+  --color-bg-brand90: #0066ff90;
+  --color-bg-brand80: #0066ff80;
+  --color-bg-brand70: #0066ff70;
+  --color-bg-brand60: #0066ff60;
+  --color-bg-brand50: #0066ff50;
+  --color-bg-brand40: #0066ff40;
+  --color-bg-brand30: #0066ff30;
+  --color-bg-brand20: #0066ff20;
+  --color-bg-brand10: #0066ff10;
   --color-bg-brand-rgb: 0, 102, 255;
   --color-bg-brand-f: #0c8ce9; /* Figma */
   --color-bg-brand-f-hover: #0c8ce990;
@@ -835,6 +872,10 @@ bg-[#06c755] */
 
   /* ======================= 🌟グラデーション dark ======================= */
   --color-bg-brand-gradient: linear-gradient(to top left, #2b7fffaa, #acffffaa);
+  --color-bg-btn-brand-gradient: linear-gradient(to bottom left, #c9e8fd99, #47affa99, #0c8ce999);
+  --color-bg-btn-brand-gradient-hover: linear-gradient(to bottom left, #c9e8fd, #47affa, #0c8ce9);
+  --theme-icon-border: #ffffff66;
+  --theme-icon-border: var(--color-bg-brand-f);
   /* Cursorのgradient */
   --background-image-cursor-btn: linear-gradient(to bottom, #27272a, #18181b);
   --background-image-cursor-btnc0: linear-gradient(to bottom, #27272ac0, #18181bc0);
@@ -1057,6 +1098,9 @@ bg-[#06c755] */
   /* シャドウ dark */
   --shadow-sm: 0px 1px 1px 0px rgba(255, 255, 255, 0.12);
   --shadow-all-md: 0px 4px 15px 1px rgba(255, 255, 255, 0.15);
+  --shadow-all-lg: 0px 3px 15px 3px rgba(255, 255, 255, 0.39);
+  --shadow-theme-icon: 0px 3px 15px 3px rgba(255, 255, 255, 0.39);
+  --shadow-theme-icon-hover: 0px 3px 22px 5px rgba(255, 255, 255, 0.6);
   /* --shadow-all-md-vivid: 0px 4px 10px 3px rgba(255, 255, 255, 0.3); */
   --shadow-top-md: 0px -10px 10px -5px rgba(255, 255, 255, 0.1);
   --shadow-top-md2: 0px -12px 15px -8px rgba(255, 255, 255, 0.15);
@@ -1170,6 +1214,9 @@ textarea {
 }
 .shadow-all-md {
   box-shadow: var(--shadow-all-md);
+}
+.shadow-all-lg {
+  box-shadow: var(--shadow-all-lg);
 }
 .shadow-all-md-vivid {
   box-shadow: var(--shadow-all-md-vivid);
@@ -1672,4 +1719,36 @@ textarea {
   /* box-shadow: 0 0 3px 1px var(--color-bg-brand-f);
   box-shadow: 0 0 4px 1px var(--color-bg-brand-f); */
   box-shadow: var(--box-shadow-brand-f);
+}
+
+.theme_icon_bg {
+  width: 35px;
+  height: 35px;
+  overflow: hidden;
+  background-image: var(--color-bg-btn-brand-gradient);
+  /* border: 1px solid var(--color-bg-brand-f); */
+  border: 1px solid var(--theme-icon-border);
+  /* box-shadow: 0px 3px 15px 3px rgba(255, 255, 255, 0.39); */
+  box-shadow: var(--shadow-theme-icon);
+  transition: box-shadow 0.3s ease;
+}
+.theme_icon_bg:hover {
+  box-shadow: var(--shadow-theme-icon-hover);
+}
+
+.theme_icon_bg_hover {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  border-radius: 100%;
+  width: 100%;
+  height: 100%;
+  background-image: var(--color-bg-btn-brand-gradient-hover);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  /* border: 1px solid transparent; */
+}
+.theme_icon_bg_hover:hover {
+  opacity: 1;
 }

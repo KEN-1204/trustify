@@ -119,7 +119,7 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
               payload.new.subscription_stage === "is_canceled" &&
               payload.old.subscription_stage === "is_subscribed"
             ) {
-              toast.info(`メンバーシップがキャンセルされました🙇 再度リスタートします。`, {
+              toast.info(`メンバーシップがキャンセルされました🙇 リスタートを始めます。`, {
                 position: "top-right",
                 autoClose: 5000,
                 hideProgressBar: false,
@@ -144,7 +144,7 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
               payload.new.stripe_subscription_id === newUserData.stripe_subscription_id &&
               payload.old.stripe_subscription_id !== newUserData.stripe_subscription_id
             ) {
-              toast.success(`おかえりなさい🌟TRUSTiFYへようこそ！ 再度リスタートします！`, {
+              toast.success(`おかえりなさい🌟TRUSTiFYへようこそ！ リスタートを始めます。`, {
                 position: "top-right",
                 autoClose: 5000,
                 hideProgressBar: false,

@@ -25,8 +25,8 @@
   height: 100dvh;
   /* background-color: var(--color-bg-base); */
   /* スクロールスナップ🌟 */
-  /* overflow-y: scroll;
-  scroll-snap-type: y mandatory; */
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
 }
 
 .main_container svg {
@@ -45,7 +45,7 @@
   color: #fff;
 
   /* スクロールスナップ🌟 */
-  /* scroll-snap-align: start; */
+  scroll-snap-align: start;
 }
 
 /* ======================== Hero ======================== */
@@ -378,13 +378,9 @@
 .cta_btn {
   font-weight: bold;
   color: #f9f9f9;
-  /* background-color: #0063e5; */
   background-color: var(--color-bg-brand);
-  /* hero画面横 */
-  /* background-color: var(--cta-btn); */
   width: 20vw;
   margin-top: 32px;
-  /* margin-bottom: 12px; */
   letter-spacing: 1.5px;
   font-size: 20px;
   padding: 16.5px 0;
@@ -392,10 +388,17 @@
   border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.3s;
+
+  /* テスト */
+  background-color: var(--color-bg-brandd0);
+  box-shadow: 0 0 0 1px #0d99ff;
+  /* hero画面横 */
+  /* background-color: var(--cta-btn); */
 }
 .cta_btn:hover {
   /* background-color: #0483ee; */
   background-color: var(--color-bg-brand-hover-main);
+
   /* hero画面横 */
   /* background-color: var(--cta-btn-hover); */
 }
@@ -418,8 +421,8 @@
   padding: 120px 10%;
 
   /* スクロールスナップ🌟 */
-  /* scroll-snap-align: center;
-  scroll-snap-stop: always; */
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
 }
 
 /* .section_title_brand {
@@ -577,6 +580,7 @@
   position: relative;
   z-index: 0;
   border-radius: 10px;
+  max-height: 307px;
   overflow: hidden;
   box-shadow: var(--color-wrap-box-shadow);
   transition: all 500ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s;
@@ -635,6 +639,7 @@
   /* border-color: rgba(249, 249, 249, 1); */
   /* border-color: var(--color-bg-brand-sub); */
   /* border-color: var(--color-bg-brand-hover-main); */
+  cursor: wait;
 }
 .img {
   border-radius: 4px;
@@ -721,8 +726,11 @@
   padding: 110px 12% 140px;
   text-align: center;
   font-size: 18px;
+  position: relative;
 
   /* スクロールスナップ🌟 */
+  scroll-snap-align: end;
+  scroll-snap-stop: normal;
   /* scroll-snap-align: start;
   scroll-snap-stop: always; */
 
@@ -733,9 +741,21 @@
 .faq h2 {
   font-weight: 600;
   font-size: 40px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.back_icon {
+  position: absolute;
+  z-index: 0;
+  top: -50px;
+  right: -180px;
+  transform: rotate(12deg);
 }
 
 .accordion {
+  position: relative;
+  z-index: 10;
   margin: 40px auto 60px;
   width: 100%;
   /* max-width: 750px; */
@@ -803,8 +823,8 @@
   font-size: 18px;
 
   /* スクロールスナップ🌟 */
-  /* scroll-snap-align: center;
-  scroll-snap-stop: always; */
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
 }
 
 .email_auth {
@@ -991,12 +1011,13 @@
 /* ======================== Footer ======================== */
 .footer {
   padding: 50px 15% 10px;
+  /* padding: 40px 15% 10px; */
   /* border-top: 6px solid #333; */
   color: #777;
 
   /* スクロールスナップ🌟 */
-  /* scroll-snap-align: start;
-  scroll-snap-stop: always; */
+  scroll-snap-align: end;
+  scroll-snap-stop: always;
 }
 .footer h2 {
   font-size: 18px;
@@ -1030,6 +1051,7 @@
 .footer .row {
   align-items: flex-start;
   padding: 10px 0;
+  padding-bottom: 30px;
 }
 .footer button.language_btn {
   position: relative;
@@ -1112,6 +1134,8 @@
 
   .faq {
     padding: 10px 8%;
+    max-width: 100vw;
+    overflow-x: hidden;
   }
   .faq h2 {
     font-size: 20px;

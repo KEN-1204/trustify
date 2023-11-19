@@ -73,6 +73,8 @@ type State = {
   setIsHeaderShown: (payload: boolean) => void;
   isHeaderTop: boolean;
   setIsHeaderTop: (payload: boolean) => void;
+  lightTextBorderLine: boolean;
+  setLightTextBorderLine: (payload: boolean) => void;
 
   // Feature1ライプライターアニメーション起動
   startAnimationFeature1: boolean;
@@ -162,6 +164,8 @@ const useStore = create<State>((set) => ({
   setIsHeaderShown: (payload) => set({ isHeaderShown: payload }),
   isHeaderTop: true,
   setIsHeaderTop: (payload) => set({ isHeaderTop: payload }),
+  lightTextBorderLine: false,
+  setLightTextBorderLine: (payload) => set({ lightTextBorderLine: payload }),
 
   // Feature1ライプライターアニメーション起動
   startAnimationFeature1: false,

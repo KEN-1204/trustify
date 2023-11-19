@@ -58,7 +58,7 @@ const FeatureParagraph4Memo: FC<Props> = ({ hoveredFeature, featureSection }) =>
       {!done && (
         <p
           ref={paragraphRef}
-          className={`relative z-0 min-h-[135px] ${hoveredFeature ? `transition-base text-[#fff]` : ``}`}
+          className={`relative z-0 min-h-[135px]  ${hoveredFeature ? `transition-base text-[#fff]` : ``}`}
           style={{ whiteSpace: "pre-line" }}
         >
           {text}
@@ -67,7 +67,7 @@ const FeatureParagraph4Memo: FC<Props> = ({ hoveredFeature, featureSection }) =>
       )}
       {done && startAnimationFeature4 && (
         <p
-          className={`relative z-0 min-h-[135px] ${hoveredFeature ? `transition-base text-[#fff]` : ``}`}
+          className={`relative z-0 min-h-[135px]  ${hoveredFeature ? `transition-base text-[#fff]` : ``}`}
           style={{ whiteSpace: "pre-line" }}
         >
           {textMaterial}

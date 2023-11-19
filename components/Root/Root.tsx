@@ -16,6 +16,7 @@ import { FeatureParagraph3 } from "./Features/FeatureParagraph3";
 import { FeatureParagraph4 } from "./Features/FeatureParagraph4";
 import { toast } from "react-toastify";
 import { Zoom } from "@/utils/Helpers/toastHelpers";
+import { neonMailIcon, neonMessageIcon, neonMessageIconBg } from "../assets";
 
 export const Root: FC = () => {
   console.log("Rootコンポーネントレンダリング");
@@ -42,12 +43,20 @@ export const Root: FC = () => {
   const FeatureDivRef2 = useRef<HTMLDivElement | null>(null);
   const FeatureDivRef3 = useRef<HTMLDivElement | null>(null);
   const FeatureDivRef4 = useRef<HTMLDivElement | null>(null);
+  // 🌟スナップスクロールありの場合
+  const setStartAnimationFeature1 = useStore((state) => state.setStartAnimationFeature1);
+  const setStartAnimationFeature2 = useStore((state) => state.setStartAnimationFeature2);
+  const setStartAnimationFeature3 = useStore((state) => state.setStartAnimationFeature3);
+  const setStartAnimationFeature4 = useStore((state) => state.setStartAnimationFeature4);
+  const lightTextBorderLine = useStore((state) => state.lightTextBorderLine);
+  const setLightTextBorderLine = useStore((state) => state.setLightTextBorderLine);
+  // ✅スナップスクロールありの場合
 
   // 言語ドロップダウンメニュー
   const clickedItemPos = useStore((state) => state.clickedItemPos);
   const clickedItemPosOver = useStore((state) => state.clickedItemPosOver);
 
-  // ============ ヘッダー 下スクロール時に非表示、上スクロール時に表示 ============
+  // ============ 🌟ヘッダー 下スクロール時に非表示、上スクロール時に表示 スナップスクロールあり ============
   const setIsHeaderShown = useStore((state) => state.setIsHeaderShown);
   const currentY = useRef(0);
   const setIsHeaderTop = useStore((state) => state.setIsHeaderTop);
@@ -71,11 +80,45 @@ export const Root: FC = () => {
     } else {
       setIsHeaderTop(true);
     }
-  }, []);
+
+    // ============ 🌟スナップスクロールありの場合 ============
+    // 🌟テスト タイプライター Feature
+    if (580 < currentY.current) {
+      setStartAnimationFeature1(true);
+    }
+    if (1300 < currentY.current) {
+      setStartAnimationFeature2(true);
+    }
+    if (1990 < currentY.current) {
+      setStartAnimationFeature3(true);
+    }
+    if (2680 < currentY.current) {
+      setStartAnimationFeature4(true);
+    }
+
+    // }, [currentY.current, isHeaderShown, isHeaderTop]);
+    // テーマがライトでwindowが830を超えたらヘッダーの文字色を黒にする
+    if (800 < currentY.current) {
+      if (lightTextBorderLine === true) return;
+      setLightTextBorderLine(true);
+      console.log("ヘッダー文字色を黒に変更");
+    } else {
+      if (lightTextBorderLine === false) return;
+      console.log("ヘッダー文字色を白に変更");
+      setLightTextBorderLine(false);
+    }
+  }, [currentY.current]);
+  // ============ ✅スナップスクロールありの場合 ============
+  // }, []);
 
   useEffect(() => {
     if (!mainRef.current) return; // Null check for mainRef
-    console.log("scrollRef.current", -scrollRef.current!.getBoundingClientRect().y);
+    console.log(
+      "scrollRef.current.getBoundingClientRect().y",
+      -scrollRef.current!.getBoundingClientRect().y,
+      "lightTextBorderLine",
+      lightTextBorderLine
+    );
     mainRef.current.addEventListener(`scroll`, handleScrollEvent);
 
     return () => {
@@ -83,7 +126,7 @@ export const Root: FC = () => {
       mainRef.current.removeEventListener("scroll", handleScrollEvent);
     };
   }, [handleScrollEvent]);
-  // =======================================================================
+  // ============ ✅ヘッダー 下スクロール時に非表示、上スクロール時に表示 スナップスクロールあり ============
   // =======================================================================
   // 【タイピングアニメーション】
   const typingRef = useRef<HTMLDivElement | null>(null);
@@ -198,6 +241,7 @@ export const Root: FC = () => {
       )}
       {/* ======================== Heroセクション ======================== */}
       <div
+        id="hero"
         className={`transition-base-color h-[100dvh] w-[100vw]   ${styles.scroll_slides} ${styles.main}`}
         ref={scrollRef}
       >
@@ -297,7 +341,6 @@ export const Root: FC = () => {
               }}
               className={`${styles.cta_btn}`}
             >
-              {/* {language === "ja" && "無料で始める"} */}
               {language === "ja" && "今すぐ始める"}
               {/* {language === "ja" && "メンテナンス中"} */}
               {/* {language === "en" && "Get Started for free"} */}
@@ -332,8 +375,9 @@ export const Root: FC = () => {
       {/* ======================== Feature1 ======================== */}
       <section
         id="product"
-        className={`transition-base-color bg-[--color-bg-hp-main] ${styles.scroll_slides_row} relative`}
+        className={`transition-base-color bg-[--color-bg-hp-main] ${styles.scroll_slides_row} relative overflow-hidden`}
       >
+        {/* <div className={`absolute left-[-180px] top-[-50px] z-[0] rotate-[-12deg]`}>{neonMessageIconBg}</div> */}
         {/* バーチャルビデオ背景 ここから */}
         {/* {hoveredFeature1 && (
           <div className={`absolute left-0 top-0  h-full w-full`}>
@@ -792,11 +836,17 @@ export const Root: FC = () => {
       <hr className={styles.horizon} />
 
       {/* ======================== FAQ ======================== */}
-      <section id="faq" className={styles.faq}>
+      <section id="faq" className={`${styles.faq} max-w-[100vw] overflow-hidden`}>
+        <div className={styles.back_icon}>{neonMessageIconBg}</div>
         {/* <section id="faq" className={styles.faq} style={{ fontFamily: "var(--font-family-discord)" }}> */}
-        <h2>
-          {language === "ja" && "よくある質問"}
-          {language === "en" && "Frequently Asked Questions"}
+        <h2 className="z-1 space-x-4">
+          {/* <span className="flex-center inline-block min-h-[60px]" onContextMenu={(e) => e.preventDefault()}>
+            {neonMessageIcon}
+          </span> */}
+          <span>
+            {language === "ja" && "よくある質問"}
+            {language === "en" && "Frequently Asked Questions"}
+          </span>
         </h2>
         {/* <ul id="price" className={styles.accordion}> */}
         <ul id="price" className={styles.accordion} style={{ fontFamily: "var(--font-family-discord)" }}>
@@ -1026,10 +1076,13 @@ export const Root: FC = () => {
 
       {/* ======================== Footer ======================== */}
       <section className={styles.footer}>
-        <h2>
-          {/* {language === "ja" && "ご質問ですか？お問合せはこちらまで: 0120-000-000"} */}
-          {language === "ja" && `ご質問ですか？お問合せはこちらまで: `}
-          {language === "en" && "Questions? Email: "}
+        <h2 className="flex items-center">
+          <span className="mr-[7px] inline-block">{neonMailIcon}</span>
+          <span className="mr-[8px]">
+            {language === "ja" && `ご質問ですか？お問合せはこちらまで: `}
+            {language === "en" && "Questions? Email: "}
+          </span>
+
           <span
             className={`cursor-copy select-none hover:text-[var(--color-text-brand-f)] hover:underline`}
             onClick={async () => {

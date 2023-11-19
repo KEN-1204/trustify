@@ -31,6 +31,8 @@ const IncreaseAccountCountsModalMemo = () => {
   const [isFreeTodaysPayment, setIsFreeTodaysPayment] = useState(true);
   const [todaysPayment, setTodaysPayment] = useState(0);
   const [hoveredTodaysPayment, setHoveredTodaysPayment] = useState(false);
+  // 変更後の次回支払い金額
+  const [nextInvoice, setNextInvoice] = useState(null);
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
 
@@ -41,6 +43,66 @@ const IncreaseAccountCountsModalMemo = () => {
     isLoading: useQueryIsLoading,
     refetch: refetchMemberAccounts,
   } = useQueryMemberAccounts();
+
+  // 契約中のアカウント個数
+  const currentAccountCounts = !!memberAccountsDataArray ? memberAccountsDataArray.length : 0;
+
+  // Stripeのサブスクリプションのquantityを新たな数量に更新 現在のアカウント数と新たに追加するアカウント数を合算
+  const totalAccountQuantity = currentAccountCounts + (accountQuantity ?? 0);
+
+  // 初回マウント時と「新たに増やすアカウント数」を変更して「料金計算」を押した時にStripeから比例配分のプレビューを取得
+  useEffect(() => {
+    if (!userProfileState) return alert("エラー：ユーザー情報が見つかりませんでした");
+
+    const getUpcomingInvoice = async () => {
+      try {
+        const payload = {
+          stripeCustomerId: userProfileState.stripe_customer_id,
+          stripeSubscriptionId: userProfileState.stripe_subscription_id,
+          changeQuantity: totalAccountQuantity, // 数量変更後の合計アカウント数
+          changePlanName: null, // プラン変更ではないので、nullをセット
+        };
+        // type UpcomingInvoiceResponse = {
+        //   data: any;
+        //   error: string
+        // }
+        const {
+          data: { data: upcomingInvoiceData, error: upcomingInvoiceError },
+        } = await axios.post(`/api/subscription/retrieve-upcoming-invoice`, payload, {
+          headers: {
+            Authorization: `Bearer ${sessionState.access_token}`,
+          },
+        });
+
+        if (!!upcomingInvoiceError) {
+          console.log(
+            "🌟Stripe将来のインボイス取得ステップ7 /retrieve-upcoming-invoiceへのaxios.postエラー",
+            upcomingInvoiceError
+          );
+          throw new Error(upcomingInvoiceError);
+        }
+
+        console.log(
+          "🌟Stripe将来のインボイス取得ステップ7 /retrieve-upcoming-invoiceへのaxios.postで次回のインボオスの取得成功",
+          upcomingInvoiceData
+        );
+
+        setNextInvoice(upcomingInvoiceData);
+      } catch (e: any) {
+        console.error(`getUpcomingInvoice関数実行エラー: `, e);
+        toast.error(`請求金額の取得に失敗しました...`, {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      }
+    };
+    getUpcomingInvoice();
+  }, []);
 
   const getPrice = (subscription: string | null | undefined) => {
     if (!subscription) return 0;
@@ -70,12 +132,6 @@ const IncreaseAccountCountsModalMemo = () => {
         break;
     }
   };
-
-  // 契約中のアカウント個数
-  const currentAccountCounts = !!memberAccountsDataArray ? memberAccountsDataArray.length : 0;
-
-  // Stripeのサブスクリプションのquantityを新たな数量に更新 現在のアカウント数と新たに追加するアカウント数を合算
-  const totalAccountQuantity = currentAccountCounts + (accountQuantity ?? 0);
 
   // 初回マウント時のみユーザーが契約中のサブスクリプションの次回支払い期限が今日か否かと、
   // 今日の場合は支払い時刻を過ぎているかどうか確認して過ぎていなければ0円でなくする
@@ -206,7 +262,9 @@ const IncreaseAccountCountsModalMemo = () => {
     memberAccountsDataArray,
     "本日のお支払が0かどうかと、本日の支払い額",
     isFreeTodaysPayment,
-    todaysPayment
+    todaysPayment,
+    "変更後のアカウント合計の次回請求額プレビュー(比例配分あり)",
+    nextInvoice
   );
 
   // 本日のお支払いコンポーネント

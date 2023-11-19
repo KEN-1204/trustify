@@ -7,6 +7,7 @@ import useThemeStore from "@/store/useThemeStore";
 import useRootStore from "@/store/useRootStore";
 import { MdOutlineDarkMode, MdOutlineLightMode } from "react-icons/md";
 import styles from "@/styles/Layout.module.css";
+import { neonMoonIcon, neonSunIcon } from "./assets";
 
 type Prop = {
   title: string;
@@ -65,8 +66,14 @@ export const Layout: FC<Prop> = ({ children, title = "TRUSTiFY | Trustify" }) =>
         ></div>
       </div> */}
       {/* テーマ切り替えボタン */}
-      <div
-        className={`flex-center transition-base01 fixed bottom-[2%] right-[2%] z-[1000] h-[35px] w-[35px] cursor-pointer rounded-full ${
+      {/* <div
+        className={`flex-center transition-base01 fixed bottom-[2%] right-[2%] z-[1000] h-[35px] w-[35px] cursor-pointer rounded-full`}
+        onClick={changeTheme}
+        onMouseEnter={() => setHoveredThemeIcon(true)}
+        onMouseLeave={() => setHoveredThemeIcon(false)}
+      > */}
+      {/* <div
+        className={`flex-center transition-base01 shadow-all-lg fixed bottom-[2%] right-[2%] z-[1000] h-[35px] w-[35px] cursor-pointer rounded-full ${
           theme === "dark"
             ? "bg-[--color-bg-brand05] hover:bg-[--color-bg-brand-f]"
             : "bg-[var(--color-bg-brand-fc0)] hover:bg-[var(--color-bg-brand-f)]"
@@ -74,12 +81,26 @@ export const Layout: FC<Prop> = ({ children, title = "TRUSTiFY | Trustify" }) =>
         onClick={changeTheme}
         onMouseEnter={() => setHoveredThemeIcon(true)}
         onMouseLeave={() => setHoveredThemeIcon(false)}
+      > */}
+      <div
+        className={`flex-center transition-base01 theme_icon_bg fixed bottom-[2%] right-[2%] z-[1000] h-[35px] w-[35px] cursor-pointer rounded-full`}
+        onClick={changeTheme}
+        onMouseEnter={() => setHoveredThemeIcon(true)}
+        onMouseLeave={() => setHoveredThemeIcon(false)}
       >
-        {theme === "light" && <MdOutlineLightMode className="text-[20px] text-[#fff]" />}
-        {theme === "dark" && <MdOutlineDarkMode className="text-[20px] text-[#fff]" />}
+        {/* <div className="theme_icon_bg"></div> */}
+        <div className="theme_icon_bg_hover"></div>
+        {theme === "light" && <MdOutlineLightMode className="pointer-events-none z-10 text-[20px] text-[#fff]" />}
+        {theme === "dark" && <MdOutlineDarkMode className="pointer-events-none z-10 text-[20px] text-[#fff]" />}
+        {/* {theme === "light" && (
+          <span className="shadow-all-md hover:shadow-all-lg inline-block rounded-[13px]">{neonSunIcon}</span>
+        )}
+        {theme === "dark" && (isOpenModal
+          <span className="shadow-all-md hover:shadow-all-lg inline-block rounded-[13px]">{neonMoonIcon}</span>
+        )} */}
         {/* ツールチップ */}
         {hoveredThemeIcon && (
-          <div className={`${styles.tooltip_right_area} transition-base fade`}>
+          <div className={`${styles.tooltip_right_area} transition-base fade `}>
             <div className={`${styles.tooltip_right} `}>
               <div className={`flex-center ${styles.dropdown_item}`}>
                 {theme === "light" ? "ダークモードに切り替え" : "ライトモードに切り替え"}
@@ -90,9 +111,14 @@ export const Layout: FC<Prop> = ({ children, title = "TRUSTiFY | Trustify" }) =>
         )}
         {/* ツールチップ ここまで */}
       </div>
-
+      {/* ホバーでbackground-imageをホバーでtransitionをつける擬似アイコン */}
+      {/* <div
+        className={`flex-center shadow-all-lg theme_icon_bg_hover fixed bottom-[2%] right-[2%] z-[2000] h-[35px] w-[35px] cursor-pointer rounded-full`}
+      >
+        {theme === "light" && <MdOutlineLightMode className="pointer-events-none text-[20px] text-[#fff]" />}
+        {theme === "dark" && <MdOutlineDarkMode className="pointer-events-none text-[20px] text-[#fff]" />}
+      </div> */}
       {/* モーダル */}
-      {/* <Modal /> */}
       {isOpenModal && <Modal />}
     </div>
   );

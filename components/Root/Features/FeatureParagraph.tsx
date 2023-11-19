@@ -59,14 +59,20 @@ const FeatureParagraphMemo: FC<Props> = ({ hoveredFeature, featureSection }) => 
       {!done && (
         <p
           ref={paragraphRef}
-          className={`relative z-0 min-h-[162px] ${hoveredFeature ? `transition-base text-[#fff]` : ``}`}
+          className={`pointer-events-none relative z-0 min-h-[162px] select-none ${
+            hoveredFeature ? `transition-base text-[#fff]` : ``
+          }`}
         >
           {text}
           <span className={`relative z-10 ml-[-2px] min-h-[16px] max-w-[1px] ${styles.typewriter_caret_blink}`}>|</span>
         </p>
       )}
       {done && startAnimationFeature1 && (
-        <p className={`relative z-0 min-h-[162px] ${hoveredFeature ? `transition-base text-[#fff]` : ``}`}>
+        <p
+          className={`pointer-events-none relative z-0 min-h-[162px] select-none ${
+            hoveredFeature ? `transition-base text-[#fff]` : ``
+          }`}
+        >
           {textMaterial}
           <span className={`relative z-10 ml-[0px] min-h-[16px] max-w-[1px] ${styles.typewriter_caret_blink}`}>|</span>
         </p>
