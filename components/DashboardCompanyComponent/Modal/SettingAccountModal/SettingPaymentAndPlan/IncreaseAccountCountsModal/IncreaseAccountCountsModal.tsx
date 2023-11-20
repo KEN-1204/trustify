@@ -15,9 +15,15 @@ import { toast } from "react-toastify";
 import axios from "axios";
 import { useQueryClient } from "@tanstack/react-query";
 import { SubscribedAccount } from "@/types";
-import { FaPlus } from "react-icons/fa";
+import { FaPlus, FaRegCircle } from "react-icons/fa";
 import { useQueryMemberAccounts } from "@/hooks/useQueryMemberAccounts";
 import { format } from "date-fns";
+import Stripe from "stripe";
+import { formatToJapaneseYen } from "@/utils/Helpers/formatToJapaneseYen";
+import { getPlanName } from "@/utils/Helpers/getPlanName";
+import { getPrice } from "@/utils/Helpers/getPrice";
+import { FiPlus, FiPlusCircle } from "react-icons/fi";
+import { IoPricetagOutline } from "react-icons/io5";
 
 const IncreaseAccountCountsModalMemo = () => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
@@ -32,7 +38,9 @@ const IncreaseAccountCountsModalMemo = () => {
   const [todaysPayment, setTodaysPayment] = useState(0);
   const [hoveredTodaysPayment, setHoveredTodaysPayment] = useState(false);
   // 変更後の次回支払い金額
-  const [nextInvoice, setNextInvoice] = useState(null);
+  const [nextInvoice, setNextInvoice] = useState<Stripe.UpcomingInvoice | null>(null);
+  // アカウント追加後の次回支払い料金の詳細モーダルを表示
+  const [isOpenInvoiceDetail, setIsOpenInvoiceDetail] = useState(false);
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
 
@@ -50,11 +58,19 @@ const IncreaseAccountCountsModalMemo = () => {
   // Stripeのサブスクリプションのquantityを新たな数量に更新 現在のアカウント数と新たに追加するアカウント数を合算
   const totalAccountQuantity = currentAccountCounts + (accountQuantity ?? 0);
 
+  // 追加費用 nextInvoice.lines.data[0].amountがマイナスの値のため引くためには加算でOK
+  const additionalCost =
+    !!nextInvoice && !!nextInvoice?.lines?.data[1]?.amount
+      ? nextInvoice.lines.data[1].amount + nextInvoice.lines.data[0].amount
+      : null;
+
   // 初回マウント時と「新たに増やすアカウント数」を変更して「料金計算」を押した時にStripeから比例配分のプレビューを取得
   useEffect(() => {
     if (!userProfileState) return alert("エラー：ユーザー情報が見つかりませんでした");
+    if (!!nextInvoice) return console.log("既にnextInvoice取得済みのためリターン");
 
     const getUpcomingInvoice = async () => {
+      if (!!nextInvoice) return console.log("既にnextInvoice取得済みのためリターン");
       try {
         const payload = {
           stripeCustomerId: userProfileState.stripe_customer_id,
@@ -103,35 +119,6 @@ const IncreaseAccountCountsModalMemo = () => {
     };
     getUpcomingInvoice();
   }, []);
-
-  const getPrice = (subscription: string | null | undefined) => {
-    if (!subscription) return 0;
-    switch (subscription) {
-      case "business_plan":
-        return 980;
-        break;
-      case "premium_plan":
-        return 19800;
-        break;
-      default:
-        return 0;
-        break;
-    }
-  };
-  const getPlanName = (subscription: string | null | undefined) => {
-    if (!subscription) return 0;
-    switch (subscription) {
-      case "business_plan":
-        return "ビジネスプラン";
-        break;
-      case "premium_plan":
-        return "プレミアムプラン";
-        break;
-      default:
-        return "プラン無し";
-        break;
-    }
-  };
 
   // 初回マウント時のみユーザーが契約中のサブスクリプションの次回支払い期限が今日か否かと、
   // 今日の場合は支払い時刻を過ぎているかどうか確認して過ぎていなければ0円でなくする
@@ -264,10 +251,12 @@ const IncreaseAccountCountsModalMemo = () => {
     isFreeTodaysPayment,
     todaysPayment,
     "変更後のアカウント合計の次回請求額プレビュー(比例配分あり)",
-    nextInvoice
+    nextInvoice,
+    "アカウント追加後の次回追加費用",
+    additionalCost
   );
 
-  // 本日のお支払いコンポーネント
+  // ====================== 🌟本日のお支払いコンポーネント ======================
   const TodaysPaymentDetailComponent = () => {
     return (
       <div className="border-real fade02 absolute bottom-[100%] left-[50%] z-10 flex min-h-[50px] min-w-[100px] translate-x-[-50%] flex-col rounded-[8px] bg-[var(--color-edit-bg-solid)] px-[20px] py-[20px]">
@@ -319,6 +308,208 @@ const IncreaseAccountCountsModalMemo = () => {
       </div>
     );
   };
+  // ====================== ✅本日のお支払いの内訳コンポーネント ここまで ======================
+  // ====================== 🌟増やした後の次回の請求金額コンポーネント ======================
+  const NextPaymentDetailComponent = () => {
+    if (!nextInvoice) return null;
+    if (!nextInvoice.subscription_proration_date) return null;
+    return (
+      <>
+        <div className="border-real fade02 absolute bottom-[100%] left-[50%] z-30 flex min-h-[50px] min-w-[100px] translate-x-[-50%] cursor-default flex-col rounded-[8px] bg-[var(--color-edit-bg-solid)] px-[32px] py-[24px]">
+          <div className="flex w-full items-center pb-[25px]">
+            <p className="text-[14px] font-normal">
+              下記は本日
+              <span className="font-bold">
+                {format(new Date(nextInvoice.subscription_proration_date * 1000), "yyyy年MM月dd日")}
+              </span>
+              にアカウントを増やした場合のお支払額となります。
+            </p>
+          </div>
+
+          {/* ２列目 新たなプラン・数量での計算式 */}
+          {/* ２列目タイトル */}
+          <div className="flex w-full items-center pb-[8px]">
+            <h4 className="text-[14px] font-bold">○更新後の新プラン料金</h4>
+          </div>
+          {/* ２列目コンテンツ */}
+          <div className="item-center flex h-auto w-full space-x-[24px] truncate pb-[20px]">
+            <div className="flex-col-center relative">
+              <div className="mb-[5px] flex min-h-[36px] min-w-[160px] items-center justify-center">
+                <IoPricetagOutline className="ml-[-22px] mr-[10px] stroke-[3] text-[18px] text-[#1DA1F2]" />
+                {/* <div className="flex-col-center mb-[5px] inline-flex min-h-[36px] min-w-[160px] text-[#FFD600]"> */}
+                <div className="flex-col-center inline-flex">
+                  <span className="text-[12px] font-normal">新プラン料金</span>
+                  <span className="text-[12px] font-normal">(毎月の請求額)</span>
+                </div>
+              </div>
+              <span>
+                {!!nextInvoice?.lines?.data[2]?.amount
+                  ? `${formatToJapaneseYen(nextInvoice.lines.data[2].amount, false)}円`
+                  : `-`}
+              </span>
+              <div className="absolute bottom-[-5px] left-0 h-[2px] w-full bg-[#1DA1F2]" />
+            </div>
+            <div className="flex-col-center">
+              <span className="text-[18px]">＝</span>
+            </div>
+            <div className="flex-col-center relative">
+              <div className="flex-col-center mb-[5px] inline-flex min-h-[36px] min-w-[160px]">
+                <span className="text-[12px] font-normal">プラン価格</span>
+                <span className="text-[12px] font-normal">
+                  ({!!userProfileState?.subscription_plan ? getPlanName(userProfileState.subscription_plan) : `-`})
+                </span>
+              </div>
+              <span>
+                {nextInvoice?.lines?.data[2]?.plan?.amount
+                  ? `${formatToJapaneseYen(nextInvoice.lines.data[2].plan.amount, true)}/月`
+                  : `-`}
+              </span>
+
+              <div className="absolute bottom-[-5px] left-0 h-[2px] w-full bg-[var(--color-border-deep)]" />
+            </div>
+            <div className="flex-col-center">
+              <span className="text-[20px]">×</span>
+            </div>
+
+            <div className="flex-col-center relative">
+              <div className="flex-col-center mb-[5px] inline-flex min-h-[36px] min-w-[180px]">
+                <span className="text-[12px] font-normal">新アカウント数</span>
+                <span className="text-[12px] font-normal">(アカウント追加後)</span>
+              </div>
+              <span>{!!totalAccountQuantity ? `${totalAccountQuantity}個` : `-個`}</span>
+              <div className="absolute bottom-[-5px] left-0 h-[2px] w-full bg-[var(--color-border-deep)]" />
+            </div>
+          </div>
+          {/* ２列目ここまで */}
+          <div className="my-[5px] h-px w-full bg-[var(--color-border-base)]" />
+          {/* ３列目 追加金額の計算式 */}
+          {/* ３列目タイトル */}
+
+          <div className="mt-[12px] flex w-full items-center pb-[8px]">
+            <h4 className="text-[14px] font-bold">○次回請求時の追加費用</h4>
+          </div>
+          {/* ３列目コンテンツ */}
+          <div className="item-center flex h-auto w-full space-x-[24px] truncate pb-[20px]">
+            <div className="flex-col-center relative">
+              {/* <div className="flex-col-center mb-[5px] inline-flex min-h-[36px] min-w-[160px]">
+              <span className="text-[12px] font-normal">アカウント追加後の</span>
+              <span className="text-[12px] font-normal">次回追加費用</span>
+            </div> */}
+              <div className="mb-[5px] flex min-h-[36px] min-w-[160px] items-center justify-center">
+                <HiPlus className="ml-[-22px] mr-[10px] stroke-[2] text-[18px] text-[#FF7A00]" />
+                <div className="flex-col-center inline-flex">
+                  <span className="text-[12px] font-normal">アカウント追加後の</span>
+                  <span className="text-[12px] font-normal">次回追加費用</span>
+                </div>
+              </div>
+              <span>{!!additionalCost ? formatToJapaneseYen(additionalCost, false) : `-`}円</span>
+              <div className="absolute bottom-[-5px] left-0 h-[2px] w-full bg-[#FF7A00]" />
+            </div>
+            <div className="flex-col-center">
+              <span className="text-[18px]">＝</span>
+            </div>
+            <div className="flex-col-center relative">
+              <div className="flex-col-center mb-[5px] inline-flex min-h-[36px] min-w-[160px]">
+                <span className="text-[12px] font-normal">プラン残り期間まで利用する</span>
+                <span className="text-[12px] font-normal">新プランの日割り料金</span>
+              </div>
+              <span>
+                {!!nextInvoice.lines.data[1].amount
+                  ? `${formatToJapaneseYen(nextInvoice.lines.data[1].amount, false)}円`
+                  : `-`}
+              </span>
+
+              <div className="absolute bottom-[-5px] left-0 h-[2px] w-full bg-[var(--color-border-deep)]" />
+            </div>
+            <div className="flex-col-center">
+              <span className="text-[16px]">＋</span>
+            </div>
+
+            <div className="flex-col-center relative">
+              <div className="flex-col-center mb-[5px] inline-flex min-h-[36px] min-w-[180px]">
+                <span className="text-[12px] font-normal">プラン残り期間まで未使用となる</span>
+                <span className="text-[12px] font-normal">旧プランの日割り料金</span>
+              </div>
+              <span className="text-[var(--bright-red)]">
+                {!!nextInvoice?.lines?.data[0]?.amount
+                  ? `${formatToJapaneseYen(nextInvoice.lines.data[0].amount, false, true)}円`
+                  : `-`}
+              </span>
+              <div className="absolute bottom-[-5px] left-0 h-[2px] w-full bg-[var(--color-border-deep)]" />
+            </div>
+          </div>
+          {/* ３列目ここまで */}
+          <div className="my-[5px] h-px w-full bg-[var(--color-border-base)]" />
+          {/* ４列目 追加金額を加えた次回請求額の計算式 */}
+          {/* ４列目タイトル */}
+          <div className="mt-[12px] flex w-full items-center pb-[8px]">
+            <h4 className="text-[14px] font-bold">○次回お支払い金額（次回のみ追加費用が発生）</h4>
+          </div>
+          {/* ４列目コンテンツ */}
+          <div className="item-center flex h-auto w-full space-x-[24px] truncate pb-[20px]">
+            <div className="flex-col-center relative">
+              {/* <span className="flex-center mb-[5px] inline-flex min-h-[36px] min-w-[160px] text-[12px] font-normal">
+              更新後の次回お支払額
+            </span> */}
+              <div className="mb-[5px] flex min-h-[36px] min-w-[160px] items-center justify-center">
+                <BsCheck2 className="ml-[-12px] mr-[5px] stroke-1 text-[18px] text-[#00d436]" />
+                <div className="flex-col-center inline-flex">
+                  <span className="text-[12px] font-normal">更新後の次回お支払い額</span>
+                </div>
+              </div>
+              {/* <BsCheck2 className="min-h-[24px] min-w-[24px] stroke-1 text-[24px] text-[#00d436]" /> */}
+              <span className="">
+                {nextInvoice?.amount_due ? `${formatToJapaneseYen(nextInvoice.amount_due, false)}円` : `-`}
+              </span>
+              <div className="absolute bottom-[-5px] left-0 h-[2px] w-full bg-[var(--vivid-green)]" />
+            </div>
+            <div className="flex-col-center">
+              <span className="text-[18px]">＝</span>
+            </div>
+            <div className="flex-col-center relative">
+              {/* <div className="flex-col-center mb-[5px] inline-flex min-h-[36px] min-w-[160px]">
+              <span className="text-[12px] font-normal">新プラン料金</span>
+            </div> */}
+              <div className="mb-[5px] flex min-h-[36px] min-w-[160px] items-center justify-center">
+                <IoPricetagOutline className="ml-[-22px] mr-[10px] stroke-[3] text-[18px] text-[#1DA1F2]" />
+                <div className="flex-col-center inline-flex">
+                  <span className="text-[12px] font-normal">新プラン料金</span>
+                </div>
+              </div>
+              <span>
+                {!!nextInvoice?.lines?.data[2]?.amount
+                  ? `${formatToJapaneseYen(nextInvoice.lines.data[2].amount, false)}円`
+                  : `-`}
+              </span>
+
+              <div className="absolute bottom-[-5px] left-0 h-[2px] w-full bg-[#1DA1F2]" />
+            </div>
+            <div className="flex-col-center">
+              <span className="text-[16px]">＋</span>
+            </div>
+
+            <div className="flex-col-center relative">
+              {/* <div className="flex-col-center mb-[5px] inline-flex min-h-[36px] min-w-[180px]">
+              <span className="text-[12px] font-normal">アカウント追加後の</span>
+              <span className="text-[12px] font-normal">次回追加費用</span>
+            </div> */}
+              <div className="mb-[5px] flex min-h-[36px] min-w-[160px] items-center justify-center">
+                <HiPlus className="ml-[-22px] mr-[10px] stroke-[2] text-[18px] text-[#FF7A00]" />
+                <div className="flex-col-center inline-flex">
+                  <span className="text-[12px] font-normal">アカウント追加後の</span>
+                  <span className="text-[12px] font-normal">次回追加費用</span>
+                </div>
+              </div>
+              <span>{!!additionalCost ? `${formatToJapaneseYen(additionalCost, false)}円` : `-`}</span>
+              <div className="absolute bottom-[-5px] left-0 h-[2px] w-full bg-[#FF7A00]" />
+            </div>
+          </div>
+          {/* ４列目ここまで */}
+        </div>
+      </>
+    );
+  };
+  // ====================== ✅増やした後の次回の請求金額 ここまで ======================
 
   return (
     <>
@@ -326,6 +517,9 @@ const IncreaseAccountCountsModalMemo = () => {
       <div className={`${styles.overlay} `} onClick={() => setIsOpenChangeAccountCountsModal(null)} />
 
       <div className={`${styles.container} `}>
+        {isOpenInvoiceDetail && (
+          <div className={`clear_overlay_absolute fade02 pointer-events-none z-20 rounded-[8px] bg-[#00000033]`}></div>
+        )}
         {loading && (
           <div className={`${styles.loading_overlay} `}>
             <SpinnerIDS scale={"scale-[0.5]"} />
@@ -467,8 +661,8 @@ const IncreaseAccountCountsModalMemo = () => {
                   </div>
                   <div className="flex w-full items-start justify-between font-bold">
                     <span>本日のお支払い</span>
-                    {todaysPayment === 0 && <span>￥{todaysPayment}</span>}
-                    {todaysPayment !== 0 && (
+                    {/* {todaysPayment === 0 && <span>￥{todaysPayment}</span>} */}
+                    {todaysPayment === 0 && (
                       <div
                         className="relative flex items-center space-x-2"
                         onMouseEnter={() => setHoveredTodaysPayment(true)}
@@ -476,7 +670,37 @@ const IncreaseAccountCountsModalMemo = () => {
                       >
                         <BsChevronDown />
                         <span>￥{todaysPayment}</span>
-                        {hoveredTodaysPayment && <TodaysPaymentDetailComponent />}
+                        {!hoveredTodaysPayment && <TodaysPaymentDetailComponent />}
+                      </div>
+                    )}
+                    {/* {todaysPayment === 0 && (
+                      <div
+                        className="relative flex items-center space-x-2"
+                        onMouseEnter={() => setHoveredTodaysPayment(true)}
+                        onMouseLeave={() => setHoveredTodaysPayment(false)}
+                      >
+                        <BsChevronDown />
+                        <span>￥{todaysPayment}</span>
+                        <NextPaymentDetailComponent />
+                      </div>
+                    )} */}
+                  </div>
+                  <div className="flex w-full items-start justify-between font-bold">
+                    <span>次回請求期間のお支払い</span>
+
+                    {!!nextInvoice && (
+                      <div
+                        className="relative flex cursor-pointer items-center space-x-2"
+                        onMouseEnter={() => setIsOpenInvoiceDetail(true)}
+                        onMouseLeave={() => setIsOpenInvoiceDetail(false)}
+                      >
+                        {!!nextInvoice && !!nextInvoice?.amount_due && <BsChevronDown />}
+                        <span>
+                          {!!nextInvoice && !!nextInvoice?.amount_due
+                            ? `${formatToJapaneseYen(nextInvoice.amount_due)}`
+                            : `-`}
+                        </span>
+                        {isOpenInvoiceDetail && <NextPaymentDetailComponent />}
                       </div>
                     )}
                   </div>

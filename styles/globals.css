@@ -61,7 +61,67 @@ bg-[#06c755] */
   /* ボーダー */
   /* rgba(255, 255, 255, 0.12) 0px 1px 1px */
 }
-/* Apple
+/* 
+トークルーム メインbg
+#141414 bg-[#141414]
+bg-[#1a1a1a]
+メッセージインプットボックス
+bg-[#2d2d2d]
+bg-[#232323]
+メインテキスト
+#8a8a8a
+#e5e5ea
+sendボタン 非アクティブ
+text-[#F5F5FA]/[0.5]
+sendボタン アクティブ
+text-[#F5F5FA]
+
+received
+bg-[#333333]/[0.9]
+text-[#e5e5ea] 
+
+sent
+bg-[#8be66a]
+bg-[#78e66a]
+bg-[#6ae67d] 現時点メイン
+text-[#291F1F]
+
+LINEカラー
+bg-[#06c755]
+
+フッターbg
+#111111
+
+コメント
+placeholder:text-[#aeaeae]
+input
+bg-[#505050]/[0.6] 
+
+プロフィールを編集カラー
+bg-[#333333]/[0.9]
+bg-[#505050]/[1]
+bg-[#585858]
+bg-[#5d5d5d]
+送信先インサイトアイコン
+bg-[#585858]
+bg-[#4c4c4c] メイン
+text-[#ECECEC]
+text-[#e0e0e0] メイン
+
+SearchFriends
+#0FFF92
+
+QRコードやリンクを使って
+text-[#979797] 
+text-[#a1a1a1]
+QRコードをスキャンして
+text-[#afafaf]
+
+アンダーライン Divider
+bg-[#5e5e5e]/[0.3]
+border-[#5e5e5e]/[0.3]
+
+Apple
 :root {
     --violet: #8876fe;
     --indigo: #622aff;
@@ -97,6 +157,110 @@ bg-[#06c755] */
     --ultramarine: #0d1387;
 }
 
+Next.js
+ドラッグ時 #F81CE5
+
+Netflix
+bg-[#141414]
+bg-[#e50914]
+text-[#e5e5e5]
+hover:text-[#b3b3b3]
+
+
+Google
+#EFB408
+#DE3F32
+#32A050
+#407EEB
+
+Progressバー
+グラデーションカラー
+#12c2e9
+#c471ed
+#f64f59
+
+Instagramカラー https://about.instagram.com/brand/gradient
+#FFD600
+#FF7A00
+#FF0069
+#D300C5
+#7638FA
+
+Twitterカラー
+#1DA1F2
+
+facebookカラー
+background: linear-gradient(to top right, #0078ff, #00c6ff); // メイン
+background-image: linear-gradient(to top right, #0165e1 20%, #17a9fd 85%);
+
+App Storeブルー
+#4987FF
+App Store Card背景
+#212121
+App Store Cardタイトル
+#5B5B5B
+App Store Card Description
+#BBBBBB
+App Storeボタン背景
+#383838
+App Storeカテゴリーテキスト
+#858585
+
+Disney
+background: linear-gradient(60deg, #0affff, #017AFC);
+STRIPE
+background: linear-gradient(60deg, #0affff, #6c63ff);
+
+背景
+TikTokカラー
+#ff0050 アイコン関連メイン
+#00f2ea
+#000000
+#fe2c55
+#FF3B5B ボタン関連こっちメイン
+#0DF6F1
+TikTok Background
+#121212 tiktok
+#141414 netflix
+TikTok Background2
+#252525
+TikTok テキストカラー
+text-[#ECECEC]
+インプットボックス
+#2d2d2d
+キャンセル
+bg-[#515151]/[0.9]
+#ff0050 tiktok
+#FF3B5B tiktok ボタン、テキスト、アンダーライン関連こっちメイン
+
+ローディング中背景色
+bg-[#333333]/[0.5]
+
+ブラックグレーグラデーション
+background: -webkit-linear-gradient(135deg, #000, #333, #bbb, #333, #000);
+background: -webkit-linear-gradient(235deg, #bbb, #333, #000);
+グラデーション
+Disney
+background: linear-gradient(60deg, #0affff, #017AFC);
+background: linear-gradient(60deg, #0affff, #6c63ff);
+STRIPE
+メイン薄い #80E9FF, #7A73FF, ロゴ #55D2FF
+#79E7FD, #756CFF, ロゴ #55D2FF
+濃い #50E5FF, #756CFF, ロゴ #55D2FF
+メイン
+#60E6FF, #2A48FF, ロゴ #6BE0FF
+#60E6FF, #2D6CFF, ロゴ #6BE0FF
+#4987FF
+ background: linear-gradient(120deg, #12b7e9 0%, #c471ed 25%, #f64f59 75%, #f6894f 100%);
+ background-image: linear-gradient(to top right, #ffd600, #ff7a00, #ff0069, #d300c5, #7638fa);
+ background-image: linear-gradient(to top right, #ffd600cc, #ff7a00cc, #ff0069cc, #d300c5cc, #7638facc);
+ background-image: linear-gradient(to top right, #1da1f2 10%, #86d1ff 90%);
+ background-image: linear-gradient(to top right, #00f2eacc 20%, #7638facc 50%, #ff0050cc 80%);
+background: linear-gradient(454deg, #1d9bf0, #53ff88);
+background: linear-gradient(454deg, #80e9ff, #7a73ff);
+background: linear-gradient(to top right, #5ce2fd, #6c64fd);
+background: linear-gradient(454deg, #538cff, #53ff88);
+background: linear-gradient(454deg, #7d96fb, #ff5353);
 */
 
 @media screen and (min-width: 1024px) {
@@ -1382,6 +1546,26 @@ textarea {
   100% {
     opacity: 0.9;
   }
+}
+
+/* クリア オーバーレイ absolute z-indexは個別につける */
+.clear_overlay_absolute {
+  position: absolute;
+  /* z-indexは個別につける */
+  /* background-colorは個別につける */
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+}
+.blur_overlay_absolute {
+  position: absolute;
+  /* z-indexは個別につける */
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  backdrop-filter: blur(3px);
 }
 
 /* 出現 appearanceアニメーション */

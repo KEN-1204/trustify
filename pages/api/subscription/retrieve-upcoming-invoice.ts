@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 import jwt from "jsonwebtoken";
+import { format } from "date-fns";
 
 // profileテーブルがINSERTされた時にSupabaseのトリガー関数が実行され、リクエストがこのルートハンドラーに送信される
 // リクエスト受信後、Stripeのcustomer.create()でStripeダッシュボードにカスタマーを作成し、
@@ -92,9 +93,85 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
     const priceId = (subscription as Stripe.Subscription).items.data[0].price.id;
     console.log("💡契約中のサブスクリプション価格id", priceId);
 
+    // ======================= 🌟current_period_endの時間分秒を一緒にしてからproration_dateに渡すパターン
+    // 時間分秒を揃えないとStripeの比例配分は秒割りのため
+    // const current = new Date(); // 現在の日付
+    const timeClockCurrentDate = new Date(2023, 11, 19); // JavaScriptの月は0から始まるため、12月は11となります
+    console.log("💡タイムクロックの現在の日付 timeClockCurrentDate", timeClockCurrentDate); // 出力: 2023-12-19T00:00:00.000Z（タイムゾーンによっては異なる表示になる場合があります）
+
+    const currentEndTime = new Date(subscription.current_period_end * 1000); // サブスクリプション期間終了時の日時 「* 1000」はUNIXタイムスタンプ（秒単位）に変換
+
+    // proration_dateの計算 次回終了日の1分49秒前をsubscription_proration_dateに渡す
+    const prorationDate = new Date(
+      timeClockCurrentDate.getFullYear(),
+      timeClockCurrentDate.getMonth(),
+      timeClockCurrentDate.getDate(),
+      currentEndTime.getHours(),
+      56, // 分を56分に設定,
+      0 // 秒を0秒に設定
+    );
+
+    const prorationTimestamp = Math.floor(prorationDate.getTime() / 1000);
+
+    console.log(
+      "💡比例配分の日付 期間終了日からちょうど1分前のprorationTimestamp",
+      prorationTimestamp,
+      format(new Date(prorationTimestamp * 1000), "yyyy/MM/dd HH:mm:ss")
+    );
+
+    // 日付までは現在の日付で、時間分秒はcurrent_period_endの終了日の時間分秒で置換するパターン
+    // const prorationDate = new Date(
+    //   timeClockCurrentDate.getFullYear(),
+    //   timeClockCurrentDate.getMonth(),
+    //   timeClockCurrentDate.getDate(),
+    //   currentEndTime.getHours(),
+    //   currentEndTime.getMinutes(),
+    //   currentEndTime.getSeconds()
+    // );
+
+    // // 全て現在時刻のタイムスタンプをsubscription_proration_dateに渡して比例計算をするパターン
+    // const prorationDate = new Date(
+    //   timeClockCurrentDate.getFullYear(),
+    //   timeClockCurrentDate.getMonth(),
+    //   timeClockCurrentDate.getDate(),
+    //   timeClockCurrentDate.getFullYear(),
+    //   timeClockCurrentDate.getMonth(),
+    //   timeClockCurrentDate.getDate()
+    // );
+
+    // ======= billing_period_dateで時間、分、秒を取得してsubscription_proration_dateに渡した場合
+    // const subscriptionTime = new Date(subscription.billing_cycle_anchor * 1000); // サブスクリプション作成時の日時 「* 1000」はUNIXタイムスタンプ（秒単位）に変換
+    // console.log(
+    //   "💡比例配分の日付 billing_cycle_anchorの時間分秒を置換 prorationTimestamp",
+    //   prorationTimestamp,
+    //   format(new Date(prorationTimestamp * 1000), "yyyy/MM/dd HH:mm:ss")
+    // );
+    // // proration_dateの計算
+    // const prorationDate = new Date(
+    //   timeClockCurrentDate.getFullYear(),
+    //   timeClockCurrentDate.getMonth(),
+    //   timeClockCurrentDate.getDate(),
+    //   // current.getFullYear(),
+    //   // current.getMonth(),
+    //   // current.getDate(),
+    //   subscriptionTime.getHours(),
+    //   // subscriptionTime.getMinutes(),
+    //   56, // 分を00分に設定
+    //   // subscriptionTime.getSeconds()
+    //   49 // 秒を00秒に設定
+    // );
+    // const prorationTimestampFromCurrentTime = Math.floor(prorationDate.getTime() / 1000);
+    // console.log(
+    //   "💡比例配分の日付 期間終了日からちょうど1分前prorationDate billing_anchor_dateで時間分秒を置換",
+    //   prorationDate,
+    //   format(new Date(prorationTimestamp * 1000), "yyyy/MM/dd HH:mm:ss")
+    // );
+    // ======================= ✅billing_cycle_anchorの時間分秒を一緒にしてからproration_dateに渡すパターン
+    // ======================= 🌟現在の時間をそのままproration_dateに渡すパターン
     // Set proration date to this moment:
-    const proration_date = Math.floor(Date.now() / 1000);
-    console.log("💡比例配分の日付 proration_date", proration_date);
+    // const prorationTimestamp = Math.floor(Date.now() / 1000);
+    // console.log("💡比例配分の日付 prorationTimestamp", prorationTimestamp);
+    // ======================= ✅現在の時間をそのままproration_dateに渡すパターン
 
     // ======================= 🌟数量変更ルート =======================
     if (!!changeQuantity && changePlanName === null) {
@@ -114,7 +191,7 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
         customer: stripeCustomerId,
         subscription: subscription.id,
         subscription_items: items,
-        subscription_proration_date: proration_date, // 現在の時間でプレビューを取得 => サブスクリプションを変更する際にプレビューした時に適用した比例配分と同じ日付をsubscription.update()のproration_dateに渡す
+        subscription_proration_date: prorationTimestamp, // 現在の時間でプレビューを取得 => サブスクリプションを変更する際にプレビューした時に適用した比例配分と同じ日付をsubscription.update()のproration_dateに渡す
       });
 
       if (!invoice) {
@@ -133,6 +210,22 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
         "🌟Stripe将来のインボイス取得ステップ5 数量変更ルート retrieveUpcoming()実行成功 invoices.retrieveUpcoming()で取得したインボイス",
         invoice
       );
+      console.log(
+        "💡取得した次回のinvoice period_start",
+        invoice.period_start,
+        format(new Date(invoice.period_start * 1000), "yyyy/MM/dd HH:mm:ss")
+      );
+      console.log(
+        "💡取得した次回のinvoice period_end",
+        invoice.period_end,
+        format(new Date(invoice.period_end * 1000), "yyyy/MM/dd HH:mm:ss")
+      );
+      console.log(
+        "💡比例配分の日付 subscription_proration_date",
+        prorationTimestamp,
+        format(new Date(prorationTimestamp * 1000), "yyyy/MM/dd HH:mm:ss")
+      );
+      console.log("期間終了日からちょうど1分前のタイムスタンプをsubscription_proration_dateに渡す");
       console.log("✅Stripe将来のインボイス取得ステップ6 数量変更ルート 次回のインボイス取得完了 200で返す");
 
       res.status(200).json({ data: invoice, error: null });
@@ -166,7 +259,7 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
         customer: stripeCustomerId,
         subscription: subscription.id,
         subscription_items: items,
-        subscription_proration_date: proration_date, // 現在の時間でプレビューを取得 => サブスクリプションを変更する際にプレビューした時に適用した比例配分と同じ日付をsubscription.update()のproration_dateに渡す
+        subscription_proration_date: prorationTimestamp, // 現在の時間でプレビューを取得 => サブスクリプションを変更する際にプレビューした時に適用した比例配分と同じ日付をsubscription.update()のproration_dateに渡す
       });
 
       if (!invoice) {
