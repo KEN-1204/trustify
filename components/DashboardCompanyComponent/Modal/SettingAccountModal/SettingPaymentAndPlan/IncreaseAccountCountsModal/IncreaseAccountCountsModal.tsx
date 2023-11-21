@@ -414,7 +414,7 @@ const IncreaseAccountCountsModalMemo = () => {
                 <span className="text-[12px] font-normal">新プランの日割り料金</span>
               </div>
               <span>
-                {!!nextInvoice.lines.data[1].amount
+                {!!nextInvoice?.lines?.data[1]?.amount
                   ? `${formatToJapaneseYen(nextInvoice.lines.data[1].amount, false)}円`
                   : `-`}
               </span>
@@ -685,25 +685,22 @@ const IncreaseAccountCountsModalMemo = () => {
                       </div>
                     )} */}
                   </div>
-                  <div className="flex w-full items-start justify-between font-bold">
-                    <span>次回請求期間のお支払い</span>
-
-                    {!!nextInvoice && (
+                  {!!nextInvoice && !!nextInvoice?.lines?.data && nextInvoice?.lines?.data.length > 1 && (
+                    <div className="flex w-full items-start justify-between font-bold">
+                      <span>次回請求期間のお支払い</span>
                       <div
                         className="relative flex cursor-pointer items-center space-x-2"
                         onMouseEnter={() => setIsOpenInvoiceDetail(true)}
                         onMouseLeave={() => setIsOpenInvoiceDetail(false)}
                       >
-                        {!!nextInvoice && !!nextInvoice?.amount_due && <BsChevronDown />}
+                        {!!nextInvoice?.amount_due && <BsChevronDown />}
                         <span>
-                          {!!nextInvoice && !!nextInvoice?.amount_due
-                            ? `${formatToJapaneseYen(nextInvoice.amount_due)}`
-                            : `-`}
+                          {!!nextInvoice?.amount_due ? `${formatToJapaneseYen(nextInvoice.amount_due)}` : `-`}
                         </span>
-                        {isOpenInvoiceDetail && <NextPaymentDetailComponent />}
+                        {!isOpenInvoiceDetail && <NextPaymentDetailComponent />}
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               </div>
               <button

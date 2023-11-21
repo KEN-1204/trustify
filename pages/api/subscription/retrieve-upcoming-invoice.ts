@@ -96,25 +96,27 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
     // ======================= 🌟current_period_endの時間分秒を一緒にしてからproration_dateに渡すパターン
     // 時間分秒を揃えないとStripeの比例配分は秒割りのため
     // const current = new Date(); // 現在の日付
-    const timeClockCurrentDate = new Date(2023, 11, 19); // JavaScriptの月は0から始まるため、12月は11となります
+    // const timeClockCurrentDate = new Date(2023, 11, 19); // JavaScriptの月は0から始まるため、12月は11となります
+    const timeClockCurrentDate = new Date(2023, 11, 20); // JavaScriptの月は0から始まるため、12月は11となります
     console.log("💡タイムクロックの現在の日付 timeClockCurrentDate", timeClockCurrentDate); // 出力: 2023-12-19T00:00:00.000Z（タイムゾーンによっては異なる表示になる場合があります）
 
     const currentEndTime = new Date(subscription.current_period_end * 1000); // サブスクリプション期間終了時の日時 「* 1000」はUNIXタイムスタンプ（秒単位）に変換
 
-    // proration_dateの計算 次回終了日の1分49秒前をsubscription_proration_dateに渡す
+    // 現在の請求期間の終了日 2023/12/19 20:57:49
+    // 日付までは現在の日付で、時間分秒はcurrent_period_endの終了日の時間分秒で置換するパターン
     const prorationDate = new Date(
       timeClockCurrentDate.getFullYear(),
       timeClockCurrentDate.getMonth(),
       timeClockCurrentDate.getDate(),
       currentEndTime.getHours(),
-      56, // 分を56分に設定,
-      0 // 秒を0秒に設定
+      currentEndTime.getMinutes(),
+      currentEndTime.getSeconds()
     );
 
     const prorationTimestamp = Math.floor(prorationDate.getTime() / 1000);
 
     console.log(
-      "💡比例配分の日付 期間終了日からちょうど1分前のprorationTimestamp",
+      "💡比例配分の日付 現在の日付に期間終了日の時間分秒を渡したprorationTimestamp",
       prorationTimestamp,
       format(new Date(prorationTimestamp * 1000), "yyyy/MM/dd HH:mm:ss")
     );
@@ -127,6 +129,17 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
     //   currentEndTime.getHours(),
     //   currentEndTime.getMinutes(),
     //   currentEndTime.getSeconds()
+    // );
+    // // 比例配分の起点のなる日付 2023/12/19 20:50:28 (7分21秒前) => 🌟追加料金が発生
+    // 日付までは現在の日付で、時間分秒はcurrent_period_endの終了日の時間分秒で置換するパターン
+    // // proration_dateの計算 次回終了日の7分21秒前の20:50:28をsubscription_proration_dateに渡す
+    // const prorationDate = new Date(
+    //   timeClockCurrentDate.getFullYear(),
+    //   timeClockCurrentDate.getMonth(),
+    //   timeClockCurrentDate.getDate(),
+    //   currentEndTime.getHours(),
+    //   50, // 分を50分に設定,
+    //   28 // 秒を28秒に設定
     // );
 
     // // 全て現在時刻のタイムスタンプをsubscription_proration_dateに渡して比例計算をするパターン
@@ -225,7 +238,15 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
         prorationTimestamp,
         format(new Date(prorationTimestamp * 1000), "yyyy/MM/dd HH:mm:ss")
       );
-      console.log("期間終了日からちょうど1分前のタイムスタンプをsubscription_proration_dateに渡す");
+      console.log("現在の日付に期間終了日の時間分秒を渡したタイムスタンプをsubscription_proration_dateに渡す");
+      console.log("1. 残り期間までの旧プラン未使用分", invoice?.lines?.data[0]?.amount);
+      console.log("2. 残り期間までの新プラン使用料金", invoice?.lines?.data[1]?.amount);
+      console.log(
+        `新プラン更新による次回請求の追加料金 ${invoice?.lines?.data[1]?.amount} ${
+          invoice?.lines?.data[0]?.amount < 0 ? `` : `+`
+        } ${invoice?.lines?.data[0]?.amount} =`,
+        invoice?.lines?.data[1]?.amount + invoice?.lines?.data[0]?.amount
+      );
       console.log("✅Stripe将来のインボイス取得ステップ6 数量変更ルート 次回のインボイス取得完了 200で返す");
 
       res.status(200).json({ data: invoice, error: null });
