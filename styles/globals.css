@@ -784,6 +784,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --shadow-sm: 0 2px 4px -1px rgba(57, 76, 96, 0.15);
   --shadow-all-md: 0px 4px 15px 1px rgba(0, 0, 0, 0.15);
   --shadow-all-lg: 0px 3px 15px 3px rgba(0, 0, 0, 0.39);
+  --shadow-all-md-center: 0px 3px 15px 2px rgba(0, 0, 0, 0.2);
+  --shadow-all-lg-center: 0px 0px 10px 2px rgba(0, 0, 0, 0.39);
   --shadow-theme-icon: 0px 3px 15px 1px rgba(0, 0, 0, 0.15);
   --shadow-theme-icon-hover: 0px 3px 15px 1px rgba(0, 0, 0, 0.3);
   --color-header-shadow-hover: rgb(0 0 0 / 69%) 0px 16px 58px -10px, rgb(0 0 0 / 45%) 0px 16px 10px -10px;
@@ -1263,6 +1265,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --shadow-sm: 0px 1px 1px 0px rgba(255, 255, 255, 0.12);
   --shadow-all-md: 0px 4px 15px 1px rgba(255, 255, 255, 0.15);
   --shadow-all-lg: 0px 3px 15px 3px rgba(255, 255, 255, 0.39);
+  --shadow-all-md-center: 0px 0px 15px 1px rgba(255, 255, 255, 0.15);
+  --shadow-all-lg-center: 0px 0px 15px 3px rgba(255, 255, 255, 0.39);
   --shadow-theme-icon: 0px 3px 15px 3px rgba(255, 255, 255, 0.39);
   --shadow-theme-icon-hover: 0px 3px 22px 5px rgba(255, 255, 255, 0.6);
   /* --shadow-all-md-vivid: 0px 4px 10px 3px rgba(255, 255, 255, 0.3); */
@@ -1384,6 +1388,12 @@ textarea {
 }
 .shadow-all-md-vivid {
   box-shadow: var(--shadow-all-md-vivid);
+}
+.shadow-all-md-center {
+  box-shadow: var(--shadow-all-md-center);
+}
+.shadow-all-lg-center {
+  box-shadow: var(--shadow-all-lg-center);
 }
 
 .shadow-top-sm2 {
