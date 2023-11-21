@@ -24,6 +24,8 @@ import { getPlanName } from "@/utils/Helpers/getPlanName";
 import { getPrice } from "@/utils/Helpers/getPrice";
 import { FiPlus, FiPlusCircle } from "react-icons/fi";
 import { IoPricetagOutline } from "react-icons/io5";
+import { getDaysElapsedFromTimestampToNow } from "@/utils/Helpers/getDaysElapsedFromTimestampToNow";
+import { getDaysElapsedFromTimestampToNowPeriodEndHours } from "@/utils/Helpers/getDaysElapsedFromTimestampToNowPeriodEndHours";
 
 const IncreaseAccountCountsModalMemo = () => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
@@ -313,16 +315,29 @@ const IncreaseAccountCountsModalMemo = () => {
   const NextPaymentDetailComponent = () => {
     if (!nextInvoice) return null;
     if (!nextInvoice.subscription_proration_date) return null;
+
+    const elapsedDays = getDaysElapsedFromTimestampToNowPeriodEndHours(
+      nextInvoice.period_start,
+      nextInvoice.period_end
+    ).elapsedDays;
+    // const elapsedDays = getDaysElapsedFromTimestampToNow(nextInvoice.period_start).elapsedDays;
+    const hours = getDaysElapsedFromTimestampToNow(nextInvoice.period_start).hours;
+    const minutes = getDaysElapsedFromTimestampToNow(nextInvoice.period_start).minutes;
+    // const seconds = getDaysElapsedFromTimestampToNow(nextInvoice.period_start).seconds;
     return (
       <>
         <div className="border-real fade02 absolute bottom-[100%] left-[50%] z-30 flex min-h-[50px] min-w-[100px] translate-x-[-50%] cursor-default flex-col rounded-[8px] bg-[var(--color-edit-bg-solid)] px-[32px] py-[24px]">
-          <div className="flex w-full items-center pb-[25px]">
+          <div className="flex w-full flex-col pb-[25px]">
             <p className="text-[14px] font-normal">
               下記は本日
               <span className="font-bold">
                 {format(new Date(nextInvoice.subscription_proration_date * 1000), "yyyy年MM月dd日")}
               </span>
               にアカウントを増やした場合のお支払額となります。
+            </p>
+            <p className="mt-[5px] font-normal">
+              プラン開始日（{format(new Date(nextInvoice.period_start * 1000), "MM月dd日")}）から
+              {elapsedDays === 0 ? `${hours}時間${minutes}分` : `${elapsedDays}日`}が経過。
             </p>
           </div>
 
@@ -670,7 +685,8 @@ const IncreaseAccountCountsModalMemo = () => {
                       >
                         <BsChevronDown />
                         <span>￥{todaysPayment}</span>
-                        {!hoveredTodaysPayment && <TodaysPaymentDetailComponent />}
+                        {/* {hoveredTodaysPayment && <TodaysPaymentDetailComponent />} */}
+                        <TodaysPaymentDetailComponent />
                       </div>
                     )}
                     {/* {todaysPayment === 0 && (
@@ -697,7 +713,8 @@ const IncreaseAccountCountsModalMemo = () => {
                         <span>
                           {!!nextInvoice?.amount_due ? `${formatToJapaneseYen(nextInvoice.amount_due)}` : `-`}
                         </span>
-                        {!isOpenInvoiceDetail && <NextPaymentDetailComponent />}
+                        {/* {isOpenInvoiceDetail && <NextPaymentDetailComponent />} */}
+                        <NextPaymentDetailComponent />
                       </div>
                     </div>
                   )}
