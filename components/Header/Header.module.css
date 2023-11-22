@@ -119,7 +119,8 @@
   left: 0;
   width: 100%;
   height: 2px;
-  background-color: var(--color-bg-brand-f);
+  /* background-color: var(--color-bg-brand-f); */
+  background: linear-gradient(to right, #80e9ff, var(--color-bg-brand-f));
   transform: scaleX(0);
   transform-origin: right; /* 初期状態では左側を原点とする */
   transition: transform 0.3s ease;
@@ -143,7 +144,9 @@
   align-items: center;
   position: relative;
 
-  background: rgba(var(--color-bg-brand-rgb), 0.8);
+  /* background: rgba(var(--color-bg-brand-rgb), 0.8); */
+  background: var(--color-bg-brand-fc0);
+  /* background-color: #0072d2e0; */
   box-shadow: inset 0 0 2px 1px var(--color-border-brand-medium);
   /* box-shadow: inset 0 0 2px 1px #0066ff; */
   color: #fff;
@@ -159,8 +162,8 @@
   transition: all 0.3s;
 }
 .navbarButton:hover {
-  /* background: var(--color-bg-brand-hover-main); */
   background: var(--header-cta-btn-hover);
+  background: var(--color-bg-brand-f-hover);
   /* box-shadow: 0 0 1px 1px #fff, 0 0 0px 1px #000; */
   /* box-shadow: inset 0 0 2px 1px #fff, 0 0 0px 1px #333; */
   /* background: var(--color-bg-brand); */

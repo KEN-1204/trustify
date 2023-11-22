@@ -56,7 +56,7 @@ const About = () => {
 
   // ページ遷移時にテーマをライトに設定する
   useEffect(() => {
-    setTheme("light");
+    // setTheme("light");
   }, []);
 
   // タイプライターアニメーションの各trueの値をfalseに戻す
@@ -75,6 +75,12 @@ const About = () => {
     <Layout title={langTitle}>
       {/* シャドウグラデーション */}
       {/* <div className="shadow-gradient-tb-lg absolute inset-0 z-[0]"></div> */}
+      {/* 水玉グラデーション */}
+      <div className="absolute inset-0 z-[0] overflow-hidden">
+        <div className="bg-gradient-brand1 z-1 absolute bottom-[-300px] left-[-400px] h-[500px] w-[500px] rounded-full"></div>
+        <div className="bg-gradient-brand2 z-1 absolute left-[39%] top-[-900px] h-[1120px] w-[1120px] rounded-full"></div>
+        <div className="bg-gradient-brand3 z-1 absolute bottom-[-200px] right-[-100px] h-[300px] w-[300px] rounded-full"></div>
+      </div>
       <div
         className="relative flex h-screen w-full flex-col items-center px-[10%] py-[5%] text-[var(--color-text)]"
         style={{ fontFamily: "var(--font-family-discord)" }}
@@ -135,7 +141,7 @@ const About = () => {
         <div className="z-1 transition-base03 relative my-[20px] flex w-full flex-col">
           <h1 className="text-[40px] font-bold">
             {language === "ja" && `会社概要`}
-            {language === "en" && `Company Profile`}
+            {language === "en" && `About us`}
           </h1>
           <span className="mt-[5px] text-[12px] text-[var(--color-bg-brand-f)]">Overview</span>
         </div>

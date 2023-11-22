@@ -336,6 +336,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* Canva 背景 #fff 背景サブ rgba(64,87,109,.07) #40576d12 */
   --color-bg-base: #fff;
   --color-bg-base-header: #fff;
+  --color-bg-base-deep: #fff;
   /* chat-gptのサブ背景 #f7f7f8 ホバー時：#ececf1 */
   --color-bg-sub: rgba(64, 87, 109, 0.07);
   --color-bg-sub2: rgba(64, 87, 109, 0.1);
@@ -415,6 +416,11 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-brand-fc0: #0d99ffc0;
   --color-bg-brand-fe0: #0d99ffe0;
   --color-bg-brand-f-deep: #0c88e1;
+  --color-bg-brand-middle: #80e9ff;
+  --color-bg-brand-middle30: #80e9ff30;
+  --color-bg-brand-middle90: #80e9ff90;
+  --color-bg-brand-middlec0: #80e9ffc0;
+  --color-bg-brand-middlee0: #80e9ffe0;
   --color-bg-brand05: #0d99ff80;
   --color-bg-brand-hover: #007be5;
   --color-bg-brand-hover-main: #3183ff;
@@ -521,7 +527,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
 
   /* グラデーション light */
   --color-bg-brand-gradient: linear-gradient(to top left, #2b7fff, #acffff);
-  --color-bg-btn-brand-gradient: linear-gradient(to bottom left, #acffffe0, #47affae0, #0d99ffe0);
+  --color-bg-btn-brand-gradient: linear-gradient(to bottom left, #acffffd0, #47affad0, #0d99ffd0);
   /* --color-bg-btn-brand-gradient-hover: linear-gradient(to bottom left, #f3fcff, #4ac3ff, #0de3ff); */
   --color-bg-btn-brand-gradient-hover: linear-gradient(to bottom left, #f3fcff, #4ac3ff, #00eaff);
   --color-bg-btn-brand-gradient-deep: linear-gradient(to bottom left, #80a0b5, #337fb5, #0766aa);
@@ -788,10 +794,13 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --shadow-all-lg-center: 0px 0px 10px 2px rgba(0, 0, 0, 0.39);
   --shadow-theme-icon: 0px 3px 15px 1px rgba(0, 0, 0, 0.15);
   --shadow-theme-icon-hover: 0px 3px 15px 1px rgba(0, 0, 0, 0.3);
+  --shadow-all-white-md: 0px 3px 15px 3px rgba(255, 255, 255, 0.39);
+  --shadow-bottom-white-md: 0px 4px 15px 3px rgba(255, 255, 255, 0.39);
   --color-header-shadow-hover: rgb(0 0 0 / 69%) 0px 16px 58px -10px, rgb(0 0 0 / 45%) 0px 16px 10px -10px;
   /* --shadow-all-md-vivid: 0px 4px 15px 0px rgba(0, 0, 0, 0.4); */
   --shadow-top-md: 0px -10px 10px -5px rgba(0, 0, 0, 0.08);
   --shadow-top-md2: 0px -4px 15px -3px rgba(0, 0, 0, 0.15);
+  --shadow-top-white-md: 0px -4px 15px 3px rgba(255, 255, 255, 0.39);
   --shadow-header: 0 2px 4px -1px rgba(57, 76, 96, 0.15);
   --shadow-sidebar: 2px 0px 4px -1px rgba(57, 76, 96, 0.15);
 
@@ -876,7 +885,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-base: #202020;
   /* --color-bg-base-header: #191919; */
   --color-bg-base-header: #202020;
-  /* --color-bg-base: #141414; */
+  --color-bg-base-deep: #141414;
   /* --color-bg-sub: #252525; */
   --color-bg-sub: #383838;
   --color-bg-sub2: #383838;
@@ -957,6 +966,11 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-brand-fc0: #0c8ce9c0;
   --color-bg-brand-fe0: #0c8ce9e0;
   --color-bg-brand-f-deep: #0b73bc;
+  --color-bg-brand-middle: #80e9ff;
+  --color-bg-brand-middle30: #80e9ff30;
+  --color-bg-brand-middle90: #80e9ff90;
+  --color-bg-brand-middlec0: #80e9ffc0;
+  --color-bg-brand-middlee0: #80e9ffe0;
   --color-bg-brand05: #0c8ce980;
   --color-bg-brand-hover: #0a6dc2;
   --color-bg-brand-hover-main: #3183ff;
@@ -1269,9 +1283,12 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --shadow-all-lg-center: 0px 0px 15px 3px rgba(255, 255, 255, 0.39);
   --shadow-theme-icon: 0px 3px 15px 3px rgba(255, 255, 255, 0.39);
   --shadow-theme-icon-hover: 0px 3px 22px 5px rgba(255, 255, 255, 0.6);
+  --shadow-all-white-md: 0px 3px 15px 3px rgba(255, 255, 255, 0.39);
   /* --shadow-all-md-vivid: 0px 4px 10px 3px rgba(255, 255, 255, 0.3); */
   --shadow-top-md: 0px -10px 10px -5px rgba(255, 255, 255, 0.1);
   --shadow-top-md2: 0px -12px 15px -8px rgba(255, 255, 255, 0.15);
+  --shadow-top-white-md: 0px -4px 15px 3px rgba(255, 255, 255, 0.39);
+  --shadow-bottom-white-md: 0px 4px 15px 3px rgba(255, 255, 255, 0.39);
   --shadow-header: 0px 1px 6px 0px rgba(255, 255, 255, 0.12);
   --shadow-sidebar: 1px 0px 6px -1px rgba(255, 255, 255, 0.12);
   --color-header-shadow-hover: rgb(0 0 0 / 69%) 0px 16px 38px -5px, rgb(0 0 0 / 45%) 0px 16px 10px -10px;
@@ -1394,6 +1411,9 @@ textarea {
 }
 .shadow-all-lg-center {
   box-shadow: var(--shadow-all-lg-center);
+}
+.shadow-all-white-md {
+  box-shadow: var(--shadow-all-white-md);
 }
 
 .shadow-top-sm2 {
@@ -1596,6 +1616,45 @@ textarea {
   }
 }
 
+/* Apple
+:root {
+    --violet: #8876fe;
+    --indigo: #622aff;
+    --grape: #6e21e6;
+    --plum: #8d1287;
+    --azalea: #e71ee6;
+    --magenta: #dd04d1;
+    --tomato: #f63e54;
+    --guava: #fb4d66;
+    --tangelo: #ff3e17;
+    --coral: #f95c30;
+    --persimmon: #e94b1b;
+    --pumpkin: #e2620c;
+    --orange: #e66702;
+    --verdant: #29d246;
+    --bright-green: #00d436;
+    --new-green: #13be54;
+    --avocado: #73b439;
+    --green: #0c9d46;
+    --blue-green: #26c2ac;
+    --peacock-green: #14b1a1;
+    --sea-green: #099b9d;
+    --teal-green: #2b9ca1;
+    --aqua: #039e8f;
+    --teal: #049cb7;
+    --pool-blue: #00c2ee;
+    --azure: #027fff;
+    --sparkle-blue: #007aff;
+    --denim: #0056d2;
+    --cobalt: #5451fb;
+    --sapphire: #3d44c3;
+    --night: #23466c;
+    --ultramarine: #0d1387;
+}
+
+*/
+
+/* シャドウグラデーション */
 .shadow-gradient {
   background: linear-gradient(
     to bottom,
@@ -1607,15 +1666,7 @@ textarea {
     #141414 100%
   );
 }
-.shadow-gradient-r-sm {
-  background: linear-gradient(
-    to right,
-    rgba(20, 20, 20, 0.3) 0,
-    rgba(20, 20, 20, 0.2) 15%,
-    rgba(20, 20, 20, 0.15) 35%,
-    rgba(20, 20, 20, 0) 50%
-  );
-}
+
 .shadow-gradient-tb-sm {
   background: linear-gradient(
     to bottom,
@@ -1658,43 +1709,51 @@ textarea {
   transition-delay: 0.1s;
 }
 
-/* Apple
-:root {
-    --violet: #8876fe;
-    --indigo: #622aff;
-    --grape: #6e21e6;
-    --plum: #8d1287;
-    --azalea: #e71ee6;
-    --magenta: #dd04d1;
-    --tomato: #f63e54;
-    --guava: #fb4d66;
-    --tangelo: #ff3e17;
-    --coral: #f95c30;
-    --persimmon: #e94b1b;
-    --pumpkin: #e2620c;
-    --orange: #e66702;
-    --verdant: #29d246;
-    --bright-green: #00d436;
-    --new-green: #13be54;
-    --avocado: #73b439;
-    --green: #0c9d46;
-    --blue-green: #26c2ac;
-    --peacock-green: #14b1a1;
-    --sea-green: #099b9d;
-    --teal-green: #2b9ca1;
-    --aqua: #039e8f;
-    --teal: #049cb7;
-    --pool-blue: #00c2ee;
-    --azure: #027fff;
-    --sparkle-blue: #007aff;
-    --denim: #0056d2;
-    --cobalt: #5451fb;
-    --sapphire: #3d44c3;
-    --night: #23466c;
-    --ultramarine: #0d1387;
+/* ブランドグラデーション */
+/* STRIPE
+メイン薄い #80E9FF, #7A73FF, ロゴ #55D2FF */
+.bg-gradient-brand1 {
+  /* background: linear-gradient(236.22deg, #0066ff -3.32%, #eec850 12.21%, var(--color-bg-brand-f) 73.4%); */
+  background: linear-gradient(236.22deg, #0066ff -3.32%, #0affff 12.21%, var(--color-bg-brand-f) 73.4%);
+  background: linear-gradient(236.22deg, #0066ff -3.32%, #7a73ff 12.21%, #80e9ff 73.4%);
+  background: linear-gradient(236.22deg, #0affff -3.32%, #0affff 12.21%, #55d2ff 73.4%);
+  /* background: linear-gradient(236.22deg, #0066ff90 -3.32%, #7a73ff90 12.21%, #80e9ff90 73.4%); */
+  /* background: linear-gradient(236.22deg, #ff3c47 -3.32%, #eec850 12.21%, #3257ed 73.4%); */
+  filter: blur(120px);
+  opacity: 0.66;
+  /* border: 122px solid #d21655; */
+  /* border: 122px solid var(--color-bg-brand-f); */
+}
+.bg-gradient-brand2 {
+  /* background: linear-gradient(236.22deg, #0066ff -3.32%, #eec850 12.21%, var(--color-bg-brand-f) 73.4%); */
+  background: linear-gradient(236.22deg, #0066ff -3.32%, #0affff 12.21%, var(--color-bg-brand-f) 73.4%);
+  background: linear-gradient(236.22deg, #0066ff -3.32%, #7a73ff 12.21%, #80e9ff 73.4%);
+  background: linear-gradient(236.22deg, #7a73ff -3.32%, var(--color-bg-brand-f) 12.21%, var(--color-bg-brand-f) 73.4%);
+  /* background: linear-gradient(236.22deg, #0066ff90 -3.32%, #7a73ff90 12.21%, #80e9ff90 73.4%); */
+  /* background: linear-gradient(236.22deg, #ff3c47 -3.32%, #eec850 12.21%, #3257ed 73.4%); */
+  filter: blur(120px);
+  opacity: 0.6;
+  /* border: 122px solid #d21655; */
+  /* border: 122px solid var(--color-bg-brand-f); */
+}
+.bg-gradient-brand3 {
+  background: linear-gradient(236.22deg, #80e9ff -3.32%, #80e9ff 0.21%, #80e9ff 73.4%);
+  filter: blur(100px);
+  /* border: 122px solid #d21655; */
+  /* border: 122px solid var(--color-bg-brand-f); */
+}
+.brand-gradient-underline {
+  background: linear-gradient(
+    to right,
+    #ffffff20 1%,
+    #ffffff 15%,
+    #80e9ff 40%,
+    var(--color-bg-brand-f),
+    var(--color-bg-brand-f)
+  );
 }
 
-*/
+/* テキストグラデーション */
 
 .text_gradient {
   font-size: 70px;
@@ -1863,6 +1922,7 @@ textarea {
   animation-duration: 100ms;
 }
 
+/* ブランドアンダーライン */
 .flow_underline {
   position: relative;
   display: inline-block;
@@ -1878,7 +1938,11 @@ textarea {
   left: 0;
   width: 100%;
   height: 2px;
-  background-color: var(--color-bg-brand-f);
+  /* background-color: var(--color-bg-brand-f); */
+  /* background: linear-gradient(to right, #fff, var(--color-bg-brand-f)); */
+
+  background: linear-gradient(to right, #ffffff20 0%, #ffffff 12%, #80e9ff 40%, var(--color-bg-brand-f) 65%);
+  /* background: linear-gradient(to right, #ffffff20 1%, #fff 10%, var(--color-bg-brand-f) 70%); */
   transform: scaleX(0);
   transform-origin: right; /* 初期状態では左側を原点とする */
   transition: transform 0.3s ease;

@@ -24,6 +24,15 @@
 
 .navList {
   width: 100%;
+  /* max-width: 100px; */
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.navList2 {
+  width: 100%;
+  max-width: 120px;
   height: 100%;
   display: flex;
   align-items: flex-end;
@@ -99,6 +108,7 @@
   user-select: none;
   font-size: 12px;
 }
+
 .navbarItem.active .navbarItemInner span {
   font-weight: 700;
   color: var(--color-dashboard-header-text);
@@ -113,6 +123,14 @@
   100% {
     /* opacity: 1; */
     color: var(--color-dashboard-header-text);
+  }
+}
+@media screen and (min-width: 1920px) {
+  /* iMacなどのより大きなモニターの1920px以上の画面幅に適用されるスタイル */
+  /* 。一般的に、デスクトップモニター用のブレークポイントとしては、最低でも1280px以上が一般的ですが、より大きなモニター（例えばiMac）の場合、1920px以上やそれ以上の値を設定する */
+  .navbarItemInner span {
+    /* font-weight: 700; */
+    font-size: 14px;
   }
 }
 .notice_outer {

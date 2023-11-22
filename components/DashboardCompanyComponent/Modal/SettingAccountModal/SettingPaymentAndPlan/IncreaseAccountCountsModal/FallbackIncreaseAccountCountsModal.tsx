@@ -8,6 +8,7 @@ import { SkeletonLoading } from "@/components/Parts/SkeletonLoading/SkeletonLoad
 import { SkeletonLoadingLines } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLines";
 import { SkeletonLoadingLineShort } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineShort";
 import { SkeletonLoadingLineLong } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineLong";
+import { SkeletonLoadingLineMedium } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineMedium";
 
 export const FallbackIncreaseAccountCountsModal = () => {
   return (
@@ -27,7 +28,8 @@ export const FallbackIncreaseAccountCountsModal = () => {
             <div className="relative w-full overflow-y-auto px-[40px] pb-[calc(116px+20px)] pt-[40px]">
               <h1 className={`mt-[10px] w-full text-[24px] font-bold`}>いくつアカウントを増やしますか？</h1>
               <div className={`flex w-full flex-col space-y-[2px] py-[20px] text-[15px] text-[var(--color-text-sub)]`}>
-                <p>メンバー1人当たり月額￥980の追加料金のみで利用可能</p>
+                {/* <p>メンバー1人当たり月額￥980の追加料金のみで利用可能</p> */}
+                <p className="min-h-[15px] w-full"></p>
                 <p>チーム全体で共同作業して、TRSUSTiFYの機能を最大限に活用しましょう。</p>
               </div>
 
@@ -71,7 +73,7 @@ export const FallbackIncreaseAccountCountsModal = () => {
             </div>
 
             {/* 変更の確定を送信するボタンエリア */}
-            <div className="shadow-top-md2 absolute bottom-0 left-0 w-full space-y-4 rounded-bl-[8px]  bg-[var(--color-edit-bg-solid)] px-[32px] pb-[32px] pt-[18px]">
+            <div className="shadow-top-md absolute bottom-0 left-0 min-h-[293px] w-full space-y-4  rounded-bl-[8px] bg-[var(--color-edit-bg-solid)] px-[32px] pb-[32px] pt-[18px]">
               <div className="flex w-full flex-col  text-[13px] text-[var(--color-text-title)]">
                 <div className="mt-[10px] flex flex-col space-y-3">
                   {/* <div className="flex w-full items-start justify-between">
@@ -82,8 +84,9 @@ export const FallbackIncreaseAccountCountsModal = () => {
                     <span>本日のお支払い</span>
                     <span>￥0</span>
                   </div> */}
-                  <div className="mb-[10px] flex w-full flex-col items-start space-y-[10px]">
+                  <div className="mb-[10px] flex w-full flex-col items-start space-y-[14px]">
                     <SkeletonLoadingLineLong />
+                    <SkeletonLoadingLineMedium />
                     <SkeletonLoadingLineShort />
                   </div>
                 </div>

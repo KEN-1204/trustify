@@ -378,7 +378,7 @@
 .cta_btn {
   font-weight: bold;
   color: #f9f9f9;
-  background-color: var(--color-bg-brand);
+  /* background-color: var(--color-bg-brand); */
   width: 20vw;
   margin-top: 32px;
   letter-spacing: 1.5px;
@@ -387,17 +387,23 @@
   border: 1px solid transparent;
   border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s, box-shadow 0.3s, transform 0.5s;
 
   /* テスト */
-  background-color: var(--color-bg-brandd0);
+  /* background-color: var(--color-bg-brand-fc0); */
+  /* box-shadow: 0 0 0 1px #0d99ff; */
+  background-color: #0072d2e0;
   box-shadow: 0 0 0 1px #0d99ff;
   /* hero画面横 */
   /* background-color: var(--cta-btn); */
 }
 .cta_btn:hover {
   /* background-color: #0483ee; */
-  background-color: var(--color-bg-brand-hover-main);
+  /* background-color: var(--color-bg-brand-hover-main); */
+  background-color: #0083f0;
+  box-shadow: var(--shadow-bottom-white-md);
+  transform: translateY(-1px);
+  border: 1px solid var(--color-bg-brand-middlec0);
 
   /* hero画面横 */
   /* background-color: var(--cta-btn-hover); */
@@ -473,7 +479,11 @@
   background-clip: text;
   text-fill-color: transparent;
   user-select: none;
+
+  /* テスト */
+  max-width: 735px;
 }
+
 /* .section_title::before {
   content: attr(data-text);
   position: absolute;
@@ -594,10 +604,17 @@
   transition: all 500ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s;
   /* transition: all 600ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s; */
 }
+@media screen and (max-width: 1600px) {
+  .light_back {
+    max-width: 530px;
+    max-height: 307px;
+  }
+}
 .light_back::after {
   content: "";
   position: absolute;
   z-index: -1;
+  z-index: -2;
   /* サイズ成功済み */
   /* top: -50%;
   left: -50%; */
@@ -643,6 +660,11 @@
   /* border: 8px solid rgba(249, 249, 249, 0.2); */
   /* border: 8px solid var(--color-wrap-border); */
   border: 8px solid transparent;
+
+  /* テスト */
+  /* display: flex;
+  justify-content: center;
+  align-items: center; */
 }
 .wrap:hover {
   /* box-shadow: rgb(0 0 0 / 80%) 0px 40px 58px -16px, rgb(0 0 0 / 72%) 0px 30px 22px -10px; */
@@ -909,9 +931,11 @@
 }
 
 .email_auth button {
-  background: var(--color-bg-brand);
+  /* background: var(--color-bg-brand); */
   /* hero画面横 */
-  background: var(--cta-btn);
+  /* background: var(--cta-btn); */
+  /* background-color: #0072d2; */
+  background: var(--color-bg-brand-fe0);
 
   border: 0;
   outline: 0;
@@ -922,11 +946,13 @@
   padding: 15px 30px;
   border-top-right-radius: 4px;
   border-bottom-right-radius: 4px;
+  transition: background-color 0.3s;
 }
 .email_auth button:hover {
-  background: var(--color-bg-brand-hover-main);
+  /* background: var(--color-bg-brand-hover-main); */
   /* hero画面横 */
-  background: var(--cta-btn-hover);
+  /* background: var(--cta-btn-hover); */
+  background-color: var(--color-bg-brand-f-hover);
 }
 
 .start .email_signUp_area {

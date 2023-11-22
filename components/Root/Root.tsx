@@ -450,13 +450,15 @@ export const Root: FC = () => {
               onMouseEnter={() => setHoveredFeature1(true)}
               onMouseLeave={() => setHoveredFeature1(false)}
             >
+              <div className="absolute left-0 top-0 z-[-1] h-full w-full bg-[var(--color-bg-base)]" />
               <Image
-                src="/assets/images/root2/feature01.png"
+                src="/assets/images/root2/feature01_resized_compressed.png"
+                // src="/assets/images/root2/feature01_resized.png"
                 // src="/assets/images/root/feature1.png"
                 // src="/assets/images/feature-1.png"
                 alt=""
-                // placeholder="blur"
-                // blurDataURL="/assets/images/feature-1-small.png"
+                placeholder="blur"
+                blurDataURL="/assets/images/root2/placeholders/feature01_placeholder.png"
                 width={800}
                 height={600}
                 className={`${styles.img}`}
@@ -574,13 +576,14 @@ export const Root: FC = () => {
               onMouseEnter={() => setHoveredFeature2(true)}
               onMouseLeave={() => setHoveredFeature2(false)}
             >
+              <div className="absolute left-0 top-0 z-[-1] h-full w-full bg-[var(--color-bg-base)]" />
               <Image
-                src="/assets/images/root2/feature05.png"
+                src="/assets/images/root2/feature05_resized_compressed.png"
                 // src="/assets/images/root/feature2.png"
                 // src="/assets/images/feature-4.png"
                 alt=""
-                // placeholder="blur"
-                // blurDataURL="/assets/images/feature-4-small.png"
+                placeholder="blur"
+                blurDataURL="/assets/images/root2/placeholders/feature05_placeholder.png"
                 // loading="lazy"
                 width={800}
                 height={600}
@@ -665,6 +668,7 @@ export const Root: FC = () => {
               FeatureDivRef3.current?.classList.remove(`${styles.hover}`);
               setHoveredFeature3(false);
             }}
+            // style={{ whiteSpace: "pre-line" }}
           >
             {language === "ja" && "リスト作成時間を大幅に短縮し工数削減"}
             {language === "en" && "Significantly reduce list creation time and workload."}
@@ -695,13 +699,14 @@ export const Root: FC = () => {
               onMouseEnter={() => setHoveredFeature3(true)}
               onMouseLeave={() => setHoveredFeature3(false)}
             >
+              <div className="absolute left-0 top-0 z-[-1] h-full w-full bg-[var(--color-bg-base)]" />
               <Image
-                src="/assets/images/root2/feature02.png"
+                src="/assets/images/root2/feature02_resized_compressed.png"
                 // src="/assets/images/root/feature3.png"
                 // src="/assets/images/feature-3.png"
                 alt=""
-                // placeholder="blur"
-                // blurDataURL="/assets/images/feature-3-small.png"
+                placeholder="blur"
+                blurDataURL="/assets/images/root2/placeholders/feature02_placeholder.png"
                 // loading="lazy"
                 width={800}
                 height={600}
@@ -804,13 +809,15 @@ export const Root: FC = () => {
               onMouseEnter={() => setHoveredFeature4(true)}
               onMouseLeave={() => setHoveredFeature4(false)}
             >
+              <div className="absolute left-0 top-0 z-[-1] h-full w-full bg-[var(--color-bg-base)]" />
               <Image
-                src="/assets/images/root2/feature06.png"
+                src="/assets/images/root2/Home_white_resize.png"
+                // src="/assets/images/root2/placeholders/Home_white_resize_placeholder.png"
                 // src="/assets/images/root/feature4.png"
                 // src="/assets/images/feature-2.png"
                 alt=""
-                // placeholder="blur"
-                // blurDataURL="/assets/images/feature-2-small.png"
+                placeholder="blur"
+                blurDataURL="/assets/images/root2/placeholders/Home_white_resize_placeholder.png"
                 // loading="lazy"
                 width={800}
                 height={600}

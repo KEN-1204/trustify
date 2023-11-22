@@ -29,6 +29,7 @@ import { getDaysElapsedFromTimestampToNowPeriodEndHours } from "@/utils/Helpers/
 import { getRemainingDaysFromNowPeriodEndHourToTimestamp } from "@/utils/Helpers/getRemainingDaysFromNowPeriodEndHourToTimestamp";
 import { getDaysFromTimestampToTimestamp } from "@/utils/Helpers/getDaysFromTimestampToTimestamp";
 import { getPeriodInDays } from "@/utils/Helpers/getPeriodInDays";
+import { useQueryUpcomingInvoiceChangeQuantity } from "@/hooks/useQueryUpcomingInvoiceChangeQuantity";
 // import { ProrationDetails } from "./ProrationDetails";
 
 const IncreaseAccountCountsModalMemo = () => {
@@ -56,6 +57,7 @@ const IncreaseAccountCountsModalMemo = () => {
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
 
+  // 支払い詳細モーダルのfadeクラスをトグル
   useEffect(() => {
     if (nextPaymentDetailComponentRef.current) {
       setTimeout(() => {
@@ -80,68 +82,237 @@ const IncreaseAccountCountsModalMemo = () => {
   // Stripeのサブスクリプションのquantityを新たな数量に更新 現在のアカウント数と新たに追加するアカウント数を合算
   const totalAccountQuantity = currentAccountCounts + (accountQuantity ?? 0);
 
+  // ===================== 🌟次回支払い情報のUpcomingInvoiceを取得 useQuery =====================
+  // アカウント数を変えるごとにuseQueryを実行させないためにuseStateのisReadyをenableオプションに渡して、
+  // 初回マウント時とアカウント数の最終確定後にuseQueryを起動させる
+
+  // NextPaymentComponentでローカルStateを使用して計算するか否かを保持するState
+  const [isLocalCaluculationMode, setIsLocalCalculationMode] = useState(false);
+  // ZustandでuseQueryのisReadyをグローバルStateとして保持
+  const isReadyQueryInvoice = useDashboardStore((state) => state.isReadyQueryInvoice);
+  const setIsReadyQueryInvoice = useDashboardStore((state) => state.setIsReadyQueryInvoice);
+  // 請求期間(日数)State
+  const [currentPeriodState, setCurrentPeriodState] = useState<number | null>(null);
+  // プラン期間残り日数
+  const [remainingDaysState, setRemainingDaysState] = useState<number | null>(null);
+  // 新プランの月額料金の1日あたりの料金
+  const [newDailyRateWithThreeDecimalPoints, setNewDailyRateWithThreeDecimalPoints] = useState<number | null>(null);
+  // 旧プランの月額料金の1日あたりの料金
+  const [oldDailyRateWithThreeDecimalPoints, setOldDailyRateWithThreeDecimalPoints] = useState<number | null>(null);
+  // 新プランの残り期間までの利用分の金額
+  const [
+    newUsageAmountForRemainingPeriodWithThreeDecimalPoints,
+    setNewUsageAmountForRemainingPeriodWithThreeDecimalPoints,
+  ] = useState<number | null>(null);
+  // 旧プランの残り期間までの利用分の金額
+  const [
+    oldUnusedAmountForRemainingPeriodWithThreeDecimalPoints,
+    setOldUnusedAmountForRemainingPeriodWithThreeDecimalPoints,
+  ] = useState<number | null>(null);
+  // 次回追加費用
+  const [additionalCostState, setAdditionalCostState] = useState<number | null>(null);
+  // 更新後の追加費用を上乗せした次回支払額
+  const [nextInvoiceAmountState, setNextInvoiceAmountState] = useState<number | null>(null);
+  console.log(
+    "ローカルState",
+    "請求期間(日数)State",
+    currentPeriodState,
+    "プラン期間残り日数",
+    remainingDaysState,
+    "新プランの月額料金の1日あたりの料金",
+    newDailyRateWithThreeDecimalPoints,
+    "新プランの残り期間までの利用分の金額",
+    newUsageAmountForRemainingPeriodWithThreeDecimalPoints,
+    "旧プランの月額料金の1日あたりの料金",
+    oldDailyRateWithThreeDecimalPoints,
+    "旧プランの残り期間までの利用分の金額",
+    oldUnusedAmountForRemainingPeriodWithThreeDecimalPoints,
+    "追加費用",
+    additionalCostState,
+    "次回お支払い額(追加費用上乗せ済み)",
+    nextInvoiceAmountState
+  );
+
+  const {
+    // data: nextInvoice,
+    // error: upcomingInvoiceError,
+    data: upcomingInvoiceData,
+    error: upcomingInvoiceError,
+    isLoading: isLoadingUpcomingInvoice,
+  } = useQueryUpcomingInvoiceChangeQuantity(
+    totalAccountQuantity,
+    userProfileState?.stripe_customer_id,
+    userProfileState?.stripe_subscription_id,
+    sessionState
+  );
+
   // 追加費用 nextInvoice.lines.data[0].amountがマイナスの値のため引くためには加算でOK
   const additionalCost =
     !!nextInvoice && !!nextInvoice?.lines?.data[1]?.amount
       ? nextInvoice.lines.data[1].amount + nextInvoice.lines.data[0].amount
       : null;
 
-  // 初回マウント時と「新たに増やすアカウント数」を変更して「料金計算」を押した時にStripeから比例配分のプレビューを取得
+  // 初回マウント時の1個増やしたアカウント数のuseQueryで取得したUpcomingInvoiceをローカルStateに格納する
+  // ローカルStateに格納する理由は、数量変更ごとにフェッチしてinvoiceの計算をするのではなく、
+  // 数量の変更をローカルStateで保持してその数量分のinvoiceをクライアントサイドで算出することで無駄なフェッチを防ぐ
+
   useEffect(() => {
-    if (!userProfileState) return alert("エラー：ユーザー情報が見つかりませんでした");
-    if (!!nextInvoice) return console.log("既にnextInvoice取得済みのためリターン");
+    if (!upcomingInvoiceData) return;
+    if (upcomingInvoiceError) return;
+    if (!userProfileState) return;
+    if (!memberAccountsDataArray) return;
 
-    const getUpcomingInvoice = async () => {
-      if (!!nextInvoice) return console.log("既にnextInvoice取得済みのためリターン");
-      console.log("getUpcomingInvoice関数実行 /retrieve-upcoming-invoiceへaxios.post()");
-      try {
-        const payload = {
-          stripeCustomerId: userProfileState.stripe_customer_id,
-          stripeSubscriptionId: userProfileState.stripe_subscription_id,
-          changeQuantity: totalAccountQuantity, // 数量変更後の合計アカウント数
-          changePlanName: null, // プラン変更ではないので、nullをセット
-        };
-        // type UpcomingInvoiceResponse = {
-        //   data: any;
-        //   error: string
-        // }
-        const {
-          data: { data: upcomingInvoiceData, error: upcomingInvoiceError },
-        } = await axios.post(`/api/subscription/retrieve-upcoming-invoice`, payload, {
-          headers: {
-            Authorization: `Bearer ${sessionState.access_token}`,
-          },
-        });
+    // nextInvoiceがnullの時だけ更新関数に格納
+    if (!nextInvoice) {
+      console.log("初回フェッチのみuseQueryで取得したinvoiceをローカルStateに格納");
+      setNextInvoice(upcomingInvoiceData);
+      setIsLocalCalculationMode(true); // ローカルStateの情報で支払額を算出するモードをtrueにする
 
-        if (!!upcomingInvoiceError) {
-          console.log(
-            "🌟Stripe将来のインボイス取得ステップ7 /retrieve-upcoming-invoiceへのaxios.postエラー",
-            upcomingInvoiceError
-          );
-          throw new Error(upcomingInvoiceError);
-        }
-
-        console.log(
-          "🌟Stripe将来のインボイス取得ステップ7 /retrieve-upcoming-invoiceへのaxios.postで次回のインボオスの取得成功",
-          upcomingInvoiceData
-        );
-
-        setNextInvoice(upcomingInvoiceData);
-      } catch (e: any) {
-        console.error(`getUpcomingInvoice関数実行エラー: `, e);
-        toast.error(`請求金額の取得に失敗しました...`, {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
-      }
-    };
-    getUpcomingInvoice();
+      // 「請求期間（日数）」をローカルStateに格納
+      const period = getPeriodInDays(upcomingInvoiceData.period_start, upcomingInvoiceData.period_end);
+      setCurrentPeriodState(period);
+      // 「残り日数」をローカルStateに格納
+      const remaining = getRemainingDaysFromNowPeriodEndHourToTimestamp(upcomingInvoiceData.period_end).remainingDays;
+      setRemainingDaysState(remaining);
+      // 新数量プランの1日あたりの料金をローカルStateに格納 月額料金 / １ヶ月の日数
+      const monthlyFeePerAccount = getPrice(userProfileState.subscription_plan); // プランの月額費用/ID
+      const newMonthlyFee = monthlyFeePerAccount * totalAccountQuantity; // 新プランの月額費用
+      const newDailyR = newMonthlyFee / period;
+      const newTruncateDailyR = Math.floor(newDailyR * 1000) / 1000; // 小数点第3位までを取得
+      setNewDailyRateWithThreeDecimalPoints(newTruncateDailyR);
+      // 新数量プラン残り期間までの利用分の金額
+      const newUsage = newTruncateDailyR * remaining;
+      const newTruncateUsage = Math.floor(newUsage * 1000) / 1000;
+      setNewUsageAmountForRemainingPeriodWithThreeDecimalPoints(newTruncateUsage);
+      // 旧プラン（現在のプラン）の1日あたりの料金をローカルStateに格納 月額料金 / １ヶ月の日数
+      const oldMonthlyFee = monthlyFeePerAccount * memberAccountsDataArray.length; // 旧プランの月額費用
+      const oldDailyR = oldMonthlyFee / period;
+      const oldTruncateDailyR = Math.floor(oldDailyR * 1000) / 1000; // 小数点第3位までを取得
+      setNewDailyRateWithThreeDecimalPoints(oldTruncateDailyR);
+      // 旧プランの残り期間までの未使用分の金額
+      const oldUnused = oldTruncateDailyR * remaining;
+      const oldTruncateUnused = Math.floor(oldUnused * 1000) / 1000;
+      setOldUnusedAmountForRemainingPeriodWithThreeDecimalPoints(oldTruncateUnused);
+      // 追加費用をローカルStateに格納
+      const extraCharge = Math.round(newTruncateUsage) + Math.round(oldTruncateUnused);
+      setAdditionalCostState(extraCharge);
+      // 次回お支払い額（追加費用上乗せ済み）
+      const totalPaymentDue = newMonthlyFee + extraCharge;
+      setNextInvoiceAmountState(totalPaymentDue);
+    }
   }, []);
+
+  // 請求期間開始日から経過した日数 今日の日付は現在で、時間、分、秒はperiod_endに合わせた今日までの経過時間
+  const elapsedDays = useMemo(() => {
+    if (!nextInvoice) return null;
+    return getDaysElapsedFromTimestampToNowPeriodEndHours(nextInvoice.period_start, nextInvoice.period_end).elapsedDays;
+  }, [nextInvoice?.period_start, nextInvoice?.period_end]);
+  // const elapsedDays = getDaysElapsedFromTimestampToNow(nextInvoice.period_start).elapsedDays;
+  const hours = useMemo(() => {
+    if (!nextInvoice) return null;
+    // return getDaysElapsedFromTimestampToNow(nextInvoice.period_start).hours;
+    return getDaysElapsedFromTimestampToNowPeriodEndHours(nextInvoice.period_start, nextInvoice.period_end).hours;
+  }, [nextInvoice?.period_start]);
+  const minutes = useMemo(() => {
+    if (!nextInvoice) return null;
+    // return getDaysElapsedFromTimestampToNow(nextInvoice.period_start).minutes;
+    return getDaysElapsedFromTimestampToNowPeriodEndHours(nextInvoice.period_start, nextInvoice.period_end).minutes;
+  }, [nextInvoice?.period_start]);
+  // const seconds = getDaysElapsedFromTimestampToNow(nextInvoice.period_start).seconds;
+
+  // 終了日までの残り日数 今日の日付は現在で、時間、分、秒はperiod_endに合わせた今日から終了日まで残り日数
+  const remainingDays = useMemo(() => {
+    if (!nextInvoice) return null;
+    return getRemainingDaysFromNowPeriodEndHourToTimestamp(nextInvoice.period_end).remainingDays;
+  }, [nextInvoice?.period_end]);
+  const remainingHours = useMemo(() => {
+    if (!nextInvoice) return null;
+    return getRemainingDaysFromNowPeriodEndHourToTimestamp(nextInvoice.period_end).hours;
+  }, [nextInvoice?.period_end]);
+  const remainingMinutes = useMemo(() => {
+    if (!nextInvoice) return null;
+    return getRemainingDaysFromNowPeriodEndHourToTimestamp(nextInvoice.period_end).minutes;
+  }, [nextInvoice?.period_end]);
+
+  // 請求期間日数
+  const currentPeriod = useMemo(() => {
+    if (!nextInvoice) return null;
+    return getPeriodInDays(nextInvoice.period_start, nextInvoice.period_end);
+  }, [nextInvoice?.period_start, nextInvoice?.period_end]);
+
+  // useEffect(() => {
+  //   if (!upcomingInvoiceData) return;
+  //   if (upcomingInvoiceError) return;
+
+  //   if (!nextInvoice) {
+  //     setNextInvoice(upcomingInvoiceData);
+  //   } else if (
+  //     !!nextInvoice &&
+  //     nextInvoice.lines?.data[nextInvoice?.lines?.data.length - 1]?.quantity !==
+  //       upcomingInvoiceData.lines?.data[upcomingInvoiceData.lines?.data.length - 1]?.quantity
+  //   ) {
+  //     setNextInvoice(upcomingInvoiceData);
+  //   }
+  // }, []);
+  // ===================== ✅次回支払い情報のUpcomingInvoiceを取得 useQuery =====================
+  // ===================== 🌟次回支払い情報のUpcomingInvoiceを取得 useEffect =====================
+  // 初回マウント時と「新たに増やすアカウント数」を変更して「料金計算」を押した時にStripeから比例配分のプレビューを取得
+  // useEffect(() => {
+  //   if (!userProfileState) return alert("エラー：ユーザー情報が見つかりませんでした");
+  //   if (!!nextInvoice) return console.log("既にnextInvoice取得済みのためリターン");
+
+  //   const getUpcomingInvoice = async () => {
+  //     if (!!nextInvoice) return console.log("既にnextInvoice取得済みのためリターン");
+  //     console.log("getUpcomingInvoice関数実行 /retrieve-upcoming-invoiceへaxios.post()");
+  //     try {
+  //       const payload = {
+  //         stripeCustomerId: userProfileState.stripe_customer_id,
+  //         stripeSubscriptionId: userProfileState.stripe_subscription_id,
+  //         changeQuantity: totalAccountQuantity, // 数量変更後の合計アカウント数
+  //         changePlanName: null, // プラン変更ではないので、nullをセット
+  //       };
+  //       // type UpcomingInvoiceResponse = {
+  //       //   data: any;
+  //       //   error: string
+  //       // }
+  //       const {
+  //         data: { data: upcomingInvoiceData, error: upcomingInvoiceError },
+  //       } = await axios.post(`/api/subscription/retrieve-upcoming-invoice`, payload, {
+  //         headers: {
+  //           Authorization: `Bearer ${sessionState.access_token}`,
+  //         },
+  //       });
+
+  //       if (!!upcomingInvoiceError) {
+  //         console.log(
+  //           "🌟Stripe将来のインボイス取得ステップ7 /retrieve-upcoming-invoiceへのaxios.postエラー",
+  //           upcomingInvoiceError
+  //         );
+  //         throw new Error(upcomingInvoiceError);
+  //       }
+
+  //       console.log(
+  //         "🌟Stripe将来のインボイス取得ステップ7 /retrieve-upcoming-invoiceへのaxios.postで次回のインボオスの取得成功",
+  //         upcomingInvoiceData
+  //       );
+
+  //       setNextInvoice(upcomingInvoiceData);
+  //     } catch (e: any) {
+  //       console.error(`getUpcomingInvoice関数実行エラー: `, e);
+  //       toast.error(`請求金額の取得に失敗しました...`, {
+  //         position: "top-right",
+  //         autoClose: 5000,
+  //         hideProgressBar: false,
+  //         closeOnClick: true,
+  //         pauseOnHover: true,
+  //         draggable: true,
+  //         progress: undefined,
+  //       });
+  //     }
+  //   };
+  //   getUpcomingInvoice();
+  // }, []);
+  // ===================== ✅次回支払い情報のUpcomingInvoiceを取得 useEffect =====================
 
   // 初回マウント時のみユーザーが契約中のサブスクリプションの次回支払い期限が今日か否かと、
   // 今日の場合は支払い時刻を過ぎているかどうか確認して過ぎていなければ0円でなくする
@@ -270,44 +441,6 @@ const IncreaseAccountCountsModalMemo = () => {
     setLoading(false);
   };
 
-  // 請求期間開始日から経過した日数 今日の日付は現在で、時間、分、秒はperiod_endに合わせた今日までの経過時間
-  const elapsedDays = useMemo(() => {
-    if (!nextInvoice) return null;
-    return getDaysElapsedFromTimestampToNowPeriodEndHours(nextInvoice.period_start, nextInvoice.period_end).elapsedDays;
-  }, [nextInvoice?.period_start, nextInvoice?.period_end]);
-  // const elapsedDays = getDaysElapsedFromTimestampToNow(nextInvoice.period_start).elapsedDays;
-  const hours = useMemo(() => {
-    if (!nextInvoice) return null;
-    // return getDaysElapsedFromTimestampToNow(nextInvoice.period_start).hours;
-    return getDaysElapsedFromTimestampToNowPeriodEndHours(nextInvoice.period_start, nextInvoice.period_end).hours;
-  }, [nextInvoice?.period_start]);
-  const minutes = useMemo(() => {
-    if (!nextInvoice) return null;
-    // return getDaysElapsedFromTimestampToNow(nextInvoice.period_start).minutes;
-    return getDaysElapsedFromTimestampToNowPeriodEndHours(nextInvoice.period_start, nextInvoice.period_end).minutes;
-  }, [nextInvoice?.period_start]);
-  // const seconds = getDaysElapsedFromTimestampToNow(nextInvoice.period_start).seconds;
-
-  // 終了日までの残り日数 今日の日付は現在で、時間、分、秒はperiod_endに合わせた今日から終了日まで残り日数
-  const remainingDays = useMemo(() => {
-    if (!nextInvoice) return null;
-    return getRemainingDaysFromNowPeriodEndHourToTimestamp(nextInvoice.period_end).remainingDays;
-  }, [nextInvoice?.period_end]);
-  const remainingHours = useMemo(() => {
-    if (!nextInvoice) return null;
-    return getRemainingDaysFromNowPeriodEndHourToTimestamp(nextInvoice.period_end).hours;
-  }, [nextInvoice?.period_end]);
-  const remainingMinutes = useMemo(() => {
-    if (!nextInvoice) return null;
-    return getRemainingDaysFromNowPeriodEndHourToTimestamp(nextInvoice.period_end).minutes;
-  }, [nextInvoice?.period_end]);
-
-  // 請求期間日数
-  const currentPeriod = useMemo(() => {
-    if (!nextInvoice) return null;
-    return getPeriodInDays(nextInvoice.period_start, nextInvoice.period_end);
-  }, [nextInvoice?.period_start, nextInvoice?.period_end]);
-
   // ================================ ツールチップ ================================
   const [hoveredNewProration, setHoveredNewProration] = useState(false);
   const [hoveredOldProration, setHoveredOldProration] = useState(false);
@@ -327,13 +460,55 @@ const IncreaseAccountCountsModalMemo = () => {
     "本日のお支払が0かどうかと、本日の支払い額",
     isFreeTodaysPayment,
     todaysPayment,
-    "変更後のアカウント合計の次回請求額プレビュー(比例配分あり)",
+    "💡useQueryエラー",
+    upcomingInvoiceError,
+    // "💡useQueryで取得 変更後のアカウント合計の次回請求額プレビュー(比例配分あり) nextInvoice",
+    "💡変更後のアカウント合計の次回請求額プレビュー(比例配分あり)ローカルStateのnextInvoice",
     nextInvoice,
     "アカウント追加後の次回追加費用",
     additionalCost,
     "請求期間",
-    currentPeriod
+    currentPeriod,
+    "isReadyQueryInvoice",
+    isReadyQueryInvoice,
+    "ローカルState",
+    "請求期間(日数)State",
+    currentPeriodState,
+    "プラン期間残り日数State",
+    remainingDaysState,
+    "新プランの月額料金の1日あたりの料金State",
+    newDailyRateWithThreeDecimalPoints,
+    "新プランの残り期間までの利用分の金額State",
+    newUsageAmountForRemainingPeriodWithThreeDecimalPoints,
+    "旧プランの月額料金の1日あたりの料金State",
+    oldDailyRateWithThreeDecimalPoints,
+    "旧プランの残り期間までの利用分の金額State",
+    oldUnusedAmountForRemainingPeriodWithThreeDecimalPoints,
+    "追加費用State",
+    additionalCostState,
+    "次回お支払い額(追加費用上乗せ済み)State",
+    nextInvoiceAmountState
   );
+
+  // console.log(
+  //   "ローカルState",
+  //   "請求期間(日数)State",
+  //   currentPeriodState,
+  //   "プラン期間残り日数",
+  //   remainingDaysState,
+  //   "新プランの月額料金の1日あたりの料金",
+  //   newDailyRateWithThreeDecimalPoints,
+  //   "新プランの残り期間までの利用分の金額",
+  //   newUsageAmountForRemainingPeriodWithThreeDecimalPoints,
+  //   "旧プランの月額料金の1日あたりの料金",
+  //   oldDailyRateWithThreeDecimalPoints,
+  //   "旧プランの残り期間までの利用分の金額",
+  //   oldUnusedAmountForRemainingPeriodWithThreeDecimalPoints,
+  //   "追加費用",
+  //   additionalCostState,
+  //   "次回お支払い額(追加費用上乗せ済み)",
+  //   nextInvoiceAmountState
+  // );
 
   // ====================== 🌟本日のお支払いコンポーネント ======================
   const TodaysPaymentDetailComponent = () => {
@@ -637,11 +812,7 @@ const IncreaseAccountCountsModalMemo = () => {
                       : `text-[var(--color-text-sub)] group-hover:text-[var(--color-text-brand-f)]`
                   }`}
                 />
-                <span
-                  className={`text-[var(--bright-red)] ${
-                    isOpenOldProrationDetail ? `` : `group-hover:text-[var(--color-bg-brand-f)]`
-                  }`}
-                >
+                <span className={`text-[var(--bright-red)] ${isOpenOldProrationDetail ? `` : ``}`}>
                   {!!nextInvoice?.lines?.data[0]?.amount
                     ? `${formatToJapaneseYen(nextInvoice.lines.data[0].amount, false, true)}円`
                     : `-`}
@@ -1267,9 +1438,11 @@ const IncreaseAccountCountsModalMemo = () => {
                         onMouseLeave={() => {
                           setIsOpenInvoiceDetail(false);
                           if (isOpenNewProrationDetail) {
+                            if (hoveredNewProration) setHoveredNewProration(false);
                             return setIsOpenNewProrationDetail(false);
                           }
                           if (isOpenOldProrationDetail) {
+                            if (hoveredOldProration) setHoveredOldProration(false);
                             return setIsOpenOldProrationDetail(false);
                           }
                         }}
@@ -1278,8 +1451,8 @@ const IncreaseAccountCountsModalMemo = () => {
                         <span>
                           {!!nextInvoice?.amount_due ? `${formatToJapaneseYen(nextInvoice.amount_due)}` : `-`}
                         </span>
-                        {isOpenInvoiceDetail && <NextPaymentDetailComponent />}
-                        {/* <NextPaymentDetailComponent /> */}
+                        {/* {isOpenInvoiceDetail && <NextPaymentDetailComponent />} */}
+                        <NextPaymentDetailComponent />
                       </div>
                     </div>
                   )}

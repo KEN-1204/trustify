@@ -212,7 +212,7 @@ export const Modal: FC = () => {
         {/* バーチャルビデオ背景 ここまで */}
       </div>
       {/* モーダル */}
-      <div className={`${styles.modal_container} transition-base `}>
+      <div className={`${styles.modal_container} transition-base`}>
         <div className="mb-[12px] flex h-[38px] w-full items-center justify-end pr-3">
           <button onClick={() => setIsOpenModal(false)} className="cursor-pointer">
             <MdClose className="fill-[#777] text-[24px]" />

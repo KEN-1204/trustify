@@ -155,6 +155,9 @@ type State = {
   // 【アカウントを増やす・アカウントを減らすモーダル開閉状態】 increase decrease nullを渡す
   isOpenChangeAccountCountsModal: string | null;
   setIsOpenChangeAccountCountsModal: (payload: string | null) => void;
+  // 【アカウントを増やすモーダルの次回invoiceを取得するuseQueryのisReadyのState】
+  isReadyQueryInvoice: boolean;
+  setIsReadyQueryInvoice: (payload: boolean) => void;
   // 【アカウントを削除リクエストしたスケジュール】
   deleteAccountRequestSchedule: StripeSchedule | null;
   setDeleteAccountRequestSchedule: (payload: StripeSchedule | null) => void;
@@ -415,6 +418,9 @@ const useDashboardStore = create<State>((set) => ({
   // 【アカウントを増やす・アカウントを減らすモーダル開閉状態】 increase decrease nullを渡す
   isOpenChangeAccountCountsModal: null,
   setIsOpenChangeAccountCountsModal: (payload) => set({ isOpenChangeAccountCountsModal: payload }),
+  // 【アカウントを増やすモーダルの次回invoiceを取得するuseQueryのisReadyのState】
+  isReadyQueryInvoice: true,
+  setIsReadyQueryInvoice: (payload) => set({ isReadyQueryInvoice: payload }),
   // 【アカウントを削除リクエストしたスケジュール】
   deleteAccountRequestSchedule: null,
   setDeleteAccountRequestSchedule: (payload) => set({ deleteAccountRequestSchedule: payload }),

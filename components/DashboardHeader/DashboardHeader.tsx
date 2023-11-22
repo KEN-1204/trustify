@@ -868,7 +868,7 @@ export const DashboardHeaderMemo: FC = () => {
           <ul
             className={`hidden h-full w-full items-center justify-start text-[14px] font-[500] text-[--navColor] md:flex`}
           >
-            <li className={`${styles.navList} max-w-[81px]`}>
+            <li className={`${styles.navList2}`}>
               <div
                 // href="/home"
                 // prefetch={false}
@@ -889,7 +889,7 @@ export const DashboardHeaderMemo: FC = () => {
                 <div className={`${styles.active_underline}`} />
               </div>
             </li>
-            <li className={`${styles.navList} max-w-[81px]`}>
+            <li className={`${styles.navList2}`}>
               <div
                 // href="/home"
                 // prefetch={false}
