@@ -73,6 +73,8 @@ const About = () => {
   }, []);
   return (
     <Layout title={langTitle}>
+      {/* シャドウグラデーション */}
+      {/* <div className="shadow-gradient-tb-lg absolute inset-0 z-[0]"></div> */}
       <div
         className="relative flex h-screen w-full flex-col items-center px-[10%] py-[5%] text-[var(--color-text)]"
         style={{ fontFamily: "var(--font-family-discord)" }}

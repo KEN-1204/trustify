@@ -536,7 +536,7 @@ export const DashboardHeaderMemo: FC = () => {
       {/* 左矢印 */}
       {tabPage !== 1 && (
         <div
-          className={`flex-center absolute left-[14.5%]  z-50 h-[35px] w-[35px] cursor-pointer rounded-full hover:bg-[var(--color-btn-brand-f05)]`}
+          className={`flex-center absolute left-[calc(16px+185px)]  z-50 h-[35px] w-[35px] cursor-pointer rounded-full hover:bg-[var(--color-btn-brand-f05)]`}
           onClick={() => {
             if (tabPage === 1) return;
             setTabPage((prev) => {
@@ -548,11 +548,31 @@ export const DashboardHeaderMemo: FC = () => {
           <BsChevronLeft className="text-[var(--color-text)]" />
         </div>
       )}
+      {/* {tabPage !== 1 && (
+        <div
+          className={`flex-center absolute left-[14.5%]  z-50 h-[35px] w-[35px] cursor-pointer rounded-full hover:bg-[var(--color-btn-brand-f05)]`}
+          onClick={() => {
+            if (tabPage === 1) return;
+            setTabPage((prev) => {
+              const newPage = prev - 1;
+              return newPage;
+            });
+          }}
+        >
+          <BsChevronLeft className="text-[var(--color-text)]" />
+        </div>
+      )} */}
 
       {/* 真ん中のコンテンツ */}
+      {/* <div className="bg-blue-0 relative flex h-full flex-1 justify-start pl-[39px] md:overflow-x-hidden"> */}
       <div className="bg-blue-0 relative flex h-full flex-1 justify-start pl-[39px] md:overflow-x-hidden">
         {/* ============================= 1列目ナビゲーションタブ ここから ============================= */}
-        <nav className={`${tabPage === 2 ? "-ml-[calc(100%+39px)]" : ""} transition-base`}>
+        {/* <nav className={`${tabPage === 2 ? "-ml-[calc(100%+39px)]" : ""} transition-base `}> */}
+        <nav
+          className={`${
+            tabPage === 2 ? "-ml-[calc(100%+39px)]" : ""
+          } transition-base flex-center min-w-[calc(100vw-185px-35px-165px-48px-39px)]`}
+        >
           <ul
             className={`hidden h-full w-full items-center justify-around text-[14px] font-[500] text-[--navColor] md:flex`}
           >
@@ -843,7 +863,8 @@ export const DashboardHeaderMemo: FC = () => {
         </nav>
         {/* ============================= 1列目ナビゲーションタブ ここまで ============================= */}
         {/* ============================= ２列目ナビゲーションタブ ここから ============================= */}
-        <nav className="h-full min-w-[970px] pl-[69px]">
+        {/* <nav className="h-full min-w-[970px] pl-[69px]"> */}
+        <nav className="flex-center h-full min-w-[calc(100vw-185px-35px-165px-48px-39px)] pl-[69px]">
           <ul
             className={`hidden h-full w-full items-center justify-start text-[14px] font-[500] text-[--navColor] md:flex`}
           >
@@ -897,7 +918,7 @@ export const DashboardHeaderMemo: FC = () => {
       {/* 右矢印 */}
       {tabPage !== 2 && (
         <div
-          className="flex-center absolute right-[13%] z-50 h-[35px] w-[35px] cursor-pointer rounded-full hover:bg-[var(--color-btn-brand-f05)]"
+          className="flex-center absolute right-[calc(32px+165px-8px)] z-50 h-[35px] w-[35px] cursor-pointer rounded-full hover:bg-[var(--color-btn-brand-f05)]"
           onClick={() => {
             if (tabPage !== 2) {
               setTabPage((prev) => {
@@ -910,6 +931,21 @@ export const DashboardHeaderMemo: FC = () => {
           <BsChevronRight className="text-[var(--color-text)]" />
         </div>
       )}
+      {/* {tabPage !== 2 && (
+        <div
+          className="flex-center absolute right-[13%] z-50 h-[35px] w-[35px] cursor-pointer rounded-full hover:bg-[var(--color-btn-brand-f05)]"
+          onClick={() => {
+            if (tabPage !== 2) {
+              setTabPage((prev) => {
+                const newPage = prev + 1;
+                return newPage;
+              });
+            }
+          }}
+        >
+          <BsChevronRight className="text-[var(--color-text)]" />
+        </div>
+      )} */}
 
       {/* ============================= 右側のコンテンツ ============================= */}
       <div className="flex h-[40px] w-[165px]  flex-row-reverse items-center justify-start">

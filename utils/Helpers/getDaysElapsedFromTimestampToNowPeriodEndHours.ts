@@ -11,14 +11,14 @@ export const getDaysElapsedFromTimestampToNowPeriodEndHours = (
   timestamp: number,
   currentPeriodEnd: number
 ): Response => {
-  console.log("timestamp", timestamp, "timestamp.toString().length", timestamp.toString().length);
+  // console.log("timestamp", timestamp, "timestamp.toString().length", timestamp.toString().length);
   // UNIXタイムスタンプ(10桁の秒単位)の場合
   if (timestamp.toString().length === 10) {
     // サブスクリプションの開始日(UNIXタイムスタンプ)
     const startTimestamp = timestamp;
     // new Date()関数で扱うミリ秒に変換
     const startDate: Date = new Date(startTimestamp * 1000);
-    console.log("startDate", startDate);
+    // console.log("startDate", startDate);
 
     // 現在の日付、時間を取得
     const nowDate = new Date();
@@ -29,18 +29,18 @@ export const getDaysElapsedFromTimestampToNowPeriodEndHours = (
 
     // 特定の日付に現在の時間、分、秒を設定
     testClockCurrentDate.setHours(currentEndTime.getHours(), currentEndTime.getMinutes(), currentEndTime.getSeconds());
-    console.log("testClockCurrentDate", testClockCurrentDate);
+    // console.log("testClockCurrentDate", testClockCurrentDate);
 
     // 日付の差を計算(ミリ秒単位) Date.getTime()で日付をミリ秒単位で取得してから引き算する
     const differenceInMilliseconds = testClockCurrentDate.getTime() - startDate.getTime();
 
     // 日付の差を日単位に変換
     const differenceInDays = differenceInMilliseconds / (1000 * 60 * 60 * 24);
-    console.log("differenceInDays", differenceInDays);
+    // console.log("differenceInDays", differenceInDays);
 
     // 経過日数(小数点以下を切り捨て)
     const truncatedDifferenceInDays = Math.floor(differenceInDays);
-    console.log("truncatedDifferenceInDays", truncatedDifferenceInDays);
+    // console.log("truncatedDifferenceInDays", truncatedDifferenceInDays);
 
     // 経過日数(小数点あり) 0.84782...
     const daysElapsed = differenceInDays; // 小数点あり経過日数
@@ -55,7 +55,7 @@ export const getDaysElapsedFromTimestampToNowPeriodEndHours = (
       seconds: seconds,
     };
 
-    console.log(`${truncatedDifferenceInDays}日 1日以下の場合は残り${hours}時間${minutes}分${seconds}秒`);
+    // console.log(`${truncatedDifferenceInDays}日 1日以下の場合は残り${hours}時間${minutes}分${seconds}秒`);
 
     return response;
   }

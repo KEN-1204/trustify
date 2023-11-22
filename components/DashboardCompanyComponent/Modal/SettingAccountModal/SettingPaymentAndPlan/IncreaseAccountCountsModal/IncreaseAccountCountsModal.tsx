@@ -8,7 +8,7 @@ import Image from "next/image";
 import { MdClose } from "react-icons/md";
 import Vertical_SlideCards from "@/components/Parts/Vertical_SlideCards/Vertical_SlideCards";
 import { HiOutlineLink, HiPlus } from "react-icons/hi2";
-import { ImLink } from "react-icons/im";
+import { ImInfo, ImLink } from "react-icons/im";
 import { AiOutlinePlus } from "react-icons/ai";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { toast } from "react-toastify";
@@ -29,6 +29,7 @@ import { getDaysElapsedFromTimestampToNowPeriodEndHours } from "@/utils/Helpers/
 import { getRemainingDaysFromNowPeriodEndHourToTimestamp } from "@/utils/Helpers/getRemainingDaysFromNowPeriodEndHourToTimestamp";
 import { getDaysFromTimestampToTimestamp } from "@/utils/Helpers/getDaysFromTimestampToTimestamp";
 import { getPeriodInDays } from "@/utils/Helpers/getPeriodInDays";
+// import { ProrationDetails } from "./ProrationDetails";
 
 const IncreaseAccountCountsModalMemo = () => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
@@ -49,8 +50,21 @@ const IncreaseAccountCountsModalMemo = () => {
   // 日割り料金の詳細モーダル
   const [isOpenNewProrationDetail, setIsOpenNewProrationDetail] = useState(false);
   const [isOpenOldProrationDetail, setIsOpenOldProrationDetail] = useState(false);
+  // 支払い詳細モーダルがマウントされた時にtoggleFadeRefをtrue、アンマウントでfalseにしてfadeを初回ホバー時のみ適用する
+  const nextPaymentDetailComponentRef = useRef<HTMLDivElement | null>(null);
+  const toggleFadeRef = useRef(false);
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (nextPaymentDetailComponentRef.current) {
+      setTimeout(() => {
+        toggleFadeRef.current = false;
+      }, 300);
+    } else {
+      toggleFadeRef.current = true;
+    }
+  }, [nextPaymentDetailComponentRef.current]);
 
   // 現在契約しているメンバーアカウント全てを取得して、契約アカウント数をlengthで取得
   const {
@@ -79,6 +93,7 @@ const IncreaseAccountCountsModalMemo = () => {
 
     const getUpcomingInvoice = async () => {
       if (!!nextInvoice) return console.log("既にnextInvoice取得済みのためリターン");
+      console.log("getUpcomingInvoice関数実行 /retrieve-upcoming-invoiceへaxios.post()");
       try {
         const payload = {
           stripeCustomerId: userProfileState.stripe_customer_id,
@@ -132,6 +147,7 @@ const IncreaseAccountCountsModalMemo = () => {
   // 今日の場合は支払い時刻を過ぎているかどうか確認して過ぎていなければ0円でなくする
   useEffect(() => {
     if (!userProfileState || !userProfileState.current_period_end) return;
+    console.log("useEffect実行 期間終了日が今日か確認");
     // まずは、現在の日付と時刻、およびcurrent_period_endの日付と時刻をUTCで取得します。
     const currentDate = new Date();
     const currentPeriodEndDate = new Date(userProfileState.current_period_end); // これはサンプルの値で、実際にはsupabaseから取得した値を使用します。
@@ -167,6 +183,16 @@ const IncreaseAccountCountsModalMemo = () => {
     }
   }, [userProfileState]);
 
+  // =========================== 支払い詳細モーダルの表示後fade02をremove 非表示でadd ===========================
+  // useEffect(() => {
+  //   if (!nextPaymentDetailComponentRef.current) return;
+  //   if (isOpenInvoiceDetail && !!nextPaymentDetailComponentRef.current) {
+  //     nextPaymentDetailComponentRef.current?.classList.remove(`fade02`);
+  //   } else if (!isOpenInvoiceDetail) {
+  //     nextPaymentDetailComponentRef.current?.classList.add(`fade02`);
+  //   }
+  // }, [isOpenInvoiceDetail, nextPaymentDetailComponentRef]);
+  // =========================== 支払い詳細モーダルの表示後fade02をremove 非表示でadd ===========================
   // =========================== 変更を確定をクリック Stripeに送信 ===========================
   const [progressRate, setProgressRate] = useState(0);
   const handleChangeQuantity = async () => {
@@ -244,7 +270,7 @@ const IncreaseAccountCountsModalMemo = () => {
     setLoading(false);
   };
 
-  // 請求期間開始日から経過した日数
+  // 請求期間開始日から経過した日数 今日の日付は現在で、時間、分、秒はperiod_endに合わせた今日までの経過時間
   const elapsedDays = useMemo(() => {
     if (!nextInvoice) return null;
     return getDaysElapsedFromTimestampToNowPeriodEndHours(nextInvoice.period_start, nextInvoice.period_end).elapsedDays;
@@ -252,15 +278,17 @@ const IncreaseAccountCountsModalMemo = () => {
   // const elapsedDays = getDaysElapsedFromTimestampToNow(nextInvoice.period_start).elapsedDays;
   const hours = useMemo(() => {
     if (!nextInvoice) return null;
-    return getDaysElapsedFromTimestampToNow(nextInvoice.period_start).hours;
+    // return getDaysElapsedFromTimestampToNow(nextInvoice.period_start).hours;
+    return getDaysElapsedFromTimestampToNowPeriodEndHours(nextInvoice.period_start, nextInvoice.period_end).hours;
   }, [nextInvoice?.period_start]);
   const minutes = useMemo(() => {
     if (!nextInvoice) return null;
-    return getDaysElapsedFromTimestampToNow(nextInvoice.period_start).minutes;
+    // return getDaysElapsedFromTimestampToNow(nextInvoice.period_start).minutes;
+    return getDaysElapsedFromTimestampToNowPeriodEndHours(nextInvoice.period_start, nextInvoice.period_end).minutes;
   }, [nextInvoice?.period_start]);
   // const seconds = getDaysElapsedFromTimestampToNow(nextInvoice.period_start).seconds;
 
-  // 終了日までの残り日数
+  // 終了日までの残り日数 今日の日付は現在で、時間、分、秒はperiod_endに合わせた今日から終了日まで残り日数
   const remainingDays = useMemo(() => {
     if (!nextInvoice) return null;
     return getRemainingDaysFromNowPeriodEndHourToTimestamp(nextInvoice.period_end).remainingDays;
@@ -279,6 +307,11 @@ const IncreaseAccountCountsModalMemo = () => {
     if (!nextInvoice) return null;
     return getPeriodInDays(nextInvoice.period_start, nextInvoice.period_end);
   }, [nextInvoice?.period_start, nextInvoice?.period_end]);
+
+  // ================================ ツールチップ ================================
+  const [hoveredNewProration, setHoveredNewProration] = useState(false);
+  const [hoveredOldProration, setHoveredOldProration] = useState(false);
+  // ================================ ツールチップ ここまで ================================
 
   console.log(
     "🌟IncreaseAccountCountsModalコンポーネントレンダリング",
@@ -362,7 +395,32 @@ const IncreaseAccountCountsModalMemo = () => {
 
     return (
       <>
-        <div className="border-real fade02 absolute bottom-[100%] left-[50%] z-30 flex min-h-[50px] min-w-[100px] translate-x-[-50%] cursor-default flex-col rounded-[8px] bg-[var(--color-edit-bg-solid)] px-[32px] py-[24px]">
+        <div
+          className={`border-real absolute bottom-[100%] left-[50%] z-30 flex min-h-[50px] min-w-[100px] translate-x-[-50%] cursor-default flex-col rounded-[8px] bg-[var(--color-edit-bg-solid)] px-[32px] py-[24px] ${
+            toggleFadeRef.current ? `fade03` : ``
+          }`}
+          ref={nextPaymentDetailComponentRef}
+        >
+          {/* {isOpenNewProrationDetail && (
+            <ProrationDetails
+              planType="new"
+              currentPeriod={currentPeriod}
+              nextInvoice={nextInvoice}
+              remainingDays={remainingDays}
+              setIsOpenNewProrationDetail={setIsOpenNewProrationDetail}
+              setIsOpenOldProrationDetail={setIsOpenOldProrationDetail}
+            />
+          )}
+          {isOpenOldProrationDetail && (
+            <ProrationDetails
+              planType="old"
+              currentPeriod={currentPeriod}
+              nextInvoice={nextInvoice}
+              remainingDays={remainingDays}
+              setIsOpenNewProrationDetail={setIsOpenNewProrationDetail}
+              setIsOpenOldProrationDetail={setIsOpenOldProrationDetail}
+            />
+          )} */}
           {isOpenNewProrationDetail && <ProrationDetails planType="new" />}
           {isOpenOldProrationDetail && <ProrationDetails planType="old" />}
           <div className="flex w-full flex-col pb-[25px]">
@@ -470,25 +528,65 @@ const IncreaseAccountCountsModalMemo = () => {
             <div className="flex-col-center">
               <span className="text-[18px]">＝</span>
             </div>
-            <div className="flex-col-center relative">
+            <div className="flex-col-center group relative">
+              {/* ツールチップ */}
+              {hoveredNewProration && (
+                <div className={`${styles.tooltip_right_area} transition-base fade pointer-events-none`}>
+                  <div className={`${styles.tooltip_right} `}>
+                    <div className={`flex-center ${styles.dropdown_item}`}>
+                      {/* {theme === "light" ? "ダークモードに切り替え" : "ライトモードに切り替え"} */}
+                      詳細を確認する
+                    </div>
+                  </div>
+                  <div className={`${styles.tooltip_right_arrow}`}></div>
+                </div>
+              )}
+              {/* ツールチップ ここまで */}
               <div className="flex-col-center mb-[5px] inline-flex min-h-[36px] min-w-[160px]">
                 <span className="text-[12px] font-normal">プラン残り期間まで利用する</span>
                 <span className="text-[12px] font-normal">新プランの日割り料金</span>
               </div>
-              <span
-                className={`relative cursor-pointer hover:text-[var(--color-text-brand-f)] ${
+              <div
+                className={`flex-center relative cursor-pointer ${
+                  isOpenNewProrationDetail
+                    ? `text-[var(--color-text-brand-f)]`
+                    : `peer group-hover:text-[var(--color-text-brand-f)]`
+                }`}
+                onClick={() => {
+                  setHoveredNewProration(false);
+                  setIsOpenNewProrationDetail(true);
+                }}
+                onMouseEnter={() => setHoveredNewProration(true)}
+                onMouseLeave={() => setHoveredNewProration(false)}
+              >
+                <ImInfo
+                  className={`ml-[-10px] mr-[8px] ${
+                    isOpenNewProrationDetail
+                      ? `text-[var(--color-text-brand-f)]`
+                      : `text-[var(--color-text-sub)] group-hover:text-[var(--color-text-brand-f)]`
+                  }`}
+                />
+                <span>
+                  {!!nextInvoice?.lines?.data[1]?.amount
+                    ? `${formatToJapaneseYen(nextInvoice.lines.data[1].amount, false)}円`
+                    : `-`}
+                </span>
+              </div>
+              {/* <span
+                className={`relative group-hover:text-[var(--color-text-brand-f)] ${
                   isOpenNewProrationDetail ? `text-[var(--color-text-brand-f)]` : ``
                 }`}
-                onClick={() => setIsOpenNewProrationDetail(true)}
               >
                 {!!nextInvoice?.lines?.data[1]?.amount
                   ? `${formatToJapaneseYen(nextInvoice.lines.data[1].amount, false)}円`
                   : `-`}
-              </span>
+              </span> */}
 
               <div
                 className={`absolute bottom-[-5px] left-0 h-[2px] w-full ${
-                  isOpenNewProrationDetail ? `bg-[var(--color-bg-brand-f)]` : `bg-[var(--color-border-deep)]`
+                  isOpenNewProrationDetail
+                    ? `bg-[var(--color-bg-brand-f)]`
+                    : `bg-[var(--color-border-deep)] peer-hover:bg-[var(--color-bg-brand-f)]`
                 }`}
               />
             </div>
@@ -496,24 +594,64 @@ const IncreaseAccountCountsModalMemo = () => {
               <span className="text-[16px]">＋</span>
             </div>
 
-            <div className="flex-col-center relative">
+            <div className="flex-col-center group relative cursor-pointer">
+              {/* ツールチップ */}
+              {hoveredOldProration && (
+                <div className={`${styles.tooltip_right_area} transition-base fade pointer-events-none`}>
+                  <div className={`${styles.tooltip_right} `}>
+                    <div className={`flex-center ${styles.dropdown_item}`}>
+                      {/* {theme === "light" ? "ダークモードに切り替え" : "ライトモードに切り替え"} */}
+                      詳細を確認する
+                    </div>
+                  </div>
+                  <div className={`${styles.tooltip_right_arrow}`}></div>
+                </div>
+              )}
+              {/* ツールチップ ここまで */}
               <div className="flex-col-center mb-[5px] inline-flex min-h-[36px] min-w-[180px]">
                 <span className="text-[12px] font-normal">プラン残り期間まで未使用となる</span>
                 <span className="text-[12px] font-normal">旧プランの日割り料金</span>
               </div>
-              <span
-                className={`cursor-pointer hover:text-[var(--color-bg-brand-f)] ${
-                  isOpenOldProrationDetail ? `text-[var(--bright-red)]` : `text-[var(--bright-red)]`
+              <div
+                className={`flex-center relative cursor-pointer ${
+                  isOpenOldProrationDetail
+                    ? `text-[var(--color-text-brand-f)]`
+                    : `peer group-hover:text-[var(--color-text-brand-f)]`
                 }`}
-                onClick={() => setIsOpenOldProrationDetail(true)}
+                onClick={() => {
+                  setHoveredOldProration(false);
+                  setIsOpenOldProrationDetail(true);
+                }}
+                onMouseEnter={() => setHoveredOldProration(true)}
+                onMouseLeave={() => setHoveredOldProration(false)}
               >
-                {!!nextInvoice?.lines?.data[0]?.amount
-                  ? `${formatToJapaneseYen(nextInvoice.lines.data[0].amount, false, true)}円`
-                  : `-`}
-              </span>
+                {/* <ImInfo
+                  className={`ml-[-10px] mr-[8px] group-hover:text-[var(--color-text-brand-f)] ${
+                    isOpenOldProrationDetail ? `text-[var(--bright-red)]` : `text-[var(--color-text-sub)]`
+                  }]`}
+                /> */}
+                <ImInfo
+                  className={`ml-[-10px] mr-[8px] ${
+                    isOpenOldProrationDetail
+                      ? `text-[var(--color-text-brand-f)]`
+                      : `text-[var(--color-text-sub)] group-hover:text-[var(--color-text-brand-f)]`
+                  }`}
+                />
+                <span
+                  className={`text-[var(--bright-red)] ${
+                    isOpenOldProrationDetail ? `` : `group-hover:text-[var(--color-bg-brand-f)]`
+                  }`}
+                >
+                  {!!nextInvoice?.lines?.data[0]?.amount
+                    ? `${formatToJapaneseYen(nextInvoice.lines.data[0].amount, false, true)}円`
+                    : `-`}
+                </span>
+              </div>
               <div
                 className={`absolute bottom-[-5px] left-0 h-[2px] w-full ${
-                  isOpenOldProrationDetail ? `bg-[var(--bright-red)]` : `bg-[var(--color-border-deep)]`
+                  isOpenOldProrationDetail
+                    ? `bg-[var(--color-text-brand-f)]`
+                    : `bg-[var(--color-border-deep)] peer-hover:bg-[var(--color-bg-brand-f)]`
                 }`}
               />
             </div>
@@ -600,50 +738,60 @@ const IncreaseAccountCountsModalMemo = () => {
         {/* オーバーレイ */}
         {planType === "new" && (
           <div
-            className="absolute left-0 top-0 z-[100] h-full w-full cursor-pointer"
+            className="absolute left-0 top-0 z-[100] h-full w-full cursor-pointer rounded-[8px]"
             onClick={() => setIsOpenNewProrationDetail(false)}
           ></div>
         )}
         {planType === "old" && (
           <div
-            className="absolute left-0 top-0 z-[100] h-full w-full cursor-pointer"
+            className="absolute left-0 top-0 z-[100] h-full w-full cursor-pointer rounded-[8px]"
             onClick={() => setIsOpenOldProrationDetail(false)}
           ></div>
         )}
         {/* ハイライト */}
         {planType === "new" && (
           <>
-            <div className="absolute left-0 top-0 z-[99] h-full w-[34%] bg-[#00000030] backdrop-blur-sm"></div>
+            <div className="absolute left-0 top-0 z-[99] h-full w-[34%] rounded-l-[7px] bg-[#00000030] backdrop-blur-sm"></div>
             <div className="absolute bottom-0 left-[34%] right-[37%] z-[99] h-[31%] bg-[#00000030] backdrop-blur-sm"></div>
-            <div className="absolute right-0 top-0 z-[99] h-full w-[37%] bg-[#00000030] backdrop-blur-sm"></div>
+            <div className="absolute right-0 top-0 z-[99] h-full w-[37%] rounded-r-[7px] bg-[#00000030] backdrop-blur-sm"></div>
           </>
         )}
         {planType === "old" && (
-          <>
-            <div className="absolute left-0 top-0 z-[99] h-full w-[66%] bg-[#00000030] backdrop-blur-sm"></div>
-            <div className="absolute bottom-0 right-0 z-[99] h-[31%] w-[34%] bg-[#00000030] backdrop-blur-sm"></div>
-          </>
+          <div className="pointer-events-none absolute left-0 top-0 z-[99] h-full w-full">
+            <div className="absolute left-0 top-0 z-[99] h-full w-[66%] rounded-l-[7px] bg-[#00000030] backdrop-blur-sm"></div>
+            <div className="absolute bottom-0 right-0 z-[99] h-[31%] w-[34%] rounded-br-[7px] bg-[#00000030] backdrop-blur-sm"></div>
+          </div>
         )}
-        {/* ハイライト */}
+        {/* ハイライト ここまで */}
         <div
-          className={`fade02 shadow-all-md-center absolute left-[50%] top-[0] z-[150] flex max-h-[51%] min-h-[50%] min-w-[100%] translate-x-[-50%] flex-col rounded-[8px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-edit-bg-solid)] px-[24px] py-[16px]`}
+          className={`shadow-all-md-center absolute left-[50%] top-[0] z-[150] flex max-h-[51%] min-h-[50%] min-w-[100%] translate-x-[-50%] flex-col rounded-[8px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-edit-bg-solid)] px-[24px] py-[16px]`}
         >
           {/* クローズボタン */}
-          <button
-            className={`flex-center group absolute right-[20px] top-[10px] z-50 h-[32px] w-[32px] rounded-full bg-[#00000000] hover:bg-[var(--color-bg-sub-re-hover)]`}
-            onClick={() => setIsOpenNewProrationDetail(false)}
-          >
-            <MdClose className="text-[20px] text-[var(--color-text-title)]" />
-          </button>
+          {planType === "new" && (
+            <button
+              className={`flex-center group absolute right-[20px] top-[10px] z-50 h-[32px] w-[32px] rounded-full bg-[#00000000] hover:bg-[var(--color-bg-sub-re-hover)]`}
+              onClick={() => setIsOpenNewProrationDetail(false)}
+            >
+              <MdClose className="text-[20px] text-[var(--color-text-title)]" />
+            </button>
+          )}
+          {planType === "old" && (
+            <button
+              className={`flex-center group absolute right-[20px] top-[10px] z-50 h-[32px] w-[32px] rounded-full bg-[#00000000] hover:bg-[var(--color-bg-sub-re-hover)]`}
+              onClick={() => setIsOpenOldProrationDetail(false)}
+            >
+              <MdClose className="text-[20px] text-[var(--color-text-title)]" />
+            </button>
+          )}
           {/* クローズボタン ここまで */}
           <div className="flex w-full items-center">
-            <h4 className="text-[16px] font-bold text-[var(--color-bg-brand-f)]">
+            <h4 className="text-[16px] font-bold text-[var(--color-text-title)]">
               {planType === "new"
                 ? `新プランの残り期間使用分の日割り料金の詳細`
                 : `旧プランの未使用分の日割り料金の詳細`}
             </h4>
           </div>
-          <div className="mt-[12px] flex w-full flex-col space-y-[12px] text-[14px] font-normal">
+          <div className="fade03 mt-[12px] flex w-full flex-col space-y-[12px] text-[14px] font-normal">
             <p className="flex items-center space-x-[8px]">
               <span className="text-[16px] font-bold">・</span>
               <span className="!ml-[4px]">今月の契約期間</span>
@@ -676,49 +824,57 @@ const IncreaseAccountCountsModalMemo = () => {
               <span>：</span>
               {planType === "new" && (
                 <span className="font-bold">
-                  {!!nextInvoice?.lines?.data[2]?.amount
+                  {!!nextInvoice?.lines?.data[2]?.amount ? `${nextInvoice.lines.data[2].amount}円` : `-`}
+                  {/* {!!nextInvoice?.lines?.data[2]?.amount
                     ? `${formatToJapaneseYen(nextInvoice.lines.data[2].amount, false)}円`
-                    : `-`}
+                    : `-`} */}
                 </span>
               )}{" "}
               {planType === "old" && (
                 <span className="font-bold">
                   {!!nextInvoice?.lines?.data[0]?.plan?.amount && !!nextInvoice?.lines?.data[0]?.quantity
+                    ? `${nextInvoice?.lines?.data[0]?.plan?.amount * nextInvoice?.lines?.data[0]?.quantity}円`
+                    : `-`}
+                  {/* {!!nextInvoice?.lines?.data[0]?.plan?.amount && !!nextInvoice?.lines?.data[0]?.quantity
                     ? `${formatToJapaneseYen(
                         nextInvoice?.lines?.data[0]?.plan?.amount * nextInvoice?.lines?.data[0]?.quantity,
                         false
                       )}円`
-                    : `-`}
+                    : `-`} */}
                 </span>
               )}
               <span>=</span>
               {planType === "new" && (
                 <span>
-                  {!!nextInvoice?.lines?.data[2]?.plan?.amount
+                  {!!nextInvoice?.lines?.data[2]?.plan?.amount ? `${nextInvoice.lines.data[2].plan?.amount}/月` : `-`}
+                  {/* {!!nextInvoice?.lines?.data[2]?.plan?.amount
                     ? `${formatToJapaneseYen(nextInvoice.lines.data[2].plan?.amount, true)}/月`
-                    : `-`}
+                    : `-`} */}
                 </span>
               )}
               {planType === "old" && (
                 <span>
-                  {!!nextInvoice?.lines?.data[0]?.plan?.amount
+                  {!!nextInvoice?.lines?.data[0]?.plan?.amount ? `${nextInvoice.lines.data[0].plan?.amount}/月` : `-`}
+                  {/* {!!nextInvoice?.lines?.data[0]?.plan?.amount
                     ? `${formatToJapaneseYen(nextInvoice.lines.data[0].plan?.amount, true)}/月`
-                    : `-`}
+                    : `-`} */}
                 </span>
               )}
               <span>×</span>
               {planType === "new" && (
                 <span>
-                  {!!nextInvoice?.lines?.data[2]?.quantity
+                  {!!nextInvoice?.lines?.data[2]?.quantity ? `${nextInvoice.lines.data[2].quantity}個` : `-`}
+                  {/* {!!nextInvoice?.lines?.data[2]?.quantity
                     ? `${formatToJapaneseYen(nextInvoice.lines.data[2].quantity, false)}個`
-                    : `-`}
+                    : `-`} */}
                 </span>
               )}
               {planType === "old" && (
                 <span>
-                  {!!nextInvoice?.lines?.data[0]?.quantity
+                  {!!nextInvoice?.lines?.data[0]?.quantity ? `${nextInvoice.lines.data[0].quantity}個` : `-`}
+                  {/* {!!nextInvoice?.lines?.data[0]?.quantity
                     ? `${formatToJapaneseYen(nextInvoice.lines.data[0].quantity, false)}個`
-                    : `-`}
+                    : `-`} */}
                 </span>
               )}
             </p>
@@ -732,18 +888,32 @@ const IncreaseAccountCountsModalMemo = () => {
               {planType === "new" && (
                 <span className="font-bold">
                   {!!nextInvoice?.lines?.data[2]?.amount && !!currentPeriod
+                    ? `${Math.round((nextInvoice.lines.data[2].amount / currentPeriod) * 1000) / 1000}円/日`
+                    : `-`}
+                  {/* {!!nextInvoice?.lines?.data[2]?.amount && !!currentPeriod
                     ? `${formatToJapaneseYen(
                         // Math.floor((nextInvoice.lines.data[2].amount / currentPeriod) * 1000) / 1000,
                         Math.round((nextInvoice.lines.data[2].amount / currentPeriod) * 1000) / 1000,
                         // nextInvoice.lines.data[2].amount / currentPeriod,
                         false
                       )}円/日`
-                    : `-`}
+                    : `-`} */}
                 </span>
               )}
               {planType === "old" && (
                 <span className="font-bold">
                   {!!nextInvoice?.lines?.data[0]?.plan?.amount &&
+                  !!nextInvoice?.lines?.data[0]?.quantity &&
+                  !!currentPeriod
+                    ? `${
+                        Math.round(
+                          ((nextInvoice?.lines?.data[0]?.plan?.amount * nextInvoice?.lines?.data[0]?.quantity) /
+                            currentPeriod) *
+                            1000
+                        ) / 1000
+                      }円/日`
+                    : `-`}
+                  {/* {!!nextInvoice?.lines?.data[0]?.plan?.amount &&
                   !!nextInvoice?.lines?.data[0]?.quantity &&
                   !!currentPeriod
                     ? `${formatToJapaneseYen(
@@ -754,25 +924,29 @@ const IncreaseAccountCountsModalMemo = () => {
                         ) / 1000,
                         false
                       )}円/日`
-                    : `-`}
+                    : `-`} */}
                 </span>
               )}
               <span>=</span>
               {planType === "new" && (
                 <span>
-                  {!!nextInvoice?.lines?.data[2]?.amount
+                  {!!nextInvoice?.lines?.data[2]?.amount ? `${nextInvoice.lines.data[2].amount}円` : `-`}
+                  {/* {!!nextInvoice?.lines?.data[2]?.amount
                     ? `${formatToJapaneseYen(nextInvoice.lines.data[2].amount, false)}円`
-                    : `-`}
+                    : `-`} */}
                 </span>
               )}
               {planType === "old" && (
                 <span className="font-bold">
                   {!!nextInvoice?.lines?.data[0]?.plan?.amount && !!nextInvoice?.lines?.data[0]?.quantity
+                    ? `${nextInvoice?.lines?.data[0]?.plan?.amount * nextInvoice?.lines?.data[0]?.quantity}円`
+                    : `-`}
+                  {/* {!!nextInvoice?.lines?.data[0]?.plan?.amount && !!nextInvoice?.lines?.data[0]?.quantity
                     ? `${formatToJapaneseYen(
                         nextInvoice?.lines?.data[0]?.plan?.amount * nextInvoice?.lines?.data[0]?.quantity,
                         false
                       )}円`
-                    : `-`}
+                    : `-`} */}
                 </span>
               )}
               <span>÷</span>
@@ -808,7 +982,7 @@ const IncreaseAccountCountsModalMemo = () => {
                   !!nextInvoice?.lines?.data[0]?.quantity &&
                   !!currentPeriod &&
                   !!remainingDays
-                    ? `${formatToJapaneseYen(nextInvoice?.lines?.data[0].amount, false)}円`
+                    ? `${formatToJapaneseYen(nextInvoice?.lines?.data[0].amount, false, false)}円`
                     : `-`}
                 </span>
               )}
@@ -816,16 +990,30 @@ const IncreaseAccountCountsModalMemo = () => {
               {planType === "new" && (
                 <span>
                   {!!nextInvoice?.lines?.data[2]?.amount && !!currentPeriod
+                    ? `${Math.round((nextInvoice.lines.data[2].amount / currentPeriod) * 1000) / 1000}円/日`
+                    : `-`}
+                  {/* {!!nextInvoice?.lines?.data[2]?.amount && !!currentPeriod
                     ? `${formatToJapaneseYen(
                         Math.round((nextInvoice.lines.data[2].amount / currentPeriod) * 1000) / 1000,
                         false
                       )}円/日`
-                    : `-`}
+                    : `-`} */}
                 </span>
               )}
               {planType === "old" && (
                 <span>
                   {!!nextInvoice?.lines?.data[0]?.plan?.amount &&
+                  !!nextInvoice?.lines?.data[0]?.quantity &&
+                  !!currentPeriod
+                    ? `${
+                        Math.round(
+                          ((nextInvoice?.lines?.data[0]?.plan?.amount * nextInvoice?.lines?.data[0]?.quantity) /
+                            currentPeriod) *
+                            1000
+                        ) / 1000
+                      }円/日`
+                    : `-`}
+                  {/* {!!nextInvoice?.lines?.data[0]?.plan?.amount &&
                   !!nextInvoice?.lines?.data[0]?.quantity &&
                   !!currentPeriod
                     ? `${formatToJapaneseYen(
@@ -836,7 +1024,7 @@ const IncreaseAccountCountsModalMemo = () => {
                         ) / 1000,
                         false
                       )}円/日`
-                    : `-`}
+                    : `-`} */}
                 </span>
               )}
               <span>×</span>
@@ -852,15 +1040,42 @@ const IncreaseAccountCountsModalMemo = () => {
                 {planType === "new" &&
                   `${
                     !!nextInvoice?.lines?.data[2]?.amount && !!currentPeriod && !!remainingDays
+                      ? `${
+                          (Math.round((nextInvoice.lines.data[2].amount / currentPeriod) * 1000) / 1000) * remainingDays
+                        }円`
+                      : `-`
+                  }`}
+                {/* {planType === "new" &&
+                  `${
+                    !!nextInvoice?.lines?.data[2]?.amount && !!currentPeriod && !!remainingDays
                       ? `${formatToJapaneseYen(
                           (Math.round((nextInvoice.lines.data[2].amount / currentPeriod) * 1000) / 1000) *
                             remainingDays,
                           false
                         )}円`
                       : `-`
-                  }`}
+                  }`} */}
                 {planType === "old" &&
                   `${
+                    !!nextInvoice?.lines?.data[0]?.plan?.amount &&
+                    !!nextInvoice?.lines?.data[0]?.quantity &&
+                    !!currentPeriod &&
+                    !!remainingDays
+                      ? `${
+                          Math.round(
+                            (Math.round(
+                              ((nextInvoice?.lines?.data[0]?.plan?.amount * nextInvoice?.lines?.data[0]?.quantity) /
+                                currentPeriod) *
+                                1000
+                            ) /
+                              1000) *
+                              remainingDays *
+                              1000
+                          ) / 1000
+                        }円`
+                      : `-`
+                  }`}
+                {/* `${
                     !!nextInvoice?.lines?.data[0]?.plan?.amount &&
                     !!nextInvoice?.lines?.data[0]?.quantity &&
                     !!currentPeriod &&
@@ -879,7 +1094,7 @@ const IncreaseAccountCountsModalMemo = () => {
                           false
                         )}円`
                       : `-`
-                  }`}
+                  }`} */}
                 を四捨五入）
               </span>
             </p>
@@ -896,8 +1111,9 @@ const IncreaseAccountCountsModalMemo = () => {
       <div className={`${styles.overlay} `} onClick={() => setIsOpenChangeAccountCountsModal(null)} />
 
       <div className={`${styles.container} `}>
+        {/* 次回請求期間のお支払いの詳細モーダルを開いた時のオーバーレイ */}
         {isOpenInvoiceDetail && (
-          <div className={`clear_overlay_absolute fade02 pointer-events-none z-20 rounded-[8px] bg-[#00000033]`}></div>
+          <div className={`clear_overlay_absolute fade03 pointer-events-none z-20 rounded-[8px] bg-[#00000033]`}></div>
         )}
         {/* <div className={`clear_overlay_absolute fade02 pointer-events-none z-20 rounded-[8px] bg-[#00000033]`}></div> */}
         {loading && (
@@ -1039,10 +1255,38 @@ const IncreaseAccountCountsModalMemo = () => {
                         : "エラー"}
                     </span>
                   </div>
+
+                  {!!nextInvoice && !!nextInvoice?.lines?.data && nextInvoice?.lines?.data.length > 1 && (
+                    <div className="flex w-full items-start justify-between font-bold">
+                      <span>次回請求期間のお支払い</span>
+                      <div
+                        className="relative flex cursor-pointer items-center space-x-2"
+                        onMouseEnter={() => {
+                          setIsOpenInvoiceDetail(true);
+                        }}
+                        onMouseLeave={() => {
+                          setIsOpenInvoiceDetail(false);
+                          if (isOpenNewProrationDetail) {
+                            return setIsOpenNewProrationDetail(false);
+                          }
+                          if (isOpenOldProrationDetail) {
+                            return setIsOpenOldProrationDetail(false);
+                          }
+                        }}
+                      >
+                        {!!nextInvoice?.amount_due && <BsChevronDown />}
+                        <span>
+                          {!!nextInvoice?.amount_due ? `${formatToJapaneseYen(nextInvoice.amount_due)}` : `-`}
+                        </span>
+                        {isOpenInvoiceDetail && <NextPaymentDetailComponent />}
+                        {/* <NextPaymentDetailComponent /> */}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex w-full items-start justify-between font-bold">
                     <span>本日のお支払い</span>
-                    {/* {todaysPayment === 0 && <span>￥{todaysPayment}</span>} */}
-                    {todaysPayment === 0 && (
+                    {todaysPayment !== 0 && (
                       <div
                         className="relative flex items-center space-x-2"
                         onMouseEnter={() => setHoveredTodaysPayment(true)}
@@ -1051,7 +1295,13 @@ const IncreaseAccountCountsModalMemo = () => {
                         <BsChevronDown />
                         <span>￥{todaysPayment}</span>
                         {/* {hoveredTodaysPayment && <TodaysPaymentDetailComponent />} */}
-                        <TodaysPaymentDetailComponent />
+                        {todaysPayment !== 0 && hoveredTodaysPayment && <TodaysPaymentDetailComponent />}
+                        {/* <TodaysPaymentDetailComponent /> */}
+                      </div>
+                    )}
+                    {todaysPayment === 0 && (
+                      <div className="relative flex items-center space-x-2">
+                        <span>￥0</span>
                       </div>
                     )}
                     {/* {todaysPayment === 0 && (
@@ -1066,23 +1316,6 @@ const IncreaseAccountCountsModalMemo = () => {
                       </div>
                     )} */}
                   </div>
-                  {!!nextInvoice && !!nextInvoice?.lines?.data && nextInvoice?.lines?.data.length > 1 && (
-                    <div className="flex w-full items-start justify-between font-bold">
-                      <span>次回請求期間のお支払い</span>
-                      <div
-                        className="relative flex cursor-pointer items-center space-x-2"
-                        onMouseEnter={() => setIsOpenInvoiceDetail(true)}
-                        onMouseLeave={() => setIsOpenInvoiceDetail(false)}
-                      >
-                        {!!nextInvoice?.amount_due && <BsChevronDown />}
-                        <span>
-                          {!!nextInvoice?.amount_due ? `${formatToJapaneseYen(nextInvoice.amount_due)}` : `-`}
-                        </span>
-                        {isOpenInvoiceDetail && <NextPaymentDetailComponent />}
-                        {/* <NextPaymentDetailComponent /> */}
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
               <button

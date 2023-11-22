@@ -28,6 +28,8 @@
   transform: translate(-50%, -50%);
   width: 80vw;
   height: 90vh;
+  max-width: 1150px;
+  max-height: 730px;
   /* background-color: rgb(39 39 39 / 0.7); */
   background-color: var(--color-edit-bg);
   border-radius: 8px;
@@ -382,6 +384,8 @@
   transform: translate(-50%, -50%);
   width: 35vw;
   height: 73vh;
+  max-width: 505px;
+  max-height: 594px;
   /* width: 56vw;
   height: 63vh; */
   border-radius: 8px;

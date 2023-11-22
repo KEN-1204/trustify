@@ -12,9 +12,9 @@ export const getPeriodInDays = (timestamp1: number, timestamp2: number): number 
   const differenceInMilliseconds = Math.abs(simplifiedDate2.getTime() - simplifiedDate1.getTime());
   const differenceInDays = differenceInMilliseconds / (1000 * 60 * 60 * 24);
 
-  console.log("differenceInDays", differenceInDays);
-  console.log("date1", date1);
-  console.log("date2", date2);
+  // console.log("differenceInDays", differenceInDays);
+  // console.log("date1", date1);
+  // console.log("date2", date2);
 
   const accuratePeriod = Math.round(differenceInDays);
   // Math.round()を使用する理由は、日付の差の計算において時刻情報を無視しているためです。

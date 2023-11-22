@@ -24,18 +24,18 @@ export const getRemainingDaysFromNowPeriodEndHourToTimestamp = (periodEndTimesta
 
     // 特定の日付にcurrent_period_endの時間、分、秒を設定
     testClockCurrentDate.setHours(endDate.getHours(), endDate.getMinutes(), endDate.getSeconds());
-    console.log("残り何日か testClockCurrentDate", testClockCurrentDate);
+    // console.log("残り何日か testClockCurrentDate", testClockCurrentDate);
 
     // 日付の差を計算(ミリ秒単位) Date.getTime()で日付をミリ秒単位で取得してから引き算する
     const differenceInMilliseconds = endDate.getTime() - testClockCurrentDate.getTime();
 
     // 日付の差を日単位に変換
     const differenceInDays = differenceInMilliseconds / (1000 * 60 * 60 * 24);
-    console.log("残り何日か differenceInDays", differenceInDays);
+    // console.log("残り何日か differenceInDays", differenceInDays);
 
     // 経過日数(小数点以下を切り捨て)
     const truncatedDifferenceInDays = Math.floor(differenceInDays);
-    console.log("残り何日か truncatedDifferenceInDays", truncatedDifferenceInDays);
+    // console.log("残り何日か truncatedDifferenceInDays", truncatedDifferenceInDays);
 
     // 経過日数(小数点あり) 0.84782...
     const daysRemaining = differenceInDays; // 小数点あり経過日数
@@ -50,7 +50,7 @@ export const getRemainingDaysFromNowPeriodEndHourToTimestamp = (periodEndTimesta
       seconds: seconds,
     };
 
-    console.log(`残り${truncatedDifferenceInDays}日${hours}時間${minutes}分${seconds}秒`);
+    // console.log(`残り${truncatedDifferenceInDays}日${hours}時間${minutes}分${seconds}秒`);
 
     return response;
   }

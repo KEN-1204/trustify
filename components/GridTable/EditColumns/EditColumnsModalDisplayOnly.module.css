@@ -17,6 +17,9 @@
   transform: translate(-50%, -50%);
   width: 40vw;
   height: 90vh;
+  max-width: 577px;
+  max-height: 732px;
+
   /* background-color: rgb(39 39 39 / 0.7); */
   background-color: var(--color-edit-bg);
   border-radius: 8px;

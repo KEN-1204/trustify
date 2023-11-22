@@ -16,6 +16,10 @@
   z-index: 1000;
   top: 45%;
   left: 50%;
+  max-width: 1089px;
+  max-height: 367px;
+  min-width: 1089px;
+  min-height: 367px;
   /* height: 60dvh; */
   /* width: 100%; */
   /* max-width: 420px; */

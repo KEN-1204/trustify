@@ -1520,6 +1520,9 @@ textarea {
 .fade {
   animation: fade 0.3s;
 }
+.fade03 {
+  animation: fade 0.3s;
+}
 .fade02 {
   animation: fade 0.2s;
 }
@@ -1602,6 +1605,15 @@ textarea {
     rgba(20, 20, 20, 0.58) 44%,
     #141414 68%,
     #141414 100%
+  );
+}
+.shadow-gradient-r-sm {
+  background: linear-gradient(
+    to right,
+    rgba(20, 20, 20, 0.3) 0,
+    rgba(20, 20, 20, 0.2) 15%,
+    rgba(20, 20, 20, 0.15) 35%,
+    rgba(20, 20, 20, 0) 50%
   );
 }
 .shadow-gradient-tb-sm {

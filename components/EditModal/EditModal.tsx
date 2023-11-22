@@ -29,16 +29,19 @@ export const EditModal = () => {
       <div className={`flex-center ${styles.overlay}`} onClick={handleClickOverlay}></div>
       {/* モーダル */}
       <div className={`${styles.modal_container} transition-base`} onClick={handleClickOverlay}>
-        <div className={`${styles.contents} group relative !h-full min-w-[70vw] !bg-transparent`}>
+        <div className={`${styles.contents} group relative !h-full w-full !bg-transparent`}>
+          {/* <div className={`${styles.contents} group relative !h-full min-w-[70vw] !bg-transparent`}> */}
           {/* 保存キャンセルエリア */}
           <div className="flex w-full  items-center justify-between py-[10px] text-center text-[18px]">
             <div className="w-[54px] cursor-pointer hover:text-[#aaa]" onClick={handleClickOverlay}>
               {/* キャンセル */}
             </div>
             {/* <div className="font-bold">編集</div> */}
-            <div className="select-none font-bold">詳細</div>
+            <div className="flex-center mx-auto w-[54px] select-none font-bold">
+              <span>詳細</span>
+            </div>
             <div
-              className={`cursor-pointer font-bold text-[#0D99FF] ${styles.save_text} select-none`}
+              className={`w-[54px] cursor-pointer font-bold text-[#0D99FF] ${styles.save_text} select-none`}
               onClick={() => console.log("クリック")}
             >
               {/* 保存 */}
