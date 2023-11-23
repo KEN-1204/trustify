@@ -33,12 +33,14 @@ export const useQueryUpcomingInvoiceChangeQuantity = (
   const setIsReadyQueryInvoice = useDashboardStore((state) => state.setIsReadyQueryInvoice);
 
   const getUpcomingInvoice = async () => {
-    if (!changeQuantity || typeof changeQuantity !== "number") return;
-    if (!stripeCustomerId || typeof stripeCustomerId !== "string") return;
-    if (!stripeSubscriptionId || typeof stripeSubscriptionId !== "string") return;
-    if (!sessionState) return;
-    if (isReadyQueryInvoice === false)
-      return console.log("isReadyQueryInvoiceがfalseのためgetUpcomingInvoice関数リターン", isReadyQueryInvoice);
+    if (!changeQuantity || typeof changeQuantity !== "number") return null;
+    if (!stripeCustomerId || typeof stripeCustomerId !== "string") return null;
+    if (!stripeSubscriptionId || typeof stripeSubscriptionId !== "string") return null;
+    if (!sessionState) return null;
+    if (isReadyQueryInvoice === false) {
+      console.log("isReadyQueryInvoiceがfalseのためgetUpcomingInvoice関数リターン", isReadyQueryInvoice);
+      return null;
+    }
     console.log("useQuery getUpcomingInvoice関数実行 isReadyQueryInvoice", isReadyQueryInvoice);
     // if (isReadyRef.current === false)
     //   return console.log("isReadyRef.currentがfalseのためgetUpcomingInvoice関数リターン", isReadyRef.current);

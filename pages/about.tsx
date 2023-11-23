@@ -79,6 +79,7 @@ const About = () => {
       <div className="absolute inset-0 z-[0] overflow-hidden">
         <div className="bg-gradient-brand1 z-1 absolute bottom-[-300px] left-[-400px] h-[500px] w-[500px] rounded-full"></div>
         <div className="bg-gradient-brand2 z-1 absolute left-[39%] top-[-900px] h-[1120px] w-[1120px] rounded-full"></div>
+        {/* <div className="polka_dot_border3"></div> */}
         <div className="bg-gradient-brand3 z-1 absolute bottom-[-200px] right-[-100px] h-[300px] w-[300px] rounded-full"></div>
       </div>
       <div

@@ -15,7 +15,7 @@ import { toast } from "react-toastify";
 import axios from "axios";
 import { useQueryClient } from "@tanstack/react-query";
 import { SubscribedAccount } from "@/types";
-import { FaPlus, FaRegCircle } from "react-icons/fa";
+import { FaChevronLeft, FaChevronRight, FaPlus, FaRegCircle, FaRegFolderOpen } from "react-icons/fa";
 import { useQueryMemberAccounts } from "@/hooks/useQueryMemberAccounts";
 import { format } from "date-fns";
 import Stripe from "stripe";
@@ -60,13 +60,17 @@ const IncreaseAccountCountsModalMemo = () => {
   // 支払い詳細モーダルのfadeクラスをトグル
   useEffect(() => {
     if (nextPaymentDetailComponentRef.current) {
-      setTimeout(() => {
+      if (toggleFadeRef.current === true && isOpenInvoiceDetail) {
+        // setTimeout(() => {
+        //   toggleFadeRef.current = false;
+        // }, 200);
         toggleFadeRef.current = false;
-      }, 300);
-    } else {
-      toggleFadeRef.current = true;
+      }
+      if (!isOpenInvoiceDetail && toggleFadeRef.current === false) {
+        toggleFadeRef.current = true;
+      }
     }
-  }, [nextPaymentDetailComponentRef.current]);
+  }, [isOpenInvoiceDetail]);
 
   // 現在契約しているメンバーアカウント全てを取得して、契約アカウント数をlengthで取得
   const {
@@ -87,7 +91,7 @@ const IncreaseAccountCountsModalMemo = () => {
   // 初回マウント時とアカウント数の最終確定後にuseQueryを起動させる
 
   // NextPaymentComponentでローカルStateを使用して計算するか否かを保持するState
-  const [isLocalCaluculationMode, setIsLocalCalculationMode] = useState(false);
+  const [isLocalCalculationMode, setIsLocalCalculationMode] = useState(false);
   // ZustandでuseQueryのisReadyをグローバルStateとして保持
   const isReadyQueryInvoice = useDashboardStore((state) => state.isReadyQueryInvoice);
   const setIsReadyQueryInvoice = useDashboardStore((state) => state.setIsReadyQueryInvoice);
@@ -113,45 +117,272 @@ const IncreaseAccountCountsModalMemo = () => {
   const [additionalCostState, setAdditionalCostState] = useState<number | null>(null);
   // 更新後の追加費用を上乗せした次回支払額
   const [nextInvoiceAmountState, setNextInvoiceAmountState] = useState<number | null>(null);
-  console.log(
-    "ローカルState",
-    "請求期間(日数)State",
-    currentPeriodState,
-    "プラン期間残り日数",
-    remainingDaysState,
-    "新プランの月額料金の1日あたりの料金",
-    newDailyRateWithThreeDecimalPoints,
-    "新プランの残り期間までの利用分の金額",
-    newUsageAmountForRemainingPeriodWithThreeDecimalPoints,
-    "旧プランの月額料金の1日あたりの料金",
-    oldDailyRateWithThreeDecimalPoints,
-    "旧プランの残り期間までの利用分の金額",
-    oldUnusedAmountForRemainingPeriodWithThreeDecimalPoints,
-    "追加費用",
-    additionalCostState,
-    "次回お支払い額(追加費用上乗せ済み)",
-    nextInvoiceAmountState
-  );
 
-  const {
-    // data: nextInvoice,
-    // error: upcomingInvoiceError,
-    data: upcomingInvoiceData,
-    error: upcomingInvoiceError,
-    isLoading: isLoadingUpcomingInvoice,
-  } = useQueryUpcomingInvoiceChangeQuantity(
-    totalAccountQuantity,
-    userProfileState?.stripe_customer_id,
-    userProfileState?.stripe_subscription_id,
-    sessionState
-  );
+  // const {
+  //   data: upcomingInvoiceData,
+  //   error: upcomingInvoiceError,
+  //   isLoading: isLoadingUpcomingInvoice,
+  // } = useQueryUpcomingInvoiceChangeQuantity(
+  //   totalAccountQuantity,
+  //   userProfileState?.stripe_customer_id,
+  //   userProfileState?.stripe_subscription_id,
+  //   sessionState
+  // );
+
+  // ===================== 🌟次回支払い情報のUpcomingInvoiceを取得 useEffect =====================
+  // 初回マウント時と「新たに増やすアカウント数」を変更して「料金計算」を押した時にStripeから比例配分のプレビューを取得
+  useEffect(() => {
+    if (!userProfileState) return alert("エラー：ユーザー情報が見つかりませんでした");
+    if (!!nextInvoice) return console.log("既にnextInvoice取得済みのためリターン");
+
+    const getUpcomingInvoice = async () => {
+      if (!!nextInvoice) return console.log("既にnextInvoice取得済みのためリターン");
+      console.log("getUpcomingInvoice関数実行 /retrieve-upcoming-invoiceへaxios.post()");
+      try {
+        const payload = {
+          stripeCustomerId: userProfileState.stripe_customer_id,
+          stripeSubscriptionId: userProfileState.stripe_subscription_id,
+          changeQuantity: totalAccountQuantity, // 数量変更後の合計アカウント数
+          changePlanName: null, // プラン変更ではないので、nullをセット
+        };
+        // type UpcomingInvoiceResponse = {
+        //   data: any;
+        //   error: string
+        // }
+        const {
+          data: { data: upcomingInvoiceData, error: upcomingInvoiceError },
+        } = await axios.post(`/api/subscription/retrieve-upcoming-invoice`, payload, {
+          headers: {
+            Authorization: `Bearer ${sessionState.access_token}`,
+          },
+        });
+
+        if (!!upcomingInvoiceError) {
+          console.log(
+            "🌟Stripe将来のインボイス取得ステップ7 /retrieve-upcoming-invoiceへのaxios.postエラー",
+            upcomingInvoiceError
+          );
+          throw new Error(upcomingInvoiceError);
+        }
+
+        console.log(
+          "🌟Stripe将来のインボイス取得ステップ7 /retrieve-upcoming-invoiceへのaxios.postで次回のインボオスの取得成功",
+          upcomingInvoiceData
+        );
+
+        setNextInvoice(upcomingInvoiceData);
+      } catch (e: any) {
+        console.error(`getUpcomingInvoice関数実行エラー: `, e);
+        toast.error(`請求金額の取得に失敗しました...`, {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      }
+    };
+    getUpcomingInvoice();
+  }, []);
+  // ===================== ✅次回支払い情報のUpcomingInvoiceを取得 useEffect =====================
 
   // 追加費用 nextInvoice.lines.data[0].amountがマイナスの値のため引くためには加算でOK
-  const additionalCost =
-    !!nextInvoice && !!nextInvoice?.lines?.data[1]?.amount
-      ? nextInvoice.lines.data[1].amount + nextInvoice.lines.data[0].amount
-      : null;
+  // const additionalCost =
+  //   !!nextInvoice && !!nextInvoice?.lines?.data[1]?.amount
+  //     ? nextInvoice.lines.data[1].amount + nextInvoice.lines.data[0].amount
+  //     : null;
 
+  // ================== 🌟StripeのInvoiceを取得してローカル計算が合っているか確認する関数 ==================
+  const [stripeRetrieveInvoice, setStripeRetrieveInvoice] = useState<Stripe.UpcomingInvoice | null>(null);
+  // ローカルとStripeのInvoiceが合っているか確認できるモーダル
+  const [isOpenCheckInvoiceStripeLocalModal, setIsOpenCheckInvoiceStripeLocalModal] = useState(false);
+  // 新プランの1日あたりの料金(Stripeから取得)
+  const [stripeNewDailyRateWithThreeDecimalPoints, setStripeNewDailyRateWithThreeDecimalPoints] = useState<
+    number | null
+  >(null);
+  // 新プランの残り使用分の料金(Stripeから取得)
+  const [
+    stripeNewUsageAmountForRemainingPeriodWithThreeDecimalPoints,
+    setStripeNewUsageAmountForRemainingPeriodWithThreeDecimalPoints,
+  ] = useState<number | null>(null);
+  // 旧プランの1日当たりの料金(Stripeから取得)
+  const [stripeOldDailyRateWithThreeDecimalPoints, setStripeOldDailyRateWithThreeDecimalPoints] = useState<
+    number | null
+  >(null);
+  // 旧プランの残り未使用分の料金(Stripeから取得)
+  const [
+    stripeOldUnusedAmountForRemainingPeriodWithThreeDecimalPoints,
+    setStripeOldUnusedAmountForRemainingPeriodWithThreeDecimalPoints,
+  ] = useState<number | null>(null);
+  // 追加費用(Stripeから取得)
+  const [stripeAdditionalCostState, setStripeAdditionalCostState] = useState<number | null>(null);
+  // 次回支払額(Stripeから取得)
+  const [stripeNextInvoiceAmountState, setStripeNextInvoiceAmountState] = useState<number | null>(null);
+
+  // useQueryで取得したStripeのInvoiceとローカルのInvoiceを比較して一致しているかチェック
+  const [isLoadingCalculation, setIsLoadingCalculation] = useState(false);
+  const checkInvoiceStripeAndLocalCalculate = (_upcomingInvoiceData: Stripe.UpcomingInvoice) => {
+    if (!userProfileState) return alert("エラー：ユーザー情報が見つかりませんでした");
+    if (!memberAccountsDataArray) return alert("エラー：アカウント情報が見つかりませんでした");
+    if (!currentPeriodState) return alert("エラー：請求期間データを取得できませんでした");
+    if (!remainingDaysState) return alert("エラー：残り期間データを取得できませんでした");
+
+    // ローディング開始
+    setIsLoadingCalculation(true);
+
+    setStripeRetrieveInvoice(_upcomingInvoiceData);
+
+    // Stripeから取得したInvoiceの金額とローカルで計算した金額が一致しているかチェック
+
+    // 新プランの1日当たりの料金
+    const tempNewDailyRate =
+      (_upcomingInvoiceData as Stripe.UpcomingInvoice)?.lines?.data[2]?.amount / currentPeriodState;
+    const tempNewDailyRateWithThreeDecimalPoints = Math.round(tempNewDailyRate * 1000) / 1000;
+    setStripeNewDailyRateWithThreeDecimalPoints(tempNewDailyRateWithThreeDecimalPoints);
+    // 新プランの残り使用分の料金
+    const tempNewUsageAmountWithThreeDecimalPoints = tempNewDailyRateWithThreeDecimalPoints * remainingDaysState;
+    setStripeNewUsageAmountForRemainingPeriodWithThreeDecimalPoints(tempNewUsageAmountWithThreeDecimalPoints);
+    // 旧プランの1日あたりの料金
+    const _oldPlanAmount = getPrice(userProfileState.subscription_plan) * memberAccountsDataArray.length;
+    const tempOldDailyRate = _oldPlanAmount / currentPeriodState;
+    const tempOldDailyRateWithThreeDecimalPoints = Math.round(tempOldDailyRate * 1000) / 1000;
+    setStripeOldDailyRateWithThreeDecimalPoints(tempOldDailyRateWithThreeDecimalPoints);
+    // 旧プランの残り未使用分の料金
+    const tempOldUnusedAmount = tempOldDailyRateWithThreeDecimalPoints * remainingDaysState;
+    const tempOldUnusedAmountWithThreeDecimalPoints = Math.round(tempOldUnusedAmount * 1000) / 1000;
+    setStripeOldUnusedAmountForRemainingPeriodWithThreeDecimalPoints(tempOldUnusedAmountWithThreeDecimalPoints);
+    // 追加費用
+    const tempAdditionalCost =
+      Math.round(tempNewUsageAmountWithThreeDecimalPoints) - Math.round(tempOldUnusedAmountWithThreeDecimalPoints);
+    setStripeAdditionalCostState(tempAdditionalCost);
+    // 次回の支払額
+    const tempNextInvoiceAmount =
+      (_upcomingInvoiceData as Stripe.UpcomingInvoice)?.lines?.data[
+        (_upcomingInvoiceData as Stripe.UpcomingInvoice)?.lines?.data.length - 1
+      ]?.amount + tempAdditionalCost;
+    setStripeNextInvoiceAmountState(tempNextInvoiceAmount);
+
+    if (!!tempNextInvoiceAmount && tempNextInvoiceAmount === nextInvoiceAmountState) {
+      console.log("チェック関数 テスト成功");
+      console.log(
+        "支払額 stripeのtempNextInvoiceAmount",
+        tempNextInvoiceAmount,
+        "ローカルnextInvoiceAmountState",
+        nextInvoiceAmountState
+      );
+      console.log("追加費用 stripeのadditionalCost", tempAdditionalCost, "ローカルadditionalCost", additionalCostState);
+      toast.success(`次回請求額がローカルと一致しました！`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    } else {
+      console.log("チェック関数 テスト結果 stripeの結果と一致せず");
+      console.log(
+        "支払額 stripeのtempNextInvoiceAmount",
+        tempNextInvoiceAmount,
+        "ローカルnextInvoiceAmountState",
+        nextInvoiceAmountState
+      );
+      console.log(
+        "追加費用 stripeのadditionalCost",
+        tempAdditionalCost,
+        "ローカルadditionalCostState",
+        additionalCostState
+      );
+      toast.error(`stripeの結果と一致せず...`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    }
+    // ローディング終了
+    setIsLoadingCalculation(false);
+  };
+  // ================== ✅StripeのInvoiceを取得してローカル計算が合っているか確認する関数 ==================
+
+  // ====================== 🌟「料金チェック」をクリック ======================
+  const handleCheckStripeInvoiceAndLocal = () => {
+    if (accountQuantity === 1 && !!upcomingInvoiceData) {
+      console.log("🔥料金チェックをクリック 増やすアカウント数が1つのため、そのままチェック関数を実行🔥");
+      checkInvoiceStripeAndLocalCalculate(upcomingInvoiceData);
+    } else {
+      console.log("🔥料金チェックをクリック isReadyQueryInvoiceをtrueに変更🔥");
+      // useQueryのisReadyQueryInvoiceをtrueに変更して新たにuseQueryでInvoiceを取得する
+      setIsReadyQueryInvoice(true);
+    }
+  };
+  // ====================== ✅「料金チェック」をクリック ======================
+
+  // ====================== 🌟アカウント数変更の度に新料金を計算してローカルStateに格納 ======================
+  // ローカルで計算終了を表す
+  const [calculationCompleted, setCalculationCompleted] = useState(true);
+  useEffect(() => {
+    // ローカルStateがnullならリターン
+    if (!userProfileState) return console.log("ユーザーデータが無しのためリターン");
+    if (!memberAccountsDataArray) return console.log("メンバーアカウンtpデータが無しのためリターン");
+    if (!nextInvoiceAmountState) return console.log("Stripeインボイスデータがローカルに無しのためリターン");
+    if (!currentPeriodState) return console.log("currentPeriodStateがローカルに無しのためリターン");
+    if (!remainingDaysState) return console.log("remainingDaysStateがローカルに無しのためリターン");
+
+    // プラン１アカウント月額費用
+    const monthlyFeePerAccount = getPrice(userProfileState.subscription_plan); // プランの月額費用/ID
+    // 新プラン料金
+    const _newPlanAmount = monthlyFeePerAccount * totalAccountQuantity;
+    // 新プランの1日当たりの料金
+    const _newDailyRateThreeDecimalPoints = Math.round((_newPlanAmount / currentPeriodState) * 1000) / 1000;
+    setNewDailyRateWithThreeDecimalPoints(_newDailyRateThreeDecimalPoints);
+    // 新プランの残り期間までの使用量の金額
+    const _newUsage = _newDailyRateThreeDecimalPoints * remainingDaysState;
+    const _newUsageThreeDecimalPoints = Math.round(_newUsage * 1000) / 1000;
+    setNewUsageAmountForRemainingPeriodWithThreeDecimalPoints(_newUsageThreeDecimalPoints);
+    // 旧プランの1日あたりの料金
+    const oldMonthlyFee = monthlyFeePerAccount * memberAccountsDataArray.length; // 旧プランの月額費用
+    const _oldDailyRateThreeDecimalPoints = Math.round((oldMonthlyFee / currentPeriodState) * 1000) / 1000;
+    setOldDailyRateWithThreeDecimalPoints(_oldDailyRateThreeDecimalPoints);
+    // 旧プランの残り期間までの未使用分の金額
+    const _oldUnused = _oldDailyRateThreeDecimalPoints * remainingDaysState;
+    const _oldUnusedThreeDecimalPoints = Math.round(_oldUnused * 1000) / 1000;
+    setOldUnusedAmountForRemainingPeriodWithThreeDecimalPoints(_oldUnusedThreeDecimalPoints);
+    // 追加費用をローカルStateに格納
+    const _additionalCost = Math.round(_newUsageThreeDecimalPoints) - Math.round(_oldUnusedThreeDecimalPoints);
+    setAdditionalCostState(_additionalCost);
+    // 次回お支払い額（追加費用上乗せ済み）
+    const _nextInvoiceAmount = _newPlanAmount + _additionalCost;
+    setNextInvoiceAmountState(_nextInvoiceAmount);
+    console.log(
+      "🔥新アカウント数で請求データをローカルで算出🔥",
+      "新たなアカウント数",
+      totalAccountQuantity,
+      "新数量の月額料金",
+      _newPlanAmount,
+      "次回支払額",
+      _nextInvoiceAmount,
+      "追加費用",
+      _additionalCost,
+      "新プラン1日当たり料金",
+      _newDailyRateThreeDecimalPoints,
+      "新プラン残り使用分の金額",
+      _newUsageThreeDecimalPoints,
+      "旧プラン1日当たり料金",
+      _oldDailyRateThreeDecimalPoints,
+      "旧プラン残り使用分の金額",
+      _oldUnusedThreeDecimalPoints
+    );
+  }, [accountQuantity]);
+  // ====================== ✅アカウント数変更の度に料金を計算 ======================
+
+  // ====================== 🌟useEffectでStripeInvoiceをローカルStateに格納 ======================
   // 初回マウント時の1個増やしたアカウント数のuseQueryで取得したUpcomingInvoiceをローカルStateに格納する
   // ローカルStateに格納する理由は、数量変更ごとにフェッチしてinvoiceの計算をするのではなく、
   // 数量の変更をローカルStateで保持してその数量分のinvoiceをクライアントサイドで算出することで無駄なフェッチを防ぐ
@@ -162,11 +393,9 @@ const IncreaseAccountCountsModalMemo = () => {
     if (!userProfileState) return;
     if (!memberAccountsDataArray) return;
 
-    // nextInvoiceがnullの時だけ更新関数に格納
-    if (!nextInvoice) {
-      console.log("初回フェッチのみuseQueryで取得したinvoiceをローカルStateに格納");
+    const insertInvoiceToLocalState = () => {
+      // StripeのInvoiceをローカルStateに格納
       setNextInvoice(upcomingInvoiceData);
-      setIsLocalCalculationMode(true); // ローカルStateの情報で支払額を算出するモードをtrueにする
 
       // 「請求期間（日数）」をローカルStateに格納
       const period = getPeriodInDays(upcomingInvoiceData.period_start, upcomingInvoiceData.period_end);
@@ -178,29 +407,172 @@ const IncreaseAccountCountsModalMemo = () => {
       const monthlyFeePerAccount = getPrice(userProfileState.subscription_plan); // プランの月額費用/ID
       const newMonthlyFee = monthlyFeePerAccount * totalAccountQuantity; // 新プランの月額費用
       const newDailyR = newMonthlyFee / period;
-      const newTruncateDailyR = Math.floor(newDailyR * 1000) / 1000; // 小数点第3位までを取得
+      const newTruncateDailyR = Math.round(newDailyR * 1000) / 1000; // 小数点第3位までを取得
       setNewDailyRateWithThreeDecimalPoints(newTruncateDailyR);
       // 新数量プラン残り期間までの利用分の金額
       const newUsage = newTruncateDailyR * remaining;
-      const newTruncateUsage = Math.floor(newUsage * 1000) / 1000;
+      const newTruncateUsage = Math.round(newUsage * 1000) / 1000;
       setNewUsageAmountForRemainingPeriodWithThreeDecimalPoints(newTruncateUsage);
       // 旧プラン（現在のプラン）の1日あたりの料金をローカルStateに格納 月額料金 / １ヶ月の日数
       const oldMonthlyFee = monthlyFeePerAccount * memberAccountsDataArray.length; // 旧プランの月額費用
       const oldDailyR = oldMonthlyFee / period;
-      const oldTruncateDailyR = Math.floor(oldDailyR * 1000) / 1000; // 小数点第3位までを取得
-      setNewDailyRateWithThreeDecimalPoints(oldTruncateDailyR);
+      const oldTruncateDailyR = Math.round(oldDailyR * 1000) / 1000; // 小数点第3位までを取得
+      setOldDailyRateWithThreeDecimalPoints(oldTruncateDailyR);
       // 旧プランの残り期間までの未使用分の金額
       const oldUnused = oldTruncateDailyR * remaining;
-      const oldTruncateUnused = Math.floor(oldUnused * 1000) / 1000;
+      const oldTruncateUnused = Math.round(oldUnused * 1000) / 1000;
       setOldUnusedAmountForRemainingPeriodWithThreeDecimalPoints(oldTruncateUnused);
       // 追加費用をローカルStateに格納
-      const extraCharge = Math.round(newTruncateUsage) + Math.round(oldTruncateUnused);
+      const extraCharge = Math.round(newTruncateUsage) - Math.round(oldTruncateUnused);
       setAdditionalCostState(extraCharge);
       // 次回お支払い額（追加費用上乗せ済み）
       const totalPaymentDue = newMonthlyFee + extraCharge;
       setNextInvoiceAmountState(totalPaymentDue);
+    };
+    // ローカルStateにまだInvoiceが無くnullならuseQueryで取得したStripeのInvoiceを格納
+    if (!nextInvoice) {
+      console.log("🔥初回フェッチのみuseQueryで取得したinvoiceをローカルStateに格納🔥");
+      insertInvoiceToLocalState();
     }
-  }, []);
+    // ２回目以降でisReadyQueryInvoiceのStateが変更されて、isReadyQueryInvoiceがtrueからfalseにした時にはuseQueryのフェッチが完了していることを示すためfalseの場合で、かつ、現在保持しているローカルStateの請求総額とuseQueryで取得した請求総額が異なるなら、新たにuseQueryで別のアカウント数でstripeからInvoiceを取得しているため、最新のInvoiceをローカルStateに格納する
+    else if (
+      !!nextInvoice &&
+      !isReadyQueryInvoice &&
+      !!nextInvoiceAmountState &&
+      nextInvoiceAmountState !== upcomingInvoiceData.amount_due
+    ) {
+      console.log("🔥useQueryで新たに取得したinvoiceとローカルのInvoiceを比較チェック🔥");
+      // insertInvoiceToLocalState();
+      checkInvoiceStripeAndLocalCalculate(upcomingInvoiceData);
+    }
+  }, [isReadyQueryInvoice]);
+  // ====================== ✅useEffectでStripeInvoiceをローカルStateに格納 ======================
+
+  // const handleCheckInvoiceStripeAndLocalCalculate = async () => {
+  //   if (!userProfileState) return alert("エラー：ユーザー情報が見つかりませんでした");
+  //   if (!memberAccountsDataArray) return alert("エラー：アカウント情報が見つかりませんでした");
+  //   if (!currentPeriodState) return alert("エラー：請求期間データを取得できませんでした");
+  //   if (!remainingDaysState) return alert("エラー：残り期間データを取得できませんでした");
+
+  //   console.log("handleCheckInvoiceStripeAndLocalCalculate関数実行 /retrieve-upcoming-invoiceへaxios.post()");
+  //   try {
+  //     const payload = {
+  //       stripeCustomerId: userProfileState.stripe_customer_id,
+  //       stripeSubscriptionId: userProfileState.stripe_subscription_id,
+  //       changeQuantity: totalAccountQuantity, // 数量変更後の合計アカウント数
+  //       changePlanName: null, // プラン変更ではないので、nullをセット
+  //     };
+  //     const {
+  //       data: { data: upcomingInvoiceData, error: upcomingInvoiceError },
+  //     } = await axios.post(`/api/subscription/retrieve-upcoming-invoice`, payload, {
+  //       headers: {
+  //         Authorization: `Bearer ${sessionState.access_token}`,
+  //       },
+  //     });
+  //     if (!!upcomingInvoiceError) {
+  //       console.log(
+  //         "🌟Stripe将来のインボイス取得ステップ7 /retrieve-upcoming-invoiceへのaxios.postエラー",
+  //         upcomingInvoiceError
+  //       );
+  //       throw new Error(upcomingInvoiceError);
+  //     }
+  //     console.log(
+  //       "🌟Stripe将来のインボイス取得ステップ7 /retrieve-upcoming-invoiceへのaxios.postで次回のインボオスの取得成功",
+  //       upcomingInvoiceData
+  //     );
+  //     setStripeRetrieveInvoice(upcomingInvoiceData);
+
+  //     // Stripeから取得したInvoiceの金額とローカルで計算した金額が一致しているかチェック
+
+  //     // 新プランの1日当たりの料金
+  //     const tempNewDailyRate =
+  //       (upcomingInvoiceData as Stripe.UpcomingInvoice)?.lines?.data[2]?.amount / currentPeriodState;
+  //     const tempNewDailyRateWithThreeDecimalPoints = Math.round(tempNewDailyRate * 1000) / 1000;
+  //     setStripeNewDailyRateWithThreeDecimalPoints(tempNewDailyRateWithThreeDecimalPoints);
+  //     // 新プランの残り使用分の料金
+  //     const tempNewUsageAmountWithThreeDecimalPoints = tempNewDailyRateWithThreeDecimalPoints * remainingDaysState;
+  //     setStripeNewUsageAmountForRemainingPeriodWithThreeDecimalPoints(tempNewUsageAmountWithThreeDecimalPoints);
+  //     // 旧プランの1日あたりの料金
+  //     const _oldPlanAmount = getPrice(userProfileState.subscription_plan) * memberAccountsDataArray.length;
+  //     const tempOldDailyRate = _oldPlanAmount / currentPeriodState;
+  //     const tempOldDailyRateWithThreeDecimalPoints = Math.round(tempOldDailyRate * 1000) / 1000;
+  //     setStripeOldDailyRateWithThreeDecimalPoints(tempOldDailyRateWithThreeDecimalPoints);
+  //     // 旧プランの残り未使用分の料金
+  //     const tempOldUnusedAmount = tempOldDailyRateWithThreeDecimalPoints * remainingDaysState;
+  //     const tempOldUnusedAmountWithThreeDecimalPoints = Math.round(tempOldUnusedAmount * 1000) / 1000;
+  //     setStripeOldUnusedAmountForRemainingPeriodWithThreeDecimalPoints(tempOldUnusedAmountWithThreeDecimalPoints);
+  //     // 追加費用
+  //     const tempAdditionalCost =
+  //       Math.round(tempNewUsageAmountWithThreeDecimalPoints) - Math.round(tempOldUnusedAmountWithThreeDecimalPoints);
+  //     setStripeAdditionalCostState(tempAdditionalCost);
+  //     // 次回の支払額
+  //     const tempNextInvoice =
+  //       (upcomingInvoiceData as Stripe.UpcomingInvoice)?.lines?.data[
+  //         (upcomingInvoiceData as Stripe.UpcomingInvoice)?.lines?.data.length - 1
+  //       ]?.amount + tempAdditionalCost;
+  //     setStripeNextInvoiceAmountState(tempNextInvoice);
+
+  //     if (!!tempNextInvoice && tempNextInvoice === nextInvoiceAmountState) {
+  //       console.log("チェック関数 テスト成功");
+  //       console.log(
+  //         "支払額 stripeのnextInvoice",
+  //         tempNextInvoice,
+  //         "ローカルnextInvoiceAmountState",
+  //         nextInvoiceAmountState
+  //       );
+  //       console.log(
+  //         "追加費用 stripeのadditionalCost",
+  //         tempAdditionalCost,
+  //         "ローカルadditionalCost",
+  //         additionalCostState
+  //       );
+  //       toast.success(`次回請求額がローカルと一致しました！`, {
+  //         position: "top-right",
+  //         autoClose: 5000,
+  //         hideProgressBar: false,
+  //         closeOnClick: true,
+  //         pauseOnHover: true,
+  //         draggable: true,
+  //         progress: undefined,
+  //       });
+  //     } else {
+  //       console.log("チェック関数 テスト成功");
+  //       console.log(
+  //         "支払額 stripe nextInvoice",
+  //         tempNextInvoice,
+  //         "ローカル nextInvoiceAmountState",
+  //         nextInvoiceAmountState
+  //       );
+  //       console.log(
+  //         "追加費用 stripe additionalCost",
+  //         tempAdditionalCost,
+  //         "ローカル additionalCost",
+  //         additionalCostState
+  //       );
+  //       toast.error(`請求金額の取得に失敗しました...`, {
+  //         position: "top-right",
+  //         autoClose: 5000,
+  //         hideProgressBar: false,
+  //         closeOnClick: true,
+  //         pauseOnHover: true,
+  //         draggable: true,
+  //         progress: undefined,
+  //       });
+  //     }
+  //   } catch (e: any) {
+  //     console.error(`getUpcomingInvoice関数実行エラー: `, e);
+  //     toast.error(`請求金額の取得に失敗しました...`, {
+  //       position: "top-right",
+  //       autoClose: 5000,
+  //       hideProgressBar: false,
+  //       closeOnClick: true,
+  //       pauseOnHover: true,
+  //       draggable: true,
+  //       progress: undefined,
+  //     });
+  //   }
+  // };
+  // ===================== ✅StripeのInvoiceを取得してローカル計算が合っているか確認 =====================
 
   // 請求期間開始日から経過した日数 今日の日付は現在で、時間、分、秒はperiod_endに合わせた今日までの経過時間
   const elapsedDays = useMemo(() => {
@@ -255,64 +627,6 @@ const IncreaseAccountCountsModalMemo = () => {
   //   }
   // }, []);
   // ===================== ✅次回支払い情報のUpcomingInvoiceを取得 useQuery =====================
-  // ===================== 🌟次回支払い情報のUpcomingInvoiceを取得 useEffect =====================
-  // 初回マウント時と「新たに増やすアカウント数」を変更して「料金計算」を押した時にStripeから比例配分のプレビューを取得
-  // useEffect(() => {
-  //   if (!userProfileState) return alert("エラー：ユーザー情報が見つかりませんでした");
-  //   if (!!nextInvoice) return console.log("既にnextInvoice取得済みのためリターン");
-
-  //   const getUpcomingInvoice = async () => {
-  //     if (!!nextInvoice) return console.log("既にnextInvoice取得済みのためリターン");
-  //     console.log("getUpcomingInvoice関数実行 /retrieve-upcoming-invoiceへaxios.post()");
-  //     try {
-  //       const payload = {
-  //         stripeCustomerId: userProfileState.stripe_customer_id,
-  //         stripeSubscriptionId: userProfileState.stripe_subscription_id,
-  //         changeQuantity: totalAccountQuantity, // 数量変更後の合計アカウント数
-  //         changePlanName: null, // プラン変更ではないので、nullをセット
-  //       };
-  //       // type UpcomingInvoiceResponse = {
-  //       //   data: any;
-  //       //   error: string
-  //       // }
-  //       const {
-  //         data: { data: upcomingInvoiceData, error: upcomingInvoiceError },
-  //       } = await axios.post(`/api/subscription/retrieve-upcoming-invoice`, payload, {
-  //         headers: {
-  //           Authorization: `Bearer ${sessionState.access_token}`,
-  //         },
-  //       });
-
-  //       if (!!upcomingInvoiceError) {
-  //         console.log(
-  //           "🌟Stripe将来のインボイス取得ステップ7 /retrieve-upcoming-invoiceへのaxios.postエラー",
-  //           upcomingInvoiceError
-  //         );
-  //         throw new Error(upcomingInvoiceError);
-  //       }
-
-  //       console.log(
-  //         "🌟Stripe将来のインボイス取得ステップ7 /retrieve-upcoming-invoiceへのaxios.postで次回のインボオスの取得成功",
-  //         upcomingInvoiceData
-  //       );
-
-  //       setNextInvoice(upcomingInvoiceData);
-  //     } catch (e: any) {
-  //       console.error(`getUpcomingInvoice関数実行エラー: `, e);
-  //       toast.error(`請求金額の取得に失敗しました...`, {
-  //         position: "top-right",
-  //         autoClose: 5000,
-  //         hideProgressBar: false,
-  //         closeOnClick: true,
-  //         pauseOnHover: true,
-  //         draggable: true,
-  //         progress: undefined,
-  //       });
-  //     }
-  //   };
-  //   getUpcomingInvoice();
-  // }, []);
-  // ===================== ✅次回支払い情報のUpcomingInvoiceを取得 useEffect =====================
 
   // 初回マウント時のみユーザーが契約中のサブスクリプションの次回支払い期限が今日か否かと、
   // 今日の場合は支払い時刻を過ぎているかどうか確認して過ぎていなければ0円でなくする
@@ -364,7 +678,7 @@ const IncreaseAccountCountsModalMemo = () => {
   //   }
   // }, [isOpenInvoiceDetail, nextPaymentDetailComponentRef]);
   // =========================== 支払い詳細モーダルの表示後fade02をremove 非表示でadd ===========================
-  // =========================== 変更を確定をクリック Stripeに送信 ===========================
+  // =========================== 変更の確定をクリック Stripeに送信 ===========================
   const [progressRate, setProgressRate] = useState(0);
   const handleChangeQuantity = async () => {
     console.log("変更の確定クリック プランと数量", userProfileState?.subscription_plan, accountQuantity);
@@ -465,13 +779,13 @@ const IncreaseAccountCountsModalMemo = () => {
     // "💡useQueryで取得 変更後のアカウント合計の次回請求額プレビュー(比例配分あり) nextInvoice",
     "💡変更後のアカウント合計の次回請求額プレビュー(比例配分あり)ローカルStateのnextInvoice",
     nextInvoice,
-    "アカウント追加後の次回追加費用",
-    additionalCost,
+    // "アカウント追加後の次回追加費用",
+    // additionalCost,
     "請求期間",
     currentPeriod,
     "isReadyQueryInvoice",
     isReadyQueryInvoice,
-    "ローカルState",
+    "================================ ローカルState",
     "請求期間(日数)State",
     currentPeriodState,
     "プラン期間残り日数State",
@@ -487,28 +801,99 @@ const IncreaseAccountCountsModalMemo = () => {
     "追加費用State",
     additionalCostState,
     "次回お支払い額(追加費用上乗せ済み)State",
-    nextInvoiceAmountState
+    nextInvoiceAmountState,
+    "================================ Stripeから取得したInvoice",
+    "stripeから取得したInvoice",
+    stripeRetrieveInvoice,
+    "新プランの月額料金の1日あたりの料金(Stripeから取得)",
+    stripeNewDailyRateWithThreeDecimalPoints,
+    "新プランの残り期間までの利用分の金額(Stripeから取得)",
+    stripeNewUsageAmountForRemainingPeriodWithThreeDecimalPoints,
+    "旧プランの月額料金の1日あたりの料金(Stripeから取得)",
+    stripeOldDailyRateWithThreeDecimalPoints,
+    "旧プランの残り期間までの未使用分の金額(Stripeから取得)",
+    stripeOldUnusedAmountForRemainingPeriodWithThreeDecimalPoints,
+    "追加費用(Stripeから取得)",
+    stripeAdditionalCostState,
+    "次回お支払い額(追加費用上乗せ済み)(Stripeから取得)",
+    stripeNextInvoiceAmountState,
+    "===============================新プランの料金",
+    (stripeRetrieveInvoice as Stripe.UpcomingInvoice)?.lines?.data[
+      (stripeRetrieveInvoice as Stripe.UpcomingInvoice)?.lines?.data.length - 1
+    ]?.amount
   );
 
-  // console.log(
-  //   "ローカルState",
-  //   "請求期間(日数)State",
-  //   currentPeriodState,
-  //   "プラン期間残り日数",
-  //   remainingDaysState,
-  //   "新プランの月額料金の1日あたりの料金",
-  //   newDailyRateWithThreeDecimalPoints,
-  //   "新プランの残り期間までの利用分の金額",
-  //   newUsageAmountForRemainingPeriodWithThreeDecimalPoints,
-  //   "旧プランの月額料金の1日あたりの料金",
-  //   oldDailyRateWithThreeDecimalPoints,
-  //   "旧プランの残り期間までの利用分の金額",
-  //   oldUnusedAmountForRemainingPeriodWithThreeDecimalPoints,
-  //   "追加費用",
-  //   additionalCostState,
-  //   "次回お支払い額(追加費用上乗せ済み)",
-  //   nextInvoiceAmountState
-  // );
+  // ====================== 🌟StripeのInvoiceとローカルのチェックコンポーネント ======================
+  const CheckInvoiceStripeLocalModal = () => {
+    return (
+      <div className="absolute right-0 top-0 z-[29] flex min-h-[100%] w-7/12 flex-col rounded-r-[8px] border-l border-solid border-[var(--color-border-base)] bg-[var(--color-bg-base)]">
+        <div className="relative flex w-full items-center border-b border-solid border-[--color-border-base] py-[20px] text-[13px] text-[var(--color-text-title)]">
+          <div className="flex-center w-[50%] border-r border-solid border-[--color-border-base]">
+            <span className="mr-[20px]">請求期間：{currentPeriodState}</span>
+            <span>プラン期間残り日数：{remainingDaysState}</span>
+          </div>
+          <div className="flex-center w-[25%] border-x border-solid border-[--color-border-base]">ローカル算出結果</div>
+          <div className="flex-center w-[25%]">StripeのInvoice</div>
+        </div>
+        <div className="relative flex w-full items-center border-b border-solid border-[--color-border-base] py-[20px] text-[13px] text-[var(--color-text-title)]">
+          <div className="flex-center w-[50%] border-r border-solid border-[--color-border-base]">
+            新プランの1日当たり料金
+          </div>
+          <div className="flex-center w-[25%] border-x border-solid border-[--color-border-base]">
+            {newDailyRateWithThreeDecimalPoints}
+          </div>
+          <div className="flex-center w-[25%]">{stripeNewDailyRateWithThreeDecimalPoints ?? `-`}</div>
+        </div>
+        <div className="relative flex w-full items-center border-b border-solid border-[--color-border-base] py-[20px] text-[13px] text-[var(--color-text-title)]">
+          <div className="flex-center w-[50%] border-r border-solid border-[--color-border-base]">
+            新プランの残り期間までの利用分の金額
+          </div>
+          <div className="flex-center w-[25%] border-x border-solid border-[--color-border-base]">
+            {newUsageAmountForRemainingPeriodWithThreeDecimalPoints}
+          </div>
+          <div className="flex-center w-[25%]">
+            {stripeNewUsageAmountForRemainingPeriodWithThreeDecimalPoints ?? `-`}
+          </div>
+        </div>
+        <div className="relative flex w-full items-center border-b border-solid border-[--color-border-base] py-[20px] text-[13px] text-[var(--color-text-title)]">
+          <div className="flex-center w-[50%] border-r border-solid border-[--color-border-base]">
+            旧プランの月額料金の1日あたりの料金
+          </div>
+          <div className="flex-center w-[25%] border-x border-solid border-[--color-border-base]">
+            {oldDailyRateWithThreeDecimalPoints}
+          </div>
+          <div className="flex-center w-[25%]">{stripeOldDailyRateWithThreeDecimalPoints ?? `-`}</div>
+        </div>
+        <div className="relative flex w-full items-center border-b border-solid border-[--color-border-base] py-[20px] text-[13px] text-[var(--color-text-title)]">
+          <div className="flex-center w-[50%] border-r border-solid border-[--color-border-base]">
+            旧プランの残り期間までの未使用分の金額
+          </div>
+          <div className="flex-center w-[25%] border-x border-solid border-[--color-border-base]">
+            {oldUnusedAmountForRemainingPeriodWithThreeDecimalPoints}
+          </div>
+          <div className="flex-center w-[25%]">
+            {stripeOldUnusedAmountForRemainingPeriodWithThreeDecimalPoints ?? `-`}
+          </div>
+        </div>
+        <div className="relative flex w-full items-center border-b border-solid border-[--color-border-base] py-[20px] text-[13px] text-[var(--color-text-title)]">
+          <div className="flex-center w-[50%] border-r border-solid border-[--color-border-base]">追加費用</div>
+          <div className="flex-center w-[25%] border-x border-solid border-[--color-border-base]">
+            {additionalCostState}
+          </div>
+          <div className="flex-center w-[25%]">{stripeAdditionalCostState ?? `-`}</div>
+        </div>
+        <div className="relative flex w-full items-center border-b border-solid border-[--color-border-base] py-[20px] text-[13px] text-[var(--color-text-title)]">
+          <div className="flex-center w-[50%] border-r border-solid border-[--color-border-base]">
+            次回の支払額(追加費用上乗せ済み)
+          </div>
+          <div className="flex-center w-[25%] border-x border-solid border-[--color-border-base]">
+            {nextInvoiceAmountState}
+          </div>
+          <div className="flex-center w-[25%]">{stripeNextInvoiceAmountState ?? `-`}</div>
+        </div>
+      </div>
+    );
+  };
 
   // ====================== 🌟本日のお支払いコンポーネント ======================
   const TodaysPaymentDetailComponent = () => {
@@ -570,9 +955,13 @@ const IncreaseAccountCountsModalMemo = () => {
 
     return (
       <>
+        {/* <div
+          className={`border-real fade02 absolute bottom-[100%] left-[50%] z-30 flex min-h-[50px] min-w-[100px] translate-x-[-50%] cursor-default flex-col rounded-[8px] bg-[var(--color-edit-bg-solid)] px-[32px] py-[24px]`}
+          ref={nextPaymentDetailComponentRef}
+        > */}
         <div
           className={`border-real absolute bottom-[100%] left-[50%] z-30 flex min-h-[50px] min-w-[100px] translate-x-[-50%] cursor-default flex-col rounded-[8px] bg-[var(--color-edit-bg-solid)] px-[32px] py-[24px] ${
-            toggleFadeRef.current ? `fade03` : ``
+            toggleFadeRef.current ? `fade02` : ``
           }`}
           ref={nextPaymentDetailComponentRef}
         >
@@ -638,9 +1027,15 @@ const IncreaseAccountCountsModalMemo = () => {
                 </div>
               </div>
               <span>
-                {!!nextInvoice?.lines?.data[2]?.amount
-                  ? `${formatToJapaneseYen(nextInvoice.lines.data[2].amount, false)}円`
+                {!!userProfileState?.subscription_plan
+                  ? `${formatToJapaneseYen(
+                      getPrice(userProfileState.subscription_plan) * totalAccountQuantity,
+                      false
+                    )}円`
                   : `-`}
+                {/* {!!nextInvoice?.lines?.data[2]?.amount
+                  ? `${formatToJapaneseYen(nextInvoice.lines.data[2].amount, false)}円`
+                  : `-`} */}
               </span>
               <div className="absolute bottom-[-5px] left-0 h-[2px] w-full bg-[#1DA1F2]" />
             </div>
@@ -655,9 +1050,12 @@ const IncreaseAccountCountsModalMemo = () => {
                 </span>
               </div>
               <span>
-                {nextInvoice?.lines?.data[2]?.plan?.amount
-                  ? `${formatToJapaneseYen(nextInvoice.lines.data[2].plan.amount, true)}/月`
+                {!!userProfileState?.subscription_plan
+                  ? `${formatToJapaneseYen(getPrice(userProfileState.subscription_plan), true)}/月`
                   : `-`}
+                {/* {nextInvoice?.lines?.data[2]?.plan?.amount
+                  ? `${formatToJapaneseYen(nextInvoice.lines.data[2].plan.amount, true)}/月`
+                  : `-`} */}
               </span>
 
               <div className="absolute bottom-[-5px] left-0 h-[2px] w-full bg-[var(--color-border-deep)]" />
@@ -697,7 +1095,8 @@ const IncreaseAccountCountsModalMemo = () => {
                   <span className="text-[12px] font-normal">次回追加費用</span>
                 </div>
               </div>
-              <span>{!!additionalCost ? formatToJapaneseYen(additionalCost, false) : `-`}円</span>
+              <span>{!!additionalCostState ? formatToJapaneseYen(additionalCostState, false) : `-`}円</span>
+              {/* <span>{!!additionalCost ? formatToJapaneseYen(additionalCost, false) : `-`}円</span> */}
               <div className="absolute bottom-[-5px] left-0 h-[2px] w-full bg-[#FF7A00]" />
             </div>
             <div className="flex-col-center">
@@ -742,10 +1141,18 @@ const IncreaseAccountCountsModalMemo = () => {
                   }`}
                 />
                 <span>
+                  {!!newUsageAmountForRemainingPeriodWithThreeDecimalPoints
+                    ? `${formatToJapaneseYen(
+                        Math.round(newUsageAmountForRemainingPeriodWithThreeDecimalPoints),
+                        false
+                      )}円`
+                    : `-`}
+                </span>
+                {/* <span>
                   {!!nextInvoice?.lines?.data[1]?.amount
                     ? `${formatToJapaneseYen(nextInvoice.lines.data[1].amount, false)}円`
                     : `-`}
-                </span>
+                </span> */}
               </div>
               {/* <span
                 className={`relative group-hover:text-[var(--color-text-brand-f)] ${
@@ -758,7 +1165,7 @@ const IncreaseAccountCountsModalMemo = () => {
               </span> */}
 
               <div
-                className={`absolute bottom-[-5px] left-0 h-[2px] w-full ${
+                className={`pointer-events-none absolute bottom-[-5px] left-0 h-[2px] w-full ${
                   isOpenNewProrationDetail
                     ? `bg-[var(--color-bg-brand-f)]`
                     : `bg-[var(--color-border-deep)] peer-hover:bg-[var(--color-bg-brand-f)]`
@@ -769,7 +1176,7 @@ const IncreaseAccountCountsModalMemo = () => {
               <span className="text-[16px]">＋</span>
             </div>
 
-            <div className="flex-col-center group relative cursor-pointer">
+            <div className="flex-col-center group relative">
               {/* ツールチップ */}
               {hoveredOldProration && (
                 <div className={`${styles.tooltip_right_area} transition-base fade pointer-events-none`}>
@@ -813,13 +1220,22 @@ const IncreaseAccountCountsModalMemo = () => {
                   }`}
                 />
                 <span className={`text-[var(--bright-red)] ${isOpenOldProrationDetail ? `` : ``}`}>
+                  {!!oldUnusedAmountForRemainingPeriodWithThreeDecimalPoints
+                    ? `${formatToJapaneseYen(
+                        Math.round(oldUnusedAmountForRemainingPeriodWithThreeDecimalPoints),
+                        false,
+                        true
+                      )}円`
+                    : `-`}
+                </span>
+                {/* <span className={`text-[var(--bright-red)] ${isOpenOldProrationDetail ? `` : ``}`}>
                   {!!nextInvoice?.lines?.data[0]?.amount
                     ? `${formatToJapaneseYen(nextInvoice.lines.data[0].amount, false, true)}円`
                     : `-`}
-                </span>
+                </span> */}
               </div>
               <div
-                className={`absolute bottom-[-5px] left-0 h-[2px] w-full ${
+                className={`pointer-events-none absolute bottom-[-5px] left-0 h-[2px] w-full ${
                   isOpenOldProrationDetail
                     ? `bg-[var(--color-text-brand-f)]`
                     : `bg-[var(--color-border-deep)] peer-hover:bg-[var(--color-bg-brand-f)]`
@@ -848,8 +1264,11 @@ const IncreaseAccountCountsModalMemo = () => {
               </div>
               {/* <BsCheck2 className="min-h-[24px] min-w-[24px] stroke-1 text-[24px] text-[#00d436]" /> */}
               <span className="">
-                {nextInvoice?.amount_due ? `${formatToJapaneseYen(nextInvoice.amount_due, false)}円` : `-`}
+                {nextInvoiceAmountState ? `${formatToJapaneseYen(nextInvoiceAmountState, false)}円` : `-`}
               </span>
+              {/* <span className="">
+                {nextInvoice?.amount_due ? `${formatToJapaneseYen(nextInvoice.amount_due, false)}円` : `-`}
+              </span> */}
               <div className="absolute bottom-[-5px] left-0 h-[2px] w-full bg-[var(--vivid-green)]" />
             </div>
             <div className="flex-col-center">
@@ -866,10 +1285,18 @@ const IncreaseAccountCountsModalMemo = () => {
                 </div>
               </div>
               <span>
+                {!!userProfileState?.subscription_plan
+                  ? `${formatToJapaneseYen(
+                      getPrice(userProfileState.subscription_plan) * totalAccountQuantity,
+                      false
+                    )}円`
+                  : `-`}
+              </span>
+              {/* <span>
                 {!!nextInvoice?.lines?.data[2]?.amount
                   ? `${formatToJapaneseYen(nextInvoice.lines.data[2].amount, false)}円`
                   : `-`}
-              </span>
+              </span> */}
 
               <div className="absolute bottom-[-5px] left-0 h-[2px] w-full bg-[#1DA1F2]" />
             </div>
@@ -889,7 +1316,8 @@ const IncreaseAccountCountsModalMemo = () => {
                   <span className="text-[12px] font-normal">次回追加費用</span>
                 </div>
               </div>
-              <span>{!!additionalCost ? `${formatToJapaneseYen(additionalCost, false)}円` : `-`}</span>
+              <span>{!!additionalCostState ? `${formatToJapaneseYen(additionalCostState, false)}円` : `-`}</span>
+              {/* <span>{!!additionalCost ? `${formatToJapaneseYen(additionalCost, false)}円` : `-`}</span> */}
               <div className="absolute bottom-[-5px] left-0 h-[2px] w-full bg-[#FF7A00]" />
             </div>
           </div>
@@ -901,8 +1329,14 @@ const IncreaseAccountCountsModalMemo = () => {
   // ====================== ✅増やした後の次回の請求金額 ここまで ======================
   // ====================== 🌟日割り料金の詳細コンポーネント ======================
   const ProrationDetails = ({ planType }: { planType: "new" | "old" }) => {
+    if (!userProfileState?.subscription_plan) return null;
+    if (!memberAccountsDataArray) return null;
     if (!nextInvoice) return null;
     if (!nextInvoice.subscription_proration_date) return null;
+
+    const planFeePerAccount = getPrice(userProfileState.subscription_plan) ?? null;
+    const newPlanAmount = planFeePerAccount * totalAccountQuantity ?? null;
+    const oldPlanAmount = planFeePerAccount * memberAccountsDataArray.length ?? null;
 
     return (
       <>
@@ -970,7 +1404,8 @@ const IncreaseAccountCountsModalMemo = () => {
               <span className="font-bold">
                 {format(new Date(nextInvoice.period_start * 1000), "yyyy年MM月dd日")}〜
                 {format(new Date(nextInvoice.period_end * 1000), "yyyy年MM月dd日")}
-                {!!currentPeriod ? `（${currentPeriod}日間）` : ``}
+                {!!currentPeriodState ? `（${currentPeriodState}日間）` : ``}
+                {/* {!!currentPeriod ? `（${currentPeriod}日間）` : ``} */}
               </span>
             </p>
             <div className="flex w-full items-center">
@@ -984,7 +1419,8 @@ const IncreaseAccountCountsModalMemo = () => {
                 <span className="!ml-[4px]">終了日までの残り日数</span>
                 <span>：</span>
                 <span className="font-bold">
-                  {!!remainingDays ? `${remainingDays}日間` : `-`}
+                  {!!remainingDaysState ? `${remainingDaysState}日間` : `-`}
+                  {/* {!!remainingDays ? `${remainingDays}日間` : `-`} */}
                   {/* {!!elapsedDays ? `（開始日から${elapsedDays}日経過）` : `-`} */}
                 </span>
               </p>
@@ -995,7 +1431,8 @@ const IncreaseAccountCountsModalMemo = () => {
               <span>：</span>
               {planType === "new" && (
                 <span className="font-bold">
-                  {!!nextInvoice?.lines?.data[2]?.amount ? `${nextInvoice.lines.data[2].amount}円` : `-`}
+                  {!!newPlanAmount ? `${newPlanAmount}円` : `-`}
+                  {/* {!!nextInvoice?.lines?.data[2]?.amount ? `${nextInvoice.lines.data[2].amount}円` : `-`} */}
                   {/* {!!nextInvoice?.lines?.data[2]?.amount
                     ? `${formatToJapaneseYen(nextInvoice.lines.data[2].amount, false)}円`
                     : `-`} */}
@@ -1003,9 +1440,10 @@ const IncreaseAccountCountsModalMemo = () => {
               )}{" "}
               {planType === "old" && (
                 <span className="font-bold">
-                  {!!nextInvoice?.lines?.data[0]?.plan?.amount && !!nextInvoice?.lines?.data[0]?.quantity
+                  {!!oldPlanAmount ? `${oldPlanAmount}円` : `-`}
+                  {/* {!!nextInvoice?.lines?.data[0]?.plan?.amount && !!nextInvoice?.lines?.data[0]?.quantity
                     ? `${nextInvoice?.lines?.data[0]?.plan?.amount * nextInvoice?.lines?.data[0]?.quantity}円`
-                    : `-`}
+                    : `-`} */}
                   {/* {!!nextInvoice?.lines?.data[0]?.plan?.amount && !!nextInvoice?.lines?.data[0]?.quantity
                     ? `${formatToJapaneseYen(
                         nextInvoice?.lines?.data[0]?.plan?.amount * nextInvoice?.lines?.data[0]?.quantity,
@@ -1017,7 +1455,8 @@ const IncreaseAccountCountsModalMemo = () => {
               <span>=</span>
               {planType === "new" && (
                 <span>
-                  {!!nextInvoice?.lines?.data[2]?.plan?.amount ? `${nextInvoice.lines.data[2].plan?.amount}/月` : `-`}
+                  {!!planFeePerAccount ? `${planFeePerAccount}/月` : `-`}
+                  {/* {!!nextInvoice?.lines?.data[2]?.plan?.amount ? `${nextInvoice.lines.data[2].plan?.amount}/月` : `-`} */}
                   {/* {!!nextInvoice?.lines?.data[2]?.plan?.amount
                     ? `${formatToJapaneseYen(nextInvoice.lines.data[2].plan?.amount, true)}/月`
                     : `-`} */}
@@ -1025,7 +1464,8 @@ const IncreaseAccountCountsModalMemo = () => {
               )}
               {planType === "old" && (
                 <span>
-                  {!!nextInvoice?.lines?.data[0]?.plan?.amount ? `${nextInvoice.lines.data[0].plan?.amount}/月` : `-`}
+                  {!!planFeePerAccount ? `${planFeePerAccount}/月` : `-`}
+                  {/* {!!nextInvoice?.lines?.data[0]?.plan?.amount ? `${nextInvoice.lines.data[0].plan?.amount}/月` : `-`} */}
                   {/* {!!nextInvoice?.lines?.data[0]?.plan?.amount
                     ? `${formatToJapaneseYen(nextInvoice.lines.data[0].plan?.amount, true)}/月`
                     : `-`} */}
@@ -1034,7 +1474,8 @@ const IncreaseAccountCountsModalMemo = () => {
               <span>×</span>
               {planType === "new" && (
                 <span>
-                  {!!nextInvoice?.lines?.data[2]?.quantity ? `${nextInvoice.lines.data[2].quantity}個` : `-`}
+                  {!!totalAccountQuantity ? `${totalAccountQuantity}個` : `-`}
+                  {/* {!!nextInvoice?.lines?.data[2]?.quantity ? `${nextInvoice.lines.data[2].quantity}個` : `-`} */}
                   {/* {!!nextInvoice?.lines?.data[2]?.quantity
                     ? `${formatToJapaneseYen(nextInvoice.lines.data[2].quantity, false)}個`
                     : `-`} */}
@@ -1042,7 +1483,8 @@ const IncreaseAccountCountsModalMemo = () => {
               )}
               {planType === "old" && (
                 <span>
-                  {!!nextInvoice?.lines?.data[0]?.quantity ? `${nextInvoice.lines.data[0].quantity}個` : `-`}
+                  {!!memberAccountsDataArray ? `${memberAccountsDataArray.length}個` : `-`}
+                  {/* {!!nextInvoice?.lines?.data[0]?.quantity ? `${nextInvoice.lines.data[0].quantity}個` : `-`} */}
                   {/* {!!nextInvoice?.lines?.data[0]?.quantity
                     ? `${formatToJapaneseYen(nextInvoice.lines.data[0].quantity, false)}個`
                     : `-`} */}
@@ -1058,9 +1500,10 @@ const IncreaseAccountCountsModalMemo = () => {
 
               {planType === "new" && (
                 <span className="font-bold">
-                  {!!nextInvoice?.lines?.data[2]?.amount && !!currentPeriod
+                  {!!newDailyRateWithThreeDecimalPoints ? `${newDailyRateWithThreeDecimalPoints}円/日` : `-`}
+                  {/* {!!nextInvoice?.lines?.data[2]?.amount && !!currentPeriod
                     ? `${Math.round((nextInvoice.lines.data[2].amount / currentPeriod) * 1000) / 1000}円/日`
-                    : `-`}
+                    : `-`} */}
                   {/* {!!nextInvoice?.lines?.data[2]?.amount && !!currentPeriod
                     ? `${formatToJapaneseYen(
                         // Math.floor((nextInvoice.lines.data[2].amount / currentPeriod) * 1000) / 1000,
@@ -1073,7 +1516,8 @@ const IncreaseAccountCountsModalMemo = () => {
               )}
               {planType === "old" && (
                 <span className="font-bold">
-                  {!!nextInvoice?.lines?.data[0]?.plan?.amount &&
+                  {oldDailyRateWithThreeDecimalPoints ? `${oldDailyRateWithThreeDecimalPoints}円/日` : `-`}
+                  {/* {!!nextInvoice?.lines?.data[0]?.plan?.amount &&
                   !!nextInvoice?.lines?.data[0]?.quantity &&
                   !!currentPeriod
                     ? `${
@@ -1083,7 +1527,7 @@ const IncreaseAccountCountsModalMemo = () => {
                             1000
                         ) / 1000
                       }円/日`
-                    : `-`}
+                    : `-`} */}
                   {/* {!!nextInvoice?.lines?.data[0]?.plan?.amount &&
                   !!nextInvoice?.lines?.data[0]?.quantity &&
                   !!currentPeriod
@@ -1101,7 +1545,8 @@ const IncreaseAccountCountsModalMemo = () => {
               <span>=</span>
               {planType === "new" && (
                 <span>
-                  {!!nextInvoice?.lines?.data[2]?.amount ? `${nextInvoice.lines.data[2].amount}円` : `-`}
+                  {!!newPlanAmount ? `${newPlanAmount}円` : `-`}
+                  {/* {!!nextInvoice?.lines?.data[2]?.amount ? `${nextInvoice.lines.data[2].amount}円` : `-`} */}
                   {/* {!!nextInvoice?.lines?.data[2]?.amount
                     ? `${formatToJapaneseYen(nextInvoice.lines.data[2].amount, false)}円`
                     : `-`} */}
@@ -1109,9 +1554,10 @@ const IncreaseAccountCountsModalMemo = () => {
               )}
               {planType === "old" && (
                 <span className="font-bold">
-                  {!!nextInvoice?.lines?.data[0]?.plan?.amount && !!nextInvoice?.lines?.data[0]?.quantity
+                  {!!oldPlanAmount ? `${oldPlanAmount}円` : `-`}
+                  {/* {!!nextInvoice?.lines?.data[0]?.plan?.amount && !!nextInvoice?.lines?.data[0]?.quantity
                     ? `${nextInvoice?.lines?.data[0]?.plan?.amount * nextInvoice?.lines?.data[0]?.quantity}円`
-                    : `-`}
+                    : `-`} */}
                   {/* {!!nextInvoice?.lines?.data[0]?.plan?.amount && !!nextInvoice?.lines?.data[0]?.quantity
                     ? `${formatToJapaneseYen(
                         nextInvoice?.lines?.data[0]?.plan?.amount * nextInvoice?.lines?.data[0]?.quantity,
@@ -1131,14 +1577,20 @@ const IncreaseAccountCountsModalMemo = () => {
               <span>：</span>
               {planType === "new" && (
                 <span className="font-bold text-[var(--color-text-brand-f)] underline underline-offset-1">
-                  {!!nextInvoice?.lines?.data[2]?.amount && !!currentPeriod && !!remainingDays
+                  {!!newUsageAmountForRemainingPeriodWithThreeDecimalPoints
+                    ? `${formatToJapaneseYen(
+                        Math.round(newUsageAmountForRemainingPeriodWithThreeDecimalPoints),
+                        false
+                      )}円`
+                    : `-`}
+                  {/* {!!nextInvoice?.lines?.data[2]?.amount && !!currentPeriod && !!remainingDays
                     ? `${formatToJapaneseYen(
                         Math.round(
                           (Math.round((nextInvoice.lines.data[2].amount / currentPeriod) * 1000) / 1000) * remainingDays
                         ),
                         false
                       )}円`
-                    : `-`}
+                    : `-`} */}
                   {/* {!!nextInvoice?.lines?.data[2]?.amount && !!currentPeriod && !!remainingDays
                 ? `${formatToJapaneseYen(
                     (Math.round((nextInvoice.lines.data[2].amount / currentPeriod) * 1000) / 1000) * remainingDays,
@@ -1149,20 +1601,28 @@ const IncreaseAccountCountsModalMemo = () => {
               )}
               {planType === "old" && (
                 <span className="font-bold text-[var(--bright-red)] underline underline-offset-1">
-                  {!!nextInvoice?.lines?.data[0]?.plan?.amount &&
+                  {!!oldUnusedAmountForRemainingPeriodWithThreeDecimalPoints
+                    ? `${formatToJapaneseYen(
+                        Math.round(oldUnusedAmountForRemainingPeriodWithThreeDecimalPoints),
+                        false,
+                        false
+                      )}円`
+                    : `-`}
+                  {/* {!!nextInvoice?.lines?.data[0]?.plan?.amount &&
                   !!nextInvoice?.lines?.data[0]?.quantity &&
                   !!currentPeriod &&
                   !!remainingDays
                     ? `${formatToJapaneseYen(nextInvoice?.lines?.data[0].amount, false, false)}円`
-                    : `-`}
+                    : `-`} */}
                 </span>
               )}
               <span>=</span>
               {planType === "new" && (
                 <span>
-                  {!!nextInvoice?.lines?.data[2]?.amount && !!currentPeriod
+                  {!!newDailyRateWithThreeDecimalPoints ? `${newDailyRateWithThreeDecimalPoints}円/日` : `-`}
+                  {/* {!!nextInvoice?.lines?.data[2]?.amount && !!currentPeriod
                     ? `${Math.round((nextInvoice.lines.data[2].amount / currentPeriod) * 1000) / 1000}円/日`
-                    : `-`}
+                    : `-`} */}
                   {/* {!!nextInvoice?.lines?.data[2]?.amount && !!currentPeriod
                     ? `${formatToJapaneseYen(
                         Math.round((nextInvoice.lines.data[2].amount / currentPeriod) * 1000) / 1000,
@@ -1173,7 +1633,8 @@ const IncreaseAccountCountsModalMemo = () => {
               )}
               {planType === "old" && (
                 <span>
-                  {!!nextInvoice?.lines?.data[0]?.plan?.amount &&
+                  {!!oldDailyRateWithThreeDecimalPoints ? `${oldDailyRateWithThreeDecimalPoints}円/日` : `-`}
+                  {/* {!!nextInvoice?.lines?.data[0]?.plan?.amount &&
                   !!nextInvoice?.lines?.data[0]?.quantity &&
                   !!currentPeriod
                     ? `${
@@ -1183,7 +1644,7 @@ const IncreaseAccountCountsModalMemo = () => {
                             1000
                         ) / 1000
                       }円/日`
-                    : `-`}
+                    : `-`} */}
                   {/* {!!nextInvoice?.lines?.data[0]?.plan?.amount &&
                   !!nextInvoice?.lines?.data[0]?.quantity &&
                   !!currentPeriod
@@ -1200,8 +1661,10 @@ const IncreaseAccountCountsModalMemo = () => {
               )}
               <span>×</span>
 
-              {planType === "new" && <span>{!!remainingDays ? `残り${remainingDays}日` : `-`}</span>}
-              {planType === "old" && <span>{!!remainingDays ? `残り${remainingDays}日` : `-`}</span>}
+              {planType === "new" && <span>{!!remainingDaysState ? `残り${remainingDaysState}日` : `-`}</span>}
+              {/* {planType === "new" && <span>{!!remainingDays ? `残り${remainingDays}日` : `-`}</span>} */}
+              {planType === "old" && <span>{!!remainingDaysState ? `残り${remainingDaysState}日` : `-`}</span>}
+              {/* {planType === "old" && <span>{!!remainingDays ? `残り${remainingDays}日` : `-`}</span>} */}
             </p>
             <p className="!mt-[2px] flex items-center space-x-[8px]">
               <span className="min-w-[210px]"></span>
@@ -1210,12 +1673,18 @@ const IncreaseAccountCountsModalMemo = () => {
                 （
                 {planType === "new" &&
                   `${
+                    !!newUsageAmountForRemainingPeriodWithThreeDecimalPoints
+                      ? `${newUsageAmountForRemainingPeriodWithThreeDecimalPoints}円`
+                      : `-`
+                  }`}
+                {/* {planType === "new" &&
+                  `${
                     !!nextInvoice?.lines?.data[2]?.amount && !!currentPeriod && !!remainingDays
                       ? `${
                           (Math.round((nextInvoice.lines.data[2].amount / currentPeriod) * 1000) / 1000) * remainingDays
                         }円`
                       : `-`
-                  }`}
+                  }`} */}
                 {/* {planType === "new" &&
                   `${
                     !!nextInvoice?.lines?.data[2]?.amount && !!currentPeriod && !!remainingDays
@@ -1227,6 +1696,12 @@ const IncreaseAccountCountsModalMemo = () => {
                       : `-`
                   }`} */}
                 {planType === "old" &&
+                  `${
+                    !!oldUnusedAmountForRemainingPeriodWithThreeDecimalPoints
+                      ? `${oldUnusedAmountForRemainingPeriodWithThreeDecimalPoints}円`
+                      : `-`
+                  }`}
+                {/* {planType === "old" &&
                   `${
                     !!nextInvoice?.lines?.data[0]?.plan?.amount &&
                     !!nextInvoice?.lines?.data[0]?.quantity &&
@@ -1245,7 +1720,7 @@ const IncreaseAccountCountsModalMemo = () => {
                           ) / 1000
                         }円`
                       : `-`
-                  }`}
+                  }`} */}
                 {/* `${
                     !!nextInvoice?.lines?.data[0]?.plan?.amount &&
                     !!nextInvoice?.lines?.data[0]?.quantity &&
@@ -1299,8 +1774,17 @@ const IncreaseAccountCountsModalMemo = () => {
         >
           <MdClose className="text-[20px] text-[#fff]" />
         </button>
+        {/* Stripeから取得したInvoiceとローカルで計算したInvoice内容の確認モーダル開閉ボタン */}
+        <button
+          className={`flex-center group absolute right-[-40px] top-[52px] z-10 h-[32px] w-[32px] rounded-full bg-[#00000070] hover:bg-[#000000c0]`}
+          onClick={() => setIsOpenCheckInvoiceStripeLocalModal(!isOpenCheckInvoiceStripeLocalModal)}
+        >
+          {!isOpenCheckInvoiceStripeLocalModal && <FaChevronRight className="text-[16px] text-[#fff]" />}
+          {isOpenCheckInvoiceStripeLocalModal && <FaChevronLeft className="text-[16px] text-[#fff]" />}
+        </button>
         {/* メインコンテンツ コンテナ */}
         <div className={`${styles.main_contents_container}`}>
+          {!isOpenCheckInvoiceStripeLocalModal && <CheckInvoiceStripeLocalModal />}
           <div className={`${styles.left_container} relative h-full w-5/12`}>
             <div className="relative w-full overflow-y-auto px-[40px] pb-[calc(116px+20px)] pt-[40px]">
               {/* <div className={`flex-center h-[40px] w-full`}>
@@ -1335,11 +1819,15 @@ const IncreaseAccountCountsModalMemo = () => {
                 <h4 className="flex space-x-3">
                   {/* <BsCheck2 className="min-h-[24px] min-w-[24px] stroke-1 text-[24px] text-[var(--color-bg-brand-f)]" /> */}
                   <BsCheck2 className="min-h-[24px] min-w-[24px] stroke-1 text-[24px] text-[#00d436]" />
-                  <span>{getPlanName(userProfileState?.subscription_plan)}：</span>
+                  <span>
+                    {!!userProfileState?.subscription_plan ? getPlanName(userProfileState?.subscription_plan) : `-`}：
+                  </span>
                   {/* <span className="font-bold">{notSetAccounts.length}個</span> */}
                 </h4>
                 <div className="flex flex-col items-end text-[13px] font-bold">
-                  <span className="">月{getPrice(userProfileState?.subscription_plan)}円</span>
+                  <span className="">
+                    月{!!userProfileState?.subscription_plan ? getPrice(userProfileState?.subscription_plan) : `-`}円
+                  </span>
                   <span className="">/アカウント</span>
                 </div>
               </div>
@@ -1350,7 +1838,9 @@ const IncreaseAccountCountsModalMemo = () => {
                   <span>現在契約中のアカウント数：</span>
                   {/* <span className="font-bold">{notSetAccounts.length}個</span> */}
                 </h4>
-                {!useQueryIsLoading && <span className="font-bold">{currentAccountCounts}個</span>}
+                {!useQueryIsLoading && (
+                  <span className="font-bold">{!!currentAccountCounts ? currentAccountCounts : `-`}個</span>
+                )}
                 {useQueryIsLoading && <SpinnerIDS scale={"scale-[0.3]"} />}
               </div>
               {/* <div className="mt-[20px] flex min-h-[35px] w-full items-center justify-between text-[15px]">
@@ -1427,7 +1917,42 @@ const IncreaseAccountCountsModalMemo = () => {
                     </span>
                   </div>
 
-                  {!!nextInvoice && !!nextInvoice?.lines?.data && nextInvoice?.lines?.data.length > 1 && (
+                  {/* ローカルstateの計算結果を使って表示 */}
+                  {!!nextInvoice && !!nextInvoiceAmountState && (
+                    <div className="flex w-full items-start justify-between font-bold">
+                      <span>次回請求期間のお支払い</span>
+                      <div
+                        className="relative flex cursor-pointer items-center space-x-2"
+                        onMouseEnter={() => {
+                          setIsOpenInvoiceDetail(true);
+                        }}
+                        onMouseLeave={() => {
+                          setIsOpenInvoiceDetail(false);
+                          if (isOpenNewProrationDetail) {
+                            if (hoveredNewProration) setHoveredNewProration(false);
+                            return setIsOpenNewProrationDetail(false);
+                          }
+                          if (isOpenOldProrationDetail) {
+                            if (hoveredOldProration) setHoveredOldProration(false);
+                            return setIsOpenOldProrationDetail(false);
+                          }
+                        }}
+                      >
+                        {/* {!!nextInvoice?.amount_due && <BsChevronDown />} */}
+                        {!!nextInvoiceAmountState && nextInvoiceAmountState > 0 && <BsChevronDown />}
+                        <span>
+                          {!!nextInvoiceAmountState && nextInvoiceAmountState > 0
+                            ? `${formatToJapaneseYen(nextInvoiceAmountState)}`
+                            : `-`}
+                          {/* {!!nextInvoice?.amount_due ? `${formatToJapaneseYen(nextInvoice.amount_due)}` : `-`} */}
+                        </span>
+                        {isOpenInvoiceDetail && <NextPaymentDetailComponent />}
+                        {/* <NextPaymentDetailComponent /> */}
+                      </div>
+                    </div>
+                  )}
+                  {/* nextInvoiceを使って表示 */}
+                  {/* {!!nextInvoice && !!nextInvoice?.lines?.data && nextInvoice?.lines?.data.length > 1 && (
                     <div className="flex w-full items-start justify-between font-bold">
                       <span>次回請求期間のお支払い</span>
                       <div
@@ -1451,11 +1976,10 @@ const IncreaseAccountCountsModalMemo = () => {
                         <span>
                           {!!nextInvoice?.amount_due ? `${formatToJapaneseYen(nextInvoice.amount_due)}` : `-`}
                         </span>
-                        {/* {isOpenInvoiceDetail && <NextPaymentDetailComponent />} */}
-                        <NextPaymentDetailComponent />
+                        {isOpenInvoiceDetail && <NextPaymentDetailComponent />}
                       </div>
                     </div>
-                  )}
+                  )} */}
 
                   <div className="flex w-full items-start justify-between font-bold">
                     <span>本日のお支払い</span>
@@ -1498,9 +2022,12 @@ const IncreaseAccountCountsModalMemo = () => {
                     : `cursor-not-allowed bg-[var(--setting-side-bg-select)] text-[var(--setting-side-bg-select-hover)]`
                 }`}
                 disabled={!userProfileState || !userProfileState.subscription_plan}
-                onClick={handleChangeQuantity}
+                // onClick={handleChangeQuantity}
+                // onClick={handleCheckInvoiceStripeAndLocalCalculate}
+                onClick={handleCheckStripeInvoiceAndLocal}
               >
-                {!loading && <span>変更の確定</span>}
+                {/* {!loading && <span>変更の確定</span>} */}
+                {!loading && <span>料金チェック</span>}
                 {loading && <SpinnerIDS scale={"scale-[0.4]"} />}
               </button>
               <div className="flex w-full flex-col  text-[13px] text-[var(--color-text-sub)]">

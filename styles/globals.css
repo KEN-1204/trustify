@@ -335,6 +335,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
 
   /* Canva 背景 #fff 背景サブ rgba(64,87,109,.07) #40576d12 */
   --color-bg-base: #fff;
+  --color-bg-basec0: #ffffffc0;
+  --color-bg-basee0: #ffffffe0;
   --color-bg-base-header: #fff;
   --color-bg-base-deep: #fff;
   /* chat-gptのサブ背景 #f7f7f8 ホバー時：#ececf1 */
@@ -883,6 +885,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-bg-base: #121212; */
   /* --color-bg-base: #191919; */
   --color-bg-base: #202020;
+  --color-bg-basec0: #202020c0;
+  --color-bg-basee0: #202020e0;
   /* --color-bg-base-header: #191919; */
   --color-bg-base-header: #202020;
   --color-bg-base-deep: #141414;
@@ -1707,6 +1711,54 @@ textarea {
 .input-underline-transition {
   transition: all 0.4s ease;
   transition-delay: 0.1s;
+}
+
+/* 水玉グラデーション */
+.polka_dot_border1 {
+  position: absolute;
+  left: -400px;
+  bottom: -300px;
+  height: 600px;
+  width: 600px;
+  border-radius: 50%;
+  filter: blur(50px);
+  background: transparent;
+  border: 30px solid #ffffff90;
+}
+.polka_dot_border2 {
+  position: absolute;
+  left: -14%;
+  bottom: -115%;
+  /* left: -16%; */
+  /* bottom: -120%; */
+  /* left: -8%;
+  bottom: -120%; */
+  /* height: 1820px;
+  width: 1820px; */
+  height: 236vh;
+  width: 128vw;
+  border-radius: 50%;
+  background: transparent;
+  /* filter: blur(78px);
+  border: 70px solid #ffffff42; */
+  filter: blur(66px);
+  border: 42px solid #ffffff42;
+}
+.polka_dot_border3 {
+  position: absolute;
+  /* left: -22vw;
+  bottom: -95vh;
+  height: 230vh;
+  width: 150vw; */
+  left: -15vw;
+  top: -18vh;
+  height: 24vh;
+  width: 15vw;
+  border-radius: 50%;
+  background: #ffffff66;
+  filter: blur(78px);
+  /* border: 60p42solid #ffffff42; */
+  /* border: 20px solid #ffffff; */
 }
 
 /* ブランドグラデーション */
