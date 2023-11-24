@@ -373,6 +373,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* お知らせ確認モーダル light */
   --color-bg-notification-modal: #fff;
   --color-overlay: #00000070;
+  --color-overlay33: #00000033;
+  --color-overlay-black-md: #00000099;
 
   --color-wrap-border: rgba(220, 220, 220, 0.6);
   /* 背景サブ　canva */
@@ -931,6 +933,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* お知らせ確認モーダル dark */
   --color-bg-notification-modal: #222;
   --color-overlay: #ffffff10;
+  --color-overlay33: #ffffff33;
+  --color-overlay-black-md: #00000099;
 
   /* テーブルカラー dark */
   --color-bg-table-header: #252525;

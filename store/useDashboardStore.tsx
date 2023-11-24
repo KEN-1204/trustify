@@ -158,6 +158,9 @@ type State = {
   // 【アカウントを増やすモーダルの次回invoiceを取得するuseQueryのisReadyのState】
   isReadyQueryInvoice: boolean;
   setIsReadyQueryInvoice: (payload: boolean) => void;
+  // 【アカウントを増やすモーダル StripeのnextInvoice保持用state】
+  nextInvoice: Stripe.UpcomingInvoice | null;
+  setNextInvoice: (payload: Stripe.UpcomingInvoice | null) => void;
   // 【アカウントを削除リクエストしたスケジュール】
   deleteAccountRequestSchedule: StripeSchedule | null;
   setDeleteAccountRequestSchedule: (payload: StripeSchedule | null) => void;
@@ -421,6 +424,9 @@ const useDashboardStore = create<State>((set) => ({
   // 【アカウントを増やすモーダルの次回invoiceを取得するuseQueryのisReadyのState】
   isReadyQueryInvoice: true,
   setIsReadyQueryInvoice: (payload) => set({ isReadyQueryInvoice: payload }),
+  // 【アカウントを増やすモーダル StripeのnextInvoice保持用state】
+  nextInvoice: null,
+  setNextInvoice: (payload) => set({ nextInvoice: payload }),
   // 【アカウントを削除リクエストしたスケジュール】
   deleteAccountRequestSchedule: null,
   setDeleteAccountRequestSchedule: (payload) => set({ deleteAccountRequestSchedule: payload }),

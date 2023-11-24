@@ -202,7 +202,7 @@ const ChangeTeamOwnerConfirmationModalMemo: FC = () => {
             <span className="font-bold">{notificationDataState?.from_user_name}</span>（
             <span className="font-bold">{notificationDataState?.from_user_email}</span>
             ）が<span className="font-bold">{notificationDataState?.from_company_name}</span>
-            の所有者として、代わりにあなたを任命しました。この任命を受け入れると、いかに同意したものとみなされます。
+            の所有者として、代わりにあなたを任命しました。この任命を受け入れると、以下に同意したものとみなされます。
           </p>
           <ul className="mt-[20px] flex w-full list-disc flex-col space-y-3 pl-[15px]">
             <li className="">

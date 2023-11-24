@@ -27,9 +27,11 @@ export const FallbackIncreaseAccountCountsModal = () => {
           <div className={`${styles.left_container} relative h-full w-5/12`}>
             <div className="relative w-full overflow-y-auto px-[40px] pb-[calc(116px+20px)] pt-[40px]">
               <h1 className={`mt-[10px] w-full text-[24px] font-bold`}>いくつアカウントを増やしますか？</h1>
-              <div className={`flex w-full flex-col space-y-[2px] py-[20px] text-[15px] text-[var(--color-text-sub)]`}>
-                {/* <p>メンバー1人当たり月額￥980の追加料金のみで利用可能</p> */}
-                <p className="min-h-[15px] w-full"></p>
+              <div
+                className={`flex min-h-[109px] w-full flex-col space-y-[2px] py-[20px] text-[15px] text-[var(--color-text-sub)]`}
+              >
+                <p>メンバー1人当たり月額￥の追加料金のみで利用可能</p>
+                {/* <p className="min-h-[20px]  w-full"></p> */}
                 <p>チーム全体で共同作業して、TRSUSTiFYの機能を最大限に活用しましょう。</p>
               </div>
 
@@ -61,7 +63,7 @@ export const FallbackIncreaseAccountCountsModal = () => {
                   <div className="font-bold">個</div>
                 </div>
               </div> */}
-              <div className="mt-[0px] flex  w-full flex-col text-[var(--color-text-title)]">
+              <div className="ml-[-24px] mt-[0px] flex  w-full flex-col text-[var(--color-text-title)]">
                 {Array(3)
                   .fill(null)
                   .map((_, index) => (
@@ -74,7 +76,7 @@ export const FallbackIncreaseAccountCountsModal = () => {
 
             {/* 変更の確定を送信するボタンエリア */}
             <div className="shadow-top-md absolute bottom-0 left-0 min-h-[293px] w-full space-y-4  rounded-bl-[8px] bg-[var(--color-edit-bg-solid)] px-[32px] pb-[32px] pt-[18px]">
-              <div className="flex w-full flex-col  text-[13px] text-[var(--color-text-title)]">
+              <div className="flex min-h-[112px]  w-full max-w-[415px] flex-col text-[13px] text-[var(--color-text-title)]">
                 <div className="mt-[10px] flex flex-col space-y-3">
                   {/* <div className="flex w-full items-start justify-between">
                     <span className="max-w-[290px]">アカウントを増やした場合に次回請求で発生する追加費用</span>
@@ -84,7 +86,7 @@ export const FallbackIncreaseAccountCountsModal = () => {
                     <span>本日のお支払い</span>
                     <span>￥0</span>
                   </div> */}
-                  <div className="mb-[10px] flex w-full flex-col items-start space-y-[14px]">
+                  <div className="mb-[24px] flex w-full flex-col items-start space-y-[18px]">
                     <SkeletonLoadingLineLong />
                     <SkeletonLoadingLineMedium />
                     <SkeletonLoadingLineShort />

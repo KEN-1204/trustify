@@ -14,7 +14,7 @@ export const FallbackSettingPaymentAndPlan = () => {
             {/* <span>{userProfileState?.profile_name}さんのチーム</span> */}
           </h4>
           <div
-            className={`mt-[24px] flex w-full flex-col rounded-[4px] border border-solid border-[var(--color-border-deep)] p-[16px]`}
+            className={`mt-[14px] flex max-h-[273px] w-full flex-col rounded-[4px] border border-solid border-[var(--color-border-deep)] p-[16px]`}
           >
             <div className="flex w-full">
               {/* <div className="flex-center min-h-[56px] min-w-[56px] rounded-[4px] border border-solid border-[var(--color-border-deep)]">

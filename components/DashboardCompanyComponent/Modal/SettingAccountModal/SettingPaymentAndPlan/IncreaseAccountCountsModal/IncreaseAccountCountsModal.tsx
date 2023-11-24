@@ -1,6 +1,6 @@
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 import useDashboardStore from "@/store/useDashboardStore";
-import React, { memo, useEffect, useMemo, useRef, useState } from "react";
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./IncreaseAccountCountsModal.module.css";
 import { BsCheck2, BsChevronDown } from "react-icons/bs";
 import useStore from "@/store";
@@ -30,6 +30,9 @@ import { getRemainingDaysFromNowPeriodEndHourToTimestamp } from "@/utils/Helpers
 import { getDaysFromTimestampToTimestamp } from "@/utils/Helpers/getDaysFromTimestampToTimestamp";
 import { getPeriodInDays } from "@/utils/Helpers/getPeriodInDays";
 import { useQueryUpcomingInvoiceChangeQuantity } from "@/hooks/useQueryUpcomingInvoiceChangeQuantity";
+import { FallbackIncreaseAccountCountsModal } from "./FallbackIncreaseAccountCountsModal";
+import { CheckInvoiceStripeLocalModal } from "./CheckInvoiceStripeLocalModal";
+import { LastConfirmation } from "./LastConfirmation";
 // import { ProrationDetails } from "./ProrationDetails";
 
 const IncreaseAccountCountsModalMemo = () => {
@@ -44,8 +47,10 @@ const IncreaseAccountCountsModalMemo = () => {
   const [isFreeTodaysPayment, setIsFreeTodaysPayment] = useState(true);
   const [todaysPayment, setTodaysPayment] = useState(0);
   const [hoveredTodaysPayment, setHoveredTodaysPayment] = useState(false);
-  // 変更後の次回支払い金額
-  const [nextInvoice, setNextInvoice] = useState<Stripe.UpcomingInvoice | null>(null);
+  // 変更後の次回支払い金額 Zustandバージョン
+  const nextInvoice = useDashboardStore((state) => state.nextInvoice);
+  const setNextInvoice = useDashboardStore((state) => state.setNextInvoice);
+  // const [nextInvoice, setNextInvoice] = useState<Stripe.UpcomingInvoice | null>(null);
   // アカウント追加後の次回支払い料金の詳細モーダルを表示
   const [isOpenInvoiceDetail, setIsOpenInvoiceDetail] = useState(false);
   // 日割り料金の詳細モーダル
@@ -57,44 +62,10 @@ const IncreaseAccountCountsModalMemo = () => {
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
 
-  // 支払い詳細モーダルのfadeクラスをトグル
-  useEffect(() => {
-    if (nextPaymentDetailComponentRef.current) {
-      if (toggleFadeRef.current === true && isOpenInvoiceDetail) {
-        // setTimeout(() => {
-        //   toggleFadeRef.current = false;
-        // }, 200);
-        toggleFadeRef.current = false;
-      }
-      if (!isOpenInvoiceDetail && toggleFadeRef.current === false) {
-        toggleFadeRef.current = true;
-      }
-    }
-  }, [isOpenInvoiceDetail]);
-
-  // 現在契約しているメンバーアカウント全てを取得して、契約アカウント数をlengthで取得
-  const {
-    data: memberAccountsDataArray,
-    error: useQueryError,
-    isLoading: useQueryIsLoading,
-    refetch: refetchMemberAccounts,
-  } = useQueryMemberAccounts();
-
-  // 契約中のアカウント個数
-  const currentAccountCounts = !!memberAccountsDataArray ? memberAccountsDataArray.length : 0;
-
-  // Stripeのサブスクリプションのquantityを新たな数量に更新 現在のアカウント数と新たに追加するアカウント数を合算
-  const totalAccountQuantity = currentAccountCounts + (accountQuantity ?? 0);
-
-  // ===================== 🌟次回支払い情報のUpcomingInvoiceを取得 useQuery =====================
+  // ============================= 🌟ローカルState 次回支払い情報を格納 =============================
   // アカウント数を変えるごとにuseQueryを実行させないためにuseStateのisReadyをenableオプションに渡して、
   // 初回マウント時とアカウント数の最終確定後にuseQueryを起動させる
 
-  // NextPaymentComponentでローカルStateを使用して計算するか否かを保持するState
-  const [isLocalCalculationMode, setIsLocalCalculationMode] = useState(false);
-  // ZustandでuseQueryのisReadyをグローバルStateとして保持
-  const isReadyQueryInvoice = useDashboardStore((state) => state.isReadyQueryInvoice);
-  const setIsReadyQueryInvoice = useDashboardStore((state) => state.setIsReadyQueryInvoice);
   // 請求期間(日数)State
   const [currentPeriodState, setCurrentPeriodState] = useState<number | null>(null);
   // プラン期間残り日数
@@ -118,83 +89,7 @@ const IncreaseAccountCountsModalMemo = () => {
   // 更新後の追加費用を上乗せした次回支払額
   const [nextInvoiceAmountState, setNextInvoiceAmountState] = useState<number | null>(null);
 
-  // const {
-  //   data: upcomingInvoiceData,
-  //   error: upcomingInvoiceError,
-  //   isLoading: isLoadingUpcomingInvoice,
-  // } = useQueryUpcomingInvoiceChangeQuantity(
-  //   totalAccountQuantity,
-  //   userProfileState?.stripe_customer_id,
-  //   userProfileState?.stripe_subscription_id,
-  //   sessionState
-  // );
-
-  // ===================== 🌟次回支払い情報のUpcomingInvoiceを取得 useEffect =====================
-  // 初回マウント時と「新たに増やすアカウント数」を変更して「料金計算」を押した時にStripeから比例配分のプレビューを取得
-  useEffect(() => {
-    if (!userProfileState) return alert("エラー：ユーザー情報が見つかりませんでした");
-    if (!!nextInvoice) return console.log("既にnextInvoice取得済みのためリターン");
-
-    const getUpcomingInvoice = async () => {
-      if (!!nextInvoice) return console.log("既にnextInvoice取得済みのためリターン");
-      console.log("getUpcomingInvoice関数実行 /retrieve-upcoming-invoiceへaxios.post()");
-      try {
-        const payload = {
-          stripeCustomerId: userProfileState.stripe_customer_id,
-          stripeSubscriptionId: userProfileState.stripe_subscription_id,
-          changeQuantity: totalAccountQuantity, // 数量変更後の合計アカウント数
-          changePlanName: null, // プラン変更ではないので、nullをセット
-        };
-        // type UpcomingInvoiceResponse = {
-        //   data: any;
-        //   error: string
-        // }
-        const {
-          data: { data: upcomingInvoiceData, error: upcomingInvoiceError },
-        } = await axios.post(`/api/subscription/retrieve-upcoming-invoice`, payload, {
-          headers: {
-            Authorization: `Bearer ${sessionState.access_token}`,
-          },
-        });
-
-        if (!!upcomingInvoiceError) {
-          console.log(
-            "🌟Stripe将来のインボイス取得ステップ7 /retrieve-upcoming-invoiceへのaxios.postエラー",
-            upcomingInvoiceError
-          );
-          throw new Error(upcomingInvoiceError);
-        }
-
-        console.log(
-          "🌟Stripe将来のインボイス取得ステップ7 /retrieve-upcoming-invoiceへのaxios.postで次回のインボオスの取得成功",
-          upcomingInvoiceData
-        );
-
-        setNextInvoice(upcomingInvoiceData);
-      } catch (e: any) {
-        console.error(`getUpcomingInvoice関数実行エラー: `, e);
-        toast.error(`請求金額の取得に失敗しました...`, {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
-      }
-    };
-    getUpcomingInvoice();
-  }, []);
-  // ===================== ✅次回支払い情報のUpcomingInvoiceを取得 useEffect =====================
-
-  // 追加費用 nextInvoice.lines.data[0].amountがマイナスの値のため引くためには加算でOK
-  // const additionalCost =
-  //   !!nextInvoice && !!nextInvoice?.lines?.data[1]?.amount
-  //     ? nextInvoice.lines.data[1].amount + nextInvoice.lines.data[0].amount
-  //     : null;
-
-  // ================== 🌟StripeのInvoiceを取得してローカル計算が合っているか確認する関数 ==================
+  // ================================ 🌟Stripe用ローカルState ================================
   const [stripeRetrieveInvoice, setStripeRetrieveInvoice] = useState<Stripe.UpcomingInvoice | null>(null);
   // ローカルとStripeのInvoiceが合っているか確認できるモーダル
   const [isOpenCheckInvoiceStripeLocalModal, setIsOpenCheckInvoiceStripeLocalModal] = useState(false);
@@ -223,356 +118,27 @@ const IncreaseAccountCountsModalMemo = () => {
 
   // useQueryで取得したStripeのInvoiceとローカルのInvoiceを比較して一致しているかチェック
   const [isLoadingCalculation, setIsLoadingCalculation] = useState(false);
-  const checkInvoiceStripeAndLocalCalculate = (_upcomingInvoiceData: Stripe.UpcomingInvoice) => {
-    if (!userProfileState) return alert("エラー：ユーザー情報が見つかりませんでした");
-    if (!memberAccountsDataArray) return alert("エラー：アカウント情報が見つかりませんでした");
-    if (!currentPeriodState) return alert("エラー：請求期間データを取得できませんでした");
-    if (!remainingDaysState) return alert("エラー：残り期間データを取得できませんでした");
 
-    // ローディング開始
-    setIsLoadingCalculation(true);
+  // ============================= 🌟useQueryエリア =============================
+  // 現在契約しているメンバーアカウント全てを取得して、契約アカウント数をlengthで取得
+  const {
+    data: memberAccountsDataArray,
+    error: useQueryError,
+    isLoading: useQueryIsLoading,
+    refetch: refetchMemberAccounts,
+  } = useQueryMemberAccounts();
 
-    setStripeRetrieveInvoice(_upcomingInvoiceData);
-
-    // Stripeから取得したInvoiceの金額とローカルで計算した金額が一致しているかチェック
-
-    // 新プランの1日当たりの料金
-    const tempNewDailyRate =
-      (_upcomingInvoiceData as Stripe.UpcomingInvoice)?.lines?.data[2]?.amount / currentPeriodState;
-    const tempNewDailyRateWithThreeDecimalPoints = Math.round(tempNewDailyRate * 1000) / 1000;
-    setStripeNewDailyRateWithThreeDecimalPoints(tempNewDailyRateWithThreeDecimalPoints);
-    // 新プランの残り使用分の料金
-    const tempNewUsageAmountWithThreeDecimalPoints = tempNewDailyRateWithThreeDecimalPoints * remainingDaysState;
-    setStripeNewUsageAmountForRemainingPeriodWithThreeDecimalPoints(tempNewUsageAmountWithThreeDecimalPoints);
-    // 旧プランの1日あたりの料金
-    const _oldPlanAmount = getPrice(userProfileState.subscription_plan) * memberAccountsDataArray.length;
-    const tempOldDailyRate = _oldPlanAmount / currentPeriodState;
-    const tempOldDailyRateWithThreeDecimalPoints = Math.round(tempOldDailyRate * 1000) / 1000;
-    setStripeOldDailyRateWithThreeDecimalPoints(tempOldDailyRateWithThreeDecimalPoints);
-    // 旧プランの残り未使用分の料金
-    const tempOldUnusedAmount = tempOldDailyRateWithThreeDecimalPoints * remainingDaysState;
-    const tempOldUnusedAmountWithThreeDecimalPoints = Math.round(tempOldUnusedAmount * 1000) / 1000;
-    setStripeOldUnusedAmountForRemainingPeriodWithThreeDecimalPoints(tempOldUnusedAmountWithThreeDecimalPoints);
-    // 追加費用
-    const tempAdditionalCost =
-      Math.round(tempNewUsageAmountWithThreeDecimalPoints) - Math.round(tempOldUnusedAmountWithThreeDecimalPoints);
-    setStripeAdditionalCostState(tempAdditionalCost);
-    // 次回の支払額
-    const tempNextInvoiceAmount =
-      (_upcomingInvoiceData as Stripe.UpcomingInvoice)?.lines?.data[
-        (_upcomingInvoiceData as Stripe.UpcomingInvoice)?.lines?.data.length - 1
-      ]?.amount + tempAdditionalCost;
-    setStripeNextInvoiceAmountState(tempNextInvoiceAmount);
-
-    if (!!tempNextInvoiceAmount && tempNextInvoiceAmount === nextInvoiceAmountState) {
-      console.log("チェック関数 テスト成功");
-      console.log(
-        "支払額 stripeのtempNextInvoiceAmount",
-        tempNextInvoiceAmount,
-        "ローカルnextInvoiceAmountState",
-        nextInvoiceAmountState
-      );
-      console.log("追加費用 stripeのadditionalCost", tempAdditionalCost, "ローカルadditionalCost", additionalCostState);
-      toast.success(`次回請求額がローカルと一致しました！`, {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
-    } else {
-      console.log("チェック関数 テスト結果 stripeの結果と一致せず");
-      console.log(
-        "支払額 stripeのtempNextInvoiceAmount",
-        tempNextInvoiceAmount,
-        "ローカルnextInvoiceAmountState",
-        nextInvoiceAmountState
-      );
-      console.log(
-        "追加費用 stripeのadditionalCost",
-        tempAdditionalCost,
-        "ローカルadditionalCostState",
-        additionalCostState
-      );
-      toast.error(`stripeの結果と一致せず...`, {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
-    }
-    // ローディング終了
-    setIsLoadingCalculation(false);
-  };
-  // ================== ✅StripeのInvoiceを取得してローカル計算が合っているか確認する関数 ==================
-
-  // ====================== 🌟「料金チェック」をクリック ======================
-  const handleCheckStripeInvoiceAndLocal = () => {
-    if (accountQuantity === 1 && !!upcomingInvoiceData) {
-      console.log("🔥料金チェックをクリック 増やすアカウント数が1つのため、そのままチェック関数を実行🔥");
-      checkInvoiceStripeAndLocalCalculate(upcomingInvoiceData);
-    } else {
-      console.log("🔥料金チェックをクリック isReadyQueryInvoiceをtrueに変更🔥");
-      // useQueryのisReadyQueryInvoiceをtrueに変更して新たにuseQueryでInvoiceを取得する
-      setIsReadyQueryInvoice(true);
-    }
-  };
-  // ====================== ✅「料金チェック」をクリック ======================
-
-  // ====================== 🌟アカウント数変更の度に新料金を計算してローカルStateに格納 ======================
-  // ローカルで計算終了を表す
-  const [calculationCompleted, setCalculationCompleted] = useState(true);
-  useEffect(() => {
-    // ローカルStateがnullならリターン
-    if (!userProfileState) return console.log("ユーザーデータが無しのためリターン");
-    if (!memberAccountsDataArray) return console.log("メンバーアカウンtpデータが無しのためリターン");
-    if (!nextInvoiceAmountState) return console.log("Stripeインボイスデータがローカルに無しのためリターン");
-    if (!currentPeriodState) return console.log("currentPeriodStateがローカルに無しのためリターン");
-    if (!remainingDaysState) return console.log("remainingDaysStateがローカルに無しのためリターン");
-
-    // プラン１アカウント月額費用
-    const monthlyFeePerAccount = getPrice(userProfileState.subscription_plan); // プランの月額費用/ID
-    // 新プラン料金
-    const _newPlanAmount = monthlyFeePerAccount * totalAccountQuantity;
-    // 新プランの1日当たりの料金
-    const _newDailyRateThreeDecimalPoints = Math.round((_newPlanAmount / currentPeriodState) * 1000) / 1000;
-    setNewDailyRateWithThreeDecimalPoints(_newDailyRateThreeDecimalPoints);
-    // 新プランの残り期間までの使用量の金額
-    const _newUsage = _newDailyRateThreeDecimalPoints * remainingDaysState;
-    const _newUsageThreeDecimalPoints = Math.round(_newUsage * 1000) / 1000;
-    setNewUsageAmountForRemainingPeriodWithThreeDecimalPoints(_newUsageThreeDecimalPoints);
-    // 旧プランの1日あたりの料金
-    const oldMonthlyFee = monthlyFeePerAccount * memberAccountsDataArray.length; // 旧プランの月額費用
-    const _oldDailyRateThreeDecimalPoints = Math.round((oldMonthlyFee / currentPeriodState) * 1000) / 1000;
-    setOldDailyRateWithThreeDecimalPoints(_oldDailyRateThreeDecimalPoints);
-    // 旧プランの残り期間までの未使用分の金額
-    const _oldUnused = _oldDailyRateThreeDecimalPoints * remainingDaysState;
-    const _oldUnusedThreeDecimalPoints = Math.round(_oldUnused * 1000) / 1000;
-    setOldUnusedAmountForRemainingPeriodWithThreeDecimalPoints(_oldUnusedThreeDecimalPoints);
-    // 追加費用をローカルStateに格納
-    const _additionalCost = Math.round(_newUsageThreeDecimalPoints) - Math.round(_oldUnusedThreeDecimalPoints);
-    setAdditionalCostState(_additionalCost);
-    // 次回お支払い額（追加費用上乗せ済み）
-    const _nextInvoiceAmount = _newPlanAmount + _additionalCost;
-    setNextInvoiceAmountState(_nextInvoiceAmount);
-    console.log(
-      "🔥新アカウント数で請求データをローカルで算出🔥",
-      "新たなアカウント数",
-      totalAccountQuantity,
-      "新数量の月額料金",
-      _newPlanAmount,
-      "次回支払額",
-      _nextInvoiceAmount,
-      "追加費用",
-      _additionalCost,
-      "新プラン1日当たり料金",
-      _newDailyRateThreeDecimalPoints,
-      "新プラン残り使用分の金額",
-      _newUsageThreeDecimalPoints,
-      "旧プラン1日当たり料金",
-      _oldDailyRateThreeDecimalPoints,
-      "旧プラン残り使用分の金額",
-      _oldUnusedThreeDecimalPoints
-    );
-  }, [accountQuantity]);
-  // ====================== ✅アカウント数変更の度に料金を計算 ======================
-
-  // ====================== 🌟useEffectでStripeInvoiceをローカルStateに格納 ======================
-  // 初回マウント時の1個増やしたアカウント数のuseQueryで取得したUpcomingInvoiceをローカルStateに格納する
-  // ローカルStateに格納する理由は、数量変更ごとにフェッチしてinvoiceの計算をするのではなく、
-  // 数量の変更をローカルStateで保持してその数量分のinvoiceをクライアントサイドで算出することで無駄なフェッチを防ぐ
-
-  useEffect(() => {
-    if (!upcomingInvoiceData) return;
-    if (upcomingInvoiceError) return;
-    if (!userProfileState) return;
-    if (!memberAccountsDataArray) return;
-
-    const insertInvoiceToLocalState = () => {
-      // StripeのInvoiceをローカルStateに格納
-      setNextInvoice(upcomingInvoiceData);
-
-      // 「請求期間（日数）」をローカルStateに格納
-      const period = getPeriodInDays(upcomingInvoiceData.period_start, upcomingInvoiceData.period_end);
-      setCurrentPeriodState(period);
-      // 「残り日数」をローカルStateに格納
-      const remaining = getRemainingDaysFromNowPeriodEndHourToTimestamp(upcomingInvoiceData.period_end).remainingDays;
-      setRemainingDaysState(remaining);
-      // 新数量プランの1日あたりの料金をローカルStateに格納 月額料金 / １ヶ月の日数
-      const monthlyFeePerAccount = getPrice(userProfileState.subscription_plan); // プランの月額費用/ID
-      const newMonthlyFee = monthlyFeePerAccount * totalAccountQuantity; // 新プランの月額費用
-      const newDailyR = newMonthlyFee / period;
-      const newTruncateDailyR = Math.round(newDailyR * 1000) / 1000; // 小数点第3位までを取得
-      setNewDailyRateWithThreeDecimalPoints(newTruncateDailyR);
-      // 新数量プラン残り期間までの利用分の金額
-      const newUsage = newTruncateDailyR * remaining;
-      const newTruncateUsage = Math.round(newUsage * 1000) / 1000;
-      setNewUsageAmountForRemainingPeriodWithThreeDecimalPoints(newTruncateUsage);
-      // 旧プラン（現在のプラン）の1日あたりの料金をローカルStateに格納 月額料金 / １ヶ月の日数
-      const oldMonthlyFee = monthlyFeePerAccount * memberAccountsDataArray.length; // 旧プランの月額費用
-      const oldDailyR = oldMonthlyFee / period;
-      const oldTruncateDailyR = Math.round(oldDailyR * 1000) / 1000; // 小数点第3位までを取得
-      setOldDailyRateWithThreeDecimalPoints(oldTruncateDailyR);
-      // 旧プランの残り期間までの未使用分の金額
-      const oldUnused = oldTruncateDailyR * remaining;
-      const oldTruncateUnused = Math.round(oldUnused * 1000) / 1000;
-      setOldUnusedAmountForRemainingPeriodWithThreeDecimalPoints(oldTruncateUnused);
-      // 追加費用をローカルStateに格納
-      const extraCharge = Math.round(newTruncateUsage) - Math.round(oldTruncateUnused);
-      setAdditionalCostState(extraCharge);
-      // 次回お支払い額（追加費用上乗せ済み）
-      const totalPaymentDue = newMonthlyFee + extraCharge;
-      setNextInvoiceAmountState(totalPaymentDue);
-    };
-    // ローカルStateにまだInvoiceが無くnullならuseQueryで取得したStripeのInvoiceを格納
-    if (!nextInvoice) {
-      console.log("🔥初回フェッチのみuseQueryで取得したinvoiceをローカルStateに格納🔥");
-      insertInvoiceToLocalState();
-    }
-    // ２回目以降でisReadyQueryInvoiceのStateが変更されて、isReadyQueryInvoiceがtrueからfalseにした時にはuseQueryのフェッチが完了していることを示すためfalseの場合で、かつ、現在保持しているローカルStateの請求総額とuseQueryで取得した請求総額が異なるなら、新たにuseQueryで別のアカウント数でstripeからInvoiceを取得しているため、最新のInvoiceをローカルStateに格納する
-    else if (
-      !!nextInvoice &&
-      !isReadyQueryInvoice &&
-      !!nextInvoiceAmountState &&
-      nextInvoiceAmountState !== upcomingInvoiceData.amount_due
-    ) {
-      console.log("🔥useQueryで新たに取得したinvoiceとローカルのInvoiceを比較チェック🔥");
-      // insertInvoiceToLocalState();
-      checkInvoiceStripeAndLocalCalculate(upcomingInvoiceData);
-    }
-  }, [isReadyQueryInvoice]);
-  // ====================== ✅useEffectでStripeInvoiceをローカルStateに格納 ======================
-
-  // const handleCheckInvoiceStripeAndLocalCalculate = async () => {
-  //   if (!userProfileState) return alert("エラー：ユーザー情報が見つかりませんでした");
-  //   if (!memberAccountsDataArray) return alert("エラー：アカウント情報が見つかりませんでした");
-  //   if (!currentPeriodState) return alert("エラー：請求期間データを取得できませんでした");
-  //   if (!remainingDaysState) return alert("エラー：残り期間データを取得できませんでした");
-
-  //   console.log("handleCheckInvoiceStripeAndLocalCalculate関数実行 /retrieve-upcoming-invoiceへaxios.post()");
-  //   try {
-  //     const payload = {
-  //       stripeCustomerId: userProfileState.stripe_customer_id,
-  //       stripeSubscriptionId: userProfileState.stripe_subscription_id,
-  //       changeQuantity: totalAccountQuantity, // 数量変更後の合計アカウント数
-  //       changePlanName: null, // プラン変更ではないので、nullをセット
-  //     };
-  //     const {
-  //       data: { data: upcomingInvoiceData, error: upcomingInvoiceError },
-  //     } = await axios.post(`/api/subscription/retrieve-upcoming-invoice`, payload, {
-  //       headers: {
-  //         Authorization: `Bearer ${sessionState.access_token}`,
-  //       },
-  //     });
-  //     if (!!upcomingInvoiceError) {
-  //       console.log(
-  //         "🌟Stripe将来のインボイス取得ステップ7 /retrieve-upcoming-invoiceへのaxios.postエラー",
-  //         upcomingInvoiceError
-  //       );
-  //       throw new Error(upcomingInvoiceError);
-  //     }
-  //     console.log(
-  //       "🌟Stripe将来のインボイス取得ステップ7 /retrieve-upcoming-invoiceへのaxios.postで次回のインボオスの取得成功",
-  //       upcomingInvoiceData
-  //     );
-  //     setStripeRetrieveInvoice(upcomingInvoiceData);
-
-  //     // Stripeから取得したInvoiceの金額とローカルで計算した金額が一致しているかチェック
-
-  //     // 新プランの1日当たりの料金
-  //     const tempNewDailyRate =
-  //       (upcomingInvoiceData as Stripe.UpcomingInvoice)?.lines?.data[2]?.amount / currentPeriodState;
-  //     const tempNewDailyRateWithThreeDecimalPoints = Math.round(tempNewDailyRate * 1000) / 1000;
-  //     setStripeNewDailyRateWithThreeDecimalPoints(tempNewDailyRateWithThreeDecimalPoints);
-  //     // 新プランの残り使用分の料金
-  //     const tempNewUsageAmountWithThreeDecimalPoints = tempNewDailyRateWithThreeDecimalPoints * remainingDaysState;
-  //     setStripeNewUsageAmountForRemainingPeriodWithThreeDecimalPoints(tempNewUsageAmountWithThreeDecimalPoints);
-  //     // 旧プランの1日あたりの料金
-  //     const _oldPlanAmount = getPrice(userProfileState.subscription_plan) * memberAccountsDataArray.length;
-  //     const tempOldDailyRate = _oldPlanAmount / currentPeriodState;
-  //     const tempOldDailyRateWithThreeDecimalPoints = Math.round(tempOldDailyRate * 1000) / 1000;
-  //     setStripeOldDailyRateWithThreeDecimalPoints(tempOldDailyRateWithThreeDecimalPoints);
-  //     // 旧プランの残り未使用分の料金
-  //     const tempOldUnusedAmount = tempOldDailyRateWithThreeDecimalPoints * remainingDaysState;
-  //     const tempOldUnusedAmountWithThreeDecimalPoints = Math.round(tempOldUnusedAmount * 1000) / 1000;
-  //     setStripeOldUnusedAmountForRemainingPeriodWithThreeDecimalPoints(tempOldUnusedAmountWithThreeDecimalPoints);
-  //     // 追加費用
-  //     const tempAdditionalCost =
-  //       Math.round(tempNewUsageAmountWithThreeDecimalPoints) - Math.round(tempOldUnusedAmountWithThreeDecimalPoints);
-  //     setStripeAdditionalCostState(tempAdditionalCost);
-  //     // 次回の支払額
-  //     const tempNextInvoice =
-  //       (upcomingInvoiceData as Stripe.UpcomingInvoice)?.lines?.data[
-  //         (upcomingInvoiceData as Stripe.UpcomingInvoice)?.lines?.data.length - 1
-  //       ]?.amount + tempAdditionalCost;
-  //     setStripeNextInvoiceAmountState(tempNextInvoice);
-
-  //     if (!!tempNextInvoice && tempNextInvoice === nextInvoiceAmountState) {
-  //       console.log("チェック関数 テスト成功");
-  //       console.log(
-  //         "支払額 stripeのnextInvoice",
-  //         tempNextInvoice,
-  //         "ローカルnextInvoiceAmountState",
-  //         nextInvoiceAmountState
-  //       );
-  //       console.log(
-  //         "追加費用 stripeのadditionalCost",
-  //         tempAdditionalCost,
-  //         "ローカルadditionalCost",
-  //         additionalCostState
-  //       );
-  //       toast.success(`次回請求額がローカルと一致しました！`, {
-  //         position: "top-right",
-  //         autoClose: 5000,
-  //         hideProgressBar: false,
-  //         closeOnClick: true,
-  //         pauseOnHover: true,
-  //         draggable: true,
-  //         progress: undefined,
-  //       });
-  //     } else {
-  //       console.log("チェック関数 テスト成功");
-  //       console.log(
-  //         "支払額 stripe nextInvoice",
-  //         tempNextInvoice,
-  //         "ローカル nextInvoiceAmountState",
-  //         nextInvoiceAmountState
-  //       );
-  //       console.log(
-  //         "追加費用 stripe additionalCost",
-  //         tempAdditionalCost,
-  //         "ローカル additionalCost",
-  //         additionalCostState
-  //       );
-  //       toast.error(`請求金額の取得に失敗しました...`, {
-  //         position: "top-right",
-  //         autoClose: 5000,
-  //         hideProgressBar: false,
-  //         closeOnClick: true,
-  //         pauseOnHover: true,
-  //         draggable: true,
-  //         progress: undefined,
-  //       });
-  //     }
-  //   } catch (e: any) {
-  //     console.error(`getUpcomingInvoice関数実行エラー: `, e);
-  //     toast.error(`請求金額の取得に失敗しました...`, {
-  //       position: "top-right",
-  //       autoClose: 5000,
-  //       hideProgressBar: false,
-  //       closeOnClick: true,
-  //       pauseOnHover: true,
-  //       draggable: true,
-  //       progress: undefined,
-  //     });
-  //   }
-  // };
-  // ===================== ✅StripeのInvoiceを取得してローカル計算が合っているか確認 =====================
+  // const {
+  //   data: upcomingInvoiceData,
+  //   error: upcomingInvoiceError,
+  //   isLoading: isLoadingUpcomingInvoice,
+  // } = useQueryUpcomingInvoiceChangeQuantity(
+  //   totalAccountQuantity,
+  //   userProfileState?.stripe_customer_id,
+  //   userProfileState?.stripe_subscription_id,
+  //   sessionState
+  // );
+  // ============================= ✅useQueryエリア =============================
 
   // 請求期間開始日から経過した日数 今日の日付は現在で、時間、分、秒はperiod_endに合わせた今日までの経過時間
   const elapsedDays = useMemo(() => {
@@ -612,29 +178,447 @@ const IncreaseAccountCountsModalMemo = () => {
     return getPeriodInDays(nextInvoice.period_start, nextInvoice.period_end);
   }, [nextInvoice?.period_start, nextInvoice?.period_end]);
 
-  // useEffect(() => {
-  //   if (!upcomingInvoiceData) return;
-  //   if (upcomingInvoiceError) return;
+  // 契約中のアカウント個数
+  const currentAccountCounts = !!memberAccountsDataArray ? memberAccountsDataArray.length : 0;
 
-  //   if (!nextInvoice) {
-  //     setNextInvoice(upcomingInvoiceData);
-  //   } else if (
-  //     !!nextInvoice &&
-  //     nextInvoice.lines?.data[nextInvoice?.lines?.data.length - 1]?.quantity !==
-  //       upcomingInvoiceData.lines?.data[upcomingInvoiceData.lines?.data.length - 1]?.quantity
-  //   ) {
-  //     setNextInvoice(upcomingInvoiceData);
-  //   }
-  // }, []);
-  // ===================== ✅次回支払い情報のUpcomingInvoiceを取得 useQuery =====================
+  // Stripeのサブスクリプションのquantityを新たな数量に更新 現在のアカウント数と新たに追加するアカウント数を合算
+  const totalAccountQuantity = currentAccountCounts + (accountQuantity ?? 0);
 
+  // 追加費用 nextInvoice.lines.data[0].amountがマイナスの値のため引くためには加算でOK
+  // const additionalCost =
+  //   !!nextInvoice && !!nextInvoice?.lines?.data[1]?.amount
+  //     ? nextInvoice.lines.data[1].amount + nextInvoice.lines.data[0].amount
+  //     : null;
+
+  // ===================== 🌟支払い詳細モーダルのfadeクラスをトグル useEffect =====================
+  useEffect(() => {
+    if (nextPaymentDetailComponentRef.current) {
+      if (toggleFadeRef.current === true && isOpenInvoiceDetail) {
+        setTimeout(() => {
+          console.log("🚀fadeをfalseに");
+          toggleFadeRef.current = false;
+        }, 200);
+        // toggleFadeRef.current = false;
+      }
+    }
+    if (!isOpenInvoiceDetail && toggleFadeRef.current === false) {
+      console.log("🚀fadeをtrueに");
+      toggleFadeRef.current = true;
+    }
+  }, [isOpenInvoiceDetail, nextPaymentDetailComponentRef.current]);
+  // ===================== ✅支払い詳細モーダルのfadeクラスをトグル useEffect =====================
+
+  // ===================== 🌟初回マウントuseEffect UpcomingInvoiceを取得する関数 =====================
+  const getUpcomingInvoice = useCallback(async () => {
+    if (!userProfileState) return console.log("userProfileStateなしのためリターン");
+    // if (!!nextInvoice) return console.log("🚨既にnextInvoice取得済みのためリターン");
+    if (!memberAccountsDataArray) return console.log("memberAccountsDataArrayなしのためリターン");
+    console.log("🔥getUpcomingInvoice関数実行 /retrieve-upcoming-invoiceへaxios.post()🔥");
+
+    setIsLoadingFirstFetch(true); // ローディング開始
+
+    try {
+      const payload = {
+        stripeCustomerId: userProfileState.stripe_customer_id,
+        stripeSubscriptionId: userProfileState.stripe_subscription_id,
+        changeQuantity: totalAccountQuantity, // 数量変更後の合計アカウント数
+        changePlanName: null, // プラン変更ではないので、nullをセット
+      };
+
+      const {
+        data: { data: upcomingInvoiceData, error: upcomingInvoiceError },
+      } = await axios.post(`/api/subscription/retrieve-upcoming-invoice`, payload, {
+        headers: {
+          Authorization: `Bearer ${sessionState.access_token}`,
+        },
+      });
+
+      if (!!upcomingInvoiceError) {
+        console.log(
+          "🌟Stripe将来のインボイス取得ステップ7 /retrieve-upcoming-invoiceへのaxios.postエラー",
+          upcomingInvoiceError
+        );
+        throw new Error(upcomingInvoiceError);
+      }
+
+      console.log(
+        "🌟Stripe将来のインボイス取得ステップ7 /retrieve-upcoming-invoiceへのaxios.postで次回のインボオスの取得成功",
+        upcomingInvoiceData
+      );
+
+      // StripeのInvoiceをローカルStateに格納
+      setNextInvoice(upcomingInvoiceData);
+
+      // ======================== StripeのInvoiceをローカルStateに格納 ========================
+
+      // 「請求期間（日数）」をローカルStateに格納
+      const period = getPeriodInDays(upcomingInvoiceData.period_start, upcomingInvoiceData.period_end);
+      setCurrentPeriodState(period);
+      // 「残り日数」をローカルStateに格納
+      const remaining = getRemainingDaysFromNowPeriodEndHourToTimestamp(upcomingInvoiceData.period_end).remainingDays;
+      setRemainingDaysState(remaining);
+      // プランの月額費用/1アカウントあたり
+      const monthlyFeePerAccount = getPrice(userProfileState.subscription_plan);
+      // 新プランの月額費用
+      const newMonthlyFee = monthlyFeePerAccount * totalAccountQuantity;
+
+      // 新数量プランの1日あたりの料金をローカルStateに格納 月額料金 / １ヶ月の日数
+      const newDailyRate = newMonthlyFee / period;
+      const newDailyRateWithThreeDecimalPoints = Math.round(newDailyRate * 1000) / 1000; // 小数点第3位までを取得
+      setNewDailyRateWithThreeDecimalPoints(newDailyRateWithThreeDecimalPoints);
+      // 新プラン残り期間までの利用分の金額
+      const newUsage = newDailyRateWithThreeDecimalPoints * remaining;
+      const newUsageWithThreeDecimalPoints = Math.round(newUsage * 1000) / 1000;
+      setNewUsageAmountForRemainingPeriodWithThreeDecimalPoints(newUsageWithThreeDecimalPoints);
+      // 旧プラン（現在のプラン）の1日あたりの料金をローカルStateに格納 月額料金 / １ヶ月の日数
+      const oldMonthlyFee = monthlyFeePerAccount * memberAccountsDataArray.length; // 旧プランの月額費用
+      const oldDailyRate = oldMonthlyFee / period;
+      const oldDailyRateWithThreeDecimalPoints = Math.round(oldDailyRate * 1000) / 1000; // 小数点第3位までを取得
+      setOldDailyRateWithThreeDecimalPoints(oldDailyRateWithThreeDecimalPoints);
+      // 旧プランの残り期間までの未使用分の金額
+      const oldUnused = oldDailyRateWithThreeDecimalPoints * remaining;
+      const oldUnusedWithThreeDecimalPoints = Math.round(oldUnused * 1000) / 1000;
+      setOldUnusedAmountForRemainingPeriodWithThreeDecimalPoints(oldUnusedWithThreeDecimalPoints);
+      // 追加費用をローカルStateに格納
+      const extraCharge = Math.round(newUsageWithThreeDecimalPoints) - Math.round(oldUnusedWithThreeDecimalPoints);
+      setAdditionalCostState(extraCharge);
+      // 次回お支払い額（追加費用上乗せ済み）
+      const totalPaymentDue = newMonthlyFee + extraCharge;
+      setNextInvoiceAmountState(totalPaymentDue);
+
+      // ローディング終了
+      setIsLoadingFirstFetch(false);
+      // ======================== StripeのInvoiceをローカルStateに格納 ========================
+    } catch (e: any) {
+      console.error(`getUpcomingInvoice関数実行エラー: `, e);
+      toast.error(`請求金額の取得に失敗しました...`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+      setIsLoadingFirstFetch(false);
+    }
+  }, [userProfileState, totalAccountQuantity, sessionState, memberAccountsDataArray]);
+  // ===================== ✅次回支払い情報のUpcomingInvoiceを取得する関数 =====================
+
+  // ===================== 🌟初回マウントuseEffect Invoiceをstripeから取得 =====================
+  const [isLoadingFirstFetch, setIsLoadingFirstFetch] = useState(true);
+  // 初回マウント時と「新たに増やすアカウント数」を変更して「料金計算」を押した時にStripeから比例配分のプレビューを取得
+  useEffect(() => {
+    if (!userProfileState)
+      return alert("🚨useEffect(初回マウントInvoice取得)エラー：ユーザー情報が見つかりませんでした");
+    if (!memberAccountsDataArray)
+      return alert("🚨useEffect(初回マウントInvoice取得)エラー：アカウント情報が見つかりませんでした");
+
+    // nextInvoiceが存在しないルート => 初回マウント時にInvoiceをフェッチ
+    if (!nextInvoice) {
+      console.log("🔥初回マウントuseEffect実行1 nextInvoice無しのためgetUpcomingInvoice関数を実行🔥");
+      getUpcomingInvoice();
+      return;
+    }
+    // nextInvoiceが存在するルート => モーダルを開いた日付と同じか否かでリターン、フェッチを分岐させる
+    else if (!!nextInvoice && !!nextInvoice.subscription_proration_date) {
+      // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2023-12-20で現在の日付を作成
+      const currentDateObj = new Date("2023-12-20");
+      const year = currentDateObj.getFullYear();
+      const month = currentDateObj.getMonth();
+      const day = currentDateObj.getDate();
+      const currentDateOnly = new Date(year, month, day); // 現在の日付の時刻情報をリセット
+      // nextInvoiceの比例配分の日付を取得(時刻情報なし)
+      const nextInvoiceCreatedInMillisecond =
+        nextInvoice.subscription_proration_date.toString().length === 10
+          ? nextInvoice.subscription_proration_date * 1000
+          : nextInvoice.subscription_proration_date;
+      const nextInvoiceDateObj = new Date(nextInvoiceCreatedInMillisecond);
+      const nextInvoiceYear = nextInvoiceDateObj.getFullYear();
+      const nextInvoiceMonth = nextInvoiceDateObj.getMonth();
+      const nextInvoiceDay = nextInvoiceDateObj.getDate();
+      const nextInvoiceDateOnly = new Date(nextInvoiceYear, nextInvoiceMonth, nextInvoiceDay); // nextInvoiceの日付の時刻情報をリセット
+
+      // nextInvoiceに格納したInvoiceオブジェクトの比例配分の日付がこのモーダルを開いた日付と異なる
+      // => 再度フェッチしてInvoiceを取得
+      if (currentDateOnly.getTime() !== nextInvoiceDateOnly.getTime()) {
+        console.log(
+          "🔥初回マウントuseEffect実行1 nextInvoice有りだが現在の日付と作成日が異なるためgetUpcomingInvoice関数を実行🔥",
+          "💡今日の日付",
+          format(currentDateOnly, "yyyy/MM/dd HH:mm:ss"),
+          "比例配分日",
+          format(nextInvoiceDateOnly, "yyyy/MM/dd HH:mm:ss"),
+          "今日の日付",
+          currentDateOnly.getTime(),
+          "比例配分日",
+          nextInvoiceDateOnly.getTime(),
+          "currentDateObj",
+          currentDateObj,
+          "nextInvoiceDateObj",
+          nextInvoiceDateObj,
+          "nextInvoice",
+          nextInvoice
+        );
+        getUpcomingInvoice();
+        return;
+      }
+      // nextInvoiceはすでに存在している。かつ、nextInvoiceの比例配分の日付がこのモーダルを開いた日付と同じ
+      // => 現在保持しているnextInvoiceの各項目をローカルStateに格納してそのままリターン
+      else {
+        // ======================== InvoiceをローカルStateに格納 ========================
+        // 「請求期間（日数）」をローカルStateに格納
+        const period = getPeriodInDays(nextInvoice.period_start, nextInvoice.period_end);
+        setCurrentPeriodState(period);
+        // 「残り日数」をローカルStateに格納
+        const remaining = getRemainingDaysFromNowPeriodEndHourToTimestamp(nextInvoice.period_end).remainingDays;
+        setRemainingDaysState(remaining);
+        // プランの月額費用/1アカウントあたり
+        const monthlyFeePerAccount = getPrice(userProfileState.subscription_plan);
+        // 新プランの月額費用
+        const newMonthlyFee = monthlyFeePerAccount * totalAccountQuantity;
+
+        // 新数量プランの1日あたりの料金をローカルStateに格納 月額料金 / １ヶ月の日数
+        const newDailyRate = newMonthlyFee / period;
+        const newDailyRateWithThreeDecimalPoints = Math.round(newDailyRate * 1000) / 1000; // 小数点第3位までを取得
+        setNewDailyRateWithThreeDecimalPoints(newDailyRateWithThreeDecimalPoints);
+        // 新プラン残り期間までの利用分の金額
+        const newUsage = newDailyRateWithThreeDecimalPoints * remaining;
+        const newUsageWithThreeDecimalPoints = Math.round(newUsage * 1000) / 1000;
+        setNewUsageAmountForRemainingPeriodWithThreeDecimalPoints(newUsageWithThreeDecimalPoints);
+        // 旧プラン（現在のプラン）の1日あたりの料金をローカルStateに格納 月額料金 / １ヶ月の日数
+        const oldMonthlyFee = monthlyFeePerAccount * memberAccountsDataArray.length; // 旧プランの月額費用
+        const oldDailyRate = oldMonthlyFee / period;
+        const oldDailyRateWithThreeDecimalPoints = Math.round(oldDailyRate * 1000) / 1000; // 小数点第3位までを取得
+        setOldDailyRateWithThreeDecimalPoints(oldDailyRateWithThreeDecimalPoints);
+        // 旧プランの残り期間までの未使用分の金額
+        const oldUnused = oldDailyRateWithThreeDecimalPoints * remaining;
+        const oldUnusedWithThreeDecimalPoints = Math.round(oldUnused * 1000) / 1000;
+        setOldUnusedAmountForRemainingPeriodWithThreeDecimalPoints(oldUnusedWithThreeDecimalPoints);
+        // 追加費用をローカルStateに格納
+        const extraCharge = Math.round(newUsageWithThreeDecimalPoints) - Math.round(oldUnusedWithThreeDecimalPoints);
+        setAdditionalCostState(extraCharge);
+        // 次回お支払い額（追加費用上乗せ済み）
+        const totalPaymentDue = newMonthlyFee + extraCharge;
+        setNextInvoiceAmountState(totalPaymentDue);
+        // ======================== InvoiceをローカルStateに格納 ========================
+        setIsLoadingFirstFetch(false); // ローディング終了
+        return console.log(
+          "🔥初回マウントuseEffect実行1 既にnextInvoice取得済みで、かつ日付が同じのため 現在Zustandで保持しているInvoiceをローカルStateに格納してリターン 今日の日付",
+          format(currentDateOnly, "yyyy/MM/dd HH:mm:ss"),
+          currentDateOnly.getTime(),
+          "比例配分日",
+          format(nextInvoiceDateOnly, "yyyy/MM/dd HH:mm:ss"),
+          nextInvoiceDateOnly.getTime()
+        );
+      }
+    }
+  }, []);
+  // ===================== ✅初回マウントuseEffect Invoiceをstripeから取得 =====================
+
+  // ============================== 🌟「料金チェック」関数 ==============================
+  const handleCheckInvoiceStripeAndLocalCalculate = async () => {
+    if (!userProfileState) {
+      console.error("エラー：ユーザー情報が見つかりませんでした。");
+      return false;
+    }
+    if (!memberAccountsDataArray) {
+      console.error(`エラー：アカウント情報が見つかりませんでした`);
+      return false;
+    }
+    if (!currentPeriodState) {
+      console.error(`エラー：請求期間データを取得できませんでした`);
+      return false;
+    }
+    if (!remainingDaysState) {
+      console.error(`エラー：残り期間データを取得できませんでした`);
+      return false;
+    }
+
+    // ローディング開始
+    setIsLoadingCalculation(true);
+
+    try {
+      const payload = {
+        stripeCustomerId: userProfileState.stripe_customer_id,
+        stripeSubscriptionId: userProfileState.stripe_subscription_id,
+        changeQuantity: totalAccountQuantity, // 数量変更後の合計アカウント数
+        changePlanName: null, // プラン変更ではないので、nullをセット
+      };
+      console.log("料金チェック1 retrieve-upcoming-invoiceエンドポイントへリクエスト payload", payload);
+      const {
+        data: { data: upcomingInvoiceData, error: upcomingInvoiceError },
+      } = await axios.post(`/api/subscription/retrieve-upcoming-invoice`, payload, {
+        headers: {
+          Authorization: `Bearer ${sessionState.access_token}`,
+        },
+      });
+      if (upcomingInvoiceError) {
+        console.log("❌料金チェック2 /retrieve-upcoming-invoiceへのaxios.postエラー", upcomingInvoiceError);
+        throw new Error(upcomingInvoiceError);
+      }
+      console.log("🌟料金チェック2 次回インボイスデータの取得成功", upcomingInvoiceData);
+      setStripeRetrieveInvoice(upcomingInvoiceData);
+
+      // Stripeから取得したInvoiceの金額とローカルで計算した金額が一致しているかチェック
+
+      // 新プランの1日当たりの料金
+      const tempNewDailyRate =
+        (upcomingInvoiceData as Stripe.UpcomingInvoice)?.lines?.data[2]?.amount / currentPeriodState;
+      const tempNewDailyRateWithThreeDecimalPoints = Math.round(tempNewDailyRate * 1000) / 1000;
+      setStripeNewDailyRateWithThreeDecimalPoints(tempNewDailyRateWithThreeDecimalPoints);
+      // 新プランの残り使用分の料金
+      const tempNewUsageAmount = tempNewDailyRateWithThreeDecimalPoints * remainingDaysState;
+      const tempNewUsageAmountWithThreeDecimalPoints = Math.round(tempNewUsageAmount * 1000) / 1000;
+      setStripeNewUsageAmountForRemainingPeriodWithThreeDecimalPoints(tempNewUsageAmountWithThreeDecimalPoints);
+      // 旧プランの1日あたりの料金
+      const _oldPlanAmount = getPrice(userProfileState.subscription_plan) * memberAccountsDataArray.length;
+      const tempOldDailyRate = _oldPlanAmount / currentPeriodState;
+      const tempOldDailyRateWithThreeDecimalPoints = Math.round(tempOldDailyRate * 1000) / 1000;
+      setStripeOldDailyRateWithThreeDecimalPoints(tempOldDailyRateWithThreeDecimalPoints);
+      // 旧プランの残り未使用分の料金
+      const tempOldUnusedAmount = tempOldDailyRateWithThreeDecimalPoints * remainingDaysState;
+      const tempOldUnusedAmountWithThreeDecimalPoints = Math.round(tempOldUnusedAmount * 1000) / 1000;
+      setStripeOldUnusedAmountForRemainingPeriodWithThreeDecimalPoints(tempOldUnusedAmountWithThreeDecimalPoints);
+      // 追加費用
+      const tempAdditionalCost =
+        Math.round(tempNewUsageAmountWithThreeDecimalPoints) - Math.round(tempOldUnusedAmountWithThreeDecimalPoints);
+      setStripeAdditionalCostState(tempAdditionalCost);
+      // 次回の支払額
+      const tempNextInvoiceAmount =
+        (upcomingInvoiceData as Stripe.UpcomingInvoice)?.lines?.data[
+          (upcomingInvoiceData as Stripe.UpcomingInvoice)?.lines?.data.length - 1
+        ]?.amount + tempAdditionalCost;
+      setStripeNextInvoiceAmountState(tempNextInvoiceAmount);
+
+      if (!!tempNextInvoiceAmount && tempNextInvoiceAmount === nextInvoiceAmountState) {
+        console.log(
+          "🌟料金チェック3 ✅チェック関数 次回請求額がローカルと一致 テスト成功✅",
+          "支払額 stripeのnextInvoice",
+          tempNextInvoiceAmount,
+          "ローカルnextInvoiceAmountState",
+          nextInvoiceAmountState,
+          "追加費用 stripeのadditionalCost",
+          tempAdditionalCost,
+          "ローカルadditionalCost",
+          additionalCostState
+        );
+        // ローディング開始
+        setIsLoadingCalculation(false);
+        // テストの結果を合格(true)で返す
+        return true;
+      } else {
+        console.log(
+          "🌟料金チェック3 ❌チェック関数 次回請求額がローカルと一致せず テスト失敗❌",
+          "支払額 stripeのnextInvoice",
+          tempNextInvoiceAmount,
+          "ローカルnextInvoiceAmountState",
+          nextInvoiceAmountState,
+          "追加費用 stripeのadditionalCost",
+          tempAdditionalCost,
+          "ローカルadditionalCost",
+          additionalCostState
+        );
+        // ローディング開始
+        setIsLoadingCalculation(false);
+        // テストの結果を不合格(false)で返す
+        return false;
+      }
+    } catch (e: any) {
+      console.error(
+        `❌料金チェック2 handleCheckInvoiceStripeAndLocalCalculate関数実行エラー: APIルートのエンドポイント/api/subscription/retrieve-upcoming-invoiceへのリクエストが完了できず`,
+        e
+      );
+      // ローディング開始
+      setIsLoadingCalculation(false);
+      // テストの結果を不合格(false)で返す
+      return false;
+    }
+  };
+  // ============================== ✅「料金チェック」関数 ==============================
+  // ================== ✅StripeのInvoiceを取得してローカル計算が合っているか確認する関数 ==================
+
+  // ====================== 🌟アカウント数変更の度に新料金を計算してローカルStateに格納 =====================
+  useEffect(() => {
+    // ローカルStateがnullならリターン
+    if (!userProfileState)
+      return console.log(
+        "🚨useEffect(アカウント数変更の度に新料金を再計算してローカルStateに格納) ユーザーデータが無しのためリターン"
+      );
+    if (!memberAccountsDataArray)
+      return console.log(
+        "🚨useEffect(アカウント数変更の度に新料金を再計算してローカルStateに格納) メンバーアカウンtpデータが無しのためリターン"
+      );
+    if (!nextInvoiceAmountState)
+      return console.log(
+        "🚨useEffect(アカウント数変更の度に新料金を再計算してローカルStateに格納) ローカルStripeインボイスデータがローカルに無しのためリターン"
+      );
+    if (!currentPeriodState)
+      return console.log(
+        "🚨useEffect(アカウント数変更の度に新料金を再計算してローカルStateに格納) currentPeriodStateがローカルに無しのためリターン"
+      );
+    if (!remainingDaysState)
+      return console.log(
+        "🚨useEffect(アカウント数変更の度に新料金を再計算してローカルStateに格納) remainingDaysStateがローカルに無しのためリターン"
+      );
+
+    // プラン１アカウント月額費用
+    const monthlyFeePerAccount = getPrice(userProfileState.subscription_plan); // プランの月額費用/ID
+    // 新プラン料金
+    const _newPlanAmount = monthlyFeePerAccount * totalAccountQuantity;
+    // 新プランの1日当たりの料金
+    const _newDailyRateThreeDecimalPoints = Math.round((_newPlanAmount / currentPeriodState) * 1000) / 1000;
+    setNewDailyRateWithThreeDecimalPoints(_newDailyRateThreeDecimalPoints);
+    // 新プランの残り期間までの使用量の金額
+    const _newUsage = _newDailyRateThreeDecimalPoints * remainingDaysState;
+    const _newUsageThreeDecimalPoints = Math.round(_newUsage * 1000) / 1000;
+    setNewUsageAmountForRemainingPeriodWithThreeDecimalPoints(_newUsageThreeDecimalPoints);
+    // 旧プランの1日あたりの料金
+    const oldMonthlyFee = monthlyFeePerAccount * memberAccountsDataArray.length; // 旧プランの月額費用
+    const _oldDailyRateThreeDecimalPoints = Math.round((oldMonthlyFee / currentPeriodState) * 1000) / 1000;
+    setOldDailyRateWithThreeDecimalPoints(_oldDailyRateThreeDecimalPoints);
+    // 旧プランの残り期間までの未使用分の金額
+    const _oldUnused = _oldDailyRateThreeDecimalPoints * remainingDaysState;
+    const _oldUnusedThreeDecimalPoints = Math.round(_oldUnused * 1000) / 1000;
+    setOldUnusedAmountForRemainingPeriodWithThreeDecimalPoints(_oldUnusedThreeDecimalPoints);
+    // 追加費用をローカルStateに格納
+    const _additionalCost = Math.round(_newUsageThreeDecimalPoints) - Math.round(_oldUnusedThreeDecimalPoints);
+    setAdditionalCostState(_additionalCost);
+    // 次回お支払い額（追加費用上乗せ済み）
+    const _nextInvoiceAmount = _newPlanAmount + _additionalCost;
+    setNextInvoiceAmountState(_nextInvoiceAmount);
+    console.log(
+      "🔥useEffect(新アカウント数変更に伴う請求データをローカルで算出)🔥",
+      "新たなアカウント数",
+      totalAccountQuantity,
+      "新数量の月額料金",
+      _newPlanAmount,
+      "次回支払額",
+      _nextInvoiceAmount,
+      "追加費用",
+      _additionalCost,
+      "新プラン1日当たり料金",
+      _newDailyRateThreeDecimalPoints,
+      "新プラン残り使用分の金額",
+      _newUsageThreeDecimalPoints,
+      "旧プラン1日当たり料金",
+      _oldDailyRateThreeDecimalPoints,
+      "旧プラン残り使用分の金額",
+      _oldUnusedThreeDecimalPoints
+    );
+  }, [accountQuantity]);
+  // ====================== ✅アカウント数変更の度に料金を計算 ======================
+
+  // ====================== 🌟「本日のお支払い」があるか否か ======================
   // 初回マウント時のみユーザーが契約中のサブスクリプションの次回支払い期限が今日か否かと、
   // 今日の場合は支払い時刻を過ぎているかどうか確認して過ぎていなければ0円でなくする
   useEffect(() => {
-    if (!userProfileState || !userProfileState.current_period_end) return;
-    console.log("useEffect実行 期間終了日が今日か確認");
+    if (!userProfileState || !userProfileState.current_period_end)
+      return console.log(
+        "🚨useEffect(「本日のお支払い」期間終了日が今日か否かチェック) userProfileState無しのためリターン"
+      );
+
     // まずは、現在の日付と時刻、およびcurrent_period_endの日付と時刻をUTCで取得します。
-    const currentDate = new Date();
+    const currentDate = new Date("2023-12-20"); // テストクロック用の日付
     const currentPeriodEndDate = new Date(userProfileState.current_period_end); // これはサンプルの値で、実際にはsupabaseから取得した値を使用します。
 
     const isSameDay =
@@ -642,6 +626,14 @@ const IncreaseAccountCountsModalMemo = () => {
       currentDate.getUTCMonth() === currentPeriodEndDate.getUTCMonth() &&
       currentDate.getUTCDate() === currentPeriodEndDate.getUTCDate();
 
+    console.log(
+      "🔥useEffect実行1(「本日のお支払い」期間終了日が今日か否かチェック)🔥 isSameDay",
+      isSameDay,
+      "currentPeriodEndDate",
+      format(currentPeriodEndDate, "yyyy/MM/dd HH:mm:ss"),
+      "現在の日付",
+      format(currentDate, "yyyy/MM/dd HH:mm:ss")
+    );
     if (isSameDay) {
       // 今日がcurrent_period_endの日付と一致している場合、次に時間の比較を行います。
       if (
@@ -649,11 +641,19 @@ const IncreaseAccountCountsModalMemo = () => {
         currentDate.getUTCMinutes() >= currentPeriodEndDate.getUTCMinutes() &&
         currentDate.getUTCSeconds() >= currentPeriodEndDate.getUTCSeconds()
       ) {
+        console.log(
+          "🔥useEffect実行2(「本日のお支払い」期間終了日が今日か否かチェック)🔥 現在の時刻がcurrent_period_endの時刻を過ぎているため isFreeTodayPaymentをtrue, todayPaymentを0に更新 isSameDay",
+          isSameDay
+        );
         // 現在の時刻がcurrent_period_endの時刻を過ぎている場合の処理
         // 例: 「本日のお支払い」の値を0円にする
         setIsFreeTodaysPayment(true);
         setTodaysPayment(0);
       } else {
+        console.log(
+          "🔥useEffect実行2(「本日のお支払い」期間終了日が今日か否かチェック)🔥 今日が期間終了日で一致しているが、現在の時刻がcurrent_period_endの時刻を過ぎていないため isFreeTodayPaymentをfalse, todayPaymentを 現在の契約プラン * (現在の契約アカウント数 + 新たに契約するアカウント数)に更新 isSameDay",
+          isSameDay
+        );
         // 現在の時刻がcurrent_period_endの時刻を過ぎていない場合の処理
         setIsFreeTodaysPayment(false);
         // 現在の契約プラン * (現在の契約アカウント数 + 新たに契約するアカウント数) = 本日のお支払い
@@ -662,30 +662,24 @@ const IncreaseAccountCountsModalMemo = () => {
         setTodaysPayment(paymentValue);
       }
     } else {
+      console.log(
+        "🔥useEffect実行2(「本日のお支払い」期間終了日が今日か否かチェック)🔥 今日がcurrent_period_endの日付と一致していないため isFreeTodayPaymentをtrue, todayPaymentを0に更新 isSameDay",
+        isSameDay
+      );
       // 今日がcurrent_period_endの日付と一致していない場合の処理
       setIsFreeTodaysPayment(true);
       setTodaysPayment(0);
     }
   }, [userProfileState]);
+  // ====================== ✅「本日のお支払い」があるか否か ======================
 
-  // =========================== 支払い詳細モーダルの表示後fade02をremove 非表示でadd ===========================
-  // useEffect(() => {
-  //   if (!nextPaymentDetailComponentRef.current) return;
-  //   if (isOpenInvoiceDetail && !!nextPaymentDetailComponentRef.current) {
-  //     nextPaymentDetailComponentRef.current?.classList.remove(`fade02`);
-  //   } else if (!isOpenInvoiceDetail) {
-  //     nextPaymentDetailComponentRef.current?.classList.add(`fade02`);
-  //   }
-  // }, [isOpenInvoiceDetail, nextPaymentDetailComponentRef]);
-  // =========================== 支払い詳細モーダルの表示後fade02をremove 非表示でadd ===========================
-  // =========================== 変更の確定をクリック Stripeに送信 ===========================
-  const [progressRate, setProgressRate] = useState(0);
+  // =========================== 🌟新たな数量をStripeに送信してUPDATE ===========================
   const handleChangeQuantity = async () => {
     console.log("変更の確定クリック プランと数量", userProfileState?.subscription_plan, accountQuantity);
     if (!userProfileState) return alert("エラー：ユーザー情報が確認できませんでした");
     if (!sessionState) return alert("エラー：セッション情報が確認できませんでした");
     if (!accountQuantity) return alert("エラー：追加するアカウント数が選択されていません");
-    setLoading(true);
+    // setLoading(true);
 
     try {
       console.log("🌟axiosでAPIルートに送信 合計個数", totalAccountQuantity);
@@ -752,8 +746,36 @@ const IncreaseAccountCountsModalMemo = () => {
         progress: undefined,
       });
     }
+    // setLoading(false);
+  };
+  // =========================== ✅新たな数量をStripeに送信してUPDATE ===========================
+
+  // ================ 🌟変更の確定をクリック 1. 料金チェック 2. 合格後Stripeに送信 ================
+  const handleChangeConfirm = async () => {
+    // 流れ
+    // 1. ローカルで算出した請求額が正式なstripe.invoice.retrieveUpcoming()の料金と一致するかチェック
+    // 2. 合格ルート：そのままhandleChangeQuantity()を実行してStripeのsubscription.update()を実行
+    // 2. 不合格ルート：最終確認モーダルを表示して正式な請求額をstripe.invoice.retrieveUpcomingで取得したデータに置き換えてユーザーに表示し、「アップデート」か「キャンセル」を押下してもらう
+
+    // ローディング開始
+    setLoading(true);
+
+    // 1.【料金チェック】
+    // 料金一致ならtrue、不一致かエラーならfalse
+    const checkResult = await handleCheckInvoiceStripeAndLocalCalculate();
+
+    // チェック合格 => stripeにそのままUPDATEを実行
+    if (checkResult) {
+      handleChangeQuantity();
+    }
+    // チェック不合格 => retrieveUpcomingの料金をモーダルに表示
+    else {
+      // モーダル表示のstateをtrue
+    }
+    // ローディング終了
     setLoading(false);
   };
+  // ================ ✅変更の確定をクリック 1. 料金チェック 2. 合格後Stripeに送信 ================
 
   // ================================ ツールチップ ================================
   const [hoveredNewProration, setHoveredNewProration] = useState(false);
@@ -774,18 +796,9 @@ const IncreaseAccountCountsModalMemo = () => {
     "本日のお支払が0かどうかと、本日の支払い額",
     isFreeTodaysPayment,
     todaysPayment,
-    "💡useQueryエラー",
-    upcomingInvoiceError,
-    // "💡useQueryで取得 変更後のアカウント合計の次回請求額プレビュー(比例配分あり) nextInvoice",
     "💡変更後のアカウント合計の次回請求額プレビュー(比例配分あり)ローカルStateのnextInvoice",
     nextInvoice,
-    // "アカウント追加後の次回追加費用",
-    // additionalCost,
-    "請求期間",
-    currentPeriod,
-    "isReadyQueryInvoice",
-    isReadyQueryInvoice,
-    "================================ ローカルState",
+    `===================== ローカルState: =====================`,
     "請求期間(日数)State",
     currentPeriodState,
     "プラン期間残り日数State",
@@ -802,7 +815,7 @@ const IncreaseAccountCountsModalMemo = () => {
     additionalCostState,
     "次回お支払い額(追加費用上乗せ済み)State",
     nextInvoiceAmountState,
-    "================================ Stripeから取得したInvoice",
+    "===================== Stripeから取得したInvoice: =====================",
     "stripeから取得したInvoice",
     stripeRetrieveInvoice,
     "新プランの月額料金の1日あたりの料金(Stripeから取得)",
@@ -823,82 +836,17 @@ const IncreaseAccountCountsModalMemo = () => {
     ]?.amount
   );
 
-  // ====================== 🌟StripeのInvoiceとローカルのチェックコンポーネント ======================
-  const CheckInvoiceStripeLocalModal = () => {
+  if (isLoadingFirstFetch)
     return (
-      <div className="absolute right-0 top-0 z-[29] flex min-h-[100%] w-7/12 flex-col rounded-r-[8px] border-l border-solid border-[var(--color-border-base)] bg-[var(--color-bg-base)]">
-        <div className="relative flex w-full items-center border-b border-solid border-[--color-border-base] py-[20px] text-[13px] text-[var(--color-text-title)]">
-          <div className="flex-center w-[50%] border-r border-solid border-[--color-border-base]">
-            <span className="mr-[20px]">請求期間：{currentPeriodState}</span>
-            <span>プラン期間残り日数：{remainingDaysState}</span>
-          </div>
-          <div className="flex-center w-[25%] border-x border-solid border-[--color-border-base]">ローカル算出結果</div>
-          <div className="flex-center w-[25%]">StripeのInvoice</div>
-        </div>
-        <div className="relative flex w-full items-center border-b border-solid border-[--color-border-base] py-[20px] text-[13px] text-[var(--color-text-title)]">
-          <div className="flex-center w-[50%] border-r border-solid border-[--color-border-base]">
-            新プランの1日当たり料金
-          </div>
-          <div className="flex-center w-[25%] border-x border-solid border-[--color-border-base]">
-            {newDailyRateWithThreeDecimalPoints}
-          </div>
-          <div className="flex-center w-[25%]">{stripeNewDailyRateWithThreeDecimalPoints ?? `-`}</div>
-        </div>
-        <div className="relative flex w-full items-center border-b border-solid border-[--color-border-base] py-[20px] text-[13px] text-[var(--color-text-title)]">
-          <div className="flex-center w-[50%] border-r border-solid border-[--color-border-base]">
-            新プランの残り期間までの利用分の金額
-          </div>
-          <div className="flex-center w-[25%] border-x border-solid border-[--color-border-base]">
-            {newUsageAmountForRemainingPeriodWithThreeDecimalPoints}
-          </div>
-          <div className="flex-center w-[25%]">
-            {stripeNewUsageAmountForRemainingPeriodWithThreeDecimalPoints ?? `-`}
-          </div>
-        </div>
-        <div className="relative flex w-full items-center border-b border-solid border-[--color-border-base] py-[20px] text-[13px] text-[var(--color-text-title)]">
-          <div className="flex-center w-[50%] border-r border-solid border-[--color-border-base]">
-            旧プランの月額料金の1日あたりの料金
-          </div>
-          <div className="flex-center w-[25%] border-x border-solid border-[--color-border-base]">
-            {oldDailyRateWithThreeDecimalPoints}
-          </div>
-          <div className="flex-center w-[25%]">{stripeOldDailyRateWithThreeDecimalPoints ?? `-`}</div>
-        </div>
-        <div className="relative flex w-full items-center border-b border-solid border-[--color-border-base] py-[20px] text-[13px] text-[var(--color-text-title)]">
-          <div className="flex-center w-[50%] border-r border-solid border-[--color-border-base]">
-            旧プランの残り期間までの未使用分の金額
-          </div>
-          <div className="flex-center w-[25%] border-x border-solid border-[--color-border-base]">
-            {oldUnusedAmountForRemainingPeriodWithThreeDecimalPoints}
-          </div>
-          <div className="flex-center w-[25%]">
-            {stripeOldUnusedAmountForRemainingPeriodWithThreeDecimalPoints ?? `-`}
-          </div>
-        </div>
-        <div className="relative flex w-full items-center border-b border-solid border-[--color-border-base] py-[20px] text-[13px] text-[var(--color-text-title)]">
-          <div className="flex-center w-[50%] border-r border-solid border-[--color-border-base]">追加費用</div>
-          <div className="flex-center w-[25%] border-x border-solid border-[--color-border-base]">
-            {additionalCostState}
-          </div>
-          <div className="flex-center w-[25%]">{stripeAdditionalCostState ?? `-`}</div>
-        </div>
-        <div className="relative flex w-full items-center border-b border-solid border-[--color-border-base] py-[20px] text-[13px] text-[var(--color-text-title)]">
-          <div className="flex-center w-[50%] border-r border-solid border-[--color-border-base]">
-            次回の支払額(追加費用上乗せ済み)
-          </div>
-          <div className="flex-center w-[25%] border-x border-solid border-[--color-border-base]">
-            {nextInvoiceAmountState}
-          </div>
-          <div className="flex-center w-[25%]">{stripeNextInvoiceAmountState ?? `-`}</div>
-        </div>
-      </div>
+      <>
+        <FallbackIncreaseAccountCountsModal />
+      </>
     );
-  };
 
   // ====================== 🌟本日のお支払いコンポーネント ======================
   const TodaysPaymentDetailComponent = () => {
     return (
-      <div className="border-real fade02 absolute bottom-[100%] left-[50%] z-10 flex min-h-[50px] min-w-[100px] translate-x-[-50%] flex-col rounded-[8px] bg-[var(--color-edit-bg-solid)] px-[20px] py-[20px]">
+      <div className="border-real fade02 absolute bottom-[100%] left-[50%] z-30 flex min-h-[50px] min-w-[100px] translate-x-[-50%] flex-col rounded-[8px] bg-[var(--color-edit-bg-solid)] px-[20px] py-[20px]">
         <div className="flex w-full items-center pb-[30px]">
           {!!userProfileState && userProfileState.current_period_end && (
             <p>
@@ -1753,15 +1701,17 @@ const IncreaseAccountCountsModalMemo = () => {
 
   return (
     <>
-      {/* <div className={`${styles.overlay} `} onClick={handleCancelAndReset} /> */}
+      {/* 外側オーバーレイ */}
       <div className={`${styles.overlay} `} onClick={() => setIsOpenChangeAccountCountsModal(null)} />
 
       <div className={`${styles.container} `}>
         {/* 次回請求期間のお支払いの詳細モーダルを開いた時のオーバーレイ */}
-        {isOpenInvoiceDetail && (
-          <div className={`clear_overlay_absolute fade03 pointer-events-none z-20 rounded-[8px] bg-[#00000033]`}></div>
+        {(isOpenInvoiceDetail || hoveredTodaysPayment) && (
+          <div
+            className={`clear_overlay_absolute fade03 pointer-events-none z-20 rounded-[8px] bg-[var(--color-overlay33)]`}
+          ></div>
         )}
-        {/* <div className={`clear_overlay_absolute fade02 pointer-events-none z-20 rounded-[8px] bg-[#00000033]`}></div> */}
+        {/* ローディングオーバーレイ */}
         {loading && (
           <div className={`${styles.loading_overlay} `}>
             <SpinnerIDS scale={"scale-[0.5]"} />
@@ -1779,12 +1729,42 @@ const IncreaseAccountCountsModalMemo = () => {
           className={`flex-center group absolute right-[-40px] top-[52px] z-10 h-[32px] w-[32px] rounded-full bg-[#00000070] hover:bg-[#000000c0]`}
           onClick={() => setIsOpenCheckInvoiceStripeLocalModal(!isOpenCheckInvoiceStripeLocalModal)}
         >
-          {!isOpenCheckInvoiceStripeLocalModal && <FaChevronRight className="text-[16px] text-[#fff]" />}
-          {isOpenCheckInvoiceStripeLocalModal && <FaChevronLeft className="text-[16px] text-[#fff]" />}
+          {isOpenCheckInvoiceStripeLocalModal && <FaChevronRight className="text-[16px] text-[#fff]" />}
+          {!isOpenCheckInvoiceStripeLocalModal && <FaChevronLeft className="text-[16px] text-[#fff]" />}
         </button>
         {/* メインコンテンツ コンテナ */}
         <div className={`${styles.main_contents_container}`}>
-          {!isOpenCheckInvoiceStripeLocalModal && <CheckInvoiceStripeLocalModal />}
+          {/* チェック不合格時の最終確認モーダル */}
+          <LastConfirmation />
+          {/* 右側の料金チェックエリア */}
+          {isOpenCheckInvoiceStripeLocalModal && (
+            <CheckInvoiceStripeLocalModal
+              additionalCostState={additionalCostState}
+              currentPeriodState={currentPeriodState}
+              newDailyRateWithThreeDecimalPoints={newDailyRateWithThreeDecimalPoints}
+              newUsageAmountForRemainingPeriodWithThreeDecimalPoints={
+                newUsageAmountForRemainingPeriodWithThreeDecimalPoints
+              }
+              nextInvoiceAmountState={nextInvoiceAmountState}
+              oldDailyRateWithThreeDecimalPoints={oldDailyRateWithThreeDecimalPoints}
+              oldUnusedAmountForRemainingPeriodWithThreeDecimalPoints={
+                oldUnusedAmountForRemainingPeriodWithThreeDecimalPoints
+              }
+              remainingDaysState={remainingDaysState}
+              stripeAdditionalCostState={stripeAdditionalCostState}
+              stripeNewDailyRateWithThreeDecimalPoints={stripeNewDailyRateWithThreeDecimalPoints}
+              stripeNewUsageAmountForRemainingPeriodWithThreeDecimalPoints={
+                stripeNewUsageAmountForRemainingPeriodWithThreeDecimalPoints
+              }
+              stripeNextInvoiceAmountState={stripeNextInvoiceAmountState}
+              stripeOldDailyRateWithThreeDecimalPoints={stripeOldDailyRateWithThreeDecimalPoints}
+              stripeOldUnusedAmountForRemainingPeriodWithThreeDecimalPoints={
+                stripeOldUnusedAmountForRemainingPeriodWithThreeDecimalPoints
+              }
+              subscription_plan={userProfileState?.subscription_plan}
+              totalAccountQuantity={totalAccountQuantity}
+            />
+          )}
           <div className={`${styles.left_container} relative h-full w-5/12`}>
             <div className="relative w-full overflow-y-auto px-[40px] pb-[calc(116px+20px)] pt-[40px]">
               {/* <div className={`flex-center h-[40px] w-full`}>
@@ -1991,8 +1971,7 @@ const IncreaseAccountCountsModalMemo = () => {
                       >
                         <BsChevronDown />
                         <span>￥{todaysPayment}</span>
-                        {/* {hoveredTodaysPayment && <TodaysPaymentDetailComponent />} */}
-                        {todaysPayment !== 0 && hoveredTodaysPayment && <TodaysPaymentDetailComponent />}
+                        {hoveredTodaysPayment && <TodaysPaymentDetailComponent />}
                         {/* <TodaysPaymentDetailComponent /> */}
                       </div>
                     )}
@@ -2023,12 +2002,13 @@ const IncreaseAccountCountsModalMemo = () => {
                 }`}
                 disabled={!userProfileState || !userProfileState.subscription_plan}
                 // onClick={handleChangeQuantity}
-                // onClick={handleCheckInvoiceStripeAndLocalCalculate}
-                onClick={handleCheckStripeInvoiceAndLocal}
+                onClick={handleCheckInvoiceStripeAndLocalCalculate}
               >
                 {/* {!loading && <span>変更の確定</span>} */}
-                {!loading && <span>料金チェック</span>}
-                {loading && <SpinnerIDS scale={"scale-[0.4]"} />}
+                {!isLoadingCalculation && <span>料金チェック</span>}
+                {isLoadingCalculation && <SpinnerIDS scale={"scale-[0.4]"} />}
+                {/* {!loading && <span>料金チェック</span>}
+                {loading && <SpinnerIDS scale={"scale-[0.4]"} />} */}
               </button>
               <div className="flex w-full flex-col  text-[13px] text-[var(--color-text-sub)]">
                 <p>
