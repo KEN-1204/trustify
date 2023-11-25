@@ -388,7 +388,8 @@ const CompanyMainContainerMemo: FC = () => {
       >
         {/* ------------------------- 左コンテナ ------------------------- */}
         <div
-          className={`${styles.left_container} h-full min-w-[calc(50vw-var(--sidebar-mini-width))] pb-[35px] pt-[10px]`}
+          className={`${styles.left_container} h-full pb-[35px] pt-[10px]`}
+          // className={`${styles.left_container} h-full min-w-[calc(50vw-var(--sidebar-mini-width))] pb-[35px] pt-[10px]`}
         >
           {/* --------- ラッパー --------- */}
           <div className={`${styles.left_contents_wrapper} flex h-full w-full flex-col`}>

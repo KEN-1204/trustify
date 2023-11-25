@@ -4,7 +4,6 @@ import useRootStore from "@/store/useRootStore";
 import useThemeStore from "@/store/useThemeStore";
 import { MeetingTabHeader } from "./MeetingTabHeader/MeetingTabHeader";
 import { MeetingFunctionHeader } from "./MeetingFunctionHeader/MeetingFunctionHeader";
-import { MeetingMainContainer } from "./MeetingMainContainer/MeetingMainContainer";
 import useDashboardStore from "@/store/useDashboardStore";
 import { MeetingMainContainerOneThird } from "./MeetingMainContainer/MeetingMainContainerOneThird";
 

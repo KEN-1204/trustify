@@ -203,16 +203,23 @@ export const Modal: FC = () => {
             muted={true}
             playsInline={true}
             loop={true}
+            // className={`h-[100%] w-[100%] object-cover opacity-90`}
             className={`fade05-op09 h-[100%] w-[100%] object-cover opacity-90`}
             onContextMenu={(e) => e.preventDefault()}
           >
-            <source src="/assets/videos/Root/top-bg-virtual-compressed.mp4" type="video/mp4" />
+            {/* <source src="/assets/videos/Root/top-bg-virtual-trimmed.mp4" type="video/mp4" /> */}
+            {/* <source src="/assets/videos/Root/virtual_resized_compressed.mp4" type="video/mp4" /> */}
+            <source src="/assets/videos/Root/star_bg2_trimmed.mp4" type="video/mp4" />
           </video>
+          {/* 暗くするオーバーレイ */}
+          {/* <div className="absolute inset-0 z-[1] bg-[#00000010]"></div> */}
+          {/* シャドウグラデーション */}
+          <div className="shadow-gradient-tb-xs pointer-events-none absolute inset-0 z-[1] h-full w-full select-none"></div>
         </div>
         {/* バーチャルビデオ背景 ここまで */}
       </div>
       {/* モーダル */}
-      <div className={`${styles.modal_container} transition-base`}>
+      <div className={`${styles.modal_container} transition-base fade05`}>
         <div className="mb-[12px] flex h-[38px] w-full items-center justify-end pr-3">
           <button onClick={() => setIsOpenModal(false)} className="cursor-pointer">
             <MdClose className="fill-[#777] text-[24px]" />

@@ -206,6 +206,7 @@ const DecreaseAccountCountsModalMemo = () => {
         userProfileId: userProfileState.id,
         alreadyHaveSchedule: alreadyHaveSchedule, // decrease用の削除リクエストスケジュールがあるかどうか用
         deleteAccountRequestSchedule: deleteAccountRequestSchedule, // decrease用の削除リクエストスケジュール用
+        prorationDateForIncrease: null, // increase用比例配分UNIXタイムスタンプ nullをセット
       };
       console.log(
         "🌟Stripeアカウント数量減らすステップ0-3 axios.post()でAPIルートchange-quantityへリクエスト 引数のpayload",

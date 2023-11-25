@@ -352,7 +352,7 @@ const About = () => {
             <div className="flex-center h-[30px] w-[30px] rounded-full">
               <AiOutlineArrowLeft className="text-[20px]" />
             </div>
-            <div className="flex-center ml-[10px] h-[30px] font-bold ">
+            <div className="flex-center pointer-events-none ml-[10px] h-[30px] font-bold">
               {language === "ja" && `戻る`}
               {language === "en" && `Back`}
             </div>

@@ -373,7 +373,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* お知らせ確認モーダル light */
   --color-bg-notification-modal: #fff;
   --color-overlay: #00000070;
-  --color-overlay33: #00000033;
+  --color-overlay-light: #00000033;
   --color-overlay-black-md: #00000099;
 
   --color-wrap-border: rgba(220, 220, 220, 0.6);
@@ -777,6 +777,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --overlay-modal-bg: #ffffff60;
   /* ツールチップ */
   --color-tooltip-arrow: #282828;
+  --color-tooltip-dark: #333;
+  --color-tooltip-light: #424242;
 
   /* HP セクションタイトル light */
   --section-title-hp: -webkit-linear-gradient(135deg, #37352f, #333, #bbb, #333, #37352f);
@@ -933,8 +935,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* お知らせ確認モーダル dark */
   --color-bg-notification-modal: #222;
   --color-overlay: #ffffff10;
-  --color-overlay33: #ffffff33;
-  --color-overlay-black-md: #00000099;
+  --color-overlay-light: #ffffff10;
+  --color-overlay-black-md: #05050599;
 
   /* テーブルカラー dark */
   --color-bg-table-header: #252525;
@@ -1259,6 +1261,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
 
   /* ツールチップ dark */
   --color-tooltip-arrow: #333;
+  --color-tooltip-dark: #282828;
+  --color-tooltip-light: #333;
 
   /* HP セクションタイトル light */
 
@@ -1675,6 +1679,30 @@ textarea {
   );
 }
 
+.shadow-gradient-tb-2xs {
+  background: linear-gradient(
+    to bottom,
+    rgba(20, 20, 20, 0.2) 0,
+    rgba(20, 20, 20, 0.1) 15%,
+    rgba(20, 20, 20, 0.05) 35%,
+    rgba(20, 20, 20, 0) 50%,
+    rgba(20, 20, 20, 0.05) 65%,
+    rgba(20, 20, 20, 0.1) 85%,
+    rgba(20, 20, 20, 0.2) 100%
+  );
+}
+.shadow-gradient-tb-xs {
+  background: linear-gradient(
+    to bottom,
+    rgba(20, 20, 20, 0.4) 0,
+    rgba(20, 20, 20, 0.2) 15%,
+    rgba(20, 20, 20, 0.1) 35%,
+    rgba(20, 20, 20, 0) 50%,
+    rgba(20, 20, 20, 0.1) 65%,
+    rgba(20, 20, 20, 0.2) 85%,
+    rgba(20, 20, 20, 0.4) 100%
+  );
+}
 .shadow-gradient-tb-sm {
   background: linear-gradient(
     to bottom,
@@ -2050,7 +2078,7 @@ textarea {
 .theme_icon_bg {
   width: 35px;
   height: 35px;
-  overflow: hidden;
+  /* overflow: hidden; */
   background-image: var(--color-bg-btn-brand-gradient);
   /* border: 1px solid var(--color-bg-brand-f); */
   border: 1px solid var(--theme-icon-border);

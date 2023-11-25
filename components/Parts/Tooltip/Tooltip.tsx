@@ -44,7 +44,7 @@ export const Tooltip = () => {
   if (hoveredItemDisplay === "top") {
     return (
       <div
-        className={`${styles.tooltip_over} ${hoveredItemPos ? `block ${styles.fade}` : "transition-base hidden"}`}
+        className={`${styles.tooltip_area} ${hoveredItemPos ? `block ${styles.fade}` : "transition-base hidden"}`}
         style={{
           position: "absolute",
           zIndex: 100,
@@ -53,25 +53,51 @@ export const Tooltip = () => {
         }}
         ref={menuRef}
       >
-        <div
-          className={`flex-col-center ${styles.dropdown_item}`}
-          onClick={() => {
-            setHoveredItemPos(null);
-          }}
-        >
-          <span>{hoveredItemPos?.content}</span>
-          <span>{hoveredItemPos?.content2}</span>
-          {hoveredItemPos?.content3 && <span>{hoveredItemPos?.content3}</span>}
+        <div className={`${styles.tooltip_over}`}>
+          <div
+            className={`flex-col-center ${styles.dropdown_item}`}
+            onClick={() => {
+              setHoveredItemPos(null);
+            }}
+          >
+            <span>{hoveredItemPos?.content}</span>
+            <span>{hoveredItemPos?.content2}</span>
+            {hoveredItemPos?.content3 && <span>{hoveredItemPos?.content3}</span>}
+          </div>
         </div>
+        <div className={`${styles.tooltip_arrow_over}`}></div>
       </div>
     );
+    // return (
+    //   <div
+    //     className={`${styles.tooltip_over} ${hoveredItemPos ? `block ${styles.fade}` : "transition-base hidden"}`}
+    //     style={{
+    //       position: "absolute",
+    //       zIndex: 100,
+    //       left: `${`${hoveredItemPositionX + hoveredItemHalfWidth}px`}`,
+    //       top: `${`${hoveredItemPositionY - hoveredItemHeight - 8}px`}`,
+    //     }}
+    //     ref={menuRef}
+    //   >
+    //     <div
+    //       className={`flex-col-center ${styles.dropdown_item}`}
+    //       onClick={() => {
+    //         setHoveredItemPos(null);
+    //       }}
+    //     >
+    //       <span>{hoveredItemPos?.content}</span>
+    //       <span>{hoveredItemPos?.content2}</span>
+    //       {hoveredItemPos?.content3 && <span>{hoveredItemPos?.content3}</span>}
+    //     </div>
+    //   </div>
+    // );
   }
 
   // 左寄りのアイテムに対して右に表示するツールチップ
   if (hoveredItemDisplay === "left") {
     return (
       <div
-        className={`${styles.tooltip_left}  ${hoveredItemPos ? `block ${styles.fade}` : "transition-base hidden"}`}
+        className={`${styles.tooltip_area}  ${hoveredItemPos ? `block ${styles.fade}` : "transition-base hidden"}`}
         style={{
           position: "absolute",
           zIndex: 100,
@@ -80,16 +106,40 @@ export const Tooltip = () => {
         }}
         ref={menuRef}
       >
-        <div
-          className={`flex-center ${styles.dropdown_item}`}
-          onClick={() => {
-            setHoveredItemPos(null);
-          }}
-        >
-          {hoveredItemPos?.content}
+        <div className={`${styles.tooltip_left}`}>
+          <div
+            className={`flex-center ${styles.dropdown_item}`}
+            onClick={() => {
+              setHoveredItemPos(null);
+            }}
+          >
+            {hoveredItemPos?.content}
+          </div>
         </div>
+        <div className={`${styles.tooltip_arrow_left}`}></div>
       </div>
     );
+    // return (
+    //   <div
+    //     className={`${styles.tooltip_left}  ${hoveredItemPos ? `block ${styles.fade}` : "transition-base hidden"}`}
+    //     style={{
+    //       position: "absolute",
+    //       zIndex: 100,
+    //       left: `${`${hoveredItemPositionX}px`}`,
+    //       top: `${`${hoveredItemPositionY + hoveredItemHeight + 10}px`}`,
+    //     }}
+    //     ref={menuRef}
+    //   >
+    //     <div
+    //       className={`flex-center ${styles.dropdown_item}`}
+    //       onClick={() => {
+    //         setHoveredItemPos(null);
+    //       }}
+    //     >
+    //       {hoveredItemPos?.content}
+    //     </div>
+    //   </div>
+    // );
   }
   // 右寄りのアイテムに対して左に表示するツールチップ 12はfont-size * 文字数 + padding10 * 2左右
   if (hoveredItemDisplay === "right") {

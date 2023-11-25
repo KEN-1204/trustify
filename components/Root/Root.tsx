@@ -51,10 +51,29 @@ export const Root: FC = () => {
   const lightTextBorderLine = useStore((state) => state.lightTextBorderLine);
   const setLightTextBorderLine = useStore((state) => state.setLightTextBorderLine);
   // ✅スナップスクロールありの場合
-
   // 言語ドロップダウンメニュー
   const clickedItemPos = useStore((state) => state.clickedItemPos);
   const clickedItemPosOver = useStore((state) => state.clickedItemPosOver);
+  // 動画の遅延読み込み
+  const heroBgVideoRef1 = useRef<HTMLVideoElement | null>(null);
+  const featureBgVideoRef1 = useRef<HTMLVideoElement | null>(null);
+  const featureBgVideoRef2 = useRef<HTMLVideoElement | null>(null);
+  const featureBgVideoRef3 = useRef<HTMLVideoElement | null>(null);
+  const featureBgVideoRef4 = useRef<HTMLVideoElement | null>(null);
+  const featureContentVideoRef1 = useRef<HTMLVideoElement | null>(null);
+  const featureContentVideoRef2 = useRef<HTMLVideoElement | null>(null);
+
+  // 動画の遅延読み込み
+  useEffect(() => {
+    // ページが完全にロードされた後に動画の読み込みを開始
+    console.log("ページロード完了✅ 動画読み込み開始");
+    if (featureBgVideoRef1.current) featureBgVideoRef1.current.load();
+    if (featureBgVideoRef2.current) featureBgVideoRef2.current.load();
+    if (featureBgVideoRef3.current) featureBgVideoRef3.current.load();
+    if (featureBgVideoRef4.current) featureBgVideoRef4.current.load();
+    if (featureContentVideoRef1.current) featureContentVideoRef1.current.load();
+    if (featureContentVideoRef2.current) featureContentVideoRef2.current.load();
+  }, []);
 
   // ============ 🌟ヘッダー 下スクロール時に非表示、上スクロール時に表示 スナップスクロールあり ============
   const setIsHeaderShown = useStore((state) => state.setIsHeaderShown);
@@ -247,10 +266,12 @@ export const Root: FC = () => {
       >
         <div className="absolute left-0 top-0 -z-[0] h-[100dvh] w-[100dvw] overflow-hidden">
           <video
+            ref={heroBgVideoRef1}
             autoPlay={true}
             muted={true}
             playsInline={true}
             loop={true}
+            // preload="none"
             controlsList="nodownload"
             className={`h-[100%] w-[100%] scale-[1.02] object-cover`}
             onContextMenu={(e) => e.preventDefault()}
@@ -399,29 +420,35 @@ export const Root: FC = () => {
           }`}
         >
           <video
+            ref={featureBgVideoRef1}
             autoPlay={true}
             muted={true}
             playsInline={true}
             loop={true}
+            preload="none"
             className={`pointer-events-none h-[100%] w-[100%] select-none object-cover`}
             onContextMenu={(e) => e.preventDefault()}
           >
-            {/* <source src="/assets/videos/Root/top-bg-virtual.mp4" type="video/mp4" /> */}
-            <source src="/assets/videos/Root/top-bg-virtual-compressed.mp4" type="video/mp4" />
+            {/* <source src="/assets/videos/Root/top-bg-virtual-trimmed.mp4" type="video/mp4" /> */}
+            <source src="/assets/videos/Root/virtual_resized_compressed.mp4" type="video/mp4" />
+            {/* <source src="/assets/videos/Root/art_white1_compressed.mp4" type="video/mp4" /> */}
+            {/* <source src="/assets/videos/Root/light_bg_trimmed2_compressed.mp4" type="video/mp4" /> */}
+            {/* <source src="/assets/videos/Root/nature_snow_compressed_trimmed.mp4" type="video/mp4" /> */}
+            {/* <source src="/assets/videos/Root/starlight_trimmed.mp4" type="video/mp4" /> */}
           </video>
         </div>
         {/* バーチャルビデオ背景1 ここまで */}
         <div className={`${styles.text_col}`}>
           <h2
             className={`${styles.section_title} ${hoveredFeature1 ? `${styles.section_title_brand}` : ``} `}
-            onMouseEnter={() => {
-              FeatureDivRef1.current?.classList.add(`${styles.hover}`);
-              setHoveredFeature1(true);
-            }}
-            onMouseLeave={() => {
-              FeatureDivRef1.current?.classList.remove(`${styles.hover}`);
-              setHoveredFeature1(false);
-            }}
+            // onMouseEnter={() => {
+            //   FeatureDivRef1.current?.classList.add(`${styles.hover}`);
+            //   setHoveredFeature1(true);
+            // }}
+            // onMouseLeave={() => {
+            //   FeatureDivRef1.current?.classList.remove(`${styles.hover}`);
+            //   setHoveredFeature1(false);
+            // }}
           >
             {/* {language === "ja" && "最小の資本と人で、最大の経済効果を上げる"} */}
             {/* {language === "ja" && "営業を科学する"} */}
@@ -465,10 +492,12 @@ export const Root: FC = () => {
                 onContextMenu={(e) => e.preventDefault()}
               />
               <video
+                ref={featureContentVideoRef1}
                 autoPlay={true}
                 loop={true}
                 playsInline={true}
                 muted={true}
+                preload="none"
                 onContextMenu={(e) => e.preventDefault()}
               >
                 <source src="/assets/videos/dash-company-feature01.mp4" type="video/mp4" />
@@ -518,16 +547,26 @@ export const Root: FC = () => {
           }`}
         >
           <video
+            ref={featureBgVideoRef2}
             autoPlay={true}
             muted={true}
             playsInline={true}
             loop={true}
+            preload="none"
             className={`h-[100%] w-[100%] object-cover`}
             onContextMenu={(e) => e.preventDefault()}
           >
-            {/* <source src="/assets/videos/geographic-bg.mp4" type="video/mp4" /> */}
-            <source src="/assets/videos/geographic-compressed.mp4" type="video/mp4" />
+            {/* <source src="/assets/videos/geographic-compressed.mp4" type="video/mp4" /> */}
+            {/* <source src="/assets/videos/Root/art_white1_compressed.mp4" type="video/mp4" /> */}
+            {/* <source src="/assets/videos/Root/light_bg_trimmed2_compressed.mp4" type="video/mp4" /> */}
+            {/* <source src="/assets/videos/Root/nature_snow_compressed_trimmed.mp4" type="video/mp4" /> */}
+            <source src="/assets/videos/Root/starlight_trimmed.mp4" type="video/mp4" />
+            {/* <source src="/assets/videos/Root/star_bg2_trimmed.mp4" type="video/mp4" /> */}
           </video>
+          {/* 暗くするオーバーレイ */}
+          {/* <div className="absolute inset-0 z-[0] bg-[#00000030]"></div> */}
+          {/* シャドウグラデーション */}
+          {/* <div className="shadow-gradient-tb-2xs pointer-events-none absolute inset-0 z-[0] h-full w-full select-none"></div> */}
         </div>
         {/* バーチャルビデオ背景 ここまで */}
         <div className={`${styles.text_col}`}>
@@ -538,14 +577,14 @@ export const Root: FC = () => {
           </h2> */}
           <h2
             className={`${styles.section_title} ${hoveredFeature2 ? `${styles.section_title_brand}` : ``} `}
-            onMouseEnter={() => {
-              FeatureDivRef2.current?.classList.add(`${styles.hover}`);
-              setHoveredFeature2(true);
-            }}
-            onMouseLeave={() => {
-              FeatureDivRef2.current?.classList.remove(`${styles.hover}`);
-              setHoveredFeature2(false);
-            }}
+            // onMouseEnter={() => {
+            //   FeatureDivRef2.current?.classList.add(`${styles.hover}`);
+            //   setHoveredFeature2(true);
+            // }}
+            // onMouseLeave={() => {
+            //   FeatureDivRef2.current?.classList.remove(`${styles.hover}`);
+            //   setHoveredFeature2(false);
+            // }}
           >
             {language === "ja" && `"今" 売れる営業先がすぐ見つかる`}
             {language === "en" && "Find 'current' sales prospects immediately"}
@@ -591,10 +630,12 @@ export const Root: FC = () => {
                 onContextMenu={(e) => e.preventDefault()}
               />
               <video
+                ref={featureContentVideoRef2}
                 autoPlay={true}
                 loop={true}
                 playsInline={true}
                 muted={true}
+                preload="none"
                 onContextMenu={(e) => e.preventDefault()}
               >
                 <source src="/assets/videos/trustify-company-movie2-up.mp4" type="video/mp4" />
@@ -641,15 +682,28 @@ export const Root: FC = () => {
           }`}
         >
           <video
+            ref={featureBgVideoRef3}
             autoPlay={true}
             muted={true}
             playsInline={true}
             loop={true}
+            preload="none"
             className={`h-[100%] w-[100%] object-cover`}
             onContextMenu={(e) => e.preventDefault()}
           >
-            <source src="/assets/videos/Root/top-bg-virtual-compressed.mp4" type="video/mp4" />
+            {/* <source src="/assets/videos/Root/top-bg-virtual-trimmed.mp4" type="video/mp4" /> */}
+            {/* <source src="/assets/videos/Root/virtual_resized_compressed.mp4" type="video/mp4" /> */}
+            <source src="/assets/videos/Root/art_white1_compressed.mp4" type="video/mp4" />
+            {/* <source src="/assets/videos/Root/light_bg_trimmed2_compressed.mp4" type="video/mp4" /> */}
+            {/* <source src="/assets/videos/Root/star_bg2_trimmed.mp4" type="video/mp4" /> */}
+            {/* <source src="/assets/videos/Root/nature_snow_compressed_trimmed.mp4" type="video/mp4" /> */}
+            {/* <source src="/assets/videos/Root/starlight_trimmed.mp4" type="video/mp4" /> */}
+            {/* <source src="/assets/videos/Root/star_bg2_trimmed.mp4" type="video/mp4" /> */}
           </video>
+          {/* 暗くするオーバーレイ */}
+          {/* <div className="absolute inset-0 z-[0] bg-[#00000030]"></div> */}
+          {/* シャドウグラデーション */}
+          {/* <div className="shadow-gradient-tb-sm pointer-events-none absolute inset-0 z-[0] h-full w-full select-none"></div> */}
         </div>
         {/* バーチャルビデオ背景 ここまで */}
         <div className={`${styles.text_col}`}>
@@ -660,14 +714,14 @@ export const Root: FC = () => {
           </h2> */}
           <h2
             className={`${styles.section_title} ${hoveredFeature3 ? `${styles.section_title_brand}` : ``} `}
-            onMouseEnter={() => {
-              FeatureDivRef3.current?.classList.add(`${styles.hover}`);
-              setHoveredFeature3(true);
-            }}
-            onMouseLeave={() => {
-              FeatureDivRef3.current?.classList.remove(`${styles.hover}`);
-              setHoveredFeature3(false);
-            }}
+            // onMouseEnter={() => {
+            //   FeatureDivRef3.current?.classList.add(`${styles.hover}`);
+            //   setHoveredFeature3(true);
+            // }}
+            // onMouseLeave={() => {
+            //   FeatureDivRef3.current?.classList.remove(`${styles.hover}`);
+            //   setHoveredFeature3(false);
+            // }}
             // style={{ whiteSpace: "pre-line" }}
           >
             {language === "ja" && "リスト作成時間を大幅に短縮し工数削減"}
@@ -757,15 +811,23 @@ export const Root: FC = () => {
           }`}
         >
           <video
+            ref={featureBgVideoRef4}
             autoPlay={true}
             muted={true}
             playsInline={true}
             loop={true}
+            preload="none"
             className={`h-[100%] w-[100%] object-cover`}
             onContextMenu={(e) => e.preventDefault()}
           >
-            <source src="/assets/videos/geographic-compressed.mp4" type="video/mp4" />
+            {/* <source src="/assets/videos/geographic-compressed.mp4" type="video/mp4" /> */}
+            {/* <source src="/assets/videos/Root/art_white1_compressed.mp4" type="video/mp4" /> */}
+            <source src="/assets/videos/Root/nature_snow_compressed_trimmed.mp4" type="video/mp4" />
+            {/* <source src="/assets/videos/Root/light_bg_trimmed2_compressed.mp4" type="video/mp4" /> */}
+            {/* <source src="/assets/videos/Root/starlight_trimmed.mp4" type="video/mp4" /> */}
           </video>
+          {/* シャドウグラデーション */}
+          {/* <div className="shadow-gradient-tb-sm pointer-events-none absolute inset-0 z-[0] h-full w-full select-none"></div> */}
         </div>
         {/* バーチャルビデオ背景 ここまで */}
         <div className={`${styles.text_col}`}>
@@ -773,14 +835,14 @@ export const Root: FC = () => {
             className={`${styles.section_title} ${language === "en" ? "break-words !text-[40px]" : ""} ${
               hoveredFeature4 ? `${styles.section_title_brand}` : ``
             }`}
-            onMouseEnter={() => {
-              FeatureDivRef4.current?.classList.add(`${styles.hover}`);
-              setHoveredFeature4(true);
-            }}
-            onMouseLeave={() => {
-              FeatureDivRef4.current?.classList.remove(`${styles.hover}`);
-              setHoveredFeature4(false);
-            }}
+            // onMouseEnter={() => {
+            //   FeatureDivRef4.current?.classList.add(`${styles.hover}`);
+            //   setHoveredFeature4(true);
+            // }}
+            // onMouseLeave={() => {
+            //   FeatureDivRef4.current?.classList.remove(`${styles.hover}`);
+            //   setHoveredFeature4(false);
+            // }}
           >
             {language === "ja" && "顧客に刺さる商品開発へ"}
             {language === "en" && "Towards Product Development that Resonates with Customers"}

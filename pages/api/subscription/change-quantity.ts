@@ -51,6 +51,7 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
       userProfileId,
       alreadyHaveSchedule,
       deleteAccountRequestSchedule,
+      prorationDateForIncrease,
     } = req.body;
 
     console.log(
@@ -62,6 +63,11 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
     console.log("✅changeType", changeType);
     console.log("✅削除リクエストスケジュールが既にあるかどうか", alreadyHaveSchedule);
     console.log("✅削除リクエストスケジュール", deleteAccountRequestSchedule);
+    console.log(
+      "✅increase用比例配分UNIXタイムスタンプと日付",
+      prorationDateForIncrease,
+      format(new Date(prorationDateForIncrease * 1000), "yyyy年MM月dd日 HH時mm分ss秒")
+    );
 
     // Ensure stripeCustomerId is a string stripeCustomerIdが文字列であることを確認する。
     if (typeof stripeCustomerId !== "string") {
@@ -93,6 +99,7 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
     const currentPeriodStart = subscriptions.data[0].current_period_start;
     // 次の請求日を取得
     const nextInvoiceTimestamp = subscriptions.data[0].current_period_end;
+    const currentPeriodEnd = subscriptions.data[0].current_period_end;
     // ユーザーが現在契約しているサブスクリップションアイテムのidを取得
     const subscriptionItemId = subscriptions.data[0].items.data[0].id;
     // ユーザーが現在契約しているサブスクリップションの価格idを取得
@@ -108,8 +115,13 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
     console.log("💡サブスクアイテムID", subscriptionItemId);
     console.log("💡現在契約中の価格ID", subscriptionCurrentPriceId);
     console.log("💡現在契約中の数量", subscriptionCurrentQuantity);
-    console.log("💡現在のプランの開始日", new Date(currentPeriodStart));
-    console.log("💡現在のプランの終了日", new Date(nextInvoiceTimestamp));
+    console.log("💡現在のプランの開始日", new Date(currentPeriodStart * 1000)),
+      format(new Date(currentPeriodStart * 1000), "yyyy年MM月dd日 HH時mm分ss秒");
+    console.log(
+      "💡現在のプランの終了日",
+      new Date(currentPeriodEnd * 1000),
+      format(new Date(currentPeriodEnd * 1000), "yyyy年MM月dd日 HH時mm分ss秒")
+    );
     // console.log("✅スケジュールID", scheduleId);
 
     // =================== 比例配分なし 数量ダウンルート ===================
@@ -123,6 +135,16 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
     // ✅クレジットカード支払いになるから即時請求しても顧客が実際に請求されるのは１ヶ月遅れのクレカ引き落とし日の26日になるので、即時請求してOK
     // なので、数量を増やした時にすぐに追加のアカウント980円分を請求できれば、減らす時に次の月はそのままproration: noneでOK
     if (changeType === "increase") {
+      // stripe.invoice.retrieveUpcoming()で取得したインボイスのsubscription_proration_datのUNIXタイムスタンプがnumber型かチェック
+      if (typeof prorationDateForIncrease !== "number") {
+        console.log(
+          "❌Stripe数量変更ステップ5 数量アップルート prorationDateがnumberではないためここでレスポンス",
+          prorationDateForIncrease
+        );
+        res.status(400).json({ error: "Invalid prorationDateForIncrease" });
+        return;
+      }
+      console.log("🌟Stripe数量変更ステップ5 数量アップルート stripe.subscriptions.update()実行 数量を増やす");
       const subscription = await stripe.subscriptions.update(stripeSubscriptionId, {
         items: [
           {
@@ -133,15 +155,44 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
         // proration_behavior: "none",
         proration_behavior: "create_prorations",
         billing_cycle_anchor: "unchanged",
+        proration_date: prorationDateForIncrease,
       });
-      console.log("🌟Stripeステップ数量アップルート5 UPDATE完了 subscription", subscription);
+      console.log(
+        "🌟Stripe数量変更ステップ5 数量アップルート stripeのサブスクリプションオブジェクト更新完了 subscription",
+        subscription
+      );
+      console.log(
+        "💡Stripe数量変更ステップ5 数量アップルート UPDATE前 プランの開始日 current_period_start",
+        currentPeriodStart,
+        format(new Date(currentPeriodStart * 1000), "yyyy年MM月dd日 HH時mm分ss秒")
+      );
+      console.log(
+        "💡Stripe数量変更ステップ5 数量アップルート UPDATE前 プランの終了日 current_period_end",
+        currentPeriodEnd,
+        format(new Date(currentPeriodEnd * 1000), "yyyy年MM月dd日 HH時mm分ss秒")
+      );
+      console.log(
+        "💡Stripe数量変更ステップ5 数量アップルート UPDATE後 プランの開始日 current_period_start",
+        subscription.current_period_start,
+        format(new Date(subscription.current_period_start * 1000), "yyyy年MM月dd日 HH時mm分ss秒")
+      );
+      console.log(
+        "💡Stripe数量変更ステップ5 数量アップルート UPDATE後 プランの終了日 current_period_end",
+        subscription.current_period_end,
+        format(new Date(subscription.current_period_end * 1000), "yyyy年MM月dd日 HH時mm分ss秒")
+      );
+      console.log(
+        "💡Stripe数量変更ステップ5 数量アップルート UPDATE後 引数に渡した比例配分日 proration_date",
+        prorationDateForIncrease,
+        format(new Date(prorationDateForIncrease * 1000), "yyyy年MM月dd日 HH時mm分ss秒")
+      );
 
       const response = {
         subscriptionItem: subscription,
         error: null,
       };
 
-      console.log("🌟Stripeステップ数量アップルート6 APIルートへ返却");
+      console.log("✅Stripe数量変更ステップ6 数量アップルート 無事完了したため200でAPIルートへ返却");
 
       res.status(200).json(response);
     }

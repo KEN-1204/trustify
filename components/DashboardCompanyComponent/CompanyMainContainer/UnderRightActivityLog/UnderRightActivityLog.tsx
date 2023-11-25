@@ -181,10 +181,16 @@ const UnderRightActivityLogMemo: FC = () => {
     // マウント時に各フィールド分のカラムを生成 サイズはデフォルト値を65px, 100px, 3列目以降は250pxに設定 チェックボックスは無いため + 1は不要
     // const newColsWidths = new Array(Object.keys(data?.pages[0].rows[0] as object).length + 1).fill("90px");
     const newColsWidths = new Array(Object.keys(data?.pages[0].rows[0] as object).length).fill("90px");
-    // newColsWidths.fill("90px", 0, 1); // 1列目を65pxに変更
-    newColsWidths.fill("250px", 1, 2); // 2列目を100pxに変更
+    newColsWidths.fill("100px", 0, 1); // 1列目を65pxに変更
+    // newColsWidths.fill("250px", 1, 2); // 2列目を100pxに変更
+    // calc(100vw - var(--sidebar-width) - 20px - (50vw - var(--sidebar-mini-width)) - 10px - 2px)
+    newColsWidths.fill(
+      `${window.innerWidth - 72 - 20 - 20 - 4 - (window.innerWidth / 2 - 72 - 10 - 2) - 90 * 4 - 100}px`,
+      1,
+      2
+    ); // 2列目を100pxに変更
     newColsWidths.fill("90px", 2, 3); // 3列目を100pxに変更
-    newColsWidths.fill("80px", 3, 4); // 3列目を100pxに変更
+    newColsWidths.fill("90px", 3, 4); // 3列目を100pxに変更
     console.log("Stateにカラムwidthを保存", newColsWidths);
     // ['65px', '100px', '250px', '50px', '119px', '142px', '250px', '250px']
     // stateに現在の全てのカラムのwidthを保存
@@ -319,7 +325,7 @@ const UnderRightActivityLogMemo: FC = () => {
                     tabIndex={-1}
                     // aria-rowindex={virtualRow.index + 1} // ヘッダーの次からなのでindex0+2
                     aria-selected={false}
-                    className={`${styles.loading_reflection} flex-center mx-auto h-[25px] w-full text-center font-bold`}
+                    className={`${styles.loading_reflection} flex-center mx-auto h-[25px] w-full  text-center font-bold`}
                     // className={`${styles.loading_reflection} flex-center mx-auto h-[35px] w-full text-center font-bold`}
                   >
                     <span className={`${styles.reflection}`}></span>
