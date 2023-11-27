@@ -1900,17 +1900,63 @@ const IncreaseAccountCountsModalMemo = () => {
   // ====================== ✅増やした後の次回の請求金額 ここまで ======================
 
   // ====================== 🌟2回目以上アップグレード用未使用、残り使用分一覧コンポーネント ======================
-  const InvoiceItemListComponent = (invoiceItem: Stripe.InvoiceLineItem, planType: "new" | "old") => {
+  const InvoiceItemListComponent = (
+    key: string,
+    invoiceItem: Stripe.InvoiceLineItem,
+    anotherInvoiceQuantity: number,
+    planType: "new" | "old"
+  ) => {
+    console.log(
+      "props invoiceItem",
+      invoiceItem,
+      "anotherInvoiceQuantity",
+      anotherInvoiceQuantity,
+      "planType",
+      planType
+    );
     return (
-      <li className="flex items-center space-x-[8px]">
-        <span className="text-[16px] font-bold">・</span>
-        <span className="!ml-[4px]">新プランの価格</span>
-        <span>：</span>
-        <span className="font-bold">{/* {!!_newPlanAmount ? `${_newPlanAmount}円` : `-`} */}</span>
-        <span>=</span>
-        <span>{/* {!!_planFeePerAccount ? `${_planFeePerAccount}/月` : `-`} */}</span>
-        <span>×</span>
-        <span>{/* {!!_totalAccountQuantity ? `${_totalAccountQuantity}個` : `-`} */}</span>
+      <li
+        key={key}
+        className="transition-base02 flex min-h-[50px] w-full cursor-pointer border-b border-solid border-[var(--color-border-deep)] pt-[5px] hover:bg-[var(--color-bg-sub)]"
+      >
+        <div className="min-w-[110px] pl-[10px] text-[var(--color-text-brand-f)]">
+          {!!invoiceItem?.period?.start ? format(new Date(invoiceItem.period.start * 1000), "yyyy/MM/dd") : `-`}
+        </div>
+        <div className="min-w-[100px] pl-[10px] text-[var(--color-text-title)]">
+          {planType === "new" && (
+            <>
+              <span className="">{anotherInvoiceQuantity ?? `-`}個</span> →{" "}
+              <span className="">{invoiceItem?.quantity ?? `-`}個</span>
+            </>
+          )}
+          {planType === "old" && (
+            <>
+              <span className="">{invoiceItem?.quantity ?? `-`}個</span> →{" "}
+              <span className="">{anotherInvoiceQuantity ?? `-`}個</span>
+            </>
+          )}
+        </div>
+        <div className="min-w-[150px] max-w-[150px] pl-[10px] text-[var(--color-text-title)]">
+          <span className="">
+            {!!invoiceItem?.period?.start ? format(new Date(invoiceItem.period.start * 1000), "yyyy/MM/dd") : `-`}
+          </span>
+          から
+          <span className="">
+            {!!invoiceItem?.period?.end ? format(new Date(invoiceItem.period.end * 1000), "yyyy/MM/dd") : `-`}
+          </span>
+          まで
+        </div>
+        <div className="min-w-[100px] pl-[10px] text-[var(--color-text-title)]">
+          <span className="">{`${
+            !!invoiceItem?.plan?.amount ? formatToJapaneseYen(Math.round(invoiceItem.plan.amount), true) : `-`
+          }`}</span>
+        </div>
+        <div className="min-w-[80px] pl-[10px] text-[var(--color-text-title)]">
+          <span className="">{invoiceItem?.quantity ?? `-`}個</span>
+        </div>
+        <div className="w-full pl-[10px] text-[var(--color-text-title)]">{`${
+          !!invoiceItem?.amount ? formatToJapaneseYen(Math.round(invoiceItem.amount), false) : `-`
+        }円`}</div>
       </li>
     );
   };
@@ -1952,8 +1998,10 @@ const IncreaseAccountCountsModalMemo = () => {
           </div>
         )}
         {/* ハイライト ここまで */}
+
+        {/* モーダルエリア */}
         <div
-          className={`shadow-all-md-center absolute left-[50%] top-[0] z-[80] flex max-h-[51%] min-h-[50%] min-w-[100%] translate-x-[-50%] flex-col rounded-[8px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-edit-bg-solid)] px-[24px] py-[16px]`}
+          className={`shadow-all-md-center  absolute left-[50%] top-[0] z-[80] flex max-h-[51%] min-h-[50%] min-w-[100%] translate-x-[-50%] flex-col overflow-hidden rounded-[8px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-edit-bg-solid)] pt-[16px]`}
         >
           {/* クローズボタン */}
           {planType === "new" && (
@@ -1979,14 +2027,105 @@ const IncreaseAccountCountsModalMemo = () => {
             </button>
           )}
           {/* クローズボタン ここまで */}
-          <div className="flex w-full items-center">
+          {/* モーダルタイトルエリア */}
+          <div className="fade03 flex w-full flex-col justify-center space-y-[10px] px-[24px]">
             <h4 className="text-[16px] font-bold text-[var(--color-text-title)]">
               {planType === "new"
-                ? `新プランの残り期間使用分の日割り料金の詳細`
-                : `旧プランの未使用分の日割り料金の詳細`}
+                ? `新プランの期間残り使用分の日割り料金一覧`
+                : `旧プランの期間終了日までの未使用分の日割り料金一覧`}
             </h4>
+            <div className="flex w-full items-center space-x-[50px] text-[13px] font-normal text-[var(--color-text-title)]">
+              <div className="-[5px] flex min-w-fit items-center space-x-[5px]">
+                <span>変更回数(今月)</span>
+                <span>：</span>
+                <span className="underline underline-offset-2">{remainingUsageInvoiceItemArray.length}回</span>
+              </div>
+              <div className="flex min-w-fit items-center space-x-[5px]">
+                <span>日割り料金合計</span>
+                <span>：</span>
+                <span className="underline underline-offset-2">
+                  {!!newUsageAmountForRemainingPeriodWithThreeDecimalPoints
+                    ? `${formatToJapaneseYen(
+                        Math.round(newUsageAmountForRemainingPeriodWithThreeDecimalPoints),
+                        false
+                      )}円`
+                    : `-`}
+                </span>
+              </div>
+              <div className="!ml-[0px] flex w-full justify-end text-[var(--color-text-sub)]">
+                <span className="truncate">（クリックして個別に詳細を確認できます。）</span>
+              </div>
+            </div>
           </div>
-          <div className="fade03 mt-[12px] flex w-full flex-col space-y-[12px] text-[14px] font-normal"></div>
+          {/* モーダルコンテンツエリア */}
+          <div className="fade03 mt-[12px] flex w-full flex-col overflow-hidden bg-[#00000000] font-normal">
+            <div className="relative flex h-auto w-full flex-col overflow-y-scroll border-t border-solid border-[var(--color-border-deep)]">
+              <div className="z-1 sticky left-0 top-0 flex min-h-[40px] w-full items-center border-b border-solid border-[var(--color-border-deep)] bg-[var(--color-edit-bg-solid)] text-[13px]">
+                <div className="min-w-[110px] pl-[10px] text-[var(--color-text-sub)]">変更日</div>
+                <div className="min-w-[100px] pl-[10px] text-[var(--color-text-sub)]">変更内容</div>
+                <div className="min-w-[150px] max-w-[150px] pl-[10px] text-[var(--color-text-sub)]">
+                  サービス使用期間
+                </div>
+                <div className="min-w-[100px] max-w-[150px] pl-[10px] text-[var(--color-text-sub)]">プラン価格</div>
+                <div className="min-w-[80px] max-w-[150px] pl-[10px] text-[var(--color-text-sub)]">数量</div>
+                <div className="w-full pl-[10px] text-[var(--color-text-sub)]">日割り料金</div>
+              </div>
+              <ul className="flex h-auto w-full flex-col text-[12px]">
+                {planType === "new" &&
+                  remainingUsageInvoiceItemArray.map((item, index) => (
+                    <InvoiceItemListComponent
+                      key={item.id}
+                      invoiceItem={item}
+                      anotherInvoiceItem={unusedInvoiceItemArray[index].quantity}
+                      planType={planType}
+                    />
+                  ))}
+                {planType === "old" &&
+                  unusedInvoiceItemArray.map((item, index) => (
+                    <InvoiceItemListComponent
+                      key={item.id}
+                      invoiceItem={item}
+                      anotherInvoiceItem={remainingUsageInvoiceItemArray[index].quantity}
+                      planType={planType}
+                    />
+                  ))}
+                {/* <div className="transition-base02 flex min-h-[50px] w-full cursor-pointer border-b border-solid border-[var(--color-border-deep)] pt-[5px] hover:bg-[var(--color-bg-sub)]">
+                  <div className="min-w-[110px] pl-[10px] text-[var(--color-text-brand-f)]">
+                    {format(new Date(remainingUsageInvoiceItemArray[0].period.start * 1000), "yyyy/MM/dd")}
+                  </div>
+                  <div className="min-w-[100px] pl-[10px] text-[var(--color-text-title)]">
+                    <span className="">{unusedInvoiceItemArray[0].quantity}個</span> →{" "}
+                    <span className="">{remainingUsageInvoiceItemArray[0].quantity}個</span>
+                  </div>
+                  <div className="min-w-[150px] max-w-[150px] pl-[10px] text-[var(--color-text-title)]">
+                    <span className="">
+                      {format(new Date(remainingUsageInvoiceItemArray[0].period.start * 1000), "yyyy/MM/dd")}
+                    </span>
+                    から
+                    <span className="">
+                      {format(new Date(remainingUsageInvoiceItemArray[0].period.end * 1000), "yyyy/MM/dd")}
+                    </span>
+                    まで
+                  </div>
+                  <div className="min-w-[100px] pl-[10px] text-[var(--color-text-title)]">
+                    <span className="">{`${
+                      !!remainingUsageInvoiceItemArray[0].plan?.amount
+                        ? formatToJapaneseYen(Math.round(remainingUsageInvoiceItemArray[0].plan.amount), true)
+                        : `-`
+                    }`}</span>
+                  </div>
+                  <div className="min-w-[80px] pl-[10px] text-[var(--color-text-title)]">
+                    <span className="">{remainingUsageInvoiceItemArray[0].quantity}個</span>
+                  </div>
+                  <div className="w-full pl-[10px] text-[var(--color-text-title)]">{`${formatToJapaneseYen(
+                    Math.round(remainingUsageInvoiceItemArray[0].amount),
+                    false
+                  )}円`}</div>
+                </div> */}
+                {/* <div className="flex min-h-[50px] w-full items-center border-b border-solid border-[var(--color-border-deep)]"></div> */}
+              </ul>
+            </div>
+          </div>
         </div>
       </>
     );
@@ -2782,15 +2921,20 @@ const IncreaseAccountCountsModalMemo = () => {
                         }}
                         onMouseLeave={() => {
                           setIsOpenInvoiceDetail(false);
+
+                          // 新プランの残り使用分の比例配分料金計算モーダル
                           if (isOpenNewProrationDetail) {
-                            if (hoveredNewProration) setHoveredNewProration(false);
-                            setNewProrationItem(null);
+                            if (hoveredNewProration) setHoveredNewProration(false); // ツールチップ
+                            // 2回目以上のアップグレード用 今までの新プランの残り使用分の料金の詳細を個々に確認するモーダル
+                            setNewProrationItem(null); // InvoiceItem個別確認用のStateをリセット
                             if (isOpenRemainingUsageListModal) setIsOpenRemainingUsageListModal(false);
                             return setIsOpenNewProrationDetail(false);
                           }
+                          // 旧プランの未使用分の比例配分料金計算モーダル
                           if (isOpenOldProrationDetail) {
-                            if (hoveredOldProration) setHoveredOldProration(false);
-                            setOldProrationItem(null);
+                            if (hoveredOldProration) setHoveredOldProration(false); // ツールチップ
+                            // 2回目以上のアップグレード用 今までの旧プランの未使用分の料金の詳細を個々に確認するモーダル
+                            setOldProrationItem(null); // InvoiceItem個別確認用のStateをリセット
                             if (isOpenUnusedListModal) setIsOpenUnusedListModal(false);
                             return setIsOpenOldProrationDetail(false);
                           }
@@ -2804,8 +2948,8 @@ const IncreaseAccountCountsModalMemo = () => {
                             : `-`}
                           {/* {!!nextInvoice?.amount_due ? `${formatToJapaneseYen(nextInvoice.amount_due)}` : `-`} */}
                         </span>
-                        {isOpenInvoiceDetail && <NextPaymentDetailComponent />}
-                        {/* <NextPaymentDetailComponent /> */}
+                        {/* {isOpenInvoiceDetail && <NextPaymentDetailComponent />} */}
+                        <NextPaymentDetailComponent />
                       </div>
                     </div>
                   )}
