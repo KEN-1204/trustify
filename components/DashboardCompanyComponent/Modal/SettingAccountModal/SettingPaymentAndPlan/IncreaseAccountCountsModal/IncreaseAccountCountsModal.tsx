@@ -1,6 +1,6 @@
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 import useDashboardStore from "@/store/useDashboardStore";
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { FC, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./IncreaseAccountCountsModal.module.css";
 import { BsCheck2, BsChevronDown } from "react-icons/bs";
 import useStore from "@/store";
@@ -32,12 +32,15 @@ import { getPeriodInDays } from "@/utils/Helpers/getPeriodInDays";
 import { useQueryUpcomingInvoiceChangeQuantity } from "@/hooks/useQueryUpcomingInvoiceChangeQuantity";
 import { FallbackIncreaseAccountCountsModal } from "./FallbackIncreaseAccountCountsModal";
 import { CheckInvoiceStripeLocalModal } from "./CheckInvoiceStripeLocalModal";
+import { getProrationAmountAndDailyRate } from "@/utils/Helpers/getProrationAmountAndDailyRate";
 // import { ProrationDetails } from "./ProrationDetails";
 
 type NewProrationDetail = {
   _currentPeriod: number | null;
   _currentPeriodStart: number | null;
   _currentPeriodEnd: number | null;
+  _invoicePeriodStart: number | null;
+  _invoicePeriodEnd: number | null;
   _remainingDays: number | null;
   _planFeePerAccount: number | null;
   _newPlanAmount: number | null;
@@ -49,6 +52,8 @@ type OldProrationDetail = {
   _currentPeriod: number | null;
   _currentPeriodStart: number | null;
   _currentPeriodEnd: number | null;
+  _invoicePeriodStart: number | null;
+  _invoicePeriodEnd: number | null;
   _remainingDays: number | null;
   _planFeePerAccount: number | null;
   _oldPlanAmount: number | null;
@@ -1445,6 +1450,8 @@ const IncreaseAccountCountsModalMemo = () => {
               _currentPeriod={newProrationItem?._currentPeriod}
               _currentPeriodStart={newProrationItem?._currentPeriodStart}
               _currentPeriodEnd={newProrationItem?._currentPeriodStart}
+              _invoicePeriodStart={newProrationItem?._invoicePeriodStart}
+              _invoicePeriodEnd={newProrationItem?._invoicePeriodEnd}
               _remainingDays={newProrationItem?._remainingDays}
               _planFeePerAccount={newProrationItem?._planFeePerAccount}
               _newPlanAmount={newProrationItem?._newPlanAmount}
@@ -1461,12 +1468,14 @@ const IncreaseAccountCountsModalMemo = () => {
               _currentPeriod={oldProrationItem?._currentPeriod}
               _currentPeriodStart={oldProrationItem?._currentPeriodStart}
               _currentPeriodEnd={oldProrationItem?._currentPeriodEnd}
+              _invoicePeriodStart={oldProrationItem?._invoicePeriodStart}
+              _invoicePeriodEnd={oldProrationItem?._invoicePeriodEnd}
               _remainingDays={oldProrationItem?._remainingDays}
               _planFeePerAccount={oldProrationItem?._planFeePerAccount}
               _oldPlanAmount={oldProrationItem?._oldPlanAmount}
               _oldDailyRateWithThreeDecimalPoints={oldProrationItem?._oldDailyRateWithThreeDecimalPoints}
               _oldUnusedAmountForRemainingPeriodWithThreeDecimalPoints={
-                oldProrationItem?._oldDailyRateWithThreeDecimalPoints
+                oldProrationItem?._oldUnusedAmountForRemainingPeriodWithThreeDecimalPoints
               }
               _oldPlanAccountQuantity={oldProrationItem?._oldPlanAccountQuantity}
             />
@@ -1657,6 +1666,8 @@ const IncreaseAccountCountsModalMemo = () => {
                       _currentPeriod: currentPeriodState,
                       _currentPeriodStart: nextInvoice.period_start,
                       _currentPeriodEnd: nextInvoice.period_end,
+                      _invoicePeriodStart: nextInvoice.lines.data[1].period.start,
+                      _invoicePeriodEnd: nextInvoice.lines.data[1].period.end,
                       _remainingDays: remainingDaysState,
                       _planFeePerAccount: getPrice(userProfileState?.subscription_plan) ?? null,
                       _newPlanAmount:
@@ -1670,7 +1681,6 @@ const IncreaseAccountCountsModalMemo = () => {
                     };
                     setNewProrationItem(newDetailItem);
                     // ProrationDetailコンポーネントを開く
-                    setNewProrationItem(null);
                     setIsOpenNewProrationDetail(true);
                   } else {
                     // 🔹2回目以上アップデート
@@ -1755,6 +1765,8 @@ const IncreaseAccountCountsModalMemo = () => {
                       _currentPeriod: currentPeriodState,
                       _currentPeriodStart: nextInvoice.period_start,
                       _currentPeriodEnd: nextInvoice.period_end,
+                      _invoicePeriodStart: nextInvoice.lines.data[0].period.start,
+                      _invoicePeriodEnd: nextInvoice.lines.data[0].period.end,
                       _remainingDays: remainingDaysState,
                       _planFeePerAccount: getPrice(userProfileState?.subscription_plan) ?? null,
                       _oldPlanAmount:
@@ -1900,24 +1912,91 @@ const IncreaseAccountCountsModalMemo = () => {
   // ====================== ✅増やした後の次回の請求金額 ここまで ======================
 
   // ====================== 🌟2回目以上アップグレード用未使用、残り使用分一覧コンポーネント ======================
-  const InvoiceItemListComponent = (
-    key: string,
-    invoiceItem: Stripe.InvoiceLineItem,
-    anotherInvoiceQuantity: number,
-    planType: "new" | "old"
-  ) => {
-    console.log(
-      "props invoiceItem",
-      invoiceItem,
-      "anotherInvoiceQuantity",
-      anotherInvoiceQuantity,
-      "planType",
-      planType
-    );
+  type InvoiceProps = {
+    invoiceItem: Stripe.InvoiceLineItem;
+    anotherInvoiceQuantity: number | undefined | null;
+    planType: "new" | "old";
+  };
+  const InvoiceItemListComponent: FC<InvoiceProps> = ({ invoiceItem, anotherInvoiceQuantity, planType }) => {
+    if (!userProfileState) return null;
+    if (!userProfileState.subscription_plan) return null;
+    if (!currentPeriodState || !remainingDaysState) return null;
+    if (!invoiceItem) return null;
+    if (!nextInvoice) return null;
+
     return (
       <li
-        key={key}
-        className="transition-base02 flex min-h-[50px] w-full cursor-pointer border-b border-solid border-[var(--color-border-deep)] pt-[5px] hover:bg-[var(--color-bg-sub)]"
+        className="transition-base01 flex min-h-[50px] w-full cursor-pointer border-b border-solid border-[var(--color-border-deep)] pt-[5px] hover:bg-[var(--color-bg-sub)]"
+        onClick={() => {
+          if (planType === "new") {
+            if (!invoiceItem.quantity) return console.log("invoice.quantity無しのためリターン");
+            if (!invoiceItem.plan) return console.log("invoiceItem.plan無しのためリターン");
+            if (!invoiceItem.plan.amount) return console.log("invoiceItem.plan.amount無しのためリターン");
+            if (typeof invoiceItem.plan.amount !== "number")
+              return console.log("invoiceItem.plan.amount numberではないのためリターン", invoiceItem.plan.amount);
+            // クリックした新んプランのインボイスアイテムの日割り計算詳細モーダルを開く
+            const newProrationItem = {
+              planType: "new",
+              _currentPeriod: currentPeriodState,
+              _currentPeriodStart: nextInvoice.period_start,
+              _currentPeriodEnd: nextInvoice.period_end,
+              _invoicePeriodStart: invoiceItem.period.start,
+              _invoicePeriodEnd: invoiceItem.period.end,
+              _remainingDays: remainingDaysState,
+              _planFeePerAccount: invoiceItem.plan.amount,
+              _newPlanAmount: invoiceItem.plan.amount * invoiceItem.quantity,
+              _newDailyRateWithThreeDecimalPoints: getProrationAmountAndDailyRate(
+                currentPeriodState,
+                remainingDaysState,
+                invoiceItem.plan.amount,
+                invoiceItem.quantity
+              ).newDailyRateWithThreeDecimalPoints,
+              _newUsageAmountForRemainingPeriodWithThreeDecimalPoints: getProrationAmountAndDailyRate(
+                currentPeriodState,
+                remainingDaysState,
+                invoiceItem.plan.amount,
+                invoiceItem.quantity
+              ).amountForRemainingPeriodWithThreeDecimalPoints,
+              _totalAccountQuantity: invoiceItem.quantity,
+            };
+            console.log("クリック", newProrationItem);
+            setNewProrationItem(newProrationItem);
+            setIsOpenNewProrationDetail(true);
+          } else if (planType === "old") {
+            if (!invoiceItem.quantity) return;
+            if (!invoiceItem.plan) return;
+            if (!invoiceItem.plan.amount) return;
+            if (typeof invoiceItem.plan.amount !== "number") return;
+            // クリックした新んプランのインボイスアイテムの日割り計算詳細モーダルを開く
+            const oldProrationItem = {
+              planType: "old",
+              _currentPeriod: currentPeriodState,
+              _currentPeriodStart: nextInvoice.period_start,
+              _currentPeriodEnd: nextInvoice.period_end,
+              _invoicePeriodStart: invoiceItem.period.start,
+              _invoicePeriodEnd: invoiceItem.period.end,
+              _remainingDays: remainingDaysState,
+              _planFeePerAccount: invoiceItem.plan.amount,
+              _oldPlanAmount: invoiceItem.plan.amount * invoiceItem.quantity,
+              _oldDailyRateWithThreeDecimalPoints: getProrationAmountAndDailyRate(
+                currentPeriodState,
+                remainingDaysState,
+                invoiceItem.plan.amount,
+                invoiceItem.quantity
+              ).newDailyRateWithThreeDecimalPoints,
+              _oldUnusedAmountForRemainingPeriodWithThreeDecimalPoints: getProrationAmountAndDailyRate(
+                currentPeriodState,
+                remainingDaysState,
+                invoiceItem.plan.amount,
+                invoiceItem.quantity
+              ).amountForRemainingPeriodWithThreeDecimalPoints,
+              _oldPlanAccountQuantity: invoiceItem.quantity,
+            };
+            console.log("クリック", oldProrationItem);
+            setOldProrationItem(oldProrationItem);
+            setIsOpenOldProrationDetail(true);
+          }
+        }}
       >
         <div className="min-w-[110px] pl-[10px] text-[var(--color-text-brand-f)]">
           {!!invoiceItem?.period?.start ? format(new Date(invoiceItem.period.start * 1000), "yyyy/MM/dd") : `-`}
@@ -2076,7 +2155,7 @@ const IncreaseAccountCountsModalMemo = () => {
                     <InvoiceItemListComponent
                       key={item.id}
                       invoiceItem={item}
-                      anotherInvoiceItem={unusedInvoiceItemArray[index].quantity}
+                      anotherInvoiceQuantity={unusedInvoiceItemArray[index]?.quantity}
                       planType={planType}
                     />
                   ))}
@@ -2085,7 +2164,7 @@ const IncreaseAccountCountsModalMemo = () => {
                     <InvoiceItemListComponent
                       key={item.id}
                       invoiceItem={item}
-                      anotherInvoiceItem={remainingUsageInvoiceItemArray[index].quantity}
+                      anotherInvoiceQuantity={remainingUsageInvoiceItemArray[index]?.quantity}
                       planType={planType}
                     />
                   ))}
@@ -2138,6 +2217,8 @@ const IncreaseAccountCountsModalMemo = () => {
     _currentPeriodStart,
     _currentPeriodEnd,
     _currentPeriod,
+    _invoicePeriodStart,
+    _invoicePeriodEnd,
     _remainingDays,
     _newDailyRateWithThreeDecimalPoints,
     _oldDailyRateWithThreeDecimalPoints,
@@ -2153,6 +2234,8 @@ const IncreaseAccountCountsModalMemo = () => {
     _currentPeriodStart?: number | null;
     _currentPeriodEnd?: number | null;
     _currentPeriod?: number | null;
+    _invoicePeriodStart?: number | null;
+    _invoicePeriodEnd?: number | null;
     _remainingDays?: number | null;
     _newDailyRateWithThreeDecimalPoints?: number | null;
     _oldDailyRateWithThreeDecimalPoints?: number | null;
@@ -2237,11 +2320,36 @@ const IncreaseAccountCountsModalMemo = () => {
           )}
           {/* クローズボタン ここまで */}
           <div className="flex w-full items-center">
-            <h4 className="text-[16px] font-bold text-[var(--color-text-title)]">
-              {planType === "new"
-                ? `新プランの残り期間使用分の日割り料金の詳細`
-                : `旧プランの未使用分の日割り料金の詳細`}
-            </h4>
+            <div className="text-[16px] font-bold text-[var(--color-text-title)]">
+              {planType === "new" && !!_newUsageAmountForRemainingPeriodWithThreeDecimalPoints && (
+                <h4>
+                  新プランの残り期間使用分：
+                  <span className="text-[var(--color-text-brand-f)]">
+                    {formatToJapaneseYen(
+                      Math.round(_newUsageAmountForRemainingPeriodWithThreeDecimalPoints),
+                      false,
+                      false
+                    )}
+                    円
+                  </span>
+                  の日割り料金の詳細
+                </h4>
+              )}
+              {planType === "old" && !!_oldUnusedAmountForRemainingPeriodWithThreeDecimalPoints && (
+                <h4>
+                  旧プランの未使用分：
+                  <span className="text-[var(--bright-red)]">
+                    {formatToJapaneseYen(
+                      Math.round(_oldUnusedAmountForRemainingPeriodWithThreeDecimalPoints),
+                      false,
+                      false
+                    )}
+                    円
+                  </span>
+                  の日割り料金の詳細
+                </h4>
+              )}
+            </div>
           </div>
           <div className="fade03 mt-[12px] flex w-full flex-col space-y-[12px] text-[14px] font-normal">
             <p className="flex items-center space-x-[8px]">
@@ -2275,6 +2383,12 @@ const IncreaseAccountCountsModalMemo = () => {
                   {/* {!!remainingDays ? `${remainingDays}日間` : `-`} */}
                   {/* {!!elapsedDays ? `（開始日から${elapsedDays}日経過）` : `-`} */}
                 </span>
+                {!!_invoicePeriodStart && !!_invoicePeriodEnd && (
+                  <span className="text-[var(--color-text-title)]">
+                    （{format(new Date(_invoicePeriodStart * 1000), "MM月dd日")}〜
+                    {format(new Date(_invoicePeriodEnd * 1000), "MM月dd日")}）
+                  </span>
+                )}
               </p>
             </div>
             <p className="flex items-center space-x-[8px]">
@@ -2928,6 +3042,7 @@ const IncreaseAccountCountsModalMemo = () => {
                             // 2回目以上のアップグレード用 今までの新プランの残り使用分の料金の詳細を個々に確認するモーダル
                             setNewProrationItem(null); // InvoiceItem個別確認用のStateをリセット
                             if (isOpenRemainingUsageListModal) setIsOpenRemainingUsageListModal(false);
+                            if (newProrationItem) setNewProrationItem(null);
                             return setIsOpenNewProrationDetail(false);
                           }
                           // 旧プランの未使用分の比例配分料金計算モーダル
@@ -2936,6 +3051,7 @@ const IncreaseAccountCountsModalMemo = () => {
                             // 2回目以上のアップグレード用 今までの旧プランの未使用分の料金の詳細を個々に確認するモーダル
                             setOldProrationItem(null); // InvoiceItem個別確認用のStateをリセット
                             if (isOpenUnusedListModal) setIsOpenUnusedListModal(false);
+                            if (oldProrationItem) setOldProrationItem(null);
                             return setIsOpenOldProrationDetail(false);
                           }
                         }}
@@ -2948,8 +3064,8 @@ const IncreaseAccountCountsModalMemo = () => {
                             : `-`}
                           {/* {!!nextInvoice?.amount_due ? `${formatToJapaneseYen(nextInvoice.amount_due)}` : `-`} */}
                         </span>
-                        {/* {isOpenInvoiceDetail && <NextPaymentDetailComponent />} */}
-                        <NextPaymentDetailComponent />
+                        {isOpenInvoiceDetail && <NextPaymentDetailComponent />}
+                        {/* <NextPaymentDetailComponent /> */}
                       </div>
                     </div>
                   )}
