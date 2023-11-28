@@ -16,12 +16,14 @@
 .tooltip_right {
   min-height: fit-content;
   padding: 3px 7px;
-  background: #282828;
+  /* background: #282828; */
+  background: var(--color-tooltip-light);
   transition-delay: 0.5s;
   border-radius: 6px;
   box-shadow: inset 0px 0px 0px 1px #ffffff80, 0px 0px 0px 1px #000;
   display: flex;
   flex-direction: row-reverse;
+  transition: background 0.3s ease;
 }
 .tooltip_right_arrow {
   content: "";
@@ -31,7 +33,8 @@
   right: 18px;
   transform: translateX(-50%) rotate(135deg);
   transform-origin: center center;
-  background: var(--color-tooltip-arrow);
+  /* background: var(--color-tooltip-arrow); */
+  background: var(--color-tooltip-light);
   width: 8px;
   height: 8px;
   /* border-top: 4px solid #000; */
@@ -48,7 +51,7 @@
   white-space: nowrap;
 }
 .dropdown_item:hover {
-  background: var(--color-bg-brand);
+  /* background: var(--color-bg-brand); */
 }
 .dropdown_item span {
   margin-right: auto;

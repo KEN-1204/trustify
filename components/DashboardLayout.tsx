@@ -373,7 +373,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
         {theme === "dark" && <MdOutlineDarkMode className="text-[20px] text-[#fff]" />}
         {/* ツールチップ */}
         {hoveredThemeIcon && (
-          <div className={`${styles.tooltip_right_area} transition-base fade`}>
+          <div className={`${styles.tooltip_right_area} fade`}>
             <div className={`${styles.tooltip_right} `}>
               <div className={`flex-center ${styles.dropdown_item}`}>
                 {theme === "light" ? "ダークモードに切り替え" : "ライトモードに切り替え"}

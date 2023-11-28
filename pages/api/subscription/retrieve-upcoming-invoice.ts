@@ -239,14 +239,35 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
         format(new Date(prorationTimestamp * 1000), "yyyy/MM/dd HH:mm:ss")
       );
       console.log("現在の日付に期間終了日の時間分秒を渡したタイムスタンプをsubscription_proration_dateに渡す");
-      console.log("1. 残り期間までの旧プラン未使用分", invoice?.lines?.data[0]?.amount);
-      console.log("2. 残り期間までの新プラン使用料金", invoice?.lines?.data[1]?.amount);
-      console.log(
-        `新プラン更新による次回請求の追加料金 ${invoice?.lines?.data[1]?.amount} ${
-          invoice?.lines?.data[0]?.amount < 0 ? `` : `+`
-        } ${invoice?.lines?.data[0]?.amount} =`,
-        invoice?.lines?.data[1]?.amount + invoice?.lines?.data[0]?.amount
-      );
+      // 🌟２回目以上のアップデートだった場合は分岐させる
+      const invoiceItemList = invoice.lines.data.filter((item) => item.type === "invoiceitem");
+      if (invoiceItemList.length === 2) {
+        console.log("1. 残り期間までの旧プラン未使用分", invoice?.lines?.data[0]?.amount);
+        console.log("2. 残り期間までの新プラン使用料金", invoice?.lines?.data[1]?.amount);
+        console.log(
+          `新プラン更新による次回請求の追加料金 ${invoice?.lines?.data[1]?.amount} ${
+            invoice?.lines?.data[0]?.amount < 0 ? `` : `+`
+          } ${invoice?.lines?.data[0]?.amount} =`,
+          invoice?.lines?.data[1]?.amount + invoice?.lines?.data[0]?.amount
+        );
+      } else if (invoiceItemList.length > 2) {
+        const middleIndex = invoiceItemList.length / 2; // 真ん中のインデックスを把握
+        const firstHalfInvoiceItemList = invoiceItemList.slice(0, middleIndex);
+        const secondHalfInvoiceItemList = invoiceItemList.slice(middleIndex);
+        const sumOldUnused = firstHalfInvoiceItemList.reduce(
+          (accumulator, currentValue) => accumulator + currentValue.amount,
+          0
+        );
+        const sumNewUsage = secondHalfInvoiceItemList.reduce(
+          (accumulator, currentValue) => accumulator + currentValue.amount,
+          0
+        );
+        console.log("1. 残り期間までの旧プラン未使用分の合計(2回目以上のアップデート)", sumOldUnused);
+        console.log("2. 残り期間までの新プラン使用料金の合計(2回目以上のアップデート)", sumNewUsage);
+        const sumExtraCharge = sumNewUsage + sumOldUnused;
+        console.log(`新プラン更新による次回請求の追加料金の合計`, sumExtraCharge);
+      }
+
       console.log("✅Stripe将来のインボイス取得ステップ6 数量変更ルート 次回のインボイス取得完了 200で返す");
 
       res.status(200).json({ data: invoice, error: null });

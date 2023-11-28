@@ -503,7 +503,7 @@ export const DashboardHeaderMemo: FC = () => {
   };
 
   return (
-    <header className={`${styles.app_header} transition-base03`}>
+    <header className={`${styles.app_header}`}>
       {/* 左コンテンツ */}
       <div className="relative flex h-full  items-center justify-start ">
         <div
@@ -530,7 +530,7 @@ export const DashboardHeaderMemo: FC = () => {
           />
         </div>
         {/* ヘッダータブ左スクロール時に連続でツールチップが表示されないようにするためのオーバーレイ */}
-        <div className="transition-base03 absolute left-[185px] top-0 z-30 h-full w-[39px] bg-[var(--color-bg-base)]"></div>
+        <div className="transition-base absolute left-[185px] top-0 z-30 h-full w-[39px] bg-[var(--color-bg-base)]"></div>
       </div>
 
       {/* 左矢印 */}
@@ -950,7 +950,7 @@ export const DashboardHeaderMemo: FC = () => {
       {/* ============================= 右側のコンテンツ ============================= */}
       <div className="flex h-[40px] w-[165px]  flex-row-reverse items-center justify-start">
         {/* ヘッダータブ左スクロール時に連続でツールチップが表示されないようにするためのオーバーレイ */}
-        <div className="transition-base03 absolute right-[185px] top-0 z-30 h-full w-[39px] bg-[var(--color-bg-base)]"></div>
+        <div className="transition-base absolute right-[185px] top-0 z-30 h-full w-[39px] bg-[var(--color-bg-base)]"></div>
         {/* 一番右 プロフィールアイコン */}
         <div className="flex-center relative  h-full w-[52px] px-[6px] py-[1px]">
           {/* <div
