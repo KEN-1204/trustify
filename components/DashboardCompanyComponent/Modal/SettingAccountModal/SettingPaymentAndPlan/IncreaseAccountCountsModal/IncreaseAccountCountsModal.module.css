@@ -454,6 +454,10 @@
   /* z-index: 10; */
   z-index: 1500;
   transform: translateX(-50%);
+  display: none;
+}
+.tooltip_right_area.active {
+  display: block;
 }
 .tooltip_right {
   min-height: fit-content;

@@ -19,8 +19,8 @@ export const getRemainingDaysFromNowPeriodEndHourToTimestamp = (periodEndTimesta
     const nowDate = new Date();
     // 現在の請求期間の終了日のDateオブジェクトを生成 2023/12/19 20:57:49
     // const currentEndTime = new Date(periodEndTimestamp * 1000);
-    // 特定の日付でDateオブジェクトを作成(タイムクロック使用中 現在は2023/12/20)
-    const testClockCurrentDate: Date = new Date("2023-12-20");
+    // 特定の日付でDateオブジェクトを作成(タイムクロック使用中 現在は2024/1/20)
+    const testClockCurrentDate: Date = new Date("2024-9-20"); // テストクロック
 
     // 特定の日付にcurrent_period_endの時間、分、秒を設定
     testClockCurrentDate.setHours(endDate.getHours(), endDate.getMinutes(), endDate.getSeconds());
@@ -65,8 +65,8 @@ export const getRemainingDaysFromNowPeriodEndHourToTimestamp = (periodEndTimesta
     const now = new Date();
     // 現在の請求期間の終了日のDateオブジェクトを生成 2023/12/19 20:57:49
     // const currentEndTime = new Date(currentPeriodEnd * 1000);
-    // 特定の日付でDateオブジェクトを作成(タイムクロック使用中 現在は2023/12/20)
-    const testClockCurrentDate: Date = new Date("2023-12-20");
+    // 特定の日付でDateオブジェクトを作成(タイムクロック使用中 現在は2024/1/20)
+    const testClockCurrentDate: Date = new Date("2024-9-20"); // テストクロック
 
     // 特定の日付に現在の時間、分、秒を設定
     testClockCurrentDate.setHours(endDate.getHours(), endDate.getMinutes(), endDate.getSeconds());

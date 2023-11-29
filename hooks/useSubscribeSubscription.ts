@@ -158,6 +158,27 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
               }, 800);
             }
             // ================== ✅キャンセル後、新たに「メンバーシップを再開」ルート ここまで ==================
+            // ================== 🌟「アカウントを減らす」スケジュール適用ルート(請求期間更新) ==================
+            if (
+              payload.new.accounts_to_create < payload.old.accounts_to_create &&
+              new Date(payload.new.current_period_end).getTime() > new Date(payload.old.current_period_end).getTime() &&
+              new Date(payload.new.current_period_start).getTime() >
+                new Date(payload.old.current_period_start).getTime()
+            ) {
+              toast.info(`アカウントが削除リクエストが適用されました！ リスタートを始めます。`, {
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+              });
+              setTimeout(() => {
+                router.reload();
+              }, 1500);
+            }
+            // ================== ✅「アカウントを減らす」スケジュール適用ルート(請求期間更新) ==================
           }
         )
         .subscribe();

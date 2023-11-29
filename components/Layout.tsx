@@ -1,6 +1,6 @@
 import useStore from "@/store";
 import Head from "next/head";
-import React, { FC, ReactNode, useEffect, useState } from "react";
+import React, { FC, ReactNode, useEffect, useRef, useState } from "react";
 import { Modal } from "./Modal/Modal";
 import { useRouter } from "next/router";
 import useThemeStore from "@/store/useThemeStore";
@@ -46,7 +46,8 @@ export const Layout: FC<Prop> = ({ children, title = "TRUSTiFY | Trustify" }) =>
   }, [isOpenModal, openLangTab]);
 
   // ツールチップ
-  const [hoveredThemeIcon, setHoveredThemeIcon] = useState(false);
+  // const [hoveredThemeIcon, setHoveredThemeIcon] = useState(false);
+  const hoveredThemeIconRef = useRef<HTMLDivElement | null>(null);
 
   return (
     <div className={``}>
@@ -85,8 +86,10 @@ export const Layout: FC<Prop> = ({ children, title = "TRUSTiFY | Trustify" }) =>
       <div
         className={`flex-center transition-base01 theme_icon_bg fixed bottom-[2%] right-[2%] z-[1000] h-[35px] w-[35px] cursor-pointer rounded-full`}
         onClick={changeTheme}
-        onMouseEnter={() => setHoveredThemeIcon(true)}
-        onMouseLeave={() => setHoveredThemeIcon(false)}
+        onMouseEnter={() => hoveredThemeIconRef.current?.classList.add(`${styles.active}`)}
+        onMouseLeave={() => hoveredThemeIconRef.current?.classList.remove(`${styles.active}`)}
+        // onMouseEnter={() => setHoveredThemeIcon(true)}
+        // onMouseLeave={() => setHoveredThemeIcon(false)}
       >
         {/* <div className="theme_icon_bg"></div> */}
         <div className="theme_icon_bg_hover"></div>
@@ -99,7 +102,17 @@ export const Layout: FC<Prop> = ({ children, title = "TRUSTiFY | Trustify" }) =>
           <span className="shadow-all-md hover:shadow-all-lg inline-block rounded-[13px]">{neonMoonIcon}</span>
         )} */}
         {/* ツールチップ */}
-        {hoveredThemeIcon && (
+
+        <div ref={hoveredThemeIconRef} className={`${styles.tooltip_right_area} transition-base fade`}>
+          <div className={`${styles.tooltip_right} `}>
+            <div className={`flex-center ${styles.dropdown_item}`}>
+              {theme === "light" ? "ダークモードに切り替え" : "ライトモードに切り替え"}
+            </div>
+          </div>
+          <div className={`${styles.tooltip_right_arrow}`}></div>
+        </div>
+
+        {/* {hoveredThemeIcon && (
           <div className={`${styles.tooltip_right_area} transition-base fade `}>
             <div className={`${styles.tooltip_right} `}>
               <div className={`flex-center ${styles.dropdown_item}`}>
@@ -108,7 +121,7 @@ export const Layout: FC<Prop> = ({ children, title = "TRUSTiFY | Trustify" }) =>
             </div>
             <div className={`${styles.tooltip_right_arrow}`}></div>
           </div>
-        )}
+        )} */}
         {/* ツールチップ ここまで */}
       </div>
       {/* ホバーでbackground-imageをホバーでtransitionをつける擬似アイコン */}

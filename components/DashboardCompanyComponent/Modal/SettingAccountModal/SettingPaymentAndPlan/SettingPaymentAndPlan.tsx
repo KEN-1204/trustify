@@ -49,6 +49,8 @@ const SettingPaymentAndPlanMemo: FC = () => {
   const setDowngradePlanSchedule = useDashboardStore((state) => state.setDowngradePlanSchedule);
   // 削除リクエストをキャンセル確認モーダル プランダウングレードと数量ダウン両方で使用する
   const [showConfirmModal, setShowConfirmModal] = useState<string | null>(null);
+  // プランを変更確認モーダル
+  const [isOpenChangePlanModal, setIsOpenChangePlanModal] = useState(false);
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
 
@@ -399,9 +401,9 @@ const SettingPaymentAndPlanMemo: FC = () => {
               !!deleteAccountRequestSchedule &&
               deleteAccountRequestSchedule.current_end_date &&
               deleteAccountRequestSchedule.type === "change_quantity" && (
-                <div className="mt-[10px] flex min-h-[55px] w-full items-center rounded-[4px] bg-[#25ce6b] px-[20px] text-[var(--color-text-title)]">
+                <div className="mt-[10px] flex min-h-[55px] w-full items-center rounded-[4px] bg-[#25ce6b] px-[20px] text-[#37352f]">
                   {/* <AiFillInfoCircle className="mr-[12px] text-[28px] text-[#000]" /> */}
-                  <div className="flex-center mr-[12px] min-h-[26px] min-w-[26px] rounded-full bg-[var(--color-text-title)] ">
+                  <div className="flex-center mr-[12px] min-h-[26px] min-w-[26px] rounded-full bg-[#37352f] ">
                     <BsCheck2 className="stroke-1 text-[16px] text-[#25ce6b]" />
                   </div>
                   <p>アカウントの削減リクエストを受け付けました。次回請求期間の開始日に適用されます。</p>
@@ -487,7 +489,11 @@ const SettingPaymentAndPlanMemo: FC = () => {
                   className={`transition-base01 flex-center max-h-[41px] w-full min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold !text-[var(--color-text-title)] ${
                     isLoading ? `` : `hover:bg-[var(--setting-side-bg-select-hover)]`
                   }`}
-                  onClick={loadPortal}
+                  // onClick={loadPortal}
+                  onClick={() => {
+                    console.log("プランを変更クリック");
+                    setIsOpenChangePlanModal(true);
+                  }}
                 >
                   {userProfileState?.subscription_plan === "free_plan" && !isLoading && (
                     <p className="flex space-x-2">
@@ -513,6 +519,20 @@ const SettingPaymentAndPlanMemo: FC = () => {
                         return alert(
                           "アカウントの削減リクエストを受付済みです。アカウントを増やすには削減リクエストをキャンセルしてください。"
                         );
+                      // if (!userProfileState) return alert("エラー：ユーザー情報が見つかりませんでした。");
+                      // if (!userProfileState.current_period_end)
+                      //   return alert("エラー：ユーザー情報が見つかりませんでした。");
+                      // const currentDate = new Date();
+                      // const currentPeriodEndDate = new Date(userProfileState.current_period_end);
+                      // const isSameDay =
+                      //   currentDate.getFullYear() === currentPeriodEndDate.getFullYear() &&
+                      //   currentDate.getMonth() === currentPeriodEndDate.getMonth() &&
+                      //   currentDate.getDate() === currentPeriodEndDate.getDate();
+                      // if (isSameDay && currentDate.getTime() > currentPeriodEndDate.getTime()) {
+                      //   return alert(
+                      //     `本日は期間終了日を過ぎているため、アカウントを増やすお手続きは明日日付が変わってから行ってください。`
+                      //   );
+                      // }
                       console.log("アカウント数を増やすクリック");
                       setIsOpenChangeAccountCountsModal("increase");
                     }}
@@ -528,6 +548,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
                     isLoading ? `` : `hover:bg-[var(--bright-red)] hover:!text-[#fff]`
                   }`}
                   onClick={() => {
+                    // 今日が請求期間終了日と一致していて、かつ終了日の時間を過ぎている場合には開けないようにする
                     console.log("アカウント数を減らすクリック");
                     setIsOpenChangeAccountCountsModal("decrease");
                   }}
@@ -580,7 +601,13 @@ const SettingPaymentAndPlanMemo: FC = () => {
                 {!!userProfileState && userProfileState.cancel_at_period_end === false && (
                   <span
                     className="ml-auto cursor-pointer hover:text-[var(--color-text-brand-f)] hover:underline"
-                    onClick={loadPortal}
+                    onClick={() => {
+                      if (!!deleteAccountRequestSchedule)
+                        return alert(
+                          "アカウントの削減リクエストを受付済みです。メンバーシップをキャンセルするには削減リクエストをキャンセルしてください。"
+                        );
+                      loadPortal();
+                    }}
                   >
                     メンバーシップのキャンセル
                   </span>
@@ -677,6 +704,65 @@ const SettingPaymentAndPlanMemo: FC = () => {
         </>
       )}
       {/* ============================== チームから削除の確認モーダル ここまで ============================== */}
+      {/* ============================== 🌟プランを変更モーダル ============================== */}
+      {isOpenChangePlanModal && (
+        <>
+          {/* オーバーレイ */}
+          <div
+            className="fixed left-[-100vw] top-[-100vh] z-[1000] h-[200vh] w-[200vw] bg-[var(--color-overlay)] backdrop-blur-sm"
+            onClick={() => {
+              console.log("オーバーレイ クリック");
+              setIsOpenChangePlanModal(false);
+            }}
+          ></div>
+          <div className="fade02 shadow-all-md fixed left-[50%] top-[50%] z-[2000] h-[75vh] max-h-[600px] w-[68vw] max-w-[940px] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] text-[var(--color-text-title)]">
+            {loadingCancelDeleteRequest && (
+              <div
+                className={`flex-center absolute left-0 top-0 z-[3000] h-[100%] w-[100%] rounded-[8px] bg-[#00000090]`}
+              >
+                <SpinnerIDS scale={"scale-[0.5]"} />
+              </div>
+            )}
+            {/* クローズボタン */}
+            <button
+              className={`flex-center z-100 group absolute right-[-40px] top-0 h-[32px] w-[32px] rounded-full bg-[#00000090] hover:bg-[#000000c0]`}
+              onClick={() => {
+                setIsOpenChangePlanModal(false);
+              }}
+            >
+              <MdClose className="text-[20px] text-[#fff]" />
+            </button>
+            <h3 className={`flex min-h-[32px] w-full items-center text-[22px] font-bold`}>
+              {showConfirmModal === "delete_request" && "削除リクエストをキャンセルしますか？"}
+            </h3>
+            <section className={`mt-[20px] flex h-auto w-full flex-col space-y-3 text-[14px]`}>
+              <p>この操作を実行した後にキャンセルすることはできません。</p>
+              {/* <p className="font-bold">
+                注：この操作により、該当ユーザーのデータは、他のチームメンバーと共有されていないものを含めて全てアクセスできなくなります。
+              </p> */}
+            </section>
+            <section className="flex w-full items-start justify-end">
+              <div className={`flex w-[100%] items-center justify-around space-x-5 pt-[30px]`}>
+                <button
+                  className={`w-[50%] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[15px] py-[10px] text-[14px] font-bold text-[var(--color-text-title)] hover:bg-[var(--setting-side-bg-select-hover)]`}
+                  onClick={() => {
+                    setIsOpenChangePlanModal(false);
+                  }}
+                >
+                  キャンセル
+                </button>
+                <button
+                  className="w-[50%] cursor-pointer rounded-[8px] bg-[var(--color-red-tk)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff] hover:bg-[var(--color-red-tk-hover)]"
+                  // onClick={handleCancelDeleteAccountRequestSchedule}
+                >
+                  削除リクエストをキャンセルする
+                </button>
+              </div>
+            </section>
+          </div>
+        </>
+      )}
+      {/* ============================== ✅プランを変更モーダル ここまで ============================== */}
     </>
   );
 };

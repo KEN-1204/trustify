@@ -9,7 +9,8 @@ export const getProrationAmountAndDailyRate = (
 ) => {
   const planFeePerMonth = planFeePerAccount * quantity;
   const newDailyRateWithThreeDecimalPoints = Math.round((planFeePerMonth / currentPeriod) * 1000) / 1000;
-  const amountForRemainingPeriodWithThreeDecimalPoints = newDailyRateWithThreeDecimalPoints * remainingDays;
+  const amountForRemainingPeriodWithThreeDecimalPoints =
+    Math.round(newDailyRateWithThreeDecimalPoints * remainingDays * 1000) / 1000;
 
   const response = {
     newDailyRateWithThreeDecimalPoints: newDailyRateWithThreeDecimalPoints,

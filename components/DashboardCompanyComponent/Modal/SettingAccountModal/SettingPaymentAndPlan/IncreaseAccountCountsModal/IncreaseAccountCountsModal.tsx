@@ -324,10 +324,12 @@ const IncreaseAccountCountsModalMemo = () => {
 
       // 🔹比例配分日が終了日と同じ場合にはinvoiceのlistオブジェクトのdata配列にinvoiceItemは存在せず、typeがsubscriptionのline_itemオブジェクトのみとなるため、まずはここで分岐させる
       // line_itemが一つのみかどうかチェック
+      // 🔹本日が終了日のルート
       if ((upcomingInvoiceData as Stripe.UpcomingInvoice).lines.data.length === 1) {
         const subscriptionLineItem = (upcomingInvoiceData as Stripe.UpcomingInvoice).lines.data.filter(
           (item) => item.type === "subscription"
         )[0]; // [0]のインデックスで配列ではなくオブジェクトで取得
+        // setNextInvoiceAmountState((upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due);
         // ローディング終了
         setIsLoadingFirstFetch(false);
         console.log(
@@ -416,9 +418,17 @@ const IncreaseAccountCountsModalMemo = () => {
         else if (invoiceItemList.length > 2) {
           if (isFirstUpgrade) setIsFirstUpgrade(false); // 今月2回目以上のアップグレード
           // 「今までの未使用分のインボイスアイテム配列invoiceItemList」を前半、後半で分割する
-          const middleIndex = invoiceItemList.length / 2; // 真ん中のインデックスを把握
-          const firstHalfInvoiceItemList = invoiceItemList.slice(0, middleIndex);
-          const secondHalfInvoiceItemList = invoiceItemList.slice(middleIndex);
+          // ======================= 配列分割テスト =======================
+          // const middleIndex = invoiceItemList.length / 2; // 真ん中のインデックスを把握
+          // const firstHalfInvoiceItemList = invoiceItemList.slice(0, middleIndex);
+          // const secondHalfInvoiceItemList = invoiceItemList.slice(middleIndex);
+          const firstHalfInvoiceItemList = invoiceItemList
+            .filter((item) => item.description?.startsWith("Unused"))
+            .sort((a, b) => (a.quantity ?? 0) - (b.quantity ?? 0));
+          const secondHalfInvoiceItemList = invoiceItemList
+            .filter((item) => item.description?.startsWith("Remaining"))
+            .sort((a, b) => (a.quantity ?? 0) - (b.quantity ?? 0));
+          // ======================= 配列分割テスト =======================
           // 前半部分を未使用分ローカルStateに格納する
           setUnusedInvoiceItemArray(firstHalfInvoiceItemList);
           // 後半部分を未使用分ローカルStateに格納する
@@ -546,8 +556,8 @@ const IncreaseAccountCountsModalMemo = () => {
     }
     // nextInvoiceが存在するルート => モーダルを開いた日付と同じか否かでリターン、フェッチを分岐させる
     else if (!!nextInvoice && !!nextInvoice.subscription_proration_date) {
-      // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2023-12-20で現在の日付を作成
-      const currentDateObj = new Date("2023-12-20");
+      // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2024-1-20で現在の日付を作成
+      const currentDateObj = new Date("2024-9-20"); // テストクロック
       const year = currentDateObj.getFullYear();
       const month = currentDateObj.getMonth();
       const day = currentDateObj.getDate();
@@ -670,10 +680,18 @@ const IncreaseAccountCountsModalMemo = () => {
         // 🔹２回目以上のアップグレード
         else if (invoiceItemList.length > 2) {
           if (isFirstUpgrade) setIsFirstUpgrade(false); // 今月初めてのアップグレード
+          // ======================= 配列分割テスト =======================
           // 「今までの未使用分のインボイスアイテム配列invoiceItemList」を前半、後半で分割する
-          const middleIndex = invoiceItemList.length / 2; // 真ん中のインデックスを把握
-          const firstHalfInvoiceItemList = invoiceItemList.slice(0, middleIndex);
-          const secondHalfInvoiceItemList = invoiceItemList.slice(middleIndex);
+          // const middleIndex = invoiceItemList.length / 2; // 真ん中のインデックスを把握
+          // const firstHalfInvoiceItemList = invoiceItemList.slice(0, middleIndex);
+          // const secondHalfInvoiceItemList = invoiceItemList.slice(middleIndex);
+          const firstHalfInvoiceItemList = invoiceItemList
+            .filter((item) => item.description?.startsWith("Unused"))
+            .sort((a, b) => (a.quantity ?? 0) - (b.quantity ?? 0));
+          const secondHalfInvoiceItemList = invoiceItemList
+            .filter((item) => item.description?.startsWith("Remaining"))
+            .sort((a, b) => (a.quantity ?? 0) - (b.quantity ?? 0));
+          // ======================= 配列分割テスト =======================
           // 前半部分を未使用分ローカルStateに格納する
           setUnusedInvoiceItemArray(firstHalfInvoiceItemList);
           // 後半部分を未使用分ローカルStateに格納する
@@ -762,11 +780,11 @@ const IncreaseAccountCountsModalMemo = () => {
       console.error(`エラー：アカウント情報が見つかりませんでした`);
       return { checkResult: false, prorationDateTimeStamp: null };
     }
-    if (!currentPeriodState) {
+    if (!currentPeriodState && isFreeTodaysPayment) {
       console.error(`エラー：請求期間データを取得できませんでした`);
       return { checkResult: false, prorationDateTimeStamp: null };
     }
-    if (!remainingDaysState) {
+    if (!remainingDaysState && isFreeTodaysPayment) {
       console.error(`エラー：残り期間データを取得できませんでした`);
       return { checkResult: false, prorationDateTimeStamp: null };
     }
@@ -804,13 +822,15 @@ const IncreaseAccountCountsModalMemo = () => {
         const subscriptionLineItem = (upcomingInvoiceData as Stripe.UpcomingInvoice).lines.data.filter(
           (item) => item.type === "subscription"
         )[0]; // [0]のインデックスで配列ではなくオブジェクトで取得
-        if (nextInvoiceAmountState === subscriptionLineItem.amount) {
+        if (todaysPayment === subscriptionLineItem.amount) {
           console.log(
             "🌟料金チェック3 ✅チェック関数 次回請求額がローカルと一致 テスト成功✅",
             "支払額 stripeのnextInvoice subscriptionLineItem.amount(本日の支払いのため新プランの価格のまま追加費用なし)",
             subscriptionLineItem.amount,
-            "ローカルnextInvoiceAmountState",
-            nextInvoiceAmountState
+            "ローカルtodaysPayment",
+            todaysPayment,
+            "upcomingInvoiceData",
+            upcomingInvoiceData
           );
           // return true;
           return {
@@ -828,6 +848,15 @@ const IncreaseAccountCountsModalMemo = () => {
           // return false;
           return { checkResult: false, prorationDateTimeStamp: null };
         }
+      }
+
+      if (!currentPeriodState) {
+        console.error(`エラー：請求期間データを取得できませんでした`);
+        return { checkResult: false, prorationDateTimeStamp: null };
+      }
+      if (!remainingDaysState) {
+        console.error(`エラー：残り期間データを取得できませんでした`);
+        return { checkResult: false, prorationDateTimeStamp: null };
       }
 
       // 🔹listオブジェクトのdataの要素1セット以上ルート(本日の支払いではなく通常の次回請求ルート)
@@ -949,10 +978,22 @@ const IncreaseAccountCountsModalMemo = () => {
       // 🔹🔹数量アップグレード2回目以上ルート(InvoiceItemの未使用、残り使用が2セット以上)
       // 「アカウントを増やす」が２回目以上の場合 全ての未使用分と全ての使用分を合算して追加費用を算出する
       else if (invoiceItemList.length > 2) {
+        // // 「今までの未使用分のインボイスアイテム配列invoiceItemList」を前半、後半で分割する
+        // const middleIndex = invoiceItemList.length / 2; // 真ん中のインデックスを把握
+        // const firstHalfInvoiceItemList = invoiceItemList.slice(0, middleIndex);
+        // const secondHalfInvoiceItemList = invoiceItemList.slice(middleIndex);
+        // ======================= 配列分割テスト =======================
         // 「今までの未使用分のインボイスアイテム配列invoiceItemList」を前半、後半で分割する
-        const middleIndex = invoiceItemList.length / 2; // 真ん中のインデックスを把握
-        const firstHalfInvoiceItemList = invoiceItemList.slice(0, middleIndex);
-        const secondHalfInvoiceItemList = invoiceItemList.slice(middleIndex);
+        // const middleIndex = invoiceItemList.length / 2; // 真ん中のインデックスを把握
+        // const firstHalfInvoiceItemList = invoiceItemList.slice(0, middleIndex);
+        // const secondHalfInvoiceItemList = invoiceItemList.slice(middleIndex);
+        const firstHalfInvoiceItemList = invoiceItemList
+          .filter((item) => item.description?.startsWith("Unused"))
+          .sort((a, b) => (a.quantity ?? 0) - (b.quantity ?? 0));
+        const secondHalfInvoiceItemList = invoiceItemList
+          .filter((item) => item.description?.startsWith("Remaining"))
+          .sort((a, b) => (a.quantity ?? 0) - (b.quantity ?? 0));
+        // ======================= 配列分割テスト =======================
         // 前半部分を未使用分ローカルStateに格納する
         setStripeUnusedInvoiceItemArray(firstHalfInvoiceItemList);
         // 後半部分を未使用分ローカルStateに格納する
@@ -1063,6 +1104,19 @@ const IncreaseAccountCountsModalMemo = () => {
       return console.log(
         "🚨useEffect(アカウント数変更の度に新料金を再計算してローカルStateに格納) メンバーアカウンtpデータが無しのためリターン"
       );
+
+    // ============= 共通
+    // プラン１アカウント月額費用
+    const monthlyFeePerAccount = getPrice(userProfileState.subscription_plan); // プランの月額費用/ID
+    // 新プラン料金
+    const _newPlanAmount = monthlyFeePerAccount * totalAccountQuantity;
+
+    // 今日が「本日のお支払い」ルート
+    if (!isFreeTodaysPayment) {
+      setTodaysPayment(_newPlanAmount);
+      return console.log("今日が本日のお支払いのためstateに新プラン料金を格納してリターン", _newPlanAmount);
+    }
+
     if (!nextInvoiceAmountState)
       return console.log(
         "🚨useEffect(アカウント数変更の度に新料金を再計算してローカルStateに格納) ローカルStripeインボイスデータがローカルに無しのためリターン"
@@ -1075,12 +1129,6 @@ const IncreaseAccountCountsModalMemo = () => {
       return console.log(
         "🚨useEffect(アカウント数変更の度に新料金を再計算してローカルStateに格納) remainingDaysStateがローカルに無しのためリターン"
       );
-
-    // ============= 共通
-    // プラン１アカウント月額費用
-    const monthlyFeePerAccount = getPrice(userProfileState.subscription_plan); // プランの月額費用/ID
-    // 新プラン料金
-    const _newPlanAmount = monthlyFeePerAccount * totalAccountQuantity;
 
     // 🔹初めてのアップグレードルート
     if (isFirstUpgrade) {
@@ -1196,7 +1244,7 @@ const IncreaseAccountCountsModalMemo = () => {
         "新プラン側の今までの残り使用分の総額",
         previousRemainingUsageAmountSum,
         "新プラン側の今回ユーザーが選択している新たな数量の残り使用分",
-        Math.round(_newUsageThreeDecimalPoints),
+        _newUsageThreeDecimalPoints,
         "新プラン残り使用分の金額総額(今までと今回両方の残り使用分)",
         _newRemainingUsageSum,
         "今までの追加費用総額",
@@ -1218,13 +1266,13 @@ const IncreaseAccountCountsModalMemo = () => {
       );
 
     // まずは、現在の日付と時刻、およびcurrent_period_endの日付と時刻をUTCで取得します。
-    const currentDate = new Date("2023-12-20"); // テストクロック用の日付
+    const currentDate = new Date("2024-9-20"); // テストクロック用の日付
     const currentPeriodEndDate = new Date(userProfileState.current_period_end); // これはサンプルの値で、実際にはsupabaseから取得した値を使用します。
 
     const isSameDay =
-      currentDate.getUTCFullYear() === currentPeriodEndDate.getUTCFullYear() &&
-      currentDate.getUTCMonth() === currentPeriodEndDate.getUTCMonth() &&
-      currentDate.getUTCDate() === currentPeriodEndDate.getUTCDate();
+      currentDate.getFullYear() === currentPeriodEndDate.getFullYear() &&
+      currentDate.getMonth() === currentPeriodEndDate.getMonth() &&
+      currentDate.getDate() === currentPeriodEndDate.getDate();
 
     console.log(
       "🔥useEffect実行1(「本日のお支払い」期間終了日が今日か否かチェック)🔥 isSameDay",
@@ -1235,32 +1283,32 @@ const IncreaseAccountCountsModalMemo = () => {
       format(currentDate, "yyyy/MM/dd HH:mm:ss")
     );
     if (isSameDay) {
-      // 今日がcurrent_period_endの日付と一致している場合、次に時間の比較を行います。
-      if (
-        currentDate.getUTCHours() >= currentPeriodEndDate.getUTCHours() &&
-        currentDate.getUTCMinutes() >= currentPeriodEndDate.getUTCMinutes() &&
-        currentDate.getUTCSeconds() >= currentPeriodEndDate.getUTCSeconds()
-      ) {
-        console.log(
-          "🔥useEffect実行2(「本日のお支払い」期間終了日が今日か否かチェック)🔥 現在の時刻がcurrent_period_endの時刻を過ぎているため isFreeTodayPaymentをtrue, todayPaymentを0に更新 isSameDay",
-          isSameDay
-        );
-        // 現在の時刻がcurrent_period_endの時刻を過ぎている場合の処理
-        // 例: 「本日のお支払い」の値を0円にする
-        setIsFreeTodaysPayment(true);
-        setTodaysPayment(0);
-      } else {
-        console.log(
-          "🔥useEffect実行2(「本日のお支払い」期間終了日が今日か否かチェック)🔥 今日が期間終了日で一致しているが、現在の時刻がcurrent_period_endの時刻を過ぎていないため isFreeTodayPaymentをfalse, todayPaymentを 現在の契約プラン * (現在の契約アカウント数 + 新たに契約するアカウント数)に更新 isSameDay",
-          isSameDay
-        );
-        // 現在の時刻がcurrent_period_endの時刻を過ぎていない場合の処理
-        setIsFreeTodaysPayment(false);
-        // 現在の契約プラン * (現在の契約アカウント数 + 新たに契約するアカウント数) = 本日のお支払い
-        const paymentValue =
-          getPrice(userProfileState.subscription_plan) * (currentAccountCounts + (accountQuantity ?? 0));
-        setTodaysPayment(paymentValue);
-      }
+      console.log(
+        "🔥useEffect実行2(「本日のお支払い」期間終了日が今日か否かチェック)🔥 今日が期間終了日で一致しているが、現在の時刻がcurrent_period_endの時刻を過ぎていないため isFreeTodayPaymentをfalse, todayPaymentを 現在の契約プラン * (現在の契約アカウント数 + 新たに契約するアカウント数)に更新 isSameDay",
+        isSameDay
+      );
+      // 現在の時刻がcurrent_period_endの時刻を過ぎていない場合の処理
+      setIsFreeTodaysPayment(false);
+      // 現在の契約プラン * (現在の契約アカウント数 + 新たに契約するアカウント数) = 本日のお支払い
+      const paymentValue = getPrice(userProfileState.subscription_plan) * totalAccountQuantity;
+      setTodaysPayment(paymentValue);
+      // // 今日がcurrent_period_endの日付と一致している場合、次に時間の比較を行います。
+      // if (
+      //   currentDate.getHours() >= currentPeriodEndDate.getHours() &&
+      //   currentDate.getMinutes() >= currentPeriodEndDate.getMinutes() &&
+      //   currentDate.getSeconds() >= currentPeriodEndDate.getSeconds()
+      // ) {
+      //   console.log(
+      //     "🔥useEffect実行2(「本日のお支払い」期間終了日が今日か否かチェック)🔥 現在の時刻がcurrent_period_endの時刻を過ぎているため isFreeTodayPaymentをtrue, todayPaymentを0に更新 isSameDay",
+      //     isSameDay
+      //   );
+      //   // 現在の時刻がcurrent_period_endの時刻を過ぎている場合の処理
+      //   // 例: 「本日のお支払い」の値を0円にする
+      //   setIsFreeTodaysPayment(true);
+      //   setTodaysPayment(0);
+      // } else {
+
+      // }
     } else {
       console.log(
         "🔥useEffect実行2(「本日のお支払い」期間終了日が今日か否かチェック)🔥 今日がcurrent_period_endの日付と一致していないため isFreeTodayPaymentをtrue, todayPaymentを0に更新 isSameDay",
@@ -1408,8 +1456,10 @@ const IncreaseAccountCountsModalMemo = () => {
   // ================ ✅変更の確定をクリック 1. 料金チェック 2. 合格後Stripeに送信 ================
 
   // ================================ ツールチップ ================================
-  const [hoveredNewProration, setHoveredNewProration] = useState(false);
-  const [hoveredOldProration, setHoveredOldProration] = useState(false);
+  // const [hoveredNewProration, setHoveredNewProration] = useState(false);
+  // const [hoveredOldProration, setHoveredOldProration] = useState(false);
+  const hoveredNewProrationRef = useRef<HTMLDivElement | null>(null);
+  const hoveredOldProrationRef = useRef<HTMLDivElement | null>(null);
   // ================================ ツールチップ ここまで ================================
 
   console.log(
@@ -1470,7 +1520,7 @@ const IncreaseAccountCountsModalMemo = () => {
     "===============================新プランの料金",
     getPrice(userProfileState?.subscription_plan) * totalAccountQuantity,
     "テストクロックの現在",
-    format(new Date("2023-12-20"), "yyyy年MM月dd日 HH時mm分ss秒"),
+    format(new Date("2024-9-20"), "yyyy年MM月dd日 HH時mm分ss秒"), // テストクロック
     "比例配分日 nextInvoice?.subscription_proration_date",
     nextInvoice?.subscription_proration_date &&
       format(new Date(nextInvoice?.subscription_proration_date * 1000), "yyyy年MM月dd日 HH時mm分ss秒"),
@@ -1491,7 +1541,7 @@ const IncreaseAccountCountsModalMemo = () => {
         <div className="flex w-full items-center pb-[30px]">
           {!!userProfileState && userProfileState.current_period_end && (
             <p>
-              本日{format(new Date(userProfileState.current_period_end), "yyyy年MM月dd日 HH:mm")}
+              本日{format(new Date(userProfileState.current_period_end), "yyyy年MM月dd日 HH時mm分")}
               がお客様のサブスクリプションの次回支払い期限のため、その前にアカウントを増やした場合は下記が本日のお支払額となります。
             </p>
           )}
@@ -1773,17 +1823,28 @@ const IncreaseAccountCountsModalMemo = () => {
             </div>
             <div className="flex-col-center group relative">
               {/* ツールチップ */}
-              {hoveredNewProration && (
+              <div
+                ref={hoveredNewProrationRef}
+                className={`${styles.tooltip_right_area} transition-base fade pointer-events-none`}
+              >
+                <div className={`${styles.tooltip_right} `}>
+                  <div className={`flex-center ${styles.dropdown_item}`}>
+                    {/* {theme === "light" ? "ダークモードに切り替え" : "ライトモードに切り替え"} */}
+                    詳細を確認する
+                  </div>
+                </div>
+                <div className={`${styles.tooltip_right_arrow}`}></div>
+              </div>
+              {/* {hoveredNewProration && (
                 <div className={`${styles.tooltip_right_area} transition-base fade pointer-events-none`}>
                   <div className={`${styles.tooltip_right} `}>
                     <div className={`flex-center ${styles.dropdown_item}`}>
-                      {/* {theme === "light" ? "ダークモードに切り替え" : "ライトモードに切り替え"} */}
                       詳細を確認する
                     </div>
                   </div>
                   <div className={`${styles.tooltip_right_arrow}`}></div>
                 </div>
-              )}
+              )} */}
               {/* ツールチップ ここまで */}
               <div className="flex-col-center mb-[5px] inline-flex min-h-[36px] min-w-[160px]">
                 <span className="text-[12px] font-normal">プラン残り期間まで利用する</span>
@@ -1796,7 +1857,8 @@ const IncreaseAccountCountsModalMemo = () => {
                     : `peer group-hover:text-[var(--color-text-brand-f)]`
                 }`}
                 onClick={() => {
-                  setHoveredNewProration(false);
+                  // setHoveredNewProration(false);
+                  hoveredNewProrationRef.current?.classList.remove(`${styles.active}`);
                   if (isFirstUpgrade) {
                     const newDetailItem = {
                       _currentPeriod: currentPeriodState,
@@ -1824,8 +1886,10 @@ const IncreaseAccountCountsModalMemo = () => {
                     setIsOpenRemainingUsageListModal(true);
                   }
                 }}
-                onMouseEnter={() => setHoveredNewProration(true)}
-                onMouseLeave={() => setHoveredNewProration(false)}
+                onMouseEnter={() => hoveredNewProrationRef.current?.classList.add(`${styles.active}`)}
+                onMouseLeave={() => hoveredNewProrationRef.current?.classList.remove(`${styles.active}`)}
+                // onMouseEnter={() => setHoveredNewProration(true)}
+                // onMouseLeave={() => setHoveredNewProration(false)}
               >
                 <ImInfo
                   className={`ml-[-10px] mr-[8px] ${
@@ -1867,22 +1931,30 @@ const IncreaseAccountCountsModalMemo = () => {
               />
             </div>
             <div className="flex-col-center">
-              <span className="text-[16px]">＋</span>
+              <span className="text-[16px]">ー</span>
             </div>
 
             <div className="flex-col-center group relative">
               {/* ツールチップ */}
-              {hoveredOldProration && (
+              <div
+                ref={hoveredOldProrationRef}
+                className={`${styles.tooltip_right_area} transition-base fade pointer-events-none`}
+              >
+                <div className={`${styles.tooltip_right} `}>
+                  <div className={`flex-center ${styles.dropdown_item}`}>詳細を確認する</div>
+                </div>
+                <div className={`${styles.tooltip_right_arrow}`}></div>
+              </div>
+              {/* {hoveredOldProration && (
                 <div className={`${styles.tooltip_right_area} transition-base fade pointer-events-none`}>
                   <div className={`${styles.tooltip_right} `}>
                     <div className={`flex-center ${styles.dropdown_item}`}>
-                      {/* {theme === "light" ? "ダークモードに切り替え" : "ライトモードに切り替え"} */}
                       詳細を確認する
                     </div>
                   </div>
                   <div className={`${styles.tooltip_right_arrow}`}></div>
                 </div>
-              )}
+              )} */}
               {/* ツールチップ ここまで */}
               <div className="flex-col-center mb-[5px] inline-flex min-h-[36px] min-w-[180px]">
                 <span className="text-[12px] font-normal">プラン残り期間まで未使用となる</span>
@@ -1895,7 +1967,8 @@ const IncreaseAccountCountsModalMemo = () => {
                     : `peer group-hover:text-[var(--color-text-brand-f)]`
                 }`}
                 onClick={() => {
-                  setHoveredOldProration(false);
+                  hoveredOldProrationRef.current?.classList.remove(`${styles.active}`);
+                  // setHoveredOldProration(false);
                   if (isFirstUpgrade) {
                     const oldDetailItem = {
                       _currentPeriod: currentPeriodState,
@@ -1923,8 +1996,10 @@ const IncreaseAccountCountsModalMemo = () => {
                     setIsOpenUnusedListModal(true);
                   }
                 }}
-                onMouseEnter={() => setHoveredOldProration(true)}
-                onMouseLeave={() => setHoveredOldProration(false)}
+                onMouseEnter={() => hoveredOldProrationRef.current?.classList.add(`${styles.active}`)}
+                onMouseLeave={() => hoveredOldProrationRef.current?.classList.remove(`${styles.active}`)}
+                // onMouseEnter={() => setHoveredOldProration(true)}
+                // onMouseLeave={() => setHoveredOldProration(false)}
               >
                 {/* <ImInfo
                   className={`ml-[-10px] mr-[8px] group-hover:text-[var(--color-text-brand-f)] ${
@@ -1943,7 +2018,7 @@ const IncreaseAccountCountsModalMemo = () => {
                     ? `${formatToJapaneseYen(
                         Math.round(oldUnusedAmountForRemainingPeriodWithThreeDecimalPoints),
                         false,
-                        true
+                        false
                       )}円`
                     : `-`}
                 </span>
@@ -3076,13 +3151,13 @@ const IncreaseAccountCountsModalMemo = () => {
           <MdClose className="text-[20px] text-[#fff]" />
         </button>
         {/* Stripeから取得したInvoiceとローカルで計算したInvoice内容の確認モーダル開閉ボタン */}
-        <button
+        {/* <button
           className={`flex-center group absolute right-[-40px] top-[52px] z-10 h-[32px] w-[32px] rounded-full bg-[#00000070] hover:bg-[#000000c0]`}
           onClick={() => setIsOpenCheckInvoiceStripeLocalModal(!isOpenCheckInvoiceStripeLocalModal)}
         >
           {isOpenCheckInvoiceStripeLocalModal && <FaChevronRight className="text-[16px] text-[#fff]" />}
           {!isOpenCheckInvoiceStripeLocalModal && <FaChevronLeft className="text-[16px] text-[#fff]" />}
-        </button>
+        </button> */}
         {/* メインコンテンツ コンテナ */}
         <div className={`${styles.main_contents_container}`}>
           {/* チェック不合格時の最終確認モーダル */}
@@ -3241,12 +3316,19 @@ const IncreaseAccountCountsModalMemo = () => {
                   <div className="flex w-full items-start justify-between">
                     <span className="max-w-[290px]">アカウントを増やした場合に次回請求で発生する追加費用</span>
                     {/* <span className="">￥{(accountQuantity ? accountQuantity : 1) * 980}</span> */}
-                    <span className="">
-                      ￥
-                      {(accountQuantity ?? 1) * getPrice(userProfileState?.subscription_plan) !== 0
-                        ? (accountQuantity ?? 1) * getPrice(userProfileState?.subscription_plan)
-                        : "エラー"}
-                    </span>
+                    {!isFreeTodaysPayment && (
+                      <span className="">
+                        ￥
+                        {(accountQuantity ?? 1) * getPrice(userProfileState?.subscription_plan) !== 0
+                          ? (accountQuantity ?? 1) * getPrice(userProfileState?.subscription_plan)
+                          : "エラー"}
+                      </span>
+                    )}
+                    {isFreeTodaysPayment && (
+                      <span className="">
+                        ￥{!!additionalCostState ? formatToJapaneseYen(additionalCostState, false) : "-"}
+                      </span>
+                    )}
                   </div>
 
                   {/* ローカルstateの計算結果を使って表示 */}
@@ -3280,8 +3362,10 @@ const IncreaseAccountCountsModalMemo = () => {
                               setIsOpenUnusedListModal(false);
                             }
                           }
-                          if (hoveredNewProration) setHoveredNewProration(false); // ツールチップ
-                          if (hoveredOldProration) setHoveredOldProration(false); // ツールチップ
+                          hoveredNewProrationRef.current?.classList.remove(`${styles.active}`); // ツールチップ
+                          hoveredOldProrationRef.current?.classList.remove(`${styles.active}`); // ツールチップ
+                          // if (hoveredNewProration) setHoveredNewProration(false); // ツールチップ
+                          // if (hoveredOldProration) setHoveredOldProration(false); // ツールチップ
                           // 最後に閉じる
                           setIsOpenInvoiceDetail(false);
                         }}

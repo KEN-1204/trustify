@@ -321,6 +321,7 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
       // ・次回請求日以降(次回請求期間開始日以降)は減らした新たな数量が適用され、
       // これを適用するか検討：(その料金は新数量適用後の次の支払日（現在から次の次）に適用される)
 
+      // =========================== 通常 ===========================
       const subscriptionSchedule = await stripe.subscriptionSchedules.update(scheduleData.id, {
         phases: [
           {
@@ -348,6 +349,79 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
           },
         ],
       });
+      // =========================== 通常 ===========================
+      // =========================== テスト ===========================
+      // const currentPhaseEndDateTimestamp = scheduleData.phases[0].end_date;
+      // // UNIXタイムスタンプをミリ秒に変換してDate()で扱えるようにする
+      // const currentPhaseEndDate = new Date(currentPhaseEndDateTimestamp * 1000);
+      // // 現在のフェーズの終了日にちょうど１ヶ月を加算する
+      // currentPhaseEndDate.setMonth(currentPhaseEndDate.getMonth() + 1);
+      // // 🔹次回フェーズ終了日を丁度１ヶ月後にずらさないようにする用
+      // const oneMonthAfterEndDate = Math.floor(currentPhaseEndDate.getTime() / 1000); // UNIXタイムスタンプに戻す
+
+      // // 現在のフェーズのendDateの1分後を取得 次回フェーズの開始日にセットする用
+      // const currentPhaseEndDateForStart = new Date(currentPhaseEndDateTimestamp * 1000);
+      // // 現在のフェーズの終了日にちょうど1分を加算する
+      // currentPhaseEndDateForStart.setMinutes(currentPhaseEndDateForStart.getMinutes() + 1);
+      // // 🔹次回フェーズ開始日を1分後にして追加費用を請求確定させてからアカウント数を減らす用
+      // const oneMinutesAfterEndDate = Math.floor(currentPhaseEndDateForStart.getTime() / 1000); // UNIXタイムスタンプに戻す
+      // console.log(
+      //   "💡現在のフェーズの終了日 scheduleData.phases[0].end_date",
+      //   scheduleData.phases[0].end_date,
+      //   format(new Date(scheduleData.phases[0].end_date * 1000), "yyyy年MM月dd日 HH:mm:ss")
+      // );
+      // console.log(
+      //   "💡end_dateの1ヶ月後 oneMonthAfterEndDate",
+      //   oneMonthAfterEndDate,
+      //   format(new Date(oneMonthAfterEndDate * 1000), "yyyy年MM月dd日 HH:mm:ss")
+      // );
+      // console.log(
+      //   "💡end_dateの1分後 oneMinutesAfterEndDate",
+      //   oneMinutesAfterEndDate,
+      //   format(new Date(oneMinutesAfterEndDate * 1000), "yyyy年MM月dd日 HH:mm:ss")
+      // );
+
+      // const subscriptionSchedule = await stripe.subscriptionSchedules.update(scheduleData.id, {
+      //   phases: [
+      //     {
+      //       items: [
+      //         {
+      //           price: subscriptionCurrentPriceId, // 現在の価格プラン
+      //           quantity: subscriptionCurrentQuantity, // 更新前の現在の数量
+      //         },
+      //       ],
+      //       start_date: scheduleData.phases[0].start_date,
+      //       end_date: scheduleData.phases[0].end_date, // 本番はこっち
+      //       proration_behavior: "none", // そのまま
+      //       billing_cycle_anchor: "phase_start", // 現在の請求期間の開始日のまま
+      //     },
+      //     {
+      //       items: [
+      //         {
+      //           price: subscriptionCurrentPriceId, // 現在の価格プラン
+      //           quantity: subscriptionCurrentQuantity, // 更新前の現在の数量
+      //         },
+      //       ],
+      //       start_date: scheduleData.phases[0].end_date, // 現在のフェーズ終了日を開始日にする
+      //       end_date: oneMinutesAfterEndDate, // 現在のフェーズ終了日から1分後に終了
+      //       // iterations: 1,
+      //       proration_behavior: "none", // そのまま
+      //     },
+      //     {
+      //       items: [
+      //         {
+      //           price: subscriptionCurrentPriceId, // 現在の価格プラン
+      //           quantity: newQuantity, // 新たにダウンした数量
+      //         },
+      //       ],
+      //       start_date: oneMinutesAfterEndDate, // 現在のフェーズ終了日から1分後に終了して次のフェーズを開始
+      //       end_date: oneMonthAfterEndDate, // 現在のフェーズ終了日から丁度１ヶ月後
+      //       // iterations: 1,
+      //       proration_behavior: "none", // 新たに減らした数量を前払い(請求期間の開始日に支払い完了)
+      //     },
+      //   ],
+      // });
+      // =========================== テスト ここまで ===========================
 
       console.log(
         "🌟Stripeアカウント数量減らすステップ5-3 数量ダウンルート サブスクリプションスケジュールのUPDATE完了 subscriptionSchedule",

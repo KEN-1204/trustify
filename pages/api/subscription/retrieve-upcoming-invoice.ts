@@ -97,7 +97,7 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
     // 時間分秒を揃えないとStripeの比例配分は秒割りのため
     // const current = new Date(); // 現在の日付
     // const timeClockCurrentDate = new Date(2023, 11, 19); // JavaScriptの月は0から始まるため、12月は11となります
-    const timeClockCurrentDate = new Date(2023, 11, 20); // JavaScriptの月は0から始まるため、12月は11となります
+    const timeClockCurrentDate = new Date(2024, 8, 20); // テストクロック JavaScriptの月は0から始まるため、12月は11となります 1月は0月
     console.log("💡タイムクロックの現在の日付 timeClockCurrentDate", timeClockCurrentDate); // 出力: 2023-12-19T00:00:00.000Z（タイムゾーンによっては異なる表示になる場合があります）
 
     const currentEndTime = new Date(subscription.current_period_end * 1000); // サブスクリプション期間終了時の日時 「* 1000」はUNIXタイムスタンプ（秒単位）に変換
@@ -251,9 +251,17 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
           invoice?.lines?.data[1]?.amount + invoice?.lines?.data[0]?.amount
         );
       } else if (invoiceItemList.length > 2) {
-        const middleIndex = invoiceItemList.length / 2; // 真ん中のインデックスを把握
-        const firstHalfInvoiceItemList = invoiceItemList.slice(0, middleIndex);
-        const secondHalfInvoiceItemList = invoiceItemList.slice(middleIndex);
+        // ======================= 配列分割テスト =======================
+        // const middleIndex = invoiceItemList.length / 2; // 真ん中のインデックスを把握
+        // const firstHalfInvoiceItemList = invoiceItemList.slice(0, middleIndex);
+        // const secondHalfInvoiceItemList = invoiceItemList.slice(middleIndex);
+        const firstHalfInvoiceItemList = invoiceItemList
+          .filter((item) => item.description?.startsWith("Unused"))
+          .sort((a, b) => (a.quantity ?? 0) - (b.quantity ?? 0));
+        const secondHalfInvoiceItemList = invoiceItemList
+          .filter((item) => item.description?.startsWith("Remaining"))
+          .sort((a, b) => (a.quantity ?? 0) - (b.quantity ?? 0));
+        // ======================= 配列分割テスト =======================
         const sumOldUnused = firstHalfInvoiceItemList.reduce(
           (accumulator, currentValue) => accumulator + currentValue.amount,
           0

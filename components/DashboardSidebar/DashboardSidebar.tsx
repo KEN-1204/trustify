@@ -72,7 +72,7 @@ export const DashboardSidebarMemo: FC = () => {
   };
   return (
     <div
-      className={`${styles.app_sidebar}  ${isOpenSidebar ? `transition-base02` : `${styles.mini} transition-base01`}`}
+      className={`${styles.app_sidebar} ${isOpenSidebar ? `transition-base02` : `${styles.mini} transition-base01`}`}
     >
       <div className={`${styles.wrapper}`}>
         <div className={styles.spacer} />

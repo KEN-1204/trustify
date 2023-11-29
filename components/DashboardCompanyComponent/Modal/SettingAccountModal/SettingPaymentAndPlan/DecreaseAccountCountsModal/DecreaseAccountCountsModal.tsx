@@ -314,6 +314,7 @@ const DecreaseAccountCountsModalMemo = () => {
         draggable: true,
         progress: undefined,
       });
+      setIsOpenChangeAccountCountsModal(null);
     } catch (e: any) {
       console.error("handleChangeQuantityエラー", e);
       toast.error(`アカウント数の変更に失敗しました!`, {

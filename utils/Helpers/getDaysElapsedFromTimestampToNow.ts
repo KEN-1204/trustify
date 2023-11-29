@@ -19,8 +19,8 @@ export const getDaysElapsedFromTimestampToNow = (timestamp: number): Response =>
 
     // 現在の日付、時間を取得
     const now = new Date();
-    // 特定の日付でDateオブジェクトを作成(タイムクロック使用中 現在は2023/12/20)
-    const testClockCurrentDate: Date = new Date("2023-12-20");
+    // 特定の日付でDateオブジェクトを作成(タイムクロック使用中 現在は2024/1/20)
+    const testClockCurrentDate: Date = new Date("2024-9-20"); // テストクロック
 
     // 特定の日付に現在の時間、分、秒を設定
     testClockCurrentDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
@@ -63,8 +63,8 @@ export const getDaysElapsedFromTimestampToNow = (timestamp: number): Response =>
 
     // 現在の日付、時間を取得
     const now = new Date();
-    // 特定の日付でDateオブジェクトを作成(タイムクロック使用中 現在は2023/12/20)
-    const testClockCurrentDate: Date = new Date("2023-12-20");
+    // 特定の日付でDateオブジェクトを作成(タイムクロック使用中 現在は2024/1/20)
+    const testClockCurrentDate: Date = new Date("2024-9-20"); // テストクロック
 
     // 特定の日付に現在の時間、分、秒を設定
     testClockCurrentDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
