@@ -7,14 +7,20 @@
   border-bottom-right-radius: 8px;
 } */
 .modal_right_container {
-  background-color: var(--color-modal-bg-side-c);
-  /* background-image: url("/assets/images/team/team1.jpg"); */
-  /* background-image: url("/assets/images/team/team02.jpg"); */
-  /* background-position: 20% 50%; */
+  /* background-color: var(--color-modal-bg-side-c); */
   background-image: url("/assets/images/team/pexels-fauxels_900_600.jpg");
   background-position: 66% 50%;
   background-size: cover;
   background-repeat: no-repeat;
   border-top-right-radius: 8px;
   border-bottom-right-radius: 8px;
+}
+.modal_right_image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 66% 50%;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+  z-index: -1;
 }

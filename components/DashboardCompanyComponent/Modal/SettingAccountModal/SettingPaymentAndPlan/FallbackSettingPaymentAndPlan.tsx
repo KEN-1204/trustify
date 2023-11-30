@@ -44,7 +44,7 @@ export const FallbackSettingPaymentAndPlan = () => {
               <button
                 className={`transition-base01 flex-center max-h-[41px] w-full min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold !text-[var(--color-text-title)]`}
               >
-                <span>プランを変更</span>
+                <span>プランをアップグレード</span>
               </button>
             </div>
             <div className="mt-[16px] flex w-full space-x-8">
