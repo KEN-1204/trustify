@@ -1,0 +1,20 @@
+/* .right_modal {
+  background-image: url("/assets/images/team/team1.jpg");
+  background-position: 30% 50%;
+  background-size: cover;
+  background-repeat: no-repeat;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+} */
+.modal_right_container {
+  background-color: var(--color-modal-bg-side-c);
+  /* background-image: url("/assets/images/team/team1.jpg"); */
+  /* background-image: url("/assets/images/team/team02.jpg"); */
+  /* background-position: 20% 50%; */
+  background-image: url("/assets/images/team/pexels-fauxels_900_600.jpg");
+  background-position: 66% 50%;
+  background-size: cover;
+  background-repeat: no-repeat;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+}

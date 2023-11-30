@@ -161,6 +161,9 @@ type State = {
   // 【アカウントを増やすモーダル StripeのnextInvoice保持用state】
   nextInvoice: Stripe.UpcomingInvoice | null;
   setNextInvoice: (payload: Stripe.UpcomingInvoice | null) => void;
+  // 【プランを変更モーダル】
+  nextInvoiceForChangePlan: Stripe.UpcomingInvoice | null;
+  setNextInvoiceForChangePlan: (payload: Stripe.UpcomingInvoice | null) => void;
   // 【アカウントを削除リクエストしたスケジュール】
   deleteAccountRequestSchedule: StripeSchedule | null;
   setDeleteAccountRequestSchedule: (payload: StripeSchedule | null) => void;
@@ -427,6 +430,9 @@ const useDashboardStore = create<State>((set) => ({
   // 【アカウントを増やすモーダル StripeのnextInvoice保持用state】
   nextInvoice: null,
   setNextInvoice: (payload) => set({ nextInvoice: payload }),
+  // 【プランを変更モーダル】
+  nextInvoiceForChangePlan: null,
+  setNextInvoiceForChangePlan: (payload) => set({ nextInvoiceForChangePlan: payload }),
   // 【アカウントを削除リクエストしたスケジュール】
   deleteAccountRequestSchedule: null,
   setDeleteAccountRequestSchedule: (payload) => set({ deleteAccountRequestSchedule: payload }),

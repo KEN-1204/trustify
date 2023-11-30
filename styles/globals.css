@@ -41,6 +41,7 @@
   --vivid-green-dark: #0fff92;
   --bright-green-rgb: 0, 212, 54;
   --bright-red: #f63e54;
+  --bright-red-hover: #de364a;
   /* TikTok */
   --color-red-tk: #ff3b5b;
   --color-red-tk-hover: #fd627c;
@@ -477,9 +478,12 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-table-footer: #fff;
   --color-table-bg-loading: #fff;
   /* リフレクション ブルー */
-  --color-table-reflection: #0d99ff30;
+  /* --color-table-reflection: #0d99ff30; */
+  --color-table-reflection: #0d99ff42;
+  /* --color-table-reflection: #0d99ff90; */
   /* --color-table-reflection: #d9eafb; */
-  --color-table-loading-spinner: #0d99ffd0;
+  /* --color-table-loading-spinner: #0d99ffd0; */
+  --color-table-loading-spinner: #0d99ffc0;
   /* --color-table-row-hover: #ecf4fca0; */
   /* --color-table-row-hover: rgba(55, 53, 47, 0.08); */
   /* --color-table-row-hover: #f0f0f0; */
@@ -547,6 +551,42 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --tw-gradient-from: rgba(52, 211, 153, 0) var(--tw-gradient-from-position);
   --tw-gradient-stops: var(--tw-gradient-from), rgba(52, 211, 153, 0.9) var(--tw-gradient-via-position),
     var(--tw-gradient-to);
+  --color-brand-f-radial-gradient: radial-gradient(
+    64.18% 64.18% at 71.16% 35.69%,
+    #cffcfd 0.89%,
+    #bef3f5 17.23%,
+    #7de2eb 42.04%,
+    #7dc8eb 55.12%,
+    #0ab5ff 71.54%,
+    rgb(0, 136, 255) 100%
+  );
+  --color-brand-f-radial-gradient90: radial-gradient(
+    64.18% 64.18% at 71.16% 35.69%,
+    #cffcfd90 0.89%,
+    #bef3f590 17.23%,
+    #7de2eb90 42.04%,
+    #7dc8eb90 55.12%,
+    #0ab5ff90 71.54%,
+    #0088ff90 100%
+  );
+  --color-brand-f-radial-gradient50: radial-gradient(
+    64.18% 64.18% at 71.16% 35.69%,
+    #cffcfd50 0.89%,
+    #bef3f550 17.23%,
+    #7de2eb50 42.04%,
+    #7dc8eb50 55.12%,
+    #0ab5ff50 71.54%,
+    #0088ff50 100%
+  );
+  --color-brand-f-radial-gradient30: radial-gradient(
+    64.18% 64.18% at 71.16% 35.69%,
+    #cffcfd30 0.89%,
+    #bef3f530 17.23%,
+    #7de2eb30 42.04%,
+    #7dc8eb30 55.12%,
+    #0ab5ff30 71.54%,
+    #0088ff30 100%
+  );
 
   /* ===================================== 🌟サイドばー ライト ===================================== */
   /* --color-sidebar-active: #e5f4ff; */
@@ -1019,7 +1059,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-table-footer: #191919; */
   --color-table-footer: #2c2c2c;
   --color-table-bg-loading: #121212;
-  --color-table-reflection: rgba(255, 255, 255, 0.2);
+  /* --color-table-reflection: rgba(255, 255, 255, 0.2); */
+  --color-table-reflection: rgba(255, 255, 255, 0.3);
   --color-table-loading-spinner: #787878;
   --color-table-row-hover: #232323;
   --color-table-bg-selected: #232323;
@@ -1076,7 +1117,42 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --tw-gradient-from: rgba(52, 211, 153, 0) var(--tw-gradient-from-position);
   --tw-gradient-stops: var(--tw-gradient-from), rgba(52, 211, 153, 0.9) var(--tw-gradient-via-position),
     var(--tw-gradient-to);
-
+  --color-brand-f-radial-gradient: radial-gradient(
+    64.18% 64.18% at 71.16% 35.69%,
+    #cffcfd 0.89%,
+    #bef3f5 17.23%,
+    #7de2eb 42.04%,
+    #7dc8eb 55.12%,
+    #0ab5ff 71.54%,
+    rgb(0, 136, 255) 100%
+  );
+  --color-brand-f-radial-gradient90: radial-gradient(
+    64.18% 64.18% at 71.16% 35.69%,
+    #cffcfd90 0.89%,
+    #bef3f590 17.23%,
+    #7de2eb90 42.04%,
+    #7dc8eb90 55.12%,
+    #0ab5ff90 71.54%,
+    #0088ff90 100%
+  );
+  --color-brand-f-radial-gradient50: radial-gradient(
+    64.18% 64.18% at 71.16% 35.69%,
+    #cffcfd50 0.89%,
+    #bef3f550 17.23%,
+    #7de2eb50 42.04%,
+    #7dc8eb50 55.12%,
+    #0ab5ff50 71.54%,
+    #0088ff50 100%
+  );
+  --color-brand-f-radial-gradient30: radial-gradient(
+    64.18% 64.18% at 71.16% 35.69%,
+    #cffcfd30 0.89%,
+    #bef3f530 17.23%,
+    #7de2eb30 42.04%,
+    #7dc8eb30 55.12%,
+    #0ab5ff30 71.54%,
+    #0088ff30 100%
+  );
   /* ======================= 🌟サイドバー dark ======================= */
   --color-sidebar-active: #0c8ce9;
   /* --color-sidebar-active: #2b7fff; */
@@ -1794,6 +1870,17 @@ textarea {
 }
 
 /* ブランドグラデーション */
+.brand_f_radial_gradient {
+  background: radial-gradient(
+    64.18% 64.18% at 71.16% 35.69%,
+    #cffcfd 0.89%,
+    #bef3f5 17.23%,
+    #7de2eb 42.04%,
+    #7dc8eb 55.12%,
+    #0ab5ff 71.54%,
+    rgb(0, 136, 255) 100%
+  );
+}
 /* STRIPE
 メイン薄い #80E9FF, #7A73FF, ロゴ #55D2FF */
 .bg-gradient-brand1 {

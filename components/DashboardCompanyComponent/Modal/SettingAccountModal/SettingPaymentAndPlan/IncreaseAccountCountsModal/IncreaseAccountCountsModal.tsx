@@ -294,6 +294,7 @@ const IncreaseAccountCountsModalMemo = () => {
         stripeSubscriptionId: userProfileState.stripe_subscription_id,
         changeQuantity: totalAccountQuantity, // 数量変更後の合計アカウント数
         changePlanName: null, // プラン変更ではないので、nullをセット
+        currentQuantity: null, // プラン変更用なのでnullをセット
       };
 
       const {
@@ -600,7 +601,9 @@ const IncreaseAccountCountsModalMemo = () => {
       // => 現在保持しているnextInvoiceの各項目をローカルStateに格納してそのままリターン
       else {
         // 変更後のサブスクリプション新プランを取り除いたinvoiceitemのみの配列を取得
-        const invoiceItemList = nextInvoice.lines.data.filter((item) => item.type === "invoiceitem");
+        const invoiceItemList = nextInvoice.lines.data.filter(
+          (item: Stripe.InvoiceLineItem) => item.type === "invoiceitem"
+        );
         // invoiceItemListが偶数であること(未使用、残り使用が1セットずつになっていること)をチェックする
         if (invoiceItemList.length % 2 === 1) {
           console.log("❌list.dataのインボイスアイテムが奇数のためエラー: リターンしてモーダルを閉じる");
@@ -798,6 +801,7 @@ const IncreaseAccountCountsModalMemo = () => {
         stripeSubscriptionId: userProfileState.stripe_subscription_id,
         changeQuantity: totalAccountQuantity, // 数量変更後の合計アカウント数
         changePlanName: null, // プラン変更ではないので、nullをセット
+        currentQuantity: null, // プラン変更用なのでnullをセット
       };
       console.log("料金チェック1 retrieve-upcoming-invoiceエンドポイントへリクエスト payload", payload);
       const {

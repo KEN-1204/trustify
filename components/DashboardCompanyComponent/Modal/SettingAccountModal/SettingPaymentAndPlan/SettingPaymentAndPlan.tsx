@@ -13,11 +13,23 @@ import axios from "axios";
 import { format } from "date-fns";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import React, { FC, memo, useEffect, useState } from "react";
+import React, { FC, memo, useCallback, useEffect, useRef, useState } from "react";
 import { AiFillExclamationCircle, AiFillInfoCircle, AiOutlineMinusCircle, AiOutlinePlusCircle } from "react-icons/ai";
-import { BsCheck2 } from "react-icons/bs";
-import { MdClose } from "react-icons/md";
+import { BsCheck2, BsChevronDown } from "react-icons/bs";
+import { MdBubbleChart, MdClose, MdOutlineBubbleChart } from "react-icons/md";
 import { toast } from "react-toastify";
+import styles from "./SettingPaymentAndPlan.module.css";
+import { GiLaurelCrown } from "react-icons/gi";
+import { FaChartLine, FaChartPie, FaRegHeart } from "react-icons/fa";
+import { GrLineChart } from "react-icons/gr";
+import { SkeletonLoadingLineLong } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineLong";
+import { getPeriodInDaysFromIsoDateString } from "@/utils/Helpers/getPeriodInDaysFromIsoDateString";
+import { getRemainingDaysFromNowPeriodEndHourToTimestamp } from "@/utils/Helpers/getRemainingDaysFromNowPeriodEndHourToTimestamp";
+import { getPrice } from "@/utils/Helpers/getPrice";
+import { SkeletonLoadingLineFull } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineFull";
+import { SkeletonLoadingLineMedium } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineMedium";
+import { HiPlus } from "react-icons/hi2";
+import { formatToJapaneseYen } from "@/utils/Helpers/formatToJapaneseYen";
 
 const SettingPaymentAndPlanMemo: FC = () => {
   const theme = useThemeStore((state) => state.theme);
@@ -32,6 +44,8 @@ const SettingPaymentAndPlanMemo: FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   // ポータルローディング
   const [isLoadingPortal, setIsLoadingPortal] = useState(false);
+  // プラン変更ローディング
+  const [isLoadingChangePlan, setIsLoadingChangePlan] = useState(false);
   // アカウントを増やす・減らすモーダル開閉状態
   const isOpenChangeAccountCountsModal = useDashboardStore((state) => state.isOpenChangeAccountCountsModal);
   const setIsOpenChangeAccountCountsModal = useDashboardStore((state) => state.setIsOpenChangeAccountCountsModal);
@@ -51,8 +65,55 @@ const SettingPaymentAndPlanMemo: FC = () => {
   const [showConfirmModal, setShowConfirmModal] = useState<string | null>(null);
   // プランを変更確認モーダル
   const [isOpenChangePlanModal, setIsOpenChangePlanModal] = useState(false);
+  // プラン変更モーダルの中の追加費用詳細モーダル
+  const [isOpenAdditionalCostModal, setIsOpenAdditionalCostModal] = useState(false);
+  // プラン変更時のアップグレードかダウングレード
+  const [isUpgradePlan, setIsUpgradePlan] = useState(false);
+  // プラン変更を確定・確認モーダル
+  const [isOpenConfirmChangePlanModal, setIsOpenConfirmChangePlanModal] = useState(false);
+  // プラン変更時に取得する日割り計算済みのstripeインボイス保持用State
+  const nextInvoiceForChangePlan = useDashboardStore((state) => state.nextInvoiceForChangePlan);
+  const setNextInvoiceForChangePlan = useDashboardStore((state) => state.setNextInvoiceForChangePlan);
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
+
+  // =================== 🌟プラン変更インボイス用state ===================
+  const currentPeriodRef = useRef<number | null>(null);
+  const remainingDaysRef = useRef<number | null>(null);
+  const businessPlanFeePerAccountRef = useRef<number | null>(null);
+  const premiumPlanFeePerAccountRef = useRef<number | null>(null);
+  const [newPlanAmount, setNewPlanAmount] = useState<number | null>(null);
+  const [todayIsPeriodEnd, setTodayIsPeriodEnd] = useState(false);
+  useEffect(() => {
+    if (!userProfileState?.current_period_end) return;
+    if (!userProfileState?.current_period_start) return;
+    const period = getPeriodInDaysFromIsoDateString(
+      userProfileState.current_period_start,
+      userProfileState.current_period_end
+    );
+    const periodEndDate = new Date(userProfileState.current_period_end);
+    const remaining = getRemainingDaysFromNowPeriodEndHourToTimestamp(periodEndDate.getTime()).remainingDays;
+
+    // refに格納
+    currentPeriodRef.current = period; // 請求期間
+    remainingDaysRef.current = remaining; // 残り日数
+    businessPlanFeePerAccountRef.current = getPrice("business_plan"); //ビジネスプラン価格
+    premiumPlanFeePerAccountRef.current = getPrice("premium_plan"); // プレミアムプラン価格
+
+    // 今日が終了日かどうか
+    const currentDateObj = new Date("2024-9-20"); // テストクロック
+    const year = currentDateObj.getFullYear();
+    const month = currentDateObj.getMonth();
+    const day = currentDateObj.getDate();
+    const currentDateOnly = new Date(year, month, day); // 現在の日付の時刻情報をリセット
+    const endYear = periodEndDate.getFullYear();
+    const endMonth = periodEndDate.getMonth();
+    const endDay = periodEndDate.getDate();
+    const periodEndDateOnly = new Date(endYear, endMonth, endDay); // 現在の日付の時刻情報をリセット
+    const isSameDay = currentDateOnly.getTime() === periodEndDateOnly.getTime();
+    if (isSameDay) setTodayIsPeriodEnd(true);
+  }, [userProfileState?.current_period_end, userProfileState?.current_period_start]);
+  // =================== ✅プラン変更インボイス用state ===================
 
   const {
     data: stripeSchedulesDataArray,
@@ -147,7 +208,9 @@ const SettingPaymentAndPlanMemo: FC = () => {
     "✅未設定アクティブアカウント",
     notSetAccounts,
     "✅削除リクエスト済みアカウント",
-    notSetAndDeleteRequestedAccounts
+    notSetAndDeleteRequestedAccounts,
+    "✅プラン変更将来のインボイス",
+    nextInvoiceForChangePlan
   );
 
   // Stripeポータルへ移行させるためのURLをAPIルートにGETリクエスト
@@ -324,6 +387,159 @@ const SettingPaymentAndPlanMemo: FC = () => {
   };
   // ===================== ✅アカウントの削除リクエストをキャンセルする関数 =====================
 
+  // stripeにプラン変更の将来のインボイスデータを取得する関数
+  const getUpcomingInvoiceChangePlan = useCallback(
+    async (newPlanName: string) => {
+      if (!userProfileState) return alert("エラー：ユーザー情報が見つかりませんでした。");
+
+      setIsLoadingFetchInvoice(true); // ローディング開始
+
+      try {
+        const payload = {
+          stripeCustomerId: userProfileState.stripe_customer_id,
+          stripeSubscriptionId: userProfileState.stripe_subscription_id,
+          changeQuantity: null, // 数量変更後の合計アカウント数
+          changePlanName: newPlanName, // 新たな変更先プラン名
+          currentQuantity: userProfileState.accounts_to_create, // プラン変更時の現在の契約アカウント数
+        };
+        console.log("🌟Stripe将来のインボイス取得ステップ1 axios.post実行 payload", payload);
+        const {
+          data: { data: upcomingInvoiceData, error: upcomingInvoiceError },
+        } = await axios.post(`/api/subscription/retrieve-upcoming-invoice`, payload, {
+          headers: {
+            Authorization: `Bearer ${sessionState.access_token}`,
+          },
+        });
+
+        if (!!upcomingInvoiceError) {
+          console.log(
+            "🌟Stripe将来のインボイス取得ステップ2 /retrieve-upcoming-invoiceへのaxios.postエラー",
+            upcomingInvoiceError
+          );
+          throw new Error(upcomingInvoiceError);
+        }
+
+        console.log(
+          "🌟Stripe将来のインボイス取得ステップ2 axios.postで次回のインボイスの取得成功",
+          upcomingInvoiceData
+        );
+
+        // StripeのInvoiceをローカルStateに格納
+        setNextInvoiceForChangePlan(upcomingInvoiceData);
+
+        setIsLoadingFetchInvoice(false); // ローディング終了
+      } catch (e: any) {
+        console.error(`getUpcomingInvoiceChangePlan関数実行エラー: `, e);
+        setIsLoadingFetchInvoice(false); // ローディング終了
+      }
+    },
+    [sessionState.access_token, userProfileState, setNextInvoiceForChangePlan]
+  );
+
+  // ===================== 🌟プラン変更モーダルを開く際のイベントハンドラ =====================
+  const [isLoadingFetchInvoice, setIsLoadingFetchInvoice] = useState(false);
+  const newPlanRemainingAmountWithThreeDecimalPointsRef = useRef<number | null>(null);
+  const oldPlanUnusedAmountWithThreeDecimalPointsRef = useRef<number | null>(null);
+
+  const handleOpenChangePlanModal = async () => {
+    if (!userProfileState?.subscription_plan) return alert(`エラー：ユーザー情報が見つかりませんでした。`);
+    if (!userProfileState?.current_period_end) return alert(`エラー：ユーザー情報が見つかりませんでした。`);
+
+    // ダウングレードの場合は比例配分は行わないため、そのまま開く
+    if (userProfileState.subscription_plan === "premium_plan") {
+      setIsOpenChangePlanModal(true);
+      if (isUpgradePlan) setIsUpgradePlan(false);
+      return;
+    }
+
+    // アップグレードルート 現在のプランがビジネスプラン => プレミアムプランへ
+    const periodEndDate = new Date(userProfileState.current_period_end);
+    const remaining = getRemainingDaysFromNowPeriodEndHourToTimestamp(periodEndDate.getTime()).remainingDays;
+    remainingDaysRef.current = remaining;
+    // 新プランの1日当たりの料金
+    const newPlanDailyRateWithThreeDecimalPoints =
+      !!premiumPlanFeePerAccountRef.current && !!currentPeriodRef.current
+        ? Math.round((premiumPlanFeePerAccountRef.current / currentPeriodRef.current) * 1000) / 1000
+        : null;
+    // 新プランの残り利用分の日割り料金
+    const remainingAmount =
+      !!newPlanDailyRateWithThreeDecimalPoints && !!remaining
+        ? Math.round(newPlanDailyRateWithThreeDecimalPoints * remaining * 1000) / 1000
+        : null;
+    newPlanRemainingAmountWithThreeDecimalPointsRef.current = remainingAmount;
+    // 旧プランの1日当たりの料金
+    const oldPlanDailyRateWithThreeDecimalPoints =
+      !!businessPlanFeePerAccountRef.current && !!currentPeriodRef.current
+        ? Math.round((businessPlanFeePerAccountRef.current / currentPeriodRef.current) * 1000) / 1000
+        : null;
+    // 新プランの残り利用分の日割り料金
+    const unusedAmount =
+      !!oldPlanDailyRateWithThreeDecimalPoints && !!remaining
+        ? Math.round(oldPlanDailyRateWithThreeDecimalPoints * remaining * 1000) / 1000
+        : null;
+    oldPlanUnusedAmountWithThreeDecimalPointsRef.current = unusedAmount;
+
+    // ビジネスプランからアップグレードルート
+    // 🔹インボイスデータが存在しないルート
+    if (!nextInvoiceForChangePlan) {
+      // stripeにインボイスデータを取得する
+      setIsOpenChangePlanModal(true);
+      setIsUpgradePlan(true);
+      getUpcomingInvoiceChangePlan("premium_plan");
+    }
+    // 🔹インボイスデータが存在するルート
+    else if (!!nextInvoiceForChangePlan && !!nextInvoiceForChangePlan.subscription_proration_date) {
+      // 既にプラン変更インボイスが存在するなら、次は現在とインボイスの比例配分の日付が同じかどうかを確認する
+      // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2024-1-20で現在の日付を作成
+      const currentDateObj = new Date("2024-9-20"); // テストクロック
+      const year = currentDateObj.getFullYear();
+      const month = currentDateObj.getMonth();
+      const day = currentDateObj.getDate();
+      const currentDateOnly = new Date(year, month, day); // 現在の日付の時刻情報をリセット
+      // nextInvoiceの比例配分の日付を取得(時刻情報なし) UNIXタイムスタンプ(10桁)なら1000倍してミリ秒に変換
+      const nextInvoiceCreatedInMillisecond =
+        nextInvoiceForChangePlan.subscription_proration_date.toString().length === 10
+          ? nextInvoiceForChangePlan.subscription_proration_date * 1000
+          : nextInvoiceForChangePlan.subscription_proration_date;
+      const nextInvoiceDateObj = new Date(nextInvoiceCreatedInMillisecond);
+      const nextInvoiceYear = nextInvoiceDateObj.getFullYear();
+      const nextInvoiceMonth = nextInvoiceDateObj.getMonth();
+      const nextInvoiceDay = nextInvoiceDateObj.getDate();
+      const nextInvoiceDateOnly = new Date(nextInvoiceYear, nextInvoiceMonth, nextInvoiceDay); // nextInvoiceの日付の時刻情報をリセット
+
+      // 🔹現在とZustandの比例配分の日付が同じルート 現在の日付が同じならZustandで保持しているインボイスをそのまま表示する
+      if (currentDateOnly.getTime() === nextInvoiceDateOnly.getTime()) {
+        console.log(
+          "現在の日付とプラン変更インボイスの比例配分日の日付が同じのためZustandのインボイスデータを使用",
+          "現在の日付",
+          currentDateOnly.getTime(),
+          format(currentDateObj, "yyyy年MM月dd日 HH:mm:ss"),
+          "インボイスState比例配分の日付",
+          nextInvoiceDateOnly.getTime(),
+          format(nextInvoiceDateObj, "yyyy年MM月dd日 HH:mm:ss")
+        );
+        setIsOpenChangePlanModal(true);
+        setIsUpgradePlan(true);
+      }
+      // 🔹現在とZustandの比例配分の日付が違うルート 再度最新のインボイスを取得する
+      else {
+        console.log(
+          "現在の日付とプラン変更インボイスの比例配分日の日付が違うため再度stripeにフェッチ",
+          "現在の日付",
+          currentDateOnly.getTime(),
+          format(currentDateObj, "yyyy年MM月dd日 HH:mm:ss"),
+          "インボイスState比例配分の日付",
+          nextInvoiceDateOnly.getTime(),
+          format(nextInvoiceDateObj, "yyyy年MM月dd日 HH:mm:ss")
+        );
+        setIsOpenChangePlanModal(true);
+        setIsUpgradePlan(true);
+        // getUpcomingInvoiceChangePlan("premium_plan");
+      }
+    }
+  };
+  // ===================== ✅プラン変更モーダルを開く際のイベントハンドラ ここまで =====================
+
   const [openAccountCountsMenu, setOpenAccountCountsMenu] = useState(false);
   const AccountCountsDropDownMenu = () => {
     return (
@@ -362,6 +578,469 @@ const SettingPaymentAndPlanMemo: FC = () => {
         </div>
         {/* ==================== チームでの役割メニューポップアップ ここまで ==================== */}
       </>
+    );
+  };
+
+  // ==================== 今すぐアップグレード/今すぐダウングレード確定モーダル ====================
+  const ConfirmChangePlanModal = () => {
+    return (
+      <>
+        {/* オーバーレイ */}
+        <div
+          className="fixed left-[-100vw] top-[-100vh] z-[5000] h-[200vh] w-[200vw] bg-[#00000030]"
+          onClick={() => {
+            setIsOpenConfirmChangePlanModal(false);
+          }}
+        ></div>
+        <div className="fade02 fixed left-[50%] top-[50%] z-[6000] h-auto max-h-[300px] w-[40vw] max-w-[580px] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)]">
+          {isLoadingChangePlan && (
+            <div
+              className={`flex-center absolute left-0 top-0 z-[3000] h-[100%] w-[100%] rounded-[8px] bg-[#00000090]`}
+            >
+              <SpinnerIDS scale={"scale-[0.5]"} />
+            </div>
+          )}
+          {/* クローズボタン */}
+          <button
+            className={`flex-center z-100 group absolute right-[-40px] top-0 h-[32px] w-[32px] rounded-full bg-[#00000090] hover:bg-[#000000c0]`}
+            onClick={() => {
+              setIsOpenConfirmChangePlanModal(false);
+            }}
+          >
+            <MdClose className="text-[20px] text-[#fff]" />
+          </button>
+          <h3 className={`flex min-h-[32px] w-full items-center text-[22px] font-bold`}>プランのアップグレード</h3>
+          <section className={`mt-[20px] flex h-auto w-full flex-col space-y-3 text-[14px]`}>
+            <p>この操作を実行した後にキャンセルすることはできません。</p>
+            {/* <p className="font-bold">
+                注：この操作により、該当ユーザーのデータは、他のチームメンバーと共有されていないものを含めて全てアクセスできなくなります。
+              </p> */}
+          </section>
+          <section className="flex w-full items-start justify-end">
+            <div className={`flex w-[100%] items-center justify-around space-x-5 pt-[30px]`}>
+              <button
+                className={`w-[50%] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[15px] py-[10px] text-[14px] font-bold text-[var(--color-text-title)] hover:bg-[var(--setting-side-bg-select-hover)]`}
+                onClick={() => {
+                  setIsOpenConfirmChangePlanModal(false);
+                }}
+              >
+                キャンセル
+              </button>
+              <button
+                className="w-[50%] cursor-pointer rounded-[8px] bg-[var(--color-red-tk)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff] hover:bg-[var(--color-red-tk-hover)]"
+                onClick={handleCancelDeleteAccountRequestSchedule}
+              >
+                変更を確定
+              </button>
+            </div>
+          </section>
+        </div>
+      </>
+    );
+  };
+  // ==================== 今すぐアップグレード/今すぐダウングレード確定モーダル ここまで ====================
+
+  // 日割り料金詳細モーダル
+  const AdditionalCostModal = () => {
+    return (
+      <div
+        className={`border-real fade03 absolute bottom-[100%] left-[50%] z-30 flex min-h-[50px] min-w-[100px] max-w-[690px] translate-x-[-50%] cursor-default flex-col rounded-[8px] bg-[var(--color-edit-bg-solid)] px-[30px] py-[20px]`}
+      >
+        {/* 日割り料金詳細エリア */}
+        {/* タイトルエリア */}
+        <div className="flex w-full items-center">
+          <div className="text-[16px] font-bold text-[var(--color-text-title)]">
+            <h4>
+              新プランアップグレード：
+              <span className="text-[var(--color-text-brand-f)]">
+                {!!newPlanRemainingAmountWithThreeDecimalPointsRef.current &&
+                !!oldPlanUnusedAmountWithThreeDecimalPointsRef.current
+                  ? formatToJapaneseYen(
+                      Math.round(
+                        newPlanRemainingAmountWithThreeDecimalPointsRef.current -
+                          oldPlanUnusedAmountWithThreeDecimalPointsRef.current
+                      ),
+                      true,
+                      false
+                    )
+                  : `-`}
+                円(/アカウント)
+              </span>
+              の日割り料金の詳細
+            </h4>
+            {/* <h4>新プランアップグレード 日割り料金の詳細</h4> */}
+          </div>
+        </div>
+        {/* タイトルエリア ここまで */}
+        {/* コンテンツエリア */}
+        <div className="mt-[12px] flex w-full flex-col space-y-[12px] text-[14px]">
+          <p className="flex w-full items-center space-x-[8px]">
+            <span className="text-[16px] font-bold">・</span>
+            <span className="!ml-[4px]">今月の契約期間</span>
+            <span>：</span>
+            <span className="font-bold">
+              {!!userProfileState?.current_period_start
+                ? format(new Date(userProfileState.current_period_start), "yyyy年MM月dd日")
+                : `-`}
+              〜
+              {!!userProfileState?.current_period_end
+                ? format(new Date(userProfileState.current_period_end), "yyyy年MM月dd日")
+                : `-`}
+              {!!currentPeriodRef.current ? `（${currentPeriodRef.current}日間）` : ``}
+            </span>
+          </p>
+          <div className="flex w-full items-center">
+            <p className="flex min-w-[50%] items-center space-x-[8px]">
+              <span className="text-[16px] font-bold">・</span>
+              <span className="!ml-[4px]">終了日までの残り日数</span>
+              <span>：</span>
+              <span className="font-bold">
+                {!!remainingDaysRef.current ? `${remainingDaysRef.current}日間` : `-`}
+                {/* {!!remainingDaysState ? `${remainingDaysState}日間` : `-`} */}
+                {/* {!!remainingDays ? `${remainingDays}日間` : `-`} */}
+                {/* {!!elapsedDays ? `（開始日から${elapsedDays}日経過）` : `-`} */}
+              </span>
+              {!!userProfileState?.current_period_end && (
+                <span className="text-[var(--color-text-title)]">
+                  （{format(new Date(), "MM月dd日")}〜
+                  {format(new Date(userProfileState.current_period_end), "MM月dd日")}）
+                </span>
+              )}
+            </p>
+          </div>
+          <div className="flex w-full items-center">
+            <p className="flex items-center space-x-[8px]">
+              <span className="text-[16px] font-bold">・</span>
+              <span className="!ml-[4px]">新プランの1日あたりの使用料</span>
+              <span>：</span>
+
+              <span className="font-bold">
+                {!!premiumPlanFeePerAccountRef.current && !!currentPeriodRef.current
+                  ? `${Math.round((premiumPlanFeePerAccountRef.current / currentPeriodRef.current) * 1000) / 1000}円/日`
+                  : `-`}
+              </span>
+              <span>=</span>
+              <span>{!!premiumPlanFeePerAccountRef.current ? `${premiumPlanFeePerAccountRef.current}円` : `-`}</span>
+              <span>÷</span>
+              <span>{!!currentPeriodRef.current ? `${currentPeriodRef.current}日` : `-`}</span>
+            </p>
+          </div>
+          <div className="flex w-full items-center">
+            <p className="flex items-center space-x-[8px]">
+              <span className="text-[16px] font-bold">・</span>
+              <span className="!ml-[4px] min-w-[224px]">新プランの今月残り利用分の日割り料金</span>
+              <span>：</span>
+              <span className="font-bold text-[#00d436] underline underline-offset-1">
+                {!!premiumPlanFeePerAccountRef.current && !!currentPeriodRef.current && !!remainingDaysRef.current
+                  ? `${formatToJapaneseYen(
+                      Math.round(
+                        (Math.round((premiumPlanFeePerAccountRef.current / currentPeriodRef.current) * 1000) / 1000) *
+                          remainingDaysRef.current
+                      ),
+                      false
+                    )}円`
+                  : `-`}
+              </span>
+              <span>=</span>
+              <span>
+                {!!premiumPlanFeePerAccountRef.current && !!currentPeriodRef.current
+                  ? `${Math.round((premiumPlanFeePerAccountRef.current / currentPeriodRef.current) * 1000) / 1000}円/日`
+                  : `-`}
+              </span>
+              <span>×</span>
+
+              <span>{!!remainingDaysRef.current ? `残り${remainingDaysRef.current}日` : `-`}</span>
+            </p>
+          </div>
+          {!!newPlanRemainingAmountWithThreeDecimalPointsRef.current &&
+            !Number.isInteger(newPlanRemainingAmountWithThreeDecimalPointsRef.current) && (
+              <div className="!mt-[0px] flex w-full items-center">
+                <p className="flex items-center space-x-[8px]">
+                  <span className="min-w-[230px]"></span>
+                  <span className=""></span>
+                  <span className="text-[13px] text-[var(--color-text-sub)]">
+                    （{newPlanRemainingAmountWithThreeDecimalPointsRef.current}
+                    を四捨五入）
+                  </span>
+                </p>
+              </div>
+            )}
+          <div className="flex w-full items-center">
+            <p className="flex items-center space-x-[8px]">
+              <span className="text-[16px] font-bold">・</span>
+              <span className="!ml-[4px]">旧プランの1日あたりの使用料</span>
+              <span>：</span>
+
+              <span className="font-bold">
+                {!!businessPlanFeePerAccountRef.current && !!currentPeriodRef.current
+                  ? `${
+                      Math.round((businessPlanFeePerAccountRef.current / currentPeriodRef.current) * 1000) / 1000
+                    }円/日`
+                  : `-`}
+              </span>
+              <span>=</span>
+              <span>{!!businessPlanFeePerAccountRef.current ? `${businessPlanFeePerAccountRef.current}円` : `-`}</span>
+              <span>÷</span>
+              <span>{!!currentPeriodRef.current ? `${currentPeriodRef.current}日` : `-`}</span>
+            </p>
+          </div>
+          <div className="flex w-full items-center">
+            <p className="flex items-center space-x-[8px]">
+              <span className="text-[16px] font-bold">・</span>
+              <span className="!ml-[4px] min-w-[224px]">旧プランの終了日までの未使用分の日割り料金</span>
+              <span>：</span>
+              <span className="font-bold text-[var(--bright-red)] underline underline-offset-1">
+                {!!businessPlanFeePerAccountRef.current && !!currentPeriodRef.current && !!remainingDaysRef.current
+                  ? `${formatToJapaneseYen(
+                      Math.round(
+                        (Math.round((businessPlanFeePerAccountRef.current / currentPeriodRef.current) * 1000) / 1000) *
+                          remainingDaysRef.current
+                      ),
+                      false
+                    )}円`
+                  : `-`}
+              </span>
+              <span>=</span>
+              <span>
+                {!!businessPlanFeePerAccountRef.current && !!currentPeriodRef.current
+                  ? `${
+                      Math.round((businessPlanFeePerAccountRef.current / currentPeriodRef.current) * 1000) / 1000
+                    }円/日`
+                  : `-`}
+              </span>
+              <span>×</span>
+
+              <span>{!!remainingDaysRef.current ? `残り${remainingDaysRef.current}日` : `-`}</span>
+            </p>
+          </div>
+          {!!oldPlanUnusedAmountWithThreeDecimalPointsRef.current &&
+            !Number.isInteger(oldPlanUnusedAmountWithThreeDecimalPointsRef.current) && (
+              <div className="!mt-[0px] flex w-full items-center">
+                <p className="flex items-center space-x-[8px]">
+                  <span className="min-w-[280px]"></span>
+                  <span className=""></span>
+                  <span className="text-[13px] text-[var(--color-text-sub)]">
+                    （{oldPlanUnusedAmountWithThreeDecimalPointsRef.current}
+                    を四捨五入）
+                  </span>
+                </p>
+              </div>
+            )}
+        </div>
+        {/* コンテンツエリア ここまで */}
+        {/* 日割り料金詳細エリア ここまで */}
+        {/* 追加費用タイトルエリア */}
+        <div className="mt-[12px] flex w-full flex-col justify-center pb-[8px]">
+          <h4 className="text-[15px] font-bold">次回請求時の追加費用（1アカウントあたり）</h4>
+          <p className="mt-[5px] text-[13px] text-[var(--color-text-sub)]">
+            今月分のご請求は期間開始日に既にお支払い済みです。ビジネスプランからプレミアムプランへアップグレードした際の差額日割り料金が次回請求時に追加で発生いたします。
+          </p>
+        </div>
+        {/* 追加費用タイトルエリア ここまで */}
+        {/* コンテンツエリア */}
+        <div className="item-center flex h-auto w-full space-x-[24px] truncate pb-[20px]">
+          <div className="flex-col-center relative">
+            <div className="mb-[5px] flex min-h-[36px] min-w-[160px] items-center justify-center">
+              <HiPlus className="ml-[-22px] mr-[10px] stroke-[2] text-[18px] text-[var(--color-text-brand-f)]" />
+              <div className="flex-col-center inline-flex">
+                <span className="text-[12px] font-normal">アカウント追加後の</span>
+                <span className="text-[12px] font-normal">次回追加費用</span>
+              </div>
+            </div>
+            {/* <span>-円</span> */}
+            <span className={`font-bold text-[var(--color-text-brand-f)]`}>
+              {!!newPlanRemainingAmountWithThreeDecimalPointsRef.current &&
+              !!oldPlanUnusedAmountWithThreeDecimalPointsRef.current
+                ? formatToJapaneseYen(
+                    Math.round(
+                      newPlanRemainingAmountWithThreeDecimalPointsRef.current -
+                        oldPlanUnusedAmountWithThreeDecimalPointsRef.current
+                    ),
+                    false
+                  )
+                : `-`}
+              円
+            </span>
+            <div className="absolute bottom-[-5px] left-0 h-[2px] w-full bg-[var(--color-text-brand-f)]" />
+            {/* <div className="absolute bottom-[-5px] left-0 h-[2px] w-full bg-[#FF7A00]" /> */}
+          </div>
+          <div className="flex-col-center">
+            <span className="text-[18px]">＝</span>
+          </div>
+          <div className="flex-col-center group relative">
+            {/* ツールチップ */}
+            {/* <div
+              ref={hoveredNewProrationRef}
+              className={`${styles.tooltip_right_area} transition-base fade pointer-events-none`}
+            >
+              <div className={`${styles.tooltip_right} `}>
+                <div className={`flex-center ${styles.dropdown_item}`}>
+                  詳細を確認する
+                </div>
+              </div>
+              <div className={`${styles.tooltip_right_arrow}`}></div>
+            </div> */}
+            {/* ツールチップ ここまで */}
+            <div className="flex-col-center mb-[5px] inline-flex min-h-[36px] min-w-[160px]">
+              <span className="text-[12px] font-normal">プラン残り期間まで利用する</span>
+              <span className="text-[12px] font-normal">新プランの日割り料金</span>
+            </div>
+            <div
+              className={`flex-center peer relative cursor-pointer group-hover:text-[var(--color-text-brand-f)]`}
+              // className={`flex-center relative cursor-pointer ${
+              //   isOpenNewProrationDetail && isFirstUpgrade
+              //     ? `text-[var(--color-text-brand-f)]`
+              //     : `peer group-hover:text-[var(--color-text-brand-f)]`
+              // }`}
+              // onClick={() => {
+              //   // setHoveredNewProration(false);
+              //   hoveredNewProrationRef.current?.classList.remove(`${styles.active}`);
+              //   if (isFirstUpgrade) {
+              //     const newDetailItem = {
+              //       _currentPeriod: currentPeriodState,
+              //       _currentPeriodStart: nextInvoice.period_start,
+              //       _currentPeriodEnd: nextInvoice.period_end,
+              //       _invoicePeriodStart: nextInvoice.lines.data[1].period.start,
+              //       _invoicePeriodEnd: nextInvoice.lines.data[1].period.end,
+              //       _remainingDays: remainingDaysState,
+              //       _planFeePerAccount: getPrice(userProfileState?.subscription_plan) ?? null,
+              //       _newPlanAmount:
+              //         !!userProfileState?.subscription_plan && !!totalAccountQuantity
+              //           ? getPrice(userProfileState?.subscription_plan) * totalAccountQuantity
+              //           : null,
+              //       _newDailyRateWithThreeDecimalPoints: newDailyRateWithThreeDecimalPoints,
+              //       _newUsageAmountForRemainingPeriodWithThreeDecimalPoints:
+              //         newUsageAmountForRemainingPeriodWithThreeDecimalPoints,
+              //       _totalAccountQuantity: totalAccountQuantity,
+              //     };
+              //     setNewProrationItem(newDetailItem);
+              //     // ProrationDetailコンポーネントを開く
+              //     setIsOpenNewProrationDetail(true);
+              //   } else {
+              //     // 🔹2回目以上アップデート
+              //     // InvoiceItem配列の一覧モーダルを表示して、InvoiceItemをクリックした後にProrationDetailコンポーネントを開く
+              //     setIsOpenRemainingUsageListModal(true);
+              //   }
+              // }}
+              // onMouseEnter={() => hoveredNewProrationRef.current?.classList.add(`${styles.active}`)}
+              // onMouseLeave={() => hoveredNewProrationRef.current?.classList.remove(`${styles.active}`)}
+            >
+              {/* <ImInfo
+                className={`ml-[-10px] mr-[8px] ${
+                  isOpenNewProrationDetail && isFirstUpgrade
+                    ? `text-[var(--color-text-brand-f)]`
+                    : `text-[var(--color-text-sub)] group-hover:text-[var(--color-text-brand-f)]`
+                }`}
+              /> */}
+              <span className="font-bold text-[#00d436]">
+                {!!newPlanRemainingAmountWithThreeDecimalPointsRef.current
+                  ? `${formatToJapaneseYen(
+                      Math.round(newPlanRemainingAmountWithThreeDecimalPointsRef.current),
+                      false
+                    )}円`
+                  : `-`}
+              </span>
+            </div>
+
+            <div
+              className={`pointer-events-none absolute bottom-[-5px] left-0 h-[2px] w-full bg-[#00d436] `}
+              // className={`pointer-events-none absolute bottom-[-5px] left-0 h-[2px] w-full ${
+              //   isOpenNewProrationDetail || isOpenRemainingUsageListModal
+              //     ? `bg-[var(--color-bg-brand-f)]`
+              //     : `bg-[var(--color-border-deep)] peer-hover:bg-[var(--color-bg-brand-f)]`
+              // }`}
+            />
+          </div>
+          <div className="flex-col-center">
+            <span className="text-[16px]">ー</span>
+          </div>
+
+          <div className="flex-col-center group relative">
+            {/* ツールチップ */}
+            {/* <div
+              ref={hoveredOldProrationRef}
+              className={`${styles.tooltip_right_area} transition-base fade pointer-events-none`}
+            >
+              <div className={`${styles.tooltip_right} `}>
+                <div className={`flex-center ${styles.dropdown_item}`}>詳細を確認する</div>
+              </div>
+              <div className={`${styles.tooltip_right_arrow}`}></div>
+            </div> */}
+            {/* ツールチップ ここまで */}
+            <div className="flex-col-center mb-[5px] inline-flex min-h-[36px] min-w-[180px]">
+              <span className="text-[12px] font-normal">プラン残り期間まで未使用となる</span>
+              <span className="text-[12px] font-normal">旧プランの日割り料金</span>
+            </div>
+            <div
+              className={`flex-center peer relative cursor-pointer group-hover:text-[var(--color-text-brand-f)]`}
+              // className={`flex-center relative cursor-pointer ${
+              //   isOpenOldProrationDetail
+              //     ? `text-[var(--color-text-brand-f)]`
+              //     : `peer group-hover:text-[var(--color-text-brand-f)]`
+              // }`}
+              // onClick={() => {
+              //   hoveredOldProrationRef.current?.classList.remove(`${styles.active}`);
+              //   // setHoveredOldProration(false);
+              //   if (isFirstUpgrade) {
+              //     const oldDetailItem = {
+              //       _currentPeriod: currentPeriodState,
+              //       _currentPeriodStart: nextInvoice.period_start,
+              //       _currentPeriodEnd: nextInvoice.period_end,
+              //       _invoicePeriodStart: nextInvoice.lines.data[0].period.start,
+              //       _invoicePeriodEnd: nextInvoice.lines.data[0].period.end,
+              //       _remainingDays: remainingDaysState,
+              //       _planFeePerAccount: getPrice(userProfileState?.subscription_plan) ?? null,
+              //       _oldPlanAmount:
+              //         !!userProfileState?.subscription_plan && !!memberAccountsDataArray
+              //           ? getPrice(userProfileState?.subscription_plan) * memberAccountsDataArray.length
+              //           : null,
+              //       _oldDailyRateWithThreeDecimalPoints: oldDailyRateWithThreeDecimalPoints,
+              //       _oldUnusedAmountForRemainingPeriodWithThreeDecimalPoints:
+              //         oldUnusedAmountForRemainingPeriodWithThreeDecimalPoints,
+              //       _oldPlanAccountQuantity: !!memberAccountsDataArray ? memberAccountsDataArray.length : null,
+              //     };
+              //     setOldProrationItem(oldDetailItem);
+              //     // ProrationDetailコンポーネントを開く
+              //     setIsOpenOldProrationDetail(true);
+              //   } else {
+              //     // 🔹2回目以上アップデート
+              //     // InvoiceItem配列の一覧モーダルを表示して、InvoiceItemをクリックした後にProrationDetailコンポーネントを開く
+              //     setIsOpenUnusedListModal(true);
+              //   }
+              // }}
+              // onMouseEnter={() => hoveredOldProrationRef.current?.classList.add(`${styles.active}`)}
+              // onMouseLeave={() => hoveredOldProrationRef.current?.classList.remove(`${styles.active}`)}
+            >
+              {/* <ImInfo
+                className={`ml-[-10px] mr-[8px] ${
+                  isOpenOldProrationDetail
+                    ? `text-[var(--color-text-brand-f)]`
+                    : `text-[var(--color-text-sub)] group-hover:text-[var(--color-text-brand-f)]`
+                }`}
+              /> */}
+              {/* <span className={`text-[var(--bright-red)]`}>-円</span> */}
+              <span className={`font-bold text-[var(--bright-red)]`}>
+                {!!oldPlanUnusedAmountWithThreeDecimalPointsRef.current
+                  ? `${formatToJapaneseYen(
+                      Math.round(oldPlanUnusedAmountWithThreeDecimalPointsRef.current),
+                      false,
+                      false
+                    )}円`
+                  : `-`}
+              </span>
+            </div>
+            <div
+              className={`pointer-events-none absolute bottom-[-5px] left-0 h-[2px] w-full bg-[var(--bright-red)]`}
+              // className={`pointer-events-none absolute bottom-[-5px] left-0 h-[2px] w-full ${
+              //   isOpenOldProrationDetail || isOpenUnusedListModal
+              //     ? `bg-[var(--color-text-brand-f)]`
+              //     : `bg-[var(--color-border-deep)] peer-hover:bg-[var(--color-bg-brand-f)]`
+              // }`}
+            />
+          </div>
+        </div>
+        {/* コンテンツエリア ここまで */}
+      </div>
     );
   };
 
@@ -490,10 +1169,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
                     isLoading ? `` : `hover:bg-[var(--setting-side-bg-select-hover)]`
                   }`}
                   // onClick={loadPortal}
-                  onClick={() => {
-                    console.log("プランを変更クリック");
-                    setIsOpenChangePlanModal(true);
-                  }}
+                  onClick={handleOpenChangePlanModal}
                 >
                   {userProfileState?.subscription_plan === "free_plan" && !isLoading && (
                     <p className="flex space-x-2">
@@ -503,8 +1179,10 @@ const SettingPaymentAndPlanMemo: FC = () => {
                       <span>プランをアップグレード</span>
                     </p>
                   )}
-                  {userProfileState?.subscription_plan !== "free_plan" && !isLoading && <span>プランを変更</span>}
-                  {isLoading && <SpinnerIDS scale={"scale-[0.4]"} />}
+                  {userProfileState?.subscription_plan === "business_plan" && <span>プランをアップグレード</span>}
+                  {userProfileState?.subscription_plan !== "business_plan" && <span>プランを変更</span>}
+                  {/* {userProfileState?.subscription_plan !== "free_plan" && !isLoading && <span>プランを変更</span>}
+                  {isLoading && <SpinnerIDS scale={"scale-[0.4]"} />} */}
                 </button>
               </div>
               <div className="mt-[16px] flex w-full space-x-8">
@@ -656,7 +1334,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
               setShowConfirmModal(null);
             }}
           ></div>
-          <div className="fade02 fixed left-[50%] top-[50%] z-[2000] h-auto w-[40vw] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)]">
+          <div className="fade02 fixed left-[50%] top-[50%] z-[2000] h-auto max-h-[300px] w-[40vw] max-w-[580px] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)] ">
             {loadingCancelDeleteRequest && (
               <div
                 className={`flex-center absolute left-0 top-0 z-[3000] h-[100%] w-[100%] rounded-[8px] bg-[#00000090]`}
@@ -713,10 +1391,12 @@ const SettingPaymentAndPlanMemo: FC = () => {
             onClick={() => {
               console.log("オーバーレイ クリック");
               setIsOpenChangePlanModal(false);
+              setIsUpgradePlan(false);
             }}
           ></div>
-          <div className="fade02 shadow-all-md fixed left-[50%] top-[50%] z-[2000] h-[75vh] max-h-[600px] w-[68vw] max-w-[940px] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] text-[var(--color-text-title)]">
-            {loadingCancelDeleteRequest && (
+          <div className="fade02 shadow-all-md fixed left-[50%] top-[50%] z-[2000] flex h-[75vh] max-h-[600px] w-[68vw] max-w-[940px] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] text-[var(--color-text-title)]">
+            {/* オーバーレイ */}
+            {isLoadingChangePlan && (
               <div
                 className={`flex-center absolute left-0 top-0 z-[3000] h-[100%] w-[100%] rounded-[8px] bg-[#00000090]`}
               >
@@ -728,41 +1408,271 @@ const SettingPaymentAndPlanMemo: FC = () => {
               className={`flex-center z-100 group absolute right-[-40px] top-0 h-[32px] w-[32px] rounded-full bg-[#00000090] hover:bg-[#000000c0]`}
               onClick={() => {
                 setIsOpenChangePlanModal(false);
+                setIsUpgradePlan(false);
               }}
             >
               <MdClose className="text-[20px] text-[#fff]" />
             </button>
-            <h3 className={`flex min-h-[32px] w-full items-center text-[22px] font-bold`}>
-              {showConfirmModal === "delete_request" && "削除リクエストをキャンセルしますか？"}
-            </h3>
-            <section className={`mt-[20px] flex h-auto w-full flex-col space-y-3 text-[14px]`}>
-              <p>この操作を実行した後にキャンセルすることはできません。</p>
-              {/* <p className="font-bold">
-                注：この操作により、該当ユーザーのデータは、他のチームメンバーと共有されていないものを含めて全てアクセスできなくなります。
-              </p> */}
-            </section>
-            <section className="flex w-full items-start justify-end">
-              <div className={`flex w-[100%] items-center justify-around space-x-5 pt-[30px]`}>
+            {/* メイン */}
+            {/* 左エリア */}
+            <div className={`relative flex h-full w-[42%] flex-col pb-[20px] pt-[30px]`}>
+              {/* <div className={`flex-center h-[40px] w-full`}>
+                <div className="relative flex h-[60px] w-[145px] select-none items-center justify-center">
+                  <Image
+                    src={`/assets/images/Trustify_Logo_icon_bg-black@3x.png`}
+                    alt=""
+                    className="h-full w-[90%] object-contain"
+                    fill
+                    priority={true}
+                    sizes="10vw"
+                  />
+                </div>
+              </div> */}
+              {isUpgradePlan && (
+                <h1 className={`w-full px-[30px] text-[22px] font-bold`}>データをさらに活用して付加価値を最大化する</h1>
+              )}
+              {!isUpgradePlan && (
+                <h1 className={`w-full px-[30px] text-[22px] font-bold`}>コストを抑えてデータを活用する</h1>
+              )}
+              <div className={`w-full px-[30px] pb-[20px] pt-[15px]`}>
+                {isUpgradePlan && (
+                  <p className="text-[13px] leading-[22px]">
+                    <span className="font-bold">プレミアムプラン</span>
+                    にアップグレードして、TRUSTiFYを余すことなく活用することで売上アップ、コスト削減をさらに加速させましょう。次の機能を利用できます。
+                  </p>
+                )}
+                {!isUpgradePlan && (
+                  <p className="text-[13px] leading-[22px]">
+                    <span className="font-bold">ビジネスプラン</span>
+                    にダウングレードしてもコンテンツは使い放題のため、安心してご利用いただけます。ダウングレードの前に以下をご確認ください。
+                  </p>
+                )}
+              </div>
+              <div className={`mt-[5px] w-full space-y-3 px-[30px]`}>
+                {isUpgradePlan && (
+                  <div className="flex space-x-3">
+                    {/* <BsCheck2 className="stroke-1 text-[24px] text-[#00d436]" /> */}
+                    <div className="flex min-h-[24px] min-w-[24px] justify-center">
+                      <GiLaurelCrown className="stroke-1 text-[24px] text-[#00d436]" />
+                    </div>
+                    <div className="flex flex-col">
+                      <p className="text-[13px] font-bold">電話・オンラインWebツールによるサポート。</p>
+                      <p className="mt-[4px] text-[13px] leading-[22px]">
+                        実際にお客様の画面を見ながら使い方やデータ活用方法のレクチャーを受けられます。
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {!isUpgradePlan && (
+                  <div className="flex space-x-3">
+                    {/* <BsCheck2 className="stroke-1 text-[24px] text-[#00d436]" /> */}
+                    <div className="flex min-h-[24px] min-w-[24px] justify-center">
+                      <GiLaurelCrown className="stroke-1 text-[24px] text-[#00d436]" />
+                    </div>
+                    <div className="flex flex-col">
+                      <p className="text-[13px] font-bold">全てのコンテンツが使い放題。</p>
+                      <p className="mt-[4px] text-[13px] leading-[22px]">
+                        ビジネスプランでも全てのコンテンツが使い放題。最小のコストで最大の経済効果を上げましょう。
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {isUpgradePlan && (
+                  <div className="flex space-x-3">
+                    {/* <MdOutlineBubbleChart className="text-[22px] text-[#00d436]" /> */}
+                    <div className="flex min-h-[24px] min-w-[24px] justify-center">
+                      <FaChartPie className="ml-[3px] mr-[1px] text-[19px] text-[#00d436]" />
+                    </div>
+                    {/* <MdOutlineBubbleChart className="text-[24px] text-[#00d436]" /> */}
+                    {/* <GrLineChart className="stroke-1 text-[24px] text-[#00d436]" /> */}
+                    {/* <FaChartLine className=" text-[20px] text-[#00d436]" /> */}
+                    <div className="flex flex-col">
+                      <p className="text-[13px] font-bold">欲しい機能を優先的に開発。</p>
+                      <p className="mt-[4px] text-[13px] leading-[22px]">
+                        チームに欲しい機能を伝えて、プレミアムプランのメンバーから優先的に実装を行います。
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {isUpgradePlan && (
+                  <div className="flex space-x-3">
+                    <div className="flex min-h-[24px] min-w-[24px] justify-center">
+                      <FaChartLine className="ml-[2px] mr-[1px] text-[20px] text-[#00d436]" />
+                    </div>
+                    <div className="flex flex-col">
+                      <p className="text-[13px] font-bold">いつでもプランの変更やキャンセルが可能です。</p>
+                    </div>
+                  </div>
+                )}
+                {!isUpgradePlan && (
+                  <div className="flex space-x-3">
+                    <div className="flex min-h-[24px] min-w-[24px] justify-center">
+                      <FaRegHeart className="text-[20px] text-[var(--bright-red)]" />
+                      {/* <GiLaurelCrown className="stroke-1 text-[24px] text-[var(--bright-red)]" /> */}
+                    </div>
+                    <div className="flex flex-col">
+                      <p className="text-[13px] font-bold">サポートはプレミアムプランが充実。</p>
+                      <p className="mt-[4px] text-[13px] leading-[22px]">
+                        プレミアムプランなら迅速なサポートを受けることが可能なため、付加価値を最大化につながります。
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {!isUpgradePlan && (
+                  <div className="flex space-x-3">
+                    <div className="flex min-h-[24px] min-w-[24px] justify-center">
+                      <FaChartLine className="text-[20px] text-[var(--bright-red)]" />
+                    </div>
+                    <div className="flex flex-col">
+                      <p className="text-[13px] font-bold">プレミアムプランで自社にフィットしたデータベースを実現。</p>
+                      <p className="mt-[4px] text-[13px] leading-[22px]">
+                        プレミアムプランなら自社に合った機能や要望を優先的に開発が可能なため、経済効果の最大化を実現可能です。
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+              {/* 価格 */}
+              {!isLoadingFetchInvoice && (
+                <div className={`mt-[20px] flex w-full items-center justify-between px-[30px]`}>
+                  <p className="text-[13px]">プラン価格(/月/アカウント)</p>
+                  <div className="space-x-3">
+                    {isUpgradePlan && <span className="text-[13px]">￥980</span>}
+                    {!isUpgradePlan && <span className="text-[13px]">￥19,800</span>}
+                    <span className="text-[13px]">→</span>
+                    {!isUpgradePlan && <span className="text-[13px]">￥980</span>}
+                    {isUpgradePlan && <span className="text-[13px]">￥19,800</span>}
+                  </div>
+                </div>
+              )}
+              {isLoadingFetchInvoice && (
+                <div className="mt-[15px] flex w-full flex-col space-y-3 px-[30px]">
+                  <SkeletonLoadingLineFull />
+                  <SkeletonLoadingLineLong />
+                  <SkeletonLoadingLineMedium />
+                </div>
+              )}
+              {!isLoadingFetchInvoice && (
+                <div className={`mt-[15px] flex w-full flex-col px-[30px]`}>
+                  {!todayIsPeriodEnd && (
+                    <div className="flex w-full items-center justify-between">
+                      <span className="text-[13px] ">新プランの日割り料金(/アカウント)</span>
+                      <div
+                        className="relative flex items-center space-x-2 text-[13px]"
+                        onMouseEnter={() => setIsOpenAdditionalCostModal(true)}
+                        onMouseLeave={() => setIsOpenAdditionalCostModal(false)}
+                      >
+                        <BsChevronDown />
+                        {/* <span>￥1,200</span> */}
+                        <span>
+                          {!!newPlanRemainingAmountWithThreeDecimalPointsRef.current &&
+                          !!oldPlanUnusedAmountWithThreeDecimalPointsRef.current
+                            ? formatToJapaneseYen(
+                                Math.round(
+                                  newPlanRemainingAmountWithThreeDecimalPointsRef.current -
+                                    oldPlanUnusedAmountWithThreeDecimalPointsRef.current
+                                ),
+                                true
+                              )
+                            : `-`}
+                        </span>
+                        {isOpenAdditionalCostModal && <AdditionalCostModal />}
+                      </div>
+                    </div>
+                  )}
+                  <div className="mt-[15px] flex w-full items-center justify-between">
+                    <span className="text-[13px] font-bold">本日のお支払い</span>
+                    {!todayIsPeriodEnd && <span className="text-[13px] font-bold">￥0</span>}
+                    {todayIsPeriodEnd && (
+                      <div className="flex items-center space-x-2 text-[13px] font-bold">
+                        <BsChevronDown />
+                        {isUpgradePlan && (
+                          <span>
+                            {!!premiumPlanFeePerAccountRef.current && !!userProfileState?.accounts_to_create
+                              ? formatToJapaneseYen(
+                                  premiumPlanFeePerAccountRef.current * userProfileState.accounts_to_create,
+                                  true
+                                )
+                              : `-`}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              {/* アップグレード/ダウングレードボタンエリア */}
+              <div className="mt-[20px] w-full px-[30px]">
                 <button
-                  className={`w-[50%] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[15px] py-[10px] text-[14px] font-bold text-[var(--color-text-title)] hover:bg-[var(--setting-side-bg-select-hover)]`}
+                  className={`flex-center h-[40px] w-full cursor-pointer rounded-[6px] text-[14px] font-semibold text-[#fff] ${
+                    isUpgradePlan
+                      ? `bg-[var(--color-bg-brand-f)] hover:bg-[var(--color-bg-brand-f-deep)]`
+                      : `bg-[var(--bright-red)] hover:bg-[var(--bright-red-hover)]`
+                  }`}
+                  // className={`flex-center h-[40px] w-full rounded-[6px] bg-[var(--color-bg-brand-f)] font-bold text-[#fff]  ${
+                  //   loading ? `cursor-wait` : `cursor-pointer hover:bg-[var(--color-bg-brand-f-deep)]`
+                  // }`}
+                  // onClick={() => {
+                  //   if (selectedRadioButton === "business_plan" && !!planBusiness)
+                  //     processSubscription(planBusiness.id, accountQuantity);
+                  //   if (selectedRadioButton === "premium_plan" && !!planPremium)
+                  //     processSubscription(planPremium.id, accountQuantity);
+                  // }}
                   onClick={() => {
-                    setIsOpenChangePlanModal(false);
+                    setIsOpenConfirmChangePlanModal(true);
                   }}
                 >
-                  キャンセル
-                </button>
-                <button
-                  className="w-[50%] cursor-pointer rounded-[8px] bg-[var(--color-red-tk)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff] hover:bg-[var(--color-red-tk-hover)]"
-                  // onClick={handleCancelDeleteAccountRequestSchedule}
-                >
-                  削除リクエストをキャンセルする
+                  {isUpgradePlan && <span>今すぐアップグレード</span>}
+                  {!isUpgradePlan && <span>今すぐダウングレード</span>}
+                  {/* {!isLoadingChangePlan && isUpgradePlan && <span>今すぐアップグレード</span>}
+                  {!isLoadingChangePlan && !isUpgradePlan && <span>今すぐダウングレード</span>}
+                  {isLoadingChangePlan && <SpinnerIDS scale={"scale-[0.4]"} />} */}
                 </button>
               </div>
-            </section>
+            </div>
+            {/* 左エリア */}
+            {/* 右エリア */}
+            <div
+              className={`relative flex h-full w-[58%] flex-col items-center justify-center ${styles.modal_right_container}`}
+            ></div>
+            {/* <div
+              className={`relative flex h-full w-[58%] flex-col items-center justify-center ${styles.modal_right_container}`}
+            >
+              <div className="z-10 mb-[-30px]">{winnersIllustration}</div>
+              <div className="z-0 flex min-h-[57%] w-[70%] flex-col rounded-[8px] bg-[var(--color-modal-bg-side-c-second)] px-[24px] pb-[8px] pt-[58px] text-[var(--color-text-title)]">
+                <p className={`text-[14px] font-bold`}>方法は以下の通りです。</p>
+                <div className="mt-[12px] flex h-auto w-full text-[14px]">
+                  <p className="mr-[4px]">1.</p>
+                  <p>あなたの代わりとして、チームの誰かを所有者に任命します。</p>
+                </div>
+                <div className="mt-[16px] flex h-auto w-full text-[14px]">
+                  <p className="mr-[4px]">2.</p>
+                  <div className="flex w-full flex-col">
+                    <p>任命されたメンバーが承諾するのを待ちます。</p>
+                    <p className="mt-[4px] text-[12px] text-[var(--color-text-sub)]">
+                      任命された人は、このチーム、チームメンバー、チームコンテンツの新しい管理者権限を持つことになります。
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-[16px] flex h-auto w-full text-[14px]">
+                  <p className="mr-[4px]">3.</p>
+                  <div className="flex w-full flex-col">
+                    <p>任命されたメンバーが承諾すると、あなたの役割は所有者から管理者に切り替わります。</p>
+                    <p className="mt-[4px] text-[12px] text-[var(--color-text-sub)]">
+                      新しい所有者が承諾すると、この操作を元に戻すことはできません。
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div> */}
+            {/* 右エリア */}
           </div>
         </>
       )}
       {/* ============================== ✅プランを変更モーダル ここまで ============================== */}
+      {/* ============================== 🌟プランを変更確定・確認モーダル ============================== */}
+      {isOpenConfirmChangePlanModal && <ConfirmChangePlanModal />}
+      {/* ============================== ✅プランを変更確定・確認モーダル ここまで ============================== */}
     </>
   );
 };

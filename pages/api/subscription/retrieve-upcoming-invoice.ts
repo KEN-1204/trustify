@@ -43,7 +43,7 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
     // ここでユーザー情報や他のセッション情報を取得することができます。
 
     // axios.post()メソッドのリクエストボディから変数を取得
-    const { stripeCustomerId, stripeSubscriptionId, changeQuantity, changePlanName } = req.body;
+    const { stripeCustomerId, stripeSubscriptionId, changeQuantity, changePlanName, currentQuantity } = req.body;
 
     // Ensure stripeCustomerId is a string stripeCustomerIdが文字列であることを確認する。
     if (typeof stripeCustomerId !== "string") {
@@ -68,6 +68,7 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
     console.log("💡stripeサブスクリプションid", stripeSubscriptionId);
     console.log("💡changeQuantity", changeQuantity);
     console.log("💡changePlanName", changePlanName);
+    console.log("💡プラン変更用 currentQuantity", currentQuantity);
 
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
       apiVersion: "2022-11-15",
@@ -283,7 +284,7 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
     // ======================= ✅数量変更ルート ここまで =======================
     // ======================= 🌟プラン変更ルート =======================
     else if (changeQuantity === null && !!changePlanName) {
-      const newPlanId = () => {
+      const newPlanId = (changePlanName: string) => {
         switch (changePlanName) {
           case "business_plan":
             return process.env.STRIPE_BUSINESS_PLAN_PRICE_ID;
@@ -298,13 +299,13 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
       const items = [
         {
           id: subscription.items.data[0].id,
-          price: newPlanId(), // Switch to new price
+          price: newPlanId(changePlanName), // Switch to new price
+          quantity: currentQuantity,
         },
       ];
-      console.log(
-        "🌟Stripe将来のインボイス取得ステップ4 プラン変更ルート retrieveUpcoming()を実行 subscription_itemsに渡すitems",
-        items
-      );
+      console.log("🌟Stripe将来のインボイス取得ステップ4 プラン変更ルート retrieveUpcoming()を実行 ");
+      console.log("💡subscription_itemsに渡すitems", items);
+      console.log("💡prorationTimestamp", prorationTimestamp);
       const invoice = await stripe.invoices.retrieveUpcoming({
         customer: stripeCustomerId,
         subscription: subscription.id,
@@ -325,8 +326,23 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
         return res.status(400).json(response);
       }
       console.log(
-        "🌟Stripe将来のインボイス取得ステップ5 プラン変更ルート retrieveUpcoming()実行成功 invoices.retrieveUpcoming()で取得したインボイス",
+        "🌟Stripe将来のインボイス取得ステップ5 数量変更ルート retrieveUpcoming()実行成功 invoices.retrieveUpcoming()で取得したインボイス",
         invoice
+      );
+      console.log(
+        "💡取得した次回のinvoice period_start",
+        invoice.period_start,
+        format(new Date(invoice.period_start * 1000), "yyyy/MM/dd HH:mm:ss")
+      );
+      console.log(
+        "💡取得した次回のinvoice period_end",
+        invoice.period_end,
+        format(new Date(invoice.period_end * 1000), "yyyy/MM/dd HH:mm:ss")
+      );
+      console.log(
+        "💡比例配分の日付 subscription_proration_date",
+        prorationTimestamp,
+        format(new Date(prorationTimestamp * 1000), "yyyy/MM/dd HH:mm:ss")
       );
       console.log("✅Stripe将来のインボイス取得ステップ6 プラン変更ルート 次回のインボイス取得完了 200で返す");
 

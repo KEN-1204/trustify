@@ -1,9 +1,8 @@
 // 日付のみを比較して、正確な期間を取得する関数(年、月、日のみを取得して時刻情報を無視する)
 
-export const getPeriodInDays = (timestamp1: number, timestamp2: number): number => {
-  const date1 = timestamp1.toString().length === 10 ? new Date(timestamp1 * 1000) : new Date(timestamp1);
-  const date2 = timestamp2.toString().length === 10 ? new Date(timestamp2 * 1000) : new Date(timestamp2);
-  // const date2 = new Date(timestamp2 * 1000);
+export const getPeriodInDaysFromIsoDateString = (startIsoDateString: string, endIsoDateString: string): number => {
+  const date1 = new Date(startIsoDateString);
+  const date2 = new Date(endIsoDateString);
 
   // 時刻情報をリセット
   const simplifiedDate1 = new Date(date1.getFullYear(), date1.getMonth(), date1.getDate());
@@ -12,10 +11,6 @@ export const getPeriodInDays = (timestamp1: number, timestamp2: number): number 
   // 日付の差を計算
   const differenceInMilliseconds = Math.abs(simplifiedDate2.getTime() - simplifiedDate1.getTime());
   const differenceInDays = differenceInMilliseconds / (1000 * 60 * 60 * 24);
-
-  // console.log("differenceInDays", differenceInDays);
-  // console.log("date1", date1);
-  // console.log("date2", date2);
 
   const accuratePeriod = Math.round(differenceInDays);
   // Math.round()を使用する理由は、日付の差の計算において時刻情報を無視しているためです。
