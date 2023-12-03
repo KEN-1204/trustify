@@ -275,6 +275,7 @@
   /* min-width: 90px; */
   min-width: 95px;
   font-weight: 600;
+  line-height: 17px;
 }
 .title_min {
   color: var(--color-text-brand-f);

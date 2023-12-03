@@ -160,6 +160,258 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         case "customer.subscription.pending_update_applied":
           console.log(`🌟Stripe_Webhookステップ3 ${stripeEvent.type}イベントルート`);
 
+          //  🌟「アカウントを減らす」「プランダウングレード」両方スケジュール適用ルート 新たな請求期間へ =======
+          if (
+            "previous_attributes" in stripeEvent.data &&
+            includesAllProperties(stripeEvent.data.previous_attributes, [
+              "current_period_end",
+              "current_period_start",
+              "items",
+              "latest_invoice",
+              "plan",
+              "quantity",
+            ])
+          ) {
+            // やること
+            // 1. previous_attributesのquantityからstripeEventオブジェクト内のdataに格納されてるsubscriptionオブジェクトの最新のquantityを差し引いて減らす個数を算出する
+            // 1-2. ダウングレード先のbusinness_planを_new_planプロパティにセットする
+            // 2. supabaseのsubscribed_accountsテーブルからaccount_stateフィールドがdelete_requestedの値の行データを減らす個数分DELETEする
+            // 3. supabaseのstripe_schedulesテーブルのschedule_statusをactiveからreleasedに変更する
+            // 4. supabaseのsubscriptionsテーブルのアカウント数、アクティブアカウント数、請求期間の開始日、終了日を更新する
+            // 4. stripeのサブスクリプションオブジェクトにアタッチされてるスケジュールオブジェクトをリリースする
+
+            // 2, 3, 4のsupabaseのDB処理はrpcで行い、成功したらstripeのスケジュールをリリースしてここでレスポンスする
+
+            if (!subscription.schedule || typeof subscription.schedule !== "string") {
+              console.log(
+                "❌Stripe_Webhookステップ4 「アカウントを減らす」「プランダウングレード」両方スケジュール適用ルート  エラー: Invalid subscription.schedule",
+                subscription
+              );
+              return res.status(500).json({
+                error:
+                  "❌Stripe_Webhookステップ4 「アカウントを減らす」「プランダウングレード」両方スケジュール適用ルート  エラー: Invalid subscription.schedule",
+              });
+            }
+            if (!("quantity" in subscription) || typeof subscription.quantity !== "number") {
+              console.log(
+                "❌Stripe_Webhookステップ4 「アカウントを減らす」「プランダウングレード」両方スケジュール適用ルート  エラー: Invalid subscription.quantity",
+                subscription
+              );
+              return res.status(500).json({
+                error:
+                  "❌Stripe_Webhookステップ4 「アカウントを減らす」「プランダウングレード」両方スケジュール適用ルート  エラー: Invalid subscription.schedule",
+              });
+            }
+            // console.log(
+            //   "(stripeEvent.data.previous_attributes as DecreaseAndDowngradePreviousAttributes).plan",
+            //   (stripeEvent.data.previous_attributes as DecreaseAndDowngradePreviousAttributes).plan
+            // );
+            if (
+              !("plan" in subscription) ||
+              typeof subscription.plan !== "object" ||
+              subscription.plan === null ||
+              Array.isArray(subscription.plan)
+            ) {
+              console.log(
+                "❌Stripe_Webhookステップ4 「アカウントを減らす」「プランダウングレード」両方スケジュール適用ルート  エラー: Invalid subscription.plan",
+                subscription
+              );
+              return res.status(500).json({
+                error:
+                  "❌Stripe_Webhookステップ4 「アカウントを減らす」「プランダウングレード」両方スケジュール適用ルート  エラー: Invalid subscription.plan",
+              });
+            }
+
+            // 1. 減らす個数を算出
+            interface DecreaseAndDowngradePreviousAttributes {
+              current_period_end: number;
+              current_period_start: number;
+              items: any;
+              latest_invoice: string;
+              plan: Object;
+              quantity: number;
+            }
+            const previousQuantity = (stripeEvent.data.previous_attributes as DecreaseAndDowngradePreviousAttributes)
+              ?.quantity;
+            const newQuantityAfterDecrease = subscription.quantity;
+            const decreaseQuantity = previousQuantity - newQuantityAfterDecrease; // 減らす個数
+
+            // 2. supabase subscribed_accountsを減らす個数分削除、stripe_schedulesのスケジュールリリース、subscriptionsテーブルを新たな個数、請求期間に更新
+            // rpc: execute_after_decrease_and_downgrade関数に渡す引数
+            // ・減らす個数：decreaseQuantity
+            // ・stripeのサブスクリプションオブジェクトid：subscription.id => subscriptionsテーブル特定、subscribed_accountsテーブルのsubscription_idで外部結合
+            // ・stripeサブスクリプションスケジュールid：subscription.schedule
+            const executeAfterDecreaseAndDowngradePayload = {
+              _decrease_quantity: decreaseQuantity,
+              _stripe_subscription_id: subscription.id,
+              _stripe_subscription_schedule_id: subscription.schedule,
+              _stripe_customer_id: subscription.customer,
+              _new_quantity: newQuantityAfterDecrease,
+              _new_plan: "business_plan",
+              _current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+              _current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+            };
+            console.log(
+              "Stripe_Webhookステップ4 「アカウントを減らす」「プランダウングレード」両方スケジュール適用ルート rpc()execute_after_decrease_and_downgrade関数実行 deleteAccountsAndReleaseSchedulePayload",
+              executeAfterDecreaseAndDowngradePayload
+            );
+            const { error: executeAfterDecreaseAndDowngradeError } = await supabase.rpc(
+              "execute_after_decrease_and_downgrade",
+              executeAfterDecreaseAndDowngradePayload
+            );
+
+            if (executeAfterDecreaseAndDowngradeError) {
+              console.log(
+                "❌Stripe_Webhookステップ4 「アカウントを減らす」「プランダウングレード」両方スケジュール適用ルート delete_account_and_release_schedule関数実行エラー supabaseのsubscribed_accountsのdelete_requestedのアカウントの削除とスケジュールのリリース、subscriptionsテーブルの更新に失敗",
+                executeAfterDecreaseAndDowngradeError
+              );
+              return res
+                .status(500)
+                .send(`insert_cancel_reasons関数 error: ${executeAfterDecreaseAndDowngradeError.message}`);
+            }
+            console.log(
+              "Stripe_Webhookステップ4 「アカウントを減らす」「プランダウングレード」両方スケジュール適用ルート rpc()execute_after_decrease_and_downgrade関数実行 成功🙆"
+            );
+            // stripeのサブスクリプションスケジュールをリリース
+            try {
+              const subscriptionSchedule = await stripe.subscriptionSchedules.release(subscription.schedule);
+              console.log(
+                "Stripe_Webhookステップ4 「アカウントを減らす」「プランダウングレード」両方スケジュール適用ルート stripe.subscriptionSchedules.release()成功🙆 subscriptionSchedule",
+                subscriptionSchedule
+              );
+            } catch (e: any) {
+              console.log(
+                "❌Stripe_Webhookステップ4 「アカウントを減らす」「プランダウングレード」両方スケジュール適用ルート エラー：stripe.subscriptionSchedules.release()失敗 subscription.schedule",
+                subscription.schedule
+              );
+              throw new Error(
+                `❌Stripe_Webhookステップ4 「アカウントを減らす」「プランダウングレード」両方スケジュール適用ルート エラー：stripe.subscriptionSchedules.release()失敗`
+              );
+            }
+
+            // supabaseのアカウント削除、スケジュールリリース、stripeのスケジュールリリース全て完了
+            console.log(
+              "✅「アカウントを減らす」「プランダウングレード」両方スケジュール適用後のwebhook処理全て完了 200でリターン（supabaseのアカウント削除、スケジュールリリース、subscriptionsテーブルの更新、stripeのサブスクリプションスケジュールリリース）"
+            );
+            return res.status(200).send({
+              received:
+                "✅「アカウントを減らす」「プランダウングレード」両方スケジュール適用後のwebhook処理全て完了 200でリターン（supabaseのアカウント削除、スケジュールリリース、subscriptionsテーブルの更新、stripeのサブスクリプションスケジュールリリース）",
+            });
+          }
+          //  ✅「アカウントを減らす」「プランダウングレード」両方スケジュール適用ルート 新たな請求期間へ =======
+          // ============== 🌟「プランダウングレード」スケジュール適用ルート 新たな請求期間へ ==============
+          if (
+            // "quantity" in subscription &&
+            // typeof subscription.quantity === "number" &&
+            "previous_attributes" in stripeEvent.data &&
+            includesAllProperties(stripeEvent.data.previous_attributes, [
+              "current_period_end",
+              "current_period_start",
+              "items",
+              "latest_invoice",
+              "plan",
+            ])
+          ) {
+            // やること
+            // 1. previous_attributesのquantityからstripeEventオブジェクト内のdataに格納されてるsubscriptionオブジェクトの最新のquantityを差し引いて減らす個数を算出する
+            // 2. supabaseのsubscribed_accountsテーブルからaccount_stateフィールドがdelete_requestedの値の行データを減らす個数分DELETEする
+            // 3. supabaseのstripe_schedulesテーブルのschedule_statusをactiveからreleasedに変更する
+            // 4. supabaseのsubscriptionsテーブルのアカウント数、アクティブアカウント数、請求期間の開始日、終了日を更新する
+            // 4. stripeのサブスクリプションオブジェクトにアタッチされてるスケジュールオブジェクトをリリースする
+
+            // 2, 3, 4のsupabaseのDB処理はrpcで行い、成功したらstripeのスケジュールをリリースしてここでレスポンスする
+
+            if (!subscription.schedule || typeof subscription.schedule !== "string") {
+              console.log(
+                "❌Stripe_Webhookステップ4 「プランダウングレード」スケジュール適用ルート  エラー: Invalid subscription.schedule",
+                subscription
+              );
+              return res.status(500).json({
+                error:
+                  "❌Stripe_Webhookステップ4 「プランダウングレード」スケジュール適用ルート  エラー: Invalid subscription.schedule",
+              });
+            }
+            if (
+              !("plan" in subscription) ||
+              typeof subscription.plan !== "object" ||
+              subscription.plan === null ||
+              Array.isArray(subscription.plan)
+            ) {
+              console.log(
+                "❌Stripe_Webhookステップ4 「プランダウングレード」スケジュール適用ルート  エラー: Invalid subscription.plan",
+                subscription
+              );
+              return res.status(500).json({
+                error:
+                  "❌Stripe_Webhookステップ4 「プランダウングレード」スケジュール適用ルート  エラー: Invalid subscription.plan",
+              });
+            }
+
+            // 1.
+            interface DowngradePreviousAttributes {
+              current_period_end: number;
+              current_period_start: number;
+              items: any;
+              latest_invoice: string;
+              plan: string;
+            }
+            const previousPlan = (stripeEvent.data.previous_attributes as DowngradePreviousAttributes)?.plan;
+            // const newPlanAfterDowngrade = subscription.plan;
+
+            // 2. supabase change_planのstripe_schedulesのスケジュールリリース、subscriptionsテーブルを新たな個数、請求期間に更新
+            const releaseScheduleAndUpdateSubscriptionPayload = {
+              _stripe_subscription_id: subscription.id,
+              _stripe_subscription_schedule_id: subscription.schedule,
+              _stripe_customer_id: subscription.customer,
+              _current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+              _current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+              _new_plan: "business_plan",
+            };
+
+            const { error: releaseScheduleAndUpdateSubscriptionError } = await supabase.rpc(
+              "release_schedule_and_update_subscription",
+              releaseScheduleAndUpdateSubscriptionPayload
+            );
+
+            if (releaseScheduleAndUpdateSubscriptionError) {
+              console.log(
+                "❌Stripe_Webhookステップ4 「プランダウングレード」スケジュール適用ルート release_schedule_and_update_subscription関数実行エラー supabaseのとスケジュールのリリース、subscriptionsテーブルの更新に失敗",
+                releaseScheduleAndUpdateSubscriptionError
+              );
+              return res
+                .status(500)
+                .send(`insert_cancel_reasons関数 error: ${releaseScheduleAndUpdateSubscriptionError.message}`);
+            }
+            console.log(
+              "Stripe_Webhookステップ4 「プランダウングレード」スケジュール適用ルート rpc()release_schedule_and_update_subscription関数実行 成功🙆"
+            );
+            // stripeのサブスクリプションスケジュールをリリース
+            try {
+              const subscriptionSchedule = await stripe.subscriptionSchedules.release(subscription.schedule);
+              console.log(
+                "Stripe_Webhookステップ4 「プランダウングレード」スケジュール適用ルート stripe.subscriptionSchedules.release()成功🙆 subscriptionSchedule",
+                subscriptionSchedule
+              );
+            } catch (e: any) {
+              console.log(
+                "❌Stripe_Webhookステップ4 「プランダウングレード」スケジュール適用ルート エラー：stripe.subscriptionSchedules.release()失敗 subscription.schedule",
+                subscription.schedule
+              );
+              throw new Error(
+                `❌Stripe_Webhookステップ4 「プランダウングレード」スケジュール適用ルート エラー：stripe.subscriptionSchedules.release()失敗`
+              );
+            }
+
+            // supabaseのアカウント削除、スケジュールリリース、stripeのスケジュールリリース全て完了
+            console.log(
+              "✅「プランダウングレード」スケジュール適用後のwebhook処理全て完了 200でリターン（supabaseのスケジュールリリース、subscriptionsテーブルの更新、stripeのサブスクリプションスケジュールリリース）"
+            );
+            return res.status(200).send({
+              received:
+                "✅「プランダウングレード」スケジュール適用後のwebhook処理全て完了 200でリターン（supabaseのスケジュールリリース、subscriptionsテーブルの更新、stripeのサブスクリプションスケジュールリリース）",
+            });
+          }
+          // ============== ✅「プランダウングレード」スケジュール適用ルート 新たな請求期間へ ==============
           // ============== 🌟「アカウントを減らす」スケジュール適用ルート 新たな請求期間へ ==============
           // 請求期間が更新されアカウントを減らすスケジュールが適用された場合、下記のプロパティが変更されprevious?attributesのオブジェクトに入ってくる
           // 「current_period_start, current_period_end, items, latest_invoice, quantity」

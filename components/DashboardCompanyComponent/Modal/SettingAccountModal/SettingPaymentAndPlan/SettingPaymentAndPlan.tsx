@@ -32,6 +32,7 @@ import { HiPlus } from "react-icons/hi2";
 import { formatToJapaneseYen } from "@/utils/Helpers/formatToJapaneseYen";
 import Stripe from "stripe";
 import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
+import { StripeSchedule } from "@/types";
 
 const SettingPaymentAndPlanMemo: FC = () => {
   const theme = useThemeStore((state) => state.theme);
@@ -47,7 +48,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
   // ポータルローディング
   const [isLoadingPortal, setIsLoadingPortal] = useState(false);
   // プラン変更ローディング
-  const [isLoadingChangePlan, setIsLoadingChangePlan] = useState(false);
+  const [isLoadingSubmitChangePlan, setIsLoadingSubmitChangePlan] = useState(false);
   // アカウントを増やす・減らすモーダル開閉状態
   const isOpenChangeAccountCountsModal = useDashboardStore((state) => state.isOpenChangeAccountCountsModal);
   const setIsOpenChangeAccountCountsModal = useDashboardStore((state) => state.setIsOpenChangeAccountCountsModal);
@@ -105,7 +106,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
     premiumPlanFeePerAccountRef.current = getPrice("premium_plan"); // プレミアムプラン価格
 
     // 今日が終了日かどうか
-    const currentDateObj = new Date("2024-9-20"); // テストクロック
+    const currentDateObj = new Date("2025-4-20"); // テストクロック
     const year = currentDateObj.getFullYear();
     const month = currentDateObj.getMonth();
     const day = currentDateObj.getDate();
@@ -396,18 +397,94 @@ const SettingPaymentAndPlanMemo: FC = () => {
     setLoadingCancelDeleteRequest(false);
   };
   // ===================== ✅アカウントの削除リクエストをキャンセルする関数 =====================
+  // ===================== 🌟プランのダウングレードリクエストをキャンセルする関数 =====================
+  // const [loadingCancelDowngradeRequest, setLoadingCancelDowngradeRequest] = useState(false);
+  const handleCancelDowngradePlanRequestSchedule = async () => {
+    if (!userProfileState) return alert("エラー：ユーザー情報が確認できませんでした");
+    if (!sessionState) return alert("エラー：セッション情報が確認できませんでした");
+    setLoadingCancelDeleteRequest(true);
+
+    try {
+      console.log("🌟Stripeプランダウングレードリクエストキャンセルステップ0-1 axiosでAPIルートに送信");
+
+      const payload = {
+        stripeCustomerId: userProfileState.subscription_stripe_customer_id,
+        subscriptionId: userProfileState.subscription_id,
+        stripeSubscriptionId: userProfileState.stripe_subscription_id,
+      };
+      console.log(
+        "🌟Stripeプランダウングレードリクエストキャンセルステップ0-2 axios.post()でAPIルートcancel-change-planへリクエスト 引数のpayload",
+        payload
+      );
+      const {
+        data: { subscriptionItem, error: axiosStripeError },
+      } = await axios.post(`/api/subscription/cancel-change-plan`, payload, {
+        headers: {
+          Authorization: `Bearer ${sessionState.access_token}`,
+        },
+      });
+
+      if (axiosStripeError) {
+        console.error(
+          `🌟Stripeプランダウングレードリクエストキャンセルステップ7 Stripeアカウント数変更エラー axiosStripeError`,
+          axiosStripeError
+        );
+        throw new Error(axiosStripeError);
+      }
+      console.log(
+        `🌟Stripeプランダウングレードリクエストキャンセルステップ7 Stripeアカウント数変更完了 subscriptionItem`,
+        subscriptionItem
+      );
+
+      // =========== subscribed_accountsのstateを削除リクエスト済み（delete_requested）をactiveに変更 ===========
+      console.log(`🌟Stripeプランダウングレードリクエストキャンセルステップ8 `);
+
+      console.log("✅全て完了 キャッシュを更新");
+
+      // キャッシュを最新状態に反映
+      // サブスクリプションスケジュールを取得して新たなダウングレードの適用時期を明示する
+      await queryClient.invalidateQueries({ queryKey: ["stripe_schedules"] });
+
+      // ======== subscribed_accountsのstateを削除リクエスト済み（delete_requested）に変更 ここまで ========
+
+      // ======================= スケジュールの適用日に実行 =======================
+      toast.success(`プランダウングレードのキャンセルが成功しました！`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    } catch (e: any) {
+      console.error("handleChangePlanエラー", e);
+      toast.error(`プランダウングレードのキャンセルに失敗しました。`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    }
+
+    setShowConfirmModal(null); // 確認モーダルを閉じる
+    setLoadingCancelDeleteRequest(false);
+  };
+  // ===================== ✅プランのダウングレードリクエストをキャンセルする関数 =====================
+  // ===================== 🌟プラン変更のインボイスを取得する関数 =====================
   const [isLoadingFetchStripeInvoice, setIsLoadingFetchStripeInvoice] = useState(false);
   // stripeにプラン変更の将来のインボイスデータを取得する関数
   const getUpcomingInvoiceChangePlan = useCallback(
     async (newPlanName: string) => {
       if (!userProfileState) return alert("エラー：ユーザー情報が見つかりませんでした。");
       if (!userProfileState?.accounts_to_create) return alert("エラー：ユーザー情報が見つかりませんでした。");
-      if (!newPlanRemainingAmountWithThreeDecimalPointsRef.current)
-        return alert("エラー：ユーザー情報が見つかりませんでした。");
-      if (!oldPlanUnusedAmountWithThreeDecimalPointsRef.current)
-        return alert("エラー：ユーザー情報が見つかりませんでした。");
-      if (!premiumPlanFeePerAccountRef.current) return alert("エラー：ユーザー情報が見つかりませんでした。");
-      if (!businessPlanFeePerAccountRef.current) return alert("エラー：ユーザー情報が見つかりませんでした。");
+      if (!premiumPlanFeePerAccountRef.current)
+        return alert("エラー：プレミアムプランのプランデータが見つかりませんでした。");
+      if (!businessPlanFeePerAccountRef.current)
+        return alert("エラー：ビジネスプランの価格データが見つかりませんでした。");
 
       setIsLoadingFetchStripeInvoice(true); // ローディング開始
 
@@ -444,17 +521,28 @@ const SettingPaymentAndPlanMemo: FC = () => {
         // StripeのInvoiceをローカルStateに格納
         setNextInvoiceForChangePlan(upcomingInvoiceData);
 
-        // 追加費用を含めた次回請求総額
-        const additionalCostAmountLocal =
-          (newPlanRemainingAmountWithThreeDecimalPointsRef.current -
-            oldPlanUnusedAmountWithThreeDecimalPointsRef.current) *
-          userProfileState.accounts_to_create;
-        // 新プランのアカウント数を掛けたプラン総額
-        const newPlanAmountLocal = isUpgradePlan
-          ? premiumPlanFeePerAccountRef.current * userProfileState.accounts_to_create
-          : businessPlanFeePerAccountRef.current * userProfileState.accounts_to_create;
+        let nextInvoiceAmountLocal;
+        let newPlanAmountLocal;
+        let additionalCostAmountLocal;
+        if (isUpgradePlan) {
+          if (!newPlanRemainingAmountWithThreeDecimalPointsRef.current)
+            return alert("エラー：新プランの残り期間の日割り料金データが見つかりませんでした。");
+          if (!oldPlanUnusedAmountWithThreeDecimalPointsRef.current)
+            return alert("エラー：旧プランの残り期間の日割り料金データが見つかりませんでした。");
+          // 追加費用を含めた次回請求総額
+          additionalCostAmountLocal =
+            (newPlanRemainingAmountWithThreeDecimalPointsRef.current -
+              oldPlanUnusedAmountWithThreeDecimalPointsRef.current) *
+            userProfileState.accounts_to_create;
+          // 新プランのアカウント数を掛けたプラン総額
+          newPlanAmountLocal = isUpgradePlan
+            ? premiumPlanFeePerAccountRef.current * userProfileState.accounts_to_create
+            : businessPlanFeePerAccountRef.current * userProfileState.accounts_to_create;
 
-        const nextInvoiceAmountLocal = newPlanAmountLocal + additionalCostAmountLocal;
+          nextInvoiceAmountLocal = newPlanAmountLocal + additionalCostAmountLocal;
+        } else {
+          nextInvoiceAmountLocal = businessPlanFeePerAccountRef.current * userProfileState.accounts_to_create;
+        }
 
         console.log(
           "getUpcomingInvoiceChangePlan実行 ",
@@ -491,6 +579,11 @@ const SettingPaymentAndPlanMemo: FC = () => {
   const handleOpenChangePlanModal = async () => {
     if (!userProfileState?.subscription_plan) return alert(`エラー：ユーザー情報が見つかりませんでした。`);
     if (!userProfileState?.current_period_end) return alert(`エラー：ユーザー情報が見つかりませんでした。`);
+
+    if (!!downgradePlanSchedule && downgradePlanSchedule.type === "change_plan") {
+      setShowConfirmModal("downgrade_request");
+      return;
+    }
 
     // ダウングレードの場合は比例配分は行わないため、そのまま開く
     if (userProfileState.subscription_plan === "premium_plan") {
@@ -538,8 +631,8 @@ const SettingPaymentAndPlanMemo: FC = () => {
     // 🔹インボイスデータが存在するルート
     else if (!!nextInvoiceForChangePlan && !!nextInvoiceForChangePlan.subscription_proration_date) {
       // 既にプラン変更インボイスが存在するなら、次は現在とインボイスの比例配分の日付が同じかどうかを確認する
-      // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2024-1-20で現在の日付を作成
-      const currentDateObj = new Date("2024-9-20"); // テストクロック
+      // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2025-4-20で現在の日付を作成
+      const currentDateObj = new Date("2025-4-20"); // テストクロック
       const year = currentDateObj.getFullYear();
       const month = currentDateObj.getMonth();
       const day = currentDateObj.getDate();
@@ -591,11 +684,9 @@ const SettingPaymentAndPlanMemo: FC = () => {
   // ===================== 🌟今すぐアップグレード/今すぐダウングレード 「変更を確定」モーダルを開く =====================
   const handleOpenConfirmChangePlanModal = async () => {
     if (isLoadingFetchStripeInvoice) return;
-    if (!newPlanRemainingAmountWithThreeDecimalPointsRef.current) return alert("エラーが発生しました。");
-    if (!oldPlanUnusedAmountWithThreeDecimalPointsRef.current) return alert("エラーが発生しました。");
-    if (!premiumPlanFeePerAccountRef.current) return alert("エラーが発生しました。");
-    if (!businessPlanFeePerAccountRef.current) return alert("エラーが発生しました。");
-    if (!userProfileState?.accounts_to_create) return alert("エラーが発生しました。");
+    if (!premiumPlanFeePerAccountRef.current) return alert("エラー：プレミアムプランの料金を取得できませんでした。");
+    if (!businessPlanFeePerAccountRef.current) return alert("エラー：ビジネスプランの料金を取得できませんでした。");
+    if (!userProfileState?.accounts_to_create) return alert("エラー：現在のアカウント契約数を取得できませんでした。");
 
     // ビジネスプランからアップグレードルート
     // 🔹インボイスデータが存在しないルート
@@ -606,8 +697,8 @@ const SettingPaymentAndPlanMemo: FC = () => {
       setIsOpenConfirmChangePlanModal(true);
     } else if (!!nextInvoiceForChangePlan?.subscription_proration_date) {
       // 既にプラン変更インボイスが存在するなら、次は現在とインボイスの比例配分の日付が同じかどうかを確認する
-      // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2024-1-20で現在の日付を作成
-      const currentDateObj = new Date("2024-9-20"); // テストクロック
+      // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2025-4-20で現在の日付を作成
+      const currentDateObj = new Date("2025-4-20"); // テストクロック
       const year = currentDateObj.getFullYear();
       const month = currentDateObj.getMonth();
       const day = currentDateObj.getDate();
@@ -623,17 +714,28 @@ const SettingPaymentAndPlanMemo: FC = () => {
       const nextInvoiceDay = nextInvoiceDateObj.getDate();
       const nextInvoiceDateOnly = new Date(nextInvoiceYear, nextInvoiceMonth, nextInvoiceDay); // nextInvoiceの日付の時刻情報をリセット
 
-      // 追加費用を含めた次回請求総額
-      const additionalCostAmountLocal =
-        (newPlanRemainingAmountWithThreeDecimalPointsRef.current -
-          oldPlanUnusedAmountWithThreeDecimalPointsRef.current) *
-        userProfileState.accounts_to_create;
-      // 新プランのアカウント数を掛けたプラン総額
-      const newPlanAmountLocal = isUpgradePlan
-        ? premiumPlanFeePerAccountRef.current * userProfileState.accounts_to_create
-        : businessPlanFeePerAccountRef.current * userProfileState.accounts_to_create;
+      let nextInvoiceAmountLocal;
+      let newPlanAmountLocal;
+      let additionalCostAmountLocal;
+      if (isUpgradePlan) {
+        if (!newPlanRemainingAmountWithThreeDecimalPointsRef.current)
+          return alert("エラー：新プラン残り日割り料金が取得できませんでした。");
+        if (!oldPlanUnusedAmountWithThreeDecimalPointsRef.current)
+          return alert("エラー：旧プラン残り日割り料金が取得できませんでした");
+        // 追加費用を含めた次回請求総額
+        additionalCostAmountLocal =
+          (newPlanRemainingAmountWithThreeDecimalPointsRef.current -
+            oldPlanUnusedAmountWithThreeDecimalPointsRef.current) *
+          userProfileState.accounts_to_create;
+        // 新プランのアカウント数を掛けたプラン総額
+        newPlanAmountLocal = isUpgradePlan
+          ? premiumPlanFeePerAccountRef.current * userProfileState.accounts_to_create
+          : businessPlanFeePerAccountRef.current * userProfileState.accounts_to_create;
 
-      const nextInvoiceAmountLocal = newPlanAmountLocal + additionalCostAmountLocal;
+        nextInvoiceAmountLocal = newPlanAmountLocal + additionalCostAmountLocal;
+      } else {
+        nextInvoiceAmountLocal = businessPlanFeePerAccountRef.current * userProfileState.accounts_to_create;
+      }
 
       // 🔹現在とZustandの比例配分の日付と総額が同じルート
       // 現在の日付と比例配分日が同じで、かつ、Zustandのインボイス総額とローカル総額が一致していればフェッチせずに開く
@@ -688,7 +790,103 @@ const SettingPaymentAndPlanMemo: FC = () => {
   };
   // ===================== ✅今すぐアップグレード/今すぐダウングレード 「変更を確定」モーダルを開く =====================
   // ===================== 🌟「変更を確定」でプランを変更する関数 =====================
-  const handleChangePlan = async () => {};
+  const handleSubmitChangePlan = async (
+    _prorationDateTimestamp: number | undefined | null,
+    changePlanType: string,
+    _newPlanName: string,
+    _alreadyHaveSchedule: boolean,
+    deleteAccountRequestSchedule: StripeSchedule | null
+  ) => {
+    if (!userProfileState) return alert("エラー：ユーザー情報が確認できませんでした");
+    if (!sessionState) return alert("エラー：セッション情報が確認できませんでした");
+    if (isUpgradePlan && !_prorationDateTimestamp) return alert("エラーが発生しました");
+    if (!userProfileState?.accounts_to_create) return alert("エラーが発生しました");
+
+    // ローディング開始
+    setIsLoadingSubmitChangePlan(true);
+
+    try {
+      const payload = {
+        stripeCustomerId: userProfileState.subscription_stripe_customer_id,
+        changePlanType: changePlanType, // upgrade, downgrade
+        newPlanName: _newPlanName, // business_plan, premium_plan
+        companyId: userProfileState.company_id,
+        subscriptionId: userProfileState.subscription_id,
+        stripeSubscriptionId: userProfileState.stripe_subscription_id,
+        userProfileId: userProfileState.id,
+        alreadyHaveSchedule: _alreadyHaveSchedule, // true, false
+        deleteAccountRequestSchedule: deleteAccountRequestSchedule, // stripe_schedulesテーブルデータ
+        prorationDate: _prorationDateTimestamp,
+        currentQuantity: userProfileState.accounts_to_create,
+      };
+
+      console.log("🌟Stripeプラン変更ステップ axios.post payload", payload);
+
+      const {
+        data: { subscriptionItem, error: axiosStripeError },
+      } = await axios.post(`/api/subscription/change-plan`, payload, {
+        headers: {
+          Authorization: `Bearer ${sessionState.access_token}`,
+        },
+      });
+      console.log(`🌟Stripe数量変更ステップ2  Apiからのdata, error`, subscriptionItem, axiosStripeError);
+
+      if (axiosStripeError) {
+        console.log("❌change-quantityエンドポイントへのaxios.postでエラー", axiosStripeError);
+        throw axiosStripeError;
+      }
+
+      // キャッシュを最新状態に更新
+      // プラン変更のサブスクリプションスケジュールを取得して適用時期を明示する
+      await queryClient.invalidateQueries({ queryKey: ["stripe_schedules"] });
+
+      if (isUpgradePlan) {
+        toast.success(`プランの変更が完了しました!`, {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      } else {
+        toast.success(`プランのダウングレードを受け付けました。`, {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      }
+
+      // ローディング完了
+      setIsLoadingSubmitChangePlan(false);
+
+      // アカウントを増やすモーダルを閉じる
+      setIsOpenConfirmChangePlanModal(false);
+      setIsOpenChangePlanModal(false);
+    } catch (e: any) {
+      console.error("プラン変更を確定エラー", e);
+      toast.error(`プランの変更に失敗しました!`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+
+      // ローディング完了
+      setIsLoadingSubmitChangePlan(false);
+      // アカウントを増やすモーダルを閉じる
+      setIsOpenConfirmChangePlanModal(false);
+      setIsOpenChangePlanModal(false);
+    }
+  };
   // ===================== ✅「変更を確定」でプランを変更する関数 ここまで =====================
 
   const [openAccountCountsMenu, setOpenAccountCountsMenu] = useState(false);
@@ -744,7 +942,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
           }}
         ></div>
         <div className="fade02 fixed left-[50%] top-[50%] z-[6000] h-auto w-[40vw] max-w-[580px] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] py-[32px] text-[var(--color-text-title)]">
-          {isLoadingChangePlan && (
+          {isLoadingSubmitChangePlan && (
             <div
               className={`flex-center absolute left-0 top-0 z-[3000] h-[100%] w-[100%] rounded-[8px] bg-[#00000090]`}
             >
@@ -775,13 +973,13 @@ const SettingPaymentAndPlanMemo: FC = () => {
               {isUpgradePlan && (
                 <p className="mb-[5px] mt-[10px] flex items-center space-x-3">
                   <span>ビジネスプラン</span>
-                  <span>月額￥980</span>
+                  <span>月額￥980/アカウント</span>
                 </p>
               )}
               {!isUpgradePlan && (
                 <p className="mb-[5px] mt-[10px] flex items-center space-x-3">
                   <span>プレミアムプラン</span>
-                  <span>月額￥19,800</span>
+                  <span>月額￥19,800/アカウント</span>
                 </p>
               )}
             </li>
@@ -790,13 +988,13 @@ const SettingPaymentAndPlanMemo: FC = () => {
               {isUpgradePlan && (
                 <p className="mb-[5px] mt-[10px] flex items-center space-x-3">
                   <span>プレミアムプラン</span>
-                  <span>月額￥19,800</span>
+                  <span>月額￥19,800/アカウント</span>
                 </p>
               )}
               {!isUpgradePlan && (
                 <p className="mb-[5px] mt-[10px] flex items-center space-x-3">
                   <span>ビジネスプラン</span>
-                  <span>月額￥980</span>
+                  <span>月額￥980/アカウント</span>
                 </p>
               )}
             </li>
@@ -847,9 +1045,24 @@ const SettingPaymentAndPlanMemo: FC = () => {
                 }`}
                 onClick={() => {
                   if (isUpgradePlan) {
+                    handleSubmitChangePlan(
+                      nextInvoiceForChangePlan?.subscription_proration_date,
+                      "upgrade",
+                      "premium_plan",
+                      false,
+                      null
+                    );
                   } else {
+                    handleSubmitChangePlan(null, "downgrade", "business_plan", false, null);
                   }
                 }}
+                /**
+                 *  _prorationDateTimestamp: number,
+    changePlanType: string,
+    _newPlanName: string,
+    _alreadyHaveSchedule: boolean,
+    deleteAccountRequestSchedule: StripeSchedule | null
+                 */
               >
                 変更を確定
               </button>
@@ -951,7 +1164,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
               </span>
               {!!userProfileState?.current_period_end && (
                 <span className="text-[var(--color-text-title)]">
-                  （{format(new Date(), "MM月dd日")}〜
+                  （{format(new Date("2025-4-20"), "MM月dd日")}〜
                   {format(new Date(userProfileState.current_period_end), "MM月dd日")}）
                 </span>
               )}
@@ -1338,6 +1551,17 @@ const SettingPaymentAndPlanMemo: FC = () => {
                 </div>
               )}
             {/* アカウントを減らした後 ここまで */}
+            {/* プランダウングレードのスケジュールした後 */}
+            {!!downgradePlanSchedule && downgradePlanSchedule.type === "change_plan" && (
+              <div className="mt-[10px] flex min-h-[55px] w-full items-center rounded-[4px] bg-[var(--bright-red)] px-[20px] text-[#37352f]">
+                {/* <AiFillInfoCircle className="mr-[12px] text-[28px] text-[#000]" /> */}
+                <div className="flex-center mr-[12px] min-h-[26px] min-w-[26px] rounded-full bg-[#37352f] ">
+                  <BsCheck2 className="stroke-1 text-[16px] text-[var(--bright-red)]" />
+                </div>
+                <p>プランのダウングレードを受け付けました。次回請求期間の開始日に適用されます。</p>
+              </div>
+            )}
+            {/* プランダウングレードのスケジュールした後 ここまで */}
             <div
               className={`mt-[14px] flex w-full flex-col rounded-[4px] border border-solid border-[var(--color-border-deep)] p-[16px]`}
             >
@@ -1387,11 +1611,9 @@ const SettingPaymentAndPlanMemo: FC = () => {
                           （
                           <span className="font-bold ">
                             {format(new Date(deleteAccountRequestSchedule.current_end_date), "yyyy/MM/dd")}
-                            {/* {format(new Date(stripeSchedulesDataArray[0].current_end_date), "yyyy/MM/dd")} */}
                           </span>
                           に、ご利用のアカウント数は{deleteAccountRequestSchedule.scheduled_quantity}
                           個に変更されます。）
-                          {/* に、ご利用のアカウント数は{stripeSchedulesDataArray[0].scheduled_quantity}個に変更されます。） */}
                         </p>
                       )}
                   </div>
@@ -1400,6 +1622,9 @@ const SettingPaymentAndPlanMemo: FC = () => {
                     <p>
                       ￥<span>{planToPrice(userProfileState?.subscription_plan)}</span>/月　×　メンバーアカウント：
                       <span>{userProfileState?.accounts_to_create}</span>
+                      {/* {!!downgradePlanSchedule && downgradePlanSchedule.type === "change_plan" && (
+                        <span>（次回請求期間に新たなプランが適用されます。）</span>
+                      )} */}
                     </p>
                     {!!notSetAndDeleteRequestedAccounts.length && (
                       <p>（削除リクエスト済みアカウント：{notSetAndDeleteRequestedAccounts.length}）</p>
@@ -1502,7 +1727,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
                 <div className="flex w-full items-center justify-end">
                   <span
                     className="ml-auto cursor-pointer hover:text-[var(--color-text-brand-f)] hover:underline"
-                    onClick={() => console.log("クリック")}
+                    onClick={() => setShowConfirmModal("downgrade_request")}
                   >
                     プランのダウングレードをキャンセル
                   </span>
@@ -1602,6 +1827,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
             </button>
             <h3 className={`flex min-h-[32px] w-full items-center text-[22px] font-bold`}>
               {showConfirmModal === "delete_request" && "削除リクエストをキャンセルしますか？"}
+              {showConfirmModal === "downgrade_request" && "プランダウングレードをキャンセルしますか？"}
             </h3>
             <section className={`mt-[20px] flex h-auto w-full flex-col space-y-3 text-[14px]`}>
               <p>この操作を実行した後にキャンセルすることはできません。</p>
@@ -1619,12 +1845,22 @@ const SettingPaymentAndPlanMemo: FC = () => {
                 >
                   キャンセル
                 </button>
-                <button
-                  className="w-[50%] cursor-pointer rounded-[8px] bg-[var(--color-red-tk)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff] hover:bg-[var(--color-red-tk-hover)]"
-                  onClick={handleCancelDeleteAccountRequestSchedule}
-                >
-                  削除リクエストをキャンセルする
-                </button>
+                {showConfirmModal === "delete_request" && (
+                  <button
+                    className="w-[50%] cursor-pointer rounded-[8px] bg-[var(--color-red-tk)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff] hover:bg-[var(--color-red-tk-hover)]"
+                    onClick={handleCancelDeleteAccountRequestSchedule}
+                  >
+                    削除リクエストをキャンセルする
+                  </button>
+                )}
+                {showConfirmModal === "downgrade_request" && (
+                  <button
+                    className="w-[50%] cursor-pointer rounded-[8px] bg-[var(--color-red-tk)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff] hover:bg-[var(--color-red-tk-hover)]"
+                    onClick={handleCancelDowngradePlanRequestSchedule}
+                  >
+                    ダウングレードをキャンセルする
+                  </button>
+                )}
               </div>
             </section>
           </div>
@@ -1645,7 +1881,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
           ></div>
           <div className="fade02 shadow-all-md fixed left-[50%] top-[50%] z-[2000] flex h-[75vh] max-h-[600px] w-[68vw] max-w-[940px] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] text-[var(--color-text-title)]">
             {/* オーバーレイ */}
-            {isLoadingChangePlan && (
+            {isLoadingSubmitChangePlan && (
               <div
                 className={`flex-center absolute left-0 top-0 z-[3000] h-[100%] w-[100%] rounded-[8px] bg-[#00000090]`}
               >
@@ -1805,7 +2041,10 @@ const SettingPaymentAndPlanMemo: FC = () => {
                 <div className={`mt-[15px] flex w-full flex-col px-[30px]`}>
                   {!todayIsPeriodEnd && (
                     <div className="flex w-full items-center justify-between">
-                      <span className="text-[13px] ">新プランの日割り料金(/アカウント)</span>
+                      <div className="flex flex-col">
+                        <span className="text-[13px] ">今月残り期間の日割り費用</span>
+                        <span className="text-[13px] ">(/アカウント)</span>
+                      </div>
                       <div
                         className="relative flex items-center space-x-2 text-[13px]"
                         onMouseEnter={() => setIsOpenAdditionalCostModal(true)}
@@ -1872,9 +2111,9 @@ const SettingPaymentAndPlanMemo: FC = () => {
                   {isUpgradePlan && !isLoadingFetchStripeInvoice && <span>今すぐアップグレード</span>}
                   {!isUpgradePlan && !isLoadingFetchStripeInvoice && <span>今すぐダウングレード</span>}
                   {isLoadingFetchStripeInvoice && <SpinnerIDS scale={"scale-[0.4]"} />}
-                  {/* {!isLoadingChangePlan && isUpgradePlan && <span>今すぐアップグレード</span>}
-                  {!isLoadingChangePlan && !isUpgradePlan && <span>今すぐダウングレード</span>}
-                  {isLoadingChangePlan && <SpinnerIDS scale={"scale-[0.4]"} />} */}
+                  {/* {!isLoadingSubmitChangePlan && isUpgradePlan && <span>今すぐアップグレード</span>}
+                  {!isLoadingSubmitChangePlan && !isUpgradePlan && <span>今すぐダウングレード</span>}
+                  {isLoadingSubmitChangePlan && <SpinnerIDS scale={"scale-[0.4]"} />} */}
                 </button>
               </div>
             </div>
@@ -1886,6 +2125,8 @@ const SettingPaymentAndPlanMemo: FC = () => {
               <Image
                 src={`/assets/images/team/pexels-fauxels_900_600.jpg`}
                 alt=""
+                placeholder="blur"
+                blurDataURL="/assets/images/team/pexels-fauxels_900_600_placeholder.jpg"
                 fill
                 className={`${styles.modal_right_image}`}
               />

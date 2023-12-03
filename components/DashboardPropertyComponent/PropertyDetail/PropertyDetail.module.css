@@ -287,6 +287,7 @@
   /* margin-right: 20px; */
   font-weight: 600;
   font-size: 13px;
+  line-height: 17px;
 }
 .title_search_mode {
   color: var(--color-text-brand-f);
@@ -322,6 +323,7 @@
   font-weight: 600;
   /* font-size: 18px; */
   font-size: 14px;
+  line-height: 17px;
 }
 .value {
   color: var(--color-text-under-value);

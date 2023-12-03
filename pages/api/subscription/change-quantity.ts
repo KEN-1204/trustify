@@ -243,23 +243,32 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
         scheduleData = await stripe.subscriptionSchedules.create({
           from_subscription: stripeSubscriptionId, // "sub_ERf72J8Sc7qx7D"
         });
+        console.log(
+          "🌟Stripeアカウント数量減らすステップ5-1 数量ダウンルート 契約中のサブスクリプションIDでサブスクリプションスケジュールオブジェクトを作成",
+          scheduleData
+        );
       }
       // 契約中のサブスクリプションオブジェクトに既にスケジュールオブジェクトが存在するならリリースして解放してから新たにスケジュールオブジェクトを新しく作成
       else {
-        const releaseSchedule = await stripe.subscriptionSchedules.release(scheduleId as string);
-        // schedule = await stripe.subscriptionSchedules.retrieve(scheduleId as string);
+        // ====================== アカウント減少スケジュール単体のみ ======================
+        // const releaseSchedule = await stripe.subscriptionSchedules.release(scheduleId as string);
+        // console.log(
+        //   "🌟Stripeアカウント数量減らすステップ5-01 既にスケジュールidが存在したためスケジュールをリリース リリースしたスケジュールオブジェクト: ",
+        //   releaseSchedule
+        //   );
+        //   scheduleData = await stripe.subscriptionSchedules.create({
+        //     from_subscription: stripeSubscriptionId, // "sub_ERf72J8Sc7qx7D"
+        //   });
+        // ====================== アカウント減少スケジュール単体のみ ======================
+        // ====================== テスト アカウント減少とプランダウングレードの両方をスケジュール ======================
+        scheduleData = await stripe.subscriptionSchedules.retrieve(scheduleId as string);
         console.log(
-          "🌟Stripeアカウント数量減らすステップ5-01 既にスケジュールidが存在したためスケジュールをリリース リリースしたスケジュールオブジェクト: ",
-          releaseSchedule
+          "🔥stripeのスケジュールが既に存在するため、サブスクリプションオブジェクトのscheduleの値からスケジュールをretrieve 取得したスケジュール",
+          scheduleData
         );
-        scheduleData = await stripe.subscriptionSchedules.create({
-          from_subscription: stripeSubscriptionId, // "sub_ERf72J8Sc7qx7D"
-        });
+        // ====================== テスト アカウント減少とプランダウングレードの両方をスケジュール ======================
       }
-      console.log(
-        "🌟Stripeアカウント数量減らすステップ5-1 数量ダウンルート 契約中のサブスクリプションIDでサブスクリプションスケジュールオブジェクトを作成",
-        scheduleData
-      );
+
       // console.log(JSON.stringify(scheduleData, null, 2));
       console.log(
         "💡スケジュールの現在のフェーズの開始日タイムスタンプ scheduleData.phases[0].start_date",
@@ -321,6 +330,29 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
       // ・次回請求日以降(次回請求期間開始日以降)は減らした新たな数量が適用され、
       // これを適用するか検討：(その料金は新数量適用後の次の支払日（現在から次の次）に適用される)
 
+      console.log("🔥stripeスケジュールupdate() 既にプランダウングレードスケジュールが存在するか確認 ");
+      console.log("🔥scheduleData.phases.length", scheduleData.phases.length);
+      console.log("🔥scheduleData.phases[1].items", scheduleData.phases.length >= 2 && scheduleData.phases[1].items);
+      console.log(
+        "🔥scheduleData.phases[1].items[0].price",
+        scheduleData.phases.length >= 2 && scheduleData.phases[1].items[0].price
+      );
+      // scheduleData.phases.lengthが３以上なら一度スケジュールをリリースして新たなスケジュールを作成してからupdateする
+      if (scheduleData.phases.length >= 3) {
+        const releaseSchedule = await stripe.subscriptionSchedules.release(scheduleId as string);
+        console.log(
+          "🔥scheduleData.phases.lengthが3つのルート 一旦スケジュールリリース releaseSchedule",
+          scheduleData.phases.length,
+          releaseSchedule
+        );
+        scheduleData = await stripe.subscriptionSchedules.create({
+          from_subscription: stripeSubscriptionId, // "sub_ERf72J8Sc7qx.."
+        });
+        console.log(
+          "🔥scheduleData.phases.lengthが3つのルート リリース後にスケジュールcreate scheduleData",
+          scheduleData
+        );
+      }
       // =========================== 通常 ===========================
       const subscriptionSchedule = await stripe.subscriptionSchedules.update(scheduleData.id, {
         phases: [
@@ -339,7 +371,11 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
           {
             items: [
               {
-                price: subscriptionCurrentPriceId, // 現在の価格プラン
+                // price: subscriptionCurrentPriceId, // 現在の価格プラン
+                price:
+                  scheduleData.phases.length >= 2
+                    ? (scheduleData.phases[1].items[0].price as string)
+                    : subscriptionCurrentPriceId, // 現在の価格プラン
                 quantity: newQuantity, // 新たにダウンした数量
               },
             ],
@@ -426,6 +462,14 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
       console.log(
         "🌟Stripeアカウント数量減らすステップ5-3 数量ダウンルート サブスクリプションスケジュールのUPDATE完了 subscriptionSchedule",
         subscriptionSchedule
+      );
+      console.log(
+        "🔥Stripeプラン変更ステップ5-3 プランダウングレードルート subscriptionSchedule.phases[0].items[0]",
+        subscriptionSchedule.phases[0].items[0]
+      );
+      console.log(
+        "🔥Stripeプラン変更ステップ5-3 プランダウングレードルート subscriptionSchedule.phases[1].items[0]",
+        subscriptionSchedule.phases[1].items[0]
       );
       console.log("✅スケジュールのステータス", subscriptionSchedule.status);
       console.log(
