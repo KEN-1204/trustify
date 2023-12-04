@@ -98,7 +98,8 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
     // 時間分秒を揃えないとStripeの比例配分は秒割りのため
     // const current = new Date(); // 現在の日付
     // const timeClockCurrentDate = new Date(2023, 11, 19); // JavaScriptの月は0から始まるため、12月は11となります
-    const timeClockCurrentDate = new Date(2025, 3, 20); // テストクロック JavaScriptの月は0から始まるため、12月は11となります 1月は0月
+    // const timeClockCurrentDate = new Date(2025, 3, 27); // JavaScriptの月は0から始まるため、12月は11となります 1月は0月
+    const timeClockCurrentDate = new Date("2025-9-20"); // テストクロック JavaScriptの月は0から始まるため、12月は11となります 1月は0月
     console.log("💡タイムクロックの現在の日付 timeClockCurrentDate", timeClockCurrentDate); // 出力: 2023-12-19T00:00:00.000Z（タイムゾーンによっては異なる表示になる場合があります）
 
     const currentEndTime = new Date(subscription.current_period_end * 1000); // サブスクリプション期間終了時の日時 「* 1000」はUNIXタイムスタンプ（秒単位）に変換

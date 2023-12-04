@@ -187,14 +187,115 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
         format(new Date(prorationDateForIncrease * 1000), "yyyy年MM月dd日 HH時mm分ss秒")
       );
 
-      const response = {
-        subscriptionItem: subscription,
-        error: null,
-      };
+      // ========================== 数量アップグレード後にプランダウングレードスケジュールが存在する場合のルート
+      // 数量を増やす前に、プランのダウングレードスケジュールが予約されている場合、
+      // そのスケジュールの数量には、数量を増やす前の数量がセットされているため、
+      // 数量を増やした場合は、stripeとsupabaseのスケジュールの数量を増やした数量に変更する
+      // 【手順】
+      // 1. プランのダウングレードのスケジュールが存在するか確認する(数量ダウンのスケジュールに関しては、数量を増やす場合、数量ダウンのスケジュールをキャンセルしてからでないと数量を増やすことはできないため、プランのダウングレードスケジュールのみ確認すればよい)
+      // 2. stripeのサブスクリプションスケジュールの翌月のフェーズのquantityの数量を増やした後の数量に変更する
+      // 3. supabaseのスケジュールのactiveで、typeがchange_planのcurrent_quantityを増やした個数に変更する
 
-      console.log("✅Stripe数量変更ステップ6 数量アップルート 無事完了したため200でAPIルートへ返却");
+      // まずは、プランのダウングレードのスケジュールが存在するか確認する
+      const scheduleId = subscriptions.data[0].schedule;
+      if (!scheduleId) {
+        // サブスクリプションスケジュールが存在しない場合には、そのままここでレスポンスする
+        const response = {
+          subscriptionItem: subscription,
+          error: null,
+        };
 
-      res.status(200).json(response);
+        console.log("✅Stripe数量変更ステップ6 数量アップルート 無事完了したため200でAPIルートへ返却");
+
+        res.status(200).json(response);
+      } else {
+        // サブスクリプションスケジュールが存在する場合には、プランのダウングレードが存在するということなので、数量を変更する
+        const scheduleData = await stripe.subscriptionSchedules.retrieve(scheduleId as string);
+
+        console.log(
+          "🔥Stripe数量変更ステップ6-1 数量アップルート プランのダウングレードスケジュールが存在するため、今回新たに増やした数量にスケジュールの次回フェーズの数量を反映させる 更新前のretrieveしたスケジュールscheduleData",
+          scheduleData
+        );
+
+        // 2. stripeのサブスクリプションスケジュールの翌月のフェーズのquantityの数量を増やした後の数量に変更する
+        const subscriptionSchedule = await stripe.subscriptionSchedules.update(scheduleData.id, {
+          phases: [
+            {
+              items: [
+                {
+                  price: subscriptionCurrentPriceId, // 現在の価格プラン
+                  quantity: subscriptionCurrentQuantity, // 更新前の現在の数量
+                },
+              ],
+              start_date: scheduleData.phases[0].start_date,
+              end_date: scheduleData.phases[0].end_date, // 本番はこっち
+              proration_behavior: "none", // そのまま
+              billing_cycle_anchor: "phase_start", // 現在の請求期間の開始日のまま
+            },
+            {
+              items: [
+                {
+                  // price: subscriptionCurrentPriceId, // 現在の価格プラン
+                  price:
+                    scheduleData.phases.length >= 2
+                      ? (scheduleData.phases[1].items[0].price as string)
+                      : subscriptionCurrentPriceId, // 現在の価格プラン
+                  quantity: newQuantity, // 新たにダウンした数量
+                },
+              ],
+              iterations: 1,
+              proration_behavior: "none", // 新たに減らした数量を前払い(請求期間の開始日に支払い完了)
+              // billing_cycle_anchor: "phase_start",
+            },
+          ],
+        });
+        console.log(
+          "🔥Stripe数量変更ステップ6-1 数量アップルート プランのダウングレードスケジュールが存在するため、今回新たに増やした数量にスケジュールの次回フェーズの数量を反映させる 更新後のスケジュールsubscriptionSchedule",
+          subscriptionSchedule
+        );
+
+        // 3. supabaseのスケジュールのactiveで、typeがchange_planのcurrent_quantityを増やした個数に変更する
+        const updateSchedulePayload = {
+          current_quantity: newQuantity,
+        };
+        console.log(
+          "🔥Stripe数量変更ステップ6-2 数量アップルート stripeのスケジュール更新後にsupabaseのスケジュールを更新を実行 payload",
+          updateSchedulePayload
+        );
+
+        const { data: updatedScheduleData, error: updatedScheduleError } = await supabaseServerClient
+          .from("stripe_schedules")
+          .update(updateSchedulePayload)
+          .eq("stripe_schedule_id", scheduleId)
+          .eq("schedule_status", "active")
+          .eq("type", "change_plan")
+          .select();
+
+        if (updatedScheduleError) {
+          console.error(
+            "❌Stripe数量変更ステップ6-2 数量アップルート stripeのスケジュール更新後にsupabaseのスケジュールを更新失敗error",
+            updatedScheduleError
+          );
+          return res.status(400).json({
+            error:
+              "❌Stripe数量変更ステップ6-2 数量アップルート stripeのスケジュール更新後にsupabaseのスケジュールを更新失敗error",
+          });
+        }
+
+        console.log(
+          "🔥Stripe数量変更ステップ6-2 数量アップルート stripeのスケジュール更新後にsupabaseのスケジュールを更新成功 更新後のsupabaseのスケジュール updatedScheduleData",
+          updatedScheduleData
+        );
+
+        const response = {
+          subscriptionItem: subscriptionSchedule,
+          error: null,
+        };
+
+        console.log("✅Stripe数量変更ステップ7 数量アップルート 無事完了したため200でAPIルートへ返却");
+
+        res.status(200).json(response);
+      }
     }
     // 🌟サブスクリプションの数量を減らすルート
     // ・新しいプランは即座に適用されない。
@@ -337,14 +438,34 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
         "🔥scheduleData.phases[1].items[0].price",
         scheduleData.phases.length >= 2 && scheduleData.phases[1].items[0].price
       );
+      // スケジュールの現在のフェーズの開始日がサブスクリプションオブジェクトの開始日と異なる場合にはスケジュールをリリースして、新たにスケジュールをcreateする
+      const subscriptionCurrentPeriodStartDate = new Date(currentPeriodStart * 1000);
+      const scheduleCurrentPhaseStartDate = new Date(scheduleData.phases[0].start_date * 1000);
       // scheduleData.phases.lengthが３以上なら一度スケジュールをリリースして新たなスケジュールを作成してからupdateする
-      if (scheduleData.phases.length >= 3) {
+      if (
+        scheduleData.phases.length >= 3 ||
+        (subscriptionCurrentPeriodStartDate.getFullYear() === scheduleCurrentPhaseStartDate.getFullYear() &&
+          subscriptionCurrentPeriodStartDate.getMonth() > scheduleCurrentPhaseStartDate.getMonth())
+      ) {
         const releaseSchedule = await stripe.subscriptionSchedules.release(scheduleId as string);
-        console.log(
-          "🔥scheduleData.phases.lengthが3つのルート 一旦スケジュールリリース releaseSchedule",
-          scheduleData.phases.length,
-          releaseSchedule
-        );
+        if (scheduleData.phases.length >= 3) {
+          console.log(
+            "🔥scheduleData.phases.lengthが3つのルート 一旦スケジュールリリース releaseSchedule",
+            scheduleData.phases.length,
+            releaseSchedule
+          );
+        } else if (
+          subscriptionCurrentPeriodStartDate.getFullYear() === scheduleCurrentPhaseStartDate.getFullYear() &&
+          subscriptionCurrentPeriodStartDate.getMonth() > scheduleCurrentPhaseStartDate.getMonth()
+        ) {
+          console.log(
+            "🔥スケジュールの現在のフェーズのstart_dateの月が、サブスクリプションオブジェクトのcurrent_period_startの月よりも低いためスケジュールを一旦スケジュールリリースするルート",
+            "サブスクリプションのcurrent_period_start",
+            subscriptionCurrentPeriodStartDate,
+            "スケジュールの現在のフェーズのstart_date scheduleData.phases[0].start_date",
+            scheduleCurrentPhaseStartDate
+          );
+        }
         scheduleData = await stripe.subscriptionSchedules.create({
           from_subscription: stripeSubscriptionId, // "sub_ERf72J8Sc7qx.."
         });

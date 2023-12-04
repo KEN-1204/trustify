@@ -158,14 +158,13 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
               }, 800);
             }
             // ================== ✅キャンセル後、新たに「メンバーシップを再開」ルート ここまで ==================
-            // ================== 🌟「アカウントを減らす」スケジュール適用ルート(請求期間更新) ==================
+            // ================== 🌟「プランアップグレード」が適用された後リロードする ==================
             if (
-              payload.new.accounts_to_create < payload.old.accounts_to_create &&
-              new Date(payload.new.current_period_end).getTime() > new Date(payload.old.current_period_end).getTime() &&
-              new Date(payload.new.current_period_start).getTime() >
-                new Date(payload.old.current_period_start).getTime()
+              payload.old.subscription_plan === "business_plan" &&
+              payload.new.subscription_plan === "premium_plan" &&
+              new Date(payload.new.current_period_end).getTime() === new Date(payload.old.current_period_end).getTime()
             ) {
-              toast.info(`アカウントが削除リクエストが適用されました！ リスタートを始めます。`, {
+              toast.success(`プランのアップグレードが適用されました！🌟 リスタートを始めます。`, {
                 position: "top-right",
                 autoClose: 5000,
                 hideProgressBar: false,
@@ -178,7 +177,72 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
                 router.reload();
               }, 1500);
             }
-            // ================== ✅「アカウントを減らす」スケジュール適用ルート(請求期間更新) ==================
+            // ================== ✅「プランアップグレード」が適用された後リロードする ==================
+            // ================== 🌟「アカウントを減らす」「プランダウングレード」スケジュール適用ルート(請求期間更新) ==================
+            if (
+              payload.new.accounts_to_create < payload.old.accounts_to_create &&
+              payload.new.subscription_plan !== payload.old.subscription_plan &&
+              new Date(payload.new.current_period_end).getTime() > new Date(payload.old.current_period_end).getTime() &&
+              new Date(payload.new.current_period_start).getTime() >
+                new Date(payload.old.current_period_start).getTime()
+            ) {
+              toast.info(
+                `プランのダウングレードとアカウントの削除リクエストが適用されました！ リスタートを始めます。`,
+                {
+                  position: "top-right",
+                  autoClose: 5000,
+                  hideProgressBar: false,
+                  closeOnClick: true,
+                  pauseOnHover: true,
+                  draggable: true,
+                  progress: undefined,
+                }
+              );
+              setTimeout(() => {
+                router.reload();
+              }, 1500);
+              // ================== ✅「アカウントを減らす」「プランダウングレード」スケジュール適用ルート(請求期間更新) ==================
+            } else if (
+              // ================== 🌟「アカウントを減らす」スケジュール適用ルート(請求期間更新) ==================
+              payload.new.accounts_to_create < payload.old.accounts_to_create &&
+              new Date(payload.new.current_period_end).getTime() > new Date(payload.old.current_period_end).getTime() &&
+              new Date(payload.new.current_period_start).getTime() >
+                new Date(payload.old.current_period_start).getTime()
+            ) {
+              toast.info(`アカウントの削除リクエストが適用されました！ リスタートを始めます。`, {
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+              });
+              setTimeout(() => {
+                router.reload();
+              }, 1500);
+              // ================== ✅「アカウントを減らす」スケジュール適用ルート(請求期間更新) ==================
+            } else if (
+              // ================== 🌟「プランダウングレード」スケジュール適用ルート(請求期間更新) ==================
+              payload.new.subscription_plan !== payload.old.subscription_plan &&
+              new Date(payload.new.current_period_end).getTime() > new Date(payload.old.current_period_end).getTime() &&
+              new Date(payload.new.current_period_start).getTime() >
+                new Date(payload.old.current_period_start).getTime()
+            ) {
+              toast.info(`プランのダウングレードリクエストが適用されました！ リスタートを始めます。`, {
+                position: "top-right",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+              });
+              setTimeout(() => {
+                router.reload();
+              }, 1500);
+            }
+            // ================== ✅「プランダウングレード」スケジュール適用ルート(請求期間更新) ==================
           }
         )
         .subscribe();

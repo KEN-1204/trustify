@@ -45,6 +45,20 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       console.log("stripe-hooksハンドラー stripe.webhooks.constructEventエラー❌", error);
       return res.status(400).send(`Webhook error: ${(error as Error).message}`);
     }
+
+    interface DecreaseAndDowngradePreviousAttributes {
+      current_period_end: number;
+      current_period_start: number;
+      items: any;
+      latest_invoice: string;
+      plan: Object;
+      quantity: number;
+    }
+    interface ExtendedSubscription extends Stripe.Subscription {
+      quantity: number;
+      plan: Stripe.Plan;
+    }
+
     // 型アサーションでobjectがStripe.Subscription型であることを示して、customerプロパティへのアクセスを可能にする
     const subscription = stripeEvent.data.object as Stripe.Subscription; // ※2
 
@@ -56,6 +70,17 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const canceledAt = subscription.canceled_at;
     console.log("🌟Stripe_Webhookステップ2 署名検証成功 stripeEvent取得成功", stripeEvent);
     console.log("🌟Stripe_Webhookステップ2-1 subscription.items", subscription.items);
+    console.log("🌟Stripe_Webhookステップ2-1 subscription.plan", (subscription as any).plan);
+    if (
+      "previous_attributes" in stripeEvent.data &&
+      typeof stripeEvent.data.previous_attributes !== "undefined" &&
+      "plan" in stripeEvent.data.previous_attributes
+    ) {
+      console.log(
+        "🌟Stripe_Webhookステップ2-1 stripeEvent.data.previous_attributes.plan",
+        (stripeEvent.data.previous_attributes as DecreaseAndDowngradePreviousAttributes).plan
+      );
+    }
     console.log(
       "🌟Stripe_Webhookステップ2-1 stripeEvent.created",
       format(new Date(stripeEventCreated * 1000), "yyyy/MM/dd HH:mm:ss")
@@ -161,6 +186,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
           console.log(`🌟Stripe_Webhookステップ3 ${stripeEvent.type}イベントルート`);
 
           //  🌟「アカウントを減らす」「プランダウングレード」両方スケジュール適用ルート 新たな請求期間へ =======
+
+          // previous_attributesのquantityよりサブスクリプションオブジェクトのquantityの方が少なく、
+          // previous_attributesのplan.idがサブスクリプションオブジェクトのplan.idが異なることを確認すれば
+          // 間違いなく「アカウントを減らす」「プランダウングレード」両方スケジュールのwebhookとなる
           if (
             "previous_attributes" in stripeEvent.data &&
             includesAllProperties(stripeEvent.data.previous_attributes, [
@@ -170,7 +199,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               "latest_invoice",
               "plan",
               "quantity",
-            ])
+            ]) &&
+            typeof stripeEvent.data.previous_attributes !== "undefined" &&
+            "quantity" in stripeEvent.data.previous_attributes &&
+            "plan" in stripeEvent.data.previous_attributes &&
+            (stripeEvent.data.previous_attributes as DecreaseAndDowngradePreviousAttributes).quantity >
+              (subscription as ExtendedSubscription).quantity &&
+            ((stripeEvent.data.previous_attributes as DecreaseAndDowngradePreviousAttributes).plan as Stripe.Plan)
+              .id !== (subscription as ExtendedSubscription).plan.id
           ) {
             // やること
             // 1. previous_attributesのquantityからstripeEventオブジェクト内のdataに格納されてるsubscriptionオブジェクトの最新のquantityを差し引いて減らす個数を算出する
@@ -223,14 +259,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             }
 
             // 1. 減らす個数を算出
-            interface DecreaseAndDowngradePreviousAttributes {
-              current_period_end: number;
-              current_period_start: number;
-              items: any;
-              latest_invoice: string;
-              plan: Object;
-              quantity: number;
-            }
+            // interface DecreaseAndDowngradePreviousAttributes {
+            //   current_period_end: number;
+            //   current_period_start: number;
+            //   items: any;
+            //   latest_invoice: string;
+            //   plan: Object;
+            //   quantity: number;
+            // }
             const previousQuantity = (stripeEvent.data.previous_attributes as DecreaseAndDowngradePreviousAttributes)
               ?.quantity;
             const newQuantityAfterDecrease = subscription.quantity;
@@ -310,7 +346,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               "items",
               "latest_invoice",
               "plan",
-            ])
+            ]) &&
+            typeof stripeEvent.data.previous_attributes !== "undefined" &&
+            "plan" in stripeEvent.data.previous_attributes &&
+            "id" in (stripeEvent.data.previous_attributes as DecreaseAndDowngradePreviousAttributes).plan &&
+            ((stripeEvent.data.previous_attributes as DecreaseAndDowngradePreviousAttributes).plan as Stripe.Plan)
+              .id !== (subscription as ExtendedSubscription).plan.id
           ) {
             // やること
             // 1. previous_attributesのquantityからstripeEventオブジェクト内のdataに格納されてるsubscriptionオブジェクトの最新のquantityを差し引いて減らす個数を算出する
@@ -367,6 +408,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               _current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
               _new_plan: "business_plan",
             };
+
+            console.log(
+              "Stripe_Webhookステップ4 「プランダウングレード」スケジュール適用ルート rpc()release_schedule_and_update_subscription関数に渡すpayload",
+              releaseScheduleAndUpdateSubscriptionPayload
+            );
 
             const { error: releaseScheduleAndUpdateSubscriptionError } = await supabase.rpc(
               "release_schedule_and_update_subscription",
@@ -425,7 +471,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               "items",
               "latest_invoice",
               "quantity",
-            ])
+            ]) &&
+            typeof stripeEvent.data.previous_attributes !== "undefined" &&
+            (stripeEvent.data.previous_attributes as DecreaseAndDowngradePreviousAttributes).quantity >
+              (subscription as ExtendedSubscription).quantity
           ) {
             // やること
             // 1. previous_attributesのquantityからstripeEventオブジェクト内のdataに格納されてるsubscriptionオブジェクトの最新のquantityを差し引いて減らす個数を算出する
@@ -1073,7 +1122,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       //   return res.status(400).send(`Unhandled event type: ${stripeEvent.type}`);
     } catch (error) {
       // Error while processing the event
-      console.log("❌stripe-hooksハンドラー supabaseのINSERTクエリ失敗", error);
+      console.log("❌stripe-hooksハンドラー エラー", error);
       // Respond with a 500 status code, causing Stripe to retry the webhook
       // 500のステータスコードで応答し、StripeがWebhookを再試行
       return res.status(500).send({ received: "supabase INSERT Failed" });

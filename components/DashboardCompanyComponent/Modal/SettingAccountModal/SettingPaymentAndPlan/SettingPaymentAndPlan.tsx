@@ -106,7 +106,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
     premiumPlanFeePerAccountRef.current = getPrice("premium_plan"); // プレミアムプラン価格
 
     // 今日が終了日かどうか
-    const currentDateObj = new Date("2025-4-20"); // テストクロック
+    const currentDateObj = new Date("2025-9-20"); // テストクロック
     const year = currentDateObj.getFullYear();
     const month = currentDateObj.getMonth();
     const day = currentDateObj.getDate();
@@ -631,8 +631,8 @@ const SettingPaymentAndPlanMemo: FC = () => {
     // 🔹インボイスデータが存在するルート
     else if (!!nextInvoiceForChangePlan && !!nextInvoiceForChangePlan.subscription_proration_date) {
       // 既にプラン変更インボイスが存在するなら、次は現在とインボイスの比例配分の日付が同じかどうかを確認する
-      // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2025-4-20で現在の日付を作成
-      const currentDateObj = new Date("2025-4-20"); // テストクロック
+      // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2025-9-20で現在の日付を作成
+      const currentDateObj = new Date("2025-9-20"); // テストクロック
       const year = currentDateObj.getFullYear();
       const month = currentDateObj.getMonth();
       const day = currentDateObj.getDate();
@@ -697,8 +697,8 @@ const SettingPaymentAndPlanMemo: FC = () => {
       setIsOpenConfirmChangePlanModal(true);
     } else if (!!nextInvoiceForChangePlan?.subscription_proration_date) {
       // 既にプラン変更インボイスが存在するなら、次は現在とインボイスの比例配分の日付が同じかどうかを確認する
-      // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2025-4-20で現在の日付を作成
-      const currentDateObj = new Date("2025-4-20"); // テストクロック
+      // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2025-9-20で現在の日付を作成
+      const currentDateObj = new Date("2025-9-20"); // テストクロック
       const year = currentDateObj.getFullYear();
       const month = currentDateObj.getMonth();
       const day = currentDateObj.getDate();
@@ -1164,7 +1164,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
               </span>
               {!!userProfileState?.current_period_end && (
                 <span className="text-[var(--color-text-title)]">
-                  （{format(new Date("2025-4-20"), "MM月dd日")}〜
+                  （{format(new Date("2025-9-20"), "MM月dd日")}〜
                   {format(new Date(userProfileState.current_period_end), "MM月dd日")}）
                 </span>
               )}
