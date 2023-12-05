@@ -63,23 +63,13 @@ const cancelChangePlanHandler = async (req: NextApiRequest, res: NextApiResponse
     });
 
     // Stripe顧客IDからサブスクリプションを取得
-    const subscriptions = await stripe.subscriptions.list({
-      customer: stripeCustomerId,
-    });
+    // const subscriptions = await stripe.subscriptions.list({
+    //   customer: stripeCustomerId,
+    // });
     const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
 
     console.log("🌟Stripeプランダウングレードキャンセルステップ3-2 Stripeから取得したsubscription", subscription);
 
-    // 現在のプランの開始日
-    const currentPeriodStart = subscription.current_period_start;
-    // 次の請求日を取得
-    const nextInvoiceTimestamp = subscription.current_period_end;
-    // ユーザーが現在契約しているサブスクリップションアイテムのidを取得
-    const subscriptionItemId = subscription.items.data[0].id;
-    // ユーザーが現在契約しているサブスクリップションのプランの価格を取得
-    const subscriptionCurrentPriceUnitAmount = subscription.items.data[0].price.unit_amount;
-    // ユーザーが現在契約しているサブスクリップションの数量
-    const subscriptionCurrentQuantity = subscription.items.data[0].quantity;
     // サブスクリプションに紐づくスケジュール 存在していない場合はcreate()で新たに作成する
     const scheduleId = subscription.schedule;
 
@@ -88,21 +78,21 @@ const cancelChangePlanHandler = async (req: NextApiRequest, res: NextApiResponse
       return res.status(400).json({ error: "scheduleId is not exist" });
     }
 
+    console.log("🌟Stripeプランダウングレードキャンセルステップ4 StripeのサブスクリプションDから各アイテム取得");
+    console.log("💡サブスクリプションID", stripeSubscriptionId);
+    console.log("💡サブスクアイテムID subscription.items.data[0].id", subscription.items.data[0].id);
+    console.log("💡現在契約中の数量subscription.items.data[0].quantity", subscription.items.data[0].quantity);
     console.log(
-      "🌟Stripeプランダウングレードキャンセルステップ4 Stripeの顧客IDから各アイテム取得",
-      "💡サブスクリプションID",
-      stripeSubscriptionId,
-      "💡サブスクアイテムID",
-      subscriptionItemId,
-      "💡現在契約中の数量",
-      subscriptionCurrentQuantity,
-      "💡現在のプランの開始日",
-      new Date(currentPeriodStart),
-      "💡現在のプランの終了日",
-      new Date(nextInvoiceTimestamp),
-      "💡スケジュールID",
-      scheduleId
+      "💡現在のプランの開始日subscription.current_period_start",
+      format(new Date(subscription.current_period_start * 1000), "yyyy年MM月dd日 HH:mm:ss"),
+      subscription.current_period_start
     );
+    console.log(
+      "💡現在のプランの終了日subscription.current_period_end",
+      format(new Date(subscription.current_period_end * 1000), "yyyy年MM月dd日 HH:mm:ss"),
+      subscription.current_period_end
+    );
+    console.log("💡スケジュールIDsubscription.schedule", subscription.schedule);
 
     // 現在のフェーズのプラン(priceId)と翌月のフェーズのプラン(priceId)が異なるなら、数量変更スケジュール以外にプラン変更スケジュールも予約されてるので、
     // releaseではなく、数量のみ現在のフェーズの数量に戻す形でupdate()する
@@ -114,9 +104,33 @@ const cancelChangePlanHandler = async (req: NextApiRequest, res: NextApiResponse
     const currentPhaseQuantity = scheduleData.phases[0].items[0].quantity;
     const upcomingPhaseNewQuantity = scheduleData.phases[1].items[0].quantity;
 
+    if (typeof currentPhaseQuantity !== "number") {
+      console.log("❌Stripeプランダウングレードキャンセルステップ5 Invalid currentPhaseQuantity");
+      const response = {
+        subscriptionItem: null,
+        error: "❌Stripeプランダウングレードキャンセルステップ5 Invalid currentPhaseQuantity",
+      };
+      return res.status(401).json(response);
+    }
+    if (typeof upcomingPhaseNewQuantity !== "number") {
+      console.log("❌Stripeプランダウングレードキャンセルステップ5 Invalid upcomingPhaseNewQuantity");
+      const response = {
+        subscriptionItem: null,
+        error: "❌Stripeプランダウングレードキャンセルステップ5 Invalid upcomingPhaseNewQuantity",
+      };
+      return res.status(401).json(response);
+    }
+
     let subscriptionSchedule;
     // ========================= プラン変更が無いため数量変更スケジュールリリースルート =========================
-    if (currentPhaseQuantity === upcomingPhaseNewQuantity) {
+    // 現在のフェーズより来月のフェーズの方が数量が同じかそれ以上というのは、今回のプランダウングレードスケジュールキャンセルにおいて、数量ダウングレードスケジュールが既に予約されている場合にはあり得ないため、リリースする。唯一プランキャンセル時に取り得るのは数量ダウンスケジュールの現在のフェーズの数量が来月のフェーズの数量より少ない場合のみ
+    if (currentPhaseQuantity <= upcomingPhaseNewQuantity) {
+      console.log(
+        "🌟Stripeプランダウングレードキャンセルステップ5 プランダウングレードキャンセル時に現在のフェーズが来月のフェーズの数量より同じかそれ以上のためリリースを実行 currentPhaseQuantity",
+        currentPhaseQuantity,
+        "upcomingPhaseNewQuantity",
+        upcomingPhaseNewQuantity
+      );
       subscriptionSchedule = await stripe.subscriptionSchedules.release(scheduleId as string);
       console.log(
         "🌟Stripeプランダウングレードキャンセルステップ5 スケジュールリリース完了 subscriptionSchedule",
@@ -125,6 +139,11 @@ const cancelChangePlanHandler = async (req: NextApiRequest, res: NextApiResponse
     }
     // ========================= プラン変更は残し、数量変更のみキャンセルするルート =========================
     else {
+      console.log(
+        "🌟Stripe数量ダウンキャンセルステップ5 数量変更スケジュールが存在しているためリリースではなくupdateルート retrieveで取得したスケジュールの今月と来月のフェーズの数量を比較 scheduleData.phases[0].items[0].quantityとscheduleData.phases[1].items[0].quantity",
+        scheduleData.phases[0].items[0].quantity,
+        scheduleData.phases[1].items[0].quantity
+      );
       subscriptionSchedule = await stripe.subscriptionSchedules.update(scheduleId as string, {
         phases: [
           {
@@ -193,7 +212,7 @@ const cancelChangePlanHandler = async (req: NextApiRequest, res: NextApiResponse
         subscriptionItem: null,
         error: "Invalid token",
       };
-      res.status(401).json(response);
+      return res.status(401).json(response);
       //   res.status(401).json({ error: "Invalid token" });
     } else if ((error as Error).name === "TokenExpiredError") {
       console.log("❌Token has expired");
@@ -202,7 +221,7 @@ const cancelChangePlanHandler = async (req: NextApiRequest, res: NextApiResponse
         subscriptionItem: null,
         error: "Token has expired",
       };
-      res.status(401).json(response);
+      return res.status(401).json(response);
       //   res.status(401).json({ error: "Token has expired" });
     } else {
       console.log(`❌予期せぬエラー: ${(error as Error).message}`);
@@ -212,7 +231,7 @@ const cancelChangePlanHandler = async (req: NextApiRequest, res: NextApiResponse
         subscriptionItem: null,
         error: (error as Error).message,
       };
-      res.status(401).json(response);
+      return res.status(401).json(response);
       //   res.status(500).json({ error: (error as Error).message });
     }
     // res.status(400).json(error);

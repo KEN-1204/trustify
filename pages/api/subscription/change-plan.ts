@@ -277,6 +277,7 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
         const updateSchedulePayload = {
           current_price_id: _newPriceId,
           current_price: 19800,
+          current_plan: newPlanName,
         };
         console.log(
           "🌟Stripeプラン変更ステップ6-2 プランアップグレードルート stripeのスケジュール更新後にsupabaseのスケジュールを更新を実行 payload",
@@ -458,12 +459,12 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
         subscriptionSchedule
       );
       console.log(
-        "🔥Stripeプラン変更ステップ5-3 プランダウングレードルート subscriptionSchedule.phases[0].items[0]",
-        subscriptionSchedule.phases[0].items[0]
+        "💡現在のフェーズのアイテム subscriptionSchedule.phases[0].items",
+        subscriptionSchedule.phases[0].items
       );
       console.log(
-        "🔥Stripeプラン変更ステップ5-3 プランダウングレードルート subscriptionSchedule.phases[1].items[0]",
-        subscriptionSchedule.phases[1].items[0]
+        "💡翌月のフェーズのアイテム subscriptionSchedule.phases[1].items",
+        subscriptionSchedule.phases[1].items
       );
       console.log("✅スケジュールのステータス", subscriptionSchedule.status);
       console.log(
@@ -482,8 +483,6 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
         "💡スケジュールの次回フェーズの終了日",
         format(new Date(subscriptionSchedule.phases[1].end_date * 1000), "yyyy/MM/dd HH:mm:ss")
       );
-      console.log("💡現在のフェーズのアイテム", subscriptionSchedule.phases[0].items);
-      console.log("💡翌月のフェーズのアイテム", subscriptionSchedule.phases[1].items);
 
       const newPrice = subscriptionCurrentPriceUnitAmount === 980 ? 19800 : 980;
 
@@ -525,6 +524,8 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
         end_behavior: subscriptionSchedule.end_behavior,
         released_subscription: subscriptionSchedule.released_subscription,
         type: "change_plan",
+        current_plan: "premium_plan",
+        scheduled_plan: "business_plan",
       };
       console.log(
         "🌟Stripeプラン変更ステップ5-4 プランダウングレードルート stripe_schedulesテーブルにINSERTするペイロード",

@@ -109,21 +109,24 @@ const changeTeamOwnerHandler = async (req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: "scheduleId is not exist" });
     }
 
+    console.log("🌟Stripe数量ダウンキャンセルステップ4 Stripeのサブスクリプションから各アイテム取得");
+    console.log("💡サブスクリプションID", stripeSubscriptionId);
+    console.log("💡サブスクアイテムID subscriptions.data[0].items.data[0].id", subscriptions.data[0].items.data[0].id);
     console.log(
-      "🌟Stripe数量ダウンキャンセルステップ4 Stripeの顧客IDから各アイテム取得",
-      "💡サブスクリプションID",
-      stripeSubscriptionId,
-      "💡サブスクアイテムID",
-      subscriptionItemId,
-      "💡現在契約中の数量",
-      subscriptionCurrentQuantity,
-      "💡現在のプランの開始日",
-      new Date(currentPeriodStart),
-      "💡現在のプランの終了日",
-      new Date(nextInvoiceTimestamp),
-      "💡スケジュールID",
-      scheduleId
+      "💡現在契約中の数量subscriptions.data[0].items.data[0].quantity",
+      subscriptions.data[0].items.data[0].quantity
     );
+    console.log(
+      "💡現在のプランの開始日subscriptions.data[0].current_period_start",
+      format(new Date(subscriptions.data[0].current_period_start * 1000), "yyyy年MM月dd日 HH:mm:ss"),
+      subscriptions.data[0].current_period_start
+    );
+    console.log(
+      "💡現在のプランの終了日subscriptions.data[0].current_period_end",
+      format(new Date(subscriptions.data[0].current_period_end * 1000), "yyyy年MM月dd日 HH:mm:ss"),
+      subscriptions.data[0].current_period_end
+    );
+    console.log("💡スケジュールID: subscriptions.data[0].schedule", subscriptions.data[0].schedule);
 
     // 現在のフェーズのプラン(priceId)と翌月のフェーズのプラン(priceId)が異なるなら、数量変更スケジュール以外にプラン変更スケジュールも予約されてるので、
     // releaseではなく、数量のみ現在のフェーズの数量に戻す形でupdate()する

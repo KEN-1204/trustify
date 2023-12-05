@@ -68,6 +68,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const currentPeriodEnd = subscription.current_period_end;
     const cancelAt = subscription.cancel_at;
     const canceledAt = subscription.canceled_at;
+    console.log(
+      "🌟Stripe_Webhookステップ2 stripeEventの作成日時stripeEvent.created",
+      format(new Date(stripeEvent.created), "yyyy年MM月dd日 HH:mm:ss")
+    );
     console.log("🌟Stripe_Webhookステップ2 署名検証成功 stripeEvent取得成功", stripeEvent);
     console.log("🌟Stripe_Webhookステップ2-1 subscription.items", subscription.items);
     console.log("🌟Stripe_Webhookステップ2-1 subscription.plan", (subscription as any).plan);
@@ -86,15 +90,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       format(new Date(stripeEventCreated * 1000), "yyyy/MM/dd HH:mm:ss")
     );
     console.log(
-      "🌟Stripe_Webhookステップ2-1 billing_cycle_anchor",
+      "🌟Stripe_Webhookステップ2-1 subscription.billing_cycle_anchor",
       format(new Date(billingCycleAnchor * 1000), "yyyy/MM/dd HH:mm:ss")
     );
     console.log(
-      "🌟Stripe_Webhookステップ2-2 current_period_start",
+      "🌟Stripe_Webhookステップ2-2 subscription.current_period_start",
       format(new Date(currentPeriodStart * 1000), "yyyy/MM/dd HH:mm:ss")
     );
     console.log(
-      "🌟Stripe_Webhookステップ2-3 current_period_end",
+      "🌟Stripe_Webhookステップ2-3 subscription.current_period_end",
       format(new Date(currentPeriodEnd * 1000), "yyyy/MM/dd HH:mm:ss")
     );
     if (!!cancelAt)

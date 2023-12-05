@@ -500,6 +500,8 @@ export type StripeSchedule = {
   end_behavior: string | null;
   released_subscription: string | null;
   type: string | null;
+  current_plan: string | null;
+  scheduled_plan: string | null;
 };
 
 // Stripe PaymentMethodオブジェクト

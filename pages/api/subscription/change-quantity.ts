@@ -216,6 +216,14 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
           "🔥Stripe数量変更ステップ6-1 数量アップルート プランのダウングレードスケジュールが存在するため、今回新たに増やした数量にスケジュールの次回フェーズの数量を反映させる 更新前のretrieveしたスケジュールscheduleData",
           scheduleData
         );
+        console.log(
+          "💡更新前 scheduleData.phases[0].items",
+          !!scheduleData.phases.length && scheduleData.phases[0].items
+        );
+        console.log(
+          "💡更新前 scheduleData.phases[1].items",
+          !!scheduleData.phases.length && scheduleData.phases[1].items
+        );
 
         // 2. stripeのサブスクリプションスケジュールの翌月のフェーズのquantityの数量を増やした後の数量に変更する
         const subscriptionSchedule = await stripe.subscriptionSchedules.update(scheduleData.id, {
@@ -252,6 +260,14 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
         console.log(
           "🔥Stripe数量変更ステップ6-1 数量アップルート プランのダウングレードスケジュールが存在するため、今回新たに増やした数量にスケジュールの次回フェーズの数量を反映させる 更新後のスケジュールsubscriptionSchedule",
           subscriptionSchedule
+        );
+        console.log(
+          "💡更新後 subscriptionSchedule.phases[0].items",
+          !!subscriptionSchedule.phases.length && subscriptionSchedule.phases[0].items
+        );
+        console.log(
+          "💡更新後 subscriptionSchedule.phases[1].items",
+          !!subscriptionSchedule.phases.length && subscriptionSchedule.phases[1].items
         );
 
         // 3. supabaseのスケジュールのactiveで、typeがchange_planのcurrent_quantityを増やした個数に変更する
@@ -585,12 +601,12 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
         subscriptionSchedule
       );
       console.log(
-        "🔥Stripeプラン変更ステップ5-3 プランダウングレードルート subscriptionSchedule.phases[0].items[0]",
-        subscriptionSchedule.phases[0].items[0]
+        "💡現在のフェーズのアイテム subscriptionSchedule.phases[0].items",
+        subscriptionSchedule.phases[0].items
       );
       console.log(
-        "🔥Stripeプラン変更ステップ5-3 プランダウングレードルート subscriptionSchedule.phases[1].items[0]",
-        subscriptionSchedule.phases[1].items[0]
+        "💡翌月のフェーズのアイテム subscriptionSchedule.phases[1].items",
+        subscriptionSchedule.phases[1].items
       );
       console.log("✅スケジュールのステータス", subscriptionSchedule.status);
       console.log(
@@ -609,8 +625,6 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
         "💡スケジュールの次回フェーズの終了日",
         format(new Date(subscriptionSchedule.phases[1].end_date * 1000), "yyyy/MM/dd HH:mm:ss")
       );
-      console.log("💡現在のフェーズのアイテム", subscriptionSchedule.phases[0].items);
-      console.log("💡翌月のフェーズのアイテム", subscriptionSchedule.phases[1].items);
 
       // ======================== supabaseのスケジュールテーブルにまだ存在しない場合のルート
       if (!alreadyHaveSchedule) {

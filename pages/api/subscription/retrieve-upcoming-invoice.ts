@@ -226,12 +226,12 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
         invoice
       );
       console.log(
-        "💡取得した次回のinvoice period_start",
+        "💡取得した次回のinvoice.period_start",
         invoice.period_start,
         format(new Date(invoice.period_start * 1000), "yyyy/MM/dd HH:mm:ss")
       );
       console.log(
-        "💡取得した次回のinvoice period_end",
+        "💡取得した次回のinvoice.period_end",
         invoice.period_end,
         format(new Date(invoice.period_end * 1000), "yyyy/MM/dd HH:mm:ss")
       );
@@ -244,6 +244,12 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
       // 🌟２回目以上のアップデートだった場合は分岐させる
       const invoiceItemList = invoice.lines.data.filter((item) => item.type === "invoiceitem");
       if (invoiceItemList.length === 2) {
+        console.log(
+          "0. 新プランの料金、数量、単価 プランダウングレードスケジュールが存在する場合には数量は現在のアカウント数の状態でinvoiceが取得される",
+          invoice?.lines?.data[invoice?.lines?.data.length - 1]?.amount,
+          invoice?.lines?.data[invoice?.lines?.data.length - 1]?.quantity,
+          invoice?.lines?.data[invoice?.lines?.data.length - 1]?.plan?.amount
+        );
         console.log("1. 残り期間までの旧プラン未使用分", invoice?.lines?.data[0]?.amount);
         console.log("2. 残り期間までの新プラン使用料金", invoice?.lines?.data[1]?.amount);
         console.log(
@@ -272,10 +278,17 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
           (accumulator, currentValue) => accumulator + currentValue.amount,
           0
         );
+        console.log(
+          "0. 新プランの料金、数量、単価 プランダウングレードスケジュールが存在する場合には数量は現在のアカウント数の状態でinvoiceが取得される",
+          invoice?.lines?.data[invoice?.lines?.data.length - 1]?.amount,
+          invoice?.lines?.data[invoice?.lines?.data.length - 1]?.quantity,
+          invoice?.lines?.data[invoice?.lines?.data.length - 1]?.plan?.amount
+        );
         console.log("1. 残り期間までの旧プラン未使用分の合計(2回目以上のアップデート)", sumOldUnused);
         console.log("2. 残り期間までの新プラン使用料金の合計(2回目以上のアップデート)", sumNewUsage);
         const sumExtraCharge = sumNewUsage + sumOldUnused;
-        console.log(`新プラン更新による次回請求の追加料金の合計`, sumExtraCharge);
+        console.log(`3. 新プラン更新による次回請求の追加料金の合計`, sumExtraCharge);
+        console.log(`4. 新プラン更新による次回請求の総額`, invoice?.amount_due);
       }
 
       console.log("✅Stripe将来のインボイス取得ステップ6 数量変更ルート 次回のインボイス取得完了 200で返す");
@@ -333,12 +346,12 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
           invoice
         );
         console.log(
-          "💡取得した次回のinvoice period_start",
+          "💡取得した次回のinvoice.period_start",
           invoice.period_start,
           format(new Date(invoice.period_start * 1000), "yyyy/MM/dd HH:mm:ss")
         );
         console.log(
-          "💡取得した次回のinvoice period_end",
+          "💡取得した次回のinvoice.period_end",
           invoice.period_end,
           format(new Date(invoice.period_end * 1000), "yyyy/MM/dd HH:mm:ss")
         );
