@@ -26,6 +26,9 @@
   justify-items: flex-start;
   align-items: center;
 }
+.grid_row_member:hover {
+  background-color: var(--color-bg-sub);
+}
 .column_header {
   font-size: 13px;
   font-weight: 600;

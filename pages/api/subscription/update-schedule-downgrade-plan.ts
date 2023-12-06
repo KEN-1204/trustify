@@ -20,7 +20,7 @@ const updateScheduleDowngradePlanHandler = async (req: NextApiRequest, res: Next
   });
 
   try {
-    console.log("🌟Stripe数量アップ前のプランダウングレードスケジュールの数量変更ステップ1 APIルートリクエスト取得");
+    console.log("🌟Stripe数量アップ前プランダウングレードスケジュールの数量変更ステップ1 APIルートリクエスト取得");
     // リクエストからJWT、認証ヘッダーの取り出し
     const authHeader = req.headers.authorization;
 
@@ -39,7 +39,7 @@ const updateScheduleDowngradePlanHandler = async (req: NextApiRequest, res: Next
     // トークンが有効なら payload にはトークンのペイロードが含まれます。
     // ここでユーザー情報や他のセッション情報を取得することができます。
     console.log(
-      "🌟Stripe数量アップ前のプランダウングレードスケジュールの数量変更ステップ2 jwt.verify認証完了 payload",
+      "🌟Stripe数量アップ前プランダウングレードスケジュールの数量変更ステップ2 jwt.verify認証完了 payload",
       payload
     );
     const userId = payload.sub; // 'sub' field usually contains the user id.
@@ -50,7 +50,7 @@ const updateScheduleDowngradePlanHandler = async (req: NextApiRequest, res: Next
     // Ensure stripeCustomerId is a string stripeCustomerIdが文字列であることを確認する。
     if (typeof stripeCustomerId !== "string") {
       console.log(
-        "❌Stripe数量アップ前のプランダウングレードスケジュールの数量変更ステップ3-2 エラー: Invalid stripeCustomerId"
+        "❌Stripe数量アップ前プランダウングレードスケジュールの数量変更ステップ3-2 エラー: Invalid stripeCustomerId"
       );
       res.status(400).json({ error: "❌Invalid stripeCustomerId" });
       return;
@@ -58,7 +58,7 @@ const updateScheduleDowngradePlanHandler = async (req: NextApiRequest, res: Next
     // Ensure stripeSubscriptionId is a string stripeSubscriptionIdが文字列であることを確認する。
     if (typeof stripeSubscriptionId !== "string") {
       console.log(
-        "❌Stripe数量アップ前のプランダウングレードスケジュールの数量変更ステップ3-2 エラー: Invalid stripeSubscriptionId"
+        "❌Stripe数量アップ前プランダウングレードスケジュールの数量変更ステップ3-2 エラー: Invalid stripeSubscriptionId"
       );
       res.status(400).json({ error: "❌Invalid stripeSubscriptionId" });
       return;
@@ -66,7 +66,7 @@ const updateScheduleDowngradePlanHandler = async (req: NextApiRequest, res: Next
     // Ensure newQuantity is a string newQuantityが文字列であることを確認する。
     if (typeof newQuantity !== "number") {
       console.log(
-        "❌Stripe数量アップ前のプランダウングレードスケジュールの数量変更ステップ3-2 エラー: Invalid newQuantity"
+        "❌Stripe数量アップ前プランダウングレードスケジュールの数量変更ステップ3-2 エラー: Invalid newQuantity"
       );
       res.status(400).json({ error: "❌Invalid newQuantity" });
       return;
@@ -77,11 +77,14 @@ const updateScheduleDowngradePlanHandler = async (req: NextApiRequest, res: Next
       apiVersion: "2022-11-15",
     });
 
+    console.log(
+      "🌟Stripe数量アップ前のプランダウングレードスケジュールの数量変更ステップ3-2 stripe.subscriptions.retrieve()実行"
+    );
     // サブスクリプションオブジェクトを取得
     const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
 
     console.log(
-      "🌟Stripe数量アップ前のプランダウングレードスケジュールの数量変更ステップ3-2 Stripeから取得したsubscription",
+      "🔥Stripe数量アップ前のプランダウングレードスケジュールの数量変更ステップ3-2 stripe.subscriptions.retrieve()結果 subscription",
       subscription
     );
 
@@ -136,18 +139,24 @@ const updateScheduleDowngradePlanHandler = async (req: NextApiRequest, res: Next
 
     // 現在のフェーズのプラン(priceId)と翌月のフェーズのプラン(priceId)が異なるなら、数量変更スケジュール以外にプラン変更スケジュールも予約されてるので、
     // releaseではなく、数量のみ現在のフェーズの数量に戻す形でupdate()する
-
+    console.log(
+      "🌟Stripe数量アップ前のプランダウングレードスケジュールの数量変更ステップ5 stripe.subscriptionSchedules.retrieve()実行"
+    );
     const scheduleData = await stripe.subscriptionSchedules.retrieve(scheduleId as string);
     // const releasedScheduleData = await stripe.subscriptionSchedules.release(scheduleId as string);
     // const scheduleData = await stripe.subscriptionSchedules.create({
     //   from_subscription: stripeSubscriptionId, // "sub_ERf72J8Sc7qx7D"
     // });
     console.log(
-      "💡Stripe数量アップ前のプランダウングレードスケジュールの数量変更ステップ5 更新前 今月のフェーズ",
+      "🔥Stripe数量アップ前のプランダウングレードスケジュールの数量変更ステップ5 stripe.subscriptionSchedules.retrieve()結果 scheduleData",
+      scheduleData
+    );
+    console.log(
+      "💡Stripe数量アップ前のプランダウングレードスケジュールの数量変更ステップ5 更新前 今月フェーズ scheduleData.phases[0].items[0]",
       scheduleData.phases[0].items[0]
     );
     console.log(
-      "💡Stripe数量アップ前のプランダウングレードスケジュールの数量変更ステップ5 更新前 翌月のフェーズ",
+      "💡Stripe数量アップ前のプランダウングレードスケジュールの数量変更ステップ5 更新前 翌月フェーズ scheduleData.phases[1].items[0]",
       scheduleData.phases[1].items[0]
     );
     console.log(
@@ -156,22 +165,22 @@ const updateScheduleDowngradePlanHandler = async (req: NextApiRequest, res: Next
     );
 
     console.log(
-      "🌟Stripe数量アップ前のプランダウングレードスケジュールの数量変更ステップ5  stripe.subscriptionSchedules.update実行 引数一覧"
+      "🌟Stripe数量アップ前のプランダウングレードスケジュールの数量変更ステップ6  stripe.subscriptionSchedules.update()実行 引数一覧"
     );
     console.log(
-      "💡引数 更新前 今月のフェーズscheduleData.phases[0].items[0].price",
+      "💡引数 更新前 今月フェーズ価格scheduleData.phases[0].items[0].price",
       scheduleData.phases[0].items[0].price
     );
     console.log(
-      "💡引数 更新前 今月のフェーズscheduleData.phases[0].items[0].quantity",
+      "💡引数 更新前 今月フェーズ数量scheduleData.phases[0].items[0].quantity",
       scheduleData.phases[0].items[0].quantity
     );
     console.log(
-      "💡引数 更新前 翌月のフェーズscheduleData.phases[1].items[0].price",
+      "💡引数 更新前 翌月フェーズ価格scheduleData.phases[1].items[0].price",
       scheduleData.phases[1].items[0].price
     );
     console.log(
-      "💡引数には渡さない 更新前 翌月のフェーズscheduleData.phases[1].items[0].quantity",
+      "💡引数には渡さない 更新前 翌月フェーズ数量scheduleData.phases[1].items[0].quantity",
       scheduleData.phases[1].items[0].quantity
     );
     console.log("💡引数 更新前 newQuantity", newQuantity);
@@ -203,7 +212,7 @@ const updateScheduleDowngradePlanHandler = async (req: NextApiRequest, res: Next
           start_date: scheduleData.phases[0].start_date,
           end_date: scheduleData.phases[0].end_date, // 本番はこっち
           //   proration_behavior: "none", // そのまま
-          //   billing_cycle_anchor: "phase_start", // 現在の請求期間の開始日のまま
+          billing_cycle_anchor: "phase_start", // 現在の請求期間の開始日のまま
         },
         {
           items: [
@@ -219,15 +228,15 @@ const updateScheduleDowngradePlanHandler = async (req: NextApiRequest, res: Next
       ],
     });
     console.log(
-      "🌟Stripe数量アップ前のプランダウングレードスケジュールの数量変更ステップ5 スケジュールupdate完了 次回フェーズの数量を更新 subscriptionSchedule",
+      "🔥Stripe数量アップ前のプランダウングレードスケジュールの数量変更ステップ6 stripe.subscriptionSchedules.update()完了 次回フェーズの数量を更新 subscriptionSchedule",
       subscriptionSchedule
     );
     console.log(
-      "💡更新後 今月のフェーズsubscriptionSchedule.phases[0].items[0]",
+      "💡更新後 今月フェーズsubscriptionSchedule.phases[0].items[0]",
       subscriptionSchedule.phases[0].items[0]
     );
     console.log(
-      "💡更新後 翌月のフェーズsubscriptionSchedule.phases[1].items[0]",
+      "💡更新後 翌月フェーズsubscriptionSchedule.phases[1].items[0]",
       subscriptionSchedule.phases[1].items[0]
     );
 
@@ -237,7 +246,7 @@ const updateScheduleDowngradePlanHandler = async (req: NextApiRequest, res: Next
       current_quantity: newQuantity,
     };
     console.log(
-      "🌟Stripe数量アップ前のプランダウングレードスケジュールの数量変更ステップ6 stripe_scheduleテーブルのchange_planタイプスケジュールのcurrent_quantityをUPDATEを実行 updateStripeSchedulesPayload",
+      "🌟Stripe数量アップ前のプランダウングレードスケジュールの数量変更ステップ7 stripe_scheduleテーブルのchange_planタイプスケジュールのcurrent_quantityをUPDATEを実行 updateStripeSchedulesPayload",
       updateStripeSchedulesPayload
     );
     const { error: updateScheduleError } = await supabaseServerClient
@@ -256,11 +265,11 @@ const updateScheduleDowngradePlanHandler = async (req: NextApiRequest, res: Next
     }
 
     console.log(
-      "🌟Stripe数量アップ前のプランダウングレードスケジュールの数量変更ステップ7 Supabaseのstripe_schedulesテーブルにUPDATE完了"
+      "🔥Stripe数量アップ前のプランダウングレードスケジュールの数量変更ステップ7 Supabaseのstripe_schedulesテーブルにUPDATE完了"
     );
 
     const response = {
-      subscriptionItem: subscriptionSchedule,
+      data: subscriptionSchedule,
       error: null,
     };
 

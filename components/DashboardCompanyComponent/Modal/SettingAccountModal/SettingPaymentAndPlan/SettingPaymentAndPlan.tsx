@@ -496,7 +496,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
           changePlanName: newPlanName, // 新たな変更先プラン名
           currentQuantity: userProfileState.accounts_to_create, // プラン変更時の現在の契約アカウント数
         };
-        console.log("🌟Stripe将来のインボイス取得ステップ1 axios.post実行 payload", payload);
+        console.log("🌟/retrieve-upcoming-invoiceへaxios.post実行 payload", payload);
         const {
           data: { data: upcomingInvoiceData, error: upcomingInvoiceError },
         } = await axios.post(`/api/subscription/retrieve-upcoming-invoice`, payload, {
@@ -507,14 +507,14 @@ const SettingPaymentAndPlanMemo: FC = () => {
 
         if (!!upcomingInvoiceError) {
           console.log(
-            "🌟Stripe将来のインボイス取得ステップ2 /retrieve-upcoming-invoiceへのaxios.postエラー",
+            "❌Stripe将来のインボイス取得ステップ2 /retrieve-upcoming-invoiceへのaxios.postエラー",
             upcomingInvoiceError
           );
           throw new Error(upcomingInvoiceError);
         }
 
         console.log(
-          "🌟Stripe将来のインボイス取得ステップ2 axios.postで次回のインボイスの取得成功",
+          "🔥/retrieve-upcoming-invoiceへaxios.post成功 次回のインボイスの取得 upcomingInvoiceData",
           upcomingInvoiceData
         );
 
@@ -548,11 +548,11 @@ const SettingPaymentAndPlanMemo: FC = () => {
           "getUpcomingInvoiceChangePlan実行 ",
           "upcomingInvoiceData.amount_due",
           upcomingInvoiceData.amount_due,
-          "nextInvoiceAmountLocal",
+          "次回請求総額nextInvoiceAmountLocal",
           nextInvoiceAmountLocal,
-          "newPlanAmountLocal",
+          "新プラン料金newPlanAmountLocal",
           newPlanAmountLocal,
-          "additionalCostAmountLocal",
+          "日割り追加費用additionalCostAmountLocal",
           additionalCostAmountLocal
         );
         // stripeのインボイスのamountと、ローカル計算結果が一致しているかテスト
@@ -823,7 +823,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
       console.log("🌟Stripeプラン変更ステップ axios.post payload", payload);
 
       const {
-        data: { subscriptionItem, error: axiosStripeError },
+        data: { data: subscriptionItem, error: axiosStripeError },
       } = await axios.post(`/api/subscription/change-plan`, payload, {
         headers: {
           Authorization: `Bearer ${sessionState.access_token}`,

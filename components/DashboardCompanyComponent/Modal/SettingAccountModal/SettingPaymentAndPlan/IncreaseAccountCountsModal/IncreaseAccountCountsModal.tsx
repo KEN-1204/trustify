@@ -202,7 +202,7 @@ const IncreaseAccountCountsModalMemo = () => {
   } = useQueryMemberAccounts();
 
   // スケジュールを取得
-  const [downgradePlanSchedule, setDowngradePlanSchedule] = useState<StripeSchedule | null>(null);
+  // const [downgradePlanSchedule, setDowngradePlanSchedule] = useState<StripeSchedule | null>(null);
   const stripeSchedulesDataArray = queryClient.getQueryData<StripeSchedule[]>(["stripe_schedules"]);
 
   // const {
@@ -497,7 +497,7 @@ const IncreaseAccountCountsModalMemo = () => {
                   schedule.scheduled_plan === "business_plan"
               )
             : []; // プランダウングレードリクエストのスケジュール
-          setDowngradePlanSchedule(downgradePlanScheduleArray.length >= 1 ? downgradePlanScheduleArray[0] : null);
+          // setDowngradePlanSchedule(downgradePlanScheduleArray.length >= 1 ? downgradePlanScheduleArray[0] : null);
           const totalPaymentDue =
             downgradePlanScheduleArray.length >= 1
               ? 980 * totalAccountQuantity + sumExtraCharge
@@ -602,6 +602,9 @@ const IncreaseAccountCountsModalMemo = () => {
       return alert("🚨useEffect(初回マウントInvoice取得)エラー：アカウント情報が見つかりませんでした");
     }
 
+    // invoiceのline_itemの最後の新プランのインボイスアイテム
+    const _nextInvoiceLastItem = !!nextInvoice ? nextInvoice.lines.data[nextInvoice.lines.data.length - 1] : null;
+
     // nextInvoiceが存在しないルート => 初回マウント時にInvoiceをフェッチ
     if (!nextInvoice) {
       console.log("🔥初回マウントuseEffect実行1 nextInvoice無しのためgetUpcomingInvoice関数を実行🔥");
@@ -611,14 +614,19 @@ const IncreaseAccountCountsModalMemo = () => {
     // nextInvoiceが存在するルート => アップデート直後に再度開いた時にnextInvoiceのquantityよりメンバーアカウントの数が多くなるので、再度フェッチする
     else if (
       !!nextInvoice &&
-      nextInvoice.lines.data[nextInvoice.lines.data.length - 1].quantity !== memberAccountsDataArray.length + 1
+      _nextInvoiceLastItem !== null &&
+      _nextInvoiceLastItem.quantity !== null &&
+      _nextInvoiceLastItem.quantity < memberAccountsDataArray.length + 1
+      // nextInvoice.lines.data[nextInvoice.lines.data.length - 1].quantity !== memberAccountsDataArray.length + 1
     ) {
       console.log(
-        "🔥初回マウントuseEffect実行1 nextInvoiceの最新のquantityとメンバーアカウントの数が異なるため再度最新のinvoiceをフェッチ🔥",
+        "🔥初回マウントuseEffect実行1 nextInvoiceの最新のquantityよりメンバーアカウントの数が多い場合には数量アップデート直後のため再度最新のinvoiceをフェッチ🔥",
         "nextInvoice.lines.data[nextInvoice.lines.data.length - 1].quantity",
         nextInvoice.lines.data[nextInvoice.lines.data.length - 1].quantity,
         "memberAccountsDataArray.length + 1",
         memberAccountsDataArray.length + 1
+        // "memberAccountsDataArray.length + 1",
+        // memberAccountsDataArray.length + 1,
       );
       getUpcomingInvoice();
       return;
@@ -666,7 +674,7 @@ const IncreaseAccountCountsModalMemo = () => {
       // => 再度フェッチしてInvoiceを取得
       if (currentDateOnly.getTime() !== nextInvoiceDateOnly.getTime()) {
         console.log(
-          "🔥初回マウントuseEffect実行1 nextInvoice有りだが現在の日付と作成日が異なるためgetUpcomingInvoice関数を実行🔥",
+          "🔥初回マウントuseEffect実行1 nextInvoiceが存在するルート nextInvoice有りだが現在の日付と作成日が異なるためgetUpcomingInvoice関数を実行🔥",
           "💡今日の日付",
           format(currentDateOnly, "yyyy/MM/dd HH:mm:ss"),
           "比例配分日",
@@ -766,7 +774,7 @@ const IncreaseAccountCountsModalMemo = () => {
                   schedule.scheduled_plan === "business_plan"
               )
             : []; // プランダウングレードリクエストのスケジュール
-          setDowngradePlanSchedule(downgradePlanScheduleArray.length >= 1 ? downgradePlanScheduleArray[0] : null);
+          // setDowngradePlanSchedule(downgradePlanScheduleArray.length >= 1 ? downgradePlanScheduleArray[0] : null);
           const totalPaymentDue =
             downgradePlanScheduleArray.length >= 1
               ? 980 * totalAccountQuantity + extraCharge
@@ -776,10 +784,10 @@ const IncreaseAccountCountsModalMemo = () => {
           // ======================== InvoiceをローカルStateに格納 ========================
           setIsLoadingFirstFetch(false); // ローディング終了
           console.log(
-            "🔥初回マウントuseEffect実行1 既にnextInvoice取得済みで、かつ日付が同じのため 現在Zustandで保持しているInvoiceをローカルStateに格納してリターン 今日の日付",
+            "🔥初回マウントuseEffect実行1 nextInvoiceが存在するルート 既にnextInvoice取得済みで、かつnextInvoiceの比例配分の日付がこのモーダルを開いた日付と同じため 現在Zustandで保持しているInvoiceをローカルStateに格納してリターン モーダル開いた今日の日付",
             format(currentDateOnly, "yyyy/MM/dd HH:mm:ss"),
             currentDateOnly.getTime(),
-            "比例配分日",
+            "nextInvoiceの比例配分日",
             format(nextInvoiceDateOnly, "yyyy/MM/dd HH:mm:ss"),
             nextInvoiceDateOnly.getTime()
           );
@@ -837,7 +845,7 @@ const IncreaseAccountCountsModalMemo = () => {
                   schedule.scheduled_plan === "business_plan"
               )
             : []; // プランダウングレードリクエストのスケジュール
-          setDowngradePlanSchedule(downgradePlanScheduleArray.length >= 1 ? downgradePlanScheduleArray[0] : null);
+          // setDowngradePlanSchedule(downgradePlanScheduleArray.length >= 1 ? downgradePlanScheduleArray[0] : null);
           const totalPaymentDue =
             downgradePlanScheduleArray.length >= 1
               ? 980 * totalAccountQuantity + sumExtraCharge
@@ -846,7 +854,7 @@ const IncreaseAccountCountsModalMemo = () => {
           setNextInvoiceAmountState(totalPaymentDue);
 
           console.log(
-            "未使用、残り使用2セット以上のinvoiceitemルート(つまり数量変更２回目以上)",
+            "🔥初回マウントuseEffect実行 nextInvoiceが存在するルート 未使用、残り使用2セット以上のinvoiceitemルート(つまり数量変更２回目以上)",
             "未使用分の配列",
             firstHalfInvoiceItemList,
             "残り使用分の配列",
@@ -872,12 +880,15 @@ const IncreaseAccountCountsModalMemo = () => {
             currentDate.getDate() === periodEndDate.getDate()
           ) {
             console.log(
-              "🌟初回マウントuseEffect Invoiceをstripeから取得 2回目アップグレードルート 今日が終了日と同じ日付のためlastInvoiceItemStateには最後のインボイスデータを格納せずにリターン(今日が終了日の場合、invoice_itemは生成されないため選択中のアカウント数での日割り計算は発生せず、最後のアイテムが選択中のインボイスデータではなく、今までの変更分のインボイスデータの日割り計算分となるため)"
+              "🔥初回マウントuseEffect nextInvoiceが存在するルート 2回目アップグレードルート 今日が終了日と同じ日付のためlastInvoiceItemStateには最後のインボイスデータを格納せずにリターン(今日が終了日の場合、invoice_itemは生成されないため選択中のアカウント数での日割り計算は発生せず、最後のアイテムが選択中のインボイスデータではなく、今までの変更分のインボイスデータの日割り計算分となるため)"
             );
 
             if (isLoadingFirstFetch) setIsLoadingFirstFetch(false);
             return;
           } else {
+            console.log(
+              "🔥初回マウントuseEffect nextInvoiceが存在するルート 2回目アップグレードルート 今日と期間終了日の日付は異なるため、lastInvoiceItemStateには最後のインボイスデータを格納してリターン"
+            );
             // 最後のinvoiceItemをstateに格納する (invoiceItemの最後の要素が)
             const _oldDailyRateWithThreeDecimalPoints = -(
               Math.round(((monthlyFeePerAccount * memberAccountsDataArray.length) / period) * 1000) / 1000
@@ -926,14 +937,6 @@ const IncreaseAccountCountsModalMemo = () => {
       console.error(`エラー：アカウント情報が見つかりませんでした`);
       return { checkResult: false, prorationDateTimeStamp: null };
     }
-    if (!currentPeriodState && isFreeTodaysPayment) {
-      console.error(`エラー：請求期間データを取得できませんでした`);
-      return { checkResult: false, prorationDateTimeStamp: null };
-    }
-    if (remainingDaysState === null && isFreeTodaysPayment) {
-      console.error(`エラー：残り期間データを取得できませんでした`);
-      return { checkResult: false, prorationDateTimeStamp: null };
-    }
 
     // ローディング開始
     // setIsLoadingCalculation(true);
@@ -969,7 +972,7 @@ const IncreaseAccountCountsModalMemo = () => {
         const subscriptionLineItem = (upcomingInvoiceData as Stripe.UpcomingInvoice).lines.data.filter(
           (item) => item.type === "subscription"
         )[0]; // [0]のインデックスで配列ではなくオブジェクトで取得
-        if (todaysPayment === subscriptionLineItem.amount) {
+        if (todaysPayment === (upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due) {
           console.log(
             "🌟料金チェック3 ✅チェック関数 次回請求額がローカルと一致 テスト成功✅",
             "支払額 stripeのnextInvoice subscriptionLineItem.amount(本日の支払いのため新プランの価格のまま追加費用なし)",
@@ -1038,9 +1041,9 @@ const IncreaseAccountCountsModalMemo = () => {
       // 2. 「残り日数」をローカルStateに格納
       // const remaining = getRemainingDaysFromNowPeriodEndHourToTimestamp(upcomingInvoiceData.period_end).remainingDays;
       // setRemainingDaysState(remaining);
-      // 3. プランの月額費用/1アカウントあたり
+      // 3. 現在のプランの月額費用/1アカウントあたり
       const monthlyFeePerAccount = getPrice(userProfileState.subscription_plan);
-      // 4. 新プランの月額費用
+      // 4. 新数量の月額費用
       const newMonthlyFee = monthlyFeePerAccount * totalAccountQuantity;
 
       // 🔹🔹数量アップグレード１回目ルート
@@ -1054,16 +1057,17 @@ const IncreaseAccountCountsModalMemo = () => {
         // 5. 追加費用の総額
         // 6. 次回支払い総額
 
-        // 新プランの1日当たりの料金
-        const tempNewDailyRate =
-          (upcomingInvoiceData as Stripe.UpcomingInvoice)?.lines?.data[2]?.amount / currentPeriodState;
+        // 新数量の残り使用分の1日当たりの料金
+        const tempNewDailyRate = newMonthlyFee / currentPeriodState;
+        // const tempNewDailyRate =
+        //   (upcomingInvoiceData as Stripe.UpcomingInvoice)?.lines?.data[2]?.amount / currentPeriodState;
         const tempNewDailyRateWithThreeDecimalPoints = Math.round(tempNewDailyRate * 1000) / 1000;
         setStripeNewDailyRateWithThreeDecimalPoints(tempNewDailyRateWithThreeDecimalPoints);
         // 新プランの残り使用分の料金
         const tempNewUsageAmount = tempNewDailyRateWithThreeDecimalPoints * remainingDaysState;
         const tempNewUsageAmountWithThreeDecimalPoints = Math.round(tempNewUsageAmount * 1000) / 1000;
         setStripeNewUsageAmountForRemainingPeriodWithThreeDecimalPoints(tempNewUsageAmountWithThreeDecimalPoints);
-        // 旧プランの1日あたりの料金
+        // 旧数量未使用分の1日あたりの料金
         const _oldPlanAmount = getPrice(userProfileState.subscription_plan) * memberAccountsDataArray.length;
         const tempOldDailyRate = _oldPlanAmount / currentPeriodState;
         const tempOldDailyRateWithThreeDecimalPoints = Math.round(tempOldDailyRate * 1000) / 1000;
@@ -1097,12 +1101,18 @@ const IncreaseAccountCountsModalMemo = () => {
         //   (upcomingInvoiceData as Stripe.UpcomingInvoice)?.lines?.data[
         //     (upcomingInvoiceData as Stripe.UpcomingInvoice)?.lines?.data.length - 1
         //   ]?.amount + tempAdditionalCost;
-        setStripeNextInvoiceAmountState(tempNextInvoiceAmount);
+        setStripeNextInvoiceAmountState((upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due);
+        // setStripeNextInvoiceAmountState(tempNextInvoiceAmount);
 
-        if (!!tempNextInvoiceAmount && tempNextInvoiceAmount === nextInvoiceAmountState) {
+        if (
+          !!(upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due &&
+          (upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due === nextInvoiceAmountState
+        ) {
           console.log(
             "🌟料金チェック3 ✅チェック関数 次回請求額がローカルと一致 テスト成功✅",
-            "次回支払い総額stripe",
+            "次回支払い総額(upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due",
+            (upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due,
+            "次回支払い総額stripe tempNextInvoiceAmount",
             tempNextInvoiceAmount,
             "次回支払い総額ローカル",
             nextInvoiceAmountState,
@@ -1122,6 +1132,8 @@ const IncreaseAccountCountsModalMemo = () => {
         } else {
           console.log(
             "🌟料金チェック3 ❌チェック関数 次回請求額がローカルと一致せず テスト失敗❌",
+            "次回支払い総額(upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due",
+            (upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due,
             "次回支払い総額stripe",
             tempNextInvoiceAmount,
             "次回支払い総額ローカル",
@@ -1199,34 +1211,33 @@ const IncreaseAccountCountsModalMemo = () => {
             ? 980 * totalAccountQuantity + sumExtraCharge
             : newMonthlyFee + sumExtraCharge;
         // const totalPaymentDue = newMonthlyFee + sumExtraCharge;
-        setStripeNextInvoiceAmountState(totalPaymentDue);
-        console.log(
-          "チェック関数 未使用、残り使用2セット以上のinvoiceitemルート(つまり数量変更２回目以上)",
-          "未使用分の配列",
-          firstHalfInvoiceItemList,
-          "残り使用分の配列",
-          secondHalfInvoiceItemList,
-          "未使用分の総額",
-          sumOldUnused,
-          "残り使用分の総額",
-          sumNewUsage,
-          "追加費用総額",
-          sumExtraCharge,
-          "次回支払い総額",
-          totalPaymentDue
-        );
+        // setStripeNextInvoiceAmountState(totalPaymentDue);
+        setStripeNextInvoiceAmountState((upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due);
 
-        if (!!totalPaymentDue && totalPaymentDue === nextInvoiceAmountState) {
+        if (
+          !!(upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due &&
+          (upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due === nextInvoiceAmountState
+        ) {
           console.log(
-            "🌟料金チェック3 ✅チェック関数 次回請求額がローカルと一致 テスト成功✅",
-            "次回支払い総額stripe",
+            "✅料金チェック3 未使用、残り使用2セット以上のinvoiceitemルート(つまり数量変更２回目以上) ✅チェック関数 次回請求額がローカルと一致 テスト成功✅",
+            "次回支払い総額(upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due",
+            (upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due,
+            "次回支払い総額stripe totalPaymentDue",
             totalPaymentDue,
             "次回支払い総額ローカル",
             nextInvoiceAmountState,
             "今までの追加費用の総額stripe",
             sumExtraCharge,
             "今までの追加費用の総額ローカル",
-            additionalCostState
+            additionalCostState,
+            "未使用分の配列",
+            firstHalfInvoiceItemList,
+            "残り使用分の配列",
+            secondHalfInvoiceItemList,
+            "未使用分の総額",
+            sumOldUnused,
+            "残り使用分の総額",
+            sumNewUsage
           );
           // ローディング開始
           // setIsLoadingCalculation(false);
@@ -1238,15 +1249,25 @@ const IncreaseAccountCountsModalMemo = () => {
           };
         } else {
           console.log(
-            "🌟料金チェック3 ❌チェック関数 次回請求額がローカルと一致せず テスト失敗❌",
-            "次回支払い総額stripe",
+            "❌料金チェック3 未使用、残り使用2セット以上のinvoiceitemルート(つまり数量変更２回目以上) ❌チェック関数 次回請求額がローカルと一致せず テスト失敗❌",
+            "次回支払い総額(upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due",
+            (upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due,
+            "次回支払い総額stripe totalPaymentDue",
             totalPaymentDue,
             "次回支払い総額ローカル",
             nextInvoiceAmountState,
-            "今までの追加費用stripe",
+            "今までの追加費用の総額stripe",
             sumExtraCharge,
-            "今までの追加費用ローカル",
-            additionalCostState
+            "今までの追加費用の総額ローカル",
+            additionalCostState,
+            "未使用分の配列",
+            firstHalfInvoiceItemList,
+            "残り使用分の配列",
+            secondHalfInvoiceItemList,
+            "未使用分の総額",
+            sumOldUnused,
+            "残り使用分の総額",
+            sumNewUsage
           );
           // ローディング開始
           // setIsLoadingCalculation(false);
@@ -1545,18 +1566,14 @@ const IncreaseAccountCountsModalMemo = () => {
       currentDate.getMonth() === currentPeriodEndDate.getMonth() &&
       currentDate.getDate() === currentPeriodEndDate.getDate();
 
-    console.log(
-      "🔥useEffect実行1(「本日のお支払い」期間終了日が今日か否かチェック)🔥 isSameDay",
-      isSameDay,
-      "currentPeriodEndDate",
-      format(currentPeriodEndDate, "yyyy/MM/dd HH:mm:ss"),
-      "現在の日付",
-      format(currentDate, "yyyy/MM/dd HH:mm:ss")
-    );
     if (isSameDay) {
       console.log(
-        "🔥useEffect実行2(「本日のお支払い」期間終了日が今日か否かチェック)🔥 今日が期間終了日で一致しているが、現在の時刻がcurrent_period_endの時刻を過ぎていないため isFreeTodayPaymentをfalse, todayPaymentを 現在の契約プラン * (現在の契約アカウント数 + 新たに契約するアカウント数)に更新 isSameDay",
-        isSameDay
+        "🔥useEffect実行2(「本日のお支払い」があるか否か)🔥 今日が期間終了日で一致しているが、現在の時刻がcurrent_period_endの時刻を過ぎていないため isFreeTodayPaymentをfalse, todayPaymentを 現在の契約プラン * (現在の契約アカウント数 + 新たに契約するアカウント数)に更新 isSameDay",
+        isSameDay,
+        "currentPeriodEndDate",
+        format(currentPeriodEndDate, "yyyy/MM/dd HH:mm:ss"),
+        "現在の日付",
+        format(currentDate, "yyyy/MM/dd HH:mm:ss")
       );
       // 今日が期間終了日と同じ日のため最終日Stateをtrueに
       setIsLastDay(true);
@@ -1572,7 +1589,7 @@ const IncreaseAccountCountsModalMemo = () => {
       //   currentDate.getSeconds() >= currentPeriodEndDate.getSeconds()
       // ) {
       //   console.log(
-      //     "🔥useEffect実行2(「本日のお支払い」期間終了日が今日か否かチェック)🔥 現在の時刻がcurrent_period_endの時刻を過ぎているため isFreeTodayPaymentをtrue, todayPaymentを0に更新 isSameDay",
+      //     "🔥useEffect実行2(「本日のお支払い」があるか否か)🔥 現在の時刻がcurrent_period_endの時刻を過ぎているため isFreeTodayPaymentをtrue, todayPaymentを0に更新 isSameDay",
       //     isSameDay
       //   );
       //   // 現在の時刻がcurrent_period_endの時刻を過ぎている場合の処理
@@ -1584,8 +1601,12 @@ const IncreaseAccountCountsModalMemo = () => {
       // }
     } else {
       console.log(
-        "🔥useEffect実行2(「本日のお支払い」期間終了日が今日か否かチェック)🔥 今日がcurrent_period_endの日付と一致していないため isFreeTodayPaymentをtrue, todayPaymentを0に更新 isSameDay",
-        isSameDay
+        "🔥useEffect実行(「本日のお支払い」があるか否か)🔥 今日がcurrent_period_endの日付と一致していないため isFreeTodayPaymentをtrue, todayPaymentを0に更新 isSameDay",
+        isSameDay,
+        "currentPeriodEndDate",
+        format(currentPeriodEndDate, "yyyy/MM/dd HH:mm:ss"),
+        "現在の日付",
+        format(currentDate, "yyyy/MM/dd HH:mm:ss")
       );
       // 今日がcurrent_period_endの日付と一致していない場合の処理
       setIsFreeTodaysPayment(true);
@@ -1596,7 +1617,12 @@ const IncreaseAccountCountsModalMemo = () => {
 
   // =========================== 🌟新たな数量をStripeに送信してUPDATE ===========================
   const handleChangeQuantity = async (_prorationDateTimestamp: number) => {
-    console.log("変更の確定クリック プランと数量", userProfileState?.subscription_plan, accountQuantity);
+    console.log(
+      "変更の確定クリック プランと増やす数量、合計",
+      userProfileState?.subscription_plan,
+      accountQuantity,
+      totalAccountQuantity
+    );
     if (!userProfileState) return console.error("エラー：ユーザー情報が確認できませんでした");
     if (!sessionState) return console.error("エラー：セッション情報が確認できませんでした");
     if (!accountQuantity) return console.error("エラー：追加するアカウント数が選択されていません");
@@ -1611,7 +1637,6 @@ const IncreaseAccountCountsModalMemo = () => {
     // setLoading(true);
 
     try {
-      console.log("🌟Stripe数量変更ステップ1 axiosでAPIルートに送信 合計個数", totalAccountQuantity);
       // プレビューで取得した比例配分日と同じsubscription_proration_dateをpayloadに載せる
       const payload = {
         stripeCustomerId: userProfileState.subscription_stripe_customer_id,
@@ -1625,10 +1650,7 @@ const IncreaseAccountCountsModalMemo = () => {
         // prorationDateForIncrease: nextInvoice.subscription_proration_date, // increase用比例配分UNIXタイムスタンプ
         prorationDateForIncrease: _prorationDateTimestamp, // increase用比例配分UNIXタイムスタンプ
       };
-      console.log(
-        `🌟Stripe数量変更ステップ2 axios.postでchange-quantityエンドポイントへリクエスト 渡したpayload`,
-        payload
-      );
+      console.log(`🌟/change-quantityへaxiosで数量アップグレード実行 合計個数 渡したpayload`, payload);
       const {
         data: { subscriptionItem, error: axiosStripeError },
       } = await axios.post(`/api/subscription/change-quantity`, payload, {
@@ -1636,20 +1658,26 @@ const IncreaseAccountCountsModalMemo = () => {
           Authorization: `Bearer ${sessionState.access_token}`,
         },
       });
-      console.log(`🌟Stripe数量変更ステップ2  Apiからのdata, error`, subscriptionItem, axiosStripeError);
-
       if (axiosStripeError) {
         console.log("❌change-quantityエンドポイントへのaxios.postでエラー", axiosStripeError);
         throw axiosStripeError;
       }
+      console.log(`🔥axiosで数量アップグレード実行完了 data`, subscriptionItem);
 
-      // 新たに増やすアカウント数分、supabaseのsubscribed_accountsテーブルにINSERT
-      const { error: insertSubscribedAccountsError } = await supabase.rpc("insert_subscribed_accounts_all_at_once", {
+      const insertSubscribedAccountsPayload = {
         new_account_quantity: accountQuantity, // 新たにアカウントを増やす個数をセット
         new_company_id: userProfileState.company_id,
         new_subscription_id: userProfileState.subscription_id,
-      });
-
+      };
+      console.log(
+        `🌟rpc('insert_subscribed_accounts_all_at_once')実行 契約アカウントを実際にINSERTで作成 payload`,
+        insertSubscribedAccountsPayload
+      );
+      // 新たに増やすアカウント数分、supabaseのsubscribed_accountsテーブルにINSERT
+      const { error: insertSubscribedAccountsError } = await supabase.rpc(
+        "insert_subscribed_accounts_all_at_once",
+        insertSubscribedAccountsPayload
+      );
       if (insertSubscribedAccountsError) {
         console.log(
           "❌新たに増やすアカウント数分、supabaseのsubscribed_accountsテーブルにINSERTでエラー",
@@ -1657,18 +1685,19 @@ const IncreaseAccountCountsModalMemo = () => {
         );
         throw insertSubscribedAccountsError;
       }
-      console.log("🌟Stripe数量増やすステップ3 supabaseの契約アカウントを指定個数分、新たに作成成功");
+      console.log("🔥rpc()成功 supabaseの契約アカウントを指定個数分、新たに作成成功");
 
       // const promises = [...Array(accountQuantity)].map(() => {
       //   return null;
       // });
       // await Promise.all(promises);
-      console.log("✅🌟Stripe数量変更ステップ 全て完了 キャッシュを更新");
+      console.log("✅数量アップグレード 全て完了 キャッシュを更新");
 
       // キャッシュを最新状態に反映
       //   await queryClient.invalidateQueries({ queryKey: ["change_team_owner_notifications"] });
       //   await queryClient.invalidateQueries({ queryKey: ["my_notifications"] });
       await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
+      await queryClient.invalidateQueries({ queryKey: ["stripe_schedules"] });
 
       toast.success(`アカウント数の変更が完了しました!`, {
         position: "top-right",
@@ -1717,7 +1746,7 @@ const IncreaseAccountCountsModalMemo = () => {
         payload
       );
       const {
-        data: { data: upcomingInvoiceData, error: upcomingInvoiceError },
+        data: { data: updatedScheduleData, error: upcomingInvoiceError },
       } = await axios.post(`/api/subscription/update-schedule-downgrade-plan`, payload, {
         headers: {
           Authorization: `Bearer ${sessionState.access_token}`,
@@ -1731,8 +1760,47 @@ const IncreaseAccountCountsModalMemo = () => {
         throw new Error(upcomingInvoiceError);
       }
       console.log(
-        "🌟ダウングレードスケジュールが存在するためスケジュールの数量を変更するステップ2 ダウングレードスケジュールの数量変更完了",
-        upcomingInvoiceData
+        "🔥ダウングレードスケジュールが存在するためスケジュールの数量を変更するステップ2 ダウングレードスケジュールの数量変更完了",
+        updatedScheduleData,
+        "スケジュール各項目 created",
+        format(
+          new Date((updatedScheduleData as Stripe.SubscriptionSchedule).created * 1000),
+          "yyyy年MM月dd日 HH:mm:ss"
+        ),
+        "current_phase?.start_date",
+        format(
+          new Date(((updatedScheduleData as Stripe.SubscriptionSchedule).current_phase?.start_date as number) * 1000),
+          "yyyy年MM月dd日 HH:mm:ss"
+        ),
+        "current_phase?.end_date",
+        format(
+          new Date(((updatedScheduleData as Stripe.SubscriptionSchedule).current_phase?.end_date as number) * 1000),
+          "yyyy年MM月dd日 HH:mm:ss"
+        ),
+        "今月フェーズstart_date",
+        format(
+          new Date((updatedScheduleData as Stripe.SubscriptionSchedule).phases[0].start_date * 1000),
+          "yyyy年MM月dd日 HH:mm:ss"
+        ),
+        "今月フェーズend_date",
+        format(
+          new Date((updatedScheduleData as Stripe.SubscriptionSchedule).phases[0].end_date * 1000),
+          "yyyy年MM月dd日 HH:mm:ss"
+        ),
+        "今月フェーズ数量",
+        (updatedScheduleData as Stripe.SubscriptionSchedule).phases[0].items[0].quantity,
+        "来月フェーズstart_date",
+        format(
+          new Date((updatedScheduleData as Stripe.SubscriptionSchedule).phases[1].start_date * 1000),
+          "yyyy年MM月dd日 HH:mm:ss"
+        ),
+        "来月フェーズend_date",
+        format(
+          new Date((updatedScheduleData as Stripe.SubscriptionSchedule).phases[1].end_date * 1000),
+          "yyyy年MM月dd日 HH:mm:ss"
+        ),
+        "来月フェーズ数量",
+        (updatedScheduleData as Stripe.SubscriptionSchedule).phases[1].items[0].quantity
       );
 
       return { complete: true, error: false };
@@ -1742,11 +1810,104 @@ const IncreaseAccountCountsModalMemo = () => {
     }
   };
   // =========================== ✅ダウングレードスケジュールの次回フェーズの個数を変更(料金チェック前) ===========================
+  // ======================== 🌟ダウングレードスケジュールの次回フェーズの個数をチェック(料金チェック前) ========================
+  const getDowngradeSchedule = async () => {
+    if (!userProfileState) {
+      console.error("エラー：ユーザー情報が見つかりませんでした。");
+      return { requiredCheck: false, error: true };
+    }
+
+    try {
+      const payload = {
+        stripeSubscriptionId: userProfileState.stripe_subscription_id,
+      };
+
+      const {
+        data: { data: downgradeScheduleData, error: downgradeScheduleError },
+      } = await axios.post(`/api/subscription/get-schedule-downgrade-plan`, payload, {
+        headers: {
+          Authorization: `Bearer ${sessionState.access_token}`,
+        },
+      });
+      if (downgradeScheduleError) {
+        console.log("❌ダウングレードスケジュール取得エラー", downgradeScheduleError);
+        throw new Error(downgradeScheduleError);
+      }
+      console.log(
+        "🌟ダウングレードスケジュール取得完了",
+        downgradeScheduleData,
+        "スケジュール各項目 created",
+        format(
+          new Date((downgradeScheduleData as Stripe.SubscriptionSchedule).created * 1000),
+          "yyyy年MM月dd日 HH:mm:ss"
+        ),
+        "current_phase?.start_date",
+        format(
+          new Date(((downgradeScheduleData as Stripe.SubscriptionSchedule).current_phase?.start_date as number) * 1000),
+          "yyyy年MM月dd日 HH:mm:ss"
+        ),
+        "current_phase?.end_date",
+        format(
+          new Date(((downgradeScheduleData as Stripe.SubscriptionSchedule).current_phase?.end_date as number) * 1000),
+          "yyyy年MM月dd日 HH:mm:ss"
+        ),
+        "今月フェーズstart_date",
+        format(
+          new Date((downgradeScheduleData as Stripe.SubscriptionSchedule).phases[0].start_date * 1000),
+          "yyyy年MM月dd日 HH:mm:ss"
+        ),
+        "今月フェーズend_date",
+        format(
+          new Date((downgradeScheduleData as Stripe.SubscriptionSchedule).phases[0].end_date * 1000),
+          "yyyy年MM月dd日 HH:mm:ss"
+        ),
+        "今月フェーズ数量",
+        (downgradeScheduleData as Stripe.SubscriptionSchedule).phases[0].items[0].quantity,
+        "来月フェーズstart_date",
+        format(
+          new Date((downgradeScheduleData as Stripe.SubscriptionSchedule).phases[1].start_date * 1000),
+          "yyyy年MM月dd日 HH:mm:ss"
+        ),
+        "来月フェーズend_date",
+        format(
+          new Date((downgradeScheduleData as Stripe.SubscriptionSchedule).phases[1].end_date * 1000),
+          "yyyy年MM月dd日 HH:mm:ss"
+        ),
+        "来月フェーズ数量",
+        (downgradeScheduleData as Stripe.SubscriptionSchedule).phases[1].items[0].quantity
+      );
+      const nextPhaseQuantity = !!(downgradeScheduleData as Stripe.SubscriptionSchedule).phases[1]
+        ? (downgradeScheduleData as Stripe.SubscriptionSchedule).phases[1].items[0].quantity
+        : null;
+      if (!!nextPhaseQuantity && nextPhaseQuantity === totalAccountQuantity) {
+        console.log(
+          "ダウングレードスケジュールの次回フェーズ数量と今回のアカウント合計一致🙆 nextPhaseQuantity",
+          nextPhaseQuantity
+        );
+        return { requiredCheck: false, error: false };
+      } else if (!!nextPhaseQuantity && nextPhaseQuantity !== totalAccountQuantity) {
+        console.log(
+          "ダウングレードスケジュールの次回フェーズ数量と今回のアカウント合計一致せずチェック必要 nextPhaseQuantity",
+          nextPhaseQuantity,
+          "totalAccountQuantity",
+          totalAccountQuantity
+        );
+        return { requiredCheck: true, error: false };
+      } else {
+        throw new Error(`❌ダウングレードスケジュール取得チェック条件式にどれも合わず`);
+      }
+    } catch (e: any) {
+      console.error("❌ダウングレードスケジュール取得チェックエラー", e);
+      return { requiredCheck: false, error: true };
+    }
+  };
+  // ======================== ✅ダウングレードスケジュールの次回フェーズの個数をチェック(料金チェック前) ========================
 
   // ================ 🌟変更の確定をクリック 1. 料金チェック 2. 合格後Stripeに送信 ================
   const handleChangeConfirm = async () => {
     // 流れ
-    // 0. プランダウングレードスケジュールが存在する場合には、stripeから取得するInvoiceのsubscriptionタイプのinvoiceItemには新たな個数が反映されないため、まずはプランダウングレードスケジュールの次回フェーズのquantityの個数を変更する
+    // 0-1. プランダウングレードスケジュールが存在する場合には、スケジュールを取得してからクライアントサイドで翌月フェーズの数量と今回の新数量の数が一致しているか確認 => 一致していなければ0-2へ 一致していればそのまま1へ
+    // 0-2. プランダウングレードスケジュールが存在する場合には、stripeから取得するInvoiceのsubscriptionタイプのinvoiceItemには新たな個数が反映されないため、まずはプランダウングレードスケジュールの次回フェーズのquantityの個数を変更する
     // 1. ローカルで算出した請求額が正式なstripe.invoice.retrieveUpcoming()の料金と一致するかチェック
     // 2. 合格ルート：そのままhandleChangeQuantity()を実行してStripeのsubscription.update()を実行
     // 2. 不合格ルート：最終確認モーダルを表示して正式な請求額をstripe.invoice.retrieveUpcomingで取得したデータに置き換えてユーザーに表示し、「アップデート」か「キャンセル」を押下してもらう
@@ -1756,11 +1917,11 @@ const IncreaseAccountCountsModalMemo = () => {
 
     // プランダウングレードスケジュールが存在するか否かでルートを分岐
     // 🔹プランダウングレードスケジュール有りルート
-    if (!!downgradePlanSchedule) {
-      // 0. 【ダウングレードスケジュールの次回フェーズの個数を変更】
-      const updateScheduleResult = await updateDowngradeScheduleQuantity();
-
-      if (updateScheduleResult.error || !updateScheduleResult.complete) {
+    if (!!stripeSchedulesDataArray && !!stripeSchedulesDataArray.length) {
+      // let updateScheduleResult = {complete: true, error: false};
+      // 0-1. 【ダウングレードスケジュールを取得して数量を確認】
+      const checkDowngradeScheduleQuantity = await getDowngradeSchedule();
+      if (checkDowngradeScheduleQuantity.error) {
         setLoading(false);
         toast.error(`エラーが発生しました。サポートにご報告の上、しばらく経ってからやり直してください。`, {
           position: "top-right",
@@ -1773,7 +1934,42 @@ const IncreaseAccountCountsModalMemo = () => {
         });
         return;
       }
-      if (updateScheduleResult.complete) {
+      // 🔹0-2. 【ダウングレードスケジュールの次回フェーズの個数を変更】
+      if (!checkDowngradeScheduleQuantity.error && checkDowngradeScheduleQuantity.requiredCheck) {
+        const updateScheduleResult = await updateDowngradeScheduleQuantity();
+        if (updateScheduleResult.error || !updateScheduleResult.complete) {
+          setLoading(false);
+          toast.error(`エラーが発生しました。サポートにご報告の上、しばらく経ってからやり直してください。`, {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+          });
+          return;
+        }
+        if (updateScheduleResult.complete) {
+          // 1.【料金チェック】
+          // 料金一致ならtrue、不一致かエラーならfalse
+          const result = await handleCheckInvoiceStripeAndLocalCalculate();
+
+          // チェック合格 => stripeにそのままUPDATEを実行
+          // if (checkResult) {
+          if (!!result && result.checkResult && result.prorationDateTimeStamp) {
+            await handleChangeQuantity(result.prorationDateTimeStamp);
+          }
+          // チェック不合格 => retrieveUpcomingの料金をモーダルに表示
+          else {
+            // モーダル表示のstateをtrue
+            setIsOpenLastConfirmationModal(true);
+          }
+        }
+      }
+      // 🔹ダウングレードスケジュールの次回フェーズの数量が今回のアカウント合計と一致しているためそのまま料金チェック
+      else if (!checkDowngradeScheduleQuantity.error && !checkDowngradeScheduleQuantity.requiredCheck) {
+        // 🔹プランダウングレードスケジュール無しルート
         // 1.【料金チェック】
         // 料金一致ならtrue、不一致かエラーならfalse
         const result = await handleCheckInvoiceStripeAndLocalCalculate();
@@ -1844,8 +2040,8 @@ const IncreaseAccountCountsModalMemo = () => {
     isFirstUpgrade,
     "💡stripeSchedulesDataArray",
     stripeSchedulesDataArray,
-    "💡downgradePlanSchedule",
-    downgradePlanSchedule,
+    "💡stripeSchedulesDataArray.length",
+    stripeSchedulesDataArray?.length,
     `===================== ２回目以降のアップグレード: =====================`,
     "💡２回目以降のアップグレード 未使用分のinvoiceItem配列unusedInvoiceItemArray",
     unusedInvoiceItemArray,
@@ -1926,7 +2122,9 @@ const IncreaseAccountCountsModalMemo = () => {
           <div className="flex-col-center relative">
             <span className="text-[12px] font-normal">現在の契約プラン</span>
             <span>
-              {!!downgradePlanSchedule ? getPrice("business_plan") : getPrice(userProfileState?.subscription_plan)}
+              {!!stripeSchedulesDataArray && !!stripeSchedulesDataArray.length
+                ? getPrice("business_plan")
+                : getPrice(userProfileState?.subscription_plan)}
             </span>
             <div className="absolute bottom-[-5px] left-0 h-[2px] w-full bg-[var(--color-bg-brand-f)]" />
           </div>
@@ -2116,7 +2314,7 @@ const IncreaseAccountCountsModalMemo = () => {
                   : `${remainingDays}日`} */}
               </span>
               です。{" "}
-              {!!downgradePlanSchedule && (
+              {!!stripeSchedulesDataArray && !!stripeSchedulesDataArray.length && (
                 <span>
                   プレミアムプランからビジネスプランへのダウングレードを申込み済みです。次回請求期間(
                   {format(new Date(nextInvoice.period_end * 1000), "MM月dd日")}
@@ -2124,7 +2322,7 @@ const IncreaseAccountCountsModalMemo = () => {
                 </span>
               )}
             </p>
-            {/* {!!downgradePlanSchedule && (
+            {/* {!!stripeSchedulesDataArray.length && (
               <p className="mt-[8px] font-normal text-[var(--color-text-sub)]">
                 プレミアムプランからビジネスプランへのダウングレードの申込みを受け付けております。次回請求期間(
                 {format(new Date(nextInvoice.period_end * 1000), "MM月dd日")})からビジネスプランの価格に切り替わります。
@@ -2137,7 +2335,7 @@ const IncreaseAccountCountsModalMemo = () => {
           <div className="flex w-full items-center pb-[8px]">
             <h4 className="text-[14px] font-bold">
               ○更新後の新プラン料金
-              {!!downgradePlanSchedule && (
+              {!!stripeSchedulesDataArray && !!stripeSchedulesDataArray.length && (
                 <span className="text-[14px] font-normal text-[var(--color-text-sub)]">
                   （来月以降はビジネスプラン月額￥980で計算）
                 </span>
@@ -2152,7 +2350,7 @@ const IncreaseAccountCountsModalMemo = () => {
                 {/* <div className="flex-col-center mb-[5px] inline-flex min-h-[36px] min-w-[160px] text-[#FFD600]"> */}
                 <div className="flex-col-center inline-flex">
                   <span className="text-[12px] font-normal">新プラン料金</span>
-                  {!!downgradePlanSchedule ? (
+                  {!!stripeSchedulesDataArray && !!stripeSchedulesDataArray.length ? (
                     <span className="text-[12px] font-normal">(来月以降の請求額)</span>
                   ) : (
                     <span className="text-[12px] font-normal">(毎月の請求額)</span>
@@ -2161,7 +2359,7 @@ const IncreaseAccountCountsModalMemo = () => {
               </div>
               <span>
                 {!!userProfileState?.subscription_plan
-                  ? !!downgradePlanSchedule
+                  ? !!stripeSchedulesDataArray && !!stripeSchedulesDataArray.length
                     ? `${formatToJapaneseYen(getPrice("business_plan") * totalAccountQuantity, false)}円`
                     : `${formatToJapaneseYen(
                         getPrice(userProfileState.subscription_plan) * totalAccountQuantity,
@@ -2183,7 +2381,7 @@ const IncreaseAccountCountsModalMemo = () => {
                 <span className="text-[12px] font-normal">
                   (
                   {!!userProfileState?.subscription_plan
-                    ? !!downgradePlanSchedule
+                    ? !!stripeSchedulesDataArray && !!stripeSchedulesDataArray.length
                       ? getPlanName("business_plan")
                       : getPlanName(userProfileState.subscription_plan)
                     : `-`}
@@ -2192,7 +2390,7 @@ const IncreaseAccountCountsModalMemo = () => {
               </div>
               <span>
                 {!!userProfileState?.subscription_plan
-                  ? !!downgradePlanSchedule
+                  ? !!stripeSchedulesDataArray && !!stripeSchedulesDataArray.length
                     ? `${formatToJapaneseYen(getPrice("business_plan"), true)}/月`
                     : `${formatToJapaneseYen(getPrice(userProfileState.subscription_plan), true)}/月`
                   : `-`}
@@ -2224,7 +2422,7 @@ const IncreaseAccountCountsModalMemo = () => {
           <div className="mt-[12px] flex w-full items-center pb-[8px]">
             <h4 className="text-[14px] font-bold">
               ○次回請求時の追加費用
-              {!!downgradePlanSchedule && (
+              {!!stripeSchedulesDataArray && !!stripeSchedulesDataArray.length && (
                 <span className="text-[14px] font-normal text-[var(--color-text-sub)]">
                   （今月分の日割り料金は現在のプラン月額￥19,800で計算）
                 </span>
@@ -2519,7 +2717,7 @@ const IncreaseAccountCountsModalMemo = () => {
               </div>
               <span>
                 {!!userProfileState?.subscription_plan
-                  ? !!downgradePlanSchedule
+                  ? !!stripeSchedulesDataArray && !!stripeSchedulesDataArray.length
                     ? `${formatToJapaneseYen(getPrice("business_plan") * totalAccountQuantity, false)}円`
                     : `${formatToJapaneseYen(
                         getPrice(userProfileState.subscription_plan) * totalAccountQuantity,
@@ -2605,7 +2803,7 @@ const IncreaseAccountCountsModalMemo = () => {
               _planFeePerAccount: lastInvoiceItemState.planFeePerAccount,
               // _newPlanAmount: lastInvoiceItemState.newPlanAmount,
               _newPlanAmount: getPrice(userProfileState.subscription_plan) * totalAccountQuantity,
-              // _newPlanAmount: !!downgradePlanSchedule
+              // _newPlanAmount: !!stripeSchedulesDataArray && !!stripeSchedulesDataArray.length
               //   ? getPrice("business_plan") * totalAccountQuantity
               //   : getPrice(userProfileState.subscription_plan) * totalAccountQuantity,
               _newDailyRateWithThreeDecimalPoints: lastInvoiceItemState.newDailyRateWithThreeDecimalPoints,
@@ -2831,7 +3029,9 @@ const IncreaseAccountCountsModalMemo = () => {
         {/* モーダルエリア */}
         <div
           className={`shadow-all-md-center  absolute left-[50%] top-[0] z-[80] flex  min-w-[100%] translate-x-[-50%] flex-col overflow-hidden rounded-[8px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-edit-bg-solid)] pt-[16px] ${
-            downgradePlanSchedule ? `max-h-[55%] min-h-[55%]` : `max-h-[51%] min-h-[50%]`
+            !!stripeSchedulesDataArray && !!stripeSchedulesDataArray.length
+              ? `max-h-[55%] min-h-[55%]`
+              : `max-h-[51%] min-h-[50%]`
           }`}
         >
           {/* クローズボタン */}
@@ -3080,7 +3280,9 @@ const IncreaseAccountCountsModalMemo = () => {
         {/* ハイライト ここまで */}
         <div
           className={`shadow-all-md-center absolute left-[50%] top-[0] z-[150] flex  min-w-[100%] translate-x-[-50%] flex-col rounded-[8px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-edit-bg-solid)] px-[24px] py-[16px] ${
-            downgradePlanSchedule ? `max-h-[55%] min-h-[55%]` : `max-h-[51%] min-h-[252.95px]`
+            !!stripeSchedulesDataArray && !!stripeSchedulesDataArray.length
+              ? `max-h-[55%] min-h-[55%]`
+              : `max-h-[51%] min-h-[252.95px]`
           }`}
           // className={`shadow-all-md-center absolute left-[50%] top-[0] z-[150] flex max-h-[51%] min-h-[50%] min-w-[100%] translate-x-[-50%] flex-col rounded-[8px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-edit-bg-solid)] px-[24px] py-[16px]`}
         >
@@ -3550,9 +3752,24 @@ const IncreaseAccountCountsModalMemo = () => {
               </button>
               <button
                 className="w-[50%] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]"
-                //   onClick={() => {
-                //     handleAcceptChangeTeamOwner();
-                //   }}
+                onClick={async () => {
+                  if (!stripeRetrieveInvoice.subscription_proration_date) {
+                    toast.error(`エラーが発生しました。サポートにご報告の上、しばらく経ってからやり直してください。 `, {
+                      position: "top-right",
+                      autoClose: 5000,
+                      hideProgressBar: false,
+                      closeOnClick: true,
+                      pauseOnHover: true,
+                      draggable: true,
+                      progress: undefined,
+                    });
+                    return;
+                  }
+                  // ローディング開始
+                  setLoading(true);
+                  await handleChangeQuantity(stripeRetrieveInvoice.subscription_proration_date);
+                  setLoading(false);
+                }}
               >
                 アカウントを増やす
               </button>
@@ -3729,14 +3946,20 @@ const IncreaseAccountCountsModalMemo = () => {
                 </div>
               </div>
               {/* メンバー人数選択エリア ここまで */}
-              {/* <div className="mt-[16px] w-full">
-                <div
-                  className="flex max-w-fit cursor-pointer items-center space-x-2 text-[var(--color-text-sub)] hover:text-[var(--color-text-brand-f)] hover:underline"
-                >
-                  <AiOutlinePlus className="h-[14px] w-[14px] stroke-2 text-[14px]" />
-                  <span>他のメンバーを追加</span>
-                </div>
-              </div> */}
+              {/* 変更後の合計アカウント数 */}
+              <div className="mt-[20px] flex max-h-[35px] min-h-[35px] w-full items-center justify-between text-[15px]">
+                <h4 className="flex space-x-3">
+                  {/* <BsCheck2 className="min-h-[24px] min-w-[24px] stroke-1 text-[24px] text-[var(--color-bg-brand-f)]" /> */}
+                  <BsCheck2 className="min-h-[24px] min-w-[24px] stroke-1 text-[24px] text-[#00d436]" />
+                  <span>変更後の合計アカウント数：</span>
+                  {/* <span className="font-bold">{notSetAccounts.length}個</span> */}
+                </h4>
+                {!useQueryIsLoading && (
+                  <span className="font-bold">{!!totalAccountQuantity ? totalAccountQuantity : `-`}個</span>
+                )}
+                {useQueryIsLoading && <SpinnerIDS scale={"scale-[0.3]"} />}
+              </div>
+              {/* 変更後の合計アカウント数 ここまで */}
             </div>
 
             {/* 変更の確定を送信するボタンエリア */}

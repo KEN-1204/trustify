@@ -231,8 +231,8 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
             {
               items: [
                 {
-                  price: subscriptionCurrentPriceId, // 現在の価格プラン
-                  quantity: subscriptionCurrentQuantity, // 更新前の現在の数量
+                  price: subscriptionCurrentPriceId, // 現在の価格プラン(プランダウングレード適用は来月からのため)
+                  quantity: newQuantity, // 新たに数量を増やしたので、増やす場合は即時適用のため新たな数量を現在のフェーズに渡す
                 },
               ],
               start_date: scheduleData.phases[0].start_date,
@@ -244,11 +244,8 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
               items: [
                 {
                   // price: subscriptionCurrentPriceId, // 現在の価格プラン
-                  price:
-                    scheduleData.phases.length >= 2
-                      ? (scheduleData.phases[1].items[0].price as string)
-                      : subscriptionCurrentPriceId, // 現在の価格プラン
-                  quantity: newQuantity, // 新たにダウンした数量
+                  price: scheduleData.phases[1].items[0].price as string, // プランダウングレードスケジュールのためそのまま
+                  quantity: newQuantity, // 新たな数量
                 },
               ],
               iterations: 1,

@@ -59,11 +59,7 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
         .json({ error: "❌Stripe将来のインボイス取得ステップ2-2 エラー: Invalid stripeSubscriptionId" });
     }
 
-    console.log(
-      "🌟Stripe将来のインボイス取得ステップ2 req.bodyからstripe顧客IDとstripeサブスクリプションidを取得",
-      stripeCustomerId,
-      stripeSubscriptionId
-    );
+    console.log("🌟Stripe将来のインボイス取得ステップ3 req.bodyから取得");
     console.log("💡stripe顧客id", stripeCustomerId);
     console.log("💡stripeサブスクリプションid", stripeSubscriptionId);
     console.log("💡changeQuantity", changeQuantity);
@@ -74,6 +70,7 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
       apiVersion: "2022-11-15",
     });
 
+    console.log("🌟Stripe将来のインボイス取得ステップ3 stripe.subscriptions.retrieve()実行");
     const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
     if (!subscription) {
       console.log(
@@ -86,10 +83,7 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
       };
       return res.status(400).json(response);
     }
-    console.log(
-      "🌟Stripe将来のインボイス取得ステップ3 サブスクリプションオブジェクトを取得 subscription",
-      subscription
-    );
+    console.log("🔥Stripe将来のインボイス取得ステップ3 retrieve()結果 subscription", subscription);
 
     const priceId = (subscription as Stripe.Subscription).items.data[0].price.id;
     console.log("💡契約中のサブスクリプション価格id", priceId);
@@ -100,7 +94,10 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
     // const timeClockCurrentDate = new Date(2023, 11, 19); // JavaScriptの月は0から始まるため、12月は11となります
     // const timeClockCurrentDate = new Date(2025, 3, 27); // JavaScriptの月は0から始まるため、12月は11となります 1月は0月
     const timeClockCurrentDate = new Date("2025-9-20"); // テストクロック JavaScriptの月は0から始まるため、12月は11となります 1月は0月
-    console.log("💡タイムクロックの現在の日付 timeClockCurrentDate", timeClockCurrentDate); // 出力: 2023-12-19T00:00:00.000Z（タイムゾーンによっては異なる表示になる場合があります）
+    console.log(
+      "💡タイムクロックの現在の日付 timeClockCurrentDate",
+      format(timeClockCurrentDate, "yyyy/MM/dd HH:mm:ss")
+    ); // 出力: 2023-12-19T00:00:00.000Z（タイムゾーンによっては異なる表示になる場合があります）
 
     const currentEndTime = new Date(subscription.current_period_end * 1000); // サブスクリプション期間終了時の日時 「* 1000」はUNIXタイムスタンプ（秒単位）に変換
 
@@ -119,68 +116,10 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
 
     console.log(
       "💡比例配分の日付 現在の日付に期間終了日の時間分秒を渡したprorationTimestamp",
-      prorationTimestamp,
-      format(new Date(prorationTimestamp * 1000), "yyyy/MM/dd HH:mm:ss")
+      format(new Date(prorationTimestamp * 1000), "yyyy/MM/dd HH:mm:ss"),
+      prorationTimestamp
     );
 
-    // 日付までは現在の日付で、時間分秒はcurrent_period_endの終了日の時間分秒で置換するパターン
-    // const prorationDate = new Date(
-    //   timeClockCurrentDate.getFullYear(),
-    //   timeClockCurrentDate.getMonth(),
-    //   timeClockCurrentDate.getDate(),
-    //   currentEndTime.getHours(),
-    //   currentEndTime.getMinutes(),
-    //   currentEndTime.getSeconds()
-    // );
-    // // 比例配分の起点のなる日付 2023/12/19 20:50:28 (7分21秒前) => 🌟追加料金が発生
-    // 日付までは現在の日付で、時間分秒はcurrent_period_endの終了日の時間分秒で置換するパターン
-    // // proration_dateの計算 次回終了日の7分21秒前の20:50:28をsubscription_proration_dateに渡す
-    // const prorationDate = new Date(
-    //   timeClockCurrentDate.getFullYear(),
-    //   timeClockCurrentDate.getMonth(),
-    //   timeClockCurrentDate.getDate(),
-    //   currentEndTime.getHours(),
-    //   50, // 分を50分に設定,
-    //   28 // 秒を28秒に設定
-    // );
-
-    // // 全て現在時刻のタイムスタンプをsubscription_proration_dateに渡して比例計算をするパターン
-    // const prorationDate = new Date(
-    //   timeClockCurrentDate.getFullYear(),
-    //   timeClockCurrentDate.getMonth(),
-    //   timeClockCurrentDate.getDate(),
-    //   timeClockCurrentDate.getFullYear(),
-    //   timeClockCurrentDate.getMonth(),
-    //   timeClockCurrentDate.getDate()
-    // );
-
-    // ======= billing_period_dateで時間、分、秒を取得してsubscription_proration_dateに渡した場合
-    // const subscriptionTime = new Date(subscription.billing_cycle_anchor * 1000); // サブスクリプション作成時の日時 「* 1000」はUNIXタイムスタンプ（秒単位）に変換
-    // console.log(
-    //   "💡比例配分の日付 billing_cycle_anchorの時間分秒を置換 prorationTimestamp",
-    //   prorationTimestamp,
-    //   format(new Date(prorationTimestamp * 1000), "yyyy/MM/dd HH:mm:ss")
-    // );
-    // // proration_dateの計算
-    // const prorationDate = new Date(
-    //   timeClockCurrentDate.getFullYear(),
-    //   timeClockCurrentDate.getMonth(),
-    //   timeClockCurrentDate.getDate(),
-    //   // current.getFullYear(),
-    //   // current.getMonth(),
-    //   // current.getDate(),
-    //   subscriptionTime.getHours(),
-    //   // subscriptionTime.getMinutes(),
-    //   56, // 分を00分に設定
-    //   // subscriptionTime.getSeconds()
-    //   49 // 秒を00秒に設定
-    // );
-    // const prorationTimestampFromCurrentTime = Math.floor(prorationDate.getTime() / 1000);
-    // console.log(
-    //   "💡比例配分の日付 期間終了日からちょうど1分前prorationDate billing_anchor_dateで時間分秒を置換",
-    //   prorationDate,
-    //   format(new Date(prorationTimestamp * 1000), "yyyy/MM/dd HH:mm:ss")
-    // );
     // ======================= ✅billing_cycle_anchorの時間分秒を一緒にしてからproration_dateに渡すパターン
     // ======================= 🌟現在の時間をそのままproration_dateに渡すパターン
     // Set proration date to this moment:
@@ -211,54 +150,87 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
 
       if (!invoice) {
         console.log(
-          "❌Stripe将来のインボイス取得ステップ5実行エラー 数量変更ルート invoices.retrieveUpcoming()でインボイス取得できず",
+          "❌Stripe将来のインボイス取得ステップ4実行エラー 数量変更ルート invoices.retrieveUpcoming()でインボイス取得できず",
           invoice
         );
         const response = {
           data: null,
           error:
-            "❌Stripe将来のインボイス取得ステップ5実行エラー 数量変更ルート invoices.retrieveUpcoming()でインボイス取得できず",
+            "❌Stripe将来のインボイス取得ステップ4実行エラー 数量変更ルート invoices.retrieveUpcoming()でインボイス取得できず",
         };
         return res.status(400).json(response);
       }
+      console.log("🔥Stripe将来のインボイス取得ステップ5 数量変更ルート retrieveUpcoming()成功結果", invoice);
+      // テスト確認用
+      invoice.lines.data.forEach((item, i) => console.log(`💡retrieveUpcoming()結果 invoice.lines.data[${i}]`, item));
+      // const resultRetrieveUpcoming = async (item: Stripe.InvoiceLineItem, i: number) =>
+      //   new Promise((resolve) =>
+      //     setTimeout(() => {
+      //       console.log(`💡retrieveUpcoming()結果 invoice.lines.data[${i}]`, item);
+      //       resolve(item);
+      //     }, 10)
+      //   );
+      // const promises = invoice.lines.data.map((item, i) => resultRetrieveUpcoming(item, i));
+      // await Promise.all(promises);
+      // テスト確認用 ここまで
       console.log(
-        "🌟Stripe将来のインボイス取得ステップ5 数量変更ルート retrieveUpcoming()実行成功 invoices.retrieveUpcoming()で取得したインボイス",
-        invoice
+        "💡retrieveUpcoming()結果 invoice.period_start",
+        format(new Date(invoice.period_start * 1000), "yyyy/MM/dd HH:mm:ss"),
+        invoice.period_start
       );
       console.log(
-        "💡取得した次回のinvoice.period_start",
-        invoice.period_start,
-        format(new Date(invoice.period_start * 1000), "yyyy/MM/dd HH:mm:ss")
-      );
-      console.log(
-        "💡取得した次回のinvoice.period_end",
-        invoice.period_end,
-        format(new Date(invoice.period_end * 1000), "yyyy/MM/dd HH:mm:ss")
+        "💡retrieveUpcoming()結果 invoice.period_end",
+        format(new Date(invoice.period_end * 1000), "yyyy/MM/dd HH:mm:ss"),
+        invoice.period_end
       );
       console.log(
         "💡比例配分の日付 subscription_proration_date",
-        prorationTimestamp,
-        format(new Date(prorationTimestamp * 1000), "yyyy/MM/dd HH:mm:ss")
+        format(new Date(prorationTimestamp * 1000), "yyyy/MM/dd HH:mm:ss"),
+        prorationTimestamp
       );
-      console.log("現在の日付に期間終了日の時間分秒を渡したタイムスタンプをsubscription_proration_dateに渡す");
       // 🌟２回目以上のアップデートだった場合は分岐させる
       const invoiceItemList = invoice.lines.data.filter((item) => item.type === "invoiceitem");
+      console.log(
+        "🌟invoiceのline_itemのinvoiceitemの数量で初回変更か否かを分岐 invoiceitem個数 invoiceItemList.length",
+        invoiceItemList.length
+      );
+      // ========================= 🌟初回変更 =========================
       if (invoiceItemList.length === 2) {
+        console.log("🌟Stripe将来のインボイス取得ステップ5 数量変更ルート invoiceitem個数2個 初回変更");
         console.log(
-          "0. 新プランの料金、数量、単価 プランダウングレードスケジュールが存在する場合には数量は現在のアカウント数の状態でinvoiceが取得される",
-          invoice?.lines?.data[invoice?.lines?.data.length - 1]?.amount,
-          invoice?.lines?.data[invoice?.lines?.data.length - 1]?.quantity,
+          "※プランダウングレードスケジュールが存在する場合には数量は現在のアカウント数の状態でinvoiceが取得される"
+        );
+        console.log(
+          "💡新プランの料金:invoice?.lines?.data[invoice?.lines?.data.length - 1]?.amount",
+          invoice?.lines?.data[invoice?.lines?.data.length - 1]?.amount
+        );
+        console.log(
+          "💡新プランの数量:invoice?.lines?.data[invoice?.lines?.data.length - 1]?.quantity",
+          invoice?.lines?.data[invoice?.lines?.data.length - 1]?.quantity
+        );
+        console.log(
+          "💡新プランの単価:invoice?.lines?.data[invoice?.lines?.data.length - 1]?.plan?.amount",
           invoice?.lines?.data[invoice?.lines?.data.length - 1]?.plan?.amount
         );
-        console.log("1. 残り期間までの旧プラン未使用分", invoice?.lines?.data[0]?.amount);
-        console.log("2. 残り期間までの新プラン使用料金", invoice?.lines?.data[1]?.amount);
         console.log(
-          `新プラン更新による次回請求の追加料金 ${invoice?.lines?.data[1]?.amount} ${
-            invoice?.lines?.data[0]?.amount < 0 ? `` : `+`
-          } ${invoice?.lines?.data[0]?.amount} =`,
+          "💡残り期間までの旧プラン未使用分:invoice?.lines?.data[0]?.amount",
+          invoice?.lines?.data[0]?.amount
+        );
+        console.log("💡残り期間までの新プラン使用料金", invoice?.lines?.data[1]?.amount);
+        console.log(
+          `追加料金の合計 ${invoice?.lines?.data[1]?.amount} ${invoice?.lines?.data[0]?.amount < 0 ? `` : `+`} ${
+            invoice?.lines?.data[0]?.amount
+          } =`,
           invoice?.lines?.data[1]?.amount + invoice?.lines?.data[0]?.amount
         );
-      } else if (invoiceItemList.length > 2) {
+        console.log(`💡次回請求総額:invoice?.amount_due`, invoice?.amount_due);
+      }
+      // ========================= 🌟変更2回目以上 =========================
+      else if (invoiceItemList.length > 2) {
+        console.log("🌟Stripe将来のインボイス取得ステップ5 数量変更ルート invoiceitem個数2個以上 変更2回目以上");
+        console.log(
+          "※プランダウングレードスケジュールが存在する場合には数量は現在のアカウント数の状態でinvoiceが取得される"
+        );
         // ======================= 配列分割テスト =======================
         // const middleIndex = invoiceItemList.length / 2; // 真ん中のインデックスを把握
         // const firstHalfInvoiceItemList = invoiceItemList.slice(0, middleIndex);
@@ -279,16 +251,22 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
           0
         );
         console.log(
-          "0. 新プランの料金、数量、単価 プランダウングレードスケジュールが存在する場合には数量は現在のアカウント数の状態でinvoiceが取得される",
-          invoice?.lines?.data[invoice?.lines?.data.length - 1]?.amount,
-          invoice?.lines?.data[invoice?.lines?.data.length - 1]?.quantity,
+          "💡新プランの料金:invoice?.lines?.data[invoice?.lines?.data.length - 1]?.amount",
+          invoice?.lines?.data[invoice?.lines?.data.length - 1]?.amount
+        );
+        console.log(
+          "💡新プランの数量:invoice?.lines?.data[invoice?.lines?.data.length - 1]?.quantity",
+          invoice?.lines?.data[invoice?.lines?.data.length - 1]?.quantity
+        );
+        console.log(
+          "💡新プランの単価:invoice?.lines?.data[invoice?.lines?.data.length - 1]?.plan?.amount",
           invoice?.lines?.data[invoice?.lines?.data.length - 1]?.plan?.amount
         );
-        console.log("1. 残り期間までの旧プラン未使用分の合計(2回目以上のアップデート)", sumOldUnused);
-        console.log("2. 残り期間までの新プラン使用料金の合計(2回目以上のアップデート)", sumNewUsage);
+        console.log("💡残り期間までの旧プラン未使用分の合計(2回目以上のアップデート) sumOldUnused", sumOldUnused);
+        console.log("💡残り期間までの新プラン使用料金の合計(2回目以上のアップデート) sumNewUsage", sumNewUsage);
         const sumExtraCharge = sumNewUsage + sumOldUnused;
-        console.log(`3. 新プラン更新による次回請求の追加料金の合計`, sumExtraCharge);
-        console.log(`4. 新プラン更新による次回請求の総額`, invoice?.amount_due);
+        console.log(`💡追加料金の合計:sumExtraCharge`, sumExtraCharge);
+        console.log(`💡次回請求総額:invoice?.amount_due`, invoice?.amount_due);
       }
 
       console.log("✅Stripe将来のインボイス取得ステップ6 数量変更ルート 次回のインボイス取得完了 200で返す");
@@ -308,7 +286,7 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
             break;
         }
       };
-      // 🔹アップグレードルート
+      // 🔹プランアップグレードルート
       if (changePlanName === "premium_plan") {
         // See what the next invoice would look like with a price switch
         // and proration set:
@@ -319,7 +297,7 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
             quantity: currentQuantity,
           },
         ];
-        console.log("🌟Stripe将来のインボイス取得ステップ4 プラン変更ルート retrieveUpcoming()を実行 ");
+        console.log("🌟Stripe将来のインボイス取得ステップ4 プランアップグレードルート retrieveUpcoming()を実行 ");
         console.log("💡subscription_itemsに渡すitems", items);
         console.log("💡prorationTimestamp", prorationTimestamp);
         const invoice = await stripe.invoices.retrieveUpcoming({
@@ -331,40 +309,40 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
 
         if (!invoice) {
           console.log(
-            "❌Stripe将来のインボイス取得ステップ5実行エラー プラン変更ルート invoices.retrieveUpcoming()でインボイス取得できず",
+            "❌Stripe将来のインボイス取得ステップ5実行エラー プランアップグレードルート invoices.retrieveUpcoming()でインボイス取得できず",
             invoice
           );
           const response = {
             data: null,
             error:
-              "❌Stripe将来のインボイス取得ステップ5実行エラー プラン変更ルート invoices.retrieveUpcoming()でインボイス取得できず",
+              "❌Stripe将来のインボイス取得ステップ5実行エラー プランアップグレードルート invoices.retrieveUpcoming()でインボイス取得できず",
           };
           return res.status(400).json(response);
         }
         console.log(
-          "🌟Stripe将来のインボイス取得ステップ5 数量変更ルート retrieveUpcoming()実行成功 invoices.retrieveUpcoming()で取得したインボイス",
+          "🔥Stripe将来のインボイス取得ステップ5 プランアップグレードルート retrieveUpcoming()実行成功 invoices.retrieveUpcoming()で取得したインボイス",
           invoice
         );
+        invoice.lines.data.forEach((item, i) => console.log(`💡retrieveUpcoming()結果 invoice.lines.data[${i}]`, item));
         console.log(
           "💡取得した次回のinvoice.period_start",
-          invoice.period_start,
           format(new Date(invoice.period_start * 1000), "yyyy/MM/dd HH:mm:ss")
         );
         console.log(
           "💡取得した次回のinvoice.period_end",
-          invoice.period_end,
           format(new Date(invoice.period_end * 1000), "yyyy/MM/dd HH:mm:ss")
         );
         console.log(
           "💡比例配分の日付 subscription_proration_date",
-          prorationTimestamp,
           format(new Date(prorationTimestamp * 1000), "yyyy/MM/dd HH:mm:ss")
         );
-        console.log("✅Stripe将来のインボイス取得ステップ6 プラン変更ルート 次回のインボイス取得完了 200で返す");
+        console.log(
+          "✅Stripe将来のインボイス取得ステップ6 プランアップグレードルート 次回のインボイス取得完了 200で返す"
+        );
 
         res.status(200).json({ data: invoice, error: null });
       }
-      // 🔹ダウングレードルート
+      // 🔹プランダウングレードルート
       else if (changePlanName === "business_plan") {
         // See what the next invoice would look like with a price switch
         // and proration set:
@@ -375,7 +353,7 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
             quantity: currentQuantity,
           },
         ];
-        console.log("🌟Stripe将来のインボイス取得ステップ4 プラン変更ルート retrieveUpcoming()を実行 ");
+        console.log("🌟Stripe将来のインボイス取得ステップ4 プランダウングレードルート retrieveUpcoming()を実行 ");
         console.log("💡subscription_itemsに渡すitems", items);
         console.log("💡prorationTimestamp", prorationTimestamp);
         const invoice = await stripe.invoices.retrieveUpcoming({
@@ -388,36 +366,40 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
 
         if (!invoice) {
           console.log(
-            "❌Stripe将来のインボイス取得ステップ5実行エラー プラン変更ルート invoices.retrieveUpcoming()でインボイス取得できず",
+            "❌Stripe将来のインボイス取得ステップ5実行エラー プランダウングレードルート invoices.retrieveUpcoming()でインボイス取得できず",
             invoice
           );
           const response = {
             data: null,
             error:
-              "❌Stripe将来のインボイス取得ステップ5実行エラー プラン変更ルート invoices.retrieveUpcoming()でインボイス取得できず",
+              "❌Stripe将来のインボイス取得ステップ5実行エラー プランダウングレードルート invoices.retrieveUpcoming()でインボイス取得できず",
           };
           return res.status(400).json(response);
         }
         console.log(
-          "🌟Stripe将来のインボイス取得ステップ5 数量変更ルート retrieveUpcoming()実行成功 invoices.retrieveUpcoming()で取得したインボイス",
+          "🔥Stripe将来のインボイス取得ステップ5 プランダウングレードルート retrieveUpcoming()実行成功 invoices.retrieveUpcoming()で取得したインボイス",
           invoice
         );
+        invoice.lines.data.forEach((item, i) => console.log(`💡retrieveUpcoming()結果 invoice.lines.data[${i}]`, item));
         console.log(
-          "💡取得した次回のinvoice period_start",
-          invoice.period_start,
+          "💡retrieveUpcoming()結果 新プランinvoice.lines.data[invoice.lines.data.length - 1]",
+          invoice.lines.data[invoice.lines.data.length - 1]
+        );
+        console.log(
+          "💡retrieveUpcoming()結果 invoice.period_start",
           format(new Date(invoice.period_start * 1000), "yyyy/MM/dd HH:mm:ss")
         );
         console.log(
-          "💡取得した次回のinvoice period_end",
-          invoice.period_end,
+          "💡retrieveUpcoming()結果 invoice.period_end",
           format(new Date(invoice.period_end * 1000), "yyyy/MM/dd HH:mm:ss")
         );
         console.log(
           "💡比例配分の日付 subscription_proration_date",
-          prorationTimestamp,
           format(new Date(prorationTimestamp * 1000), "yyyy/MM/dd HH:mm:ss")
         );
-        console.log("✅Stripe将来のインボイス取得ステップ6 プラン変更ルート 次回のインボイス取得完了 200で返す");
+        console.log(
+          "✅Stripe将来のインボイス取得ステップ6 プランダウングレードルート 次回のインボイス取得完了 200で返す"
+        );
 
         res.status(200).json({ data: invoice, error: null });
       }

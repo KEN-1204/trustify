@@ -437,7 +437,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
           <SpinnerIDS scale={"scale-[0.5]"} />
         </div>
       )}
-      <div role="row" className={`${styles.grid_row}`}>
+      <div role="row" className={`${styles.grid_row} ${styles.grid_row_member}`}>
         <div role="gridcell" className={`${styles.grid_cell} flex items-center`}>
           {/* アバターアイコン画像 */}
           {!avatarUrl && memberAccount.id && memberAccount.profile_name && (

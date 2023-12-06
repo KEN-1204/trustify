@@ -91,16 +91,6 @@ const changeTeamOwnerHandler = async (req: NextApiRequest, res: NextApiResponse)
 
     // サブスクリプションID
     const stripeSubscriptionId = subscriptions.data[0].id;
-    // 現在のプランの開始日
-    const currentPeriodStart = subscriptions.data[0].current_period_start;
-    // 次の請求日を取得
-    const nextInvoiceTimestamp = subscriptions.data[0].current_period_end;
-    // ユーザーが現在契約しているサブスクリップションアイテムのidを取得
-    const subscriptionItemId = subscriptions.data[0].items.data[0].id;
-    // ユーザーが現在契約しているサブスクリップションのプランの価格を取得
-    const subscriptionCurrentPriceUnitAmount = subscriptions.data[0].items.data[0].price.unit_amount;
-    // ユーザーが現在契約しているサブスクリップションの数量
-    const subscriptionCurrentQuantity = subscriptions.data[0].items.data[0].quantity;
     // サブスクリプションに紐づくスケジュール 存在していない場合はcreate()で新たに作成する
     const scheduleId = subscriptions.data[0].schedule;
 
