@@ -550,56 +550,76 @@ const SettingPaymentAndPlanMemo: FC = () => {
         // StripeのInvoiceをローカルStateに格納
         setNextInvoiceForChangePlan(upcomingInvoiceData);
 
-        // 🔹本日の支払いルート 比例配分日が終了日と一緒 listオブジェクトのdata配列にはsubscriptionタイプのline_itemオブジェクトのみ(新プランのアイテムのみ)
-        if (isLastDay && (upcomingInvoiceData as Stripe.UpcomingInvoice).lines.data.length === 1) {
-          // const subscriptionLineItem = (upcomingInvoiceData as Stripe.UpcomingInvoice).lines.data.filter(
-          //   (item) => item.type === "subscription"
-          // )[0]; // [0]のインデックスで配列ではなくオブジェクトで取得
-          console.log(
-            "🌟本日支払いルート ✅日割り計算必要なし upcomingInvoiceDataをローカルStateに格納してリターン✅",
-            "支払額 stripeのnextInvoice subscriptionLineItem.amount(本日の支払いのため新プランの価格のまま追加費用なし)"
-          );
-          return {
-            checkResult: true,
-            prorationDateTimeStamp: (upcomingInvoiceData as Stripe.UpcomingInvoice).subscription_proration_date,
-          };
-        }
-
-        // ローカルStateで料金を計算 ----------------------------------------------------
         // 来月のアカウント数は数量ダウンスケジュールがあるかどうかで現在の数量かスケジュールの数量を使い分ける
         const nextMonthAccountQuantity =
           deleteAccountRequestSchedule !== null && !!deleteAccountRequestSchedule?.scheduled_quantity
             ? deleteAccountRequestSchedule.scheduled_quantity
             : userProfileState.accounts_to_create;
-        let nextInvoiceAmountLocal;
-        // const currentMonthlyPlanFee = isUpgradePlan
-        //   ? businessPlanFeePerAccountRef.current
-        //   : premiumPlanFeePerAccountRef.current;
-        let nextMonthlyPlanFee;
-        let additionalCostAmountLocal;
-        if (isUpgradePlan) {
-          // 🔹アップグレードルート
-          if (!newPlanRemainingAmountPerAccountWithThreeDecimalPointsRef.current)
-            throw new Error("エラー：新プランの残り期間の日割り料金データが見つかりませんでした。");
-          if (!oldPlanUnusedAmountPerAccountWithThreeDecimalPointsRef.current)
-            throw new Error("エラー：旧プランの残り期間の日割り料金データが見つかりませんでした。");
-          // 追加費用を含めた次回請求総額 💡今月使用分には来月適用の数量ダウンスケジュールは関係なし
-          additionalCostAmountLocal =
-            (upcomingInvoiceData - oldPlanUnusedAmountPerAccountWithThreeDecimalPointsRef.current) *
-            userProfileState.accounts_to_create;
-          // 来月の支払いに使用されるプラン価格 💡プランアップグレードで数量ダウンスケジュールがある場合には翌月のプラン価格の数量は数量がダウンしているので、新たな数量を渡し、スケジュールがなければ現在契約中のアカウント数を渡す
-          nextMonthlyPlanFee = premiumPlanFeePerAccountRef.current * nextMonthAccountQuantity;
 
-          nextInvoiceAmountLocal = nextMonthlyPlanFee + additionalCostAmountLocal;
-        } else {
-          // 🔹ダウングレードルート 💡ダウングレードは来月適用のため数量ダウンスケジュールの数量を使用
-          nextMonthlyPlanFee = businessPlanFeePerAccountRef.current * nextMonthAccountQuantity;
-          nextInvoiceAmountLocal = nextMonthlyPlanFee;
+        // 🔹本日の支払いルート 比例配分日が終了日と一緒 listオブジェクトのdata配列にはsubscriptionタイプのline_itemオブジェクトのみ(新プランのアイテムのみ)
+        if (isLastDay && (upcomingInvoiceData as Stripe.UpcomingInvoice).lines.data.length === 1) {
+          // const subscriptionLineItem = (upcomingInvoiceData as Stripe.UpcomingInvoice).lines.data.filter(
+          //   (item) => item.type === "subscription"
+          // )[0]; // [0]のインデックスで配列ではなくオブジェクトで取得
+          const nextPlanMonthlyFee = isUpgradePlan
+            ? businessPlanFeePerAccountRef.current
+            : premiumPlanFeePerAccountRef.current;
+          const nextInvoiceAmountForDowngrade = nextPlanMonthlyFee * nextMonthAccountQuantity;
+          console.log(
+            "🌟本日支払いルート 日割り計算必要はなしstripeのamount_dueと来月の数量を動的に変更した総額をチェック",
+            "来月の支払額stripe (upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due",
+            (upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due,
+            "来月の支払額ローカル nextInvoiceAmountForDowngrade",
+            nextInvoiceAmountForDowngrade,
+            "来月のプラン nextPlanMonthlyFee",
+            nextPlanMonthlyFee,
+            "来月の数量 nextMonthAccountQuantity",
+            nextMonthAccountQuantity
+          );
+          if ((upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due === nextInvoiceAmountForDowngrade) {
+            console.log("本日支払いルート ✅料金チェック合格 ");
+            return {
+              checkResult: true,
+              prorationDateTimeStamp: (upcomingInvoiceData as Stripe.UpcomingInvoice).subscription_proration_date,
+            };
+          } else {
+            console.log("本日支払いルート ✅料金チェック不合格 ");
+            return {
+              checkResult: false,
+              prorationDateTimeStamp: null,
+            };
+          }
         }
-        // ローカルStateで料金を計算 ここまで ----------------------------------------------------
 
+        if (!isUpgradePlan) {
+          const nextInvoiceAmountForDowngrade = businessPlanFeePerAccountRef.current * nextMonthAccountQuantity;
+          console.log(
+            "🌟ダウングレードルート 日割り計算必要はなしstripeのamount_dueと来月の数量を動的に変更した総額をチェック",
+            "来月の支払額stripe (upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due",
+            (upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due,
+            "来月の支払額ローカル nextInvoiceAmountForDowngrade",
+            nextInvoiceAmountForDowngrade,
+            "来月のプラン ビジネスプラン",
+            businessPlanFeePerAccountRef.current,
+            "来月の数量 nextMonthAccountQuantity",
+            nextMonthAccountQuantity
+          );
+          if ((upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due === nextInvoiceAmountForDowngrade) {
+            console.log("🌟ダウングレードルート ✅料金チェック合格 ");
+            return {
+              checkResult: true,
+              prorationDateTimeStamp: (upcomingInvoiceData as Stripe.UpcomingInvoice).subscription_proration_date,
+            };
+          } else {
+            console.log("🌟ダウングレードルート ✅料金チェック不合格 ");
+            return {
+              checkResult: false,
+              prorationDateTimeStamp: null,
+            };
+          }
+        }
         // StripeのInvoiceの追加費用を計算 ----------------------------------------------------
-
+        // ローカルStateで料金を計算 ----------------------------------------------------
         if (!currentPeriodRef.current) throw new Error(`エラー：請求期間データを取得できませんでした`);
         if (remainingDaysRef.current === null) throw new Error(`エラー：残り期間データを取得できませんでした`);
 
@@ -611,6 +631,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
           "InvoiceLineItem[]から未使用、残り使用のみのinvoiceitemタイプのみを取得 invoiceItemList",
           invoiceItemList
         );
+
         // invoiceItemListが偶数の要素かチェック(偶数なら正確に未使用分と残り使用分を分けられているかチェック)
         // invoiceItemListが偶数の要素かチェック => 奇数のためこのままリターンしてモーダルを閉じる
         if (invoiceItemList.length % 2 === 1) throw new Error(`invoiceItemList配列の要素数が偶数ではないためエラー`);
@@ -639,53 +660,81 @@ const SettingPaymentAndPlanMemo: FC = () => {
           // 5. 追加費用の総額
           // 6. 次回支払い総額
 
+          const unusedInvoiceItem = invoiceItemList.filter((item) => item.description?.startsWith("Unused"))[0];
+          const remainingInvoiceItem = invoiceItemList.filter((item) => item.description?.startsWith("Remaining"))[0];
           // 新プランの残り使用分の1日当たりの料金
-          const tempNewDailyRate = premiumPlanFeePerAccountRef.current / currentPeriodDays;
-          const tempNewDailyRateWithThreeDecimalPoints = Math.round(tempNewDailyRate * 1000) / 1000;
-          stripeInvoiceFeeRef.current.newDailyRateWithThreeDecimalPoints = tempNewDailyRateWithThreeDecimalPoints;
+          // const tempNewDailyRate = premiumPlanFeePerAccountRef.current / currentPeriodDays;
+          // const tempNewDailyRateWithThreeDecimalPoints = Math.round(tempNewDailyRate * 1000) / 1000;
+          // stripeInvoiceFeeRef.current.newDailyRateWithThreeDecimalPoints = tempNewDailyRateWithThreeDecimalPoints;
           // 新プランの残り使用分の料金
-          const tempNewUsageAmount = tempNewDailyRateWithThreeDecimalPoints * remainingDays;
-          const tempNewUsageAmountWithThreeDecimalPoints = Math.round(tempNewUsageAmount * 1000) / 1000;
-          stripeInvoiceFeeRef.current.newUsageAmountWithThreeDecimalPoints = tempNewUsageAmountWithThreeDecimalPoints;
+          // const tempNewUsageAmount = tempNewDailyRateWithThreeDecimalPoints * remainingDays;
+          // const tempNewUsageAmountWithThreeDecimalPoints = Math.round(tempNewUsageAmount * 1000) / 1000;
+          // stripeInvoiceFeeRef.current.newUsageAmountWithThreeDecimalPoints = tempNewUsageAmountWithThreeDecimalPoints;
+          stripeInvoiceFeeRef.current.newUsageAmountWithThreeDecimalPoints = unusedInvoiceItem.amount;
           // 旧数量未使用分の1日あたりの料金
-          const tempOldDailyRate = businessPlanFeePerAccountRef.current / currentPeriodDays;
-          const tempOldDailyRateWithThreeDecimalPoints = Math.round(tempOldDailyRate * 1000) / 1000;
-          stripeInvoiceFeeRef.current.oldDailyRateWithThreeDecimalPoints = tempOldDailyRateWithThreeDecimalPoints;
+          // const tempOldDailyRate = businessPlanFeePerAccountRef.current / currentPeriodDays;
+          // const tempOldDailyRateWithThreeDecimalPoints = Math.round(tempOldDailyRate * 1000) / 1000;
+          // stripeInvoiceFeeRef.current.oldDailyRateWithThreeDecimalPoints = tempOldDailyRateWithThreeDecimalPoints;
           // 旧プランの残り未使用分の料金
-          const tempOldUnusedAmount = tempOldDailyRateWithThreeDecimalPoints * remainingDays;
-          const tempOldUnusedAmountWithThreeDecimalPoints = Math.round(tempOldUnusedAmount * 1000) / 1000;
-          stripeInvoiceFeeRef.current.oldUnusedAmountWithThreeDecimalPoints = tempOldUnusedAmountWithThreeDecimalPoints;
+          // const tempOldUnusedAmount = tempOldDailyRateWithThreeDecimalPoints * remainingDays;
+          // const tempOldUnusedAmountWithThreeDecimalPoints = Math.round(tempOldUnusedAmount * 1000) / 1000;
+          // stripeInvoiceFeeRef.current.oldUnusedAmountWithThreeDecimalPoints = tempOldUnusedAmountWithThreeDecimalPoints;
+          stripeInvoiceFeeRef.current.oldUnusedAmountWithThreeDecimalPoints = remainingInvoiceItem.amount;
           // 追加費用
-          const tempAdditionalCost =
-            Math.round(tempNewUsageAmountWithThreeDecimalPoints) -
-            Math.round(tempOldUnusedAmountWithThreeDecimalPoints);
-          stripeInvoiceFeeRef.current.additionalCost = tempAdditionalCost;
+          // const tempAdditionalCost =
+          //   Math.round(tempNewUsageAmountWithThreeDecimalPoints) -
+          //   Math.round(tempOldUnusedAmountWithThreeDecimalPoints);
+          // stripeInvoiceFeeRef.current.additionalCost = tempAdditionalCost;
+          const stripeAdditionalCost = remainingInvoiceItem.amount - Math.abs(unusedInvoiceItem.amount);
+          stripeInvoiceFeeRef.current.additionalCost = stripeAdditionalCost;
           // 次回の支払額
           // 🌟ダウングレードスケジュールが存在するなら次回請求日の初回支払いでは、プラン料金はビジネスプランの価格になるため、newMonthlyFeeを置き換える(残り使用分と未使用分は今月のプランに適用されるため置き換えは無しでOK)
-          const tempNextInvoiceAmount = !!deleteAccountRequestSchedule
-            ? premiumPlanFeePerAccountRef.current * nextMonthAccountQuantity + tempAdditionalCost
+          const totalPaymentDue = !!deleteAccountRequestSchedule
+            ? premiumPlanFeePerAccountRef.current * nextMonthAccountQuantity + stripeAdditionalCost
             : (upcomingInvoiceData as Stripe.UpcomingInvoice)?.lines?.data[
                 (upcomingInvoiceData as Stripe.UpcomingInvoice)?.lines?.data.length - 1
-              ]?.amount + tempAdditionalCost;
+              ]?.amount + stripeAdditionalCost;
           stripeInvoiceFeeRef.current.nextInvoiceAmount = (upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due;
           // setStripeNextInvoiceAmountState((upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due);
 
+          // ローカルStateで料金を計算 ----------------------------------------------------
+          if (!newPlanRemainingAmountPerAccountWithThreeDecimalPointsRef.current)
+            throw new Error("エラー：新プランの残り期間の日割り料金データが見つかりませんでした。");
+          if (!oldPlanUnusedAmountPerAccountWithThreeDecimalPointsRef.current)
+            throw new Error("エラー：旧プランの残り期間の日割り料金データが見つかりませんでした。");
+          // 1アカウントあたりで計算
+          const sumExtraChargePerAccountLocal =
+            newPlanRemainingAmountPerAccountWithThreeDecimalPointsRef.current -
+            Math.abs(oldPlanUnusedAmountPerAccountWithThreeDecimalPointsRef.current);
+          const totalPaymentDueLocal =
+            premiumPlanFeePerAccountRef.current * nextMonthAccountQuantity +
+            Math.round(sumExtraChargePerAccountLocal * userProfileState.accounts_to_create);
+          const stripeAdditionalCostPerAccount = stripeAdditionalCost / userProfileState.accounts_to_create;
+          // ローカルStateで料金を計算 ここまで ----------------------------------------------------
+
           if (
             !!(upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due &&
-            (upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due === nextInvoiceAmountLocal
+            (upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due === Math.round(totalPaymentDueLocal) &&
+            stripeAdditionalCostPerAccount === Math.round(sumExtraChargePerAccountLocal)
           ) {
             console.log(
               "🌟料金チェック3 ✅チェック関数 次回請求額がローカルと一致 テスト成功✅",
               "次回支払い総額(upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due",
               (upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due,
-              "次回支払い総額stripe tempNextInvoiceAmount",
-              tempNextInvoiceAmount,
-              "次回支払い総額ローカルnextInvoiceAmountLocal",
-              nextInvoiceAmountLocal,
-              "追加費用stripe",
-              tempAdditionalCost,
-              "追加費用ローカル",
-              additionalCostAmountLocal
+              "次回支払い総額stripe totalPaymentDue",
+              totalPaymentDue,
+              "次回支払い総額ローカル totalPaymentDueLocal",
+              totalPaymentDueLocal,
+              "今までの追加費用の総額stripe(1アカウントあたり)stripeAdditionalCostPerAccount",
+              stripeAdditionalCostPerAccount,
+              "今までの追加費用の総額ローカル(1アカウントあたり)sumExtraChargePerAccountLocal",
+              sumExtraChargePerAccountLocal,
+              "今までの追加費用の総額stripe stripeAdditionalCost",
+              stripeAdditionalCost,
+              "未使用分の料金 unusedInvoiceItem.amount",
+              unusedInvoiceItem.amount,
+              "残り使用分の料金 remainingInvoiceItem.amount",
+              remainingInvoiceItem.amount
             );
             return {
               checkResult: true,
@@ -696,14 +745,20 @@ const SettingPaymentAndPlanMemo: FC = () => {
               "🌟料金チェック3 ❌チェック関数 次回請求額がローカルと一致せず テスト失敗❌",
               "次回支払い総額(upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due",
               (upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due,
-              "次回支払い総額stripe",
-              tempNextInvoiceAmount,
-              "次回支払い総額ローカル",
-              nextInvoiceAmountLocal,
-              "追加費用stripe",
-              tempAdditionalCost,
-              "追加費用ローカル",
-              additionalCostAmountLocal
+              "次回支払い総額stripe totalPaymentDue",
+              totalPaymentDue,
+              "次回支払い総額ローカル totalPaymentDueLocal",
+              totalPaymentDueLocal,
+              "今までの追加費用の総額stripe(1アカウントあたり)stripeAdditionalCostPerAccount",
+              stripeAdditionalCostPerAccount,
+              "今までの追加費用の総額ローカル(1アカウントあたり)sumExtraChargePerAccountLocal",
+              sumExtraChargePerAccountLocal,
+              "今までの追加費用の総額stripe stripeAdditionalCost",
+              stripeAdditionalCost,
+              "未使用分の料金 unusedInvoiceItem.amount",
+              unusedInvoiceItem.amount,
+              "残り使用分の料金 remainingInvoiceItem.amount",
+              remainingInvoiceItem.amount
             );
             return { checkResult: false, prorationDateTimeStamp: null };
           }
@@ -720,17 +775,17 @@ const SettingPaymentAndPlanMemo: FC = () => {
           // const middleIndex = invoiceItemList.length / 2; // 真ん中のインデックスを把握
           // const firstHalfInvoiceItemList = invoiceItemList.slice(0, middleIndex);
           // const secondHalfInvoiceItemList = invoiceItemList.slice(middleIndex);
-          const firstHalfInvoiceItemList = invoiceItemList
+          const unusedInvoiceItemList = invoiceItemList
             .filter((item) => item.description?.startsWith("Unused"))
             .sort((a, b) => (a.quantity ?? 0) - (b.quantity ?? 0));
-          const secondHalfInvoiceItemList = invoiceItemList
+          const remainingHalfInvoiceItemList = invoiceItemList
             .filter((item) => item.description?.startsWith("Remaining"))
             .sort((a, b) => (a.quantity ?? 0) - (b.quantity ?? 0));
           // ======================= 配列分割テスト =======================
           // 未使用部分を未使用分ローカルStateに格納する
-          stripeInvoiceFeeRef.current.unusedInvoiceItemArray = firstHalfInvoiceItemList;
+          stripeInvoiceFeeRef.current.unusedInvoiceItemArray = unusedInvoiceItemList;
           // 残り使用分をローカルStateに格納する
-          stripeInvoiceFeeRef.current.remainingUsageInvoiceItemArray = secondHalfInvoiceItemList;
+          stripeInvoiceFeeRef.current.remainingUsageInvoiceItemArray = remainingHalfInvoiceItemList;
 
           // 算出しておける項目 アップグレード２回目(変更アイテムも２セット以上)
           // 3. 旧プランの未使用分日割り料金の総額
@@ -739,17 +794,42 @@ const SettingPaymentAndPlanMemo: FC = () => {
           // 6. 次回支払い総額
 
           // 3. 旧プランの未使用分日割り料金の総額
-          const sumOldUnused = firstHalfInvoiceItemList.reduce(
+          const sumOldUnused = unusedInvoiceItemList.reduce(
             (accumulator, currentValue) => accumulator + currentValue.amount,
             0
           );
           stripeInvoiceFeeRef.current.oldUnusedAmountWithThreeDecimalPoints = sumOldUnused;
+          // 💡【旧プランの未使用分の配列から、今回のプランアップグレード用のインボイスアイテムを取り出す】
+          // 1. 直近で数量ダウンスケジュール(アカウント削除リクエスト)を作成していても、まだサブスクリプションの更新がされずstripeの「次回のインボイス」には記録されないため、retrieveUpcoming()でstripeから取得したinvoiceのinvoiceItemには数量ダウンは含まれない
+          // 2. つまり、数量アップのみフォーカスすれば良い。数量アップした場合必ず毎回Unused、Remainingの両方がquantityが増えるため、最新のインボイスアイテムが一番quantityが大きい。そして、プランアップグレードを行う場合、仮に直近で5個から6個に数量を増やしていた場合、今回のプランアップグレードではquantityは6個から６個とquantityは変化せず、取得されるinvoiceのinvoiceItemのUnusedには一つ前の数量アップのUnusedの5個で、今回のプランアップグレード分は6個になるため、quantityでソートして一番大きな数のアイテムを取得すればプランアップグレード分のインボイスアイテムが取得できる
+          // reduceは第二引数の初期値を省略した場合に元の配列が空の場合、TypeErrorを投げコードが止まるのでtry/catchを使用する 初期値を省略しなければエラーは起こらない
+          let maxQuantityInvoice: Stripe.InvoiceLineItem | null;
+          try {
+            maxQuantityInvoice = unusedInvoiceItemList.reduce((max, current) => {
+              if (max.quantity === null || current.quantity === null) throw new Error("❌quantityがnull");
+              return max.quantity > current.quantity ? max : current;
+            });
+          } catch (e: any) {
+            throw new Error(`エラー：旧プランの残り期間の日割り料金データが見つかりませんでした。${e}`);
+          }
+          if (maxQuantityInvoice === null)
+            throw new Error(`エラー：プランアップグレードの未使用分のインボイスアイテムが見つかりませんでした。`);
+          const unusedInvoiceItemUpgradePlan = maxQuantityInvoice;
+
           // 4. 新プランの残り使用分日割り料金の総額
-          const sumNewUsage = secondHalfInvoiceItemList.reduce(
+          const sumNewUsage = remainingHalfInvoiceItemList.reduce(
             (accumulator, currentValue) => accumulator + currentValue.amount,
             0
           );
           stripeInvoiceFeeRef.current.newUsageAmountWithThreeDecimalPoints = sumNewUsage;
+          // 💡【新プランの残り使用分の配列から、今回のプランアップグレード用のインボイスアイテムを取り出す】
+          // 1. プランアップグレードなので、Remainingの中で唯一プランアップグレードのinvoiceItemのみplan.amountがプレミアムプランの19800の価格になるため、これで抽出すれば良い
+          const remainingInvoiceItemUpgradePlan = remainingHalfInvoiceItemList.find(
+            (item) => item.plan?.amount === premiumPlanFeePerAccountRef.current
+          );
+          if (!remainingInvoiceItemUpgradePlan)
+            throw new Error(`エラー：プランアップグレードの残り使用分のインボイスアイテムが見つかりませんでした。`);
+
           // setStripeNewUsageAmountForRemainingPeriodWithThreeDecimalPoints(sumNewUsage);
           // 5. 追加費用の総額 追加費用 = 残り使用分 + (-未使用分)
           const sumExtraCharge = sumNewUsage + sumOldUnused;
@@ -765,29 +845,90 @@ const SettingPaymentAndPlanMemo: FC = () => {
           stripeInvoiceFeeRef.current.nextInvoiceAmount = (upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due;
           // setStripeNextInvoiceAmountState((upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due);
 
+          // ローカルStateで料金を計算 ----------------------------------------------------
+          // StripeInvoiceを使った１アカウントあたりの計算
+          const sumOldUnusedPerAccount = sumOldUnused / userProfileState.accounts_to_create;
+          const sumNewUsagePerAccount = sumNewUsage / userProfileState.accounts_to_create;
+          const sumExtraChargePerAccount = sumNewUsagePerAccount - Math.abs(sumOldUnusedPerAccount);
+
+          // 💡インボイスアイテムからプランアップグレード分の日割り料金のみを取り出して、
+          // 1アカウントごとの料金と、追加費用、追加費用の合計を算出し一致しているか確認
+          const sumExtraChargeUpgradePlan =
+            remainingInvoiceItemUpgradePlan.amount - Math.abs(unusedInvoiceItemUpgradePlan.amount);
+          const totalPaymentDueUpgradePlan =
+            premiumPlanFeePerAccountRef.current * nextMonthAccountQuantity + sumExtraChargeUpgradePlan;
+          const unusedAmountUpgradePlanPerAccount =
+            Math.round((unusedInvoiceItemUpgradePlan.amount / userProfileState.accounts_to_create) * 1000) / 1000;
+          const remainingAmountUpgradePlanPerAccount =
+            Math.round((remainingInvoiceItemUpgradePlan.amount / userProfileState.accounts_to_create) * 1000) / 1000;
+          const sumExtraChargeUpgradePlanPerAccount =
+            Math.round(remainingAmountUpgradePlanPerAccount) - Math.abs(Math.round(unusedAmountUpgradePlanPerAccount));
+
+          // 🔹アップグレードルート
+          if (!newPlanRemainingAmountPerAccountWithThreeDecimalPointsRef.current)
+            throw new Error("エラー：新プランの残り期間の日割り料金データが見つかりませんでした。");
+          if (!oldPlanUnusedAmountPerAccountWithThreeDecimalPointsRef.current)
+            throw new Error("エラー：旧プランの残り期間の日割り料金データが見つかりませんでした。");
+          // アカウント1つあたりの料金を算出してローカルの算出結果と比較する
+          // ローカルでの計算
+          const sumExtraChargePerAccountLocal =
+            newPlanRemainingAmountPerAccountWithThreeDecimalPointsRef.current -
+            Math.abs(oldPlanUnusedAmountPerAccountWithThreeDecimalPointsRef.current);
+          const totalPaymentDueLocal =
+            premiumPlanFeePerAccountRef.current * nextMonthAccountQuantity +
+            Math.round(sumExtraChargePerAccountLocal * userProfileState.accounts_to_create);
+          const totalPaymentDueUpgradePlanLocal =
+            premiumPlanFeePerAccountRef.current * nextMonthAccountQuantity + Math.round(sumExtraChargePerAccountLocal);
+
+          // ダウングレードには日割り計算はないため、今回ローカルで計算して表示しているのは１アカウントあたりの日割り計算した追加費用なので、追加費用が合っていればOK
+          // ローカルStateで料金を計算 ここまで ----------------------------------------------------
+
+          // if (
+          //   !!(upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due &&
+          //   (upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due === Math.round(totalPaymentDueLocal) &&
+          //   Math.round(sumExtraChargePerAccount) === Math.round(sumExtraChargePerAccountLocal)
+          // ) {
           if (
-            !!(upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due &&
-            (upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due === nextInvoiceAmountLocal
+            sumExtraChargeUpgradePlan === Math.round(sumExtraChargePerAccountLocal) &&
+            Math.round(unusedAmountUpgradePlanPerAccount) ===
+              Math.round(oldPlanUnusedAmountPerAccountWithThreeDecimalPointsRef.current) &&
+            Math.round(remainingAmountUpgradePlanPerAccount) ===
+              Math.round(newPlanRemainingAmountPerAccountWithThreeDecimalPointsRef.current) &&
+            Math.round(totalPaymentDueUpgradePlan) === Math.round(totalPaymentDueUpgradePlanLocal)
           ) {
             console.log(
               "✅料金チェック3 未使用、残り使用2セット以上のinvoiceitemルート(つまり数量変更２回目以上) ✅チェック関数 次回請求額がローカルと一致 テスト成功✅",
+              "stripe次回支払い総額(追加費用はプランアップグレード分のみ) totalPaymentDueUpgradePlan",
+              totalPaymentDueUpgradePlan,
+              "ローカル次回支払い総額(追加費用はプランアップグレード分のみ) totalPaymentDueUpgradePlanLocal",
+              totalPaymentDueUpgradePlanLocal,
+              "stripe追加費用総額 sumExtraChargeUpgradePlan",
+              sumExtraChargeUpgradePlan,
+              "ローカル追加費用総額 sumExtraChargeUpgradePlan",
+              sumExtraChargeUpgradePlan,
+              "stripe残り使用分料金(1アカウント当たり) remainingAmountUpgradePlanPerAccount",
+              remainingAmountUpgradePlanPerAccount,
+              "ローカル残り使用分料金(1アカウント当たり) newPlanRemainingAmountPerAccountWithThreeDecimalPointsRef.current",
+              newPlanRemainingAmountPerAccountWithThreeDecimalPointsRef.current,
+              "stripe未使用分料金(1アカウント当たり) unusedAmountUpgradePlanPerAccount",
+              unusedAmountUpgradePlanPerAccount,
+              "ローカル未使用分料金(1アカウント当たり) oldPlanUnusedAmountPerAccountWithThreeDecimalPointsRef.current",
+              oldPlanUnusedAmountPerAccountWithThreeDecimalPointsRef.current,
               "次回支払い総額(upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due",
               (upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due,
               "次回支払い総額stripe totalPaymentDue",
               totalPaymentDue,
-              "次回支払い総額ローカルnextInvoiceAmountLocal",
-              nextInvoiceAmountLocal,
-              "今までの追加費用の総額stripe",
+              "次回支払い総額ローカル totalPaymentDueLocal",
+              totalPaymentDueLocal,
+              "今までの追加費用の総額stripe(1アカウントあたり)sumExtraChargePerAccount",
+              sumExtraChargePerAccount,
+              "今までの追加費用の総額ローカル(1アカウントあたり)sumExtraChargePerAccount",
+              sumExtraChargePerAccountLocal,
+              "今までの追加費用の総額stripe sumExtraCharge",
               sumExtraCharge,
-              "今までの追加費用の総額ローカルadditionalCostAmountLocal",
-              additionalCostAmountLocal,
-              "未使用分の配列",
-              firstHalfInvoiceItemList,
-              "残り使用分の配列",
-              secondHalfInvoiceItemList,
-              "未使用分の総額",
+              "未使用分の総額 sumOldUnused",
               sumOldUnused,
-              "残り使用分の総額",
+              "残り使用分の総額 sumNewUsage",
               sumNewUsage
             );
             return {
@@ -797,23 +938,37 @@ const SettingPaymentAndPlanMemo: FC = () => {
           } else {
             console.log(
               "❌料金チェック3 未使用、残り使用2セット以上のinvoiceitemルート(つまり数量変更２回目以上) ❌チェック関数 次回請求額がローカルと一致せず テスト失敗❌",
+              "stripe次回支払い総額(追加費用はプランアップグレード分のみ) totalPaymentDueUpgradePlan",
+              totalPaymentDueUpgradePlan,
+              "ローカル次回支払い総額(追加費用はプランアップグレード分のみ) totalPaymentDueUpgradePlanLocal",
+              totalPaymentDueUpgradePlanLocal,
+              "stripe追加費用総額 sumExtraChargeUpgradePlan",
+              sumExtraChargeUpgradePlan,
+              "ローカル追加費用総額 sumExtraChargeUpgradePlan",
+              sumExtraChargeUpgradePlan,
+              "stripe残り使用分料金(1アカウント当たり) remainingAmountUpgradePlanPerAccount",
+              remainingAmountUpgradePlanPerAccount,
+              "ローカル残り使用分料金(1アカウント当たり) newPlanRemainingAmountPerAccountWithThreeDecimalPointsRef.current",
+              newPlanRemainingAmountPerAccountWithThreeDecimalPointsRef.current,
+              "stripe未使用分料金(1アカウント当たり) unusedAmountUpgradePlanPerAccount",
+              unusedAmountUpgradePlanPerAccount,
+              "ローカル未使用分料金(1アカウント当たり) oldPlanUnusedAmountPerAccountWithThreeDecimalPointsRef.current",
+              oldPlanUnusedAmountPerAccountWithThreeDecimalPointsRef.current,
               "次回支払い総額(upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due",
               (upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due,
               "次回支払い総額stripe totalPaymentDue",
               totalPaymentDue,
-              "次回支払い総額ローカルnextInvoiceAmountLocal",
-              nextInvoiceAmountLocal,
-              "今までの追加費用の総額stripe",
+              "次回支払い総額ローカル totalPaymentDueLocal",
+              totalPaymentDueLocal,
+              "今までの追加費用の総額stripe(1アカウントあたり)sumExtraChargePerAccount",
+              sumExtraChargePerAccount,
+              "今までの追加費用の総額ローカル(1アカウントあたり)sumExtraChargePerAccount",
+              sumExtraChargePerAccountLocal,
+              "今までの追加費用の総額stripe sumExtraCharge",
               sumExtraCharge,
-              "今までの追加費用の総額ローカルadditionalCostAmountLocal",
-              additionalCostAmountLocal,
-              "未使用分の配列",
-              firstHalfInvoiceItemList,
-              "残り使用分の配列",
-              secondHalfInvoiceItemList,
-              "未使用分の総額",
+              "未使用分の総額 sumOldUnused",
               sumOldUnused,
-              "残り使用分の総額",
+              "残り使用分の総額 sumNewUsage",
               sumNewUsage
             );
             return { checkResult: false, prorationDateTimeStamp: null };
@@ -973,9 +1128,12 @@ const SettingPaymentAndPlanMemo: FC = () => {
   // ===================== 🌟今すぐアップグレード/今すぐダウングレード 「変更を確定」モーダルを開く =====================
   const handleOpenConfirmChangePlanModal = async () => {
     if (isLoadingFetchStripeInvoice) return;
-    if (!premiumPlanFeePerAccountRef.current) return alert("エラー：プレミアムプランの料金を取得できませんでした。");
-    if (!businessPlanFeePerAccountRef.current) return alert("エラー：ビジネスプランの料金を取得できませんでした。");
-    if (!userProfileState?.accounts_to_create) return alert("エラー：現在のアカウント契約数を取得できませんでした。");
+    if (!premiumPlanFeePerAccountRef.current)
+      return console.log("エラー：プレミアムプランの料金を取得できませんでした。");
+    if (!businessPlanFeePerAccountRef.current)
+      return console.log("エラー：ビジネスプランの料金を取得できませんでした。");
+    if (!userProfileState?.accounts_to_create)
+      return console.log("エラー：現在のアカウント契約数を取得できませんでした。");
 
     // ビジネスプランからアップグレードルート
     // 🔹インボイスデータが存在しないルート
@@ -989,44 +1147,210 @@ const SettingPaymentAndPlanMemo: FC = () => {
     }
     // 🔹インボイスデータが存在するルート
     else if (!!nextInvoiceForChangePlan?.subscription_proration_date) {
-      console.log("1. インボイスデータが存在するルート");
-      // 既にプラン変更インボイスが存在するなら、次は現在とインボイスの比例配分の日付が同じかどうかを確認する
-      // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2025-10-20で現在の日付を作成
-      const currentDateObj = new Date("2025-10-20"); // テストクロック
-      const year = currentDateObj.getFullYear();
-      const month = currentDateObj.getMonth();
-      const day = currentDateObj.getDate();
-      const currentDateOnly = new Date(year, month, day); // 現在の日付の時刻情報をリセット
-      // nextInvoiceの比例配分の日付を取得(時刻情報なし) UNIXタイムスタンプ(10桁)なら1000倍してミリ秒に変換
-      const nextInvoiceCreatedInMillisecond =
-        nextInvoiceForChangePlan.subscription_proration_date.toString().length === 10
-          ? nextInvoiceForChangePlan.subscription_proration_date * 1000
-          : nextInvoiceForChangePlan.subscription_proration_date;
-      const nextInvoiceDateObj = new Date(nextInvoiceCreatedInMillisecond);
-      const nextInvoiceYear = nextInvoiceDateObj.getFullYear();
-      const nextInvoiceMonth = nextInvoiceDateObj.getMonth();
-      const nextInvoiceDay = nextInvoiceDateObj.getDate();
-      const nextInvoiceDateOnly = new Date(nextInvoiceYear, nextInvoiceMonth, nextInvoiceDay); // nextInvoiceの日付の時刻情報をリセット
+      console.log(
+        "🌟インボイスデータが存在するルート nextInvoiceForChangePlan.lines.data.length",
+        nextInvoiceForChangePlan.lines.data.length
+      );
 
-      // 今日が期間終了日の場合には日割り料金は存在しないため、そのままモーダルを開く
-      if (isLastDay) {
-        setIsOpenConfirmChangePlanModal(true);
-      }
+      setIsLoadingFetchStripeInvoice(true); // ローディング開始
 
-      // 来月のアカウント数は数量ダウンスケジュールがあるかどうかで現在の数量かスケジュールの数量を使い分ける
-      const nextMonthAccountQuantity =
-        deleteAccountRequestSchedule !== null && !!deleteAccountRequestSchedule?.scheduled_quantity
-          ? deleteAccountRequestSchedule.scheduled_quantity
-          : userProfileState.accounts_to_create;
-      let nextInvoiceAmountLocal;
-      let nextMonthlyPlanFee;
-      let additionalCostAmountLocal;
-      if (isUpgradePlan) {
+      try {
+        // 既にプラン変更インボイスが存在するなら、次は現在とインボイスの比例配分の日付が同じかどうかを確認する
+        // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2025-10-20で現在の日付を作成
+        const currentDateObj = new Date("2025-10-20"); // テストクロック
+        const year = currentDateObj.getFullYear();
+        const month = currentDateObj.getMonth();
+        const day = currentDateObj.getDate();
+        const currentDateOnly = new Date(year, month, day); // 現在の日付の時刻情報をリセット
+        // nextInvoiceの比例配分の日付を取得(時刻情報なし) UNIXタイムスタンプ(10桁)なら1000倍してミリ秒に変換
+        const nextInvoiceCreatedInMillisecond =
+          nextInvoiceForChangePlan.subscription_proration_date.toString().length === 10
+            ? nextInvoiceForChangePlan.subscription_proration_date * 1000
+            : nextInvoiceForChangePlan.subscription_proration_date;
+        const nextInvoiceDateObj = new Date(nextInvoiceCreatedInMillisecond);
+        const nextInvoiceYear = nextInvoiceDateObj.getFullYear();
+        const nextInvoiceMonth = nextInvoiceDateObj.getMonth();
+        const nextInvoiceDay = nextInvoiceDateObj.getDate();
+        const nextInvoiceSubscriptionProrationDateOnly = new Date(nextInvoiceYear, nextInvoiceMonth, nextInvoiceDay); // nextInvoiceの日付の時刻情報をリセット
+
+        if (currentDateOnly.getTime() !== nextInvoiceSubscriptionProrationDateOnly.getTime()) {
+          console.log(
+            "❌現在の日時とインボイスの比例配分日の日付が一致せず stripeのインボイスをフェッチする",
+            "現在の日付",
+            currentDateOnly.getTime(),
+            format(currentDateOnly, "yyyy年MM月dd日 HH:mm:ss"),
+            "インボイスState比例配分の日付",
+            nextInvoiceSubscriptionProrationDateOnly.getTime(),
+            format(nextInvoiceSubscriptionProrationDateOnly, "yyyy年MM月dd日 HH:mm:ss")
+          );
+          throw new Error("❌現在の日時とインボイスの比例配分日の日付が一致せず stripeのインボイスをフェッチする");
+        }
+
+        // 来月のアカウント数は数量ダウンスケジュールがあるかどうかで現在の数量かスケジュールの数量を使い分ける
+        const nextMonthAccountQuantity =
+          deleteAccountRequestSchedule !== null && !!deleteAccountRequestSchedule?.scheduled_quantity
+            ? deleteAccountRequestSchedule.scheduled_quantity
+            : userProfileState.accounts_to_create;
+
+        // 🔹ダウングレードルート 日割り料金なし
+        if (!isUpgradePlan) {
+          const nextInvoiceAmountLocal = businessPlanFeePerAccountRef.current * nextMonthAccountQuantity;
+          console.log(
+            "プランダウングレードでは、日割り計算は無し 来月プラン料金のみで料金チェック",
+            "nextInvoiceForChangePlan.amount_due",
+            nextInvoiceForChangePlan.amount_due,
+            "nextInvoiceAmountLocal",
+            nextInvoiceAmountLocal,
+            "nextMonthAccountQuantity",
+            nextMonthAccountQuantity
+          );
+          if (nextInvoiceForChangePlan.amount_due === nextInvoiceAmountLocal) {
+            console.log("プランダウングレードルート ✅料金チェック合格 ");
+            setIsOpenConfirmChangePlanModal(true);
+          } else {
+            console.log("プランダウングレードルート ❌料金チェック不合格 ");
+            throw new Error("❌料金チェック不合格 stripeインボイスをフェッチ");
+          }
+        }
+
         // 🔹アップグレードルート
-        if (!newPlanRemainingAmountPerAccountWithThreeDecimalPointsRef.current)
-          return alert("エラー：新プラン残り日割り料金が取得できませんでした。");
+
+        if (!newPlanRemainingAmountPerAccountWithThreeDecimalPointsRef.current) {
+          throw new Error("エラー：新プラン残り日割り料金が取得できませんでした。");
+        }
         if (!oldPlanUnusedAmountPerAccountWithThreeDecimalPointsRef.current)
-          return alert("エラー：旧プラン残り日割り料金が取得できませんでした");
+          throw new Error("エラー：旧プラン残り日割り料金が取得できませんでした");
+        if (!currentPeriodRef.current) throw new Error("エラー：請求期間の日数が取得できませんでした");
+        if (!remainingDaysRef.current) throw new Error("エラー：請求期間までの残り日数が取得できませんでした");
+
+        // 🔹今日が期間終了日ルート 日割り料金なし
+        if (isLastDay && nextInvoiceForChangePlan.lines.data.length === 1) {
+          const nextPlanMonthlyFee = isUpgradePlan
+            ? businessPlanFeePerAccountRef.current
+            : premiumPlanFeePerAccountRef.current;
+          const nextInvoiceAmountForDowngrade = nextPlanMonthlyFee * nextMonthAccountQuantity;
+          if (nextInvoiceForChangePlan.amount_due === nextInvoiceAmountForDowngrade) {
+            console.log("🔹今日が期間終了日ルート ✅料金チェック合格 ");
+            setIsOpenConfirmChangePlanModal(true);
+          } else {
+            console.log("🔹今日が期間終了日ルート ❌料金チェック不合格 ");
+            throw new Error("🔹今日が期間終了日ルート ❌料金チェック不合格 stripeインボイスをフェッチ");
+          }
+        }
+
+        // 🔹listオブジェクトのdataの要素1セット以上ルート(本日の支払いではなく通常の次回請求ルート)
+        const invoiceItemList = nextInvoiceForChangePlan.lines.data.filter((item) => item.type === "invoiceitem");
+        console.log(
+          "InvoiceLineItem[]から未使用、残り使用のみのinvoiceitemタイプのみを取得 invoiceItemList",
+          invoiceItemList
+        );
+
+        // インボイスアイテムが奇数の場合はあり得ないためエラーをスロー
+        if (invoiceItemList.length % 2 === 1)
+          throw new Error("ローカルインボイスlines.data.lengthが奇数のためエラー stripeインボイスをフェッチ");
+
+        // 1. 「請求期間（日数）」をローカルStateに格納
+        const currentPeriodDays = currentPeriodRef.current;
+        // 2. 「残り日数」をローカルStateに格納
+        const remainingDays = remainingDaysRef.current;
+
+        // 🔹インボイスアイテムが１セットのみ => 今回が初回アップデート(数量アップもなし)
+        if (invoiceItemList.length === 2) {
+          const unusedInvoiceItem = invoiceItemList.filter((item) => item.description?.startsWith("Unused"))[0];
+          const remainingInvoiceItem = invoiceItemList.filter((item) => item.description?.startsWith("Remaining"))[0];
+
+          //
+          // 旧プランの残り未使用分の料金
+          stripeInvoiceFeeRef.current.newUsageAmountWithThreeDecimalPoints = unusedInvoiceItem.amount;
+          // 新プランの残り使用分の料金
+          stripeInvoiceFeeRef.current.oldUnusedAmountWithThreeDecimalPoints = remainingInvoiceItem.amount;
+          // 追加費用
+          const stripeAdditionalCost = remainingInvoiceItem.amount - Math.abs(unusedInvoiceItem.amount);
+          stripeInvoiceFeeRef.current.additionalCost = stripeAdditionalCost;
+          // 次回の支払額
+          // 🌟ダウングレードスケジュールが存在するなら次回請求日の初回支払いでは、プラン料金はビジネスプランの価格になるため、newMonthlyFeeを置き換える(残り使用分と未使用分は今月のプランに適用されるため置き換えは無しでOK)
+          const totalPaymentDue = !!deleteAccountRequestSchedule
+            ? premiumPlanFeePerAccountRef.current * nextMonthAccountQuantity + stripeAdditionalCost
+            : (upcomingInvoiceData as Stripe.UpcomingInvoice)?.lines?.data[
+                (upcomingInvoiceData as Stripe.UpcomingInvoice)?.lines?.data.length - 1
+              ]?.amount + stripeAdditionalCost;
+          stripeInvoiceFeeRef.current.nextInvoiceAmount = (upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due;
+          // setStripeNextInvoiceAmountState((upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due);
+
+          // ローカルStateで料金を計算 ----------------------------------------------------
+          if (!newPlanRemainingAmountPerAccountWithThreeDecimalPointsRef.current)
+            throw new Error("エラー：新プランの残り期間の日割り料金データが見つかりませんでした。");
+          if (!oldPlanUnusedAmountPerAccountWithThreeDecimalPointsRef.current)
+            throw new Error("エラー：旧プランの残り期間の日割り料金データが見つかりませんでした。");
+          // 1アカウントあたりで計算
+          const sumExtraChargePerAccountLocal =
+            newPlanRemainingAmountPerAccountWithThreeDecimalPointsRef.current -
+            Math.abs(oldPlanUnusedAmountPerAccountWithThreeDecimalPointsRef.current);
+          const totalPaymentDueLocal =
+            premiumPlanFeePerAccountRef.current * nextMonthAccountQuantity +
+            Math.round(sumExtraChargePerAccountLocal * userProfileState.accounts_to_create);
+          const stripeAdditionalCostPerAccount = stripeAdditionalCost / userProfileState.accounts_to_create;
+          // ローカルStateで料金を計算 ここまで ----------------------------------------------------
+
+          if (
+            !!(upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due &&
+            (upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due === Math.round(totalPaymentDueLocal) &&
+            stripeAdditionalCostPerAccount === Math.round(sumExtraChargePerAccountLocal)
+          ) {
+            console.log(
+              "🌟料金チェック3 ✅チェック関数 次回請求額がローカルと一致 テスト成功✅",
+              "次回支払い総額(upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due",
+              (upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due,
+              "次回支払い総額stripe totalPaymentDue",
+              totalPaymentDue,
+              "次回支払い総額ローカル totalPaymentDueLocal",
+              totalPaymentDueLocal,
+              "今までの追加費用の総額stripe(1アカウントあたり)stripeAdditionalCostPerAccount",
+              stripeAdditionalCostPerAccount,
+              "今までの追加費用の総額ローカル(1アカウントあたり)sumExtraChargePerAccountLocal",
+              sumExtraChargePerAccountLocal,
+              "今までの追加費用の総額stripe stripeAdditionalCost",
+              stripeAdditionalCost,
+              "未使用分の料金 unusedInvoiceItem.amount",
+              unusedInvoiceItem.amount,
+              "残り使用分の料金 remainingInvoiceItem.amount",
+              remainingInvoiceItem.amount
+            );
+            return {
+              checkResult: true,
+              prorationDateTimeStamp: (upcomingInvoiceData as Stripe.UpcomingInvoice).subscription_proration_date,
+            };
+          } else {
+            console.log(
+              "🌟料金チェック3 ❌チェック関数 次回請求額がローカルと一致せず テスト失敗❌",
+              "次回支払い総額(upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due",
+              (upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due,
+              "次回支払い総額stripe totalPaymentDue",
+              totalPaymentDue,
+              "次回支払い総額ローカル totalPaymentDueLocal",
+              totalPaymentDueLocal,
+              "今までの追加費用の総額stripe(1アカウントあたり)stripeAdditionalCostPerAccount",
+              stripeAdditionalCostPerAccount,
+              "今までの追加費用の総額ローカル(1アカウントあたり)sumExtraChargePerAccountLocal",
+              sumExtraChargePerAccountLocal,
+              "今までの追加費用の総額stripe stripeAdditionalCost",
+              stripeAdditionalCost,
+              "未使用分の料金 unusedInvoiceItem.amount",
+              unusedInvoiceItem.amount,
+              "残り使用分の料金 remainingInvoiceItem.amount",
+              remainingInvoiceItem.amount
+            );
+            return { checkResult: false, prorationDateTimeStamp: null };
+          }
+
+          //
+        }
+        // 🔹インボイスアイテムが２セット以上 => 今回のアップデートが２回目以上(数量アップも含む)
+        else if (invoiceItemList.length > 2) {
+        } else {
+          throw new Error("予期せぬエラー stripeインボイスをフェッチ");
+        }
+
         // アカウント数を掛けた追加費用 💡追加費用は今月使用分のため、スケジュールがあっても関係ない
         additionalCostAmountLocal =
           -oldPlanUnusedAmountPerAccountWithThreeDecimalPointsRef.current * userProfileState.accounts_to_create;
@@ -1040,56 +1364,51 @@ const SettingPaymentAndPlanMemo: FC = () => {
           : businessPlanFeePerAccountRef.current * nextMonthAccountQuantity;
 
         nextInvoiceAmountLocal = nextMonthlyPlanFee + additionalCostAmountLocal;
-      } else {
-        // 🔹ダウングレードルート
-        nextInvoiceAmountLocal = businessPlanFeePerAccountRef.current * nextMonthAccountQuantity;
-      }
 
-      // 🔹現在とZustandの比例配分の日付と総額が同じルート
-      // 現在の日付と比例配分日が同じで、かつ、Zustandのインボイス総額とローカル総額が一致していればフェッチせずに開く
-      if (
-        currentDateOnly.getTime() === nextInvoiceDateOnly.getTime() &&
-        (nextInvoiceForChangePlan as Stripe.UpcomingInvoice).amount_due === Math.round(nextInvoiceAmountLocal)
-      ) {
-        console.log(
-          "2. 現在とZustandの比例配分の日付と総額が同じルート Zustandのインボイスデータを使用",
-          "現在の日付",
-          currentDateOnly.getTime(),
-          format(currentDateObj, "yyyy年MM月dd日 HH:mm:ss"),
-          "インボイスState比例配分の日付",
-          nextInvoiceDateOnly.getTime(),
-          format(nextInvoiceDateObj, "yyyy年MM月dd日 HH:mm:ss"),
-          "nextInvoiceForChangePlan.amount_due",
-          nextInvoiceForChangePlan.amount_due,
-          "nextInvoiceAmountLocal",
-          nextInvoiceAmountLocal,
-          "nextMonthlyPlanFee",
-          nextMonthlyPlanFee,
-          "additionalCostAmountLocal",
-          additionalCostAmountLocal
-        );
-        setIsOpenConfirmChangePlanModal(true);
-      }
-      // 🔹現在とZustandの比例配分の日付が違うルート もしくは、総額が一致していない場合は再度フェッチする
-      // 再度最新のインボイスを取得する
-      else {
-        console.log(
-          "3. 現在とZustandの比例配分の日付か総額が違うルート 再度stripeにフェッチ",
-          "現在の日付",
-          currentDateOnly.getTime(),
-          format(currentDateObj, "yyyy年MM月dd日 HH:mm:ss"),
-          "インボイスState比例配分の日付",
-          nextInvoiceDateOnly.getTime(),
-          format(nextInvoiceDateObj, "yyyy年MM月dd日 HH:mm:ss"),
-          "nextInvoiceForChangePlan.amount_due",
-          nextInvoiceForChangePlan.amount_due,
-          "nextInvoiceAmountLocal",
-          nextInvoiceAmountLocal,
-          "nextMonthlyPlanFee",
-          nextMonthlyPlanFee,
-          "additionalCostAmountLocal",
-          additionalCostAmountLocal
-        );
+        // 🔹現在とZustandの比例配分の日付と追加費用(１アカウントあたり)と総額が同じルート
+        // 現在の日付と比例配分日が同じで、かつ、Zustandのインボイス総額とローカル総額が一致していればフェッチせずに開く
+        if (
+          currentDateOnly.getTime() === nextInvoiceDateOnly.getTime() &&
+          (nextInvoiceForChangePlan as Stripe.UpcomingInvoice).amount_due === Math.round(nextInvoiceAmountLocal)
+        ) {
+          console.log(
+            "🌟現在とZustandの比例配分の日付と総額が同じルート Zustandのインボイスデータを使用 ✅1アカウントあたりの追加費用と次回請求総額の料金一致",
+            "現在の日付",
+            currentDateOnly.getTime(),
+            format(currentDateObj, "yyyy年MM月dd日 HH:mm:ss"),
+            "インボイスState比例配分の日付",
+            nextInvoiceDateOnly.getTime(),
+            format(nextInvoiceDateObj, "yyyy年MM月dd日 HH:mm:ss"),
+            "nextInvoiceForChangePlan.amount_due",
+            nextInvoiceForChangePlan.amount_due,
+            "nextInvoiceAmountLocal",
+            nextInvoiceAmountLocal,
+            "nextMonthlyPlanFee",
+            nextMonthlyPlanFee,
+            "additionalCostAmountLocal",
+            additionalCostAmountLocal
+          );
+          setIsOpenConfirmChangePlanModal(true); // 確定モーダルを開く
+        }
+        // 🔹現在とZustandの比例配分の日付が違うルート もしくは、総額が一致していない場合は再度フェッチする
+        // 再度最新のインボイスを取得する
+        else {
+          console.log(
+            "🌟現在とZustandの比例配分の日付が違うか総額が違うルート 再度stripeにフェッチ",
+
+            "nextInvoiceForChangePlan.amount_due",
+            nextInvoiceForChangePlan.amount_due,
+            "nextInvoiceAmountLocal",
+            nextInvoiceAmountLocal,
+            "nextMonthlyPlanFee",
+            nextMonthlyPlanFee,
+            "additionalCostAmountLocal",
+            additionalCostAmountLocal
+          );
+          throw new Error("stripeにインボイスデータを取得する");
+        }
+      } catch (e: any) {
+        console.error(`エラー：`, e);
         // stripeにインボイスデータを取得する
         const result = await getUpcomingInvoiceChangePlan(isUpgradePlan ? `premium_plan` : `business_plan`);
         setIsLoadingFetchStripeInvoice(false); // ローディング終了
