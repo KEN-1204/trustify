@@ -483,6 +483,9 @@
   /* テスト */
   max-width: 735px;
 }
+.section_title_sm {
+  font-size: 41px !important;
+}
 
 /* .section_title::before {
   content: attr(data-text);
@@ -769,7 +772,8 @@
 
   /* スクロールスナップ🌟 */
   scroll-snap-align: end;
-  scroll-snap-stop: normal;
+  /* scroll-snap-stop: normal; */
+  scroll-snap-stop: always;
   /* scroll-snap-align: start;
   scroll-snap-stop: always; */
 

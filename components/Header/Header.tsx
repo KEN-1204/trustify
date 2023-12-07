@@ -46,6 +46,7 @@ export const Header: FC<Props> = ({
   const setStartAnimationFeature2 = useStore((state) => state.setStartAnimationFeature2);
   const setStartAnimationFeature3 = useStore((state) => state.setStartAnimationFeature3);
   const setStartAnimationFeature4 = useStore((state) => state.setStartAnimationFeature4);
+  const setStartAnimationFeature5 = useStore((state) => state.setStartAnimationFeature5);
 
   // 言語ドロップダウンメニュー
   const clickedItemPos = useStore((state) => state.clickedItemPos);

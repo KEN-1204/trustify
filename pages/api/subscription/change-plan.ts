@@ -91,30 +91,33 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
     // サブスクリプションID
     // const stripeSubscriptionId = subscriptions.data[0].id;
     // 現在のプランの開始日
-    // const currentPeriodStart = subscription.current_period_start;
-    // // 次の請求日を取得
-    // const currentPeriodEnd = subscription.current_period_end;
-    // // ユーザーが現在契約しているサブスクリップションアイテムのidを取得
-    // const subscriptionItemId = subscription.items.data[0].id;
-    // // ユーザーが現在契約しているサブスクリップションの価格idを取得
-    // const subscriptionCurrentPriceId = subscription.items.data[0].price.id;
-    // // ユーザーが現在契約しているサブスクリップションのプランの価格を取得
-    // const subscriptionCurrentPriceUnitAmount = subscription.items.data[0].price.unit_amount;
-    // // ユーザーが現在契約しているサブスクリップションの数量
-    // const subscriptionCurrentQuantity = subscription.items.data[0].quantity;
+    const currentPeriodStart = subscription.current_period_start;
+    // 現在のプランの終了日、かつ次回の請求日、次回フェーズの開始日
+    const currentPeriodEnd = subscription.current_period_end;
+    // ユーザーが現在契約しているサブスクリップションアイテムのidを取得
+    const subscriptionItemId = subscription.items.data[0].id;
+    // ユーザーが現在契約しているサブスクリップションの価格idを取得
+    const subscriptionCurrentPriceId = subscription.items.data[0].price.id;
+    // ユーザーが現在契約しているサブスクリップションのプランの価格を取得
+    const subscriptionCurrentPriceUnitAmount = subscription.items.data[0].price.unit_amount;
+    // ユーザーが現在契約しているサブスクリップションの数量
+    const subscriptionCurrentQuantity = subscription.items.data[0].quantity;
 
     // 新たなプラン名からstripeのprice_idを取得
-    let _newPriceId;
-    switch (newPlanName) {
-      case "business_plan":
-        _newPriceId = process.env.STRIPE_BUSINESS_PLAN_PRICE_ID;
-        break;
-      case "premium_plan":
-        _newPriceId = process.env.STRIPE_PREMIUM_PLAN_PRICE_ID;
-        break;
-      default:
-        _newPriceId = null;
-    }
+    const _newPriceId =
+      newPlanName === "business_plan"
+        ? process.env.STRIPE_BUSINESS_PLAN_PRICE_ID
+        : process.env.STRIPE_PREMIUM_PLAN_PRICE_ID;
+    // switch (newPlanName) {
+    //   case "business_plan":
+    //     _newPriceId = process.env.STRIPE_BUSINESS_PLAN_PRICE_ID;
+    //     break;
+    //   case "premium_plan":
+    //     _newPriceId = process.env.STRIPE_PREMIUM_PLAN_PRICE_ID;
+    //     break;
+    //   default:
+    //     _newPriceId = null;
+    // }
 
     // Ensure _newPriceId is a number _newPriceIdが存在し、_newPriceIdが数値型であることを確認する。
     if (!_newPriceId || typeof _newPriceId !== "string") {
@@ -135,18 +138,18 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
       prorationDate
     );
     console.log("🌟Stripeプラン変更ステップ4 Stripeのサブスクリプションから各アイテム取得");
-    console.log("💡サブスクアイテムID:subscription.items.data[0].id", subscription.items.data[0].id);
-    console.log("💡現在契約中の価格ID:subscription.items.data[0].price.id", subscription.items.data[0].price.id);
-    console.log("💡現在契約中の数量:subscription.items.data[0].quantity", subscription.items.data[0].quantity);
+    console.log("💡サブスクアイテムID:subscription.items.data[0].id", subscriptionItemId);
+    console.log("💡現在契約中の価格ID:subscription.items.data[0].price.id", subscriptionCurrentPriceId);
+    console.log("💡現在契約中の数量:subscription.items.data[0].quantity", subscriptionCurrentQuantity);
     console.log(
       "💡現在のプランの開始日:subscription.current_period_start",
-      new Date(subscription.current_period_start * 1000),
-      format(new Date(subscription.current_period_start * 1000), "yyyy年MM月dd日 HH時mm分ss秒")
+      new Date(currentPeriodStart * 1000),
+      format(new Date(currentPeriodStart * 1000), "yyyy年MM月dd日 HH時mm分ss秒")
     ),
       console.log(
         "💡現在のプランの終了日:subscription.current_period_end",
-        new Date(subscription.current_period_end * 1000),
-        format(new Date(subscription.current_period_end * 1000), "yyyy年MM月dd日 HH時mm分ss秒")
+        new Date(currentPeriodEnd * 1000),
+        format(new Date(currentPeriodEnd * 1000), "yyyy年MM月dd日 HH時mm分ss秒")
       );
     console.log(
       "✅アップデート用比例配分UNIXタイムスタンプと日付",
@@ -176,7 +179,7 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
         items: [
           {
             // id: subscriptionItemId,
-            id: subscription.items.data[0].id,
+            id: subscriptionItemId, // subscription.items.data[0].id,
             quantity: currentQuantity,
             price: _newPriceId,
           },
@@ -192,11 +195,11 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
       );
       console.log(
         "💡Stripeプラン変更ステップ5 プランアップグレードルート UPDATE前 プランの開始日 current_period_start",
-        format(new Date(subscription.current_period_start * 1000), "yyyy年MM月dd日 HH時mm分ss秒")
+        format(new Date(currentPeriodStart * 1000), "yyyy年MM月dd日 HH時mm分ss秒")
       );
       console.log(
         "💡Stripeプラン変更ステップ5 プランアップグレードルート UPDATE前 プランの終了日 current_period_end",
-        format(new Date(subscription.current_period_end * 1000), "yyyy年MM月dd日 HH時mm分ss秒")
+        format(new Date(currentPeriodEnd * 1000), "yyyy年MM月dd日 HH時mm分ss秒")
       );
       console.log(
         "💡Stripeプラン変更ステップ5 プランアップグレードルート UPDATE後 プランの開始日 current_period_start",
@@ -236,11 +239,16 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
       }
       // 🔹サブスクリプションスケジュールが存在するルート
       else {
-        // サブスクリプションスケジュールが存在する場合には、数量ダウンが存在するということなので、数量を変更する
+        // サブスクリプションスケジュールが存在する場合には、数量ダウンスケジュールが存在するということなので、プランを変更する
         const scheduleData = await stripe.subscriptionSchedules.retrieve(scheduleId as string);
         console.log(
           "🌟Stripeプラン変更ステップ6-1 プランアップグレードルート stripe.subscriptionSchedules.update()実行 数量ダウンスケジュールが存在するため、スケジュールの次回フェーズのプランを今回プランをアップグレードさせたプレミアムプランに反映させる 更新前のスケジュールscheduleData",
           scheduleData
+        );
+        console.log("💡更新前 scheduleData.phases[0].items", scheduleData.phases[0].items);
+        console.log(
+          "💡更新前 scheduleData.phases[1].items",
+          !!scheduleData.phases.length && scheduleData.phases[1].items
         );
 
         // 2. stripeのサブスクリプションスケジュールの翌月のフェーズのplanをプレミアムプランのidに変更する

@@ -17,6 +17,7 @@ import { FeatureParagraph4 } from "./Features/FeatureParagraph4";
 import { toast } from "react-toastify";
 import { Zoom } from "@/utils/Helpers/toastHelpers";
 import { neonMailIcon, neonMessageIcon, neonMessageIconBg } from "../assets";
+import { FeatureParagraph5 } from "./Features/FeatureParagraph5";
 
 export const Root: FC = () => {
   console.log("Rootコンポーネントレンダリング");
@@ -38,16 +39,19 @@ export const Root: FC = () => {
   const [hoveredFeature2, setHoveredFeature2] = useState(false);
   const [hoveredFeature3, setHoveredFeature3] = useState(false);
   const [hoveredFeature4, setHoveredFeature4] = useState(false);
+  const [hoveredFeature5, setHoveredFeature5] = useState(false);
   // Featureのタイトルh2タグのrefオブジェクト タイトルホバーでも動画を再生させる
   const FeatureDivRef1 = useRef<HTMLDivElement | null>(null);
   const FeatureDivRef2 = useRef<HTMLDivElement | null>(null);
   const FeatureDivRef3 = useRef<HTMLDivElement | null>(null);
   const FeatureDivRef4 = useRef<HTMLDivElement | null>(null);
+  const FeatureDivRef5 = useRef<HTMLDivElement | null>(null);
   // 🌟スナップスクロールありの場合
   const setStartAnimationFeature1 = useStore((state) => state.setStartAnimationFeature1);
   const setStartAnimationFeature2 = useStore((state) => state.setStartAnimationFeature2);
   const setStartAnimationFeature3 = useStore((state) => state.setStartAnimationFeature3);
   const setStartAnimationFeature4 = useStore((state) => state.setStartAnimationFeature4);
+  const setStartAnimationFeature5 = useStore((state) => state.setStartAnimationFeature5);
   const lightTextBorderLine = useStore((state) => state.lightTextBorderLine);
   const setLightTextBorderLine = useStore((state) => state.setLightTextBorderLine);
   // ✅スナップスクロールありの場合
@@ -60,6 +64,7 @@ export const Root: FC = () => {
   const featureBgVideoRef2 = useRef<HTMLVideoElement | null>(null);
   const featureBgVideoRef3 = useRef<HTMLVideoElement | null>(null);
   const featureBgVideoRef4 = useRef<HTMLVideoElement | null>(null);
+  const featureBgVideoRef5 = useRef<HTMLVideoElement | null>(null);
   const featureContentVideoRef1 = useRef<HTMLVideoElement | null>(null);
   const featureContentVideoRef2 = useRef<HTMLVideoElement | null>(null);
 
@@ -71,6 +76,7 @@ export const Root: FC = () => {
     if (featureBgVideoRef2.current) featureBgVideoRef2.current.load();
     if (featureBgVideoRef3.current) featureBgVideoRef3.current.load();
     if (featureBgVideoRef4.current) featureBgVideoRef4.current.load();
+    if (featureBgVideoRef5.current) featureBgVideoRef5.current.load();
     if (featureContentVideoRef1.current) featureContentVideoRef1.current.load();
     if (featureContentVideoRef2.current) featureContentVideoRef2.current.load();
   }, []);
@@ -113,6 +119,9 @@ export const Root: FC = () => {
     }
     if (2680 < currentY.current) {
       setStartAnimationFeature4(true);
+    }
+    if (3360 < currentY.current) {
+      setStartAnimationFeature5(true);
     }
 
     // }, [currentY.current, isHeaderShown, isHeaderTop]);
@@ -724,10 +733,10 @@ export const Root: FC = () => {
             // }}
             // style={{ whiteSpace: "pre-line" }}
           >
-            {language === "ja" && "リスト作成時間を大幅に短縮し工数削減"}
+            {language === "ja" && "リスト作成・準備時間を大幅に短縮し工数削減"}
             {language === "en" && "Significantly reduce list creation time and workload."}
             <span className={`${styles.title_before}`}>
-              {language === "ja" && "リスト作成時間を大幅に短縮し工数削減"}
+              {language === "ja" && "リスト作成・準備時間を大幅に短縮し工数削減"}
               {language === "en" && "Significantly reduce list creation time and workload."}
             </span>
           </h2>
@@ -899,6 +908,84 @@ export const Root: FC = () => {
             width={800}
             height={600}
           /> */}
+        </div>
+      </section>
+
+      <hr className={styles.horizon} />
+
+      {/* ======================== Feature5 ======================== */}
+      <section className={`transition-base-color bg-[--color-bg-hp-main] ${styles.scroll_slides_row} relative`}>
+        {/* バーチャルビデオ背景 ここから */}
+        <div
+          className={`transition-base absolute left-0 top-0 h-full w-full ${
+            hoveredFeature5 ? `opacity-100` : `pointer-events-none opacity-0`
+          }`}
+        >
+          <video
+            ref={featureBgVideoRef5}
+            autoPlay={true}
+            muted={true}
+            playsInline={true}
+            loop={true}
+            preload="none"
+            className={`h-[100%] w-[100%] object-cover`}
+            onContextMenu={(e) => e.preventDefault()}
+          >
+            {/* <source src="/assets/videos/geographic-compressed.mp4" type="video/mp4" /> */}
+            {/* <source src="/assets/videos/Root/top-bg-virtual-trimmed.mp4" type="video/mp4" /> */}
+            {/* <source src="/assets/videos/Root/virtual_resized_compressed.mp4" type="video/mp4" /> */}
+            {/* <source src="/assets/videos/Root/art_white1_compressed.mp4" type="video/mp4" /> */}
+            <source src="/assets/videos/Root/light_bg_trimmed2_compressed.mp4" type="video/mp4" />
+            {/* <source src="/assets/videos/Root/star_bg2_trimmed.mp4" type="video/mp4" /> */}
+            {/* <source src="/assets/videos/Root/nature_snow_compressed_trimmed.mp4" type="video/mp4" /> */}
+            {/* <source src="/assets/videos/Root/starlight_trimmed.mp4" type="video/mp4" /> */}
+          </video>
+          {/* 暗くするオーバーレイ */}
+          {/* <div className="absolute inset-0 z-[0] bg-[#00000030]"></div> */}
+          {/* シャドウグラデーション */}
+          {/* <div className="shadow-gradient-tb-sm pointer-events-none absolute inset-0 z-[0] h-full w-full select-none"></div> */}
+        </div>
+        {/* バーチャルビデオ背景 ここまで */}
+        <div className={`${styles.text_col}`}>
+          <h2
+            className={`${styles.section_title} ${styles.section_title_sm} ${
+              hoveredFeature5 ? `${styles.section_title_brand}` : ``
+            } `}
+            // onMouseEnter={() => {
+          >
+            {language === "ja" && "即日出荷体制を実現して、顧客の「すぐ買いたい」を惹き付ける"}
+            {language === "en" && "Significantly reduce list creation time and workload."}
+            <span className={`${styles.title_before}`}>
+              {language === "ja" && "即日出荷体制を実現して、顧客の「すぐ買いたい」を惹き付ける"}
+              {language === "en" && "Significantly reduce list creation time and workload."}
+            </span>
+          </h2>
+          <FeatureParagraph5 hoveredFeature={hoveredFeature5} featureSection={5} />
+        </div>
+        <div className={`${styles.img_col} flex items-center`}>
+          <div className={`${styles.light_back}`}>
+            <div
+              ref={FeatureDivRef5}
+              className={`${styles.wrap}`}
+              onMouseEnter={() => setHoveredFeature5(true)}
+              onMouseLeave={() => setHoveredFeature5(false)}
+            >
+              <div className="absolute left-0 top-0 z-[-1] h-full w-full bg-[var(--color-bg-base)]" />
+              <Image
+                src="/assets/images/root2/feature02_resized_compressed.png"
+                // src="/assets/images/root/feature3.png"
+                // src="/assets/images/feature-3.png"
+                alt=""
+                placeholder="blur"
+                blurDataURL="/assets/images/root2/placeholders/feature02_placeholder.png"
+                // loading="lazy"
+                width={800}
+                height={600}
+                className={`${styles.img}`}
+                onContextMenu={(e) => e.preventDefault()}
+              />
+            </div>
+          </div>
         </div>
       </section>
 

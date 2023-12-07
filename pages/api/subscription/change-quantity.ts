@@ -209,6 +209,7 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
 
         res.status(200).json(response);
       } else {
+        // 🔹サブスクリプションスケジュールが存在するルート
         // サブスクリプションスケジュールが存在する場合には、プランのダウングレードが存在するということなので、数量を変更する
         const scheduleData = await stripe.subscriptionSchedules.retrieve(scheduleId as string);
 

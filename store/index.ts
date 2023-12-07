@@ -85,6 +85,8 @@ type State = {
   setStartAnimationFeature3: (payload: boolean) => void;
   startAnimationFeature4: boolean;
   setStartAnimationFeature4: (payload: boolean) => void;
+  startAnimationFeature5: boolean;
+  setStartAnimationFeature5: (payload: boolean) => void;
 
   // チェックボタン チェック有無
   isChecked: boolean;
@@ -176,6 +178,8 @@ const useStore = create<State>((set) => ({
   setStartAnimationFeature3: (payload) => set({ startAnimationFeature3: payload }),
   startAnimationFeature4: false,
   setStartAnimationFeature4: (payload) => set({ startAnimationFeature4: payload }),
+  startAnimationFeature5: false,
+  setStartAnimationFeature5: (payload) => set({ startAnimationFeature5: payload }),
 
   // 【チェックボタン チェック有無】
   isChecked: true,
