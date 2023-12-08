@@ -65,8 +65,10 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
     console.log("✅削除リクエストスケジュール", deleteAccountRequestSchedule);
     console.log(
       "✅increase用比例配分UNIXタイムスタンプと日付",
-      prorationDateForIncrease,
-      format(new Date(prorationDateForIncrease * 1000), "yyyy年MM月dd日 HH時mm分ss秒")
+      prorationDateForIncrease
+        ? format(new Date(prorationDateForIncrease * 1000), "yyyy年MM月dd日 HH時mm分ss秒")
+        : null,
+      prorationDateForIncrease
     );
 
     // Ensure stripeCustomerId is a string stripeCustomerIdが文字列であることを確認する。
@@ -384,21 +386,13 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
         // ====================== テスト アカウント減少とプランダウングレードの両方をスケジュール ======================
       }
 
-      // console.log(JSON.stringify(scheduleData, null, 2));
       console.log(
-        "💡スケジュールの現在のフェーズの開始日タイムスタンプ scheduleData.phases[0].start_date",
+        "💡スケジュールの現在のフェーズの開始日: ",
+        format(dateJST(scheduleData.phases[0].start_date), "yyyy/MM/dd HH:mm:ss"),
         scheduleData.phases[0].start_date
       );
       console.log(
-        "💡スケジュールの現在のフェーズの終了日タイムスタンプ scheduleData.phases[0].end_date",
-        scheduleData.phases[0].end_date
-      );
-      console.log(
-        "💡現在のサブスクリプションに作成されたスケジュールの現在のフェーズの開始日: ",
-        format(dateJST(scheduleData.phases[0].start_date), "yyyy/MM/dd HH:mm:ss")
-      );
-      console.log(
-        "💡現在のサブスクリプションに作成されたスケジュールの現在のフェーズの終了日: ",
+        "💡スケジュールの現在のフェーズの終了日: ",
         format(dateJST(scheduleData.phases[0].end_date), "yyyy/MM/dd HH:mm:ss")
       );
 
@@ -445,21 +439,22 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
       // ・次回請求日以降(次回請求期間開始日以降)は減らした新たな数量が適用され、
       // これを適用するか検討：(その料金は新数量適用後の次の支払日（現在から次の次）に適用される)
 
-      console.log("🔥stripeスケジュールupdate() 既にプランダウングレードスケジュールが存在するか確認 ");
-      console.log("🔥scheduleData.phases.length", scheduleData.phases.length);
-      console.log("🔥scheduleData.phases[1].items", scheduleData.phases.length >= 2 && scheduleData.phases[1].items);
+      console.log("🌟stripeスケジュールupdate() 既にプランダウングレードスケジュールが存在するか確認 ");
+      console.log("💡scheduleData.phases.length", scheduleData.phases.length);
+      console.log("💡今月フェーズscheduleData.phases[0].items", scheduleData.phases[0].items);
       console.log(
-        "🔥scheduleData.phases[1].items[0].price",
-        scheduleData.phases.length >= 2 && scheduleData.phases[1].items[0].price
+        "💡翌月フェーズscheduleData.phases[1].items",
+        scheduleData.phases.length >= 2 && scheduleData.phases[1].items
       );
       // スケジュールの現在のフェーズの開始日がサブスクリプションオブジェクトの開始日と異なる場合にはスケジュールをリリースして、新たにスケジュールをcreateする
       const subscriptionCurrentPeriodStartDate = new Date(currentPeriodStart * 1000);
       const scheduleCurrentPhaseStartDate = new Date(scheduleData.phases[0].start_date * 1000);
-      // scheduleData.phases.lengthが３以上なら一度スケジュールをリリースして新たなスケジュールを作成してからupdateする
+      // scheduleData.phases.lengthが３以上なら一度スケジュールをリリースして新たなスケジュールを作成してからupdateする 削除リクエストスケジュールが存在する場合にはリリースできない
       if (
         scheduleData.phases.length >= 3 ||
         (subscriptionCurrentPeriodStartDate.getFullYear() === scheduleCurrentPhaseStartDate.getFullYear() &&
-          subscriptionCurrentPeriodStartDate.getMonth() > scheduleCurrentPhaseStartDate.getMonth())
+          subscriptionCurrentPeriodStartDate.getMonth() > scheduleCurrentPhaseStartDate.getMonth() &&
+          !deleteAccountRequestSchedule)
       ) {
         const releaseSchedule = await stripe.subscriptionSchedules.release(scheduleId as string);
         if (scheduleData.phases.length >= 3) {
@@ -521,78 +516,6 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
         ],
       });
       // =========================== 通常 ===========================
-      // =========================== テスト ===========================
-      // const currentPhaseEndDateTimestamp = scheduleData.phases[0].end_date;
-      // // UNIXタイムスタンプをミリ秒に変換してDate()で扱えるようにする
-      // const currentPhaseEndDate = new Date(currentPhaseEndDateTimestamp * 1000);
-      // // 現在のフェーズの終了日にちょうど１ヶ月を加算する
-      // currentPhaseEndDate.setMonth(currentPhaseEndDate.getMonth() + 1);
-      // // 🔹次回フェーズ終了日を丁度１ヶ月後にずらさないようにする用
-      // const oneMonthAfterEndDate = Math.floor(currentPhaseEndDate.getTime() / 1000); // UNIXタイムスタンプに戻す
-
-      // // 現在のフェーズのendDateの1分後を取得 次回フェーズの開始日にセットする用
-      // const currentPhaseEndDateForStart = new Date(currentPhaseEndDateTimestamp * 1000);
-      // // 現在のフェーズの終了日にちょうど1分を加算する
-      // currentPhaseEndDateForStart.setMinutes(currentPhaseEndDateForStart.getMinutes() + 1);
-      // // 🔹次回フェーズ開始日を1分後にして追加費用を請求確定させてからアカウント数を減らす用
-      // const oneMinutesAfterEndDate = Math.floor(currentPhaseEndDateForStart.getTime() / 1000); // UNIXタイムスタンプに戻す
-      // console.log(
-      //   "💡現在のフェーズの終了日 scheduleData.phases[0].end_date",
-      //   scheduleData.phases[0].end_date,
-      //   format(new Date(scheduleData.phases[0].end_date * 1000), "yyyy年MM月dd日 HH:mm:ss")
-      // );
-      // console.log(
-      //   "💡end_dateの1ヶ月後 oneMonthAfterEndDate",
-      //   oneMonthAfterEndDate,
-      //   format(new Date(oneMonthAfterEndDate * 1000), "yyyy年MM月dd日 HH:mm:ss")
-      // );
-      // console.log(
-      //   "💡end_dateの1分後 oneMinutesAfterEndDate",
-      //   oneMinutesAfterEndDate,
-      //   format(new Date(oneMinutesAfterEndDate * 1000), "yyyy年MM月dd日 HH:mm:ss")
-      // );
-
-      // const subscriptionSchedule = await stripe.subscriptionSchedules.update(scheduleData.id, {
-      //   phases: [
-      //     {
-      //       items: [
-      //         {
-      //           price: subscriptionCurrentPriceId, // 現在の価格プラン
-      //           quantity: subscriptionCurrentQuantity, // 更新前の現在の数量
-      //         },
-      //       ],
-      //       start_date: scheduleData.phases[0].start_date,
-      //       end_date: scheduleData.phases[0].end_date, // 本番はこっち
-      //       proration_behavior: "none", // そのまま
-      //       billing_cycle_anchor: "phase_start", // 現在の請求期間の開始日のまま
-      //     },
-      //     {
-      //       items: [
-      //         {
-      //           price: subscriptionCurrentPriceId, // 現在の価格プラン
-      //           quantity: subscriptionCurrentQuantity, // 更新前の現在の数量
-      //         },
-      //       ],
-      //       start_date: scheduleData.phases[0].end_date, // 現在のフェーズ終了日を開始日にする
-      //       end_date: oneMinutesAfterEndDate, // 現在のフェーズ終了日から1分後に終了
-      //       // iterations: 1,
-      //       proration_behavior: "none", // そのまま
-      //     },
-      //     {
-      //       items: [
-      //         {
-      //           price: subscriptionCurrentPriceId, // 現在の価格プラン
-      //           quantity: newQuantity, // 新たにダウンした数量
-      //         },
-      //       ],
-      //       start_date: oneMinutesAfterEndDate, // 現在のフェーズ終了日から1分後に終了して次のフェーズを開始
-      //       end_date: oneMonthAfterEndDate, // 現在のフェーズ終了日から丁度１ヶ月後
-      //       // iterations: 1,
-      //       proration_behavior: "none", // 新たに減らした数量を前払い(請求期間の開始日に支払い完了)
-      //     },
-      //   ],
-      // });
-      // =========================== テスト ここまで ===========================
 
       console.log(
         "🌟Stripeアカウント数量減らすステップ5-3 数量ダウンルート サブスクリプションスケジュールのUPDATE完了 subscriptionSchedule",
@@ -624,7 +547,9 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
         format(new Date(subscriptionSchedule.phases[1].end_date * 1000), "yyyy/MM/dd HH:mm:ss")
       );
 
-      // ======================== supabaseのスケジュールテーブルにまだ存在しない場合のルート
+      // ======================== supabaseのスケジュールテーブルにまだ存在しない場合のルート => 初回削除リクエスト
+      console.log("初回削除リクエストルート");
+      // 削除リクエストをしている場合には、必ずuseEffectでdeleteAccountRequestScheduleがセットされるため
       if (!alreadyHaveSchedule) {
         // Stripeのサブスクリプションスケジュールの数量削減リクエスト、更新用にスケジュールidなどをsupabaseのstripe_schedulesテーブルにINSERT
         const insertPayload = {
@@ -665,7 +590,7 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
           type: "change_quantity",
         };
         console.log(
-          "🌟Stripeアカウント数量減らすステップ5-4 数量ダウンルート stripe_schedulesテーブルにINSERTするペイロード",
+          "🌟Stripeアカウント数量減らすステップ5-4 数量ダウンルート stripe_schedulesテーブルにINSERT実行 payload",
           insertPayload
         );
 
@@ -688,7 +613,7 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
         }
 
         console.log(
-          "🌟Stripeアカウント数量減らすステップ5-5 数量ダウンルート Supabaseのstripe_schedulesテーブルにINSERT完了 insertScheduleData",
+          "🔥Stripeアカウント数量減らすステップ5-5 数量ダウンルート Supabaseのstripe_schedulesテーブルにINSERT完了 insertScheduleData",
           insertScheduleData
         );
 
@@ -697,11 +622,11 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
           error: null,
         };
 
-        console.log("✅Stripeアカウント数量減らすステップ6 APIルートへ返却");
+        console.log("✅Stripeアカウント数量減らすステップ6 初回削除リクエストルート 全て完了 APIルートへ返却");
 
         res.status(200).json(response);
       }
-      // ======================== supabaseのスケジュールテーブルにまだ存在しない場合のルート
+      // ======================== supabaseのスケジュールテーブルに既に削除リクエストスケジュールが存在するルート
       else if (alreadyHaveSchedule && (deleteAccountRequestSchedule as StripeSchedule) !== null) {
         // Ensure newQuantity is a number newQuantityが存在し、newQuantityが数値型であることを確認する。
         if (
@@ -709,52 +634,18 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
           (deleteAccountRequestSchedule as StripeSchedule).scheduled_quantity !== null ||
           typeof (deleteAccountRequestSchedule as StripeSchedule).scheduled_quantity !== "number"
         ) {
-          console.log("エラー: Invalid scheduled_quantity");
-          return res.status(400).json({ error: "Invalid scheduled_quantity" });
+          console.log(
+            "❌エラー: Invalid deleteAccountRequestSchedule.scheduled_quantity",
+            deleteAccountRequestSchedule
+          );
+          return res.status(400).json({ error: "❌Invalid deleteAccountRequestSchedule.scheduled_quantity" });
         }
-        // 既に数量削減リクエストのスケジュールが受付されている後に、追加で削減する数量を増やす場合に、
-        // supabaseのstripe_schedulesテーブルのデータの削減後の数量を更新する
-        const currentScheduledQuantity = (deleteAccountRequestSchedule as StripeSchedule).scheduled_quantity;
-        const newQuantityAfterDelete = newQuantity + currentScheduledQuantity!;
+        // 既に数量削減リクエストのスケジュールが受付されているケースにも対応した新たな合計アカウント数がnewQuantityなので、そのまま渡す
         const updateSchedulePayload = {
-          // stripe_customer_id: stripeCustomerId,
-          // // stripe_schedule_id: subscriptionSchedule.id,
-          // schedule_status: "active",
-          // stripe_subscription_id: stripeSubscriptionId,
-          // stripe_subscription_item_id: subscriptionItemId,
-          // current_price_id: subscriptionCurrentPriceId,
-          // scheduled_price_id: null,
-          // current_quantity: subscriptionCurrentQuantity,
-          scheduled_quantity: newQuantityAfterDelete, // 前回の削減後の数量に今回追加する削減する数量を加えた値
-          // note: null, // 注意書きはなし
-          // update_reason: null,
-          // canceled_at: subscriptionSchedule.canceled_at,
-          // company_id: companyId,
-          // subscription_id: subscriptionId,
-          // current_price: subscriptionCurrentPriceUnitAmount,
-          // scheduled_price: null, // 数量変更なのでpriceは変わらず
-          // completed_at: subscriptionSchedule.completed_at
-          //   ? new Date(subscriptionSchedule.completed_at * 1000).toISOString()
-          //   : null,
-          // stripe_created: subscriptionSchedule.created
-          //   ? new Date(subscriptionSchedule.created * 1000).toISOString()
-          //   : null,
-          // user_id: userProfileId,
-          // current_start_date: subscriptionSchedule.phases[0].start_date
-          //   ? new Date(subscriptionSchedule.phases[0].start_date * 1000).toISOString()
-          //   : null,
-          // current_end_date: subscriptionSchedule.phases[0].end_date
-          //   ? new Date(subscriptionSchedule.phases[0].end_date * 1000).toISOString()
-          //   : null,
-          // released_at: subscriptionSchedule.released_at
-          //   ? new Date(subscriptionSchedule.released_at * 1000).toISOString()
-          //   : null,
-          // end_behavior: subscriptionSchedule.end_behavior,
-          // released_subscription: subscriptionSchedule.released_subscription,
-          // type: "change_quantity",
+          scheduled_quantity: newQuantity, // 前回の削減後の数量に今回追加する削減する数量を加えた値 既に削除リクエスト済みが合った場合にはそれを含めた新たなアカウント数
         };
         console.log(
-          "🌟Stripeアカウント数量減らすステップ5-4 数量ダウンルート 既にスケジュール済みのstripe_schedulesの行データの削減後の数量を更新するペイロード",
+          "🔥Stripeアカウント数量減らすステップ5-4 数量ダウンルート stripe_schedulesテーブルupdate()実行 既に削除リクエストを受け付けたchange_quantityタイプのスケジュールを新たなアカウント数でUPDATE",
           updateSchedulePayload
         );
 
@@ -767,18 +658,17 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
 
         if (updatedScheduleError) {
           console.error(
-            "❌Stripeアカウント数量減らすステップ5-5 既に存在するsupabaseのstripe_schedulesテーブルの行データのUPDATEクエリ失敗error",
+            "❌Stripeアカウント数量減らすステップ5-5 stripe_schedulesテーブルupdate()実行 既に削除リクエストを受け付けたchange_quantityタイプのスケジュールを新たなアカウント数でUPDATE失敗",
             updatedScheduleError
           );
-          return res.status(400).json({
+          return res.status(500).json({
             error:
-              "❌Stripeアカウント数量減らすステップ5-5 既に存在するsupabaseのstripe_schedulesテーブルの行データのUPDATEクエリ失敗error",
+              "❌Stripeアカウント数量減らすステップ5-5 stripe_schedulesテーブルupdate()実行 既に削除リクエストを受け付けたchange_quantityタイプのスケジュールを新たなアカウント数でUPDATE失敗",
           });
-          // throw new Error(insertScheduleError.message);
         }
 
         console.log(
-          "🌟Stripeアカウント数量減らすステップ5-5 数量ダウンルート 既に存在するsupabaseのstripe_schedulesテーブルの行データのUPDATEクエリ完了 insertScheduleData",
+          "🌟Stripeアカウント数量減らすステップ5-5 数量ダウンルート stripe_schedulesテーブルupdate()実行 既に削除リクエストを受け付けたchange_quantityタイプのスケジュールを新たなアカウント数でUPDATE完了 insertScheduleData",
           updatedScheduleData
         );
 
@@ -787,7 +677,9 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
           error: null,
         };
 
-        console.log("✅Stripeアカウント数量減らすステップ6 APIルートへ返却");
+        console.log(
+          "✅Stripeアカウント数量減らすステップ6 stripeスケジュールとstripe_schedulesテーブル無事更新成功 APIルートへ返却"
+        );
 
         res.status(200).json(response);
       } else {

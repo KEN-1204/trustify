@@ -168,7 +168,10 @@ const DecreaseAccountCountsModalMemo = () => {
 
   // Stripeのサブスクリプションのquantityを新たな数量に更新
   // 現在のアカウント数 - 削除する未設定アカウント数 = 更新後の合計アカウント数
-  const totalAccountQuantity = currentAccountCounts - (decreaseAccountQuantity ?? 0);
+  const totalAccountQuantity =
+    !!deleteAccountRequestSchedule && !!deleteAccountRequestSchedule?.scheduled_quantity
+      ? deleteAccountRequestSchedule.scheduled_quantity - (decreaseAccountQuantity ?? 0)
+      : currentAccountCounts - (decreaseAccountQuantity ?? 0);
 
   // =========================== 🌟変更を確定をクリック Stripeに送信 ===========================
 
@@ -342,7 +345,11 @@ const DecreaseAccountCountsModalMemo = () => {
     notSetAccounts,
     "今回削除するアカウント数",
     decreaseAccountQuantity,
-    "削除後のアカウント数合計",
+    "削除リクエスト済みアカウント数",
+    deleteAccountRequestSchedule?.scheduled_quantity
+      ? currentAccountCounts - deleteAccountRequestSchedule.scheduled_quantity
+      : null,
+    "削除後のアカウント数合計 totalAccountQuantity",
     totalAccountQuantity,
     "スケジュールテーブル",
     stripeSchedulesDataArray,
@@ -432,7 +439,8 @@ const DecreaseAccountCountsModalMemo = () => {
                   {/* <BsCheck2 className="min-h-[24px] min-w-[24px] stroke-1 text-[24px] text-[var(--color-bg-brand-f)]" /> */}
                   {/* <BsCheck2 className="min-h-[24px] min-w-[24px] stroke-1 text-[24px] text-[#00d436]" /> */}
                   <AiOutlineUserAdd className="min-h-[24px] min-w-[24px] stroke-1 text-[24px] text-[#00d436]" />
-                  <span>未設定のアクティブアカウント数：</span>
+                  {/* <span>未設定のアクティブアカウント数：</span> */}
+                  <span>残り未設定アカウント数：</span>
                   {/* <span className="font-bold">{notSetAccounts.length}個</span> */}
                 </h4>
                 {/* {!useQueryIsLoading && <span className="font-bold">{notSetAccounts.length ?? "-"}個</span>}
@@ -478,7 +486,9 @@ const DecreaseAccountCountsModalMemo = () => {
                         } else if (numValue > notSetAccounts.length) {
                           // const stayNumValue = numValue - 1;
                           // setDecreaseAccountQuantity(stayNumValue);
-                          return alert("未設定のアカウント数以上減らすことはできません。");
+                          return alert(
+                            "メンバー設定済みのアカウントは削除できません。未設定のアカウント数以内で選択してください。"
+                          );
                         } else {
                           // 入力値がマイナスかチェック
                           if (numValue <= 0) {
