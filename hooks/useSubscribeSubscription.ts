@@ -119,7 +119,7 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
               payload.new.subscription_stage === "is_canceled" &&
               payload.old.subscription_stage === "is_subscribed"
             ) {
-              toast.info(`メンバーシップがキャンセルされました🙇 リスタートを始めます。`, {
+              toast.info(`メンバーシップがキャンセルされました🙇‍♀️ リスタートを始めます。`, {
                 position: "top-right",
                 autoClose: 5000,
                 hideProgressBar: false,
@@ -130,7 +130,7 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
               });
               setTimeout(() => {
                 router.reload();
-              }, 1000);
+              }, 3000);
             }
             // ================== ✅キャンセルリクエストルート ここまで ==================
             // ================== 🌟キャンセル後、新たに「メンバーシップを再開」ルート ==================
@@ -144,7 +144,7 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
               payload.new.stripe_subscription_id === newUserData.stripe_subscription_id &&
               payload.old.stripe_subscription_id !== newUserData.stripe_subscription_id
             ) {
-              toast.success(`おかえりなさい🌟TRUSTiFYへようこそ！ リスタートを始めます。`, {
+              toast.success(`おかえりなさい🌟TRUSTiFYへようこそ！ リスタートを始めます🙇‍♀️`, {
                 position: "top-right",
                 autoClose: 5000,
                 hideProgressBar: false,
@@ -155,7 +155,7 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
               });
               setTimeout(() => {
                 router.reload();
-              }, 800);
+              }, 3000);
             }
             // ================== ✅キャンセル後、新たに「メンバーシップを再開」ルート ここまで ==================
             // ================== 🌟「プランアップグレード」が適用された後リロードする ==================
@@ -164,18 +164,18 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
               payload.new.subscription_plan === "premium_plan" &&
               new Date(payload.new.current_period_end).getTime() === new Date(payload.old.current_period_end).getTime()
             ) {
-              toast.success(`プランのアップグレードが適用されました！🌟 リスタートを始めます。`, {
-                position: "top-right",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-              });
-              setTimeout(() => {
-                router.reload();
-              }, 1500);
+              // toast.success(`プランのアップグレードが適用されました！🌟 リスタートを始めます。`, {
+              //   position: "top-right",
+              //   autoClose: 5000,
+              //   hideProgressBar: false,
+              //   closeOnClick: true,
+              //   pauseOnHover: true,
+              //   draggable: true,
+              //   progress: undefined,
+              // });
+              // setTimeout(() => {
+              //   router.reload();
+              // }, 3000);
             }
             // ================== ✅「プランアップグレード」が適用された後リロードする ==================
             // ================== 🌟「アカウントを減らす」「プランダウングレード」スケジュール適用ルート(請求期間更新) ==================
@@ -187,7 +187,7 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
                 new Date(payload.old.current_period_start).getTime()
             ) {
               toast.info(
-                `プランのダウングレードとアカウントの削除リクエストが適用されました！ リスタートを始めます。`,
+                `プランのダウングレードとアカウントの削除リクエストが適用されました！ リスタートを始めます🙇‍♀️`,
                 {
                   position: "top-right",
                   autoClose: 5000,
@@ -200,7 +200,7 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
               );
               setTimeout(() => {
                 router.reload();
-              }, 1500);
+              }, 3000);
               // ================== ✅「アカウントを減らす」「プランダウングレード」スケジュール適用ルート(請求期間更新) ==================
             } else if (
               // ================== 🌟「アカウントを減らす」スケジュール適用ルート(請求期間更新) ==================
@@ -209,7 +209,7 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
               new Date(payload.new.current_period_start).getTime() >
                 new Date(payload.old.current_period_start).getTime()
             ) {
-              toast.info(`アカウントの削除リクエストが適用されました！ リスタートを始めます。`, {
+              toast.info(`アカウントの削除リクエストが適用されました！ リスタートを始めます🙇‍♀️`, {
                 position: "top-right",
                 autoClose: 5000,
                 hideProgressBar: false,
@@ -220,7 +220,7 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
               });
               setTimeout(() => {
                 router.reload();
-              }, 1500);
+              }, 3000);
               // ================== ✅「アカウントを減らす」スケジュール適用ルート(請求期間更新) ==================
             } else if (
               // ================== 🌟「プランダウングレード」スケジュール適用ルート(請求期間更新) ==================
@@ -240,7 +240,7 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
               });
               setTimeout(() => {
                 router.reload();
-              }, 1500);
+              }, 3000);
             }
             // ================== ✅「プランダウングレード」スケジュール適用ルート(請求期間更新) ==================
           }

@@ -173,7 +173,7 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
         return;
       }
       console.log(
-        "🌟Stripeプラン変更ステップ5 プランアップグレードルート stripe.subscriptions.update()実行 数量を増やす"
+        "🌟Stripeプラン変更ステップ5 プランアップグレードルート stripe.subscriptions.update()実行 プランをアップグレード"
       );
       const updatedSubscription = await stripe.subscriptions.update(stripeSubscriptionId, {
         items: [
@@ -286,6 +286,11 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
         console.log(
           "🔥Stripeプラン変更ステップ6-2 プランアップグレードルート stripe.subscriptionSchedules.update()完了 更新後のスケジュールsubscriptionSchedule",
           subscriptionSchedule
+        );
+        console.log("💡更新後 scheduleData.phases[0].items", subscriptionSchedule.phases[0].items);
+        console.log(
+          "💡更新後 subscriptionSchedule.phases[1].items",
+          !!subscriptionSchedule.phases.length && subscriptionSchedule.phases[1].items
         );
 
         // 3. supabaseのスケジュールのactiveで、typeがchange_quantityのcurrent_planをpremium_planに変更する

@@ -1,11 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import jwt from "jsonwebtoken";
-import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
-import { Database } from "@/database.types";
 import Stripe from "stripe";
 import { format } from "date-fns";
-
-// 削除リクエストをキャンセルするルートハンドラー
 
 const updateScheduleDecreaseQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== "POST") {

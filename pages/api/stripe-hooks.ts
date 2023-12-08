@@ -70,7 +70,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const canceledAt = subscription.canceled_at;
     console.log(
       "🌟Stripe_Webhookステップ2 stripeEventの作成日時stripeEvent.created",
-      format(new Date(stripeEvent.created), "yyyy年MM月dd日 HH:mm:ss")
+      format(new Date(stripeEvent.created * 1000), "yyyy年MM月dd日 HH:mm:ss")
     );
     console.log("🌟Stripe_Webhookステップ2 署名検証成功 stripeEvent取得成功", stripeEvent);
     console.log("🌟Stripe_Webhookステップ2-1 subscription.items", subscription.items);
@@ -85,6 +85,17 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         (stripeEvent.data.previous_attributes as DecreaseAndDowngradePreviousAttributes).plan
       );
     }
+    if (
+      "previous_attributes" in stripeEvent.data &&
+      typeof stripeEvent.data.previous_attributes !== "undefined" &&
+      "items" in stripeEvent.data.previous_attributes
+    ) {
+      console.log(
+        "🌟Stripe_Webhookステップ2-1 stripeEvent.data.previous_attributes.items",
+        (stripeEvent.data.previous_attributes as DecreaseAndDowngradePreviousAttributes).items
+      );
+    }
+
     console.log(
       "🌟Stripe_Webhookステップ2-1 stripeEvent.created",
       format(new Date(stripeEventCreated * 1000), "yyyy/MM/dd HH:mm:ss")
@@ -189,8 +200,59 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         case "customer.subscription.pending_update_applied":
           console.log(`🌟Stripe_Webhookステップ3 ${stripeEvent.type}イベントルート`);
 
-          //  🌟「アカウントを減らす」「プランダウングレード」両方スケジュール適用ルート 新たな請求期間へ =======
+          // ============== 🌟「数量ダウンスケジュール有りの状態でプランアップグレード」ルート ==============
+          // 数量ダウンスケジュール有りでプランアップグレードを実行した際のwebhookでそのままトリガー関数を実行させると、削除リクエストを除くアクティブアカウント数を示すnumber_of_active_subscribed_accountsに現在のアカウント数(数量ダウン前)がセットされてしまうため、別途ハンドリングする
 
+          if (
+            "previous_attributes" in stripeEvent.data &&
+            typeof stripeEvent.data.previous_attributes !== "undefined" &&
+            "items" in stripeEvent.data.previous_attributes &&
+            "plan" in stripeEvent.data.previous_attributes &&
+            Object.keys(stripeEvent.data.previous_attributes).length === 2 &&
+            (stripeEvent.data.previous_attributes.plan as Stripe.Plan).id ===
+              process.env.STRIPE_BUSINESS_PLAN_PRICE_ID &&
+            (subscription as ExtendedSubscription).plan.id === process.env.STRIPE_PREMIUM_PLAN_PRICE_ID &&
+            (stripeEvent.data.previous_attributes.plan as Stripe.SubscriptionItem).quantity ===
+              (subscription as ExtendedSubscription).quantity
+          ) {
+            console.log("🌟Stripe_Webhookステップ4 🌟「数量ダウンスケジュール有りの状態でプランアップグレード」ルート");
+            // やること
+            // 1. subscriptionsテーブルのsubscription_planのみをプレミアムプランにUPDATEすること
+            const updatePayload = { subscription_plan: "premium_plan" };
+            const { data, error } = await supabase
+              .update(updatePayload)
+              .match({
+                stripe_subscription_id: subscription.id,
+                stripe_customer_id: subscription.customer,
+                status: "active",
+              })
+              .select();
+            if (error) {
+              console.log(
+                "❌Stripe_Webhookステップ4 🌟「数量ダウンスケジュール有りの状態でプランアップグレード」ルート エラー: supabase.update()でsubscriptionsテーブルのプランを変更できず",
+                "subscription.id",
+                subscription.id,
+                "subscription.customer",
+                subscription.customer
+              );
+              return res.status(500).json({
+                error:
+                  "❌Stripe_Webhookステップ4 🌟「数量ダウンスケジュール有りの状態でプランアップグレード」ルート エラー: supabase.update()でsubscriptionsテーブルのプランを変更できず",
+              });
+            }
+
+            console.log(
+              "✅Stripe_Webhookステップ4 🌟「数量ダウンスケジュール有りの状態でプランアップグレード」ルート 全て完了 200でリターン(subscriptionsテーブルのプラン変更OK) update結果",
+              data
+            );
+            return res.status(200).send({
+              received:
+                "✅Stripe_Webhookステップ4 🌟「数量ダウンスケジュール有りの状態でプランアップグレード」ルート 全て完了 200でリターン(subscriptionsテーブルのプラン変更OK)",
+            });
+          }
+          // ============== ✅「数量ダウンスケジュール有りの状態でプランアップグレード」ルート ==============
+
+          //  🌟「アカウントを減らす」「プランダウングレード」両方スケジュール適用ルート 新たな請求期間へ =======
           // previous_attributesのquantityよりサブスクリプションオブジェクトのquantityの方が少なく、
           // previous_attributesのplan.idがサブスクリプションオブジェクトのplan.idが異なることを確認すれば
           // 間違いなく「アカウントを減らす」「プランダウングレード」両方スケジュールのwebhookとなる
