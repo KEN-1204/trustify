@@ -101,7 +101,7 @@ export const DashboardHomeComponent = () => {
 
           <section
             // className={`${styles.home_screen} space-y-[20px] ${
-            className={`${styles.home_screen} ${
+            className={`${styles.home_screen} ${activeMenuTab !== "HOME" ? `transition-bg03` : `transition-bg05`} ${
               activeMenuTab === "HOME" ||
               activeMenuTab == "Contacts000" ||
               activeMenuTab === "Activity" ||

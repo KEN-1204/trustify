@@ -72,11 +72,16 @@ export const DashboardSidebarMemo: FC = () => {
   };
   return (
     <div
-      className={`${styles.app_sidebar} ${isOpenSidebar ? `transition-base02` : `${styles.mini} transition-base01`}`}
+      className={`${styles.app_sidebar} ${
+        isOpenSidebar ? `${activeMenuTab !== "HOME" ? `` : `transition-w02-bg05`}` : `${styles.mini} transition-w01`
+      }`}
+      // className={`${styles.app_sidebar} ${isOpenSidebar ? `transition-base02` : `${styles.mini} transition-base01`}`}
     >
       <div className={`${styles.wrapper}`}>
         <div className={styles.spacer} />
-        <div className={styles.content_container}>
+        <div
+          className={`${styles.content_container} ${activeMenuTab !== "HOME" ? `transition-bg01` : `transition-bg05`}`}
+        >
           <div className={`${styles.section}`}>
             {/* ========================= メニュータイトル ========================= */}
             <div
@@ -115,11 +120,13 @@ export const DashboardSidebarMemo: FC = () => {
 
                 {!isOpenSidebar && (
                   <div className="flex-col-center pointer-events-none w-full">
-                    <span className="transition-base03 pointer-events-none scale-90 select-none whitespace-nowrap text-[10px] text-[var(--color-text)]">
+                    <span
+                      className={`transition-base03 fade03 pointer-events-none scale-90 select-none whitespace-nowrap text-[10px] text-[var(--color-text)]`}
+                    >
                       メニュー
                     </span>
                     <BsChevronDown
-                      className={`transition-base03 pointer-events-none stroke-[0.5] text-[24px] text-[var(--color-text)] ${
+                      className={`transition-base03 fade03 pointer-events-none stroke-[0.5] text-[24px] text-[var(--color-text)] ${
                         isOpenSideBarMenu ? "rotate-0" : "-rotate-180"
                       }`}
                     />

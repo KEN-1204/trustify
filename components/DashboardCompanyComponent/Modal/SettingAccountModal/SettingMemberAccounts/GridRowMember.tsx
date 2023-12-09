@@ -33,7 +33,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
   const theme = useRootStore(useThemeStore, (state) => state.theme);
-  const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
+  const settingModalProperties = useDashboardStore((state) => state.settingModalProperties);
   const [loading, setLoading] = useState(false);
   const [loadingCancel, setLoadingCancel] = useState(false);
   // チームから削除を選択した場合に削除ターゲットを保持するState
@@ -519,10 +519,13 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
               // クリック位置を取得
               // const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
               const { x, y } = e.currentTarget.getBoundingClientRect();
-              const clickedPositionPlusItemHeight = y + 220 + 40 - 10; // 40はmargin分 -10pxは微調整
-              const modalHeight = window.innerHeight * 0.9;
+              const clickedPositionPlusItemHeight =
+                y + 220 + 40 - 10 + (memberAccount.profile_name === null ? 43.5 : 0); // 40はmargin分 -10pxは微調整
+              // const modalHeight = window.innerHeight * 0.9;
+              const modalHeight = settingModalProperties?.height ?? window.innerHeight * 0.9;
               const halfBlankSpaceWithoutModal = (window.innerHeight - modalHeight) / 2;
-              const modalBottomPosition = window.innerHeight - halfBlankSpaceWithoutModal;
+              const modalBottomPosition =
+                settingModalProperties?.bottom ?? window.innerHeight - halfBlankSpaceWithoutModal;
               // const oneThird = window.innerHeight - window.innerHeight / 3;
               if (modalBottomPosition < clickedPositionPlusItemHeight) {
                 console.log(
@@ -567,6 +570,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
           {/* ==================== チームでの役割メニューポップアップ ==================== */}
           {isOpenRoleMenu && (
             <>
+              {/* オーバーレイ */}
               <div
                 className="fixed left-[-50%] top-[-50%] z-[50] h-[200vh] w-[200vw]"
                 onClick={() => setIsOpenRoleMenu(false)}

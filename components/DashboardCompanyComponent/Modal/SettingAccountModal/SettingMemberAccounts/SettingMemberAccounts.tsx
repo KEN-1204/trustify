@@ -75,6 +75,7 @@ const SettingMemberAccountsMemo: FC = () => {
       : []
   );
 
+  // 並べ替え後の配列
   const [sortedMemberAccountsState, setSortedMemberAccountsState] = useState<MemberAccounts[]>([]);
   useEffect(() => {
     if (typeof memberAccountsDataArray === "undefined") return;

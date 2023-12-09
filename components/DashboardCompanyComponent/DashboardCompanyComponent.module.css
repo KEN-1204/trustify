@@ -17,6 +17,7 @@
   /* font-family: "Hiragino Sans", sans-serif, Roboto, system-ui; */
   /* font-family: sans-serif, "Hiragino Sans", Roboto, system-ui; */
   /* font-family: sans-serif, "Hiragino Sans", Roboto, system-ui; */
+  /* transition: background-color 0.5s ease; */
 }
 .app_main_container.open {
   --sidebar-width: 240px;
@@ -82,6 +83,7 @@
   /* padding: 20px 20px 20px 20px; */
   /* 左右余白あり right 10px */
   /* padding: 20px 10px 20px 20px; */
+  /* transition: background-color 0.5s ease; */
 }
 .company_table_screen_pr {
   padding: 20px 10px 20px 20px;

@@ -138,9 +138,10 @@
 .tab_header {
   /* background: var(--color-bg-brand-table-tab); */
   /* background: var(--color-bg-secondary); */
-  background: var(--color-bg-under-tab-header);
+  background-color: var(--color-bg-under-tab-header);
   border-bottom: 1px solid var(--color-border-table);
   border-bottom: 1px solid var(--color-border-table-deep);
+  /* transition: background-color 0.5s ease; */
 }
 .navbarItem {
   position: relative;
@@ -156,9 +157,8 @@
   /* background-color: var(--color-bg-sub); */
   /* background: var(--color-bg-brand-table-tab); */
   /* background: var(--color-bg-brand-f); */
-  background: var(--color-bg-under-tab-active);
+  background-color: var(--color-bg-under-tab-active);
   /* color: var(--color-dashboard-header-text); */
-  transition: background-color 0.3s ease;
   color: #fff;
 }
 .navbarItem.active .active_underline {
@@ -172,7 +172,7 @@
 
 /* ================================== 🌟ファンクションヘッダー ================================== */
 .grid_function_header {
-  background: var(--color-table-header);
+  background-color: var(--color-table-header);
   border-bottom: 1px solid var(--color-border-table-deep);
   display: flex;
   min-height: 40px;
@@ -181,6 +181,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  /* transition: background-color 0.5s ease; */
 }
 .fh_text_btn {
   /* border: 1px solid var(--color-bg-brand-f); */
@@ -190,13 +191,13 @@
   /* border: 1px solid #6ae67d; */
   /* background: var(--color-bg-brand-f); */
   /* background: var(--color-bg-brand-f-deep); */
-  background: var(--color-function-header-text-btn-hover);
+  background-color: var(--color-function-header-text-btn-hover);
 
   color: #fff;
 }
 .fh_text_btn:active {
   /* background: var(--color-btn-brand-f); */
-  background: var(--color-function-header-text-btn-active);
+  background-color: var(--color-function-header-text-btn-active);
 }
 
 /* ================================== 🌟メインコンテナ ================================== */
@@ -305,7 +306,7 @@
 .input_box {
   height: 100%;
   width: 100%;
-  background: var(--color-bg-under-input);
+  background-color: var(--color-bg-under-input);
   color: var(--color-text-under-input);
   box-shadow: var(--color-bg-under-input-box-shadow);
   padding: 0px 6px;

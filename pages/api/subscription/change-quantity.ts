@@ -588,6 +588,9 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
           end_behavior: subscriptionSchedule.end_behavior,
           released_subscription: subscriptionSchedule.released_subscription,
           type: "change_quantity",
+          current_plan:
+            subscriptionCurrentPriceId === process.env.STRIPE_PREMIUM_PLAN_PRICE_ID ? "premium_plan" : "business_plan",
+          scheduled_plan: null,
         };
         console.log(
           "🌟Stripeアカウント数量減らすステップ5-4 数量ダウンルート stripe_schedulesテーブルにINSERT実行 payload",
@@ -631,7 +634,7 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
         // Ensure newQuantity is a number newQuantityが存在し、newQuantityが数値型であることを確認する。
         if (
           !deleteAccountRequestSchedule ||
-          (deleteAccountRequestSchedule as StripeSchedule).scheduled_quantity !== null ||
+          (deleteAccountRequestSchedule as StripeSchedule).scheduled_quantity === null ||
           typeof (deleteAccountRequestSchedule as StripeSchedule).scheduled_quantity !== "number"
         ) {
           console.log(

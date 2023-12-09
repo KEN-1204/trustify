@@ -212,7 +212,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             (stripeEvent.data.previous_attributes.plan as Stripe.Plan).id ===
               process.env.STRIPE_BUSINESS_PLAN_PRICE_ID &&
             (subscription as ExtendedSubscription).plan.id === process.env.STRIPE_PREMIUM_PLAN_PRICE_ID &&
-            (stripeEvent.data.previous_attributes.plan as Stripe.SubscriptionItem).quantity ===
+            (stripeEvent.data.previous_attributes.items as Stripe.SubscriptionItem).quantity ===
               (subscription as ExtendedSubscription).quantity
           ) {
             console.log("🌟Stripe_Webhookステップ4 🌟「数量ダウンスケジュール有りの状態でプランアップグレード」ルート");

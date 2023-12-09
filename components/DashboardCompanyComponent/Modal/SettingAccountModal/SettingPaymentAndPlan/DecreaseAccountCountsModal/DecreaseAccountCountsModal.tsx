@@ -20,6 +20,7 @@ import { useQueryMemberAccounts } from "@/hooks/useQueryMemberAccounts";
 import { format } from "date-fns";
 import { teamIllustration, windyDayIllustration } from "@/components/assets";
 import { isValidUUIDv4 } from "@/utils/Helpers/uuidHelpers";
+import { RiUserFollowLine, RiUserAddLine } from "react-icons/ri";
 
 const DecreaseAccountCountsModalMemo = () => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
@@ -70,56 +71,6 @@ const DecreaseAccountCountsModalMemo = () => {
     }
   }, [stripeSchedulesDataArray, setDeleteAccountRequestSchedule]);
 
-  // 現在契約しているメンバーアカウント全てを取得して、契約アカウント数をlengthで取得
-  // const {
-  //   data: memberAccountsDataArray,
-  //   error: useQueryError,
-  //   isLoading: useQueryIsLoading,
-  //   refetch: refetchMemberAccounts,
-  // } = useQueryMemberAccounts();
-
-  // // 未設定アカウントを算出
-  // useEffect(() => {
-  //   if (typeof memberAccountsDataArray === "undefined") return;
-  //   if (!memberAccountsDataArray) {
-  //     setNotSetAccounts([]);
-  //     // setNotSetAccountsCount(null);
-  //     return;
-  //   }
-  //   // // 全メンバーアカウントの数
-  //   // アカウントの配列からprofilesのidがnull、かつ、invited_emailがnullで招待中でないアカウント、かつ、アカウントステータスがactiveのアカウントのみをフィルタリング
-  //   const nullIdAccounts = memberAccountsDataArray.filter(
-  //     (account) => account.id === null && account.account_invited_email === null && account.account_state === "active"
-  //   );
-  //   // 削除予定のアカウントを取得してグローバルStateに格納
-  //   const deleteRequestedAccounts = memberAccountsDataArray.filter(
-  //     (account) =>
-  //       account.id === null && account.account_invited_email === null && account.account_state === "delete_requested"
-  //   );
-  //   // idがnullのアカウントの数をカウント
-  //   const nullIdCount = nullIdAccounts ? nullIdAccounts.length : 0;
-  //   // // アカウントの配列からidがnullでないアカウントのみをフィルタリング
-  //   // const notNullIdAccounts = memberAccountsDataArray?.filter((account) => account.id !== null);
-  //   // // idがnullでないアカウントの数をカウント
-  //   // const notNullIdCount = notNullIdAccounts ? notNullIdAccounts.length : 0;
-  //   // // 全アカウント数からnullでないアカウントを引いた数
-  //   // const nullIdCount2 = Math.abs(allAccountsCount - notNullIdCount);
-  //   console.log(
-  //     "nullIdAccounts",
-  //     nullIdAccounts,
-  //     "未設定のアクティブアカウント数",
-  //     nullIdCount,
-  //     "削除リクエスト済みアカウント数",
-  //     deleteRequestedAccounts,
-  //     "memberAccountsDataArray",
-  //     memberAccountsDataArray
-  //   );
-  //   // グローバルStateに格納
-  //   // setNotSetAccountsCount(nullIdCount);
-  //   setNotSetAccounts(nullIdAccounts);
-  //   setNotSetAndDeleteRequestedAccounts(deleteRequestedAccounts);
-  // }, [memberAccountsDataArray, setNotSetAccounts]);
-
   const getPrice = (subscription: string | null | undefined) => {
     if (!subscription) return 0;
     switch (subscription) {
@@ -149,22 +100,12 @@ const DecreaseAccountCountsModalMemo = () => {
     }
   };
 
-  // const [idsToDeleteArray, setIdsToDeleteArray] = useState<string[]>([]);
-  // useEffect(() => {
-  //   if (!decreaseAccountQuantity) return;
-  //   // 選択された個数分、未設定のアカウントの配列からidのみ取り出して指定個数の未設定idの配列を作り引数に渡す。
-  //   const idsToDeleteArrayTemp = notSetAccounts
-  //     .filter(
-  //       (account, index) =>
-  //         account && typeof account.subscribed_account_id === "string" && decreaseAccountQuantity >= index + 1
-  //     )
-  //     .map((account) => account.subscribed_account_id as string);
-
-  //   setIdsToDeleteArray(idsToDeleteArrayTemp);
-  // }, [decreaseAccountQuantity]);
-
   // 契約中のアカウント個数
   const currentAccountCounts = !!memberAccountsDataArray ? memberAccountsDataArray.length : 0;
+  // 設定済みアカウント個数 (数千程度であればfilterメソッドのパフォーマンスには問題にならないため、useEffect, useStateを使わずに使用する)
+  const linkedAccountCounts = !!memberAccountsDataArray
+    ? memberAccountsDataArray?.filter((item) => item.id !== null).length
+    : null;
 
   // Stripeのサブスクリプションのquantityを新たな数量に更新
   // 現在のアカウント数 - 削除する未設定アカウント数 = 更新後の合計アカウント数
@@ -235,7 +176,6 @@ const DecreaseAccountCountsModalMemo = () => {
         subscriptionItem
       );
 
-      // ======================== 🌟スケジュール適用日に数量を減らすルート ========================
       // subscribed_accountsのstateを削除リクエスト済み（delete_requested）に変更
       console.log(
         `🌟Stripeアカウント数量減らすステップ8 supabaseのsubscribed_accountsテーブルから${decreaseAccountQuantity}個のアカウントを削除予定に変更するストアドプロシージャを実行 削除対象のidを持つ配列idsToDeleteArray`,
@@ -339,6 +279,8 @@ const DecreaseAccountCountsModalMemo = () => {
 
     "現在契約中のアカウント個数",
     currentAccountCounts,
+    "紐付け済みアカウント個数",
+    linkedAccountCounts,
     "useQueryメンバーアカウント",
     memberAccountsDataArray,
     "未設定アカウント個数",
@@ -422,6 +364,7 @@ const DecreaseAccountCountsModalMemo = () => {
                   <span className="">/アカウント</span>
                 </div>
               </div>
+
               <div className="mt-[20px] flex max-h-[35px] min-h-[35px] w-full items-center justify-between text-[15px]">
                 <h4 className="flex space-x-3">
                   {/* <BsCheck2 className="min-h-[24px] min-w-[24px] stroke-1 text-[24px] text-[var(--color-bg-brand-f)]" /> */}
@@ -434,34 +377,31 @@ const DecreaseAccountCountsModalMemo = () => {
                 {useQueryIsLoading && <SpinnerIDS scale={"scale-[0.3]"} />} */}
               </div>
 
-              <div className="mt-[20px] flex max-h-[35px] min-h-[35px] w-full items-center justify-between text-[15px]">
+              {/* <div className="mt-[20px] flex max-h-[35px] min-h-[35px] w-full items-center justify-between text-[15px]">
                 <h4 className="flex space-x-3">
-                  {/* <BsCheck2 className="min-h-[24px] min-w-[24px] stroke-1 text-[24px] text-[var(--color-bg-brand-f)]" /> */}
-                  {/* <BsCheck2 className="min-h-[24px] min-w-[24px] stroke-1 text-[24px] text-[#00d436]" /> */}
-                  <AiOutlineUserAdd className="min-h-[24px] min-w-[24px] stroke-1 text-[24px] text-[#00d436]" />
-                  {/* <span>未設定のアクティブアカウント数：</span> */}
-                  <span>残り未設定アカウント数：</span>
-                  {/* <span className="font-bold">{notSetAccounts.length}個</span> */}
+                  <RiUserFollowLine className="min-h-[24px] min-w-[24px] text-[24px] text-[#00d436]" />
+                  <span>メンバー設定済みアカウント数：</span>
                 </h4>
-                {/* {!useQueryIsLoading && <span className="font-bold">{notSetAccounts.length ?? "-"}個</span>}
-                {useQueryIsLoading && <SpinnerIDS scale={"scale-[0.3]"} />} */}
-                <span className="font-bold">{notSetAccounts.length ?? "-"}個</span>
-              </div>
+                <span className="font-bold">{linkedAccountCounts}個</span>
+              </div> */}
 
               <div className="mt-[20px] flex max-h-[35px] min-h-[35px] w-full items-center justify-between text-[15px]">
                 <h4 className="flex space-x-3">
-                  {/* <BsCheck2 className="min-h-[24px] min-w-[24px] stroke-1 text-[24px] text-[var(--color-bg-brand-f)]" /> */}
-                  {/* <BsCheck2 className="min-h-[24px] min-w-[24px] stroke-1 text-[24px] text-[#00d436]" /> */}
-                  <AiOutlineUserDelete className="min-h-[24px] min-w-[24px] stroke-1 text-[24px] text-[var(--bright-red)]" />
+                  {/* <AiOutlineUserDelete className="min-h-[24px] min-w-[24px] stroke-1 text-[24px] text-[var(--bright-red)]" /> */}
+                  {/* <RiUserAddLine className="min-h-[24px] min-w-[24px] text-[24px] text-[var(--bright-red)]" /> */}
+                  <AiOutlineUserDelete className="min-h-[24px] min-w-[24px] text-[24px] text-[var(--bright-red)]" />
                   <span>削除リクエスト済みのアカウント数：</span>
-                  {/* <span className="font-bold">{notSetAccounts.length}個</span> */}
                 </h4>
-                {/* {!useQueryIsLoading && (
-                  <span className="font-bold">{notSetAndDeleteRequestedAccounts.length ?? "-"}個</span>
-                )}
-                {useQueryIsLoading && <SpinnerIDS scale={"scale-[0.3]"} />} */}
                 <span className="font-bold">{notSetAndDeleteRequestedAccounts.length ?? "-"}個</span>
               </div>
+
+              {/* <div className="mt-[20px] flex max-h-[35px] min-h-[35px] w-full items-center justify-between text-[15px]">
+                <h4 className="flex space-x-3">
+                  <AiOutlineUserAdd className="min-h-[24px] min-w-[24px] stroke-1 text-[24px] text-[#00d436]" />
+                  <span>残り未設定アカウント数：</span>
+                </h4>
+                <span className="font-bold">{notSetAccounts.length ?? "-"}個</span>
+              </div> */}
 
               {/* メンバー人数選択エリア */}
               <div className="mt-[20px] flex w-full items-center justify-between text-[var(--color-text-title)]">
@@ -487,7 +427,7 @@ const DecreaseAccountCountsModalMemo = () => {
                           // const stayNumValue = numValue - 1;
                           // setDecreaseAccountQuantity(stayNumValue);
                           return alert(
-                            "メンバー設定済みのアカウントは削除できません。未設定のアカウント数以内で選択してください。"
+                            "メンバー設定済みや招待中のアカウントは削除できません。未設定のアカウント数以内で選択してください。"
                           );
                         } else {
                           // 入力値がマイナスかチェック
@@ -579,7 +519,7 @@ const DecreaseAccountCountsModalMemo = () => {
                 <div className="flex w-full flex-col">
                   <p>減らしたい個数分、メンバーアカウントを未設定の状態にします。</p>
                   <p className="mt-[4px] text-[12px] text-[var(--color-text-sub)]">
-                    メンバー管理画面から、アカウントに紐づいているメンバーを削除してアカウントを未設定の状態にします。
+                    メンバー管理画面から、アカウントに紐づいているメンバーの削除や、招待中をキャンセルしてアカウントを未設定の状態にします。
                   </p>
                 </div>
               </div>

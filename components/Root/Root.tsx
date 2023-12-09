@@ -20,7 +20,6 @@ import { neonMailIcon, neonMessageIcon, neonMessageIconBg } from "../assets";
 import { FeatureParagraph5 } from "./Features/FeatureParagraph5";
 
 export const Root: FC = () => {
-  console.log("Rootコンポーネントレンダリング");
   // 言語
   const language = useStore((state) => state.language);
   const openLangTab = useStore((state) => state.openLangTab);
@@ -33,6 +32,9 @@ export const Root: FC = () => {
   const getStartWithEmail = useStore((state) => state.getStartWithEmail);
   const setGetStartWithEmail = useStore((state) => state.setGetStartWithEmail);
   const setInputEmail = useStore((state) => state.setInputEmail);
+
+  // FAQのラジオボタンの選択中state
+  const [selectedFAQ, setSelectedFAQ] = useState<string | null>(null);
 
   // 画像ホバー有無
   const [hoveredFeature1, setHoveredFeature1] = useState(false);
@@ -253,6 +255,20 @@ export const Root: FC = () => {
       setCheckedEmail("Invalid");
     }
   }, [email]);
+
+  // ラジオボタン チェック済みをクリックでチェックを外す関数
+  const handleRadioChange = (e: React.MouseEvent<HTMLLabelElement>, value: string) => {
+    e.stopPropagation();
+    console.log(value);
+    // すでに選択されているアイテムを再クリックした場合、選択を解除する
+    if (value === selectedFAQ) {
+      setSelectedFAQ(null);
+    } else {
+      setSelectedFAQ(value);
+    }
+  };
+
+  console.log("Rootコンポーネントレンダリング", selectedFAQ);
 
   return (
     <main className={`relative h-full w-full text-[--color-text] ${styles.main_container}`} ref={mainRef}>
@@ -1007,8 +1023,8 @@ export const Root: FC = () => {
         {/* <ul id="price" className={styles.accordion}> */}
         <ul id="price" className={styles.accordion} style={{ fontFamily: "var(--font-family-discord)" }}>
           <li>
-            <input type="radio" name="accordion" id="first" />
-            <label htmlFor="first">
+            <input type="radio" name="accordion" id="first" value="about" checked={selectedFAQ === "about"} readOnly />
+            <label htmlFor="first" onClick={(e) => handleRadioChange(e, "about")}>
               {language === "ja" && "TRUSTiFYとは？"}
               {language === "en" && "What is TRUSTiFY?"}
             </label>
@@ -1030,8 +1046,8 @@ export const Root: FC = () => {
             </div>
           </li>
           <li>
-            <input type="radio" name="accordion" id="second" />
-            <label htmlFor="second">
+            <input type="radio" name="accordion" id="second" value="price" checked={selectedFAQ === "price"} readOnly />
+            <label htmlFor="second" onClick={(e) => handleRadioChange(e, "price")}>
               {language === "ja" && "TRUSTiFYの利用料金は？"}
               {language === "en" && "How much does TRUSTiFY cost?"}
             </label>
@@ -1053,8 +1069,15 @@ export const Root: FC = () => {
             </div>
           </li>
           <li>
-            <input type="radio" name="accordion" id="third" />
-            <label htmlFor="third">
+            <input
+              type="radio"
+              name="accordion"
+              id="third"
+              value="difference"
+              checked={selectedFAQ === "difference"}
+              readOnly
+            />
+            <label htmlFor="third" onClick={(e) => handleRadioChange(e, "difference")}>
               {/* {language === "ja" && "広告つきプランと通常のプランとの違いは何ですか？"} */}
               {language === "ja" && "ビジネスプランとプレミアムプランとの違いは何ですか？"}
               {/* {language === "en" && "What's different on an ad-supported plan?"} */}
@@ -1096,8 +1119,15 @@ export const Root: FC = () => {
             </div>
           </li> */}
           <li>
-            <input type="radio" name="accordion" id="fifth" />
-            <label htmlFor="fifth">
+            <input
+              type="radio"
+              name="accordion"
+              id="fifth"
+              value="cancel"
+              checked={selectedFAQ === "cancel"}
+              readOnly
+            />
+            <label htmlFor="fifth" onClick={(e) => handleRadioChange(e, "cancel")}>
               {language === "ja" && "キャンセルするには？"}
               {language === "en" && "How do I cancel?"}
             </label>

@@ -45,6 +45,12 @@
   /* TikTok */
   --color-red-tk: #ff3b5b;
   --color-red-tk-hover: #fd627c;
+  /* 紫 FFX */
+  /* --color-bg-brand-p: #ff59e9; */
+  --color-bg-brand-p: #ff36e1;
+  /* --color-bg-brand-p: #ff00d9; */
+  /* --color-bg-brand-p: #de21c1; */
+  --color-bg-brand-p-rgb: 255, 54, 225;
   /* Netflix  */
   /* Netflix メンバーシップキャンセル: #448ef4 */
   /* LINEカラー
@@ -1072,7 +1078,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-table-reflection: rgba(255, 255, 255, 0.3);
   --color-table-loading-spinner: #787878;
   --color-table-row-hover: #232323;
+  --color-table-row-hover: #333;
   --color-table-bg-selected: #232323;
+  --color-table-bg-selected: var(--color-bg-brand-f20);
   /* --color-table-checkbox-outline: #2e2e2e; */
   --color-table-checkbox-outline: #555;
   --color-table-checkbox-focus-outline: #fff;
@@ -1540,18 +1548,62 @@ textarea {
   align-items: center;
 }
 
+/* 共通transition width */
+
+.transition-w01 {
+  transition: width 0.1s ease;
+}
+.transition-w02 {
+  transition: width 0.2s ease;
+}
+.transition-w05 {
+  transition: width 0.5s ease;
+}
+/* 共通transition width bg */
+.transition-w01-bg05 {
+  transition: width 0.1s ease, background-color 0.5s ease, border-color 0.5s ease;
+}
+.transition-w02-bg05 {
+  transition: width 0.2s ease, background-color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
+}
+
 /* 共通transition */
+
 .transition-base01 {
   transition: all 0.1s ease;
+}
+.transition-color03 {
+  transition: background-color 0.1s ease, color 0.1s ease, border-color 0.1s ease;
 }
 .transition-base02 {
   transition: all 0.2s ease;
 }
+.transition-base02-bg05 {
+  transition: all 0.2s ease, background-color 0.5s ease;
+}
+.transition-w01-bg05 {
+  transition: width 0.1s ease, max-width 0.1s ease, min-width 0.1s ease, background-color 0.5s ease;
+}
+.transition-w02-bg05 {
+  transition: width 0.2s ease, max-width 0.2s ease, min-width 0.2s ease, background-color 0.5s ease;
+}
 .transition-base03 {
   transition: all 0.3s ease;
 }
+.transition-color03 {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+.transition-bg03 {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
 .transition-base {
   transition: all 0.5s ease;
+}
+.transition-color05 {
+  transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease;
+}
+.transition-bg05 {
+  transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease;
 }
 .transition-base-delay01 {
   transition: all 0.5s ease;
@@ -1923,6 +1975,15 @@ textarea {
   /* border: 122px solid #d21655; */
   /* border: 122px solid var(--color-bg-brand-f); */
 }
+/* .bg-gradient-brand3 {
+  background: linear-gradient(
+    236.22deg,
+    var(--color-bg-brand-p) -3.32%,
+    var(--color-bg-brand-p) 0.21%,
+    var(--color-bg-brand-p) 73.4%
+  );
+  filter: blur(100px);
+} */
 .brand-gradient-underline {
   background: linear-gradient(
     to right,

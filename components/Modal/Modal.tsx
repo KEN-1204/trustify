@@ -10,6 +10,8 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import Spinner from "../Parts/Spinner/Spinner";
 import SpinnerD from "../Parts/SpinnerD/SpinnerD";
 import { useUpdateEffect } from "react-use";
+import { SpinnerX } from "../Parts/SpinnerX/SpinnerX";
+import { Spinner78 } from "../Parts/Spinner78/Spinner78";
 
 export const Modal: FC = () => {
   console.log("Modalコンポーネントレンダリング");
@@ -366,7 +368,9 @@ export const Modal: FC = () => {
               <span className={styles.re}></span>
               {isLoading ? (
                 <div className="flex-center h-full w-full">
-                  <Spinner w="28px" h="28px" s="3px" />
+                  {/* <Spinner w="28px" h="28px" s="3px" /> */}
+                  {/* <SpinnerX w="w-[28px]" h="h-[28px]" fill="fill-[var(--color-bg-brand)]" bgColor="text-[#ccc]" /> */}
+                  <Spinner78 c="#02e7f5" />
                 </div>
               ) : isLogin ? (
                 <>

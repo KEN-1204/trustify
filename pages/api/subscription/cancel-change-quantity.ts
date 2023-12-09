@@ -124,13 +124,13 @@ const changeTeamOwnerHandler = async (req: NextApiRequest, res: NextApiResponse)
     const scheduleData = await stripe.subscriptionSchedules.retrieve(scheduleId as string);
 
     const currentPhasePriceId = scheduleData.phases[0].items[0].price;
-    const upcomingPhaseNewPriceId = scheduleData.phases[1].items[0].price;
+    const nextPhasePriceId = scheduleData.phases[1].items[0].price;
     const currentPhaseQuantity = scheduleData.phases[0].items[0].quantity;
     const upcomingPhaseQuantity = scheduleData.phases[1].items[0].quantity;
 
     let subscriptionSchedule;
     // ========================= プラン変更が無いため数量変更スケジュールリリースルート =========================
-    if (currentPhasePriceId === upcomingPhaseNewPriceId) {
+    if (currentPhasePriceId === nextPhasePriceId) {
       subscriptionSchedule = await stripe.subscriptionSchedules.release(scheduleId as string);
       console.log(
         "🌟Stripe数量ダウンキャンセルステップ5 スケジュールリリース完了 subscriptionSchedule",
@@ -156,7 +156,7 @@ const changeTeamOwnerHandler = async (req: NextApiRequest, res: NextApiResponse)
           {
             items: [
               {
-                price: upcomingPhaseNewPriceId as string,
+                price: nextPhasePriceId as string,
                 quantity: currentPhaseQuantity, // 数量を現在のフェーズに戻す => 数量減少をキャンセル
               },
             ],

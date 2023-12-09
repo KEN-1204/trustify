@@ -16,6 +16,7 @@ import {
   Notification,
   Product,
   Property_row_data,
+  SettingModalProperties,
   StripeSchedule,
   UserProfile,
   UserProfileCompanySubscription,
@@ -116,6 +117,9 @@ type State = {
   // 選択中のメニュー
   selectedSettingAccountMenu: string;
   setSelectedSettingAccountMenu: (payload: string) => void;
+  // 【アカウント設定モーダルの画面からのx, yとサイズ保持用】
+  settingModalProperties: SettingModalProperties | null;
+  setSettingModalProperties: (payload: SettingModalProperties) => void;
   // =================== 製品追加・編集モーダル ===================
   // 新規作成モーダル
   isOpenInsertNewProductModal: boolean;
@@ -373,6 +377,9 @@ const useDashboardStore = create<State>((set) => ({
   // 選択中のメニュー
   selectedSettingAccountMenu: "Profile",
   setSelectedSettingAccountMenu: (payload) => set({ selectedSettingAccountMenu: payload }),
+  // 【アカウント設定モーダルの画面からのx, yとサイズ保持用】
+  settingModalProperties: null,
+  setSettingModalProperties: (payload) => set({ settingModalProperties: payload }),
 
   // =================== 製品追加・編集モーダル ===================
   // 新規作成モーダル

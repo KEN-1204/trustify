@@ -203,6 +203,7 @@ export const SettingInvitationModal = () => {
           progress: undefined,
         });
 
+        // ================================ 成功 ================================
         // 招待したユーザーのidと未設定のアカウントのuser_idを紐付けして、company_roleは初期はmemberに設定する
         const { data: newAccountData, error: accountUpdateError } = await supabase
           .from("subscribed_accounts")
@@ -226,6 +227,9 @@ export const SettingInvitationModal = () => {
             progress: undefined,
           });
         }
+        // ================================ 成功 ここまで ================================
+        // ================================ テスト ================================
+        // ================================ テスト ここまで ================================
         console.log("UPDATEが成功したアカウントデータ", newAccountData);
         // 成功したメールは空にする
         const newEmails = [...emailInputs];
@@ -357,7 +361,7 @@ export const SettingInvitationModal = () => {
         console.log(`メールが空のため${i}回目はスキップしてcontinue`);
         continue;
       }
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 100));
       try {
         console.log(`for文${i}回目 emailInputs[i]`, emailInputs[i]);
         // profilesテーブルに招待先のユーザーの登録があるか確認 => これでサインアップしているか否かを判別
@@ -463,7 +467,9 @@ export const SettingInvitationModal = () => {
         }
         // 🌟1-2 まだ未登録ユーザーへの新規登録招待ルート dataの配列内が0個のパターン（未登録ユーザー向け）
         else if (data.length === 0) {
-          console.log("🌟ステップ3 どのチームにも所属していないため、resendで招待メールを送信");
+          console.log(
+            "🌟ステップ2 未登録ユーザーのため、APIルートのsupabaseのinviteUserByEmail()で自動ログイン機能付きメールで招待"
+          );
           // 入力したemailがprofilesテーブルに存在しない場合、招待＋新規登録のinvitationメールを送信する
           await sendInvitationEmail(emailInputs[i], i);
         }

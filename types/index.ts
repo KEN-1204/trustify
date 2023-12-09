@@ -1491,3 +1491,12 @@ export type Property = {
   property_member_name: string | null;
   property_date: string | null;
 };
+
+export type SettingModalProperties = {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+  width: number;
+  height: number;
+};
