@@ -1210,6 +1210,156 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
   );
   // ================== 🌟GridCellクリックでセルを選択中アクティブセルstateに更新🌟 ここまで ==================
 
+  // ======================== 🌟セル選択時に上下矢印キーでセルを上下に移動可能にする🌟 ========================
+  // 1. スクロールコンテナのRefを作成：スクロールコンテナのDOM要素にアクセスするために、useRefを使用してRefオブジェクトを作成します。
+  // 2. キーボードイベントの処理を更新：上下矢印キーが押された際に、スクロールコンテナのスクロール位置を更新するロジックを追加します。
+  // 3. スクロール位置の調整：選択中のセルが移動した際に、スクロールコンテナのスクロール位置を30px分(セルheight分)移動させます。
+
+  // 1. rowgroupコンテナ => gridRowGroupContainerRef
+  // 2.
+  // キーダウン関数
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    // アクティブセルStateがnull、または、選択中のセルのaria-selectedがtrueでないならリターン
+    if (activeCell === null) return console.log("セルが選択されていないためリターン", activeCell);
+    if (selectedGridCellRef.current?.getAttribute("aria-selected") !== "true")
+      return console.log("aria-selectedがtrueではないためリターン", selectedGridCellRef);
+
+    // 選択中のセルのRowノード取得：giridcellの親要素ノードのroleがrowのdivタグ
+    const currentSelectedRow = e.currentTarget.parentElement;
+    if (!currentSelectedRow) return console.log("選択中のセルの親Rowノード取得できずリターン");
+    // 選択中のセルのRowのaria-rowindexを取得
+    const ariaRowIndexAttr = currentSelectedRow.getAttribute("aria-rowindex");
+    if (ariaRowIndexAttr === null) return console.log("ariaRowIndexが取得できないためリターン");
+    // aria-rowindexを数値に変換, 基数に10進数を渡す、第一引数にnullが渡ったらNaNが返るので、inNaN()関数でチェック
+    const ariaRowIndex = parseInt(ariaRowIndexAttr, 10);
+    if (isNaN(ariaRowIndex)) return console.log("ariaRowIndex数値変換できずリターン");
+
+    // キーダウンが上矢印か下矢印かチェック
+    // 🔹キーボードイベントが上矢印キー、かつ、選択中のセルのRowの上にまだRowノードが存在する時のみ実行
+    if (e.key === "ArrowUp") {
+      console.log("上矢印キーダウン ariaRowIndex", ariaRowIndex);
+      // 列順を表すaria-rowindexが2(rowgroupの一番上)で上矢印キーが押された場合、それ以上上にはいけないのでリターンする
+      if (ariaRowIndex === 2) return console.log("リターン: rowgroupの一番上です", ariaRowIndex, currentSelectedRow, e);
+      if (!currentSelectedRow.previousElementSibling)
+        return console.log("リターン: 上のRowが存在しません", currentSelectedRow.previousElementSibling);
+      // 流れ：選択中のセルをprevSelectedGridCellRefに格納してから、選択中のセルのRowのaria-rowindexを−１した値のRowノードを取得し、そのRowノードから選択中のセルと同じaria-colindexのセルノードを取得してactiveCellとselectedGridCellRef.currentに格納する
+      // 1. 保持していたアクティブセルを前回のアクティブセルprevSelectedGridCellRefに格納
+      // 1-2. まずはaria-selected, tabindexを初期化
+      selectedGridCellRef.current.setAttribute("aria-selected", "false");
+      selectedGridCellRef.current.setAttribute("tabindex", "-1");
+      prevSelectedGridCellRef.current = selectedGridCellRef.current;
+      // 2. 選択中のセルのRowのaria-rowindexを−１した(上に移動した)値のRowノードを取得
+      const upRowElement = currentSelectedRow.previousElementSibling;
+      if (!upRowElement) return console.log("上の行データ無しのためリターン");
+      // 選択中のセルのariaColIndexを取得
+      const targetAriaColIndex = selectedGridCellRef.current.getAttribute("aria-colindex");
+      if (!targetAriaColIndex) return console.log("ariaColIndexが取得できないためリターン");
+      // 3. Rowノードから選択中のセルと同じaria-colindexのセルノードを取得
+      const targetCell = upRowElement.querySelector(`[aria-colindex="${targetAriaColIndex}"`);
+      if (!(targetCell instanceof HTMLDivElement))
+        return console.log("リターン：一つ上のtargetCellがHTMLDivElementではありません"); // nullでないことと同時にHTMLDivElementであることも同時に確認
+      // 5-1. 現在選択中のセルを非選択状態に変更
+      // selectedGridCellRef.current.setAttribute("aria-selected", "false");
+      // selectedGridCellRef.current.setAttribute("tabindex", "-1");
+      // 5-1. 上矢印キーダウンで移動した先のセルの属性setAttributeでクリックしたセルのaria-selectedをtrueに変更
+      targetCell.setAttribute("aria-selected", "true");
+      targetCell.setAttribute("tabindex", "0"); // tabindexを0にすることでフォーカス可能にしてキーボードイベントのターゲットにする
+      targetCell.focus(); // focusをセルに当て直さないと最初のクリックしたセルでonKeyDown()が発火してしまうため新たなセルにフォーカスする
+      // 4. 取得したセルノードをactiveCellとselectedGridCellRef.currentに格納する => 新たなアクティブセルとしてrefに格納して更新
+      selectedGridCellRef.current = targetCell;
+      setActiveCell(selectedGridCellRef.current);
+
+      // 移動した上のRowを選択中の状態の色に変更する aria-selectedをtrueにする
+      if (!selectedGridCellRef.current?.parentElement?.ariaRowIndex)
+        return console.log("リターン: 上に移動したセルのRowが存在しません");
+      if (Number(selectedGridCellRef.current?.parentElement?.ariaRowIndex) === 1) {
+        setClickedActiveRow(null);
+        return console.log("リターン: 選択中のセルがヘッダーRowのためリターン");
+      }
+      // 選択中のRowのindexを移動したセルのRowのaria-rowindexに変更する
+      // setClickedActiveRow(Number(selectedGridCellRef.current?.parentElement?.ariaRowIndex));
+      setClickedActiveRow(Number(selectedGridCellRef.current.parentElement?.ariaRowIndex));
+      // 移動した先のRow要素のRowデータをZustandに挿入 -2は、indexは0から rowIndexは2から始まるため、ヘッダーRowのaria-rowindexが1
+      // setSelectedRowDataCompany(allRows[Number(selectedGridCellRef.current?.parentElement?.ariaRowIndex) - 2]);
+      setSelectedRowDataMeeting(allRows[Number(selectedGridCellRef.current.parentElement?.ariaRowIndex) - 2]);
+
+      // セルを移動後にrowgroupのコンテナを上に30pxスクロールする
+      // console.log("gridRowGroupContainerRef.current", gridRowGroupContainerRef.current);
+      parentGridScrollContainer.current?.scrollBy(0, -30); // 上に30px分スクロール
+
+      console.log(
+        `前回アクティブセルの列と行: ${prevSelectedGridCellRef.current?.ariaColIndex}, ${prevSelectedGridCellRef.current?.parentElement?.ariaRowIndex}, 今回アクティブの列と行: ${selectedGridCellRef.current?.ariaColIndex}, ${selectedGridCellRef.current?.parentElement?.ariaRowIndex}`
+      );
+      return;
+    }
+    // 🔹キーボードイベントが下矢印キー、かつ、選択中のセルのRowの下にまだRowノードが存在する時のみ実行
+    else if (e.key === "ArrowDown") {
+      console.log("下矢印キーダウン ariaRowIndex", ariaRowIndex);
+      // 列順を表すaria-rowindexが2(rowgroupの一番上)で上矢印キーが押された場合、それ以上上にはいけないのでリターンする
+      if (!currentSelectedRow.nextElementSibling)
+        return console.log("リターン: 下のRowが存在しません", currentSelectedRow.nextElementSibling);
+      // 流れ：選択中のセルをprevSelectedGridCellRefに格納してから、選択中のセルのRowのaria-rowindexを−１した値のRowノードを取得し、そのRowノードから選択中のセルと同じaria-colindexのセルノードを取得してactiveCellとselectedGridCellRef.currentに格納する
+      // 1. 保持していたアクティブセルを前回のアクティブセルprevSelectedGridCellRefに格納
+      // 1-2. まずはaria-selected, tabindexを初期化
+      selectedGridCellRef.current.setAttribute("aria-selected", "false");
+      selectedGridCellRef.current.setAttribute("tabindex", "-1");
+      prevSelectedGridCellRef.current = selectedGridCellRef.current;
+      // 2. 選択中のセルのRowのaria-rowindexを−１した(下に移動した)値のRowノードを取得
+      const downRowElement = currentSelectedRow.nextElementSibling;
+      if (!downRowElement) return console.log("下の行データ無しのためリターン");
+      // 選択中のセルのariaColIndexを取得
+      const targetAriaColIndex = selectedGridCellRef.current.getAttribute("aria-colindex");
+      if (!targetAriaColIndex) return console.log("ariaColIndexが取得できないためリターン");
+      // 3. Rowノードから選択中のセルと同じaria-colindexのセルノードを取得
+      const targetCell = downRowElement.querySelector(`[aria-colindex="${targetAriaColIndex}"`);
+      if (!(targetCell instanceof HTMLDivElement))
+        return console.log("リターン：一つ下のtargetCellがHTMLDivElementではありません"); // nullでないことと同時にHTMLDivElementであることも同時に確認
+      // 5-1. 現在選択中のセルを非選択状態に変更
+      // selectedGridCellRef.current.setAttribute("aria-selected", "false");
+      // selectedGridCellRef.current.setAttribute("tabindex", "-1");
+      // 5-1. 下矢印キーダウンで移動した先のセルの属性setAttributeでクリックしたセルのaria-selectedをtrueに変更
+      targetCell.setAttribute("aria-selected", "true");
+      targetCell.setAttribute("tabindex", "0"); // tabindexを0にすることでフォーカス可能にしてキーボードイベントのターゲットにする
+      targetCell.focus(); // focusをセルに当て直さないと最初のクリックしたセルでonKeyDown()が発火してしまうため新たなセルにフォーカスする
+      // 4. 取得したセルノードをactiveCellとselectedGridCellRef.currentに格納する => 新たなアクティブセルとしてrefに格納して更新
+      selectedGridCellRef.current = targetCell;
+      setActiveCell(selectedGridCellRef.current);
+
+      // 移動した下のRowを選択中の状態の色に変更する aria-selectedをtrueにする
+      if (!selectedGridCellRef.current?.parentElement?.ariaRowIndex)
+        return console.log("リターン: 下に移動したセルのRowが存在しません");
+      if (Number(selectedGridCellRef.current?.parentElement?.ariaRowIndex) === 1) {
+        setClickedActiveRow(null);
+        return console.log("リターン: 選択中のセルがヘッダーRowのためリターン");
+      }
+      // 選択中のRowのindexを移動したセルのRowのaria-rowindexに変更する
+      // setClickedActiveRow(Number(selectedGridCellRef.current?.parentElement?.ariaRowIndex));
+      setClickedActiveRow(Number(selectedGridCellRef.current.parentElement?.ariaRowIndex));
+      // 移動した先のRow要素のRowデータをZustandに挿入 -2は、indexは0から rowIndexは2から始まるため、ヘッダーRowのaria-rowindexが1
+      // setSelectedRowDataCompany(allRows[Number(selectedGridCellRef.current?.parentElement?.ariaRowIndex) - 2]);
+      setSelectedRowDataMeeting(allRows[Number(selectedGridCellRef.current.parentElement?.ariaRowIndex) - 2]);
+
+      // セルを移動後にrowgroupのコンテナを下に30pxスクロールする
+      // console.log("gridRowGroupContainerRef.current", gridRowGroupContainerRef.current);
+      parentGridScrollContainer.current?.scrollBy(0, 30); // 下に30px分スクロール
+
+      console.log(
+        `前回アクティブセルの列と行: ${prevSelectedGridCellRef.current?.ariaColIndex}, ${prevSelectedGridCellRef.current?.parentElement?.ariaRowIndex}, 今回アクティブの列と行: ${selectedGridCellRef.current?.ariaColIndex}, ${selectedGridCellRef.current?.parentElement?.ariaRowIndex}`
+      );
+      return;
+    } else {
+      return console.log(
+        "リターン: キーダウンイベント上下矢印キーではないためリターン",
+        e.key,
+        "currentSelectedRow.previousElementSibling",
+        currentSelectedRow.previousElementSibling,
+        "currentSelectedRow.nextElementSibling",
+        currentSelectedRow.nextElementSibling
+      );
+    }
+  };
+  // ======================== ✅セル選択時に上下矢印キーでセルを上下に移動可能にする✅ ========================
+
   // ==================== 🌟チェックボックスクリックでstateに選択したアイテムのidを追加🌟 ====================
   // ================= 🔥🔥テスト🔥🔥==================
   // const handleSelectedCheckBox = (e: React.ChangeEvent<HTMLInputElement>, id: number) => {
@@ -2379,6 +2529,11 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
             className={`${styles.grid_scroll_container} ${
               tableContainerSize === "one_third" ? `${styles.grid_scroll_container_one_third}` : ``
             } ${tableContainerSize === "half" ? `${styles.grid_scroll_container_half}` : ``}`}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                e.preventDefault(); // セル移動時に上下矢印キーで移動しないようにする
+              }
+            }}
           >
             {/* ======================== 🌟Grid列トラック Rowヘッダー🌟 ======================== */}
             <div
@@ -2744,6 +2899,7 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
                                     onDoubleClick={(e) =>
                                       handleDoubleClick(e, index, meetingColumnHeaderItemList[index].columnName)
                                     }
+                                    onKeyDown={handleKeyDown}
                                   >
                                     {displayValue}
                                   </div>
@@ -2863,6 +3019,7 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
                                 onDoubleClick={(e) =>
                                   handleDoubleClick(e, index, meetingColumnHeaderItemList[index].columnName)
                                 }
+                                onKeyDown={handleKeyDown}
                               >
                                 {value as any}
                               </div>
