@@ -223,37 +223,6 @@ const IncreaseAccountCountsModalMemo = () => {
     return getDaysElapsedFromTimestampToNowPeriodEndHours(nextInvoice.period_start, nextInvoice.period_end).elapsedDays;
   }, [nextInvoice?.period_start, nextInvoice?.period_end]);
   // const elapsedDays = getDaysElapsedFromTimestampToNow(nextInvoice.period_start).elapsedDays;
-  const hours = useMemo(() => {
-    if (!nextInvoice) return null;
-    // return getDaysElapsedFromTimestampToNow(nextInvoice.period_start).hours;
-    return getDaysElapsedFromTimestampToNowPeriodEndHours(nextInvoice.period_start, nextInvoice.period_end).hours;
-  }, [nextInvoice?.period_start]);
-  const minutes = useMemo(() => {
-    if (!nextInvoice) return null;
-    // return getDaysElapsedFromTimestampToNow(nextInvoice.period_start).minutes;
-    return getDaysElapsedFromTimestampToNowPeriodEndHours(nextInvoice.period_start, nextInvoice.period_end).minutes;
-  }, [nextInvoice?.period_start]);
-  // const seconds = getDaysElapsedFromTimestampToNow(nextInvoice.period_start).seconds;
-
-  // 終了日までの残り日数 今日の日付は現在で、時間、分、秒はperiod_endに合わせた今日から終了日まで残り日数
-  const remainingDays = useMemo(() => {
-    if (!nextInvoice) return null;
-    return getRemainingDaysFromNowPeriodEndHourToTimestamp(nextInvoice.period_end).remainingDays;
-  }, [nextInvoice?.period_end]);
-  const remainingHours = useMemo(() => {
-    if (!nextInvoice) return null;
-    return getRemainingDaysFromNowPeriodEndHourToTimestamp(nextInvoice.period_end).hours;
-  }, [nextInvoice?.period_end]);
-  const remainingMinutes = useMemo(() => {
-    if (!nextInvoice) return null;
-    return getRemainingDaysFromNowPeriodEndHourToTimestamp(nextInvoice.period_end).minutes;
-  }, [nextInvoice?.period_end]);
-
-  // 請求期間日数
-  const currentPeriod = useMemo(() => {
-    if (!nextInvoice) return null;
-    return getPeriodInDays(nextInvoice.period_start, nextInvoice.period_end);
-  }, [nextInvoice?.period_start, nextInvoice?.period_end]);
 
   // 契約中のアカウント個数
   const currentAccountCounts = !!memberAccountsDataArray ? memberAccountsDataArray.length : 0;
@@ -525,7 +494,7 @@ const IncreaseAccountCountsModalMemo = () => {
 
           // 今日が終了日でないなら、
           // 最後のinvoiceItemをlastInvoiceItemStateに格納する
-          const currentDate = new Date("2026-2-3"); // テストクロック
+          const currentDate = new Date("2026-7-20"); // テストクロック
           const periodEndDate = new Date(upcomingInvoiceData.period_end * 1000);
           if (
             currentDate.getFullYear() === periodEndDate.getFullYear() &&
@@ -635,14 +604,14 @@ const IncreaseAccountCountsModalMemo = () => {
     else if (
       !!nextInvoice &&
       !!userProfileState.current_period_end &&
-      new Date("2026-2-3").getMonth() === new Date(nextInvoice.period_end * 1000).getMonth() &&
+      new Date("2026-7-20").getMonth() === new Date(nextInvoice.period_end * 1000).getMonth() &&
       new Date(nextInvoice.period_end * 1000).getMonth() !== new Date(userProfileState.current_period_end).getMonth()
     ) {
       // テストクロック
       console.log(
         "🔥🔥初回マウントuseEffect実行1 nextInvoiceの終了月とcurrent_period_endが異なり、現在の日付とnextInvoiceの日付が同じ場合は、請求期間が過ぎてcurrent_period_endが更新されているため、再度フェッチする"
       );
-      console.log("現在", format(new Date("2026-2-3"), "yyyy年MM月dd日 HH:mm:ss"));
+      console.log("現在", format(new Date("2026-7-20"), "yyyy年MM月dd日 HH:mm:ss"));
       console.log("nextInvoiceの終了日", format(new Date(nextInvoice.period_end * 1000), "yyyy年MM月dd日 HH:mm:ss"));
       console.log(
         "userProfileStateの終了日",
@@ -653,8 +622,8 @@ const IncreaseAccountCountsModalMemo = () => {
     }
     // nextInvoiceが存在するルート => モーダルを開いた日付と同じか否かでリターン、フェッチを分岐させる
     else if (!!nextInvoice && !!nextInvoice.subscription_proration_date) {
-      // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2026-2-3で現在の日付を作成
-      const currentDateObj = new Date("2026-2-3"); // テストクロック
+      // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2026-7-20で現在の日付を作成
+      const currentDateObj = new Date("2026-7-20"); // テストクロック
       const year = currentDateObj.getFullYear();
       const month = currentDateObj.getMonth();
       const day = currentDateObj.getDate();
@@ -872,7 +841,7 @@ const IncreaseAccountCountsModalMemo = () => {
           );
           // 今日が終了日でないなら、
           // 最後のinvoiceItemをlastInvoiceItemStateに格納する
-          const currentDate = new Date("2026-2-3"); // テストクロック
+          const currentDate = new Date("2026-7-20"); // テストクロック
           const periodEndDate = new Date(nextInvoice.period_end * 1000);
           if (
             currentDate.getFullYear() === periodEndDate.getFullYear() &&
@@ -1521,7 +1490,7 @@ const IncreaseAccountCountsModalMemo = () => {
 
       // 今日が終了日でないなら、
       // 最後のinvoiceItemをlastInvoiceItemStateに格納する
-      const currentDate = new Date("2026-2-3"); // テストクロック
+      const currentDate = new Date("2026-7-20"); // テストクロック
       const periodEndDate = new Date(userProfileState.current_period_end);
       if (
         currentDate.getFullYear() === periodEndDate.getFullYear() &&
@@ -1558,7 +1527,7 @@ const IncreaseAccountCountsModalMemo = () => {
       );
 
     // まずは、現在の日付と時刻、およびcurrent_period_endの日付と時刻をUTCで取得します。
-    const currentDate = new Date("2026-2-3"); // テストクロック用の日付
+    const currentDate = new Date("2026-7-20"); // テストクロック用の日付
     const currentPeriodEndDate = new Date(userProfileState.current_period_end); // これはサンプルの値で、実際にはsupabaseから取得した値を使用します。
 
     const isSameDay =
@@ -2026,9 +1995,9 @@ const IncreaseAccountCountsModalMemo = () => {
   console.log(
     "🌟IncreaseAccountCountsModalコンポーネントレンダリング",
 
-    "現在テストクロックnew Date('2026-2-3')",
-    new Date("2026-2-3"),
-    format(new Date("2026-2-3"), "yyyy/MM/dd HH:mm:ss"),
+    "現在テストクロックnew Date('2026-7-20')",
+    new Date("2026-7-20"),
+    format(new Date("2026-7-20"), "yyyy/MM/dd HH:mm:ss"),
     "現在契約中のアカウント個数",
     currentAccountCounts,
     "現在契約中のアカウント個数",
@@ -2093,7 +2062,7 @@ const IncreaseAccountCountsModalMemo = () => {
     "===============================新プランの料金",
     getPrice(userProfileState?.subscription_plan) * totalAccountQuantity,
     "テストクロックの現在",
-    format(new Date("2026-2-3"), "yyyy年MM月dd日 HH時mm分ss秒"), // テストクロック
+    format(new Date("2026-7-20"), "yyyy年MM月dd日 HH時mm分ss秒"), // テストクロック
     "比例配分日 nextInvoice?.subscription_proration_date",
     nextInvoice?.subscription_proration_date &&
       format(new Date(nextInvoice?.subscription_proration_date * 1000), "yyyy年MM月dd日 HH時mm分ss秒"),
@@ -2169,7 +2138,7 @@ const IncreaseAccountCountsModalMemo = () => {
     if (!nextInvoice) return null;
     if (!nextInvoice.subscription_proration_date) return null;
 
-    const testClockCurrentDate = new Date("2026-2-3"); // テストクロック
+    const testClockCurrentDate = new Date("2026-7-20"); // テストクロック
 
     return (
       <>

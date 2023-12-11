@@ -146,48 +146,51 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
         res.status(400).json({ error: "Invalid prorationDateForIncrease" });
         return;
       }
-      console.log("🌟Stripe数量変更ステップ5 数量アップルート stripe.subscriptions.update()実行 数量を増やす");
-      const subscription = await stripe.subscriptions.update(stripeSubscriptionId, {
-        items: [
-          {
-            id: subscriptionItemId,
-            quantity: newQuantity,
-          },
-        ],
-        // proration_behavior: "none",
-        proration_behavior: "create_prorations",
-        billing_cycle_anchor: "unchanged",
-        proration_date: prorationDateForIncrease,
-      });
-      console.log(
-        "🌟Stripe数量変更ステップ5 数量アップルート stripeのサブスクリプションオブジェクト更新完了 subscription",
-        subscription
-      );
-      console.log(
-        "💡Stripe数量変更ステップ5 数量アップルート UPDATE前 プランの開始日 current_period_start",
-        currentPeriodStart,
-        format(new Date(currentPeriodStart * 1000), "yyyy年MM月dd日 HH時mm分ss秒")
-      );
-      console.log(
-        "💡Stripe数量変更ステップ5 数量アップルート UPDATE前 プランの終了日 current_period_end",
-        currentPeriodEnd,
-        format(new Date(currentPeriodEnd * 1000), "yyyy年MM月dd日 HH時mm分ss秒")
-      );
-      console.log(
-        "💡Stripe数量変更ステップ5 数量アップルート UPDATE後 プランの開始日 current_period_start",
-        subscription.current_period_start,
-        format(new Date(subscription.current_period_start * 1000), "yyyy年MM月dd日 HH時mm分ss秒")
-      );
-      console.log(
-        "💡Stripe数量変更ステップ5 数量アップルート UPDATE後 プランの終了日 current_period_end",
-        subscription.current_period_end,
-        format(new Date(subscription.current_period_end * 1000), "yyyy年MM月dd日 HH時mm分ss秒")
-      );
-      console.log(
-        "💡Stripe数量変更ステップ5 数量アップルート UPDATE後 引数に渡した比例配分日 proration_date",
-        prorationDateForIncrease,
-        format(new Date(prorationDateForIncrease * 1000), "yyyy年MM月dd日 HH時mm分ss秒")
-      );
+
+      // =============================== テスト 元 ===============================
+      // console.log("🌟Stripe数量変更ステップ5 数量アップルート stripe.subscriptions.update()実行 数量を増やす");
+      // const subscription = await stripe.subscriptions.update(stripeSubscriptionId, {
+      //   items: [
+      //     {
+      //       id: subscriptionItemId,
+      //       quantity: newQuantity,
+      //     },
+      //   ],
+      //   // proration_behavior: "none",
+      //   proration_behavior: "create_prorations",
+      //   billing_cycle_anchor: "unchanged",
+      //   proration_date: prorationDateForIncrease,
+      // });
+      // console.log(
+      //   "🌟Stripe数量変更ステップ5 数量アップルート stripeのサブスクリプションオブジェクト更新完了 subscription",
+      //   subscription
+      // );
+      // console.log(
+      //   "💡Stripe数量変更ステップ5 数量アップルート UPDATE前 プランの開始日 current_period_start",
+      //   currentPeriodStart,
+      //   format(new Date(currentPeriodStart * 1000), "yyyy年MM月dd日 HH時mm分ss秒")
+      // );
+      // console.log(
+      //   "💡Stripe数量変更ステップ5 数量アップルート UPDATE前 プランの終了日 current_period_end",
+      //   currentPeriodEnd,
+      //   format(new Date(currentPeriodEnd * 1000), "yyyy年MM月dd日 HH時mm分ss秒")
+      // );
+      // console.log(
+      //   "💡Stripe数量変更ステップ5 数量アップルート UPDATE後 プランの開始日 current_period_start",
+      //   subscription.current_period_start,
+      //   format(new Date(subscription.current_period_start * 1000), "yyyy年MM月dd日 HH時mm分ss秒")
+      // );
+      // console.log(
+      //   "💡Stripe数量変更ステップ5 数量アップルート UPDATE後 プランの終了日 current_period_end",
+      //   subscription.current_period_end,
+      //   format(new Date(subscription.current_period_end * 1000), "yyyy年MM月dd日 HH時mm分ss秒")
+      // );
+      // console.log(
+      //   "💡Stripe数量変更ステップ5 数量アップルート UPDATE後 引数に渡した比例配分日 proration_date",
+      //   prorationDateForIncrease,
+      //   format(new Date(prorationDateForIncrease * 1000), "yyyy年MM月dd日 HH時mm分ss秒")
+      // );
+      // =============================== テスト 元 ここまで ===============================
 
       // ========================== 数量アップグレード後にプランダウングレードスケジュールが存在する場合のルート
       // 数量を増やす前に、プランのダウングレードスケジュールが予約されている場合、
@@ -201,35 +204,83 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
       // まずは、プランのダウングレードのスケジュールが存在するか確認する
       const scheduleId = subscriptions.data[0].schedule;
       if (!scheduleId) {
-        // サブスクリプションスケジュールが存在しない場合には、そのままここでレスポンスする
+        console.log(
+          "🌟Stripe数量変更ステップ5 数量アップルート scheduleId無しルート stripe.subscriptions.update()実行 数量を増やす"
+        );
+        const updatedSubscription = await stripe.subscriptions.update(stripeSubscriptionId, {
+          items: [
+            {
+              id: subscriptionItemId,
+              quantity: newQuantity,
+            },
+          ],
+          // proration_behavior: "none",
+          proration_behavior: "create_prorations",
+          billing_cycle_anchor: "unchanged",
+          proration_date: prorationDateForIncrease,
+        });
+        console.log(
+          "🔥Stripe数量変更ステップ5 数量アップルート scheduleId無しルート stripe.subscriptions.update()実行成功 結果"
+        );
+
         const response = {
-          subscriptionItem: subscription,
+          subscriptionItem: updatedSubscription,
           error: null,
         };
 
-        console.log("✅Stripe数量変更ステップ6 数量アップルート 無事完了したため200でAPIルートへ返却");
+        console.log(
+          "✅Stripe数量変更ステップ6 数量アップルート scheduleId無しルート 無事完了したため200でAPIルートへ返却"
+        );
 
         res.status(200).json(response);
       } else {
         // 🔹サブスクリプションスケジュールが存在するルート
+        console.log(
+          "🌟Stripe数量変更ステップ5 数量アップルート scheduleId有りルート stripe.subscriptionSchedules.retrieve()実行"
+        );
         // サブスクリプションスケジュールが存在する場合には、プランのダウングレードが存在するということなので、数量を変更する
-        const scheduleData = await stripe.subscriptionSchedules.retrieve(scheduleId as string);
+        const previousScheduleData = await stripe.subscriptionSchedules.retrieve(scheduleId as string);
 
         console.log(
-          "🔥Stripe数量変更ステップ6-1 数量アップルート プランのダウングレードスケジュールが存在するため、今回新たに増やした数量にスケジュールの次回フェーズの数量を反映させる 更新前のretrieveしたスケジュールscheduleData",
-          scheduleData
-        );
-        console.log(
-          "💡更新前 scheduleData.phases[0].items",
-          !!scheduleData.phases.length && scheduleData.phases[0].items
-        );
-        console.log(
-          "💡更新前 scheduleData.phases[1].items",
-          !!scheduleData.phases.length && scheduleData.phases[1].items
+          "🔥Stripe数量変更ステップ5 数量アップルート scheduleId有りルート stripe.subscriptionSchedules.retrieve()実行成功 結果",
+          previousScheduleData
         );
 
-        // 2. stripeのサブスクリプションスケジュールの翌月のフェーズのquantityの数量を増やした後の数量に変更する
-        const subscriptionSchedule = await stripe.subscriptionSchedules.update(scheduleData.id, {
+        console.log(
+          "💡更新前 previousScheduleData.phases[0].items",
+          !!previousScheduleData.phases.length && previousScheduleData.phases[0].items
+        );
+        console.log(
+          "💡更新前 previousScheduleData.phases[1].items",
+          !!previousScheduleData.phases.length && previousScheduleData.phases[1].items
+        );
+
+        // 更新前のスケジュールの翌月のダウングレード先のプランのidを取得しておく => スケジュールupdate時に翌月フェーズのpriceにセットする
+        const nextPhasePriceId = previousScheduleData.phases[1].items[0].price;
+        console.log("💡更新前 スケジュール翌月フェーズの価格IDを取得しておく nextPhasePriceId", nextPhasePriceId);
+
+        // 2. スケジュール更新前にstripeのsubscriptionオブジェクトを更新する => 🌟比例配分を適用するため
+        console.log(
+          "🌟Stripe数量変更ステップ5 数量アップルート scheduleId有りルート 比例配分を適用した状態でサブスクリプションオブジェクトをアップデート stripe.subscriptions.update()実行"
+        );
+        const updatedSubscription = await stripe.subscriptions.update(stripeSubscriptionId, {
+          items: [
+            {
+              id: subscriptionItemId,
+              quantity: newQuantity,
+            },
+          ],
+          proration_behavior: "create_prorations",
+          billing_cycle_anchor: "unchanged",
+          proration_date: prorationDateForIncrease,
+        });
+        console.log(
+          "🔥Stripe数量変更ステップ5 数量アップルート scheduleId有りルート 比例配分を適用した状態でサブスクリプションオブジェクトをアップデート stripe.subscriptions.update()実行成功 結果 updatedSubscription",
+          updatedSubscription
+        );
+
+        // 3. stripeのサブスクリプションスケジュールの翌月のフェーズのquantityの数量を増やした後の数量に変更する
+        const subscriptionSchedule = await stripe.subscriptionSchedules.update(previousScheduleData.id, {
           phases: [
             {
               items: [
@@ -238,8 +289,8 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
                   quantity: newQuantity, // 新たに数量を増やしたので、増やす場合は即時適用のため新たな数量を現在のフェーズに渡す
                 },
               ],
-              start_date: scheduleData.phases[0].start_date,
-              end_date: scheduleData.phases[0].end_date, // 本番はこっち
+              start_date: previousScheduleData.phases[0].start_date,
+              end_date: previousScheduleData.phases[0].end_date, // 本番はこっち
               proration_behavior: "none", // そのまま
               billing_cycle_anchor: "phase_start", // 現在の請求期間の開始日のまま
             },
@@ -247,7 +298,8 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
               items: [
                 {
                   // price: subscriptionCurrentPriceId, // 現在の価格プラン
-                  price: scheduleData.phases[1].items[0].price as string, // プランダウングレードスケジュールのためそのまま
+                  // price: previousScheduleData.phases[1].items[0].price as string, // プランダウングレードスケジュールのためそのまま
+                  price: nextPhasePriceId as string, // サブスクリプションupdate前に取得しておいたプランダウングレードスケジュールの翌月フェーズのprice_id
                   quantity: newQuantity, // 新たな数量
                 },
               ],
@@ -258,7 +310,7 @@ const changeQuantityHandler = async (req: NextApiRequest, res: NextApiResponse) 
           ],
         });
         console.log(
-          "🔥Stripe数量変更ステップ6-1 数量アップルート プランのダウングレードスケジュールが存在するため、今回新たに増やした数量にスケジュールの次回フェーズの数量を反映させる 更新後のスケジュールsubscriptionSchedule",
+          "🔥Stripe数量変更ステップ6-1 数量アップルート stripe.subscriptionSchedules.update()実行成功 結果 更新後のスケジュールsubscriptionSchedule",
           subscriptionSchedule
         );
         console.log(

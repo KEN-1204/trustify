@@ -93,7 +93,7 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
     // const current = new Date(); // 現在の日付
     // const timeClockCurrentDate = new Date(2023, 11, 19); // JavaScriptの月は0から始まるため、12月は11となります
     // const timeClockCurrentDate = new Date(2025, 3, 27); // JavaScriptの月は0から始まるため、12月は11となります 1月は0月
-    const timeClockCurrentDate = new Date("2026-2-3"); // テストクロック JavaScriptの月は0から始まるため、12月は11となります 1月は0月
+    const timeClockCurrentDate = new Date("2026-7-20"); // テストクロック JavaScriptの月は0から始まるため、12月は11となります 1月は0月
     console.log(
       "💡タイムクロックの現在の日付 timeClockCurrentDate",
       format(timeClockCurrentDate, "yyyy/MM/dd HH:mm:ss")
@@ -162,7 +162,7 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
       }
       console.log("🔥Stripe将来のインボイス取得ステップ5 数量変更ルート retrieveUpcoming()成功結果", invoice);
       // テスト確認用
-      invoice.lines.data.forEach((item, i) => console.log(`💡retrieveUpcoming()結果 invoice.lines.data[${i}]`, item));
+      // invoice.lines.data.forEach((item, i) => console.log(`💡retrieveUpcoming()結果 invoice.lines.data[${i}]`, item));
       // const resultRetrieveUpcoming = async (item: Stripe.InvoiceLineItem, i: number) =>
       //   new Promise((resolve) =>
       //     setTimeout(() => {
@@ -323,7 +323,7 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
           "🔥Stripe将来のインボイス取得ステップ5 プランアップグレードルート retrieveUpcoming()実行成功 invoices.retrieveUpcoming()で取得したインボイス",
           invoice
         );
-        invoice.lines.data.forEach((item, i) => console.log(`💡retrieveUpcoming()結果 invoice.lines.data[${i}]`, item));
+        // invoice.lines.data.forEach((item, i) => console.log(`💡retrieveUpcoming()結果 invoice.lines.data[${i}]`, item));
         console.log(
           "💡取得した次回のinvoice.period_start",
           format(new Date(invoice.period_start * 1000), "yyyy/MM/dd HH:mm:ss")
@@ -380,7 +380,7 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
           "🔥Stripe将来のインボイス取得ステップ5 プランダウングレードルート retrieveUpcoming()実行成功 invoices.retrieveUpcoming()で取得したインボイス",
           invoice
         );
-        invoice.lines.data.forEach((item, i) => console.log(`💡retrieveUpcoming()結果 invoice.lines.data[${i}]`, item));
+        // invoice.lines.data.forEach((item, i) => console.log(`💡retrieveUpcoming()結果 invoice.lines.data[${i}]`, item));
         console.log(
           "💡retrieveUpcoming()結果 新プランinvoice.lines.data[invoice.lines.data.length - 1]",
           invoice.lines.data[invoice.lines.data.length - 1]
