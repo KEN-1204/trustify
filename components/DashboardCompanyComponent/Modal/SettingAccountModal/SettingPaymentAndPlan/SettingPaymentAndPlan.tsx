@@ -34,7 +34,7 @@ import Stripe from "stripe";
 import { StripeSchedule } from "@/types";
 import Decimal from "decimal.js";
 import { getStripeSchedule } from "@/utils/Helpers/getStripeSchedule";
-import { releaseStripeSchedule } from "@/utils/Helpers/deleteStripeSchedule";
+import { releaseStripeSchedule } from "@/utils/Helpers/releaseStripeSchedule";
 
 const SettingPaymentAndPlanMemo: FC = () => {
   const theme = useThemeStore((state) => state.theme);
@@ -116,7 +116,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
     premiumPlanFeePerAccountRef.current = getPrice("premium_plan"); // プレミアムプラン価格
 
     // 今日が終了日かどうか
-    const currentDateObj = new Date("2026-7-20"); // テストクロック
+    const currentDateObj = new Date("2028-11-20"); // テストクロック
     const year = currentDateObj.getFullYear();
     const month = currentDateObj.getMonth();
     const day = currentDateObj.getDate();
@@ -226,10 +226,18 @@ const SettingPaymentAndPlanMemo: FC = () => {
     notSetAndDeleteRequestedAccounts,
     "プラン変更将来のインボイス nextInvoiceForChangePlan",
     nextInvoiceForChangePlan,
+    "currentPeriodRef.current",
+    currentPeriodRef.current,
+    "remainingDaysRef.current",
+    remainingDaysRef.current,
     "premiumPlanFeePerAccountRef.current",
     premiumPlanFeePerAccountRef.current,
     "businessPlanFeePerAccountRef.current",
     businessPlanFeePerAccountRef.current,
+    "newPlanRemainingAmountPerAccountWithThreeDecimalPointsRef.current",
+    newPlanRemainingAmountPerAccountWithThreeDecimalPointsRef.current,
+    "oldPlanUnusedAmountPerAccountWithThreeDecimalPointsRef.current",
+    oldPlanUnusedAmountPerAccountWithThreeDecimalPointsRef.current,
     "isUpgradePlan",
     isUpgradePlan,
     "インボイスの比例配分日",
@@ -576,6 +584,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
           };
         }
 
+        // 🔹ダウングレードルート
         if (!isUpgradePlan) {
           // Decimal
           const nextInvoiceAmountForDowngrade = new Decimal(businessPlanFeePerAccountRef.current)
@@ -583,25 +592,52 @@ const SettingPaymentAndPlanMemo: FC = () => {
             .toFixed(0);
           // // 浮動小数点数
           // const nextInvoiceAmountForDowngrade = businessPlanFeePerAccountRef.current * nextMonthAccountQuantity;
+          const nextPhaseMonthlyFee =
+            !!deleteAccountRequestSchedule &&
+            (upcomingInvoiceData as Stripe.UpcomingInvoice).lines.data[
+              (upcomingInvoiceData as Stripe.UpcomingInvoice).lines.data.length - 1
+            ].quantity !== null
+              ? new Decimal(businessPlanFeePerAccountRef.current)
+                  .times(
+                    new Decimal(
+                      (upcomingInvoiceData as Stripe.UpcomingInvoice).lines.data[
+                        (upcomingInvoiceData as Stripe.UpcomingInvoice).lines.data.length - 1
+                      ].quantity!
+                    )
+                  )
+                  .toFixed(0)
+              : (upcomingInvoiceData as Stripe.UpcomingInvoice).lines.data[
+                  (upcomingInvoiceData as Stripe.UpcomingInvoice).lines.data.length - 1
+                ].amount;
           console.log(
             "🌟ダウングレードルート 日割り計算必要はなしstripeのamount_dueと来月の数量を動的に変更した総額をチェック",
             "来月の支払額stripe (upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due",
             (upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due,
             "来月の支払額ローカル nextInvoiceAmountForDowngrade",
             nextInvoiceAmountForDowngrade,
+            "来月のプラン価格(stripe) (upcomingInvoiceData as Stripe.UpcomingInvoice).lines.data[(upcomingInvoiceData as Stripe.UpcomingInvoice).lines.data.length - 1].amount",
+            (upcomingInvoiceData as Stripe.UpcomingInvoice).lines.data[
+              (upcomingInvoiceData as Stripe.UpcomingInvoice).lines.data.length - 1
+            ].amount,
             "来月のプラン ビジネスプラン",
             businessPlanFeePerAccountRef.current,
             "来月の数量 nextMonthAccountQuantity",
             nextMonthAccountQuantity
           );
-          if ((upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due === Number(nextInvoiceAmountForDowngrade)) {
+          // if ((upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due === Number(nextInvoiceAmountForDowngrade)) {
+          // if (
+          //   (upcomingInvoiceData as Stripe.UpcomingInvoice).lines.data[
+          //     (upcomingInvoiceData as Stripe.UpcomingInvoice).lines.data.length - 1
+          //   ].amount === Number(nextInvoiceAmountForDowngrade)
+          // ) {
+          if (Number(nextPhaseMonthlyFee) === Number(nextInvoiceAmountForDowngrade)) {
             console.log("🌟ダウングレードルート ✅料金チェック合格 ");
             return {
               checkResult: true,
               prorationDateTimeStamp: (upcomingInvoiceData as Stripe.UpcomingInvoice).subscription_proration_date,
             };
           } else {
-            console.log("🌟ダウングレードルート ✅料金チェック不合格 ");
+            console.log("🌟ダウングレードルート ❌料金チェック不合格 ");
             return {
               checkResult: false,
               prorationDateTimeStamp: null,
@@ -1101,8 +1137,8 @@ const SettingPaymentAndPlanMemo: FC = () => {
 
     // 🔹ビジネスプランからアップグレードルート (アップグレードは日割り計算が必要)
     // モーダル開いた日付を取得して今日が期間終了日と一致するかを確認する
-    // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2026-7-20で現在の日付を作成
-    const currentDateObj = new Date("2026-7-20"); // テストクロック
+    // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2028-11-20で現在の日付を作成
+    const currentDateObj = new Date("2028-11-20"); // テストクロック
     const year = currentDateObj.getFullYear();
     const month = currentDateObj.getMonth();
     const day = currentDateObj.getDate();
@@ -1189,11 +1225,14 @@ const SettingPaymentAndPlanMemo: FC = () => {
     // ビジネスプランからアップグレードルート
     // 🔹インボイスデータが存在しないルート
     if (!nextInvoiceForChangePlan) {
-      console.log("🌟インボイスデータが存在しない初回フェッチルート");
-      // stripeにインボイスデータを取得する
-      const result = await getUpcomingInvoiceChangePlan(isUpgradePlan ? `premium_plan` : `business_plan`);
-      setIsLoadingFetchStripeInvoice(false); // ローディング終了
-      if (!result.checkResult) setNotMatchInvoiceChangePlan(true); // 料金チェックが不合格なので3つ目のセクションを表示
+      // フェッチはアップグレードのみでOK
+      if (isUpgradePlan) {
+        console.log("🌟インボイスデータが存在しない初回フェッチルート");
+        // stripeにインボイスデータを取得する
+        const result = await getUpcomingInvoiceChangePlan(isUpgradePlan ? `premium_plan` : `business_plan`);
+        setIsLoadingFetchStripeInvoice(false); // ローディング終了
+        if (!result.checkResult) setNotMatchInvoiceChangePlan(true); // 料金チェックが不合格なので3つ目のセクションを表示
+      }
       setIsOpenConfirmChangePlanModal(true); // 確定モーダルを開く
     }
     // 🔹インボイスデータが存在するルート
@@ -1207,8 +1246,8 @@ const SettingPaymentAndPlanMemo: FC = () => {
 
       try {
         // 既にプラン変更インボイスが存在するなら、次は現在とインボイスの比例配分の日付が同じかどうかを確認する
-        // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2026-7-20で現在の日付を作成
-        const currentDateObj = new Date("2026-7-20"); // テストクロック
+        // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2028-11-20で現在の日付を作成
+        const currentDateObj = new Date("2028-11-20"); // テストクロック
         const year = currentDateObj.getFullYear();
         const month = currentDateObj.getMonth();
         const day = currentDateObj.getDate();
@@ -1711,11 +1750,16 @@ const SettingPaymentAndPlanMemo: FC = () => {
         userProfileId: userProfileState.id,
         alreadyHaveSchedule: _alreadyHaveSchedule, // true, false
         deleteAccountRequestSchedule: deleteAccountRequestSchedule, // stripe_schedulesテーブルデータ
-        prorationDate: _prorationDateTimestamp,
+        prorationDate: _prorationDateTimestamp, // アップグレードプランのみ
         currentQuantity: userProfileState.accounts_to_create,
       };
 
-      console.log("🌟Stripeプラン変更ステップ axios.post payload", payload);
+      console.log(
+        "🌟Stripeプラン変更ステップ axios.post実行 payload",
+        payload,
+        "比例配分日",
+        format(new Date(_prorationDateTimestamp! * 1000), "yyyy年MM月dd日 HH:mm:ss")
+      );
 
       const {
         data: { data: updatedItem, error: axiosStripeError },
@@ -1938,7 +1982,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
       const pMonth = prorationDateObj.getMonth();
       const pDay = prorationDateObj.getDate();
       const prorationDateOnly = new Date(pYear, pMonth, pDay);
-      const currentDateObj = new Date("2026-7-20"); // テストクロック
+      const currentDateObj = new Date("2028-11-20"); // テストクロック
       const cYear = currentDateObj.getFullYear();
       const cMonth = currentDateObj.getMonth();
       const cDay = currentDateObj.getDate();
@@ -1960,7 +2004,10 @@ const SettingPaymentAndPlanMemo: FC = () => {
       }
       // 🔹数量ダウンスケジュールが存在するルート => プランダウンは料金チェックでretrieveUpcoming()の来月プラン価格を入れた合計料金ではテストしないため、サブスクリプション更新前にスケジュールの来月フェーズのプランを先に更新しておく必要はない。
       // あくまで、更新前にスケジュール来月フェーズを更新するのは将来のインボイス取得時に来月価格を更新後の価格をスケジュールの影響を受けずに取得して次回請求総額同士で料金チェックをするため
-      
+      // => 上記では❌。次回プランを変更しておかないと今月のサブスクプラン変更しても次回フェーズがビジネスのままになってしまう
+      // => 最初からスケジュールのみで今月フェーズのプランをプレミアムにすればスケジュール有りルートでもいける　ただ、スケジュールでの現在プラン更新は比例配分日の設定ができないので、正しく日割り料金が設定される前提で実装しないといけない
+      // => 💡先に次回フェーズのプランをプレミアムにしておかないとstripe.subscriptions.update()で次回フェーズのプランが変更されないので、やはりこの作業は必要
+
       // if (!!deleteAccountRequestSchedule) {
       //   try {
       //     // 1. まずは、ダウングレードスケジュールがある場合には、先にスケジュールの次回フェーズのプランを確認、チェックする
@@ -2284,7 +2331,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
               </span>
               {!!userProfileState?.current_period_end && (
                 <span className="text-[var(--color-text-title)]">
-                  （{format(new Date("2026-7-20"), "MM月dd日")}〜
+                  （{format(new Date("2028-11-20"), "MM月dd日")}〜
                   {format(new Date(userProfileState.current_period_end), "MM月dd日")}）
                 </span>
               )}
@@ -2341,7 +2388,10 @@ const SettingPaymentAndPlanMemo: FC = () => {
                   <span className="min-w-[230px]"></span>
                   <span className=""></span>
                   <span className="text-[13px] text-[var(--color-text-sub)]">
-                    （{new Decimal(newPlanRemainingAmountPerAccountWithThreeDecimalPointsRef.current).toFixed(3)}
+                    （
+                    {Number.isInteger(newPlanRemainingAmountPerAccountWithThreeDecimalPointsRef.current)
+                      ? newPlanRemainingAmountPerAccountWithThreeDecimalPointsRef.current
+                      : new Decimal(newPlanRemainingAmountPerAccountWithThreeDecimalPointsRef.current).toFixed(3)}
                     を四捨五入）
                   </span>
                 </p>
@@ -2402,7 +2452,10 @@ const SettingPaymentAndPlanMemo: FC = () => {
                   <span className="min-w-[280px]"></span>
                   <span className=""></span>
                   <span className="text-[13px] text-[var(--color-text-sub)]">
-                    （{new Decimal(oldPlanUnusedAmountPerAccountWithThreeDecimalPointsRef.current).toFixed(3)}
+                    （
+                    {Number.isInteger(oldPlanUnusedAmountPerAccountWithThreeDecimalPointsRef.current)
+                      ? oldPlanUnusedAmountPerAccountWithThreeDecimalPointsRef.current
+                      : new Decimal(oldPlanUnusedAmountPerAccountWithThreeDecimalPointsRef.current).toFixed(3)}
                     を四捨五入）
                   </span>
                 </p>
@@ -2791,6 +2844,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
                       isLoading ? `` : `hover:bg-[var(--color-bg-brand-f-hover)]`
                     }`}
                     onClick={() => {
+                      if (!userProfileState?.current_period_end) return alert(`ユーザー情報が見つかりませんでした。`);
                       if (!!deleteAccountRequestSchedule)
                         return alert(
                           "アカウントの削減リクエストを受付済みです。アカウントを増やすには削減リクエストをキャンセルしてください。"
@@ -2808,6 +2862,43 @@ const SettingPaymentAndPlanMemo: FC = () => {
                       //   return alert(
                       //     `本日は期間終了日を過ぎているため、アカウントを増やすお手続きは明日日付が変わってから行ってください。`
                       //   );
+                      // }
+                      // 🔹ビジネスプランからアップグレードルート (アップグレードは日割り計算が必要)
+                      // モーダル開いた日付を取得して今日が期間終了日と一致するかを確認する
+                      // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2028-11-20で現在の日付を作成
+                      // const currentDateObj = new Date("2028-11-20"); // テストクロック
+                      // const year = currentDateObj.getFullYear();
+                      // const month = currentDateObj.getMonth();
+                      // const day = currentDateObj.getDate();
+                      // const currentDateOnly = new Date(year, month, day); // 現在の日付の時刻情報をリセット
+                      // // 期間終了日を取得(時刻情報なし) ISOStringのためそのままでOK UNIXタイムスタンプの1000倍してミリ秒に変換不要
+                      // const currentPeriodEndDateObj = new Date(userProfileState.current_period_end);
+                      // const currentPeriodEndYear = currentPeriodEndDateObj.getFullYear();
+                      // const currentPeriodEndMonth = currentPeriodEndDateObj.getMonth();
+                      // const currentPeriodEndDay = currentPeriodEndDateObj.getDate();
+                      // const currentPeriodEndDateOnly = new Date(
+                      //   currentPeriodEndYear,
+                      //   currentPeriodEndMonth,
+                      //   currentPeriodEndDay
+                      // ); // currentPeriodEndの日付の時刻情報をリセット
+                      // console.log(
+                      //   "currentDateOnly",
+                      //   currentDateOnly.getTime(),
+                      //   format(currentDateOnly, "yyyy年MM月dd日 HH時mm分ss秒")
+                      // );
+                      // console.log(
+                      //   "currentPeriodEndDateOnly",
+                      //   currentPeriodEndDateOnly.getTime(),
+                      //   format(currentPeriodEndDateOnly, "yyyy年MM月dd日 HH時mm分ss秒")
+                      // );
+                      // if (currentDateOnly.getTime() === currentPeriodEndDateOnly.getTime()) {
+                      //   alert(
+                      //     `本日は期間終了日のため、アカウントを増やすお手続きは明日の${format(
+                      //       new Date(userProfileState.current_period_end),
+                      //       "HH時mm分ss秒"
+                      //     )}以降でのお手続きをお願い申し上げます🙇‍♀️`
+                      //   );
+                      //   return;
                       // }
                       console.log("アカウント数を増やすクリック");
                       setIsOpenChangeAccountCountsModal("increase");
@@ -2914,9 +3005,111 @@ const SettingPaymentAndPlanMemo: FC = () => {
                   onClick={async () => {
                     if (!getStripeScheduleState) return alert("スケジュールが現在ありません。");
                     await releaseStripeSchedule(getStripeScheduleState.id, sessionState);
+                    if (deleteAccountRequestSchedule) {
+                      const { error } = await supabase
+                        .from("stripe_schedules")
+                        .update({
+                          schedule_status: "canceled",
+                          canceled_at: new Date().toISOString(),
+                        })
+                        .eq("id", deleteAccountRequestSchedule.id);
+                      if (error) console.error("削除リクエストスケジュールキャンセル失敗");
+                    }
+                    if (downgradePlanSchedule) {
+                      const { error } = await supabase
+                        .from("stripe_schedules")
+                        .update({
+                          schedule_status: "canceled",
+                          canceled_at: new Date().toISOString(),
+                        })
+                        .eq("id", downgradePlanSchedule.id);
+                      if (error) console.error("プランダウングレードリクエストスケジュールキャンセル失敗");
+                    }
                   }}
                 >
                   テスト スケジュール削除
+                </span>
+              </div>
+              <div className="flex w-full items-center justify-end">
+                <span
+                  className="ml-auto cursor-pointer text-[var(--color-text-brand-f)] hover:underline"
+                  onClick={async () => {
+                    if (!deleteAccountRequestSchedule && !downgradePlanSchedule) {
+                      toast.success(`削除リクエスト、ダウングレードリクエストどちらもありませんでした`, {
+                        position: "top-right",
+                      });
+                      return console.log("削除リクエスト、ダウングレードリクエストどちらもありませんでした");
+                    }
+                    if (deleteAccountRequestSchedule) {
+                      const { error } = await supabase
+                        .from("stripe_schedules")
+                        .update({
+                          schedule_status: "canceled",
+                          canceled_at: new Date().toISOString(),
+                        })
+                        .eq("id", deleteAccountRequestSchedule.id);
+                      if (error) console.error("削除リクエストスケジュールキャンセル失敗");
+                      toast.success(`削除リクエスト成功`, { position: "top-right" });
+                      if (!downgradePlanSchedule)
+                        await queryClient.invalidateQueries({ queryKey: ["stripe_schedules"] });
+                    }
+                    if (downgradePlanSchedule) {
+                      try {
+                        const { error } = await supabase
+                          .from("stripe_schedules")
+                          .update({
+                            schedule_status: "canceled",
+                            canceled_at: new Date().toISOString(),
+                          })
+                          .eq("id", downgradePlanSchedule.id);
+                        if (error)
+                          throw new Error("プランダウングレードリクエストスケジュールキャンセルに失敗しました");
+                        const { error: secondError } = await supabase
+                          .from("subscribed_accounts")
+                          .update({
+                            account_state: "active",
+                          })
+                          .eq("subscription_id", userProfileState?.subscription_id)
+                          .eq("account_state", "delete_requested")
+                          .is("company_role", null);
+                        if (secondError) throw new Error("アカウントの削除リクエストの取り消しに失敗しました");
+                        toast.success(`ダウングレードリクエスト成功`, { position: "top-right" });
+                      } catch (e: any) {
+                        console.error(e);
+                        toast.error(`${e}`, { position: "top-right" });
+                      }
+                      await queryClient.invalidateQueries({ queryKey: ["stripe_schedules"] });
+                      await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
+                    }
+                  }}
+                >
+                  テスト stripe_schedule削除
+                </span>
+              </div>
+              <div className="flex w-full items-center justify-end">
+                <span
+                  className="ml-auto cursor-pointer text-[var(--color-text-brand-f)] hover:underline"
+                  onClick={async () => {
+                    try {
+                      const { error: secondError } = await supabase
+                        .from("subscribed_accounts")
+                        .update({
+                          account_state: "active",
+                        })
+                        .eq("subscription_id", userProfileState?.subscription_id)
+                        .eq("account_state", "delete_requested")
+                        .is("company_role", null);
+
+                      if (secondError) throw new Error("アカウントの削除リクエストの取り消しに失敗しました");
+                      await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
+                      toast.success(`アカウント削除リクエスト取り消し成功`, { position: "top-right" });
+                    } catch (e: any) {
+                      console.error(e);
+                      toast.error(`${e}`, { position: "top-right" });
+                    }
+                  }}
+                >
+                  テスト アカウント削除リクエスト取り消し
                 </span>
               </div>
             </div>

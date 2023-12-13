@@ -309,9 +309,9 @@ const IncreaseAccountCountsModalMemo = () => {
       // line_itemが一つのみかどうかチェック
       // 🔹本日が終了日のルート
       if ((upcomingInvoiceData as Stripe.UpcomingInvoice).lines.data.length === 1) {
-        const subscriptionLineItem = (upcomingInvoiceData as Stripe.UpcomingInvoice).lines.data.filter(
-          (item) => item.type === "subscription"
-        )[0]; // [0]のインデックスで配列ではなくオブジェクトで取得
+        // const subscriptionLineItem = (upcomingInvoiceData as Stripe.UpcomingInvoice).lines.data.filter(
+        //   (item) => item.type === "subscription"
+        // )[0]; // [0]のインデックスで配列ではなくオブジェクトで取得
         // setNextInvoiceAmountState((upcomingInvoiceData as Stripe.UpcomingInvoice).amount_due);
         // ローディング終了
         setIsLoadingFirstFetch(false);
@@ -422,12 +422,35 @@ const IncreaseAccountCountsModalMemo = () => {
           // const middleIndex = invoiceItemList.length / 2; // 真ん中のインデックスを把握
           // const firstHalfInvoiceItemList = invoiceItemList.slice(0, middleIndex);
           // const secondHalfInvoiceItemList = invoiceItemList.slice(middleIndex);
+
+          const sortFunction = (a: Stripe.InvoiceLineItem, b: Stripe.InvoiceLineItem) => {
+            // 最初にquantityで比較
+            const quantityDiff = (a.quantity ?? 0) - (b.quantity ?? 0);
+            if (quantityDiff !== 0) {
+              return quantityDiff;
+            }
+            // quantityが同じ場合にはperiod.startで比較
+            // return new Date(a.period.start * 1000).getTime() - new Date(b.period.start * 1000).getTime();
+            const startDiff = new Date(a.period.start * 1000).getTime() - new Date(b.period.start * 1000).getTime();
+            if (startDiff !== 0) {
+              return startDiff;
+            }
+            // period.startも同じ場合にはプラン価格を比較する(このルートはプランアップグレードと数量アップの未使用分の比較のみ)
+            return (a.plan?.amount ?? 0) - (b.plan?.amount ?? 0);
+          };
+          // const firstHalfInvoiceItemList = invoiceItemList
+          //   .filter((item) => item.description?.startsWith("Unused"))
+          //   .sort((a, b) => (a.quantity ?? 0) - (b.quantity ?? 0));
+          // const secondHalfInvoiceItemList = invoiceItemList
+          //   .filter((item) => item.description?.startsWith("Remaining"))
+          //   .sort((a, b) => (a.quantity ?? 0) - (b.quantity ?? 0));
+          // quantityが小さい順でかつ、同じ場合には日付が浅い順に並び替え
           const firstHalfInvoiceItemList = invoiceItemList
             .filter((item) => item.description?.startsWith("Unused"))
-            .sort((a, b) => (a.quantity ?? 0) - (b.quantity ?? 0));
+            .sort(sortFunction);
           const secondHalfInvoiceItemList = invoiceItemList
             .filter((item) => item.description?.startsWith("Remaining"))
-            .sort((a, b) => (a.quantity ?? 0) - (b.quantity ?? 0));
+            .sort(sortFunction);
           // ======================= 配列分割テスト =======================
           // 前半部分を未使用分ローカルStateに格納する
           setUnusedInvoiceItemArray(firstHalfInvoiceItemList);
@@ -494,7 +517,7 @@ const IncreaseAccountCountsModalMemo = () => {
 
           // 今日が終了日でないなら、
           // 最後のinvoiceItemをlastInvoiceItemStateに格納する
-          const currentDate = new Date("2026-7-20"); // テストクロック
+          const currentDate = new Date("2028-11-20"); // テストクロック
           const periodEndDate = new Date(upcomingInvoiceData.period_end * 1000);
           if (
             currentDate.getFullYear() === periodEndDate.getFullYear() &&
@@ -560,6 +583,8 @@ const IncreaseAccountCountsModalMemo = () => {
   // ===================== ✅次回支払い情報のUpcomingInvoiceを取得する関数 =====================
 
   // ===================== 🌟初回マウントuseEffect Invoiceをstripeから取得 =====================
+  // プランダウンスケジュール所有時初回のみinvoiceフェッチ発火、２回目ブロック用
+  const [alreadyFetchWithDowngradePlanSchedule, setAlreadyFetchWithDowngradePlanSchedule] = useState(false);
   // 初回マウント時と「新たに増やすアカウント数」を変更して「料金計算」を押した時にStripeから比例配分のプレビューを取得
   useEffect(() => {
     if (!userProfileState) {
@@ -580,7 +605,7 @@ const IncreaseAccountCountsModalMemo = () => {
       getUpcomingInvoice();
       return;
     }
-    // nextInvoiceが存在するルート => アップデート直後に再度開いた時にnextInvoiceのquantityよりメンバーアカウントの数が多くなるので、再度フェッチする
+    // nextInvoiceが存在するルート => アップデート直後に再度開いた時にnextInvoiceのquantityよりメンバーアカウントの数が多くなるので、再度フェッチする memberAccountsDataArray.length + 1はモーダル開いた時の増やす数量の初期値が１なので現在のメンバー数+1が取得してくる将来のインボイスのquantityと同じになる ダウングレードスケジュールがある場合には+1せずにそのままにする 理由はスケジュールの次回フェーズの数量が現在のアカウント数で設定されているため、変更の確定を教えて次回フェーズの数量を修正してから出ないと一致しないため、そのため、ダウングレードスケジュールが存在する場合の数量アップはメンバー数+1はせずにそのままにする => 一旦毎回モーダル開いた時にフェッチにしておく
     else if (
       !!nextInvoice &&
       _nextInvoiceLastItem !== null &&
@@ -597,21 +622,33 @@ const IncreaseAccountCountsModalMemo = () => {
         // "memberAccountsDataArray.length + 1",
         // memberAccountsDataArray.length + 1,
       );
-      getUpcomingInvoice();
+      // ダウングレードスケジュールありの場合には２回目以降はブロックする 開発用再レンダリング時無駄なフェッチ防止
+      if (!!stripeSchedulesDataArray && stripeSchedulesDataArray.length >= 1) {
+        if (!alreadyFetchWithDowngradePlanSchedule) {
+          console.log("プランダウンスケジュールあり初回フェッチ");
+          getUpcomingInvoice();
+          setAlreadyFetchWithDowngradePlanSchedule(true);
+        } else {
+          console.log("プランダウンスケジュールありフェッチ済みリターン");
+        }
+      } else {
+        console.log("プランダウンスケジュール無し初回フェッチ");
+        getUpcomingInvoice();
+      }
       return;
     }
     // nextInvoiceが存在するルート => nextInvoiceを取得後に請求期間が更新された場合に再度フェッチする 現在の月とnextInvoiceの月が一致していて、nextInvoiceの月とcurrent_period_endの月が異なる場合は再度フェッチする
     else if (
       !!nextInvoice &&
       !!userProfileState.current_period_end &&
-      new Date("2026-7-20").getMonth() === new Date(nextInvoice.period_end * 1000).getMonth() &&
+      new Date("2028-11-20").getMonth() === new Date(nextInvoice.period_end * 1000).getMonth() &&
       new Date(nextInvoice.period_end * 1000).getMonth() !== new Date(userProfileState.current_period_end).getMonth()
     ) {
       // テストクロック
       console.log(
         "🔥🔥初回マウントuseEffect実行1 nextInvoiceの終了月とcurrent_period_endが異なり、現在の日付とnextInvoiceの日付が同じ場合は、請求期間が過ぎてcurrent_period_endが更新されているため、再度フェッチする"
       );
-      console.log("現在", format(new Date("2026-7-20"), "yyyy年MM月dd日 HH:mm:ss"));
+      console.log("現在", format(new Date("2028-11-20"), "yyyy年MM月dd日 HH:mm:ss"));
       console.log("nextInvoiceの終了日", format(new Date(nextInvoice.period_end * 1000), "yyyy年MM月dd日 HH:mm:ss"));
       console.log(
         "userProfileStateの終了日",
@@ -622,8 +659,8 @@ const IncreaseAccountCountsModalMemo = () => {
     }
     // nextInvoiceが存在するルート => モーダルを開いた日付と同じか否かでリターン、フェッチを分岐させる
     else if (!!nextInvoice && !!nextInvoice.subscription_proration_date) {
-      // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2026-7-20で現在の日付を作成
-      const currentDateObj = new Date("2026-7-20"); // テストクロック
+      // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2028-11-20で現在の日付を作成
+      const currentDateObj = new Date("2028-11-20"); // テストクロック
       const year = currentDateObj.getFullYear();
       const month = currentDateObj.getMonth();
       const day = currentDateObj.getDate();
@@ -770,12 +807,34 @@ const IncreaseAccountCountsModalMemo = () => {
           // const middleIndex = invoiceItemList.length / 2; // 真ん中のインデックスを把握
           // const firstHalfInvoiceItemList = invoiceItemList.slice(0, middleIndex);
           // const secondHalfInvoiceItemList = invoiceItemList.slice(middleIndex);
+
+          const sortFunction = (a: Stripe.InvoiceLineItem, b: Stripe.InvoiceLineItem) => {
+            // 最初にquantityで比較
+            const quantityDiff = (a.quantity ?? 0) - (b.quantity ?? 0);
+            if (quantityDiff !== 0) {
+              return quantityDiff;
+            }
+            // quantityが同じ場合にはperiod.startで比較
+            // return new Date(a.period.start * 1000).getTime() - new Date(b.period.start * 1000).getTime();
+            const startDiff = new Date(a.period.start * 1000).getTime() - new Date(b.period.start * 1000).getTime();
+            if (startDiff !== 0) {
+              return startDiff;
+            }
+            // period.startも同じ場合にはプラン価格を比較する(このルートはプランアップグレードと数量アップの未使用分の比較のみ)
+            return (a.plan?.amount ?? 0) - (b.plan?.amount ?? 0);
+          };
+          // const firstHalfInvoiceItemList = invoiceItemList
+          //   .filter((item) => item.description?.startsWith("Unused"))
+          //   .sort((a, b) => (a.quantity ?? 0) - (b.quantity ?? 0));
+          // const secondHalfInvoiceItemList = invoiceItemList
+          //   .filter((item) => item.description?.startsWith("Remaining"))
+          //   .sort((a, b) => (a.quantity ?? 0) - (b.quantity ?? 0));
           const firstHalfInvoiceItemList = invoiceItemList
             .filter((item) => item.description?.startsWith("Unused"))
-            .sort((a, b) => (a.quantity ?? 0) - (b.quantity ?? 0));
+            .sort(sortFunction);
           const secondHalfInvoiceItemList = invoiceItemList
             .filter((item) => item.description?.startsWith("Remaining"))
-            .sort((a, b) => (a.quantity ?? 0) - (b.quantity ?? 0));
+            .sort(sortFunction);
           // ======================= 配列分割テスト =======================
           // 前半部分を未使用分ローカルStateに格納する
           setUnusedInvoiceItemArray(firstHalfInvoiceItemList);
@@ -841,7 +900,7 @@ const IncreaseAccountCountsModalMemo = () => {
           );
           // 今日が終了日でないなら、
           // 最後のinvoiceItemをlastInvoiceItemStateに格納する
-          const currentDate = new Date("2026-7-20"); // テストクロック
+          const currentDate = new Date("2028-11-20"); // テストクロック
           const periodEndDate = new Date(nextInvoice.period_end * 1000);
           if (
             currentDate.getFullYear() === periodEndDate.getFullYear() &&
@@ -1490,7 +1549,7 @@ const IncreaseAccountCountsModalMemo = () => {
 
       // 今日が終了日でないなら、
       // 最後のinvoiceItemをlastInvoiceItemStateに格納する
-      const currentDate = new Date("2026-7-20"); // テストクロック
+      const currentDate = new Date("2028-11-20"); // テストクロック
       const periodEndDate = new Date(userProfileState.current_period_end);
       if (
         currentDate.getFullYear() === periodEndDate.getFullYear() &&
@@ -1527,7 +1586,7 @@ const IncreaseAccountCountsModalMemo = () => {
       );
 
     // まずは、現在の日付と時刻、およびcurrent_period_endの日付と時刻をUTCで取得します。
-    const currentDate = new Date("2026-7-20"); // テストクロック用の日付
+    const currentDate = new Date("2028-11-20"); // テストクロック用の日付
     const currentPeriodEndDate = new Date(userProfileState.current_period_end); // これはサンプルの値で、実際にはsupabaseから取得した値を使用します。
 
     const isSameDay =
@@ -1995,9 +2054,9 @@ const IncreaseAccountCountsModalMemo = () => {
   console.log(
     "🌟IncreaseAccountCountsModalコンポーネントレンダリング",
 
-    "現在テストクロックnew Date('2026-7-20')",
-    new Date("2026-7-20"),
-    format(new Date("2026-7-20"), "yyyy/MM/dd HH:mm:ss"),
+    "現在テストクロックnew Date('2028-11-20')",
+    new Date("2028-11-20"),
+    format(new Date("2028-11-20"), "yyyy/MM/dd HH:mm:ss"),
     "現在契約中のアカウント個数",
     currentAccountCounts,
     "現在契約中のアカウント個数",
@@ -2062,7 +2121,7 @@ const IncreaseAccountCountsModalMemo = () => {
     "===============================新プランの料金",
     getPrice(userProfileState?.subscription_plan) * totalAccountQuantity,
     "テストクロックの現在",
-    format(new Date("2026-7-20"), "yyyy年MM月dd日 HH時mm分ss秒"), // テストクロック
+    format(new Date("2028-11-20"), "yyyy年MM月dd日 HH時mm分ss秒"), // テストクロック
     "比例配分日 nextInvoice?.subscription_proration_date",
     nextInvoice?.subscription_proration_date &&
       format(new Date(nextInvoice?.subscription_proration_date * 1000), "yyyy年MM月dd日 HH時mm分ss秒"),
@@ -2138,7 +2197,7 @@ const IncreaseAccountCountsModalMemo = () => {
     if (!nextInvoice) return null;
     if (!nextInvoice.subscription_proration_date) return null;
 
-    const testClockCurrentDate = new Date("2026-7-20"); // テストクロック
+    const testClockCurrentDate = new Date("2028-11-20"); // テストクロック
 
     return (
       <>
@@ -2294,7 +2353,7 @@ const IncreaseAccountCountsModalMemo = () => {
               です。{" "}
               {!!stripeSchedulesDataArray && !!stripeSchedulesDataArray.length && (
                 <span>
-                  プレミアムプランからビジネスプランへのダウングレードを申込み済みです。次回請求期間(
+                  プレミアムプランからビジネスプランへのダウングレードを申込みいただいており、次回請求期間(
                   {format(new Date(nextInvoice.period_end * 1000), "MM月dd日")}
                   )からビジネスプランに切り替わります。下記の「プラン価格」はダウングレード適用後の料金を表示しています。
                 </span>
@@ -2905,13 +2964,19 @@ const IncreaseAccountCountsModalMemo = () => {
           {planType === "new" && (
             <>
               <span className="">{anotherInvoiceQuantity ?? `-`}個</span> →{" "}
-              {!isLastItem && <span className="">{invoiceItem?.quantity ?? `-`}個</span>}
-              {isLastItem && <span className="">{lastInvoiceItem?.newQuantity ?? `-`}個</span>}
+              {!isLastItem && (
+                <span className="text-[var(--color-text-brand-f)] underline">{invoiceItem?.quantity ?? `-`}個</span>
+              )}
+              {isLastItem && (
+                <span className="text-[var(--color-text-brand-f)] underline">
+                  {lastInvoiceItem?.newQuantity ?? `-`}個
+                </span>
+              )}
             </>
           )}
           {planType === "old" && (
             <>
-              <span className="">{invoiceItem?.quantity ?? `-`}個</span> →{" "}
+              <span className="text-[var(--color-text-brand-f)] underline">{invoiceItem?.quantity ?? `-`}個</span> →{" "}
               {!isLastItem && <span className="">{anotherInvoiceQuantity ?? `-`}個</span>}
               {isLastItem && <span className="">{lastInvoiceItem?.newQuantity ?? `-`}個</span>}
             </>
@@ -3530,7 +3595,7 @@ const IncreaseAccountCountsModalMemo = () => {
                   {!!_newUsageAmountForRemainingPeriodWithThreeDecimalPoints
                     ? `${formatToJapaneseYen(
                         Math.round(_newUsageAmountForRemainingPeriodWithThreeDecimalPoints),
-                        false
+                        true
                       )}円`
                     : `-`}
                   {/* {!!newUsageAmountForRemainingPeriodWithThreeDecimalPoints
@@ -3560,7 +3625,7 @@ const IncreaseAccountCountsModalMemo = () => {
                   {!!_oldUnusedAmountForRemainingPeriodWithThreeDecimalPoints
                     ? `${formatToJapaneseYen(
                         Math.round(_oldUnusedAmountForRemainingPeriodWithThreeDecimalPoints),
-                        false,
+                        true,
                         false
                       )}円`
                     : `-`}

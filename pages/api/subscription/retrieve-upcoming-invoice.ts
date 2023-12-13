@@ -3,6 +3,11 @@ import Stripe from "stripe";
 import jwt from "jsonwebtoken";
 import { format } from "date-fns";
 
+type Items = {
+  id: string;
+  quantity: any;
+}[];
+
 // profileテーブルがINSERTされた時にSupabaseのトリガー関数が実行され、リクエストがこのルートハンドラーに送信される
 // リクエスト受信後、Stripeのcustomer.create()でStripeダッシュボードにカスタマーを作成し、
 // 同時にsupabaseのprofileテーブルの該当ユーザーのstripe_customerの値をUPDATEクエリでStripeダッシュボードのカスタマーidと同期させる
@@ -93,7 +98,7 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
     // const current = new Date(); // 現在の日付
     // const timeClockCurrentDate = new Date(2023, 11, 19); // JavaScriptの月は0から始まるため、12月は11となります
     // const timeClockCurrentDate = new Date(2025, 3, 27); // JavaScriptの月は0から始まるため、12月は11となります 1月は0月
-    const timeClockCurrentDate = new Date("2026-7-20"); // テストクロック JavaScriptの月は0から始まるため、12月は11となります 1月は0月
+    const timeClockCurrentDate = new Date("2028-11-20"); // テストクロック JavaScriptの月は0から始まるため、12月は11となります 1月は0月
     console.log(
       "💡タイムクロックの現在の日付 timeClockCurrentDate",
       format(timeClockCurrentDate, "yyyy/MM/dd HH:mm:ss")
@@ -120,6 +125,81 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
       prorationTimestamp
     );
 
+    // ======================= invoice_itemが11個以上存在し、全てのinvoice_itemを取得するのにページネーションが必要なパターン
+    type getAllUpcomingInvoiceLinesParams = {
+      _customerId: string;
+      _subscriptionId: string;
+      _subscriptionItems: Items;
+      _prorationTimestamp: number;
+    };
+    // 取得したinvoice.lines.has_moreがtrueでinvoice.lines.total_countが11個以上の場合には1回の取得で10個までなので、while文で全てを取得する関数を作成
+    const getAllUpcomingInvoiceLines = async ({
+      _customerId,
+      _subscriptionId,
+      _subscriptionItems,
+      _prorationTimestamp,
+    }: getAllUpcomingInvoiceLinesParams): Promise<Stripe.UpcomingInvoice> => {
+      // 初回upcomingIncoiceをフェッチ
+      let upcomingInvoice = await stripe.invoices.retrieveUpcoming({
+        customer: _customerId,
+        subscription: _subscriptionId,
+        subscription_items: _subscriptionItems,
+        subscription_proration_date: _prorationTimestamp,
+      });
+
+      let allInvoiceLines = upcomingInvoice.lines.data;
+      let hasMore = upcomingInvoice.lines.has_more;
+      let lastItemId = allInvoiceLines.length > 0 ? allInvoiceLines[allInvoiceLines.length - 1].id : null;
+      let tryCount = 0;
+
+      // while文 upcomingInvoice.lines.has_moreがtrueな限りinvoiceLineItemをフェッチする
+      while (hasMore) {
+        tryCount += 1; // 実行回数
+        // lastItemIdがnull出ない場合のみstarting_afterを設定
+        const params: Stripe.InvoiceListUpcomingLinesParams = {
+          customer: _customerId,
+          subscription: _subscriptionId,
+          subscription_items: _subscriptionItems,
+          subscription_proration_date: _prorationTimestamp,
+          limit: 100,
+        };
+        // lastItemIdが存在する場合は、paramsオブジェクトにstarting_afterを追加
+        if (lastItemId) params.starting_after = lastItemId;
+        console.log(`while文 listUpcomingLines()実行 ${tryCount}回目`);
+        const additionalLinesResponse = await stripe.invoices.listUpcomingLines(params);
+        const additionalLines = additionalLinesResponse.data;
+
+        // 新たに取得したラインを全体リストに統合
+        allInvoiceLines = [...allInvoiceLines, ...additionalLines];
+        // 次のページの有無を更新
+        hasMore = additionalLinesResponse.has_more;
+        // 次のページがあるか確認し、lastItemIdを更新
+        if (hasMore && additionalLines.length > 0) {
+          lastItemId = additionalLines[additionalLines.length - 1].id;
+        }
+
+        // APIレート制限を考慮した遅延を入れる
+        if (hasMore) {
+          await new Promise((resolve) => setTimeout(resolve, 2000)); // 2秒の遅延
+        } else {
+          upcomingInvoice.lines.has_more = hasMore;
+          console.log(
+            "🔥while文 全てのインボイスラインを取得完了 インボイスラインの個数",
+            allInvoiceLines.length,
+            "additionalLinesResponse.has_more",
+            hasMore,
+            "while最終実行回数",
+            tryCount
+          );
+        }
+      }
+
+      // upcomingInvoiceに統合して返す
+      upcomingInvoice.lines.data = allInvoiceLines;
+      return upcomingInvoice;
+    };
+    // ======================= invoice_itemが11個以上存在し、全てのinvoice_itemを取得するのにページネーションが必要なパターン ここまで
+
     // ======================= ✅billing_cycle_anchorの時間分秒を一緒にしてからproration_dateに渡すパターン
     // ======================= 🌟現在の時間をそのままproration_dateに渡すパターン
     // Set proration date to this moment:
@@ -131,6 +211,27 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
     if (!!changeQuantity && changePlanName === null) {
       // See what the next invoice would look like with a price switch
       // and proration set:
+
+      // // ======================= invoice_itemが10個以内のみ対応パターン
+      // const items = [
+      //   {
+      //     id: subscription.items.data[0].id,
+      //     quantity: changeQuantity,
+      //   },
+      // ];
+      // console.log(
+      //   "🌟Stripe将来のインボイス取得ステップ4 数量変更ルート retrieveUpcoming()を実行 subscription_itemsに渡すitems",
+      //   items
+      // );
+      // const invoice = await stripe.invoices.retrieveUpcoming({
+      //   customer: stripeCustomerId,
+      //   subscription: subscription.id,
+      //   subscription_items: items,
+      //   subscription_proration_date: prorationTimestamp, // 現在の時間でプレビューを取得 => サブスクリプションを変更する際にプレビューした時に適用した比例配分と同じ日付をsubscription.update()のproration_dateに渡す
+      // });
+      // // ======================= invoice_itemが10個以内のみ対応パターン ここまで
+
+      // ======================= invoice_itemが11個以上存在し、全てのinvoice_itemを取得するのにページネーションが必要なパターン
       const items = [
         {
           id: subscription.items.data[0].id,
@@ -141,12 +242,15 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
         "🌟Stripe将来のインボイス取得ステップ4 数量変更ルート retrieveUpcoming()を実行 subscription_itemsに渡すitems",
         items
       );
-      const invoice = await stripe.invoices.retrieveUpcoming({
-        customer: stripeCustomerId,
-        subscription: subscription.id,
-        subscription_items: items,
-        subscription_proration_date: prorationTimestamp, // 現在の時間でプレビューを取得 => サブスクリプションを変更する際にプレビューした時に適用した比例配分と同じ日付をsubscription.update()のproration_dateに渡す
-      });
+      const _params = {
+        _customerId: stripeCustomerId,
+        _subscriptionId: subscription.id,
+        _subscriptionItems: items,
+        _prorationTimestamp: prorationTimestamp, // 現在の時間でプレビューを取得 => サブスクリプションを変更する際にプレビューした時に適用した比例配分と同じ日付をsubscription.update()のproration_dateに渡す
+      };
+
+      const invoice = await getAllUpcomingInvoiceLines(_params);
+      // ======================= invoice_itemが11個以上存在し、全てのinvoice_itemを取得するのにページネーションが必要なパターン ここまで
 
       if (!invoice) {
         console.log(
@@ -288,8 +392,28 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
       };
       // 🔹プランアップグレードルート
       if (changePlanName === "premium_plan") {
-        // See what the next invoice would look like with a price switch
-        // and proration set:
+        // ======================= invoice_itemが10以下のパターン
+        // // See what the next invoice would look like with a price switch
+        // // and proration set:
+        // const items = [
+        //   {
+        //     id: subscription.items.data[0].id,
+        //     price: newPlanId(changePlanName), // Switch to new price
+        //     quantity: currentQuantity,
+        //   },
+        // ];
+        // console.log("🌟Stripe将来のインボイス取得ステップ4 プランアップグレードルート retrieveUpcoming()を実行 ");
+        // console.log("💡subscription_itemsに渡すitems", items);
+        // console.log("💡prorationTimestamp", prorationTimestamp);
+        // const invoice = await stripe.invoices.retrieveUpcoming({
+        //   customer: stripeCustomerId,
+        //   subscription: subscription.id,
+        //   subscription_items: items,
+        //   subscription_proration_date: prorationTimestamp, // 現在の時間でプレビューを取得 => サブスクリプションを変更する際にプレビューした時に適用した比例配分と同じ日付をsubscription.update()のproration_dateに渡す
+        // });
+        // ======================= invoice_itemが10以下のパターン ここまで
+
+        // ======================= invoice_itemが11個以上存在し、全てのinvoice_itemを取得するのにページネーションが必要なパターン
         const items = [
           {
             id: subscription.items.data[0].id,
@@ -300,12 +424,15 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
         console.log("🌟Stripe将来のインボイス取得ステップ4 プランアップグレードルート retrieveUpcoming()を実行 ");
         console.log("💡subscription_itemsに渡すitems", items);
         console.log("💡prorationTimestamp", prorationTimestamp);
-        const invoice = await stripe.invoices.retrieveUpcoming({
-          customer: stripeCustomerId,
-          subscription: subscription.id,
-          subscription_items: items,
-          subscription_proration_date: prorationTimestamp, // 現在の時間でプレビューを取得 => サブスクリプションを変更する際にプレビューした時に適用した比例配分と同じ日付をsubscription.update()のproration_dateに渡す
-        });
+        const _params = {
+          _customerId: stripeCustomerId,
+          _subscriptionId: subscription.id,
+          _subscriptionItems: items,
+          _prorationTimestamp: prorationTimestamp, // 現在の時間でプレビューを取得 => サブスクリプションを変更する際にプレビューした時に適用した比例配分と同じ日付をsubscription.update()のproration_dateに渡す
+        };
+
+        const invoice = await getAllUpcomingInvoiceLines(_params);
+        // ======================= invoice_itemが11個以上存在し、全てのinvoice_itemを取得するのにページネーションが必要なパターン ここまで
 
         if (!invoice) {
           console.log(
@@ -342,7 +469,7 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
 
         res.status(200).json({ data: invoice, error: null });
       }
-      // 🔹プランダウングレードルート
+      // 🔹プランダウングレードルート => プランダウングレードでは、将来の請求データの取得は一旦不要
       else if (changePlanName === "business_plan") {
         // See what the next invoice would look like with a price switch
         // and proration set:

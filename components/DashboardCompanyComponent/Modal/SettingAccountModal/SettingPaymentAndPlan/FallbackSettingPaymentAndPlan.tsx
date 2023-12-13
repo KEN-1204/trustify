@@ -42,7 +42,7 @@ export const FallbackSettingPaymentAndPlan = () => {
 
             <div className="mt-[16px] flex w-full">
               <button
-                className={`transition-base01 flex-center max-h-[41px] w-full min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold !text-[var(--color-text-title)]`}
+                className={`transition-base01 flex-center max-h-[41px] w-full min-w-[78px] cursor-not-allowed rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold !text-[var(--color-text-title)]`}
               >
                 <span>プランをアップグレード</span>
               </button>
@@ -50,13 +50,13 @@ export const FallbackSettingPaymentAndPlan = () => {
             <div className="mt-[16px] flex w-full space-x-8">
               <div className="relative w-[50%] min-w-[78px]">
                 <button
-                  className={`transition-base02 flex-center relative max-h-[41px] w-full cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[25px] py-[10px] text-[14px] font-bold !text-[#fff]`}
+                  className={`transition-base02 flex-center relative max-h-[41px] w-full cursor-not-allowed rounded-[8px] bg-[var(--color-bg-brand-f)] px-[25px] py-[10px] text-[14px] font-bold !text-[#fff]`}
                 >
                   <span>アカウントを増やす</span>
                 </button>
               </div>
               <button
-                className={`transition-base01 flex-center max-h-[41px] w-[50%] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-sub)] px-[25px] py-[10px] text-[14px] font-bold !text-[var(--color-text-title)]`}
+                className={`transition-base01 flex-center max-h-[41px] w-[50%] min-w-[78px] cursor-not-allowed rounded-[8px] bg-[var(--color-bg-sub)] px-[25px] py-[10px] text-[14px] font-bold !text-[var(--color-text-title)]`}
               >
                 <span>アカウントを減らす</span>
               </button>
@@ -65,17 +65,17 @@ export const FallbackSettingPaymentAndPlan = () => {
 
           <div className={`mt-[12px] flex w-full flex-col space-y-2 text-[15px] text-[var(--color-text-sub)]`}>
             <div className="flex w-full items-center justify-end">
-              <span className="ml-auto cursor-pointer hover:text-[var(--color-text-brand-f)] hover:underline">
+              <span className="ml-auto cursor-not-allowed hover:text-[var(--color-text-brand-f)] hover:underline">
                 お支払い方法の設定
               </span>
             </div>
             <div className="flex w-full items-center justify-end">
-              <span className="ml-auto cursor-pointer hover:text-[var(--color-text-brand-f)] hover:underline">
+              <span className="ml-auto cursor-not-allowed hover:text-[var(--color-text-brand-f)] hover:underline">
                 お支払いに関する詳細
               </span>
             </div>
             <div className="flex w-full items-center justify-end">
-              <span className="ml-auto cursor-pointer hover:text-[var(--color-text-brand-f)] hover:underline">
+              <span className="ml-auto cursor-not-allowed hover:text-[var(--color-text-brand-f)] hover:underline">
                 メンバーシップのキャンセル
               </span>
             </div>

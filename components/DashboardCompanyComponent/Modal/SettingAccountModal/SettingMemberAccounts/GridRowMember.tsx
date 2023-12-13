@@ -428,7 +428,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
     setIsOpenRoleMenu(false);
   };
 
-  console.log("🌟memberAccount", memberAccount, "memberAccount.avatar_url", memberAccount.avatar_url);
+  // console.log("🌟memberAccount", memberAccount, "memberAccount.avatar_url", memberAccount.avatar_url);
 
   return (
     <>

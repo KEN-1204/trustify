@@ -45,17 +45,23 @@ const releaseScheduleHandler = async (req: NextApiRequest, res: NextApiResponse)
     });
 
     console.log("🌟stripe.subscriptionSchedules.release()実行");
-    const releasedScheduleData = await stripe.subscriptionSchedules.release(scheduleId as string);
+    try {
+      const releasedScheduleData = await stripe.subscriptionSchedules.release(scheduleId as string);
+      const response = {
+        data: releasedScheduleData,
+        error: null,
+      };
+      console.log("🔥stripe.subscriptionSchedules.release()成功", releasedScheduleData);
 
-    const response = {
-      data: releasedScheduleData,
-      error: null,
-    };
-    console.log("🔥stripe.subscriptionSchedules.release()成功", releasedScheduleData);
-
-    console.log("✅完了 200でAPIルートへ返却");
-
-    res.status(200).json(response);
+      console.log("✅完了 200でAPIルートへ返却");
+      res.status(200).json(response);
+    } catch (e: any) {
+      const response = {
+        data: null,
+        error: e,
+      };
+      res.status(200).json(response);
+    }
   } catch (error) {
     if ((error as Error).name === "JsonWebTokenError") {
       console.log("❌Invalid token");

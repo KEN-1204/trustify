@@ -248,7 +248,7 @@ const DecreaseAccountCountsModalMemo = () => {
       // await queryClient.invalidateQueries({ queryKey: ["stripe_schedules"] });
       // ======================= 🌟即時に実際に一括でアカウントを削除するルート ここまで =======================
 
-      toast.success(`数量変更を受け付けました。現在の請求期間の最終日に新たなアカウント数が適用されます。`, {
+      toast.success(`数量変更を受け付けました。次回の請求期間の開始日に新たなアカウント数が適用されます。`, {
         position: "top-right",
         autoClose: 5000,
         hideProgressBar: false,

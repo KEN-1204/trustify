@@ -201,6 +201,7 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
               setTimeout(() => {
                 router.reload();
               }, 3000);
+              return;
               // ================== ✅「アカウントを減らす」「プランダウングレード」スケジュール適用ルート(請求期間更新) ==================
             } else if (
               // ================== 🌟「アカウントを減らす」スケジュール適用ルート(請求期間更新) ==================
@@ -229,7 +230,7 @@ export const useSubscribeSubscription = (userProfile: UserProfileCompanySubscrip
               new Date(payload.new.current_period_start).getTime() >
                 new Date(payload.old.current_period_start).getTime()
             ) {
-              toast.info(`プランのダウングレードリクエストが適用されました！ リスタートを始めます。`, {
+              toast.info(`プランのダウングレードリクエストが適用されました！ リスタートを始めます🙇‍♀️`, {
                 position: "top-right",
                 autoClose: 5000,
                 hideProgressBar: false,

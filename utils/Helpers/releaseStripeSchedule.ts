@@ -66,7 +66,7 @@ export const releaseStripeSchedule = async (getStripeScheduleStateId: string, se
 
     return;
   } catch (e: any) {
-    console.error("❌スケジュール取得エラー：", e);
+    console.log("❌スケジュール削除エラー", e);
     return;
   }
 };

@@ -17,11 +17,11 @@ export const FallbackIncreaseAccountCountsModal = () => {
 
       <div className={`${styles.container} `}>
         {/* クローズボタン */}
-        <button
+        {/* <button
           className={`flex-center group absolute right-[-40px] top-0 z-10 h-[32px] w-[32px] rounded-full bg-[#00000090] hover:bg-[#000000c0]`}
         >
           <MdClose className="text-[20px] text-[#fff]" />
-        </button>
+        </button> */}
         {/* メインコンテンツ コンテナ */}
         <div className={`${styles.main_contents_container}`}>
           <div className={`${styles.left_container} relative h-full w-5/12`}>
@@ -94,7 +94,7 @@ export const FallbackIncreaseAccountCountsModal = () => {
                 </div>
               </div>
               <button
-                className={`flex-center h-[40px] w-full cursor-pointer rounded-[6px] bg-[var(--color-bg-brand-f)] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                className={`flex-center h-[40px] w-full cursor-not-allowed rounded-[6px] bg-[var(--color-bg-brand-f)] font-bold text-[#fff]`}
               >
                 <span>変更の確定</span>
               </button>
