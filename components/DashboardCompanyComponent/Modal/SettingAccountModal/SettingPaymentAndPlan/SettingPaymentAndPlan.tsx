@@ -116,7 +116,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
     premiumPlanFeePerAccountRef.current = getPrice("premium_plan"); // プレミアムプラン価格
 
     // 今日が終了日かどうか
-    const currentDateObj = new Date("2029-2-20"); // テストクロック
+    const currentDateObj = new Date("2029-4-20"); // テストクロック
     const year = currentDateObj.getFullYear();
     const month = currentDateObj.getMonth();
     const day = currentDateObj.getDate();
@@ -242,7 +242,9 @@ const SettingPaymentAndPlanMemo: FC = () => {
     isUpgradePlan,
     "インボイスの比例配分日",
     !!nextInvoiceForChangePlan?.subscription_proration_date &&
-      format(new Date(nextInvoiceForChangePlan.subscription_proration_date * 1000), "yyyy年MM月dd日 HH:mm:ss")
+      format(new Date(nextInvoiceForChangePlan.subscription_proration_date * 1000), "yyyy年MM月dd日 HH:mm:ss"),
+    "isLastDay",
+    isLastDay
   );
 
   // Stripeポータルへ移行させるためのURLをAPIルートにGETリクエスト
@@ -1137,8 +1139,8 @@ const SettingPaymentAndPlanMemo: FC = () => {
 
     // 🔹ビジネスプランからアップグレードルート (アップグレードは日割り計算が必要)
     // モーダル開いた日付を取得して今日が期間終了日と一致するかを確認する
-    // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2029-2-20で現在の日付を作成
-    const currentDateObj = new Date("2029-2-20"); // テストクロック
+    // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2029-4-20で現在の日付を作成
+    const currentDateObj = new Date("2029-4-20"); // テストクロック
     const year = currentDateObj.getFullYear();
     const month = currentDateObj.getMonth();
     const day = currentDateObj.getDate();
@@ -1150,7 +1152,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
     const currentPeriodEndDay = currentPeriodEndDateObj.getDate();
     const currentPeriodEndDateOnly = new Date(currentPeriodEndYear, currentPeriodEndMonth, currentPeriodEndDay); // currentPeriodEndの日付の時刻情報をリセット
     // isLastDayをtrueに
-    if (currentDateOnly === currentPeriodEndDateOnly) setIsLastDay(true);
+    if (currentDateOnly.getTime() === currentPeriodEndDateOnly.getTime()) setIsLastDay(true);
 
     // アップグレード用日割り計算 現在のプランがビジネスプラン => プレミアムプランへ
     const periodEndDate = new Date(userProfileState.current_period_end);
@@ -1246,8 +1248,8 @@ const SettingPaymentAndPlanMemo: FC = () => {
 
       try {
         // 既にプラン変更インボイスが存在するなら、次は現在とインボイスの比例配分の日付が同じかどうかを確認する
-        // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2029-2-20で現在の日付を作成
-        const currentDateObj = new Date("2029-2-20"); // テストクロック
+        // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2029-4-20で現在の日付を作成
+        const currentDateObj = new Date("2029-4-20"); // テストクロック
         const year = currentDateObj.getFullYear();
         const month = currentDateObj.getMonth();
         const day = currentDateObj.getDate();
@@ -1776,6 +1778,22 @@ const SettingPaymentAndPlanMemo: FC = () => {
 
       console.log(`🔥Stripeプラン変更ステップ2 axios.post成功 結果 updatedItem`, updatedItem);
 
+      // アップグレードの場合は、stripeのプランアップグレード完了後にsubscriptionsテーブルをプレミアムプランにUPDATEする
+      const updatePayload = { subscription_plan: "premium_plan" };
+      const { error: updateSubscriptionError } = await supabase
+        .from("subscriptions")
+        .update(updatePayload)
+        .eq("id", userProfileState.subscription_id);
+
+      if (updateSubscriptionError) {
+        console.log("❌subscriptionsテーブルのプランをプレミアムプランにUPDATE実行エラー", updateSubscriptionError);
+        throw updateSubscriptionError;
+      }
+
+      console.log(`🔥Stripeプラン変更ステップ3 supabaseのsubscriptionsテーブルをプレミアムプランへUPDATEクエリ成功`);
+
+      console.log("✅プランアップグレード 全て完了 キャッシュを更新");
+
       // キャッシュを最新状態に更新
       // プラン変更のサブスクリプションスケジュールを取得して適用時期を明示する
       await queryClient.invalidateQueries({ queryKey: ["stripe_schedules"] });
@@ -1982,7 +2000,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
       const pMonth = prorationDateObj.getMonth();
       const pDay = prorationDateObj.getDate();
       const prorationDateOnly = new Date(pYear, pMonth, pDay);
-      const currentDateObj = new Date("2029-2-20"); // テストクロック
+      const currentDateObj = new Date("2029-4-20"); // テストクロック
       const cYear = currentDateObj.getFullYear();
       const cMonth = currentDateObj.getMonth();
       const cDay = currentDateObj.getDate();
@@ -2331,7 +2349,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
               </span>
               {!!userProfileState?.current_period_end && (
                 <span className="text-[var(--color-text-title)]">
-                  （{format(new Date("2029-2-20"), "MM月dd日")}〜
+                  （{format(new Date("2029-4-20"), "MM月dd日")}〜
                   {format(new Date(userProfileState.current_period_end), "MM月dd日")}）
                 </span>
               )}
@@ -2746,6 +2764,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
                 {userProfileState?.subscription_plan !== "free_plan" && (
                   <div className="flex-center min-h-[56px] min-w-[56px] rounded-[4px] border border-solid border-[var(--color-border-deep)]">
                     <Image width="35" height="35" src="/assets/images/icons/icons8-crown-48.png" alt="crown" />
+                    {/* <Image width="35" height="35" src="/assets/images/icons/icons8-diamond-96.png" alt="crown" /> */}
                   </div>
                 )}
                 <div
@@ -2865,8 +2884,8 @@ const SettingPaymentAndPlanMemo: FC = () => {
                       // }
                       // 🔹ビジネスプランからアップグレードルート (アップグレードは日割り計算が必要)
                       // モーダル開いた日付を取得して今日が期間終了日と一致するかを確認する
-                      // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2029-2-20で現在の日付を作成
-                      // const currentDateObj = new Date("2029-2-20"); // テストクロック
+                      // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2029-4-20で現在の日付を作成
+                      // const currentDateObj = new Date("2029-4-20"); // テストクロック
                       // const year = currentDateObj.getFullYear();
                       // const month = currentDateObj.getMonth();
                       // const day = currentDateObj.getDate();
@@ -2973,7 +2992,8 @@ const SettingPaymentAndPlanMemo: FC = () => {
                         return alert(
                           "アカウントの削減リクエストを受付済みです。メンバーシップをキャンセルするには削減リクエストをキャンセルしてください。"
                         );
-                      loadPortal();
+                      setShowConfirmCancelModal("cancel_membership");
+                      // loadPortal();
                     }}
                   >
                     メンバーシップのキャンセル
@@ -3167,13 +3187,28 @@ const SettingPaymentAndPlanMemo: FC = () => {
             <h3 className={`flex min-h-[32px] w-full items-center text-[22px] font-bold`}>
               {showConfirmCancelModal === "delete_request" && "削除リクエストを取り消しますか？"}
               {showConfirmCancelModal === "downgrade_request" && "プランダウングレードをキャンセルしますか？"}
+              {showConfirmCancelModal === "cancel_membership" && "メンバーシップをキャンセルしますか？"}
             </h3>
             {/* <section className={`mt-[20px] flex h-auto w-full flex-col space-y-3 text-[14px]`}>
-              <p>この操作を実行した後にキャンセルすることはできません。</p>
-              <p className="font-bold">
-                注：この操作により、該当ユーザーのデータは、他のチームメンバーと共有されていないものを含めて全てアクセスできなくなります。
-              </p>
-            </section> */}
+                <p>この操作を実行した後にキャンセルすることはできません。</p>
+                <p className="font-bold">
+                  注：この操作により、該当ユーザーのデータは、他のチームメンバーと共有されていないものを含めて全てアクセスできなくなります。
+                </p>
+              </section> */}
+            {showConfirmCancelModal === "cancel_membership" && (
+              <section className={`mt-[20px] flex h-auto w-full flex-col space-y-2 text-[14px]`}>
+                <p>
+                  キャンセルは期間終了日
+                  <span>
+                    {!!userProfileState?.current_period_end
+                      ? `（${format(new Date(userProfileState.current_period_end), "yyyy年MM月dd日")}）`
+                      : ``}
+                  </span>
+                  に適用されます。それまでは、従来どおりご利用いただけます。キャンセル適用後に取り消すことはできません。
+                </p>
+                <p className="font-bold">※キャンセル適用後、お客様のデータは、全てアクセスできなくなります。</p>
+              </section>
+            )}
             <section className="flex w-full items-start justify-end">
               <div className={`flex w-[100%] items-center justify-around space-x-5 pt-[30px]`}>
                 <button
@@ -3198,6 +3233,14 @@ const SettingPaymentAndPlanMemo: FC = () => {
                     onClick={handleCancelDowngradePlanRequestSchedule}
                   >
                     ダウングレードをキャンセル
+                  </button>
+                )}
+                {showConfirmCancelModal === "cancel_membership" && (
+                  <button
+                    className="transition-bg02 w-[50%] cursor-pointer rounded-[8px] bg-[var(--color-red-tk)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff] hover:bg-[var(--color-red-tk-hover)]"
+                    onClick={loadPortal}
+                  >
+                    メンバーシップをキャンセル
                   </button>
                 )}
               </div>
@@ -3358,7 +3401,11 @@ const SettingPaymentAndPlanMemo: FC = () => {
               </div>
               {/* 価格 */}
               {!isLoadingFetchInvoice && (
-                <div className={`mt-[20px] flex w-full items-center justify-between px-[30px]`}>
+                <div
+                  className={`mt-[20px] flex w-full items-center justify-between px-[30px] ${
+                    isLastDay ? `font-bold` : ``
+                  }`}
+                >
                   <p className="text-[13px]">プラン価格(/月/アカウント)</p>
                   <div className="space-x-3">
                     {isUpgradePlan && <span className="text-[13px]">￥980</span>}
@@ -3408,25 +3455,27 @@ const SettingPaymentAndPlanMemo: FC = () => {
                       </div>
                     </div>
                   )}
-                  <div className="mt-[15px] flex w-full items-center justify-between">
-                    <span className="text-[13px] font-bold">本日のお支払い</span>
-                    {!todayIsPeriodEnd && <span className="text-[13px] font-bold">￥0</span>}
-                    {todayIsPeriodEnd && (
-                      <div className="flex items-center space-x-2 text-[13px] font-bold">
-                        <BsChevronDown />
-                        {isUpgradePlan && (
-                          <span>
-                            {!!premiumPlanFeePerAccountRef.current && !!userProfileState?.accounts_to_create
-                              ? formatToJapaneseYen(
-                                  premiumPlanFeePerAccountRef.current * userProfileState.accounts_to_create,
-                                  true
-                                )
-                              : `-`}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                  {!isLastDay && (
+                    <div className="mt-[15px] flex w-full items-center justify-between">
+                      <span className="text-[13px] font-bold">本日のお支払い</span>
+                      {!todayIsPeriodEnd && <span className="text-[13px] font-bold">￥0</span>}
+                      {todayIsPeriodEnd && (
+                        <div className="flex items-center space-x-2 text-[13px] font-bold">
+                          <BsChevronDown />
+                          {isUpgradePlan && (
+                            <span>
+                              {!!premiumPlanFeePerAccountRef.current && !!userProfileState?.accounts_to_create
+                                ? formatToJapaneseYen(
+                                    premiumPlanFeePerAccountRef.current * userProfileState.accounts_to_create,
+                                    true
+                                  )
+                                : `-`}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
               {/* アップグレード/ダウングレードボタンエリア */}

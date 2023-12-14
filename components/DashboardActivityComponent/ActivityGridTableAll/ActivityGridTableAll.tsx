@@ -2854,6 +2854,7 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
                                     onDoubleClick={(e) =>
                                       handleDoubleClick(e, index, activityColumnHeaderItemList[index].columnName)
                                     }
+                                    onKeyDown={handleKeyDown}
                                   >
                                     {displayValue}
                                   </div>

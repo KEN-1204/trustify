@@ -33,6 +33,7 @@ import { useQueryUpcomingInvoiceChangeQuantity } from "@/hooks/useQueryUpcomingI
 import { FallbackIncreaseAccountCountsModal } from "./FallbackIncreaseAccountCountsModal";
 import { CheckInvoiceStripeLocalModal } from "./CheckInvoiceStripeLocalModal";
 import { getProrationAmountAndDailyRate } from "@/utils/Helpers/getProrationAmountAndDailyRate";
+import { Spinner78 } from "@/components/Parts/Spinner78/Spinner78";
 // import { ProrationDetails } from "./ProrationDetails";
 
 type NewProrationDetail = {
@@ -517,7 +518,7 @@ const IncreaseAccountCountsModalMemo = () => {
 
           // 今日が終了日でないなら、
           // 最後のinvoiceItemをlastInvoiceItemStateに格納する
-          const currentDate = new Date("2029-2-20"); // テストクロック
+          const currentDate = new Date("2029-4-20"); // テストクロック
           const periodEndDate = new Date(upcomingInvoiceData.period_end * 1000);
           if (
             currentDate.getFullYear() === periodEndDate.getFullYear() &&
@@ -599,13 +600,13 @@ const IncreaseAccountCountsModalMemo = () => {
     // invoiceのline_itemの最後の新プランのインボイスアイテム
     const _nextInvoiceLastItem = !!nextInvoice ? nextInvoice.lines.data[nextInvoice.lines.data.length - 1] : null;
 
-    // nextInvoiceが存在しないルート => 初回マウント時にInvoiceをフェッチ
+    // 🔹nextInvoiceが存在しないルート => 初回マウント時にInvoiceをフェッチ
     if (!nextInvoice) {
       console.log("🔥初回マウントuseEffect実行1 nextInvoice無しのためgetUpcomingInvoice関数を実行🔥");
       getUpcomingInvoice();
       return;
     }
-    // nextInvoiceが存在するルート => アップデート直後に再度開いた時にnextInvoiceのquantityよりメンバーアカウントの数が多くなるので、再度フェッチする memberAccountsDataArray.length + 1はモーダル開いた時の増やす数量の初期値が１なので現在のメンバー数+1が取得してくる将来のインボイスのquantityと同じになる ダウングレードスケジュールがある場合には+1せずにそのままにする 理由はスケジュールの次回フェーズの数量が現在のアカウント数で設定されているため、変更の確定を教えて次回フェーズの数量を修正してから出ないと一致しないため、そのため、ダウングレードスケジュールが存在する場合の数量アップはメンバー数+1はせずにそのままにする => 一旦毎回モーダル開いた時にフェッチにしておく
+    // 🔹nextInvoiceが存在するルート => アップデート直後に再度開いた時にnextInvoiceのquantityよりメンバーアカウントの数が多くなるので、再度フェッチする memberAccountsDataArray.length + 1はモーダル開いた時の増やす数量の初期値が１なので現在のメンバー数+1が取得してくる将来のインボイスのquantityと同じになる ダウングレードスケジュールがある場合には+1せずにそのままにする 理由はスケジュールの次回フェーズの数量が現在のアカウント数で設定されているため、変更の確定を教えて次回フェーズの数量を修正してから出ないと一致しないため、そのため、ダウングレードスケジュールが存在する場合の数量アップはメンバー数+1はせずにそのままにする => 一旦毎回モーダル開いた時にフェッチにしておく
     else if (
       !!nextInvoice &&
       _nextInvoiceLastItem !== null &&
@@ -637,18 +638,18 @@ const IncreaseAccountCountsModalMemo = () => {
       }
       return;
     }
-    // nextInvoiceが存在するルート => nextInvoiceを取得後に請求期間が更新された場合に再度フェッチする 現在の月とnextInvoiceの月が一致していて、nextInvoiceの月とcurrent_period_endの月が異なる場合は再度フェッチする
+    // 🔹nextInvoiceが存在するルート => nextInvoiceを取得後に請求期間が更新された場合に再度フェッチする 現在の月とnextInvoiceの月が一致していて、nextInvoiceの月とcurrent_period_endの月が異なる場合は再度フェッチする
     else if (
       !!nextInvoice &&
       !!userProfileState.current_period_end &&
-      new Date("2029-2-20").getMonth() === new Date(nextInvoice.period_end * 1000).getMonth() &&
+      new Date("2029-4-20").getMonth() === new Date(nextInvoice.period_end * 1000).getMonth() &&
       new Date(nextInvoice.period_end * 1000).getMonth() !== new Date(userProfileState.current_period_end).getMonth()
     ) {
       // テストクロック
       console.log(
         "🔥🔥初回マウントuseEffect実行1 nextInvoiceの終了月とcurrent_period_endが異なり、現在の日付とnextInvoiceの日付が同じ場合は、請求期間が過ぎてcurrent_period_endが更新されているため、再度フェッチする"
       );
-      console.log("現在", format(new Date("2029-2-20"), "yyyy年MM月dd日 HH:mm:ss"));
+      console.log("現在", format(new Date("2029-4-20"), "yyyy年MM月dd日 HH:mm:ss"));
       console.log("nextInvoiceの終了日", format(new Date(nextInvoice.period_end * 1000), "yyyy年MM月dd日 HH:mm:ss"));
       console.log(
         "userProfileStateの終了日",
@@ -657,10 +658,10 @@ const IncreaseAccountCountsModalMemo = () => {
       getUpcomingInvoice();
       return;
     }
-    // nextInvoiceが存在するルート => モーダルを開いた日付と同じか否かでリターン、フェッチを分岐させる
+    // 🔹nextInvoiceが存在するルート => モーダルを開いた日付と同じか否かでリターン、フェッチを分岐させる
     else if (!!nextInvoice && !!nextInvoice.subscription_proration_date) {
-      // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2029-2-20で現在の日付を作成
-      const currentDateObj = new Date("2029-2-20"); // テストクロック
+      // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2029-4-20で現在の日付を作成
+      const currentDateObj = new Date("2029-4-20"); // テストクロック
       const year = currentDateObj.getFullYear();
       const month = currentDateObj.getMonth();
       const day = currentDateObj.getDate();
@@ -676,7 +677,7 @@ const IncreaseAccountCountsModalMemo = () => {
       const nextInvoiceDay = nextInvoiceDateObj.getDate();
       const nextInvoiceDateOnly = new Date(nextInvoiceYear, nextInvoiceMonth, nextInvoiceDay); // nextInvoiceの日付の時刻情報をリセット
 
-      // nextInvoiceに格納したInvoiceオブジェクトの比例配分の日付がこのモーダルを開いた日付と異なる
+      // 🔹🔹nextInvoiceに格納したInvoiceオブジェクトの比例配分の日付がこのモーダルを開いた日付と異なる
       // => 再度フェッチしてInvoiceを取得
       if (currentDateOnly.getTime() !== nextInvoiceDateOnly.getTime()) {
         console.log(
@@ -699,9 +700,25 @@ const IncreaseAccountCountsModalMemo = () => {
         getUpcomingInvoice();
         return;
       }
-      // nextInvoiceはすでに存在している。かつ、nextInvoiceの比例配分の日付がこのモーダルを開いた日付と同じ
+      // 🔹🔹nextInvoiceはすでに存在している。かつ、nextInvoiceの比例配分の日付がこのモーダルを開いた日付と同じ
       // => 現在保持しているnextInvoiceの各項目をローカルStateに格納してそのままリターン
       else {
+        // 初回アップグレード、かつ、本日が期間終了日で日割り計算を必要としないルート => line_itemが1つのみの場合
+        if (nextInvoice.lines.data.length === 1 && nextInvoice.lines.data[0].type === "subscription") {
+          setNextInvoiceAmountState(nextInvoice.amount_due);
+          // ======================== InvoiceをローカルStateに格納 ========================
+          setIsLoadingFirstFetch(false); // ローディング終了
+          console.log(
+            "🔥初回マウントuseEffect実行0 nextInvoiceが存在し、初回アップグレード、かつ、本日が期間終了日で日割り計算を必要としないルート nextInvoiceの比例配分の日付がこのモーダルを開いた日付と同じため 現在Zustandで保持しているInvoiceをローカルStateに格納してリターン モーダル開いた今日の日付",
+            format(currentDateOnly, "yyyy/MM/dd HH:mm:ss"),
+            currentDateOnly.getTime(),
+            "nextInvoiceの比例配分日",
+            format(nextInvoiceDateOnly, "yyyy/MM/dd HH:mm:ss"),
+            nextInvoiceDateOnly.getTime()
+          );
+          return;
+        }
+
         // 変更後のサブスクリプション新プランを取り除いたinvoiceitemのみの配列を取得
         const invoiceItemList = nextInvoice.lines.data.filter(
           (item: Stripe.InvoiceLineItem) => item.type === "invoiceitem"
@@ -900,7 +917,7 @@ const IncreaseAccountCountsModalMemo = () => {
           );
           // 今日が終了日でないなら、
           // 最後のinvoiceItemをlastInvoiceItemStateに格納する
-          const currentDate = new Date("2029-2-20"); // テストクロック
+          const currentDate = new Date("2029-4-20"); // テストクロック
           const periodEndDate = new Date(nextInvoice.period_end * 1000);
           if (
             currentDate.getFullYear() === periodEndDate.getFullYear() &&
@@ -951,7 +968,16 @@ const IncreaseAccountCountsModalMemo = () => {
           }
         }
       }
+    } else {
+      console.log(
+        "🔥初回マウントuseEffect実行 nextInvoice存在ルートでどれにも当てはまらず1",
+        nextInvoice,
+        _nextInvoiceLastItem
+      );
+      setIsLoadingFirstFetch(false);
     }
+    console.log("🔥初回マウントuseEffect実行 どれにも当てはまらず2", nextInvoice, _nextInvoiceLastItem);
+    setIsLoadingFirstFetch(false);
   }, []);
   // ===================== ✅初回マウントuseEffect Invoiceをstripeから取得 =====================
 
@@ -1549,7 +1575,7 @@ const IncreaseAccountCountsModalMemo = () => {
 
       // 今日が終了日でないなら、
       // 最後のinvoiceItemをlastInvoiceItemStateに格納する
-      const currentDate = new Date("2029-2-20"); // テストクロック
+      const currentDate = new Date("2029-4-20"); // テストクロック
       const periodEndDate = new Date(userProfileState.current_period_end);
       if (
         currentDate.getFullYear() === periodEndDate.getFullYear() &&
@@ -1586,7 +1612,7 @@ const IncreaseAccountCountsModalMemo = () => {
       );
 
     // まずは、現在の日付と時刻、およびcurrent_period_endの日付と時刻をUTCで取得します。
-    const currentDate = new Date("2029-2-20"); // テストクロック用の日付
+    const currentDate = new Date("2029-4-20"); // テストクロック用の日付
     const currentPeriodEndDate = new Date(userProfileState.current_period_end); // これはサンプルの値で、実際にはsupabaseから取得した値を使用します。
 
     const isSameDay =
@@ -1696,6 +1722,7 @@ const IncreaseAccountCountsModalMemo = () => {
         new_account_quantity: accountQuantity, // 新たにアカウントを増やす個数をセット
         new_company_id: userProfileState.company_id,
         new_subscription_id: userProfileState.subscription_id,
+        new_total_quantity: totalAccountQuantity,
       };
       console.log(
         `🌟rpc('insert_subscribed_accounts_all_at_once')実行 契約アカウントを実際にINSERTで作成 payload`,
@@ -1736,6 +1763,9 @@ const IncreaseAccountCountsModalMemo = () => {
         draggable: true,
         progress: undefined,
       });
+
+      // // リアルタイムが発火しなかった場合のために5秒後にユーザーのstateがサブスクリプション更新後の数量と一致しているか確認し、一致していなければget_user_data関数を実行して最新状態に更新する
+      // if (userProfileState.)
 
       // アカウントを増やすモーダルを閉じる
       setIsOpenChangeAccountCountsModal(null);
@@ -2054,9 +2084,9 @@ const IncreaseAccountCountsModalMemo = () => {
   console.log(
     "🌟IncreaseAccountCountsModalコンポーネントレンダリング",
 
-    "現在テストクロックnew Date('2029-2-20')",
-    new Date("2029-2-20"),
-    format(new Date("2029-2-20"), "yyyy/MM/dd HH:mm:ss"),
+    "現在テストクロックnew Date('2029-4-20')",
+    new Date("2029-4-20"),
+    format(new Date("2029-4-20"), "yyyy/MM/dd HH:mm:ss"),
     "現在契約中のアカウント個数",
     currentAccountCounts,
     "現在契約中のアカウント個数",
@@ -2121,11 +2151,13 @@ const IncreaseAccountCountsModalMemo = () => {
     "===============================新プランの料金",
     getPrice(userProfileState?.subscription_plan) * totalAccountQuantity,
     "テストクロックの現在",
-    format(new Date("2029-2-20"), "yyyy年MM月dd日 HH時mm分ss秒"), // テストクロック
+    format(new Date("2029-4-20"), "yyyy年MM月dd日 HH時mm分ss秒"), // テストクロック
     "比例配分日 nextInvoice?.subscription_proration_date",
     nextInvoice?.subscription_proration_date &&
       format(new Date(nextInvoice?.subscription_proration_date * 1000), "yyyy年MM月dd日 HH時mm分ss秒"),
-    nextInvoice?.subscription_proration_date
+    nextInvoice?.subscription_proration_date,
+    "今日が最終日かどうかisLastDay",
+    isLastDay
   );
 
   if (isLoadingFirstFetch)
@@ -2197,7 +2229,7 @@ const IncreaseAccountCountsModalMemo = () => {
     if (!nextInvoice) return null;
     if (!nextInvoice.subscription_proration_date) return null;
 
-    const testClockCurrentDate = new Date("2029-2-20"); // テストクロック
+    const testClockCurrentDate = new Date("2029-4-20"); // テストクロック
 
     return (
       <>
@@ -3828,7 +3860,13 @@ const IncreaseAccountCountsModalMemo = () => {
   return (
     <>
       {/* 外側オーバーレイ */}
-      <div className={`${styles.overlay} `} onClick={() => setIsOpenChangeAccountCountsModal(null)} />
+      <div
+        className={`${styles.overlay} `}
+        onClick={() => {
+          if (loading) return;
+          setIsOpenChangeAccountCountsModal(null);
+        }}
+      />
 
       <div className={`${styles.container} `}>
         {/* 次回請求期間のお支払いの詳細モーダルを開いた時のオーバーレイ */}
@@ -3844,12 +3882,16 @@ const IncreaseAccountCountsModalMemo = () => {
           </div>
         )}
         {/* クローズボタン */}
-        <button
-          className={`flex-center group absolute right-[-40px] top-0 z-10 h-[32px] w-[32px] rounded-full bg-[#00000090] hover:bg-[#000000c0]`}
-          onClick={() => setIsOpenChangeAccountCountsModal(null)}
-        >
-          <MdClose className="text-[20px] text-[#fff]" />
-        </button>
+        {!loading && (
+          <button
+            className={`flex-center group absolute right-[-40px] top-0 z-10 h-[32px] w-[32px] rounded-full bg-[#00000090] hover:bg-[#000000c0]`}
+            onClick={() => {
+              setIsOpenChangeAccountCountsModal(null);
+            }}
+          >
+            <MdClose className="text-[20px] text-[#fff]" />
+          </button>
+        )}
         {/* Stripeから取得したInvoiceとローカルで計算したInvoice内容の確認モーダル開閉ボタン */}
         {/* <button
           className={`flex-center group absolute right-[-40px] top-[52px] z-10 h-[32px] w-[32px] rounded-full bg-[#00000070] hover:bg-[#000000c0]`}
@@ -3926,15 +3968,34 @@ const IncreaseAccountCountsModalMemo = () => {
                 <h4 className="flex space-x-3">
                   {/* <BsCheck2 className="min-h-[24px] min-w-[24px] stroke-1 text-[24px] text-[var(--color-bg-brand-f)]" /> */}
                   <BsCheck2 className="min-h-[24px] min-w-[24px] stroke-1 text-[24px] text-[#00d436]" />
-                  <span>
-                    {!!userProfileState?.subscription_plan ? getPlanName(userProfileState?.subscription_plan) : `-`}：
-                  </span>
+                  {!!stripeSchedulesDataArray &&
+                  stripeSchedulesDataArray.length >= 1 &&
+                  stripeSchedulesDataArray[0].type === "change_plan" &&
+                  isLastDay ? (
+                    <div className="flex flex-col">
+                      <span>{!!userProfileState?.subscription_plan ? getPlanName("business_plan") : `-`}：</span>
+                      <span className="text-[12px] text-[var(--color-text-sub)]">(プランダウングレード適用後)</span>
+                    </div>
+                  ) : (
+                    <span>
+                      {!!userProfileState?.subscription_plan ? getPlanName(userProfileState?.subscription_plan) : `-`}：
+                    </span>
+                  )}
                   {/* <span className="font-bold">{notSetAccounts.length}個</span> */}
                 </h4>
                 <div className="flex flex-col items-end text-[13px] font-bold">
-                  <span className="">
-                    月{!!userProfileState?.subscription_plan ? getPrice(userProfileState?.subscription_plan) : `-`}円
-                  </span>
+                  {!!stripeSchedulesDataArray &&
+                  stripeSchedulesDataArray.length >= 1 &&
+                  stripeSchedulesDataArray[0].type === "change_plan" &&
+                  isLastDay ? (
+                    <span className="">
+                      月{!!userProfileState?.subscription_plan ? getPrice("business_plan") : `-`}円
+                    </span>
+                  ) : (
+                    <span className="">
+                      月{!!userProfileState?.subscription_plan ? getPrice(userProfileState?.subscription_plan) : `-`}円
+                    </span>
+                  )}
                   <span className="">/アカウント</span>
                 </div>
               </div>
@@ -4019,15 +4080,25 @@ const IncreaseAccountCountsModalMemo = () => {
                     <span>契約アカウント 合計</span>
                     <span className="font-bold underline underline-offset-1">10個</span>
                   </div> */}
-                  <div className="flex w-full items-start justify-between">
+                  <div className={`flex w-full items-start justify-between ${isLastDay ? `font-bold` : ``}`}>
                     <span className="max-w-[290px]">アカウントを増やした後に発生する毎月のプラン追加費用</span>
                     {/* <span className="">￥{(accountQuantity ? accountQuantity : 1) * 980}</span> */}
                     {!isFreeTodaysPayment && (
                       <span className="">
                         ￥
-                        {(accountQuantity ?? 1) * getPrice(userProfileState?.subscription_plan) !== 0
+                        {!!stripeSchedulesDataArray &&
+                        stripeSchedulesDataArray.length >= 1 &&
+                        stripeSchedulesDataArray[0].type === "change_plan" &&
+                        isLastDay
+                          ? (accountQuantity ?? 1) * getPrice("business_plan") !== 0
+                            ? (accountQuantity ?? 1) * getPrice("business_plan")
+                            : "エラー"
+                          : (accountQuantity ?? 1) * getPrice(userProfileState?.subscription_plan) !== 0
                           ? (accountQuantity ?? 1) * getPrice(userProfileState?.subscription_plan)
                           : "エラー"}
+                        {/* {stripeSchedulesDataArray.length >= 1 && stripeSchedulesDataArray[0].type === 'change_plan' && (accountQuantity ?? 1) * getPrice('business_plan') !== 0
+                          ? (accountQuantity ?? 1) * getPrice('business_plan')
+                          : "エラー"} */}
                       </span>
                     )}
                     {isFreeTodaysPayment && (
@@ -4048,8 +4119,23 @@ const IncreaseAccountCountsModalMemo = () => {
                     )} */}
                   </div>
 
+                  {!!stripeSchedulesDataArray &&
+                    stripeSchedulesDataArray.length >= 1 &&
+                    stripeSchedulesDataArray[0].type === "change_plan" && (
+                      <div className="!mt-[2px] flex w-full items-start justify-between text-[12px] text-[var(--color-text-sub)]">
+                        <span>
+                          {!!userProfileState &&
+                            userProfileState?.current_period_end &&
+                            `(${format(new Date(userProfileState.current_period_end), "M月d日")}期間終了時の`}
+                          プランダウングレード適用後で計算をしています。)
+                        </span>
+                        <span></span>
+                      </div>
+                    )}
+
                   {/* ローカルstateの計算結果を使って表示 */}
-                  {!!nextInvoice && !!nextInvoiceAmountState && (
+                  {/* {!!nextInvoice && !!nextInvoiceAmountState && nextInvoice.lines.data.length !== 1 && ( */}
+                  {!!nextInvoice && !!nextInvoiceAmountState && !isLastDay && (
                     <div className="flex w-full items-start justify-between font-bold">
                       <span>次回請求期間のお支払い</span>
                       {/* <div className="flex items-center">
@@ -4160,10 +4246,14 @@ const IncreaseAccountCountsModalMemo = () => {
                 </div>
               </div>
               <button
-                className={`flex-center h-[40px] w-full rounded-[6px] font-bold text-[#fff]  ${
+                className={`flex-center h-[40px] w-full rounded-[6px] font-bold  ${
                   !!userProfileState && !!userProfileState.subscription_plan
-                    ? `cursor-pointer bg-[var(--color-bg-brand-f)] hover:bg-[var(--color-bg-brand-f-deep)]`
-                    : `cursor-not-allowed bg-[var(--setting-side-bg-select)] text-[var(--setting-side-bg-select-hover)]`
+                    ? ` ${
+                        loading
+                          ? `cursor-not-allowed bg-[var(--color-bg-brand-f-disabled)] text-[var(--color-btn-brand-text-disabled)]`
+                          : `cursor-pointer bg-[var(--color-bg-brand-f)] text-[#ffffff] hover:bg-[var(--color-bg-brand-f-deep)]`
+                      }`
+                    : `cursor-not-allowed bg-[var(--setting-side-bg-select)] text-[#fff] text-[var(--setting-side-bg-select-hover)]`
                 }`}
                 disabled={!userProfileState || !userProfileState.subscription_plan}
                 onClick={handleChangeConfirm}

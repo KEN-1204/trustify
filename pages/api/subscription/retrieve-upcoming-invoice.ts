@@ -98,7 +98,7 @@ const retrieveUpcomingInvoiceHandler = async (req: NextApiRequest, res: NextApiR
     // const current = new Date(); // 現在の日付
     // const timeClockCurrentDate = new Date(2023, 11, 19); // JavaScriptの月は0から始まるため、12月は11となります
     // const timeClockCurrentDate = new Date(2025, 3, 27); // JavaScriptの月は0から始まるため、12月は11となります 1月は0月
-    const timeClockCurrentDate = new Date("2029-2-20"); // テストクロック JavaScriptの月は0から始まるため、12月は11となります 1月は0月
+    const timeClockCurrentDate = new Date("2029-4-20"); // テストクロック JavaScriptの月は0から始まるため、12月は11となります 1月は0月
     console.log(
       "💡タイムクロックの現在の日付 timeClockCurrentDate",
       format(timeClockCurrentDate, "yyyy/MM/dd HH:mm:ss")

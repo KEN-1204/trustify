@@ -395,7 +395,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-: #394c6026; */
 
   --color-header-bg-active: rgba(64, 87, 109, 0.07);
-  /* ブランドカラー　 */
+  /* ブランドカラー light */
   --color-bg-brand: #0066ff;
   --color-bg-brande0: #0066ffe0;
   --color-bg-brandd0: #0066ffd0;
@@ -414,7 +414,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-brand-rgb: 13, 153, 255;
   --color-bg-brand-f: #0d99ff; /* Figma */
   --color-bg-brand-f-hover: #0d99ff90;
-  --color-bg-brand-f-disabled: #0d99ff50;
+  --color-bg-brand-f-disabled: #0d99ff90;
   --color-bg-brand-f05: #e5f4ff;
   --color-bg-brand-f10: #0d99ff10;
   --color-bg-brand-f20: #0d99ff20;
@@ -1014,7 +1014,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-brand-rgb: 0, 102, 255;
   --color-bg-brand-f: #0c8ce9; /* Figma */
   --color-bg-brand-f-hover: #0c8ce990;
-  --color-bg-brand-f-disabled: #0d99ff30;
+  --color-bg-brand-f-disabled: #0d99ff42;
   --color-bg-brand-f05: #0e5d95; /* Figma */
   --color-bg-brand-f10: #0c8ce910;
   --color-bg-brand-f20: #0c8ce920;
@@ -1184,7 +1184,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-btn-brand-f: #2b7fff50;
   --color-btn-brand-f-hover: #2b7fff; */
   --color-btn-text: #fff;
-  --color-btn-brand-text-disabled: #999;
+  --color-btn-brand-text-disabled: #ffffff90;
   --color-btn-brand: #2b7fff;
   --color-btn-brand-rgb: 43, 127, 255;
   --color-btn-brand-hover: #2571e2;

@@ -221,49 +221,51 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
               subscription.items.data[0].quantity!
           ) {
             console.log("🌟Stripe_Webhookステップ4 🌟「数量アップ」ルート");
-            // やること
-            // 1. subscriptionsテーブルのaccounts_to_create, number_of_active_subscribed_accountsを新たな数量にUPDATEすること
-            const updatePayload = {
-              accounts_to_create: subscription.items.data[0].quantity,
-              number_of_active_subscribed_accounts: subscription.items.data[0].quantity,
-            };
-            console.log(
-              "🌟Stripe_Webhookステップ4 🌟「数量アップ」ルート subscriptionsテーブルUPDATE実行 payload",
-              updatePayload
-            );
-            const { data, error } = await supabase
-              .from("subscriptions")
-              .update(updatePayload)
-              .eq("stripe_subscription_id", subscription.id)
-              .eq("stripe_customer_id", subscription.customer)
-              .eq("status", "active");
+            // ========== webhook内でsubscriptionsテーブルをUPDATEするルート => 現在はクライアントで処理
+            // // やること
+            // // 1. subscriptionsテーブルのaccounts_to_create, number_of_active_subscribed_accountsを新たな数量にUPDATEすること
+            // const updatePayload = {
+            //   accounts_to_create: subscription.items.data[0].quantity,
+            //   number_of_active_subscribed_accounts: subscription.items.data[0].quantity,
+            // };
+            // console.log(
+            //   "🌟Stripe_Webhookステップ4 🌟「数量アップ」ルート subscriptionsテーブルUPDATE実行 payload",
+            //   updatePayload
+            // );
+            // const { data, error } = await supabase
+            //   .from("subscriptions")
+            //   .update(updatePayload)
+            //   .eq("stripe_subscription_id", subscription.id)
+            //   .eq("stripe_customer_id", subscription.customer)
+            //   .eq("status", "active");
 
-            if (error) {
-              console.log(
-                "❌Stripe_Webhookステップ4 🌟「数量アップ」ルート エラー: supabase.update()でsubscriptionsテーブルのプランを変更できず",
-                "subscription.id",
-                subscription.id,
-                "subscription.customer",
-                subscription.customer
-              );
-              return res.status(500).json({
-                error:
-                  "❌Stripe_Webhookステップ4 🌟「数量アップ」ルート エラー: supabase.update()でsubscriptionsテーブルのプランを変更できず",
-              });
-            }
-            console.log("🔥Stripe_Webhookステップ4 🌟「数量アップ」ルート subscriptionsテーブルUPDATE成功 結果", data);
+            // if (error) {
+            //   console.log(
+            //     "❌Stripe_Webhookステップ4 🌟「数量アップ」ルート エラー: supabase.update()でsubscriptionsテーブルのプランを変更できず",
+            //     "subscription.id",
+            //     subscription.id,
+            //     "subscription.customer",
+            //     subscription.customer
+            //   );
+            //   return res.status(500).json({
+            //     error:
+            //       "❌Stripe_Webhookステップ4 🌟「数量アップ」ルート エラー: supabase.update()でsubscriptionsテーブルのプランを変更できず",
+            //   });
+            // }
+            // console.log("🔥Stripe_Webhookステップ4 🌟「数量アップ」ルート subscriptionsテーブルUPDATE成功 結果", data);
+            // ========== webhook内でsubscriptionsテーブルをUPDATEするルート => 現在はクライアントで処理 ここまで
 
             console.log(
-              "✅Stripe_Webhookステップ4 🌟「数量アップ」ルート 全て完了 200でリターン(subscriptionsテーブルのプラン変更OK)"
+              "✅Stripe_Webhookステップ4 🌟「数量アップ」ルート クライアントサイドで新たに増やすアカウントのINSERT, subscriptionsテーブルの数量のUPDATEを実行しているため、このまま200でリターン"
             );
             return res.status(200).send({
               received:
-                "✅Stripe_Webhookステップ4 🌟「数量アップ」ルート 全て完了 200でリターン(subscriptionsテーブルのプラン変更OK)",
+                "✅Stripe_Webhookステップ4 🌟「数量アップ」ルート クライアントサイドで新たに増やすアカウントのINSERT, subscriptionsテーブルの数量のUPDATEを実行しているため、このまま200でリターン",
             });
           }
           // ============== ✅「プランダウンスケジュール有りの状態で数量アップ」ルート ==============
 
-          // ============== 🌟「数量ダウンスケジュール有りの状態でプランアップグレード」ルート ==============
+          // ============== 🌟「プランアップグレード」ルート ==============
           // 数量ダウンスケジュール有りでプランアップグレードを実行した際のwebhookでそのままトリガー関数を実行させると、削除リクエストを除くアクティブアカウント数を示すnumber_of_active_subscribed_accountsに現在のアカウント数(数量ダウン前)がセットされてしまうため、別途ハンドリングする
 
           if (
@@ -278,47 +280,52 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             ((stripeEvent.data.previous_attributes.items as any).data[0] as Stripe.SubscriptionItem).quantity ===
               (subscription as ExtendedSubscription).items.data[0].quantity
           ) {
-            console.log(
-              "🌟Stripe_Webhookステップ4 🌟「数量ダウンスケジュール有りの状態か通常のプランアップグレード」ルート subscriptionsテーブルのsubscription_planのみをプレミアムプランにUPDATEする"
-            );
-            // やること
-            // 1. subscriptionsテーブルのsubscription_planのみをプレミアムプランにUPDATEすること
-            const updatePayload = { subscription_plan: "premium_plan" };
-            console.log(
-              "🌟Stripe_Webhookステップ4 🌟「数量ダウンスケジュール有りの状態か通常のプランアップグレード」ルート subscriptionsテーブルUPDATE実行 payload",
-              updatePayload
-            );
-            const { error } = await supabase.from("subscriptions").update(updatePayload).match({
-              stripe_subscription_id: subscription.id,
-              stripe_customer_id: subscription.customer,
-              status: "active",
-            });
-            if (error) {
-              console.log(
-                "❌Stripe_Webhookステップ4 🌟「数量ダウンスケジュール有りの状態か通常のプランアップグレード」ルート エラー: supabase.update()でsubscriptionsテーブルのプランを変更できず",
-                "subscription.id",
-                subscription.id,
-                "subscription.customer",
-                subscription.customer
-              );
-              return res.status(500).json({
-                error:
-                  "❌Stripe_Webhookステップ4 🌟「数量ダウンスケジュール有りの状態か通常のプランアップグレード」ルート エラー: supabase.update()でsubscriptionsテーブルのプランを変更できず",
-              });
-            }
-            console.log(
-              "🔥Stripe_Webhookステップ4 🌟「数量ダウンスケジュール有りの状態か通常のプランアップグレード」ルート subscriptionsテーブルUPDATE成功"
-            );
+            // ========== webhook内でsubscriptionsテーブルをUPDATEするルート => 現在はクライアントで処理
+            // console.log(
+            //   "🌟Stripe_Webhookステップ4 🌟「数量ダウンスケジュール有りの状態か通常のプランアップグレード」ルート subscriptionsテーブルのsubscription_planのみをプレミアムプランにUPDATEする"
+            // );
+            // // やること
+            // // 1. subscriptionsテーブルのsubscription_planのみをプレミアムプランにUPDATEすること
+            // const updatePayload = { subscription_plan: "premium_plan" };
+            // console.log(
+            //   "🌟Stripe_Webhookステップ4 🌟「数量ダウンスケジュール有りの状態か通常のプランアップグレード」ルート subscriptionsテーブルUPDATE実行 payload",
+            //   updatePayload
+            // );
+            // const { error } = await supabase.from("subscriptions").update(updatePayload).match({
+            //   stripe_subscription_id: subscription.id,
+            //   stripe_customer_id: subscription.customer,
+            //   status: "active",
+            // });
+            // if (error) {
+            //   console.log(
+            //     "❌Stripe_Webhookステップ4 🌟「数量ダウンスケジュール有りの状態か通常のプランアップグレード」ルート エラー: supabase.update()でsubscriptionsテーブルのプランを変更できず",
+            //     "subscription.id",
+            //     subscription.id,
+            //     "subscription.customer",
+            //     subscription.customer
+            //   );
+            //   return res.status(500).json({
+            //     error:
+            //       "❌Stripe_Webhookステップ4 🌟「数量ダウンスケジュール有りの状態か通常のプランアップグレード」ルート エラー: supabase.update()でsubscriptionsテーブルのプランを変更できず",
+            //   });
+            // }
+            // console.log(
+            //   "🔥Stripe_Webhookステップ4 🌟「数量ダウンスケジュール有りの状態か通常のプランアップグレード」ルート subscriptionsテーブルUPDATE成功"
+            // );
+            // console.log(
+            //   "✅Stripe_Webhookステップ4 🌟「数量ダウンスケジュール有りの状態か通常のプランアップグレード」ルート 全て完了 200でリターン(subscriptionsテーブルのプラン変更OK)"
+            // );
+            // ========== webhook内でsubscriptionsテーブルをUPDATEするルート => 現在はクライアントで処理 ここまで
 
             console.log(
-              "✅Stripe_Webhookステップ4 🌟「数量ダウンスケジュール有りの状態か通常のプランアップグレード」ルート 全て完了 200でリターン(subscriptionsテーブルのプラン変更OK)"
+              "✅Stripe_Webhookステップ4 🌟「プランアップグレード」ルート クライアントサイドでsubscriptionsテーブルのプランをUPDATEしているためこのまま200でリターン"
             );
             return res.status(200).send({
               received:
-                "✅Stripe_Webhookステップ4 🌟「数量ダウンスケジュール有りの状態か通常のプランアップグレード」ルート 全て完了 200でリターン(subscriptionsテーブルのプラン変更OK)",
+                "✅Stripe_Webhookステップ4 🌟「プランアップグレード」ルート クライアントサイドでsubscriptionsテーブルのプランをUPDATEしているためこのまま200でリターン",
             });
           }
-          // ============== ✅「数量ダウンスケジュール有りの状態でプランアップグレード」ルート ==============
+          // ============== ✅「プランアップグレード」ルート ==============
 
           //  🌟「アカウントを減らす」「プランダウングレード」両方スケジュール適用ルート 新たな請求期間へ =======
           // previous_attributesのquantityよりサブスクリプションオブジェクトのquantityの方が少なく、
