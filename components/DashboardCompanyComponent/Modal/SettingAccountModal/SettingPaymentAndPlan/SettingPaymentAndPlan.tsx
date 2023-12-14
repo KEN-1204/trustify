@@ -116,7 +116,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
     premiumPlanFeePerAccountRef.current = getPrice("premium_plan"); // プレミアムプラン価格
 
     // 今日が終了日かどうか
-    const currentDateObj = new Date("2028-11-20"); // テストクロック
+    const currentDateObj = new Date("2029-2-20"); // テストクロック
     const year = currentDateObj.getFullYear();
     const month = currentDateObj.getMonth();
     const day = currentDateObj.getDate();
@@ -1137,8 +1137,8 @@ const SettingPaymentAndPlanMemo: FC = () => {
 
     // 🔹ビジネスプランからアップグレードルート (アップグレードは日割り計算が必要)
     // モーダル開いた日付を取得して今日が期間終了日と一致するかを確認する
-    // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2028-11-20で現在の日付を作成
-    const currentDateObj = new Date("2028-11-20"); // テストクロック
+    // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2029-2-20で現在の日付を作成
+    const currentDateObj = new Date("2029-2-20"); // テストクロック
     const year = currentDateObj.getFullYear();
     const month = currentDateObj.getMonth();
     const day = currentDateObj.getDate();
@@ -1246,8 +1246,8 @@ const SettingPaymentAndPlanMemo: FC = () => {
 
       try {
         // 既にプラン変更インボイスが存在するなら、次は現在とインボイスの比例配分の日付が同じかどうかを確認する
-        // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2028-11-20で現在の日付を作成
-        const currentDateObj = new Date("2028-11-20"); // テストクロック
+        // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2029-2-20で現在の日付を作成
+        const currentDateObj = new Date("2029-2-20"); // テストクロック
         const year = currentDateObj.getFullYear();
         const month = currentDateObj.getMonth();
         const day = currentDateObj.getDate();
@@ -1982,7 +1982,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
       const pMonth = prorationDateObj.getMonth();
       const pDay = prorationDateObj.getDate();
       const prorationDateOnly = new Date(pYear, pMonth, pDay);
-      const currentDateObj = new Date("2028-11-20"); // テストクロック
+      const currentDateObj = new Date("2029-2-20"); // テストクロック
       const cYear = currentDateObj.getFullYear();
       const cMonth = currentDateObj.getMonth();
       const cDay = currentDateObj.getDate();
@@ -2331,7 +2331,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
               </span>
               {!!userProfileState?.current_period_end && (
                 <span className="text-[var(--color-text-title)]">
-                  （{format(new Date("2028-11-20"), "MM月dd日")}〜
+                  （{format(new Date("2029-2-20"), "MM月dd日")}〜
                   {format(new Date(userProfileState.current_period_end), "MM月dd日")}）
                 </span>
               )}
@@ -2865,8 +2865,8 @@ const SettingPaymentAndPlanMemo: FC = () => {
                       // }
                       // 🔹ビジネスプランからアップグレードルート (アップグレードは日割り計算が必要)
                       // モーダル開いた日付を取得して今日が期間終了日と一致するかを確認する
-                      // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2028-11-20で現在の日付を作成
-                      // const currentDateObj = new Date("2028-11-20"); // テストクロック
+                      // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2029-2-20で現在の日付を作成
+                      // const currentDateObj = new Date("2029-2-20"); // テストクロック
                       // const year = currentDateObj.getFullYear();
                       // const month = currentDateObj.getMonth();
                       // const day = currentDateObj.getDate();
@@ -3165,7 +3165,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
               <MdClose className="text-[20px] text-[#fff]" />
             </button>
             <h3 className={`flex min-h-[32px] w-full items-center text-[22px] font-bold`}>
-              {showConfirmCancelModal === "delete_request" && "削除リクエストをキャンセルしますか？"}
+              {showConfirmCancelModal === "delete_request" && "削除リクエストを取り消しますか？"}
               {showConfirmCancelModal === "downgrade_request" && "プランダウングレードをキャンセルしますか？"}
             </h3>
             {/* <section className={`mt-[20px] flex h-auto w-full flex-col space-y-3 text-[14px]`}>
@@ -3177,27 +3177,27 @@ const SettingPaymentAndPlanMemo: FC = () => {
             <section className="flex w-full items-start justify-end">
               <div className={`flex w-[100%] items-center justify-around space-x-5 pt-[30px]`}>
                 <button
-                  className={`w-[50%] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[15px] py-[10px] text-[14px] font-bold text-[var(--color-text-title)] hover:bg-[var(--setting-side-bg-select-hover)]`}
+                  className={`transition-bg02 w-[50%] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[15px] py-[10px] text-[14px] font-bold text-[var(--color-text-title)] hover:bg-[var(--setting-side-bg-select-hover)]`}
                   onClick={() => {
                     setShowConfirmCancelModal(null);
                   }}
                 >
-                  キャンセル
+                  戻る
                 </button>
                 {showConfirmCancelModal === "delete_request" && (
                   <button
-                    className="w-[50%] cursor-pointer rounded-[8px] bg-[var(--color-red-tk)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff] hover:bg-[var(--color-red-tk-hover)]"
+                    className="transition-bg02 w-[50%] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-hover)]"
                     onClick={handleCancelDeleteAccountRequestSchedule}
                   >
-                    削除リクエストをキャンセルする
+                    削除リクエストを取り消す
                   </button>
                 )}
                 {showConfirmCancelModal === "downgrade_request" && (
                   <button
-                    className="w-[50%] cursor-pointer rounded-[8px] bg-[var(--color-red-tk)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff] hover:bg-[var(--color-red-tk-hover)]"
+                    className="transition-bg02 w-[50%] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-hover)]"
                     onClick={handleCancelDowngradePlanRequestSchedule}
                   >
-                    ダウングレードをキャンセルする
+                    ダウングレードをキャンセル
                   </button>
                 )}
               </div>
