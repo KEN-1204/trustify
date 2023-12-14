@@ -241,10 +241,10 @@
 .fh_text_btn:hover {
   /* border: 1px solid var(--color-bg-brand-f); */
   /* border: 1px solid #6ae67d; */
-  /* background: var(--color-bg-brand-f); */
   /* background: var(--color-bg-brand-f-deep); */
   /* background: var(--color-function-header-text-btn-hover); */
-  background: var(--color-btn-brand-f);
+  /* background: var(--color-btn-brand-f); */
+  background: var(--color-bg-brand-f);
 
   color: #fff;
 }

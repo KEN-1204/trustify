@@ -20,6 +20,11 @@ export type hoveredItemPos = {
   content3?: string | null;
   display: string;
   textLength?: number;
+  marginTop?: number;
+  marginBottom?: number;
+  itemsPosition?: string;
+  maxWidth?: number;
+  whiteSpace?: "normal" | "pre" | "nowrap" | "pre-wrap" | "pre-line" | "break-spaces";
 } | null;
 // 左右にツールチップを表示
 export type hoveredItemPosHorizon = {

@@ -37,7 +37,11 @@ const CompanyMainContainerMemo: FC = () => {
   // 上画面の選択中の列データ会社
   const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
 
-  const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string = "center") => {
+  type TooltipParams = {
+    e: React.MouseEvent<HTMLElement, MouseEvent>;
+    display?: string;
+  };
+  const handleOpenTooltip = ({ e, display = "center" }: TooltipParams) => {
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
     // console.log("ツールチップx, y width , height", x, y, width, height);
@@ -648,7 +652,7 @@ const CompanyMainContainerMemo: FC = () => {
                           selectedRowDataCompany?.business_content ? selectedRowDataCompany?.business_content : ""
                         }`}
                         className={`${styles.textarea_value} h-[45px]`}
-                        onMouseEnter={(e) => handleOpenTooltip(e)}
+                        onMouseEnter={(e) => handleOpenTooltip({ e })}
                         onMouseLeave={handleCloseTooltip}
                       >
                         {selectedRowDataCompany?.business_content ? selectedRowDataCompany?.business_content : ""}
@@ -1015,7 +1019,7 @@ const CompanyMainContainerMemo: FC = () => {
                     <span
                       data-text={`${selectedRowDataCompany?.clients ? selectedRowDataCompany?.clients : ""}`}
                       className={`${styles.value}`}
-                      onMouseEnter={(e) => handleOpenTooltip(e)}
+                      onMouseEnter={(e) => handleOpenTooltip({ e })}
                       onMouseLeave={handleCloseTooltip}
                     >
                       {selectedRowDataCompany?.clients ? selectedRowDataCompany?.clients : ""}
@@ -1043,7 +1047,7 @@ const CompanyMainContainerMemo: FC = () => {
                     <span
                       data-text={`${selectedRowDataCompany?.supplier ? selectedRowDataCompany?.supplier : ""}`}
                       className={`${styles.value}`}
-                      onMouseEnter={(e) => handleOpenTooltip(e)}
+                      onMouseEnter={(e) => handleOpenTooltip({ e })}
                       onMouseLeave={handleCloseTooltip}
                     >
                       {selectedRowDataCompany?.supplier ? selectedRowDataCompany?.supplier : ""}
@@ -1076,7 +1080,7 @@ const CompanyMainContainerMemo: FC = () => {
                       <span
                         data-text={`${selectedRowDataCompany?.facility ? selectedRowDataCompany?.facility : ""}`}
                         className={`${styles.textarea_value} h-[45px]`}
-                        onMouseEnter={(e) => handleOpenTooltip(e)}
+                        onMouseEnter={(e) => handleOpenTooltip({ e })}
                         onMouseLeave={handleCloseTooltip}
                       >
                         {selectedRowDataCompany?.facility ? selectedRowDataCompany?.facility : ""}
@@ -1110,7 +1114,7 @@ const CompanyMainContainerMemo: FC = () => {
                         selectedRowDataCompany?.business_sites ? selectedRowDataCompany?.business_sites : ""
                       }`}
                       className={`${styles.value}`}
-                      onMouseEnter={(e) => handleOpenTooltip(e)}
+                      onMouseEnter={(e) => handleOpenTooltip({ e })}
                       onMouseLeave={handleCloseTooltip}
                     >
                       {selectedRowDataCompany?.business_sites ? selectedRowDataCompany?.business_sites : ""}
@@ -1136,7 +1140,7 @@ const CompanyMainContainerMemo: FC = () => {
                         selectedRowDataCompany?.overseas_bases ? selectedRowDataCompany?.overseas_bases : ""
                       }`}
                       className={`${styles.value}`}
-                      onMouseEnter={(e) => handleOpenTooltip(e)}
+                      onMouseEnter={(e) => handleOpenTooltip({ e })}
                       onMouseLeave={handleCloseTooltip}
                     >
                       {selectedRowDataCompany?.overseas_bases ? selectedRowDataCompany?.overseas_bases : ""}
@@ -1166,7 +1170,7 @@ const CompanyMainContainerMemo: FC = () => {
                       data-text={`${
                         selectedRowDataCompany?.group_company ? selectedRowDataCompany?.group_company : ""
                       }`}
-                      onMouseEnter={(e) => handleOpenTooltip(e)}
+                      onMouseEnter={(e) => handleOpenTooltip({ e })}
                       onMouseLeave={handleCloseTooltip}
                     >
                       {selectedRowDataCompany?.group_company ? selectedRowDataCompany?.group_company : ""}
@@ -1301,7 +1305,7 @@ const CompanyMainContainerMemo: FC = () => {
                               : ""
                           }`}
                           className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e })}
                           onMouseLeave={handleCloseTooltip}
                         >
                           {selectedRowDataCompany?.senior_managing_director
@@ -1333,7 +1337,7 @@ const CompanyMainContainerMemo: FC = () => {
                             selectedRowDataCompany?.managing_director ? selectedRowDataCompany?.managing_director : ""
                           }`}
                           className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e })}
                           onMouseLeave={handleCloseTooltip}
                         >
                           {selectedRowDataCompany?.managing_director ? selectedRowDataCompany?.managing_director : ""}
@@ -1357,7 +1361,7 @@ const CompanyMainContainerMemo: FC = () => {
                         <span
                           data-text={`${selectedRowDataCompany?.director ? selectedRowDataCompany?.director : ""}`}
                           className={`${styles.value} truncate`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e })}
                           onMouseLeave={handleCloseTooltip}
                         >
                           {selectedRowDataCompany?.director ? selectedRowDataCompany?.director : ""}
@@ -1387,7 +1391,7 @@ const CompanyMainContainerMemo: FC = () => {
                             selectedRowDataCompany?.board_member ? selectedRowDataCompany?.board_member : ""
                           }`}
                           className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e })}
                           onMouseLeave={handleCloseTooltip}
                         >
                           {selectedRowDataCompany?.board_member ? selectedRowDataCompany?.board_member : ""}
@@ -1411,7 +1415,7 @@ const CompanyMainContainerMemo: FC = () => {
                         <span
                           data-text={`${selectedRowDataCompany?.auditor ? selectedRowDataCompany?.auditor : ""}`}
                           className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e })}
                           onMouseLeave={handleCloseTooltip}
                         >
                           {selectedRowDataCompany?.auditor ? selectedRowDataCompany?.auditor : ""}
@@ -1439,7 +1443,7 @@ const CompanyMainContainerMemo: FC = () => {
                         <span
                           data-text={`${selectedRowDataCompany?.manager ? selectedRowDataCompany?.manager : ""}`}
                           className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e })}
                           onMouseLeave={handleCloseTooltip}
                         >
                           {selectedRowDataCompany?.manager ? selectedRowDataCompany?.manager : ""}
@@ -1463,7 +1467,7 @@ const CompanyMainContainerMemo: FC = () => {
                         <span
                           data-text={`${selectedRowDataCompany?.member ? selectedRowDataCompany?.member : ""}`}
                           className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e })}
                           onMouseLeave={handleCloseTooltip}
                         >
                           {selectedRowDataCompany?.member ? selectedRowDataCompany?.member : ""}
@@ -1505,13 +1509,22 @@ const CompanyMainContainerMemo: FC = () => {
                   isOpenSidebar ? `transition-base02` : `transition-base01`
                 }`}
               >
-                {/* 代表者・会長 */}
+                {/* 代表者・会長 サーチモードではない通常モード */}
                 <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>代表者</span>
                       {!searchMode && (
-                        <span className={`${styles.value}`}>
+                        <span
+                          className={`${styles.value}`}
+                          data-text={`${
+                            selectedRowDataCompany?.representative_name
+                              ? selectedRowDataCompany?.representative_name
+                              : ""
+                          }`}
+                          onMouseEnter={(e) => handleOpenTooltip({ e })}
+                          onMouseLeave={handleCloseTooltip}
+                        >
                           {selectedRowDataCompany?.representative_name
                             ? selectedRowDataCompany?.representative_name
                             : ""}
@@ -1525,7 +1538,14 @@ const CompanyMainContainerMemo: FC = () => {
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>会長</span>
                       {!searchMode && (
-                        <span className={`${styles.value}`}>
+                        <span
+                          className={`${styles.value}`}
+                          data-text={`${
+                            selectedRowDataCompany?.chairperson ? selectedRowDataCompany?.chairperson : ""
+                          }`}
+                          onMouseEnter={(e) => handleOpenTooltip({ e })}
+                          onMouseLeave={handleCloseTooltip}
+                        >
                           {selectedRowDataCompany?.chairperson ? selectedRowDataCompany?.chairperson : ""}
                         </span>
                       )}
@@ -1535,13 +1555,22 @@ const CompanyMainContainerMemo: FC = () => {
                   </div>
                 </div>
 
-                {/* 副社長・専務取締役 */}
+                {/* 副社長・専務取締役 サーチモードではない通常モード */}
                 <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>副社長</span>
                       {!searchMode && (
-                        <span className={`${styles.value}`}>
+                        <span
+                          className={`${styles.value}`}
+                          data-text={`${
+                            selectedRowDataCompany?.senior_vice_president
+                              ? selectedRowDataCompany?.senior_vice_president
+                              : ""
+                          }`}
+                          onMouseEnter={(e) => handleOpenTooltip({ e })}
+                          onMouseLeave={handleCloseTooltip}
+                        >
                           {selectedRowDataCompany?.senior_vice_president
                             ? selectedRowDataCompany?.senior_vice_president
                             : ""}
@@ -1562,7 +1591,7 @@ const CompanyMainContainerMemo: FC = () => {
                               : ""
                           }`}
                           className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e })}
                           onMouseLeave={handleCloseTooltip}
                         >
                           {selectedRowDataCompany?.senior_managing_director
@@ -1576,7 +1605,7 @@ const CompanyMainContainerMemo: FC = () => {
                   </div>
                 </div>
 
-                {/* 常務取締役・取締役 */}
+                {/* 常務取締役・取締役 サーチモードではない通常モード */}
                 <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
@@ -1587,7 +1616,7 @@ const CompanyMainContainerMemo: FC = () => {
                             selectedRowDataCompany?.managing_director ? selectedRowDataCompany?.managing_director : ""
                           }`}
                           className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e })}
                           onMouseLeave={handleCloseTooltip}
                         >
                           {selectedRowDataCompany?.managing_director ? selectedRowDataCompany?.managing_director : ""}
@@ -1602,9 +1631,9 @@ const CompanyMainContainerMemo: FC = () => {
                       <span className={`${styles.title}`}>取締役</span>
                       {!searchMode && (
                         <span
-                          data-text={`${selectedRowDataCompany?.director ? selectedRowDataCompany?.director : ""}`}
                           className={`${styles.value} truncate`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          data-text={`${selectedRowDataCompany?.director ? selectedRowDataCompany?.director : ""}`}
+                          onMouseEnter={(e) => handleOpenTooltip({ e })}
                           onMouseLeave={handleCloseTooltip}
                         >
                           {selectedRowDataCompany?.director ? selectedRowDataCompany?.director : ""}
@@ -1616,7 +1645,7 @@ const CompanyMainContainerMemo: FC = () => {
                   </div>
                 </div>
 
-                {/* 役員・監査役 */}
+                {/* 役員・監査役 サーチモードではない通常モード */}
                 <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
@@ -1627,7 +1656,7 @@ const CompanyMainContainerMemo: FC = () => {
                             selectedRowDataCompany?.board_member ? selectedRowDataCompany?.board_member : ""
                           }`}
                           className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e })}
                           onMouseLeave={handleCloseTooltip}
                         >
                           {selectedRowDataCompany?.board_member ? selectedRowDataCompany?.board_member : ""}
@@ -1644,7 +1673,7 @@ const CompanyMainContainerMemo: FC = () => {
                         <span
                           data-text={`${selectedRowDataCompany?.auditor ? selectedRowDataCompany?.auditor : ""}`}
                           className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e })}
                           onMouseLeave={handleCloseTooltip}
                         >
                           {selectedRowDataCompany?.auditor ? selectedRowDataCompany?.auditor : ""}
@@ -1656,7 +1685,7 @@ const CompanyMainContainerMemo: FC = () => {
                   </div>
                 </div>
 
-                {/* 部長・担当者 */}
+                {/* 部長・担当者 サーチモードではない通常モード */}
                 <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
@@ -1665,7 +1694,7 @@ const CompanyMainContainerMemo: FC = () => {
                         <span
                           data-text={`${selectedRowDataCompany?.manager ? selectedRowDataCompany?.manager : ""}`}
                           className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e })}
                           onMouseLeave={handleCloseTooltip}
                         >
                           {selectedRowDataCompany?.manager ? selectedRowDataCompany?.manager : ""}
@@ -1682,7 +1711,7 @@ const CompanyMainContainerMemo: FC = () => {
                         <span
                           data-text={`${selectedRowDataCompany?.member ? selectedRowDataCompany?.member : ""}`}
                           className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e })}
                           onMouseLeave={handleCloseTooltip}
                         >
                           {selectedRowDataCompany?.member ? selectedRowDataCompany?.member : ""}
@@ -1817,7 +1846,7 @@ const CompanyMainContainerMemo: FC = () => {
                         <span
                           data-text={`${selectedRowDataCompany?.ban_reason ? selectedRowDataCompany?.ban_reason : ""}`}
                           className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseEnter={(e) => handleOpenTooltip({e})}
                           onMouseLeave={handleCloseTooltip}
                         >
                           {selectedRowDataCompany?.ban_reason ? selectedRowDataCompany?.ban_reason : ""}
@@ -1837,7 +1866,7 @@ const CompanyMainContainerMemo: FC = () => {
                         <span
                           data-text="吾輩は猫である。名前はまだ無い。"
                           className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseEnter={(e) => handleOpenTooltip({e})}
                           onMouseLeave={handleCloseTooltip}
                         >
                           吾輩は猫である。名前はまだ無い。

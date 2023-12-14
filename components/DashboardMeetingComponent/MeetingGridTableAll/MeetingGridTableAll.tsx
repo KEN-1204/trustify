@@ -2234,7 +2234,22 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
 
   // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
   const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
-  const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string, columnName: string) => {
+  type TooltipParams = {
+    e: React.MouseEvent<HTMLElement, MouseEvent>;
+    display: string;
+    content: string;
+    content2?: string | undefined | null;
+    marginTop?: number;
+    itemsPosition?: string;
+  };
+  const handleOpenTooltip = ({
+    e,
+    display,
+    content,
+    content2,
+    marginTop = 0,
+    itemsPosition = "start",
+  }: TooltipParams) => {
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
     // console.log("ツールチップx, y width , height", x, y, width, height);
@@ -2244,8 +2259,11 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
       y: y,
       itemWidth: width,
       itemHeight: height,
-      content: columnName,
+      content: content,
+      content2: content2,
       display: display,
+      marginTop: marginTop,
+      itemsPosition: itemsPosition,
     });
   };
   // ツールチップを非表示
@@ -2441,6 +2459,15 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
                   // await refetch();
                   setRefetchLoading(false);
                 }}
+                onMouseEnter={(e) =>
+                  handleOpenTooltip({
+                    e: e,
+                    display: "top",
+                    content: "最新の状態にリフレッシュ",
+                    marginTop: 5,
+                  })
+                }
+                onMouseLeave={handleCloseTooltip}
               >
                 {/* <FiRefreshCw /> */}
                 {/* {!refetchLoading && <SpinnerIDS scale={"scale-[0.2]"} width={12} height={12} />} */}
@@ -2474,9 +2501,28 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
                     console.log("クリック フローズン");
                   }
                 }}
+                onMouseEnter={(e) =>
+                  handleOpenTooltip({
+                    e: e,
+                    display: "top",
+                    content: `${
+                      activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) !== 1
+                        ? `カラムを固定`
+                        : `カラムを選択することで、`
+                    }`,
+                    content2: `${
+                      activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex)
+                        ? ``
+                        : `左右スクロール時にカラムを左端に固定できます`
+                    }`,
+                    marginTop: activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) ? 5 : 20,
+                    itemsPosition: "center",
+                  })
+                }
+                onMouseLeave={handleCloseTooltip}
               >
-                <FiLock />
-                <span>固定</span>
+                <FiLock className="pointer-events-none" />
+                <span className="pointer-events-none">固定</span>
                 {/* <span>
                   {activeCell?.classList.contains(`${styles.grid_column_frozen}`) &&
                   activeCell?.role === "columnheader" &&
@@ -2629,7 +2675,11 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
                           if (key.isOverflow) {
                             // handleOpenTooltip(e, "top", key.columnName);
                             const columnNameData = key.columnName ? key.columnName : "";
-                            handleOpenTooltip(e, "top", columnNameToJapaneseMeeting(columnNameData));
+                            handleOpenTooltip({
+                              e,
+                              display: "top",
+                              content: columnNameToJapaneseContacts(columnNameData),
+                            });
                             console.log("マウスエンター key.columnId.toString()");
                             console.log("マウスエンター ツールチップオープン カラムID", key.columnId.toString());
                           }

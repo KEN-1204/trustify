@@ -82,6 +82,9 @@ export const columnNameToJapanese = (columnName: string) => {
       return "常務取締役";
       break;
     case "director":
+      return "取締役";
+      break;
+    case "board_member":
       return "役員";
       break;
     case "auditor":

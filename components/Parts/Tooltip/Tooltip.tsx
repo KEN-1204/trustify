@@ -37,10 +37,8 @@ export const Tooltip = () => {
     textLengthNum = hoveredItemPos.textLength ? hoveredItemPos.textLength : 0;
   }
 
-  console.log("Tooltipコンポーネントレンダリング");
+  console.log("Tooltipコンポーネントレンダリング", hoveredItemPos?.content2, hoveredItemPos?.itemsPosition);
 
-  // console.log(window.innerWidth);
-  // 左寄りのアイテムに対して右に表示するツールチップ
   if (hoveredItemDisplay === "top") {
     return (
       <div
@@ -49,19 +47,22 @@ export const Tooltip = () => {
           position: "absolute",
           zIndex: 100,
           left: `${`${hoveredItemPositionX + hoveredItemHalfWidth}px`}`,
-          top: `${`${hoveredItemPositionY - hoveredItemHeight - 8}px`}`,
+          top: `${`${hoveredItemPositionY - hoveredItemHeight - 8 - (hoveredItemPos?.marginTop ?? 0)}px`}`,
+          ...(!!hoveredItemPos?.maxWidth && { maxWidth: hoveredItemPos.maxWidth }),
         }}
         ref={menuRef}
       >
         <div className={`${styles.tooltip_over}`}>
           <div
-            className={`flex-col-center ${styles.dropdown_item}`}
+            className={`flex flex-col ${
+              hoveredItemPos?.itemsPosition === "center" ? `items-center` : "items-start"
+            } justify-center ${styles.dropdown_item}`}
             onClick={() => {
               setHoveredItemPos(null);
             }}
           >
             <span>{hoveredItemPos?.content}</span>
-            <span>{hoveredItemPos?.content2}</span>
+            {!!hoveredItemPos?.content2 && <span>{hoveredItemPos.content2}</span>}
             {hoveredItemPos?.content3 && <span>{hoveredItemPos?.content3}</span>}
           </div>
         </div>
@@ -145,7 +146,8 @@ export const Tooltip = () => {
   if (hoveredItemDisplay === "right") {
     return (
       <div
-        className={`${styles.tooltip_right}  ${hoveredItemPos ? `block ${styles.fade}` : "transition-base hidden"}`}
+        // className={`${styles.tooltip_right}  ${hoveredItemPos ? `block ${styles.fade}` : "transition-base hidden"}`}
+        className={`${styles.tooltip_area}  ${hoveredItemPos ? `block ${styles.fade}` : "transition-base hidden"}`}
         style={{
           position: "absolute",
           zIndex: 100,
@@ -154,14 +156,17 @@ export const Tooltip = () => {
         }}
         ref={menuRef}
       >
-        <div
-          className={`flex-center ${styles.dropdown_item}`}
-          onClick={() => {
-            setHoveredItemPos(null);
-          }}
-        >
-          {hoveredItemPos?.content}
+        <div className={`${styles.tooltip_right}`}>
+          <div
+            className={`flex-center ${styles.dropdown_item}`}
+            onClick={() => {
+              setHoveredItemPos(null);
+            }}
+          >
+            {hoveredItemPos?.content}
+          </div>
         </div>
+        <div className={`${styles.tooltip_arrow_right}`}></div>
       </div>
     );
   }
@@ -181,12 +186,17 @@ export const Tooltip = () => {
     >
       <div className={`${styles.tooltip}`}>
         <div
-          className={`flex-col-center ${styles.dropdown_item}`}
+          className={`flex flex-col ${
+            hoveredItemPos?.itemsPosition === "start" ? `items-start` : "items-center"
+          } justify-center ${styles.dropdown_item}`}
           onClick={() => {
             setHoveredItemPos(null);
           }}
+          style={{ ...(!!hoveredItemPos?.maxWidth && { maxWidth: hoveredItemPos.maxWidth }) }}
         >
-          <span>{hoveredItemPos?.content}</span>
+          <span style={{ ...(!!hoveredItemPos?.whiteSpace && { whiteSpace: hoveredItemPos.whiteSpace }) }}>
+            {hoveredItemPos?.content}
+          </span>
           <span>{hoveredItemPos?.content2}</span>
           {hoveredItemPos?.content3 && <span>{hoveredItemPos?.content3}</span>}
         </div>

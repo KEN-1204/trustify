@@ -60,7 +60,12 @@ export const DashboardHeaderMemo: FC = () => {
   // プロフィールアイコンホバー
   const [hoveredIcon, setHoveredIcon] = useState(false);
 
-  const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
+  const handleOpenTooltip = (
+    e: React.MouseEvent<HTMLElement, MouseEvent>,
+    display: string,
+    itemsPosition?: string,
+    whiteSpace?: "normal" | "pre" | "nowrap" | "pre-wrap" | "pre-line" | "break-spaces"
+  ) => {
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
     // console.log("ツールチップx, y width , height", x, y, width, height);
@@ -79,6 +84,8 @@ export const DashboardHeaderMemo: FC = () => {
       content2: content2,
       content3: content3,
       display: display,
+      itemsPosition: itemsPosition,
+      whiteSpace: whiteSpace,
     });
   };
   // ツールチップを非表示
@@ -653,6 +660,7 @@ export const DashboardHeaderMemo: FC = () => {
                 <div
                   className={`${styles.navbarItemInner}`}
                   data-text="架電内容、次回フォロー予定日、面談結果など顧客に関する"
+                  // data-text2={`全ての情報をきちんと記録することで、リスト作成、架電、面談、フォロー時に\n有効な情報を短時間で取得し、組織全体で最高の結果が出せるようにしましょう`}
                   data-text2="全ての情報をきちんと記録することで、リスト作成、架電、面談、フォロー時に"
                   data-text3="有効な情報を短時間で取得し、組織全体で最高の結果が出せるようにしましょう"
                   onMouseEnter={(e) => handleOpenTooltip(e, "center")}
@@ -677,8 +685,8 @@ export const DashboardHeaderMemo: FC = () => {
                   className={`${styles.navbarItemInner}`}
                   data-text="「訪問・WEB面談」の内容を記録しましょう。"
                   data-text2="お客様から頂いた情報が売れる商品開発に繋がり、将来の顧客となります。"
-                  data-text3="過去の面談内容を活用して今売れる営業先を見つけたり、売れる営業マンの良い情報を社内に共有しましょう。"
-                  onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+                  data-text3={`過去の面談内容を活用して今売れる営業先を見つけたり、\n売れる営業マンの良い情報を社内に共有しましょう。`}
+                  onMouseEnter={(e) => handleOpenTooltip(e, "center", "center")}
                   onMouseLeave={handleCloseTooltip}
                 >
                   <span>
@@ -973,7 +981,7 @@ export const DashboardHeaderMemo: FC = () => {
             <div
               data-text={`${userProfileState?.profile_name}`}
               className={`flex-center h-[38px] w-[38px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip}`}
-              onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+              onMouseEnter={(e) => handleOpenTooltip(e, "center", "center", "nowrap")}
               onMouseLeave={handleCloseTooltip}
               onClick={() => setOpenProfileMenu(true)}
             >
@@ -987,7 +995,7 @@ export const DashboardHeaderMemo: FC = () => {
             <div
               data-text={`${userProfileState?.profile_name}`}
               className={`flex-center h-[37px] w-[37px] cursor-pointer overflow-hidden rounded-full hover:bg-[#00000020]`}
-              onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+              onMouseEnter={(e) => handleOpenTooltip(e, "center", "center", "nowrap")}
               onMouseLeave={handleCloseTooltip}
               onClick={() => setOpenProfileMenu(true)}
             >
