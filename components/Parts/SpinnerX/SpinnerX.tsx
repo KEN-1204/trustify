@@ -10,7 +10,7 @@ type Props = {
 };
 
 export const SpinnerX: FC<Props> = ({
-  fill = "fill-blue-600",
+  fill = "fill-[var(--color-bg-brand-f)]",
   bgColor = "text-gray-200",
   bgColorDark = "text-gray-600",
   h = "h-[32px]",

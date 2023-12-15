@@ -16,9 +16,23 @@ type Props = {
   //   setStartDate: (date: Date) => void;
   setStartDate: Dispatch<SetStateAction<Date | null>>;
   required?: boolean;
+  fontSize?: string;
+  minHeight?: string;
+  px?: string;
+  py?: string;
+  placeholderText?: string;
 };
 
-export const DatePickerCustomInput: FC<Props> = ({ startDate, setStartDate, required = true }) => {
+export const DatePickerCustomInput: FC<Props> = ({
+  startDate,
+  setStartDate,
+  required = true,
+  fontSize = "!text-[12px]",
+  minHeight = "",
+  px = "px-[8px]",
+  py = "py-[4px]",
+  placeholderText = "placeholder:text-[12px]",
+}) => {
   const language = useStore((state) => state.language);
   //   const [startDate, setStartDate] = useState(new Date());
   const years = range(1990, getYear(new Date()) + 1, 1);
@@ -53,7 +67,7 @@ export const DatePickerCustomInput: FC<Props> = ({ startDate, setStartDate, requ
       )}
       {language === "ja" ? (
         <DatePicker
-          className={`rounded border-gray-100 p-1.5 text-base outline-0 ${styles.input_box}`}
+          className={`rounded border-gray-100 ${px} ${py}  text-base outline-0 ${placeholderText}  ${minHeight} ${fontSize} ${styles.input_box}`}
           wrapperClassName="react-datepicker__input-container"
           placeholderText={"日付を選択"}
           selected={startDate}

@@ -112,6 +112,40 @@
   --gradient-color-sb: #3ecf8e, #3ecf8e, #3ecfb2;
 }
 
+.main_container_fallback {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0%;
+  background-color: var(--color-bg-base);
+  color: var(--color-text);
+  max-height: calc(100vh / 3 - var(--header-height) / 3);
+  width: 100%;
+}
+.search_mode_container_one_third_fallback {
+  min-height: calc(100vh / 3 - var(--header-height) / 3 - 30px - 40px);
+  /* width: calc(100vw - var(--sidebar-width) - 20px); */
+}
+.grid_scroll_container_fallback {
+  /* height: 100%; */
+  /* -22pxはテーブルヘッダーの高さ */
+  /* max-height: calc(100vh / 3 - var(--header-height) / 3 - 22px); */
+  /* 全体に表示 ファンクションヘッダー無し */
+  /* max-height: calc(100vh - var(--header-height) - 30px); */
+  /* 全体に表示 ファンクションヘッダー有り height: 40px; footer: 30px */
+  /* ファンクションヘッダー:-30px、フッター:-40px */
+  /* max-height: calc(100vh - var(--header-height) - 30px); */
+  /* max-height: calc(100vh - var(--header-height) - 30px) - 40px; */
+  /* 🌟HomeComponentのスクリーンにpadding無しで全体を表示する場合 */
+  /* max-height: calc(100vh - var(--header-height) - 30px - 40px); */
+  /* 🌟HomeComponentのスクリーンにpadding 上下20px有りの場合 */
+  max-height: calc(100vh - var(--header-height) - 30px - 40px - 20px);
+  width: 100%;
+  overflow: auto;
+  position: relative;
+  /* padding-right: 30vw; */
+}
+
 .main_container {
   width: 100%;
   /* height: calc(100vh - var(--header-height)); */
@@ -426,11 +460,11 @@
 }
 .grid_row:hover .grid_cell {
   background-color: var(--color-table-row-hover);
-  background-color: var(--color-table-bg-selected);
+  /* background-color: var(--color-table-bg-selected); */
 }
 .grid_row[aria-selected="true"] .grid_cell {
   background-color: var(--color-table-bg-selected);
-  background-color: var(--color-table-row-hover);
+  /* background-color: var(--color-table-row-hover); */
   color: var(--border-theme-text);
   /* color: var(--selected-text); */
 }

@@ -12,6 +12,8 @@ import productCategoriesM, { moduleCategoryM } from "@/utils/productCategoryM";
 import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
 import { format } from "date-fns";
 import { MdClose } from "react-icons/md";
+import { toast } from "react-toastify";
+import { Zoom } from "@/utils/Helpers/toastHelpers";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -1469,10 +1471,17 @@ const ActivityMainContainerMemo: FC = () => {
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>HP</span>
-                  {!searchMode && (
-                    <span className={`${styles.value}`}>
-                      {selectedRowDataActivity?.website_url ? selectedRowDataActivity?.website_url : ""}
-                    </span>
+                  {!searchMode && !!selectedRowDataActivity?.website_url ? (
+                    <a
+                      href={selectedRowDataActivity.website_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`${styles.value} ${styles.anchor}`}
+                    >
+                      {selectedRowDataActivity.website_url}
+                    </a>
+                  ) : (
+                    <span></span>
                   )}
                   {searchMode && (
                     <input
@@ -1494,7 +1503,36 @@ const ActivityMainContainerMemo: FC = () => {
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>会社Email</span>
                   {!searchMode && (
-                    <span className={`${styles.value}`}>
+                    <span
+                      className={`${styles.value} ${styles.email_value}`}
+                      onClick={async () => {
+                        if (!selectedRowDataActivity?.company_email) return;
+                        try {
+                          await navigator.clipboard.writeText(selectedRowDataActivity.company_email);
+                          toast.success(`コピーしました!`, {
+                            position: "bottom-center",
+                            autoClose: 1000,
+                            hideProgressBar: false,
+                            closeOnClick: true,
+                            pauseOnHover: true,
+                            draggable: true,
+                            progress: undefined,
+                            transition: Zoom,
+                          });
+                        } catch (e: any) {
+                          toast.error(`コピーできませんでした!`, {
+                            position: "bottom-center",
+                            autoClose: 1000,
+                            hideProgressBar: false,
+                            closeOnClick: true,
+                            pauseOnHover: true,
+                            draggable: true,
+                            progress: undefined,
+                            transition: Zoom,
+                          });
+                        }
+                      }}
+                    >
                       {selectedRowDataActivity?.company_email ? selectedRowDataActivity?.company_email : ""}
                     </span>
                   )}

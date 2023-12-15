@@ -9,6 +9,8 @@ import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import dynamic from "next/dynamic";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import productCategoriesM, { moduleCategoryM } from "@/utils/productCategoryM";
+import { toast } from "react-toastify";
+import { Zoom } from "@/utils/Helpers/toastHelpers";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -1248,10 +1250,17 @@ const ContactMainContainerMemo: FC = () => {
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>HP</span>
-                  {!searchMode && (
-                    <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.website_url ? selectedRowDataContact?.website_url : ""}
-                    </span>
+                  {!searchMode && !!selectedRowDataContact?.website_url ? (
+                    <a
+                      href={selectedRowDataContact.website_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`${styles.value} ${styles.anchor}`}
+                    >
+                      {selectedRowDataContact.website_url}
+                    </a>
+                  ) : (
+                    <span></span>
                   )}
                   {searchMode && (
                     <input
@@ -1273,7 +1282,36 @@ const ContactMainContainerMemo: FC = () => {
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>会社Email</span>
                   {!searchMode && (
-                    <span className={`${styles.value}`}>
+                    <span
+                      className={`${styles.value} ${styles.email_value}`}
+                      onClick={async () => {
+                        if (!selectedRowDataContact?.company_email) return;
+                        try {
+                          await navigator.clipboard.writeText(selectedRowDataContact.company_email);
+                          toast.success(`コピーしました!`, {
+                            position: "bottom-center",
+                            autoClose: 1000,
+                            hideProgressBar: false,
+                            closeOnClick: true,
+                            pauseOnHover: true,
+                            draggable: true,
+                            progress: undefined,
+                            transition: Zoom,
+                          });
+                        } catch (e: any) {
+                          toast.error(`コピーできませんでした!`, {
+                            position: "bottom-center",
+                            autoClose: 1000,
+                            hideProgressBar: false,
+                            closeOnClick: true,
+                            pauseOnHover: true,
+                            draggable: true,
+                            progress: undefined,
+                            transition: Zoom,
+                          });
+                        }
+                      }}
+                    >
                       {selectedRowDataContact?.company_email ? selectedRowDataContact?.company_email : ""}
                     </span>
                   )}

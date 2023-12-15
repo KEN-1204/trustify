@@ -240,9 +240,13 @@
   width: 100%;
   align-items: center;
   height: 28px;
+  /* height: 35px; */
 
   /* margin-top: 5px; */
   margin-top: 10px;
+}
+.row_area_search_mode {
+  min-height: 35px;
 }
 .row_area_lg_box {
   display: flex;
@@ -279,7 +283,9 @@
   white-space: nowrap;
   /* 右側に20px余白 */
   /* padding-right: 20px; */
-  min-width: 70px;
+  /* min-width: 70px; */
+  /* min-width: 75px; */
+  min-width: 78px;
   /* min-width: 80px; */
   /* min-width: 90px; */
   /* min-width: 95px; */
@@ -302,7 +308,55 @@
   /* margin-right: 20px; */
   font-weight: 600;
   font-size: 13px;
+  line-height: 17px;
 }
+.check_title {
+  color: var(--color-text-brand-f);
+  color: var(--color-text-under-title);
+  white-space: nowrap;
+  /* 右側に20px余白 */
+  /* padding-right: 20px; */
+  /* min-width: 80px; */
+  /* min-width: 90px; */
+  min-width: 70px;
+  font-size: 13px;
+  line-height: 17px;
+  /* min-width: 75px; */
+  /* min-width: 100px; */
+  /* margin-right: 10px; */
+  font-weight: 600;
+}
+.check_title_search_mode {
+  color: var(--color-text-brand-f);
+  color: var(--color-text-under-title);
+  white-space: nowrap;
+  /* 右側に20px余白 */
+  /* padding-right: 20px; */
+  /* min-width: 80px; */
+  /* min-width: 90px; */
+  min-width: 95px;
+  font-size: 13px;
+  line-height: 17px;
+  /* min-width: 100px; */
+  /* margin-right: 10px; */
+  font-weight: 600;
+}
+.section_title_search_mode {
+  color: var(--color-text-under-title);
+  white-space: nowrap;
+  /* 右側に20px余白 */
+  /* padding-right: 20px; */
+  /* min-width: 80px; */
+  /* min-width: 90px; */
+  min-width: 95px;
+  /* min-width: 75px; */
+  /* min-width: 70px; */
+  font-weight: 600;
+  /* font-size: 18px; */
+  font-size: 14px;
+  line-height: 17px;
+}
+
 .title_min {
   color: var(--color-text-brand-f);
   color: var(--color-text-under-title);
@@ -319,7 +373,10 @@
   /* padding-right: 20px; */
   /* min-width: 80px; */
   /* min-width: 90px; */
-  min-width: 95px;
+  /* min-width: 95px; */
+  /* min-width: 75px; */
+  min-width: 78px;
+  /* min-width: 70px; */
   font-weight: 600;
   /* font-size: 18px; */
   font-size: 14px;
@@ -332,8 +389,16 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   width: 100%;
-  text-align: center;
-  font-size: 13px;
+  /* text-align: center; */
+  /* font-size: 13px; */
+  font-size: 14px;
+}
+.double_text {
+  font-size: 12px;
+}
+.value.text_start {
+  text-align: start;
+  /* margin-left: 5px; */
 }
 .full_value {
   color: var(--color-text-under-value);
@@ -358,7 +423,9 @@
   background: var(--color-bg-under-input);
   color: var(--color-text-under-input);
   box-shadow: var(--color-bg-under-input-box-shadow);
-  padding: 0px 6px;
+  /* padding: 0px 6px; */
+  /* font-size: 14px; */
+  padding: 6px 8px;
   border-radius: 2px;
 }
 .input_box:focus {
@@ -384,17 +451,18 @@
 }
 .textarea_box {
   /* height: 100%; */
-  min-height: 56px;
+  /* min-height: 56px; */
+  min-height: 78px;
   width: 100%;
   background: var(--color-bg-under-input);
   color: var(--color-text-under-input);
   box-shadow: var(--color-bg-under-input-box-shadow);
   /* padding: 3px 6px; */
-  padding: 0px 6px;
+  /* font-size: 13px; */
+  padding: 6px 8px;
+  font-size: 14px;
   border-radius: 2px;
   resize: none;
-  /* box-sizing: border-box; */
-  font-size: 13px;
 }
 .textarea_box_bg {
   background: var(--color-bg-under-input-gray);
@@ -577,33 +645,6 @@
   border-color: var(--border-theme-dark);
 }
 
-.check_title {
-  color: var(--color-text-brand-f);
-  color: var(--color-text-under-title);
-  white-space: nowrap;
-  /* 右側に20px余白 */
-  /* padding-right: 20px; */
-  /* min-width: 80px; */
-  /* min-width: 90px; */
-  min-width: 70px;
-  /* min-width: 75px; */
-  /* min-width: 100px; */
-  /* margin-right: 10px; */
-  font-weight: 600;
-}
-.check_title_search_mode {
-  color: var(--color-text-brand-f);
-  color: var(--color-text-under-title);
-  white-space: nowrap;
-  /* 右側に20px余白 */
-  /* padding-right: 20px; */
-  /* min-width: 80px; */
-  /* min-width: 90px; */
-  min-width: 95px;
-  /* min-width: 100px; */
-  /* margin-right: 10px; */
-  font-weight: 600;
-}
 .right_under_title {
   color: var(--color-text-brand-f);
   color: var(--color-text-under-title);

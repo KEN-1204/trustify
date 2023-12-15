@@ -246,6 +246,9 @@
   /* margin-top: 5px; */
   margin-top: 10px;
 }
+.row_area_search_mode {
+  min-height: 35px;
+}
 .row_area_lg_box {
   display: flex;
   width: 100%;
@@ -352,13 +355,28 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
+.anchor {
+  color: var(--color-text-brand-f);
+  text-decoration: underline;
+}
+.anchor:hover {
+  color: var(--color-text-brand-f-deep);
+}
+.email_value {
+  color: var(--color-text-brand-f);
+  cursor: pointer;
+}
+.email_value:hover {
+  color: var(--color-text-brand-f-deep);
+}
 .input_box {
   height: 100%;
   width: 100%;
   background: var(--color-bg-under-input);
   color: var(--color-text-under-input);
   box-shadow: var(--color-bg-under-input-box-shadow);
-  padding: 0px 6px;
+  /* padding: 0px 6px; */
+  padding: 6px 8px;
   border-radius: 2px;
 }
 .input_box:focus {
@@ -385,13 +403,18 @@
   color: var(--color-text-under-input);
   box-shadow: var(--color-bg-under-input-box-shadow);
   /* padding: 3px 6px; */
-  padding: 0px 6px;
+  /* padding: 0px 6px; */
+  padding: 6px 8px;
+  font-size: 14px;
   border-radius: 2px;
   resize: none;
   /* box-sizing: border-box; */
 }
 .textarea_box_bg {
   background: var(--color-bg-under-input-gray);
+}
+.textarea_xl {
+  min-height: 120px;
 }
 
 /* ------------------------------- 右側エリア ------------------------------- */

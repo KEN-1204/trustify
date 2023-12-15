@@ -11,12 +11,19 @@ import productCategoriesM from "@/utils/productCategoryM";
 import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
 import { MdClose } from "react-icons/md";
 import { useQueryProducts } from "@/hooks/useQueryProducts";
+import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 
 export const InsertNewPropertyModal = () => {
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
   const selectedRowDataActivity = useDashboardStore((state) => state.selectedRowDataActivity);
   const selectedRowDataMeeting = useDashboardStore((state) => state.selectedRowDataMeeting);
+  const selectedRowDataProperty = useDashboardStore((state) => state.selectedRowDataProperty);
+  // const setSelectedRowDataContact = useDashboardStore((state) => state.setSelectedRowDataContact);
+  // const setSelectedRowDataActivity = useDashboardStore((state) => state.setSelectedRowDataActivity);
+  // const setSelectedRowDataMeeting = useDashboardStore((state) => state.setSelectedRowDataMeeting);
+  // const setSelectedRowDataProperty = useDashboardStore((state) => state.setSelectedRowDataProperty);
   const setIsOpenInsertNewPropertyModal = useDashboardStore((state) => state.setIsOpenInsertNewPropertyModal);
+  // const [isLoading, setIsLoading] = useState(false);
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   // const theme = useThemeStore((state) => state.theme);
@@ -102,8 +109,10 @@ export const InsertNewPropertyModal = () => {
 
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
+    if (loadingGlobalState) return;
     setIsOpenInsertNewPropertyModal(false);
   };
+  // 🌟面談・訪問画面から案件を作成 面談・訪問画面で選択したRowデータを使用する
   const handleSaveAndCloseFromMeeting = async () => {
     // if (!summary) return alert("活動概要を入力してください");
     // if (!PropertyType) return alert("活動タイプを選択してください");
@@ -176,7 +185,7 @@ export const InsertNewPropertyModal = () => {
 
     console.log("案件 新規作成 newProperty", newProperty);
 
-    // supabaseにINSERT
+    // supabaseにINSERT,ローディング終了, モーダルを閉じる
     createPropertyMutation.mutate(newProperty);
 
     // setLoadingGlobalState(false);
@@ -184,6 +193,7 @@ export const InsertNewPropertyModal = () => {
     // モーダルを閉じる
     // setIsOpenInsertNewPropertyModal(false);
   };
+  // 🌟活動画面から案件を作成 活動画面で選択したRowデータを使用する
   const handleSaveAndCloseFromActivity = async () => {
     // if (!summary) return alert("活動概要を入力してください");
     // if (!PropertyType) return alert("活動タイプを選択してください");
@@ -256,7 +266,169 @@ export const InsertNewPropertyModal = () => {
 
     console.log("案件 新規作成 newProperty", newProperty);
 
-    // supabaseにINSERT
+    // supabaseにINSERT,ローディング終了, モーダルを閉じる
+    createPropertyMutation.mutate(newProperty);
+
+    // setLoadingGlobalState(false);
+
+    // モーダルを閉じる
+    // setIsOpenInsertNewPropertyModal(false);
+  };
+  // 🌟案件画面から案件を作成 案件画面で選択したRowデータを使用する
+  const handleSaveAndCloseFromProperty = async () => {
+    // if (!summary) return alert("活動概要を入力してください");
+    // if (!PropertyType) return alert("活動タイプを選択してください");
+    if (!userProfileState?.id) return alert("ユーザー情報が存在しません");
+    if (!selectedRowDataProperty?.company_id) return alert("相手先の会社情報が存在しません");
+    if (!selectedRowDataProperty?.contact_id) return alert("担当者情報が存在しません");
+    if (currentStatus === "") return alert("ステータスを選択してください");
+    if (!expectedOrderDate) return alert("獲得予定時期を入力してください");
+    if (!propertyDate) return alert("案件発生日付を入力してください");
+    if (!PropertyYearMonth) return alert("案件年月度を入力してください");
+    if (PropertyMemberName === "") return alert("自社担当を入力してください");
+
+    setLoadingGlobalState(true);
+
+    // 新規作成するデータをオブジェクトにまとめる
+    const newProperty = {
+      created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
+      created_by_user_id: userProfileState?.id ? userProfileState.id : null,
+      created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
+      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      client_contact_id: selectedRowDataProperty.contact_id,
+      client_company_id: selectedRowDataProperty.company_id,
+      current_status: currentStatus,
+      property_name: propertyName,
+      property_summary: propertySummary,
+      pending_flag: pendingFlag,
+      rejected_flag: rejectedFlag,
+      product_name: productName,
+      product_sales: productSales,
+      expected_order_date: expectedOrderDate ? expectedOrderDate.toISOString() : null,
+      expected_sales_price: expectedSalesPrice,
+      term_division: termDivision,
+      sold_product_name: soldProductName,
+      unit_sales: unitSales,
+      sales_contribution_category: salesContributionCategory,
+      sales_price: salesPrice,
+      discounted_price: discountedPrice,
+      discount_rate: discountedRate,
+      sales_class: salesClass,
+      expansion_date: expansionDate ? expansionDate.toISOString() : null,
+      sales_date: salesDate ? salesDate.toISOString() : null,
+      expansion_quarter: expansionQuarter,
+      sales_quarter: salesQuarter,
+      subscription_start_date: subscriptionStartDate ? subscriptionStartDate.toISOString() : null,
+      subscription_canceled_at: subscriptionCanceledAt ? subscriptionCanceledAt.toISOString() : null,
+      leasing_company: leasingCompany,
+      lease_division: leaseDivision,
+      lease_expiration_date: leaseExpirationDate ? leaseExpirationDate.toISOString() : null,
+      step_in_flag: stepInFlag,
+      repeat_flag: repeatFlag,
+      order_certainty_start_of_month: orderCertaintyStartOfMonth,
+      review_order_certainty: reviewOrderCertainty,
+      competitor_appearance_date: competitorAppearanceDate ? competitorAppearanceDate.toISOString() : null,
+      competitor: competitor,
+      competitor_product: competitorProduct,
+      reason_class: reasonClass,
+      reason_detail: reasonDetail,
+      customer_budget: customerBudget,
+      decision_maker_negotiation: decisionMakerNegotiation,
+      expansion_year_month: expansionYearMonth,
+      sales_year_month: salesYearMonth,
+      subscription_interval: subscriptionInterval,
+      competition_state: competitionState,
+      property_year_month: PropertyYearMonth,
+      property_department: PropertyDepartment ? PropertyDepartment : null,
+      property_business_office: PropertyBusinessOffice ? PropertyBusinessOffice : null,
+      property_member_name: PropertyMemberName ? PropertyMemberName : null,
+      property_date: propertyDate ? propertyDate.toISOString() : null,
+    };
+
+    console.log("案件 新規作成 newProperty", newProperty);
+
+    // supabaseにINSERT,ローディング終了, モーダルを閉じる
+    createPropertyMutation.mutate(newProperty);
+
+    // setLoadingGlobalState(false);
+
+    // モーダルを閉じる
+    // setIsOpenInsertNewPropertyModal(false);
+  };
+  // 🌟担当者画面から案件を作成 担当者画面で選択したRowデータを使用する
+  const handleSaveAndCloseFromContact = async () => {
+    // if (!summary) return alert("活動概要を入力してください");
+    // if (!PropertyType) return alert("活動タイプを選択してください");
+    if (!userProfileState?.id) return alert("ユーザー情報が存在しません");
+    if (!selectedRowDataContact?.company_id) return alert("相手先の会社情報が存在しません");
+    if (!selectedRowDataContact?.contact_id) return alert("担当者情報が存在しません");
+    if (currentStatus === "") return alert("ステータスを選択してください");
+    if (!expectedOrderDate) return alert("獲得予定時期を入力してください");
+    if (!propertyDate) return alert("案件発生日付を入力してください");
+    if (!PropertyYearMonth) return alert("案件年月度を入力してください");
+    if (PropertyMemberName === "") return alert("自社担当を入力してください");
+
+    setLoadingGlobalState(true);
+
+    // 新規作成するデータをオブジェクトにまとめる
+    const newProperty = {
+      created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
+      created_by_user_id: userProfileState?.id ? userProfileState.id : null,
+      created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
+      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      client_contact_id: selectedRowDataContact.contact_id,
+      client_company_id: selectedRowDataContact.company_id,
+      current_status: currentStatus,
+      property_name: propertyName,
+      property_summary: propertySummary,
+      pending_flag: pendingFlag,
+      rejected_flag: rejectedFlag,
+      product_name: productName,
+      product_sales: productSales,
+      expected_order_date: expectedOrderDate ? expectedOrderDate.toISOString() : null,
+      expected_sales_price: expectedSalesPrice,
+      term_division: termDivision,
+      sold_product_name: soldProductName,
+      unit_sales: unitSales,
+      sales_contribution_category: salesContributionCategory,
+      sales_price: salesPrice,
+      discounted_price: discountedPrice,
+      discount_rate: discountedRate,
+      sales_class: salesClass,
+      expansion_date: expansionDate ? expansionDate.toISOString() : null,
+      sales_date: salesDate ? salesDate.toISOString() : null,
+      expansion_quarter: expansionQuarter,
+      sales_quarter: salesQuarter,
+      subscription_start_date: subscriptionStartDate ? subscriptionStartDate.toISOString() : null,
+      subscription_canceled_at: subscriptionCanceledAt ? subscriptionCanceledAt.toISOString() : null,
+      leasing_company: leasingCompany,
+      lease_division: leaseDivision,
+      lease_expiration_date: leaseExpirationDate ? leaseExpirationDate.toISOString() : null,
+      step_in_flag: stepInFlag,
+      repeat_flag: repeatFlag,
+      order_certainty_start_of_month: orderCertaintyStartOfMonth,
+      review_order_certainty: reviewOrderCertainty,
+      competitor_appearance_date: competitorAppearanceDate ? competitorAppearanceDate.toISOString() : null,
+      competitor: competitor,
+      competitor_product: competitorProduct,
+      reason_class: reasonClass,
+      reason_detail: reasonDetail,
+      customer_budget: customerBudget,
+      decision_maker_negotiation: decisionMakerNegotiation,
+      expansion_year_month: expansionYearMonth,
+      sales_year_month: salesYearMonth,
+      subscription_interval: subscriptionInterval,
+      competition_state: competitionState,
+      property_year_month: PropertyYearMonth,
+      property_department: PropertyDepartment ? PropertyDepartment : null,
+      property_business_office: PropertyBusinessOffice ? PropertyBusinessOffice : null,
+      property_member_name: PropertyMemberName ? PropertyMemberName : null,
+      property_date: propertyDate ? propertyDate.toISOString() : null,
+    };
+
+    console.log("案件 新規作成 newProperty", newProperty);
+
+    // supabaseにINSERT,ローディング終了, モーダルを閉じる
     createPropertyMutation.mutate(newProperty);
 
     // setLoadingGlobalState(false);
@@ -372,22 +544,32 @@ export const InsertNewPropertyModal = () => {
   return (
     <>
       <div className={`${styles.overlay} `} onClick={handleCancelAndReset} />
-      {loadingGlobalState && (
+      {/* {loadingGlobalState && (
         <div className={`${styles.loading_overlay} `}>
           <SpinnerIDS scale={"scale-[0.5]"} />
         </div>
-      )}
-      <div className={`${styles.container} `}>
+      )} */}
+      <div className={`${styles.container} fade03`}>
+        {loadingGlobalState && (
+          <div className={`${styles.loading_overlay_modal} `}>
+            {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
+            <SpinnerComet w="48px" h="48px" />
+            {/* <SpinnerX w="w-[42px]" h="h-[42px]" /> */}
+          </div>
+        )}
         {/* 保存・タイトル・キャンセルエリア */}
         <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[20px] text-center text-[18px]">
-          <div className="font-samibold cursor-pointer hover:text-[#aaa]" onClick={handleCancelAndReset}>
+          <div
+            className="min-w-[150px] cursor-pointer text-start font-semibold hover:text-[#aaa]"
+            onClick={handleCancelAndReset}
+          >
             キャンセル
           </div>
-          <div className="-translate-x-[25px] font-bold">案件 新規作成</div>
+          <div className="min-w-[150px] font-bold">案件 新規作成</div>
 
           {selectedRowDataMeeting && (
             <div
-              className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
+              className={`min-w-[150px] cursor-pointer text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
               onClick={handleSaveAndCloseFromMeeting}
             >
               保存
@@ -395,21 +577,32 @@ export const InsertNewPropertyModal = () => {
           )}
           {selectedRowDataContact && (
             <div
-              className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
-              // onClick={handleSaveAndCloseFromContact}
+              className={`min-w-[150px] cursor-pointer text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
+              onClick={handleSaveAndCloseFromContact}
             >
               保存
             </div>
           )}
           {selectedRowDataActivity && (
             <div
-              className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
+              className={`min-w-[150px] cursor-pointer text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
               onClick={handleSaveAndCloseFromActivity}
             >
               保存
             </div>
           )}
+          {selectedRowDataProperty && (
+            <div
+              className={`min-w-[150px] cursor-pointer text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
+              onClick={handleSaveAndCloseFromProperty}
+            >
+              保存
+            </div>
+          )}
         </div>
+
+        <div className="min-h-[2px] w-full bg-[var(--color-bg-brand-f)]"></div>
+
         {/* メインコンテンツ コンテナ */}
         <div className={`${styles.main_contents_container}`}>
           {/* --------- 横幅全体ラッパー --------- */}
@@ -420,7 +613,7 @@ export const InsertNewPropertyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px] !text-[var(--main-color-tk)]`}>●現ステータス</span>
+                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●現ステータス</span>
                     <select
                       className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box} ${
                         !currentStatus ? `text-[#9ca3af]` : ``
@@ -467,7 +660,7 @@ export const InsertNewPropertyModal = () => {
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title} !min-w-[140px] !text-[var(--main-color-tk)]`}>●案件名</span>
+                  <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●案件名</span>
                   <input
                     type="text"
                     placeholder="※入力必須　案件名を入力してください"
@@ -603,7 +796,14 @@ export const InsertNewPropertyModal = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px]`}>獲得予定時期</span>
-                    <DatePickerCustomInput startDate={expectedOrderDate} setStartDate={setExpectedOrderDate} />
+                    <DatePickerCustomInput
+                      startDate={expectedOrderDate}
+                      setStartDate={setExpectedOrderDate}
+                      fontSize="text-[15px]"
+                      placeholderText="placeholder:text-[15px]"
+                      py="py-[6px]"
+                      minHeight="min-h-[32px]"
+                    />
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1095,7 +1295,14 @@ export const InsertNewPropertyModal = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px]`}>展開日付</span>
-                    <DatePickerCustomInput startDate={expansionDate} setStartDate={setExpansionDate} />
+                    <DatePickerCustomInput
+                      startDate={expansionDate}
+                      setStartDate={setExpansionDate}
+                      fontSize="text-[15px]"
+                      placeholderText="placeholder:text-[15px]"
+                      py="py-[6px]"
+                      minHeight="min-h-[32px]"
+                    />
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1111,7 +1318,14 @@ export const InsertNewPropertyModal = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px]`}>売上日付</span>
-                    <DatePickerCustomInput startDate={salesDate} setStartDate={setSalesDate} />
+                    <DatePickerCustomInput
+                      startDate={salesDate}
+                      setStartDate={setSalesDate}
+                      fontSize="text-[15px]"
+                      placeholderText="placeholder:text-[15px]"
+                      py="py-[6px]"
+                      minHeight="min-h-[32px]"
+                    />
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1303,7 +1517,14 @@ export const InsertNewPropertyModal = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px]`}>サブスク開始日</span>
-                    <DatePickerCustomInput startDate={subscriptionStartDate} setStartDate={setSubscriptionStartDate} />
+                    <DatePickerCustomInput
+                      startDate={subscriptionStartDate}
+                      setStartDate={setSubscriptionStartDate}
+                      fontSize="text-[15px]"
+                      placeholderText="placeholder:text-[15px]"
+                      py="py-[6px]"
+                      minHeight="min-h-[32px]"
+                    />
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1322,6 +1543,10 @@ export const InsertNewPropertyModal = () => {
                     <DatePickerCustomInput
                       startDate={subscriptionCanceledAt}
                       setStartDate={setSubscriptionCanceledAt}
+                      fontSize="text-[15px]"
+                      placeholderText="placeholder:text-[15px]"
+                      py="py-[6px]"
+                      minHeight="min-h-[32px]"
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -1396,7 +1621,14 @@ export const InsertNewPropertyModal = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px]`}>リース完了予定日</span>
-                    <DatePickerCustomInput startDate={leaseExpirationDate} setStartDate={setLeaseExpirationDate} />
+                    <DatePickerCustomInput
+                      startDate={leaseExpirationDate}
+                      setStartDate={setLeaseExpirationDate}
+                      fontSize="text-[15px]"
+                      placeholderText="placeholder:text-[15px]"
+                      py="py-[6px]"
+                      minHeight="min-h-[32px]"
+                    />
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1475,6 +1707,10 @@ export const InsertNewPropertyModal = () => {
                     <DatePickerCustomInput
                       startDate={competitorAppearanceDate}
                       setStartDate={setCompetitorAppearanceDate}
+                      fontSize="text-[15px]"
+                      placeholderText="placeholder:text-[15px]"
+                      py="py-[6px]"
+                      minHeight="min-h-[32px]"
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -1716,8 +1952,15 @@ export const InsertNewPropertyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px] !text-[var(--main-color-tk)]`}>●案件発生日付</span>
-                    <DatePickerCustomInput startDate={propertyDate} setStartDate={setPropertyDate} />
+                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●案件発生日付</span>
+                    <DatePickerCustomInput
+                      startDate={propertyDate}
+                      setStartDate={setPropertyDate}
+                      fontSize="text-[15px]"
+                      placeholderText="placeholder:text-[15px]"
+                      py="py-[6px]"
+                      minHeight="min-h-[32px]"
+                    />
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1732,7 +1975,7 @@ export const InsertNewPropertyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px] !text-[var(--main-color-tk)]`}>●案件年月度</span>
+                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●案件年月度</span>
                     <input
                       type="number"
                       min="0"
@@ -1867,7 +2110,7 @@ export const InsertNewPropertyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px] !text-[var(--main-color-tk)]`}>●自社担当</span>
+                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●自社担当</span>
                     <input
                       type="text"
                       placeholder="*入力必須"

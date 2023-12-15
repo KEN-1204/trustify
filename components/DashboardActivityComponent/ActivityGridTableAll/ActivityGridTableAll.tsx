@@ -2641,7 +2641,8 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
                             handleOpenTooltip({
                               e,
                               display: "top",
-                              content: columnNameToJapaneseContacts(columnNameData),
+                              // content: columnNameToJapaneseContacts(columnNameData),
+                              content: columnNameToJapaneseActivity(columnNameData),
                             });
                             console.log("マウスエンター key.columnId.toString()");
                             console.log("マウスエンター ツールチップオープン カラムID", key.columnId.toString());

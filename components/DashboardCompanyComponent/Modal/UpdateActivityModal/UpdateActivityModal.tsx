@@ -9,12 +9,14 @@ import { isNaN } from "lodash";
 import { useMutateActivity } from "@/hooks/useMutateActivity";
 import productCategoriesM from "@/utils/productCategoryM";
 import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
+import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 
 export const UpdateActivityModal = () => {
   const selectedRowDataActivity = useDashboardStore((state) => state.selectedRowDataActivity);
   const setIsOpenUpdateActivityModal = useDashboardStore((state) => state.setIsOpenUpdateActivityModal);
-  const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
-  const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
+  const [isLoading, setIsLoading] = useState(false);
+  // const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
+  // const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   // const theme = useThemeStore((state) => state.theme);
   // 上画面の選択中の列データ会社
   // const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
@@ -113,6 +115,7 @@ export const UpdateActivityModal = () => {
 
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
+    if (isLoading) return;
     setIsOpenUpdateActivityModal(false);
   };
   const handleSaveAndClose = async () => {
@@ -122,7 +125,7 @@ export const UpdateActivityModal = () => {
     if (!selectedRowDataActivity?.company_id) return alert("相手先の会社情報が存在しません");
     if (!selectedRowDataActivity?.contact_id) return alert("担当者情報が存在しません");
 
-    setLoadingGlobalState(true);
+    setIsLoading(true);
 
     // 新規作成するデータをオブジェクトにまとめる
     const newActivity = {
@@ -168,7 +171,7 @@ export const UpdateActivityModal = () => {
     // supabaseにUPDATE
     updateActivityMutation.mutate(newActivity);
 
-    // setLoadingGlobalState(false);
+    setIsLoading(false);
 
     // モーダルを閉じる
     // setIsOpenUpdateActivityModal(false);
@@ -282,25 +285,38 @@ export const UpdateActivityModal = () => {
   return (
     <>
       <div className={`${styles.overlay} `} onClick={handleCancelAndReset} />
-      {loadingGlobalState && (
+      {/* {loadingGlobalState && (
         <div className={`${styles.loading_overlay} `}>
           <SpinnerIDS scale={"scale-[0.5]"} />
         </div>
-      )}
-      <div className={`${styles.container} `}>
+      )} */}
+      <div className={`${styles.container} fade03`}>
+        {isLoading && (
+          <div className={`${styles.loading_overlay_modal} `}>
+            {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
+            <SpinnerComet w="48px" h="48px" />
+            {/* <SpinnerX w="w-[42px]" h="h-[42px]" /> */}
+          </div>
+        )}
         {/* 保存・タイトル・キャンセルエリア */}
         <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[20px] text-center text-[18px]">
-          <div className="font-samibold cursor-pointer hover:text-[#aaa]" onClick={handleCancelAndReset}>
+          <div
+            className="min-w-[150px] cursor-pointer text-start font-semibold hover:text-[#aaa]"
+            onClick={handleCancelAndReset}
+          >
             キャンセル
           </div>
-          <div className="-translate-x-[25px] font-bold">活動 編集</div>
+          <div className="min-w-[150px] font-bold">活動 編集</div>
           <div
-            className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
+            className={`min-w-[150px] cursor-pointer text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
             onClick={handleSaveAndClose}
           >
             保存
           </div>
         </div>
+
+        <div className="min-h-[2px] w-full bg-[var(--color-bg-brand-f)]"></div>
+
         {/* メインコンテンツ コンテナ */}
         <div className={`${styles.main_contents_container}`}>
           {/* --------- 横幅全体ラッパー --------- */}
@@ -311,8 +327,15 @@ export const UpdateActivityModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>●活動日</span>
-                    <DatePickerCustomInput startDate={activityDate} setStartDate={setActivityDate} />
+                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●活動日</span>
+                    <DatePickerCustomInput
+                      startDate={activityDate}
+                      setStartDate={setActivityDate}
+                      fontSize="text-[15px]"
+                      placeholderText="placeholder:text-[15px]"
+                      py="py-[6px]"
+                      minHeight="min-h-[32px]"
+                    />
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -358,7 +381,7 @@ export const UpdateActivityModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>●活動タイプ</span>
+                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●活動タイプ</span>
                     <select
                       name="number_of_employees_class"
                       id="number_of_employees_class"
@@ -431,7 +454,14 @@ export const UpdateActivityModal = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
                     <span className={`${styles.title} !min-w-[172px]`}>次回フォロー予定日</span>
-                    <DatePickerCustomInput startDate={scheduledFollowUpDate} setStartDate={setScheduledFollowUpDate} />
+                    <DatePickerCustomInput
+                      startDate={scheduledFollowUpDate}
+                      setStartDate={setScheduledFollowUpDate}
+                      fontSize="text-[15px]"
+                      placeholderText="placeholder:text-[15px]"
+                      py="py-[6px]"
+                      minHeight="min-h-[32px]"
+                    />
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>

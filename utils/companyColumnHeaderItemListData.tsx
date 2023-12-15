@@ -1,19 +1,26 @@
 import { ColumnHeaderItemList } from "@/types";
 
+// Obj型
 interface Obj {
   [prop: string]: any; // これを記述することで、どんなプロパティでも持てるようになる
 }
 // https://zawatech.com/?p=344 : 【Typescript】オブジェクトのプロパティを後から追加する方法
 
-const contactColumnHeaderItemListArray: Obj[] = [
+const companyColumnHeaderItemListArray: Obj[] = [
+  // {
+  //   columnName: "id",
+  //   columnWidth: "50px",
+  //   isFrozen: false,
+  //   isOverflow: false,
+  // },
+  // {
+  //   columnName: "corporate_number",
+  //   columnWidth: "200px",
+  //   isFrozen: false,
+  //   isOverflow: false,
+  // },
   {
-    columnName: "company_name",
-    columnWidth: "200px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-  {
-    columnName: "address",
+    columnName: "name",
     columnWidth: "200px",
     isFrozen: false,
     isOverflow: false,
@@ -25,26 +32,7 @@ const contactColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "contact_name",
-    columnWidth: "200px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-
-  {
-    columnName: "position_class",
-    columnWidth: "200px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-  {
-    columnName: "position_name",
-    columnWidth: "200px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-  {
-    columnName: "direct_line",
+    columnName: "representative_name",
     columnWidth: "200px",
     isFrozen: false,
     isOverflow: false,
@@ -56,69 +44,31 @@ const contactColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "direct_fax",
-    columnWidth: "200px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-  {
     columnName: "main_fax",
     columnWidth: "200px",
     isFrozen: false,
     isOverflow: false,
   },
   {
-    columnName: "email",
+    columnName: "zipcode",
     columnWidth: "200px",
     isFrozen: false,
     isOverflow: false,
   },
   {
-    columnName: "extension",
+    columnName: "address",
     columnWidth: "200px",
     isFrozen: false,
     isOverflow: false,
   },
   {
-    columnName: "company_cell_phone",
+    columnName: "number_of_employees_class",
     columnWidth: "200px",
     isFrozen: false,
     isOverflow: false,
   },
   {
-    columnName: "personal_cell_phone",
-    columnWidth: "200px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-
-  {
-    columnName: "occupation",
-    columnWidth: "200px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-  {
-    columnName: "approval_amount",
-    columnWidth: "200px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-  {
-    columnName: "budget_request_month1",
-    columnWidth: "200px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-  {
-    columnName: "budget_request_month2",
-    columnWidth: "200px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-  //
-  {
-    columnName: "fiscal_end_month",
+    columnName: "number_of_employees",
     columnWidth: "200px",
     isFrozen: false,
     isOverflow: false,
@@ -136,43 +86,31 @@ const contactColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "supplier",
-    columnWidth: "200px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-  {
-    columnName: "clients",
-    columnWidth: "200px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-  {
-    columnName: "number_of_employees_class",
-    columnWidth: "200px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-  {
     columnName: "business_content",
     columnWidth: "200px",
     isFrozen: false,
     isOverflow: false,
   },
   {
-    columnName: "business_sites",
+    columnName: "email",
     columnWidth: "200px",
     isFrozen: false,
     isOverflow: false,
   },
   {
-    columnName: "overseas_bases",
+    columnName: "website_url",
     columnWidth: "200px",
     isFrozen: false,
     isOverflow: false,
   },
   {
-    columnName: "group_company",
+    columnName: "industry_large",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "industry_small",
     columnWidth: "200px",
     isFrozen: false,
     isOverflow: false,
@@ -201,15 +139,125 @@ const contactColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
+
+  {
+    columnName: "fiscal_end_month",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+
+  {
+    columnName: "clients",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "supplier",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "chairperson",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "senior_vice_president",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "senior_managing_director",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "managing_director",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "director",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "board_member",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "auditor",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "manager",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "member",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "facility",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "business_sites",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "overseas_bases",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "group_company",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
   {
     columnName: "corporate_number",
     columnWidth: "200px",
     isFrozen: false,
     isOverflow: false,
   },
+  {
+    columnName: "created_by_company_id",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "id",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
 ];
 
-export const contactColumnHeaderItemListData: ColumnHeaderItemList[] = contactColumnHeaderItemListArray.map(
+export const companyColumnHeaderItemListData: ColumnHeaderItemList[] = companyColumnHeaderItemListArray.map(
   (obj, index) => {
     //   obj.columnId = index;
     //   obj.columnIndex = index + 2;

@@ -9,21 +9,23 @@ const PropertyFunctionHeaderMemo: FC = () => {
   const searchMode = useDashboardStore((state) => state.searchMode);
   const setSearchMode = useDashboardStore((state) => state.setSearchMode);
   const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
+  const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
   const setUnderDisplayFullScreen = useDashboardStore((state) => state.setUnderDisplayFullScreen);
   const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
-  //   const setIsOpenInsertNewPropertyModal = useDashboardStore((state) => state.setIsOpenInsertNewPropertyModal);
+
+  // 活動編集と「活動、面談、案件」の作成モーダル開閉state
   const setIsOpenUpdatePropertyModal = useDashboardStore((state) => state.setIsOpenUpdatePropertyModal);
-  const setIsOpenInsertNewPropertyModal = useDashboardStore((state) => state.setIsOpenInsertNewPropertyModal);
   const setIsOpenInsertNewActivityModal = useDashboardStore((state) => state.setIsOpenInsertNewActivityModal);
-  //   const setIsOpenInsertNewPropertyModal = useDashboardStore((state) => state.setIsOpenInsertNewPropertyModal);
-  //   const setIsOpenInsertNewPropertyModal = useDashboardStore((state) => state.setIsOpenInsertNewPropertyModal);
+  const setIsOpenInsertNewMeetingModal = useDashboardStore((state) => state.setIsOpenInsertNewMeetingModal);
+  const setIsOpenInsertNewPropertyModal = useDashboardStore((state) => state.setIsOpenInsertNewPropertyModal);
 
   // 上画面の選択中の列データ会社
-  //   const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
   const selectedRowDataProperty = useDashboardStore((state) => state.selectedRowDataProperty);
+
+  // モーダルを開く際に他画面の選択中のRowデータをリセットする => これをしないと「保存」が複数表示される(他画面で選択してる行の会社idと担当者idを渡すため)
   const setSelectedRowDataContact = useDashboardStore((state) => state.setSelectedRowDataContact);
   const setSelectedRowDataActivity = useDashboardStore((state) => state.setSelectedRowDataActivity);
   const setSelectedRowDataMeeting = useDashboardStore((state) => state.setSelectedRowDataMeeting);
@@ -108,9 +110,12 @@ const PropertyFunctionHeaderMemo: FC = () => {
               if (searchMode) return;
               if (!selectedRowDataProperty) return alert("担当者を選択してください");
               console.log("活動作成 クリック");
-              // 担当者ページの選択列をリセット
+              // 他画面の選択行データはリセット
               setSelectedRowDataContact(null);
-              setLoadingGlobalState(false);
+              setSelectedRowDataActivity(null);
+              setSelectedRowDataMeeting(null);
+              // setSelectedRowDataProperty(null);
+              if (loadingGlobalState) setLoadingGlobalState(false);
               setIsOpenInsertNewActivityModal(true);
             }}
           />
@@ -122,7 +127,12 @@ const PropertyFunctionHeaderMemo: FC = () => {
               if (searchMode) return;
               if (!selectedRowDataProperty) return alert("担当者を選択してください");
               console.log("面談作成 クリック");
-              setLoadingGlobalState(false);
+              // 他画面の選択行データはリセット
+              setSelectedRowDataContact(null);
+              setSelectedRowDataActivity(null);
+              setSelectedRowDataMeeting(null);
+              // setSelectedRowDataProperty(null);
+              if (loadingGlobalState) setLoadingGlobalState(false);
               setIsOpenInsertNewPropertyModal(true);
             }}
           />
@@ -135,10 +145,12 @@ const PropertyFunctionHeaderMemo: FC = () => {
               if (searchMode) return;
               if (!selectedRowDataProperty) return alert("担当者を選択してください");
               console.log("案件_作成 クリック");
+              // 他画面の選択行データはリセット
               setSelectedRowDataContact(null);
               setSelectedRowDataActivity(null);
               setSelectedRowDataMeeting(null);
-              setLoadingGlobalState(false);
+              // setSelectedRowDataProperty(null);
+              if (loadingGlobalState) setLoadingGlobalState(false);
               setIsOpenInsertNewPropertyModal(true);
             }}
           />
@@ -149,8 +161,13 @@ const PropertyFunctionHeaderMemo: FC = () => {
             clickEventHandler={() => {
               if (searchMode) return;
               if (!selectedRowDataProperty) return alert("担当者を選択してください");
-              console.log("活動編集 クリック");
-              setLoadingGlobalState(false);
+              console.log("案件編集 クリック");
+              // 他画面の選択行データはリセット
+              setSelectedRowDataContact(null);
+              setSelectedRowDataActivity(null);
+              setSelectedRowDataMeeting(null);
+              // setSelectedRowDataProperty(null);
+              if (loadingGlobalState) setLoadingGlobalState(false);
               setIsOpenUpdatePropertyModal(true);
             }}
           />

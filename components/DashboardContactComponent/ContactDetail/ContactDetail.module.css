@@ -303,6 +303,20 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
+.anchor {
+  color: var(--color-text-brand-f);
+  text-decoration: underline;
+}
+.anchor:hover {
+  color: var(--color-text-brand-f-deep);
+}
+.email_value {
+  color: var(--color-text-brand-f);
+  cursor: pointer;
+}
+.email_value:hover {
+  color: var(--color-text-brand-f-deep);
+}
 .input_box {
   height: 100%;
   width: 100%;

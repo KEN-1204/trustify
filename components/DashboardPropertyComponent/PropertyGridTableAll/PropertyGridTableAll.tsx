@@ -2241,6 +2241,14 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
 
   // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
   const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
+  type TooltipParams = {
+    e: React.MouseEvent<HTMLElement, MouseEvent>;
+    display: string;
+    content: string;
+    content2?: string | undefined | null;
+    marginTop?: number;
+    itemsPosition?: string;
+  };
   const handleOpenTooltip = ({
     e,
     display,
@@ -2693,7 +2701,7 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
                             handleOpenTooltip({
                               e,
                               display: "top",
-                              content: columnNameToJapaneseContacts(columnNameData),
+                              content: columnNameToJapaneseProperty(columnNameData),
                             });
                             console.log("マウスエンター key.columnId.toString()");
                             console.log("マウスエンター ツールチップオープン カラムID", key.columnId.toString());

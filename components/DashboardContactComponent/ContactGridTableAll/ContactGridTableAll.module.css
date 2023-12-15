@@ -418,9 +418,11 @@
 }
 .grid_row:hover .grid_cell {
   background-color: var(--color-table-row-hover);
+  /* background-color: var(--color-table-bg-selected); */
 }
 .grid_row[aria-selected="true"] .grid_cell {
   background-color: var(--color-table-bg-selected);
+  /* background-color: var(--color-table-row-hover); */
   color: var(--border-theme-text);
   /* color: var(--selected-text); */
 }

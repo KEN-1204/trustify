@@ -9,6 +9,10 @@ import { FiLock } from "react-icons/fi";
 import useStore from "@/store";
 import stylesFooter from "../GridTableFooter/GridTableFooter.module.css";
 import { SkeletonLoadingLines } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLines";
+import { SkeletonLoadingLineFull } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineFull";
+import { SkeletonLoadingLineLong } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineLong";
+import { SkeletonLoadingLineMedium } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineMedium";
+import { SkeletonLoadingLineShort } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineShort";
 
 export const FallbackGridTableAll = () => {
   const theme = useRootStore(useThemeStore, (state) => state.theme);
@@ -16,9 +20,7 @@ export const FallbackGridTableAll = () => {
   const language = useStore((state) => state.language);
   return (
     <div
-      className={`${styles.main_container} ${
-        tableContainerSize === "one_third" ? `${styles.main_container_one_third}` : ``
-      } ${tableContainerSize === "half" ? `${styles.main_container_half}` : ``} ${
+      className={`${styles.main_container_fallback}  ${
         theme === "light" ? `${styles.theme_f_light}` : `${styles.theme_f_dark}`
       }`}
     >
@@ -71,9 +73,10 @@ export const FallbackGridTableAll = () => {
           aria-multiselectable="true"
           style={{ width: "100%" }}
           // style={{ height: "100%", "--header-row-height": "35px" } as any}
-          className={`${styles.grid_scroll_container} min-h-[203px] ${
-            tableContainerSize === "one_third" ? `${styles.grid_scroll_container_one_third}` : ``
-          } ${tableContainerSize === "half" ? `${styles.grid_scroll_container_half}` : ``}`}
+          className={`${styles.grid_scroll_container_fallback} min-h-[calc(100vh/3-var(--header-height)/3-30px-40px)]`}
+          // className={`${styles.grid_scroll_container} min-h-[203px] ${
+          //   tableContainerSize === "one_third" ? `${styles.grid_scroll_container_one_third}` : ``
+          // } ${tableContainerSize === "half" ? `${styles.grid_scroll_container_half}` : ``}`}
         >
           {/* ======================== 🌟Grid列トラック Rowヘッダー🌟 ======================== */}
           <div
@@ -85,13 +88,20 @@ export const FallbackGridTableAll = () => {
           ></div>
           {/* ======================== 🌟Grid列トラック Rowヘッダー🌟 ======================== */}
           <div
-            className={`${tableContainerSize === "one_third" ? `${styles.search_mode_container_one_third}` : ``} ${
-              tableContainerSize === "half" ? `${styles.search_mode_container_half}` : ``
-            } ${
-              tableContainerSize === "all" ? `${styles.search_mode_container_all}` : ``
-            } flex !min-h-[173px] w-[100vw] flex-col`}
+            className={`${styles.search_mode_container_one_third_fallback} flex max-h-[calc(100vh/3-var(--header-height)/3-30px-40px-30px-1px)] w-full flex-col `}
+            // className={`${styles.search_mode_container_one_third} flex !min-h-[173px] w-full min-w-[96vw] max-w-[96vw] flex-col`}
           >
-            <SkeletonLoadingLines />
+            <div className="flex h-full max-h-[330px] min-h-[330px] w-full flex-col space-y-[18px] py-[20px] pl-[20px] pr-[50px]">
+              {/* <SkeletonLoadingLines /> */}
+              <SkeletonLoadingLineFull />
+              <SkeletonLoadingLineFull />
+              {/* <SkeletonLoadingLineLong /> */}
+              <SkeletonLoadingLineMedium />
+              <SkeletonLoadingLineMedium />
+              <SkeletonLoadingLineShort />
+              <div className="h-[5px] w-full"></div>
+              <div className="min-h-[0px] w-full"></div>
+            </div>
 
             {/* {Array(5)
               .fill(null)
@@ -112,7 +122,9 @@ export const FallbackGridTableAll = () => {
 
           {/* ================== Gridスクロールコンテナ ここまで ================== */}
           {/* =============== Gridフッター ここから スクロールコンテナと同列で配置 =============== */}
-          <div className={`${stylesFooter.grid_footer} !min-w-[calc(100vw-var(--sidebar-width)-20px)]`}>
+          <div
+            className={`${stylesFooter.grid_footer} max-h-[30px] min-h-[30px] !min-w-[calc(100vw-var(--sidebar-width)-20px)]`}
+          >
             <div className={stylesFooter.grid_footer_inner}>
               <div className={`${stylesFooter.grid_pagination} space-x-3`}>
                 <button className=" focus:outline-scale-600 flex rounded bg-transparent p-0  outline-offset-1 transition-all focus:outline-4 ">

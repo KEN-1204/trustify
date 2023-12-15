@@ -12,6 +12,8 @@ import productCategoriesM, { moduleCategoryM } from "@/utils/productCategoryM";
 import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
 import { format } from "date-fns";
 import { MdClose } from "react-icons/md";
+import { toast } from "react-toastify";
+import { Zoom } from "@/utils/Helpers/toastHelpers";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -1009,7 +1011,8 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     <span className={`${styles.title}`}>事前ｺﾒﾝﾄ</span>
                     {!searchMode && (
                       <div
-                        className={`${styles.full_value} ${styles.textarea_box} ${styles.textarea_box_bg}`}
+                        className={`${styles.textarea_box} ${styles.textarea_box_bg}`}
+                        // className={`${styles.full_value} ${styles.textarea_box} ${styles.textarea_box_bg}`}
                         // className={`${styles.value} h-[85px] ${styles.textarea_box} ${styles.textarea_box_bg}`}
                         dangerouslySetInnerHTML={{
                           __html: selectedRowDataMeeting?.planned_comment
@@ -1379,7 +1382,8 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <span className={`${styles.title}`}>結果ｺﾒﾝﾄ</span>
                       {!searchMode && (
                         <div
-                          className={`${styles.full_value}  ${styles.textarea_box} ${styles.textarea_box_bg}`}
+                          className={`${styles.textarea_box} ${styles.textarea_box_bg}`}
+                          // className={`${styles.full_value}  ${styles.textarea_box} ${styles.textarea_box_bg}`}
                           // className={`${styles.value} h-[85px] ${styles.textarea_box} ${styles.textarea_box_bg}`}
                           // onMouseEnter={(e) => handleOpenTooltip(e)}
                           // onMouseLeave={handleCloseTooltip}
@@ -2291,10 +2295,22 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>HP</span>
-                    {!searchMode && (
+                    {/* {!searchMode && (
                       <span className={`${styles.value}`}>
                         {selectedRowDataMeeting?.website_url ? selectedRowDataMeeting?.website_url : ""}
                       </span>
+                    )} */}
+                    {!searchMode && !!selectedRowDataMeeting?.website_url ? (
+                      <a
+                        href={selectedRowDataMeeting.website_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`${styles.value} ${styles.anchor}`}
+                      >
+                        {selectedRowDataMeeting.website_url}
+                      </a>
+                    ) : (
+                      <span></span>
                     )}
                     {searchMode && (
                       <input
@@ -2316,7 +2332,36 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>会社Email</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value} ${styles.email_value}`}
+                        onClick={async () => {
+                          if (!selectedRowDataMeeting?.company_email) return;
+                          try {
+                            await navigator.clipboard.writeText(selectedRowDataMeeting.company_email);
+                            toast.success(`コピーしました!`, {
+                              position: "bottom-center",
+                              autoClose: 1000,
+                              hideProgressBar: false,
+                              closeOnClick: true,
+                              pauseOnHover: true,
+                              draggable: true,
+                              progress: undefined,
+                              transition: Zoom,
+                            });
+                          } catch (e: any) {
+                            toast.error(`コピーできませんでした!`, {
+                              position: "bottom-center",
+                              autoClose: 1000,
+                              hideProgressBar: false,
+                              closeOnClick: true,
+                              pauseOnHover: true,
+                              draggable: true,
+                              progress: undefined,
+                              transition: Zoom,
+                            });
+                          }
+                        }}
+                      >
                         {selectedRowDataMeeting?.company_email ? selectedRowDataMeeting?.company_email : ""}
                       </span>
                     )}
@@ -2633,7 +2678,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
             <div className={`${styles.left_contents_wrapper} flex h-full w-full flex-col`}>
               {/* ============= 予定エリアここから============= */}
               {/* 予定 サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.section_title}`}>予定</span>
@@ -2647,7 +2692,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* ●訪問日・●訪問ﾀｲﾌﾟ サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>●訪問日</span>
@@ -2679,7 +2724,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 面談開始・WEBツール サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>面談開始</span>
@@ -2741,7 +2786,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 面談時間(分) サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>面談時間(分)</span>
@@ -2782,7 +2827,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 訪問目的・アポ有 サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <div className={`${styles.title_search_mode} flex flex-col`}>
@@ -2846,7 +2891,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 紹介予定ﾒｲﾝ・紹介予定ｻﾌﾞ サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode} text-[12px]`}>紹介予定ﾒｲﾝ</span>
@@ -2876,16 +2921,16 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 事前ｺﾒﾝﾄ サーチ */}
-              {/* <div className={`${styles.row_area} flex h-[90px] w-full items-center`}> */}
-              <div className={`${styles.row_area} flex max-h-max min-h-[75px] w-full items-center`}>
+              {/* <div className={`${styles.row_area} ${styles.row_area_search_mode} flex h-[90px] w-full items-center`}> */}
+              <div className={`${styles.row_area_lg_box}  flex max-h-max w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full `}>
                     <span className={`${styles.title_search_mode}`}>事前ｺﾒﾝﾄ</span>
                     {searchMode && (
                       <textarea
                         cols={30}
-                        rows={10}
-                        className={`${styles.textarea_box} `}
+                        // rows={10}
+                        className={`${styles.textarea_box}`}
                         value={inputPlannedComment}
                         onChange={(e) => setInputPlannedComment(e.target.value)}
                       ></textarea>
@@ -2896,7 +2941,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 事業部名 サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>事業部名</span>
@@ -2936,7 +2981,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 事業所・自社担当 サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>事業所</span>
@@ -2968,7 +3013,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
 
               {/* ============= 結果エリアここから ============= */}
               {/* 結果 サーチ */}
-              <div className={`${styles.row_area} !mt-[20px] flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} !mt-[20px] flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.section_title}`}>結果</span>
@@ -2981,7 +3026,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
               </div>
               {/* 面談日・面談年月度 サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>面談日</span>
@@ -3031,7 +3076,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 面談開始・面談終了 サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>面談開始</span>
@@ -3107,7 +3152,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 面談時間(分)・面談人数 サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <div className={`${styles.title_search_mode} flex flex-col`}>
@@ -3190,7 +3235,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 実施1・実施2 サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>実施商品1</span>
@@ -3220,7 +3265,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 実施3・実施4 サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>実施商品3</span>
@@ -3250,7 +3295,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 実施5 サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>実施商品5</span>
@@ -3270,8 +3315,8 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 結果ｺﾒﾝﾄ サーチ */}
-              {/* <div className={`${styles.row_area} flex h-[90px] w-full items-center`}> */}
-              <div className={`${styles.row_area} flex max-h-max min-h-[75px] w-full items-center`}>
+              {/* <div className={`${styles.row_area} ${styles.row_area_search_mode} flex h-[90px] w-full items-center`}> */}
+              <div className={`${styles.row_area_lg_box}  flex max-h-max w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full `}>
                     <span className={`${styles.title_search_mode}`}>結果ｺﾒﾝﾄ</span>
@@ -3279,7 +3324,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       name="Meeting_summary"
                       id="Meeting_summary"
                       cols={30}
-                      rows={10}
+                      // rows={10}
                       className={`${styles.textarea_box} `}
                       value={inputResultSummary}
                       onChange={(e) => setInputResultSummary(e.target.value)}
@@ -3290,7 +3335,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 訪問結果 サーチ */}
-              <div className={`${styles.row_area} flex h-[70px] w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex h-[70px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full `}>
                     <span className={`${styles.title_search_mode}`}>訪問結果</span>
@@ -3325,7 +3370,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
 
               {/* ============= 会社情報エリアここから ============= */}
               {/* 会社情報 サーチ */}
-              <div className={`${styles.row_area} !mt-[20px] flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} !mt-[20px] flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.section_title}`}>会社情報</span>
@@ -3338,7 +3383,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
               </div>
               {/* ●会社名 サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>●会社名</span>
@@ -3358,7 +3403,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 部署名 サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>●部署名</span>
@@ -3377,7 +3422,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 担当者名 サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>担当者名</span>
@@ -3410,7 +3455,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 内線TEL・代表TEL サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>内線TEL</span>
@@ -3443,7 +3488,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 直通FAX・代表FAX サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>直通FAX</span>
@@ -3481,7 +3526,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 社用携帯・私用携帯 サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>社用携帯</span>
@@ -3513,7 +3558,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* Email サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>E-mail</span>
@@ -3531,7 +3576,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 郵便番号 サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>郵便番号</span>
@@ -3590,7 +3635,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 役職名・職位 サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>役職名</span>
@@ -3638,7 +3683,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 担当職種・決裁金額 サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>担当職種</span>
@@ -3702,7 +3747,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 規模（ランク）・決算月 サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>規模(ﾗﾝｸ)</span>
@@ -3759,7 +3804,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 予算申請月1・予算申請月2 サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode} text-[12px]`}>予算申請月1</span>
@@ -3812,7 +3857,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 主要取引先 サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>主要取引先</span>
@@ -3830,7 +3875,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 主要仕入先 サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>主要仕入先</span>
@@ -3869,7 +3914,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 事業拠点・海外拠点 サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>事業拠点</span>
@@ -3901,7 +3946,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* グループ会社 サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>ｸﾞﾙｰﾌﾟ会社</span>
@@ -3919,7 +3964,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* HP サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>HP</span>
@@ -3938,7 +3983,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 会社Email サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>会社Email</span>
@@ -3957,7 +4002,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 業種 サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>○業種</span>
@@ -4035,7 +4080,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
               </div>
               {/* 製品分類（大分類） サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <div className={`${styles.title_search_mode} flex flex-col text-[12px]`}>
@@ -4077,7 +4122,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
               </div>
               {/* 製品分類（中分類） サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <div className={`${styles.title_search_mode} flex flex-col text-[12px]`}>
@@ -4130,7 +4175,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
               </div>
               {/* 製品分類（小分類） サーチ */}
-              {/* <div className={`${styles.row_area} flex w-full items-center`}>
+              {/* <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title_search_mode}`}>製品分類（小分類）</span>
@@ -4164,7 +4209,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
             </div> */}
 
               {/* 法人番号・ID サーチ */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>○法人番号</span>

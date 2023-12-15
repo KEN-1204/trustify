@@ -9,23 +9,27 @@ const MeetingFunctionHeaderMemo: FC = () => {
   const searchMode = useDashboardStore((state) => state.searchMode);
   const setSearchMode = useDashboardStore((state) => state.setSearchMode);
   const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
+  const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
   const setUnderDisplayFullScreen = useDashboardStore((state) => state.setUnderDisplayFullScreen);
   const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
-  //   const setIsOpenInsertNewMeetingModal = useDashboardStore((state) => state.setIsOpenInsertNewMeetingModal);
+
+  // 活動編集と「活動、面談、案件」の作成モーダル開閉state
   const setIsOpenUpdateMeetingModal = useDashboardStore((state) => state.setIsOpenUpdateMeetingModal);
-  const setIsOpenInsertNewMeetingModal = useDashboardStore((state) => state.setIsOpenInsertNewMeetingModal);
   const setIsOpenInsertNewActivityModal = useDashboardStore((state) => state.setIsOpenInsertNewActivityModal);
+  const setIsOpenInsertNewMeetingModal = useDashboardStore((state) => state.setIsOpenInsertNewMeetingModal);
   const setIsOpenInsertNewPropertyModal = useDashboardStore((state) => state.setIsOpenInsertNewPropertyModal);
-  //   const setIsOpenInsertNewMeetingModal = useDashboardStore((state) => state.setIsOpenInsertNewMeetingModal);
 
   // 上画面の選択中の列データ会社
-  //   const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
   const selectedRowDataMeeting = useDashboardStore((state) => state.selectedRowDataMeeting);
+
+  // モーダルを開く際に他画面の選択中のRowデータをリセットする => これをしないと「保存」が複数表示される(他画面で選択してる行の会社idと担当者idを渡すため)
   const setSelectedRowDataContact = useDashboardStore((state) => state.setSelectedRowDataContact);
   const setSelectedRowDataActivity = useDashboardStore((state) => state.setSelectedRowDataActivity);
+  // const setSelectedRowDataMeeting = useDashboardStore((state) => state.setSelectedRowDataMeeting);
+  const setSelectedRowDataProperty = useDashboardStore((state) => state.setSelectedRowDataProperty);
 
   const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
     // ホバーしたアイテムにツールチップを表示
@@ -107,9 +111,12 @@ const MeetingFunctionHeaderMemo: FC = () => {
               if (searchMode) return;
               if (!selectedRowDataMeeting) return alert("担当者を選択してください");
               console.log("活動作成 クリック");
-              // 担当者ページの選択列をリセット
+              // 他画面の選択行データはリセット
               setSelectedRowDataContact(null);
-              setLoadingGlobalState(false);
+              setSelectedRowDataActivity(null);
+              // setSelectedRowDataMeeting(null);
+              setSelectedRowDataProperty(null);
+              if (loadingGlobalState) setLoadingGlobalState(false);
               setIsOpenInsertNewActivityModal(true);
             }}
           />
@@ -121,7 +128,12 @@ const MeetingFunctionHeaderMemo: FC = () => {
               if (searchMode) return;
               if (!selectedRowDataMeeting) return alert("担当者を選択してください");
               console.log("面談作成 クリック");
-              setLoadingGlobalState(false);
+              // 他画面の選択行データはリセット
+              setSelectedRowDataContact(null);
+              setSelectedRowDataActivity(null);
+              // setSelectedRowDataMeeting(null);
+              setSelectedRowDataProperty(null);
+              if (loadingGlobalState) setLoadingGlobalState(false);
               setIsOpenInsertNewMeetingModal(true);
             }}
           />
@@ -133,7 +145,12 @@ const MeetingFunctionHeaderMemo: FC = () => {
               if (searchMode) return;
               if (!selectedRowDataMeeting) return alert("担当者を選択してください");
               console.log("活動編集 クリック");
-              setLoadingGlobalState(false);
+              // 他画面の選択行データはリセット
+              setSelectedRowDataContact(null);
+              setSelectedRowDataActivity(null);
+              // setSelectedRowDataMeeting(null);
+              setSelectedRowDataProperty(null);
+              if (loadingGlobalState) setLoadingGlobalState(false);
               setIsOpenUpdateMeetingModal(true);
             }}
           />
@@ -145,9 +162,12 @@ const MeetingFunctionHeaderMemo: FC = () => {
               if (searchMode) return;
               if (!selectedRowDataMeeting) return alert("担当者を選択してください");
               console.log("案件_作成 クリック");
-              setSelectedRowDataActivity(null);
+              // 他画面の選択行データはリセット
               setSelectedRowDataContact(null);
-              setLoadingGlobalState(false);
+              setSelectedRowDataActivity(null);
+              // setSelectedRowDataMeeting(null);
+              setSelectedRowDataProperty(null);
+              if (loadingGlobalState) setLoadingGlobalState(false);
               setIsOpenInsertNewPropertyModal(true);
             }}
           />

@@ -9,6 +9,7 @@ import { ContainerInstance } from "react-toastify/dist/hooks";
 
 export const useMutateClientCompany = () => {
   const theme = useThemeStore((state) => state.theme);
+  const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   const setIsOpenInsertNewClientCompanyModal = useDashboardStore((state) => state.setIsOpenInsertNewClientCompanyModal);
   const setIsOpenUpdateClientCompanyModal = useDashboardStore((state) => state.setIsOpenUpdateClientCompanyModal);
@@ -18,7 +19,7 @@ export const useMutateClientCompany = () => {
   // 【ClientCompany新規作成INSERT用createClientCompanyMutation関数】
   const createClientCompanyMutation = useMutation(
     async (newClientCompany: Omit<Client_company, "id" | "created_at" | "updated_at">) => {
-      setLoadingGlobalState(true);
+      // setLoadingGlobalState(true);
       const { error } = await supabase.from("client_companies").insert(newClientCompany);
       if (error) throw new Error(error.message);
     },
@@ -29,38 +30,65 @@ export const useMutateClientCompany = () => {
         // TanStack Queryでデータの変更に合わせて別のデータを再取得する
         // https://zenn.dev/masatakaitoh/articles/3c2f8602d2bb9d
 
-        setTimeout(() => {
-          setLoadingGlobalState(false);
-          setIsOpenInsertNewClientCompanyModal(false);
-          toast.success("会社の作成に完了しました!", {
-            position: "top-right",
-            autoClose: 2000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: `${theme === "light" ? "light" : "dark"}`,
-          });
-        }, 500);
+        if (loadingGlobalState) setLoadingGlobalState(false);
+        setIsOpenInsertNewClientCompanyModal(false);
+        toast.success("会社の作成が完了しました🌟", {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: `${theme === "light" ? "light" : "dark"}`,
+        });
+
+        // setTimeout(() => {
+        //   if (loadingGlobalState) setLoadingGlobalState(false);
+        //   setIsOpenInsertNewClientCompanyModal(false);
+        //   toast.success("会社の作成に完了しました!", {
+        //     position: "top-right",
+        //     autoClose: 2000,
+        //     hideProgressBar: false,
+        //     closeOnClick: true,
+        //     pauseOnHover: true,
+        //     draggable: true,
+        //     progress: undefined,
+        //     theme: `${theme === "light" ? "light" : "dark"}`,
+        //   });
+        // }, 500);
       },
       onError: (err: any) => {
-        setTimeout(() => {
-          setLoadingGlobalState(false);
-          setIsOpenInsertNewClientCompanyModal(false);
-          alert(err.message);
-          console.log("INSERTエラー", err.message);
-          toast.error("会社の作成に失敗しました!", {
-            position: "top-right",
-            autoClose: 2000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: `${theme === "light" ? "light" : "dark"}`,
-          });
-        }, 500);
+        if (loadingGlobalState) setLoadingGlobalState(false);
+        setIsOpenInsertNewClientCompanyModal(false);
+        alert(err.message);
+        console.log("INSERTエラー", err.message);
+        toast.error("会社の作成に失敗しました!", {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: `${theme === "light" ? "light" : "dark"}`,
+        });
+        // setTimeout(() => {
+        //   if (loadingGlobalState) setLoadingGlobalState(false);
+        //   setIsOpenInsertNewClientCompanyModal(false);
+        //   alert(err.message);
+        //   console.log("INSERTエラー", err.message);
+        //   toast.error("会社の作成に失敗しました!", {
+        //     position: "top-right",
+        //     autoClose: 2000,
+        //     hideProgressBar: false,
+        //     closeOnClick: true,
+        //     pauseOnHover: true,
+        //     draggable: true,
+        //     progress: undefined,
+        //     theme: `${theme === "light" ? "light" : "dark"}`,
+        //   });
+        // }, 500);
       },
     }
   );
@@ -68,7 +96,7 @@ export const useMutateClientCompany = () => {
   // 【ClientCompany編集UPDATE用updateClientCompanyMutation関数】
   const updateClientCompanyMutation = useMutation(
     async (newClientCompany: Omit<Client_company, "created_at" | "updated_at">) => {
-      setLoadingGlobalState(true);
+      // setLoadingGlobalState(true);
       const { error } = await supabase.from("client_companies").update(newClientCompany).eq("id", newClientCompany.id);
       if (error) throw new Error(error.message);
     },
@@ -78,38 +106,64 @@ export const useMutateClientCompany = () => {
         await queryClient.invalidateQueries({ queryKey: ["companies"] });
         // TanStack Queryでデータの変更に合わせて別のデータを再取得する
         // https://zenn.dev/masatakaitoh/articles/3c2f8602d2bb9d
-        setTimeout(() => {
-          setLoadingGlobalState(false);
-          setIsOpenUpdateClientCompanyModal(false);
-          toast.success("会社の更新完了しました!", {
-            position: "top-right",
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: `${theme === "light" ? "light" : "dark"}`,
-          });
-        }, 500);
+        if (loadingGlobalState) setLoadingGlobalState(false);
+        setIsOpenUpdateClientCompanyModal(false);
+        toast.success("会社の更新が完了しました🌟", {
+          position: "top-right",
+          autoClose: 1500,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: `${theme === "light" ? "light" : "dark"}`,
+        });
+        // setTimeout(() => {
+        //   if (loadingGlobalState) setLoadingGlobalState(false);
+        //   setIsOpenUpdateClientCompanyModal(false);
+        //   toast.success("会社の更新完了しました!", {
+        //     position: "top-right",
+        //     autoClose: 1500,
+        //     hideProgressBar: false,
+        //     closeOnClick: true,
+        //     pauseOnHover: true,
+        //     draggable: true,
+        //     progress: undefined,
+        //     theme: `${theme === "light" ? "light" : "dark"}`,
+        //   });
+        // }, 500);
       },
       onError: (err: any) => {
-        setTimeout(() => {
-          setLoadingGlobalState(false);
-          setIsOpenUpdateClientCompanyModal(false);
-          alert(err.message);
-          console.log("INSERTエラー", err.message);
-          toast.error("会社の更新に失敗しました!", {
-            position: "top-right",
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: `${theme === "light" ? "light" : "dark"}`,
-          });
-        }, 500);
+        if (loadingGlobalState) setLoadingGlobalState(false);
+        setIsOpenUpdateClientCompanyModal(false);
+        alert(err.message);
+        console.log("INSERTエラー", err.message);
+        toast.error("会社の更新に失敗しました!", {
+          position: "top-right",
+          autoClose: 1500,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: `${theme === "light" ? "light" : "dark"}`,
+        });
+        // setTimeout(() => {
+        //   if (loadingGlobalState) setLoadingGlobalState(false);
+        //   setIsOpenUpdateClientCompanyModal(false);
+        //   alert(err.message);
+        //   console.log("INSERTエラー", err.message);
+        //   toast.error("会社の更新に失敗しました!", {
+        //     position: "top-right",
+        //     autoClose: 1500,
+        //     hideProgressBar: false,
+        //     closeOnClick: true,
+        //     pauseOnHover: true,
+        //     draggable: true,
+        //     progress: undefined,
+        //     theme: `${theme === "light" ? "light" : "dark"}`,
+        //   });
+        // }, 500);
       },
     }
   );

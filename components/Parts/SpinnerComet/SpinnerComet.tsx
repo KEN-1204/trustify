@@ -9,7 +9,7 @@ type Props = {
   s?: string;
 };
 
-export const SpinnerComet: FC<Props> = ({ width, height, s = "3.8px", w = "40px", h = "40px" }) => {
+export const SpinnerComet: FC<Props> = ({ width, height, s = "3.8px", w = "42px", h = "42px" }) => {
   return (
     <div
       className={`${styles.spinner} ${width} ${height}`}

@@ -170,6 +170,7 @@ const EditColumnsModalDisplayOnlyMemo: FC<Props> = ({ columnHeaderItemList }) =>
   // ============================================================================================
 
   // ================================ 最上部にカラムを移動する関数 ===============================
+  // 注意点：isFrozenで固定されているカラムよりも前に行かないようにする
   const handleMoveFirst = () => {
     if (!selectedRightItemsRef.current.length) return console.log("右無し");
     const copyRightArray = [...listItemsRight];
@@ -179,10 +180,21 @@ const EditColumnsModalDisplayOnlyMemo: FC<Props> = ({ columnHeaderItemList }) =>
     const pushItemArray = copyRightArray.filter((item) => pushItemObject.has(item.columnId));
     // リストから選択されたアイテムを削除後の残りのリストを変数に格納
     const afterRemovedItemArray = copyRightArray.filter((item) => !pushItemObject.has(item.columnId));
+    // 🔹元のコード
+    // console.log("pushItemArray", pushItemArray);
+    // console.log("afterRemovedItemArray", afterRemovedItemArray);
+    // // 残りのリストを最初に展開し、取り除いたアイテムを最後に展開することで、最下部にカラムを移動
+    // const newRightArray = [...pushItemArray, ...afterRemovedItemArray];
+    // 🔹元のコード
+    // 🔹テストコード
+    // 選択アイテムを除外した配列からisFrozenが付いているアイテムと付いていないアイテムをそれぞれ分けて配列に保持する
+    const isFrozenItemArray = afterRemovedItemArray.filter((item) => item.isFrozen);
+    const notIsFrozenItemArray = afterRemovedItemArray.filter((item) => !item.isFrozen);
     console.log("pushItemArray", pushItemArray);
     console.log("afterRemovedItemArray", afterRemovedItemArray);
     // 残りのリストを最初に展開し、取り除いたアイテムを最後に展開することで、最下部にカラムを移動
-    const newRightArray = [...pushItemArray, ...afterRemovedItemArray];
+    const newRightArray = [...isFrozenItemArray, ...pushItemArray, ...notIsFrozenItemArray];
+    // 🔹テストコード
     // ヘッダーカラムリストのcolumnIndexプロパティの値を順番入れ替え後の並び順で再度2,3,4と書き換える
     // 2から始まるのはチェックボックスカラムのcolumnIndexが1となるため
     newRightArray.forEach((item, index) => {
@@ -271,7 +283,7 @@ const EditColumnsModalDisplayOnlyMemo: FC<Props> = ({ columnHeaderItemList }) =>
       <div className={`${styles.container} `} ref={modalContainerRef}>
         {/* 保存キャンセルエリア */}
         <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[30px] text-center text-[18px]">
-          <div className="font-samibold cursor-pointer hover:text-[#aaa]" onClick={handleCancelAndReset}>
+          <div className="cursor-pointer font-semibold hover:text-[#aaa]" onClick={handleCancelAndReset}>
             キャンセル
           </div>
           <div className="-translate-x-[25px] font-bold">カラム並び替え</div>
@@ -289,7 +301,7 @@ const EditColumnsModalDisplayOnlyMemo: FC<Props> = ({ columnHeaderItemList }) =>
           <div className={`flex h-full  basis-5/12 flex-col items-center ${styles.content_box}`}>
             {/* タイトルエリア */}
             <div className={`${styles.title} w-full space-x-4 text-[var(--color-edit-arrow-disable-color)]`}>
-              <span className="text-[#0D99FF]">表示</span>
+              {/* <span className="text-[#0D99FF]">表示</span> */}
               <div
                 ref={downArrowRef}
                 className={`flex-center h-[30px] w-[30px] cursor-not-allowed rounded-full  ${styles.icon_button}`}

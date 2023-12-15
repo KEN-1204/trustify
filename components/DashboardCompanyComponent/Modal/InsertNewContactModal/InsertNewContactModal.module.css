@@ -4,9 +4,11 @@
   /* z-index: 100; */
   inset: 0;
   /* background: #00000030; */
+  background-color: var(--color-overlay-insert-update-modal);
   backdrop-filter: blur(4px);
   /* transform: translateY(-20px) scaleY(1.1); */
 }
+/* 画面全体でのローディング */
 .loading_overlay {
   position: fixed;
   z-index: 2000;
@@ -15,6 +17,17 @@
   display: flex;
   justify-content: center;
   align-items: center;
+}
+/* モーダル内でのローディング */
+.loading_overlay_modal {
+  position: fixed;
+  z-index: 2000;
+  inset: 0;
+  background: #ffffff42;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
 }
 
 .container {
@@ -64,19 +77,6 @@
   background: var(--color-bg-sub);
   border-radius: 6px;
 }
-.title {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  height: 50px;
-  /* width: 100%; */
-  /* padding-left: 25px; */
-  padding-right: 25px;
-  padding-top: 5px;
-  font-weight: 700;
-  font-size: 18px;
-}
-
 .full_contents_wrapper {
   /* height: 100%; */
   width: 100%;
@@ -118,18 +118,26 @@
   width: 18px;
   height: 18px;
 }
-
 .title {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
   color: var(--color-text-brand-f);
   color: var(--color-text-under-title);
   white-space: nowrap;
-  /* 右側に20px余白 */
-  /* padding-right: 20px; */
-  /* min-width: 80px; */
-  /* min-width: 90px; */
+  height: 50px;
+  /* width: 100%; */
+  /* padding-left: 25px; */
+  padding-right: 25px;
+  padding-top: 5px;
+  font-weight: 700;
   min-width: 95px;
-  font-weight: 600;
+  /* font-size: 18px; */
 }
+.required_title {
+  color: var(--main-color-tk);
+}
+
 .title_min {
   color: var(--color-text-brand-f);
   color: var(--color-text-under-title);
@@ -162,8 +170,11 @@
   background: var(--color-bg-under-input);
   color: var(--color-text-under-input);
   box-shadow: var(--color-bg-under-input-box-shadow);
-  padding: 0px 6px;
-  border-radius: 2px;
+  /* padding: 0px 6px; */
+  min-height: 32px;
+  padding: 6px 8px;
+  font-size: 15px;
+  border-radius: 4px;
 }
 .input_box:focus {
   box-shadow: var(--color-bg-under-input-active-box-shadow);
@@ -182,12 +193,16 @@
   background: var(--color-bg-under-input);
   color: var(--color-text-under-input);
   box-shadow: var(--color-bg-under-input-box-shadow);
-  padding: 3px 6px;
-  border-radius: 2px;
+  /* padding: 3px 6px; */
+  padding: 8px 10px;
+  font-size: 15px;
+  border-radius: 4px;
   resize: none;
 }
 .select_box {
   box-shadow: var(--color-bg-under-input-box-shadow);
-  padding-left: 5px;
   background: var(--color-bg-under-input);
+  padding-left: 5px;
+  min-height: 32px;
+  font-size: 15px;
 }

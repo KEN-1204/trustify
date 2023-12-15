@@ -9,6 +9,7 @@ import { ContainerInstance } from "react-toastify/dist/hooks";
 
 export const useMutateProperty = () => {
   const theme = useThemeStore((state) => state.theme);
+  const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   const setIsOpenInsertNewPropertyModal = useDashboardStore((state) => state.setIsOpenInsertNewPropertyModal);
   const setIsOpenUpdatePropertyModal = useDashboardStore((state) => state.setIsOpenUpdatePropertyModal);
@@ -18,7 +19,7 @@ export const useMutateProperty = () => {
   // 【Property新規作成INSERT用createPropertyMutation関数】
   const createPropertyMutation = useMutation(
     async (newProperty: Omit<Property, "id" | "created_at" | "updated_at">) => {
-      setLoadingGlobalState(true);
+      if (!loadingGlobalState) setLoadingGlobalState(true);
       // console.log(newProperty.planned_start_time);
       const { data, error } = await supabase.from("properties").insert(newProperty).select().single();
       if (error) throw new Error(error.message);
@@ -68,38 +69,64 @@ export const useMutateProperty = () => {
         // TanStack Queryでデータの変更に合わせて別のデータを再取得する
         // https://zenn.dev/masatakaitoh/articles/3c2f8602d2bb9d
 
-        setTimeout(() => {
-          setLoadingGlobalState(false);
-          setIsOpenInsertNewPropertyModal(false);
-          toast.success("案件の作成に完了しました!", {
-            position: "top-right",
-            autoClose: 2000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: `${theme === "light" ? "light" : "dark"}`,
-          });
-        }, 500);
+        if (loadingGlobalState) setLoadingGlobalState(false);
+        setIsOpenInsertNewPropertyModal(false);
+        toast.success("案件の作成が完了しました🌟", {
+          position: "top-right",
+          autoClose: 1500,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: `${theme === "light" ? "light" : "dark"}`,
+        });
+        // setTimeout(() => {
+        //   if (loadingGlobalState) setLoadingGlobalState(false);
+        //   setIsOpenInsertNewPropertyModal(false);
+        //   toast.success("案件の作成に完了しました!", {
+        //     position: "top-right",
+        //     autoClose: 1500,
+        //     hideProgressBar: false,
+        //     closeOnClick: true,
+        //     pauseOnHover: true,
+        //     draggable: true,
+        //     progress: undefined,
+        //     theme: `${theme === "light" ? "light" : "dark"}`,
+        //   });
+        // }, 500);
       },
       onError: (err: any) => {
-        setTimeout(() => {
-          setLoadingGlobalState(false);
-          // setIsOpenInsertNewPropertyModal(false);
-          alert(err.message);
-          console.log("INSERTエラー", err.message);
-          toast.error("案件の作成に失敗しました!", {
-            position: "top-right",
-            autoClose: 2000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: `${theme === "light" ? "light" : "dark"}`,
-          });
-        }, 500);
+        if (loadingGlobalState) setLoadingGlobalState(false);
+        // setIsOpenInsertNewPropertyModal(false);
+        alert(err.message);
+        console.log("INSERTエラー", err.message);
+        toast.error("案件の作成に失敗しました!", {
+          position: "top-right",
+          autoClose: 1500,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: `${theme === "light" ? "light" : "dark"}`,
+        });
+        // setTimeout(() => {
+        //   if (loadingGlobalState) setLoadingGlobalState(false);
+        //   // setIsOpenInsertNewPropertyModal(false);
+        //   alert(err.message);
+        //   console.log("INSERTエラー", err.message);
+        //   toast.error("案件の作成に失敗しました!", {
+        //     position: "top-right",
+        //     autoClose: 1500,
+        //     hideProgressBar: false,
+        //     closeOnClick: true,
+        //     pauseOnHover: true,
+        //     draggable: true,
+        //     progress: undefined,
+        //     theme: `${theme === "light" ? "light" : "dark"}`,
+        //   });
+        // }, 500);
       },
     }
   );
@@ -107,7 +134,7 @@ export const useMutateProperty = () => {
   // 【Property編集UPDATE用updatePropertyMutation関数】
   const updatePropertyMutation = useMutation(
     async (newProperty: Omit<Property, "created_at" | "updated_at">) => {
-      setLoadingGlobalState(true);
+      if (!loadingGlobalState) setLoadingGlobalState(true);
       const { data: propertyData, error } = await supabase
         .from("properties")
         .update(newProperty)
@@ -161,38 +188,64 @@ export const useMutateProperty = () => {
         await queryClient.invalidateQueries({ queryKey: ["activities"] });
         // TanStack Queryでデータの変更に合わせて別のデータを再取得する
         // https://zenn.dev/masatakaitoh/articles/3c2f8602d2bb9d
-        setTimeout(() => {
-          setLoadingGlobalState(false);
-          setIsOpenUpdatePropertyModal(false);
-          toast.success("案件の更新完了しました!", {
-            position: "top-right",
-            autoClose: 2000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: `${theme === "light" ? "light" : "dark"}`,
-          });
-        }, 500);
+        if (loadingGlobalState) setLoadingGlobalState(false);
+        setIsOpenUpdatePropertyModal(false);
+        toast.success("案件の更新が完了しました🌟", {
+          position: "top-right",
+          autoClose: 1500,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: `${theme === "light" ? "light" : "dark"}`,
+        });
+        // setTimeout(() => {
+        //   if (loadingGlobalState) setLoadingGlobalState(false);
+        //   setIsOpenUpdatePropertyModal(false);
+        //   toast.success("案件の更新完了しました!", {
+        //     position: "top-right",
+        //     autoClose: 1500,
+        //     hideProgressBar: false,
+        //     closeOnClick: true,
+        //     pauseOnHover: true,
+        //     draggable: true,
+        //     progress: undefined,
+        //     theme: `${theme === "light" ? "light" : "dark"}`,
+        //   });
+        // }, 500);
       },
       onError: (err: any) => {
-        setTimeout(() => {
-          setLoadingGlobalState(false);
-          // setIsOpenUpdatePropertyModal(false);
-          alert(err.message);
-          console.log("UPDATEエラー", err.message);
-          toast.error("案件の更新に失敗しました!", {
-            position: "top-right",
-            autoClose: 2000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: `${theme === "light" ? "light" : "dark"}`,
-          });
-        }, 500);
+        if (loadingGlobalState) setLoadingGlobalState(false);
+        // setIsOpenUpdatePropertyModal(false);
+        alert(err.message);
+        console.log("UPDATEエラー", err.message);
+        toast.error("案件の更新に失敗しました!", {
+          position: "top-right",
+          autoClose: 1500,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: `${theme === "light" ? "light" : "dark"}`,
+        });
+        // setTimeout(() => {
+        //   if (loadingGlobalState) setLoadingGlobalState(false);
+        //   // setIsOpenUpdatePropertyModal(false);
+        //   alert(err.message);
+        //   console.log("UPDATEエラー", err.message);
+        //   toast.error("案件の更新に失敗しました!", {
+        //     position: "top-right",
+        //     autoClose: 1500,
+        //     hideProgressBar: false,
+        //     closeOnClick: true,
+        //     pauseOnHover: true,
+        //     draggable: true,
+        //     progress: undefined,
+        //     theme: `${theme === "light" ? "light" : "dark"}`,
+        //   });
+        // }, 500);
       },
     }
   );

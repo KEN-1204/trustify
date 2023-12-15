@@ -156,7 +156,8 @@ export const TooltipWrap = () => {
   // center
   // 上に表示するツールチップ
   // 下1/3でエンターしたなら上方向に表示 -40pxはRowのheight35px + margin-top5px = 40px分
-  if (window.innerHeight - window.innerHeight / 3 < hoveredItemPositionY) {
+  // または、displayがtopの場合は上方向に表示
+  if (window.innerHeight - window.innerHeight / 3 < hoveredItemPositionY || hoveredItemPosWrap?.display === "top") {
     return (
       <div
         className={`${styles.tooltip_area} ${hoveredItemPosWrap ? `block ${styles.fade}` : "transition-base hidden"}`}

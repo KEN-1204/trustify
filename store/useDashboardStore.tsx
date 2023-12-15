@@ -22,6 +22,7 @@ import {
   UserProfileCompanySubscription,
 } from "@/types";
 import { activityColumnHeaderItemListData } from "@/utils/activityColumnHeaderItemListDate";
+import { companyColumnHeaderItemListData } from "@/utils/companyColumnHeaderItemListData";
 import { contactColumnHeaderItemListData } from "@/utils/contactColumnHeaderItemListData";
 import { meetingColumnHeaderItemListData } from "@/utils/meetingColumnHeaderItemListData";
 import { propertyColumnHeaderItemListData } from "@/utils/propertyColumnHeaderItemListData";
@@ -199,20 +200,6 @@ type State = {
   updateEditedClientCompany: (payload: Client_company) => void;
   resetEditedClientCompany: () => void;
 
-  // =================== 会社テーブル ヘッダーリスト保持用state関連 ===================
-  columnHeaderItemList: ColumnHeaderItemList[];
-  setColumnHeaderItemList: (payload: ColumnHeaderItemList[]) => void;
-
-  // =================== 上画面の列選択した時に下画面に会社情報を映す用のState ===================
-  // オブジェクト
-  selectedRowDataCompany: Client_company_row_data | null;
-  setSelectedRowDataCompany: (payload: Client_company_row_data) => void;
-
-  // 会社データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
-  // newSearchCompanyCondition: Omit<Client_company_row_data, ''>
-  newSearchCompanyParams: NewSearchCompanyParams | null;
-  setNewSearchCompanyParams: (payload: NewSearchCompanyParams) => void;
-
   // =================== ローディング状態保持 ===================
   loadingGlobalState: boolean;
   setLoadingGlobalState: (payload: boolean) => void;
@@ -248,6 +235,20 @@ type State = {
 
   // =================== プロフィールメニュー ===================
   // 【プロフィールメニュー開閉状態】
+
+  // =================== 会社テーブル ヘッダーリスト保持用state関連 ===================
+  columnHeaderItemList: ColumnHeaderItemList[];
+  setColumnHeaderItemList: (payload: ColumnHeaderItemList[]) => void;
+
+  // =================== 上画面の列選択した時に下画面に会社情報を映す用のState ===================
+  // オブジェクト
+  selectedRowDataCompany: Client_company_row_data | null;
+  setSelectedRowDataCompany: (payload: Client_company_row_data) => void;
+
+  // 会社データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
+  // newSearchCompanyCondition: Omit<Client_company_row_data, ''>
+  newSearchCompanyParams: NewSearchCompanyParams | null;
+  setNewSearchCompanyParams: (payload: NewSearchCompanyParams) => void;
 
   // =================== 担当者テーブル ヘッダーリスト保持用state関連 ===================
   contactColumnHeaderItemList: ColumnHeaderItemList[];
@@ -676,331 +677,7 @@ const useDashboardStore = create<State>((set) => ({
 
   // =================== 会社テーブル ヘッダーリスト保持用state関連 ===================
   // 上画面のテーブルはチェックボックスありで1のため、columnIndexは2から
-  columnHeaderItemList: [
-    {
-      columnId: 0,
-      columnIndex: 2,
-      columnName: "id",
-      columnWidth: "50px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 1,
-      columnIndex: 3,
-      columnName: "corporate_number",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 2,
-      columnIndex: 4,
-      columnName: "name",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 3,
-      columnIndex: 5,
-      columnName: "department_name",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 4,
-      columnIndex: 6,
-      columnName: "representative_name",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 5,
-      columnIndex: 7,
-      columnName: "main_phone_number",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 6,
-      columnIndex: 8,
-      columnName: "main_fax",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 7,
-      columnIndex: 9,
-      columnName: "zipcode",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 8,
-      columnIndex: 10,
-      columnName: "address",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 9,
-      columnIndex: 11,
-      columnName: "number_of_employees",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 10,
-      columnIndex: 12,
-      columnName: "number_of_employees_class",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 11,
-      columnIndex: 13,
-      columnName: "capital",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 12,
-      columnIndex: 14,
-      columnName: "established_in",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 13,
-      columnIndex: 15,
-      columnName: "business_content",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 14,
-      columnIndex: 16,
-      columnName: "email",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 15,
-      columnIndex: 17,
-      columnName: "website_url",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 16,
-      columnIndex: 18,
-      columnName: "industry_large",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 17,
-      columnIndex: 19,
-      columnName: "industry_small",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 18,
-      columnIndex: 20,
-      columnName: "industry_type",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 19,
-      columnIndex: 21,
-      columnName: "product_category_large",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 20,
-      columnIndex: 22,
-      columnName: "product_category_medium",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 21,
-      columnIndex: 23,
-      columnName: "product_category_small",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-
-    {
-      columnId: 22,
-      columnIndex: 24,
-      columnName: "fiscal_end_month",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-
-    {
-      columnId: 23,
-      columnIndex: 25,
-      columnName: "clients",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 24,
-      columnIndex: 26,
-      columnName: "supplier",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    // {
-    //   columnId: 21,
-    //   columnIndex: 23,
-    //   columnName: "representative_position_name",
-    //   columnWidth: "200px",
-    //   isFrozen: false,
-    //   isOverflow: false,
-    // },
-    {
-      columnId: 25,
-      columnIndex: 27,
-      columnName: "chairperson",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 26,
-      columnIndex: 28,
-      columnName: "senior_vice_president",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 27,
-      columnIndex: 29,
-      columnName: "senior_managing_director",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 28,
-      columnIndex: 30,
-      columnName: "managing_director",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 29,
-      columnIndex: 31,
-      columnName: "director",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 30,
-      columnIndex: 32,
-      columnName: "auditor",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 31,
-      columnIndex: 33,
-      columnName: "manager",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 32,
-      columnIndex: 34,
-      columnName: "member",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 33,
-      columnIndex: 35,
-      columnName: "facility",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 34,
-      columnIndex: 36,
-      columnName: "business_sites",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 35,
-      columnIndex: 37,
-      columnName: "overseas_bases",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 36,
-      columnIndex: 38,
-      columnName: "group_company",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-    {
-      columnId: 37,
-      columnIndex: 39,
-      columnName: "board_member",
-      columnWidth: "200px",
-      isFrozen: false,
-      isOverflow: false,
-    },
-
-    // {
-    //   columnId: 36,
-    //   columnIndex: 38,
-    //   columnName: "subsidiary",
-    //   columnWidth: "200px",
-    //   isFrozen: false,
-    //   isOverflow: false,
-    // },
-  ],
+  columnHeaderItemList: companyColumnHeaderItemListData,
   setColumnHeaderItemList: (payload) => set({ columnHeaderItemList: payload }),
 
   // =================== 上画面の列選択した時に下画面に会社情報を映す用のState ===================

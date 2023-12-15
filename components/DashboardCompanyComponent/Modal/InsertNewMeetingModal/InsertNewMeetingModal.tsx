@@ -10,12 +10,14 @@ import { useMutateMeeting } from "@/hooks/useMutateMeeting";
 import productCategoriesM from "@/utils/productCategoryM";
 import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
 import { MdClose } from "react-icons/md";
+import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 
 export const InsertNewMeetingModal = () => {
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
   const selectedRowDataActivity = useDashboardStore((state) => state.selectedRowDataActivity);
   const selectedRowDataMeeting = useDashboardStore((state) => state.selectedRowDataMeeting);
   const setIsOpenInsertNewMeetingModal = useDashboardStore((state) => state.setIsOpenInsertNewMeetingModal);
+  // const [isLoading, setIsLoading] = useState(false);
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   // const theme = useThemeStore((state) => state.theme);
@@ -118,6 +120,7 @@ export const InsertNewMeetingModal = () => {
 
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
+    if (loadingGlobalState) return;
     setIsOpenInsertNewMeetingModal(false);
   };
   const handleSaveAndClose = async () => {
@@ -183,7 +186,7 @@ export const InsertNewMeetingModal = () => {
       newMeeting.planned_start_time === "08:30"
     );
 
-    // supabaseにINSERT
+    // supabaseにINSERT,ローディング終了, モーダルを閉じる
     createMeetingMutation.mutate(newMeeting);
 
     // setLoadingGlobalState(false);
@@ -255,7 +258,7 @@ export const InsertNewMeetingModal = () => {
       newMeeting.planned_start_time === "08:30"
     );
 
-    // supabaseにINSERT
+    // supabaseにINSERT,ローディング終了, モーダルを閉じる
     createMeetingMutation.mutate(newMeeting);
 
     // setLoadingGlobalState(false);
@@ -327,7 +330,7 @@ export const InsertNewMeetingModal = () => {
       newMeeting.planned_start_time === "08:30"
     );
 
-    // supabaseにINSERT
+    // supabaseにINSERT,ローディング終了, モーダルを閉じる
     createMeetingMutation.mutate(newMeeting);
 
     // setLoadingGlobalState(false);
@@ -455,22 +458,32 @@ export const InsertNewMeetingModal = () => {
   return (
     <>
       <div className={`${styles.overlay} `} onClick={handleCancelAndReset} />
-      {loadingGlobalState && (
+      {/* {loadingGlobalState && (
         <div className={`${styles.loading_overlay} `}>
           <SpinnerIDS scale={"scale-[0.5]"} />
         </div>
-      )}
-      <div className={`${styles.container} `}>
+      )} */}
+      <div className={`${styles.container} fade03`}>
+        {loadingGlobalState && (
+          <div className={`${styles.loading_overlay_modal} `}>
+            {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
+            <SpinnerComet w="48px" h="48px" />
+            {/* <SpinnerX w="w-[42px]" h="h-[42px]" /> */}
+          </div>
+        )}
         {/* 保存・タイトル・キャンセルエリア */}
         <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[20px] text-center text-[18px]">
-          <div className="font-samibold cursor-pointer hover:text-[#aaa]" onClick={handleCancelAndReset}>
+          <div
+            className="min-w-[150px] cursor-pointer text-start font-semibold hover:text-[#aaa]"
+            onClick={handleCancelAndReset}
+          >
             キャンセル
           </div>
-          <div className="-translate-x-[25px] font-bold">面談予定 新規作成</div>
+          <div className="min-w-[150px] font-bold">面談予定 新規作成</div>
 
           {selectedRowDataActivity && (
             <div
-              className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
+              className={`min-w-[150px] cursor-pointer text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
               onClick={handleSaveAndClose}
             >
               保存
@@ -478,7 +491,7 @@ export const InsertNewMeetingModal = () => {
           )}
           {selectedRowDataMeeting && (
             <div
-              className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
+              className={`min-w-[150px] cursor-pointer text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
               onClick={handleSaveAndCloseFromMeeting}
             >
               保存
@@ -486,13 +499,16 @@ export const InsertNewMeetingModal = () => {
           )}
           {selectedRowDataContact && (
             <div
-              className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
+              className={`min-w-[150px] cursor-pointer text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
               onClick={handleSaveAndCloseFromContacts}
             >
               保存
             </div>
           )}
         </div>
+
+        <div className="min-h-[2px] w-full bg-[var(--color-bg-brand-f)]"></div>
+
         {/* メインコンテンツ コンテナ */}
         <div className={`${styles.main_contents_container}`}>
           {/* --------- 横幅全体ラッパー --------- */}
@@ -503,8 +519,15 @@ export const InsertNewMeetingModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px] !text-[var(--main-color-tk)]`}>●面談日</span>
-                    <DatePickerCustomInput startDate={plannedDate} setStartDate={setPlannedDate} />
+                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●面談日</span>
+                    <DatePickerCustomInput
+                      startDate={plannedDate}
+                      setStartDate={setPlannedDate}
+                      fontSize="text-[15px]"
+                      placeholderText="placeholder:text-[15px]"
+                      py="py-[6px]"
+                      minHeight="min-h-[32px]"
+                    />
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -519,7 +542,7 @@ export const InsertNewMeetingModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px] !text-[var(--main-color-tk)]`}>●面談タイプ</span>
+                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●面談タイプ</span>
                     <select
                       className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={meetingType}
@@ -549,7 +572,7 @@ export const InsertNewMeetingModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px] !text-[var(--main-color-tk)]`}>●面談開始</span>
+                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●面談開始</span>
                     <select
                       className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                       placeholder="時"
@@ -706,7 +729,7 @@ export const InsertNewMeetingModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title} !min-w-[140px] !text-[var(--main-color-tk)]`}>●訪問目的</span>
+                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●訪問目的</span>
                     <select
                       className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={plannedPurpose}
@@ -871,7 +894,7 @@ export const InsertNewMeetingModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px] !text-[var(--main-color-tk)]`}>●活動年月度</span>
+                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●活動年月度</span>
                     <input
                       type="number"
                       min="0"
@@ -936,7 +959,7 @@ export const InsertNewMeetingModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px] !text-[var(--main-color-tk)]`}>●自社担当</span>
+                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●自社担当</span>
                     <input
                       type="text"
                       placeholder="*入力必須"

@@ -120,6 +120,9 @@ export const columnNameToJapanese = (columnName: string) => {
     case "established_in":
       return "設立日";
       break;
+    case "created_by_company_id":
+      return "自社専用データ";
+      break;
 
     default:
       return "";

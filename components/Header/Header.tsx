@@ -247,7 +247,7 @@ export const Header: FC<Props> = ({
               </Link>
             </li>
             <li className={`${styles.navList} ${switchLightTextColor}`}>
-              <Link href="/about" prefetch={false} className={`${styles.navbarItem}`}>
+              <Link href="/about" prefetch={true} className={`${styles.navbarItem}`}>
                 <span>
                   {language === "ja" && "企業"}
                   {language === "en" && "About"}

@@ -9,6 +9,7 @@ import { ContainerInstance } from "react-toastify/dist/hooks";
 
 export const useMutateMeeting = () => {
   const theme = useThemeStore((state) => state.theme);
+  const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   const setIsOpenInsertNewMeetingModal = useDashboardStore((state) => state.setIsOpenInsertNewMeetingModal);
   const setIsOpenUpdateMeetingModal = useDashboardStore((state) => state.setIsOpenUpdateMeetingModal);
@@ -19,7 +20,7 @@ export const useMutateMeeting = () => {
   // 【Meeting新規作成INSERT用createMeetingMutation関数】
   const createMeetingMutation = useMutation(
     async (newMeeting: Omit<Meeting, "id" | "created_at" | "updated_at">) => {
-      setLoadingGlobalState(true);
+      // setLoadingGlobalState(true);
       // console.log(newMeeting.planned_start_time);
       const { data, error } = await supabase.from("meetings").insert(newMeeting).select().single();
       if (error) throw new Error(error.message);
@@ -68,39 +69,65 @@ export const useMutateMeeting = () => {
         await queryClient.invalidateQueries({ queryKey: ["activities"] });
         // TanStack Queryでデータの変更に合わせて別のデータを再取得する
         // https://zenn.dev/masatakaitoh/articles/3c2f8602d2bb9d
+        if (loadingGlobalState) setLoadingGlobalState(false);
+        setIsOpenInsertNewMeetingModal(false);
+        toast.success("面談予定の作成が完了しました🌟", {
+          position: "top-right",
+          autoClose: 1500,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: `${theme === "light" ? "light" : "dark"}`,
+        });
 
-        setTimeout(() => {
-          setLoadingGlobalState(false);
-          setIsOpenInsertNewMeetingModal(false);
-          toast.success("面談予定の作成に完了しました!", {
-            position: "top-right",
-            autoClose: 2000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: `${theme === "light" ? "light" : "dark"}`,
-          });
-        }, 500);
+        // setTimeout(() => {
+        //   if (loadingGlobalState) setLoadingGlobalState(false);
+        //   setIsOpenInsertNewMeetingModal(false);
+        //   toast.success("面談予定の作成に完了しました!", {
+        //     position: "top-right",
+        //     autoClose: 1500,
+        //     hideProgressBar: false,
+        //     closeOnClick: true,
+        //     pauseOnHover: true,
+        //     draggable: true,
+        //     progress: undefined,
+        //     theme: `${theme === "light" ? "light" : "dark"}`,
+        //   });
+        // }, 500);
       },
       onError: (err: any) => {
-        setTimeout(() => {
-          setLoadingGlobalState(false);
-          // setIsOpenInsertNewMeetingModal(false);
-          alert(err.message);
-          console.log("INSERTエラー", err.message);
-          toast.error("面談予定の作成に失敗しました!", {
-            position: "top-right",
-            autoClose: 2000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: `${theme === "light" ? "light" : "dark"}`,
-          });
-        }, 500);
+        if (loadingGlobalState) setLoadingGlobalState(false);
+        // setIsOpenInsertNewMeetingModal(false);
+        alert(err.message);
+        console.log("INSERTエラー", err.message);
+        toast.error("面談予定の作成に失敗しました!", {
+          position: "top-right",
+          autoClose: 1500,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: `${theme === "light" ? "light" : "dark"}`,
+        });
+        // setTimeout(() => {
+        //   if (loadingGlobalState) setLoadingGlobalState(false);
+        //   // setIsOpenInsertNewMeetingModal(false);
+        //   alert(err.message);
+        //   console.log("INSERTエラー", err.message);
+        //   toast.error("面談予定の作成に失敗しました!", {
+        //     position: "top-right",
+        //     autoClose: 1500,
+        //     hideProgressBar: false,
+        //     closeOnClick: true,
+        //     pauseOnHover: true,
+        //     draggable: true,
+        //     progress: undefined,
+        //     theme: `${theme === "light" ? "light" : "dark"}`,
+        //   });
+        // }, 500);
       },
     }
   );
@@ -108,7 +135,7 @@ export const useMutateMeeting = () => {
   // 【Meeting編集UPDATE用updateMeetingMutation関数】
   const updateMeetingMutation = useMutation(
     async (newMeeting: Omit<Meeting, "created_at" | "updated_at">) => {
-      setLoadingGlobalState(true);
+      // setLoadingGlobalState(true);
       const { data: meetingData, error } = await supabase
         .from("meetings")
         .update(newMeeting)
@@ -162,38 +189,64 @@ export const useMutateMeeting = () => {
         await queryClient.invalidateQueries({ queryKey: ["activities"] });
         // TanStack Queryでデータの変更に合わせて別のデータを再取得する
         // https://zenn.dev/masatakaitoh/articles/3c2f8602d2bb9d
-        setTimeout(() => {
-          setLoadingGlobalState(false);
-          setIsOpenUpdateMeetingModal(false);
-          toast.success("面談の更新完了しました!", {
-            position: "top-right",
-            autoClose: 2000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: `${theme === "light" ? "light" : "dark"}`,
-          });
-        }, 500);
+        if (loadingGlobalState) setLoadingGlobalState(false);
+        setIsOpenUpdateMeetingModal(false);
+        toast.success("面談の更新が完了しました🌟", {
+          position: "top-right",
+          autoClose: 1500,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: `${theme === "light" ? "light" : "dark"}`,
+        });
+        // setTimeout(() => {
+        //   if (loadingGlobalState) setLoadingGlobalState(false);
+        //   setIsOpenUpdateMeetingModal(false);
+        //   toast.success("面談の更新完了しました!", {
+        //     position: "top-right",
+        //     autoClose: 1500,
+        //     hideProgressBar: false,
+        //     closeOnClick: true,
+        //     pauseOnHover: true,
+        //     draggable: true,
+        //     progress: undefined,
+        //     theme: `${theme === "light" ? "light" : "dark"}`,
+        //   });
+        // }, 500);
       },
       onError: (err: any) => {
-        setTimeout(() => {
-          setLoadingGlobalState(false);
-          // setIsOpenUpdateMeetingModal(false);
-          alert(err.message);
-          console.log("INSERTエラー", err.message);
-          toast.error("面談の更新に失敗しました!", {
-            position: "top-right",
-            autoClose: 2000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: `${theme === "light" ? "light" : "dark"}`,
-          });
-        }, 500);
+        if (loadingGlobalState) setLoadingGlobalState(false);
+        // setIsOpenUpdateMeetingModal(false);
+        alert(err.message);
+        console.log("INSERTエラー", err.message);
+        toast.error("面談の更新に失敗しました!", {
+          position: "top-right",
+          autoClose: 1500,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: `${theme === "light" ? "light" : "dark"}`,
+        });
+        // setTimeout(() => {
+        //   if (loadingGlobalState) setLoadingGlobalState(false);
+        //   // setIsOpenUpdateMeetingModal(false);
+        //   alert(err.message);
+        //   console.log("INSERTエラー", err.message);
+        //   toast.error("面談の更新に失敗しました!", {
+        //     position: "top-right",
+        //     autoClose: 1500,
+        //     hideProgressBar: false,
+        //     closeOnClick: true,
+        //     pauseOnHover: true,
+        //     draggable: true,
+        //     progress: undefined,
+        //     theme: `${theme === "light" ? "light" : "dark"}`,
+        //   });
+        // }, 500);
       },
     }
   );

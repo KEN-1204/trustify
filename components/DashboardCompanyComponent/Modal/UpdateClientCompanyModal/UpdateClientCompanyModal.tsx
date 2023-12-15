@@ -8,9 +8,12 @@ import useThemeStore from "@/store/useThemeStore";
 import { isNaN } from "lodash";
 import { useMutateClientCompany } from "@/hooks/useMutateClientCompany";
 import productCategoriesM from "@/utils/productCategoryM";
+import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
+import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 
 export const UpdateClientCompanyModal = () => {
   const setIsOpenUpdateClientCompanyModal = useDashboardStore((state) => state.setIsOpenUpdateClientCompanyModal);
+  // const [isLoading, setIsLoading] = useState(false);
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   // const theme = useThemeStore((state) => state.theme);
@@ -173,6 +176,7 @@ export const UpdateClientCompanyModal = () => {
 
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
+    if (loadingGlobalState) return;
     setIsOpenUpdateClientCompanyModal(false);
   };
   const handleSaveAndClose = async () => {
@@ -238,7 +242,7 @@ export const UpdateClientCompanyModal = () => {
       number_of_employees: numberOfEmployees ? numberOfEmployees : null,
     };
 
-    // supabaseにINSERT
+    // supabaseにINSERT,ローディング終了, モーダルを閉じる
     updateClientCompanyMutation.mutate(newClientCompany);
 
     // setLoadingGlobalState(false);
@@ -334,25 +338,34 @@ export const UpdateClientCompanyModal = () => {
   return (
     <>
       <div className={`${styles.overlay} `} onClick={handleCancelAndReset} />
-      {loadingGlobalState && (
-        <div className={`${styles.loading_overlay} `}>
-          <SpinnerIDS scale={"scale-[0.5]"} />
-        </div>
-      )}
-      <div className={`${styles.container} `}>
+
+      <div className={`${styles.container} fade03`}>
+        {loadingGlobalState && (
+          <div className={`${styles.loading_overlay_modal} `}>
+            {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
+            <SpinnerComet w="48px" h="48px" />
+            {/* <SpinnerX w="w-[42px]" h="h-[42px]" /> */}
+          </div>
+        )}
         {/* 保存・タイトル・キャンセルエリア */}
         <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[20px] text-center text-[18px]">
-          <div className="font-samibold cursor-pointer hover:text-[#aaa]" onClick={handleCancelAndReset}>
+          <div
+            className="min-w-[150px] cursor-pointer text-start font-semibold hover:text-[#aaa]"
+            onClick={handleCancelAndReset}
+          >
             キャンセル
           </div>
-          <div className="-translate-x-[25px] font-bold">担当者 新規作成</div>
+          <div className="min-w-[150px] font-bold">会社 編集</div>
           <div
-            className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
+            className={`min-w-[150px] cursor-pointer text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
             onClick={handleSaveAndClose}
           >
             保存
           </div>
         </div>
+
+        <div className="min-h-[2px] w-full bg-[var(--color-bg-brand-f)]"></div>
+
         {/* メインコンテンツ コンテナ */}
         <div className={`${styles.main_contents_container}`}>
           {/* --------- 横幅全部ラッパー --------- */}
@@ -361,7 +374,7 @@ export const UpdateClientCompanyModal = () => {
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>●会社名</span>
+                  <span className={`${styles.title} ${styles.required_title}`}>●会社名</span>
                   {/* <span className={`${styles.value} ${styles.value_highlight}`}>
                     {selectedRowDataCompany?.name ? selectedRowDataCompany?.name : ""}
                   </span> */}
@@ -385,7 +398,7 @@ export const UpdateClientCompanyModal = () => {
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>●部署名</span>
+                  <span className={`${styles.title} ${styles.required_title}`}>●部署名</span>
                   {/* <span className={`${styles.value}`}>
                     {selectedRowDataCompany?.department_name ? selectedRowDataCompany?.department_name : ""}
                   </span> */}
@@ -412,7 +425,7 @@ export const UpdateClientCompanyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>●代表TEL</span>
+                    <span className={`${styles.title} ${styles.required_title}`}>●代表TEL</span>
                     {/* <span className={`${styles.value} ${styles.value_highlight}`}>
                       {selectedRowDataCompany?.name ? selectedRowDataCompany?.name : ""}
                     </span> */}
@@ -497,7 +510,7 @@ export const UpdateClientCompanyModal = () => {
             <div className={`${styles.row_area} ${styles.text_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full `}>
-                  <span className={`${styles.title}`}>●住所</span>
+                  <span className={`${styles.title} ${styles.required_title}`}>●住所</span>
                   <textarea
                     name="call_careful_reason"
                     id="call_careful_reason"

@@ -11,12 +11,14 @@ import productCategoriesM from "@/utils/productCategoryM";
 import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
 import { MdClose } from "react-icons/md";
 import { useQueryProducts } from "@/hooks/useQueryProducts";
+import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 
 export const UpdatePropertyModal = () => {
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
   const selectedRowDataActivity = useDashboardStore((state) => state.selectedRowDataActivity);
   const selectedRowDataProperty = useDashboardStore((state) => state.selectedRowDataProperty);
   const setIsOpenUpdatePropertyModal = useDashboardStore((state) => state.setIsOpenUpdatePropertyModal);
+  // const [isLoading, setIsLoading] = useState(false);
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   // const theme = useThemeStore((state) => state.theme);
@@ -244,6 +246,7 @@ export const UpdatePropertyModal = () => {
 
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
+    if (loadingGlobalState) return;
     setIsOpenUpdatePropertyModal(false);
   };
   const handleSaveAndCloseFromProperty = async () => {
@@ -319,10 +322,10 @@ export const UpdatePropertyModal = () => {
 
     console.log("案件 新規作成 newProperty", newProperty);
 
-    // supabaseにINSERT
+    // supabaseにINSERT,ローディング終了, モーダルを閉じる
     updatePropertyMutation.mutate(newProperty);
 
-    // setLoadingGlobalState(false);
+    // setIsLoading(false);
 
     // モーダルを閉じる
     // setIsOpenUpdatePropertyModal(false);
@@ -435,44 +438,41 @@ export const UpdatePropertyModal = () => {
   return (
     <>
       <div className={`${styles.overlay} `} onClick={handleCancelAndReset} />
-      {loadingGlobalState && (
+      {/* {loadingGlobalState && (
         <div className={`${styles.loading_overlay} `}>
           <SpinnerIDS scale={"scale-[0.5]"} />
         </div>
-      )}
-      <div className={`${styles.container} `}>
+      )} */}
+      <div className={`${styles.container} fade03`}>
+        {loadingGlobalState && (
+          <div className={`${styles.loading_overlay_modal} `}>
+            {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
+            <SpinnerComet w="48px" h="48px" />
+            {/* <SpinnerX w="w-[42px]" h="h-[42px]" /> */}
+          </div>
+        )}
         {/* 保存・タイトル・キャンセルエリア */}
         <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[20px] text-center text-[18px]">
-          <div className="font-samibold cursor-pointer hover:text-[#aaa]" onClick={handleCancelAndReset}>
+          <div
+            className="min-w-[150px] cursor-pointer text-start font-semibold hover:text-[#aaa]"
+            onClick={handleCancelAndReset}
+          >
             キャンセル
           </div>
-          <div className="-translate-x-[25px] font-bold">案件 新規作成</div>
+          <div className="min-w-[150px] font-bold">案件 新規作成</div>
 
           {selectedRowDataProperty && (
             <div
-              className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
+              className={`min-w-[150px] cursor-pointer text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
               onClick={handleSaveAndCloseFromProperty}
             >
               保存
             </div>
           )}
-          {/* {selectedRowDataContact && (
-            <div
-              className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
-              // onClick={handleSaveAndCloseFromContact}
-            >
-              保存
-            </div>
-          )}
-          {selectedRowDataActivity && (
-            <div
-              className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
-              // onClick={handleSaveAndCloseFromActivity}
-            >
-              保存
-            </div>
-          )} */}
         </div>
+
+        <div className="min-h-[2px] w-full bg-[var(--color-bg-brand-f)]"></div>
+
         {/* メインコンテンツ コンテナ */}
         <div className={`${styles.main_contents_container}`}>
           {/* --------- 横幅全体ラッパー --------- */}
@@ -483,7 +483,7 @@ export const UpdatePropertyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>現ステータス</span>
+                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●現ステータス</span>
                     <select
                       className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={currentStatus}
@@ -528,7 +528,7 @@ export const UpdatePropertyModal = () => {
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title} !min-w-[140px]`}>案件名</span>
+                  <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●案件名</span>
                   <input
                     type="text"
                     placeholder="案件名を入力してください"
@@ -663,8 +663,15 @@ export const UpdatePropertyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>獲得予定時期</span>
-                    <DatePickerCustomInput startDate={expectedOrderDate} setStartDate={setExpectedOrderDate} />
+                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●獲得予定時期</span>
+                    <DatePickerCustomInput
+                      startDate={expectedOrderDate}
+                      setStartDate={setExpectedOrderDate}
+                      fontSize="text-[15px]"
+                      placeholderText="placeholder:text-[15px]"
+                      py="py-[6px]"
+                      minHeight="min-h-[32px]"
+                    />
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1156,7 +1163,14 @@ export const UpdatePropertyModal = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px]`}>展開日付</span>
-                    <DatePickerCustomInput startDate={expansionDate} setStartDate={setExpansionDate} />
+                    <DatePickerCustomInput
+                      startDate={expansionDate}
+                      setStartDate={setExpansionDate}
+                      fontSize="text-[15px]"
+                      placeholderText="placeholder:text-[15px]"
+                      py="py-[6px]"
+                      minHeight="min-h-[32px]"
+                    />
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1172,7 +1186,14 @@ export const UpdatePropertyModal = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px]`}>売上日付</span>
-                    <DatePickerCustomInput startDate={salesDate} setStartDate={setSalesDate} />
+                    <DatePickerCustomInput
+                      startDate={salesDate}
+                      setStartDate={setSalesDate}
+                      fontSize="text-[15px]"
+                      placeholderText="placeholder:text-[15px]"
+                      py="py-[6px]"
+                      minHeight="min-h-[32px]"
+                    />
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1364,7 +1385,14 @@ export const UpdatePropertyModal = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px]`}>サブスク開始日</span>
-                    <DatePickerCustomInput startDate={subscriptionStartDate} setStartDate={setSubscriptionStartDate} />
+                    <DatePickerCustomInput
+                      startDate={subscriptionStartDate}
+                      setStartDate={setSubscriptionStartDate}
+                      fontSize="text-[15px]"
+                      placeholderText="placeholder:text-[15px]"
+                      py="py-[6px]"
+                      minHeight="min-h-[32px]"
+                    />
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1383,6 +1411,10 @@ export const UpdatePropertyModal = () => {
                     <DatePickerCustomInput
                       startDate={subscriptionCanceledAt}
                       setStartDate={setSubscriptionCanceledAt}
+                      fontSize="text-[15px]"
+                      placeholderText="placeholder:text-[15px]"
+                      py="py-[6px]"
+                      minHeight="min-h-[32px]"
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -1457,7 +1489,14 @@ export const UpdatePropertyModal = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px]`}>リース完了予定日</span>
-                    <DatePickerCustomInput startDate={leaseExpirationDate} setStartDate={setLeaseExpirationDate} />
+                    <DatePickerCustomInput
+                      startDate={leaseExpirationDate}
+                      setStartDate={setLeaseExpirationDate}
+                      fontSize="text-[15px]"
+                      placeholderText="placeholder:text-[15px]"
+                      py="py-[6px]"
+                      minHeight="min-h-[32px]"
+                    />
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1536,6 +1575,10 @@ export const UpdatePropertyModal = () => {
                     <DatePickerCustomInput
                       startDate={competitorAppearanceDate}
                       setStartDate={setCompetitorAppearanceDate}
+                      fontSize="text-[15px]"
+                      placeholderText="placeholder:text-[15px]"
+                      py="py-[6px]"
+                      minHeight="min-h-[32px]"
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -1777,8 +1820,15 @@ export const UpdatePropertyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>案件発生日付</span>
-                    <DatePickerCustomInput startDate={propertyDate} setStartDate={setPropertyDate} />
+                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●案件発生日付</span>
+                    <DatePickerCustomInput
+                      startDate={propertyDate}
+                      setStartDate={setPropertyDate}
+                      fontSize="text-[15px]"
+                      placeholderText="placeholder:text-[15px]"
+                      py="py-[6px]"
+                      minHeight="min-h-[32px]"
+                    />
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1793,7 +1843,7 @@ export const UpdatePropertyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>案件年月度</span>
+                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●案件年月度</span>
                     <input
                       type="number"
                       min="0"
@@ -1928,7 +1978,7 @@ export const UpdatePropertyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>●自社担当</span>
+                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●自社担当</span>
                     <input
                       type="text"
                       placeholder="*入力必須"

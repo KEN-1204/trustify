@@ -9,21 +9,28 @@ const ContactFunctionHeaderMemo: FC = () => {
   const searchMode = useDashboardStore((state) => state.searchMode);
   const setSearchMode = useDashboardStore((state) => state.setSearchMode);
   const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
+  const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
   const setUnderDisplayFullScreen = useDashboardStore((state) => state.setUnderDisplayFullScreen);
   const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
   //   const setIsOpenInsertNewContactModal = useDashboardStore((state) => state.setIsOpenInsertNewContactModal);
+
+  // 担当者編集と「活動、面談、案件」の作成モーダル開閉state
   const setIsOpenUpdateContactModal = useDashboardStore((state) => state.setIsOpenUpdateContactModal);
   const setIsOpenInsertNewActivityModal = useDashboardStore((state) => state.setIsOpenInsertNewActivityModal);
-  const setSelectedRowDataMeeting = useDashboardStore((state) => state.setSelectedRowDataMeeting);
   const setIsOpenInsertNewMeetingModal = useDashboardStore((state) => state.setIsOpenInsertNewMeetingModal);
+  const setIsOpenInsertNewPropertyModal = useDashboardStore((state) => state.setIsOpenInsertNewPropertyModal);
 
   // 上画面の選択中の列データ会社
-  //   const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
+
+  // モーダルを開く際に他画面の選択中のRowデータをリセットする => これをしないと「保存」が複数表示される(他画面で選択してる行の会社idと担当者idを渡すため)
+  // const setSelectedRowDataContact = useDashboardStore((state) => state.setSelectedRowDataContact);
   const setSelectedRowDataActivity = useDashboardStore((state) => state.setSelectedRowDataActivity);
+  const setSelectedRowDataMeeting = useDashboardStore((state) => state.setSelectedRowDataMeeting);
+  const setSelectedRowDataProperty = useDashboardStore((state) => state.setSelectedRowDataProperty);
 
   const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
     // ホバーしたアイテムにツールチップを表示
@@ -104,7 +111,12 @@ const ContactFunctionHeaderMemo: FC = () => {
               if (searchMode) return;
               if (!selectedRowDataContact) return alert("担当者を選択してください");
               console.log("担当者作成 クリック");
-              setLoadingGlobalState(false);
+              // 他画面の選択行データはリセット
+              // setSelectedRowDataContact(null);
+              setSelectedRowDataActivity(null);
+              setSelectedRowDataMeeting(null);
+              setSelectedRowDataProperty(null);
+              if (loadingGlobalState) setLoadingGlobalState(false);
               setIsOpenUpdateContactModal(true);
             }}
           />
@@ -116,9 +128,12 @@ const ContactFunctionHeaderMemo: FC = () => {
               if (searchMode) return;
               if (!selectedRowDataContact) return alert("担当者を選択してください");
               console.log("活動作成 クリック");
-              // 活動の選択列はリセット
+              // 他画面の選択行データはリセット
+              // setSelectedRowDataContact(null);
               setSelectedRowDataActivity(null);
-              setLoadingGlobalState(false);
+              setSelectedRowDataMeeting(null);
+              setSelectedRowDataProperty(null);
+              if (loadingGlobalState) setLoadingGlobalState(false);
               setIsOpenInsertNewActivityModal(true);
             }}
           />
@@ -130,11 +145,30 @@ const ContactFunctionHeaderMemo: FC = () => {
               if (searchMode) return;
               if (!selectedRowDataContact) return alert("担当者を選択してください");
               console.log("活動作成 クリック");
-              // 活動の選択列はリセット
-              setSelectedRowDataMeeting(null);
+              // 他画面の選択行データはリセット
+              // setSelectedRowDataContact(null);
               setSelectedRowDataActivity(null);
-              setLoadingGlobalState(false);
+              setSelectedRowDataMeeting(null);
+              setSelectedRowDataProperty(null);
+              if (loadingGlobalState) setLoadingGlobalState(false);
               setIsOpenInsertNewMeetingModal(true);
+            }}
+          />
+          <RippleButton
+            title={`案件_作成`}
+            classText={`select-none ${searchMode || !selectedRowDataContact ? `cursor-not-allowed` : ``}`}
+            borderRadius="2px"
+            clickEventHandler={() => {
+              if (searchMode) return;
+              if (!selectedRowDataContact) return alert("担当者を選択してください");
+              console.log("案件_作成 クリック");
+              // 他画面の選択行データはリセット
+              // setSelectedRowDataContact(null);
+              setSelectedRowDataActivity(null);
+              setSelectedRowDataMeeting(null);
+              setSelectedRowDataProperty(null);
+              if (loadingGlobalState) setLoadingGlobalState(false);
+              setIsOpenInsertNewPropertyModal(true);
             }}
           />
         </div>

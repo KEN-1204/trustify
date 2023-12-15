@@ -525,7 +525,7 @@ export const EditColumns: FC = () => {
       <div className={`${styles.container} fade01 `} ref={modalContainerRef}>
         {/* 保存キャンセルエリア */}
         <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[30px] text-center text-[18px]">
-          <div className="font-samibold cursor-pointer hover:text-[#aaa]" onClick={() => setIsOpenEditColumns(false)}>
+          <div className="cursor-pointer font-semibold hover:text-[#aaa]" onClick={() => setIsOpenEditColumns(false)}>
             キャンセル
           </div>
           <div className="-translate-x-[25px] font-bold">カラム並び替え・追加/削除</div>

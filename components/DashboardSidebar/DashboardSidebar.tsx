@@ -73,7 +73,9 @@ export const DashboardSidebarMemo: FC = () => {
   return (
     <div
       className={`${styles.app_sidebar} ${
-        isOpenSidebar ? `${activeMenuTab !== "HOME" ? `` : `transition-w02-bg05`}` : `${styles.mini} transition-w01`
+        isOpenSidebar
+          ? `${activeMenuTab === "HOME" ? `transition-w02-bg05` : ` transition-w02-bg01`}`
+          : `${activeMenuTab === "HOME" ? `${styles.mini} transition-w01-bg05` : `${styles.mini} transition-w01-bg01`}`
       }`}
       // className={`${styles.app_sidebar} ${isOpenSidebar ? `transition-base02` : `${styles.mini} transition-base01`}`}
     >

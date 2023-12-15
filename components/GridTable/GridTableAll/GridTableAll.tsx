@@ -17,6 +17,7 @@ import { EditColumnsModalDisplayOnly } from "../EditColumns/EditColumnsModalDisp
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
+import { BsCheck2 } from "react-icons/bs";
 
 type TableDataType = {
   id: number;
@@ -28,6 +29,11 @@ type TableDataType = {
   country: string;
   summary: string;
 };
+
+// Client_companyのデータ型にindexを加えたタイプ
+interface ExtendedClient_company extends Client_company {
+  index: number;
+}
 
 type ColumnHeaderItemList = {
   columnId: number;
@@ -538,6 +544,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // 現在取得している全ての行 data.pagesのネストした配列を一つの配列にフラット化
   // const allRows = data ? data.pages.flatMap((d) => d?.rows) : [];
   console.log("=============================================data", data);
+  // const Rows = data ? data.pages.flatMap((d) => d?.rows) : [];
   const Rows = data ? data.pages.flatMap((d) => d?.rows) : [];
   const allRows = Rows.map((obj, index) => {
     return { index, ...obj };
@@ -770,10 +777,14 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       Object.keys(data?.pages[0].rows[0] as object)
     );
     const newColsWidths = new Array(Object.keys(data?.pages[0].rows[0] as object).length + 1).fill("120px");
-    newColsWidths.fill("65px", 0, 1); // 1列目を65pxに変更
-    newColsWidths.fill("50px", 1, 2); // 2列目を100pxに変更 id
-    newColsWidths.fill("100px", 2, 3); // 2列目を100pxに変更 法人番号
-    newColsWidths.fill("200px", 3, 4); // 4列目を100pxに変更 会社名
+    // newColsWidths.fill("65px", 0, 1); // 1列目を65pxに変更 チェックボックス
+    // newColsWidths.fill("50px", 1, 2); // 2列目を100pxに変更 id
+    // newColsWidths.fill("100px", 2, 3); // 2列目を100pxに変更 法人番号
+    // newColsWidths.fill("200px", 3, 4); // 4列目を100pxに変更 会社名
+    // ==================== 会社名が最初でフローズン ====================
+    newColsWidths.fill("65px", 0, 1); // 1列目を65pxに変更 チェックボックス
+    newColsWidths.fill("280px", 1, 2); // 2列目を100pxに変更 会社名
+    // ==================== 会社名が最初でフローズン ここまで ====================
     console.log("Stateにカラムwidthを保存", newColsWidths);
     // ['65px', '100px', '250px', '50px', '119px', '142px', '250px', '250px']
     // stateに現在の全てのカラムのwidthを保存
@@ -2281,7 +2292,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // 🌟現在のカラム.map((obj) => Object.values(row)[obj.columnId])で展開してGridセルを表示する
   // カラムNameの値のみ配列バージョンで順番入れ替え
   // ================= 🔥🔥テスト🔥🔥==================
-  const columnOrder = [...columnHeaderItemList].map((item, index) => item.columnName as keyof Client_company); // columnNameのみの配列を取得
+  const columnOrder = [...columnHeaderItemList].map((item, index) => item.columnName as keyof Client_company); // columnNameのみの配列を取得 keyof型演算子：https://typescriptbook.jp/reference/type-reuse/keyof-type-operator
   // const columnOrder = [...columnHeaderItemList].map((item, index) => item.columnName as keyof TableDataType); // columnNameのみの配列を取得
   // ================= 🔥🔥テスト🔥🔥==================
   // // カラムName配列バージョンで順番入れ替え
@@ -2471,7 +2482,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                     display: "top",
                     content: `${
                       activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) !== 1
-                        ? `カラムを固定`
+                        ? `選択中のカラムを左端に固定`
                         : `カラムを選択することで、`
                     }`,
                     content2: `${
@@ -2764,7 +2775,9 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                 >
                   {rowVirtualizer.getVirtualItems().map((virtualRow) => {
                     const isLoaderRow = virtualRow.index > allRows.length - 1;
-                    const rowData = allRows[virtualRow.index];
+                    // const rowData = allRows[virtualRow.index];
+                    const rowData: ExtendedClient_company = allRows[virtualRow.index];
+                    // console.log("rowData.name", rowData.name);
 
                     // console.log(`rowData`, rowData);
                     // console.log(`rowData.name`, rowData.name);
@@ -2792,7 +2805,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                       );
                     }
                     // ========= 🌟ローディング中の行トラック ここまで =========
-                    /* ======================== Grid列トラック Row ======================== */
+                    /* ======================== Grid行トラック Row ======================== */
                     return (
                       <div
                         key={"row" + virtualRow.index.toString()}
@@ -2941,8 +2954,14 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                                   }
                                   onKeyDown={handleKeyDown}
                                 >
-                                  {value}
-                                  {/* {value.} */}
+                                  {/* {value} */}
+                                  {columnHeaderItemList[index].columnName !== "created_by_company_id" && value}
+                                  {columnHeaderItemList[index].columnName === "created_by_company_id" &&
+                                    rowData.created_by_company_id === userProfileState?.company_id && (
+                                      <div className="flex-center h-full w-full">
+                                        <BsCheck2 className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
+                                      </div>
+                                    )}
                                 </div>
                               ))
                           ) : (

@@ -65,6 +65,10 @@ bg-[#06c755] */
   --checkbox-bg-color: #0d99ff;
   --border-theme-dark: #0c8ce9;
 
+  /* オーバーレイ 共通root */
+  /* Insert/Update用モーダルオーバーレイカラー */
+  --color-overlay-insert-update-modal: #00000078;
+
   /* ボーダー */
   /* rgba(255, 255, 255, 0.12) 0px 1px 1px */
 }
@@ -498,7 +502,15 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-table-row-hover: rgba(55, 53, 47, 0.08); */
   /* --color-table-row-hover: #f0f0f0; */
   --color-table-row-hover: #f8f8f8;
-  --color-table-bg-selected: #f3f3f3;
+  /* --color-table-row-hover: #f3f3f3; */
+  /* --color-table-row-hover: #f1f9ff; */
+  /* --color-table-row-hover: var(--color-bg-brand-f10); */
+  /* --color-table-bg-selected: #f8f8f8; */
+  /* --color-table-bg-selected: #f3f3f3; */
+  /* --color-table-bg-selected: #f6fbff; */
+  /* --color-table-bg-selected: #f1f9ff; */
+  --color-table-bg-selected: #f0f9ff;
+  --color-table-bg-selected: #f8f8f8;
   --color-table-checkbox-outline: #ccc;
   --color-table-checkbox-focus-outline: #fff;
   --color-table-dragging-gradient: #2b7fff #acffff;
@@ -784,6 +796,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* Figma ライト */
   --color-text-brand-f: #0d99ff;
   --color-text-brand-f-hover: #0d9affbb;
+  --color-text-brand-f-deep: #076ab1;
   --color-text-onbrand: #fff; /* ブランドカラー上のテキストカラー */
   --color-text-brand-sub: #2b7fff;
   --color-text-brand-sub-rgb: 43, 127, 255;
@@ -1079,9 +1092,12 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-table-loading-spinner: #787878;
   --color-table-row-hover: #232323;
   --color-table-row-hover: #14141490;
+  --color-table-row-hover: var(--color-bg-brand-f20);
+  --color-table-row-hover: var(--color-bg-brand-f30);
   /* --color-table-row-hover: #282828; */
   --color-table-bg-selected: #232323;
   --color-table-bg-selected: var(--color-bg-brand-f20);
+  --color-table-bg-selected: #14141490;
   /* --color-table-checkbox-outline: #2e2e2e; */
   --color-table-checkbox-outline: #555;
   --color-table-checkbox-focus-outline: #fff;
@@ -1316,6 +1332,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-text-brand-f: #7cc4f8; */
   --color-text-brand-f: #0c8ce9;
   --color-text-brand-f-hover: #0d9affbb;
+  --color-text-brand-f-deep: #076ab1;
   --color-text-onbrand: #fff; /* ブランドカラー上のテキストカラー */
   --color-text-brand-sub: #2b7fff;
   --color-text-brand-sub-rgb: 43, 127, 255;
@@ -1561,8 +1578,14 @@ textarea {
   transition: width 0.5s ease;
 }
 /* 共通transition width bg */
+.transition-w01-bg01 {
+  transition: width 0.1s ease, background-color 0.1s ease, border-color 0.1s ease;
+}
 .transition-w01-bg05 {
   transition: width 0.1s ease, background-color 0.5s ease, border-color 0.5s ease;
+}
+.transition-w02-bg01 {
+  transition: width 0.2s ease, background-color 0.5s ease, border-color 0.1s ease, box-shadow 0.1s ease;
 }
 .transition-w02-bg05 {
   transition: width 0.2s ease, background-color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;

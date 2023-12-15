@@ -9,6 +9,9 @@ import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import dynamic from "next/dynamic";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import productCategoriesM from "@/utils/productCategoryM";
+import { toast } from "react-toastify";
+import { Zoom } from "@/utils/Helpers/toastHelpers";
+import { BsCheck2 } from "react-icons/bs";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -29,6 +32,7 @@ const UnderRightActivityLog = dynamic(
 // 常にサーバー側にモジュールを含める必要はありません。たとえば、ブラウザのみで動作するライブラリがモジュールに含まれている場合です。
 
 const CompanyMainContainerMemo: FC = () => {
+  const userProfileState = useDashboardStore((state) => state.userProfileState);
   const searchMode = useDashboardStore((state) => state.searchMode);
   const setSearchMode = useDashboardStore((state) => state.setSearchMode);
   console.log("🔥 CompanyMainContainerレンダリング searchMode", searchMode);
@@ -39,9 +43,9 @@ const CompanyMainContainerMemo: FC = () => {
 
   type TooltipParams = {
     e: React.MouseEvent<HTMLElement, MouseEvent>;
-    display?: string;
+    display?: "top" | "right" | "bottom" | "left" | "";
   };
-  const handleOpenTooltip = ({ e, display = "center" }: TooltipParams) => {
+  const handleOpenTooltip = ({ e, display = "" }: TooltipParams) => {
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
     // console.log("ツールチップx, y width , height", x, y, width, height);
@@ -402,10 +406,27 @@ const CompanyMainContainerMemo: FC = () => {
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>●会社名</span>
-                  {!searchMode && (
+                  {/* {!searchMode && (
                     <span className={`${styles.value} ${styles.value_highlight}`}>
                       {selectedRowDataCompany?.name ? selectedRowDataCompany?.name : ""}
                     </span>
+                  )} */}
+                  {!searchMode && (
+                    <div className="flex items-center space-x-[9px]">
+                      <span className={`${styles.value} ${styles.value_highlight}`}>
+                        {selectedRowDataCompany?.name ? selectedRowDataCompany?.name : ""}
+                      </span>
+                      {selectedRowDataCompany?.created_by_company_id === userProfileState?.company_id && (
+                        <div
+                          data-text={`自社で作成した会社データです。`}
+                          data-text2={`自社専用データは編集が可能です。`}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, display: "top" })}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          <BsCheck2 className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
+                        </div>
+                      )}
+                    </div>
                   )}
                   {searchMode && (
                     <input
@@ -543,15 +564,22 @@ const CompanyMainContainerMemo: FC = () => {
                       value={inputEmployeesClass}
                       onChange={(e) => setInputEmployeesClass(e.target.value)}
                     >
-                      <option value=""></option>
+                      <option value="">全て選択</option>
                       {/* <option value="">回答を選択してください</option> */}
-                      <option value="A 1000名以上">A 1000名以上</option>
-                      <option value="B 500〜999名">B 500〜999名</option>
-                      <option value="C 300〜499名">C 300〜499名</option>
-                      <option value="D 200〜299名">D 200〜299名</option>
-                      <option value="E 100〜199名">E 100〜199名</option>
-                      <option value="F 50〜99名">F 50〜99名</option>
-                      <option value="G 1〜49名">G 1〜49名</option>
+                      {/* <option value="A 1000名以上">A 1000名以上</option>
+                      <option value="B 500~999名">B 500~999名</option>
+                      <option value="C 300~499名">C 300~499名</option>
+                      <option value="D 200~299名">D 200~299名</option>
+                      <option value="E 100~199名">E 100~199名</option>
+                      <option value="F 50~99名">F 50~99名</option>
+                      <option value="G 1~49名">G 1~49名</option> */}
+                      <option value="A*">A 1000名以上</option>
+                      <option value="B*">B 500~999名</option>
+                      <option value="C*">C 300~499名</option>
+                      <option value="D*">D 200~299名</option>
+                      <option value="E*">E 100~199名</option>
+                      <option value="F*">F 50~99名</option>
+                      <option value="G*">G 1~49名</option>
                       {/* <option value=""></option>
                       <option value="A 1000名以上">A 1000名以上</option>
                       <option value="B 500-999名">B 500-999名</option>
@@ -648,10 +676,10 @@ const CompanyMainContainerMemo: FC = () => {
                         芝浦アイランドブルームタワー602号室あああああああああああああああああああああああああああああ芝浦アイランドブルームタワー602号室222あああああああああああああああああああああああああああああ
                       </span> */}
                       <span
+                        className={`${styles.textarea_value} h-[45px]`}
                         data-text={`${
                           selectedRowDataCompany?.business_content ? selectedRowDataCompany?.business_content : ""
                         }`}
-                        className={`${styles.textarea_value} h-[45px]`}
                         onMouseEnter={(e) => handleOpenTooltip({ e })}
                         onMouseLeave={handleCloseTooltip}
                       >
@@ -680,10 +708,22 @@ const CompanyMainContainerMemo: FC = () => {
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>HP</span>
-                  {!searchMode && (
+                  {/* {!searchMode && (
                     <span className={`${styles.value}`}>
                       {selectedRowDataCompany?.website_url ? selectedRowDataCompany?.website_url : ""}
                     </span>
+                  )} */}
+                  {!searchMode && !!selectedRowDataCompany?.website_url ? (
+                    <a
+                      href={selectedRowDataCompany.website_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`${styles.value} ${styles.anchor}`}
+                    >
+                      {selectedRowDataCompany.website_url}
+                    </a>
+                  ) : (
+                    <span></span>
                   )}
                   {searchMode && (
                     <input
@@ -705,7 +745,36 @@ const CompanyMainContainerMemo: FC = () => {
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>Email</span>
                   {!searchMode && (
-                    <span className={`${styles.value}`}>
+                    <span
+                      className={`${styles.value} ${styles.email_value}`}
+                      onClick={async () => {
+                        if (!selectedRowDataCompany?.email) return;
+                        try {
+                          await navigator.clipboard.writeText(selectedRowDataCompany.email);
+                          toast.success(`コピーしました!`, {
+                            position: "bottom-center",
+                            autoClose: 1000,
+                            hideProgressBar: false,
+                            closeOnClick: true,
+                            pauseOnHover: true,
+                            draggable: true,
+                            progress: undefined,
+                            transition: Zoom,
+                          });
+                        } catch (e: any) {
+                          toast.error(`コピーできませんでした!`, {
+                            position: "bottom-center",
+                            autoClose: 1000,
+                            hideProgressBar: false,
+                            closeOnClick: true,
+                            pauseOnHover: true,
+                            draggable: true,
+                            progress: undefined,
+                            transition: Zoom,
+                          });
+                        }
+                      }}
+                    >
                       {selectedRowDataCompany?.email ? selectedRowDataCompany?.email : ""}
                     </span>
                   )}
@@ -1227,7 +1296,7 @@ const CompanyMainContainerMemo: FC = () => {
             {/* サーチモード時は左側の下に表示 */}
             {searchMode && (
               <>
-                {/* 代表者・会長 */}
+                {/* 代表者・会長 サーチモード */}
                 <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
@@ -1271,7 +1340,7 @@ const CompanyMainContainerMemo: FC = () => {
                   </div>
                 </div>
 
-                {/* 副社長・専務取締役 */}
+                {/* 副社長・専務取締役 サーチモード */}
                 <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
@@ -1326,7 +1395,7 @@ const CompanyMainContainerMemo: FC = () => {
                   </div>
                 </div>
 
-                {/* 常務取締役・取締役 */}
+                {/* 常務取締役・取締役 サーチモード */}
                 <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
@@ -1380,7 +1449,7 @@ const CompanyMainContainerMemo: FC = () => {
                   </div>
                 </div>
 
-                {/* 役員・監査役 */}
+                {/* 役員・監査役 サーチモード */}
                 <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
@@ -1434,7 +1503,7 @@ const CompanyMainContainerMemo: FC = () => {
                   </div>
                 </div>
 
-                {/* 部長・担当者 */}
+                {/* 部長・担当者 サーチモード */}
                 <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>

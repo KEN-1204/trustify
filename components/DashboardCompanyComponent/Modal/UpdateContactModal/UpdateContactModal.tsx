@@ -7,10 +7,12 @@ import { toast } from "react-toastify";
 import useThemeStore from "@/store/useThemeStore";
 import { isNaN } from "lodash";
 import { useMutateContact } from "@/hooks/useMutateContact";
+import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 
 export const UpdateContactModal = () => {
   //   const setIsOpenInsertNewContactModal = useDashboardStore((state) => state.setIsOpenInsertNewContactModal);
   const setIsOpenUpdateContactModal = useDashboardStore((state) => state.setIsOpenUpdateContactModal);
+  // const [isLoading, setIsLoading] = useState(false);
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   const theme = useThemeStore((state) => state.theme);
@@ -105,10 +107,11 @@ export const UpdateContactModal = () => {
 
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
+    if (loadingGlobalState) return;
     setIsOpenUpdateContactModal(false);
   };
   const handleSaveAndClose = async () => {
-    // setLoadingGlobalState(true);
+    setLoadingGlobalState(true);
 
     // 編集、保存するデータをオブジェクトにまとめる
     const newContact = {
@@ -145,36 +148,49 @@ export const UpdateContactModal = () => {
       created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
     };
 
-    // supabaseにUPDATE
+    // supabaseにINSERT,ローディング終了, モーダルを閉じる
     updateContactMutation.mutate(newContact);
 
-    setLoadingGlobalState(false);
+    // setLoadingGlobalState(false);
 
     // モーダルを閉じる
-    setIsOpenUpdateContactModal(false);
+    // setIsOpenUpdateContactModal(false);
   };
   return (
     <>
       <div className={`${styles.overlay} `} onClick={handleCancelAndReset} />
-      {loadingGlobalState && (
+      {/* {loadingGlobalState && (
         <div className={`${styles.loading_overlay} `}>
           <SpinnerIDS scale={"scale-[0.5]"} />
         </div>
-      )}
-      <div className={`${styles.container} `}>
+      )} */}
+      <div className={`${styles.container} fade03`}>
+        {loadingGlobalState && (
+          <div className={`${styles.loading_overlay_modal} `}>
+            {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
+            <SpinnerComet w="48px" h="48px" />
+            {/* <SpinnerX w="w-[42px]" h="h-[42px]" /> */}
+          </div>
+        )}
         {/* 保存・タイトル・キャンセルエリア */}
         <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[30px] text-center text-[18px]">
-          <div className="font-samibold cursor-pointer hover:text-[#aaa]" onClick={handleCancelAndReset}>
+          <div
+            className="min-w-[150px] cursor-pointer text-start font-semibold hover:text-[#aaa]"
+            onClick={handleCancelAndReset}
+          >
             キャンセル
           </div>
-          <div className="-translate-x-[25px] font-bold">担当者 編集</div>
+          <div className="min-w-[150px] font-bold">担当者 編集</div>
           <div
-            className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
+            className={`min-w-[150px] cursor-pointer text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
             onClick={handleSaveAndClose}
           >
             保存
           </div>
         </div>
+
+        <div className="min-h-[2px] w-full bg-[var(--color-bg-brand-f)]"></div>
+
         {/* メインコンテンツ コンテナ */}
         <div className={`${styles.main_contents_container} `}>
           {/* --------- 横幅全部ラッパー --------- */}
@@ -213,7 +229,7 @@ export const UpdateContactModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>●担当名</span>
+                    <span className={`${styles.title} ${styles.required_title}`}>●担当名</span>
                     {/* <span className={`${styles.value} ${styles.value_highlight}`}>
                       {selectedRowDataContact?.name ? selectedRowDataContact?.name : ""}
                     </span> */}

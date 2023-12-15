@@ -410,7 +410,7 @@ const EditColumnsModalMemo: FC<Props> = ({ columnHeaderItemList }) => {
       <div className={`${styles.container} `} ref={modalContainerRef}>
         {/* 保存キャンセルエリア */}
         <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[30px] text-center text-[18px]">
-          <div className="font-samibold cursor-pointer hover:text-[#aaa]" onClick={handleCancelAndReset}>
+          <div className="cursor-pointer font-semibold hover:text-[#aaa]" onClick={handleCancelAndReset}>
             キャンセル
           </div>
           <div className="-translate-x-[25px] font-bold">カラム並び替え・追加/削除</div>

@@ -9,11 +9,15 @@ import { isNaN } from "lodash";
 import { useMutateActivity } from "@/hooks/useMutateActivity";
 import productCategoriesM from "@/utils/productCategoryM";
 import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
+import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 
 export const InsertNewActivityModal = () => {
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
   const selectedRowDataActivity = useDashboardStore((state) => state.selectedRowDataActivity);
+  const selectedRowDataMeeting = useDashboardStore((state) => state.selectedRowDataMeeting);
+  const selectedRowDataProperty = useDashboardStore((state) => state.selectedRowDataProperty);
   const setIsOpenInsertNewActivityModal = useDashboardStore((state) => state.setIsOpenInsertNewActivityModal);
+  // const [isLoading, setIsLoading] = useState(false);
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   // const theme = useThemeStore((state) => state.theme);
@@ -61,9 +65,12 @@ export const InsertNewActivityModal = () => {
 
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
+    if (loadingGlobalState) return;
     setIsOpenInsertNewActivityModal(false);
   };
-  const handleSaveAndClose = async () => {
+
+  // 🌟担当者画面から活動を作成 担当者画面で選択したRowデータを使用する
+  const handleSaveAndCloseFromContact = async () => {
     if (!summary) return alert("活動概要を入力してください");
     if (!activityType) return alert("活動タイプを選択してください");
     if (!userProfileState?.id) return alert("ユーザー情報が存在しません");
@@ -104,7 +111,7 @@ export const InsertNewActivityModal = () => {
       quotation_id: null,
     };
 
-    // supabaseにINSERT
+    // supabaseにINSERT,ローディング終了, モーダルを閉じる
     createActivityMutation.mutate(newActivity);
 
     // setLoadingGlobalState(false);
@@ -112,6 +119,8 @@ export const InsertNewActivityModal = () => {
     // モーダルを閉じる
     // setIsOpenInsertNewActivityModal(false);
   };
+
+  // 🌟活動画面から活動を作成 活動画面で選択したRowデータを使用する
   const handleSaveAndCloseFromActivity = async () => {
     if (!summary) return alert("活動概要を入力してください");
     if (!activityType) return alert("活動タイプを選択してください");
@@ -153,8 +162,106 @@ export const InsertNewActivityModal = () => {
       quotation_id: null,
     };
 
-    // supabaseにINSERT
+    // supabaseにINSERT,ローディング終了, モーダルを閉じる
     createActivityMutation.mutate(newActivity);
+
+    // setLoadingGlobalState(false);
+  };
+
+  // 🌟面談画面から活動を作成 面談画面で選択したRowデータを使用する
+  const handleSaveAndCloseFromMeeting = async () => {
+    if (!summary) return alert("活動概要を入力してください");
+    if (!activityType) return alert("活動タイプを選択してください");
+    if (!userProfileState?.id) return alert("ユーザー情報が存在しません");
+    if (!selectedRowDataMeeting?.company_id) return alert("相手先の会社情報が存在しません");
+    if (!selectedRowDataMeeting?.contact_id) return alert("担当者情報が存在しません");
+
+    setLoadingGlobalState(true);
+
+    // 新規作成するデータをオブジェクトにまとめる
+    const newActivity = {
+      created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
+      created_by_user_id: userProfileState?.id ? userProfileState.id : null,
+      created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
+      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      client_contact_id: selectedRowDataMeeting.contact_id,
+      client_company_id: selectedRowDataMeeting.company_id,
+      summary: summary,
+      scheduled_follow_up_date: scheduledFollowUpDate ? scheduledFollowUpDate.toISOString() : null,
+      // follow_up_flag: followUpFlag ? followUpFlag : null,
+      follow_up_flag: followUpFlag,
+      document_url: null,
+      activity_type: activityType ? activityType : null,
+      // claim_flag: claimFlag ? claimFlag : null,
+      claim_flag: claimFlag,
+      product_introduction1: productIntroduction1,
+      product_introduction2: productIntroduction2,
+      product_introduction3: productIntroduction3,
+      product_introduction4: productIntroduction4,
+      product_introduction5: productIntroduction5,
+      department: departmentName ? departmentName : null,
+      business_office: businessOffice ? businessOffice : null,
+      member_name: memberName ? memberName : null,
+      priority: priority ? priority : null,
+      activity_date: activityDate ? activityDate.toISOString() : null,
+      activity_year_month: activityYearMonth ? activityYearMonth : null,
+      meeting_id: null,
+      property_id: null,
+      quotation_id: null,
+    };
+
+    // supabaseにINSERT,ローディング終了, モーダルを閉じる
+    createActivityMutation.mutate(newActivity);
+
+    // setLoadingGlobalState(false);
+  };
+
+  // 🌟案件画面から活動を作成 案件画面で選択したRowデータを使用する
+  const handleSaveAndCloseFromProperty = async () => {
+    if (!summary) return alert("活動概要を入力してください");
+    if (!activityType) return alert("活動タイプを選択してください");
+    if (!userProfileState?.id) return alert("ユーザー情報が存在しません");
+    if (!selectedRowDataProperty?.company_id) return alert("相手先の会社情報が存在しません");
+    if (!selectedRowDataProperty?.contact_id) return alert("担当者情報が存在しません");
+
+    setLoadingGlobalState(true);
+
+    // 新規作成するデータをオブジェクトにまとめる
+    const newActivity = {
+      created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
+      created_by_user_id: userProfileState?.id ? userProfileState.id : null,
+      created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
+      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      client_contact_id: selectedRowDataProperty.contact_id,
+      client_company_id: selectedRowDataProperty.company_id,
+      summary: summary,
+      scheduled_follow_up_date: scheduledFollowUpDate ? scheduledFollowUpDate.toISOString() : null,
+      // follow_up_flag: followUpFlag ? followUpFlag : null,
+      follow_up_flag: followUpFlag,
+      document_url: null,
+      activity_type: activityType ? activityType : null,
+      // claim_flag: claimFlag ? claimFlag : null,
+      claim_flag: claimFlag,
+      product_introduction1: productIntroduction1,
+      product_introduction2: productIntroduction2,
+      product_introduction3: productIntroduction3,
+      product_introduction4: productIntroduction4,
+      product_introduction5: productIntroduction5,
+      department: departmentName ? departmentName : null,
+      business_office: businessOffice ? businessOffice : null,
+      member_name: memberName ? memberName : null,
+      priority: priority ? priority : null,
+      activity_date: activityDate ? activityDate.toISOString() : null,
+      activity_year_month: activityYearMonth ? activityYearMonth : null,
+      meeting_id: null,
+      property_id: null,
+      quotation_id: null,
+    };
+
+    // supabaseにINSERT,ローディング終了, モーダルを閉じる
+    createActivityMutation.mutate(newActivity);
+
+    // setLoadingGlobalState(false);
   };
 
   // 全角文字を半角に変換する関数
@@ -270,35 +377,64 @@ export const InsertNewActivityModal = () => {
   return (
     <>
       <div className={`${styles.overlay} `} onClick={handleCancelAndReset} />
-      {loadingGlobalState && (
+      {/* {loadingGlobalState && (
         <div className={`${styles.loading_overlay} `}>
           <SpinnerIDS scale={"scale-[0.5]"} />
         </div>
-      )}
-      <div className={`${styles.container} `}>
+      )} */}
+      <div className={`${styles.container} fade03`}>
+        {loadingGlobalState && (
+          <div className={`${styles.loading_overlay_modal} `}>
+            {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
+            <SpinnerComet w="48px" h="48px" />
+            {/* <SpinnerX w="w-[42px]" h="h-[42px]" /> */}
+          </div>
+        )}
         {/* 保存・タイトル・キャンセルエリア */}
         <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[20px] text-center text-[18px]">
-          <div className="font-samibold cursor-pointer hover:text-[#aaa]" onClick={handleCancelAndReset}>
+          <div
+            className="min-w-[150px] cursor-pointer text-start font-semibold hover:text-[#aaa]"
+            onClick={handleCancelAndReset}
+          >
             キャンセル
           </div>
-          <div className="-translate-x-[25px] font-bold">活動 新規作成</div>
+          <div className="min-w-[150px] font-bold">活動 新規作成</div>
           {selectedRowDataContact && (
             <div
-              className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
-              onClick={handleSaveAndClose}
+              className={`min-w-[150px] cursor-pointer text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
+              onClick={handleSaveAndCloseFromContact}
             >
               保存
             </div>
           )}
           {selectedRowDataActivity && (
             <div
-              className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
+              className={`min-w-[150px] cursor-pointer text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)]  ${styles.save_text}`}
               onClick={handleSaveAndCloseFromActivity}
             >
               保存
             </div>
           )}
+          {selectedRowDataMeeting && (
+            <div
+              className={`min-w-[150px] cursor-pointer text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
+              onClick={handleSaveAndCloseFromMeeting}
+            >
+              保存
+            </div>
+          )}
+          {selectedRowDataProperty && (
+            <div
+              className={`min-w-[150px] cursor-pointer text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
+              onClick={handleSaveAndCloseFromProperty}
+            >
+              保存
+            </div>
+          )}
         </div>
+
+        <div className="min-h-[2px] w-full bg-[var(--color-bg-brand-f)]"></div>
+
         {/* メインコンテンツ コンテナ */}
         <div className={`${styles.main_contents_container}`}>
           {/* --------- 横幅全体ラッパー --------- */}
@@ -309,8 +445,15 @@ export const InsertNewActivityModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px] !text-[var(--main-color-tk)]`}>●活動日</span>
-                    <DatePickerCustomInput startDate={activityDate} setStartDate={setActivityDate} />
+                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●活動日</span>
+                    <DatePickerCustomInput
+                      startDate={activityDate}
+                      setStartDate={setActivityDate}
+                      fontSize="text-[15px]"
+                      placeholderText="placeholder:text-[15px]"
+                      py="py-[6px]"
+                      minHeight="min-h-[32px]"
+                    />
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -356,7 +499,7 @@ export const InsertNewActivityModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px] !text-[var(--main-color-tk)]`}>●活動タイプ</span>
+                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●活動タイプ</span>
                     <select
                       className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box} ${
                         !activityType ? `text-[#9ca3af]` : ``
@@ -426,7 +569,14 @@ export const InsertNewActivityModal = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
                     <span className={`${styles.title} !min-w-[172px]`}>次回フォロー予定日</span>
-                    <DatePickerCustomInput startDate={scheduledFollowUpDate} setStartDate={setScheduledFollowUpDate} />
+                    <DatePickerCustomInput
+                      startDate={scheduledFollowUpDate}
+                      setStartDate={setScheduledFollowUpDate}
+                      fontSize="text-[15px]"
+                      placeholderText="placeholder:text-[15px]"
+                      py="py-[6px]"
+                      minHeight="min-h-[32px]"
+                    />
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>

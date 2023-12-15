@@ -5,8 +5,10 @@
   color: var(--color-text-under-input);
   box-shadow: var(--color-bg-under-input-box-shadow);
   /* padding: 0px 6px; */
-  padding: 4px 8px;
-  border-radius: 2px;
+  /* padding: 4px 8px; */
+  /* min-height: 32px; */
+  /* font-size: 15px; */
+  border-radius: 4px;
   cursor: pointer;
 }
 .input_box:focus {
@@ -17,7 +19,7 @@
   position: absolute;
   right: 5px;
   top: 50%;
-  z-index: 100;
+  z-index: 1;
   transform: translateY(-57%);
   /* background: #00000020; */
   width: 25px;
@@ -36,7 +38,7 @@
   position: absolute;
   right: 5px;
   top: 50%;
-  z-index: 100;
+  z-index: 1;
   transform: translateY(-57%);
   /* background: #00000020; */
   width: 25px;
