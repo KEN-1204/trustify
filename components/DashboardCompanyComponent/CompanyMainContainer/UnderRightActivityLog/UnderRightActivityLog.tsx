@@ -84,7 +84,7 @@ const UnderRightActivityLogMemo: FC = () => {
   const columnHeaderList = ["activityType", "summary", "date", "sales", "department", "office"];
 
   // ================== 🌟疑似的なサーバーデータフェッチ用の関数🌟 ==================
-  const fetchServerPage = async (
+  const fetchServerPageTest = async (
     limit: number,
     offset: number = 0
   ): Promise<{ rows: TableDataType[]; nextOffset: number }> => {
@@ -113,7 +113,7 @@ const UnderRightActivityLogMemo: FC = () => {
   const { status, data, error, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage } = useInfiniteQuery({
     queryKey: ["under_right_activities", "選択した会社名"],
     queryFn: async (ctx) => {
-      return fetchServerPage(50, ctx.pageParam); // 50個ずつ取得
+      return fetchServerPageTest(50, ctx.pageParam); // 50個ずつ取得
     },
     getNextPageParam: (_lastGroup, groups) => groups.length,
     staleTime: Infinity,

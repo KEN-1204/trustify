@@ -10,11 +10,15 @@ const ActivityFunctionHeaderMemo: FC = () => {
   const searchMode = useDashboardStore((state) => state.searchMode);
   const setSearchMode = useDashboardStore((state) => state.setSearchMode);
   const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
+  const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
   const setUnderDisplayFullScreen = useDashboardStore((state) => state.setUnderDisplayFullScreen);
   const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
+  const newSearchActivity_Contact_CompanyParams = useDashboardStore(
+    (state) => state.newSearchActivity_Contact_CompanyParams
+  );
   //   const setIsOpenInsertNewActivityModal = useDashboardStore((state) => state.setIsOpenInsertNewActivityModal);
   const setIsOpenUpdateActivityModal = useDashboardStore((state) => state.setIsOpenUpdateActivityModal);
   const setIsOpenInsertNewActivityModal = useDashboardStore((state) => state.setIsOpenInsertNewActivityModal);
@@ -26,6 +30,7 @@ const ActivityFunctionHeaderMemo: FC = () => {
   const selectedRowDataActivity = useDashboardStore((state) => state.selectedRowDataActivity);
   const setSelectedRowDataContact = useDashboardStore((state) => state.setSelectedRowDataContact);
   const setSelectedRowDataMeeting = useDashboardStore((state) => state.setSelectedRowDataMeeting);
+  const setSelectedRowDataProperty = useDashboardStore((state) => state.setSelectedRowDataProperty);
 
   const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
     // ホバーしたアイテムにツールチップを表示
@@ -95,25 +100,28 @@ const ActivityFunctionHeaderMemo: FC = () => {
             if (searchMode) {
               // SELECTメソッド
               setSearchMode(false);
-              setLoadingGlobalState(false);
+              if (loadingGlobalState) setLoadingGlobalState(false);
               // 編集モード中止
               setEditSearchMode(false);
             } else {
               // 新規サーチクリック
+              if (loadingGlobalState) setLoadingGlobalState(false);
               setSearchMode(true);
-              setLoadingGlobalState(false);
-              // setLoadingGlobalState(true);
             }
           }}
         />
         <RippleButton
           title={`${searchMode ? `サーチ編集` : `サーチ編集`}`}
-          classText={`select-none ${searchMode ? `cursor-not-allowed` : ``}`}
+          classText={`select-none ${
+            searchMode || !newSearchActivity_Contact_CompanyParams ? `cursor-not-allowed` : ``
+          }`}
           borderRadius="2px"
           clickEventHandler={() => {
             if (searchMode) return;
+            if (!newSearchActivity_Contact_CompanyParams) return alert("新規サーチから検索を行なってください。");
             console.log("サーチ編集 クリック");
             // 編集モードとして開く
+            if (loadingGlobalState) setLoadingGlobalState(false);
             setEditSearchMode(true);
             setSearchMode(true);
           }}
@@ -129,7 +137,10 @@ const ActivityFunctionHeaderMemo: FC = () => {
               console.log("活動作成 クリック");
               // 担当者ページの選択列をリセット
               setSelectedRowDataContact(null);
-              setLoadingGlobalState(false);
+              // setSelectedRowDataActivity(null);
+              setSelectedRowDataMeeting(null);
+              setSelectedRowDataProperty(null);
+              if (loadingGlobalState) setLoadingGlobalState(false);
               setIsOpenInsertNewActivityModal(true);
             }}
           />
@@ -141,7 +152,11 @@ const ActivityFunctionHeaderMemo: FC = () => {
               if (searchMode) return;
               if (!selectedRowDataActivity) return alert("活動を選択してください");
               console.log("活動編集 クリック");
-              setLoadingGlobalState(false);
+              setSelectedRowDataContact(null);
+              // setSelectedRowDataActivity(null);
+              setSelectedRowDataMeeting(null);
+              setSelectedRowDataProperty(null);
+              if (loadingGlobalState) setLoadingGlobalState(false);
               setIsOpenUpdateActivityModal(true);
             }}
           />
@@ -153,9 +168,11 @@ const ActivityFunctionHeaderMemo: FC = () => {
               if (searchMode) return;
               if (!selectedRowDataActivity) return alert("担当者を選択してください");
               console.log("面談作成 クリック");
-              setSelectedRowDataMeeting(null);
               setSelectedRowDataContact(null);
-              setLoadingGlobalState(false);
+              // setSelectedRowDataActivity(null);
+              setSelectedRowDataMeeting(null);
+              setSelectedRowDataProperty(null);
+              if (loadingGlobalState) setLoadingGlobalState(false);
               setIsOpenInsertNewMeetingModal(true);
             }}
           />
@@ -167,9 +184,11 @@ const ActivityFunctionHeaderMemo: FC = () => {
               if (searchMode) return;
               if (!selectedRowDataActivity) return alert("担当者を選択してください");
               console.log("案件_作成 クリック");
-              setSelectedRowDataMeeting(null);
               setSelectedRowDataContact(null);
-              setLoadingGlobalState(false);
+              // setSelectedRowDataActivity(null);
+              setSelectedRowDataMeeting(null);
+              setSelectedRowDataProperty(null);
+              if (loadingGlobalState) setLoadingGlobalState(false);
               setIsOpenInsertNewPropertyModal(true);
             }}
           />

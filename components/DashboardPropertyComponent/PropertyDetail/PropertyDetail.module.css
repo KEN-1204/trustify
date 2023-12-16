@@ -283,9 +283,9 @@
   white-space: nowrap;
   /* 右側に20px余白 */
   /* padding-right: 20px; */
-  /* min-width: 70px; */
+  min-width: 70px;
   /* min-width: 75px; */
-  min-width: 78px;
+  /* min-width: 78px; */
   /* min-width: 80px; */
   /* min-width: 90px; */
   /* min-width: 95px; */
@@ -389,8 +389,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   width: 100%;
-  /* text-align: center; */
-  /* font-size: 13px; */
+  text-align: center;
   font-size: 14px;
 }
 .double_text {
@@ -398,7 +397,10 @@
 }
 .value.text_start {
   text-align: start;
-  /* margin-left: 5px; */
+  padding-left: 8px;
+}
+.value.text_center {
+  text-align: center;
 }
 .full_value {
   color: var(--color-text-under-value);
@@ -455,14 +457,21 @@
   min-height: 78px;
   width: 100%;
   background: var(--color-bg-under-input);
-  color: var(--color-text-under-input);
+  /* color: var(--color-text-under-input); */
+  color: var(--color-text-under-value);
   box-shadow: var(--color-bg-under-input-box-shadow);
   /* padding: 3px 6px; */
   /* font-size: 13px; */
-  padding: 6px 8px;
+  /* padding: 6px 8px; */
+  padding: 4px 8px;
+  /* padding: 6px 9px; */
   font-size: 14px;
+  line-height: 24px;
   border-radius: 2px;
   resize: none;
+}
+.textarea_box_search_mode {
+  line-height: normal;
 }
 .textarea_box_bg {
   background: var(--color-bg-under-input-gray);
@@ -670,7 +679,9 @@
   /* padding: 2px 15px; */
   padding: 5px 15px;
   width: 100%;
-  border-radius: 4px !important;
+  height: 100%;
+  /* font-weight: 700; */
+  border-radius: 8px !important;
   color: var(--color-btn-text);
 }
 .btn:hover {
@@ -708,5 +719,5 @@
   margin: 0;
 }
 .row_area input[type="number"] {
-  -moz-appearance: textfiled;
+  -moz-appearance: textfield;
 }

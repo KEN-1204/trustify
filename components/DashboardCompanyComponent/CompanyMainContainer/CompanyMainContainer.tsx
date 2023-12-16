@@ -151,9 +151,10 @@ const CompanyMainContainerMemo: FC = () => {
   // 編集モードtrueの場合、サーチ条件をinputタグのvalueに格納
   // 新規サーチの場合には、サーチ条件を空にする
   useEffect(() => {
-    if (newSearchCompanyParams === null) return;
+    // if (newSearchCompanyParams === null) return;
     console.log("🔥メインコンテナーnewSearchCompanyParams編集モード", newSearchCompanyParams);
-    if (editSearchMode) {
+    if (editSearchMode && searchMode) {
+      if (newSearchCompanyParams === null) return;
       setInputName(beforeAdjustFieldValue(newSearchCompanyParams.name));
       setInputDepartment(beforeAdjustFieldValue(newSearchCompanyParams.department_name));
       setInputTel(beforeAdjustFieldValue(newSearchCompanyParams?.main_phone_number));
@@ -226,7 +227,7 @@ const CompanyMainContainerMemo: FC = () => {
       setInputManager("");
       setInputMember("");
     }
-  }, [editSearchMode]);
+  }, [editSearchMode, searchMode]);
 
   // サーチ関数実行
   const handleSearchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -565,6 +566,13 @@ const CompanyMainContainerMemo: FC = () => {
                       onChange={(e) => setInputEmployeesClass(e.target.value)}
                     >
                       <option value="">全て選択</option>
+                      <option value="A*">A 1000名以上</option>
+                      <option value="B*">B 500~999名</option>
+                      <option value="C*">C 300~499名</option>
+                      <option value="D*">D 200~299名</option>
+                      <option value="E*">E 100~199名</option>
+                      <option value="F*">F 50~99名</option>
+                      <option value="G*">G 1~49名</option>
                       {/* <option value="">回答を選択してください</option> */}
                       {/* <option value="A 1000名以上">A 1000名以上</option>
                       <option value="B 500~999名">B 500~999名</option>
@@ -573,21 +581,6 @@ const CompanyMainContainerMemo: FC = () => {
                       <option value="E 100~199名">E 100~199名</option>
                       <option value="F 50~99名">F 50~99名</option>
                       <option value="G 1~49名">G 1~49名</option> */}
-                      <option value="A*">A 1000名以上</option>
-                      <option value="B*">B 500~999名</option>
-                      <option value="C*">C 300~499名</option>
-                      <option value="D*">D 200~299名</option>
-                      <option value="E*">E 100~199名</option>
-                      <option value="F*">F 50~99名</option>
-                      <option value="G*">G 1~49名</option>
-                      {/* <option value=""></option>
-                      <option value="A 1000名以上">A 1000名以上</option>
-                      <option value="B 500-999名">B 500-999名</option>
-                      <option value="C 300-499名">C 300-499名</option>
-                      <option value="D 200-299名">D 200-299名</option>
-                      <option value="E 100-199名">E 100-199名</option>
-                      <option value="F 50-99名">F 50-99名</option>
-                      <option value="G 50名未満">G 50名未満</option> */}
                     </select>
                   )}
                 </div>
@@ -596,7 +589,7 @@ const CompanyMainContainerMemo: FC = () => {
             </div>
 
             {/* 住所 */}
-            <div className={`${styles.row_area} flex h-[50px] w-full items-center`}>
+            <div className={`${styles.row_area} flex w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px] ">
                 <div className={`${styles.title_box} flex h-full `}>
                   <span className={`${styles.title}`}>○住所</span>
@@ -610,9 +603,9 @@ const CompanyMainContainerMemo: FC = () => {
                       name="address"
                       id="address"
                       cols={30}
-                      rows={10}
+                      // rows={10}
                       placeholder="「神奈川県＊」や「＊大田区＊」など"
-                      className={`${styles.textarea_box} `}
+                      className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
                       value={inputAddress}
                       onChange={(e) => setInputAddress(e.target.value)}
                     ></textarea>
@@ -665,7 +658,7 @@ const CompanyMainContainerMemo: FC = () => {
             </div>
 
             {/* 事業内容 */}
-            <div className={`${styles.row_area} flex h-[50px] w-full items-center`}>
+            <div className={`${styles.row_area} flex w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px] ">
                 <div className={`${styles.title_box}  flex h-full`}>
                   <span className={`${styles.title}`}>事業概要</span>
@@ -692,8 +685,8 @@ const CompanyMainContainerMemo: FC = () => {
                       name="address"
                       id="address"
                       cols={30}
-                      rows={10}
-                      className={`${styles.textarea_box} `}
+                      // rows={10}
+                      className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
                       value={inputContent}
                       onChange={(e) => setInputContent(e.target.value)}
                     ></textarea>
@@ -1136,7 +1129,7 @@ const CompanyMainContainerMemo: FC = () => {
             </div>
 
             {/* 設備 */}
-            <div className={`${styles.row_area} flex h-[50px] w-full items-center`}>
+            <div className={`${styles.row_area} flex w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px] ">
                 <div className={`${styles.title_box}  flex h-full`}>
                   <span className={`${styles.title}`}>設備</span>
@@ -1161,8 +1154,8 @@ const CompanyMainContainerMemo: FC = () => {
                       name="address"
                       id="address"
                       cols={30}
-                      rows={10}
-                      className={`${styles.textarea_box} `}
+                      // rows={10}
+                      className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
                       value={inputFacility}
                       onChange={(e) => setInputFacility(e.target.value)}
                     ></textarea>
@@ -1988,8 +1981,30 @@ const CompanyMainContainerMemo: FC = () => {
                 <div className="mt-[5px] flex  min-h-[30px] items-center">
                   ○項目を空欄のまま検索した場合は、その項目の「全てのデータ」を抽出します
                 </div>
-                <div className="mt-[10px] flex h-[30px] w-full items-center">
-                  <button type="submit" className={`${styles.btn}`}>
+                {/* <div className="mt-[10px] flex h-[30px] w-full items-center justify-between"> */}
+                <div
+                  className={`mt-[10px] flex ${
+                    isOpenSidebar ? "min-h-[34px]" : `min-h-[42px]`
+                  } w-full items-center justify-between space-x-[15px]`}
+                >
+                  <button
+                    className={`transition-base02 flex-center ${
+                      isOpenSidebar ? "max-h-[34px] text-[14px]" : `max-h-[38px] text-[15px]`
+                    } w-[100%] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-sub-light)] px-[25px] py-[15px] text-[var(--color-text-title)] hover:bg-[var(--setting-side-bg-select-hover)]`}
+                    onClick={() => {
+                      setSearchMode(false);
+                      // 編集モード中止
+                      if (editSearchMode) setEditSearchMode(false);
+                    }}
+                  >
+                    戻る
+                  </button>
+                  <button
+                    type="submit"
+                    className={`${styles.btn} transition-base02 ${
+                      isOpenSidebar ? "min-h-[30px] text-[14px]" : `min-h-[38px] text-[15px]`
+                    }`}
+                  >
                     検索
                   </button>
                 </div>

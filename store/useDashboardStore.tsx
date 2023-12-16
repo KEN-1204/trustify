@@ -241,7 +241,7 @@ type State = {
   setColumnHeaderItemList: (payload: ColumnHeaderItemList[]) => void;
 
   // =================== 上画面の列選択した時に下画面に会社情報を映す用のState ===================
-  // オブジェクト
+  // 選択中の行データオブジェクト
   selectedRowDataCompany: Client_company_row_data | null;
   setSelectedRowDataCompany: (payload: Client_company_row_data) => void;
 
@@ -249,51 +249,66 @@ type State = {
   // newSearchCompanyCondition: Omit<Client_company_row_data, ''>
   newSearchCompanyParams: NewSearchCompanyParams | null;
   setNewSearchCompanyParams: (payload: NewSearchCompanyParams) => void;
+  // UPDATEクエリ後にinvalidateQueryでキャッシュ更新された選択中の行データをselectedRowDataCompanyに反映するために発火通知するか否かのstate(発火通知してDOMクリックで更新する)
+  isUpdateRequiredForLatestSelectedRowDataCompany: boolean;
+  setIsUpdateRequiredForLatestSelectedRowDataCompany: (payload: boolean) => void;
 
   // =================== 担当者テーブル ヘッダーリスト保持用state関連 ===================
   contactColumnHeaderItemList: ColumnHeaderItemList[];
   setContactColumnHeaderItemList: (payload: ColumnHeaderItemList[]) => void;
   // =================== 上画面の列選択した時に下画面に担当者情報を映す用のState ===================
-  // オブジェクト
+  // 選択中の行データオブジェクト
   selectedRowDataContact: Contact_row_data | null;
   setSelectedRowDataContact: (payload: Contact_row_data | null) => void;
 
   // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
   newSearchContact_CompanyParams: NewSearchContact_CompanyParams | null;
   setNewSearchContact_CompanyParams: (payload: NewSearchContact_CompanyParams) => void;
+  // UPDATEクエリ後にinvalidateQueryでキャッシュ更新された選択中の行データをselectedRowDataContactに反映するために発火通知するか否かのstate(発火通知してDOMクリックで更新する)
+  isUpdateRequiredForLatestSelectedRowDataContact: boolean;
+  setIsUpdateRequiredForLatestSelectedRowDataContact: (payload: boolean) => void;
 
   // =================== 活動テーブル ヘッダーリスト保持用state関連 ===================
   activityColumnHeaderItemList: ColumnHeaderItemList[];
   setActivityColumnHeaderItemList: (payload: ColumnHeaderItemList[]) => void;
   // =================== 上画面の列選択した時に下画面に担当者情報を映す用のState ===================
-  // オブジェクト
+  // 選択中の行データオブジェクト
   selectedRowDataActivity: Activity_row_data | null;
   setSelectedRowDataActivity: (payload: Activity_row_data | null) => void;
   // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
   newSearchActivity_Contact_CompanyParams: NewSearchActivity_Contact_CompanyParams | null;
   setNewSearchActivity_Contact_CompanyParams: (payload: NewSearchActivity_Contact_CompanyParams) => void;
+  // UPDATEクエリ後にinvalidateQueryでキャッシュ更新された選択中の行データをselectedRowDataActivityに反映するために発火通知するか否かのstate(発火通知してDOMクリックで更新する)
+  isUpdateRequiredForLatestSelectedRowDataActivity: boolean;
+  setIsUpdateRequiredForLatestSelectedRowDataActivity: (payload: boolean) => void;
 
   // =================== 面談テーブル ヘッダーリスト保持用state関連 ===================
   meetingColumnHeaderItemList: ColumnHeaderItemList[];
   setMeetingColumnHeaderItemList: (payload: ColumnHeaderItemList[]) => void;
   // =================== 上画面の列選択した時に下画面に担当者情報を映す用のState ===================
-  // オブジェクト
+  // 選択中の行データオブジェクト
   selectedRowDataMeeting: Meeting_row_data | null;
   setSelectedRowDataMeeting: (payload: Meeting_row_data | null) => void;
   // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
   newSearchMeeting_Contact_CompanyParams: NewSearchMeeting_Contact_CompanyParams | null;
   setNewSearchMeeting_Contact_CompanyParams: (payload: NewSearchMeeting_Contact_CompanyParams) => void;
+  // UPDATEクエリ後にinvalidateQueryでキャッシュ更新された選択中の行データをselectedRowDataMeetingに反映するために発火通知するか否かのstate(発火通知してDOMクリックで更新する)
+  isUpdateRequiredForLatestSelectedRowDataMeeting: boolean;
+  setIsUpdateRequiredForLatestSelectedRowDataMeeting: (payload: boolean) => void;
 
   // =================== 案件テーブル ヘッダーリスト保持用state関連 ===================
   propertyColumnHeaderItemList: ColumnHeaderItemList[];
   setPropertyColumnHeaderItemList: (payload: ColumnHeaderItemList[]) => void;
   // =================== 上画面の列選択した時に下画面に担当者情報を映す用のState ===================
-  // オブジェクト
+  // 選択中の行データオブジェクト
   selectedRowDataProperty: Property_row_data | null;
   setSelectedRowDataProperty: (payload: Property_row_data | null) => void;
   // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
   newSearchProperty_Contact_CompanyParams: NewSearchProperty_Contact_CompanyParams | null;
   setNewSearchProperty_Contact_CompanyParams: (payload: NewSearchProperty_Contact_CompanyParams) => void;
+  // INSERT,UPDATEクエリ後にinvalidateQueryでキャッシュ更新された選択中の行データをselectedRowDataPropertyに反映するために発火通知するか否かのstate(発火通知してDOMクリックで更新する)
+  isUpdateRequiredForLatestSelectedRowDataProperty: boolean;
+  setIsUpdateRequiredForLatestSelectedRowDataProperty: (payload: boolean) => void;
 };
 
 const useDashboardStore = create<State>((set) => ({
@@ -689,6 +704,10 @@ const useDashboardStore = create<State>((set) => ({
   // newSearchCompanyParams: Omit<Client_company_row_data, ''>
   newSearchCompanyParams: null,
   setNewSearchCompanyParams: (payload) => set({ newSearchCompanyParams: payload }),
+  // UPDATEクエリ後にinvalidateQueryでキャッシュ更新された選択中の行データをselectedRowDataCompanyに反映するために発火通知するか否かのstate(発火通知してDOMクリックで更新する)
+  isUpdateRequiredForLatestSelectedRowDataCompany: false,
+  setIsUpdateRequiredForLatestSelectedRowDataCompany: (payload) =>
+    set({ isUpdateRequiredForLatestSelectedRowDataCompany: payload }),
 
   // =================== 担当者テーブル ヘッダーリスト保持用state関連 ===================
   // 上画面のテーブルはチェックボックスありで1のため、columnIndexは2から
@@ -703,6 +722,10 @@ const useDashboardStore = create<State>((set) => ({
   // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
   newSearchContact_CompanyParams: null,
   setNewSearchContact_CompanyParams: (payload) => set({ newSearchContact_CompanyParams: payload }),
+  // UPDATEクエリ後にinvalidateQueryでキャッシュ更新された選択中の行データをselectedRowDataContactに反映するために発火通知するか否かのstate(発火通知してDOMクリックで更新する)
+  isUpdateRequiredForLatestSelectedRowDataContact: false,
+  setIsUpdateRequiredForLatestSelectedRowDataContact: (payload) =>
+    set({ isUpdateRequiredForLatestSelectedRowDataContact: payload }),
 
   // =================== 活動テーブル ヘッダーリスト保持用state関連 ===================
   // 上画面のテーブルはチェックボックスありで1のため、columnIndexは2から
@@ -717,6 +740,10 @@ const useDashboardStore = create<State>((set) => ({
   // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
   newSearchActivity_Contact_CompanyParams: null,
   setNewSearchActivity_Contact_CompanyParams: (payload) => set({ newSearchActivity_Contact_CompanyParams: payload }),
+  // UPDATEクエリ後にinvalidateQueryでキャッシュ更新された選択中の行データをselectedRowDataActivityに反映するために発火通知するか否かのstate(発火通知してDOMクリックで更新する)
+  isUpdateRequiredForLatestSelectedRowDataActivity: false,
+  setIsUpdateRequiredForLatestSelectedRowDataActivity: (payload) =>
+    set({ isUpdateRequiredForLatestSelectedRowDataActivity: payload }),
 
   // =================== 面談テーブル ヘッダーリスト保持用state関連 ===================
   meetingColumnHeaderItemList: meetingColumnHeaderItemListData,
@@ -729,6 +756,10 @@ const useDashboardStore = create<State>((set) => ({
   // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
   newSearchMeeting_Contact_CompanyParams: null,
   setNewSearchMeeting_Contact_CompanyParams: (payload) => set({ newSearchMeeting_Contact_CompanyParams: payload }),
+  // UPDATEクエリ後にinvalidateQueryでキャッシュ更新された選択中の行データをselectedRowDataMeetingに反映するために発火通知するか否かのstate(発火通知してDOMクリックで更新する)
+  isUpdateRequiredForLatestSelectedRowDataMeeting: false,
+  setIsUpdateRequiredForLatestSelectedRowDataMeeting: (payload) =>
+    set({ isUpdateRequiredForLatestSelectedRowDataMeeting: payload }),
 
   // =================== 案件テーブル ヘッダーリスト保持用state関連 ===================
   propertyColumnHeaderItemList: propertyColumnHeaderItemListData,
@@ -741,6 +772,10 @@ const useDashboardStore = create<State>((set) => ({
   // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
   newSearchProperty_Contact_CompanyParams: null,
   setNewSearchProperty_Contact_CompanyParams: (payload) => set({ newSearchProperty_Contact_CompanyParams: payload }),
+  // INSERT,UPDATEクエリ後にinvalidateQueryでキャッシュ更新された選択中の行データをselectedRowDataPropertyに反映するために発火通知するか否かのstate(発火通知してDOMクリックで更新する)
+  isUpdateRequiredForLatestSelectedRowDataProperty: false,
+  setIsUpdateRequiredForLatestSelectedRowDataProperty: (payload) =>
+    set({ isUpdateRequiredForLatestSelectedRowDataProperty: payload }),
 }));
 
 export default useDashboardStore;

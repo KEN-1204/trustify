@@ -212,12 +212,13 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   // 編集モードtrueの場合、サーチ条件をinputタグのvalueに格納
   // 新規サーチの場合には、サーチ条件を空にする
   useEffect(() => {
-    if (newSearchMeeting_Contact_CompanyParams === null) return;
+    // if (newSearchMeeting_Contact_CompanyParams === null) return;
     console.log(
       "🔥メインコンテナーnewSearchMeeting_Contact_CompanyParams編集モード",
       newSearchMeeting_Contact_CompanyParams
     );
-    if (editSearchMode) {
+    if (editSearchMode && searchMode) {
+      if (newSearchMeeting_Contact_CompanyParams === null) return;
       //   setInputCompanyName(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.company_name));
       setInputCompanyName(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams["client_companies.name"]));
       setInputDepartmentName(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.department_name));
@@ -440,7 +441,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       setInputMeetingMemberName("");
       setInputMeetingYearMonth(null);
     }
-  }, [editSearchMode]);
+  }, [editSearchMode, searchMode]);
 
   // // 予定面談開始時間、時間、分、結合用useEffect
   // useEffect(() => {
@@ -903,7 +904,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} text-[12px]`}>面談時間(分)</span>
+                    {/* <span className={`${styles.title} text-[12px]`}>面談時間(分)</span> */}
+                    <div className={`${styles.title} flex flex-col ${styles.double_text}`}>
+                      <span className={``}>面談時間</span>
+                      <span className={``}>(分)</span>
+                    </div>
                     {!searchMode && (
                       <span className={`${styles.value} `}>
                         {selectedRowDataMeeting?.planned_duration ? selectedRowDataMeeting?.planned_duration : ""}
@@ -1222,8 +1227,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 <div className={`${styles.row_area} flex w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
-                      <div className={`${styles.title} lex flex-col`}>
+                      {/* <div className={`${styles.title} flex flex-col`}>
                         <span className={`text-[12px]`}>面談時間(分)</span>
+                      </div> */}
+                      <div className={`${styles.title} flex flex-col ${styles.double_text}`}>
+                        <span className={``}>面談時間</span>
+                        <span className={``}>(分)</span>
                       </div>
                       {!searchMode && (
                         <span
@@ -1247,7 +1256,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
 
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} transition-base03 flex h-full items-center `}>
-                      <span className={`${styles.check_title}`}>面談人数</span>
+                      <span className={`${styles.title}`}>面談人数</span>
 
                       {!searchMode && (
                         <span
@@ -1469,7 +1478,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>●会社名</span>
                     {!searchMode && (
-                      <span className={`${styles.value} ${styles.value_highlight}`}>
+                      <span className={`${styles.value} ${styles.value_highlight} ${styles.text_start}`}>
                         {selectedRowDataMeeting?.company_name ? selectedRowDataMeeting?.company_name : ""}
                       </span>
                     )}
@@ -1494,7 +1503,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>●部署名</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span className={`${styles.value} ${styles.text_start}`}>
                         {selectedRowDataMeeting?.department_name ? selectedRowDataMeeting?.department_name : ""}
                       </span>
                     )}
@@ -1802,9 +1811,9 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     {searchMode && (
                       <textarea
                         cols={30}
-                        rows={10}
+                        // rows={10}
                         placeholder="「神奈川県＊」や「＊大田区＊」など"
-                        className={`${styles.textarea_box} `}
+                        className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
                         value={inputAddress}
                         onChange={(e) => setInputAddress(e.target.value)}
                       ></textarea>
@@ -1973,22 +1982,13 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         onChange={(e) => setInputEmployeesClass(e.target.value)}
                       >
                         <option value=""></option>
-                        {/* <option value="">回答を選択してください</option> */}
-                        <option value="A 1000名以上">A 1000名以上</option>
-                        <option value="B 500〜999名">B 500〜999名</option>
-                        <option value="C 300〜499名">C 300〜499名</option>
-                        <option value="D 200〜299名">D 200〜299名</option>
-                        <option value="E 100〜199名">E 100〜199名</option>
-                        <option value="F 50〜99名">F 50〜99名</option>
-                        <option value="G 1〜49名">G 1〜49名</option>
-                        {/* <option value=""></option>
-                        <option value="A 1000名以上">A 1000名以上</option>
-                        <option value="B 500-999名">B 500-999名</option>
-                        <option value="C 300-499名">C 300-499名</option>
-                        <option value="D 200-299名">D 200-299名</option>
-                        <option value="E 100-199名">E 100-199名</option>
-                        <option value="F 50-99名">F 50-99名</option>
-                        <option value="G 50名未満">G 50名未満</option> */}
+                        <option value="A*">A 1000名以上</option>
+                        <option value="B*">B 500~999名</option>
+                        <option value="C*">C 300~499名</option>
+                        <option value="D*">D 200~299名</option>
+                        <option value="E*">E 100~199名</option>
+                        <option value="F*">F 50~99名</option>
+                        <option value="G*">G 1~49名</option>
                       </select>
                     )}
                   </div>
@@ -2099,8 +2099,8 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         name="address"
                         id="address"
                         cols={30}
-                        rows={10}
-                        className={`${styles.textarea_box} `}
+                        // rows={10}
+                        className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
                         value={inputContent}
                         onChange={(e) => setInputContent(e.target.value)}
                       ></textarea>
@@ -2193,8 +2193,8 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         name="address"
                         id="address"
                         cols={30}
-                        rows={10}
-                        className={`${styles.textarea_box} `}
+                        // rows={10}
+                        className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
                         value={inputFacility}
                         onChange={(e) => setInputFacility(e.target.value)}
                       ></textarea>
@@ -2813,7 +2813,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       }}
                     />
                     {/* バツボタン */}
-                    {inputPlannedDuration && (
+                    {!!inputPlannedDuration && (
                       <div className={`${styles.close_btn_number}`} onClick={() => setInputPlannedDuration(null)}>
                         <MdClose className="text-[20px] " />
                       </div>
@@ -2930,7 +2930,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <textarea
                         cols={30}
                         // rows={10}
-                        className={`${styles.textarea_box}`}
+                        className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
                         value={inputPlannedComment}
                         onChange={(e) => setInputPlannedComment(e.target.value)}
                       ></textarea>
@@ -3066,7 +3066,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       />
                     )}
                     {/* バツボタン */}
-                    {inputMeetingYearMonth && (
+                    {!!inputMeetingYearMonth && (
                       <div className={`${styles.close_btn_number}`} onClick={() => setInputMeetingYearMonth(null)}>
                         <MdClose className="text-[20px] " />
                       </div>
@@ -3181,7 +3181,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       }}
                     />
                     {/* バツボタン */}
-                    {inputResultDuration && (
+                    {!!inputResultDuration && (
                       <div className={`${styles.close_btn_number}`} onClick={() => setInputResultDuration(null)}>
                         <MdClose className="text-[20px] " />
                       </div>
@@ -3220,7 +3220,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         }}
                       />
                       {/* バツボタン */}
-                      {inputResultNumberOfMeetingParticipants && (
+                      {!!inputResultNumberOfMeetingParticipants && (
                         <div
                           className={`${styles.close_btn_number}`}
                           onClick={() => setInputResultNumberOfMeetingParticipants(null)}
@@ -3325,7 +3325,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       id="Meeting_summary"
                       cols={30}
                       // rows={10}
-                      className={`${styles.textarea_box} `}
+                      className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
                       value={inputResultSummary}
                       onChange={(e) => setInputResultSummary(e.target.value)}
                     ></textarea>
@@ -3624,7 +3624,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         cols={30}
                         // rows={10}
                         placeholder="「神奈川県＊」や「＊大田区＊」など"
-                        className={`${styles.textarea_box} `}
+                        className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
                         value={inputAddress}
                         onChange={(e) => setInputAddress(e.target.value)}
                       ></textarea>
@@ -3766,22 +3766,13 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         onChange={(e) => setInputEmployeesClass(e.target.value)}
                       >
                         <option value=""></option>
-                        {/* <option value="">回答を選択してください</option> */}
-                        <option value="A 1000名以上">A 1000名以上</option>
-                        <option value="B 500〜999名">B 500〜999名</option>
-                        <option value="C 300〜499名">C 300〜499名</option>
-                        <option value="D 200〜299名">D 200〜299名</option>
-                        <option value="E 100〜199名">E 100〜199名</option>
-                        <option value="F 50〜99名">F 50〜99名</option>
-                        <option value="G 1〜49名">G 1〜49名</option>
-                        {/* <option value=""></option>
-                        <option value="A 1000名以上">A 1000名以上</option>
-                        <option value="B 500-999名">B 500-999名</option>
-                        <option value="C 300-499名">C 300-499名</option>
-                        <option value="D 200-299名">D 200-299名</option>
-                        <option value="E 100-199名">E 100-199名</option>
-                        <option value="F 50-99名">F 50-99名</option>
-                        <option value="G 50名未満">G 50名未満</option> */}
+                        <option value="A*">A 1000名以上</option>
+                        <option value="B*">B 500~999名</option>
+                        <option value="C*">C 300~499名</option>
+                        <option value="D*">D 200~299名</option>
+                        <option value="E*">E 100~199名</option>
+                        <option value="F*">F 50~99名</option>
+                        <option value="G*">G 1~49名</option>
                       </select>
                     )}
                   </div>
@@ -3846,7 +3837,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         id="address"
                         cols={30}
                         // rows={10}
-                        className={`${styles.textarea_box} `}
+                        className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
                         value={inputContent}
                         onChange={(e) => setInputContent(e.target.value)}
                       ></textarea>
@@ -3903,7 +3894,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         id="address"
                         cols={30}
                         // rows={10}
-                        className={`${styles.textarea_box} `}
+                        className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
                         value={inputFacility}
                         onChange={(e) => setInputFacility(e.target.value)}
                       ></textarea>
@@ -4278,8 +4269,34 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 <div className="mt-[5px] flex  min-h-[30px] items-center">
                   ○項目を空欄のまま検索した場合は、その項目の「全てのデータ」を抽出します
                 </div>
-                <div className="mt-[10px] flex h-[30px] w-full items-center">
+                {/* <div className="mt-[10px] flex h-[30px] w-full items-center">
                   <button type="submit" className={`${styles.btn}`}>
+                    検索
+                  </button>
+                </div> */}
+                <div
+                  className={`mt-[10px] flex ${
+                    isOpenSidebar ? "min-h-[34px]" : `min-h-[42px]`
+                  } w-full items-center justify-between space-x-[15px]`}
+                >
+                  <button
+                    className={`transition-base02 flex-center ${
+                      isOpenSidebar ? "max-h-[34px] text-[14px]" : `max-h-[38px] text-[15px]`
+                    } w-[100%] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-sub-light)] px-[25px] py-[15px] text-[var(--color-text-title)] hover:bg-[var(--setting-side-bg-select-hover)]`}
+                    onClick={() => {
+                      setSearchMode(false);
+                      // 編集モード中止
+                      if (editSearchMode) setEditSearchMode(false);
+                    }}
+                  >
+                    戻る
+                  </button>
+                  <button
+                    type="submit"
+                    className={`${styles.btn} transition-base02 ${
+                      isOpenSidebar ? "min-h-[30px] text-[14px]" : `min-h-[38px] text-[15px]`
+                    }`}
+                  >
                     検索
                   </button>
                 </div>

@@ -13,7 +13,10 @@ export const useMutateMeeting = () => {
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   const setIsOpenInsertNewMeetingModal = useDashboardStore((state) => state.setIsOpenInsertNewMeetingModal);
   const setIsOpenUpdateMeetingModal = useDashboardStore((state) => state.setIsOpenUpdateMeetingModal);
-  const userProfileState = useDashboardStore((state) => state.userProfileState);
+  // 選択中の行をクリック通知してselectedRowDataPropertyを最新状態にアップデートする
+  const setIsUpdateRequiredForLatestSelectedRowDataMeeting = useDashboardStore(
+    (state) => state.setIsUpdateRequiredForLatestSelectedRowDataMeeting
+  );
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
 
@@ -189,6 +192,10 @@ export const useMutateMeeting = () => {
         await queryClient.invalidateQueries({ queryKey: ["activities"] });
         // TanStack Queryでデータの変更に合わせて別のデータを再取得する
         // https://zenn.dev/masatakaitoh/articles/3c2f8602d2bb9d
+
+        // 再度テーブルの選択セルのDOMをクリックしてselectedRowDataMeetingを最新状態にする
+        setIsUpdateRequiredForLatestSelectedRowDataMeeting(true);
+
         if (loadingGlobalState) setLoadingGlobalState(false);
         setIsOpenUpdateMeetingModal(false);
         toast.success("面談の更新が完了しました🌟", {

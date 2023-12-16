@@ -13,6 +13,11 @@ export const useMutateClientCompany = () => {
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   const setIsOpenInsertNewClientCompanyModal = useDashboardStore((state) => state.setIsOpenInsertNewClientCompanyModal);
   const setIsOpenUpdateClientCompanyModal = useDashboardStore((state) => state.setIsOpenUpdateClientCompanyModal);
+  // 選択中の行をクリック通知してselectedRowDataCompanyを最新状態にアップデートする
+  const setIsUpdateRequiredForLatestSelectedRowDataCompany = useDashboardStore(
+    (state) => state.setIsUpdateRequiredForLatestSelectedRowDataCompany
+  );
+
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
 
@@ -106,6 +111,10 @@ export const useMutateClientCompany = () => {
         await queryClient.invalidateQueries({ queryKey: ["companies"] });
         // TanStack Queryでデータの変更に合わせて別のデータを再取得する
         // https://zenn.dev/masatakaitoh/articles/3c2f8602d2bb9d
+
+        // 再度テーブルの選択セルのDOMをクリックしてselectedRowDataCompanyを最新状態にする
+        setIsUpdateRequiredForLatestSelectedRowDataCompany(true);
+
         if (loadingGlobalState) setLoadingGlobalState(false);
         setIsOpenUpdateClientCompanyModal(false);
         toast.success("会社の更新が完了しました🌟", {

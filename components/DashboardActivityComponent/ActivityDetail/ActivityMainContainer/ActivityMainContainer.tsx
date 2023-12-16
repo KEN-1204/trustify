@@ -193,12 +193,13 @@ const ActivityMainContainerMemo: FC = () => {
   // 編集モードtrueの場合、サーチ条件をinputタグのvalueに格納
   // 新規サーチの場合には、サーチ条件を空にする
   useEffect(() => {
-    if (newSearchActivity_Contact_CompanyParams === null) return;
+    // if (newSearchActivity_Contact_CompanyParams === null) return;
     console.log(
       "🔥メインコンテナーnewSearchActivity_Contact_CompanyParams編集モード",
       newSearchActivity_Contact_CompanyParams
     );
-    if (editSearchMode) {
+    if (editSearchMode && searchMode) {
+      if (newSearchActivity_Contact_CompanyParams === null) return;
       //   setInputCompanyName(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.company_name));
       setInputCompanyName(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams["client_companies.name"]));
       setInputDepartmentName(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.department_name));
@@ -378,7 +379,7 @@ const ActivityMainContainerMemo: FC = () => {
       setInputDepartment("");
       setInputActivityYearMonth(null);
     }
-  }, [editSearchMode]);
+  }, [editSearchMode, searchMode]);
 
   // サーチ関数実行
   const handleSearchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -681,7 +682,11 @@ const ActivityMainContainerMemo: FC = () => {
           {/* --------- ラッパー --------- */}
           <div className={`${styles.left_contents_wrapper} flex h-full w-full flex-col`}>
             {/* 会社名 */}
-            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+            <div
+              className={`${styles.row_area} ${
+                searchMode ? `${styles.row_area_search_mode}` : ``
+              } flex h-[30px] w-full items-center`}
+            >
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>●会社名</span>
@@ -706,7 +711,11 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 部署名 */}
-            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+            <div
+              className={`${styles.row_area} ${
+                searchMode ? `${styles.row_area_search_mode}` : ``
+              } flex h-[30px] w-full items-center`}
+            >
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>●部署名</span>
@@ -730,7 +739,11 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 担当者名 */}
-            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+            <div
+              className={`${styles.row_area} ${
+                searchMode ? `${styles.row_area_search_mode}` : ``
+              } flex h-[30px] w-full items-center`}
+            >
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>担当者名</span>
@@ -773,7 +786,11 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 内線TEL・代表TEL */}
-            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+            <div
+              className={`${styles.row_area} ${
+                searchMode ? `${styles.row_area_search_mode}` : ``
+              } flex h-[30px] w-full items-center`}
+            >
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>内線TEL</span>
@@ -816,7 +833,11 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 直通FAX・代表FAX */}
-            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+            <div
+              className={`${styles.row_area} ${
+                searchMode ? `${styles.row_area_search_mode}` : ``
+              } flex h-[30px] w-full items-center`}
+            >
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>直通FAX</span>
@@ -865,7 +886,11 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 社用携帯・私用携帯 */}
-            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+            <div
+              className={`${styles.row_area} ${
+                searchMode ? `${styles.row_area_search_mode}` : ``
+              } flex h-[30px] w-full items-center`}
+            >
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>社用携帯</span>
@@ -907,7 +932,11 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* Email */}
-            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+            <div
+              className={`${styles.row_area} ${
+                searchMode ? `${styles.row_area_search_mode}` : ``
+              } flex h-[30px] w-full items-center`}
+            >
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>E-mail</span>
@@ -930,7 +959,11 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 郵便番号・ */}
-            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+            <div
+              className={`${styles.row_area} ${
+                searchMode ? `${styles.row_area_search_mode}` : ``
+              } flex h-[30px] w-full items-center`}
+            >
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>郵便番号</span>
@@ -972,7 +1005,9 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 住所 */}
-            <div className={`${styles.row_area} flex h-[50px] w-full items-center`}>
+            <div
+              className={` ${searchMode ? `${styles.row_area_lg_box}` : `${styles.row_area}`} flex w-full items-center`}
+            >
               <div className="flex h-full w-full flex-col pr-[20px] ">
                 <div className={`${styles.title_box} flex h-full `}>
                   <span className={`${styles.title}`}>○住所</span>
@@ -986,9 +1021,9 @@ const ActivityMainContainerMemo: FC = () => {
                       name="address"
                       id="address"
                       cols={30}
-                      rows={10}
+                      // rows={10}
                       placeholder="「神奈川県＊」や「＊大田区＊」など"
-                      className={`${styles.textarea_box} `}
+                      className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
                       value={inputAddress}
                       onChange={(e) => setInputAddress(e.target.value)}
                     ></textarea>
@@ -999,7 +1034,11 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 役職名・職位 */}
-            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+            <div
+              className={`${styles.row_area} ${
+                searchMode ? `${styles.row_area_search_mode}` : ``
+              } flex h-[30px] w-full items-center`}
+            >
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>役職名</span>
@@ -1057,7 +1096,11 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 担当職種・決裁金額 */}
-            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+            <div
+              className={`${styles.row_area} ${
+                searchMode ? `${styles.row_area_search_mode}` : ``
+              } flex h-[30px] w-full items-center`}
+            >
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>担当職種</span>
@@ -1108,7 +1151,11 @@ const ActivityMainContainerMemo: FC = () => {
               </div>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
-                  <span className={`${styles.title} !mr-[15px]`}>決裁金額(万円)</span>
+                  {/* <span className={`${styles.title} !mr-[15px]`}>決裁金額(万円)</span> */}
+                  <div className={`${styles.title} ${styles.double_text} flex flex-col`}>
+                    <span>決裁金額</span>
+                    <span>(万円)</span>
+                  </div>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
                       {selectedRowDataActivity?.approval_amount ? selectedRowDataActivity?.approval_amount : ""}
@@ -1128,7 +1175,11 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 規模（ランク）・決算月 */}
-            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+            <div
+              className={`${styles.row_area} ${
+                searchMode ? `${styles.row_area_search_mode}` : ``
+              } flex h-[30px] w-full items-center`}
+            >
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>規模(ﾗﾝｸ)</span>
@@ -1154,22 +1205,13 @@ const ActivityMainContainerMemo: FC = () => {
                       onChange={(e) => setInputEmployeesClass(e.target.value)}
                     >
                       <option value=""></option>
-                      {/* <option value="">回答を選択してください</option> */}
-                      <option value="A 1000名以上">A 1000名以上</option>
-                      <option value="B 500〜999名">B 500〜999名</option>
-                      <option value="C 300〜499名">C 300〜499名</option>
-                      <option value="D 200〜299名">D 200〜299名</option>
-                      <option value="E 100〜199名">E 100〜199名</option>
-                      <option value="F 50〜99名">F 50〜99名</option>
-                      <option value="G 1〜49名">G 1〜49名</option>
-                      {/* <option value=""></option>
-                      <option value="A 1000名以上">A 1000名以上</option>
-                      <option value="B 500-999名">B 500-999名</option>
-                      <option value="C 300-499名">C 300-499名</option>
-                      <option value="D 200-299名">D 200-299名</option>
-                      <option value="E 100-199名">E 100-199名</option>
-                      <option value="F 50-99名">F 50-99名</option>
-                      <option value="G 50名未満">G 50名未満</option> */}
+                      <option value="A*">A 1000名以上</option>
+                      <option value="B*">B 500~999名</option>
+                      <option value="C*">C 300~499名</option>
+                      <option value="D*">D 200~299名</option>
+                      <option value="E*">E 100~199名</option>
+                      <option value="F*">F 50~99名</option>
+                      <option value="G*">G 1~49名</option>
                     </select>
                   )}
                 </div>
@@ -1197,10 +1239,18 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 予算申請月1・予算申請月2 */}
-            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+            <div
+              className={`${styles.row_area} ${
+                searchMode ? `${styles.row_area_search_mode}` : ``
+              } flex h-[30px] w-full items-center`}
+            >
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>予算申請月1</span>
+                  {/* <span className={`${styles.title}`}>予算申請月1</span> */}
+                  <div className={`${styles.title} ${styles.double_text} flex flex-col`}>
+                    <span>予算</span>
+                    <span>申請月1</span>
+                  </div>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
                       {selectedRowDataActivity?.budget_request_month1
@@ -1221,7 +1271,11 @@ const ActivityMainContainerMemo: FC = () => {
               </div>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
-                  <span className={`${styles.title}`}>予算申請月2</span>
+                  {/* <span className={`${styles.title}`}>予算申請月2</span> */}
+                  <div className={`${styles.title} ${styles.double_text} flex flex-col`}>
+                    <span>予算</span>
+                    <span>申請月2</span>
+                  </div>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
                       {selectedRowDataActivity?.budget_request_month2
@@ -1243,7 +1297,7 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 事業内容 */}
-            <div className={`${styles.row_area} flex h-[50px] w-full items-center`}>
+            <div className={`${styles.row_area_lg_box} flex w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px] ">
                 <div className={`${styles.title_box}  flex h-full`}>
                   <span className={`${styles.title}`}>事業内容</span>
@@ -1275,8 +1329,8 @@ const ActivityMainContainerMemo: FC = () => {
                       name="address"
                       id="address"
                       cols={30}
-                      rows={10}
-                      className={`${styles.textarea_box} `}
+                      // rows={10}
+                      className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
                       value={inputContent}
                       onChange={(e) => setInputContent(e.target.value)}
                     ></textarea>
@@ -1287,7 +1341,11 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 主要取引先 */}
-            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+            <div
+              className={`${styles.row_area} ${
+                searchMode ? `${styles.row_area_search_mode}` : ``
+              } flex h-[30px] w-full items-center`}
+            >
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>主要取引先</span>
@@ -1315,7 +1373,11 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 主要仕入先 */}
-            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+            <div
+              className={`${styles.row_area} ${
+                searchMode ? `${styles.row_area_search_mode}` : ``
+              } flex h-[30px] w-full items-center`}
+            >
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>主要仕入先</span>
@@ -1343,7 +1405,9 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 設備 */}
-            <div className={`${styles.row_area} flex h-[50px] w-full items-center`}>
+            <div
+              className={`${searchMode ? `${styles.row_area_lg_box}` : `${styles.row_area}`} flex w-full items-center`}
+            >
               <div className="flex h-full w-full flex-col pr-[20px] ">
                 <div className={`${styles.title_box}  flex h-full`}>
                   <span className={`${styles.title}`}>設備</span>
@@ -1369,8 +1433,8 @@ const ActivityMainContainerMemo: FC = () => {
                       name="address"
                       id="address"
                       cols={30}
-                      rows={10}
-                      className={`${styles.textarea_box} `}
+                      // rows={10}
+                      className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
                       value={inputFacility}
                       onChange={(e) => setInputFacility(e.target.value)}
                     ></textarea>
@@ -1381,7 +1445,11 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 事業拠点・海外拠点 */}
-            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+            <div
+              className={`${styles.row_area} ${
+                searchMode ? `${styles.row_area_search_mode}` : ``
+              } flex h-[30px] w-full items-center`}
+            >
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>事業拠点</span>
@@ -1437,10 +1505,14 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* グループ会社 */}
-            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+            <div
+              className={`${styles.row_area} ${
+                searchMode ? `${styles.row_area_search_mode}` : ``
+              } flex h-[30px] w-full items-center`}
+            >
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>グループ会社</span>
+                  <span className={`${styles.title}`}>ｸﾞﾙｰﾌﾟ会社</span>
                   {!searchMode && (
                     <span
                       className={`${styles.value}`}
@@ -1467,7 +1539,11 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* HP */}
-            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+            <div
+              className={`${styles.row_area} ${
+                searchMode ? `${styles.row_area_search_mode}` : ``
+              } flex h-[30px] w-full items-center`}
+            >
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>HP</span>
@@ -1498,7 +1574,11 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 会社Email */}
-            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+            <div
+              className={`${styles.row_area} ${
+                searchMode ? `${styles.row_area_search_mode}` : ``
+              } flex h-[30px] w-full items-center`}
+            >
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>会社Email</span>
@@ -1551,7 +1631,11 @@ const ActivityMainContainerMemo: FC = () => {
             </div>
 
             {/* 業種 */}
-            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+            <div
+              className={`${styles.row_area} ${
+                searchMode ? `${styles.row_area_search_mode}` : ``
+              } flex h-[30px] w-full items-center`}
+            >
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>○業種</span>
@@ -1634,10 +1718,18 @@ const ActivityMainContainerMemo: FC = () => {
               </div>
             </div>
             {/* 製品分類（大分類） */}
-            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+            <div
+              className={`${styles.row_area} ${
+                searchMode ? `${styles.row_area_search_mode}` : ``
+              } flex h-[30px] w-full items-center`}
+            >
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title} !mr-[15px]`}>製品分類（大分類）</span>
+                  {/* <span className={`${styles.title} !mr-[15px]`}>製品分類（大分類）</span> */}
+                  <div className={`${styles.title} ${styles.double_text} flex flex-col`}>
+                    <span>製品分類</span>
+                    <span>(大分類)</span>
+                  </div>
                   {!searchMode && (
                     <span
                       className={`${styles.value}`}
@@ -1664,7 +1756,7 @@ const ActivityMainContainerMemo: FC = () => {
                     <select
                       name="position_class"
                       id="position_class"
-                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={inputProductL}
                       onChange={(e) => setInputProductL(e.target.value)}
                     >
@@ -1691,10 +1783,18 @@ const ActivityMainContainerMemo: FC = () => {
               </div>
             </div>
             {/* 製品分類（中分類） */}
-            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+            <div
+              className={`${styles.row_area} ${
+                searchMode ? `${styles.row_area_search_mode}` : ``
+              } flex h-[30px] w-full items-center`}
+            >
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title} !mr-[15px]`}>製品分類（中分類）</span>
+                  {/* <span className={`${styles.title} !mr-[15px]`}>製品分類（中分類）</span> */}
+                  <div className={`${styles.title} ${styles.double_text} flex flex-col`}>
+                    <span>製品分類</span>
+                    <span>(中分類)</span>
+                  </div>
                   {!searchMode && (
                     <span
                       className={`${styles.value}`}
@@ -1723,9 +1823,9 @@ const ActivityMainContainerMemo: FC = () => {
                       id="position_class"
                       value={inputProductM}
                       onChange={(e) => setInputProductM(e.target.value)}
-                      className={`${
-                        inputProductL ? "" : "hidden"
-                      } ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`${inputProductL ? "" : "hidden"} ml-auto h-full w-full cursor-pointer rounded-[4px] ${
+                        styles.select_box
+                      }`}
                     >
                       {inputProductL === "電子部品・モジュール" &&
                         productCategoriesM.moduleCategoryM.map((option) => option)}
@@ -1757,7 +1857,7 @@ const ActivityMainContainerMemo: FC = () => {
               </div>
             </div>
             {/* 製品分類（小分類） */}
-            {/* <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+            {/* <div className={`${styles.row_area} ${searchMode ? `${styles.row_area_search_mode}` : ``} flex h-[30px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>製品分類（小分類）</span>
@@ -1791,7 +1891,11 @@ const ActivityMainContainerMemo: FC = () => {
             </div> */}
 
             {/* 法人番号・ID */}
-            <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+            <div
+              className={`${styles.row_area} ${
+                searchMode ? `${styles.row_area_search_mode}` : ``
+              } flex h-[30px] w-full items-center`}
+            >
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>○法人番号</span>
@@ -1829,7 +1933,11 @@ const ActivityMainContainerMemo: FC = () => {
             {searchMode && (
               <>
                 {/* 活動日・クレーム サーチモード */}
-                <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+                <div
+                  className={`${styles.row_area} ${searchMode ? `${styles.row_area_search_mode}` : ``} ${
+                    styles.row_area_search_mode
+                  } flex h-[30px] w-full items-center`}
+                >
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>活動日</span>
@@ -1880,10 +1988,14 @@ const ActivityMainContainerMemo: FC = () => {
                 </div>
 
                 {/* 活動タイプ・優先度 サーチモード */}
-                <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+                <div
+                  className={`${styles.row_area} ${
+                    searchMode ? `${styles.row_area_search_mode}` : ``
+                  } flex h-[30px] w-full items-center`}
+                >
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
-                      <span className={`${styles.title}`}>活動タイプ</span>
+                      <span className={`${styles.title}`}>活動ﾀｲﾌﾟ</span>
                       {searchMode && (
                         <select
                           name="activity_type"
@@ -1934,7 +2046,11 @@ const ActivityMainContainerMemo: FC = () => {
                 </div>
 
                 {/* 次回ﾌｫﾛｰ予定日・フォロー完了 サーチモード */}
-                <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+                <div
+                  className={`${styles.row_area} ${
+                    searchMode ? `${styles.row_area_search_mode}` : ``
+                  } flex h-[30px] w-full items-center`}
+                >
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <div className={`${styles.title} flex flex-col`}>
@@ -1990,7 +2106,8 @@ const ActivityMainContainerMemo: FC = () => {
                 </div>
 
                 {/* 概要 サーチモード */}
-                <div className={`${styles.row_area} flex h-[90px] w-full items-center`}>
+                {/* <div className={`${styles.row_area} flex h-[90px] w-full items-center`}> */}
+                <div className={`${styles.row_area_lg_box} flex h-[90px] w-full items-center`}>
                   <div className="flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full `}>
                       <span className={`${styles.title}`}>概要</span>
@@ -1999,8 +2116,8 @@ const ActivityMainContainerMemo: FC = () => {
                           name="activity_summary"
                           id="activity_summary"
                           cols={30}
-                          rows={10}
-                          className={`${styles.textarea_box} `}
+                          // rows={10}
+                          className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
                           value={inputSummary}
                           onChange={(e) => setInputSummary(e.target.value)}
                         ></textarea>
@@ -2011,7 +2128,11 @@ const ActivityMainContainerMemo: FC = () => {
                 </div>
 
                 {/* 事業部名 サーチモード */}
-                <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+                <div
+                  className={`${styles.row_area} ${
+                    searchMode ? `${styles.row_area_search_mode}` : ``
+                  } flex h-[30px] w-full items-center`}
+                >
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>事業部名</span>
@@ -2029,7 +2150,11 @@ const ActivityMainContainerMemo: FC = () => {
                   </div>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
-                      <span className={`${styles.title}`}>活動年月度</span>
+                      {/* <span className={`${styles.title}`}>活動年月度</span> */}
+                      <div className={`${styles.title} ${styles.double_text} flex flex-col`}>
+                        <span>活動</span>
+                        <span>年月度</span>
+                      </div>
                       {searchMode && (
                         <input
                           type="number"
@@ -2055,7 +2180,7 @@ const ActivityMainContainerMemo: FC = () => {
                         />
                       )}
                       {/* バツボタン */}
-                      {inputActivityYearMonth && (
+                      {!!inputActivityYearMonth && (
                         <div className={`${styles.close_btn_number}`} onClick={() => setInputActivityYearMonth(null)}>
                           <MdClose className="text-[20px] " />
                         </div>
@@ -2066,7 +2191,11 @@ const ActivityMainContainerMemo: FC = () => {
                 </div>
 
                 {/* 事業所・自社担当 サーチモード */}
-                <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+                <div
+                  className={`${styles.row_area} ${
+                    searchMode ? `${styles.row_area_search_mode}` : ``
+                  } flex h-[30px] w-full items-center`}
+                >
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>事業所</span>
@@ -2100,7 +2229,11 @@ const ActivityMainContainerMemo: FC = () => {
                 </div>
 
                 {/* 実施1・実施2 サーチモード */}
-                <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+                <div
+                  className={`${styles.row_area} ${
+                    searchMode ? `${styles.row_area_search_mode}` : ``
+                  } flex h-[30px] w-full items-center`}
+                >
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>実施1</span>
@@ -2134,7 +2267,11 @@ const ActivityMainContainerMemo: FC = () => {
                 </div>
 
                 {/* 実施3・実施4 サーチモード */}
-                <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+                <div
+                  className={`${styles.row_area} ${
+                    searchMode ? `${styles.row_area_search_mode}` : ``
+                  } flex h-[30px] w-full items-center`}
+                >
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>実施3</span>
@@ -2168,7 +2305,11 @@ const ActivityMainContainerMemo: FC = () => {
                 </div>
 
                 {/* 実施5 サーチモード */}
-                <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+                <div
+                  className={`${styles.row_area} ${
+                    searchMode ? `${styles.row_area_search_mode}` : ``
+                  } flex h-[30px] w-full items-center`}
+                >
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>実施5</span>
@@ -2283,7 +2424,7 @@ const ActivityMainContainerMemo: FC = () => {
                 <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
-                      <span className={`${styles.title}`}>活動タイプ</span>
+                      <span className={`${styles.title}`}>活動ﾀｲﾌﾟ</span>
                       {!searchMode && (
                         <span className={`${styles.value}`}>
                           {selectedRowDataActivity?.activity_type ? selectedRowDataActivity?.activity_type : ""}
@@ -2370,13 +2511,13 @@ const ActivityMainContainerMemo: FC = () => {
 
                 {/* 概要 */}
                 {/* <div className={`${styles.row_area} flex h-[90px] w-full items-center`}> */}
-                <div className={`${styles.row_area} flex max-h-max min-h-[75px] w-full items-center`}>
+                <div className={`${styles.row_area} flex w-full items-center`}>
                   <div className="flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full `}>
-                      <span className={`${styles.title}`}>概要</span>
+                      <span className={`${styles.title} ${styles.title_sm}`}>概要</span>
                       {!searchMode && (
                         <div
-                          className={`${styles.value} max-h-max min-h-[70px] ${styles.textarea_box} ${styles.textarea_box_bg}`}
+                          className={`${styles.textarea_box} ${styles.textarea_box_bg}`}
                           // className={`${styles.value} h-[85px] ${styles.textarea_box} ${styles.textarea_box_bg}`}
                           // onMouseEnter={(e) => handleOpenTooltip(e)}
                           // onMouseLeave={handleCloseTooltip}
@@ -2606,6 +2747,10 @@ const ActivityMainContainerMemo: FC = () => {
                   <div className="transition-base03 flex h-full w-1/2  flex-col pr-[20px]">
                     <div className={`${styles.title_box} transition-base03 flex h-full items-center `}>
                       <span className={`${styles.check_title}`}>TEL要注意フラグ</span>
+                      {/* <div className={`${styles.check_title} ${styles.double_text} flex flex-col`}>
+                        <span>TEL</span>
+                        <span>要注意フラグ</span>
+                      </div> */}
 
                       <div className={`${styles.grid_select_cell_header} `}>
                         <input
@@ -2655,6 +2800,10 @@ const ActivityMainContainerMemo: FC = () => {
                   <div className="transition-base03 flex h-full w-1/2  flex-col pr-[20px]">
                     <div className={`${styles.title_box} transition-base03 flex h-full items-center `}>
                       <span className={`${styles.check_title}`}>メール禁止フラグ</span>
+                      {/* <div className={`${styles.check_title} ${styles.double_text} flex flex-col`}>
+                        <span>メール</span>
+                        <span>禁止フラグ</span>
+                      </div> */}
 
                       <div className={`${styles.grid_select_cell_header} `}>
                         <input
@@ -2676,6 +2825,10 @@ const ActivityMainContainerMemo: FC = () => {
                   <div className="transition-base03 flex h-full w-1/2  flex-col pr-[20px]">
                     <div className={`${styles.title_box} transition-base03 flex h-full items-center `}>
                       <span className={`${styles.check_title}`}>資料禁止フラグ</span>
+                      {/* <div className={`${styles.check_title} ${styles.double_text} flex flex-col`}>
+                        <span>資料</span>
+                        <span>禁止フラグ</span>
+                      </div> */}
 
                       <div className={`${styles.grid_select_cell_header} `}>
                         <input
@@ -2701,6 +2854,10 @@ const ActivityMainContainerMemo: FC = () => {
                   <div className="transition-base03 flex h-full w-1/2  flex-col pr-[20px]">
                     <div className={`${styles.title_box} transition-base03 flex h-full items-center `}>
                       <span className={`${styles.check_title}`}>FAX・DM禁止フラグ</span>
+                      {/* <div className={`${styles.check_title} ${styles.double_text} flex flex-col`}>
+                        <span>FAX・DM</span>
+                        <span>禁止フラグ</span>
+                      </div> */}
 
                       <div className={`${styles.grid_select_cell_header} `}>
                         <input
@@ -2814,8 +2971,34 @@ const ActivityMainContainerMemo: FC = () => {
                 <div className="mt-[5px] flex  min-h-[30px] items-center">
                   ○項目を空欄のまま検索した場合は、その項目の「全てのデータ」を抽出します
                 </div>
-                <div className="mt-[10px] flex h-[30px] w-full items-center">
+                {/* <div className="mt-[10px] flex h-[30px] w-full items-center">
                   <button type="submit" className={`${styles.btn}`}>
+                    検索
+                  </button>
+                </div> */}
+                <div
+                  className={`mt-[10px] flex ${
+                    isOpenSidebar ? "min-h-[34px]" : `min-h-[42px]`
+                  } w-full items-center justify-between space-x-[15px]`}
+                >
+                  <button
+                    className={`transition-base02 flex-center ${
+                      isOpenSidebar ? "max-h-[34px] text-[14px]" : `max-h-[38px] text-[15px]`
+                    } w-[100%] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-sub-light)] px-[25px] py-[15px]  text-[var(--color-text-title)] hover:bg-[var(--setting-side-bg-select-hover)]`}
+                    onClick={() => {
+                      setSearchMode(false);
+                      // 編集モード中止
+                      if (editSearchMode) setEditSearchMode(false);
+                    }}
+                  >
+                    戻る
+                  </button>
+                  <button
+                    type="submit"
+                    className={`${styles.btn} transition-base02 ${
+                      isOpenSidebar ? "min-h-[30px] text-[14px]" : `min-h-[38px] text-[15px]`
+                    }`}
+                  >
                     検索
                   </button>
                 </div>

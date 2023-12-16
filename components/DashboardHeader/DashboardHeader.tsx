@@ -46,6 +46,7 @@ export const DashboardHeaderMemo: FC = () => {
   const setIsOpenSettingAccountModal = useDashboardStore((state) => state.setIsOpenSettingAccountModal);
   const setSelectedSettingAccountMenu = useDashboardStore((state) => state.setSelectedSettingAccountMenu);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
+  const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   const [tabPage, setTabPage] = useState(1);
   // リフェッチローディング
@@ -120,6 +121,12 @@ export const DashboardHeaderMemo: FC = () => {
   const setIncompleteNotifications = useDashboardStore((state) => state.setIncompleteNotifications);
   const completedNotifications = useDashboardStore((state) => state.completedNotifications);
   const setCompletedNotifications = useDashboardStore((state) => state.setCompletedNotifications);
+  // タブ切り替え時にサーチモードと編集モードがtrueならfalseにしてタブ切り替えする
+  const searchMode = useDashboardStore((state) => state.searchMode);
+  const setSearchMode = useDashboardStore((state) => state.setSearchMode);
+  const editSearchMode = useDashboardStore((state) => state.editSearchMode);
+  const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
+
   const queryClient = useQueryClient();
   const notificationsCacheData = queryClient.getQueryData<Notification[]>(["my_notifications"]);
 
@@ -509,6 +516,13 @@ export const DashboardHeaderMemo: FC = () => {
     setSelectedSettingAccountMenu("Company");
   };
 
+  const switchActiveTab = (tabName: string) => {
+    if (searchMode) setSearchMode(false);
+    if (editSearchMode) setEditSearchMode(false);
+    if (loadingGlobalState) setLoadingGlobalState(false);
+    setActiveMenuTab(tabName);
+  };
+
   return (
     <header className={`${styles.app_header} ${activeMenuTab !== "HOME" ? `transition-bg01` : `transition-bg05`}`}>
       {/* 左コンテンツ */}
@@ -533,7 +547,8 @@ export const DashboardHeaderMemo: FC = () => {
             // placeholder="blur"
             // blurDataURL={theme === "dark" ? blurDataURLDark : blurDataURL}
             // className="!relative !h-[60px] !w-[200px] object-cover"
-            onClick={() => setActiveMenuTab("HOME")}
+            // onClick={() => setActiveMenuTab("HOME")}
+            onClick={() => switchActiveTab("HOME")}
           />
         </div>
         {/* ヘッダータブ左スクロール時に連続でツールチップが表示されないようにするためのオーバーレイ */}
@@ -591,7 +606,8 @@ export const DashboardHeaderMemo: FC = () => {
               <div
                 // href="/home"
                 className={`${styles.navbarItem} ${activeMenuTab === "HOME" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("HOME")}
+                // onClick={() => setActiveMenuTab("HOME")}
+                onClick={() => switchActiveTab("HOME")}
               >
                 <div
                   className={`${styles.navbarItemInner}`}
@@ -611,7 +627,8 @@ export const DashboardHeaderMemo: FC = () => {
               <div
                 // href="/company"
                 className={`${styles.navbarItem} ${activeMenuTab === "Company" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("Company")}
+                // onClick={() => setActiveMenuTab("Company")}
+                onClick={() => switchActiveTab("Company")}
               >
                 <div
                   className={`${styles.navbarItemInner}`}
@@ -632,7 +649,8 @@ export const DashboardHeaderMemo: FC = () => {
                 // href="/home"
                 // prefetch={false}
                 className={`${styles.navbarItem} ${activeMenuTab === "Contacts" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("Contacts")}
+                // onClick={() => setActiveMenuTab("Contacts")}
+                onClick={() => switchActiveTab("Contacts")}
               >
                 <div
                   className={`${styles.navbarItemInner}`}
@@ -655,7 +673,8 @@ export const DashboardHeaderMemo: FC = () => {
                 // href="/home"
                 // prefetch={false}
                 className={`${styles.navbarItem} ${activeMenuTab === "Activity" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("Activity")}
+                // onClick={() => setActiveMenuTab("Activity")}
+                onClick={() => switchActiveTab("Activity")}
               >
                 <div
                   className={`${styles.navbarItemInner}`}
@@ -679,7 +698,8 @@ export const DashboardHeaderMemo: FC = () => {
                 // href="/home"
                 // prefetch={false}
                 className={`${styles.navbarItem} ${activeMenuTab === "Meeting" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("Meeting")}
+                // onClick={() => setActiveMenuTab("Meeting")}
+                onClick={() => switchActiveTab("Meeting")}
               >
                 <div
                   className={`${styles.navbarItemInner}`}
@@ -702,7 +722,8 @@ export const DashboardHeaderMemo: FC = () => {
                 // href="/home"
                 // prefetch={false}
                 className={`${styles.navbarItem} ${activeMenuTab === "Property" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("Property")}
+                // onClick={() => setActiveMenuTab("Property")}
+                onClick={() => switchActiveTab("Property")}
               >
                 <div
                   className={`${styles.navbarItemInner}`}
@@ -724,7 +745,8 @@ export const DashboardHeaderMemo: FC = () => {
                 // href="/home"
                 // prefetch={false}
                 className={`${styles.navbarItem} ${activeMenuTab === "Calendar" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("Calendar")}
+                // onClick={() => setActiveMenuTab("Calendar")}
+                onClick={() => switchActiveTab("Calendar")}
               >
                 <div
                   className={`${styles.navbarItemInner}`}
@@ -747,7 +769,8 @@ export const DashboardHeaderMemo: FC = () => {
                 // href="/home"
                 // prefetch={false}
                 className={`${styles.navbarItem} ${activeMenuTab === "Quotation" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("Quotation")}
+                // onClick={() => setActiveMenuTab("Quotation")}
+                onClick={() => switchActiveTab("Quotation")}
               >
                 <div
                   className={`${styles.navbarItemInner}`}

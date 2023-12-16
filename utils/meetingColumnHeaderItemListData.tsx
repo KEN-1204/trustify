@@ -6,7 +6,7 @@ interface Obj {
 // https://zawatech.com/?p=344
 
 const meetingColumnHeaderItemListArray: Obj[] = [
-  // 面談エリア
+  // ================================ 🌟面談エリア
   {
     columnName: "planned_date",
     columnWidth: "100px",
@@ -43,7 +43,7 @@ const meetingColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
-  // 面談エリアここまで
+  // ================================ ✅面談エリアここまで
   {
     columnName: "company_name",
     columnWidth: "100px",
@@ -80,7 +80,7 @@ const meetingColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
-  // 面談エリア
+  // ================================ 🌟面談エリア
   {
     columnName: "planned_purpose",
     columnWidth: "100px",
@@ -148,6 +148,12 @@ const meetingColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
+    columnName: "meeting_year_month",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
     columnName: "result_date",
     columnWidth: "100px",
     isFrozen: false,
@@ -201,7 +207,7 @@ const meetingColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
-  // 面談エリアここまで
+  // ================================ ✅面談エリアここまで
   {
     columnName: "direct_line",
     columnWidth: "100px",
@@ -365,7 +371,7 @@ const meetingColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
-  // 面談エリア
+  // ================================ 🌟面談エリア
   {
     columnName: "meeting_created_at",
     columnWidth: "100px",
@@ -378,7 +384,7 @@ const meetingColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
-  // 面談エリアここまで
+  // ================================ ✅面談エリアここまで
 ];
 
 export const meetingColumnHeaderItemListData: ColumnHeaderItemList[] = meetingColumnHeaderItemListArray.map(

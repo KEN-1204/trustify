@@ -285,6 +285,10 @@
   /* 右側に20px余白 */
   /* padding-right: 20px; */
   min-width: 70px;
+  /* min-width: 78px; */
+  /* min-width: 78px; */
+  /* min-width: 80px; */
+  /* min-width: 82px; */
   /* min-width: 80px; */
   /* min-width: 90px; */
   /* min-width: 95px; */
@@ -324,7 +328,8 @@
   /* padding-right: 20px; */
   /* min-width: 80px; */
   /* min-width: 90px; */
-  min-width: 95px;
+  /* min-width: 95px; */
+  min-width: 78px;
   font-weight: 600;
   font-size: 18px;
   line-height: 17px;
@@ -336,6 +341,17 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   width: 100%;
+  text-align: center;
+  font-size: 14px;
+}
+.double_text {
+  font-size: 12px;
+}
+.value.text_start {
+  text-align: start;
+  padding-left: 8px;
+}
+.value.text_center {
   text-align: center;
 }
 .full_value {
@@ -397,21 +413,32 @@
 }
 .textarea_box {
   /* height: 100%; */
-  min-height: 56px;
+  /* min-height: 56px; */
+  min-height: 78px;
   width: 100%;
+  /* background: #0c8ce9; */
   background: var(--color-bg-under-input);
-  color: var(--color-text-under-input);
+  /* background: #daefff30; */
+  /* color: var(--color-text-under-input); */
+  color: var(--color-text-under-value);
   box-shadow: var(--color-bg-under-input-box-shadow);
   /* padding: 3px 6px; */
   /* padding: 0px 6px; */
-  padding: 6px 8px;
+  /* padding: 6px 9px; */
+  /* 3分割はこっち */
+  /* padding: 6px 8px; */
+  padding: 4px 8px;
   font-size: 14px;
+  line-height: 24px;
   border-radius: 2px;
   resize: none;
   /* box-sizing: border-box; */
 }
+.textarea_box_search_mode {
+  line-height: normal;
+}
 .textarea_box_bg {
-  background: var(--color-bg-under-input-gray);
+  /* background: var(--color-bg-under-input-gray); */
 }
 .textarea_xl {
   min-height: 120px;
@@ -603,6 +630,8 @@
   /* min-width: 80px; */
   /* min-width: 90px; */
   min-width: 70px;
+  font-size: 13px;
+  line-height: 17px;
   /* min-width: 75px; */
   /* min-width: 100px; */
   /* margin-right: 10px; */
@@ -617,6 +646,8 @@
   /* min-width: 80px; */
   /* min-width: 90px; */
   min-width: 95px;
+  font-size: 13px;
+  line-height: 17px;
   /* min-width: 100px; */
   /* margin-right: 10px; */
   font-weight: 600;
@@ -646,7 +677,8 @@
   /* padding: 2px 15px; */
   padding: 5px 15px;
   width: 100%;
-  border-radius: 4px !important;
+  height: 100%;
+  border-radius: 8px !important;
   color: var(--color-btn-text);
 }
 .btn:hover {

@@ -13,6 +13,10 @@ export const useMutateActivity = () => {
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   const setIsOpenInsertNewActivityModal = useDashboardStore((state) => state.setIsOpenInsertNewActivityModal);
   const setIsOpenUpdateActivityModal = useDashboardStore((state) => state.setIsOpenUpdateActivityModal);
+  // 選択中の行をクリック通知してselectedRowDataActivityを最新状態にアップデートする
+  const setIsUpdateRequiredForLatestSelectedRowDataActivity = useDashboardStore(
+    (state) => state.setIsUpdateRequiredForLatestSelectedRowDataActivity
+  );
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
 
@@ -106,6 +110,10 @@ export const useMutateActivity = () => {
         await queryClient.invalidateQueries({ queryKey: ["activities"] });
         // TanStack Queryでデータの変更に合わせて別のデータを再取得する
         // https://zenn.dev/masatakaitoh/articles/3c2f8602d2bb9d
+
+        // 再度テーブルの選択セルのDOMをクリックしてselectedRowDataActivityを最新状態にする
+        setIsUpdateRequiredForLatestSelectedRowDataActivity(true);
+
         if (loadingGlobalState) setLoadingGlobalState(false);
         setIsOpenUpdateActivityModal(false);
         toast.success("活動の更新が完了しました🌟", {

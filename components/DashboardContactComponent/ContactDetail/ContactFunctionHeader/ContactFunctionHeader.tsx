@@ -16,6 +16,7 @@ const ContactFunctionHeaderMemo: FC = () => {
   const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
   //   const setIsOpenInsertNewContactModal = useDashboardStore((state) => state.setIsOpenInsertNewContactModal);
+  const newSearchContact_CompanyParams = useDashboardStore((state) => state.newSearchContact_CompanyParams);
 
   // 担当者編集と「活動、面談、案件」の作成モーダル開閉state
   const setIsOpenUpdateContactModal = useDashboardStore((state) => state.setIsOpenUpdateContactModal);
@@ -80,24 +81,26 @@ const ContactFunctionHeaderMemo: FC = () => {
             if (searchMode) {
               // SELECTメソッド
               setSearchMode(false);
-              setLoadingGlobalState(false);
+              if (loadingGlobalState) setLoadingGlobalState(false);
               // 編集モード中止
               setEditSearchMode(false);
             } else {
               // 新規サーチクリック
+              if (loadingGlobalState) setLoadingGlobalState(false);
               setSearchMode(true);
-              // setLoadingGlobalState(true);
             }
           }}
         />
         <RippleButton
           title={`${searchMode ? `サーチ編集` : `サーチ編集`}`}
-          classText={`select-none ${searchMode ? `cursor-not-allowed` : ``}`}
+          classText={`select-none ${searchMode || !newSearchContact_CompanyParams ? `cursor-not-allowed` : ``}`}
           borderRadius="2px"
           clickEventHandler={() => {
             if (searchMode) return;
+            if (!newSearchContact_CompanyParams) return alert("新規サーチから検索を行なってください。");
             console.log("サーチ編集 クリック");
             // 編集モードとして開く
+            if (loadingGlobalState) setLoadingGlobalState(false);
             setEditSearchMode(true);
             setSearchMode(true);
           }}

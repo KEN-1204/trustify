@@ -5,7 +5,7 @@ import React from "react";
 import styles from "./GridTableAll.module.css";
 import { RippleButton } from "@/components/Parts/RippleButton/RippleButton";
 import { ChangeSizeBtn } from "@/components/Parts/ChangeSizeBtn/ChangeSizeBtn";
-import { FiLock } from "react-icons/fi";
+import { FiLock, FiRefreshCw } from "react-icons/fi";
 import useStore from "@/store";
 import stylesFooter from "../GridTableFooter/GridTableFooter.module.css";
 import { SkeletonLoadingLines } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLines";
@@ -44,8 +44,11 @@ export const FallbackGridTableAll = () => {
             />
             <RippleButton title={`サーチ編集`} classText="select-none" borderRadius="2px" />
             <button
-              className={`flex-center transition-base03 relative  h-[26px] min-w-[118px]  cursor-pointer space-x-1  rounded-[4px] px-[15px] text-[12px] text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`}
+              className={`flex-center transition-color03 relative  h-[26px] min-w-[118px]  cursor-pointer space-x-1  rounded-[4px] px-[15px] text-[12px] text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`}
             >
+              <div className="flex-center mr-[2px]">
+                <FiRefreshCw />
+              </div>
               <span className="whitespace-nowrap">リフレッシュ</span>
             </button>
           </div>
@@ -91,13 +94,13 @@ export const FallbackGridTableAll = () => {
             className={`${styles.search_mode_container_one_third_fallback} flex max-h-[calc(100vh/3-var(--header-height)/3-30px-40px-30px-1px)] w-full flex-col `}
             // className={`${styles.search_mode_container_one_third} flex !min-h-[173px] w-full min-w-[96vw] max-w-[96vw] flex-col`}
           >
-            <div className="flex h-full max-h-[330px] min-h-[330px] w-full flex-col space-y-[18px] py-[20px] pl-[20px] pr-[50px]">
+            <div className="flex h-full max-h-[330px] min-h-[330px] w-full flex-col space-y-[18px] pb-[20px] pl-[20px] pr-[50px] pt-[18px]">
               {/* <SkeletonLoadingLines /> */}
               <SkeletonLoadingLineFull />
               <SkeletonLoadingLineFull />
               {/* <SkeletonLoadingLineLong /> */}
               <SkeletonLoadingLineMedium />
-              <SkeletonLoadingLineMedium />
+              {/* <SkeletonLoadingLineMedium /> */}
               <SkeletonLoadingLineShort />
               <div className="h-[5px] w-full"></div>
               <div className="min-h-[0px] w-full"></div>

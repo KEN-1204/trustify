@@ -64,6 +64,20 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   // refetchローディング
   const [refetchLoading, setRefetchLoading] = useState(false);
+
+  // UPDATEクエリ後にinvalidateQueryでキャッシュ更新された選択中の行データをselectedRowDataCompanyに反映するために発火通知するか否かのstate(発火通知してDOMクリックで更新する)
+  const isUpdateRequiredForLatestSelectedRowDataCompany = useDashboardStore(
+    (state) => state.isUpdateRequiredForLatestSelectedRowDataCompany
+  );
+  const setIsUpdateRequiredForLatestSelectedRowDataCompany = useDashboardStore(
+    (state) => state.setIsUpdateRequiredForLatestSelectedRowDataCompany
+  );
+  // 下メインコンテナサーチモード用Zustand =================
+  const searchMode = useDashboardStore((state) => state.searchMode);
+  const setSearchMode = useDashboardStore((state) => state.setSearchMode);
+  const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
+  // 下メインコンテナサーチモード用Zustand ここまで =================
+
   // const [colsWidth, setColsWidth] = useState(
   //   new Array(Object.keys(tableBodyDataArray[0]).length + 1).fill("minmax(50px, 1fr)")
   // );
@@ -2289,6 +2303,19 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   };
   // ==================================================================================
 
+  // ======= 🌟会社編集モーダルでUPDATE後に選択中のセルをクリックさせてselectedRowDataPropertyを最新に更新する🌟
+  // UPDATEクエリでDB更新後にinvalidateQueries()でキャッシュは更新するがZustandは更新できていないため、UPDATEクエリ成功時にisUpdateRequiredForLatestSelectedRowDataPropertyをtrueにして発火通知をすることで、選択中のセルを再度クリックさせてselectedRowDataPropertyを再度更新する
+  useEffect(() => {
+    if (!isUpdateRequiredForLatestSelectedRowDataCompany) return;
+    if (!selectedGridCellRef.current) return;
+
+    console.log("会社UPDATE検知🔥 選択セルクリックで下メインコンテナを最新状態に反映", selectedGridCellRef.current);
+    selectedGridCellRef.current.click(); // セルクリック
+
+    setIsUpdateRequiredForLatestSelectedRowDataCompany(false);
+  }, [isUpdateRequiredForLatestSelectedRowDataCompany, setIsUpdateRequiredForLatestSelectedRowDataCompany]);
+  // ======= ✅会社編集モーダルでUPDATE後に選択中のセルをクリックさせてselectedRowDataPropertyを最新に更新する✅
+
   // 🌟現在のカラム.map((obj) => Object.values(row)[obj.columnId])で展開してGridセルを表示する
   // カラムNameの値のみ配列バージョンで順番入れ替え
   // ================= 🔥🔥テスト🔥🔥==================
@@ -2352,10 +2379,6 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // 🌟カラム3点リーダー表示中はホバー時にツールチップを有効化
   // console.log("✅isOverflowColumnHeader", isOverflowColumnHeader);
 
-  // ======================== 🔥テスト🔥 ========================
-  const searchMode = useDashboardStore((state) => state.searchMode);
-  // ======================== 🔥テスト🔥 ========================
-
   return (
     <>
       {/* ================== メインコンテナ ================== */}
@@ -2377,51 +2400,16 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
           {/* ================== Gridファンクションヘッダー ボタンでページ遷移 ================== */}
           <div className={`${styles.grid_function_header}`}>
             <div className={`flex max-h-[26px] w-full items-center justify-start space-x-[6px]`}>
-              <RippleButton
-                title={`新規サーチ`}
-                // bgColor="var(--color-btn-brand-f-re)"
-                border="var(--color-btn-brand-f-re-hover)"
-                borderRadius="2px"
-                classText={`select-none`}
-                clickEventHandler={() => {
-                  //   if (tableContainerSize === "all") return;
-                  //   console.log("クリック コンテナ高さ変更 All");
-                  //   setTableContainerSize("all");
-                  console.log("新規サーチ クリック");
-                }}
-              />
-              <RippleButton
-                title={`サーチ編集`}
-                classText="select-none"
-                borderRadius="2px"
-                clickEventHandler={() => {
-                  //   if (tableContainerSize === "half") return;
-                  //   console.log("クリック コンテナ高さ変更 ハーフ");
-                  //   setTableContainerSize("half");
-                  console.log("サーチ編集 クリック");
-                }}
-              />
+              {/* ========== ボタンエリア テスト ========== */}
               {/* <button
-                className={`flex-center transition-base03 h-[26px]  cursor-pointer space-x-1  rounded-[4px] px-[15px]  text-[12px]  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`}
-                onClick={async () => {
-                  console.log("リフレッシュ クリック");
-                  await queryClient.invalidateQueries({ queryKey: ["companies"] });
-                }}
-              >
-                <FiRefreshCw />
-                <span>リフレッシュ</span>
-              </button> */}
-              <button
-                className={`flex-center transition-color03 relative  h-[26px] min-w-[118px]  cursor-pointer space-x-1  rounded-[4px] px-[15px] text-[12px] text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`}
+                className={`flex-center transition-color03 relative h-[26px] min-w-[118px] cursor-pointer space-x-1 rounded-[4px] border border-solid border-[var(--color-btn-brand-f-hover)] bg-[var(--color-btn-brand-f)] px-[10px] text-[12px] text-[#fff]`}
                 onClick={async () => {
                   console.log("リフレッシュ クリック");
                   setRefetchLoading(true);
                   await queryClient.invalidateQueries({ queryKey: ["companies"] });
-                  // await refetch();
                   setRefetchLoading(false);
                 }}
                 data-text={`最新の状態にリフレッシュ`}
-                // onMouseEnter={(e) => handleOpenTooltip(e, "top", "最新の状態にリフレッシュ", 5)}
                 onMouseEnter={(e) =>
                   handleOpenTooltip({
                     e: e,
@@ -2432,8 +2420,114 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                 }
                 onMouseLeave={handleCloseTooltip}
               >
-                {/* <FiRefreshCw /> */}
-                {/* {!refetchLoading && <SpinnerIDS scale={"scale-[0.2]"} width={12} height={12} />} */}
+                {refetchLoading && (
+                  <div className="relative">
+                    <div className="mr-[2px] h-[12px] w-[12px]"></div>
+                    <SpinnerIDS2 fontSize={20} width={20} height={20} />
+                  </div>
+                )}
+                {!refetchLoading && (
+                  <div className="flex-center mr-[2px]">
+                    <FiRefreshCw className="stroke-[2.2]" />
+                  </div>
+                )}
+                <span className="whitespace-nowrap">リフレッシュ</span>
+              </button> */}
+              {/* <button
+                className={`flex-center transition-base03 h-[26px]  space-x-2 rounded-[4px]  px-[15px] text-[12px]  ${
+                  activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) !== 1
+                    ? `cursor-pointer  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`
+                    : "cursor-not-allowed text-[#999]"
+                }`}
+                onClick={() => {
+                  if (!activeCell) return;
+                  if (activeCell.ariaColIndex === null) return;
+                  // カラムヘッダーでかつ、チェックボックスでないなら
+                  if (activeCell.role === "columnheader" && Number(activeCell.ariaColIndex) !== 1) {
+                    handleFrozen(Number(activeCell.ariaColIndex) - 2);
+                    console.log("クリック フローズン");
+                  }
+                }}
+                onMouseEnter={(e) =>
+                  handleOpenTooltip({
+                    e: e,
+                    display: "top",
+                    content: `${
+                      activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) !== 1
+                        ? `選択中のカラムを左端に固定`
+                        : `カラムを選択することで、`
+                    }`,
+                    content2: `${
+                      activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex)
+                        ? ``
+                        : `左右スクロール時にカラムを左端に固定できます`
+                    }`,
+                    marginTop: activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) ? 5 : 20,
+                    itemsPosition: "center",
+                  })
+                }
+                onMouseLeave={handleCloseTooltip}
+              >
+                <FiLock className="pointer-events-none" />
+                <span className="pointer-events-none">固定</span>
+              </button> */}
+              {/* ========== ボタンエリア テスト ========== */}
+              <RippleButton
+                title={`${searchMode ? `サーチ中止` : `新規サーチ`}`}
+                // bgColor="var(--color-btn-brand-f-re)"
+                border="var(--color-btn-brand-f-re-hover)"
+                borderRadius="2px"
+                classText={`select-none`}
+                clickEventHandler={() => {
+                  console.log("新規サーチ クリック");
+                  if (searchMode) {
+                    // SELECTメソッド
+                    setSearchMode(false);
+                    if (loadingGlobalState) setLoadingGlobalState(false);
+                    // 編集モード中止
+                    setEditSearchMode(false);
+                  } else {
+                    // 新規サーチクリック
+                    if (loadingGlobalState) setLoadingGlobalState(false);
+                    setSearchMode(true);
+                    // setLoadingGlobalState(true);
+                  }
+                }}
+              />
+              <RippleButton
+                title={`${searchMode ? `サーチ編集` : `サーチ編集`}`}
+                classText={`select-none ${searchMode || !newSearchCompanyParams ? `cursor-not-allowed` : ``}`}
+                borderRadius="2px"
+                clickEventHandler={() => {
+                  console.log("サーチ編集 クリック");
+                  if (searchMode) return;
+                  if (!newSearchCompanyParams) return alert("新規サーチから検索を行なってください。");
+                  console.log("サーチ編集 クリック");
+                  // 編集モードとして開く
+                  setEditSearchMode(true);
+                  setSearchMode(true);
+                }}
+              />
+              <button
+                className={`flex-center transition-color03 relative  h-[26px] min-w-[118px]  cursor-pointer space-x-1  rounded-[4px] px-[15px] text-[12px] text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`}
+                onClick={async () => {
+                  console.log("リフレッシュ クリック");
+                  setRefetchLoading(true);
+                  await queryClient.invalidateQueries({ queryKey: ["companies"] });
+                  // await refetch();
+                  setRefetchLoading(false);
+                }}
+                data-text={`最新の状態にリフレッシュ`}
+                onMouseEnter={(e) =>
+                  handleOpenTooltip({
+                    e: e,
+                    display: "top",
+                    content: "最新の状態にリフレッシュ",
+                    marginTop: 5,
+                  })
+                }
+                onMouseLeave={handleCloseTooltip}
+              >
                 {refetchLoading && (
                   <div className="relative">
                     <div className="mr-[2px] h-[12px] w-[12px]"></div>

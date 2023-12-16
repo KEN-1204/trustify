@@ -15,6 +15,9 @@ const PropertyFunctionHeaderMemo: FC = () => {
   const setUnderDisplayFullScreen = useDashboardStore((state) => state.setUnderDisplayFullScreen);
   const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
+  const newSearchProperty_Contact_CompanyParams = useDashboardStore(
+    (state) => state.newSearchProperty_Contact_CompanyParams
+  );
 
   // 活動編集と「活動、面談、案件」の作成モーダル開閉state
   const setIsOpenUpdatePropertyModal = useDashboardStore((state) => state.setIsOpenUpdatePropertyModal);
@@ -77,26 +80,30 @@ const PropertyFunctionHeaderMemo: FC = () => {
             console.log("新規サーチ クリック");
             if (searchMode) {
               // SELECTメソッド
+              if (loadingGlobalState) setLoadingGlobalState(false);
               setSearchMode(false);
-              setLoadingGlobalState(false);
               // 編集モード中止
               setEditSearchMode(false);
             } else {
               // 新規サーチクリック
+              if (loadingGlobalState) setLoadingGlobalState(false);
               setSearchMode(true);
-              setLoadingGlobalState(false);
               // setLoadingGlobalState(true);
             }
           }}
         />
         <RippleButton
           title={`${searchMode ? `サーチ編集` : `サーチ編集`}`}
-          classText={`select-none ${searchMode ? `cursor-not-allowed` : ``}`}
+          classText={`select-none ${
+            searchMode && !newSearchProperty_Contact_CompanyParams ? `cursor-not-allowed` : ``
+          }`}
           borderRadius="2px"
           clickEventHandler={() => {
             if (searchMode) return;
+            if (!newSearchProperty_Contact_CompanyParams) return alert("新規サーチから検索を行なってください。");
             console.log("サーチ編集 クリック");
             // 編集モードとして開く
+            if (loadingGlobalState) setLoadingGlobalState(false);
             setEditSearchMode(true);
             setSearchMode(true);
           }}

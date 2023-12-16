@@ -12,6 +12,11 @@ export const useMutateContact = () => {
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   const setIsOpenInsertNewContactModal = useDashboardStore((state) => state.setIsOpenInsertNewContactModal);
+  // 選択中の行をクリック通知してselectedRowDataContactを最新状態にアップデートする
+  const setIsUpdateRequiredForLatestSelectedRowDataContact = useDashboardStore(
+    (state) => state.setIsUpdateRequiredForLatestSelectedRowDataContact
+  );
+
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
 
@@ -113,6 +118,9 @@ export const useMutateContact = () => {
         await queryClient.invalidateQueries({ queryKey: ["contacts"] });
         // TanStack Queryでデータの変更に合わせて別のデータを再取得する
         // https://zenn.dev/masatakaitoh/articles/3c2f8602d2bb9d
+
+        // 再度テーブルの選択セルのDOMをクリックしてselectedRowDataContactを最新状態にする
+        setIsUpdateRequiredForLatestSelectedRowDataContact(true);
 
         // ローディングを終了する
         if (loadingGlobalState) setLoadingGlobalState(false);

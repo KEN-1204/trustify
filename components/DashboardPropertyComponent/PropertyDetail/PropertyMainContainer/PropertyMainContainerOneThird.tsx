@@ -153,15 +153,15 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
   const [inputPendingFlag, setInputPendingFlag] = useState<boolean | null>(null);
   const [inputRejectedFlag, setInputRejectedFlag] = useState<boolean | null>(null);
   const [inputProductName, setInputProductName] = useState(""); // 商品
-  const [inputProductSales, setInputProductSales] = useState<number | null>(null); //
+  const [inputProductSales, setInputProductSales] = useState<number | null>(null); // 予定売上台数
   const [inputExpectedOrderDate, setInputExpectedOrderDate] = useState<Date | null>(null); // 獲得予定時期
   const [inputExpectedSalesPrice, setInputExpectedSalesPrice] = useState<number | null>(null); // 予定売上価格
   const [inputTermDivision, setInputTermDivision] = useState(""); // 今・来期
   const [inputSoldProductName, setInputSoldProductName] = useState(""); // 売上商品
-  const [inputUnitSales, setInputUnitSales] = useState<number | null>(null);
-  const [inputSalesContributionCategory, setInputSalesContributionCategory] = useState("");
-  const [inputSalesPrice, setInputSalesPrice] = useState<number | null>(null);
-  const [inputDiscountedPrice, setInputDiscountedPrice] = useState<number | null>(null);
+  const [inputUnitSales, setInputUnitSales] = useState<number | null>(null); // 売上台数
+  const [inputSalesContributionCategory, setInputSalesContributionCategory] = useState(""); // 売上貢献区分
+  const [inputSalesPrice, setInputSalesPrice] = useState<number | null>(null); // 売上価格
+  const [inputDiscountedPrice, setInputDiscountedPrice] = useState<number | null>(null); // 値引価格
   const [inputDiscountRate, setInputDiscountRate] = useState<number | null>(null);
   const [inputSalesClass, setInputSalesClass] = useState("");
   const [inputExpansionDate, setInputExpansionDate] = useState<Date | null>(null);
@@ -225,12 +225,13 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
   // 編集モードtrueの場合、サーチ条件をinputタグのvalueに格納
   // 新規サーチの場合には、サーチ条件を空にする
   useEffect(() => {
-    if (newSearchProperty_Contact_CompanyParams === null) return;
+    // if (newSearchProperty_Contact_CompanyParams === null) return;
     console.log(
       "🔥メインコンテナーnewSearchProperty_Contact_CompanyParams編集モード",
       newSearchProperty_Contact_CompanyParams
     );
-    if (editSearchMode) {
+    if (editSearchMode && searchMode) {
+      if (newSearchProperty_Contact_CompanyParams === null) return;
       //   setInputCompanyName(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.company_name));
       setInputCompanyName(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams["client_companies.name"]));
       setInputDepartmentName(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.department_name));
@@ -493,7 +494,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       setInputPropertyMemberName("");
       setInputPropertyDate(null);
     }
-  }, [editSearchMode]);
+  }, [editSearchMode, searchMode]);
 
   // サーチ関数実行
   const handleSearchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -930,7 +931,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.section_title}`}>現ｽﾃｰﾀｽ</span>
 
-                    <span className={`${styles.value} ${styles.value_highlight} ${styles.text_start}`}>
+                    <span className={`${styles.value} ${styles.value_highlight} ${styles.text_start} !pl-[0px]`}>
                       {selectedRowDataProperty?.current_status ? selectedRowDataProperty?.current_status : ""}
                     </span>
                   </div>
@@ -2274,9 +2275,9 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     {searchMode && (
                       <textarea
                         cols={30}
-                        rows={10}
+                        // rows={10}
                         placeholder="「神奈川県＊」や「＊大田区＊」など"
-                        className={`${styles.textarea_box} `}
+                        className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
                         value={inputAddress}
                         onChange={(e) => setInputAddress(e.target.value)}
                       ></textarea>
@@ -2450,22 +2451,13 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         onChange={(e) => setInputEmployeesClass(e.target.value)}
                       >
                         <option value=""></option>
-                        {/* <option value="">回答を選択してください</option> */}
-                        <option value="A 1000名以上">A 1000名以上</option>
-                        <option value="B 500〜999名">B 500〜999名</option>
-                        <option value="C 300〜499名">C 300〜499名</option>
-                        <option value="D 200〜299名">D 200〜299名</option>
-                        <option value="E 100〜199名">E 100〜199名</option>
-                        <option value="F 50〜99名">F 50〜99名</option>
-                        <option value="G 1〜49名">G 1〜49名</option>
-                        {/* <option value=""></option>
-                        <option value="A 1000名以上">A 1000名以上</option>
-                        <option value="B 500-999名">B 500-999名</option>
-                        <option value="C 300-499名">C 300-499名</option>
-                        <option value="D 200-299名">D 200-299名</option>
-                        <option value="E 100-199名">E 100-199名</option>
-                        <option value="F 50-99名">F 50-99名</option>
-                        <option value="G 50名未満">G 50名未満</option> */}
+                        <option value="A*">A 1000名以上</option>
+                        <option value="B*">B 500~999名</option>
+                        <option value="C*">C 300~499名</option>
+                        <option value="D*">D 200~299名</option>
+                        <option value="E*">E 100~199名</option>
+                        <option value="F*">F 50~99名</option>
+                        <option value="G*">G 1~49名</option>
                       </select>
                     )}
                   </div>
@@ -2577,7 +2569,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         id="address"
                         cols={30}
                         rows={10}
-                        className={`${styles.textarea_box} `}
+                        className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
                         value={inputContent}
                         onChange={(e) => setInputContent(e.target.value)}
                       ></textarea>
@@ -2671,7 +2663,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         id="address"
                         cols={30}
                         rows={10}
-                        className={`${styles.textarea_box} `}
+                        className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
                         value={inputFacility}
                         onChange={(e) => setInputFacility(e.target.value)}
                       ></textarea>
@@ -3205,12 +3197,12 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
               <div className={`${styles.row_area_lg_box} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full `}>
-                    <span className={`${styles.title_search_mode}`}>案件概要</span>
+                    <span className={`${styles.title_search_mode} `}>案件概要</span>
                     {searchMode && (
                       <textarea
                         cols={30}
                         // rows={10}
-                        className={`${styles.textarea_box} `}
+                        className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
                         value={inputPropertySummary}
                         onChange={(e) => setInputPropertySummary(e.target.value)}
                       ></textarea>
@@ -3261,11 +3253,16 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       }}
                     />
                     {/* バツボタン */}
-                    {inputProductSales && (
+                    {inputProductSales !== null && inputProductSales !== 0 && (
                       <div className={`${styles.close_btn_number}`} onClick={() => setInputProductSales(null)}>
                         <MdClose className="text-[20px] " />
                       </div>
                     )}
+                    {/* {inputProductSales && (
+                      <div className={`${styles.close_btn_number}`} onClick={() => setInputProductSales(null)}>
+                        <MdClose className="text-[20px] " />
+                      </div>
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -3310,7 +3307,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       }}
                     />
                     {/* バツボタン */}
-                    {inputExpectedSalesPrice && (
+                    {inputExpectedSalesPrice !== null && inputExpectedSalesPrice !== 0 && (
                       <div className={`${styles.close_btn_number}`} onClick={() => setInputExpectedSalesPrice(null)}>
                         <MdClose className="text-[20px] " />
                       </div>
@@ -3319,6 +3316,9 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
+
+              {/*  */}
+              {/*  */}
 
               {/* 今・来期 サーチ */}
               <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
@@ -3395,7 +3395,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       }}
                     />
                     {/* バツボタン */}
-                    {inputProductSales && (
+                    {!!inputUnitSales && (
                       <div className={`${styles.close_btn_number}`} onClick={() => setInputUnitSales(null)}>
                         <MdClose className="text-[20px] " />
                       </div>
@@ -3456,7 +3456,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       }}
                     />
                     {/* バツボタン */}
-                    {inputSalesPrice && (
+                    {!!inputSalesPrice && (
                       <div className={`${styles.close_btn_number}`} onClick={() => setInputSalesPrice(null)}>
                         <MdClose className="text-[20px] " />
                       </div>
@@ -3494,7 +3494,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       }}
                     />
                     {/* バツボタン */}
-                    {inputDiscountedPrice && (
+                    {!!inputDiscountedPrice && (
                       <div className={`${styles.close_btn_number}`} onClick={() => setInputDiscountedPrice(null)}>
                         <MdClose className="text-[20px] " />
                       </div>
@@ -3528,7 +3528,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       }}
                     />
                     {/* バツボタン */}
-                    {inputDiscountRate && (
+                    {!!inputDiscountRate && (
                       <div className={`${styles.close_btn_number}`} onClick={() => setInputDiscountRate(null)}>
                         <MdClose className="text-[20px] " />
                       </div>
@@ -3756,7 +3756,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       }}
                     />
                     {/* バツボタン */}
-                    {inputExpansionYearMonth && (
+                    {!!inputExpansionYearMonth && (
                       <div className={`${styles.close_btn_number}`} onClick={() => setInputExpansionYearMonth(null)}>
                         <MdClose className="text-[20px] " />
                       </div>
@@ -3790,7 +3790,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       }}
                     />
                     {/* バツボタン */}
-                    {inputSalesYearMonth && (
+                    {!!inputSalesYearMonth && (
                       <div className={`${styles.close_btn_number}`} onClick={() => setInputSalesYearMonth(null)}>
                         <MdClose className="text-[20px] " />
                       </div>
@@ -4207,7 +4207,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       }}
                     />
                     {/* バツボタン */}
-                    {inputCustomerBudget && (
+                    {!!inputCustomerBudget && (
                       <div className={`${styles.close_btn_number}`} onClick={() => setInputCustomerBudget(null)}>
                         <MdClose className="text-[20px] " />
                       </div>
@@ -4497,7 +4497,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         cols={30}
                         // rows={10}
                         placeholder="「神奈川県＊」や「＊大田区＊」など"
-                        className={`${styles.textarea_box} `}
+                        className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
                         value={inputAddress}
                         onChange={(e) => setInputAddress(e.target.value)}
                       ></textarea>
@@ -4639,22 +4639,13 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         onChange={(e) => setInputEmployeesClass(e.target.value)}
                       >
                         <option value=""></option>
-                        {/* <option value="">回答を選択してください</option> */}
-                        <option value="A 1000名以上">A 1000名以上</option>
-                        <option value="B 500〜999名">B 500〜999名</option>
-                        <option value="C 300〜499名">C 300〜499名</option>
-                        <option value="D 200〜299名">D 200〜299名</option>
-                        <option value="E 100〜199名">E 100〜199名</option>
-                        <option value="F 50〜99名">F 50〜99名</option>
-                        <option value="G 1〜49名">G 1〜49名</option>
-                        {/* <option value=""></option>
-                        <option value="A 1000名以上">A 1000名以上</option>
-                        <option value="B 500-999名">B 500-999名</option>
-                        <option value="C 300-499名">C 300-499名</option>
-                        <option value="D 200-299名">D 200-299名</option>
-                        <option value="E 100-199名">E 100-199名</option>
-                        <option value="F 50-99名">F 50-99名</option>
-                        <option value="G 50名未満">G 50名未満</option> */}
+                        <option value="A*">A 1000名以上</option>
+                        <option value="B*">B 500~999名</option>
+                        <option value="C*">C 300~499名</option>
+                        <option value="D*">D 200~299名</option>
+                        <option value="E*">E 100~199名</option>
+                        <option value="F*">F 50~99名</option>
+                        <option value="G*">G 1~49名</option>
                       </select>
                     )}
                   </div>
@@ -4719,7 +4710,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         id="address"
                         cols={30}
                         // rows={10}
-                        className={`${styles.textarea_box} `}
+                        className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
                         value={inputContent}
                         onChange={(e) => setInputContent(e.target.value)}
                       ></textarea>
@@ -4776,7 +4767,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         id="address"
                         cols={30}
                         // rows={10}
-                        className={`${styles.textarea_box} `}
+                        className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
                         value={inputFacility}
                         onChange={(e) => setInputFacility(e.target.value)}
                       ></textarea>
@@ -5151,8 +5142,34 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 <div className="mt-[5px] flex  min-h-[30px] items-center">
                   ○項目を空欄のまま検索した場合は、その項目の「全てのデータ」を抽出します
                 </div>
-                <div className="mt-[10px] flex h-[30px] w-full items-center">
+                {/* <div className="mt-[10px] flex h-[30px] w-full items-center">
                   <button type="submit" className={`${styles.btn}`}>
+                    検索
+                  </button>
+                </div> */}
+                <div
+                  className={`mt-[10px] flex ${
+                    isOpenSidebar ? "min-h-[34px]" : `min-h-[42px]`
+                  } w-full items-center justify-between space-x-[15px]`}
+                >
+                  <button
+                    className={`transition-base02 flex-center ${
+                      isOpenSidebar ? "max-h-[34px] text-[14px]" : `max-h-[38px] text-[15px]`
+                    } w-[100%] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-sub-light)] px-[25px] py-[15px] text-[var(--color-text-title)] hover:bg-[var(--setting-side-bg-select-hover)]`}
+                    onClick={() => {
+                      setSearchMode(false);
+                      // 編集モード中止
+                      if (editSearchMode) setEditSearchMode(false);
+                    }}
+                  >
+                    戻る
+                  </button>
+                  <button
+                    type="submit"
+                    className={`${styles.btn} transition-base02 ${
+                      isOpenSidebar ? "min-h-[30px] text-[14px]" : `min-h-[38px] text-[15px]`
+                    }`}
+                  >
                     検索
                   </button>
                 </div>

@@ -323,7 +323,8 @@
   background: var(--color-bg-under-input);
   color: var(--color-text-under-input);
   box-shadow: var(--color-bg-under-input-box-shadow);
-  padding: 0px 6px;
+  /* padding: 0px 6px; */
+  padding: 6px 8px;
   border-radius: 2px;
 }
 .input_box:focus {
@@ -341,11 +342,19 @@
   height: 100%;
   width: 100%;
   background: var(--color-bg-under-input);
-  color: var(--color-text-under-input);
+  /* color: var(--color-text-under-input); */
+  color: var(--color-text-under-value);
   box-shadow: var(--color-bg-under-input-box-shadow);
-  padding: 3px 6px;
+  /* padding: 3px 6px; */
+  padding: 6px 8px;
+  /* line-height: 24px; */
   border-radius: 2px;
   resize: none;
+}
+
+.textarea_box_search_mode {
+  padding: 6px 8px;
+  line-height: normal;
 }
 
 /* ------------------------------- 右側エリア ------------------------------- */
@@ -535,6 +544,7 @@
   /* min-width: 90px; */
   /* min-width: 75px; */
   min-width: 100px;
+  /* min-width: 70px; */
   font-weight: 600;
 }
 .right_under_title {
@@ -562,7 +572,8 @@
   /* padding: 2px 15px; */
   padding: 5px 15px;
   width: 100%;
-  border-radius: 4px !important;
+  height: 100%;
+  border-radius: 8px !important;
   color: var(--color-btn-text);
 }
 .btn:hover {
@@ -570,5 +581,6 @@
 }
 .select_box {
   box-shadow: var(--color-bg-under-input-box-shadow);
+  background: var(--color-bg-under-input);
   padding-left: 5px;
 }

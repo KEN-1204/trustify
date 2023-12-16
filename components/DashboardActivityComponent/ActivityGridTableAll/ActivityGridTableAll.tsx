@@ -58,6 +58,20 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
   );
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const [refetchLoading, setRefetchLoading] = useState(false);
+
+  // UPDATEクエリ後にinvalidateQueryでキャッシュ更新された選択中の行データをselectedRowDataPropertyに反映するために発火通知するか否かのstate(発火通知してDOMクリックで更新する)
+  const isUpdateRequiredForLatestSelectedRowDataActivity = useDashboardStore(
+    (state) => state.isUpdateRequiredForLatestSelectedRowDataActivity
+  );
+  const setIsUpdateRequiredForLatestSelectedRowDataActivity = useDashboardStore(
+    (state) => state.setIsUpdateRequiredForLatestSelectedRowDataActivity
+  );
+  // 下メインコンテナサーチモード用Zustand =================
+  const searchMode = useDashboardStore((state) => state.searchMode);
+  const setSearchMode = useDashboardStore((state) => state.setSearchMode);
+  const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
+  // 下メインコンテナサーチモード用Zustand ここまで =================
+
   // const [colsWidth, setColsWidth] = useState(
   //   new Array(Object.keys(tableBodyDataArray[0]).length + 1).fill("minmax(50px, 1fr)")
   // );
@@ -557,7 +571,7 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
     if (!rowVirtualizer) return console.log("無限スクロール関数 rowVirtualizerインスタンス無し");
     // 現在保持している配列内の最後のアイテムをreverseで先頭にしてから分割代入で取得
     const [lastItem] = [...rowVirtualizer.getVirtualItems()].reverse();
-    console.log("lastItem", lastItem);
+    console.log("[...rowVirtualizer.getVirtualItems()].reverse() lastItem", lastItem);
     if (!lastItem) {
       return;
     }
@@ -2278,6 +2292,19 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
   };
   // ==================================================================================
 
+  // ======= 🌟活動編集モーダルでUPDATE後に選択中のセルをクリックさせてselectedRowDataPropertyを最新に更新する🌟
+  // UPDATEクエリでDB更新後にinvalidateQueries()でキャッシュは更新するがZustandは更新できていないため、UPDATEクエリ成功時にisUpdateRequiredForLatestSelectedRowDataPropertyをtrueにして発火通知をすることで、選択中のセルを再度クリックさせてselectedRowDataPropertyを再度更新する
+  useEffect(() => {
+    if (!isUpdateRequiredForLatestSelectedRowDataActivity) return;
+    if (!selectedGridCellRef.current) return;
+
+    console.log("活動UPDATE検知🔥 選択セルクリックで下メインコンテナを最新状態に反映", selectedGridCellRef.current);
+    selectedGridCellRef.current.click(); // セルクリック
+
+    setIsUpdateRequiredForLatestSelectedRowDataActivity(false);
+  }, [isUpdateRequiredForLatestSelectedRowDataActivity, setIsUpdateRequiredForLatestSelectedRowDataActivity]);
+  // ======= ✅活動編集モーダルでUPDATE後に選択中のセルをクリックさせてselectedRowDataPropertyを最新に更新する✅
+
   // 🌟現在のカラム.map((obj) => Object.values(row)[obj.columnId])で展開してGridセルを表示する
   // カラムNameの値のみ配列バージョンで順番入れ替え
   // ================= 🔥🔥テスト🔥🔥==================
@@ -2341,10 +2368,6 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
   // 🌟カラム3点リーダー表示中はホバー時にツールチップを有効化
   // console.log("✅isOverflowColumnHeader", isOverflowColumnHeader);
 
-  // ======================== 🔥テスト🔥 ========================
-  const searchMode = useDashboardStore((state) => state.searchMode);
-  // ======================== 🔥テスト🔥 ========================
-
   const formatMapping: {
     activity_date: string;
     scheduled_follow_up_date: string;
@@ -2380,27 +2403,41 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
           <div className={`${styles.grid_function_header}`}>
             <div className={`flex max-h-[26px] w-full items-center justify-start space-x-[6px]`}>
               <RippleButton
-                title={`新規サーチ`}
+                title={`${searchMode ? `サーチ中止` : `新規サーチ`}`}
                 // bgColor="var(--color-btn-brand-f-re)"
                 border="var(--color-btn-brand-f-re-hover)"
                 borderRadius="2px"
                 classText={`select-none`}
                 clickEventHandler={() => {
-                  //   if (tableContainerSize === "all") return;
-                  //   console.log("クリック コンテナ高さ変更 All");
-                  //   setTableContainerSize("all");
                   console.log("新規サーチ クリック");
+                  if (searchMode) {
+                    // SELECTメソッド
+                    setSearchMode(false);
+                    if (loadingGlobalState) setLoadingGlobalState(false);
+                    // 編集モード中止
+                    setEditSearchMode(false);
+                  } else {
+                    // 新規サーチクリック
+                    if (loadingGlobalState) setLoadingGlobalState(false);
+                    setSearchMode(true);
+                  }
                 }}
               />
               <RippleButton
-                title={`サーチ編集`}
-                classText="select-none"
+                title={`${searchMode ? `サーチ編集` : `サーチ編集`}`}
+                classText={`select-none ${
+                  searchMode || !newSearchActivity_Contact_CompanyParams ? `cursor-not-allowed` : ``
+                }`}
                 borderRadius="2px"
                 clickEventHandler={() => {
-                  //   if (tableContainerSize === "half") return;
-                  //   console.log("クリック コンテナ高さ変更 ハーフ");
-                  //   setTableContainerSize("half");
                   console.log("サーチ編集 クリック");
+                  if (searchMode) return;
+                  if (!newSearchActivity_Contact_CompanyParams) return alert("新規サーチから検索を行なってください。");
+                  console.log("サーチ編集 クリック");
+                  // 編集モードとして開く
+                  if (loadingGlobalState) setLoadingGlobalState(false);
+                  setEditSearchMode(true);
+                  setSearchMode(true);
                 }}
               />
               {/* <button
@@ -2765,12 +2802,19 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
                     const isLoaderRow = virtualRow.index > allRows.length - 1;
                     const rowData = allRows[virtualRow.index];
 
-                    // console.log(`rowData`, rowData);
+                    console.log(`rowData`, rowData);
+                    console.log(`Object.keys(rowData)`, Object.keys(rowData));
+                    console.log(`virtualRow`, virtualRow);
                     // console.log(`rowData.name`, rowData.name);
                     // console.log(
                     //   `${columnOrder.map((obj) => Object.values(rowData)[obj.columnId])}`,
                     //   columnOrder.map((obj) => Object.values(rowData)[obj.columnId])
                     // );
+
+                    // ========= 🌟初回表示時はデータがindexしか取得できないのでnullを表示 =========
+                    if ("index" in rowData && Object.keys(rowData).length === 1) {
+                      return null;
+                    }
 
                     // ========= 🌟ローディング中の行トラック =========
                     // if (isLoaderRow) return hasNextPage ? "Loading more" : "Nothing more to load";

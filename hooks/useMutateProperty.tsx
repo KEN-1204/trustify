@@ -13,6 +13,11 @@ export const useMutateProperty = () => {
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   const setIsOpenInsertNewPropertyModal = useDashboardStore((state) => state.setIsOpenInsertNewPropertyModal);
   const setIsOpenUpdatePropertyModal = useDashboardStore((state) => state.setIsOpenUpdatePropertyModal);
+  // 選択中の行をクリック通知してselectedRowDataPropertyを最新状態にアップデートする
+  const setIsUpdateRequiredForLatestSelectedRowDataProperty = useDashboardStore(
+    (state) => state.setIsUpdateRequiredForLatestSelectedRowDataProperty
+  );
+
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
 
@@ -188,6 +193,10 @@ export const useMutateProperty = () => {
         await queryClient.invalidateQueries({ queryKey: ["activities"] });
         // TanStack Queryでデータの変更に合わせて別のデータを再取得する
         // https://zenn.dev/masatakaitoh/articles/3c2f8602d2bb9d
+
+        // 再度テーブルの選択セルのDOMをクリックしてselectedRowDataPropertyを最新状態にする
+        setIsUpdateRequiredForLatestSelectedRowDataProperty(true);
+
         if (loadingGlobalState) setLoadingGlobalState(false);
         setIsOpenUpdatePropertyModal(false);
         toast.success("案件の更新が完了しました🌟", {

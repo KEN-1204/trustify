@@ -245,6 +245,18 @@
   /* margin-top: 5px; */
   margin-top: 10px;
 }
+.row_area_search_mode {
+  min-height: 35px;
+}
+.row_area_lg_box {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  /* height: 28px; */
+
+  /* margin-top: 5px; */
+  margin-top: 10px;
+}
 .title_box {
   position: relative;
   padding-bottom: 5px;
@@ -273,9 +285,15 @@
   /* padding-right: 20px; */
   /* min-width: 80px; */
   /* min-width: 90px; */
+  /* min-width: 95px; */
+  /* ２分割は95 */
+  /* min-width: 78px; */
   min-width: 95px;
   font-weight: 600;
   line-height: 17px;
+}
+.title_sm.title {
+  min-width: 65px;
 }
 .title_min {
   color: var(--color-text-brand-f);
@@ -287,6 +305,24 @@
   font-weight: 600;
 }
 .value {
+  color: var(--color-text-under-value);
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.double_text {
+  font-size: 13px;
+  line-height: 17px;
+}
+.value.text_start {
+  text-align: start;
+  padding-left: 8px;
+}
+.value.text_center {
+  text-align: center;
+}
+.full_value {
   color: var(--color-text-under-value);
 
   overflow: hidden;
@@ -323,7 +359,8 @@
   background: var(--color-bg-under-input);
   color: var(--color-text-under-input);
   box-shadow: var(--color-bg-under-input-box-shadow);
-  padding: 0px 6px;
+  /* padding: 0px 6px; */
+  padding: 6px 8px;
   border-radius: 2px;
 }
 .input_box:focus {
@@ -338,17 +375,29 @@
   background-color: rgb(94 94 94 / 0.3);
 }
 .textarea_box {
-  height: 100%;
+  /* height: 100%; */
+  min-height: 78px;
   width: 100%;
   background: var(--color-bg-under-input);
-  color: var(--color-text-under-input);
+  /* color: var(--color-text-under-input); */
+  color: var(--color-text-under-value);
   box-shadow: var(--color-bg-under-input-box-shadow);
-  padding: 3px 6px;
+  /* padding: 3px 6px; */
+  /* padding: 6px 8px; */
+  /* 2分割はこっち */
+  /* padding: 9px 10px; */
+  padding: 6px 10px;
+  font-size: 14px;
+  line-height: 24px;
   border-radius: 2px;
   resize: none;
 }
 .textarea_box_bg {
   background: var(--color-bg-under-input-gray);
+}
+.textarea_box_search_mode {
+  padding: 6px 8px;
+  line-height: normal;
 }
 
 /* ------------------------------- 右側エリア ------------------------------- */
@@ -565,7 +614,8 @@
   /* padding: 2px 15px; */
   padding: 5px 15px;
   width: 100%;
-  border-radius: 4px !important;
+  height: 100%;
+  border-radius: 8px !important;
   color: var(--color-btn-text);
 }
 .btn:hover {
@@ -574,6 +624,7 @@
 .select_box {
   box-shadow: var(--color-bg-under-input-box-shadow);
   padding-left: 5px;
+  background: var(--color-bg-under-input);
 }
 
 .close_btn_number {
@@ -603,5 +654,5 @@
   margin: 0;
 }
 .row_area input[type="number"] {
-  -moz-appearance: textfiled;
+  -moz-appearance: textfield;
 }

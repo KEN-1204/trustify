@@ -537,6 +537,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-text-under-title: #121212;
   --color-text-under-title: #282828;
   --color-text-under-value: #424242;
+
   /* インプットボックス */
   --color-bg-under-input: #fff;
   --color-bg-under-input: #fafafa;
@@ -1091,13 +1092,15 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-table-reflection: rgba(255, 255, 255, 0.3);
   --color-table-loading-spinner: #787878;
   --color-table-row-hover: #232323;
-  --color-table-row-hover: #14141490;
   --color-table-row-hover: var(--color-bg-brand-f20);
   --color-table-row-hover: var(--color-bg-brand-f30);
+  --color-table-row-hover: #14141490;
+  --color-table-row-hover: #333;
   /* --color-table-row-hover: #282828; */
   --color-table-bg-selected: #232323;
-  --color-table-bg-selected: var(--color-bg-brand-f20);
   --color-table-bg-selected: #14141490;
+  --color-table-bg-selected: var(--color-bg-brand-f20);
+  /* --color-table-bg-selected: var(--color-bg-brand-f30); */
   /* --color-table-checkbox-outline: #2e2e2e; */
   --color-table-checkbox-outline: #555;
   --color-table-checkbox-focus-outline: #fff;

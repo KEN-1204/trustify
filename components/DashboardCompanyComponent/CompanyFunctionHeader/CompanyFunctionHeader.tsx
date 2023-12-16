@@ -9,6 +9,7 @@ const CompanyFunctionHeaderMemo: FC = () => {
   const searchMode = useDashboardStore((state) => state.searchMode);
   const setSearchMode = useDashboardStore((state) => state.setSearchMode);
   const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
+  const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
   const setUnderDisplayFullScreen = useDashboardStore((state) => state.setUnderDisplayFullScreen);
@@ -18,6 +19,8 @@ const CompanyFunctionHeaderMemo: FC = () => {
   const setIsOpenInsertNewClientCompanyModal = useDashboardStore((state) => state.setIsOpenInsertNewClientCompanyModal);
   const setIsOpenUpdateClientCompanyModal = useDashboardStore((state) => state.setIsOpenUpdateClientCompanyModal);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
+  // 新規サーチで使用した条件params
+  const newSearchCompanyParams = useDashboardStore((state) => state.newSearchCompanyParams);
 
   // 上画面の選択中の列データ会社
   const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
@@ -70,24 +73,26 @@ const CompanyFunctionHeaderMemo: FC = () => {
             if (searchMode) {
               // SELECTメソッド
               setSearchMode(false);
-              setLoadingGlobalState(false);
+              if (loadingGlobalState) setLoadingGlobalState(false);
               // 編集モード中止
               setEditSearchMode(false);
             } else {
               // 新規サーチクリック
+              if (loadingGlobalState) setLoadingGlobalState(false);
               setSearchMode(true);
-              // setLoadingGlobalState(true);
             }
           }}
         />
         <RippleButton
           title={`${searchMode ? `サーチ編集` : `サーチ編集`}`}
-          classText={`select-none ${searchMode ? `cursor-not-allowed` : ``}`}
+          classText={`select-none ${searchMode || !newSearchCompanyParams ? `cursor-not-allowed` : ``}`}
           borderRadius="2px"
           clickEventHandler={() => {
             if (searchMode) return;
+            if (!newSearchCompanyParams) return alert("新規サーチから検索を行なってください。");
             console.log("サーチ編集 クリック");
             // 編集モードとして開く
+            if (loadingGlobalState) setLoadingGlobalState(false);
             setEditSearchMode(true);
             setSearchMode(true);
           }}
@@ -100,7 +105,7 @@ const CompanyFunctionHeaderMemo: FC = () => {
             clickEventHandler={() => {
               if (searchMode) return;
               console.log("会社作成 クリック");
-              setLoadingGlobalState(false);
+              if (loadingGlobalState) setLoadingGlobalState(false);
               setIsOpenInsertNewClientCompanyModal(true);
             }}
           />
@@ -118,7 +123,7 @@ const CompanyFunctionHeaderMemo: FC = () => {
               )
                 return alert("自社で作成した会社のみ編集可能です");
               console.log("会社編集 クリック");
-              setLoadingGlobalState(false);
+              if (loadingGlobalState) setLoadingGlobalState(false);
               setIsOpenUpdateClientCompanyModal(true);
             }}
           />
@@ -130,7 +135,7 @@ const CompanyFunctionHeaderMemo: FC = () => {
               if (searchMode) return;
               if (!selectedRowDataCompany) return alert("会社を選択してください");
               console.log("担当者作成 クリック");
-              setLoadingGlobalState(false);
+              if (loadingGlobalState) setLoadingGlobalState(false);
               setIsOpenInsertNewContactModal(true);
             }}
           />
