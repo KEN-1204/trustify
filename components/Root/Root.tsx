@@ -505,6 +505,7 @@ export const Root: FC = () => {
               <div className="absolute left-0 top-0 z-[-1] h-full w-full bg-[var(--color-bg-base)]" />
               <Image
                 src="/assets/images/root2/feature01_resized_compressed.png"
+                // src="/assets/images/root2/feature05_resized_compressed.png"
                 // src="/assets/images/root2/feature01_resized.png"
                 // src="/assets/images/root/feature1.png"
                 // src="/assets/images/feature-1.png"

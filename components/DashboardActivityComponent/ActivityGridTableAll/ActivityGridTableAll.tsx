@@ -362,8 +362,9 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
       const { data, error, count } = await supabase
         // .rpc("search_activities_and_companies_and_contacts", { params }, { count: "exact" })
         .rpc("search_activities_and_companies_and_contacts_v2", { params }, { count: "exact" })
-        .is("activity_created_by_company_id", null)
-        .or(`activity_created_by_user_id.eq.${userProfileState.id},activity_created_by_user_id.is.null`)
+        // .is("activity_created_by_company_id", null)
+        .eq("activity_created_by_company_id", userProfileState.company_id)
+        // .or(`activity_created_by_user_id.eq.${userProfileState.id},activity_created_by_user_id.is.null`)
         .range(from, to)
         // .order("company_name", { ascending: true });
         .order("activity_created_at", { ascending: false })
@@ -434,9 +435,9 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
       const { data, error, count } = await supabase
         // .rpc("search_activities_and_companies_and_contacts", { params }, { count: "exact" })
         .rpc("search_activities_and_companies_and_contacts_v2", { params }, { count: "exact" })
-        .or(`activity_created_by_company_id.eq.${userProfileState.company_id},activity_created_by_company_id.is.null`)
-        .or(`activity_created_by_user_id.eq.${userProfileState.id},activity_created_by_user_id.is.null`)
-        // .eq("activity_created_by_company_id", userProfileState.company_id)
+        // .or(`activity_created_by_company_id.eq.${userProfileState.company_id},activity_created_by_company_id.is.null`)
+        // .or(`activity_created_by_user_id.eq.${userProfileState.id},activity_created_by_user_id.is.null`)
+        .eq("activity_created_by_company_id", userProfileState.company_id)
         // .or(`activity_created_by_user_id.eq.${userProfileState.id},activity_created_by_user_id.is.null`)
         .range(from, to)
         // .order("company_name", { ascending: true });

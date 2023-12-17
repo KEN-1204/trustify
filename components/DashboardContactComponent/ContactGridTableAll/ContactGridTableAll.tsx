@@ -358,7 +358,8 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
       const { data, error, count } = await supabase
         .rpc("search_companies_and_contacts", { params }, { count: "exact" })
         .is("created_by_company_id", null)
-        .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
+        .eq("created_by_company_id", userProfileState.company_id)
+        // .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
         .range(from, to)
         .order("company_name", { ascending: true });
       // const { data, error, count } = await supabase
@@ -424,9 +425,9 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
       // created_by_company_idが一致するデータのみ
       const { data, error, count } = await supabase
         .rpc("search_companies_and_contacts", { params }, { count: "exact" })
-        .or(`created_by_company_id.eq.${userProfileState.company_id},created_by_company_id.is.null`)
-        .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
-        // .eq("created_by_company_id", userProfileState.company_id)
+        // .or(`created_by_company_id.eq.${userProfileState.company_id},created_by_company_id.is.null`)
+        // .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
+        .eq("created_by_company_id", userProfileState.company_id)
         // .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
         .range(from, to)
         .order("company_name", { ascending: true });

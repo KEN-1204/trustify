@@ -491,6 +491,8 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const handleSearchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    if (!userProfileState || !userProfileState.company_id) return alert("エラー：ユーザー情報が見つかりませんでした。");
+
     // // Asterisks to percent signs for PostgreSQL's LIKE operator
     function adjustFieldValue(value: string | null) {
       // if (typeof value === "boolean") return value; // Booleanの場合、そのままの値を返す
@@ -626,7 +628,8 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       "contacts.created_by_company_id": _contact_created_by_company_id,
       "contacts.created_by_user_id": _contact_created_by_user_id,
       // activitiesテーブル
-      "meetings.created_by_company_id": _meeting_created_by_company_id,
+      // "meetings.created_by_company_id": _meeting_created_by_company_id,
+      "meetings.created_by_company_id": userProfileState.company_id,
       "meetings.created_by_user_id": _meeting_created_by_user_id,
       "meetings.created_by_department_of_user": _meeting_created_by_department_of_user,
       "meetings.created_by_unit_of_user": _meeting_created_by_unit_of_user,

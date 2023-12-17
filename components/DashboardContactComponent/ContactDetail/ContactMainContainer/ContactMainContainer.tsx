@@ -11,6 +11,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import productCategoriesM, { moduleCategoryM } from "@/utils/productCategoryM";
 import { toast } from "react-toastify";
 import { Zoom } from "@/utils/Helpers/toastHelpers";
+import { FallbackUnderRightActivityLog } from "@/components/DashboardCompanyComponent/CompanyMainContainer/UnderRightActivityLog/FallbackUnderRightActivityLog";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -206,7 +207,10 @@ const ContactMainContainerMemo: FC = () => {
       setInputPositionClass(beforeAdjustFieldValue(newSearchContact_CompanyParams.position_class));
       setInputOccupation(beforeAdjustFieldValue(newSearchContact_CompanyParams.occupation));
       setInputApprovalAmount(beforeAdjustFieldValue(newSearchContact_CompanyParams.approval_amount));
-      setInputCreatedByCompanyId(beforeAdjustFieldValue(newSearchContact_CompanyParams.created_by_company_id));
+      // setInputCreatedByCompanyId(beforeAdjustFieldValue(newSearchContact_CompanyParams.created_by_company_id));
+      setInputCreatedByCompanyId(
+        beforeAdjustFieldValue(newSearchContact_CompanyParams["contacts.created_by_company_id"])
+      );
       setInputCreatedByUserId(beforeAdjustFieldValue(newSearchContact_CompanyParams.created_by_user_id));
     } else {
       setInputCompanyName("");
@@ -258,6 +262,8 @@ const ContactMainContainerMemo: FC = () => {
   // サーチ関数実行
   const handleSearchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (!userProfileState || !userProfileState.company_id) return alert("エラー：ユーザー情報が見つかりませんでした。");
 
     // // Asterisks to percent signs for PostgreSQL's LIKE operator
     function adjustFieldValue(value: string) {
@@ -361,7 +367,8 @@ const ContactMainContainerMemo: FC = () => {
       position_class: _position_class,
       occupation: _occupation,
       approval_amount: _approval_amount,
-      created_by_company_id: _created_by_company_id,
+      // created_by_company_id: _created_by_company_id,
+      "contacts.created_by_company_id": userProfileState.company_id,
       created_by_user_id: _created_by_user_id,
     };
 
@@ -1614,7 +1621,8 @@ const ContactMainContainerMemo: FC = () => {
               {/* 活動履歴 */}
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense
-                  fallback={<Fallback className="min-h-[calc(100vh-100vh/3-var(--header-height)/3--20px-22px-40px)]" />}
+                  fallback={<FallbackUnderRightActivityLog />}
+                  // fallback={<Fallback className="min-h-[calc(100vh-100vh/3-var(--header-height)/3--20px-22px-40px)]" />}
                 >
                   <ContactUnderRightActivityLog />
                 </Suspense>

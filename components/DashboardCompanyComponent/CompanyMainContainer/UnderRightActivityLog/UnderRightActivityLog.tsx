@@ -137,12 +137,6 @@ const UnderRightActivityLogMemo: FC = () => {
     "our_office",
   ];
 
-  // ================== 🌟useEffect 状況変化でテーブルリセットする🌟 ==================
-  // useEffect(() => {
-  //   // activeTab, searchMode, editMode
-  // }, [])
-  // ================== ✅useEffect 状況変化でテーブルリセットする✅ ==================
-
   // ================== 🌟疑似的なサーバーデータフェッチ用の関数🌟 ==================
   const fetchServerPageTest = async (
     limit: number,
@@ -287,11 +281,10 @@ const UnderRightActivityLogMemo: FC = () => {
     fetchNextPage,
     hasNextPage,
     isLoading,
-    isPaused,
   } = useInfiniteQuery({
     // queryKey: ["under_right_activities", "選択した会社名"],
     queryKey: [
-      "under_right_activities_comapnies",
+      "under_right_activities_companies",
       `${!!selectedRowDataCompany?.id ? selectedRowDataCompany.id : null}`,
     ],
     queryFn: async (ctx) => {

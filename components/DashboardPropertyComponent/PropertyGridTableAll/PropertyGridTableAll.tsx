@@ -361,8 +361,9 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
       // created_by_company_idがnullのもの
       const { data, error, count } = await supabase
         .rpc("search_properties_and_companies_and_contacts", { params }, { count: "exact" })
-        .is("property_created_by_company_id", null)
-        .or(`property_created_by_user_id.eq.${userProfileState.id},property_created_by_user_id.is.null`)
+        .eq("property_created_by_company_id", userProfileState.company_id)
+        // .is("property_created_by_company_id", null)
+        // .or(`property_created_by_user_id.eq.${userProfileState.id},property_created_by_user_id.is.null`)
         .range(from, to)
         // .order("company_name", { ascending: true });
         // .order("property_created_at", { ascending: false })
@@ -433,9 +434,9 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
       // created_by_company_idが一致するデータのみ
       const { data, error, count } = await supabase
         .rpc("search_properties_and_companies_and_contacts", { params }, { count: "exact" })
-        .or(`property_created_by_company_id.eq.${userProfileState.company_id},property_created_by_company_id.is.null`)
-        .or(`property_created_by_user_id.eq.${userProfileState.id},property_created_by_user_id.is.null`)
-        // .eq("property_created_by_company_id", userProfileState.company_id)
+        // .or(`property_created_by_company_id.eq.${userProfileState.company_id},property_created_by_company_id.is.null`)
+        // .or(`property_created_by_user_id.eq.${userProfileState.id},property_created_by_user_id.is.null`)
+        .eq("property_created_by_company_id", userProfileState.company_id)
         // .or(`property_created_by_user_id.eq.${userProfileState.id},property_created_by_user_id.is.null`)
         .range(from, to)
         // .order("company_name", { ascending: true });

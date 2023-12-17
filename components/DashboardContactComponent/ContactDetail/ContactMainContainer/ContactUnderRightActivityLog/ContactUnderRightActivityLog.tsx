@@ -11,6 +11,11 @@ import { rightRowData } from "@/components/DashboardCompanyComponent/CompanyMain
 import { UnderRightGridTableFooter } from "@/components/DashboardCompanyComponent/CompanyMainContainer/UnderRightActivityLog/UnderRightGridTableFooter";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { format } from "date-fns";
+import { debounce } from "lodash";
+import { SkeletonLoadingLineFull } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineFull";
+import { SkeletonLoadingLineMedium } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineMedium";
+import { SkeletonLoadingLineLong } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineLong";
+import { SkeletonLoadingLineShort } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineShort";
 // import { rightRowData } from "./data";
 
 type TableDataType = {
@@ -22,17 +27,9 @@ type TableDataType = {
   our_office: string;
 };
 
-type ColumnHeaderList = {
-  activityType: string;
-  summary: string;
-  date: string;
-  sales: string;
-  department: string;
-  office: string;
-};
-
 const ContactUnderRightActivityLogMemo: FC = () => {
   const language = useStore((state) => state.language);
+  const userProfileState = useDashboardStore((state) => state.userProfileState);
   //   const language = useRootStore(useStore, (state) => state.language);
   // const isOpenSidebar = useRootStore(useDashboardStore, (state) => state.isOpenSidebar);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
@@ -48,7 +45,13 @@ const ContactUnderRightActivityLogMemo: FC = () => {
   const currentColsWidths = useRef<string[]>([]);
   // 上画面の選択中の列データ会社
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
-  const userProfileState = useDashboardStore((state) => state.userProfileState);
+  // 選択中の行データのid保持用state => 行切り替え(selectedRowDataContact更新)後に前と今でidが異なるかチェック
+  const [currentRowDataContactId, setCurrentRowDataContactId] = useState<string | null>(null);
+  // デバウンスとenableと組み合わせてqueryFnの実行を遅延させる
+  const [isFetchingEnabled, setIsFetchingEnabled] = useState(false);
+  const fetchEnabledRef = useRef(false);
+  // フェッチカウント
+  const fetchCountRef = useRef(0);
 
   const supabase = useSupabaseClient();
 
@@ -62,6 +65,38 @@ const ContactUnderRightActivityLogMemo: FC = () => {
   const parentGridScrollContainer = useRef<HTMLDivElement | null>(null);
   // Rowグループコンテナ(Virtualize収納用インナー)
   const gridRowGroupContainerRef = useRef<HTMLDivElement | null>(null);
+
+  // デバウンス関数をuseRefで保持
+  const debouncedEnableFetch = useRef(
+    debounce((rowDataId) => {
+      if (!rowDataId) return console.log("右下 debounceコールバック関数 selectedRowDataContact無しのためリターン");
+      console.log("右下 3秒後 debounceコールバック関数実行");
+      setIsFetchingEnabled(true);
+      fetchEnabledRef.current = true;
+      setCurrentRowDataContactId(rowDataId as string);
+    }, 3000)
+  ).current;
+
+  if (selectedRowDataContact?.contact_id !== currentRowDataContactId) {
+    fetchEnabledRef.current = false;
+    console.log(
+      "右下 コンポーネント再レンダリング コンポーネントビジネスロジック 選択中の行データのidと保持してるローカルデータidが異なるためfetchEnabledRef.currentをfalseに",
+      fetchEnabledRef.current
+    );
+  }
+
+  // ================== 🌟選択行が変更後3秒デバウンスしてからデータフェッチの許可を通知🌟 ==================
+  useEffect(() => {
+    console.log("右下 selectedRowDataContactの切り替え検知🌟 debouncedEnableFetch実行");
+    setIsFetchingEnabled(false); // データフェッチを無効化
+    fetchEnabledRef.current = false;
+    debouncedEnableFetch(selectedRowDataContact?.contact_id); // デバウンス処理 3秒後にisFetchingEnabledをtrueに変更
+
+    return () => {
+      debouncedEnableFetch.cancel(); // クリーンアップ
+    };
+  }, [selectedRowDataContact]);
+  // ================== ✅選択行が変更後3秒デバウンスしてからデータフェッチの許可を通知✅ ==================
 
   const columnNameToJapanese = (columnName: string) => {
     switch (columnName) {
@@ -103,7 +138,7 @@ const ContactUnderRightActivityLogMemo: FC = () => {
   const fetchServerPageTest = async (
     limit: number,
     offset: number = 0
-  ): Promise<{ rows: TableDataType[]; nextOffset: number }> => {
+  ): Promise<{ rows: TableDataType[]; nextOffset: number; isLastPage: boolean; count: number | null }> => {
     // useInfiniteQueryのクエリ関数で渡すlimitの個数分でIndex番号を付けたRowの配列を生成
     // const rows = new Array(limit).fill(0).map((e, index) => {
     //   const newData: TableDataType = {
@@ -117,12 +152,14 @@ const ContactUnderRightActivityLogMemo: FC = () => {
     //   return newData;
     // });
     const rows = rightRowData;
+    const count = 300;
+    const isLastPage = false;
 
     // 0.5秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // 取得したrowsを返す（nextOffsetは、queryFnのctx.pageParamsが初回フェッチはundefinedで2回目が1のため+1でページ数と合わせる）
-    return { rows, nextOffset: offset + 1 };
+    return { rows, nextOffset: offset + 1, isLastPage, count };
   };
   // ================== ✅疑似的なサーバーデータフェッチ用の関数✅ ==================
 
@@ -136,7 +173,11 @@ const ContactUnderRightActivityLogMemo: FC = () => {
   }
 
   // ================== 🌟活動履歴を取得する関数🌟 ==================
-  let fetchServerPage: any;
+  // let fetchServerPage: any;
+  let fetchServerPage: (
+    limit: number,
+    offset: number
+  ) => Promise<{ rows: TableDataType[] | null; nextOffset: number; isLastPage: boolean; count: number | null }>;
   // ユーザーのcompany_idが見つからない、もしくは、上テーブルで行を選択していない場合には、右下活動テーブルは行データ無しでnullを返す
   if (!userProfileState?.company_id || !selectedRowDataContact?.contact_id) {
     fetchServerPage = async (
@@ -147,8 +188,10 @@ const ContactUnderRightActivityLogMemo: FC = () => {
       const isLastPage = true;
       const count = null;
 
+      console.log("右下活動履歴 未選択 selectedRowDataCompany", selectedRowDataContact);
+
       // 0.5秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
       // 取得したrowsを返す（nextOffsetは、queryFnのctx.pageParamsが初回フェッチはundefinedで2回目が1のため+1でページ数と合わせる）
       return { rows, nextOffset: offset + 1, isLastPage, count };
@@ -161,10 +204,8 @@ const ContactUnderRightActivityLogMemo: FC = () => {
       offset: number = 0
     ): Promise<{ rows: TableDataType[] | null; nextOffset: number; isLastPage: boolean; count: number | null }> => {
       // useInfiniteQueryのクエリ関数で渡すlimitの個数分でIndex番号を付けたRowの配列を生成
-      console.log("offset, limit", offset, limit);
       const from = offset * limit;
       const to = from + limit - 1;
-      console.log("from, to", from, to);
 
       let rows = null;
       let isLastPage = false;
@@ -175,20 +216,33 @@ const ContactUnderRightActivityLogMemo: FC = () => {
           _our_company_id: userProfileState.company_id,
           _contact_id: selectedRowDataContact.contact_id,
         };
-        const { data, error, count } = await supabase
+        const {
+          data,
+          error,
+          count: fetchCount,
+        } = await supabase
           .rpc("get_activities_and_contacts", selectPayload, { count: "exact" })
           .range(from, to)
           .order("activity_date", { ascending: true });
 
         if (error) throw error;
 
-        console.log("右下活動履歴 fetchServerPage関数フェッチ後 count data", count, data);
-
         rows = ensureClientCompanies(data);
-
-        console.log("fetchServerPage関数フェッチ後 rows", rows);
-        // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
-        isLastPage = rows === null || rows.length < limit;
+        isLastPage = rows === null || rows.length < limit; // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
+        count = fetchCount;
+        console.log(
+          "右下活動履歴 fetchServerPage関数フェッチ後 count data",
+          count,
+          data,
+          "offset, limit",
+          offset,
+          limit,
+          "from, to",
+          from,
+          to,
+          "rows",
+          rows
+        );
       } catch (e: any) {
         console.error(`右下活動履歴 fetchServerPage関数 DBからデータ取得に失敗、エラー: `, e);
         rows = null;
@@ -197,8 +251,8 @@ const ContactUnderRightActivityLogMemo: FC = () => {
         return { rows, nextOffset: offset + 1, isLastPage, count };
       }
 
-      // 0.5秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
-      // await new Promise((resolve) => setTimeout(resolve, 500));
+      // 0.3秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
       // 取得したrowsを返す（nextOffsetは、queryFnのctx.pageParamsが初回フェッチはundefinedで2回目が1のため+1でページ数と合わせる）
       // return { rows, nextOffset: offset + 1, isLastPage };
@@ -208,15 +262,27 @@ const ContactUnderRightActivityLogMemo: FC = () => {
   // ================== ✅活動履歴を取得する関数✅ ==================
 
   // ================== 🌟useInfiniteQueryフック🌟 ==================
-  const { status, data, error, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage } = useInfiniteQuery({
+  const {
+    status,
+    data,
+    error,
+    isFetching: isFetchingQuery,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+    isLoading,
+  } = useInfiniteQuery({
     // queryKey: ["under_right_activities", "選択した会社名"],
     queryKey: [
       "under_right_activities_contacts",
       `${!!selectedRowDataContact?.contact_id ? selectedRowDataContact.contact_id : null}`,
     ],
     queryFn: async (ctx) => {
-      // return fetchServerPageTest(50, ctx.pageParam); // 50個ずつ取得
-      return fetchServerPage(50, ctx.pageParam); // 50個ずつ取得
+      fetchCountRef.current += 1;
+      console.log(`右下 queryFn実行🔥🔥🔥 フェッチ${fetchCountRef.current}回目`, fetchCountRef.current);
+      const nextPage = await fetchServerPage(50, ctx.pageParam); // 50個ずつ取得
+      // const nextPage = await fetchServerPageTest(50, ctx.pageParam); // 50個ずつ取得 テスト
+      return nextPage;
     },
     // getNextPageParam: (_lastGroup, groups) => groups.length,
     getNextPageParam: (lastGroup, allGroups) => {
@@ -224,6 +290,7 @@ const ContactUnderRightActivityLogMemo: FC = () => {
       return lastGroup.isLastPage ? undefined : allGroups.length;
     },
     staleTime: Infinity,
+    enabled: isFetchingEnabled && fetchEnabledRef.current, // デバウンス後にフェッチを有効化(選択行が変更後3秒経過したらフェッチ許可)
   });
   // ================== 🌟useInfiniteQueryフック🌟 ここまで ==================
 
@@ -256,6 +323,7 @@ const ContactUnderRightActivityLogMemo: FC = () => {
     // ================= lastItem.indexに到達 追加フェッチ =================
     // 最後のアイテムindexが総数-1を超え、まだフェッチできるページがあり、フェッチ中でないなら
     if (lastItem.index >= allRows.length - 1 && hasNextPage && !isFetchingNextPage) {
+      fetchEnabledRef.current = true; // 無限スクロールフェッチのためfetchEnabledRefをtrueに
       // queryFnで設定した関数 limitは10で10個ずつフェッチで設定
       fetchNextPage(); // 追加でフェッチ
     }
@@ -344,6 +412,19 @@ const ContactUnderRightActivityLogMemo: FC = () => {
     // activity_updated_at: "yyyy/MM/dd HH:mm:ss",
   };
 
+  console.log(
+    "右下 フェッチ回数",
+    fetchCountRef.current,
+    "selectedRowDataCompany.contact_id",
+    selectedRowDataContact?.contact_id,
+    "右下活動履歴 data",
+    data,
+    "allRows.length",
+    allRows.length,
+    "rowVirtualizer.getVirtualItems().length",
+    rowVirtualizer.getVirtualItems().length
+  );
+
   return (
     <>
       <div
@@ -417,125 +498,141 @@ const ContactUnderRightActivityLogMemo: FC = () => {
             ))}
           </div>
 
+          {rowVirtualizer.getVirtualItems().length === 0 && !!selectedRowDataContact && !isLoading && (
+            <div className={`flex-col-center h-[calc(100%-25px)] w-full`}>
+              <span className={`text-[var(--color-text-sub)]`}>この客先への活動履歴はまだありません。</span>
+            </div>
+          )}
+          {!(allRows.length > 0) && !!selectedRowDataContact && isLoading && (
+            <div className={`flex h-[calc(100%-25px)] w-full flex-col space-y-[22px] px-[15px] py-[15px]`}>
+              <div className="flex flex-col space-y-[10px]">
+                <SkeletonLoadingLineFull rounded="rounded-[6px]" />
+                <SkeletonLoadingLineFull rounded="rounded-[6px]" />
+                <SkeletonLoadingLineMedium rounded="rounded-[6px]" />
+              </div>
+              <div className="flex flex-col space-y-[10px]">
+                <SkeletonLoadingLineLong rounded="rounded-[6px]" />
+                <SkeletonLoadingLineShort rounded="rounded-[6px]" />
+              </div>
+            </div>
+          )}
+
           {/* ======================== 🌟Grid列トラック Rowグループコンテナ🌟 ======================== */}
           {/* Rowアイテム収納のためのインナー要素 */}
-          <div
-            ref={gridRowGroupContainerRef}
-            role="rowgroup"
-            style={
-              {
-                height: `${rowVirtualizer.getTotalSize()}px`,
-                width: `var(--row-width)`,
-                position: "relative",
-                "--header-row-height": "25px",
-                "--row-width": "",
-              } as any
-            }
-            className={`${styles.grid_rowgroup_virtualized_container}`}
-          >
-            {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-              const isLoaderRow = virtualRow.index > allRows.length - 1;
-              const rowData = allRows[virtualRow.index];
-
-              // ========= 🌟初回表示時は上テーブルのデータを選択していないため右下活動履歴にはnullで空を表示 =========
-              if (!rowData) {
-                return null;
+          {allRows.length > 0 && rowVirtualizer.getVirtualItems().length > 0 && (
+            <div
+              ref={gridRowGroupContainerRef}
+              role="rowgroup"
+              style={
+                {
+                  height: `${rowVirtualizer.getTotalSize()}px`,
+                  width: `var(--row-width)`,
+                  position: "relative",
+                  "--header-row-height": "25px",
+                  "--row-width": "",
+                } as any
               }
+              className={`${styles.grid_rowgroup_virtualized_container}`}
+            >
+              {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                const isLoaderRow = virtualRow.index > allRows.length - 1;
+                const rowData = allRows[virtualRow.index];
 
-              // ========= 🌟ローディング中の行トラック =========
-              // if (isLoaderRow) return hasNextPage ? "Loading more" : "Nothing more to load";
-              if (isLoaderRow) {
-                return (
-                  <div
-                    key={virtualRow.index.toString() + "Loading"}
-                    role="row"
-                    tabIndex={-1}
-                    // aria-rowindex={virtualRow.index + 1} // ヘッダーの次からなのでindex0+2
-                    aria-selected={false}
-                    className={`${styles.loading_reflection} flex-center mx-auto h-[25px] w-full text-center font-bold`}
-                    // className={`${styles.loading_reflection} flex-center mx-auto h-[35px] w-full text-center font-bold`}
-                  >
-                    <span className={`${styles.reflection}`}></span>
-                    <div className={styles.spinner78}></div>
-                  </div>
-                );
-              }
-              // ========= 🌟ローディング中の行トラック ここまで =========
-              /* ======================== Grid列トラック Row ======================== */
-              return (
-                <div
-                  key={"row" + virtualRow.index.toString()}
-                  role="row"
-                  tabIndex={-1}
-                  aria-rowindex={virtualRow.index + 2} // ヘッダーの次からで+1、indexは0からなので+1で、index0に+2
-                  aria-selected={false}
-                  className={`${styles.grid_row}`}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: `1fr 3fr repeat(4, 1fr)`,
-                    minHeight: "25px",
-                    width: `100%`,
-                    top: ((virtualRow.index + 0) * 25).toString() + "px", // +1か0か
-                  }}
-                  // style={{
-                  //   top: ((virtualRow.index + 0) * 25).toString() + "px", // +1か0か
-                  // }}
-                >
-                  {/* ======== gridセル 全てのプロパティ(フィールド)セル  ======== */}
+                // ========= 🌟初回表示時は上テーブルのデータを選択していないため右下活動履歴にはnullで空を表示 =========
+                if (!rowData) {
+                  return null;
+                }
 
-                  {rowData ? (
-                    // カラム順番が変更されているなら順番を合わせてからmap()で展開 上はcolumnNameで呼び出し
-                    columnOrder
-                      .map((columnName) => rowData[columnName])
-                      .map((value, index) => {
-                        const columnName = columnHeaderList[index];
-                        let displayValue = value;
-                        // 「日付」のカラムのセルには、formatして表示する
-                        if (columnName in formatMapping && !!value) {
-                          displayValue = format(new Date(value), formatMapping[columnName]);
-                        }
-                        return (
-                          <div
-                            key={"row" + virtualRow.index.toString() + index.toString()}
-                            role="gridcell"
-                            aria-colindex={index + 1} // カラムヘッダーの列StateのcolumnIndexと一致させる
-                            aria-selected={false}
-                            tabIndex={-1}
-                            className={`${styles.grid_cell} ${styles.grid_cell_resizable}`}
-                            style={{
-                              gridColumnStart: index + 1,
-                            }}
-                          >
-                            {/* {value} */}
-                            {displayValue}
-                          </div>
-                        );
-                      })
-                  ) : (
-                    // カラム順番が変更されていない場合には、初期のallRows[0]のrowからmap()で展開
+                // ========= 🌟ローディング中の行トラック =========
+                // if (isLoaderRow) return hasNextPage ? "Loading more" : "Nothing more to load";
+                if (isLoaderRow) {
+                  return (
                     <div
-                      key={virtualRow.index.toString() + "Loading..."}
+                      key={virtualRow.index.toString() + "Loading"}
                       role="row"
                       tabIndex={-1}
-                      // aria-rowindex={virtualRow.index + 1} // ヘッダーの次からなのでindex0+2
                       aria-selected={false}
-                      className={`${styles.grid_row} z-index absolute w-full bg-slate-300 text-center font-bold text-[red]`}
-                      style={{
-                        // gridTemplateColumns: colsWidth.join(" "),
-                        // top: gridRowTrackTopPosition(index),
-                        // top: (virtualRow.index * 35).toString() + "px",
-                        bottom: "2.5rem",
-                      }}
+                      className={`${styles.loading_reflection} h-[25px] w-full text-center font-bold`}
                     >
-                      Loading...
+                      <span className={`${styles.reflection}`}></span>
+                      <div className={styles.spinner78}></div>
                     </div>
-                  )}
+                  );
+                }
+                // ========= 🌟ローディング中の行トラック ここまで =========
+                /* ======================== Grid列トラック Row ======================== */
+                return (
+                  <div
+                    key={"row" + virtualRow.index.toString()}
+                    role="row"
+                    tabIndex={-1}
+                    aria-rowindex={virtualRow.index + 2} // ヘッダーの次からで+1、indexは0からなので+1で、index0に+2
+                    aria-selected={false}
+                    className={`${styles.grid_row}`}
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: `1fr 3fr repeat(4, 1fr)`,
+                      minHeight: "25px",
+                      width: `100%`,
+                      top: ((virtualRow.index + 0) * 25).toString() + "px", // +1か0か
+                    }}
+                  >
+                    {/* ======== gridセル 全てのプロパティ(フィールド)セル  ======== */}
 
-                  {/* ======== ヘッダーセル idを除く全てのプロパティ(フィールド)Column  ======== */}
-                </div>
-              );
-            })}
-          </div>
+                    {rowData ? (
+                      // カラム順番が変更されているなら順番を合わせてからmap()で展開 上はcolumnNameで呼び出し
+                      columnOrder
+                        .map((columnName) => rowData[columnName])
+                        .map((value, index) => {
+                          const columnName = columnHeaderList[index];
+                          let displayValue = value;
+                          // 「日付」のカラムのセルには、formatして表示する
+                          if (columnName in formatMapping && !!value) {
+                            displayValue = format(new Date(value), formatMapping[columnName]);
+                          }
+                          return (
+                            <div
+                              key={"row" + virtualRow.index.toString() + index.toString()}
+                              role="gridcell"
+                              aria-colindex={index + 1} // カラムヘッダーの列StateのcolumnIndexと一致させる
+                              aria-selected={false}
+                              tabIndex={-1}
+                              className={`${styles.grid_cell} ${styles.grid_cell_resizable}`}
+                              style={{
+                                gridColumnStart: index + 1,
+                              }}
+                            >
+                              {/* {value} */}
+                              {displayValue}
+                            </div>
+                          );
+                        })
+                    ) : (
+                      // カラム順番が変更されていない場合には、初期のallRows[0]のrowからmap()で展開
+                      <div
+                        key={virtualRow.index.toString() + "Loading..."}
+                        role="row"
+                        tabIndex={-1}
+                        // aria-rowindex={virtualRow.index + 1} // ヘッダーの次からなのでindex0+2
+                        aria-selected={false}
+                        className={`${styles.grid_row} z-index absolute w-full bg-slate-300 text-center font-bold text-[red]`}
+                        style={{
+                          // gridTemplateColumns: colsWidth.join(" "),
+                          // top: gridRowTrackTopPosition(index),
+                          // top: (virtualRow.index * 35).toString() + "px",
+                          bottom: "2.5rem",
+                        }}
+                      >
+                        Loading...
+                      </div>
+                    )}
+
+                    {/* ======== ヘッダーセル idを除く全てのプロパティ(フィールド)Column  ======== */}
+                  </div>
+                );
+              })}
+            </div>
+          )}
           {/* ======================== Grid列トラック Row ======================== */}
         </div>
         {/* ================== Gridスクロールコンテナ ここまで ================== */}

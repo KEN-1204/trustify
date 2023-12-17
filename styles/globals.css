@@ -1441,6 +1441,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff30, #ffffff20, #ffffff10, #ffffff10, #ffffff80); */
   --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff20, #ffffff80, #ffffff40, #ffffff20, #ffffff80);
   --tile-border-hp: conic-gradient(#ffffffe0, #ffffff40, #ffffff20, #ffffffe0, #ffffff40, #ffffff20, #ffffffe0);
+  --tile-border-hp: conic-gradient(#fffffff0, #ffffff50, #ffffff05, #fffffff0, #ffffff50, #ffffff05, #fffffff0);
   /* --tile-border-hp-hover: conic-gradient(#0088ff, #7de2eb, #cffcfd, #0088ff, #7de2eb, #cffcfd, #0088ff); */
   /* --tile-border-hp-hover: conic-gradient(#0088ff, #7de2ebc0, #cffcfd90, #0088ff, #7de2ebc0, #cffcfd90, #0088ff); */
   --tile-border-hp-hover: conic-gradient(#0088ff, #7de2eb, #cffcfd30, #0088ff, #7de2eb, #cffcfd30, #0088ff);

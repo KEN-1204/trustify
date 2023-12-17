@@ -385,6 +385,8 @@ const ActivityMainContainerMemo: FC = () => {
   const handleSearchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    if (!userProfileState || !userProfileState.company_id) return alert("エラー：ユーザー情報が見つかりませんでした。");
+
     // // Asterisks to percent signs for PostgreSQL's LIKE operator
     function adjustFieldValue(value: string) {
       // if (typeof value === "boolean") return value; // Booleanの場合、そのままの値を返す
@@ -511,7 +513,8 @@ const ActivityMainContainerMemo: FC = () => {
       "contacts.created_by_company_id": _contact_created_by_company_id,
       "contacts.created_by_user_id": _contact_created_by_user_id,
       // activitiesテーブル
-      "activities.created_by_company_id": _activity_created_by_company_id,
+      // "activities.created_by_company_id": _activity_created_by_company_id,
+      "activities.created_by_company_id": userProfileState.company_id,
       "activities.created_by_user_id": _activity_created_by_user_id,
       "activities.created_by_department_of_user": _activity_created_by_department_of_user,
       "activities.created_by_unit_of_user": _activity_created_by_unit_of_user,

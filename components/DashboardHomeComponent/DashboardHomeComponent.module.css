@@ -105,6 +105,7 @@
 }
 .content_card:hover {
   background: var(--color-bg-sub-re-hover);
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
 }
 /* text-[var(--color-text-brand-f)] */
 .content_card:hover .right_arrow {

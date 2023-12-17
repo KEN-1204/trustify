@@ -1086,7 +1086,8 @@ export type NewSearchContact_CompanyParams = {
   position_class: string | null;
   occupation: string | null;
   approval_amount: string | null;
-  created_by_company_id: string | null;
+  // created_by_company_id: string | null;
+  "contacts.created_by_company_id": string | null;
   created_by_user_id: string | null;
 };
 
