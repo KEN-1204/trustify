@@ -12,7 +12,9 @@ import productCategoriesM from "@/utils/productCategoryM";
 import { toast } from "react-toastify";
 import { Zoom } from "@/utils/Helpers/toastHelpers";
 import { BsCheck2 } from "react-icons/bs";
+import { FallbackUnderRightActivityLog } from "./UnderRightActivityLog/FallbackUnderRightActivityLog";
 
+// ====================== 擬似テストデータ用 ======================
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
 // const DynamicComponent = dynamic(() => import('../components/hello'));
@@ -23,6 +25,7 @@ const UnderRightActivityLog = dynamic(
     ssr: false,
   }
 );
+// ====================== 擬似テストデータ用 ======================
 /**カスタムローディングコンポーネント オプションの loading コンポーネントを追加して、動的コンポーネントの読み込み中に読み込み状態をレンダリングできます
  * const DynamicComponentWithCustomLoading = dynamic(() => import('../components/hello'), {
   loading: () => <p>...</p>
@@ -228,10 +231,12 @@ const CompanyMainContainerMemo: FC = () => {
       setInputMember("");
     }
   }, [editSearchMode, searchMode]);
+  // }, [editSearchMode]);
 
   // サーチ関数実行
   const handleSearchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    console.log("サブミット");
 
     // // Asterisks to percent signs for PostgreSQL's LIKE operator
     function adjustFieldValue(value: string) {
@@ -1560,11 +1565,13 @@ const CompanyMainContainerMemo: FC = () => {
               {/* 活動履歴 */}
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense
-                  fallback={<Fallback className="min-h-[calc(100vh-100vh/3-var(--header-height)/3--20px-22px-40px)]" />}
+                  fallback={<FallbackUnderRightActivityLog />}
+                  // fallback={<Fallback className="min-h-[calc(100vh-100vh/3-var(--header-height)/3--20px-22px-40px)]" />}
                 >
                   <UnderRightActivityLog />
                 </Suspense>
               </ErrorBoundary>
+              {/* <FallbackUnderRightActivityLog /> */}
               {/* 下エリア 禁止フラグなど */}
               <div
                 className={`${styles.right_under_container} h-screen w-full  bg-[#f0f0f0]/[0] ${
@@ -1987,7 +1994,7 @@ const CompanyMainContainerMemo: FC = () => {
                     isOpenSidebar ? "min-h-[34px]" : `min-h-[42px]`
                   } w-full items-center justify-between space-x-[15px]`}
                 >
-                  <button
+                  <div
                     className={`transition-base02 flex-center ${
                       isOpenSidebar ? "max-h-[34px] text-[14px]" : `max-h-[38px] text-[15px]`
                     } w-[100%] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-sub-light)] px-[25px] py-[15px] text-[var(--color-text-title)] hover:bg-[var(--setting-side-bg-select-hover)]`}
@@ -1998,7 +2005,7 @@ const CompanyMainContainerMemo: FC = () => {
                     }}
                   >
                     戻る
-                  </button>
+                  </div>
                   <button
                     type="submit"
                     className={`${styles.btn} transition-base02 ${

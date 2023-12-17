@@ -5,10 +5,12 @@ import useStore from "@/store";
 
 type Props = {
   getItemCount: number;
+  getTotalCount?: number | null;
 };
 
-const UnderRightGridTableFooterMemo: FC<Props> = ({ getItemCount }) => {
+const UnderRightGridTableFooterMemo: FC<Props> = ({ getItemCount, getTotalCount }) => {
   const language = useStore((state) => state.language);
+  // console.log("右下フッター getItemCount", getItemCount, "getTotalCount", getTotalCount);
   return (
     <div className={styles.grid_footer}>
       <div className={styles.grid_footer_inner}>
@@ -40,15 +42,26 @@ const UnderRightGridTableFooterMemo: FC<Props> = ({ getItemCount }) => {
           </button> */}
           <button className=" focus:outline-scale-600 flex rounded bg-transparent p-0  outline-offset-1 transition-all focus:outline-4 ">
             <span className=" font-regular text-scale-1200 bordershadow-scale-600 hover:bordershadow-scale-700 dark:bordershadow-scale-800 hover:dark:bordershadow-scale-900 focus-visible:outline-scale-700 relative inline-flex cursor-pointer items-center space-x-2 rounded border border-[#777] bg-transparent px-[0px] text-center text-[12px] shadow-sm  duration-200 ease-out focus-visible:outline-4 focus-visible:outline-offset-1">
-              <span className="truncate">
+              {/* <span className="truncate">
                 {language === "ja" && `${getItemCount ? getItemCount : `-`} `}
+                {language === "en" && "100 rows"}
+              </span> */}
+              <span className="truncate ">
+                {language === "ja" && `${!!getItemCount && !!getTotalCount ? getItemCount : `-`} 件`}
                 {language === "en" && "100 rows"}
               </span>
             </span>
           </button>
-          <p className="text-[13px] font-medium text-[#bbb]">
-            {language === "ja" && `/ 124件`}
-            {language === "en" && "55 records"}
+          <p className="space-x-2 text-[13px] font-medium text-[#bbb]">
+            <span>/</span>
+            <span>
+              {/* {language === "ja" && `/ 124件`}
+            {language === "en" && "55 records"} */}
+              {/* {language === "ja" && `/ ${getTotalCount === null ? "-" : getTotalCount}件`}
+              {language === "en" && `/ ${getTotalCount === null ? "-" : getTotalCount} records`} */}
+              {language === "ja" && `${getTotalCount === null ? "0" : getTotalCount} 件`}
+              {language === "en" && `${getTotalCount === null ? "0" : getTotalCount} records`}
+            </span>
           </p>
         </div>
       </div>

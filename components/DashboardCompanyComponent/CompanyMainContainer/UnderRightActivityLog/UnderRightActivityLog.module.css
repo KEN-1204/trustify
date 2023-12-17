@@ -15,7 +15,10 @@
   /* 画面 - サイドバー -  padding20px - 右コンテナ - pl-[10px] - ボーダー左右で2px */
   /* 右コンテナは固定サイズにするため--sidebar-mini-widthで72pxに指定 */
   /* それ以外はapp_main_containerクラスの--sidebar-widthでサイドバーの開閉に合わせて240pxと72pxの値が変わるため、--sidebar-widthのみの指定でOK */
-  max-width: calc(100vw - var(--sidebar-width) - 20px - (50vw - var(--sidebar-mini-width)) - 10px - 2px);
+  /* 🌟テスト */
+  /* max-width: calc(100vw - var(--sidebar-width) - 20px - (50vw - var(--sidebar-mini-width)) - 10px - 2px); */
+  max-width: 100%;
+  /* 🌟テスト */
   /* width: calc(50vw - var(--sidebar-mini-width) + 20px + 20px); */
   overflow-y: hidden;
 
@@ -85,7 +88,7 @@
 
 /* 🌟スクロールコンテナ overflow: auto */
 /* position relative */
-.grid_scroll_container {
+.under_grid_scroll_container {
   /* 🌟HomeComponentのスクリーンにpadding 上下20px有りの場合 */
   /* max-height: calc(100vh - var(--header-height) - 30px - 40px - 20px); */
 
@@ -105,7 +108,23 @@
   width: 100%;
   overflow: auto;
   position: relative;
-  padding-right: 10vw;
+  /* padding-right: 10vw; */
+}
+.under_grid_scroll_container_fallback {
+  /* 🌟HomeComponentのスクリーンにpadding 上下20px有りの場合 */
+  /* max-height: calc(100vh - var(--header-height) - 30px - 40px - 20px); */
+
+  /* スクロールコンテナのサイズから-20px(上のpadding分)を引いたサイズの0.6倍(残り下は0.4倍のサイズ分) - タブヘッダー22px タブフッター-22px ボーダー1px*2 */
+  height: calc(
+    (
+        100vh - var(--header-height) - calc(100vh / 3 - var(--header-height) / 3) - 20px - 20px - 20px - 22px - 40px -
+          2px - 20px
+      ) * 0.68 - 5px - 22px - 25px - 1px - 1px
+  );
+  width: 100%;
+  overflow: auto;
+  position: relative;
+  /* padding-right: 10vw; */
 }
 
 .grid_scroll_container_half {
@@ -160,11 +179,31 @@
   width: var(--row-width);
   /* background-color: var(--color-bg-base-sub); */
 }
-
-.grid_row {
+.grid_header_row_fallback {
   display: grid;
   grid-template-columns: var(--template-columns);
   grid-template-rows: var(--header-row-height);
+  position: sticky;
+  z-index: 10;
+  top: 0;
+  user-select: none;
+  border-style: none;
+  outline: none;
+  font-weight: 500;
+  /* contain: size layout style paint; */
+  /* contain: size layout style; */
+  /* contain: size layout; */
+  height: var(--header-row-height);
+  width: var(--row-width);
+  /* background-color: var(--color-bg-base-sub); */
+}
+
+.grid_row {
+  display: grid;
+  /* grid-template-columns: var(--template-columns); */
+  /* grid-template-rows: var(--header-row-height); */
+  grid-template-columns: 1fr 3fr repeat(4, 1fr);
+  grid-template-rows: 25px;
   height: var(--header-row-height);
   width: var(--row-width);
   contain: size layout style paint;
@@ -186,7 +225,8 @@
   /* border-bottom: 1px solid var(--border-color); */
   border-bottom: 1px solid var(--color-border-table-deep);
   border-right: 1px solid var(--color-border-table-deep);
-  contain: size layout style paint;
+  contain: size layout;
+  /* contain: size layout style paint; */
   outline: none;
   padding: 0 8px;
 }
@@ -466,9 +506,9 @@
   width: 100%;
   display: flex;
   /* justify-content: flex-start; */
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
-  padding-left: 40vw;
+  /* padding-left: 40vw; */
   border-right: 1px solid var(--border-color);
   border-top: 1px solid var(--color-border-base);
   background-color: var(--color-table-bg-loading);
@@ -516,8 +556,10 @@
 }
 
 .spinner78 {
-  width: 24px;
-  height: 24px;
+  /* width: 24px;
+  height: 24px; */
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   /* border: 3.8px solid #787878; */
   border: 3.8px solid var(--color-table-loading-spinner);

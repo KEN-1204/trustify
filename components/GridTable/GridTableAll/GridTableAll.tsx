@@ -254,7 +254,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // 表示するカラム
   const columnNamesObj = [...columnHeaderItemList]
     .map((item, index) => item.columnName as keyof Client_company)
-    .join(", "); // columnNameのみの配列を取得
+    .join(", "); // columnNameのみの配列をオブジェクトに変換して取得 { column1, column2, ... }
 
   // ユーザーState
   const userProfileState = useDashboardStore((state) => state.userProfileState);
@@ -268,6 +268,10 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // let getTotalCount;
   // ユーザーが会社idを持っていない場合にはcreated_by_company_idはnullのみを取得する関数を定義
   let fetchServerPage: any;
+  // let fetchServerPage: (
+  //   limit: number,
+  //   offset: number
+  // ) => Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean; count: number | null }>;
   // ユーザーが会社に所属していない場合には、created_byがNULLの会社のみ取得 新規サーチはなし
   if (userProfileState?.company_id === null) {
     fetchServerPage = async (
@@ -386,6 +390,10 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // const queryClient = useQueryClient()
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   let fetchNewSearchServerPage: any;
+  // let fetchNewSearchServerPage: (
+  //   limit: number,
+  //   offset: number
+  // ) => Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean; count: number | null }>;
   // 条件あり新規サーチ ユーザーが会社に所属していない場合には、created_byがNULLの会社のみ取得
   if (userProfileState?.company_id === null) {
     fetchNewSearchServerPage = async (
@@ -523,11 +531,18 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
         // return fetchServerPage(35, ctx.pageParam); // 50個ずつ取得
         // 新規サーチなしの通常モード
         if (newSearchCompanyParams === null) {
+          // 初回表示時のフェッチ(条件検索無し)
           console.log("通常フェッチ queryFn✅✅✅", newSearchCompanyParams);
-          return fetchServerPage(50, ctx.pageParam); // 50個ずつ取得
+          const newPage = await fetchServerPage(50, ctx.pageParam); // 50個ずつ取得
+          if (loadingGlobalState) setLoadingGlobalState(false);
+          return newPage;
         } else {
+          // 条件あり新規サーチ;
           console.log("サーチフェッチ queryFn✅✅✅", newSearchCompanyParams);
-          return fetchNewSearchServerPage(50, ctx.pageParam); // 50個ずつ取得
+          // return fetchNewSearchServerPage(50, ctx.pageParam); // 50個ずつ取得
+          const newPage = await fetchNewSearchServerPage(50, ctx.pageParam); // 50個ずつ取得
+          if (loadingGlobalState) setLoadingGlobalState(false);
+          return newPage;
         }
       },
       // ================= 🔥🔥テスト🔥🔥==================
@@ -555,6 +570,10 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // }, [newSearchCompanyParams]);
 
   // ================= 🔥🔥テスト🔥🔥ここから==================
+
+  // interface extendedClient_companyAddedIndex extends Client_company {
+  //   index?: number | null;
+  // }
   // 現在取得している全ての行 data.pagesのネストした配列を一つの配列にフラット化
   // const allRows = data ? data.pages.flatMap((d) => d?.rows) : [];
   console.log("=============================================data", data);
@@ -563,6 +582,9 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   const allRows = Rows.map((obj, index) => {
     return { index, ...obj };
   });
+  // const allRows: (extendedClient_companyAddedIndex)[] = Rows.map((obj, index) => {
+  //   return { index, ...obj };
+  // });
   // ================= 🔥🔥テスト🔥🔥ここまで==================
 
   // ============================= 🌟バーチャライザーのインスタンスを生成🌟 =============================
@@ -2741,6 +2763,19 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                         // }}
                         onMouseEnter={(e) => {
                           // if (isOverflowColumnHeader.includes(key.columnId.toString())) {
+                          // 自社専用会社データのみ詳細説明をツールチップで表示する
+                          if (key.columnName === "created_by_company_id") {
+                            handleOpenTooltip({
+                              e: e,
+                              display: "top",
+                              content: columnNameToJapanese(key.columnName),
+                              content2: "自社で作成した会社データは編集が可能です。",
+                              marginTop: 20,
+                              itemsPosition: "center",
+                            });
+                            return;
+                          }
+                          // 3点リーダーがtrueになっているカラムのみツールチップ表示
                           if (key.isOverflow) {
                             // handleOpenTooltip(e, "top", key.columnName);
                             const columnNameData = key.columnName ? key.columnName : "";
@@ -2757,6 +2792,10 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                         }}
                         onMouseLeave={() => {
                           // if (isOverflowColumnHeader.includes(key.columnId.toString())) {
+                          if (key.columnName === "created_by_company_id") {
+                            handleCloseTooltip();
+                            return;
+                          }
                           if (key.isOverflow) {
                             console.log("マウスリーブ ツールチップクローズ");
                             handleCloseTooltip();

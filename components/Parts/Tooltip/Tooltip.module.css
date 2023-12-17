@@ -10,6 +10,7 @@
 .tooltip_area {
   position: absolute;
   z-index: 1500;
+  pointer-events: none;
 }
 .tooltip {
   /* top: 38px; */
@@ -29,6 +30,7 @@
   border-radius: 6px;
   box-shadow: inset 0px 0px 0px 1px #ffffff80, 0px 0px 0px 1px #000;
   transition: background 0.3s ease;
+  pointer-events: none;
 }
 .tooltip1::after {
   content: "";
@@ -71,6 +73,7 @@
   width: 8px;
   height: 8px;
   /* border-top: 4px solid #000; */
+  pointer-events: none;
 }
 
 /* .tooltip_over {
@@ -100,6 +103,7 @@
 .tooltip_area {
   position: absolute;
   z-index: 1500;
+  pointer-events: none;
 }
 .tooltip_over {
   /* top: 38px; */
@@ -122,6 +126,7 @@
   border-radius: 6px;
   box-shadow: inset 0px 0px 0px 1px #ffffff80, 0px 0px 0px 1px #000;
   transition: background 0.3s ease;
+  pointer-events: none;
 }
 
 .tooltip_arrow_over {
@@ -139,6 +144,7 @@
   width: 8px;
   height: 8px;
   /* border-top: 4px solid #000; */
+  pointer-events: none;
 }
 
 /* .tooltip_left {
@@ -259,6 +265,7 @@
   /* direction: rtl; */
   /* white-space: nowrap; */
   white-space: pre-wrap;
+  pointer-events: none;
 }
 .dropdown_item:hover {
   /* background: var(--color-bg-brand); */

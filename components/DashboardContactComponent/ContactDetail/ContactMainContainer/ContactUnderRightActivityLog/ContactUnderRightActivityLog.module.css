@@ -84,7 +84,7 @@
 
 /* 🌟スクロールコンテナ overflow: auto */
 /* position relative */
-.grid_scroll_container {
+.under_grid_scroll_container {
   /* 🌟HomeComponentのスクリーンにpadding 上下20px有りの場合 */
   /* max-height: calc(100vh - var(--header-height) - 30px - 40px - 20px); */
 
@@ -104,7 +104,7 @@
   width: 100%;
   overflow: auto;
   position: relative;
-  padding-right: 10vw;
+  /* padding-right: 10vw; */
 }
 
 .grid_scroll_container_half {
@@ -185,7 +185,8 @@
   /* border-bottom: 1px solid var(--border-color); */
   border-bottom: 1px solid var(--color-border-table-deep);
   border-right: 1px solid var(--color-border-table-deep);
-  contain: size layout style paint;
+  contain: size layout;
+  /* contain: size layout style paint; */
   outline: none;
   padding: 0 8px;
 }

@@ -595,6 +595,9 @@ export const DashboardHeaderMemo: FC = () => {
         {/* ============================= 1列目ナビゲーションタブ ここから ============================= */}
         {/* <nav className={`${tabPage === 2 ? "-ml-[calc(100%+39px)]" : ""} transition-base `}> */}
         <nav
+          // className={`${
+          //   tabPage === 2 ? "-ml-[calc(100%+39px)]" : ""
+          // } transition-base flex-center w-full max-w-[calc(100vw-185px-35px-165px-48px-39px)]`}
           className={`${
             tabPage === 2 ? "-ml-[calc(100%+39px)]" : ""
           } transition-base flex-center min-w-[calc(100vw-185px-35px-165px-48px-39px)]`}

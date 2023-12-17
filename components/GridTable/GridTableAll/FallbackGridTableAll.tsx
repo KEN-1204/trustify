@@ -94,15 +94,23 @@ export const FallbackGridTableAll = () => {
             className={`${styles.search_mode_container_one_third_fallback} flex max-h-[calc(100vh/3-var(--header-height)/3-30px-40px-30px-1px)] w-full flex-col `}
             // className={`${styles.search_mode_container_one_third} flex !min-h-[173px] w-full min-w-[96vw] max-w-[96vw] flex-col`}
           >
-            <div className="flex h-full max-h-[330px] min-h-[330px] w-full flex-col space-y-[18px] pb-[20px] pl-[20px] pr-[50px] pt-[18px]">
-              {/* <SkeletonLoadingLines /> */}
+            {/* <div className="flex h-full max-h-[330px] min-h-[330px] w-full flex-col space-y-[18px] pb-[20px] pl-[20px] pr-[50px] pt-[18px]"> */}
+            <div className="flex h-full max-h-[330px]  w-full flex-col space-y-[28px] pb-[20px] pl-[20px] pr-[50px] pt-[18px]">
+              {/* <SkeletonLoadingLineFull />
               <SkeletonLoadingLineFull />
-              <SkeletonLoadingLineFull />
-              {/* <SkeletonLoadingLineLong /> */}
               <SkeletonLoadingLineMedium />
-              {/* <SkeletonLoadingLineMedium /> */}
-              <SkeletonLoadingLineShort />
-              <div className="h-[5px] w-full"></div>
+              <SkeletonLoadingLineShort /> */}
+
+              <div className="flex flex-col space-y-[12px]">
+                <SkeletonLoadingLineFull rounded="rounded-[6px]" />
+                <SkeletonLoadingLineFull rounded="rounded-[6px]" />
+                <SkeletonLoadingLineMedium rounded="rounded-[6px]" />
+              </div>
+              <div className="flex flex-col space-y-[12px]">
+                <SkeletonLoadingLineLong rounded="rounded-[6px]" />
+                <SkeletonLoadingLineShort rounded="rounded-[6px]" />
+              </div>
+              {/* <div className="h-[5px] w-full"></div> */}
               <div className="min-h-[0px] w-full"></div>
             </div>
 

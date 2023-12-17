@@ -5152,7 +5152,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     isOpenSidebar ? "min-h-[34px]" : `min-h-[42px]`
                   } w-full items-center justify-between space-x-[15px]`}
                 >
-                  <button
+                  <div
                     className={`transition-base02 flex-center ${
                       isOpenSidebar ? "max-h-[34px] text-[14px]" : `max-h-[38px] text-[15px]`
                     } w-[100%] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-sub-light)] px-[25px] py-[15px] text-[var(--color-text-title)] hover:bg-[var(--setting-side-bg-select-hover)]`}
@@ -5163,7 +5163,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     }}
                   >
                     戻る
-                  </button>
+                  </div>
                   <button
                     type="submit"
                     className={`${styles.btn} transition-base02 ${
