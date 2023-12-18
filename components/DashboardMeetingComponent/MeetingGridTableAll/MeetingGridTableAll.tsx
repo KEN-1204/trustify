@@ -1,7 +1,7 @@
 import React, { FC, memo, useCallback, useEffect, useRef, useState } from "react";
 import styles from "./MeetingGridTableAll.module.css";
 import useStore from "@/store";
-import { MeetingGridTableFooter } from "./MeetingGridTableFooter/MeetingGridTableFooter";
+// import { MeetingGridTableFooter } from "./MeetingGridTableFooter/MeetingGridTableFooter";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import useDashboardStore from "@/store/useDashboardStore";
@@ -18,6 +18,7 @@ import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 import { format } from "date-fns";
 import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
+import { GridTableFooter } from "@/components/GridTable/GridTableFooter/GridTableFooter";
 
 type TableDataType = {
   id: number;
@@ -433,14 +434,15 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
       // created_by_company_idが一致するデータのみ
       const { data, error, count } = await supabase
         .rpc("search_meetings_and_companies_and_contacts", { params }, { count: "exact" })
-        .eq("property_created_by_company_id", userProfileState.company_id)
+        .eq("meeting_created_by_company_id", userProfileState.company_id)
         // .or(`meeting_created_by_company_id.eq.${userProfileState.company_id},meeting_created_by_company_id.is.null`)
         // .or(`meeting_created_by_user_id.eq.${userProfileState.id},meeting_created_by_user_id.is.null`)
         // .eq("meeting_created_by_company_id", userProfileState.company_id)
         // .or(`meeting_created_by_user_id.eq.${userProfileState.id},meeting_created_by_user_id.is.null`)
         .range(from, to)
         // .order("company_name", { ascending: true });
-        .order("meeting_created_at", { ascending: false });
+        .order("meeting_created_at", { ascending: false })
+        .order("company_name", { ascending: true });
       // 成功バージョン
       // const { data, error, count } = await supabase
       //   .rpc("search_meetings_and_companies_and_contacts", { params }, { count: "exact" })
@@ -3176,7 +3178,14 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
           </div>
           {/* ================== Gridスクロールコンテナ ここまで ================== */}
           {/* =============== Gridフッター ここから スクロールコンテナと同列で配置 =============== */}
-          <MeetingGridTableFooter getItemCount={allRows.length} getTotalCount={data ? data.pages[0].count : 0} />
+          {/* <MeetingGridTableFooter
+            getItemCount={allRows.length}
+            getTotalCount={!!data?.pages[0]?.count ? data.pages[0].count : 0}
+          /> */}
+          <GridTableFooter
+            getItemCount={allRows.length}
+            getTotalCount={!!data?.pages[0]?.count ? data.pages[0].count : 0}
+          />
           {/* ================== Gridフッター ここまで ================== */}
         </div>
         {/* ================== Gridメインコンテナ ここまで ================== */}

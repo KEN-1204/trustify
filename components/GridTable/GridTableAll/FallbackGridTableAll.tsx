@@ -90,6 +90,7 @@ export const FallbackGridTableAll = () => {
             className={`${styles.grid_header_row}`}
           ></div>
           {/* ======================== 🌟Grid列トラック Rowヘッダー🌟 ======================== */}
+          {/* ======================== 🌟Grid列トラック Rowトラック🌟 ======================== */}
           <div
             className={`${styles.search_mode_container_one_third_fallback} flex max-h-[calc(100vh/3-var(--header-height)/3-30px-40px-30px-1px)] w-full flex-col `}
             // className={`${styles.search_mode_container_one_third} flex !min-h-[173px] w-full min-w-[96vw] max-w-[96vw] flex-col`}
@@ -130,6 +131,7 @@ export const FallbackGridTableAll = () => {
                 ></div>
               ))} */}
           </div>
+          {/* ======================== ✅Grid列トラック Rowトラック✅ ======================== */}
 
           {/* ================== Gridスクロールコンテナ ここまで ================== */}
           {/* =============== Gridフッター ここから スクロールコンテナと同列で配置 =============== */}
@@ -137,18 +139,25 @@ export const FallbackGridTableAll = () => {
             className={`${stylesFooter.grid_footer} max-h-[30px] min-h-[30px] !min-w-[calc(100vw-var(--sidebar-width)-20px)]`}
           >
             <div className={stylesFooter.grid_footer_inner}>
-              <div className={`${stylesFooter.grid_pagination} space-x-3`}>
+              <div className={`${stylesFooter.grid_pagination} space-x-2`}>
                 <button className=" focus:outline-scale-600 flex rounded bg-transparent p-0  outline-offset-1 transition-all focus:outline-4 ">
                   <span className=" font-regular text-scale-1200 bordershadow-scale-600 hover:bordershadow-scale-700 dark:bordershadow-scale-800 hover:dark:bordershadow-scale-900 focus-visible:outline-scale-700 relative inline-flex cursor-pointer items-center space-x-2 rounded border border-[#777] bg-transparent px-[10px] py-[3px] text-center text-xs shadow-sm transition transition-all duration-200 ease-out focus-visible:outline-4 focus-visible:outline-offset-1">
                     <span className="truncate ">
                       {language === "ja" && `- 件`}
-                      {language === "en" && "100 rows"}
+                      {/* {language === "ja" && `1 件`} */}
+                      {language === "en" && "- rows"}
                     </span>
                   </span>
                 </button>
-                <p className="text-sm font-medium text-[#bbb]">
-                  {language === "ja" && `/ - 件`}
-                  {language === "en" && `/ - records`}
+                <p className="space-x-2 text-sm font-medium text-[#bbb]">
+                  <span>/</span>
+                  <span>
+                    {language === "ja" && `0件`}
+                    {/* {language === "ja" && `1件`} */}
+                    {language === "en" && `0 records`}
+                  </span>
+                  {/* {language === "ja" && `/ - 件`}
+                  {language === "en" && `/ - records`} */}
                 </p>
               </div>
             </div>

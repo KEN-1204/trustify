@@ -276,6 +276,7 @@
   /* min-width: 90px; */
   min-width: 95px;
   font-weight: 600;
+  user-select: none;
 }
 .title_min {
   color: var(--color-text-brand-f);
@@ -542,6 +543,7 @@
   /* min-width: 75px; */
   min-width: 100px;
   font-weight: 600;
+  user-select: none;
 }
 .right_under_title {
   color: var(--color-text-brand-f);
@@ -553,6 +555,7 @@
   /* min-width: 90px; */
   min-width: 75px;
   font-weight: 600;
+  user-select: none;
 }
 .btn {
   position: relative;

@@ -14,9 +14,9 @@ import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 export const UpdateActivityModal = () => {
   const selectedRowDataActivity = useDashboardStore((state) => state.selectedRowDataActivity);
   const setIsOpenUpdateActivityModal = useDashboardStore((state) => state.setIsOpenUpdateActivityModal);
-  const [isLoading, setIsLoading] = useState(false);
-  // const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
-  // const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
+  // const [isLoading, setIsLoading] = useState(false);
+  const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
+  const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   // const theme = useThemeStore((state) => state.theme);
   // 上画面の選択中の列データ会社
   // const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
@@ -115,7 +115,7 @@ export const UpdateActivityModal = () => {
 
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
-    if (isLoading) return;
+    if (loadingGlobalState) return;
     setIsOpenUpdateActivityModal(false);
   };
   const handleSaveAndClose = async () => {
@@ -125,7 +125,7 @@ export const UpdateActivityModal = () => {
     if (!selectedRowDataActivity?.company_id) return alert("相手先の会社情報が存在しません");
     if (!selectedRowDataActivity?.contact_id) return alert("担当者情報が存在しません");
 
-    setIsLoading(true);
+    setLoadingGlobalState(true);
 
     // 新規作成するデータをオブジェクトにまとめる
     const newActivity = {
@@ -171,7 +171,7 @@ export const UpdateActivityModal = () => {
     // supabaseにUPDATE
     updateActivityMutation.mutate(newActivity);
 
-    setIsLoading(false);
+    // setLoadingGlobalState(false);
 
     // モーダルを閉じる
     // setIsOpenUpdateActivityModal(false);
@@ -291,7 +291,7 @@ export const UpdateActivityModal = () => {
         </div>
       )} */}
       <div className={`${styles.container} fade03`}>
-        {isLoading && (
+        {loadingGlobalState && (
           <div className={`${styles.loading_overlay_modal} `}>
             {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
             <SpinnerComet w="48px" h="48px" />
@@ -301,14 +301,14 @@ export const UpdateActivityModal = () => {
         {/* 保存・タイトル・キャンセルエリア */}
         <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[20px] text-center text-[18px]">
           <div
-            className="min-w-[150px] cursor-pointer text-start font-semibold hover:text-[#aaa]"
+            className="min-w-[150px] cursor-pointer select-none text-start font-semibold hover:text-[#aaa]"
             onClick={handleCancelAndReset}
           >
             キャンセル
           </div>
-          <div className="min-w-[150px] font-bold">活動 編集</div>
+          <div className="min-w-[150px] select-none font-bold">活動 編集</div>
           <div
-            className={`min-w-[150px] cursor-pointer text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
+            className={`min-w-[150px] cursor-pointer text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text} select-none`}
             onClick={handleSaveAndClose}
           >
             保存

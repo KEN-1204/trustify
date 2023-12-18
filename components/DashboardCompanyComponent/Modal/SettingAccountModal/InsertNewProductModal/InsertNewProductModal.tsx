@@ -107,13 +107,13 @@ export const InsertNewProductModal = () => {
       <div className={`${styles.container} `}>
         {/* 保存・タイトル・キャンセルエリア */}
         <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[20px] text-center text-[18px]">
-          <div className="cursor-pointer font-semibold hover:text-[#aaa]" onClick={handleCancelAndReset}>
+          <div className="cursor-pointer select-none font-semibold hover:text-[#aaa]" onClick={handleCancelAndReset}>
             キャンセル
           </div>
-          <div className="-translate-x-[25px] font-bold">自社製品 追加</div>
+          <div className="-translate-x-[25px] select-none font-bold">自社製品 追加</div>
 
           <div
-            className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
+            className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text} select-none`}
             onClick={handleSaveAndClose}
           >
             保存

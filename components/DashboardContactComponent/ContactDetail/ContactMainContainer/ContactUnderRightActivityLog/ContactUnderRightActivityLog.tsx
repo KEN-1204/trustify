@@ -1,7 +1,7 @@
 import React, { FC, memo, useEffect, useRef, useState } from "react";
 import styles from "./ContactUnderRightActivityLog.module.css";
 import useStore from "@/store";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import useDashboardStore from "@/store/useDashboardStore";
 import useRootStore from "@/store/useRootStore";
@@ -16,6 +16,8 @@ import { SkeletonLoadingLineFull } from "@/components/Parts/SkeletonLoading/Skel
 import { SkeletonLoadingLineMedium } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineMedium";
 import { SkeletonLoadingLineLong } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineLong";
 import { SkeletonLoadingLineShort } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineShort";
+import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
+import { FiRefreshCw } from "react-icons/fi";
 // import { rightRowData } from "./data";
 
 type TableDataType = {
@@ -43,6 +45,8 @@ const ContactUnderRightActivityLogMemo: FC = () => {
   const [colsWidth, setColsWidth] = useState<string[] | null>(null);
   // 現在のカラムの横幅をrefで管理
   const currentColsWidths = useRef<string[]>([]);
+  // refetchローディング
+  const [refetchLoading, setRefetchLoading] = useState(false);
   // 上画面の選択中の列データ会社
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
   // 選択中の行データのid保持用state => 行切り替え(selectedRowDataContact更新)後に前と今でidが異なるかチェック
@@ -54,6 +58,7 @@ const ContactUnderRightActivityLogMemo: FC = () => {
   const fetchCountRef = useRef(0);
 
   const supabase = useSupabaseClient();
+  const queryClient = useQueryClient();
 
   // カラム列全てにindex付きのrefを渡す
   const colsRef = useRef<(HTMLDivElement | null)[]>([]);
@@ -223,7 +228,8 @@ const ContactUnderRightActivityLogMemo: FC = () => {
         } = await supabase
           .rpc("get_activities_and_contacts", selectPayload, { count: "exact" })
           .range(from, to)
-          .order("activity_date", { ascending: true });
+          // .order("activity_date", { ascending: true });
+          .order("activity_date", { ascending: false });
 
         if (error) throw error;
 
@@ -394,6 +400,52 @@ const ContactUnderRightActivityLogMemo: FC = () => {
   // }, [gotData]); // gotDataのstateがtrueになったら再度実行
   // ========================== 🌟useEffect ヘッダーカラム生成🌟 ここまで ==========================
 
+  // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
+  // const handleOpenTooltip = (
+  //   e: React.MouseEvent<HTMLElement, MouseEvent>,
+  //   display: string,
+  //   columnName: string,
+  //   marginTop: number = 0
+  // ) => {
+  const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
+  type TooltipParams = {
+    e: React.MouseEvent<HTMLElement, MouseEvent>;
+    display: string;
+    content: string;
+    content2?: string | undefined | null;
+    marginTop?: number;
+    itemsPosition?: string;
+  };
+  const handleOpenTooltip = ({
+    e,
+    display,
+    content,
+    content2,
+    marginTop = 0,
+    itemsPosition = "start",
+  }: TooltipParams) => {
+    // ホバーしたアイテムにツールチップを表示
+    const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+    // console.log("ツールチップx, y width , height", x, y, width, height);
+
+    setHoveredItemPos({
+      x: x,
+      y: y,
+      itemWidth: width,
+      itemHeight: height,
+      content: content,
+      content2: content2,
+      display: display,
+      marginTop: marginTop,
+      itemsPosition: itemsPosition,
+    });
+  };
+  // ツールチップを非表示
+  const handleCloseTooltip = () => {
+    setHoveredItemPos(null);
+  };
+  // ===================== ✅ツールチップ 3点リーダーの時にツールチップ表示✅ =====================
+
   // 🌟現在のカラム.map((obj) => Object.values(row)[obj.columnId])で展開してGridセルを表示する
   // カラムNameの値のみ配列バージョンで順番入れ替え
   const columnOrder = [...columnHeaderList].map((columnName, index) => columnName as keyof TableDataType); // columnNameのみの配列を取得
@@ -435,7 +487,46 @@ const ContactUnderRightActivityLogMemo: FC = () => {
         }`}
       >
         {/* ================== テーブルタブヘッダー ================== */}
-        <div className={`${styles.right_table_tab_header}`}>活動履歴</div>
+        <div className={`${styles.right_table_tab_header}`}>
+          <span>活動履歴</span>
+          <div
+            className={`flex-center transition-bg03 group ml-[22px] space-x-[9px] px-[10px] py-[2px] ${
+              !!selectedRowDataContact && !isLoading && status === "success" && !refetchLoading
+                ? `cursor-pointer text-[var(--color-text-brand-f)] hover:bg-[var(--color-bg-brand-f)] hover:text-[#fff] active:bg-[var(--color-bg-brand-f-deep)]`
+                : `cursor-not-allowed text-[#999]`
+            }`}
+            onMouseEnter={(e) => {
+              if (isLoading) return;
+              handleOpenTooltip({
+                e: e,
+                display: "top",
+                content: `活動履歴を最新の状態に更新`,
+                marginTop: 9,
+                itemsPosition: "center",
+              });
+              return;
+            }}
+            onMouseLeave={handleCloseTooltip}
+            onClick={async () => {
+              if (!selectedRowDataContact?.contact_id) return;
+              fetchEnabledRef.current = true;
+              setRefetchLoading(true);
+              await queryClient.invalidateQueries({
+                queryKey: ["under_right_activities_contacts", `${selectedRowDataContact.contact_id}`],
+              });
+              setRefetchLoading(false);
+            }}
+          >
+            {refetchLoading && (
+              <div className="relative">
+                <div className="mr-[0px] h-[11px] w-[11px]"></div>
+                <SpinnerIDS2 fontSize={14} width={14} height={14} left={2} top={2} />
+              </div>
+            )}
+            {!refetchLoading && <FiRefreshCw className="text-[11px]" />}
+            <span>リフレッシュ</span>
+          </div>
+        </div>
         {/* ================== Gridスクロールコンテナ ================== */}
         <div
           ref={parentGridScrollContainer}

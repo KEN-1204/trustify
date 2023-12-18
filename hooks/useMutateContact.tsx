@@ -12,6 +12,7 @@ export const useMutateContact = () => {
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   const setIsOpenInsertNewContactModal = useDashboardStore((state) => state.setIsOpenInsertNewContactModal);
+  const setIsOpenUpdateContactModal = useDashboardStore((state) => state.setIsOpenUpdateContactModal);
   // 選択中の行をクリック通知してselectedRowDataContactを最新状態にアップデートする
   const setIsUpdateRequiredForLatestSelectedRowDataContact = useDashboardStore(
     (state) => state.setIsUpdateRequiredForLatestSelectedRowDataContact
@@ -125,7 +126,7 @@ export const useMutateContact = () => {
         // ローディングを終了する
         if (loadingGlobalState) setLoadingGlobalState(false);
         //  モーダルを閉じる
-        setIsOpenInsertNewContactModal(false);
+        setIsOpenUpdateContactModal(false);
         toast.success("担当者の更新が完了しました🌟", {
           position: "top-right",
           autoClose: 3000,

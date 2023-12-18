@@ -516,6 +516,7 @@ export const DashboardHeaderMemo: FC = () => {
     setSelectedSettingAccountMenu("Company");
   };
 
+  // タブ切り替えでサーチモードをfalseに
   const switchActiveTab = (tabName: string) => {
     if (searchMode) setSearchMode(false);
     if (editSearchMode) setEditSearchMode(false);

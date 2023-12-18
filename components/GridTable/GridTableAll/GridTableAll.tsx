@@ -2875,7 +2875,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
               }
               {/* ======== ヘッダーセル idを除く全てのプロパティ(フィールド)Column ここまで  ======== */}
             </div>
-            {/* ======================== 🌟Grid列トラック Rowヘッダー🌟 ======================== */}
+            {/* ======================== 🌟GridRowトラック Rowヘッダー🌟 ======================== */}
             {/* サーチモード中は空のdivを表示 */}
             {searchMode ? (
               <div
@@ -2888,7 +2888,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
               </div>
             ) : (
               <>
-                {/* ======================== 🌟Grid列トラック Rowグループコンテナ🌟 ======================== */}
+                {/* ======================== 🌟GridRowトラック Rowグループコンテナ🌟 ======================== */}
                 {/* Rowアイテム収納のためのインナー要素 */}
                 <div
                   ref={gridRowGroupContainerRef}
@@ -3208,13 +3208,16 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                     );
                   })}
                 </div>
-                {/* ======================== Grid列トラック Row ======================== */}
+                {/* ======================== GridRowトラック Row ======================== */}
               </>
             )}
           </div>
           {/* ================== Gridスクロールコンテナ ここまで ================== */}
           {/* =============== Gridフッター ここから スクロールコンテナと同列で配置 =============== */}
-          <GridTableFooter getItemCount={allRows.length} getTotalCount={data ? data.pages[0].count : 0} />
+          <GridTableFooter
+            getItemCount={allRows.length}
+            getTotalCount={!!data?.pages[0]?.count ? data.pages[0].count : 0}
+          />
           {/* ================== Gridフッター ここまで ================== */}
         </div>
         {/* ================== Gridメインコンテナ ここまで ================== */}

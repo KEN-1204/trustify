@@ -133,6 +133,7 @@
   font-weight: 700;
   min-width: 95px;
   /* font-size: 18px; */
+  user-select: none;
 }
 .required_title {
   color: var(--main-color-tk);

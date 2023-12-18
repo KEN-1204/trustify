@@ -1,7 +1,7 @@
 import React, { FC, memo, useCallback, useEffect, useRef, useState } from "react";
 import styles from "./PropertyGridTableAll.module.css";
 import useStore from "@/store";
-import { PropertyGridTableFooter } from "./PropertyGridTableFooter/PropertyGridTableFooter";
+// import { PropertyGridTableFooter } from "./PropertyGridTableFooter/PropertyGridTableFooter";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import useDashboardStore from "@/store/useDashboardStore";
@@ -18,6 +18,7 @@ import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 import { format } from "date-fns";
 import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
+import { GridTableFooter } from "@/components/GridTable/GridTableFooter/GridTableFooter";
 
 type TableDataType = {
   id: number;
@@ -3198,7 +3199,14 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
           </div>
           {/* ================== Gridスクロールコンテナ ここまで ================== */}
           {/* =============== Gridフッター ここから スクロールコンテナと同列で配置 =============== */}
-          <PropertyGridTableFooter getItemCount={allRows.length} getTotalCount={data ? data.pages[0].count : 0} />
+          {/* <PropertyGridTableFooter
+            getItemCount={allRows.length}
+            getTotalCount={!!data?.pages[0]?.count ? data.pages[0].count : 0}
+          /> */}
+          <GridTableFooter
+            getItemCount={allRows.length}
+            getTotalCount={!!data?.pages[0]?.count ? data.pages[0].count : 0}
+          />
           {/* ================== Gridフッター ここまで ================== */}
         </div>
         {/* ================== Gridメインコンテナ ここまで ================== */}

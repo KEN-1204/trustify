@@ -29,6 +29,11 @@ export const DashboardSidebarMemo: FC = () => {
   const isOpenSideBarPickBox = useDashboardStore((state) => state.isOpenSideBarPickBox);
   const setIsOpenSideBarPickBox = useDashboardStore((state) => state.setIsOpenSideBarPickBox);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
+  // タブ切り替え時にサーチモードと編集モードがtrueならfalseにしてタブ切り替えする
+  const searchMode = useDashboardStore((state) => state.searchMode);
+  const setSearchMode = useDashboardStore((state) => state.setSearchMode);
+  const editSearchMode = useDashboardStore((state) => state.editSearchMode);
+  const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
   //   const setIsOpenSidebar = useDashboardStore((state) => state.setIsOpenSidebar);
   // アカウント設定モーダル
   const setIsOpenSettingAccountModal = useDashboardStore((state) => state.setIsOpenSettingAccountModal);
@@ -70,6 +75,15 @@ export const DashboardSidebarMemo: FC = () => {
     setIsOpenSettingAccountModal(true);
     setSelectedSettingAccountMenu("Company");
   };
+
+  // タブ切り替えでサーチモードをfalseに
+  const switchActiveTab = (tabName: string) => {
+    if (searchMode) setSearchMode(false);
+    if (editSearchMode) setEditSearchMode(false);
+    // if (loadingGlobalState) setLoadingGlobalState(false);
+    setActiveMenuTab(tabName);
+  };
+
   return (
     <div
       className={`${styles.app_sidebar} ${
@@ -151,7 +165,7 @@ export const DashboardSidebarMemo: FC = () => {
                 // href="/home"
                 // prefetch={false}
                 className={`${styles.menu_item} ${activeMenuTab === "HOME" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("HOME")}
+                onClick={() => switchActiveTab("HOME")}
               >
                 <div
                   className={`${styles.menu_item_inner}`}
@@ -183,7 +197,7 @@ export const DashboardSidebarMemo: FC = () => {
                 // href="/home"
                 // prefetch={false}
                 className={`${styles.menu_item} ${activeMenuTab === "Company" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("Company")}
+                onClick={() => switchActiveTab("Company")}
               >
                 <div
                   className={styles.menu_item_inner}
@@ -215,7 +229,7 @@ export const DashboardSidebarMemo: FC = () => {
                 // href="/home"
                 // prefetch={false}
                 className={`${styles.menu_item} ${activeMenuTab === "Contacts" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("Contacts")}
+                onClick={() => switchActiveTab("Contacts")}
               >
                 <div
                   className={styles.menu_item_inner}
@@ -249,7 +263,7 @@ export const DashboardSidebarMemo: FC = () => {
                 // href="/home"
                 // prefetch={false}
                 className={`${styles.menu_item} ${activeMenuTab === "Activity" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("Activity")}
+                onClick={() => switchActiveTab("Activity")}
               >
                 <div
                   className={styles.menu_item_inner}
@@ -266,7 +280,9 @@ export const DashboardSidebarMemo: FC = () => {
                   <div className={styles.icon_wrapper}>
                     {/* <HiOutlineChatBubbleLeftRight className="text-[24px] text-[var(--color-text)]" /> */}
                     <BsTelephonePlus
-                      className={`${styles.sidebar_icon} scale-[0.9] text-[24px] text-[var(--color-text)]`}
+                      className={`${styles.sidebar_icon} scale-[0.9] text-[24px] text-[var(--color-text)] ${
+                        activeMenuTab === "Activity" ? `stroke-[0.3]` : ``
+                      }`}
                     />
                   </div>
                   <div
@@ -282,7 +298,7 @@ export const DashboardSidebarMemo: FC = () => {
                 // href="/home"
                 // prefetch={false}
                 className={`${styles.menu_item} ${activeMenuTab === "Meeting" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("Meeting")}
+                onClick={() => switchActiveTab("Meeting")}
               >
                 <div
                   className={styles.menu_item_inner}
@@ -315,7 +331,7 @@ export const DashboardSidebarMemo: FC = () => {
                 // href="/home"
                 // prefetch={false}
                 className={`${styles.menu_item} ${activeMenuTab === "Property" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("Property")}
+                onClick={() => switchActiveTab("Property")}
               >
                 <div
                   className={styles.menu_item_inner}
@@ -360,7 +376,7 @@ export const DashboardSidebarMemo: FC = () => {
                 // href="/home"
                 // prefetch={false}
                 className={`${styles.menu_item} ${activeMenuTab === "Calendar" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("Calendar")}
+                onClick={() => switchActiveTab("Calendar")}
               >
                 <div
                   className={styles.menu_item_inner}
@@ -394,7 +410,7 @@ export const DashboardSidebarMemo: FC = () => {
                 // href="/home"
                 // prefetch={false}
                 className={`${styles.menu_item} ${activeMenuTab === "Quotation" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("Quotation")}
+                onClick={() => switchActiveTab("Quotation")}
               >
                 <div
                   className={styles.menu_item_inner}
@@ -426,7 +442,7 @@ export const DashboardSidebarMemo: FC = () => {
                 className={`${styles.menu_item} ${activeMenuTab === "Lead" ? styles.active : ""} `}
                 // href="/home"
                 // prefetch={false}
-                // onClick={() => setActiveMenuTab("Lead")}
+                // onClick={() => switchActiveTab("Lead")}
               >
                 <div
                   className={styles.menu_item_inner}
@@ -458,7 +474,7 @@ export const DashboardSidebarMemo: FC = () => {
                 // href="/home"
                 // prefetch={false}
                 className={`${styles.menu_item} ${activeMenuTab === "Alignment" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("Alignment")}
+                onClick={() => switchActiveTab("Alignment")}
               >
                 <div
                   className={styles.menu_item_inner}
@@ -488,7 +504,7 @@ export const DashboardSidebarMemo: FC = () => {
                 // href="/home"
                 // prefetch={false}
                 className={`${styles.menu_item} ${activeMenuTab === "Message" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("Message")}
+                onClick={() => switchActiveTab("Message")}
               >
                 <div
                   className={styles.menu_item_inner}
@@ -518,7 +534,7 @@ export const DashboardSidebarMemo: FC = () => {
                 // href="/home"
                 // prefetch={false}
                 className={`${styles.menu_item} ${activeMenuTab === "SDB" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("SDB")}
+                onClick={() => switchActiveTab("SDB")}
               >
                 <div
                   className={`${styles.menu_item_inner}`}
@@ -542,7 +558,7 @@ export const DashboardSidebarMemo: FC = () => {
                 // href="/home"
                 // prefetch={false}
                 className={`${styles.menu_item} ${activeMenuTab === "Admin" ? styles.active : ""} `}
-                // onClick={() => setActiveMenuTab("Admin")}
+                // onClick={() => switchActiveTab("Admin")}
                 onClick={openSettingInvitation}
               >
                 <div
@@ -575,7 +591,7 @@ export const DashboardSidebarMemo: FC = () => {
                 // href="/home"
                 // prefetch={false}
                 className={`${styles.menu_item} ${activeMenuTab === "Pre-approval" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("Pre-approval")}
+                onClick={() => switchActiveTab("Pre-approval")}
               >
                 <div
                   className={styles.menu_item_inner}

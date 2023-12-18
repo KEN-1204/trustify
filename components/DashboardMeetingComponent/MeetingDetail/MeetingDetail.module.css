@@ -297,6 +297,7 @@
   font-weight: 600;
   font-size: 13px;
   line-height: 17px;
+  user-select: none;
 }
 .title_search_mode {
   color: var(--color-text-brand-f);
@@ -311,6 +312,7 @@
   /* margin-right: 20px; */
   font-weight: 600;
   font-size: 13px;
+  user-select: none;
 }
 .title_min {
   color: var(--color-text-brand-f);
@@ -333,6 +335,7 @@
   font-weight: 600;
   font-size: 18px;
   line-height: 17px;
+  user-select: none;
 }
 .value {
   color: var(--color-text-under-value);
@@ -636,6 +639,7 @@
   /* min-width: 100px; */
   /* margin-right: 10px; */
   font-weight: 600;
+  user-select: none;
 }
 .check_title_search_mode {
   color: var(--color-text-brand-f);
@@ -651,6 +655,7 @@
   /* min-width: 100px; */
   /* margin-right: 10px; */
   font-weight: 600;
+  user-select: none;
 }
 .right_under_title {
   color: var(--color-text-brand-f);
@@ -662,6 +667,7 @@
   /* min-width: 90px; */
   min-width: 75px;
   font-weight: 600;
+  user-select: none;
 }
 .btn {
   position: relative;

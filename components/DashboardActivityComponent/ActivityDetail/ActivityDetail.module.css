@@ -291,6 +291,7 @@
   min-width: 95px;
   font-weight: 600;
   line-height: 17px;
+  user-select: none;
 }
 .title_sm.title {
   min-width: 65px;
@@ -303,6 +304,20 @@
   padding-right: 20px;
   /* min-width: 80px; */
   font-weight: 600;
+}
+.section_title {
+  color: var(--color-text-under-title);
+  white-space: nowrap;
+  /* 右側に20px余白 */
+  /* padding-right: 20px; */
+  /* min-width: 80px; */
+  /* min-width: 90px; */
+  /* min-width: 95px; */
+  min-width: 78px;
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 17px;
+  user-select: none;
 }
 .value {
   color: var(--color-text-under-value);
@@ -371,12 +386,18 @@
   width: 100%;
   background-color: var(--color-bg-underline);
 }
+.section_underline {
+  min-height: 2px;
+  width: 100%;
+  background-color: var(--color-bg-brand-f);
+}
 .divider {
   background-color: rgb(94 94 94 / 0.3);
 }
 .textarea_box {
   /* height: 100%; */
-  min-height: 78px;
+  /* min-height: 78px; */
+  min-height: 110px;
   width: 100%;
   background: var(--color-bg-under-input);
   /* color: var(--color-text-under-input); */
@@ -588,6 +609,7 @@
   /* min-width: 75px; */
   min-width: 100px;
   font-weight: 600;
+  user-select: none;
 }
 .right_under_title {
   color: var(--color-text-brand-f);
@@ -599,6 +621,7 @@
   /* min-width: 90px; */
   min-width: 75px;
   font-weight: 600;
+  user-select: none;
 }
 .btn {
   position: relative;

@@ -14,7 +14,7 @@ const ContactGridTableFooterMemo: FC<Props> = ({ getItemCount, getTotalCount }) 
   return (
     <div className={styles.grid_footer}>
       <div className={styles.grid_footer_inner}>
-        <div className={`${styles.grid_pagination} space-x-3`}>
+        <div className={`${styles.grid_pagination} space-x-2`}>
           {/* <button
             className={`font-regular text-scale-1200 hover:bordershadow-scale-700 dark:bordershadow-scale-800 hover:dark:bordershadow-scale-900 focus-visible:outline-scale-700 pointer-events-none relative inline-flex cursor-pointer items-center space-x-2 rounded border bg-transparent px-[10px]   py-[3px] text-center text-xs opacity-50 shadow-sm outline-none  outline-0 transition transition-all  duration-200 ease-out focus-visible:outline-4 focus-visible:outline-offset-1 `}
           >
@@ -48,10 +48,14 @@ const ContactGridTableFooterMemo: FC<Props> = ({ getItemCount, getTotalCount }) 
               </span>
             </span>
           </button>
-          <p className="text-sm font-medium text-[#bbb]">
-            {language === "ja" &&
-              `/ ${getTotalCount === null || typeof getTotalCount === "undefined" ? "-" : getTotalCount}件`}
-            {language === "en" && `/ ${getTotalCount === null ? "-" : getTotalCount} records`}
+          <p className="space-x-2 text-sm font-medium text-[#bbb]">
+            <span>/</span>
+            <span>
+              {language === "ja" && `${getTotalCount === null ? "-" : getTotalCount}件`}
+              {language === "en" && `${getTotalCount === null ? "-" : getTotalCount} records`}
+            </span>
+            {/* {language === "ja" && `/ ${getTotalCount === null ? "-" : getTotalCount}件`}
+            {language === "en" && `/ ${getTotalCount === null ? "-" : getTotalCount} records`} */}
             {/* {language === "ja" && `/ 975184件`}
             {language === "en" && "/ 975184 records"} */}
           </p>

@@ -79,7 +79,8 @@ const SettingCompanyMemo = () => {
         .or(`to_user_id.eq.${userProfileState.id},from_user_id.eq.${userProfileState.id}`)
         .eq("result", "pending")
         .eq("type", "change_team_owner")
-        .order("created_at", { ascending: true });
+        // .order("created_at", { ascending: true });
+        .order("created_at", { ascending: false });
 
       if (error) {
         console.log("getMyNotificationsエラー発生", error.message);

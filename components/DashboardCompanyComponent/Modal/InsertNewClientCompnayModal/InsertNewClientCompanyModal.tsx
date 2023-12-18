@@ -9,6 +9,7 @@ import { isNaN } from "lodash";
 import { useMutateClientCompany } from "@/hooks/useMutateClientCompany";
 import productCategoriesM from "@/utils/productCategoryM";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
+import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 
 export const InsertNewClientCompanyModal = () => {
   const setIsOpenInsertNewClientCompanyModal = useDashboardStore((state) => state.setIsOpenInsertNewClientCompanyModal);
@@ -34,7 +35,7 @@ export const InsertNewClientCompanyModal = () => {
   const [productCategoryS, setProductCategoryS] = useState("");
   const [numberOfEmployeesClass, setNumberOfEmployeesClass] = useState("");
   const [fiscalEndMonth, setFiscalEndMonth] = useState("");
-  const [capital, setCapital] = useState("");
+  const [capital, setCapital] = useState<string | null>("");
   const [budgetRequestMonth1, setBudgetRequestMonth1] = useState("");
   const [budgetRequestMonth2, setBudgetRequestMonth2] = useState("");
   const [websiteURL, setWebsiteURL] = useState("");
@@ -258,14 +259,14 @@ export const InsertNewClientCompanyModal = () => {
         {/* 保存・タイトル・キャンセルエリア */}
         <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[20px] text-center text-[18px]">
           <div
-            className="min-w-[150px] cursor-pointer text-start font-semibold hover:text-[#aaa]"
+            className="min-w-[150px] cursor-pointer select-none text-start font-semibold hover:text-[#aaa]"
             onClick={handleCancelAndReset}
           >
             キャンセル
           </div>
-          <div className="min-w-[150px] font-bold">会社 新規作成</div>
+          <div className="min-w-[150px] select-none font-bold">会社 新規作成</div>
           <div
-            className={`min-w-[150px] cursor-pointer text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
+            className={`min-w-[150px] cursor-pointer select-none text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
             onClick={handleSaveAndClose}
           >
             保存
@@ -529,7 +530,7 @@ export const InsertNewClientCompanyModal = () => {
           <div className={`${styles.full_contents_wrapper} flex w-full`}>
             {/* --------- 左ラッパー --------- */}
             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 資本金(万) */}
+              {/* 資本金(万) 入力はtextで自由、簡単に10億など入力してもらい、保存するときにnumber型に変換する */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
@@ -538,10 +539,17 @@ export const InsertNewClientCompanyModal = () => {
                       type="text"
                       placeholder=""
                       className={`${styles.input_box}`}
-                      value={capital}
+                      value={!!capital ? capital : ""}
                       onChange={(e) => setCapital(e.target.value)}
                       // onBlur={() => setCapital(toHalfWidth(capital.trim()))}
-                      onBlur={() => setCapital(convertToNumber(capital.trim()).toString())}
+                      // onBlur={() => setCapital(convertToNumber(capital.trim()).toString())}
+                      onBlur={() =>
+                        setCapital(
+                          capital !== null && typeof convertToMillions(capital.trim()) === "number"
+                            ? (convertToMillions(capital.trim()) as number).toString()
+                            : null
+                        )
+                      }
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>

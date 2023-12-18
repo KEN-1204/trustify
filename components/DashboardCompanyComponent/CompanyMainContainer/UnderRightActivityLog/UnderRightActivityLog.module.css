@@ -57,7 +57,7 @@
   background-color: transparent;
   /* background-color: var(--color-bg-table-header); */
   display: flex;
-  justify-content: space-between;
+  /* justify-content: space-between; */
   /* padding-left: 1px; */
 
   /* background: var(--color-bg-brand-table-tab); */
@@ -84,6 +84,7 @@
   border-top-right-radius: 4px;
   color: var(--color-text);
   color: var(--color-right-under-header-text);
+  /* color: var(--color-text-brand-f); */
 }
 
 /* 🌟スクロールコンテナ overflow: auto */
@@ -190,7 +191,7 @@
   border-style: none;
   outline: none;
   font-weight: 500;
-  /* contain: size layout style paint; */
+  contain: size layout style paint;
   /* contain: size layout style; */
   /* contain: size layout; */
   height: var(--header-row-height);
@@ -265,6 +266,7 @@
   overflow: hidden;
   color: var(--color-text);
   color: var(--color-right-under-header-text);
+  /* color: var(--color-text-brand-f); */
 }
 
 .grid_cell {
@@ -285,7 +287,9 @@
 
   border-bottom: 1px solid var(--border-color);
   border-right: 1px solid var(--border-color);
-  contain: size layout style paint;
+  /* contain: size layout style paint; */
+  /* contain: size layout style; */
+  contain: size layout;
   outline: none;
   padding: 0 8px;
 }

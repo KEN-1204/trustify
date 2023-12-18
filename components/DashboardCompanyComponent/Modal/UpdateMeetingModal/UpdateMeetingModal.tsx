@@ -488,15 +488,15 @@ export const UpdateMeetingModal = () => {
         {/* 保存・タイトル・キャンセルエリア */}
         <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[20px] text-center text-[18px]">
           <div
-            className="min-w-[150px] cursor-pointer text-start font-semibold hover:text-[#aaa]"
+            className="min-w-[150px] cursor-pointer select-none text-start font-semibold hover:text-[#aaa]"
             onClick={handleCancelAndReset}
           >
             キャンセル
           </div>
-          <div className="min-w-[150px] font-bold">面談 結果入力/編集</div>
+          <div className="min-w-[150px] select-none font-bold">面談 結果入力/編集</div>
 
           <div
-            className={`min-w-[150px] cursor-pointer text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
+            className={`min-w-[150px] cursor-pointer text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text} select-none`}
             onClick={handleSaveAndClose}
           >
             保存

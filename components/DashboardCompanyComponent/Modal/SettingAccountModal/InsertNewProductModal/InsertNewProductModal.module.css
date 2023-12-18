@@ -139,6 +139,7 @@
   /* padding-top: 5px; */
   font-weight: 700;
   font-size: 16px;
+  user-select: none;
 }
 .title_min {
   color: var(--color-text-brand-f);

@@ -137,7 +137,8 @@
 @keyframes spinner-fade9234 {
   0% {
     /* background-color: #69717d; */
-    background-color: #ccc;
+    /* background-color: #ccc; */
+    background-color: var(--spinner-color, #ccc);
   }
 
   100% {

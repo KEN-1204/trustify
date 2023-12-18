@@ -1627,6 +1627,7 @@ const ContactMainContainerMemo: FC = () => {
                   <ContactUnderRightActivityLog />
                 </Suspense>
               </ErrorBoundary>
+              {/* <FallbackUnderRightActivityLog /> */}
               {/* 下エリア 禁止フラグなど */}
               <div
                 className={`${styles.right_under_container} h-screen w-full  bg-[#f0f0f0]/[0] ${

@@ -6,6 +6,7 @@ import { ActivityTabHeader } from "./ActivityTabHeader/ActivityTabHeader";
 import { ActivityFunctionHeader } from "./ActivityFunctionHeader/ActivityFunctionHeader";
 import { ActivityMainContainer } from "./ActivityMainContainer/ActivityMainContainer";
 import useDashboardStore from "@/store/useDashboardStore";
+import { ActivityMainContainerOneThird } from "./ActivityMainContainer/ActivityMainContainerOneThird";
 
 const ActivityDetailMemo: FC = () => {
   console.log("🔥 ActivityDetail レンダリング");
@@ -34,7 +35,8 @@ const ActivityDetailMemo: FC = () => {
       {/* ファンクションヘッダー */}
       <ActivityFunctionHeader />
       {/* メインコンテナ 左と右 */}
-      <ActivityMainContainer />
+      {/* <ActivityMainContainer /> */}
+      <ActivityMainContainerOneThird />
     </div>
   );
 };

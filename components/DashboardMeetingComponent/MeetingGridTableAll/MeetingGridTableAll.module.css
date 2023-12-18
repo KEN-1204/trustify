@@ -263,6 +263,9 @@
   /* max-height: calc(100vh - var(--header-height) - 30px - 40px); */
   /* 🌟HomeComponentのスクリーンにpadding 上下20px有りの場合 */
   max-height: calc(100vh - var(--header-height) - 30px - 40px - 20px);
+  /* テスト */
+  min-height: calc(100vh / 3 - var(--header-height) / 3 - 40px - 22px - 9px);
+  /* テスト */
   width: 100%;
   overflow: auto;
   position: relative;

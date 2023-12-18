@@ -7,6 +7,7 @@ import { SkeletonLoadingLineFull } from "@/components/Parts/SkeletonLoading/Skel
 import { SkeletonLoadingLineLong } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineLong";
 import { SkeletonLoadingLineMedium } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineMedium";
 import { SkeletonLoadingLineShort } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineShort";
+import { FiRefreshCw } from "react-icons/fi";
 
 export const FallbackUnderRightActivityLog = () => {
   const language = useStore((state) => state.language);
@@ -80,7 +81,15 @@ export const FallbackUnderRightActivityLog = () => {
         }`}
       >
         {/* ================== テーブルタブヘッダー ================== */}
-        <div className={`${styles.right_table_tab_header}`}>活動履歴</div>
+        <div className={`${styles.right_table_tab_header}`}>
+          <span>活動履歴</span>
+          <div
+            className={`flex-center group ml-[22px] cursor-not-allowed space-x-[9px] px-[10px] py-[2px] text-[#999]`}
+          >
+            <FiRefreshCw className="text-[11px]" />
+            <span>リフレッシュ</span>
+          </div>
+        </div>
         {/* ================== Gridスクロールコンテナ ================== */}
         <div
           //   ref={parentGridScrollContainer}
@@ -101,7 +110,6 @@ export const FallbackUnderRightActivityLog = () => {
               display: "grid",
               gridTemplateColumns: `1fr 3fr repeat(4, 1fr)`,
               minHeight: "25px",
-              //   width: `${underLogTableAllWidth}px`,
               width: `100%`,
             }}
           >

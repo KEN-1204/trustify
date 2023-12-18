@@ -199,6 +199,7 @@ const MeetingFunctionHeaderMemo: FC = () => {
                 : `text-[var(--color-bg-brand-f)] ${styles.fh_text_btn} cursor-pointer`
             }`}
             onClick={() => {
+              if (tableContainerSize === "one_third") return;
               setUnderDisplayFullScreen(!underDisplayFullScreen);
             }}
             onMouseEnter={(e) => handleOpenTooltip(e, "right")}

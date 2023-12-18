@@ -1,7 +1,7 @@
 import React, { FC, memo, useCallback, useEffect, useRef, useState } from "react";
 import styles from "./ContactGridTableAll.module.css";
 import useStore from "@/store";
-import { ContactGridTableFooter } from "./ContactGridTableFooter/ContactGridTableFooter";
+// import { ContactGridTableFooter } from "./ContactGridTableFooter/ContactGridTableFooter";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import useDashboardStore from "@/store/useDashboardStore";
@@ -17,6 +17,7 @@ import { EditColumnsModalDisplayOnly } from "../../GridTable/EditColumns/EditCol
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
+import { GridTableFooter } from "@/components/GridTable/GridTableFooter/GridTableFooter";
 
 type TableDataType = {
   id: number;
@@ -3067,7 +3068,11 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
           </div>
           {/* ================== Gridスクロールコンテナ ここまで ================== */}
           {/* =============== Gridフッター ここから スクロールコンテナと同列で配置 =============== */}
-          <ContactGridTableFooter getItemCount={allRows.length} getTotalCount={data ? data.pages[0].count : 0} />
+          {/* <ContactGridTableFooter getItemCount={allRows.length} getTotalCount={data ? data.pages[0].count : 0} /> */}
+          <GridTableFooter
+            getItemCount={allRows.length}
+            getTotalCount={!!data?.pages[0]?.count ? data.pages[0].count : 0}
+          />
           {/* ================== Gridフッター ここまで ================== */}
         </div>
         {/* ================== Gridメインコンテナ ここまで ================== */}
