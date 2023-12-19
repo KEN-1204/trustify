@@ -14,6 +14,8 @@ import { format } from "date-fns";
 import { MdClose } from "react-icons/md";
 import { toast } from "react-toastify";
 import { Zoom } from "@/utils/Helpers/toastHelpers";
+import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
+import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -229,7 +231,13 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       setInputZipcode(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams?.zipcode));
       setInputEmployeesClass(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams?.number_of_employees_class));
       setInputAddress(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams?.address));
-      setInputCapital(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams?.capital));
+      setInputCapital(
+        beforeAdjustFieldValue(
+          newSearchMeeting_Contact_CompanyParams?.capital
+            ? newSearchMeeting_Contact_CompanyParams?.capital.toString()
+            : ""
+        )
+      );
       setInputFound(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams?.established_in));
       setInputContent(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams?.business_content));
       setInputHP(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.website_url));
@@ -514,7 +522,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     let _zipcode = adjustFieldValue(inputZipcode);
     let _number_of_employees_class = adjustFieldValue(inputEmployeesClass);
     let _address = adjustFieldValue(inputAddress);
-    let _capital = adjustFieldValue(inputCapital);
+    let _capital = adjustFieldValue(inputCapital) ? parseInt(inputCapital, 10) : null;
     let _established_in = adjustFieldValue(inputFound);
     let _business_content = adjustFieldValue(inputContent);
     let _website_url = adjustFieldValue(inputHP);
@@ -1167,8 +1175,8 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       {!searchMode && (
                         <span
                           // data-text={`${
-                          //   selectedRowDataActivity?.senior_managing_director
-                          //     ? selectedRowDataActivity?.senior_managing_director
+                          //   selectedRowDataMeeting?.senior_managing_director
+                          //     ? selectedRowDataMeeting?.senior_managing_director
                           //     : ""
                           // }`}
                           className={`${styles.value}`}
@@ -1865,7 +1873,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <select
                         name="position_class"
                         id="position_class"
-                        className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                        className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputPositionClass}
                         onChange={(e) => setInputPositionClass(e.target.value)}
                       >
@@ -1904,7 +1912,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <select
                         name="position_class"
                         id="position_class"
-                        className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                        className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputEmployeesClass}
                         onChange={(e) => setInputEmployeesClass(e.target.value)}
                       >
@@ -1980,7 +1988,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <select
                         name="position_class"
                         id="position_class"
-                        className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                        className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputEmployeesClass}
                         onChange={(e) => setInputEmployeesClass(e.target.value)}
                       >
@@ -2057,6 +2065,62 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         className={`${styles.input_box}`}
                         value={inputBudgetRequestMonth2}
                         onChange={(e) => setInputBudgetRequestMonth2(e.target.value)}
+                      />
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 資本金・設立 通常モード テスト */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    {/* <span className={`${styles.title}`}>資本金(万円)</span> */}
+                    <div className={`${styles.title} ${styles.double_text} flex flex-col`}>
+                      <span>資本金</span>
+                      <span>(万円)</span>
+                    </div>
+                    {!searchMode && (
+                      <span className={`${styles.value}`}>
+                        {/* {selectedRowDataCompany?.capital ? selectedRowDataCompany?.capital : ""} */}
+                        {selectedRowDataMeeting?.capital
+                          ? convertToJapaneseCurrencyFormat(selectedRowDataMeeting.capital)
+                          : ""}
+                      </span>
+                    )}
+                    {searchMode && (
+                      <input
+                        type="text"
+                        className={`${styles.input_box}`}
+                        value={!!inputCapital ? inputCapital : ""}
+                        onChange={(e) => setInputCapital(e.target.value)}
+                        onBlur={() =>
+                          setInputCapital(
+                            !!inputCapital && inputCapital !== ""
+                              ? (convertToMillions(inputCapital.trim()) as number).toString()
+                              : ""
+                          )
+                        }
+                      />
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title}`}>設立</span>
+                    {!searchMode && (
+                      <span className={`${styles.value}`}>
+                        {selectedRowDataMeeting?.established_in ? selectedRowDataMeeting?.established_in : ""}
+                      </span>
+                    )}
+                    {searchMode && (
+                      <input
+                        type="text"
+                        className={`${styles.input_box}`}
+                        value={inputFound}
+                        onChange={(e) => setInputFound(e.target.value)}
                       />
                     )}
                   </div>
@@ -2402,7 +2466,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <select
                         name="position_class"
                         id="position_class"
-                        className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                        className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputIndustryType}
                         onChange={(e) => setInputIndustryType(e.target.value)}
                       >
@@ -2499,7 +2563,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <select
                         name="position_class"
                         id="position_class"
-                        className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                        className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
                         value={inputProductL}
                         onChange={(e) => setInputProductL(e.target.value)}
                       >
@@ -2561,9 +2625,9 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         id="position_class"
                         value={inputProductM}
                         onChange={(e) => setInputProductM(e.target.value)}
-                        className={`${
-                          inputProductL ? "" : "hidden"
-                        } ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                        className={`${inputProductL ? "" : "hidden"} ml-auto h-full w-[80%] cursor-pointer  ${
+                          styles.select_box
+                        }`}
                       >
                         {inputProductL === "電子部品・モジュール" &&
                           productCategoriesM.moduleCategoryM.map((option) => option)}
@@ -2711,7 +2775,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center`}>
                     <span className={`${styles.title_search_mode}`}>●訪問ﾀｲﾌﾟ</span>
                     <select
-                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
                       value={inputMeetingType}
                       onChange={(e) => {
                         setInputMeetingType(e.target.value);
@@ -2732,7 +2796,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>面談開始</span>
                     <select
-                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
                       placeholder="時"
                       value={inputPlannedStartTimeHour}
                       onChange={(e) => setInputPlannedStartTimeHour(e.target.value === "" ? "" : e.target.value)}
@@ -2748,7 +2812,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     <span className="mx-[10px]">時</span>
 
                     <select
-                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
                       placeholder="分"
                       value={inputPlannedStartTimeMinute}
                       onChange={(e) => setInputPlannedStartTimeMinute(e.target.value === "" ? "" : e.target.value)}
@@ -2768,7 +2832,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center`}>
                     <span className={`${styles.title_search_mode}`}>WEBﾂｰﾙ</span>
                     <select
-                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
                       value={inputMeetingType}
                       onChange={(e) => {
                         setInputMeetingType(e.target.value);
@@ -2837,7 +2901,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <span className={``}>訪問目的</span>
                     </div>
                     <select
-                      className={`ml-auto h-full w-[100%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`ml-auto h-full w-[100%] cursor-pointer  ${styles.select_box}`}
                       value={inputPlannedPurpose}
                       onChange={(e) => {
                         setInputPlannedPurpose(e.target.value);
@@ -2869,7 +2933,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
 
                     <div className={`${styles.grid_select_cell_header} `}>
                       <select
-                        className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                        className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         // value={inputClaimFlag}
                         // onChange={(e) => setInputClaimFlag(e.target.value)}
                         value={
@@ -3084,7 +3148,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>面談開始</span>
                     <select
-                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
                       placeholder="時"
                       value={inputResultStartTimeHour}
                       onChange={(e) => setInputResultStartTimeHour(e.target.value === "" ? "" : e.target.value)}
@@ -3100,7 +3164,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     <span className="mx-[10px]">時</span>
 
                     <select
-                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
                       placeholder="分"
                       value={inputResultStartTimeMinute}
                       onChange={(e) => setInputResultStartTimeMinute(e.target.value === "" ? "" : e.target.value)}
@@ -3120,7 +3184,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center`}>
                     <span className={`${styles.title_search_mode}`}>面談終了</span>
                     <select
-                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
                       placeholder="時"
                       value={inputResultEndTimeHour}
                       onChange={(e) => setInputResultEndTimeHour(e.target.value === "" ? "" : e.target.value)}
@@ -3136,7 +3200,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     <span className="mx-[10px]">時</span>
 
                     <select
-                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
                       placeholder="分"
                       value={inputResultEndTimeMinute}
                       onChange={(e) => setInputResultEndTimeMinute(e.target.value === "" ? "" : e.target.value)}
@@ -3343,7 +3407,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full `}>
                     <span className={`${styles.title_search_mode}`}>訪問結果</span>
                     <select
-                      className={`ml-auto h-full w-[100%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`ml-auto h-full w-[100%] cursor-pointer  ${styles.select_box}`}
                       value={inputResultCategory}
                       onChange={(e) => {
                         setInputResultCategory(e.target.value);
@@ -3666,7 +3730,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <select
                         name="position_class"
                         id="position_class"
-                        className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                        className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputPositionClass}
                         onChange={(e) => setInputPositionClass(e.target.value)}
                       >
@@ -3700,7 +3764,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <select
                         name="position_class"
                         id="position_class"
-                        className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                        className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputEmployeesClass}
                         onChange={(e) => setInputEmployeesClass(e.target.value)}
                       >
@@ -3732,7 +3796,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <div className={`${styles.title} !mr-[15px] flex flex-col text-[12px]`}>
+                    <div className={`${styles.title_search_mode} flex flex-col text-[12px]`}>
                       <span className={``}>決裁金額</span>
                       <span className={``}>(万円)</span>
                     </div>
@@ -3764,7 +3828,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <select
                         name="position_class"
                         id="position_class"
-                        className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                        className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputEmployeesClass}
                         onChange={(e) => setInputEmployeesClass(e.target.value)}
                       >
@@ -3822,6 +3886,58 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         className={`${styles.input_box}`}
                         value={inputBudgetRequestMonth2}
                         onChange={(e) => setInputBudgetRequestMonth2(e.target.value)}
+                      />
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 資本金・設立 サーチ テスト */}
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title_search_mode}`}>資本金(万円)</span>
+                    {!searchMode && (
+                      <span className={`${styles.value}`}>
+                        {/* {selectedRowDataCompany?.capital ? selectedRowDataCompany?.capital : ""} */}
+                        {selectedRowDataMeeting?.capital
+                          ? convertToJapaneseCurrencyFormat(selectedRowDataMeeting.capital)
+                          : ""}
+                      </span>
+                    )}
+                    {searchMode && (
+                      <input
+                        type="text"
+                        className={`${styles.input_box}`}
+                        value={!!inputCapital ? inputCapital : ""}
+                        onChange={(e) => setInputCapital(e.target.value)}
+                        onBlur={() =>
+                          setInputCapital(
+                            !!inputCapital && inputCapital !== ""
+                              ? (convertToMillions(inputCapital.trim()) as number).toString()
+                              : ""
+                          )
+                        }
+                      />
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title_search_mode}`}>設立</span>
+                    {!searchMode && (
+                      <span className={`${styles.value}`}>
+                        {selectedRowDataMeeting?.established_in ? selectedRowDataMeeting?.established_in : ""}
+                      </span>
+                    )}
+                    {searchMode && (
+                      <input
+                        type="text"
+                        className={`${styles.input_box}`}
+                        value={inputFound}
+                        onChange={(e) => setInputFound(e.target.value)}
                       />
                     )}
                   </div>
@@ -4010,7 +4126,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <select
                         name="position_class"
                         id="position_class"
-                        className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                        className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputIndustryType}
                         onChange={(e) => setInputIndustryType(e.target.value)}
                       >
@@ -4089,7 +4205,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       //   onChange={(e) => setInputProductL(e.target.value)}
                       // />
                       <select
-                        className={`ml-auto h-full w-[100%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                        className={`ml-auto h-full w-[100%] cursor-pointer  ${styles.select_box}`}
                         value={inputProductL}
                         onChange={(e) => setInputProductL(e.target.value)}
                       >
@@ -4133,9 +4249,9 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <select
                         value={inputProductM}
                         onChange={(e) => setInputProductM(e.target.value)}
-                        className={`${
-                          inputProductL ? "" : "hidden"
-                        } ml-auto h-full w-[100%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                        className={`${inputProductL ? "" : "hidden"} ml-auto h-full w-[100%] cursor-pointer  ${
+                          styles.select_box
+                        }`}
                       >
                         {inputProductL === "電子部品・モジュール" &&
                           productCategoriesM.moduleCategoryM.map((option) => option)}

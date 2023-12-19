@@ -55,7 +55,7 @@ export const columnNameToJapanese = (columnName: string) => {
       return "決算月";
       break;
     case "capital":
-      return "資本金";
+      return "資本金(万円)";
       break;
     case "email":
       return "Email";

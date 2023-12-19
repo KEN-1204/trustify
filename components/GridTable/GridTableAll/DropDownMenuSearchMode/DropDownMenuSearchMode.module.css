@@ -1,0 +1,18 @@
+.dropdown_list {
+}
+
+.select_box {
+  box-shadow: var(--color-bg-under-input-box-shadow);
+  background: var(--color-bg-under-input);
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: box-shadow 0.3s ease;
+}
+
+.dropdown_list:hover .select_box {
+  box-shadow: inset 0 0 0 1px var(--color-bg-brand-f);
+}
+.dropdown_list:hover .list_title {
+  text-decoration: underline;
+}

@@ -434,7 +434,7 @@
   /* padding: 0px 6px; */
   /* font-size: 14px; */
   padding: 6px 8px;
-  border-radius: 2px;
+  border-radius: 6px;
 }
 .input_box:focus {
   box-shadow: var(--color-bg-under-input-active-box-shadow);
@@ -473,11 +473,17 @@
   /* padding: 6px 9px; */
   font-size: 14px;
   line-height: 24px;
-  border-radius: 2px;
+  border-radius: 6px;
   resize: none;
+}
+.textarea_box:focus {
+  box-shadow: var(--color-bg-under-input-active-box-shadow);
 }
 .textarea_box_search_mode {
   line-height: normal;
+}
+.textarea_box_search_mode:focus {
+  box-shadow: var(--color-bg-under-input-active-box-shadow);
 }
 .textarea_box_bg {
   background: var(--color-bg-under-input-gray);
@@ -698,6 +704,7 @@
   box-shadow: var(--color-bg-under-input-box-shadow);
   padding-left: 5px;
   background: var(--color-bg-under-input);
+  border-radius: 6px;
 }
 .close_btn_number {
   position: absolute;

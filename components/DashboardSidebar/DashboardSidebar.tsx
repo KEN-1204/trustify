@@ -17,6 +17,7 @@ import {
 } from "react-icons/bs";
 import useStore from "@/store";
 import useDashboardStore from "@/store/useDashboardStore";
+import { neonMessageIcon } from "../assets";
 
 export const DashboardSidebarMemo: FC = () => {
   const language = useStore((state) => state.language);
@@ -284,6 +285,7 @@ export const DashboardSidebarMemo: FC = () => {
                         activeMenuTab === "Activity" ? `stroke-[0.3]` : ``
                       }`}
                     />
+                    {/* <div>{neonMessageIcon("33")}</div> */}
                   </div>
                   <div
                     className={`${styles.text_wrapper} ${

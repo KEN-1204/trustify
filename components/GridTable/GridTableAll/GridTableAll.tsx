@@ -9,7 +9,7 @@ import useThemeStore from "@/store/useThemeStore";
 import useRootStore from "@/store/useRootStore";
 import { RippleButton } from "@/components/Parts/RippleButton/RippleButton";
 import { ChangeSizeBtn } from "@/components/Parts/ChangeSizeBtn/ChangeSizeBtn";
-import { FiLock, FiRefreshCw } from "react-icons/fi";
+import { FiLock, FiRefreshCw, FiSearch } from "react-icons/fi";
 import { columnNameToJapanese } from "@/utils/columnNameToJapanese";
 import { Client_company, Client_company_row_data } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -18,6 +18,7 @@ import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 import { BsCheck2 } from "react-icons/bs";
+import { DropDownMenuSearchMode } from "./DropDownMenuSearchMode/DropDownMenuSearchMode";
 
 type TableDataType = {
   id: number;
@@ -61,9 +62,11 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     "🔥GridTableHomeコンポーネント 入れ替え後のカラム editedColumnHeaderItemList ",
     editedColumnHeaderItemList
   );
-  const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
-  // refetchローディング
-  const [refetchLoading, setRefetchLoading] = useState(false);
+  const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState); // グローバルローディング
+  const [refetchLoading, setRefetchLoading] = useState(false); // refetchローディング
+  // 「条件に一致する全ての会社をフェッチするか」、「条件に一致する自社で作成した会社のみをフェッチするか」の抽出条件を保持
+  const isFetchAllCompanies = useDashboardStore((state) => state.isFetchAllCompanies);
+  const [isOpenDropdownMenuSearchMode, setIsOpenDropdownMenuSearchMode] = useState(false);
 
   // UPDATEクエリ後にinvalidateQueryでキャッシュ更新された選択中の行データをselectedRowDataCompanyに反映するために発火通知するか否かのstate(発火通知してDOMクリックで更新する)
   const isUpdateRequiredForLatestSelectedRowDataCompany = useDashboardStore(
@@ -75,6 +78,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // 下メインコンテナサーチモード用Zustand =================
   const searchMode = useDashboardStore((state) => state.searchMode);
   const setSearchMode = useDashboardStore((state) => state.setSearchMode);
+  const editSearchMode = useDashboardStore((state) => state.editSearchMode);
   const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
   // 下メインコンテナサーチモード用Zustand ここまで =================
 
@@ -262,11 +266,12 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // 新規サーチした時のrpc()に渡す検索項目params
   const newSearchCompanyParams = useDashboardStore((state) => state.newSearchCompanyParams);
 
-  // ================== 🌟条件なしサーバーデータフェッチ用の関数🌟 ==================
+  // ================== 🌟初回表示時の条件なしサーバーデータフェッチ用の関数🌟 ==================
   // 取得カウント保持用state
   const [getTotalCount, setGetTotalCount] = useState<number | null>(null);
   // let getTotalCount;
   // ユーザーが会社idを持っていない場合にはcreated_by_company_idはnullのみを取得する関数を定義
+  // 初回表示時のフェッチ(条件検索無し)
   let fetchServerPage: any;
   // let fetchServerPage: (
   //   limit: number,
@@ -277,17 +282,26 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     fetchServerPage = async (
       limit: number,
       offset: number = 0
-      // ================= 🔥🔥テスト🔥🔥==================
+      // =================テスト==================
     ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean; count: number | null }> => {
       // ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean }> => {
-      // ================= 🔥🔥テスト🔥🔥==================
+      // =================テスト==================
       // ): Promise<{ rows: Client_company[] | null; nextOffset: number; }> => {
       // ): Promise<{ rows: TableDataType[]; nextOffset: number }> => {
       // useInfiniteQueryのクエリ関数で渡すlimitの個数分でIndex番号を付けたRowの配列を生成
-      console.log("🔥🔥テスト🔥🔥 offset, limit", offset, limit);
+
       const from = offset * limit;
       const to = from + limit - 1;
-      console.log("🔥🔥テスト🔥🔥 from, to", from, to);
+      console.log(
+        "🔥初回表示時条件なしselectクエリ(client_companies)フェッチ実行 ユーザー会社未所属ルート",
+        "offset, limit",
+        offset,
+        limit,
+        "from, to",
+        from,
+        to
+      );
+
       // const { data, error } = await supabase.from("client_companies").select(`${columnNamesObj}`).range(from, to);
 
       const { data, error, count } = await supabase
@@ -313,15 +327,25 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       //   .range(from, to);
       // const { data, error } = await supabase.from("client_companies").select(`*`).eq(``).range(from, to);
 
-      console.log("🔥🔥テスト🔥🔥フェッチ後 count data", count, data);
       if (error) throw error;
-      // ===== 🔥🔥テスト🔥🔥ここから=====
+
       const rows = ensureClientCompanies(data);
-      // ===== 🔥🔥テスト🔥🔥ここまで=====
+
       // const rows = data as Client_company[] | null;
-      console.log("🔥🔥テスト🔥🔥 rows", rows);
+
       // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
       const isLastPage = rows === null || rows.length < limit;
+
+      console.log(
+        "🔥初回表示時条件なしrpc(client_companies)結果: ",
+        "rows",
+        rows,
+        "count data",
+        count,
+        data,
+        "isLastPage",
+        isLastPage
+      );
 
       // 0.5秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
       // await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -333,31 +357,85 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     };
   }
   // ユーザーが会社idを持っている場合にはcreated_by_company_idはnullと自社で作成した会社両方を取得する関数を定義 新規サーチなし
+  // 初回表示時条件なし 会社所属ルート
   if (userProfileState?.company_id) {
     fetchServerPage = async (
       limit: number,
       offset: number = 0
-      // ================= 🔥🔥テスト🔥🔥==================
+      // =================テスト==================
     ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean; count: number | null }> => {
       // ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean }> => {
-      // ================= 🔥🔥テスト🔥🔥==================
+      // =================テスト==================
       // ): Promise<{ rows: Client_company[] | null; nextOffset: number; }> => {
       // ): Promise<{ rows: TableDataType[]; nextOffset: number }> => {
       // useInfiniteQueryのクエリ関数で渡すlimitの個数分でIndex番号を付けたRowの配列を生成
-      console.log("🔥🔥テスト🔥🔥 offset, limit", offset, limit);
       const from = offset * limit;
       const to = from + limit - 1;
-      console.log("🔥🔥テスト🔥🔥 from, to", from, to);
+      console.log(
+        "🔥初回表示時条件なしselectクエリ(client_companies)フェッチ実行 ユーザー会社所属ルート",
+        "offset, limit",
+        offset,
+        limit,
+        "from, to",
+        from,
+        to
+      );
       // const { data, error } = await supabase.from("client_companies").select(`${columnNamesObj}`).range(from, to);
-      const { data, error, count } = await supabase
-        .from("client_companies")
-        .select(`${columnNamesObj}`, { count: "exact" })
-        // .is("created_by_company_id", userProfileState.company_id)
-        // .eq("created_by_company_id", userProfileState.company_id)
-        .or(`created_by_company_id.eq.${userProfileState.company_id},created_by_company_id.is.null`)
-        .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
-        .range(from, to)
-        .order("name", { ascending: true });
+      // =====================成功 全ての会社(created_by_company_idの有無両方)切り替え無し=====================
+      // const { data, error, count } = await supabase
+      //   .from("client_companies")
+      //   .select(`${columnNamesObj}`, { count: "exact" })
+      //   // .is("created_by_company_id", userProfileState.company_id)
+      //   // .eq("created_by_company_id", userProfileState.company_id)
+      //   .or(`created_by_company_id.eq.${userProfileState.company_id},created_by_company_id.is.null`)
+      //   .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
+      //   .range(from, to)
+      //   .order("name", { ascending: true });
+      // =====================成功 全ての会社(created_by_company_idの有無両方)切り替え無し=====================
+      // 条件に一致する「全ての会社」、「自社専用のみ」のどちらでフェッチするか分岐させる 初期値はtrue => 全て会社
+      let data;
+      let error;
+      let count;
+      if (isFetchAllCompanies) {
+        // テスト 共有(null)と自社専用両方
+        // const { data, error, count } = await supabase
+        const {
+          data: fetchData,
+          error: fetchError,
+          count: fetchCount,
+        } = await supabase
+          .from("client_companies")
+          .select(`${columnNamesObj}`, { count: "exact" })
+          // .eq("created_by_company_id", userProfileState.company_id)
+          .or(`created_by_company_id.eq.${userProfileState.company_id},created_by_company_id.is.null`)
+          .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
+          .range(from, to)
+          .order("name", { ascending: true });
+        data = fetchData;
+        error = fetchError;
+        count = fetchCount;
+        // テスト 共有(null)と自社専用両方
+      } else {
+        // テスト自社専用のみ
+        // const { data, error, count } = await supabase
+        const {
+          data: fetchData,
+          error: fetchError,
+          count: fetchCount,
+        } = await supabase
+          .from("client_companies")
+          .select(`${columnNamesObj}`, { count: "exact" })
+          .eq("created_by_company_id", userProfileState.company_id)
+          // .or(`created_by_company_id.eq.${userProfileState.company_id},created_by_company_id.is.null`)
+          .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
+          .range(from, to)
+          .order("name", { ascending: true });
+        data = fetchData;
+        error = fetchError;
+        count = fetchCount;
+        // テスト自社専用のみ
+      }
+      // =====================テスト 共有(null)と自社専用を切り替え ここまで=====================
       // const { data, error, count } = await supabase
       //   .from("client_companies")
       //   .select(`${columnNamesObj}`, { count: "exact" })
@@ -366,15 +444,25 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       //   .order("name", { ascending: true });
       // const { data, error } = await supabase.from("client_companies").select(`*`).eq(``).range(from, to);
 
-      console.log("🔥🔥テスト🔥🔥フェッチ後 count data", count, data);
       if (error) throw error;
-      // ===== 🔥🔥テスト🔥🔥ここから=====
+
       const rows = ensureClientCompanies(data);
-      // ===== 🔥🔥テスト🔥🔥ここまで=====
+
       // const rows = data as Client_company[] | null;
-      console.log("🔥🔥テスト🔥🔥 rows", rows);
+
       // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
       const isLastPage = rows === null || rows.length < limit;
+
+      console.log(
+        "🔥初回表示時条件なしrpc(client_companies)結果: ",
+        "rows",
+        rows,
+        "count data",
+        count,
+        data,
+        "isLastPage",
+        isLastPage
+      );
 
       // 0.5秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
       // await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -404,7 +492,17 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       const from = offset * limit;
       const to = from + limit - 1;
       let params = newSearchCompanyParams;
-      console.log("🔥🔥テスト🔥🔥supabase rpcフェッチ実行！！！！！！！！ from, to, params", from, to, params);
+      console.log(
+        "🔥条件ありrpc(search_companies)フェッチ実行 ユーザー会社未所属ルート",
+        "offset, limit",
+        offset,
+        limit,
+        "from, to",
+        from,
+        to,
+        "params",
+        params
+      );
       const { data, error, count } = await supabase
         .rpc("search_companies", { params }, { count: "exact" })
         .is("created_by_company_id", null)
@@ -426,20 +524,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
       const isLastPage = rows === null || rows.length < limit;
 
-      console.log(
-        "🔥🔥テスト🔥🔥フェッチ後 count",
-        count,
-        "data",
-        data,
-        "from",
-        from,
-        "to",
-        to,
-        "rows",
-        rows,
-        "isLastPage",
-        isLastPage
-      );
+      console.log("🔥条件ありrpc(search_companies)結果: ", "rows", rows, "count data", count, data);
 
       // 1秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
       // await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -460,31 +545,87 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       offset: number = 0
     ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean; count: number | null }> => {
       // ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean }> => {
-      console.log("🔥🔥テスト🔥🔥 offset, limit", offset, limit);
       const from = offset * limit;
       const to = from + limit - 1;
-      console.log("🔥🔥テスト🔥🔥 from, to", from, to);
+      // パラメータはparamsの名前でrpc()に渡す
       let params = newSearchCompanyParams;
-      const { data, error, count } = await supabase
-        .rpc("search_companies", { params }, { count: "exact" })
-        // .eq("created_by_company_id", userProfileState.company_id)
-        .or(`created_by_company_id.eq.${userProfileState.company_id},created_by_company_id.is.null`)
-        .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
-        .range(from, to)
-        .order("name", { ascending: true });
+      console.log(
+        "🔥条件ありrpc(search_companies)フェッチ実行 ユーザー会社所属ルート",
+        "isFetchAllCompanies",
+        isFetchAllCompanies,
+        "offset, limit",
+        offset,
+        limit,
+        "from, to",
+        from,
+        to,
+        "params",
+        params
+      );
+      // =====================成功 共有(null)と自社専用両方=====================
+      // const { data, error, count } = await supabase
+      //   .rpc("search_companies", { params }, { count: "exact" })
+      //   // .eq("created_by_company_id", userProfileState.company_id)
+      //   .or(`created_by_company_id.eq.${userProfileState.company_id},created_by_company_id.is.null`)
+      //   .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
+      //   .range(from, to)
+      //   .order("name", { ascending: true });
+      // =====================成功 共有(null)と自社専用両方=====================
+
+      // =====================テスト 共有(null)と自社専用を切り替え=====================
+      // 条件に一致する「全ての会社」、「自社専用のみ」のどちらでフェッチするか分岐させる 初期値はtrue => 全て会社
+      let data;
+      let error;
+      let count;
+      if (isFetchAllCompanies) {
+        // テスト 共有(null)と自社専用両方
+        // const { data, error, count } = await supabase
+        const {
+          data: fetchData,
+          error: fetchError,
+          count: fetchCount,
+        } = await supabase
+          .rpc("search_companies", { params }, { count: "exact" })
+          // .eq("created_by_company_id", userProfileState.company_id)
+          .or(`created_by_company_id.eq.${userProfileState.company_id},created_by_company_id.is.null`)
+          .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
+          .range(from, to)
+          .order("name", { ascending: true });
+        data = fetchData;
+        error = fetchError;
+        count = fetchCount;
+        // テスト 共有(null)と自社専用両方
+      } else {
+        // テスト自社専用のみ
+        // const { data, error, count } = await supabase
+        const {
+          data: fetchData,
+          error: fetchError,
+          count: fetchCount,
+        } = await supabase
+          .rpc("search_companies", { params }, { count: "exact" })
+          .eq("created_by_company_id", userProfileState.company_id)
+          // .or(`created_by_company_id.eq.${userProfileState.company_id},created_by_company_id.is.null`)
+          .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
+          .range(from, to)
+          .order("name", { ascending: true });
+        data = fetchData;
+        error = fetchError;
+        count = fetchCount;
+        // テスト自社専用のみ
+      }
+      // =====================テスト 共有(null)と自社専用を切り替え ここまで=====================
       // const { data, error, count } = await supabase
       //   .rpc("search_companies", { params }, { count: "exact" })
       //   .is("created_by_company_id", null)
       //   .range(from, to)
       //   .order("name", { ascending: true });
 
-      console.log("🔥🔥テスト🔥🔥フェッチ後 count data", count, data);
-
       if (error) throw error;
 
       const rows = ensureClientCompanies(data);
 
-      console.log("🔥🔥テスト🔥🔥 rows", rows);
+      console.log("🔥条件ありrpc(search_companies)結果: ", "rows", rows, "count data", count, data);
       // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
       const isLastPage = rows === null || rows.length < limit;
 
@@ -524,7 +665,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   const { status, data, error, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } = useInfiniteQuery(
     {
       // queryKey: ["companies"],
-      queryKey: ["companies", newSearchParamsStringRef.current],
+      // queryKey: ["companies", newSearchParamsStringRef.current], // 全ての会社 自社専用のみの切り替えなし
+      queryKey: ["companies", newSearchParamsStringRef.current, isFetchAllCompanies], // 全ての会社、自社専用のみの切り替えあり
       queryFn: async (ctx) => {
         console.log("useInfiniteQuery queryFn関数内 引数ctx", ctx);
 
@@ -2301,7 +2443,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     content,
     content2,
     marginTop = 0,
-    itemsPosition = "start",
+    // itemsPosition = "start",
+    itemsPosition = "center",
   }: TooltipParams) => {
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
@@ -2340,10 +2483,10 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
 
   // 🌟現在のカラム.map((obj) => Object.values(row)[obj.columnId])で展開してGridセルを表示する
   // カラムNameの値のみ配列バージョンで順番入れ替え
-  // ================= 🔥🔥テスト🔥🔥==================
+  // ================= 🌟並び替え🌟成功 ==================
   const columnOrder = [...columnHeaderItemList].map((item, index) => item.columnName as keyof Client_company); // columnNameのみの配列を取得 keyof型演算子：https://typescriptbook.jp/reference/type-reuse/keyof-type-operator
   // const columnOrder = [...columnHeaderItemList].map((item, index) => item.columnName as keyof TableDataType); // columnNameのみの配列を取得
-  // ================= 🔥🔥テスト🔥🔥==================
+  // ================= 🌟並び替え🌟成功 ==================
   // // カラムName配列バージョンで順番入れ替え
   // const columnOrder = [...columnHeaderItemList].map((item, index) => ({
   //   columnName: item.columnName as keyof TableDataType,
@@ -2507,7 +2650,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                     setSearchMode(false);
                     if (loadingGlobalState) setLoadingGlobalState(false);
                     // 編集モード中止
-                    setEditSearchMode(false);
+                    if (editSearchMode) setEditSearchMode(false);
                   } else {
                     // 新規サーチクリック
                     if (loadingGlobalState) setLoadingGlobalState(false);
@@ -2531,7 +2674,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                 }}
               />
               <button
-                className={`flex-center transition-color03 relative  h-[26px] min-w-[118px]  cursor-pointer space-x-1  rounded-[4px] px-[15px] text-[12px] text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`}
+                className={`flex-center transition-color03 relative  h-[25px] min-w-[118px]  cursor-pointer space-x-1  rounded-[4px] px-[15px] text-[12px] text-[var(--color-bg-brand-f)] active:bg-[var(--color-function-header-text-btn-active)] ${styles.fh_text_btn}`}
                 onClick={async () => {
                   console.log("リフレッシュ クリック");
                   setRefetchLoading(true);
@@ -2566,7 +2709,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
             </div>
             <div className={`flex max-h-[26px] w-full  items-center justify-end space-x-[6px]`}>
               <button
-                className={`flex-center transition-base03 h-[26px]  space-x-2 rounded-[4px]  px-[15px] text-[12px]  ${
+                className={`flex-center transition-base03 h-[26px]  space-x-2 rounded-[4px]  px-[12px] text-[12px]  ${
                   activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) !== 1
                     ? `cursor-pointer  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`
                     : "cursor-not-allowed text-[#999]"
@@ -2622,11 +2765,33 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                     : "固定"}
                 </span> */}
               </button>
-              <button
-                className={`flex-center transition-base03 h-[26px]  cursor-pointer space-x-2  rounded-[4px] px-[15px] text-[12px]  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn} `}
+              {/* <button
+                className={`flex-center transition-base03 h-[26px]  cursor-pointer space-x-2  rounded-[4px] px-[15px] text-[12px]  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`}
+                onClick={() => {
+                  console.log("クリック");
+                }}
               >
-                {/* <FiLock /> */}
-                <span>モード</span>
+                <span className="pointer-events-none">検索タイプ</span>
+              </button> */}
+              <button
+                className={`flex-center transition-base03 space-x-[6px] rounded-[4px] px-[12px] text-[12px]  text-[var(--color-bg-brand-f)]  ${
+                  styles.fh_text_btn
+                } relative ${
+                  isOpenDropdownMenuSearchMode
+                    ? `cursor-default active:!bg-[var(--color-btn-brand-f)]`
+                    : `cursor-pointer active:bg-[var(--color-function-header-text-btn-active)]`
+                }`}
+                onClick={() => {
+                  if (searchMode) setSearchMode(false); // サーチモード中止
+                  if (editSearchMode) setEditSearchMode(false); // 編集モード中止
+                  if (!isOpenDropdownMenuSearchMode) setIsOpenDropdownMenuSearchMode(true);
+                }}
+              >
+                <FiSearch className="pointer-events-none text-[14px]" />
+                <span>サーチモード</span>
+                {isOpenDropdownMenuSearchMode && (
+                  <DropDownMenuSearchMode setIsOpenDropdownMenuSearchMode={setIsOpenDropdownMenuSearchMode} />
+                )}
               </button>
               <RippleButton
                 title={`カラム編集`}
@@ -3216,7 +3381,11 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
           {/* =============== Gridフッター ここから スクロールコンテナと同列で配置 =============== */}
           <GridTableFooter
             getItemCount={allRows.length}
-            getTotalCount={!!data?.pages[0]?.count ? data.pages[0].count : 0}
+            // getTotalCount={!!data?.pages[0]?.count ? data.pages[0].count : 0}
+            // getTotalCount={!!data?.pages[0]?.count ? data.pages[0].count : null}
+            getTotalCount={
+              data?.pages[0]?.count !== null && data?.pages[0]?.count !== undefined ? data.pages[0].count : null
+            }
           />
           {/* ================== Gridフッター ここまで ================== */}
         </div>

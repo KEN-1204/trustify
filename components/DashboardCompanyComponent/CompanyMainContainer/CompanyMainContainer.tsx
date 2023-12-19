@@ -1,4 +1,4 @@
-import React, { FC, FormEvent, Suspense, memo, useEffect, useState } from "react";
+import React, { FC, FormEvent, Suspense, memo, useCallback, useEffect, useRef, useState } from "react";
 import styles from "../CompanyDetail/CompanyDetail.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import useStore from "@/store";
@@ -13,6 +13,8 @@ import { toast } from "react-toastify";
 import { Zoom } from "@/utils/Helpers/toastHelpers";
 import { BsCheck2 } from "react-icons/bs";
 import { FallbackUnderRightActivityLog } from "./UnderRightActivityLog/FallbackUnderRightActivityLog";
+import { convertToMillions } from "@/utils/Helpers/convertToMillions";
+import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
 
 // ====================== 擬似テストデータ用 ======================
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
@@ -43,6 +45,9 @@ const CompanyMainContainerMemo: FC = () => {
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   // 上画面の選択中の列データ会社
   const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
+  // 「条件に一致する全ての会社をフェッチするか」、「条件に一致する自社で作成した会社のみをフェッチするか」の抽出条件を保持
+  const isFetchAllCompanies = useDashboardStore((state) => state.isFetchAllCompanies);
+  const setIsFetchAllCompanies = useDashboardStore((state) => state.setIsFetchAllCompanies);
 
   type TooltipParams = {
     e: React.MouseEvent<HTMLElement, MouseEvent>;
@@ -104,7 +109,7 @@ const CompanyMainContainerMemo: FC = () => {
   const [inputZipcode, setInputZipcode] = useState("");
   const [inputAddress, setInputAddress] = useState("");
   const [inputEmployeesClass, setInputEmployeesClass] = useState("");
-  const [inputCapital, setInputCapital] = useState("");
+  const [inputCapital, setInputCapital] = useState<string>("");
   const [inputFound, setInputFound] = useState("");
   const [inputContent, setInputContent] = useState("");
   const [inputHP, setInputHP] = useState("");
@@ -165,7 +170,10 @@ const CompanyMainContainerMemo: FC = () => {
       setInputZipcode(beforeAdjustFieldValue(newSearchCompanyParams?.zipcode));
       setInputEmployeesClass(beforeAdjustFieldValue(newSearchCompanyParams?.number_of_employees_class));
       setInputAddress(beforeAdjustFieldValue(newSearchCompanyParams?.address));
-      setInputCapital(beforeAdjustFieldValue(newSearchCompanyParams?.capital));
+      // setInputCapital(beforeAdjustFieldValue(newSearchCompanyParams?.capital));
+      setInputCapital(
+        beforeAdjustFieldValue(!!newSearchCompanyParams?.capital ? newSearchCompanyParams.capital.toString() : "")
+      );
       setInputFound(beforeAdjustFieldValue(newSearchCompanyParams?.established_in));
       setInputContent(beforeAdjustFieldValue(newSearchCompanyParams?.business_content));
       setInputHP(beforeAdjustFieldValue(newSearchCompanyParams.website_url));
@@ -239,7 +247,7 @@ const CompanyMainContainerMemo: FC = () => {
     console.log("サブミット");
 
     // // Asterisks to percent signs for PostgreSQL's LIKE operator
-    function adjustFieldValue(value: string) {
+    function adjustFieldValue(value: string | null) {
       if (value === "") return null; // 全てのデータ
       if (value === null) return null; // 全てのデータ
       if (value.includes("*")) value = value.replace(/\*/g, "%");
@@ -258,7 +266,8 @@ const CompanyMainContainerMemo: FC = () => {
     let _zipcode = adjustFieldValue(inputZipcode);
     let _number_of_employees_class = adjustFieldValue(inputEmployeesClass);
     let _address = adjustFieldValue(inputAddress);
-    let _capital = adjustFieldValue(inputCapital);
+    // let _capital = adjustFieldValue(inputCapital);
+    let _capital = adjustFieldValue(inputCapital) ? parseInt(inputCapital, 10) : null;
     let _established_in = adjustFieldValue(inputFound);
     let _business_content = adjustFieldValue(inputContent);
     let _website_url = adjustFieldValue(inputHP);
@@ -390,6 +399,49 @@ const CompanyMainContainerMemo: FC = () => {
     // console.log("✅ 検索結果データ取得 data", data);
   };
 
+  // ================== 🌟シングルクリック、ダブルクリックイベント ==================
+  // ダブルクリックで各フィールドごとに個別で編集
+  const setTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // シングルクリック => 何もアクションなし
+  const handleSingleClickField = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!userProfileState?.company_id) return;
+    if (!selectedRowDataCompany) return;
+    // 自社で作成した会社でない場合はそのままリターン
+    if (selectedRowDataCompany?.created_by_company_id === userProfileState.company_id) return;
+
+    if (setTimeoutRef.current !== null) return;
+
+    setTimeoutRef.current = setTimeout(() => {
+      setTimeoutRef.current = null;
+      // シングルクリック時に実行したい処理
+      // 0.2秒後に実行されてしまうためここには書かない
+    }, 200);
+    console.log("シングルクリック");
+  }, []);
+
+  // ダブルクリック => ダブルクリックしたフィールドを編集モードに変更
+  const handleDoubleClickField = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!userProfileState?.company_id) return;
+    if (!selectedRowDataCompany) return;
+    // 自社で作成した会社でない場合はそのままリターン
+    if (selectedRowDataCompany?.created_by_company_id === userProfileState.company_id) return;
+
+    console.log("ダブルクリック");
+    if (setTimeoutRef.current) {
+      clearTimeout(setTimeoutRef.current);
+
+      // console.log(e.detail);
+      setTimeoutRef.current = null;
+      // ダブルクリック時に実行したい処理
+      // クリックした要素のテキストを格納
+      const text = e.currentTarget.innerText;
+      // setTextareaInput(text); // 編集モードでinputStateをクリックした要素のテキストを初期値に設定
+      // setIsOpenEditModal(true); // クリックされたフィールドの編集モードを開く
+    }
+  }, []);
+  // ================== ✅シングルクリック、ダブルクリックイベント ==================
+
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
   return (
     <form className={`${styles.main_container} w-full `} onSubmit={handleSearchSubmit}>
@@ -407,17 +459,38 @@ const CompanyMainContainerMemo: FC = () => {
         >
           {/* --------- ラッパー --------- */}
           <div className={`${styles.left_contents_wrapper} flex h-full w-full flex-col`}>
+            {/* row_areaグループ */}
+            {/* {searchMode && (
+              <div
+                className={`${styles.row_area} ${
+                  searchMode ? `${styles.row_area_search_mode}` : ``
+                } flex h-[30px] w-full items-center`}
+              >
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>検索タイプ</span>
+                    {searchMode && (
+                      <select
+                        className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
+                        value={isFetchAllCompanies ? `All` : `Own`}
+                        onChange={(e) => setIsFetchAllCompanies(e.target.value === "All")}
+                      >
+                        <option value="All">条件に一致する全ての会社</option>
+                        <option value="Own">条件に一致する自社で作成した会社のみ</option>
+                      </select>
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]"></div>
+              </div>
+            )} */}
             {/* 会社名 */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>●会社名</span>
                   {/* {!searchMode && (
-                    <span className={`${styles.value} ${styles.value_highlight}`}>
-                      {selectedRowDataCompany?.name ? selectedRowDataCompany?.name : ""}
-                    </span>
-                  )} */}
-                  {!searchMode && (
                     <div className="flex items-center space-x-[9px]">
                       <span className={`${styles.value} ${styles.value_highlight}`}>
                         {selectedRowDataCompany?.name ? selectedRowDataCompany?.name : ""}
@@ -433,8 +506,17 @@ const CompanyMainContainerMemo: FC = () => {
                         </div>
                       )}
                     </div>
-                  )}
-                  {searchMode && (
+                  )} */}
+                  <input
+                    type="text"
+                    placeholder="株式会社○○"
+                    autoFocus
+                    className={`${styles.input_box}`}
+                    // value={inputName}
+                    value={selectedRowDataCompany?.name ? selectedRowDataCompany?.name : ""}
+                    onChange={(e) => setInputName(e.target.value)}
+                  />
+                  {/* {searchMode && (
                     <input
                       type="text"
                       placeholder="株式会社○○"
@@ -443,7 +525,7 @@ const CompanyMainContainerMemo: FC = () => {
                       value={inputName}
                       onChange={(e) => setInputName(e.target.value)}
                     />
-                  )}
+                  )} */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -566,7 +648,7 @@ const CompanyMainContainerMemo: FC = () => {
                     <select
                       name="position_class"
                       id="position_class"
-                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
                       value={inputEmployeesClass}
                       onChange={(e) => setInputEmployeesClass(e.target.value)}
                     >
@@ -624,20 +706,63 @@ const CompanyMainContainerMemo: FC = () => {
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>資本金</span>
+                  <span className={`${styles.title}`}>資本金(万円)</span>
                   {!searchMode && (
                     <span className={`${styles.value}`}>
-                      {selectedRowDataCompany?.capital ? selectedRowDataCompany?.capital : ""}
+                      {/* {selectedRowDataCompany?.capital ? selectedRowDataCompany?.capital : ""} */}
+                      {selectedRowDataCompany?.capital
+                        ? convertToJapaneseCurrencyFormat(selectedRowDataCompany.capital)
+                        : ""}
                     </span>
                   )}
-                  {searchMode && (
+                  {/* {searchMode && (
                     <input
                       type="text"
                       className={`${styles.input_box}`}
                       value={inputCapital}
                       onChange={(e) => setInputCapital(e.target.value)}
                     />
+                  )} */}
+                  {searchMode && (
+                    <input
+                      type="text"
+                      className={`${styles.input_box}`}
+                      value={!!inputCapital ? inputCapital : ""}
+                      onChange={(e) => setInputCapital(e.target.value)}
+                      onBlur={() =>
+                        setInputCapital(
+                          !!inputCapital && inputCapital !== ""
+                            ? (convertToMillions(inputCapital.trim()) as number).toString()
+                            : // ?  (convertToMillions(inputCapital.trim()) as number).toString()
+                              ""
+                        )
+                      }
+                    />
                   )}
+                  {/* {searchMode && (
+                    <input
+                      type="number"
+                      min="0"
+                      className={`${styles.input_box}`}
+                      placeholder='〜万円の単位で入力してください'
+                      value={inputCapital === null ? "" : inputCapital}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "") {
+                          setInputCapital(null);
+                        } else {
+                          const numValue = Number(val);
+
+                          // 入力値がマイナスかチェック
+                          if (numValue < 0) {
+                            setInputCapital(0); // ここで0に設定しているが、必要に応じて他の正の値に変更することもできる
+                          } else {
+                            setInputCapital(numValue);
+                          }
+                        }
+                      }}
+                    />
+                  )} */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -809,7 +934,7 @@ const CompanyMainContainerMemo: FC = () => {
                     <select
                       name="position_class"
                       id="position_class"
-                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
                       value={inputIndustryType}
                       onChange={(e) => setInputIndustryType(e.target.value)}
                     >
@@ -895,7 +1020,7 @@ const CompanyMainContainerMemo: FC = () => {
                     <select
                       name="position_class"
                       id="position_class"
-                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`ml-auto h-full w-[80%] cursor-pointer ${styles.select_box}`}
                       value={inputProductL}
                       onChange={(e) => setInputProductL(e.target.value)}
                     >
@@ -945,9 +1070,9 @@ const CompanyMainContainerMemo: FC = () => {
                       id="position_class"
                       value={inputProductM}
                       onChange={(e) => setInputProductM(e.target.value)}
-                      className={`${
-                        inputProductL ? "" : "hidden"
-                      } ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`${inputProductL ? "" : "hidden"} ml-auto h-full w-[80%] cursor-pointer ${
+                        styles.select_box
+                      }`}
                     >
                       {inputProductL === "電子部品・モジュール" &&
                         productCategoriesM.moduleCategoryM.map((option) => option)}

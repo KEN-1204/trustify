@@ -11,6 +11,7 @@ import { columnNameToJapanese } from "@/utils/columnNameToJapanese";
 import { columnNameToJapaneseContacts } from "@/utils/columnNameToJapaneseContacts";
 import { columnNameToJapaneseActivity } from "@/utils/columnNameToJapaneseActivity";
 import { columnNameToJapaneseMeeting } from "@/utils/columnNameToJapaneseMeeting";
+import { BsChevronLeft } from "react-icons/bs";
 
 // const data: Array<{ id: number; name: string; img: StaticImageData }> = [
 
@@ -283,13 +284,18 @@ const EditColumnsModalDisplayOnlyMemo: FC<Props> = ({ columnHeaderItemList }) =>
       <div className={`${styles.container} fade03`} ref={modalContainerRef}>
         {/* 保存キャンセルエリア */}
         <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[30px] text-center text-[18px]">
-          <div className="cursor-pointer font-semibold hover:text-[#aaa]" onClick={handleCancelAndReset}>
-            キャンセル
+          <div
+            className="relative flex min-w-[125px] cursor-pointer select-none items-center pl-[10px] text-start font-semibold hover:text-[#aaa]"
+            onClick={handleCancelAndReset}
+          >
+            {/* <span>キャンセル</span> */}
+            <BsChevronLeft className="z-1 absolute  left-[-25px] top-[50%] translate-y-[-50%] text-[24px]" />
+            <span>戻る</span>
           </div>
-          <div className="-translate-x-[25px] font-bold">カラム並び替え</div>
+          <div className="select-none font-bold">カラム並び替え</div>
           {/* <div className="-translate-x-[25px] font-bold">カラム並び替え・追加/削除</div> */}
           <div
-            className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
+            className={`min-w-[125px] cursor-pointer select-none text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
             onClick={handleSaveAndClose}
           >
             保存

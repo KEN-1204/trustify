@@ -125,7 +125,7 @@ export const columnNameToJapaneseMeeting = (columnName: string) => {
       return "決算月";
       break;
     case "capital":
-      return "資本金";
+      return "資本金(万円)";
       break;
     case "company_email":
       return "会社Email";

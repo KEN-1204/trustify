@@ -132,7 +132,8 @@ export type Client_company = {
   product_category_small?: string | null;
   number_of_employees_class?: string | null;
   fiscal_end_month?: string | null;
-  capital?: string | null;
+  // capital?: string | null;
+  capital?: number | null;
   budget_request_month1?: string | null;
   budget_request_month2?: string | null;
   website_url?: string | null;
@@ -179,7 +180,8 @@ export type Client_company_row_data = {
   business_sites?: string | null;
   call_careful_flag?: boolean | null;
   call_careful_reason?: string | null;
-  capital?: string | null;
+  // capital?: string | null;
+  capital?: number | null;
   corporate_number?: string | null;
   chairperson?: string | null;
   claim?: string | null;
@@ -235,7 +237,8 @@ export type NewSearchCompanyParams = {
   zipcode: string | null;
   number_of_employees_class: string | null;
   address: string | null;
-  capital: string | null;
+  // capital: string | null;
+  capital: number | null;
   established_in: string | null;
   business_content: string | null;
   industry_type: string | null;
@@ -353,7 +356,8 @@ export type UserProfileCompanySubscription = {
   customer_product_category_small: string | null;
   customer_number_of_employees_class: string | null;
   customer_fiscal_end_month: string | null;
-  customer_capital: string | null;
+  // customer_capital: string | null;
+  customer_capital: number | null;
   customer_budget_request_month1: string | null;
   customer_budget_request_month2: string | null;
   customer_website_url: string | null;
@@ -578,7 +582,8 @@ export type Contact_row_data = {
   address: string | null;
   company_email: string | null;
   number_of_employees_class: string | null;
-  capital: string | null;
+  // capital: string | null;
+  capital: number | null;
   established_in: string | null;
   business_content: string | null;
   website_url: string | null;
@@ -632,7 +637,8 @@ export type Activity_row_data = {
   address: string | null;
   company_email: string | null;
   number_of_employees_class: string | null;
-  capital: string | null;
+  // capital: string | null;
+  capital: number | null;
   established_in: string | null;
   business_content: string | null;
   website_url: string | null;
@@ -713,7 +719,8 @@ export type Meeting_row_data = {
   address: string | null;
   company_email: string | null;
   number_of_employees_class: string | null;
-  capital: string | null;
+  // capital: string | null;
+  capital: number | null;
   established_in: string | null;
   business_content: string | null;
   website_url: string | null;
@@ -803,7 +810,8 @@ export type ValidMeeting = {
   address: string | null;
   company_email: string | null;
   number_of_employees_class: string | null;
-  capital: string | null;
+  // capital: string | null;
+  capital: number | null;
   established_in: string | null;
   business_content: string | null;
   website_url: string | null;
@@ -893,7 +901,8 @@ export type Property_row_data = {
   address: string | null;
   company_email: string | null;
   number_of_employees_class: string | null;
-  capital: string | null;
+  // capital: string | null;
+  capital: number | null;
   established_in: string | null;
   business_content: string | null;
   website_url: string | null;
@@ -1053,7 +1062,8 @@ export type NewSearchContact_CompanyParams = {
   zipcode: string | null;
   address: string | null;
   number_of_employees_class: string | null;
-  capital: string | null;
+  // capital: string | null;
+  capital: number | null;
   established_in: string | null;
   business_content: string | null;
   website_url: string | null;
@@ -1099,7 +1109,8 @@ export type NewSearchActivity_Contact_CompanyParams = {
   zipcode: string | null;
   address: string | null;
   number_of_employees_class: string | null;
-  capital: string | null;
+  // capital: string | null;
+  capital: number | null;
   established_in: string | null;
   business_content: string | null;
   website_url: string | null;
@@ -1168,7 +1179,8 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   zipcode: string | null;
   address: string | null;
   number_of_employees_class: string | null;
-  capital: string | null;
+  // capital: string | null;
+  capital: number | null;
   established_in: string | null;
   business_content: string | null;
   website_url: string | null;
@@ -1249,7 +1261,8 @@ export type NewSearchProperty_Contact_CompanyParams = {
   zipcode: string | null;
   address: string | null;
   number_of_employees_class: string | null;
-  capital: string | null;
+  // capital: string | null;
+  capital: number | null;
   established_in: string | null;
   business_content: string | null;
   website_url: string | null;

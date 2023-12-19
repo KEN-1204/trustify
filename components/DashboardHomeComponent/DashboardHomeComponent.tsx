@@ -115,7 +115,7 @@ export const DashboardHomeComponent = () => {
                 <div className="flex h-[70dvh] w-[40%] flex-col items-center rounded-[4px] ">
                   <div className={`${styles.title_area} flex-col-center w-full `}>
                     <h3
-                      className={`flex-center relative h-[70px] w-full max-w-[400px] select-none text-[32px] font-bold ${styles.text_brand_f_gradient}`}
+                      className={`flex-center relative h-[70px] w-full max-w-[400px] select-none text-[32px] font-bold ${styles.text_brand_f_gradient} ${styles.text_brand_shadow}`}
                     >
                       TRUSTiFYへようこそ
                       {/* <span className="absolute left-[155px] top-[21px] min-h-[6px] min-w-[6px] truncate rounded-full bg-[red]"></span> */}
@@ -145,7 +145,7 @@ export const DashboardHomeComponent = () => {
                         }}
                       >
                         <div className={`h-[40px] w-[40px] ${styles.animate_icon}`}>{item.icon}</div>
-                        <div className="mx-[16px] flex flex-grow flex-col">
+                        <div className="mx-[16px] flex flex-grow select-none flex-col">
                           <span>{item.title}</span>
                           {/* {item.title2 && <span>{item.title2}</span>} */}
                         </div>

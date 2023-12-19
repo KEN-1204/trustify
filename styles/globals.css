@@ -36,6 +36,23 @@
   --main-color-tk: #ff3b5b;
   --main-color-tk-blue: #00f2ea;
 
+  /* ブランドカラー */
+  --color-bg-brand-light: #0affff;
+  --color-bg-brand-light10: #0affff10;
+  --color-bg-brand-light20: #0affff20;
+  --color-bg-brand-light30: #0affff30;
+  --color-bg-brand-light40: #0affff40;
+  --color-bg-brand-light50: #0affff50;
+  --color-bg-brand-light60: #0affff60;
+  --color-bg-brand-light70: #0affff70;
+  --color-bg-brand-light80: #0affff80;
+  --color-bg-brand-light90: #0affff90;
+  --color-bg-brand-lighta0: #0affffa0;
+  --color-bg-brand-lightb0: #0affffb0;
+  --color-bg-brand-lightc0: #0affffc0;
+  --color-bg-brand-lightd0: #0affffd0;
+  --color-bg-brand-lighte0: #0affffe0;
+
   /* ビビッドカラー */
   --bright-green: #00d436;
   --vivid-green-dark: #0fff92;
@@ -445,8 +462,6 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-brand-hover-main: #3183ff;
   --color-bg-brand-pressed: #007be5;
   --color-bg-brand-secondary: #0768cf;
-  --color-bg-brand-light: #0affff;
-  --color-bg-brand-light90: #0affff50;
   --color-bg-brand-sub: #2b7fff;
   --color-bg-brand-sub08: #2b7fff90;
   --color-bg-brand-sub-deep: #2b7fff;
@@ -475,6 +490,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-border-table-deep: #aaa;
   /* --color-border-table: #e6e6e6; */
   /* --color-table-header: #40576d18; */
+
   /* ヘッダーブルー 🌟ブルーならこれ */
   --color-table-header: #e2f0fd;
   /* --color-table-header: #0d99ff20; */
@@ -482,14 +498,24 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* ヘッダーモノクロ 🌟モノクロならこれ */
   /* --color-table-header: #ececec; */
   /* --color-table-header: #f0f0f0; */
+  --color-bg-sub-blue: #40576d12;
   --color-table-header: #f4f4f4;
+  /* --color-table-header: var(--color-bg-sub-blue); */
+  /* --color-table-column-header: #f4f4f4; */
   /* --color-table-header: #f3f3f3; */
   /* フッターブルー */
   /* --color-table-footer: #e2f0fd90; */
   /* フッターモノクロ */
   /* --color-table-footer: #eee; */
   --color-table-cell-bg: #fff;
+  /* --color-table-footer: #40576d12; */
   --color-table-footer: #fff;
+  /* --color-table-footer: #b4c3d112; */
+  /* --color-table-footer: #9dabb712; */
+  /* --color-table-footer: #f4f4f4; */
+  --color-under-table-footer: #fff;
+  /* --color-under-table-footer: #9dabb712; */
+  /* --color-table-footer: var(--color-bg-sub-blue); */
   --color-table-bg-loading: #fff;
   /* リフレクション ブルー */
   /* --color-table-reflection: #0d99ff30; */
@@ -857,7 +883,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
     #0088ff 100%
   );
 
-  /* シャドウ */
+  /* シャドウ light */
   --shadow-sm: 0 2px 4px -1px rgba(57, 76, 96, 0.15);
   --shadow-all-md: 0px 4px 15px 1px rgba(0, 0, 0, 0.15);
   --shadow-all-lg: 0px 3px 15px 3px rgba(0, 0, 0, 0.39);
@@ -874,6 +900,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --shadow-top-white-md: 0px -4px 15px 3px rgba(255, 255, 255, 0.39);
   --shadow-header: 0 2px 4px -1px rgba(57, 76, 96, 0.15);
   --shadow-sidebar: 2px 0px 4px -1px rgba(57, 76, 96, 0.15);
+  /* テキスト シャドウ light */
+  --color-text-brand-shadow: #ffffff00;
 
   /* スケルトンローディング */
   --color-skeleton-bg: #99999947;
@@ -891,6 +919,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
 
   /* ツールチップのボーダーからー */
   --box-shadow-tooltip-border: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #33333390;
+  --shadow-dropdown-menu: 0 4px 6px 2px #00000033;
+  --border-real-with-shadow: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #33333390, var(--shadow-dropdown-menu);
 
   --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff30, #ffffff20, #ffffff10, #ffffff10, #ffffff80);
   --tile-border-hp: conic-gradient(#555555c0, #55555540, #55555520, #555555c0, #55555540, #55555520, #555555c0);
@@ -1419,6 +1449,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --shadow-header: 0px 1px 6px 0px rgba(255, 255, 255, 0.12);
   --shadow-sidebar: 1px 0px 6px -1px rgba(255, 255, 255, 0.12);
   --color-header-shadow-hover: rgb(0 0 0 / 69%) 0px 16px 38px -5px, rgb(0 0 0 / 45%) 0px 16px 10px -10px;
+  /* テキスト シャドウ dark */
+  --color-text-brand-shadow: #ffffff70;
 
   /* スケルトンローディング */
   --color-skeleton-bg: #99999970;
@@ -1437,6 +1469,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* ツールチップのボーダーからー */
 
   --box-shadow-tooltip-border: inset 0px 0px 0px 1px #ffffff70, 0px 0px 0px 1px #000;
+  --shadow-dropdown-menu: 0 4px 10px 2px #ffffff33;
+  --border-real-with-shadow: inset 0px 0px 0px 1px #ffffff70, 0px 0px 0px 1px #000, var(--shadow-dropdown-menu);
 
   /* --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff30, #ffffff20, #ffffff10, #ffffff10, #ffffff80); */
   --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff20, #ffffff80, #ffffff40, #ffffff20, #ffffff80);
@@ -2152,6 +2186,12 @@ textarea {
   /* box-shadow: inset 0px 0px 0px 1px #ffffff70, 0px 0px 0px 1px #000; */
   box-shadow: var(--box-shadow-tooltip-border);
   /* box-shadow: var(--color-edit-border); */
+}
+/* .border-real-border {
+  filter: drop-shadow(0px 0px 1px #33333390);
+} */
+.border-real-with-shadow {
+  box-shadow: var(--border-real-with-shadow);
 }
 
 /* 会社概要 about */

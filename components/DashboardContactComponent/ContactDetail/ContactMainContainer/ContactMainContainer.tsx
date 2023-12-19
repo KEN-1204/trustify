@@ -12,6 +12,8 @@ import productCategoriesM, { moduleCategoryM } from "@/utils/productCategoryM";
 import { toast } from "react-toastify";
 import { Zoom } from "@/utils/Helpers/toastHelpers";
 import { FallbackUnderRightActivityLog } from "@/components/DashboardCompanyComponent/CompanyMainContainer/UnderRightActivityLog/FallbackUnderRightActivityLog";
+import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
+import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -172,7 +174,11 @@ const ContactMainContainerMemo: FC = () => {
       setInputZipcode(beforeAdjustFieldValue(newSearchContact_CompanyParams?.zipcode));
       setInputEmployeesClass(beforeAdjustFieldValue(newSearchContact_CompanyParams?.number_of_employees_class));
       setInputAddress(beforeAdjustFieldValue(newSearchContact_CompanyParams?.address));
-      setInputCapital(beforeAdjustFieldValue(newSearchContact_CompanyParams?.capital));
+      setInputCapital(
+        beforeAdjustFieldValue(
+          newSearchContact_CompanyParams?.capital ? newSearchContact_CompanyParams.capital.toString() : ""
+        )
+      );
       setInputFound(beforeAdjustFieldValue(newSearchContact_CompanyParams?.established_in));
       setInputContent(beforeAdjustFieldValue(newSearchContact_CompanyParams?.business_content));
       setInputHP(beforeAdjustFieldValue(newSearchContact_CompanyParams.website_url));
@@ -266,7 +272,7 @@ const ContactMainContainerMemo: FC = () => {
     if (!userProfileState || !userProfileState.company_id) return alert("エラー：ユーザー情報が見つかりませんでした。");
 
     // // Asterisks to percent signs for PostgreSQL's LIKE operator
-    function adjustFieldValue(value: string) {
+    function adjustFieldValue(value: string | null) {
       if (value === "") return null; // 全てのデータ
       if (value === null) return null; // 全てのデータ
       if (value.includes("*")) value = value.replace(/\*/g, "%");
@@ -285,7 +291,7 @@ const ContactMainContainerMemo: FC = () => {
     let _zipcode = adjustFieldValue(inputZipcode);
     let _number_of_employees_class = adjustFieldValue(inputEmployeesClass);
     let _address = adjustFieldValue(inputAddress);
-    let _capital = adjustFieldValue(inputCapital);
+    let _capital = adjustFieldValue(inputCapital) ? parseInt(inputCapital, 10) : null;
     let _established_in = adjustFieldValue(inputFound);
     let _business_content = adjustFieldValue(inputContent);
     let _website_url = adjustFieldValue(inputHP);
@@ -823,7 +829,7 @@ const ContactMainContainerMemo: FC = () => {
                     <select
                       name="position_class"
                       id="position_class"
-                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
                       value={inputPositionClass}
                       onChange={(e) => setInputPositionClass(e.target.value)}
                     >
@@ -863,7 +869,7 @@ const ContactMainContainerMemo: FC = () => {
                     <select
                       name="position_class"
                       id="position_class"
-                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
                       value={inputEmployeesClass}
                       onChange={(e) => setInputEmployeesClass(e.target.value)}
                     >
@@ -936,7 +942,7 @@ const ContactMainContainerMemo: FC = () => {
                     <select
                       name="position_class"
                       id="position_class"
-                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
                       value={inputEmployeesClass}
                       onChange={(e) => setInputEmployeesClass(e.target.value)}
                     >
@@ -1028,7 +1034,59 @@ const ContactMainContainerMemo: FC = () => {
               </div>
             </div>
 
-            {/* 事業内容 */}
+            {/* 資本金・設立 テスト */}
+            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full items-center `}>
+                  <span className={`${styles.title}`}>資本金(万円)</span>
+                  {!searchMode && (
+                    <span className={`${styles.value}`}>
+                      {/* {selectedRowDataCompany?.capital ? selectedRowDataCompany?.capital : ""} */}
+                      {selectedRowDataContact?.capital
+                        ? convertToJapaneseCurrencyFormat(selectedRowDataContact.capital)
+                        : ""}
+                    </span>
+                  )}
+                  {searchMode && (
+                    <input
+                      type="text"
+                      className={`${styles.input_box}`}
+                      value={!!inputCapital ? inputCapital : ""}
+                      onChange={(e) => setInputCapital(e.target.value)}
+                      onBlur={() =>
+                        setInputCapital(
+                          !!inputCapital && inputCapital !== ""
+                            ? (convertToMillions(inputCapital.trim()) as number).toString()
+                            : ""
+                        )
+                      }
+                    />
+                  )}
+                </div>
+                <div className={`${styles.underline}`}></div>
+              </div>
+              <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full items-center`}>
+                  <span className={`${styles.title}`}>設立</span>
+                  {!searchMode && (
+                    <span className={`${styles.value}`}>
+                      {selectedRowDataContact?.established_in ? selectedRowDataContact?.established_in : ""}
+                    </span>
+                  )}
+                  {searchMode && (
+                    <input
+                      type="text"
+                      className={`${styles.input_box}`}
+                      value={inputFound}
+                      onChange={(e) => setInputFound(e.target.value)}
+                    />
+                  )}
+                </div>
+                <div className={`${styles.underline}`}></div>
+              </div>
+            </div>
+
+            {/* 事業概要 */}
             <div className={`${styles.row_area} flex w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px] ">
                 <div className={`${styles.title_box}  flex h-full`}>
@@ -1356,7 +1414,7 @@ const ContactMainContainerMemo: FC = () => {
                     <select
                       name="position_class"
                       id="position_class"
-                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
                       value={inputIndustryType}
                       onChange={(e) => setInputIndustryType(e.target.value)}
                     >
@@ -1450,7 +1508,7 @@ const ContactMainContainerMemo: FC = () => {
                     <select
                       name="position_class"
                       id="position_class"
-                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`ml-auto h-full w-[80%] cursor-pointer ${styles.select_box}`}
                       value={inputProductL}
                       onChange={(e) => setInputProductL(e.target.value)}
                     >
@@ -1509,9 +1567,9 @@ const ContactMainContainerMemo: FC = () => {
                       id="position_class"
                       value={inputProductM}
                       onChange={(e) => setInputProductM(e.target.value)}
-                      className={`${
-                        inputProductL ? "" : "hidden"
-                      } ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`${inputProductL ? "" : "hidden"} ml-auto h-full w-[80%] cursor-pointer ${
+                        styles.select_box
+                      }`}
                     >
                       {inputProductL === "電子部品・モジュール" &&
                         productCategoriesM.moduleCategoryM.map((option) => option)}

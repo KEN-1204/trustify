@@ -231,6 +231,18 @@
   width: 8px;
   height: 8px;
 }
+.tooltip_arrow_right_top {
+  position: absolute;
+  bottom: -4px;
+  right: 13px;
+  transform: translateX(-50%) rotate(135deg);
+  transform-origin: center center;
+  background: #282828;
+  background: var(--color-tooltip-dark);
+  background: var(--color-tooltip-light);
+  width: 8px;
+  height: 8px;
+}
 /* .tooltip_right::after {
   content: "";
   position: absolute;
@@ -269,6 +281,7 @@
   /* white-space: nowrap; */
   white-space: pre-wrap;
   pointer-events: none;
+  user-select: none;
 }
 .dropdown_item:hover {
   /* background: var(--color-bg-brand); */

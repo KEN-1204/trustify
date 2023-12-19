@@ -175,3 +175,8 @@
   background-clip: text;
   text-fill-color: transparent;
 }
+
+.text_brand_shadow {
+  /* filter: drop-shadow(0 0 0.3rem #ffffff70); */
+  filter: drop-shadow(0 0 0.3rem var(--color-text-brand-shadow));
+}

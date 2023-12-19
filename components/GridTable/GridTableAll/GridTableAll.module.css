@@ -277,6 +277,8 @@
   /* border: 1px solid var(--color-bg-brand-f); */
   /* background: var(--color-function-header-text-btn-hover); */
   /* border: 1px solid transparent; */
+  min-height: 25px;
+  max-height: 25px;
 }
 .fh_text_btn:hover {
   /* border: 1px solid var(--color-bg-brand-f); */
@@ -284,8 +286,10 @@
   /* background: var(--color-bg-brand-f-deep); */
   /* background: var(--color-function-header-text-btn-hover); */
   /* background: var(--color-btn-brand-f); */
-  background: var(--color-bg-brand-f);
-
+  /* background: var(--color-bg-brand-f); */
+  background: var(--color-btn-brand-f);
+  /* border: 1px solid var(--color-btn-brand-f-hover); */
+  box-shadow: 0 0 0 1px var(--color-btn-brand-f-hover);
   color: #fff;
 }
 .fh_text_btn:active {
@@ -427,6 +431,7 @@
   color: var(--color-text);
 
   background: var(--color-table-header);
+  /* background: var(--color-table-column-header); */
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -743,7 +748,8 @@
   /* justify-content: flex-start; */
   justify-content: flex-start;
   align-items: center;
-  padding-left: 40vw;
+  /* padding-left: 40vw; */
+  padding-left: calc((100vw - var(--sidebar-width) - 20px) / 2 - 24px);
   border-right: 1px solid var(--border-color);
   background-color: var(--color-table-bg-loading);
   overflow-x: hidden;

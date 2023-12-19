@@ -183,7 +183,7 @@
   min-height: 32px;
   padding: 6px 8px;
   font-size: 15px;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 .input_box:focus {
   box-shadow: var(--color-bg-under-input-active-box-shadow);
@@ -206,8 +206,11 @@
   /* padding: 8px 10px; */
   padding: 8px 10px;
   font-size: 15px;
-  border-radius: 4px;
+  border-radius: 6px;
   resize: none;
+}
+.textarea_box:focus {
+  box-shadow: var(--color-bg-under-input-active-box-shadow);
 }
 
 .grid_select_cell_header {
@@ -312,4 +315,5 @@
   /* height: 30px; */
   min-height: 32px;
   font-size: 15px;
+  border-radius: 6px;
 }

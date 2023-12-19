@@ -45,6 +45,7 @@ const CompanyFunctionHeaderMemo: FC = () => {
       content3: content3,
       display: display,
       textLength: ((e.target as HTMLDivElement).dataset.text as string).length,
+      itemsPosition: "center",
     });
   };
   // ツールチップを非表示
@@ -165,7 +166,7 @@ const CompanyFunctionHeaderMemo: FC = () => {
             setUnderDisplayFullScreen(!underDisplayFullScreen);
           }}
           // onMouseEnter={(e) => handleOpenTooltip(e, "right")}
-          onMouseEnter={(e) => handleOpenTooltip(e, "right")}
+          onMouseEnter={(e) => handleOpenTooltip(e, "right-top")}
           onMouseLeave={handleCloseTooltip}
         >
           {underDisplayFullScreen ? (

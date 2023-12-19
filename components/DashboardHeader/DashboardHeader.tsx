@@ -28,7 +28,7 @@ import { NotificationCardTest } from "./NotificationCard/NotificationCardTest";
 import { runFireworks } from "@/utils/confetti";
 import SpinnerIDS2 from "../Parts/SpinnerIDS/SpinnerIDS2";
 import { FiRefreshCw } from "react-icons/fi";
-import { coffeeWithFriendsIllustration, completedTasks, reminderIllustration } from "../assets";
+import { coffeeWithFriendsIllustration, completedTasks, neonIconsSettingsGear, reminderIllustration } from "../assets";
 
 export const DashboardHeaderMemo: FC = () => {
   const supabase = useSupabaseClient();
@@ -1063,7 +1063,7 @@ export const DashboardHeaderMemo: FC = () => {
 
               {/* モーダル */}
               <div
-                className={`shadow-all-md border-real absolute right-[0px] top-[50px] z-[100] flex h-auto min-w-[276px] max-w-[276px] flex-col rounded-[4px] bg-[var(--color-edit-bg-solid)]`}
+                className={`shadow-all-md border-real-with-shadow absolute right-[0px] top-[50px] z-[100] flex h-auto min-w-[276px] max-w-[276px] flex-col rounded-[4px] bg-[var(--color-edit-bg-solid)]`}
               >
                 {/* プロフィール情報エリア */}
                 <div className={`relative flex h-auto w-full px-[24px] py-[16px]`}>
@@ -1251,6 +1251,7 @@ export const DashboardHeaderMemo: FC = () => {
             }}
           >
             <IoSettingsOutline className="text-[24px] text-[var(--color-icon)]" />
+            {/* <div>{neonIconsSettingsGear("32")}</div> */}
           </div>
         </div>
         {/* 右から３番目 ベル */}

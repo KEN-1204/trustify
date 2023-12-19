@@ -8,6 +8,7 @@ import useThemeStore from "@/store/useThemeStore";
 import { isNaN } from "lodash";
 import { useMutateContact } from "@/hooks/useMutateContact";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
+import { BsChevronLeft } from "react-icons/bs";
 
 export const InsertNewContactModal = () => {
   const setIsOpenInsertNewContactModal = useDashboardStore((state) => state.setIsOpenInsertNewContactModal);
@@ -135,11 +136,21 @@ export const InsertNewContactModal = () => {
         )}
         {/* 保存・タイトル・キャンセルエリア */}
         <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[30px] text-center text-[18px]">
-          <div
+          {/* <div
             className="min-w-[150px] cursor-pointer select-none text-start font-semibold hover:text-[#aaa]"
             onClick={handleCancelAndReset}
           >
             キャンセル
+          </div> */}
+          <div className="relative min-w-[150px] text-start font-semibold">
+            <div
+              className="flex max-w-max cursor-pointer select-none items-center hover:text-[#aaa]"
+              onClick={handleCancelAndReset}
+            >
+              <div className="h-full min-w-[20px]"></div>
+              <BsChevronLeft className="z-1 absolute  left-[-15px] top-[50%] translate-y-[-50%] text-[24px]" />
+              <span>戻る</span>
+            </div>
           </div>
           <div className="min-w-[150px] select-none font-bold">担当者 新規作成</div>
           <div

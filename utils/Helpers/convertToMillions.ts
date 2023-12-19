@@ -23,14 +23,24 @@ export function convertToMillions(inputString: string): number | null {
 
   // 兆、億、万、円で分割して数値を計算
   let total = 0;
-  const trillionMatch = inputString.match(/(\d+)兆/);
-  const billionMatch = inputString.match(/(\d+)億/);
-  const millionMatch = inputString.match(/(\d+)万/);
+  const trillionMatch = inputString.match(/(\d+(,\d+)*)兆/); // 数字一つ以上とカンマ数字一つ以上か、カンマ無し数字
+  const billionMatch = inputString.match(/(\d+(,\d+)*)億/);
+  const millionMatch = inputString.match(/(\d+(,\d+)*)万/);
+  // const trillionMatch = inputString.match(/(\d+)兆/);
+  // const billionMatch = inputString.match(/(\d+)億/);
+  // const millionMatch = inputString.match(/(\d+)万/);
+
+  // 1,000や1,000,000のように単位無しで区切り文字のみ存在する場合は区切り文字を取り除いてそのまま返す
+  if (!trillionMatch && !billionMatch && !millionMatch && inputString.includes(","))
+    return parseInt(inputString.replace(/,/g, "").replace(/[^\d]/g, ""), 10);
 
   // trillionMatch[1]はキャプチャグループによって抽出された値 => 今回は\dで任意の数値、+で\dが一回以上の連続した数字
-  if (trillionMatch) total += parseInt(trillionMatch[1], 10) * 100000000; // 兆の計算
-  if (billionMatch) total += parseInt(billionMatch[1], 10) * 10000; // 億の計算
-  if (millionMatch) total += parseInt(millionMatch[1], 10); // 万の計算
+  if (trillionMatch) total += parseInt(trillionMatch[1].replace(/,/g, ""), 10) * 100000000; // 兆の計算
+  if (billionMatch) total += parseInt(billionMatch[1].replace(/,/g, ""), 10) * 10000; // 億の計算
+  if (millionMatch) total += parseInt(millionMatch[1].replace(/,/g, ""), 10); // 万の計算
+  // if (trillionMatch) total += parseInt(trillionMatch[1], 10) * 100000000; // 兆の計算
+  // if (billionMatch) total += parseInt(billionMatch[1], 10) * 10000; // 億の計算
+  // if (millionMatch) total += parseInt(millionMatch[1], 10); // 万の計算
   //   if (!trillionMatch && !billionMatch && numericValue) total += Math.floor(parseInt(numericValue, 10)) / 10000; //「万」単位がなく数値が存在する場合(円単位の処理) 万単位の入力ではなく円単位でユーザーに入力してもらう場合に使用
 
   return total;

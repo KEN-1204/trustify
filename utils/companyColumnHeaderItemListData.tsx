@@ -92,6 +92,12 @@ const companyColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
+    columnName: "created_by_company_id",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: true,
+  },
+  {
     columnName: "email",
     columnWidth: "200px",
     isFrozen: false,
@@ -243,12 +249,12 @@ const companyColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
-  {
-    columnName: "created_by_company_id",
-    columnWidth: "200px",
-    isFrozen: false,
-    isOverflow: false,
-  },
+  // {
+  //   columnName: "created_by_company_id",
+  //   columnWidth: "200px",
+  //   isFrozen: false,
+  //   isOverflow: true,
+  // },
   {
     columnName: "id",
     columnWidth: "200px",

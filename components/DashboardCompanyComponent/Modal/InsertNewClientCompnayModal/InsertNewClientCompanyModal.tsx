@@ -10,6 +10,7 @@ import { useMutateClientCompany } from "@/hooks/useMutateClientCompany";
 import productCategoriesM from "@/utils/productCategoryM";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
+import { BsChevronLeft } from "react-icons/bs";
 
 export const InsertNewClientCompanyModal = () => {
   const setIsOpenInsertNewClientCompanyModal = useDashboardStore((state) => state.setIsOpenInsertNewClientCompanyModal);
@@ -35,7 +36,8 @@ export const InsertNewClientCompanyModal = () => {
   const [productCategoryS, setProductCategoryS] = useState("");
   const [numberOfEmployeesClass, setNumberOfEmployeesClass] = useState("");
   const [fiscalEndMonth, setFiscalEndMonth] = useState("");
-  const [capital, setCapital] = useState<string | null>("");
+  const [capital, setCapital] = useState<string>("");
+  // const [capital, setCapital] = useState<string | null>("");
   const [budgetRequestMonth1, setBudgetRequestMonth1] = useState("");
   const [budgetRequestMonth2, setBudgetRequestMonth2] = useState("");
   const [websiteURL, setWebsiteURL] = useState("");
@@ -100,7 +102,8 @@ export const InsertNewClientCompanyModal = () => {
       product_category_small: productCategoryS ? productCategoryS : null,
       number_of_employees_class: numberOfEmployeesClass ? numberOfEmployeesClass : null,
       fiscal_end_month: fiscalEndMonth ? fiscalEndMonth : null,
-      capital: capital ? capital : null,
+      // capital: capital ? capital : null,
+      capital: !!capital ? parseInt(capital, 10) : null,
       budget_request_month1: budgetRequestMonth1 ? budgetRequestMonth1 : null,
       budget_request_month2: budgetRequestMonth2 ? budgetRequestMonth2 : null,
       website_url: websiteURL ? websiteURL : null,
@@ -258,11 +261,16 @@ export const InsertNewClientCompanyModal = () => {
         )}
         {/* 保存・タイトル・キャンセルエリア */}
         <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[20px] text-center text-[18px]">
-          <div
-            className="min-w-[150px] cursor-pointer select-none text-start font-semibold hover:text-[#aaa]"
-            onClick={handleCancelAndReset}
-          >
-            キャンセル
+          {/* キャンセル */}
+          <div className="relative min-w-[150px] text-start font-semibold">
+            <div
+              className="flex max-w-max cursor-pointer select-none items-center hover:text-[#aaa]"
+              onClick={handleCancelAndReset}
+            >
+              <div className="h-full min-w-[20px]"></div>
+              <BsChevronLeft className="z-1 absolute  left-[-15px] top-[50%] translate-y-[-50%] text-[24px]" />
+              <span>戻る</span>
+            </div>
           </div>
           <div className="min-w-[150px] select-none font-bold">会社 新規作成</div>
           <div
@@ -545,9 +553,7 @@ export const InsertNewClientCompanyModal = () => {
                       // onBlur={() => setCapital(convertToNumber(capital.trim()).toString())}
                       onBlur={() =>
                         setCapital(
-                          capital !== null && typeof convertToMillions(capital.trim()) === "number"
-                            ? (convertToMillions(capital.trim()) as number).toString()
-                            : null
+                          !!capital && capital !== "" ? (convertToMillions(capital.trim()) as number).toString() : ""
                         )
                       }
                     />

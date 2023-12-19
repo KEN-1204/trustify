@@ -158,6 +158,7 @@
   font-weight: 500;
   /* direction: rtl; */
   white-space: nowrap;
+  user-select: none;
 }
 .dropdown_item:hover {
   background: var(--color-bg-brand);

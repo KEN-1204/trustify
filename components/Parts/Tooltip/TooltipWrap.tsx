@@ -24,7 +24,7 @@ export const TooltipWrap = () => {
     hoveredItemPositionYOver = window.innerHeight - hoveredItemPosWrap.y;
   }
 
-  // useEffectフックを使ってツールチップのはばを取得
+  // useEffectフックを使ってツールチップの幅を取得して、画面端20pxの位置に表示
   useEffect(() => {
     if (menuRef.current) {
       const tooltipWidth = menuRef.current.offsetWidth;

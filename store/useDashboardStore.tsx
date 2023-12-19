@@ -72,6 +72,11 @@ type State = {
   tableContainerSize: string;
   setTableContainerSize: (payload: string) => void;
 
+  // =================== 「会社画面」検索条件 ===================
+  // 【「条件に一致する全ての会社をフェッチするか」、「条件に一致する自社で作成した会社のみをフェッチするか」の抽出条件を保持】
+  isFetchAllCompanies: boolean;
+  setIsFetchAllCompanies: (payload: boolean) => void;
+
   // =================== 会社作成モーダル ===================
   // 新規作成モーダル
   isOpenInsertNewClientCompanyModal: boolean;
@@ -478,6 +483,10 @@ const useDashboardStore = create<State>((set) => ({
   // 【テーブルサイズの保持】
   tableContainerSize: "one_third",
   setTableContainerSize: (payload) => set({ tableContainerSize: payload }),
+  // =================== 「会社画面」検索条件 ===================
+  // 【「条件に一致する全ての会社をフェッチするか」、「条件に一致する自社で作成した会社のみをフェッチするか」の抽出条件を保持】
+  isFetchAllCompanies: true,
+  setIsFetchAllCompanies: (payload) => set({ isFetchAllCompanies: payload }),
   // =================== アンダーテーブル関連 ===================
   // 【サーチモード切り替え】
   searchMode: false,

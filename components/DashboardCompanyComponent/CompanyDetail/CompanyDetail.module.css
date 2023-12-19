@@ -139,6 +139,7 @@
   /* background: var(--color-bg-brand-table-tab); */
   /* background: var(--color-bg-secondary); */
   background-color: var(--color-bg-under-tab-header);
+  background-color: var(--color-table-header);
   border-bottom: 1px solid var(--color-border-table);
   border-bottom: 1px solid var(--color-border-table-deep);
   /* transition: background-color 0.5s ease; */
@@ -173,6 +174,7 @@
 /* ================================== 🌟ファンクションヘッダー ================================== */
 .grid_function_header {
   background-color: var(--color-table-header);
+  /* background: linear-gradient(to bottom left, var(--color-table-header), #ccc); */
   border-bottom: 1px solid var(--color-border-table-deep);
   display: flex;
   min-height: 40px;
@@ -326,7 +328,7 @@
   box-shadow: var(--color-bg-under-input-box-shadow);
   /* padding: 0px 6px; */
   padding: 6px 8px;
-  border-radius: 2px;
+  border-radius: 6px;
 }
 .input_box:focus {
   box-shadow: var(--color-bg-under-input-active-box-shadow);
@@ -347,14 +349,19 @@
   color: var(--color-text-under-value);
   box-shadow: var(--color-bg-under-input-box-shadow);
   padding: 3px 6px;
-  border-radius: 2px;
+  border-radius: 6px;
   resize: none;
+}
+.textarea_box:focus {
+  box-shadow: var(--color-bg-under-input-active-box-shadow);
 }
 .textarea_box_search_mode {
   padding: 6px 8px;
   line-height: normal;
 }
-
+.textarea_box_search_mode:focus {
+  box-shadow: var(--color-bg-under-input-active-box-shadow);
+}
 /* ------------------------------- 右側エリア ------------------------------- */
 .right_container {
   height: 100%;
@@ -402,6 +409,7 @@
   /* background: var(--color-bg-brand-table-tab); */
   /* background: var(--color-table-header); */
   background: var(--color-bg-under-sub);
+  background-color: var(--color-table-header);
   min-width: 80px;
   /* min-height: 22px; */
   width: 100%;
@@ -583,4 +591,5 @@
   box-shadow: var(--color-bg-under-input-box-shadow);
   background: var(--color-bg-under-input);
   padding-left: 5px;
+  border-radius: 6px;
 }

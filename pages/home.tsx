@@ -279,7 +279,19 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     .single();
 
   if (userProfile) console.log("🌟/homeサーバーサイド userProfileあり");
-  if (error) console.log("🌟/homeサーバーサイド errorあり", error);
+  if (error) console.log("🌟/homeサーバーサイド get_user_data関数でerror発生 error: ", error);
+
+  // エラーが発生したら/にリダイレクト
+  if (error) {
+    console.log("/homeサーバーサイド get_user_data関数でエラー発生 /にリダイレクト");
+    return {
+      redirect: {
+        destination: "/",
+        permanent: false,
+      },
+      props: {},
+    };
+  }
 
   // notificationsテーブルのデータを取得
   // const {data: notificationData, error: notificationError} = await supabase.from('notifications').select().eq('to_user_id', )

@@ -23,8 +23,15 @@
   /* box-shadow: inset 0px 0px 0px 1px #ffffffa0, 0px 0px 0px 1px #aaa; */
   /* box-shadow: var(--color-btn-box-shadow); */
   background: var(--color-btn-brand-f);
+  /* background: var(--color-bg-brand-f); */
   /* background: var(--color-bg-brand-f90); */
-  border: 1px solid var(--color-btn-brand-f-hover);
+  /* border: 1px solid var(--color-btn-brand-f-hover); */
+  border: 1px solid var(--color-bg-brand-f);
+  /* border: 1px solid transparent; */
+  /* border: 1px solid #fff; */
+  /* border: 1px solid #2b7fff; */
+  /* box-shadow: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #33333390; */
+  /* box-shadow: inset 0px 0px 0px 1px #ffffff90, 0px 0px 0px 1px #2b7fff; */
   border-radius: 4px !important;
   /* background-color: #2b825b;
   border: 1px solid #40bf86; */

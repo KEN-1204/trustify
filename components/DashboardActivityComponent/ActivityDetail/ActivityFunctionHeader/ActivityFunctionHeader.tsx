@@ -151,6 +151,18 @@ const ActivityFunctionHeaderMemo: FC = () => {
             clickEventHandler={() => {
               if (searchMode) return;
               if (!selectedRowDataActivity) return alert("活動を選択してください");
+              if (selectedRowDataActivity.meeting_id !== null)
+                return alert(
+                  "活動タイプ「面談・訪問」は活動画面から編集はできません。タブから「面談・訪問」をクリックして面談・訪問画面から編集してください。"
+                );
+              if (selectedRowDataActivity.property_id !== null)
+                return alert(
+                  "活動タイプ「案件」は活動画面から編集はできません。タブから「案件」をクリックして案件画面から編集してください。"
+                );
+              if (selectedRowDataActivity.quotation_id !== null)
+                return alert(
+                  "活動タイプ「見積」は活動画面から編集はできません。タブから「見積」をクリックして見積画面から編集してください。"
+                );
               console.log("活動編集 クリック");
               setSelectedRowDataContact(null);
               // setSelectedRowDataActivity(null);

@@ -5,7 +5,7 @@ import React from "react";
 import styles from "./GridTableAll.module.css";
 import { RippleButton } from "@/components/Parts/RippleButton/RippleButton";
 import { ChangeSizeBtn } from "@/components/Parts/ChangeSizeBtn/ChangeSizeBtn";
-import { FiLock, FiRefreshCw } from "react-icons/fi";
+import { FiLock, FiRefreshCw, FiSearch } from "react-icons/fi";
 import useStore from "@/store";
 import stylesFooter from "../GridTableFooter/GridTableFooter.module.css";
 import { SkeletonLoadingLines } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLines";
@@ -54,16 +54,21 @@ export const FallbackGridTableAll = () => {
           </div>
           <div className={`flex max-h-[26px] w-full  items-center justify-end space-x-[6px]`}>
             <button
-              className={`flex-center transition-base03 h-[26px]  cursor-pointer space-x-2  rounded-[2px] px-[15px]  text-[12px]  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`}
+              className={`flex-center transition-base03 h-[26px]  cursor-pointer space-x-2  rounded-[2px] px-[12px]  text-[12px]  text-[#999] ${styles.fh_text_btn}`}
             >
               <FiLock />
               <span>固定</span>
             </button>
-            <button
+            {/* <button
               className={`flex-center transition-base03 h-[26px]  cursor-pointer space-x-2  rounded-[2px] px-[15px] text-[12px]  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn} `}
             >
-              {/* <FiLock /> */}
               <span>モード</span>
+            </button> */}
+            <button
+              className={`flex-center transition-base03 space-x-[6px] rounded-[4px] px-[12px] text-[12px]  text-[var(--color-bg-brand-f)]  ${styles.fh_text_btn} relative cursor-default`}
+            >
+              <FiSearch className="pointer-events-none text-[14px]" />
+              <span>サーチモード</span>
             </button>
             <RippleButton title={`カラム編集`} borderRadius="2px" classText="select-none" />
             <ChangeSizeBtn borderRadius="2px" />
@@ -152,9 +157,11 @@ export const FallbackGridTableAll = () => {
                 <p className="space-x-2 text-sm font-medium text-[#bbb]">
                   <span>/</span>
                   <span>
-                    {language === "ja" && `0件`}
+                    {language === "ja" && `- 件`}
+                    {/* {language === "ja" && `0件`} */}
                     {/* {language === "ja" && `1件`} */}
-                    {language === "en" && `0 records`}
+                    {language === "en" && `- records`}
+                    {/* {language === "en" && `0 records`} */}
                   </span>
                   {/* {language === "ja" && `/ - 件`}
                   {language === "en" && `/ - records`} */}

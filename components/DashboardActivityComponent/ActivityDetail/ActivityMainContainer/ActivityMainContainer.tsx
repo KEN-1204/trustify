@@ -106,6 +106,7 @@ const ActivityMainContainerMemo: FC = () => {
   const [inputAddress, setInputAddress] = useState("");
   const [inputEmployeesClass, setInputEmployeesClass] = useState("");
   const [inputCapital, setInputCapital] = useState("");
+  // const [inputCapital, setInputCapital] = useState<number | null>(null);
   const [inputFound, setInputFound] = useState("");
   const [inputContent, setInputContent] = useState("");
   const [inputHP, setInputHP] = useState("");
@@ -212,7 +213,13 @@ const ActivityMainContainerMemo: FC = () => {
         beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams?.number_of_employees_class)
       );
       setInputAddress(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams?.address));
-      setInputCapital(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams?.capital));
+      setInputCapital(
+        beforeAdjustFieldValue(
+          newSearchActivity_Contact_CompanyParams?.capital
+            ? newSearchActivity_Contact_CompanyParams.capital.toString()
+            : ""
+        )
+      );
       setInputFound(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams?.established_in));
       setInputContent(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams?.business_content));
       setInputHP(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.website_url));
@@ -322,6 +329,7 @@ const ActivityMainContainerMemo: FC = () => {
       setInputEmployeesClass("");
       setInputAddress("");
       setInputCapital("");
+      // setInputCapital(null);
       setInputFound("");
       setInputContent("");
       setInputHP("");
@@ -409,7 +417,7 @@ const ActivityMainContainerMemo: FC = () => {
     let _zipcode = adjustFieldValue(inputZipcode);
     let _number_of_employees_class = adjustFieldValue(inputEmployeesClass);
     let _address = adjustFieldValue(inputAddress);
-    let _capital = adjustFieldValue(inputCapital);
+    let _capital = adjustFieldValue(inputCapital) ? parseInt(inputCapital, 10) : null;
     let _established_in = adjustFieldValue(inputFound);
     let _business_content = adjustFieldValue(inputContent);
     let _website_url = adjustFieldValue(inputHP);

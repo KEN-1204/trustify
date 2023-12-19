@@ -9,7 +9,7 @@ import useThemeStore from "@/store/useThemeStore";
 import useRootStore from "@/store/useRootStore";
 import { RippleButton } from "@/components/Parts/RippleButton/RippleButton";
 import { ChangeSizeBtn } from "@/components/Parts/ChangeSizeBtn/ChangeSizeBtn";
-import { FiLock, FiRefreshCw } from "react-icons/fi";
+import { FiLock, FiRefreshCw, FiSearch } from "react-icons/fi";
 import { columnNameToJapaneseContacts } from "@/utils/columnNameToJapaneseContacts";
 import { Client_company, Client_company_row_data } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -2250,7 +2250,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
     content,
     content2,
     marginTop = 0,
-    itemsPosition = "start",
+    itemsPosition = "center",
   }: TooltipParams) => {
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
@@ -2444,7 +2444,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
             </div>
             <div className={`flex max-h-[26px] w-full  items-center justify-end space-x-[6px]`}>
               <button
-                className={`flex-center transition-base03 h-[26px]  space-x-2 rounded-[4px]  px-[15px] text-[12px]  ${
+                className={`flex-center transition-base03 h-[26px]  space-x-2 rounded-[4px]  px-[12px] text-[12px]  ${
                   activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) !== 1
                     ? `cursor-pointer  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`
                     : "cursor-not-allowed text-[#999]"
@@ -2480,20 +2480,18 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
               >
                 <FiLock className="pointer-events-none" />
                 <span className="pointer-events-none">固定</span>
-                {/* <span>
-                  {activeCell?.classList.contains(`${styles.grid_column_frozen}`) &&
-                  activeCell?.role === "columnheader" &&
-                  Number(activeCell?.ariaColIndex) !== 1
-                    ? "解除"
-                    : "固定"}
-                </span> */}
               </button>
               <button
+                className={`flex-center transition-base03 space-x-[6px] rounded-[4px] px-[12px] text-[12px]  text-[var(--color-bg-brand-f)]  ${styles.fh_text_btn} relative cursor-default`}
+              >
+                <FiSearch className="pointer-events-none text-[14px]" />
+                <span>サーチモード</span>
+              </button>
+              {/* <button
                 className={`flex-center transition-base03 h-[26px]  cursor-pointer space-x-2  rounded-[4px] px-[15px] text-[12px]  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn} `}
               >
-                {/* <FiLock /> */}
                 <span>モード</span>
-              </button>
+              </button> */}
               <RippleButton
                 title={`カラム編集`}
                 borderRadius="2px"
@@ -3071,7 +3069,10 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
           {/* <ContactGridTableFooter getItemCount={allRows.length} getTotalCount={data ? data.pages[0].count : 0} /> */}
           <GridTableFooter
             getItemCount={allRows.length}
-            getTotalCount={!!data?.pages[0]?.count ? data.pages[0].count : 0}
+            // getTotalCount={!!data?.pages[0]?.count ? data.pages[0].count : 0}
+            getTotalCount={
+              data?.pages[0]?.count !== null && data?.pages[0]?.count !== undefined ? data.pages[0].count : null
+            }
           />
           {/* ================== Gridフッター ここまで ================== */}
         </div>
