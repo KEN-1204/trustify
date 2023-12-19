@@ -264,9 +264,9 @@ export const SettingAccountModal = () => {
             {/* {selectedSettingAccountMenu === "Member" && <FallbackSettingMemberAccounts />} */}
 
             {/* 右側サブエリア 閉じるボタンエリア w-[80px] */}
-            <div className={`relative flex h-full w-[0px] flex-col items-center`}>
+            <div className={`relative z-[0] flex h-full w-[0px] flex-col items-center`}>
               <div
-                className={`flex-center group absolute right-[20px] top-[20px] h-[36px] w-[36px] cursor-pointer rounded-full border-2 border-solid border-[var(--color-text-title)] hover:border-[var(--color-text-hover)]`}
+                className={`flex-center group absolute right-[20px] top-[20px] z-[0] h-[36px] w-[36px] cursor-pointer rounded-full border-2 border-solid border-[var(--color-text-title)] hover:border-[var(--color-text-hover)]`}
                 onClick={handleCancelAndReset}
               >
                 <MdClose className="text-[24px] text-[var(--color-text-title)] group-hover:text-[var(--color-text-hover)]" />

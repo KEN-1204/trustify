@@ -196,6 +196,9 @@ type State = {
   // 【サーチ編集モード切り替え】
   editSearchMode: boolean;
   setEditSearchMode: (payload: boolean) => void;
+  // 【エディットモード(フィールド編集モード)切り替え】
+  isEditModeField: string | null;
+  setIsEditModeField: (payload: string | null) => void;
   // 【下画面サイズ・フルスクリーンかデフォルトかを保持】
   underDisplayFullScreen: boolean;
   setUnderDisplayFullScreen: (payload: boolean) => void;
@@ -494,6 +497,9 @@ const useDashboardStore = create<State>((set) => ({
   // 【サーチ編集モード切り替え】
   editSearchMode: false,
   setEditSearchMode: (payload) => set({ editSearchMode: payload }),
+  // 【エディットモード(フィールド編集モード)切り替え】
+  isEditModeField: null,
+  setIsEditModeField: (payload) => set({ isEditModeField: payload }),
   // 【下画面サイズ・フルスクリーンかデフォルトかを保持】
   underDisplayFullScreen: false,
   setUnderDisplayFullScreen: (payload) => set({ underDisplayFullScreen: payload }),

@@ -394,6 +394,10 @@
   /* box-shadow: 0 0 0 1px #0d99ff; */
   background-color: #0072d2e0;
   box-shadow: 0 0 0 1px #0d99ff;
+  box-shadow: 0 0 0 1px #ffffff60, 0 0 0 1px #0d99ff;
+  /* box-shadow: inset 0 0 0 1px #ffffffc0, 0 0 0 1px #02416d; */
+  /* box-shadow: inset 0 0 0 1px #0d99ffc0, 0 0 0 1px #ffffff; */
+  /* box-shadow: inset 0 0 0 1px #ffffffc0, 0 0 0 1px #0affffc0; */
   /* hero画面横 */
   /* background-color: var(--cta-btn); */
 }

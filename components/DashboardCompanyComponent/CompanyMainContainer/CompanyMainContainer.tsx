@@ -48,6 +48,9 @@ const CompanyMainContainerMemo: FC = () => {
   // 「条件に一致する全ての会社をフェッチするか」、「条件に一致する自社で作成した会社のみをフェッチするか」の抽出条件を保持
   const isFetchAllCompanies = useDashboardStore((state) => state.isFetchAllCompanies);
   const setIsFetchAllCompanies = useDashboardStore((state) => state.setIsFetchAllCompanies);
+  // 各フィールドの編集モード => ダブルクリックで各フィールド名をstateに格納し、各フィールドをエディットモードへ
+  const isEditModeField = useDashboardStore((state) => state.isEditModeField);
+  const setIsEditModeField = useDashboardStore((state) => state.setIsEditModeField);
 
   type TooltipParams = {
     e: React.MouseEvent<HTMLElement, MouseEvent>;
@@ -244,7 +247,11 @@ const CompanyMainContainerMemo: FC = () => {
   // サーチ関数実行
   const handleSearchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("サブミット");
+
+    // フィールド編集モードがtrueならサブミットせずにリターン
+    if (isEditModeField) return console.log("サブミット フィールドエディットモードのためリターン");
+
+    console.log("handleSearchSubmit実行 サブミット");
 
     // // Asterisks to percent signs for PostgreSQL's LIKE operator
     function adjustFieldValue(value: string | null) {
@@ -402,49 +409,62 @@ const CompanyMainContainerMemo: FC = () => {
   // ================== 🌟シングルクリック、ダブルクリックイベント ==================
   // ダブルクリックで各フィールドごとに個別で編集
   const setTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // 選択行データが自社専用の会社データかどうか
+  const isOwnCompany =
+    !!userProfileState?.company_id &&
+    !!selectedRowDataCompany?.created_by_company_id &&
+    selectedRowDataCompany.created_by_company_id === userProfileState.company_id;
 
   // シングルクリック => 何もアクションなし
-  const handleSingleClickField = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!userProfileState?.company_id) return;
-    if (!selectedRowDataCompany) return;
-    // 自社で作成した会社でない場合はそのままリターン
-    if (selectedRowDataCompany?.created_by_company_id === userProfileState.company_id) return;
+  const handleSingleClickField = useCallback(
+    (e: React.MouseEvent<HTMLSpanElement>) => {
+      // 自社で作成した会社でない場合はそのままリターン
+      if (!isOwnCompany) return;
+      if (setTimeoutRef.current !== null) return;
 
-    if (setTimeoutRef.current !== null) return;
-
-    setTimeoutRef.current = setTimeout(() => {
-      setTimeoutRef.current = null;
-      // シングルクリック時に実行したい処理
-      // 0.2秒後に実行されてしまうためここには書かない
-    }, 200);
-    console.log("シングルクリック");
-  }, []);
+      setTimeoutRef.current = setTimeout(() => {
+        setTimeoutRef.current = null;
+        // シングルクリック時に実行したい処理
+        // 0.2秒後に実行されてしまうためここには書かない
+      }, 200);
+      console.log("シングルクリック");
+    },
+    [selectedRowDataCompany, userProfileState?.company_id]
+  );
 
   // ダブルクリック => ダブルクリックしたフィールドを編集モードに変更
-  const handleDoubleClickField = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!userProfileState?.company_id) return;
-    if (!selectedRowDataCompany) return;
-    // 自社で作成した会社でない場合はそのままリターン
-    if (selectedRowDataCompany?.created_by_company_id === userProfileState.company_id) return;
+  const handleDoubleClickField = useCallback(
+    (e: React.MouseEvent<HTMLSpanElement>, field: string, dispatch: React.Dispatch<React.SetStateAction<any>>) => {
+      // 自社で作成した会社でない場合はそのままリターン
+      if (!isOwnCompany) return;
 
-    console.log("ダブルクリック");
-    if (setTimeoutRef.current) {
-      clearTimeout(setTimeoutRef.current);
+      console.log("ダブルクリック", "e", e, e.currentTarget.innerText);
+      if (setTimeoutRef.current) {
+        clearTimeout(setTimeoutRef.current);
 
-      // console.log(e.detail);
-      setTimeoutRef.current = null;
-      // ダブルクリック時に実行したい処理
-      // クリックした要素のテキストを格納
-      const text = e.currentTarget.innerText;
-      // setTextareaInput(text); // 編集モードでinputStateをクリックした要素のテキストを初期値に設定
-      // setIsOpenEditModal(true); // クリックされたフィールドの編集モードを開く
-    }
-  }, []);
+        // console.log(e.detail);
+        setTimeoutRef.current = null;
+        // ダブルクリック時に実行したい処理
+        // クリックした要素のテキストを格納
+        const text = e.currentTarget.innerText;
+        dispatch(text); // 編集モードでinputStateをクリックした要素のテキストを初期値に設定
+        setIsEditModeField(field); // クリックされたフィールドの編集モードを開く
+      }
+    },
+    [selectedRowDataCompany, userProfileState?.company_id, setIsEditModeField]
+  );
   // ================== ✅シングルクリック、ダブルクリックイベント ==================
 
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
   return (
     <form className={`${styles.main_container} w-full `} onSubmit={handleSearchSubmit}>
+      {/* フィールドエディットモードの時のオーバーレイ */}
+      {/* {!searchMode && isEditModeField !== null && (
+        <div
+          className="fixed left-0 top-0 z-[1000] h-full w-full bg-[#00000000]"
+          onClick={() => setIsEditModeField(null)}
+        />
+      )} */}
       {/* ------------------------- スクロールコンテナ ------------------------- */}
       {/* <div className={`${styles.scroll_container} relative flex w-full overflow-y-auto pl-[10px] `}> */}
       <div
@@ -490,15 +510,28 @@ const CompanyMainContainerMemo: FC = () => {
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>●会社名</span>
-                  {/* {!searchMode && (
+                  {!searchMode && isEditModeField !== "company_name" && (
                     <div className="flex items-center space-x-[9px]">
-                      <span className={`${styles.value} ${styles.value_highlight}`}>
+                      <span
+                        className={`${styles.value} ${styles.value_highlight} ${
+                          isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`
+                        }`}
+                        onClick={handleSingleClickField}
+                        onDoubleClick={(e) => handleDoubleClickField(e, "company_name", setInputName)}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         {selectedRowDataCompany?.name ? selectedRowDataCompany?.name : ""}
                       </span>
+                      {/* 自社専用会社の時のチェックマーク */}
                       {selectedRowDataCompany?.created_by_company_id === userProfileState?.company_id && (
                         <div
-                          data-text={`自社で作成した会社データです。`}
-                          data-text2={`自社専用データは編集が可能です。`}
+                          data-text={`自社専用の会社データです。`}
+                          data-text2={`自社で作成した会社データは編集が可能です。`}
                           onMouseEnter={(e) => handleOpenTooltip({ e, display: "top" })}
                           onMouseLeave={handleCloseTooltip}
                         >
@@ -506,17 +539,39 @@ const CompanyMainContainerMemo: FC = () => {
                         </div>
                       )}
                     </div>
-                  )} */}
-                  <input
-                    type="text"
-                    placeholder="株式会社○○"
-                    autoFocus
-                    className={`${styles.input_box}`}
-                    // value={inputName}
-                    value={selectedRowDataCompany?.name ? selectedRowDataCompany?.name : ""}
-                    onChange={(e) => setInputName(e.target.value)}
-                  />
-                  {/* {searchMode && (
+                  )}
+                  {!searchMode && isEditModeField === "company_name" && (
+                    <>
+                      <input
+                        type="text"
+                        placeholder="株式会社○○"
+                        autoFocus
+                        className={`${styles.input_box} z-[2000]`}
+                        value={inputName}
+                        // value={selectedRowDataCompany?.name ? selectedRowDataCompany?.name : ""}
+                        onChange={(e) => setInputName(e.target.value)}
+                        onKeyDown={async (e) => {
+                          if (e.key === "Enter") {
+                            console.log("エディットモード キーボードイベント エンターキークリックを検知 e.key", e.key);
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            setIsEditModeField(null);
+                          }
+                        }}
+                      />
+                    </>
+                  )}
+                  {/* エディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "company_name" && (
+                    <div
+                      // className={`fixed left-0 top-0 z-[1000] h-full w-full bg-[#00000000]`}
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        setIsEditModeField(null);
+                      }}
+                    />
+                  )}
+                  {searchMode && (
                     <input
                       type="text"
                       placeholder="株式会社○○"
@@ -525,7 +580,7 @@ const CompanyMainContainerMemo: FC = () => {
                       value={inputName}
                       onChange={(e) => setInputName(e.target.value)}
                     />
-                  )} */}
+                  )}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
