@@ -1,5 +1,5 @@
 import useStore from "@/store";
-import React, { FC, Suspense } from "react";
+import React, { FC, Suspense, useRef } from "react";
 import styles from "./DashboardHomeComponent.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 
@@ -18,6 +18,14 @@ import { useQueryProducts } from "@/hooks/useQueryProducts";
 import { toast } from "react-toastify";
 import { useQueryNotifications } from "@/hooks/useQueryNotifications";
 import { FallbackDashboardHomeComponent } from "./FallbackDashboardHomeComponent";
+import {
+  neonCycleIcon,
+  neonIconsSettingsGear,
+  neonMailIcon,
+  neonMessageIconBg,
+  neonPieChart,
+  neonSearchIcon,
+} from "../assets";
 
 // export const DashboardHomeComponent = ({ user_id }: { user_id: string }) => {
 export const DashboardHomeComponent = () => {
@@ -71,6 +79,60 @@ export const DashboardHomeComponent = () => {
     }
   };
 
+  const homeContainerRef = useRef<HTMLDivElement | null>(null);
+  const backIconsRef = useRef<(HTMLDivElement | null)[]>([]);
+  // console.log("🔥🌟HOMEコンポー円んと　backIconsRef", backIconsRef);
+  const handleHoverCard = (name: string) => {
+    if (!homeContainerRef?.current) return;
+    if (!backIconsRef?.current) return;
+    homeContainerRef.current.classList.add(`${styles.hovered}`);
+    switch (name) {
+      case "setting":
+        backIconsRef?.current[0]?.classList.add(`${styles.setting}`);
+        break;
+      case "invitation":
+        backIconsRef?.current[1]?.classList.add(`${styles.invitation}`);
+        break;
+      case "search":
+        backIconsRef?.current[2]?.classList.add(`${styles.search}`);
+        break;
+      case "record":
+        backIconsRef?.current[3]?.classList.add(`${styles.record}`);
+        break;
+      case "dev":
+        backIconsRef?.current[4]?.classList.add(`${styles.dev}`);
+        break;
+
+      default:
+        break;
+    }
+  };
+  const handleBlurCard = (name: string) => {
+    if (!homeContainerRef?.current) return;
+    if (!backIconsRef?.current) return;
+    // homeContainerRef.current.classList.remove(`${styles.hovered}`);
+    switch (name) {
+      case "setting":
+        backIconsRef?.current[0]?.classList.remove(`${styles.setting}`);
+        break;
+      case "invitation":
+        backIconsRef?.current[1]?.classList.remove(`${styles.invitation}`);
+        break;
+      case "search":
+        backIconsRef?.current[2]?.classList.remove(`${styles.search}`);
+        break;
+      case "record":
+        backIconsRef?.current[3]?.classList.remove(`${styles.record}`);
+        break;
+      case "dev":
+        backIconsRef?.current[4]?.classList.remove(`${styles.dev}`);
+        break;
+
+      default:
+        break;
+    }
+  };
+
   return (
     <div
       className={`flex-center ${styles.app_main_container} relative ${
@@ -111,9 +173,36 @@ export const DashboardHomeComponent = () => {
             }`}
           >
             {activeMenuTab === "HOME" && (
-              <div className={`flex-col-center h-full w-full  ${styles.home_container}`}>
+              <div className={`flex-col-center h-full w-full ${styles.home_container}`} ref={homeContainerRef}>
+                {/* 水玉 */}
+                {/* <div className="pointer-events-none absolute inset-0 z-[0] overflow-hidden">
+                  <div className="bg-gradient-brand1 z-1 absolute bottom-[-300px] left-[-400px] h-[500px] w-[500px] rounded-full"></div>
+                  <div className="bg-gradient-brand2 z-1 absolute left-[39%] top-[-900px] h-[1120px] w-[1120px] rounded-full"></div>
+                  <div className="bg-gradient-brand3 z-1 absolute bottom-[-200px] right-[-100px] h-[300px] w-[300px] rounded-full"></div>
+                </div> */}
+                {/* 背景アイコンエリア */}
+                {home_cards.map((item, index) => {
+                  // const className = `styles.${item.name}`;
+                  return (
+                    <div
+                      key={item.name}
+                      ref={(ref) => (backIconsRef.current[index] = ref)}
+                      className={`${styles.back_icon}`}
+                    >
+                      {index === 0 && neonIconsSettingsGear("500")}
+                      {index === 1 && neonMailIcon("500")}
+                      {index === 2 && neonSearchIcon("500")}
+                      {index === 3 && neonPieChart("500")}
+                      {index === 4 && neonCycleIcon("500")}
+                      {/* {index === 4 && neonMessageIconBg} */}
+                    </div>
+                  );
+                })}
+                {/* 背景アイコンエリアここまで */}
                 <div className="flex h-[70dvh] w-[40%] flex-col items-center rounded-[4px] ">
-                  <div className={`${styles.title_area} flex-col-center w-full `}>
+                  {/* <div className="flex h-[calc(100dvh-var(--header-height))] w-[40%] flex-col items-center justify-center rounded-[4px]"> */}
+                  {/* <div className={`${styles.title_area} flex-col-center mt-[-6vh] w-full`}> */}
+                  <div className={`${styles.title_area} flex-col-center w-full`}>
                     <h3
                       className={`flex-center relative h-[70px] w-full max-w-[400px] select-none text-[32px] font-bold ${styles.text_brand_f_gradient} ${styles.text_brand_shadow}`}
                     >
@@ -126,6 +215,7 @@ export const DashboardHomeComponent = () => {
                       ここはあなたのデータベースです。ご紹介するステップで、最初の一歩を踏み出しましょう！
                     </div>
                   </div>
+                  {/* <div className={`${styles.contents_area} h-fit w-full max-w-[400px]`}> */}
                   <div className={`${styles.contents_area} h-full w-full max-w-[400px]`}>
                     {home_cards.map((item, index) => (
                       <div
@@ -143,15 +233,19 @@ export const DashboardHomeComponent = () => {
                           }
                           handleActions(item.name);
                         }}
+                        onMouseEnter={() => handleHoverCard(item.name)}
+                        onMouseLeave={() => handleBlurCard(item.name)}
                       >
-                        <div className={`h-[40px] w-[40px] ${styles.animate_icon}`}>{item.icon}</div>
-                        <div className="mx-[16px] flex flex-grow select-none flex-col">
+                        <div className={`h-[40px] w-[40px] ${styles.animate_icon} pointer-events-none`}>
+                          {item.icon}
+                        </div>
+                        <div className="pointer-events-none mx-[16px] flex flex-grow select-none flex-col">
                           <span>{item.title}</span>
                           {/* {item.title2 && <span>{item.title2}</span>} */}
                         </div>
                         <div>
                           <BsChevronRight
-                            className={`transition-base03 text-[var(--color-text)] ${styles.right_arrow}`}
+                            className={`transition-base03 pointer-events-none text-[var(--color-text)] ${styles.right_arrow}`}
                           />
                         </div>
                       </div>

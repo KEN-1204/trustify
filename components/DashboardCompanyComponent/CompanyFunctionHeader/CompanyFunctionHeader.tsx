@@ -70,7 +70,7 @@ const CompanyFunctionHeaderMemo: FC = () => {
           borderRadius="2px"
           classText={`select-none`}
           clickEventHandler={() => {
-            console.log("新規サーチ クリック");
+            // console.log("CompanyFunctionHeader 新規サーチ クリック");
             if (searchMode) {
               // SELECTメソッド
               setSearchMode(false);
@@ -91,7 +91,7 @@ const CompanyFunctionHeaderMemo: FC = () => {
           clickEventHandler={() => {
             if (searchMode) return;
             if (!newSearchCompanyParams) return alert("新規サーチから検索を行なってください。");
-            console.log("サーチ編集 クリック");
+            // console.log("サーチ編集 クリック");
             // 編集モードとして開く
             if (loadingGlobalState) setLoadingGlobalState(false);
             setEditSearchMode(true);
@@ -123,7 +123,7 @@ const CompanyFunctionHeaderMemo: FC = () => {
                 selectedRowDataCompany.created_by_company_id !== userProfileState?.company_id
               )
                 return alert("自社で作成した会社のみ編集可能です");
-              console.log("会社編集 クリック");
+              // console.log("会社編集 クリック");
               if (loadingGlobalState) setLoadingGlobalState(false);
               setIsOpenUpdateClientCompanyModal(true);
             }}
@@ -135,7 +135,7 @@ const CompanyFunctionHeaderMemo: FC = () => {
             clickEventHandler={() => {
               if (searchMode) return;
               if (!selectedRowDataCompany) return alert("会社を選択してください");
-              console.log("担当者作成 クリック");
+              // console.log("担当者作成 クリック");
               if (loadingGlobalState) setLoadingGlobalState(false);
               setIsOpenInsertNewContactModal(true);
             }}

@@ -97,6 +97,102 @@
   font-family: "Hiragino Sans", sans-serif, Roboto, system-ui;
   font-family: sans-serif, "Hiragino Sans", Roboto, system-ui;
 }
+.back_icon {
+  position: absolute;
+  z-index: 0;
+  /* right: -180px; */
+  opacity: 0;
+  /* display: none; */
+  pointer-events: none;
+}
+.setting {
+  display: none;
+  top: -50px;
+  right: -100px;
+  transform: rotate(12deg) translate(-10vw);
+}
+.search {
+  display: none;
+  bottom: -30px;
+  right: -100px;
+  transform: rotate(-12deg) translate(-10vw);
+}
+.home_container.hovered .back_icon.setting,
+.home_container.hovered .back_icon.search {
+  display: block;
+  animation: appearance_odd 1s ease forwards;
+}
+@keyframes appearance_odd {
+  0% {
+    opacity: 0;
+    transform: rotate(12deg) translate(-10vw);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(12deg) translate(0);
+  }
+}
+.dev {
+  display: none;
+  top: -50px;
+  right: -100px;
+  transform: rotate(12deg) translate(-10vw);
+}
+.home_container.hovered .back_icon.dev {
+  display: block;
+  animation: appearance_dev 1s ease forwards;
+}
+@keyframes appearance_dev {
+  0% {
+    opacity: 0;
+    transform: rotate(12deg) translate(-10vw);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(12deg) translate(0);
+  }
+}
+.record {
+  display: none;
+  top: -50px;
+  left: -80px;
+  transform: rotate(12deg) translate(10vw);
+}
+.invitation {
+  display: none;
+  bottom: -50px;
+  left: -80px;
+  transform: rotate(-12deg) translate(10vw);
+}
+.home_container.hovered .back_icon.record {
+  display: block;
+  animation: appearance_record 1s ease forwards;
+}
+@keyframes appearance_record {
+  0% {
+    opacity: 0;
+    transform: rotate(12deg) translate(10vw);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(12deg) translate(0);
+  }
+}
+.home_container.hovered .back_icon.invitation {
+  display: block;
+  animation: appearance_even 1s ease forwards;
+}
+
+@keyframes appearance_even {
+  0% {
+    opacity: 0;
+    transform: rotate(-12deg) translate(10vw);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(-12deg) translate(0);
+  }
+}
 
 .content_card {
   /* background: #1e1f22; discord */

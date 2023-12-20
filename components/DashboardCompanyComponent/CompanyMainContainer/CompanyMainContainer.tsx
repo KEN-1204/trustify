@@ -15,6 +15,19 @@ import { BsCheck2 } from "react-icons/bs";
 import { FallbackUnderRightActivityLog } from "./UnderRightActivityLog/FallbackUnderRightActivityLog";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
+import { MdClose } from "react-icons/md";
+import { HiOutlineSearch } from "react-icons/hi";
+import { IoIosSend } from "react-icons/io";
+import { InputSendAndCloseBtn } from "./InputSendAndCloseBtn/InputSendAndCloseBtn";
+import { toHalfWidthAndSpaceAndHyphen } from "@/utils/Helpers/toHalfWidthAndSpaceAndHyphen";
+import { useQueryClient } from "@tanstack/react-query";
+import { useMutateClientCompany } from "@/hooks/useMutateClientCompany";
+import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
+import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
+import { Spinner78 } from "@/components/Parts/Spinner78/Spinner78";
+import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
+import { Client_company_row_data } from "@/types";
+import { validateAndFormatPhoneNumber } from "@/utils/Helpers/validateAndFormatPhoneNumber";
 
 // ====================== 擬似テストデータ用 ======================
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
@@ -38,9 +51,10 @@ const UnderRightActivityLog = dynamic(
 
 const CompanyMainContainerMemo: FC = () => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
+  // サーチモード、編集モード
   const searchMode = useDashboardStore((state) => state.searchMode);
   const setSearchMode = useDashboardStore((state) => state.setSearchMode);
-  console.log("🔥 CompanyMainContainerレンダリング searchMode", searchMode);
+  // ツールチップ
   const setHoveredItemPosWrap = useStore((state) => state.setHoveredItemPosWrap);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   // 上画面の選択中の列データ会社
@@ -51,58 +65,23 @@ const CompanyMainContainerMemo: FC = () => {
   // 各フィールドの編集モード => ダブルクリックで各フィールド名をstateに格納し、各フィールドをエディットモードへ
   const isEditModeField = useDashboardStore((state) => state.isEditModeField);
   const setIsEditModeField = useDashboardStore((state) => state.setIsEditModeField);
-
-  type TooltipParams = {
-    e: React.MouseEvent<HTMLElement, MouseEvent>;
-    display?: "top" | "right" | "bottom" | "left" | "";
-  };
-  const handleOpenTooltip = ({ e, display = "" }: TooltipParams) => {
-    // ホバーしたアイテムにツールチップを表示
-    const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
-    // console.log("ツールチップx, y width , height", x, y, width, height);
-    const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
-      ? ((e.target as HTMLDivElement).dataset.text2 as string)
-      : "";
-    const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
-      ? ((e.target as HTMLDivElement).dataset.text3 as string)
-      : "";
-    setHoveredItemPosWrap({
-      x: x,
-      y: y,
-      itemWidth: width,
-      itemHeight: height,
-      content: (e.target as HTMLDivElement).dataset.text as string,
-      content2: content2,
-      content3: content3,
-      display: display,
-    });
-  };
-  // ツールチップを非表示
-  const handleCloseTooltip = () => {
-    setHoveredItemPosWrap(null);
-  };
-
-  // セルダブルクリック モーダル表示
-  // const handleDoubleClick = useCallback((e: React.MouseEvent<HTMLDivElement>, index: number, columnName: string) => {
-  //   console.log("ダブルクリック index", index);
-  //   if (columnName === "id") return console.log("ダブルクリック idのためリターン");
-  //   // if (index === 0) return console.log("リターン");
-  //   if (setTimeoutRef.current) {
-  //     clearTimeout(setTimeoutRef.current);
-
-  //     // console.log(e.detail);
-  //     setTimeoutRef.current = null;
-  //     // ダブルクリック時に実行したい処理
-  //     console.log("ダブルクリック", e.currentTarget);
-  //     // クリックした要素のテキストを格納
-  //     const text = e.currentTarget.innerText;
-  //     setTextareaInput(text);
-  //     setIsOpenEditModal(true);
-  //   }
-  // }, []);
+  const [isComposing, setIsComposing] = useState(false); // 日本語のように変換、確定が存在する言語入力の場合の日本語入力の変換中を保持するstate、日本語入力開始でtrue, エンターキーで変換確定した時にfalse
+  const [isValidInput, setIsValidInput] = useState(false);
 
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
   const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
+
+  const newSearchCompanyParams = useDashboardStore((state) => state.newSearchCompanyParams);
+  const setNewSearchCompanyParams = useDashboardStore((state) => state.setNewSearchCompanyParams);
+  const editSearchMode = useDashboardStore((state) => state.editSearchMode);
+  const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
+  const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
+
+  const supabase = useSupabaseClient();
+  const queryClient = useQueryClient();
+
+  // useMutation
+  const { updateClientCompanyFieldMutation } = useMutateClientCompany();
 
   // 🌟サブミット
   const [inputName, setInputName] = useState("");
@@ -141,13 +120,6 @@ const CompanyMainContainerMemo: FC = () => {
   const [inputManager, setInputManager] = useState("");
   const [inputMember, setInputMember] = useState("");
 
-  const supabase = useSupabaseClient();
-  const newSearchCompanyParams = useDashboardStore((state) => state.newSearchCompanyParams);
-  const setNewSearchCompanyParams = useDashboardStore((state) => state.setNewSearchCompanyParams);
-  const editSearchMode = useDashboardStore((state) => state.editSearchMode);
-  const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
-  const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
-
   // サーチ編集モードでリプレイス前の値に復元する関数
   function beforeAdjustFieldValue(value: string | null) {
     if (value === "") return ""; // 全てのデータ
@@ -157,15 +129,19 @@ const CompanyMainContainerMemo: FC = () => {
     if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
     return value;
   }
-  console.log("🔥メインコンテナーnewSearchCompanyParams", newSearchCompanyParams);
 
   // 編集モードtrueの場合、サーチ条件をinputタグのvalueに格納
   // 新規サーチの場合には、サーチ条件を空にする
   useEffect(() => {
     // if (newSearchCompanyParams === null) return;
-    console.log("🔥メインコンテナーnewSearchCompanyParams編集モード", newSearchCompanyParams);
+    if (isEditModeField) return console.log("フィールドエディットモードのためuseEffectでのinput更新はなしリターン");
+
     if (editSearchMode && searchMode) {
       if (newSearchCompanyParams === null) return;
+      console.log(
+        "🔥Companyメインコンテナー useEffect 編集モード inputにnewSearchCompanyParamsを格納",
+        newSearchCompanyParams
+      );
       setInputName(beforeAdjustFieldValue(newSearchCompanyParams.name));
       setInputDepartment(beforeAdjustFieldValue(newSearchCompanyParams.department_name));
       setInputTel(beforeAdjustFieldValue(newSearchCompanyParams?.main_phone_number));
@@ -204,42 +180,43 @@ const CompanyMainContainerMemo: FC = () => {
       setInputAuditor(beforeAdjustFieldValue(newSearchCompanyParams.auditor));
       setInputManager(beforeAdjustFieldValue(newSearchCompanyParams.manager));
       setInputMember(beforeAdjustFieldValue(newSearchCompanyParams.member));
-    } else {
-      setInputName("");
-      setInputDepartment("");
-      setInputTel("");
-      setInputFax("");
-      setInputZipcode("");
-      setInputEmployeesClass("");
-      setInputAddress("");
-      setInputCapital("");
-      setInputFound("");
-      setInputContent("");
-      setInputHP("");
-      setInputEmail("");
-      setInputIndustryType("");
-      setInputProductL("");
-      setInputProductM("");
-      setInputProductS("");
-      setInputFiscal("");
-      setInputClient("");
-      setInputSupplier("");
-      setInputFacility("");
-      setInputBusinessSite("");
-      setInputOverseas("");
-      setInputGroup("");
-      setInputCorporateNum("");
+    } else if (!editSearchMode && searchMode) {
+      console.log("🔥Companyメインコンテナー useEffect 新規サーチモード inputを初期化", newSearchCompanyParams);
+      if (!!inputName) setInputName("");
+      if (!!inputDepartment) setInputDepartment("");
+      if (!!inputTel) setInputTel("");
+      if (!!inputFax) setInputFax("");
+      if (!!inputZipcode) setInputZipcode("");
+      if (!!inputEmployeesClass) setInputEmployeesClass("");
+      if (!!inputAddress) setInputAddress("");
+      if (!!inputCapital) setInputCapital("");
+      if (!!inputFound) setInputFound("");
+      if (!!inputContent) setInputContent("");
+      if (!!inputHP) setInputHP("");
+      if (!!inputEmail) setInputEmail("");
+      if (!!inputIndustryType) setInputIndustryType("");
+      if (!!inputProductL) setInputProductL("");
+      if (!!inputProductM) setInputProductM("");
+      if (!!inputProductS) setInputProductS("");
+      if (!!inputFiscal) setInputFiscal("");
+      if (!!inputClient) setInputClient("");
+      if (!!inputSupplier) setInputSupplier("");
+      if (!!inputFacility) setInputFacility("");
+      if (!!inputBusinessSite) setInputBusinessSite("");
+      if (!!inputOverseas) setInputOverseas("");
+      if (!!inputGroup) setInputGroup("");
+      if (!!inputCorporateNum) setInputCorporateNum("");
       // 代表者
-      setInputRepresentativeName("");
-      setInputChairperson("");
-      setInputSeniorVicePresident("");
-      setInputSeniorManagingDirector("");
-      setInputManagingDirector("");
-      setInputDirector("");
-      setInputBoardMember("");
-      setInputAuditor("");
-      setInputManager("");
-      setInputMember("");
+      if (!!inputRepresentativeName) setInputRepresentativeName("");
+      if (!!inputChairperson) setInputChairperson("");
+      if (!!inputSeniorVicePresident) setInputSeniorVicePresident("");
+      if (!!inputSeniorManagingDirector) setInputSeniorManagingDirector("");
+      if (!!inputManagingDirector) setInputManagingDirector("");
+      if (!!inputDirector) setInputDirector("");
+      if (!!inputBoardMember) setInputBoardMember("");
+      if (!!inputAuditor) setInputAuditor("");
+      if (!!inputManager) setInputManager("");
+      if (!!inputMember) setInputMember("");
     }
   }, [editSearchMode, searchMode]);
   // }, [editSearchMode]);
@@ -406,6 +383,38 @@ const CompanyMainContainerMemo: FC = () => {
     // console.log("✅ 検索結果データ取得 data", data);
   };
 
+  // ================== 🌟ツールチップ ==================
+  type TooltipParams = {
+    e: React.MouseEvent<HTMLElement, MouseEvent>;
+    display?: "top" | "right" | "bottom" | "left" | "";
+  };
+  const handleOpenTooltip = ({ e, display = "" }: TooltipParams) => {
+    // ホバーしたアイテムにツールチップを表示
+    const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+    // console.log("ツールチップx, y width , height", x, y, width, height);
+    const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
+      ? ((e.target as HTMLDivElement).dataset.text2 as string)
+      : "";
+    const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
+      ? ((e.target as HTMLDivElement).dataset.text3 as string)
+      : "";
+    setHoveredItemPosWrap({
+      x: x,
+      y: y,
+      itemWidth: width,
+      itemHeight: height,
+      content: (e.target as HTMLDivElement).dataset.text as string,
+      content2: content2,
+      content3: content3,
+      display: display,
+    });
+  };
+  // ツールチップを非表示
+  const handleCloseTooltip = () => {
+    setHoveredItemPosWrap(null);
+  };
+  // ================== ✅ツールチップ ==================
+
   // ================== 🌟シングルクリック、ダブルクリックイベント ==================
   // ダブルクリックで各フィールドごとに個別で編集
   const setTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -429,7 +438,7 @@ const CompanyMainContainerMemo: FC = () => {
       }, 200);
       console.log("シングルクリック");
     },
-    [selectedRowDataCompany, userProfileState?.company_id]
+    [isOwnCompany]
   );
 
   // ダブルクリック => ダブルクリックしたフィールドを編集モードに変更
@@ -451,9 +460,111 @@ const CompanyMainContainerMemo: FC = () => {
         setIsEditModeField(field); // クリックされたフィールドの編集モードを開く
       }
     },
-    [selectedRowDataCompany, userProfileState?.company_id, setIsEditModeField]
+    [isOwnCompany, setIsEditModeField]
   );
   // ================== ✅シングルクリック、ダブルクリックイベント ==================
+
+  // プロパティ名のユニオン型の作成
+  // Client_company_row_data型の全てのプロパティ名をリテラル型のユニオンとして展開
+  type ClientCOmpanyFieldNames = keyof Client_company_row_data;
+  // ================== 🌟エンターキーで個別フィールドをアップデート ==================
+  const handleKeyDownUpdateField = async ({
+    e,
+    fieldName,
+    value,
+    id,
+    required,
+  }: {
+    e: React.KeyboardEvent<HTMLInputElement>;
+    // fieldName: string;
+    fieldName: ClientCOmpanyFieldNames;
+    value: any;
+    id: string | undefined;
+    required: boolean;
+  }) => {
+    // 日本語入力変換中はtrueで変換確定のエンターキーではUPDATEクエリが実行されないようにする
+    // 英語などの入力変換が存在しない言語ではisCompositionStartは発火しないため常にfalse
+    if (e.key === "Enter" && !isComposing) {
+      if (required && (value === "" || value === null))
+        return toast.info(`この項目は入力が必須です。`, { autoClose: 3000 });
+
+      // 先にアンダーラインが残らないようにremoveしておく
+      e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+
+      if (!id || !selectedRowDataCompany) {
+        toast.error(`エラー：会社データが見つかりませんでした。`, { autoClose: 3000 });
+        return;
+      }
+      // 入力値が現在のvalueと同じであれば更新は不要なため閉じてリターン
+      if (selectedRowDataCompany[fieldName] === value) {
+        console.log("同じためリターン");
+        setIsEditModeField(null); // エディットモードを終了
+        return;
+      }
+
+      const updatePayload = {
+        fieldName: fieldName,
+        value: value,
+        id: id,
+      };
+      // 入力変換確定状態でエンターキーが押された場合の処理
+      console.log("onKeyDownイベント エンターキーが入力確定状態でクリック UPDATE実行 updatePayload", updatePayload);
+      await updateClientCompanyFieldMutation.mutateAsync(updatePayload);
+      setIsEditModeField(null); // エディットモードを終了
+    }
+  };
+  // ================== ✅エンターキーで個別フィールドをアップデート ==================
+  // ================== 🌟Sendキーで個別フィールドをアップデート ==================
+  const handleClickSendUpdateField = async ({
+    e,
+    fieldName,
+    value,
+    id,
+    required,
+  }: {
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>;
+    // fieldName: string;
+    fieldName: ClientCOmpanyFieldNames;
+    value: any;
+    id: string | undefined;
+    required: boolean;
+  }) => {
+    if (required && (value === "" || value === null))
+      return toast.info(`この項目は入力が必須です。`, { autoClose: 3000 });
+
+    e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+
+    if (!id || !selectedRowDataCompany) {
+      toast.error(`エラー：会社データが見つかりませんでした。`, { autoClose: 3000 });
+      return;
+    }
+    // 入力値が現在のvalueと同じであれば更新は不要なため閉じてリターン
+    if (selectedRowDataCompany[fieldName] === value) {
+      console.log("同じためリターン");
+      setIsEditModeField(null); // エディットモードを終了
+      return;
+    }
+
+    const updatePayload = {
+      fieldName: fieldName,
+      value: value,
+      id: id,
+    };
+    // 入力変換確定状態でエンターキーが押された場合の処理
+    console.log("sendアイコンクリックでUPDATE実行 updatePayload", updatePayload);
+    await updateClientCompanyFieldMutation.mutateAsync(updatePayload);
+    setIsEditModeField(null); // エディットモードを終了
+  };
+  // ================== ✅Sendキーで個別フィールドをアップデート ==================
+
+  console.log(
+    "🔥 CompanyMainContainerレンダリング searchMode",
+    searchMode,
+    "newSearchCompanyParams",
+    newSearchCompanyParams,
+    "selectedRowDataCompany",
+    selectedRowDataCompany
+  );
 
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
   return (
@@ -510,15 +621,17 @@ const CompanyMainContainerMemo: FC = () => {
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>●会社名</span>
-                  {!searchMode && isEditModeField !== "company_name" && (
+                  {/* ディスプレイ */}
+                  {!searchMode && isEditModeField !== "name" && (
                     <div className="flex items-center space-x-[9px]">
                       <span
                         className={`${styles.value} ${styles.value_highlight} ${
                           isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`
                         }`}
                         onClick={handleSingleClickField}
-                        onDoubleClick={(e) => handleDoubleClickField(e, "company_name", setInputName)}
+                        onDoubleClick={(e) => handleDoubleClickField(e, "name", setInputName)}
                         onMouseEnter={(e) => {
+                          // 会社名は自社専用チェックがあるため一つ親要素が他より多い
                           e.currentTarget.parentElement?.parentElement?.classList.add(`${styles.active}`);
                         }}
                         onMouseLeave={(e) => {
@@ -540,7 +653,9 @@ const CompanyMainContainerMemo: FC = () => {
                       )}
                     </div>
                   )}
-                  {!searchMode && isEditModeField === "company_name" && (
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード inputタグ */}
+                  {!searchMode && isEditModeField === "name" && (
                     <>
                       <input
                         type="text"
@@ -550,27 +665,89 @@ const CompanyMainContainerMemo: FC = () => {
                         value={inputName}
                         // value={selectedRowDataCompany?.name ? selectedRowDataCompany?.name : ""}
                         onChange={(e) => setInputName(e.target.value)}
-                        onKeyDown={async (e) => {
-                          if (e.key === "Enter") {
-                            console.log("エディットモード キーボードイベント エンターキークリックを検知 e.key", e.key);
-                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            setIsEditModeField(null);
-                          }
-                        }}
+                        onBlur={() => setInputName(toHalfWidthAndSpaceAndHyphen(inputName.trim()))}
+                        onCompositionStart={() => setIsComposing(true)}
+                        onCompositionEnd={() => setIsComposing(false)}
+                        onKeyDown={(e) =>
+                          handleKeyDownUpdateField({
+                            e,
+                            fieldName: "name",
+                            value: inputName,
+                            id: selectedRowDataCompany?.id,
+                            required: true,
+                          })
+                        }
+                        // onKeyDown={async (e) => {
+                        //   // 日本語入力変換中はtrueで変換確定のエンターキーではUPDATEクエリが実行されないようにする
+                        //   // 英語などの入力変換が存在しない言語ではisCompositionStartは発火しないため常にfalse
+                        //   if (e.key === "Enter" && !isComposing) {
+                        //     e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        //     if (!selectedRowDataCompany?.id) {
+                        //       toast.error(`エラー：会社データが見つかりませんでした。`, {
+                        //         position: "top-right",
+                        //         autoClose: 1500,
+                        //       });
+                        //       return;
+                        //     }
+                        //     // 入力変換確定状態でエンターキーが押された場合の処理
+                        //     console.log(
+                        //       "onKeyDownイベント エンターキーが入力確定状態でクリック UPDATE実行",
+                        //       "selectedRowDataCompany",
+                        //       selectedRowDataCompany
+                        //     );
+                        //     const updatePayload = {
+                        //       fieldName: "name",
+                        //       value: inputName,
+                        //       id: selectedRowDataCompany.id,
+                        //     };
+                        //     await updateClientCompanyFieldMutation.mutateAsync(updatePayload);
+                        //     setIsEditModeField(null); // エディットモードを終了
+                        //   }
+                        // }}
                       />
+                      {/* 送信ボタンとクローズボタン */}
+                      {!updateClientCompanyFieldMutation.isLoading && (
+                        <InputSendAndCloseBtn
+                          inputState={inputName}
+                          setInputState={setInputName}
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                            handleClickSendUpdateField({
+                              e,
+                              fieldName: "name",
+                              value: inputName,
+                              id: selectedRowDataCompany?.id,
+                              required: true,
+                            })
+                          }
+                          required={true}
+                        />
+                      )}
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateClientCompanyFieldMutation.isLoading && (
+                        <div
+                          // className={`"flex-center translate-y-[-50%]" absolute right-[10px] top-[calc(50%-2.5px)] z-[2100] min-h-[26px] min-w-[26px]`}
+                          className={`${styles.field_edit_mode_loading_area}`}
+                        >
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                          {/* <SpinnerX w="w-[22px]" h="h-[22px]" /> */}
+                          {/* <Spinner78 s="22px" c="var(--color-bg-brand-f)" /> */}
+                        </div>
+                      )}
                     </>
                   )}
-                  {/* エディットモードオーバーレイ */}
-                  {!searchMode && isEditModeField === "company_name" && (
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "name" && (
                     <div
                       // className={`fixed left-0 top-0 z-[1000] h-full w-full bg-[#00000000]`}
                       className={`${styles.edit_mode_overlay}`}
                       onClick={(e) => {
-                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                        setIsEditModeField(null);
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
                       }}
                     />
                   )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
+                  {/* サーチモード */}
                   {searchMode && (
                     <input
                       type="text"
@@ -591,11 +768,83 @@ const CompanyMainContainerMemo: FC = () => {
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>●部署名</span>
-                  {!searchMode && (
-                    <span className={`${styles.value}`}>
+                  {/* ディスプレイ */}
+                  {!searchMode && isEditModeField !== "department_name" && (
+                    <span
+                      className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => handleDoubleClickField(e, "department_name", setInputDepartment)}
+                      onMouseEnter={(e) => {
+                        console.log(e.currentTarget.parentElement, e.currentTarget.parentElement?.parentElement);
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataCompany?.department_name ? selectedRowDataCompany?.department_name : ""}
                     </span>
                   )}
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード inputタグ */}
+                  {!searchMode && isEditModeField === "department_name" && (
+                    <>
+                      <input
+                        type="text"
+                        placeholder="株式会社○○"
+                        autoFocus
+                        className={`${styles.input_box} z-[2000]`}
+                        value={inputDepartment}
+                        onChange={(e) => setInputDepartment(e.target.value)}
+                        onBlur={() => setInputDepartment(toHalfWidthAndSpaceAndHyphen(inputDepartment.trim()))}
+                        onCompositionStart={() => setIsComposing(true)}
+                        onCompositionEnd={() => setIsComposing(false)}
+                        onKeyDown={(e) =>
+                          handleKeyDownUpdateField({
+                            e,
+                            fieldName: "department_name",
+                            value: inputDepartment,
+                            id: selectedRowDataCompany?.id,
+                            required: true,
+                          })
+                        }
+                      />
+                      {/* 送信ボタンとクローズボタン */}
+                      {!updateClientCompanyFieldMutation.isLoading && (
+                        <InputSendAndCloseBtn
+                          inputState={inputDepartment}
+                          setInputState={setInputDepartment}
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                            handleClickSendUpdateField({
+                              e,
+                              fieldName: "department_name",
+                              value: inputDepartment,
+                              id: selectedRowDataCompany?.id,
+                              required: true,
+                            })
+                          }
+                          required={true}
+                        />
+                      )}
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateClientCompanyFieldMutation.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "department_name" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                   {searchMode && (
                     <input
                       type="text"
@@ -615,11 +864,99 @@ const CompanyMainContainerMemo: FC = () => {
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>●代表TEL</span>
-                  {!searchMode && (
-                    <span className={`${styles.value}`}>
+                  {/* ディスプレイ */}
+                  {!searchMode && isEditModeField !== "main_phone_number" && (
+                    <span
+                      className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => handleDoubleClickField(e, "main_phone_number", setInputTel)}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataCompany?.main_phone_number ? selectedRowDataCompany?.main_phone_number : ""}
                     </span>
                   )}
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード inputタグ */}
+                  {!searchMode && isEditModeField === "main_phone_number" && (
+                    <>
+                      <input
+                        type="tel"
+                        placeholder=""
+                        autoFocus
+                        className={`${styles.input_box} z-[2000]`}
+                        value={inputTel}
+                        onChange={(e) => setInputTel(e.target.value)}
+                        // onBlur={(e) => setInputTel(toHalfWidthAndSpaceAndHyphen(inputTel.trim()))}
+                        onBlur={(e) => {
+                          console.log("フォーマット実行 e.target.value", e.target.value);
+                          const { isValid, formattedNumber } = validateAndFormatPhoneNumber(e.target.value.trim());
+                          console.log("フォーマット実行 formattedNumberとisValid", formattedNumber, isValid);
+                          if (isValid) {
+                            setIsValidInput(true);
+                            setInputTel(formattedNumber);
+                          } else {
+                            // toast.error(`有効な電話番号を入力してください。`);
+                            if (isValid) setIsValidInput(false);
+                          }
+                        }}
+                        onCompositionStart={() => setIsComposing(true)}
+                        onCompositionEnd={() => setIsComposing(false)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !isComposing && !isValidInput) {
+                            toast.error(`有効な電話番号を入力してください。`);
+                            return;
+                          }
+                          handleKeyDownUpdateField({
+                            e,
+                            fieldName: "main_phone_number",
+                            value: inputTel,
+                            id: selectedRowDataCompany?.id,
+                            required: true,
+                          });
+                        }}
+                      />
+                      {/* 送信ボタンとクローズボタン */}
+                      {!updateClientCompanyFieldMutation.isLoading && (
+                        <InputSendAndCloseBtn
+                          inputState={inputTel}
+                          setInputState={setInputTel}
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                            if (!isValidInput) return toast.error(`有効な電話番号を入力してください。`);
+                            handleClickSendUpdateField({
+                              e,
+                              fieldName: "main_phone_number",
+                              value: inputTel,
+                              id: selectedRowDataCompany?.id,
+                              required: true,
+                            });
+                          }}
+                          required={true}
+                        />
+                      )}
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateClientCompanyFieldMutation.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "main_phone_number" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                   {searchMode && (
                     <input
                       type="tel"

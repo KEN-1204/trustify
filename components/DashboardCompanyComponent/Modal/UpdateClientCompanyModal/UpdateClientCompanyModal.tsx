@@ -244,7 +244,7 @@ export const UpdateClientCompanyModal = () => {
       number_of_employees: numberOfEmployees ? numberOfEmployees : null,
     };
 
-    // supabaseにINSERT,ローディング終了, モーダルを閉じる
+    // supabaseにUPDATE,ローディング終了, モーダルを閉じる
     updateClientCompanyMutation.mutate(newClientCompany);
 
     // setLoadingGlobalState(false);

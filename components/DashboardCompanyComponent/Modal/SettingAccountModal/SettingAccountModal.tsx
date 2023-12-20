@@ -196,10 +196,11 @@ export const SettingAccountModal = () => {
               }`}
               onClick={() => {
                 if (
-                  userProfileState?.account_company_role !== "company_admin" &&
+                  // userProfileState?.account_company_role !== "company_admin" &&
                   userProfileState?.account_company_role !== "company_owner"
                 ) {
-                  return alert("管理者権限を持つユーザーのみアクセス可能です");
+                  // return alert("管理者権限を持つユーザーのみアクセス可能です");
+                  return alert("チーム所有者権限を持つユーザーのみアクセス可能です");
                 }
                 setSelectedSettingAccountMenu("PaymentAndPlan");
               }}

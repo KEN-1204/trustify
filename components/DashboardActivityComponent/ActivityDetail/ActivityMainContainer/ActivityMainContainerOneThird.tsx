@@ -101,7 +101,7 @@ const ActivityMainContainerOneThirdMemo = () => {
 
   // 🌟サブミット
   const [inputCompanyName, setInputCompanyName] = useState("");
-  const [inputDepartmentName, setInputDepartmentName] = useState("");
+  const [inputDepartmentName, setInputDepartmentName] = useState(""); // 部署名
   const [inputTel, setInputTel] = useState("");
   const [inputFax, setInputFax] = useState("");
   const [inputZipcode, setInputZipcode] = useState("");
@@ -160,7 +160,7 @@ const ActivityMainContainerOneThirdMemo = () => {
   const [inputMemberName, setInputMemberName] = useState("");
   const [inputPriority, setInputPriority] = useState("");
   const [inputActivityDate, setInputActivityDate] = useState<Date | null>(null);
-  const [inputDepartment, setInputDepartment] = useState("");
+  const [inputDepartment, setInputDepartment] = useState(""); // 事業部名
   const [inputActivityYearMonth, setInputActivityYearMonth] = useState<number | null>(null);
 
   const supabase = useSupabaseClient();
@@ -196,12 +196,13 @@ const ActivityMainContainerOneThirdMemo = () => {
   // 新規サーチの場合には、サーチ条件を空にする
   useEffect(() => {
     // if (newSearchActivity_Contact_CompanyParams === null) return;
-    console.log(
-      "🔥メインコンテナーnewSearchActivity_Contact_CompanyParams編集モード",
-      newSearchActivity_Contact_CompanyParams
-    );
+
     if (editSearchMode && searchMode) {
       if (newSearchActivity_Contact_CompanyParams === null) return;
+      console.log(
+        "🔥Activityメインコンテナー useEffect 編集モード inputにnewSearchActivity_Contact_CompanyParamsを格納",
+        newSearchActivity_Contact_CompanyParams
+      );
       //   setInputCompanyName(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.company_name));
       setInputCompanyName(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams["client_companies.name"]));
       setInputDepartmentName(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.department_name));
@@ -319,73 +320,76 @@ const ActivityMainContainerOneThirdMemo = () => {
       );
       setInputDepartment(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.department));
       setInputActivityYearMonth(adjustFieldValueNumber(newSearchActivity_Contact_CompanyParams.activity_year_month));
-    } else {
-      setInputCompanyName("");
-      setInputContactName("");
-      setInputDepartmentName("");
-      setInputContactName("");
-      setInputTel("");
-      setInputFax("");
-      setInputZipcode("");
-      setInputEmployeesClass("");
-      setInputAddress("");
-      setInputCapital("");
-      setInputFound("");
-      setInputContent("");
-      setInputHP("");
-      setInputCompanyEmail("");
-      setInputIndustryType("");
-      setInputProductL("");
-      setInputProductM("");
-      setInputProductS("");
-      setInputFiscal("");
-      setInputBudgetRequestMonth1("");
-      setInputBudgetRequestMonth2("");
-      setInputClient("");
-      setInputSupplier("");
-      setInputFacility("");
-      setInputBusinessSite("");
-      setInputOverseas("");
-      setInputGroup("");
-      setInputCorporateNum("");
+    } else if (!editSearchMode && searchMode) {
+      console.log(
+        "🔥Activityメインコンテナー useEffect 新規サーチモード inputを初期化",
+        newSearchActivity_Contact_CompanyParams
+      );
+      if (!!inputCompanyName) setInputCompanyName("");
+      // if (!!input) setInputContactName("");
+      if (!!inputDepartmentName) setInputDepartmentName(""); // 部署名(クライアント)
+      if (!!inputTel) setInputTel("");
+      if (!!inputFax) setInputFax("");
+      if (!!inputZipcode) setInputZipcode("");
+      if (!!inputEmployeesClass) setInputEmployeesClass("");
+      if (!!inputAddress) setInputAddress("");
+      if (!!inputCapital) setInputCapital("");
+      if (!!inputFound) setInputFound("");
+      if (!!inputContent) setInputContent("");
+      if (!!inputHP) setInputHP("");
+      if (!!inputCompanyEmail) setInputCompanyEmail("");
+      if (!!inputIndustryType) setInputIndustryType("");
+      if (!!inputProductL) setInputProductL("");
+      if (!!inputProductM) setInputProductM("");
+      if (!!inputProductS) setInputProductS("");
+      if (!!inputFiscal) setInputFiscal("");
+      if (!!inputBudgetRequestMonth1) setInputBudgetRequestMonth1("");
+      if (!!inputBudgetRequestMonth2) setInputBudgetRequestMonth2("");
+      if (!!inputClient) setInputClient("");
+      if (!!inputSupplier) setInputSupplier("");
+      if (!!inputFacility) setInputFacility("");
+      if (!!inputBusinessSite) setInputBusinessSite("");
+      if (!!inputOverseas) setInputOverseas("");
+      if (!!inputGroup) setInputGroup("");
+      if (!!inputCorporateNum) setInputCorporateNum("");
 
       // contactsテーブル
-      setInputContactName("");
-      setInputDirectLine("");
-      setInputDirectFax("");
-      setInputExtension("");
-      setInputCompanyCellPhone("");
-      setInputPersonalCellPhone("");
-      setInputContactEmail("");
-      setInputPositionName("");
-      setInputPositionClass("");
-      setInputOccupation("");
-      setInputApprovalAmount("");
-      setInputContactCreatedByCompanyId("");
-      setInputContactCreatedByUserId("");
+      if (!!inputContactName) setInputContactName("");
+      if (!!inputDirectLine) setInputDirectLine("");
+      if (!!inputDirectFax) setInputDirectFax("");
+      if (!!inputExtension) setInputExtension("");
+      if (!!inputCompanyCellPhone) setInputCompanyCellPhone("");
+      if (!!inputPersonalCellPhone) setInputPersonalCellPhone("");
+      if (!!inputContactEmail) setInputContactEmail("");
+      if (!!inputPositionName) setInputPositionName("");
+      if (!!inputPositionClass) setInputPositionClass("");
+      if (!!inputOccupation) setInputOccupation("");
+      if (!!inputApprovalAmount) setInputApprovalAmount("");
+      if (!!inputContactCreatedByCompanyId) setInputContactCreatedByCompanyId("");
+      if (!!inputContactCreatedByUserId) setInputContactCreatedByUserId("");
 
       // activitiesテーブル
-      setInputActivityCreatedByCompanyId("");
-      setInputActivityCreatedByUserId("");
-      setInputActivityCreatedByDepartmentOfUser("");
-      setInputActivityCreatedByUnitOfUser("");
-      setInputSummary("");
-      setInputScheduledFollowUpDate(null);
-      setInputFollowUpFlag(null);
-      setInputDocumentUrl("");
-      setInputActivityType("");
-      setInputClaimFlag(null);
-      setInputProductIntroduction1("");
-      setInputProductIntroduction2("");
-      setInputProductIntroduction3("");
-      setInputProductIntroduction4("");
-      setInputProductIntroduction5("");
-      setInputBusinessOffice("");
-      setInputMemberName("");
-      setInputPriority("");
-      setInputActivityDate(null);
-      setInputDepartment("");
-      setInputActivityYearMonth(null);
+      if (!!inputActivityCreatedByCompanyId) setInputActivityCreatedByCompanyId("");
+      if (!!inputActivityCreatedByUserId) setInputActivityCreatedByUserId("");
+      if (!!inputActivityCreatedByDepartmentOfUser) setInputActivityCreatedByDepartmentOfUser("");
+      if (!!inputActivityCreatedByUnitOfUser) setInputActivityCreatedByUnitOfUser("");
+      if (!!inputSummary) setInputSummary("");
+      if (!!inputScheduledFollowUpDate) setInputScheduledFollowUpDate(null);
+      if (!!inputFollowUpFlag) setInputFollowUpFlag(null);
+      if (!!inputDocumentUrl) setInputDocumentUrl("");
+      if (!!inputActivityType) setInputActivityType("");
+      if (!!inputClaimFlag) setInputClaimFlag(null);
+      if (!!inputProductIntroduction1) setInputProductIntroduction1("");
+      if (!!inputProductIntroduction2) setInputProductIntroduction2("");
+      if (!!inputProductIntroduction3) setInputProductIntroduction3("");
+      if (!!inputProductIntroduction4) setInputProductIntroduction4("");
+      if (!!inputProductIntroduction5) setInputProductIntroduction5("");
+      if (!!inputBusinessOffice) setInputBusinessOffice("");
+      if (!!inputMemberName) setInputMemberName("");
+      if (!!inputPriority) setInputPriority("");
+      if (!!inputActivityDate) setInputActivityDate(null);
+      if (!!inputDepartment) setInputDepartment(""); // 事業部名(自社)
+      if (!!inputActivityYearMonth) setInputActivityYearMonth(null);
     }
   }, [editSearchMode, searchMode]);
 

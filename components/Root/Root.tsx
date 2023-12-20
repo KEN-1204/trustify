@@ -1264,7 +1264,7 @@ export const Root: FC = () => {
       {/* ======================== Footer ======================== */}
       <section className={styles.footer}>
         <h2 className="flex items-center">
-          <span className="mr-[7px] inline-block">{neonMailIcon}</span>
+          <span className="mr-[7px] inline-block">{neonMailIcon("32")}</span>
           <span className="mr-[8px]">
             {language === "ja" && `ご質問ですか？お問合せはこちらまで: `}
             {language === "en" && "Questions? Email: "}

@@ -1,4 +1,4 @@
-import React, { FC, memo, useEffect, useRef, useState } from "react";
+import React, { FC, memo, useCallback, useEffect, useRef, useState } from "react";
 import styles from "./UnderRightActivityLog.module.css";
 import useStore from "@/store";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
@@ -59,6 +59,9 @@ const UnderRightActivityLogMemo: FC = () => {
   const fetchEnabledRef = useRef(false);
   // フェッチカウント
   const fetchCountRef = useRef(0);
+  // ダブルクリックでセルの詳細を確認
+  const setIsOpenEditModal = useDashboardStore((state) => state.setIsOpenEditModal);
+  const setTextareaInput = useDashboardStore((state) => state.setTextareaInput);
 
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
@@ -414,13 +417,52 @@ const UnderRightActivityLogMemo: FC = () => {
   //   // それぞれのCSSカスタムプロパティをセット
   //   // grid-template-columnsの値となるCSSカスタムプロパティをセット
   //   parentGridScrollContainer.current.style.setProperty("--template-columns", `${newColsWidths.join(" ")}`);
-  //   // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 高さ 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟
+
   //   parentGridScrollContainer.current.style.setProperty("--header-row-height", "25px");
   //   parentGridScrollContainer.current.style.setProperty("--row-width", `${sumRowWidth}px`);
-  //   // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 高さ 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟
+
   //   parentGridScrollContainer.current.style.setProperty("--summary-row-height", "25px");
   // }, [gotData]); // gotDataのstateがtrueになったら再度実行
   // ========================== 🌟useEffect ヘッダーカラム生成🌟 ここまで ==========================
+
+  // ================== 🌟セル シングルクリック、ダブルクリックイベント ==================
+  // クリックで概要の詳細を確認
+  const setTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleSingleClickGridCell = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (setTimeoutRef.current !== null) return;
+
+    setTimeoutRef.current = setTimeout(() => {
+      setTimeoutRef.current = null;
+      // シングルクリック時に実行したい処理
+      // 0.2秒後に実行されてしまうためここには書かない
+    }, 200);
+
+    console.log("シングルクリック");
+  }, []);
+
+  // セルダブルクリック
+  const handleDoubleClickGridCell = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>, index: number, columnName: string) => {
+      console.log("ダブルクリック", e.currentTarget, "index", index);
+      if (columnName !== "summary") return console.log("ダブルクリック summaryでないためリターン");
+
+      if (setTimeoutRef.current) {
+        clearTimeout(setTimeoutRef.current);
+
+        // console.log(e.detail);
+        setTimeoutRef.current = null;
+        // ダブルクリック時に実行したい処理
+
+        // クリックした要素のテキストを格納
+        const text = e.currentTarget.innerText;
+        setTextareaInput(text);
+        setIsOpenEditModal(true);
+      }
+    },
+    [setTextareaInput, setIsOpenEditModal]
+  );
+  // ================== 🌟セル シングルクリック、ダブルクリックイベント ここまで ==================
 
   // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
   // const handleOpenTooltip = (
@@ -803,7 +845,10 @@ const UnderRightActivityLogMemo: FC = () => {
                               className={`${styles.grid_cell} ${styles.grid_cell_resizable}`}
                               style={{
                                 gridColumnStart: index + 1,
+                                ...(columnHeaderList[index] === "summary" && { cursor: "pointer" }),
                               }}
+                              onClick={handleSingleClickGridCell}
+                              onDoubleClick={(e) => handleDoubleClickGridCell(e, index, columnHeaderList[index])}
                             >
                               {/* {value} */}
                               {displayValue}

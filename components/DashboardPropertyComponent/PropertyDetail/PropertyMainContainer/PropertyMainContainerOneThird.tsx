@@ -222,18 +222,18 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
     if (value === null) return null; // 全てのデータ
     return value;
   }
-  console.log("🔥メインコンテナーnewSearchProperty_Contact_CompanyParams", newSearchProperty_Contact_CompanyParams);
 
   // 編集モードtrueの場合、サーチ条件をinputタグのvalueに格納
   // 新規サーチの場合には、サーチ条件を空にする
   useEffect(() => {
     // if (newSearchProperty_Contact_CompanyParams === null) return;
-    console.log(
-      "🔥メインコンテナーnewSearchProperty_Contact_CompanyParams編集モード",
-      newSearchProperty_Contact_CompanyParams
-    );
+
     if (editSearchMode && searchMode) {
       if (newSearchProperty_Contact_CompanyParams === null) return;
+      console.log(
+        "🔥Propertyメインコンテナー useEffect 編集モード inputにnewSearchActivity_Contact_CompanyParamsを格納",
+        newSearchProperty_Contact_CompanyParams
+      );
       //   setInputCompanyName(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.company_name));
       setInputCompanyName(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams["client_companies.name"]));
       setInputDepartmentName(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.department_name));
@@ -405,102 +405,105 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
           ? new Date(newSearchProperty_Contact_CompanyParams.property_date)
           : null
       );
-    } else {
-      setInputCompanyName("");
-      setInputContactName("");
-      setInputDepartmentName("");
-      setInputContactName("");
-      setInputTel("");
-      setInputFax("");
-      setInputZipcode("");
-      setInputEmployeesClass("");
-      setInputAddress("");
-      setInputCapital("");
-      setInputFound("");
-      setInputContent("");
-      setInputHP("");
-      setInputCompanyEmail("");
-      setInputIndustryType("");
-      setInputProductL("");
-      setInputProductM("");
-      setInputProductS("");
-      setInputFiscal("");
-      setInputBudgetRequestMonth1("");
-      setInputBudgetRequestMonth2("");
-      setInputClient("");
-      setInputSupplier("");
-      setInputFacility("");
-      setInputBusinessSite("");
-      setInputOverseas("");
-      setInputGroup("");
-      setInputCorporateNum("");
+    } else if (!editSearchMode && searchMode) {
+      console.log(
+        "🔥Meetingメインコンテナー useEffect 新規サーチモード inputを初期化",
+        newSearchProperty_Contact_CompanyParams
+      );
+      if (!!inputCompanyName) setInputCompanyName("");
+      // if (!!inputContactName) setInputContactName("");
+      if (!!inputDepartmentName) setInputDepartmentName("");
+      if (!!inputTel) setInputTel("");
+      if (!!inputFax) setInputFax("");
+      if (!!inputZipcode) setInputZipcode("");
+      if (!!inputEmployeesClass) setInputEmployeesClass("");
+      if (!!inputAddress) setInputAddress("");
+      if (!!inputCapital) setInputCapital("");
+      if (!!inputFound) setInputFound("");
+      if (!!inputContent) setInputContent("");
+      if (!!inputHP) setInputHP("");
+      if (!!inputCompanyEmail) setInputCompanyEmail("");
+      if (!!inputIndustryType) setInputIndustryType("");
+      if (!!inputProductL) setInputProductL("");
+      if (!!inputProductM) setInputProductM("");
+      if (!!inputProductS) setInputProductS("");
+      if (!!inputFiscal) setInputFiscal("");
+      if (!!inputBudgetRequestMonth1) setInputBudgetRequestMonth1("");
+      if (!!inputBudgetRequestMonth2) setInputBudgetRequestMonth2("");
+      if (!!inputClient) setInputClient("");
+      if (!!inputSupplier) setInputSupplier("");
+      if (!!inputFacility) setInputFacility("");
+      if (!!inputBusinessSite) setInputBusinessSite("");
+      if (!!inputOverseas) setInputOverseas("");
+      if (!!inputGroup) setInputGroup("");
+      if (!!inputCorporateNum) setInputCorporateNum("");
 
       // contactsテーブル
-      setInputContactName("");
-      setInputDirectLine("");
-      setInputDirectFax("");
-      setInputExtension("");
-      setInputCompanyCellPhone("");
-      setInputPersonalCellPhone("");
-      setInputContactEmail("");
-      setInputPositionName("");
-      setInputPositionClass("");
-      setInputOccupation("");
-      setInputApprovalAmount("");
-      setInputContactCreatedByCompanyId("");
-      setInputContactCreatedByUserId("");
+      if (!!inputContactName) setInputContactName("");
+      if (!!inputDirectLine) setInputDirectLine("");
+      if (!!inputDirectFax) setInputDirectFax("");
+      if (!!inputExtension) setInputExtension("");
+      if (!!inputCompanyCellPhone) setInputCompanyCellPhone("");
+      if (!!inputPersonalCellPhone) setInputPersonalCellPhone("");
+      if (!!inputContactEmail) setInputContactEmail("");
+      if (!!inputPositionName) setInputPositionName("");
+      if (!!inputPositionClass) setInputPositionClass("");
+      if (!!inputOccupation) setInputOccupation("");
+      if (!!inputApprovalAmount) setInputApprovalAmount("");
+      if (!!inputContactCreatedByCompanyId) setInputContactCreatedByCompanyId("");
+      if (!!inputContactCreatedByUserId) setInputContactCreatedByUserId("");
 
       // Propertysテーブル
-      setInputPropertyCreatedByCompanyId("");
-      setInputPropertyCreatedByUserId("");
-      setInputPropertyCreatedByDepartmentOfUser("");
-      setInputPropertyCreatedByUnitOfUser("");
-      setInputCurrentStatus("");
-      setInputPropertyName("");
-      setInputPropertySummary("");
-      setInputPendingFlag(null);
-      setInputRejectedFlag(null);
-      setInputProductName("");
-      setInputProductSales(null);
-      setInputExpectedOrderDate(null);
-      setInputExpectedSalesPrice(null);
-      setInputTermDivision("");
-      setInputSoldProductName("");
-      setInputUnitSales(null);
-      setInputSalesContributionCategory("");
-      setInputSalesPrice(null);
-      setInputDiscountedPrice(null);
-      setInputDiscountRate(null);
-      setInputSalesClass("");
-      setInputExpansionDate(null);
-      setInputSalesDate(null);
-      setInputExpansionQuarter("");
-      setInputSalesQuarter("");
-      setInputSubscriptionStartDate(null);
-      setInputSubscriptionCanceledAt(null);
-      setInputLeasingCompany("");
-      setInputLeaseDivision("");
-      setInputLeaseExpirationDate(null);
-      setInputStepInFlag(null);
-      setInputRepeatFlag(null);
-      setInputOrderCertaintyStartOfMonth("");
-      setInputReviewOrderCertainty("");
-      setInputCompetitorAppearanceDate(null);
-      setInputCompetitor("");
-      setInputCompetitorProduct("");
-      setInputReasonClass("");
-      setInputReasonDetail("");
-      setInputCustomerBudget(null);
-      setInputDecisionMakerNegotiation("");
-      setInputExpansionYearMonth(null);
-      setInputSalesYearMonth(null);
-      setInputSubscriptionInterval("");
-      setInputCompetitionState("");
-      setInputPropertyYearMonth(null);
-      setInputPropertyDepartment("");
-      setInputPropertyBusinessOffice("");
-      setInputPropertyMemberName("");
-      setInputPropertyDate(null);
+      if (!!inputPropertyCreatedByCompanyId) setInputPropertyCreatedByCompanyId("");
+      if (!!inputPropertyCreatedByUserId) setInputPropertyCreatedByUserId("");
+      if (!!inputPropertyCreatedByDepartmentOfUser) setInputPropertyCreatedByDepartmentOfUser("");
+      if (!!inputPropertyCreatedByUnitOfUser) setInputPropertyCreatedByUnitOfUser("");
+      if (!!inputCurrentStatus) setInputCurrentStatus("");
+      if (!!inputPropertyName) setInputPropertyName("");
+      if (!!inputPropertySummary) setInputPropertySummary("");
+      if (!!inputPendingFlag) setInputPendingFlag(null);
+      if (!!inputRejectedFlag) setInputRejectedFlag(null);
+      if (!!inputProductName) setInputProductName("");
+      if (!!inputProductSales) setInputProductSales(null);
+      if (!!inputExpectedOrderDate) setInputExpectedOrderDate(null);
+      if (!!inputExpectedSalesPrice) setInputExpectedSalesPrice(null);
+      if (!!inputTermDivision) setInputTermDivision("");
+      if (!!inputSoldProductName) setInputSoldProductName("");
+      if (!!inputUnitSales) setInputUnitSales(null);
+      if (!!inputSalesContributionCategory) setInputSalesContributionCategory("");
+      if (!!inputSalesPrice) setInputSalesPrice(null);
+      if (!!inputDiscountedPrice) setInputDiscountedPrice(null);
+      if (!!inputDiscountRate) setInputDiscountRate(null);
+      if (!!inputSalesClass) setInputSalesClass("");
+      if (!!inputExpansionDate) setInputExpansionDate(null);
+      if (!!inputSalesDate) setInputSalesDate(null);
+      if (!!inputExpansionQuarter) setInputExpansionQuarter("");
+      if (!!inputSalesQuarter) setInputSalesQuarter("");
+      if (!!inputSubscriptionStartDate) setInputSubscriptionStartDate(null);
+      if (!!inputSubscriptionCanceledAt) setInputSubscriptionCanceledAt(null);
+      if (!!inputLeasingCompany) setInputLeasingCompany("");
+      if (!!inputLeaseDivision) setInputLeaseDivision("");
+      if (!!inputLeaseExpirationDate) setInputLeaseExpirationDate(null);
+      if (!!inputStepInFlag) setInputStepInFlag(null);
+      if (!!inputRepeatFlag) setInputRepeatFlag(null);
+      if (!!inputOrderCertaintyStartOfMonth) setInputOrderCertaintyStartOfMonth("");
+      if (!!inputReviewOrderCertainty) setInputReviewOrderCertainty("");
+      if (!!inputCompetitorAppearanceDate) setInputCompetitorAppearanceDate(null);
+      if (!!inputCompetitor) setInputCompetitor("");
+      if (!!inputCompetitorProduct) setInputCompetitorProduct("");
+      if (!!inputReasonClass) setInputReasonClass("");
+      if (!!inputReasonDetail) setInputReasonDetail("");
+      if (!!inputCustomerBudget) setInputCustomerBudget(null);
+      if (!!inputDecisionMakerNegotiation) setInputDecisionMakerNegotiation("");
+      if (!!inputExpansionYearMonth) setInputExpansionYearMonth(null);
+      if (!!inputSalesYearMonth) setInputSalesYearMonth(null);
+      if (!!inputSubscriptionInterval) setInputSubscriptionInterval("");
+      if (!!inputCompetitionState) setInputCompetitionState("");
+      if (!!inputPropertyYearMonth) setInputPropertyYearMonth(null);
+      if (!!inputPropertyDepartment) setInputPropertyDepartment("");
+      if (!!inputPropertyBusinessOffice) setInputPropertyBusinessOffice("");
+      if (!!inputPropertyMemberName) setInputPropertyMemberName("");
+      if (!!inputPropertyDate) setInputPropertyDate(null);
     }
   }, [editSearchMode, searchMode]);
 

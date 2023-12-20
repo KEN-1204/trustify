@@ -17,6 +17,9 @@ export const useMutateClientCompany = () => {
   const setIsUpdateRequiredForLatestSelectedRowDataCompany = useDashboardStore(
     (state) => state.setIsUpdateRequiredForLatestSelectedRowDataCompany
   );
+  // 選択中の行データと更新関数
+  // const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
+  const setSelectedRowDataCompany = useDashboardStore((state) => state.setSelectedRowDataCompany);
 
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
@@ -177,5 +180,55 @@ export const useMutateClientCompany = () => {
     }
   );
 
-  return { createClientCompanyMutation, updateClientCompanyMutation };
+  // 【ClientCompanyの個別フィールド毎に編集UPDATE用updateClientCompanyFieldMutation関数】
+  // MainContainerからダブルクリックでフィールドエディットモードに移行し、個別にフィールド入力、更新した時に使用 受け取る引数は一つのプロパティのみ
+  const updateClientCompanyFieldMutation = useMutation(
+    async (fieldData: { fieldName: string; value: any; id: string }) => {
+      const { fieldName, value, id } = fieldData;
+      const { data, error } = await supabase
+        .from("client_companies")
+        .update({ [fieldName]: value })
+        .eq("id", id)
+        .select();
+
+      if (error) throw error;
+
+      console.log("updateClientCompanyFieldMutation実行完了 mutate data", data);
+
+      return data;
+    },
+    {
+      onSuccess: async (data) => {
+        console.log(
+          "updateClientCompanyFieldMutation実行完了 キャッシュを更新して選択中のセルを再度クリックして更新 oinSuccess data[0]",
+          data[0]
+        );
+        // キャッシュ更新より先にZustandのSelectedRowDataCompanyをupdateで取得したデータで更新する
+        setSelectedRowDataCompany(data[0]);
+
+        // companiesに関わるキャッシュのデータを再取得 => これをしないと既に取得済みのキャッシュは古い状態で表示されてしまう
+        await queryClient.invalidateQueries({ queryKey: ["companies"] });
+
+        // 再度テーブルの選択セルのDOMをクリックしてselectedRowDataCompanyを最新状態にする
+        // setIsUpdateRequiredForLatestSelectedRowDataCompany(true);
+
+        // if (loadingGlobalState) setLoadingGlobalState(false);
+        // toast.success("会社の更新が完了しました🌟", {
+        //   position: "top-right",
+        //   autoClose: 1500
+        // });
+      },
+      onError: (err: any) => {
+        // if (loadingGlobalState) setLoadingGlobalState(false);
+        console.error("フィールドエディットモード updateエラー", err);
+        console.error(`Update failed client_companies field` + err.message);
+        toast.error("アップデートに失敗しました...", {
+          position: "top-right",
+          autoClose: 1500,
+        });
+      },
+    }
+  );
+
+  return { createClientCompanyMutation, updateClientCompanyMutation, updateClientCompanyFieldMutation };
 };

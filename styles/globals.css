@@ -537,6 +537,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-table-bg-selected: #f1f9ff; */
   --color-table-bg-selected: #f0f9ff;
   --color-table-bg-selected: #f8f8f8;
+  --color-table-bg-selected: #f5f5f5;
   --color-table-checkbox-outline: #ccc;
   --color-table-checkbox-focus-outline: #fff;
   --color-table-dragging-gradient: #2b7fff #acffff;
@@ -1124,12 +1125,14 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-table-row-hover: #232323;
   --color-table-row-hover: var(--color-bg-brand-f20);
   --color-table-row-hover: var(--color-bg-brand-f30);
-  --color-table-row-hover: #14141490;
+  /* --color-table-row-hover: #14141490; */
   --color-table-row-hover: #333;
   /* --color-table-row-hover: #282828; */
   --color-table-bg-selected: #232323;
   --color-table-bg-selected: #14141490;
-  --color-table-bg-selected: var(--color-bg-brand-f20);
+  /* --color-table-bg-selected: #333; */
+  /* --color-table-bg-selected: #303030; */
+  /* --color-table-bg-selected: var(--color-bg-brand-f20); */
   /* --color-table-bg-selected: var(--color-bg-brand-f30); */
   /* --color-table-checkbox-outline: #2e2e2e; */
   --color-table-checkbox-outline: #555;

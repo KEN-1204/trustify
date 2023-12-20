@@ -215,12 +215,13 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   // 新規サーチの場合には、サーチ条件を空にする
   useEffect(() => {
     // if (newSearchMeeting_Contact_CompanyParams === null) return;
-    console.log(
-      "🔥メインコンテナーnewSearchMeeting_Contact_CompanyParams編集モード",
-      newSearchMeeting_Contact_CompanyParams
-    );
+
     if (editSearchMode && searchMode) {
       if (newSearchMeeting_Contact_CompanyParams === null) return;
+      console.log(
+        "🔥Meetingメインコンテナー useEffect 編集モード inputにnewSearchMeeting_Contact_CompanyParamsを格納",
+        newSearchMeeting_Contact_CompanyParams
+      );
       //   setInputCompanyName(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.company_name));
       setInputCompanyName(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams["client_companies.name"]));
       setInputDepartmentName(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.department_name));
@@ -366,88 +367,91 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       setInputMeetingDepartment(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.meeting_department));
       setInputMeetingMemberName(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.meeting_member_name));
       setInputMeetingYearMonth(adjustFieldValueNumber(newSearchMeeting_Contact_CompanyParams.meeting_year_month));
-    } else {
-      setInputCompanyName("");
-      setInputContactName("");
-      setInputDepartmentName("");
-      setInputContactName("");
-      setInputTel("");
-      setInputFax("");
-      setInputZipcode("");
-      setInputEmployeesClass("");
-      setInputAddress("");
-      setInputCapital("");
-      setInputFound("");
-      setInputContent("");
-      setInputHP("");
-      setInputCompanyEmail("");
-      setInputIndustryType("");
-      setInputProductL("");
-      setInputProductM("");
-      setInputProductS("");
-      setInputFiscal("");
-      setInputBudgetRequestMonth1("");
-      setInputBudgetRequestMonth2("");
-      setInputClient("");
-      setInputSupplier("");
-      setInputFacility("");
-      setInputBusinessSite("");
-      setInputOverseas("");
-      setInputGroup("");
-      setInputCorporateNum("");
+    } else if (!editSearchMode && searchMode) {
+      console.log(
+        "🔥Meetingメインコンテナー useEffect 新規サーチモード inputを初期化",
+        newSearchMeeting_Contact_CompanyParams
+      );
+      if (!!inputCompanyName) setInputCompanyName("");
+      // if (!!input) setInputContactName("");
+      if (!!inputDepartmentName) setInputDepartmentName(""); // 部署名(クライアント)
+      if (!!inputTel) setInputTel("");
+      if (!!inputFax) setInputFax("");
+      if (!!inputZipcode) setInputZipcode("");
+      if (!!inputEmployeesClass) setInputEmployeesClass("");
+      if (!!inputAddress) setInputAddress("");
+      if (!!inputCapital) setInputCapital("");
+      if (!!inputFound) setInputFound("");
+      if (!!inputContent) setInputContent("");
+      if (!!inputHP) setInputHP("");
+      if (!!inputCompanyEmail) setInputCompanyEmail("");
+      if (!!inputIndustryType) setInputIndustryType("");
+      if (!!inputProductL) setInputProductL("");
+      if (!!inputProductM) setInputProductM("");
+      if (!!inputProductS) setInputProductS("");
+      if (!!inputFiscal) setInputFiscal("");
+      if (!!inputBudgetRequestMonth1) setInputBudgetRequestMonth1("");
+      if (!!inputBudgetRequestMonth2) setInputBudgetRequestMonth2("");
+      if (!!inputClient) setInputClient("");
+      if (!!inputSupplier) setInputSupplier("");
+      if (!!inputFacility) setInputFacility("");
+      if (!!inputBusinessSite) setInputBusinessSite("");
+      if (!!inputOverseas) setInputOverseas("");
+      if (!!inputGroup) setInputGroup("");
+      if (!!inputCorporateNum) setInputCorporateNum("");
 
       // contactsテーブル
-      setInputContactName("");
-      setInputDirectLine("");
-      setInputDirectFax("");
-      setInputExtension("");
-      setInputCompanyCellPhone("");
-      setInputPersonalCellPhone("");
-      setInputContactEmail("");
-      setInputPositionName("");
-      setInputPositionClass("");
-      setInputOccupation("");
-      setInputApprovalAmount("");
-      setInputContactCreatedByCompanyId("");
-      setInputContactCreatedByUserId("");
+      if (!!inputContactName) setInputContactName("");
+      if (!!inputDirectLine) setInputDirectLine("");
+      if (!!inputDirectFax) setInputDirectFax("");
+      if (!!inputExtension) setInputExtension("");
+      if (!!inputCompanyCellPhone) setInputCompanyCellPhone("");
+      if (!!inputPersonalCellPhone) setInputPersonalCellPhone("");
+      if (!!inputContactEmail) setInputContactEmail("");
+      if (!!inputPositionName) setInputPositionName("");
+      if (!!inputPositionClass) setInputPositionClass("");
+      if (!!inputOccupation) setInputOccupation("");
+      if (!!inputApprovalAmount) setInputApprovalAmount("");
+      if (!!inputContactCreatedByCompanyId) setInputContactCreatedByCompanyId("");
+      if (!!inputContactCreatedByUserId) setInputContactCreatedByUserId("");
 
       // meetingsテーブル
-      setInputMeetingCreatedByCompanyId("");
-      setInputMeetingCreatedByUserId("");
-      setInputMeetingCreatedByDepartmentOfUser("");
-      setInputMeetingCreatedByUnitOfUser("");
-      setInputMeetingType("");
-      setInputWebTool("");
-      setInputPlannedDate(null);
-      setInputPlannedStartTime("");
-      setInputPlannedStartTimeHour("");
-      setInputPlannedStartTimeMinute("");
-      setInputPlannedPurpose("");
-      setInputPlannedAppointCheckFlag(null);
-      setInputPlannedProduct1("");
-      setInputPlannedProduct2("");
-      setInputPlannedComment("");
-      setInputResultDate(null);
-      setInputResultStartTime("");
-      setInputResultStartTimeHour("");
-      setInputResultStartTimeMinute("");
-      setInputResultEndTime("");
-      setInputResultEndTimeHour("");
-      setInputResultEndTimeMinute("");
-      setInputResultPresentationProduct1("");
-      setInputResultPresentationProduct2("");
-      setInputResultPresentationProduct3("");
-      setInputResultPresentationProduct4("");
-      setInputResultPresentationProduct5("");
-      setInputResultCategory("");
-      setInputResultSummary("");
-      setInputResultNegotiateDecisionMaker("");
-      setInputPreMeetingParticipationRequest("");
-      setInputMeetingParticipationRequest("");
-      setInputMeetingBusinessOffice("");
-      setInputMeetingDepartment("");
-      setInputMeetingMemberName("");
-      setInputMeetingYearMonth(null);
+      if (!!inputMeetingCreatedByCompanyId) setInputMeetingCreatedByCompanyId("");
+      if (!!inputMeetingCreatedByUserId) setInputMeetingCreatedByUserId("");
+      if (!!inputMeetingCreatedByDepartmentOfUser) setInputMeetingCreatedByDepartmentOfUser("");
+      if (!!inputMeetingCreatedByUnitOfUser) setInputMeetingCreatedByUnitOfUser("");
+      if (!!inputMeetingType) setInputMeetingType("");
+      if (!!inputWebTool) setInputWebTool("");
+      if (!!inputPlannedDate) setInputPlannedDate(null);
+      if (!!inputPlannedStartTime) setInputPlannedStartTime("");
+      if (!!inputPlannedStartTimeHour) setInputPlannedStartTimeHour("");
+      if (!!inputPlannedStartTimeMinute) setInputPlannedStartTimeMinute("");
+      if (!!inputPlannedPurpose) setInputPlannedPurpose("");
+      if (!!inputPlannedAppointCheckFlag) setInputPlannedAppointCheckFlag(null);
+      if (!!inputPlannedProduct1) setInputPlannedProduct1("");
+      if (!!inputPlannedProduct2) setInputPlannedProduct2("");
+      if (!!inputPlannedComment) setInputPlannedComment("");
+      if (!!inputResultDate) setInputResultDate(null);
+      if (!!inputResultStartTime) setInputResultStartTime("");
+      if (!!inputResultStartTimeHour) setInputResultStartTimeHour("");
+      if (!!inputResultStartTimeMinute) setInputResultStartTimeMinute("");
+      if (!!inputResultEndTime) setInputResultEndTime("");
+      if (!!inputResultEndTimeHour) setInputResultEndTimeHour("");
+      if (!!inputResultEndTimeMinute) setInputResultEndTimeMinute("");
+      if (!!inputResultPresentationProduct1) setInputResultPresentationProduct1("");
+      if (!!inputResultPresentationProduct2) setInputResultPresentationProduct2("");
+      if (!!inputResultPresentationProduct3) setInputResultPresentationProduct3("");
+      if (!!inputResultPresentationProduct4) setInputResultPresentationProduct4("");
+      if (!!inputResultPresentationProduct5) setInputResultPresentationProduct5("");
+      if (!!inputResultCategory) setInputResultCategory("");
+      if (!!inputResultSummary) setInputResultSummary("");
+      if (!!inputResultNegotiateDecisionMaker) setInputResultNegotiateDecisionMaker("");
+      if (!!inputPreMeetingParticipationRequest) setInputPreMeetingParticipationRequest("");
+      if (!!inputMeetingParticipationRequest) setInputMeetingParticipationRequest("");
+      if (!!inputMeetingBusinessOffice) setInputMeetingBusinessOffice("");
+      if (!!inputMeetingDepartment) setInputMeetingDepartment("");
+      if (!!inputMeetingMemberName) setInputMeetingMemberName("");
+      if (!!inputMeetingYearMonth) setInputMeetingYearMonth(null);
     }
   }, [editSearchMode, searchMode]);
 

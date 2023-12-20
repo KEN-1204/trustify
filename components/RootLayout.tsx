@@ -45,8 +45,10 @@ export const RootLayout: FC<Prop> = ({ children }) => {
     <div className={`theme_${theme}`}>
       {children}
       <ToastContainer
-        position="top-left"
-        autoClose={2000}
+        // position="top-left"
+        position="top-right"
+        // autoClose={2000}
+        autoClose={3000}
         hideProgressBar={false}
         newestOnTop={true}
         closeOnClick

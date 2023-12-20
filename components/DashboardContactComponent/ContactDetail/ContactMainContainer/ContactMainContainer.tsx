@@ -161,9 +161,10 @@ const ContactMainContainerMemo: FC = () => {
   // 新規サーチの場合には、サーチ条件を空にする
   useEffect(() => {
     // if (newSearchContact_CompanyParams === null) return;
-    console.log("🔥メインコンテナーnewSearchContact_CompanyParams編集モード", newSearchContact_CompanyParams);
+
     if (editSearchMode && searchMode) {
       if (newSearchContact_CompanyParams === null) return;
+      console.log("🔥メインコンテナーnewSearchContact_CompanyParams編集モード", newSearchContact_CompanyParams);
       //   setInputCompanyName(beforeAdjustFieldValue(newSearchContact_CompanyParams.company_name));
       setInputCompanyName(beforeAdjustFieldValue(newSearchContact_CompanyParams["client_companies.name"]));
       setInputDepartment(beforeAdjustFieldValue(newSearchContact_CompanyParams.department_name));
@@ -218,50 +219,51 @@ const ContactMainContainerMemo: FC = () => {
         beforeAdjustFieldValue(newSearchContact_CompanyParams["contacts.created_by_company_id"])
       );
       setInputCreatedByUserId(beforeAdjustFieldValue(newSearchContact_CompanyParams.created_by_user_id));
-    } else {
-      setInputCompanyName("");
-      setInputContactName("");
-      setInputDepartment("");
-      setInputContactName("");
-      setInputTel("");
-      setInputFax("");
-      setInputZipcode("");
-      setInputEmployeesClass("");
-      setInputAddress("");
-      setInputCapital("");
-      setInputFound("");
-      setInputContent("");
-      setInputHP("");
-      setInputCompanyEmail("");
-      setInputIndustryType("");
-      setInputProductL("");
-      setInputProductM("");
-      setInputProductS("");
-      setInputFiscal("");
-      setInputBudgetRequestMonth1("");
-      setInputBudgetRequestMonth2("");
-      setInputClient("");
-      setInputSupplier("");
-      setInputFacility("");
-      setInputBusinessSite("");
-      setInputOverseas("");
-      setInputGroup("");
-      setInputCorporateNum("");
+    } else if (!editSearchMode && searchMode) {
+      console.log("🔥Contactメインコンテナー useEffect 新規サーチモード inputを初期化");
+      if (!!inputCompanyName) setInputCompanyName("");
+      // if (!!inputContactName) setInputContactName("");
+      if (!!inputDepartment) setInputDepartment("");
+      if (!!inputContactName) setInputContactName("");
+      if (!!inputTel) setInputTel("");
+      if (!!inputFax) setInputFax("");
+      if (!!inputZipcode) setInputZipcode("");
+      if (!!inputEmployeesClass) setInputEmployeesClass("");
+      if (!!inputAddress) setInputAddress("");
+      if (!!inputCapital) setInputCapital("");
+      if (!!inputFound) setInputFound("");
+      if (!!inputContent) setInputContent("");
+      if (!!inputHP) setInputHP("");
+      if (!!inputCompanyEmail) setInputCompanyEmail("");
+      if (!!inputIndustryType) setInputIndustryType("");
+      if (!!inputProductL) setInputProductL("");
+      if (!!inputProductM) setInputProductM("");
+      if (!!inputProductS) setInputProductS("");
+      if (!!inputFiscal) setInputFiscal("");
+      if (!!inputBudgetRequestMonth1) setInputBudgetRequestMonth1("");
+      if (!!inputBudgetRequestMonth2) setInputBudgetRequestMonth2("");
+      if (!!inputClient) setInputClient("");
+      if (!!inputSupplier) setInputSupplier("");
+      if (!!inputFacility) setInputFacility("");
+      if (!!inputBusinessSite) setInputBusinessSite("");
+      if (!!inputOverseas) setInputOverseas("");
+      if (!!inputGroup) setInputGroup("");
+      if (!!inputCorporateNum) setInputCorporateNum("");
 
       // contactsテーブル
-      setInputContactName("");
-      setInputDirectLine("");
-      setInputDirectFax("");
-      setInputExtension("");
-      setInputCompanyCellPhone("");
-      setInputPersonalCellPhone("");
-      setInputContactEmail("");
-      setInputPositionName("");
-      setInputPositionClass("");
-      setInputOccupation("");
-      setInputApprovalAmount("");
-      setInputCreatedByCompanyId("");
-      setInputCreatedByUserId("");
+      if (!!inputContactName) setInputContactName("");
+      if (!!inputDirectLine) setInputDirectLine("");
+      if (!!inputDirectFax) setInputDirectFax("");
+      if (!!inputExtension) setInputExtension("");
+      if (!!inputCompanyCellPhone) setInputCompanyCellPhone("");
+      if (!!inputPersonalCellPhone) setInputPersonalCellPhone("");
+      if (!!inputContactEmail) setInputContactEmail("");
+      if (!!inputPositionName) setInputPositionName("");
+      if (!!inputPositionClass) setInputPositionClass("");
+      if (!!inputOccupation) setInputOccupation("");
+      if (!!inputApprovalAmount) setInputApprovalAmount("");
+      if (!!inputCreatedByCompanyId) setInputCreatedByCompanyId("");
+      if (!!inputCreatedByUserId) setInputCreatedByUserId("");
     }
   }, [editSearchMode, searchMode]);
 
