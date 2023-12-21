@@ -198,6 +198,7 @@
   /* background: #1e1f22; discord */
   background: var(--color-bg-sub-re);
   cursor: pointer;
+  backdrop-filter: blur(6px);
 }
 .content_card:hover {
   background: var(--color-bg-sub-re-hover);

@@ -6,5 +6,6 @@ export const toHalfWidthAndSpaceAndHyphen = (strVal: string) => {
       return String.fromCharCode(match.charCodeAt(0) - 0xfee0);
     })
     .replace(/　/g, " ") // 全角スペースを半角スペースに
-    .replace(/ー/g, "-"); // 全角ハイフンを半角ハイフンに
+    .replace(/ー/g, "-") // 全角ハイフンを半角ハイフンに
+    .replace(/−/g, "-"); // 全角ハイフンを半角ハイフンに
 };

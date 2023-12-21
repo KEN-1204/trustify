@@ -1202,7 +1202,8 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
         // ダブルクリック時に実行したい処理
         console.log("ダブルクリック", e.currentTarget);
         // クリックした要素のテキストを格納
-        const text = e.currentTarget.innerText;
+        // const text = e.currentTarget.innerText;
+        const text = e.currentTarget.innerHTML;
         setTextareaInput(text);
 
         setIsOpenEditModal(true);
@@ -2314,6 +2315,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
   // console.log("✅ 選択中のアクティブセルselectedGridCellRef", selectedGridCellRef);
   // console.log("✅ 選択中のアクティブセルactiveCell", activeCell);
   // console.log("✅ 全てのカラムcolsRef", colsRef);
+
   console.log(
     "✅ 全てのカラムcolsRef",
     colsRef,
@@ -2349,6 +2351,22 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
 
   // 🌟カラム3点リーダー表示中はホバー時にツールチップを有効化
   // console.log("✅isOverflowColumnHeader", isOverflowColumnHeader);
+
+  // セルの値の表記方法を各条件で変更
+  const formatDisplayValue = (columnName: string, value: any) => {
+    switch (columnName) {
+      // 決算月 日本語は月を追加する
+      case "fiscal_end_month":
+        if (!!value && language === "ja") return `${value}月`;
+        if (!!value && language === "en") return value;
+        if (!value) return value;
+        break;
+
+      default:
+        return value;
+        break;
+    }
+  };
 
   return (
     <>
@@ -2865,87 +2883,104 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                               //   })
                               // columnOrder
                               //   .map((obj) => Object.values(rowData)[obj.columnId])
-                              .map((value, index) => (
-                                <div
-                                  key={"row" + virtualRow.index.toString() + index.toString()}
-                                  role="gridcell"
-                                  // ref={(ref) => (colsRef.current[index] = ref)}
-                                  // aria-colindex={index + 2}
-                                  aria-colindex={
-                                    contactColumnHeaderItemList[index]
-                                      ? contactColumnHeaderItemList[index]?.columnIndex
-                                      : index + 2
-                                  } // カラムヘッダーの列StateのcolumnIndexと一致させる
-                                  aria-selected={false}
-                                  // variant="contained"
-                                  tabIndex={-1}
-                                  className={`${styles.grid_cell} ${
-                                    contactColumnHeaderItemList[index].isFrozen ? styles.grid_column_frozen : ""
-                                  } ${
-                                    isFrozenCountRef.current === 1 && index === 0 ? styles.grid_cell_frozen_last : ""
-                                  } ${isFrozenCountRef.current === index + 1 ? styles.grid_cell_frozen_last : ""}  ${
-                                    styles.grid_cell_resizable
-                                  }`}
-                                  // className={`${styles.grid_cell} ${index === 0 ? styles.grid_column_frozen : ""}  ${index === 0 ? styles.grid_cell_frozen_last : ""} ${styles.grid_cell_resizable}`}
-                                  // style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
-                                  style={
-                                    contactColumnHeaderItemList[index].isFrozen
-                                      ? {
-                                          gridColumnStart: contactColumnHeaderItemList[index]
-                                            ? contactColumnHeaderItemList[index]?.columnIndex
-                                            : index + 2,
-                                          left: `var(--frozen-left-${index})`,
-                                        }
-                                      : {
-                                          gridColumnStart: contactColumnHeaderItemList[index]
-                                            ? contactColumnHeaderItemList[index]?.columnIndex
-                                            : index + 2,
-                                        }
-                                  }
-                                  // style={
-                                  //   contactColumnHeaderItemList[index].isFrozen
-                                  //     ? {
-                                  //         gridColumnStart: contactColumnHeaderItemList[index]
-                                  //           ? contactColumnHeaderItemList[index]?.columnIndex
-                                  //           : index + 2,
-                                  //         left: columnLeftPositions.current[index],
-                                  //       }
-                                  //     : {
-                                  //         gridColumnStart: contactColumnHeaderItemList[index]
-                                  //           ? contactColumnHeaderItemList[index]?.columnIndex
-                                  //           : index + 2,
-                                  //       }
-                                  // }
-                                  // style={
-                                  //   contactColumnHeaderItemList[index].isFrozen
-                                  //     ? {
-                                  //         gridColumnStart: contactColumnHeaderItemList[index]
-                                  //           ? contactColumnHeaderItemList[index]?.columnIndex
-                                  //           : index + 2,
-                                  //         left: columnHeaderLeft(index),
-                                  //       }
-                                  //     : {
-                                  //         gridColumnStart: contactColumnHeaderItemList[index]
-                                  //           ? contactColumnHeaderItemList[index]?.columnIndex
-                                  //           : index + 2,
-                                  //       }
-                                  // }
-                                  // style={{
-                                  //   gridColumnStart: contactColumnHeaderItemList[index]
-                                  //     ? contactColumnHeaderItemList[index]?.columnIndex
-                                  //     : index + 2,
-                                  //   left: columnHeaderLeft(index + 1),
-                                  // }}
-                                  onClick={handleClickGridCell}
-                                  onDoubleClick={(e) =>
-                                    handleDoubleClick(e, index, contactColumnHeaderItemList[index].columnName)
-                                  }
-                                  onKeyDown={handleKeyDown}
-                                >
-                                  {value}
-                                  {/* {value.} */}
-                                </div>
-                              ))
+                              .map((value, index) => {
+                                const columnName = contactColumnHeaderItemList[index]?.columnName;
+                                let displayValue = value;
+                                displayValue = formatDisplayValue(columnName, displayValue);
+                                return (
+                                  <div
+                                    key={"row" + virtualRow.index.toString() + index.toString()}
+                                    role="gridcell"
+                                    // ref={(ref) => (colsRef.current[index] = ref)}
+                                    // aria-colindex={index + 2}
+                                    aria-colindex={
+                                      contactColumnHeaderItemList[index]
+                                        ? contactColumnHeaderItemList[index]?.columnIndex
+                                        : index + 2
+                                    } // カラムヘッダーの列StateのcolumnIndexと一致させる
+                                    aria-selected={false}
+                                    // variant="contained"
+                                    tabIndex={-1}
+                                    className={`${styles.grid_cell} ${
+                                      contactColumnHeaderItemList[index].isFrozen ? styles.grid_column_frozen : ""
+                                    } ${
+                                      isFrozenCountRef.current === 1 && index === 0 ? styles.grid_cell_frozen_last : ""
+                                    } ${isFrozenCountRef.current === index + 1 ? styles.grid_cell_frozen_last : ""}  ${
+                                      styles.grid_cell_resizable
+                                    }`}
+                                    // className={`${styles.grid_cell} ${index === 0 ? styles.grid_column_frozen : ""}  ${index === 0 ? styles.grid_cell_frozen_last : ""} ${styles.grid_cell_resizable}`}
+                                    // style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
+                                    style={
+                                      contactColumnHeaderItemList[index].isFrozen
+                                        ? {
+                                            gridColumnStart: contactColumnHeaderItemList[index]
+                                              ? contactColumnHeaderItemList[index]?.columnIndex
+                                              : index + 2,
+                                            left: `var(--frozen-left-${index})`,
+                                          }
+                                        : {
+                                            gridColumnStart: contactColumnHeaderItemList[index]
+                                              ? contactColumnHeaderItemList[index]?.columnIndex
+                                              : index + 2,
+                                          }
+                                    }
+                                    // style={
+                                    //   contactColumnHeaderItemList[index].isFrozen
+                                    //     ? {
+                                    //         gridColumnStart: contactColumnHeaderItemList[index]
+                                    //           ? contactColumnHeaderItemList[index]?.columnIndex
+                                    //           : index + 2,
+                                    //         left: columnLeftPositions.current[index],
+                                    //       }
+                                    //     : {
+                                    //         gridColumnStart: contactColumnHeaderItemList[index]
+                                    //           ? contactColumnHeaderItemList[index]?.columnIndex
+                                    //           : index + 2,
+                                    //       }
+                                    // }
+                                    // style={
+                                    //   contactColumnHeaderItemList[index].isFrozen
+                                    //     ? {
+                                    //         gridColumnStart: contactColumnHeaderItemList[index]
+                                    //           ? contactColumnHeaderItemList[index]?.columnIndex
+                                    //           : index + 2,
+                                    //         left: columnHeaderLeft(index),
+                                    //       }
+                                    //     : {
+                                    //         gridColumnStart: contactColumnHeaderItemList[index]
+                                    //           ? contactColumnHeaderItemList[index]?.columnIndex
+                                    //           : index + 2,
+                                    //       }
+                                    // }
+                                    // style={{
+                                    //   gridColumnStart: contactColumnHeaderItemList[index]
+                                    //     ? contactColumnHeaderItemList[index]?.columnIndex
+                                    //     : index + 2,
+                                    //   left: columnHeaderLeft(index + 1),
+                                    // }}
+                                    onClick={handleClickGridCell}
+                                    onDoubleClick={(e) =>
+                                      handleDoubleClick(e, index, contactColumnHeaderItemList[index].columnName)
+                                    }
+                                    onKeyDown={handleKeyDown}
+                                  >
+                                    {/* {value} */}
+                                    {/* {contactColumnHeaderItemList[index].columnName !== "fiscal_end_month" && value}
+                                  {contactColumnHeaderItemList[index].columnName === "fiscal_end_month" &&
+                                    !!value &&
+                                    language === "ja" &&
+                                    `${value}月`}
+                                  {contactColumnHeaderItemList[index].columnName === "fiscal_end_month" &&
+                                    !!value &&
+                                    language === "en" &&
+                                    `${value}`}
+                                  {contactColumnHeaderItemList[index].columnName === "fiscal_end_month" &&
+                                    !value &&
+                                    value} */}
+                                    {displayValue}
+                                  </div>
+                                );
+                              })
                           ) : (
                             // カラム順番が変更されていない場合には、初期のallRows[0]のrowからmap()で展開
                             Object.values(rowData).map((value, index) => (

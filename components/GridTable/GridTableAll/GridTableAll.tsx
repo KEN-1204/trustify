@@ -1390,7 +1390,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
         // ダブルクリック時に実行したい処理
         console.log("ダブルクリック", e.currentTarget);
         // クリックした要素のテキストを格納
-        const text = e.currentTarget.innerText;
+        // const text = e.currentTarget.innerText;
+        const text = e.currentTarget.innerHTML;
         setTextareaInput(text);
         setIsOpenEditModal(true);
       }
@@ -2544,6 +2545,37 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // 🌟カラム3点リーダー表示中はホバー時にツールチップを有効化
   // console.log("✅isOverflowColumnHeader", isOverflowColumnHeader);
 
+  const formatDisplayValue = (columnName: string, value: any, created_by_company_id: string | null | undefined) => {
+    switch (columnName) {
+      // 決算月 日本語は月を追加する
+      case "fiscal_end_month":
+        if (!!value && language === "ja") return `${value}月`;
+        if (!!value && language === "en") return value;
+        if (!value) return value;
+        break;
+      case "created_by_company_id":
+        if (created_by_company_id === userProfileState?.company_id) {
+          return (
+            <div className="flex-center h-full w-full">
+              <BsCheck2 className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
+            </div>
+          );
+        }
+      default:
+        return value;
+        break;
+    }
+  };
+
+  /**
+   * {columnHeaderItemList[index].columnName === "created_by_company_id" &&
+                                    rowData.created_by_company_id === userProfileState?.company_id && (
+                                      <div className="flex-center h-full w-full">
+                                        <BsCheck2 className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
+                                      </div>
+                                    )}
+   */
+
   return (
     <>
       {/* ================== メインコンテナ ================== */}
@@ -3177,91 +3209,113 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                               //   })
                               // columnOrder
                               //   .map((obj) => Object.values(rowData)[obj.columnId])
-                              .map((value, index) => (
-                                <div
-                                  key={"row" + virtualRow.index.toString() + index.toString()}
-                                  role="gridcell"
-                                  // ref={(ref) => (colsRef.current[index] = ref)}
-                                  // aria-colindex={index + 2}
-                                  aria-colindex={
-                                    columnHeaderItemList[index] ? columnHeaderItemList[index]?.columnIndex : index + 2
-                                  } // カラムヘッダーの列StateのcolumnIndexと一致させる
-                                  aria-selected={false}
-                                  // variant="contained"
-                                  tabIndex={-1}
-                                  className={`${styles.grid_cell} ${
-                                    columnHeaderItemList[index].isFrozen ? styles.grid_column_frozen : ""
-                                  } ${
-                                    isFrozenCountRef.current === 1 && index === 0 ? styles.grid_cell_frozen_last : ""
-                                  } ${isFrozenCountRef.current === index + 1 ? styles.grid_cell_frozen_last : ""}  ${
-                                    styles.grid_cell_resizable
-                                  }`}
-                                  // className={`${styles.grid_cell} ${index === 0 ? styles.grid_column_frozen : ""}  ${index === 0 ? styles.grid_cell_frozen_last : ""} ${styles.grid_cell_resizable}`}
-                                  // style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
-                                  style={
-                                    columnHeaderItemList[index].isFrozen
-                                      ? {
-                                          gridColumnStart: columnHeaderItemList[index]
-                                            ? columnHeaderItemList[index]?.columnIndex
-                                            : index + 2,
-                                          left: `var(--frozen-left-${index})`,
-                                        }
-                                      : {
-                                          gridColumnStart: columnHeaderItemList[index]
-                                            ? columnHeaderItemList[index]?.columnIndex
-                                            : index + 2,
-                                        }
-                                  }
-                                  // style={
-                                  //   columnHeaderItemList[index].isFrozen
-                                  //     ? {
-                                  //         gridColumnStart: columnHeaderItemList[index]
-                                  //           ? columnHeaderItemList[index]?.columnIndex
-                                  //           : index + 2,
-                                  //         left: columnLeftPositions.current[index],
-                                  //       }
-                                  //     : {
-                                  //         gridColumnStart: columnHeaderItemList[index]
-                                  //           ? columnHeaderItemList[index]?.columnIndex
-                                  //           : index + 2,
-                                  //       }
-                                  // }
-                                  // style={
-                                  //   columnHeaderItemList[index].isFrozen
-                                  //     ? {
-                                  //         gridColumnStart: columnHeaderItemList[index]
-                                  //           ? columnHeaderItemList[index]?.columnIndex
-                                  //           : index + 2,
-                                  //         left: columnHeaderLeft(index),
-                                  //       }
-                                  //     : {
-                                  //         gridColumnStart: columnHeaderItemList[index]
-                                  //           ? columnHeaderItemList[index]?.columnIndex
-                                  //           : index + 2,
-                                  //       }
-                                  // }
-                                  // style={{
-                                  //   gridColumnStart: columnHeaderItemList[index]
-                                  //     ? columnHeaderItemList[index]?.columnIndex
-                                  //     : index + 2,
-                                  //   left: columnHeaderLeft(index + 1),
-                                  // }}
-                                  onClick={handleClickGridCell}
-                                  onDoubleClick={(e) =>
-                                    handleDoubleClick(e, index, columnHeaderItemList[index].columnName)
-                                  }
-                                  onKeyDown={handleKeyDown}
-                                >
-                                  {/* {value} */}
-                                  {columnHeaderItemList[index].columnName !== "created_by_company_id" && value}
-                                  {columnHeaderItemList[index].columnName === "created_by_company_id" &&
-                                    rowData.created_by_company_id === userProfileState?.company_id && (
-                                      <div className="flex-center h-full w-full">
-                                        <BsCheck2 className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
-                                      </div>
-                                    )}
-                                </div>
-                              ))
+                              .map((value, index) => {
+                                const columnName = columnHeaderItemList[index]?.columnName;
+                                let displayValue = value;
+                                displayValue = formatDisplayValue(
+                                  columnName,
+                                  displayValue,
+                                  rowData.created_by_company_id
+                                );
+                                return (
+                                  <div
+                                    key={"row" + virtualRow.index.toString() + index.toString()}
+                                    role="gridcell"
+                                    // ref={(ref) => (colsRef.current[index] = ref)}
+                                    // aria-colindex={index + 2}
+                                    aria-colindex={
+                                      columnHeaderItemList[index] ? columnHeaderItemList[index]?.columnIndex : index + 2
+                                    } // カラムヘッダーの列StateのcolumnIndexと一致させる
+                                    aria-selected={false}
+                                    // variant="contained"
+                                    tabIndex={-1}
+                                    className={`${styles.grid_cell} ${
+                                      columnHeaderItemList[index].isFrozen ? styles.grid_column_frozen : ""
+                                    } ${
+                                      isFrozenCountRef.current === 1 && index === 0 ? styles.grid_cell_frozen_last : ""
+                                    } ${isFrozenCountRef.current === index + 1 ? styles.grid_cell_frozen_last : ""}  ${
+                                      styles.grid_cell_resizable
+                                    }`}
+                                    // className={`${styles.grid_cell} ${index === 0 ? styles.grid_column_frozen : ""}  ${index === 0 ? styles.grid_cell_frozen_last : ""} ${styles.grid_cell_resizable}`}
+                                    // style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
+                                    style={
+                                      columnHeaderItemList[index].isFrozen
+                                        ? {
+                                            gridColumnStart: columnHeaderItemList[index]
+                                              ? columnHeaderItemList[index]?.columnIndex
+                                              : index + 2,
+                                            left: `var(--frozen-left-${index})`,
+                                          }
+                                        : {
+                                            gridColumnStart: columnHeaderItemList[index]
+                                              ? columnHeaderItemList[index]?.columnIndex
+                                              : index + 2,
+                                          }
+                                    }
+                                    // style={
+                                    //   columnHeaderItemList[index].isFrozen
+                                    //     ? {
+                                    //         gridColumnStart: columnHeaderItemList[index]
+                                    //           ? columnHeaderItemList[index]?.columnIndex
+                                    //           : index + 2,
+                                    //         left: columnLeftPositions.current[index],
+                                    //       }
+                                    //     : {
+                                    //         gridColumnStart: columnHeaderItemList[index]
+                                    //           ? columnHeaderItemList[index]?.columnIndex
+                                    //           : index + 2,
+                                    //       }
+                                    // }
+                                    // style={
+                                    //   columnHeaderItemList[index].isFrozen
+                                    //     ? {
+                                    //         gridColumnStart: columnHeaderItemList[index]
+                                    //           ? columnHeaderItemList[index]?.columnIndex
+                                    //           : index + 2,
+                                    //         left: columnHeaderLeft(index),
+                                    //       }
+                                    //     : {
+                                    //         gridColumnStart: columnHeaderItemList[index]
+                                    //           ? columnHeaderItemList[index]?.columnIndex
+                                    //           : index + 2,
+                                    //       }
+                                    // }
+                                    // style={{
+                                    //   gridColumnStart: columnHeaderItemList[index]
+                                    //     ? columnHeaderItemList[index]?.columnIndex
+                                    //     : index + 2,
+                                    //   left: columnHeaderLeft(index + 1),
+                                    // }}
+                                    onClick={handleClickGridCell}
+                                    onDoubleClick={(e) =>
+                                      handleDoubleClick(e, index, columnHeaderItemList[index].columnName)
+                                    }
+                                    onKeyDown={handleKeyDown}
+                                  >
+                                    {/* {value} */}
+                                    {/* {columnHeaderItemList[index].columnName !== "created_by_company_id" && value} */}
+                                    {/* {!["created_by_company_id", "fiscal_end_month"].includes(
+                                      columnHeaderItemList[index].columnName
+                                    ) && value}
+                                    {columnHeaderItemList[index].columnName === "created_by_company_id" &&
+                                      rowData.created_by_company_id === userProfileState?.company_id && (
+                                        <div className="flex-center h-full w-full">
+                                          <BsCheck2 className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
+                                        </div>
+                                      )}
+                                    {columnHeaderItemList[index].columnName === "fiscal_end_month" &&
+                                      !!value &&
+                                      language === "ja" &&
+                                      `${value}月`}
+                                    {columnHeaderItemList[index].columnName === "fiscal_end_month" &&
+                                      !!value &&
+                                      language === "en" &&
+                                      `${value}`}
+                                    {columnHeaderItemList[index].columnName === "fiscal_end_month" && !value && value} */}
+                                    {displayValue}
+                                  </div>
+                                );
+                              })
                           ) : (
                             // カラム順番が変更されていない場合には、初期のallRows[0]のrowからmap()で展開
                             Object.values(rowData).map((value, index) => (

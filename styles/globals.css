@@ -487,6 +487,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-bg-brand-table-tab: linear-gradient(to top left, #2b7fff, #acffff); */
   --color-shadow-border: #ffffff70;
   --color-border-table: #ccc;
+
   --color-border-table-deep: #aaa;
   /* --color-border-table: #e6e6e6; */
   /* --color-table-header: #40576d18; */
@@ -1082,6 +1083,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-brand-middlec0: #80e9ffc0;
   --color-bg-brand-middlee0: #80e9ffe0;
   --color-bg-brand05: #0c8ce980;
+  --color-custom: #1b1b1b;
   --color-bg-brand-hover: #0a6dc2;
   --color-bg-brand-hover-main: #3183ff;
   /* --color-bg-brand-hover-main: #2b7fff; */
@@ -1127,9 +1129,12 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-table-row-hover: var(--color-bg-brand-f30);
   /* --color-table-row-hover: #14141490; */
   --color-table-row-hover: #333;
+  --color-table-row-hover: #292929;
   /* --color-table-row-hover: #282828; */
   --color-table-bg-selected: #232323;
   --color-table-bg-selected: #14141490;
+  --color-table-bg-selected: #191919;
+  /* --color-table-bg-selected: #292929; */
   /* --color-table-bg-selected: #333; */
   /* --color-table-bg-selected: #303030; */
   /* --color-table-bg-selected: var(--color-bg-brand-f20); */
@@ -1549,6 +1554,8 @@ textarea {
 
 ::selection {
   background-color: var(--selection-bg-color);
+  background-color: #0d99ff;
+  /* background-color: #1da1f2; */
   /* background-color: var(--selection-bg-color2); */
   color: var(--selection-text-color);
 }

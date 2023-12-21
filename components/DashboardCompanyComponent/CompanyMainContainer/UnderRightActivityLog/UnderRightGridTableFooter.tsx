@@ -47,8 +47,10 @@ const UnderRightGridTableFooterMemo: FC<Props> = ({ getItemCount, getTotalCount 
                 {language === "en" && "100 rows"}
               </span> */}
               <span className="truncate ">
-                {language === "ja" && `${!!getItemCount && !!getTotalCount ? getItemCount : `-`} 件`}
-                {language === "en" && "100 rows"}
+                {language === "ja" &&
+                  `${getTotalCount !== null && getTotalCount !== undefined ? getItemCount : `-`} 件`}
+                {language === "en" &&
+                  `${getTotalCount !== null && getTotalCount !== undefined ? getItemCount : `-`} rows`}
               </span>
             </span>
           </div>
@@ -59,8 +61,8 @@ const UnderRightGridTableFooterMemo: FC<Props> = ({ getItemCount, getTotalCount 
             {language === "en" && "55 records"} */}
               {/* {language === "ja" && `/ ${getTotalCount === null ? "-" : getTotalCount}件`}
               {language === "en" && `/ ${getTotalCount === null ? "-" : getTotalCount} records`} */}
-              {language === "ja" && `${getTotalCount === null ? "0" : getTotalCount} 件`}
-              {language === "en" && `${getTotalCount === null ? "0" : getTotalCount} records`}
+              {language === "ja" && `${getTotalCount === null ? "-" : getTotalCount} 件`}
+              {language === "en" && `${getTotalCount === null ? "-" : getTotalCount} records`}
             </span>
           </p>
         </div>

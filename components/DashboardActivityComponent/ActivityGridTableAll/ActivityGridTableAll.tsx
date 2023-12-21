@@ -1218,7 +1218,8 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
         // ダブルクリック時に実行したい処理
         console.log("ダブルクリック", e.currentTarget);
         // クリックした要素のテキストを格納
-        const text = e.currentTarget.innerText;
+        // const text = e.currentTarget.innerText;
+        const text = e.currentTarget.innerHTML;
         setTextareaInput(text);
 
         setIsOpenEditModal(true);
@@ -2370,7 +2371,7 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
   // 🌟カラム3点リーダー表示中はホバー時にツールチップを有効化
   // console.log("✅isOverflowColumnHeader", isOverflowColumnHeader);
 
-  const formatMapping: {
+  const formatDateMapping: {
     activity_date: string;
     scheduled_follow_up_date: string;
     activity_created_at: string;
@@ -2381,6 +2382,20 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
     scheduled_follow_up_date: "yyyy/MM/dd",
     activity_created_at: "yyyy/MM/dd HH:mm:ss",
     activity_updated_at: "yyyy/MM/dd HH:mm:ss",
+  };
+  const formatDisplayValue = (columnName: string, value: any) => {
+    switch (columnName) {
+      // 決算月 日本語は月を追加する
+      case "fiscal_end_month":
+        if (!!value && language === "ja") return `${value}月`;
+        if (!!value && language === "en") return value;
+        if (!value) return value;
+        break;
+
+      default:
+        return value;
+        break;
+    }
   };
 
   return (
@@ -2802,9 +2817,9 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
                     const isLoaderRow = virtualRow.index > allRows.length - 1;
                     const rowData = allRows[virtualRow.index];
 
-                    console.log(`rowData`, rowData);
-                    console.log(`Object.keys(rowData)`, Object.keys(rowData));
-                    console.log(`virtualRow`, virtualRow);
+                    // console.log(`rowData`, rowData);
+                    // console.log(`Object.keys(rowData)`, Object.keys(rowData));
+                    // console.log(`virtualRow`, virtualRow);
                     // console.log(`rowData.name`, rowData.name);
                     // console.log(
                     //   `${columnOrder.map((obj) => Object.values(rowData)[obj.columnId])}`,
@@ -2910,9 +2925,10 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
                                 const columnName = activityColumnHeaderItemList[index]?.columnName;
                                 let displayValue = value;
                                 // 活動日、次回フォロー予定日、作成日時、更新日時はformat関数を通す
-                                if (columnName in formatMapping && value) {
-                                  displayValue = format(new Date(value), formatMapping[columnName]);
+                                if (columnName in formatDateMapping && value) {
+                                  displayValue = format(new Date(value), formatDateMapping[columnName]);
                                 }
+                                displayValue = formatDisplayValue(columnName, displayValue);
                                 return (
                                   <div
                                     key={"row" + virtualRow.index.toString() + index.toString()}

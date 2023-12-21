@@ -455,7 +455,8 @@ const UnderRightActivityLogMemo: FC = () => {
         // ダブルクリック時に実行したい処理
 
         // クリックした要素のテキストを格納
-        const text = e.currentTarget.innerText;
+        // const text = e.currentTarget.innerText;
+        const text = e.currentTarget.innerHTML;
         setTextareaInput(text);
         setIsOpenEditModal(true);
       }
@@ -885,7 +886,12 @@ const UnderRightActivityLogMemo: FC = () => {
         </div>
         {/* ================== Gridスクロールコンテナ ここまで ================== */}
         {/* =============== Gridフッター ここから スクロールコンテナと同列で配置 =============== */}
-        <UnderRightGridTableFooter getItemCount={allRows.length} getTotalCount={!!data ? data.pages[0].count : 0} />
+        <UnderRightGridTableFooter
+          getItemCount={allRows.length}
+          getTotalCount={
+            data?.pages[0]?.count !== null && data?.pages[0]?.count !== undefined ? data.pages[0].count : null
+          }
+        />
         {/* ================== Gridフッター ここまで ================== */}
       </div>
     </>

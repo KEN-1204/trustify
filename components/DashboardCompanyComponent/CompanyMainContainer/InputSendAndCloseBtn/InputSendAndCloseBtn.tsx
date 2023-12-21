@@ -8,29 +8,57 @@ type Props = {
   setInputState: Dispatch<SetStateAction<string>>;
   onClickSendEvent: MouseEventHandler<HTMLDivElement>;
   required: boolean;
+  isDisplayClose?: boolean;
+  btnPositionY?: string;
 };
 
-export const InputSendAndCloseBtn = ({ inputState, setInputState, onClickSendEvent, required = true }: Props) => {
+export const InputSendAndCloseBtn = ({
+  inputState,
+  setInputState,
+  onClickSendEvent,
+  required = true,
+  isDisplayClose = true,
+  btnPositionY = "top-[calc(50%-2.5px)] translate-y-[-50%]",
+}: Props) => {
   return (
     <>
       {/* バツボタン */}
-      {inputState !== "" && (
-        <div className={`${styles.close_btn}`} onClick={() => setInputState("")}>
+      {isDisplayClose && (
+        <div
+          className={`${styles.close_btn} ${btnPositionY} right-[10px] ${
+            isDisplayClose && inputState !== ""
+              ? `hover:bg-[var(--color-bg-sub-deep)]`
+              : `!cursor-not-allowed text-[#999]`
+          }`}
+          onClick={() => {
+            if (isDisplayClose && inputState === "") return;
+            setInputState("");
+          }}
+        >
           <MdClose className="z-[2100] text-[20px]" />
         </div>
       )}
+      {/* {isDisplayClose && inputState !== "" && (
+        <div className={`${styles.close_btn} ${btnPositionY} right-[10px]`} onClick={() => setInputState("")}>
+          <MdClose className="z-[2100] text-[20px]" />
+        </div>
+      )} */}
       {/* 送信ボタン */}
       <div
-        className={`flex-center transition-bg03 group absolute right-[10px] top-[calc(50%-2.5px)] z-[2100] min-h-[26px] min-w-[26px] translate-y-[-50%] rounded-full border border-solid border-transparent ${
+        className={`flex-center transition-bg03 group absolute ${
+          isDisplayClose ? `right-[36px]` : `right-[10px]`
+        } z-[2100] min-h-[26px] min-w-[26px] ${btnPositionY} rounded-full border border-solid border-transparent ${
           required && inputState === ""
             ? `cursor-not-allowed text-[#999]`
-            : `border-[var(--color-bg-brand-f) cursor-pointer  hover:bg-[var(--color-bg-brand-f)] hover:shadow-lg`
+            : `border-[var(--color-bg-brand-f) cursor-pointer hover:bg-[var(--color-bg-brand-f)] hover:shadow-lg`
         }`}
         onClick={onClickSendEvent}
       >
         <IoIosSend
           className={`text-[20px] ${
-            inputState !== "" ? `text-[var(--color-bg-brand-f)] group-hover:text-[#fff]` : `text-[#999]`
+            required && inputState === ""
+              ? `text-[#999] group-hover:text-[#999]`
+              : `text-[var(--color-bg-brand-f)] group-hover:text-[#fff]`
           } `}
         />
       </div>

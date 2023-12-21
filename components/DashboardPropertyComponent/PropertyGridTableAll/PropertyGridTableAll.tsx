@@ -1219,7 +1219,8 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
         // ダブルクリック時に実行したい処理
         console.log("ダブルクリック", e.currentTarget);
         // クリックした要素のテキストを格納
-        const text = e.currentTarget.innerText;
+        // const text = e.currentTarget.innerText;
+        const text = e.currentTarget.innerHTML;
         setTextareaInput(text);
 
         setIsOpenEditModal(true);
@@ -2371,7 +2372,7 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
   // 🌟カラム3点リーダー表示中はホバー時にツールチップを有効化
   // console.log("✅isOverflowColumnHeader", isOverflowColumnHeader);
 
-  const formatMapping: {
+  const formatDateMapping: {
     expected_order_date: string;
     expansion_date: string;
     sales_date: string;
@@ -2442,6 +2443,21 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
   //     false: "無し",
   //   },
   // };
+
+  const formatDisplayValue = (columnName: string, value: any) => {
+    switch (columnName) {
+      // 決算月 日本語は月を追加する
+      case "fiscal_end_month":
+        if (!!value && language === "ja") return `${value}月`;
+        if (!!value && language === "en") return value;
+        if (!value) return value;
+        break;
+
+      default:
+        return value;
+        break;
+    }
+  };
 
   return (
     <>
@@ -2967,8 +2983,8 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
                                 const columnName = propertyColumnHeaderItemList[index]?.columnName;
                                 let displayValue = value;
                                 // 活動日、次回フォロー予定日、作成日時、更新日時はformat関数を通す
-                                if (columnName in formatMapping && value) {
-                                  displayValue = format(new Date(value), formatMapping[columnName]);
+                                if (columnName in formatDateMapping && value) {
+                                  displayValue = format(new Date(value), formatDateMapping[columnName]);
                                 }
                                 // planned_appoint_check_flagの変換処理
                                 if (columnName in flagMapping && value !== null) {
@@ -2978,6 +2994,7 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
                                 if (timeColumns.includes(columnName) && value) {
                                   displayValue = formatTime(value);
                                 }
+                                displayValue = formatDisplayValue(columnName, displayValue);
                                 return (
                                   <div
                                     key={"row" + virtualRow.index.toString() + index.toString()}

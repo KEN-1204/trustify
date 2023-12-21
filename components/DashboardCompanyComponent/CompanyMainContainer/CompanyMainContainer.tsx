@@ -1,4 +1,4 @@
-import React, { FC, FormEvent, Suspense, memo, useCallback, useEffect, useRef, useState } from "react";
+import React, { ChangeEvent, FC, FormEvent, Suspense, memo, useCallback, useEffect, useRef, useState } from "react";
 import styles from "../CompanyDetail/CompanyDetail.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import useStore from "@/store";
@@ -28,6 +28,10 @@ import { Spinner78 } from "@/components/Parts/Spinner78/Spinner78";
 import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 import { Client_company_row_data } from "@/types";
 import { validateAndFormatPhoneNumber } from "@/utils/Helpers/validateAndFormatPhoneNumber";
+import { validateAndFormatPostalCode } from "@/utils/Helpers/validateAndFormatPostalCode";
+import { formatJapaneseAddress } from "@/utils/Helpers/formatJapaneseAddress";
+import { toHalfWidthAndSpace } from "@/utils/Helpers/toHalfWidthAndSpace";
+import { optionsIndustryType, optionsMonth } from "./data";
 
 // ====================== 擬似テストデータ用 ======================
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
@@ -441,13 +445,28 @@ const CompanyMainContainerMemo: FC = () => {
     [isOwnCompany]
   );
 
+  // const originalOptionRef = useRef(""); // 同じ選択肢選択時にエディットモード終了用
   // ダブルクリック => ダブルクリックしたフィールドを編集モードに変更
+  type DoubleClickProps = {
+    e: React.MouseEvent<HTMLSpanElement>;
+    field: string;
+    dispatch: React.Dispatch<React.SetStateAction<any>>;
+    // isSelectChangeEvent?: boolean;
+  };
   const handleDoubleClickField = useCallback(
-    (e: React.MouseEvent<HTMLSpanElement>, field: string, dispatch: React.Dispatch<React.SetStateAction<any>>) => {
+    ({ e, field, dispatch }: DoubleClickProps) => {
       // 自社で作成した会社でない場合はそのままリターン
       if (!isOwnCompany) return;
 
-      console.log("ダブルクリック", "e", e, e.currentTarget.innerText);
+      console.log(
+        "ダブルクリック",
+        "field",
+        field,
+        "e.currentTarget.innerText",
+        e.currentTarget.innerText,
+        "e.currentTarget.innerHTML",
+        e.currentTarget.innerHTML
+      );
       if (setTimeoutRef.current) {
         clearTimeout(setTimeoutRef.current);
 
@@ -455,9 +474,15 @@ const CompanyMainContainerMemo: FC = () => {
         setTimeoutRef.current = null;
         // ダブルクリック時に実行したい処理
         // クリックした要素のテキストを格納
-        const text = e.currentTarget.innerText;
+        // const text = e.currentTarget.innerText;
+        let text;
+        text = e.currentTarget.innerHTML;
+        if (field === "fiscal_end_month") {
+          text = text.replace(/月/g, ""); // 決算月の場合は、1月の月を削除してstateに格納 optionタグのvalueと一致させるため
+        }
         dispatch(text); // 編集モードでinputStateをクリックした要素のテキストを初期値に設定
         setIsEditModeField(field); // クリックされたフィールドの編集モードを開く
+        // if (isSelectChangeEvent) originalOptionRef.current = e.currentTarget.innerText; // selectタグ同じ選択肢選択時の編集モード終了用
       }
     },
     [isOwnCompany, setIsEditModeField]
@@ -467,7 +492,7 @@ const CompanyMainContainerMemo: FC = () => {
   // プロパティ名のユニオン型の作成
   // Client_company_row_data型の全てのプロパティ名をリテラル型のユニオンとして展開
   type ClientCOmpanyFieldNames = keyof Client_company_row_data;
-  // ================== 🌟エンターキーで個別フィールドをアップデート ==================
+  // ================== 🌟エンターキーで個別フィールドをアップデート inputタグ ==================
   const handleKeyDownUpdateField = async ({
     e,
     fieldName,
@@ -485,6 +510,73 @@ const CompanyMainContainerMemo: FC = () => {
     // 日本語入力変換中はtrueで変換確定のエンターキーではUPDATEクエリが実行されないようにする
     // 英語などの入力変換が存在しない言語ではisCompositionStartは発火しないため常にfalse
     if (e.key === "Enter" && !isComposing) {
+      if (required && (value === "" || value === null))
+        return toast.info(`この項目は入力が必須です。`, { autoClose: 3000 });
+
+      // 先にアンダーラインが残らないようにremoveしておく
+      e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+
+      if (!id || !selectedRowDataCompany) {
+        toast.error(`エラー：会社データが見つかりませんでした。`, { autoClose: 3000 });
+        return;
+      }
+      console.log(
+        "handleKeyDownUpdateField関数実行 ",
+        "fieldName",
+        fieldName,
+        "selectedRowDataCompany[fieldName]",
+        selectedRowDataCompany[fieldName],
+        "value",
+        value
+      );
+      // 入力値が現在のvalueと同じであれば更新は不要なため閉じてリターン
+      if (selectedRowDataCompany[fieldName] === value) {
+        console.log("同じためリターン");
+        setIsEditModeField(null); // エディットモードを終了
+        return;
+      }
+      // 資本金などのint4(integer), int8(BIGINT)などは数値型に変換して入力値と現在のvalueを比較する
+      if (["capital"].includes(fieldName)) {
+        if (selectedRowDataCompany[fieldName] === Number(value)) {
+          console.log("数値型に変換 同じためリターン", fieldName, "Number(value)", Number(value));
+          setIsEditModeField(null); // エディットモードを終了
+          return;
+        }
+      }
+
+      const updatePayload = {
+        fieldName: fieldName,
+        value: value,
+        id: id,
+      };
+      // 入力変換確定状態でエンターキーが押された場合の処理
+      console.log("onKeyDownイベント エンターキーが入力確定状態でクリック UPDATE実行 updatePayload", updatePayload);
+      await updateClientCompanyFieldMutation.mutateAsync(updatePayload);
+      setIsEditModeField(null); // エディットモードを終了
+    }
+  };
+  // ================== ✅エンターキーで個別フィールドをアップデート inputタグ ==================
+  // ================== 🌟エンターキーで個別フィールドをアップデート inputタグ ==================
+  const handleKeyDownUpdateFieldTextarea = async ({
+    e,
+    fieldName,
+    value,
+    id,
+    required,
+    preventNewLine = false,
+  }: {
+    e: React.KeyboardEvent<HTMLTextAreaElement>;
+    // fieldName: string;
+    fieldName: ClientCOmpanyFieldNames;
+    value: any;
+    id: string | undefined;
+    required: boolean;
+    preventNewLine?: boolean;
+  }) => {
+    // 日本語入力変換中はtrueで変換確定のエンターキーではUPDATEクエリが実行されないようにする
+    // 英語などの入力変換が存在しない言語ではisCompositionStartは発火しないため常にfalse
+    if (e.key === "Enter" && !isComposing && !e.shiftKey) {
+      if (preventNewLine) e.preventDefault(); // preventNewLineがtrueなら改行動作を阻止
       if (required && (value === "" || value === null))
         return toast.info(`この項目は入力が必須です。`, { autoClose: 3000 });
 
@@ -513,7 +605,7 @@ const CompanyMainContainerMemo: FC = () => {
       setIsEditModeField(null); // エディットモードを終了
     }
   };
-  // ================== ✅エンターキーで個別フィールドをアップデート ==================
+  // ================== ✅エンターキーで個別フィールドをアップデート inputタグ ==================
   // ================== 🌟Sendキーで個別フィールドをアップデート ==================
   const handleClickSendUpdateField = async ({
     e,
@@ -538,9 +630,24 @@ const CompanyMainContainerMemo: FC = () => {
       toast.error(`エラー：会社データが見つかりませんでした。`, { autoClose: 3000 });
       return;
     }
+
+    console.log(
+      "handleClickSendUpdateField関数実行 ",
+      "selectedRowDataCompany[fieldName]",
+      selectedRowDataCompany[fieldName],
+      "value",
+      value
+    );
+
     // 入力値が現在のvalueと同じであれば更新は不要なため閉じてリターン
     if (selectedRowDataCompany[fieldName] === value) {
-      console.log("同じためリターン");
+      console.log(
+        "同じためリターン",
+        "selectedRowDataCompany[fieldName]",
+        selectedRowDataCompany[fieldName],
+        "value",
+        value
+      );
       setIsEditModeField(null); // エディットモードを終了
       return;
     }
@@ -556,6 +663,54 @@ const CompanyMainContainerMemo: FC = () => {
     setIsEditModeField(null); // エディットモードを終了
   };
   // ================== ✅Sendキーで個別フィールドをアップデート ==================
+  // ================== 🌟セレクトボックスで個別フィールドをアップデート ==================
+
+  const handleChangeSelectUpdateField = async ({
+    e,
+    fieldName,
+    value,
+    id,
+  }: {
+    e: ChangeEvent<HTMLSelectElement>;
+    // fieldName: string;
+    fieldName: ClientCOmpanyFieldNames;
+    value: any;
+    id: string | undefined;
+  }) => {
+    e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+
+    if (!id || !selectedRowDataCompany) {
+      toast.error(`エラー：会社データが見つかりませんでした。`, { autoClose: 3000 });
+      return;
+    }
+    // 入力値が現在のvalueと同じであれば更新は不要なため閉じてリターン
+    if (selectedRowDataCompany[fieldName] === value) {
+      console.log("同じためリターン");
+      setIsEditModeField(null); // エディットモードを終了
+      return;
+    }
+
+    const updatePayload = {
+      fieldName: fieldName,
+      value: value,
+      id: id,
+    };
+    // 入力変換確定状態でエンターキーが押された場合の処理
+    console.log("selectタグでUPDATE実行 updatePayload", updatePayload);
+    await updateClientCompanyFieldMutation.mutateAsync(updatePayload);
+    setIsEditModeField(null); // エディットモードを終了
+  };
+  // selectタグで同じ選択肢を選択した際にフィールドエディットモードを終了させるイベントハンドラ
+  // const handleFinishEditModeOnClick = (e: React.MouseEvent<HTMLSelectElement, MouseEvent>) => {
+  //   // selectタグは現在選択中の選択肢を選択した場合には、onChangeイベントは発火しないので、選択中のinputStateは変更されないため、onClickイベントが発火したときに、ダブルクリックで格納したデータベースの値を保持するoriginalOptionRefとinputStateが同じままになるので、条件式が一致するので、ここでフィールドエディットモードを終了する
+  //   // onClickイベントよりonChangeイベントがselectタグにおいては先に発火する
+  //   // if (originalOptionRef.current === e.currentTarget.value) {
+  //   //   // 現在選択中の選択肢と同じ選択肢を選択した場合には、編集モードを終了する
+  //   //   originalOptionRef.current = ""; // refの値を空にしてから終了
+  //   //   setIsEditModeField(null); // エディットモードを終了
+  //   // }
+  // };
+  // ================== ✅セレクトボックスで個別フィールドをアップデート ==================
 
   console.log(
     "🔥 CompanyMainContainerレンダリング searchMode",
@@ -629,7 +784,7 @@ const CompanyMainContainerMemo: FC = () => {
                           isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`
                         }`}
                         onClick={handleSingleClickField}
-                        onDoubleClick={(e) => handleDoubleClickField(e, "name", setInputName)}
+                        onDoubleClick={(e) => handleDoubleClickField({ e, field: "name", dispatch: setInputName })}
                         onMouseEnter={(e) => {
                           // 会社名は自社専用チェックがあるため一つ親要素が他より多い
                           e.currentTarget.parentElement?.parentElement?.classList.add(`${styles.active}`);
@@ -653,6 +808,17 @@ const CompanyMainContainerMemo: FC = () => {
                       )}
                     </div>
                   )}
+                  {/* サーチモード */}
+                  {searchMode && (
+                    <input
+                      type="text"
+                      placeholder="株式会社○○"
+                      autoFocus
+                      className={`${styles.input_box}`}
+                      value={inputName}
+                      onChange={(e) => setInputName(e.target.value)}
+                    />
+                  )}
                   {/* ============= フィールドエディットモード関連 ============= */}
                   {/* フィールドエディットモード inputタグ */}
                   {!searchMode && isEditModeField === "name" && (
@@ -661,22 +827,23 @@ const CompanyMainContainerMemo: FC = () => {
                         type="text"
                         placeholder="株式会社○○"
                         autoFocus
-                        className={`${styles.input_box} z-[2000]`}
+                        className={`${styles.input_box} ${styles.field_edit_mode_input_box_with_close}`}
                         value={inputName}
                         // value={selectedRowDataCompany?.name ? selectedRowDataCompany?.name : ""}
                         onChange={(e) => setInputName(e.target.value)}
-                        onBlur={() => setInputName(toHalfWidthAndSpaceAndHyphen(inputName.trim()))}
+                        // onBlur={() => setInputName(toHalfWidthAndSpace(inputName.trim()))}
                         onCompositionStart={() => setIsComposing(true)}
                         onCompositionEnd={() => setIsComposing(false)}
-                        onKeyDown={(e) =>
+                        onKeyDown={async (e) => {
                           handleKeyDownUpdateField({
                             e,
                             fieldName: "name",
-                            value: inputName,
+                            // value: inputName,
+                            value: toHalfWidthAndSpace(inputName.trim()),
                             id: selectedRowDataCompany?.id,
                             required: true,
-                          })
-                        }
+                          });
+                        }}
                         // onKeyDown={async (e) => {
                         //   // 日本語入力変換中はtrueで変換確定のエンターキーではUPDATEクエリが実行されないようにする
                         //   // 英語などの入力変換が存在しない言語ではisCompositionStartは発火しないため常にfalse
@@ -714,7 +881,8 @@ const CompanyMainContainerMemo: FC = () => {
                             handleClickSendUpdateField({
                               e,
                               fieldName: "name",
-                              value: inputName,
+                              // value: inputName,
+                              value: toHalfWidthAndSpace(inputName.trim()),
                               id: selectedRowDataCompany?.id,
                               required: true,
                             })
@@ -747,17 +915,6 @@ const CompanyMainContainerMemo: FC = () => {
                     />
                   )}
                   {/* ============= フィールドエディットモード関連ここまで ============= */}
-                  {/* サーチモード */}
-                  {searchMode && (
-                    <input
-                      type="text"
-                      placeholder="株式会社○○"
-                      autoFocus
-                      className={`${styles.input_box}`}
-                      value={inputName}
-                      onChange={(e) => setInputName(e.target.value)}
-                    />
-                  )}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -773,7 +930,9 @@ const CompanyMainContainerMemo: FC = () => {
                     <span
                       className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
                       onClick={handleSingleClickField}
-                      onDoubleClick={(e) => handleDoubleClickField(e, "department_name", setInputDepartment)}
+                      onDoubleClick={(e) =>
+                        handleDoubleClickField({ e, field: "department_name", dispatch: setInputDepartment })
+                      }
                       onMouseEnter={(e) => {
                         console.log(e.currentTarget.parentElement, e.currentTarget.parentElement?.parentElement);
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
@@ -785,6 +944,16 @@ const CompanyMainContainerMemo: FC = () => {
                       {selectedRowDataCompany?.department_name ? selectedRowDataCompany?.department_name : ""}
                     </span>
                   )}
+                  {/* サーチ */}
+                  {searchMode && (
+                    <input
+                      type="text"
+                      placeholder="「代表取締役＊」や「＊製造部＊」「＊品質＊」など"
+                      className={`${styles.input_box}`}
+                      value={inputDepartment}
+                      onChange={(e) => setInputDepartment(e.target.value)}
+                    />
+                  )}
                   {/* ============= フィールドエディットモード関連 ============= */}
                   {/* フィールドエディットモード inputタグ */}
                   {!searchMode && isEditModeField === "department_name" && (
@@ -793,17 +962,18 @@ const CompanyMainContainerMemo: FC = () => {
                         type="text"
                         placeholder="株式会社○○"
                         autoFocus
-                        className={`${styles.input_box} z-[2000]`}
+                        className={`${styles.input_box} ${styles.field_edit_mode_input_box_with_close}`}
                         value={inputDepartment}
                         onChange={(e) => setInputDepartment(e.target.value)}
-                        onBlur={() => setInputDepartment(toHalfWidthAndSpaceAndHyphen(inputDepartment.trim()))}
+                        // onBlur={() => setInputDepartment(toHalfWidthAndSpaceAndHyphen(inputDepartment.trim()))}
                         onCompositionStart={() => setIsComposing(true)}
                         onCompositionEnd={() => setIsComposing(false)}
                         onKeyDown={(e) =>
                           handleKeyDownUpdateField({
                             e,
                             fieldName: "department_name",
-                            value: inputDepartment,
+                            // value: inputDepartment,
+                            value: toHalfWidthAndSpace(inputDepartment.trim()),
                             id: selectedRowDataCompany?.id,
                             required: true,
                           })
@@ -818,7 +988,8 @@ const CompanyMainContainerMemo: FC = () => {
                             handleClickSendUpdateField({
                               e,
                               fieldName: "department_name",
-                              value: inputDepartment,
+                              // value: inputDepartment,
+                              value: toHalfWidthAndSpace(inputDepartment.trim()),
                               id: selectedRowDataCompany?.id,
                               required: true,
                             })
@@ -845,15 +1016,6 @@ const CompanyMainContainerMemo: FC = () => {
                     />
                   )}
                   {/* ============= フィールドエディットモード関連ここまで ============= */}
-                  {searchMode && (
-                    <input
-                      type="text"
-                      placeholder="「代表取締役＊」や「＊製造部＊」「＊品質＊」など"
-                      className={`${styles.input_box}`}
-                      value={inputDepartment}
-                      onChange={(e) => setInputDepartment(e.target.value)}
-                    />
-                  )}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -869,7 +1031,9 @@ const CompanyMainContainerMemo: FC = () => {
                     <span
                       className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
                       onClick={handleSingleClickField}
-                      onDoubleClick={(e) => handleDoubleClickField(e, "main_phone_number", setInputTel)}
+                      onDoubleClick={(e) =>
+                        handleDoubleClickField({ e, field: "main_phone_number", dispatch: setInputTel })
+                      }
                       onMouseEnter={(e) => {
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                       }}
@@ -880,44 +1044,53 @@ const CompanyMainContainerMemo: FC = () => {
                       {selectedRowDataCompany?.main_phone_number ? selectedRowDataCompany?.main_phone_number : ""}
                     </span>
                   )}
+                  {/* サーチ */}
+                  {searchMode && (
+                    <input
+                      type="tel"
+                      placeholder=""
+                      className={`${styles.input_box}`}
+                      value={inputTel}
+                      onChange={(e) => setInputTel(e.target.value)}
+                    />
+                  )}
                   {/* ============= フィールドエディットモード関連 ============= */}
-                  {/* フィールドエディットモード inputタグ */}
+                  {/* フィールドエディットモード inputタグ  */}
                   {!searchMode && isEditModeField === "main_phone_number" && (
                     <>
                       <input
                         type="tel"
                         placeholder=""
                         autoFocus
-                        className={`${styles.input_box} z-[2000]`}
+                        className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                        // className={`${styles.input_box} z-[2000] !pr-[65px]`}
                         value={inputTel}
                         onChange={(e) => setInputTel(e.target.value)}
                         // onBlur={(e) => setInputTel(toHalfWidthAndSpaceAndHyphen(inputTel.trim()))}
-                        onBlur={(e) => {
-                          console.log("フォーマット実行 e.target.value", e.target.value);
-                          const { isValid, formattedNumber } = validateAndFormatPhoneNumber(e.target.value.trim());
-                          console.log("フォーマット実行 formattedNumberとisValid", formattedNumber, isValid);
-                          if (isValid) {
-                            setIsValidInput(true);
-                            setInputTel(formattedNumber);
-                          } else {
-                            // toast.error(`有効な電話番号を入力してください。`);
-                            if (isValid) setIsValidInput(false);
-                          }
-                        }}
                         onCompositionStart={() => setIsComposing(true)}
                         onCompositionEnd={() => setIsComposing(false)}
                         onKeyDown={(e) => {
-                          if (e.key === "Enter" && !isComposing && !isValidInput) {
-                            toast.error(`有効な電話番号を入力してください。`);
-                            return;
+                          // 電話番号用バリデーションチェック
+                          if (e.key === "Enter" && !isComposing) {
+                            const { isValid, formattedNumber } = validateAndFormatPhoneNumber(inputTel.trim());
+                            if (!isValid) {
+                              setInputTel(formattedNumber);
+                              toast.error(
+                                `有効な電話番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`,
+                                { position: "bottom-center", autoClose: false, transition: Zoom }
+                              );
+                              return;
+                            }
+
+                            handleKeyDownUpdateField({
+                              e,
+                              fieldName: "main_phone_number",
+                              // value: inputTel,
+                              value: formattedNumber,
+                              id: selectedRowDataCompany?.id,
+                              required: true,
+                            });
                           }
-                          handleKeyDownUpdateField({
-                            e,
-                            fieldName: "main_phone_number",
-                            value: inputTel,
-                            id: selectedRowDataCompany?.id,
-                            required: true,
-                          });
                         }}
                       />
                       {/* 送信ボタンとクローズボタン */}
@@ -926,16 +1099,27 @@ const CompanyMainContainerMemo: FC = () => {
                           inputState={inputTel}
                           setInputState={setInputTel}
                           onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-                            if (!isValidInput) return toast.error(`有効な電話番号を入力してください。`);
+                            const { isValid, formattedNumber } = validateAndFormatPhoneNumber(inputTel.trim());
+                            if (!isValid) {
+                              setInputTel(formattedNumber);
+                              toast.error(
+                                `有効な電話番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`,
+                                { position: "bottom-center", autoClose: false, transition: Zoom }
+                              );
+                              return;
+                            }
+
                             handleClickSendUpdateField({
                               e,
                               fieldName: "main_phone_number",
-                              value: inputTel,
+                              // value: inputTel,
+                              value: formattedNumber,
                               id: selectedRowDataCompany?.id,
                               required: true,
                             });
                           }}
                           required={true}
+                          isDisplayClose={false}
                         />
                       )}
                       {/* エディットフィールド送信中ローディングスピナー */}
@@ -957,26 +1141,30 @@ const CompanyMainContainerMemo: FC = () => {
                     />
                   )}
                   {/* ============= フィールドエディットモード関連ここまで ============= */}
-                  {searchMode && (
-                    <input
-                      type="tel"
-                      placeholder=""
-                      className={`${styles.input_box}`}
-                      value={inputTel}
-                      onChange={(e) => setInputTel(e.target.value)}
-                    />
-                  )}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
+              {/* 代表FAX */}
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
                   <span className={`${styles.title}`}>代表Fax</span>
-                  {!searchMode && (
-                    <span className={`${styles.value}`}>
+                  {/* ディスプレイ */}
+                  {!searchMode && isEditModeField !== "main_fax" && (
+                    <span
+                      className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => handleDoubleClickField({ e, field: "main_fax", dispatch: setInputFax })}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataCompany?.main_fax ? selectedRowDataCompany?.main_fax : ""}
                     </span>
                   )}
+                  {/* サーチ */}
                   {searchMode && (
                     <input
                       type="tel"
@@ -985,21 +1173,121 @@ const CompanyMainContainerMemo: FC = () => {
                       onChange={(e) => setInputFax(e.target.value)}
                     />
                   )}
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード inputタグ  */}
+                  {!searchMode && isEditModeField === "main_fax" && (
+                    <>
+                      <input
+                        type="tel"
+                        placeholder=""
+                        autoFocus
+                        className={`${styles.input_box} z-[2000] ${styles.field_edit_mode_input_box}`}
+                        value={inputFax}
+                        onChange={(e) => setInputFax(e.target.value)}
+                        // onBlur={(e) => setInputFax(toHalfWidthAndSpaceAndHyphen(inputFax.trim()))}
+                        onCompositionStart={() => setIsComposing(true)}
+                        onCompositionEnd={() => setIsComposing(false)}
+                        onKeyDown={(e) => {
+                          // 電話番号用バリデーションチェック
+                          if (e.key === "Enter" && !isComposing) {
+                            const { isValid, formattedNumber: formattedFax } = validateAndFormatPhoneNumber(
+                              inputFax.trim()
+                            );
+                            if (!isValid) {
+                              setInputFax(formattedFax);
+                              toast.error(`有効なFax番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`, {
+                                position: "bottom-center",
+                                autoClose: false,
+                                transition: Zoom,
+                              });
+                              return;
+                            }
+                            handleKeyDownUpdateField({
+                              e,
+                              fieldName: "main_fax",
+                              value: formattedFax,
+                              id: selectedRowDataCompany?.id,
+                              required: true,
+                            });
+                          }
+                        }}
+                      />
+                      {/* 送信ボタンとクローズボタン */}
+                      {!updateClientCompanyFieldMutation.isLoading && (
+                        <InputSendAndCloseBtn
+                          inputState={inputFax}
+                          setInputState={setInputFax}
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                            const { isValid, formattedNumber: formattedFax } = validateAndFormatPhoneNumber(
+                              inputFax.trim()
+                            );
+                            if (!isValid) {
+                              setInputFax(formattedFax);
+                              toast.error(`有効なFax番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`, {
+                                position: "bottom-center",
+                                autoClose: false,
+                                transition: Zoom,
+                              });
+                              return;
+                            }
+                            handleClickSendUpdateField({
+                              e,
+                              fieldName: "main_fax",
+                              value: formattedFax,
+                              id: selectedRowDataCompany?.id,
+                              required: true,
+                            });
+                          }}
+                          required={true}
+                          isDisplayClose={false}
+                        />
+                      )}
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateClientCompanyFieldMutation.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "main_fax" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
             </div>
 
-            {/* 郵便番号・競合チェック */}
+            {/* 郵便番号・規模(ランク) */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
+                  {/* ディスプレイ */}
                   <span className={`${styles.title}`}>郵便番号</span>
-                  {!searchMode && (
-                    <span className={`${styles.value}`}>
+                  {!searchMode && isEditModeField !== "zipcode" && (
+                    <span
+                      className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => handleDoubleClickField({ e, field: "zipcode", dispatch: setInputZipcode })}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataCompany?.zipcode ? selectedRowDataCompany?.zipcode : ""}
                     </span>
                   )}
+                  {/* サーチ */}
                   {searchMode && (
                     <input
                       type="text"
@@ -1008,35 +1296,125 @@ const CompanyMainContainerMemo: FC = () => {
                       onChange={(e) => setInputZipcode(e.target.value)}
                     />
                   )}
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード inputタグ  */}
+                  {!searchMode && isEditModeField === "zipcode" && (
+                    <>
+                      <input
+                        type="text"
+                        placeholder=""
+                        autoFocus
+                        className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                        value={inputZipcode}
+                        onChange={(e) => setInputZipcode(e.target.value)}
+                        // onBlur={(e) => setInputZipcode(toHalfWidthAndSpaceAndHyphen(inputZipcode.trim()))}
+                        onCompositionStart={() => setIsComposing(true)}
+                        onCompositionEnd={() => setIsComposing(false)}
+                        onKeyDown={(e) => {
+                          // 郵便番号用バリデーションチェック
+                          if (e.key === "Enter" && !isComposing) {
+                            const { isValid, formattedPostalCodeCode } = validateAndFormatPostalCode(
+                              inputZipcode.trim()
+                            );
+                            if (!isValid) {
+                              setInputZipcode(formattedPostalCodeCode);
+                              toast.error(
+                                `有効な郵便番号を入力してください。「数字、英字、ハイフン、スペース」のみ有効です。`,
+                                { position: "bottom-center", autoClose: false, transition: Zoom }
+                              );
+                              return;
+                            }
+                            handleKeyDownUpdateField({
+                              e,
+                              fieldName: "zipcode",
+                              value: formattedPostalCodeCode,
+                              id: selectedRowDataCompany?.id,
+                              required: true,
+                            });
+                          }
+                        }}
+                      />
+                      {/* 送信ボタンとクローズボタン */}
+                      {!updateClientCompanyFieldMutation.isLoading && (
+                        <InputSendAndCloseBtn
+                          inputState={inputZipcode}
+                          setInputState={setInputZipcode}
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                            const { isValid, formattedPostalCodeCode } = validateAndFormatPostalCode(
+                              inputZipcode.trim()
+                            );
+                            if (!isValid) {
+                              setInputZipcode(formattedPostalCodeCode);
+                              toast.error(
+                                `有効な郵便番号を入力してください。「数字、英字、ハイフン、スペース」のみ有効です。`,
+                                { position: "bottom-center", autoClose: false, transition: Zoom }
+                              );
+                              return;
+                            }
+                            handleClickSendUpdateField({
+                              e,
+                              fieldName: "zipcode",
+                              value: formattedPostalCodeCode,
+                              id: selectedRowDataCompany?.id,
+                              required: true,
+                            });
+                          }}
+                          required={true}
+                          isDisplayClose={false}
+                        />
+                      )}
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateClientCompanyFieldMutation.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "zipcode" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
-
+              {/* 規模(ランク) */}
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>規模(ﾗﾝｸ)</span>
-                  {!searchMode && (
-                    <span className={`${styles.value}`}>
+                  {/* ディスプレイ */}
+                  {!searchMode && isEditModeField !== "number_of_employees_class" && (
+                    <span
+                      className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => {
+                        handleDoubleClickField({
+                          e,
+                          field: "number_of_employees_class",
+                          dispatch: setInputEmployeesClass,
+                        });
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataCompany?.number_of_employees_class
                         ? selectedRowDataCompany?.number_of_employees_class
                         : ""}
                     </span>
                   )}
-                  {/* {searchMode && (
-                    <input
-                      type="text"
-                      className={`${styles.input_box}`}
-                      value={inputEmployeesClass}
-                      onChange={(e) => setInputEmployeesClass(e.target.value)}
-                    />
-                  )} */}
+                  {/* サーチ */}
                   {searchMode && (
-                    // <input
-                    //   type="text"
-                    //   className={`${styles.input_box} ml-[20px]`}
-                    //   value={inputProductL}
-                    //   onChange={(e) => setInputProductL(e.target.value)}
-                    // />
                     <select
                       name="position_class"
                       id="position_class"
@@ -1062,6 +1440,51 @@ const CompanyMainContainerMemo: FC = () => {
                       <option value="G 1~49名">G 1~49名</option> */}
                     </select>
                   )}
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード selectタグ  */}
+                  {!searchMode && isEditModeField === "number_of_employees_class" && (
+                    <>
+                      <select
+                        className={`ml-auto h-full w-full cursor-pointer ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                        value={inputEmployeesClass}
+                        onChange={(e) => {
+                          // setInputEmployeesClass(e.target.value);
+                          handleChangeSelectUpdateField({
+                            e,
+                            fieldName: "number_of_employees_class",
+                            value: e.target.value,
+                            id: selectedRowDataCompany?.id,
+                          });
+                        }}
+                      >
+                        {/* <option value="">全て選択</option> */}
+                        <option value="A 1000名以上">A 1000名以上</option>
+                        <option value="B 500-999名">B 500-999名</option>
+                        <option value="C 300-499名">C 300-499名</option>
+                        <option value="D 200-299名">D 200-299名</option>
+                        <option value="E 100-199名">E 100-199名</option>
+                        <option value="F 50-99名">F 50-99名</option>
+                        <option value="G 1-49名">G 1-49名</option>
+                      </select>
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateClientCompanyFieldMutation.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "number_of_employees_class" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -1072,11 +1495,31 @@ const CompanyMainContainerMemo: FC = () => {
               <div className="flex h-full w-full flex-col pr-[20px] ">
                 <div className={`${styles.title_box} flex h-full `}>
                   <span className={`${styles.title}`}>○住所</span>
-                  {!searchMode && (
-                    <span className={`${styles.textarea_value} h-[45px]`}>
+                  {/* ディスプレイ */}
+                  {!searchMode && isEditModeField !== "address" && (
+                    <span
+                      className={`${styles.textarea_value} h-[45px] ${
+                        isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`
+                      }`}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => {
+                        handleDoubleClickField({
+                          e,
+                          field: "address",
+                          dispatch: setInputAddress,
+                        });
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataCompany?.address ? selectedRowDataCompany?.address : ""}
                     </span>
                   )}
+                  {/* サーチ */}
                   {searchMode && (
                     <textarea
                       name="address"
@@ -1089,6 +1532,72 @@ const CompanyMainContainerMemo: FC = () => {
                       onChange={(e) => setInputAddress(e.target.value)}
                     ></textarea>
                   )}
+                  {/* ============= フィールドエディットモード関連 住所 ============= */}
+                  {/* フィールドエディットモード textareaタグ */}
+                  {!searchMode && isEditModeField === "address" && (
+                    <>
+                      <textarea
+                        name="address"
+                        id="address"
+                        cols={30}
+                        // rows={10}
+                        placeholder=""
+                        className={`${styles.textarea_box} ${styles.textarea_box_search_mode} ${styles.field_edit_mode_textarea} ${styles.address}`}
+                        value={inputAddress}
+                        onChange={(e) => setInputAddress(e.target.value)}
+                        // onBlur={() => setInputAddress(formatJapaneseAddress(inputDepartment.trim()))}
+                        onCompositionStart={() => setIsComposing(true)}
+                        onCompositionEnd={() => setIsComposing(false)}
+                        onKeyDown={(e) =>
+                          handleKeyDownUpdateFieldTextarea({
+                            e,
+                            fieldName: "address",
+                            // value: inputAddress,
+                            value: formatJapaneseAddress(inputAddress.trim()),
+                            id: selectedRowDataCompany?.id,
+                            required: true,
+                            preventNewLine: true,
+                          })
+                        }
+                      ></textarea>
+                      {/* 送信ボタンとクローズボタン */}
+                      {!updateClientCompanyFieldMutation.isLoading && (
+                        <InputSendAndCloseBtn
+                          inputState={inputAddress}
+                          setInputState={setInputAddress}
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                            handleClickSendUpdateField({
+                              e,
+                              fieldName: "address",
+                              // value: inputAddress,
+                              value: formatJapaneseAddress(inputAddress.trim()),
+                              id: selectedRowDataCompany?.id,
+                              required: true,
+                            })
+                          }
+                          required={true}
+                          btnPositionY="bottom-[8px]"
+                        />
+                      )}
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateClientCompanyFieldMutation.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "address" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline} `}></div>
               </div>
@@ -1099,22 +1608,32 @@ const CompanyMainContainerMemo: FC = () => {
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>資本金(万円)</span>
-                  {!searchMode && (
-                    <span className={`${styles.value}`}>
+                  {/* ディスプレイ */}
+                  {!searchMode && isEditModeField !== "capital" && (
+                    <span
+                      className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => {
+                        handleDoubleClickField({
+                          e,
+                          field: "capital",
+                          dispatch: setInputCapital,
+                        });
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {/* {selectedRowDataCompany?.capital ? selectedRowDataCompany?.capital : ""} */}
                       {selectedRowDataCompany?.capital
                         ? convertToJapaneseCurrencyFormat(selectedRowDataCompany.capital)
                         : ""}
                     </span>
                   )}
-                  {/* {searchMode && (
-                    <input
-                      type="text"
-                      className={`${styles.input_box}`}
-                      value={inputCapital}
-                      onChange={(e) => setInputCapital(e.target.value)}
-                    />
-                  )} */}
+                  {/* サーチ */}
                   {searchMode && (
                     <input
                       type="text"
@@ -1131,41 +1650,111 @@ const CompanyMainContainerMemo: FC = () => {
                       }
                     />
                   )}
-                  {/* {searchMode && (
-                    <input
-                      type="number"
-                      min="0"
-                      className={`${styles.input_box}`}
-                      placeholder='〜万円の単位で入力してください'
-                      value={inputCapital === null ? "" : inputCapital}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === "") {
-                          setInputCapital(null);
-                        } else {
-                          const numValue = Number(val);
-
-                          // 入力値がマイナスかチェック
-                          if (numValue < 0) {
-                            setInputCapital(0); // ここで0に設定しているが、必要に応じて他の正の値に変更することもできる
-                          } else {
-                            setInputCapital(numValue);
-                          }
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード inputタグ */}
+                  {!searchMode && isEditModeField === "capital" && (
+                    <>
+                      <input
+                        type="text"
+                        placeholder="例：10億円/1000万円"
+                        autoFocus
+                        className={`${styles.input_box} ${styles.field_edit_mode_input_box_with_close}`}
+                        value={inputCapital}
+                        onChange={(e) => setInputCapital(e.target.value)}
+                        // onBlur={() => {
+                        //   setInputCapital(
+                        //     !!inputCapital && inputCapital !== ""
+                        //       ? (convertToMillions(inputCapital.trim()) as number).toString()
+                        //       : ""
+                        //   );
+                        // }}
+                        onCompositionStart={() => setIsComposing(true)}
+                        onCompositionEnd={() => setIsComposing(false)}
+                        onKeyDown={(e) =>
+                          handleKeyDownUpdateField({
+                            e,
+                            fieldName: "capital",
+                            // value: inputCapital,
+                            value:
+                              !!inputCapital && inputCapital !== ""
+                                ? (convertToMillions(inputCapital.trim()) as number).toString()
+                                : "",
+                            id: selectedRowDataCompany?.id,
+                            required: false,
+                          })
                         }
+                      />
+                      {/* 送信ボタンとクローズボタン */}
+                      {!updateClientCompanyFieldMutation.isLoading && (
+                        <InputSendAndCloseBtn
+                          inputState={inputCapital}
+                          setInputState={setInputCapital}
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                            handleClickSendUpdateField({
+                              e,
+                              fieldName: "capital",
+                              // value: inputCapital,
+                              value:
+                                !!inputCapital && inputCapital !== ""
+                                  ? (convertToMillions(inputCapital.trim()) as number).toString()
+                                  : "",
+                              id: selectedRowDataCompany?.id,
+                              required: false,
+                            })
+                          }
+                          required={true}
+                          isDisplayClose={false}
+                        />
+                      )}
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateClientCompanyFieldMutation.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "capital" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
                       }}
                     />
-                  )} */}
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
+              {/* 設立 */}
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
                   <span className={`${styles.title}`}>設立</span>
-                  {!searchMode && (
-                    <span className={`${styles.value}`}>
+                  {/* ディスプレイ */}
+                  {!searchMode && isEditModeField !== "established_in" && (
+                    <span
+                      className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => {
+                        handleDoubleClickField({
+                          e,
+                          field: "established_in",
+                          dispatch: setInputFound,
+                        });
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataCompany?.established_in ? selectedRowDataCompany?.established_in : ""}
                     </span>
                   )}
+                  {/* サーチ */}
                   {searchMode && (
                     <input
                       type="text"
@@ -1174,6 +1763,66 @@ const CompanyMainContainerMemo: FC = () => {
                       onChange={(e) => setInputFound(e.target.value)}
                     />
                   )}
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード inputタグ */}
+                  {!searchMode && isEditModeField === "established_in" && (
+                    <>
+                      <input
+                        type="text"
+                        placeholder=""
+                        autoFocus
+                        className={`${styles.input_box} ${styles.field_edit_mode_input_box_with_close}`}
+                        value={inputFound}
+                        onChange={(e) => setInputFound(e.target.value)}
+                        onCompositionStart={() => setIsComposing(true)}
+                        onCompositionEnd={() => setIsComposing(false)}
+                        onKeyDown={(e) =>
+                          handleKeyDownUpdateField({
+                            e,
+                            fieldName: "established_in",
+                            value: toHalfWidthAndSpace(inputFound.trim()),
+                            id: selectedRowDataCompany?.id,
+                            required: true,
+                          })
+                        }
+                      />
+                      {/* 送信ボタンとクローズボタン */}
+                      {!updateClientCompanyFieldMutation.isLoading && (
+                        <InputSendAndCloseBtn
+                          inputState={inputFound}
+                          setInputState={setInputFound}
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                            handleClickSendUpdateField({
+                              e,
+                              fieldName: "established_in",
+                              value: toHalfWidthAndSpace(inputFound.trim()),
+                              id: selectedRowDataCompany?.id,
+                              required: true,
+                            })
+                          }
+                          required={true}
+                          isDisplayClose={false}
+                        />
+                      )}
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateClientCompanyFieldMutation.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "established_in" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -1184,28 +1833,45 @@ const CompanyMainContainerMemo: FC = () => {
               <div className="flex h-full w-full flex-col pr-[20px] ">
                 <div className={`${styles.title_box}  flex h-full`}>
                   <span className={`${styles.title}`}>事業概要</span>
-                  {!searchMode && (
+                  {/* ディスプレイ */}
+                  {!searchMode && isEditModeField !== "business_content" && (
                     <>
-                      {/* <span className={`${styles.textarea_value} h-[45px]`}>
-                        東京都港区芝浦4-20-2
-                        芝浦アイランドブルームタワー602号室あああああああああああああああああああああああああああああ芝浦アイランドブルームタワー602号室222あああああああああああああああああああああああああああああ
-                      </span> */}
                       <span
-                        className={`${styles.textarea_value} h-[45px]`}
+                        className={`${styles.textarea_value} h-[45px] ${
+                          isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`
+                        }`}
                         data-text={`${
                           selectedRowDataCompany?.business_content ? selectedRowDataCompany?.business_content : ""
                         }`}
-                        onMouseEnter={(e) => handleOpenTooltip({ e })}
-                        onMouseLeave={handleCloseTooltip}
+                        // onMouseEnter={(e) => handleOpenTooltip({ e })}
+                        // onMouseLeave={handleCloseTooltip}
+                        onClick={handleSingleClickField}
+                        onDoubleClick={(e) => {
+                          handleCloseTooltip();
+                          handleDoubleClickField({
+                            e,
+                            field: "business_content",
+                            dispatch: setInputContent,
+                          });
+                        }}
+                        onMouseEnter={(e) => {
+                          handleOpenTooltip({ e });
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          handleCloseTooltip();
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
                       >
                         {selectedRowDataCompany?.business_content ? selectedRowDataCompany?.business_content : ""}
                       </span>
                     </>
                   )}
+                  {/* サーチ */}
                   {searchMode && (
                     <textarea
-                      name="address"
-                      id="address"
+                      // name="address"
+                      // id="address"
                       cols={30}
                       // rows={10}
                       className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
@@ -1213,6 +1879,69 @@ const CompanyMainContainerMemo: FC = () => {
                       onChange={(e) => setInputContent(e.target.value)}
                     ></textarea>
                   )}
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード textareaタグ */}
+                  {!searchMode && isEditModeField === "business_content" && (
+                    <>
+                      <textarea
+                        cols={30}
+                        // rows={10}
+                        placeholder=""
+                        style={{ whiteSpace: "pre-wrap" }}
+                        className={`${styles.textarea_box} ${styles.textarea_box_search_mode} ${styles.field_edit_mode_textarea}`}
+                        value={inputContent}
+                        onChange={(e) => setInputContent(e.target.value)}
+                        // onCompositionStart={() => setIsComposing(true)}
+                        // onCompositionEnd={() => setIsComposing(false)}
+                        // onKeyDown={(e) =>
+                        //   handleKeyDownUpdateFieldTextarea({
+                        //     e,
+                        //     fieldName: "business_content",
+                        //     value: inputContent.trim(),
+                        //     id: selectedRowDataCompany?.id,
+                        //     required: false,
+                        //     preventNewLine: false,
+                        //   })
+                        // }
+                      ></textarea>
+                      {/* 送信ボタンとクローズボタン */}
+                      {!updateClientCompanyFieldMutation.isLoading && (
+                        <InputSendAndCloseBtn
+                          inputState={inputContent}
+                          setInputState={setInputContent}
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                            handleClickSendUpdateField({
+                              e,
+                              fieldName: "business_content",
+                              value: inputContent.trim(),
+                              id: selectedRowDataCompany?.id,
+                              required: false,
+                            })
+                          }
+                          required={false}
+                          isDisplayClose={true}
+                          btnPositionY="bottom-[8px]"
+                        />
+                      )}
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateClientCompanyFieldMutation.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "business_content" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -1311,18 +2040,30 @@ const CompanyMainContainerMemo: FC = () => {
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>○業種</span>
-                  {!searchMode && (
-                    <span className={`${styles.value}`}>
+                  {/* ディスプレイ */}
+                  {!searchMode && isEditModeField !== "industry_type" && (
+                    <span
+                      className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => {
+                        handleDoubleClickField({
+                          e,
+                          field: "industry_type",
+                          dispatch: setInputIndustryType,
+                        });
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataCompany?.industry_type ? selectedRowDataCompany?.industry_type : ""}
                     </span>
                   )}
+                  {/* サーチ */}
                   {searchMode && !inputProductL && (
-                    // <input
-                    //   type="text"
-                    //   className={`${styles.input_box}`}
-                    //   value={inputIndustryType}
-                    //   onChange={(e) => setInputIndustryType(e.target.value)}
-                    // />
                     <select
                       name="position_class"
                       id="position_class"
@@ -1385,6 +2126,48 @@ const CompanyMainContainerMemo: FC = () => {
                       <option value="不明">不明</option>
                     </select>
                   )}
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード selectタグ  */}
+                  {!searchMode && isEditModeField === "industry_type" && (
+                    <>
+                      <select
+                        className={`ml-auto h-full w-full cursor-pointer ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                        value={inputIndustryType}
+                        onChange={(e) => {
+                          // setInputEmployeesClass(e.target.value);
+                          handleChangeSelectUpdateField({
+                            e,
+                            fieldName: "industry_type",
+                            value: e.target.value,
+                            id: selectedRowDataCompany?.id,
+                          });
+                        }}
+                      >
+                        {optionsIndustryType.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateClientCompanyFieldMutation.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "industry_type" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -1395,6 +2178,7 @@ const CompanyMainContainerMemo: FC = () => {
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title} !mr-[15px] !min-w-max`}>○製品分類(大分類)</span>
+                  {/* ディスプレイ 大分類・中分類は個別に編集できないためエディットモードは無し */}
                   {!searchMode && (
                     <span className={`${styles.value}`}>
                       {selectedRowDataCompany?.product_category_large
@@ -1402,13 +2186,8 @@ const CompanyMainContainerMemo: FC = () => {
                         : ""}
                     </span>
                   )}
+                  {/* サーチ 業種が選択されている場合には製品分類は非表示にする 同時に検索はかけられないように設定 */}
                   {searchMode && !inputIndustryType && (
-                    // <input
-                    //   type="text"
-                    //   className={`${styles.input_box} ml-[20px]`}
-                    //   value={inputProductL}
-                    //   onChange={(e) => setInputProductL(e.target.value)}
-                    // />
                     <select
                       name="position_class"
                       id="position_class"
@@ -1520,17 +2299,20 @@ const CompanyMainContainerMemo: FC = () => {
               </div>
             </div> */}
 
-            {/* 規模（ランク）・決算月 */}
+            {/* 従業員数・決算月 */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className={`flex h-full w-1/2 flex-col pr-[20px]`}>
                 <div className={`${styles.title_box} flex h-full items-center`}>
                   <span className={`${styles.title}`}>従業員数</span>
                   {/* <span className={`${styles.title}`}>会員専用</span> */}
+                  {/* ディスプレイ */}
                   {!searchMode && (
                     <span className={`${styles.value}`}>
                       {selectedRowDataCompany?.number_of_employees ? selectedRowDataCompany?.number_of_employees : ""}
                     </span>
                   )}
+                  {/* サーチは従業員数の詳細では必要なし */}
+
                   {/* {!searchMode && <span className={`${styles.value}`}>有料会員様専用のフィールドです</span>} */}
                   {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
                   {/* サブスク未加入者にはブラーを表示 */}
@@ -1540,75 +2322,138 @@ const CompanyMainContainerMemo: FC = () => {
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
-
+              {/* 決算月 */}
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
                   <span className={`${styles.title}`}>決算月</span>
-                  {!searchMode && (
-                    <span className={`${styles.value}`}>
-                      {selectedRowDataCompany?.fiscal_end_month ? selectedRowDataCompany?.fiscal_end_month : ""}
+                  {/* ディスプレイ */}
+                  {!searchMode && isEditModeField !== "fiscal_end_month" && (
+                    <span
+                      className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => {
+                        handleDoubleClickField({
+                          e,
+                          field: "fiscal_end_month",
+                          dispatch: setInputFiscal,
+                        });
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
+                      {selectedRowDataCompany?.fiscal_end_month ? `${selectedRowDataCompany?.fiscal_end_month}月` : ""}
                     </span>
                   )}
-                  {searchMode && (
+                  {/* サーチ */}
+                  {/* {searchMode && (
                     <input
                       type="text"
                       className={`${styles.input_box}`}
                       value={inputFiscal}
                       onChange={(e) => setInputFiscal(e.target.value)}
                     />
+                  )} */}
+                  {searchMode && (
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
+                      value={inputFiscal}
+                      onChange={(e) => setInputFiscal(e.target.value)}
+                    >
+                      <option value="">全て選択</option>
+                      {optionsMonth.map((option) => (
+                        <option key={option} value={`${option}*`}>
+                          {option}月
+                        </option>
+                      ))}
+                    </select>
                   )}
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード selectタグ  */}
+                  {!searchMode && isEditModeField === "fiscal_end_month" && (
+                    <>
+                      <select
+                        className={`ml-auto h-full w-full cursor-pointer ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                        value={inputFiscal}
+                        onChange={(e) => {
+                          // setInputEmployeesClass(e.target.value);
+                          handleChangeSelectUpdateField({
+                            e,
+                            fieldName: "fiscal_end_month",
+                            value: e.target.value,
+                            id: selectedRowDataCompany?.id,
+                          });
+                        }}
+                      >
+                        {optionsMonth.map((option) => (
+                          <option key={option} value={option}>
+                            {option}月
+                          </option>
+                        ))}
+                      </select>
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateClientCompanyFieldMutation.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "fiscal_end_month" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
             </div>
 
-            {/* 予算申請月1・予算申請月2 */}
-            {/* <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>予算申請月1</span>
-                  {!searchMode && (
-                    <span className={`${styles.value}`}>
-                      {selectedRowDataCompany?.budget_request_month1
-                        ? selectedRowDataCompany?.budget_request_month1
-                        : ""}
-                    </span>
-                  )}
-                  {searchMode && <input type="text" className={`${styles.input_box}`} />}
-                </div>
-                <div className={`${styles.underline}`}></div>
-              </div>
-              <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center`}>
-                  <span className={`${styles.title}`}>予算申請月2</span>
-                  {!searchMode && (
-                    <span className={`${styles.value}`}>
-                      {selectedRowDataCompany?.budget_request_month2
-                        ? selectedRowDataCompany?.budget_request_month2
-                        : ""}
-                    </span>
-                  )}
-                  {searchMode && <input type="text" className={`${styles.input_box}`} />}
-                </div>
-                <div className={`${styles.underline}`}></div>
-              </div>
-            </div> */}
+            {/* 予算申請月1・予算申請月2 🌟自社専用会社のみ表示 一旦無し　実装は後で、 */}
 
             {/* 主要取引先 */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>主要取引先</span>
-                  {!searchMode && (
+                  {/* ディスプレイ */}
+                  {!searchMode && isEditModeField !== "clients" && (
                     <span
                       data-text={`${selectedRowDataCompany?.clients ? selectedRowDataCompany?.clients : ""}`}
-                      className={`${styles.value}`}
-                      onMouseEnter={(e) => handleOpenTooltip({ e })}
-                      onMouseLeave={handleCloseTooltip}
+                      className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
+                      // onMouseEnter={(e) => handleOpenTooltip({ e })}
+                      // onMouseLeave={handleCloseTooltip}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => {
+                        handleCloseTooltip();
+                        handleDoubleClickField({
+                          e,
+                          field: "clients",
+                          dispatch: setInputClient,
+                        });
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        handleOpenTooltip({ e });
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        handleCloseTooltip();
+                      }}
                     >
                       {selectedRowDataCompany?.clients ? selectedRowDataCompany?.clients : ""}
                     </span>
                   )}
+                  {/* サーチ */}
                   {searchMode && (
                     <input
                       type="text"
@@ -1617,6 +2462,66 @@ const CompanyMainContainerMemo: FC = () => {
                       onChange={(e) => setInputClient(e.target.value)}
                     />
                   )}
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード inputタグ */}
+                  {!searchMode && isEditModeField === "clients" && (
+                    <>
+                      <input
+                        type="text"
+                        placeholder=""
+                        autoFocus
+                        className={`${styles.input_box} ${styles.field_edit_mode_input_box_with_close}`}
+                        value={inputClient}
+                        onChange={(e) => setInputClient(e.target.value)}
+                        onCompositionStart={() => setIsComposing(true)}
+                        onCompositionEnd={() => setIsComposing(false)}
+                        onKeyDown={(e) => {
+                          handleKeyDownUpdateField({
+                            e,
+                            fieldName: "clients",
+                            value: toHalfWidthAndSpace(inputClient.trim()),
+                            id: selectedRowDataCompany?.id,
+                            required: false,
+                          });
+                        }}
+                      />
+                      {/* 送信ボタンとクローズボタン */}
+                      {!updateClientCompanyFieldMutation.isLoading && (
+                        <InputSendAndCloseBtn
+                          inputState={inputClient}
+                          setInputState={setInputClient}
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                            handleClickSendUpdateField({
+                              e,
+                              fieldName: "clients",
+                              value: toHalfWidthAndSpace(inputClient.trim()),
+                              id: selectedRowDataCompany?.id,
+                              required: false,
+                            })
+                          }
+                          required={false}
+                          isDisplayClose={true}
+                        />
+                      )}
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateClientCompanyFieldMutation.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "clients" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -1627,16 +2532,35 @@ const CompanyMainContainerMemo: FC = () => {
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>主要仕入先</span>
-                  {!searchMode && (
+                  {/* ディスプレイ */}
+                  {!searchMode && isEditModeField !== "supplier" && (
                     <span
                       data-text={`${selectedRowDataCompany?.supplier ? selectedRowDataCompany?.supplier : ""}`}
-                      className={`${styles.value}`}
-                      onMouseEnter={(e) => handleOpenTooltip({ e })}
-                      onMouseLeave={handleCloseTooltip}
+                      className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
+                      // onMouseEnter={(e) => handleOpenTooltip({ e })}
+                      // onMouseLeave={handleCloseTooltip}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => {
+                        handleCloseTooltip();
+                        handleDoubleClickField({
+                          e,
+                          field: "supplier",
+                          dispatch: setInputSupplier,
+                        });
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        handleOpenTooltip({ e });
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        handleCloseTooltip();
+                      }}
                     >
                       {selectedRowDataCompany?.supplier ? selectedRowDataCompany?.supplier : ""}
                     </span>
                   )}
+                  {/* サーチ */}
                   {searchMode && (
                     <input
                       type="text"
@@ -1645,6 +2569,66 @@ const CompanyMainContainerMemo: FC = () => {
                       onChange={(e) => setInputSupplier(e.target.value)}
                     />
                   )}
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード inputタグ */}
+                  {!searchMode && isEditModeField === "supplier" && (
+                    <>
+                      <input
+                        type="text"
+                        placeholder=""
+                        autoFocus
+                        className={`${styles.input_box} ${styles.field_edit_mode_input_box_with_close}`}
+                        value={inputSupplier}
+                        onChange={(e) => setInputSupplier(e.target.value)}
+                        onCompositionStart={() => setIsComposing(true)}
+                        onCompositionEnd={() => setIsComposing(false)}
+                        onKeyDown={(e) => {
+                          handleKeyDownUpdateField({
+                            e,
+                            fieldName: "supplier",
+                            value: toHalfWidthAndSpace(inputSupplier.trim()),
+                            id: selectedRowDataCompany?.id,
+                            required: false,
+                          });
+                        }}
+                      />
+                      {/* 送信ボタンとクローズボタン */}
+                      {!updateClientCompanyFieldMutation.isLoading && (
+                        <InputSendAndCloseBtn
+                          inputState={inputSupplier}
+                          setInputState={setInputSupplier}
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                            handleClickSendUpdateField({
+                              e,
+                              fieldName: "supplier",
+                              value: toHalfWidthAndSpace(inputSupplier.trim()),
+                              id: selectedRowDataCompany?.id,
+                              required: false,
+                            })
+                          }
+                          required={false}
+                          isDisplayClose={true}
+                        />
+                      )}
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateClientCompanyFieldMutation.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "supplier" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -1655,26 +2639,39 @@ const CompanyMainContainerMemo: FC = () => {
               <div className="flex h-full w-full flex-col pr-[20px] ">
                 <div className={`${styles.title_box}  flex h-full`}>
                   <span className={`${styles.title}`}>設備</span>
-                  {!searchMode && (
-                    <>
-                      {/* <span className={`${styles.textarea_value} h-[45px]`}>
-                        東京都港区芝浦4-20-2
-                        芝浦アイランドブルームタワー602号室あああああああああああああああああああああああああああああ芝浦アイランドブルームタワー602号室222あああああああああああああああああああああああああああああ
-                      </span> */}
-                      <span
-                        data-text={`${selectedRowDataCompany?.facility ? selectedRowDataCompany?.facility : ""}`}
-                        className={`${styles.textarea_value} h-[45px]`}
-                        onMouseEnter={(e) => handleOpenTooltip({ e })}
-                        onMouseLeave={handleCloseTooltip}
-                      >
-                        {selectedRowDataCompany?.facility ? selectedRowDataCompany?.facility : ""}
-                      </span>
-                    </>
+                  {/* ディスプレイ */}
+                  {!searchMode && isEditModeField !== "facility" && (
+                    <span
+                      data-text={`${selectedRowDataCompany?.facility ? selectedRowDataCompany?.facility : ""}`}
+                      className={`${styles.textarea_value} h-[45px] ${
+                        isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`
+                      }`}
+                      // onMouseEnter={(e) => handleOpenTooltip({ e })}
+                      // onMouseLeave={handleCloseTooltip}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => {
+                        handleCloseTooltip();
+                        handleDoubleClickField({
+                          e,
+                          field: "facility",
+                          dispatch: setInputFacility,
+                        });
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        handleOpenTooltip({ e });
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        handleCloseTooltip();
+                      }}
+                    >
+                      {selectedRowDataCompany?.facility ? selectedRowDataCompany?.facility : ""}
+                    </span>
                   )}
+                  {/* サーチ */}
                   {searchMode && (
                     <textarea
-                      name="address"
-                      id="address"
                       cols={30}
                       // rows={10}
                       className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
@@ -1682,6 +2679,57 @@ const CompanyMainContainerMemo: FC = () => {
                       onChange={(e) => setInputFacility(e.target.value)}
                     ></textarea>
                   )}
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード textareaタグ */}
+                  {!searchMode && isEditModeField === "facility" && (
+                    <>
+                      <textarea
+                        cols={30}
+                        // rows={10}
+                        placeholder=""
+                        style={{ whiteSpace: "pre-wrap" }}
+                        className={`${styles.textarea_box} ${styles.textarea_box_search_mode} ${styles.field_edit_mode_textarea}`}
+                        value={inputFacility}
+                        onChange={(e) => setInputFacility(e.target.value)}
+                      ></textarea>
+                      {/* 送信ボタンとクローズボタン */}
+                      {!updateClientCompanyFieldMutation.isLoading && (
+                        <InputSendAndCloseBtn
+                          inputState={inputFacility}
+                          setInputState={setInputFacility}
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                            handleClickSendUpdateField({
+                              e,
+                              fieldName: "facility",
+                              value: inputFacility.trim(),
+                              id: selectedRowDataCompany?.id,
+                              required: false,
+                            })
+                          }
+                          required={false}
+                          isDisplayClose={true}
+                          btnPositionY="bottom-[8px]"
+                        />
+                      )}
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateClientCompanyFieldMutation.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "facility" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -1692,18 +2740,37 @@ const CompanyMainContainerMemo: FC = () => {
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>事業拠点</span>
-                  {!searchMode && (
+                  {/* ディスプレイ */}
+                  {!searchMode && isEditModeField !== "business_sites" && (
                     <span
                       data-text={`${
                         selectedRowDataCompany?.business_sites ? selectedRowDataCompany?.business_sites : ""
                       }`}
-                      className={`${styles.value}`}
-                      onMouseEnter={(e) => handleOpenTooltip({ e })}
-                      onMouseLeave={handleCloseTooltip}
+                      className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
+                      // onMouseEnter={(e) => handleOpenTooltip({ e })}
+                      // onMouseLeave={handleCloseTooltip}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => {
+                        handleCloseTooltip();
+                        handleDoubleClickField({
+                          e,
+                          field: "business_sites",
+                          dispatch: setInputBusinessSite,
+                        });
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        handleOpenTooltip({ e });
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        handleCloseTooltip();
+                      }}
                     >
                       {selectedRowDataCompany?.business_sites ? selectedRowDataCompany?.business_sites : ""}
                     </span>
                   )}
+                  {/* サーチ */}
                   {searchMode && (
                     <input
                       type="text"
@@ -1712,24 +2779,103 @@ const CompanyMainContainerMemo: FC = () => {
                       onChange={(e) => setInputBusinessSite(e.target.value)}
                     />
                   )}
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード inputタグ */}
+                  {!searchMode && isEditModeField === "business_sites" && (
+                    <>
+                      <input
+                        type="text"
+                        placeholder=""
+                        autoFocus
+                        className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                        value={inputBusinessSite}
+                        onChange={(e) => setInputBusinessSite(e.target.value)}
+                        onCompositionStart={() => setIsComposing(true)}
+                        onCompositionEnd={() => setIsComposing(false)}
+                        onKeyDown={(e) => {
+                          handleKeyDownUpdateField({
+                            e,
+                            fieldName: "business_sites",
+                            value: toHalfWidthAndSpace(inputBusinessSite.trim()),
+                            id: selectedRowDataCompany?.id,
+                            required: false,
+                          });
+                        }}
+                      />
+                      {/* 送信ボタンとクローズボタン */}
+                      {!updateClientCompanyFieldMutation.isLoading && (
+                        <InputSendAndCloseBtn
+                          inputState={inputBusinessSite}
+                          setInputState={setInputBusinessSite}
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                            handleClickSendUpdateField({
+                              e,
+                              fieldName: "business_sites",
+                              value: toHalfWidthAndSpace(inputBusinessSite.trim()),
+                              id: selectedRowDataCompany?.id,
+                              required: false,
+                            })
+                          }
+                          required={false}
+                          isDisplayClose={false}
+                        />
+                      )}
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateClientCompanyFieldMutation.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "business_sites" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
                   <span className={`${styles.title}`}>海外拠点</span>
-                  {!searchMode && (
+                  {/* ディスプレイ */}
+                  {!searchMode && isEditModeField !== "overseas_bases" && (
                     <span
                       data-text={`${
                         selectedRowDataCompany?.overseas_bases ? selectedRowDataCompany?.overseas_bases : ""
                       }`}
-                      className={`${styles.value}`}
-                      onMouseEnter={(e) => handleOpenTooltip({ e })}
-                      onMouseLeave={handleCloseTooltip}
+                      className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
+                      // onMouseEnter={(e) => handleOpenTooltip({ e })}
+                      // onMouseLeave={handleCloseTooltip}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => {
+                        handleCloseTooltip();
+                        handleDoubleClickField({
+                          e,
+                          field: "overseas_bases",
+                          dispatch: setInputOverseas,
+                        });
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        handleOpenTooltip({ e });
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        handleCloseTooltip();
+                      }}
                     >
                       {selectedRowDataCompany?.overseas_bases ? selectedRowDataCompany?.overseas_bases : ""}
                     </span>
                   )}
+                  {/* サーチモード */}
                   {searchMode && (
                     <input
                       type="text"
@@ -1738,6 +2884,66 @@ const CompanyMainContainerMemo: FC = () => {
                       onChange={(e) => setInputOverseas(e.target.value)}
                     />
                   )}
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード inputタグ */}
+                  {!searchMode && isEditModeField === "overseas_bases" && (
+                    <>
+                      <input
+                        type="text"
+                        placeholder=""
+                        autoFocus
+                        className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                        value={inputOverseas}
+                        onChange={(e) => setInputOverseas(e.target.value)}
+                        onCompositionStart={() => setIsComposing(true)}
+                        onCompositionEnd={() => setIsComposing(false)}
+                        onKeyDown={(e) => {
+                          handleKeyDownUpdateField({
+                            e,
+                            fieldName: "overseas_bases",
+                            value: toHalfWidthAndSpace(inputOverseas.trim()),
+                            id: selectedRowDataCompany?.id,
+                            required: false,
+                          });
+                        }}
+                      />
+                      {/* 送信ボタンとクローズボタン */}
+                      {!updateClientCompanyFieldMutation.isLoading && (
+                        <InputSendAndCloseBtn
+                          inputState={inputOverseas}
+                          setInputState={setInputOverseas}
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                            handleClickSendUpdateField({
+                              e,
+                              fieldName: "overseas_bases",
+                              value: toHalfWidthAndSpace(inputOverseas.trim()),
+                              id: selectedRowDataCompany?.id,
+                              required: false,
+                            })
+                          }
+                          required={false}
+                          isDisplayClose={false}
+                        />
+                      )}
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateClientCompanyFieldMutation.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "overseas_bases" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -1748,18 +2954,37 @@ const CompanyMainContainerMemo: FC = () => {
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>グループ会社</span>
-                  {!searchMode && (
+                  {/* ディスプレイ */}
+                  {!searchMode && isEditModeField !== "group_company" && (
                     <span
-                      className={`${styles.value}`}
+                      className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
                       data-text={`${
                         selectedRowDataCompany?.group_company ? selectedRowDataCompany?.group_company : ""
                       }`}
-                      onMouseEnter={(e) => handleOpenTooltip({ e })}
-                      onMouseLeave={handleCloseTooltip}
+                      // onMouseEnter={(e) => handleOpenTooltip({ e })}
+                      // onMouseLeave={handleCloseTooltip}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => {
+                        handleCloseTooltip();
+                        handleDoubleClickField({
+                          e,
+                          field: "group_company",
+                          dispatch: setInputGroup,
+                        });
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        handleOpenTooltip({ e });
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        handleCloseTooltip();
+                      }}
                     >
                       {selectedRowDataCompany?.group_company ? selectedRowDataCompany?.group_company : ""}
                     </span>
                   )}
+                  {/* サーチ */}
                   {searchMode && (
                     <input
                       type="text"
@@ -1768,6 +2993,66 @@ const CompanyMainContainerMemo: FC = () => {
                       onChange={(e) => setInputGroup(e.target.value)}
                     />
                   )}
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード inputタグ */}
+                  {!searchMode && isEditModeField === "group_company" && (
+                    <>
+                      <input
+                        type="text"
+                        placeholder=""
+                        autoFocus
+                        className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                        value={inputGroup}
+                        onChange={(e) => setInputGroup(e.target.value)}
+                        onCompositionStart={() => setIsComposing(true)}
+                        onCompositionEnd={() => setIsComposing(false)}
+                        onKeyDown={(e) => {
+                          handleKeyDownUpdateField({
+                            e,
+                            fieldName: "group_company",
+                            value: toHalfWidthAndSpace(inputGroup.trim()),
+                            id: selectedRowDataCompany?.id,
+                            required: false,
+                          });
+                        }}
+                      />
+                      {/* 送信ボタンとクローズボタン */}
+                      {!updateClientCompanyFieldMutation.isLoading && (
+                        <InputSendAndCloseBtn
+                          inputState={inputGroup}
+                          setInputState={setInputGroup}
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                            handleClickSendUpdateField({
+                              e,
+                              fieldName: "group_company",
+                              value: toHalfWidthAndSpace(inputGroup.trim()),
+                              id: selectedRowDataCompany?.id,
+                              required: false,
+                            })
+                          }
+                          required={false}
+                          isDisplayClose={false}
+                        />
+                      )}
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateClientCompanyFieldMutation.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "group_company" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -1778,11 +3063,30 @@ const CompanyMainContainerMemo: FC = () => {
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>○法人番号</span>
-                  {!searchMode && (
-                    <span className={`${styles.value}`}>
+                  {/* ディスプレイ */}
+                  {!searchMode && isEditModeField !== "corporate_number" && (
+                    <span
+                      className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`} // onMouseEnter={(e) => handleOpenTooltip({ e })}
+                      // onMouseLeave={handleCloseTooltip}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => {
+                        handleDoubleClickField({
+                          e,
+                          field: "corporate_number",
+                          dispatch: setInputCorporateNum,
+                        });
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataCompany?.corporate_number ? selectedRowDataCompany?.corporate_number : ""}
                     </span>
                   )}
+                  {/* サーチ */}
                   {searchMode && (
                     <input
                       type="text"
@@ -1791,6 +3095,66 @@ const CompanyMainContainerMemo: FC = () => {
                       onChange={(e) => setInputCorporateNum(e.target.value)}
                     />
                   )}
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード inputタグ */}
+                  {!searchMode && isEditModeField === "corporate_number" && (
+                    <>
+                      <input
+                        type="text"
+                        placeholder=""
+                        autoFocus
+                        className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                        value={inputCorporateNum}
+                        onChange={(e) => setInputCorporateNum(e.target.value)}
+                        onCompositionStart={() => setIsComposing(true)}
+                        onCompositionEnd={() => setIsComposing(false)}
+                        onKeyDown={(e) => {
+                          handleKeyDownUpdateField({
+                            e,
+                            fieldName: "corporate_number",
+                            value: toHalfWidthAndSpace(inputCorporateNum.trim()),
+                            id: selectedRowDataCompany?.id,
+                            required: false,
+                          });
+                        }}
+                      />
+                      {/* 送信ボタンとクローズボタン */}
+                      {!updateClientCompanyFieldMutation.isLoading && (
+                        <InputSendAndCloseBtn
+                          inputState={inputCorporateNum}
+                          setInputState={setInputCorporateNum}
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                            handleClickSendUpdateField({
+                              e,
+                              fieldName: "corporate_number",
+                              value: toHalfWidthAndSpace(inputCorporateNum.trim()),
+                              id: selectedRowDataCompany?.id,
+                              required: false,
+                            })
+                          }
+                          required={false}
+                          isDisplayClose={false}
+                        />
+                      )}
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateClientCompanyFieldMutation.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "corporate_number" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>

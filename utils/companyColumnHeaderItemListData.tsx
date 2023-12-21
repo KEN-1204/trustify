@@ -250,17 +250,11 @@ const companyColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   // {
-  //   columnName: "created_by_company_id",
+  //   columnName: "id",
   //   columnWidth: "200px",
   //   isFrozen: false,
-  //   isOverflow: true,
+  //   isOverflow: false,
   // },
-  {
-    columnName: "id",
-    columnWidth: "200px",
-    isFrozen: false,
-    isOverflow: false,
-  },
 ];
 
 export const companyColumnHeaderItemListData: ColumnHeaderItemList[] = companyColumnHeaderItemListArray.map(

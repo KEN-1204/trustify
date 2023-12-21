@@ -2029,6 +2029,8 @@ const ActivityMainContainerMemo: FC = () => {
                           <option value="TEL発信(売後ﾌｫﾛｰ)">TEL発信(売後ﾌｫﾛｰ)</option>
                           <option value="TEL発信(ｱﾎﾟ組み)">TEL発信(ｱﾎﾟ組み)</option>
                           <option value="TEL発信(その他)">TEL発信(その他)</option>
+                          <option value="TEL受信(受動)">TEL受信(受動)</option>
+                          <option value="TEL受信(問合せ)">TEL受信(問合せ)</option>
                           <option value="Email受信">Email受信</option>
                           <option value="Email送信">Email送信</option>
                           <option value="その他">その他</option>

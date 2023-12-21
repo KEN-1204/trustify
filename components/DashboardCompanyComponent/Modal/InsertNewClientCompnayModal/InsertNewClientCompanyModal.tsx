@@ -11,6 +11,7 @@ import productCategoriesM from "@/utils/productCategoryM";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 import { BsChevronLeft } from "react-icons/bs";
+import { formatJapaneseAddress } from "@/utils/Helpers/formatJapaneseAddress";
 
 export const InsertNewClientCompanyModal = () => {
   const setIsOpenInsertNewClientCompanyModal = useDashboardStore((state) => state.setIsOpenInsertNewClientCompanyModal);
@@ -453,12 +454,13 @@ export const InsertNewClientCompanyModal = () => {
                     id="call_careful_reason"
                     cols={30}
                     rows={10}
-                    placeholder="※入力必須　住所を入力してください"
+                    placeholder="※入力必須　住所を入力してください （例：東京都千代田区千代田1-1）"
                     required
                     className={`${styles.textarea_box}`}
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
-                    onBlur={() => setAddress(toHalfWidth(address.trim()))}
+                    // onBlur={() => setAddress(toHalfWidth(address.trim()))}
+                    onBlur={() => setAddress(formatJapaneseAddress(address.trim()))}
                   ></textarea>
                 </div>
                 <div className={`${styles.underline}`}></div>
