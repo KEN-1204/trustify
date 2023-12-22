@@ -2383,6 +2383,39 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
     activity_created_at: "yyyy/MM/dd HH:mm:ss",
     activity_updated_at: "yyyy/MM/dd HH:mm:ss",
   };
+
+  // クレーム有無フラグ claim_flagフィールド
+  const flagMapping: { [key: string]: { [value: string]: React.JSX.Element } } = {
+    claim_flag: {
+      true: (
+        <div className={`${styles.grid_select_cell_header} `}>
+          <input
+            type="checkbox"
+            checked={true}
+            readOnly
+            className={`${styles.grid_select_cell_header_input} pointer-events-none`}
+          />
+          <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+          </svg>
+        </div>
+      ),
+      false: (
+        <div className={`${styles.grid_select_cell_header} `}>
+          <input
+            type="checkbox"
+            checked={false}
+            readOnly
+            className={`${styles.grid_select_cell_header_input} pointer-events-none`}
+          />
+          <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+          </svg>
+        </div>
+      ),
+    },
+  };
+
   const formatDisplayValue = (columnName: string, value: any) => {
     switch (columnName) {
       // 決算月 日本語は月を追加する
@@ -2927,6 +2960,10 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
                                 // 活動日、次回フォロー予定日、作成日時、更新日時はformat関数を通す
                                 if (columnName in formatDateMapping && value) {
                                   displayValue = format(new Date(value), formatDateMapping[columnName]);
+                                }
+                                // クレームフラグの変換処理
+                                if (columnName in flagMapping && value !== null) {
+                                  displayValue = flagMapping[columnName][String(value)];
                                 }
                                 displayValue = formatDisplayValue(columnName, displayValue);
                                 return (

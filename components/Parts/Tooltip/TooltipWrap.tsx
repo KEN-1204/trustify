@@ -34,6 +34,7 @@ export const TooltipWrap = () => {
       const viewportWidth = window.innerWidth;
       const viewportRightOneThird = (viewportWidth / 3) * 2; // 画面3分の2の幅
       const viewportRightOneFifth = (viewportWidth / 5) * 4; // 画面5分の4の幅
+      const viewportRightHalf = viewportWidth / 2; // 画面2分の1の幅
       const leftPosition = hoveredItemPositionX + hoveredItemHalfWidth;
       // const leftPosition = hoveredItemPositionX + tooltipWidth;
       let adjustedLeft = leftPosition;
@@ -47,10 +48,12 @@ export const TooltipWrap = () => {
       } else {
         // 画面右端を超えていないなら、画面左3分の2の位置よりも右の位置にある場合はnowrapにする
         if (adjustedLeft > viewportRightOneFifth) {
+          // if (adjustedLeft > viewportRightHalf) {
           const tooltipText = menuRef.current.querySelector(`.tooltip_text`);
           const tooltipTextWidth = tooltipText?.getBoundingClientRect().width;
           console.log("tooltipWidth", tooltipWidth, "tooltipTextWidth", tooltipTextWidth, "tooltipText", tooltipText);
-          menuRef.current.style.whiteSpace = "nowrap";
+          menuRef.current.style.minWidth = `max-content`;
+          // menuRef.current.style.whiteSpace = "nowrap";
           // if (!!tooltipTextWidth && tooltipTextWidth - 20 >= tooltipWidth) {
           //   console.log("こっち１");
           //   menuRef.current.style.whiteSpace = "nowrap";

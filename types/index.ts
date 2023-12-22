@@ -529,7 +529,8 @@ export type Contact = {
   position_name: string | null;
   position_class: string | null;
   occupation: string | null;
-  approval_amount: string | null;
+  // approval_amount: string | null;
+  approval_amount: number | null;
   email_ban_flag: boolean;
   sending_materials_ban_flag: boolean;
   fax_dm_ban_flag: boolean;
@@ -556,7 +557,8 @@ export type EditedContact = {
   position_name: string | null;
   position_class: string | null;
   occupation: string | null;
-  approval_amount: string | null;
+  // approval_amount: string | null;
+  approval_amount: number | null;
   email_ban_flag: boolean;
   sending_materials_ban_flag: boolean;
   fax_dm_ban_flag: boolean;
@@ -601,7 +603,7 @@ export type Contact_row_data = {
   overseas_bases: string | null;
   group_company: string | null;
   corporate_number: string | null;
-
+  // contactsテーブル
   direct_line: string | null;
   direct_fax: string | null;
   extension: string | null;
@@ -611,7 +613,8 @@ export type Contact_row_data = {
   position_name: string | null;
   position_class: string | null;
   occupation: string | null;
-  approval_amount: string | null;
+  // approval_amount: string | null;
+  approval_amount: number | null;
   created_by_company_id: string | null;
   created_by_user_id: string | null;
   created_by_department_of_user: string | null;
@@ -666,7 +669,8 @@ export type Activity_row_data = {
   position_name: string | null;
   position_class: string | null;
   occupation: string | null;
-  approval_amount: string | null;
+  // approval_amount: string | null;
+  approval_amount: number | null;
   contact_created_by_company_id: string | null;
   contact_created_by_user_id: string | null;
   contact_created_by_department_of_user: string | null;
@@ -748,7 +752,8 @@ export type Meeting_row_data = {
   position_name: string | null;
   position_class: string | null;
   occupation: string | null;
-  approval_amount: string | null;
+  // approval_amount: string | null;
+  approval_amount: number | null;
   contact_created_by_company_id: string | null;
   contact_created_by_user_id: string | null;
   contact_created_by_department_of_user: string | null;
@@ -839,7 +844,8 @@ export type ValidMeeting = {
   position_name: string | null;
   position_class: string | null;
   occupation: string | null;
-  approval_amount: string | null;
+  // approval_amount: string | null;
+  approval_amount: number | null;
   contact_created_by_company_id: string | null;
   contact_created_by_user_id: string | null;
   contact_created_by_department_of_user: string | null;
@@ -930,7 +936,8 @@ export type Property_row_data = {
   position_name: string | null;
   position_class: string | null;
   occupation: string | null;
-  approval_amount: string | null;
+  // approval_amount: string | null;
+  approval_amount: number | null;
   contact_created_by_company_id: string | null;
   contact_created_by_user_id: string | null;
   contact_created_by_department_of_user: string | null;
@@ -1095,7 +1102,8 @@ export type NewSearchContact_CompanyParams = {
   position_name: string | null;
   position_class: string | null;
   occupation: string | null;
-  approval_amount: string | null;
+  // approval_amount: string | null;
+  approval_amount: number | null;
   // created_by_company_id: string | null;
   "contacts.created_by_company_id": string | null;
   created_by_user_id: string | null;
@@ -1142,7 +1150,8 @@ export type NewSearchActivity_Contact_CompanyParams = {
   position_name: string | null;
   position_class: string | null;
   occupation: string | null;
-  approval_amount: string | null;
+  // approval_amount: string | null;
+  approval_amount: number | null;
   "contacts.created_by_company_id": string | null;
   "contacts.created_by_user_id": string | null;
 
@@ -1212,7 +1221,8 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   position_name: string | null;
   position_class: string | null;
   occupation: string | null;
-  approval_amount: string | null;
+  // approval_amount: string | null;
+  approval_amount: number | null;
   "contacts.created_by_company_id": string | null;
   "contacts.created_by_user_id": string | null;
 
@@ -1294,7 +1304,8 @@ export type NewSearchProperty_Contact_CompanyParams = {
   position_name: string | null;
   position_class: string | null;
   occupation: string | null;
-  approval_amount: string | null;
+  // approval_amount: string | null;
+  approval_amount: number | null;
   "contacts.created_by_company_id": string | null;
   "contacts.created_by_user_id": string | null;
 

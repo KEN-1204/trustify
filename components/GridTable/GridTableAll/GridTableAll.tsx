@@ -255,10 +255,13 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // ================== 🌟supabase本番サーバーデータフェッチ用の関数🌟 ==================
   const supabase = useSupabaseClient();
 
-  // 表示するカラム
-  const columnNamesObj = [...columnHeaderItemList]
-    .map((item, index) => item.columnName as keyof Client_company)
-    .join(", "); // columnNameのみの配列をオブジェクトに変換して取得 { column1, column2, ... }
+  // 初回表示(条件なし)でフェッチするフィールド テスト 先頭にidのカラム名を入れる これで、columnHeaderItemListにidを含めずに初回表示時でもidフィールドをフェッチできる。=> これをしないと、selectedRowDataCompanyにidが無くなるので、右下の活動履歴が表示されなくなる
+  // idを加えないとDBフェッチ時にidフィールドが含まれない
+  // const columnNamesObj = [...columnHeaderItemList]
+  const columnNamesObj = [
+    "id",
+    [...columnHeaderItemList].map((item, index) => item.columnName as keyof Client_company),
+  ].join(", "); // columnNameのみの配列をオブジェクトに変換して取得 { column1, column2, ... }
 
   // ユーザーState
   const userProfileState = useDashboardStore((state) => state.userProfileState);
@@ -301,8 +304,6 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
         from,
         to
       );
-
-      // const { data, error } = await supabase.from("client_companies").select(`${columnNamesObj}`).range(from, to);
 
       const { data, error, count } = await supabase
         .from("client_companies")
@@ -378,7 +379,9 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
         limit,
         "from, to",
         from,
-        to
+        to,
+        "selectするフィールドcolumnNamesObj",
+        columnNamesObj
       );
       // const { data, error } = await supabase.from("client_companies").select(`${columnNamesObj}`).range(from, to);
       // =====================成功 全ての会社(created_by_company_idの有無両方)切り替え無し=====================
@@ -473,6 +476,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       return { rows, nextOffset: offset + 1, isLastPage, count };
     };
   }
+  // ================== ✅初回表示時の条件なしサーバーデータフェッチ用の関数✅ ここまで ==================
 
   // ================== 🌟条件あり新規サーチサーバーデータフェッチ用の関数🌟 ==================
   // const queryClient = useQueryClient()
@@ -1067,7 +1071,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     // localStorage.setItem("grid_columns_contacts", columnHeaderItemListJSON);
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
   }, [gotData]); // gotDataのstateがtrueになったら再度実行
-  // ========================== 🌟useEffect ヘッダーカラム生成🌟 ここまで ==========================
+  // ========================== ✅useEffect ヘッダーカラム生成✅ ここまで ==========================
 
   // ================================== 🌟マウスイベント 列サイズ変更🌟 ==================================
   const handleMouseDown = (e: React.MouseEvent, index: number) => {
@@ -1265,7 +1269,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     window.addEventListener("mouseup", handleMouseUp);
     window.addEventListener("mousemove", handleMouseMove);
   };
-  // ============================== 🌟マウスイベント 列サイズ変更🌟 ここまで ==============================
+  // ============================== ✅マウスイベント 列サイズ変更✅ ここまで ==============================
 
   // ====================== 🌟１行目と２行目のインラインスタイルのleftに渡す用の関数 ======================
   const columnHeaderLeft = (index: number) => {
@@ -1555,6 +1559,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // const handleSelectedCheckBox = (e: React.ChangeEvent<HTMLInputElement>, id: number) => {
   const handleSelectedCheckBox = (e: React.ChangeEvent<HTMLInputElement>, index: string) => {
     // ================= 🔥🔥テスト🔥🔥==================
+    console.log("🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥テスト index", index);
     console.log(
       "前回のアクティブセル親列RowトラックのRowIndex",
       prevSelectedGridCellRef.current?.parentElement?.ariaRowIndex
@@ -1780,7 +1785,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       }
     }
   };
-  // ================= 🌟チェックボックスクリックでstateに選択したアイテムのidを追加🌟 ここまで =================
+  // ================= ✅チェックボックスクリックでstateに選択したアイテムのidを追加✅ ここまで =================
 
   // ================================= 🌟チェックボックス全選択🌟 =================================
   // チェックボックスヘッダーのON/OFFで全てのチェックボックスをtrue/false切り替え後、全てのidを選択中stateに反映

@@ -1121,7 +1121,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
     //     break;
     // }
   };
-  // ========= 🌟１行目と２行目のインラインスタイルのleftに渡す用の関数🌟 ここまで =========
+  // ========= ✅１行目と２行目のインラインスタイルのleftに渡す用の関数✅ ここまで =========
 
   // ========= 🌟各Grid行トラックのtopからの位置を返す関数 インラインスタイル内で実行 =========
   const gridRowTrackTopPosition = (index: number) => {
@@ -1368,6 +1368,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
   // const handleSelectedCheckBox = (e: React.ChangeEvent<HTMLInputElement>, id: number) => {
   const handleSelectedCheckBox = (e: React.ChangeEvent<HTMLInputElement>, index: string) => {
     // ================= 🔥🔥テスト🔥🔥==================
+    console.log("🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥テスト index", index);
     console.log(
       "前回のアクティブセル親列RowトラックのRowIndex",
       prevSelectedGridCellRef.current?.parentElement?.ariaRowIndex

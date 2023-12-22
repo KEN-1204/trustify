@@ -185,8 +185,10 @@ export const FallbackUnderRightActivityLog = () => {
               <p className="space-x-2 text-[13px] font-medium text-[#bbb]">
                 <span>/</span>
                 <span>
-                  {language === "ja" && `0 件`}
-                  {language === "en" && "0 records"}
+                  {/* {language === "ja" && `0 件`}
+                  {language === "en" && "0 records"} */}
+                  {language === "ja" && `- 件`}
+                  {language === "en" && "- records"}
                   {/* {language === "ja" && `/ -件`}
                   {language === "en" && "/ - records"} */}
                 </span>

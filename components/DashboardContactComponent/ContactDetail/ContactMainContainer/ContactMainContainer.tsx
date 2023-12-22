@@ -1,4 +1,4 @@
-import React, { FC, FormEvent, Suspense, memo, useEffect, useState } from "react";
+import React, { ChangeEvent, FC, FormEvent, Suspense, memo, useCallback, useEffect, useRef, useState } from "react";
 import styles from "../ContactDetail.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import useStore from "@/store";
@@ -14,6 +14,16 @@ import { Zoom } from "@/utils/Helpers/toastHelpers";
 import { FallbackUnderRightActivityLog } from "@/components/DashboardCompanyComponent/CompanyMainContainer/UnderRightActivityLog/FallbackUnderRightActivityLog";
 import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
+import { useMutateContact } from "@/hooks/useMutateContact";
+import { Contact, Contact_row_data } from "@/types";
+import { CiEdit } from "react-icons/ci";
+import { MdEdit, MdOutlineEdit, MdOutlineModeEditOutline } from "react-icons/md";
+import { RiEdit2Fill } from "react-icons/ri";
+import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
+import { InputSendAndCloseBtn } from "@/components/DashboardCompanyComponent/CompanyMainContainer/InputSendAndCloseBtn/InputSendAndCloseBtn";
+import { toHalfWidthAndSpace } from "@/utils/Helpers/toHalfWidthAndSpace";
+import { validateAndFormatPhoneNumber } from "@/utils/Helpers/validateAndFormatPhoneNumber";
+import { optionsOccupation, optionsPositionsClass } from "./selectOptionsData";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -43,59 +53,28 @@ const ContactMainContainerMemo: FC = () => {
   console.log("🔥 ContactMainContainerレンダリング searchMode", searchMode);
   const setHoveredItemPosWrap = useStore((state) => state.setHoveredItemPosWrap);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
+  const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
+  const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
+  const newSearchContact_CompanyParams = useDashboardStore((state) => state.newSearchContact_CompanyParams);
+  const setNewSearchContact_CompanyParams = useDashboardStore((state) => state.setNewSearchContact_CompanyParams);
+  const editSearchMode = useDashboardStore((state) => state.editSearchMode);
+  const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
+  const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   // 上画面の選択中の列データ会社
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
   const setSelectedRowDataContact = useDashboardStore((state) => state.setSelectedRowDataContact);
   // 担当者編集モーダルオープン
   const setIsOpenUpdateContactModal = useDashboardStore((state) => state.setIsOpenUpdateContactModal);
+  // 各フィールドの編集モード => ダブルクリックで各フィールド名をstateに格納し、各フィールドをエディットモードへ
+  const isEditModeField = useDashboardStore((state) => state.isEditModeField);
+  const setIsEditModeField = useDashboardStore((state) => state.setIsEditModeField);
+  const [isComposing, setIsComposing] = useState(false); // 日本語のように変換、確定が存在する言語入力の場合の日本語入力の変換中を保持するstate、日本語入力開始でtrue, エンターキーで変換確定した時にfalse
+  const [isValidInput, setIsValidInput] = useState(false);
 
-  const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string = "center") => {
-    // ホバーしたアイテムにツールチップを表示
-    const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
-    // console.log("ツールチップx, y width , height", x, y, width, height);
-    const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
-      ? ((e.target as HTMLDivElement).dataset.text2 as string)
-      : "";
-    const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
-      ? ((e.target as HTMLDivElement).dataset.text3 as string)
-      : "";
-    setHoveredItemPosWrap({
-      x: x,
-      y: y,
-      itemWidth: width,
-      itemHeight: height,
-      content: (e.target as HTMLDivElement).dataset.text as string,
-      content2: content2,
-      content3: content3,
-      display: display,
-    });
-  };
-  // ツールチップを非表示
-  const handleCloseTooltip = () => {
-    setHoveredItemPosWrap(null);
-  };
+  const supabase = useSupabaseClient();
 
-  // セルダブルクリック モーダル表示
-  // const handleDoubleClick = useCallback((e: React.MouseEvent<HTMLDivElement>, index: number, columnName: string) => {
-  //   console.log("ダブルクリック index", index);
-  //   if (columnName === "id") return console.log("ダブルクリック idのためリターン");
-  //   // if (index === 0) return console.log("リターン");
-  //   if (setTimeoutRef.current) {
-  //     clearTimeout(setTimeoutRef.current);
-
-  //     // console.log(e.detail);
-  //     setTimeoutRef.current = null;
-  //     // ダブルクリック時に実行したい処理
-  //     console.log("ダブルクリック", e.currentTarget);
-  //     // クリックした要素のテキストを格納
-  //     const text = e.currentTarget.innerText;
-  //     setTextareaInput(text);
-  //     setIsOpenEditModal(true);
-  //   }
-  // }, []);
-
-  const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
-  const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
+  // useMutation
+  const { updateContactFieldMutation } = useMutateContact();
 
   // 🌟サブミット
   const [inputCompanyName, setInputCompanyName] = useState("");
@@ -125,26 +104,19 @@ const ContactMainContainerMemo: FC = () => {
   const [inputGroup, setInputGroup] = useState("");
   const [inputCorporateNum, setInputCorporateNum] = useState("");
   // contactsテーブル
-  const [inputContactName, setInputContactName] = useState("");
-  const [inputDirectLine, setInputDirectLine] = useState("");
-  const [inputDirectFax, setInputDirectFax] = useState("");
-  const [inputExtension, setInputExtension] = useState("");
-  const [inputCompanyCellPhone, setInputCompanyCellPhone] = useState("");
-  const [inputPersonalCellPhone, setInputPersonalCellPhone] = useState("");
-  const [inputContactEmail, setInputContactEmail] = useState("");
-  const [inputPositionName, setInputPositionName] = useState("");
-  const [inputPositionClass, setInputPositionClass] = useState("");
-  const [inputOccupation, setInputOccupation] = useState("");
-  const [inputApprovalAmount, setInputApprovalAmount] = useState("");
-  const [inputCreatedByCompanyId, setInputCreatedByCompanyId] = useState("");
-  const [inputCreatedByUserId, setInputCreatedByUserId] = useState("");
-
-  const supabase = useSupabaseClient();
-  const newSearchContact_CompanyParams = useDashboardStore((state) => state.newSearchContact_CompanyParams);
-  const setNewSearchContact_CompanyParams = useDashboardStore((state) => state.setNewSearchContact_CompanyParams);
-  const editSearchMode = useDashboardStore((state) => state.editSearchMode);
-  const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
-  const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
+  const [inputContactName, setInputContactName] = useState(""); // 担当者名
+  const [inputDirectLine, setInputDirectLine] = useState(""); // 直通TEL
+  const [inputDirectFax, setInputDirectFax] = useState(""); // 直通Fax
+  const [inputExtension, setInputExtension] = useState(""); // 内線TEL
+  const [inputCompanyCellPhone, setInputCompanyCellPhone] = useState(""); // 社用携帯
+  const [inputPersonalCellPhone, setInputPersonalCellPhone] = useState(""); // 私用携帯
+  const [inputContactEmail, setInputContactEmail] = useState(""); // Email(担当者)
+  const [inputPositionName, setInputPositionName] = useState(""); // 役職名
+  const [inputPositionClass, setInputPositionClass] = useState(""); // 職位
+  const [inputOccupation, setInputOccupation] = useState(""); // 担当職種
+  const [inputApprovalAmount, setInputApprovalAmount] = useState(""); // 決裁金額 stringで入力してnumberに変換 ユーザーの入力が楽になるため(フォーマットもstringならしやすい)
+  const [inputCreatedByCompanyId, setInputCreatedByCompanyId] = useState(""); // どの会社が作成したか
+  const [inputCreatedByUserId, setInputCreatedByUserId] = useState(""); // どのユーザーが作成したか
 
   // サーチ編集モードでリプレイス前の値に復元する関数
   function beforeAdjustFieldValue(value: string | null) {
@@ -213,7 +185,13 @@ const ContactMainContainerMemo: FC = () => {
       setInputPositionName(beforeAdjustFieldValue(newSearchContact_CompanyParams.position_name));
       setInputPositionClass(beforeAdjustFieldValue(newSearchContact_CompanyParams.position_class));
       setInputOccupation(beforeAdjustFieldValue(newSearchContact_CompanyParams.occupation));
-      setInputApprovalAmount(beforeAdjustFieldValue(newSearchContact_CompanyParams.approval_amount));
+      setInputApprovalAmount(
+        beforeAdjustFieldValue(
+          newSearchContact_CompanyParams.approval_amount
+            ? newSearchContact_CompanyParams.approval_amount.toString()
+            : ""
+        )
+      );
       // setInputCreatedByCompanyId(beforeAdjustFieldValue(newSearchContact_CompanyParams.created_by_company_id));
       setInputCreatedByCompanyId(
         beforeAdjustFieldValue(newSearchContact_CompanyParams["contacts.created_by_company_id"])
@@ -271,6 +249,9 @@ const ContactMainContainerMemo: FC = () => {
   const handleSearchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    // フィールド編集モードがtrueならサブミットせずにリターン
+    if (isEditModeField) return console.log("サブミット フィールドエディットモードのためリターン");
+
     if (!userProfileState || !userProfileState.company_id) return alert("エラー：ユーザー情報が見つかりませんでした。");
 
     // // Asterisks to percent signs for PostgreSQL's LIKE operator
@@ -323,7 +304,7 @@ const ContactMainContainerMemo: FC = () => {
     let _position_name = adjustFieldValue(inputPositionName);
     let _position_class = adjustFieldValue(inputPositionClass);
     let _occupation = adjustFieldValue(inputOccupation);
-    let _approval_amount = adjustFieldValue(inputApprovalAmount);
+    let _approval_amount = adjustFieldValue(inputApprovalAmount) ? parseInt(inputApprovalAmount, 10) : null;
     let _created_by_company_id = adjustFieldValue(inputCreatedByCompanyId);
     let _created_by_user_id = adjustFieldValue(inputCreatedByUserId);
 
@@ -457,7 +438,370 @@ const ContactMainContainerMemo: FC = () => {
     // setLoadingGlobalState(false);
   };
 
-  // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
+  // ================== 🌟ツールチップ ==================
+  const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string = "center") => {
+    // ホバーしたアイテムにツールチップを表示
+    const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+    // console.log("ツールチップx, y width , height", x, y, width, height);
+    const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
+      ? ((e.target as HTMLDivElement).dataset.text2 as string)
+      : "";
+    const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
+      ? ((e.target as HTMLDivElement).dataset.text3 as string)
+      : "";
+    setHoveredItemPosWrap({
+      x: x,
+      y: y,
+      itemWidth: width,
+      itemHeight: height,
+      content: (e.target as HTMLDivElement).dataset.text as string,
+      content2: content2,
+      content3: content3,
+      display: display,
+    });
+  };
+  // ツールチップを非表示
+  const handleCloseTooltip = () => {
+    setHoveredItemPosWrap(null);
+  };
+  // ================== ✅ツールチップ ==================
+
+  // ================== 🌟シングルクリック、ダブルクリックイベント🌟 ==================
+  // ダブルクリックで各フィールドごとに個別で編集
+  const setTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // 選択行データが自社専用の会社データかどうか
+  const isOurContact =
+    !!userProfileState?.company_id &&
+    !!selectedRowDataContact?.created_by_company_id &&
+    selectedRowDataContact.created_by_company_id === userProfileState.company_id;
+
+  // シングルクリック => 何もアクションなし
+  const handleSingleClickField = useCallback(
+    (e: React.MouseEvent<HTMLSpanElement>) => {
+      // 自社で作成した会社でない場合はそのままリターン
+      if (!isOurContact) return;
+      if (setTimeoutRef.current !== null) return;
+
+      setTimeoutRef.current = setTimeout(() => {
+        setTimeoutRef.current = null;
+        // シングルクリック時に実行したい処理
+        // 0.2秒後に実行されてしまうためここには書かない
+      }, 200);
+      console.log("シングルクリック");
+    },
+    [isOurContact]
+  );
+
+  // const originalOptionRef = useRef(""); // 同じ選択肢選択時にエディットモード終了用
+  // 編集前のダブルクリック時の値を保持 => 変更されたかどうかを確認
+  const originalValueFieldEdit = useRef("");
+  type DoubleClickProps = {
+    e: React.MouseEvent<HTMLSpanElement>;
+    field: string;
+    dispatch: React.Dispatch<React.SetStateAction<any>>;
+    // isSelectChangeEvent?: boolean;
+  };
+  // ダブルクリック => ダブルクリックしたフィールドを編集モードに変更
+  const handleDoubleClickField = useCallback(
+    ({ e, field, dispatch }: DoubleClickProps) => {
+      // 自社で作成した会社でない場合はそのままリターン
+      if (!isOurContact) return;
+
+      console.log(
+        "ダブルクリック",
+        "field",
+        field,
+        "e.currentTarget.innerText",
+        e.currentTarget.innerText,
+        "e.currentTarget.innerHTML",
+        e.currentTarget.innerHTML
+      );
+      if (setTimeoutRef.current) {
+        clearTimeout(setTimeoutRef.current);
+
+        // console.log(e.detail);
+        setTimeoutRef.current = null;
+        // ダブルクリック時に実行したい処理
+        // クリックした要素のテキストを格納
+        // const text = e.currentTarget.innerText;
+        let text;
+        text = e.currentTarget.innerHTML;
+        if (field === "fiscal_end_month") {
+          text = text.replace(/月/g, ""); // 決算月の場合は、1月の月を削除してstateに格納 optionタグのvalueと一致させるため
+        }
+        originalValueFieldEdit.current = text;
+        dispatch(text); // 編集モードでinputStateをクリックした要素のテキストを初期値に設定
+        setIsEditModeField(field); // クリックされたフィールドの編集モードを開く
+        // if (isSelectChangeEvent) originalOptionRef.current = e.currentTarget.innerText; // selectタグ同じ選択肢選択時の編集モード終了用
+      }
+    },
+    [isOurContact, setIsEditModeField]
+  );
+  // ================== ✅シングルクリック、ダブルクリックイベント✅ ==================
+  // プロパティ名のユニオン型の作成
+  // Client_company_row_data型の全てのプロパティ名をリテラル型のユニオンとして展開
+  // type ContactFieldNames = keyof Contact_row_data;
+  type ContactFieldNames = keyof Contact;
+  type ExcludeKeys = "company_id" | "contact_id"; // 除外するキー
+  type ContactFieldNamesForSelectedRowData = Exclude<keyof Contact_row_data, ExcludeKeys>; // Contact_row_dataタイプのプロパティ名のみのデータ型を取得
+  // ================== 🌟エンターキーで個別フィールドをアップデート inputタグ ==================
+  const handleKeyDownUpdateField = async ({
+    e,
+    fieldName,
+    fieldNameForSelectedRowData,
+    originalValue,
+    newValue,
+    id,
+    required,
+  }: {
+    e: React.KeyboardEvent<HTMLInputElement>;
+    // fieldName: string;
+    fieldName: ContactFieldNames;
+    fieldNameForSelectedRowData: ContactFieldNamesForSelectedRowData;
+    originalValue: any;
+    newValue: any;
+    id: string | undefined;
+    required: boolean;
+  }) => {
+    // 日本語入力変換中はtrueで変換確定のエンターキーではUPDATEクエリが実行されないようにする
+    // 英語などの入力変換が存在しない言語ではisCompositionStartは発火しないため常にfalse
+    if (e.key === "Enter" && !isComposing) {
+      if (required && (newValue === "" || newValue === null))
+        return toast.info(`この項目は入力が必須です。`, { autoClose: 3000 });
+
+      // 先にアンダーラインが残らないようにremoveしておく
+      e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+
+      if (!id || !selectedRowDataContact) {
+        toast.error(`エラー：データが見つかりませんでした。`, { autoClose: 3000 });
+        return;
+      }
+      console.log(
+        "フィールドアップデート エンターキー",
+        " ・フィールド名:",
+        fieldName,
+        " ・結合フィールド名:",
+        fieldNameForSelectedRowData,
+        " ・元の値:",
+        originalValue,
+        " ・新たな値:",
+        newValue
+      );
+      // 入力値が現在のvalueと同じであれば更新は不要なため閉じてリターン
+      if (originalValue === newValue) {
+        console.log("同じためリターン");
+        setIsEditModeField(null); // エディットモードを終了
+        return;
+      }
+      // 資本金などのint4(integer), int8(BIGINT)などは数値型に変換して入力値と現在のvalueを比較する
+      if (["capital"].includes(fieldName)) {
+        if (originalValue === Number(newValue)) {
+          console.log("数値型に変換 同じためリターン", fieldName, "Number(newValue)", Number(newValue));
+          setIsEditModeField(null); // エディットモードを終了
+          return;
+        }
+      }
+
+      const updatePayload = {
+        fieldName: fieldName,
+        fieldNameForSelectedRowData: fieldNameForSelectedRowData,
+        newValue: newValue,
+        id: id,
+      };
+      // 入力変換確定状態でエンターキーが押された場合の処理
+      console.log("onKeyDownイベント エンターキーが入力確定状態でクリック UPDATE実行 updatePayload", updatePayload);
+      await updateContactFieldMutation.mutateAsync(updatePayload);
+      originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
+      setIsEditModeField(null); // エディットモードを終了
+    }
+  };
+  // ================== ✅エンターキーで個別フィールドをアップデート inputタグ✅ ==================
+  // ================== 🌟エンターキーで個別フィールドをアップデート textareaタグ🌟 ==================
+  const handleKeyDownUpdateFieldTextarea = async ({
+    e,
+    fieldName,
+    fieldNameForSelectedRowData,
+    originalValue,
+    newValue,
+    id,
+    required,
+    preventNewLine = false,
+  }: {
+    e: React.KeyboardEvent<HTMLTextAreaElement>;
+    // fieldName: string;
+    fieldName: ContactFieldNames;
+    fieldNameForSelectedRowData: ContactFieldNamesForSelectedRowData;
+    originalValue: any;
+    newValue: any;
+    id: string | undefined;
+    required: boolean;
+    preventNewLine?: boolean;
+  }) => {
+    // 日本語入力変換中はtrueで変換確定のエンターキーではUPDATEクエリが実行されないようにする
+    // 英語などの入力変換が存在しない言語ではisCompositionStartは発火しないため常にfalse
+    if (e.key === "Enter" && !isComposing && !e.shiftKey) {
+      if (preventNewLine) e.preventDefault(); // preventNewLineがtrueなら改行動作を阻止
+      if (required && (newValue === "" || newValue === null))
+        return toast.info(`この項目は入力が必須です。`, { autoClose: 3000 });
+
+      // 先にアンダーラインが残らないようにremoveしておく
+      e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+
+      if (!id || !selectedRowDataContact) {
+        toast.error(`エラー：データが見つかりませんでした。`, { autoClose: 3000 });
+        return;
+      }
+      // 入力値が現在のvalueと同じであれば更新は不要なため閉じてリターン
+      if (originalValue === newValue) {
+        console.log("同じためリターン");
+        setIsEditModeField(null); // エディットモードを終了
+        return;
+      }
+
+      console.log(
+        "フィールドアップデート テキストエリア",
+        " ・フィールド名:",
+        fieldName,
+        " ・結合フィールド名:",
+        fieldNameForSelectedRowData,
+        " ・元の値:",
+        originalValue,
+        " ・新たな値:",
+        newValue
+      );
+
+      const updatePayload = {
+        fieldName: fieldName,
+        fieldNameForSelectedRowData: fieldNameForSelectedRowData,
+        newValue: newValue,
+        id: id,
+      };
+      // 入力変換確定状態でエンターキーが押された場合の処理
+      console.log("onKeyDownイベント エンターキーが入力確定状態でクリック UPDATE実行 updatePayload", updatePayload);
+      await updateContactFieldMutation.mutateAsync(updatePayload);
+      originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
+      setIsEditModeField(null); // エディットモードを終了
+    }
+  };
+  // ================== ✅エンターキーで個別フィールドをアップデート textareaタグ ==================
+  // ================== 🌟Sendキーで個別フィールドをアップデート ==================
+  const handleClickSendUpdateField = async ({
+    e,
+    fieldName,
+    fieldNameForSelectedRowData,
+    originalValue,
+    newValue,
+    id,
+    required,
+  }: {
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>;
+    // fieldName: string;
+    fieldName: ContactFieldNames;
+    fieldNameForSelectedRowData: ContactFieldNamesForSelectedRowData;
+    originalValue: any;
+    newValue: any;
+    id: string | undefined;
+    required: boolean;
+  }) => {
+    if (required && (newValue === "" || newValue === null))
+      return toast.info(`この項目は入力が必須です。`, { autoClose: 3000 });
+
+    e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+
+    if (!id || !selectedRowDataContact) {
+      toast.error(`エラー：データが見つかりませんでした。`, { autoClose: 3000 });
+      return;
+    }
+
+    console.log(
+      "フィールドアップデート Sendキー",
+      "フィールド名: ",
+      fieldName,
+      "結合フィールド名: ",
+      fieldNameForSelectedRowData,
+      "元の値: ",
+      originalValue,
+      "新たな値: ",
+      newValue
+    );
+
+    // 入力値が現在のvalueと同じであれば更新は不要なため閉じてリターン
+    if (originalValue === newValue) {
+      console.log("同じためリターン", "originalValue", originalValue, "newValue", newValue);
+      setIsEditModeField(null); // エディットモードを終了
+      return;
+    }
+
+    const updatePayload = {
+      fieldName: fieldName,
+      fieldNameForSelectedRowData: fieldNameForSelectedRowData,
+      newValue: newValue,
+      id: id,
+    };
+    // 入力変換確定状態でエンターキーが押された場合の処理
+    console.log("sendアイコンクリックでUPDATE実行 updatePayload", updatePayload);
+    await updateContactFieldMutation.mutateAsync(updatePayload);
+    originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
+    setIsEditModeField(null); // エディットモードを終了
+  };
+  // ================== ✅Sendキーで個別フィールドをアップデート ==================
+  // ================== 🌟セレクトボックスで個別フィールドをアップデート ==================
+
+  const handleChangeSelectUpdateField = async ({
+    e,
+    fieldName,
+    fieldNameForSelectedRowData,
+    originalValue,
+    newValue,
+    id,
+  }: {
+    e: ChangeEvent<HTMLSelectElement>;
+    // fieldName: string;
+    fieldName: ContactFieldNames;
+    fieldNameForSelectedRowData: ContactFieldNamesForSelectedRowData;
+    originalValue: any;
+    newValue: any;
+    id: string | undefined;
+  }) => {
+    e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+
+    if (!id || !selectedRowDataContact) {
+      toast.error(`エラー：データが見つかりませんでした。`, { autoClose: 3000 });
+      return;
+    }
+    // 入力値が現在のvalueと同じであれば更新は不要なため閉じてリターン
+    if (originalValue === newValue) {
+      console.log("同じためリターン");
+      setIsEditModeField(null); // エディットモードを終了
+      return;
+    }
+
+    console.log(
+      "フィールドアップデート セレクトボックス",
+      " ・フィールド名:",
+      fieldName,
+      " ・結合フィールド名:",
+      fieldNameForSelectedRowData,
+      " ・元の値:",
+      originalValue,
+      " ・新たな値:",
+      newValue
+    );
+
+    const updatePayload = {
+      fieldName: fieldName,
+      fieldNameForSelectedRowData: fieldNameForSelectedRowData,
+      newValue: newValue,
+      id: id,
+    };
+    // 入力変換確定状態でエンターキーが押された場合の処理
+    console.log("selectタグでUPDATE実行 updatePayload", updatePayload);
+    await updateContactFieldMutation.mutateAsync(updatePayload);
+    originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
+    setIsEditModeField(null); // エディットモードを終了
+  };
+  // ================== ✅セレクトボックスで個別フィールドをアップデート ==================
+
   return (
     <form className={`${styles.main_container} w-full `} onSubmit={handleSearchSubmit}>
       {/* ------------------------- スクロールコンテナ ------------------------- */}
@@ -479,11 +823,23 @@ const ContactMainContainerMemo: FC = () => {
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>●会社名</span>
+                  {/* ディスプレイ */}
                   {!searchMode && (
-                    <span className={`${styles.value} ${styles.value_highlight}`}>
+                    <span
+                      className={`${styles.value} ${styles.value_highlight} ${styles.uneditable_field}`}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataContact?.company_name ? selectedRowDataContact?.company_name : ""}
                     </span>
                   )}
+                  {/* <CiEdit className="min-h-[22px] min-w-[22px] text-[22px] text-[var(--color-text-sub)]" /> */}
+                  {/* <MdEdit className="min-h-[22px] min-w-[22px] text-[22px] text-[var(--color-text-sub)]" /> */}
+                  {/* サーチ */}
                   {searchMode && (
                     <input
                       type="text"
@@ -505,7 +861,15 @@ const ContactMainContainerMemo: FC = () => {
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>●部署名</span>
                   {!searchMode && (
-                    <span className={`${styles.value}`}>
+                    <span
+                      className={`${styles.value} ${styles.uneditable_field}`}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataContact?.department_name ? selectedRowDataContact?.department_name : ""}
                     </span>
                   )}
@@ -527,9 +891,25 @@ const ContactMainContainerMemo: FC = () => {
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>担当者名</span>
-                  {!searchMode && (
-                    <span className={`${styles.value}`}>
+                  <span className={`${styles.title}`}>●担当者名</span>
+                  {!searchMode && isEditModeField !== "name" && (
+                    <span
+                      className={`${styles.value} ${isOurContact ? styles.editable_field : styles.uneditable_field}`}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => {
+                        handleDoubleClickField({
+                          e,
+                          field: "name",
+                          dispatch: setInputContactName,
+                        });
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataContact?.contact_name ? selectedRowDataContact?.contact_name : ""}
                     </span>
                   )}
@@ -542,14 +922,94 @@ const ContactMainContainerMemo: FC = () => {
                       onChange={(e) => setInputContactName(e.target.value)}
                     />
                   )}
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード inputタグ */}
+                  {!searchMode && isEditModeField === "name" && (
+                    <>
+                      <input
+                        type="text"
+                        placeholder=""
+                        autoFocus
+                        className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                        value={inputContactName}
+                        onChange={(e) => setInputContactName(e.target.value)}
+                        onCompositionStart={() => setIsComposing(true)}
+                        onCompositionEnd={() => setIsComposing(false)}
+                        onKeyDown={(e) =>
+                          handleKeyDownUpdateField({
+                            e,
+                            fieldName: "name",
+                            fieldNameForSelectedRowData: "contact_name",
+                            originalValue: originalValueFieldEdit.current,
+                            newValue: toHalfWidthAndSpace(inputContactName.trim()),
+                            id: selectedRowDataContact?.contact_id,
+                            required: true,
+                          })
+                        }
+                      />
+                      {/* 送信ボタンとクローズボタン */}
+                      {!updateContactFieldMutation.isLoading && (
+                        <InputSendAndCloseBtn
+                          inputState={inputContactName}
+                          setInputState={setInputContactName}
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                            handleClickSendUpdateField({
+                              e,
+                              fieldName: "name",
+                              fieldNameForSelectedRowData: "contact_name",
+                              originalValue: originalValueFieldEdit.current,
+                              newValue: toHalfWidthAndSpace(inputContactName.trim()),
+                              id: selectedRowDataContact?.contact_id,
+                              required: true,
+                            })
+                          }
+                          required={true}
+                          isDisplayClose={false}
+                        />
+                      )}
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateContactFieldMutation.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "name" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
                   <span className={`${styles.title}`}>直通TEL</span>
-                  {!searchMode && (
-                    <span className={`${styles.value}`}>
+                  {!searchMode && isEditModeField !== "direct_line" && (
+                    <span
+                      className={`${styles.value} ${isOurContact ? styles.editable_field : styles.uneditable_field}`}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => {
+                        handleDoubleClickField({
+                          e,
+                          field: "direct_line",
+                          dispatch: setInputDirectLine,
+                        });
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataContact?.direct_line ? selectedRowDataContact?.direct_line : ""}
                     </span>
                   )}
@@ -561,6 +1021,93 @@ const ContactMainContainerMemo: FC = () => {
                       onChange={(e) => setInputDirectLine(e.target.value)}
                     />
                   )}
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード inputタグ */}
+                  {!searchMode && isEditModeField === "direct_line" && (
+                    <>
+                      <input
+                        type="tel"
+                        placeholder=""
+                        autoFocus
+                        className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                        value={inputDirectLine}
+                        onChange={(e) => setInputDirectLine(e.target.value)}
+                        onCompositionStart={() => setIsComposing(true)}
+                        onCompositionEnd={() => setIsComposing(false)}
+                        onKeyDown={(e) => {
+                          // 電話番号用バリデーションチェック
+                          if (e.key === "Enter" && !isComposing) {
+                            const { isValid, formattedNumber } = validateAndFormatPhoneNumber(inputDirectLine.trim());
+                            if (!isValid) {
+                              setInputTel(formattedNumber);
+                              toast.error(
+                                `有効な電話番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`,
+                                { position: "bottom-center", autoClose: false, transition: Zoom }
+                              );
+                              return;
+                            }
+
+                            handleKeyDownUpdateField({
+                              e,
+                              fieldName: "direct_line",
+                              fieldNameForSelectedRowData: "direct_line",
+                              originalValue: originalValueFieldEdit.current,
+                              newValue: formattedNumber,
+                              id: selectedRowDataContact?.contact_id,
+                              required: false,
+                            });
+                          }
+                        }}
+                      />
+                      {/* 送信ボタンとクローズボタン */}
+                      {!updateContactFieldMutation.isLoading && (
+                        <InputSendAndCloseBtn
+                          inputState={inputDirectLine}
+                          setInputState={setInputDirectLine}
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                            const { isValid, formattedNumber } = validateAndFormatPhoneNumber(inputDirectLine.trim());
+                            if (!isValid) {
+                              setInputTel(formattedNumber);
+                              toast.error(
+                                `有効な電話番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`,
+                                { position: "bottom-center", autoClose: false, transition: Zoom }
+                              );
+                              return;
+                            }
+
+                            handleClickSendUpdateField({
+                              e,
+                              fieldName: "direct_line",
+                              fieldNameForSelectedRowData: "contact_name",
+                              originalValue: originalValueFieldEdit.current,
+                              newValue: formattedNumber,
+                              id: selectedRowDataContact?.contact_id,
+                              required: false,
+                            });
+                          }}
+                          required={false}
+                          isDisplayClose={false}
+                        />
+                      )}
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateContactFieldMutation.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "direct_line" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -571,8 +1118,24 @@ const ContactMainContainerMemo: FC = () => {
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>内線TEL</span>
-                  {!searchMode && (
-                    <span className={`${styles.value}`}>
+                  {!searchMode && isEditModeField !== "extension" && (
+                    <span
+                      className={`${styles.value} ${isOurContact ? styles.editable_field : styles.uneditable_field}`}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => {
+                        handleDoubleClickField({
+                          e,
+                          field: "extension",
+                          dispatch: setInputExtension,
+                        });
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataContact?.extension ? selectedRowDataContact?.extension : ""}
                     </span>
                   )}
@@ -585,6 +1148,93 @@ const ContactMainContainerMemo: FC = () => {
                       onChange={(e) => setInputExtension(e.target.value)}
                     />
                   )}
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード inputタグ */}
+                  {!searchMode && isEditModeField === "extension" && (
+                    <>
+                      <input
+                        type="tel"
+                        placeholder=""
+                        autoFocus
+                        className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                        value={inputExtension}
+                        onChange={(e) => setInputExtension(e.target.value)}
+                        onCompositionStart={() => setIsComposing(true)}
+                        onCompositionEnd={() => setIsComposing(false)}
+                        onKeyDown={(e) => {
+                          // 電話番号用バリデーションチェック
+                          if (e.key === "Enter" && !isComposing) {
+                            const { isValid, formattedNumber } = validateAndFormatPhoneNumber(inputExtension.trim());
+                            if (!isValid) {
+                              setInputTel(formattedNumber);
+                              toast.error(
+                                `有効な電話番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`,
+                                { position: "bottom-center", autoClose: false, transition: Zoom }
+                              );
+                              return;
+                            }
+
+                            handleKeyDownUpdateField({
+                              e,
+                              fieldName: "extension",
+                              fieldNameForSelectedRowData: "extension",
+                              originalValue: originalValueFieldEdit.current,
+                              newValue: formattedNumber,
+                              id: selectedRowDataContact?.contact_id,
+                              required: false,
+                            });
+                          }
+                        }}
+                      />
+                      {/* 送信ボタンとクローズボタン */}
+                      {!updateContactFieldMutation.isLoading && (
+                        <InputSendAndCloseBtn
+                          inputState={inputExtension}
+                          setInputState={setInputExtension}
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                            const { isValid, formattedNumber } = validateAndFormatPhoneNumber(inputExtension.trim());
+                            if (!isValid) {
+                              setInputTel(formattedNumber);
+                              toast.error(
+                                `有効な電話番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`,
+                                { position: "bottom-center", autoClose: false, transition: Zoom }
+                              );
+                              return;
+                            }
+
+                            handleClickSendUpdateField({
+                              e,
+                              fieldName: "extension",
+                              fieldNameForSelectedRowData: "contact_name",
+                              originalValue: originalValueFieldEdit.current,
+                              newValue: formattedNumber,
+                              id: selectedRowDataContact?.contact_id,
+                              required: false,
+                            });
+                          }}
+                          required={false}
+                          isDisplayClose={false}
+                        />
+                      )}
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateContactFieldMutation.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "extension" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -592,7 +1242,7 @@ const ContactMainContainerMemo: FC = () => {
                 <div className={`${styles.title_box} flex h-full items-center`}>
                   <span className={`${styles.title}`}>代表TEL</span>
                   {!searchMode && (
-                    <span className={`${styles.value}`}>
+                    <span className={`${styles.value} ${styles.uneditable_field}`}>
                       {selectedRowDataContact?.main_phone_number ? selectedRowDataContact?.main_phone_number : ""}
                     </span>
                   )}
@@ -614,8 +1264,24 @@ const ContactMainContainerMemo: FC = () => {
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>直通FAX</span>
-                  {!searchMode && (
-                    <span className={`${styles.value}`}>
+                  {!searchMode && isEditModeField !== "direct_fax" && (
+                    <span
+                      className={`${styles.value} ${isOurContact ? styles.editable_field : styles.uneditable_field}`}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => {
+                        handleDoubleClickField({
+                          e,
+                          field: "direct_fax",
+                          dispatch: setInputDirectFax,
+                        });
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataContact?.direct_fax ? selectedRowDataContact?.direct_fax : ""}
                     </span>
                   )}
@@ -627,6 +1293,95 @@ const ContactMainContainerMemo: FC = () => {
                       onChange={(e) => setInputDirectFax(e.target.value)}
                     />
                   )}
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード inputタグ */}
+                  {!searchMode && isEditModeField === "direct_fax" && (
+                    <>
+                      <input
+                        type="tel"
+                        placeholder=""
+                        autoFocus
+                        className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                        value={inputDirectFax}
+                        onChange={(e) => setInputDirectFax(e.target.value)}
+                        onCompositionStart={() => setIsComposing(true)}
+                        onCompositionEnd={() => setIsComposing(false)}
+                        onKeyDown={(e) => {
+                          // 電話番号用バリデーションチェック
+                          if (e.key === "Enter" && !isComposing) {
+                            const { isValid, formattedNumber } = validateAndFormatPhoneNumber(inputDirectFax.trim());
+                            if (!isValid) {
+                              setInputTel(formattedNumber);
+                              toast.error(`有効なFax番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`, {
+                                position: "bottom-center",
+                                autoClose: false,
+                                transition: Zoom,
+                              });
+                              return;
+                            }
+
+                            handleKeyDownUpdateField({
+                              e,
+                              fieldName: "direct_fax",
+                              fieldNameForSelectedRowData: "direct_fax",
+                              originalValue: originalValueFieldEdit.current,
+                              newValue: formattedNumber,
+                              id: selectedRowDataContact?.contact_id,
+                              required: false,
+                            });
+                          }
+                        }}
+                      />
+                      {/* 送信ボタンとクローズボタン */}
+                      {!updateContactFieldMutation.isLoading && (
+                        <InputSendAndCloseBtn
+                          inputState={inputDirectFax}
+                          setInputState={setInputDirectFax}
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                            const { isValid, formattedNumber } = validateAndFormatPhoneNumber(inputDirectFax.trim());
+                            if (!isValid) {
+                              setInputTel(formattedNumber);
+                              toast.error(`有効なFax番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`, {
+                                position: "bottom-center",
+                                autoClose: false,
+                                transition: Zoom,
+                              });
+                              return;
+                            }
+
+                            handleClickSendUpdateField({
+                              e,
+                              fieldName: "direct_fax",
+                              fieldNameForSelectedRowData: "direct_fax",
+                              originalValue: originalValueFieldEdit.current,
+                              newValue: formattedNumber,
+                              id: selectedRowDataContact?.contact_id,
+                              required: false,
+                            });
+                          }}
+                          required={false}
+                          isDisplayClose={false}
+                        />
+                      )}
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateContactFieldMutation.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "direct_fax" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -635,7 +1390,7 @@ const ContactMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>代表FAX</span>
                   {/* <span className={`${styles.title}`}>会員専用</span> */}
                   {!searchMode && (
-                    <span className={`${styles.value}`}>
+                    <span className={`${styles.value} ${styles.uneditable_field}`}>
                       {selectedRowDataContact?.main_fax ? selectedRowDataContact?.main_fax : ""}
                     </span>
                   )}
@@ -663,38 +1418,256 @@ const ContactMainContainerMemo: FC = () => {
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>社用携帯</span>
-                  {!searchMode && (
-                    <span className={`${styles.value}`}>
+                  {!searchMode && isEditModeField !== "company_cell_phone" && (
+                    <span
+                      className={`${styles.value} ${isOurContact ? styles.editable_field : styles.uneditable_field}`}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => {
+                        handleDoubleClickField({
+                          e,
+                          field: "company_cell_phone",
+                          dispatch: setInputCompanyCellPhone,
+                        });
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataContact?.company_cell_phone ? selectedRowDataContact?.company_cell_phone : ""}
                     </span>
                   )}
                   {searchMode && (
                     <input
-                      type="text"
+                      type="tel"
                       className={`${styles.input_box}`}
                       value={inputCompanyCellPhone}
                       onChange={(e) => setInputCompanyCellPhone(e.target.value)}
                     />
                   )}
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード inputタグ */}
+                  {!searchMode && isEditModeField === "company_cell_phone" && (
+                    <>
+                      <input
+                        type="tel"
+                        placeholder=""
+                        autoFocus
+                        className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                        value={inputCompanyCellPhone}
+                        onChange={(e) => setInputCompanyCellPhone(e.target.value)}
+                        onCompositionStart={() => setIsComposing(true)}
+                        onCompositionEnd={() => setIsComposing(false)}
+                        onKeyDown={(e) => {
+                          // 電話番号用バリデーションチェック
+                          if (e.key === "Enter" && !isComposing) {
+                            const { isValid, formattedNumber } = validateAndFormatPhoneNumber(
+                              inputCompanyCellPhone.trim()
+                            );
+                            if (!isValid) {
+                              setInputTel(formattedNumber);
+                              toast.error(`有効な番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`, {
+                                position: "bottom-center",
+                                autoClose: false,
+                                transition: Zoom,
+                              });
+                              return;
+                            }
+
+                            handleKeyDownUpdateField({
+                              e,
+                              fieldName: "company_cell_phone",
+                              fieldNameForSelectedRowData: "company_cell_phone",
+                              originalValue: originalValueFieldEdit.current,
+                              newValue: formattedNumber,
+                              id: selectedRowDataContact?.contact_id,
+                              required: false,
+                            });
+                          }
+                        }}
+                      />
+                      {/* 送信ボタンとクローズボタン */}
+                      {!updateContactFieldMutation.isLoading && (
+                        <InputSendAndCloseBtn
+                          inputState={inputCompanyCellPhone}
+                          setInputState={setInputCompanyCellPhone}
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                            const { isValid, formattedNumber } = validateAndFormatPhoneNumber(
+                              inputCompanyCellPhone.trim()
+                            );
+                            if (!isValid) {
+                              setInputTel(formattedNumber);
+                              toast.error(`有効な番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`, {
+                                position: "bottom-center",
+                                autoClose: false,
+                                transition: Zoom,
+                              });
+                              return;
+                            }
+
+                            handleClickSendUpdateField({
+                              e,
+                              fieldName: "company_cell_phone",
+                              fieldNameForSelectedRowData: "company_cell_phone",
+                              originalValue: originalValueFieldEdit.current,
+                              newValue: formattedNumber,
+                              id: selectedRowDataContact?.contact_id,
+                              required: false,
+                            });
+                          }}
+                          required={false}
+                          isDisplayClose={false}
+                        />
+                      )}
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateContactFieldMutation.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "company_cell_phone" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
                   <span className={`${styles.title}`}>私用携帯</span>
-                  {!searchMode && (
-                    <span className={`${styles.value}`}>
+                  {!searchMode && isEditModeField !== "personal_cell_phone" && (
+                    <span
+                      className={`${styles.value} ${isOurContact ? styles.editable_field : styles.uneditable_field}`}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => {
+                        handleDoubleClickField({
+                          e,
+                          field: "personal_cell_phone",
+                          dispatch: setInputPersonalCellPhone,
+                        });
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataContact?.personal_cell_phone ? selectedRowDataContact?.personal_cell_phone : ""}
                     </span>
                   )}
                   {searchMode && (
                     <input
-                      type="text"
+                      type="tel"
                       className={`${styles.input_box}`}
                       value={inputPersonalCellPhone}
                       onChange={(e) => setInputPersonalCellPhone(e.target.value)}
                     />
                   )}
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード inputタグ */}
+                  {!searchMode && isEditModeField === "personal_cell_phone" && (
+                    <>
+                      <input
+                        type="tel"
+                        placeholder=""
+                        autoFocus
+                        className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                        value={inputPersonalCellPhone}
+                        onChange={(e) => setInputPersonalCellPhone(e.target.value)}
+                        onCompositionStart={() => setIsComposing(true)}
+                        onCompositionEnd={() => setIsComposing(false)}
+                        onKeyDown={(e) => {
+                          // 電話番号用バリデーションチェック
+                          if (e.key === "Enter" && !isComposing) {
+                            const { isValid, formattedNumber } = validateAndFormatPhoneNumber(
+                              inputPersonalCellPhone.trim()
+                            );
+                            if (!isValid) {
+                              setInputTel(formattedNumber);
+                              toast.error(`有効な番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`, {
+                                position: "bottom-center",
+                                autoClose: false,
+                                transition: Zoom,
+                              });
+                              return;
+                            }
+
+                            handleKeyDownUpdateField({
+                              e,
+                              fieldName: "personal_cell_phone",
+                              fieldNameForSelectedRowData: "personal_cell_phone",
+                              originalValue: originalValueFieldEdit.current,
+                              newValue: formattedNumber,
+                              id: selectedRowDataContact?.contact_id,
+                              required: false,
+                            });
+                          }
+                        }}
+                      />
+                      {/* 送信ボタンとクローズボタン */}
+                      {!updateContactFieldMutation.isLoading && (
+                        <InputSendAndCloseBtn
+                          inputState={inputPersonalCellPhone}
+                          setInputState={setInputPersonalCellPhone}
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                            const { isValid, formattedNumber } = validateAndFormatPhoneNumber(
+                              inputPersonalCellPhone.trim()
+                            );
+                            if (!isValid) {
+                              setInputTel(formattedNumber);
+                              toast.error(`有効な番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`, {
+                                position: "bottom-center",
+                                autoClose: false,
+                                transition: Zoom,
+                              });
+                              return;
+                            }
+
+                            handleClickSendUpdateField({
+                              e,
+                              fieldName: "personal_cell_phone",
+                              fieldNameForSelectedRowData: "personal_cell_phone",
+                              originalValue: originalValueFieldEdit.current,
+                              newValue: formattedNumber,
+                              id: selectedRowDataContact?.contact_id,
+                              required: false,
+                            });
+                          }}
+                          required={false}
+                          isDisplayClose={false}
+                        />
+                      )}
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateContactFieldMutation.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "personal_cell_phone" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -706,13 +1679,42 @@ const ContactMainContainerMemo: FC = () => {
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>E-mail</span>
                   {!searchMode && (
-                    <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.contact_email ? selectedRowDataContact?.contact_email : ""}
+                    <span
+                      className={`${styles.value}`}
+                      onClick={async () => {
+                        if (!selectedRowDataContact?.contact_email) return;
+                        try {
+                          await navigator.clipboard.writeText(selectedRowDataContact.contact_email);
+                          toast.success(`コピーしました!`, {
+                            position: "bottom-center",
+                            autoClose: 1000,
+                            hideProgressBar: false,
+                            closeOnClick: true,
+                            pauseOnHover: true,
+                            draggable: true,
+                            progress: undefined,
+                            transition: Zoom,
+                          });
+                        } catch (e: any) {
+                          toast.error(`コピーできませんでした!`, {
+                            position: "bottom-center",
+                            autoClose: 1000,
+                            hideProgressBar: false,
+                            closeOnClick: true,
+                            pauseOnHover: true,
+                            draggable: true,
+                            progress: undefined,
+                            transition: Zoom,
+                          });
+                        }
+                      }}
+                    >
+                      {selectedRowDataContact?.contact_email ? selectedRowDataContact.contact_email : ""}
                     </span>
                   )}
                   {searchMode && (
                     <input
-                      type="text"
+                      type="email"
                       className={`${styles.input_box}`}
                       value={inputContactEmail}
                       onChange={(e) => setInputContactEmail(e.target.value)}
@@ -797,8 +1799,24 @@ const ContactMainContainerMemo: FC = () => {
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>役職名</span>
-                  {!searchMode && (
-                    <span className={`${styles.value}`}>
+                  {!searchMode && isEditModeField !== "position_name" && (
+                    <span
+                      className={`${styles.value} ${isOurContact ? styles.editable_field : styles.uneditable_field}`}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => {
+                        handleDoubleClickField({
+                          e,
+                          field: "position_name",
+                          dispatch: setInputPositionName,
+                        });
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataContact?.position_name ? selectedRowDataContact?.position_name : ""}
                     </span>
                   )}
@@ -810,42 +1828,156 @@ const ContactMainContainerMemo: FC = () => {
                       onChange={(e) => setInputPositionName(e.target.value)}
                     />
                   )}
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード inputタグ */}
+                  {!searchMode && isEditModeField === "position_name" && (
+                    <>
+                      <input
+                        type="text"
+                        placeholder=""
+                        autoFocus
+                        className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                        value={inputPositionName}
+                        onChange={(e) => setInputPositionName(e.target.value)}
+                        onCompositionStart={() => setIsComposing(true)}
+                        onCompositionEnd={() => setIsComposing(false)}
+                        onKeyDown={(e) =>
+                          handleKeyDownUpdateField({
+                            e,
+                            fieldName: "position_name",
+                            fieldNameForSelectedRowData: "position_name",
+                            originalValue: originalValueFieldEdit.current,
+                            newValue: toHalfWidthAndSpace(inputPositionName.trim()),
+                            id: selectedRowDataContact?.contact_id,
+                            required: true,
+                          })
+                        }
+                      />
+                      {/* 送信ボタンとクローズボタン */}
+                      {!updateContactFieldMutation.isLoading && (
+                        <InputSendAndCloseBtn
+                          inputState={inputPositionName}
+                          setInputState={setInputPositionName}
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                            handleClickSendUpdateField({
+                              e,
+                              fieldName: "position_name",
+                              fieldNameForSelectedRowData: "position_name",
+                              originalValue: originalValueFieldEdit.current,
+                              newValue: toHalfWidthAndSpace(inputPositionName.trim()),
+                              id: selectedRowDataContact?.contact_id,
+                              required: true,
+                            })
+                          }
+                          required={true}
+                          isDisplayClose={false}
+                        />
+                      )}
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateContactFieldMutation.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "position_name" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
                   <span className={`${styles.title}`}>職位</span>
-                  {!searchMode && (
-                    <span className={`${styles.value}`}>
+                  {!searchMode && isEditModeField !== "position_class" && (
+                    <span
+                      className={`${styles.value} ${isOurContact ? styles.editable_field : styles.uneditable_field}`}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => {
+                        handleDoubleClickField({
+                          e,
+                          field: "position_class",
+                          dispatch: setInputPositionClass,
+                        });
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataContact?.position_class ? selectedRowDataContact?.position_class : ""}
                     </span>
                   )}
                   {searchMode && (
-                    // <input
-                    //   type="text"
-                    //   className={`${styles.input_box} ml-[20px]`}
-                    //   value={inputProductL}
-                    //   onChange={(e) => setInputProductL(e.target.value)}
-                    // />
                     <select
-                      name="position_class"
-                      id="position_class"
                       className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
                       value={inputPositionClass}
                       onChange={(e) => setInputPositionClass(e.target.value)}
                     >
                       <option value=""></option>
-                      <option value="1 代表者">1 代表者</option>
-                      <option value="2 取締役/役員">2 取締役/役員</option>
-                      <option value="3 部長">3 部長</option>
-                      <option value="4 課長">4 課長</option>
-                      <option value="5 課長未満">5 課長未満</option>
-                      <option value="6 所長・工場長">6 所長・工場長</option>
-                      <option value="7 フリーランス・個人事業主">7 フリーランス・個人事業主</option>
-                      <option value="8 不明">8 不明</option>
+                      <option value="代表者">代表者</option>
+                      <option value="取締役/役員">取締役/役員</option>
+                      <option value="部長">部長</option>
+                      <option value="課長">課長</option>
+                      <option value="課長未満">課長未満</option>
+                      <option value="所長・工場長">所長・工場長</option>
+                      <option value="その他">その他</option>
                     </select>
                   )}
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード selectタグ  */}
+                  {!searchMode && isEditModeField === "position_class" && (
+                    <>
+                      <select
+                        className={`ml-auto h-full w-full cursor-pointer ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                        value={inputPositionClass}
+                        onChange={(e) => {
+                          handleChangeSelectUpdateField({
+                            e,
+                            fieldName: "position_class",
+                            fieldNameForSelectedRowData: "position_class",
+                            newValue: e.target.value,
+                            originalValue: originalValueFieldEdit.current,
+                            id: selectedRowDataContact?.contact_id,
+                          });
+                        }}
+                      >
+                        {optionsPositionsClass.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateContactFieldMutation.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "position_class" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -856,54 +1988,113 @@ const ContactMainContainerMemo: FC = () => {
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>担当職種</span>
-                  {!searchMode && (
-                    <span className={`${styles.value}`}>
+                  {!searchMode && isEditModeField !== "occupation" && (
+                    <span
+                      className={`${styles.value} ${isOurContact ? styles.editable_field : styles.uneditable_field}`}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => {
+                        handleDoubleClickField({
+                          e,
+                          field: "occupation",
+                          dispatch: setInputOccupation,
+                        });
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataContact?.occupation ? selectedRowDataContact?.occupation : ""}
                     </span>
                   )}
                   {searchMode && (
-                    // <input
-                    //   type="text"
-                    //   className={`${styles.input_box} ml-[20px]`}
-                    //   value={inputProductL}
-                    //   onChange={(e) => setInputProductL(e.target.value)}
-                    // />
                     <select
-                      name="position_class"
-                      id="position_class"
+                      name="occupation"
+                      id="occupation"
                       className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
-                      value={inputEmployeesClass}
-                      onChange={(e) => setInputEmployeesClass(e.target.value)}
+                      value={inputOccupation}
+                      onChange={(e) => setInputOccupation(e.target.value)}
                     >
                       <option value=""></option>
-                      <option value="社長/CEO">社長/CEO</option>
+                      <option value="社長・専務">社長・専務</option>
                       <option value="取締役・役員">取締役・役員</option>
-                      <option value="プロジェクト/プログラム管理">プロジェクト/プログラム管理</option>
+                      <option value="プロジェクト管理">プロジェクト管理</option>
                       <option value="営業">営業</option>
                       <option value="マーケティング">マーケティング</option>
                       <option value="クリエイティブ">クリエイティブ</option>
                       <option value="ソフトウェア開発">ソフトウェア開発</option>
                       <option value="開発・設計">開発・設計</option>
-                      <option value="生産技術">生産技術</option>
                       <option value="製造">製造</option>
                       <option value="品質管理・品質保証">品質管理・品質保証</option>
+                      <option value="生産管理">生産管理</option>
+                      <option value="生産技術">生産技術</option>
                       <option value="人事">人事</option>
                       <option value="経理">経理</option>
                       <option value="総務">総務</option>
                       <option value="法務">法務</option>
                       <option value="財務">財務</option>
+                      <option value="購買">購買</option>
                       <option value="情報システム/IT管理者">情報システム/IT管理者</option>
                       <option value="CS/カスタマーサービス">CS/カスタマーサービス</option>
-                      <option value="購買">購買</option>
                       <option value="その他">その他</option>
                     </select>
                   )}
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード selectタグ  */}
+                  {!searchMode && isEditModeField === "occupation" && (
+                    <>
+                      <select
+                        className={`ml-auto h-full w-full cursor-pointer ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                        value={inputOccupation}
+                        onChange={(e) => {
+                          handleChangeSelectUpdateField({
+                            e,
+                            fieldName: "occupation",
+                            fieldNameForSelectedRowData: "occupation",
+                            newValue: e.target.value,
+                            originalValue: originalValueFieldEdit.current,
+                            id: selectedRowDataContact?.contact_id,
+                          });
+                        }}
+                      >
+                        {optionsOccupation.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateContactFieldMutation.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "occupation" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
-                  <span className={`${styles.title} !mr-[12px]`}>決裁金額(万円)</span>
+                  {/* <span className={`${styles.title} !mr-[12px]`}>決裁金額(万円)</span> */}
+                  <div className={`${styles.title} ${styles.double_text} flex flex-col`}>
+                    <span>決裁金額</span>
+                    <span>(万円)</span>
+                  </div>
+
                   {!searchMode && (
                     <span className={`${styles.value}`}>
                       {selectedRowDataContact?.approval_amount ? selectedRowDataContact?.approval_amount : ""}
@@ -913,8 +2104,15 @@ const ContactMainContainerMemo: FC = () => {
                     <input
                       type="text"
                       className={`${styles.input_box}`}
-                      value={inputApprovalAmount}
+                      value={!!inputApprovalAmount ? inputApprovalAmount : ""}
                       onChange={(e) => setInputApprovalAmount(e.target.value)}
+                      onBlur={() =>
+                        setInputApprovalAmount(
+                          !!inputApprovalAmount && inputApprovalAmount !== ""
+                            ? (convertToMillions(inputApprovalAmount.trim()) as number).toString()
+                            : ""
+                        )
+                      }
                     />
                   )}
                 </div>
@@ -1483,7 +2681,11 @@ const ContactMainContainerMemo: FC = () => {
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title} !mr-[15px]`}>製品分類（大分類）</span>
+                  {/* <span className={`${styles.title} !mr-[15px]`}>製品分類（大分類）</span> */}
+                  <div className={`${styles.title} ${styles.double_text} flex flex-col`}>
+                    <span>製品分類</span>
+                    <span>(大分類)</span>
+                  </div>
                   {!searchMode && (
                     <span
                       className={`${styles.value}`}
@@ -1501,16 +2703,11 @@ const ContactMainContainerMemo: FC = () => {
                     </span>
                   )}
                   {searchMode && !inputIndustryType && (
-                    // <input
-                    //   type="text"
-                    //   className={`${styles.input_box} ml-[20px]`}
-                    //   value={inputProductL}
-                    //   onChange={(e) => setInputProductL(e.target.value)}
-                    // />
                     <select
                       name="position_class"
                       id="position_class"
-                      className={`ml-auto h-full w-[80%] cursor-pointer ${styles.select_box}`}
+                      // className={`ml-auto h-full w-[80%] cursor-pointer ${styles.select_box}`}
+                      className={`ml-auto h-full w-[100%] cursor-pointer ${styles.select_box}`}
                       value={inputProductL}
                       onChange={(e) => setInputProductL(e.target.value)}
                     >
@@ -1540,7 +2737,11 @@ const ContactMainContainerMemo: FC = () => {
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title} !mr-[15px]`}>製品分類（中分類）</span>
+                  {/* <span className={`${styles.title} !mr-[15px]`}>製品分類（中分類）</span> */}
+                  <div className={`${styles.title} ${styles.double_text} flex flex-col`}>
+                    <span>製品分類</span>
+                    <span>(中分類)</span>
+                  </div>
                   {!searchMode && (
                     <span
                       className={`${styles.value}`}
@@ -1569,7 +2770,8 @@ const ContactMainContainerMemo: FC = () => {
                       id="position_class"
                       value={inputProductM}
                       onChange={(e) => setInputProductM(e.target.value)}
-                      className={`${inputProductL ? "" : "hidden"} ml-auto h-full w-[80%] cursor-pointer ${
+                      // className={`${inputProductL ? "" : "hidden"} ml-auto h-full w-[80%] cursor-pointer ${
+                      className={`${inputProductL ? "" : "hidden"} ml-auto h-full w-[100%] cursor-pointer ${
                         styles.select_box
                       }`}
                     >
@@ -1658,16 +2860,15 @@ const ContactMainContainerMemo: FC = () => {
                 <div className={`${styles.underline}`}></div>
               </div>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center`}>
+                {/* <div className={`${styles.title_box} flex h-full items-center`}>
                   <span className={`${styles.title_min}`}>会社ID</span>
                   {!searchMode && (
                     <span className={`${styles.value} truncate`}>
                       {selectedRowDataContact?.company_id ? selectedRowDataContact?.company_id : ""}
                     </span>
                   )}
-                  {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
                 </div>
-                <div className={`${styles.underline}`}></div>
+                <div className={`${styles.underline}`}></div> */}
               </div>
             </div>
 
@@ -2009,6 +3210,32 @@ const ContactMainContainerMemo: FC = () => {
                   </div>
                 </div>
 
+                {/* クレーム */}
+                <div className={`${styles.row_area} flex h-[70px] w-full items-center`}>
+                  <div className="flex h-full w-full flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full  `}>
+                      <span className={`${styles.title}`}>クレーム</span>
+                      {!searchMode && (
+                        <div
+                          data-text={`${selectedRowDataContact?.claim ? selectedRowDataContact?.claim : ""}`}
+                          className={`${styles.value} h-[65px]`}
+                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseLeave={handleCloseTooltip}
+                          dangerouslySetInnerHTML={{
+                            __html: selectedRowDataContact?.claim
+                              ? selectedRowDataContact?.claim.replace(/\n/g, "<br>")
+                              : "",
+                          }}
+                        >
+                          {/* {selectedRowDataContact?.claim ? selectedRowDataContact?.claim : ""} */}
+                        </div>
+                      )}
+                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
+
                 {/* 禁止理由 */}
                 <div className={`${styles.row_area} flex h-[70px] w-full items-center`}>
                   <div className="flex h-full w-full flex-col pr-[20px]">
@@ -2029,31 +3256,6 @@ const ContactMainContainerMemo: FC = () => {
                           {/* {selectedRowDataContact?.ban_reason
                             ? selectedRowDataContact?.ban_reason.replace(/\n/g, "<br>")
                             : ""} */}
-                        </div>
-                      )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
-                    </div>
-                    <div className={`${styles.underline}`}></div>
-                  </div>
-                </div>
-                {/* クレーム */}
-                <div className={`${styles.row_area} flex h-[70px] w-full items-center`}>
-                  <div className="flex h-full w-full flex-col pr-[20px]">
-                    <div className={`${styles.title_box} flex h-full  `}>
-                      <span className={`${styles.title}`}>クレーム</span>
-                      {!searchMode && (
-                        <div
-                          data-text={`${selectedRowDataContact?.claim ? selectedRowDataContact?.claim : ""}`}
-                          className={`${styles.value} h-[65px]`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
-                          onMouseLeave={handleCloseTooltip}
-                          dangerouslySetInnerHTML={{
-                            __html: selectedRowDataContact?.claim
-                              ? selectedRowDataContact?.claim.replace(/\n/g, "<br>")
-                              : "",
-                          }}
-                        >
-                          {/* {selectedRowDataContact?.claim ? selectedRowDataContact?.claim : ""} */}
                         </div>
                       )}
                       {searchMode && <input type="text" className={`${styles.input_box}`} />}

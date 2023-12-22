@@ -226,6 +226,9 @@ export const columnNameToJapaneseActivity = (columnName: string) => {
     case "activity_year_month":
       return "活動年月度";
       break;
+    case "claim_flag":
+      return "クレーム";
+      break;
 
     default:
       return "";

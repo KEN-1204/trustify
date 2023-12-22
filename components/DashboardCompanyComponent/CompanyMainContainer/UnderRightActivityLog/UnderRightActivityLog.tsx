@@ -535,6 +535,8 @@ const UnderRightActivityLogMemo: FC = () => {
     fetchCountRef.current,
     "selectedRowDataCompany.id",
     selectedRowDataCompany?.id,
+    "selectedRowDataCompany",
+    selectedRowDataCompany,
     "右下活動履歴 data",
     data,
     "allRows.length",

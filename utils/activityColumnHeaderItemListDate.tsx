@@ -85,6 +85,12 @@ const activityColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
+  {
+    columnName: "claim_flag",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
   // 活動エリアここまで
   {
     columnName: "position_class",

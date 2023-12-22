@@ -16,6 +16,7 @@ import { toast } from "react-toastify";
 import { Zoom } from "@/utils/Helpers/toastHelpers";
 import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
+import { optionsOccupation } from "@/components/DashboardContactComponent/ContactDetail/ContactMainContainer/selectOptionsData";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -272,7 +273,13 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       setInputPositionName(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.position_name));
       setInputPositionClass(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.position_class));
       setInputOccupation(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.occupation));
-      setInputApprovalAmount(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.approval_amount));
+      setInputApprovalAmount(
+        beforeAdjustFieldValue(
+          newSearchMeeting_Contact_CompanyParams.approval_amount
+            ? newSearchMeeting_Contact_CompanyParams.approval_amount.toString()
+            : ""
+        )
+      );
       setInputContactCreatedByCompanyId(
         beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams["contacts.created_by_company_id"])
       );
@@ -556,7 +563,8 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     let _position_name = adjustFieldValue(inputPositionName);
     let _position_class = adjustFieldValue(inputPositionClass);
     let _occupation = adjustFieldValue(inputOccupation);
-    let _approval_amount = adjustFieldValue(inputApprovalAmount);
+    // let _approval_amount = adjustFieldValue(inputApprovalAmount);
+    let _approval_amount = adjustFieldValue(inputApprovalAmount) ? parseInt(inputApprovalAmount, 10) : null;
     let _contact_created_by_company_id = adjustFieldValue(inputContactCreatedByCompanyId);
     let _contact_created_by_user_id = adjustFieldValue(inputContactCreatedByUserId);
     // meetingsテーブル
@@ -1896,7 +1904,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
               </div>
 
-              {/* 担当職種・決裁金額 */}
+              {/* 担当職種・決裁金額 通常 */}
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
@@ -1907,12 +1915,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       </span>
                     )}
                     {searchMode && (
-                      // <input
-                      //   type="text"
-                      //   className={`${styles.input_box} ml-[20px]`}
-                      //   value={inputProductL}
-                      //   onChange={(e) => setInputProductL(e.target.value)}
-                      // />
                       <select
                         name="position_class"
                         id="position_class"
@@ -1921,26 +1923,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         onChange={(e) => setInputEmployeesClass(e.target.value)}
                       >
                         <option value=""></option>
-                        <option value="社長/CEO">社長/CEO</option>
-                        <option value="取締役・役員">取締役・役員</option>
-                        <option value="プロジェクト/プログラム管理">プロジェクト/プログラム管理</option>
-                        <option value="営業">営業</option>
-                        <option value="マーケティング">マーケティング</option>
-                        <option value="クリエイティブ">クリエイティブ</option>
-                        <option value="ソフトウェア開発">ソフトウェア開発</option>
-                        <option value="開発・設計">開発・設計</option>
-                        <option value="生産技術">生産技術</option>
-                        <option value="製造">製造</option>
-                        <option value="品質管理・品質保証">品質管理・品質保証</option>
-                        <option value="人事">人事</option>
-                        <option value="経理">経理</option>
-                        <option value="総務">総務</option>
-                        <option value="法務">法務</option>
-                        <option value="財務">財務</option>
-                        <option value="情報システム/IT管理者">情報システム/IT管理者</option>
-                        <option value="CS/カスタマーサービス">CS/カスタマーサービス</option>
-                        <option value="購買">購買</option>
-                        <option value="その他">その他</option>
+                        {optionsOccupation.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
                       </select>
                     )}
                   </div>
@@ -1956,14 +1943,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <span className={`${styles.value}`}>
                         {selectedRowDataMeeting?.approval_amount ? selectedRowDataMeeting?.approval_amount : ""}
                       </span>
-                    )}
-                    {searchMode && (
-                      <input
-                        type="text"
-                        className={`${styles.input_box}`}
-                        value={inputApprovalAmount}
-                        onChange={(e) => setInputApprovalAmount(e.target.value)}
-                      />
                     )}
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -2720,16 +2699,15 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.underline}`}></div>
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center`}>
+                  {/* <div className={`${styles.title_box} flex h-full items-center`}>
                     <span className={`${styles.title_min}`}>会社ID</span>
                     {!searchMode && (
                       <span className={`${styles.value} truncate`}>
                         {selectedRowDataMeeting?.company_id ? selectedRowDataMeeting?.company_id : ""}
                       </span>
                     )}
-                    {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
                   </div>
-                  <div className={`${styles.underline}`}></div>
+                  <div className={`${styles.underline}`}></div> */}
                 </div>
               </div>
 
@@ -3773,26 +3751,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         onChange={(e) => setInputEmployeesClass(e.target.value)}
                       >
                         <option value=""></option>
-                        <option value="社長/CEO">社長/CEO</option>
-                        <option value="取締役・役員">取締役・役員</option>
-                        <option value="プロジェクト/プログラム管理">プロジェクト/プログラム管理</option>
-                        <option value="営業">営業</option>
-                        <option value="マーケティング">マーケティング</option>
-                        <option value="クリエイティブ">クリエイティブ</option>
-                        <option value="ソフトウェア開発">ソフトウェア開発</option>
-                        <option value="開発・設計">開発・設計</option>
-                        <option value="生産技術">生産技術</option>
-                        <option value="製造">製造</option>
-                        <option value="品質管理・品質保証">品質管理・品質保証</option>
-                        <option value="人事">人事</option>
-                        <option value="経理">経理</option>
-                        <option value="総務">総務</option>
-                        <option value="法務">法務</option>
-                        <option value="財務">財務</option>
-                        <option value="情報システム/IT管理者">情報システム/IT管理者</option>
-                        <option value="CS/カスタマーサービス">CS/カスタマーサービス</option>
-                        <option value="購買">購買</option>
-                        <option value="その他">その他</option>
+                        {optionsOccupation.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
                       </select>
                     )}
                   </div>
@@ -3808,8 +3771,17 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <input
                         type="text"
                         className={`${styles.input_box}`}
-                        value={inputApprovalAmount}
+                        // value={inputApprovalAmount}
+                        // onChange={(e) => setInputApprovalAmount(e.target.value)}
+                        value={!!inputApprovalAmount ? inputApprovalAmount : ""}
                         onChange={(e) => setInputApprovalAmount(e.target.value)}
+                        onBlur={() =>
+                          setInputApprovalAmount(
+                            !!inputApprovalAmount && inputApprovalAmount !== ""
+                              ? (convertToMillions(inputApprovalAmount.trim()) as number).toString()
+                              : ""
+                          )
+                        }
                       />
                     )}
                   </div>
@@ -4339,16 +4311,15 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.underline}`}></div>
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center`}>
+                  {/* <div className={`${styles.title_box} flex h-full items-center`}>
                     <span className={`${styles.title_min}`}>会社ID</span>
                     {!searchMode && (
                       <span className={`${styles.value} truncate`}>
                         {selectedRowDataMeeting?.company_id ? selectedRowDataMeeting?.company_id : ""}
                       </span>
                     )}
-                    {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
                   </div>
-                  <div className={`${styles.underline}`}></div>
+                  <div className={`${styles.underline}`}></div> */}
                 </div>
               </div>
 

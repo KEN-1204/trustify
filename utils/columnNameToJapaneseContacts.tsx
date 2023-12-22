@@ -40,7 +40,7 @@ export const columnNameToJapaneseContacts = (columnName: string) => {
       return "職位";
       break;
     case "occupation":
-      return "担当職位";
+      return "担当職種";
       break;
     case "approval_amount":
       return "決裁金額";

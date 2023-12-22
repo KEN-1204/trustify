@@ -101,7 +101,7 @@ export const useMutateClientCompany = () => {
     }
   );
 
-  // 【ClientCompany編集UPDATE用updateClientCompanyMutation関数】
+  // 【ClientCompany一括編集UPDATE用updateClientCompanyMutation関数】
   const updateClientCompanyMutation = useMutation(
     async (newClientCompany: Omit<Client_company, "created_at" | "updated_at">) => {
       // setLoadingGlobalState(true);
@@ -200,7 +200,7 @@ export const useMutateClientCompany = () => {
     {
       onSuccess: async (data) => {
         console.log(
-          "updateClientCompanyFieldMutation実行完了 キャッシュを更新して選択中のセルを再度クリックして更新 oinSuccess data[0]",
+          "updateClientCompanyFieldMutation実行完了 キャッシュを更新して選択中のセルを再度クリックして更新 onSuccess data[0]",
           data[0]
         );
         // キャッシュ更新より先にZustandのSelectedRowDataCompanyをupdateで取得したデータで更新する

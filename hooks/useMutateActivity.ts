@@ -17,6 +17,10 @@ export const useMutateActivity = () => {
   const setIsUpdateRequiredForLatestSelectedRowDataActivity = useDashboardStore(
     (state) => state.setIsUpdateRequiredForLatestSelectedRowDataActivity
   );
+
+  // 選択中の行データと更新関数
+  const setSelectedRowDataActivity = useDashboardStore((state) => state.setSelectedRowDataActivity);
+
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
 
@@ -97,7 +101,7 @@ export const useMutateActivity = () => {
     }
   );
 
-  // 【Activity編集UPDATE用updateActivityMutation関数】
+  // 【Activity一括編集UPDATE用updateActivityMutation関数】
   const updateActivityMutation = useMutation(
     async (newActivity: Omit<Activity, "created_at" | "updated_at">) => {
       // setLoadingGlobalState(true);
@@ -176,5 +180,55 @@ export const useMutateActivity = () => {
     }
   );
 
-  return { createActivityMutation, updateActivityMutation };
+  // 【Activityの個別フィールド毎に編集UPDATE用updateActivityFieldMutation関数】
+  // MainContainerからダブルクリックでフィールドエディットモードに移行し、個別にフィールド入力、更新した時に使用 受け取る引数は一つのプロパティのみ
+  const updateActivityFieldMutation = useMutation(
+    async (fieldData: { fieldName: string; value: any; id: string }) => {
+      const { fieldName, value, id } = fieldData;
+      const { data, error } = await supabase
+        .from("activities")
+        .update({ [fieldName]: value })
+        .eq("id", id)
+        .select();
+
+      if (error) throw error;
+
+      console.log("updateActivityFieldMutation実行完了 mutate data", data);
+
+      return data;
+    },
+    {
+      onSuccess: async (data) => {
+        console.log(
+          "updateActivityFieldMutation実行完了 キャッシュを更新して選択中のセルを再度クリックして更新 onSuccess data[0]",
+          data[0]
+        );
+        // キャッシュ更新より先にZustandのsetSelectedRowDataActivityをupdateで取得したデータで更新する
+        setSelectedRowDataActivity(data[0]);
+
+        // companiesに関わるキャッシュのデータを再取得 => これをしないと既に取得済みのキャッシュは古い状態で表示されてしまう
+        await queryClient.invalidateQueries({ queryKey: ["activities"] });
+
+        // 再度テーブルの選択セルのDOMをクリックしてsetSelectedRowDataActivityを最新状態にする
+        // setIsUpdateRequiredForLatestsetSelectedRowDataActivity(true);
+
+        // if (loadingGlobalState) setLoadingGlobalState(false);
+        // toast.success("会社の更新が完了しました🌟", {
+        //   position: "top-right",
+        //   autoClose: 1500
+        // });
+      },
+      onError: (err: any) => {
+        // if (loadingGlobalState) setLoadingGlobalState(false);
+        console.error("フィールドエディットモード updateエラー", err);
+        console.error(`Update failed activities field` + err.message);
+        toast.error("アップデートに失敗しました...", {
+          position: "top-right",
+          autoClose: 1500,
+        });
+      },
+    }
+  );
+
+  return { createActivityMutation, updateActivityMutation, updateActivityFieldMutation };
 };

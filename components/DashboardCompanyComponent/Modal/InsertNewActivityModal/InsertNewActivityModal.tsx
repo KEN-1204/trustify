@@ -39,11 +39,11 @@ export const InsertNewActivityModal = () => {
   const [documentURL, setDocumentURL] = useState("");
   const [activityType, setActivityType] = useState("");
   const [claimFlag, setClaimFlag] = useState(false);
-  const [productIntroduction1, setProductIntroduction1] = useState(null);
-  const [productIntroduction2, setProductIntroduction2] = useState(null);
-  const [productIntroduction3, setProductIntroduction3] = useState(null);
-  const [productIntroduction4, setProductIntroduction4] = useState(null);
-  const [productIntroduction5, setProductIntroduction5] = useState(null);
+  const [productIntroduction1, setProductIntroduction1] = useState(null); //面談、案件、見積用
+  const [productIntroduction2, setProductIntroduction2] = useState(null); //面談、案件、見積用
+  const [productIntroduction3, setProductIntroduction3] = useState(null); //面談、案件、見積用
+  const [productIntroduction4, setProductIntroduction4] = useState(null); //面談、案件、見積用
+  const [productIntroduction5, setProductIntroduction5] = useState(null); //面談、案件、見積用
   const [departmentName, setDepartmentName] = useState(
     userProfileState?.department ? userProfileState?.department : ""
   );
@@ -96,11 +96,11 @@ export const InsertNewActivityModal = () => {
       activity_type: activityType ? activityType : null,
       // claim_flag: claimFlag ? claimFlag : null,
       claim_flag: claimFlag,
-      product_introduction1: productIntroduction1,
-      product_introduction2: productIntroduction2,
-      product_introduction3: productIntroduction3,
-      product_introduction4: productIntroduction4,
-      product_introduction5: productIntroduction5,
+      product_introduction1: productIntroduction1 ? productIntroduction1 : null,
+      product_introduction2: productIntroduction2 ? productIntroduction2 : null,
+      product_introduction3: productIntroduction3 ? productIntroduction3 : null,
+      product_introduction4: productIntroduction4 ? productIntroduction4 : null,
+      product_introduction5: productIntroduction5 ? productIntroduction5 : null,
       department: departmentName ? departmentName : null,
       business_office: businessOffice ? businessOffice : null,
       member_name: memberName ? memberName : null,
@@ -139,7 +139,7 @@ export const InsertNewActivityModal = () => {
       created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
       client_contact_id: selectedRowDataActivity.contact_id,
       client_company_id: selectedRowDataActivity.company_id,
-      summary: summary,
+      summary: summary ? summary : null,
       scheduled_follow_up_date: scheduledFollowUpDate ? scheduledFollowUpDate.toISOString() : null,
       // follow_up_flag: followUpFlag ? followUpFlag : null,
       follow_up_flag: followUpFlag,
@@ -147,20 +147,20 @@ export const InsertNewActivityModal = () => {
       activity_type: activityType ? activityType : null,
       // claim_flag: claimFlag ? claimFlag : null,
       claim_flag: claimFlag,
-      product_introduction1: productIntroduction1,
-      product_introduction2: productIntroduction2,
-      product_introduction3: productIntroduction3,
-      product_introduction4: productIntroduction4,
-      product_introduction5: productIntroduction5,
+      product_introduction1: productIntroduction1 ? productIntroduction1 : null,
+      product_introduction2: productIntroduction2 ? productIntroduction2 : null,
+      product_introduction3: productIntroduction3 ? productIntroduction3 : null,
+      product_introduction4: productIntroduction4 ? productIntroduction4 : null,
+      product_introduction5: productIntroduction5 ? productIntroduction5 : null,
       department: departmentName ? departmentName : null,
       business_office: businessOffice ? businessOffice : null,
       member_name: memberName ? memberName : null,
       priority: priority ? priority : null,
       activity_date: activityDate ? activityDate.toISOString() : null,
       activity_year_month: activityYearMonth ? activityYearMonth : null,
-      meeting_id: null,
-      property_id: null,
-      quotation_id: null,
+      meeting_id: null, //面談作成時用
+      property_id: null, //案件作成時用
+      quotation_id: null, //見積作成時用
     };
 
     // supabaseにINSERT,ローディング終了, モーダルを閉じる
@@ -187,7 +187,7 @@ export const InsertNewActivityModal = () => {
       created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
       client_contact_id: selectedRowDataMeeting.contact_id,
       client_company_id: selectedRowDataMeeting.company_id,
-      summary: summary,
+      summary: summary ? summary : null,
       scheduled_follow_up_date: scheduledFollowUpDate ? scheduledFollowUpDate.toISOString() : null,
       // follow_up_flag: followUpFlag ? followUpFlag : null,
       follow_up_flag: followUpFlag,
@@ -195,20 +195,20 @@ export const InsertNewActivityModal = () => {
       activity_type: activityType ? activityType : null,
       // claim_flag: claimFlag ? claimFlag : null,
       claim_flag: claimFlag,
-      product_introduction1: productIntroduction1,
-      product_introduction2: productIntroduction2,
-      product_introduction3: productIntroduction3,
-      product_introduction4: productIntroduction4,
-      product_introduction5: productIntroduction5,
+      product_introduction1: productIntroduction1 ? productIntroduction1 : null,
+      product_introduction2: productIntroduction2 ? productIntroduction2 : null,
+      product_introduction3: productIntroduction3 ? productIntroduction3 : null,
+      product_introduction4: productIntroduction4 ? productIntroduction4 : null,
+      product_introduction5: productIntroduction5 ? productIntroduction5 : null,
       department: departmentName ? departmentName : null,
       business_office: businessOffice ? businessOffice : null,
       member_name: memberName ? memberName : null,
       priority: priority ? priority : null,
       activity_date: activityDate ? activityDate.toISOString() : null,
       activity_year_month: activityYearMonth ? activityYearMonth : null,
-      meeting_id: null,
-      property_id: null,
-      quotation_id: null,
+      meeting_id: null, //面談作成時用
+      property_id: null, //案件作成時用
+      quotation_id: null, //見積作成時用
     };
 
     // supabaseにINSERT,ローディング終了, モーダルを閉じる
@@ -235,7 +235,7 @@ export const InsertNewActivityModal = () => {
       created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
       client_contact_id: selectedRowDataProperty.contact_id,
       client_company_id: selectedRowDataProperty.company_id,
-      summary: summary,
+      summary: summary ? summary : null,
       scheduled_follow_up_date: scheduledFollowUpDate ? scheduledFollowUpDate.toISOString() : null,
       // follow_up_flag: followUpFlag ? followUpFlag : null,
       follow_up_flag: followUpFlag,
@@ -243,20 +243,20 @@ export const InsertNewActivityModal = () => {
       activity_type: activityType ? activityType : null,
       // claim_flag: claimFlag ? claimFlag : null,
       claim_flag: claimFlag,
-      product_introduction1: productIntroduction1,
-      product_introduction2: productIntroduction2,
-      product_introduction3: productIntroduction3,
-      product_introduction4: productIntroduction4,
-      product_introduction5: productIntroduction5,
+      product_introduction1: productIntroduction1 ? productIntroduction1 : null,
+      product_introduction2: productIntroduction2 ? productIntroduction2 : null,
+      product_introduction3: productIntroduction3 ? productIntroduction3 : null,
+      product_introduction4: productIntroduction4 ? productIntroduction4 : null,
+      product_introduction5: productIntroduction5 ? productIntroduction5 : null,
       department: departmentName ? departmentName : null,
       business_office: businessOffice ? businessOffice : null,
       member_name: memberName ? memberName : null,
       priority: priority ? priority : null,
       activity_date: activityDate ? activityDate.toISOString() : null,
       activity_year_month: activityYearMonth ? activityYearMonth : null,
-      meeting_id: null,
-      property_id: null,
-      quotation_id: null,
+      meeting_id: null, //面談作成時用
+      property_id: null, //案件作成時用
+      quotation_id: null, //見積作成時用
     };
 
     // supabaseにINSERT,ローディング終了, モーダルを閉じる

@@ -9,6 +9,7 @@ import { isNaN } from "lodash";
 import { useMutateContact } from "@/hooks/useMutateContact";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { BsChevronLeft } from "react-icons/bs";
+import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 
 export const UpdateContactModal = () => {
   //   const setIsOpenInsertNewContactModal = useDashboardStore((state) => state.setIsOpenInsertNewContactModal);
@@ -29,7 +30,6 @@ export const UpdateContactModal = () => {
   const [personalCellPhone, setPersonalCellPhone] = useState("");
   const [email, setEmail] = useState("");
   const [position, setPosition] = useState("");
-  // const [positionClass, setPositionClass] = useState('')
   // const [occupation, setOccupation] = useState('')
   const [approvalAmount, setApprovalAmount] = useState("");
   //   const [approvalAmount, setApprovalAmount] = useState<number | null>(null);
@@ -70,9 +70,12 @@ export const UpdateContactModal = () => {
       : "";
     let _contact_email = selectedRowDataContact.contact_email ? selectedRowDataContact.contact_email : "";
     let _position_name = selectedRowDataContact.position_name ? selectedRowDataContact.position_name : "";
-    let _approval_amount = selectedRowDataContact.approval_amount ? selectedRowDataContact.approval_amount : "";
-    let _position_class = selectedRowDataContact.position_class ? selectedRowDataContact.position_class : "";
-    let _occupation = selectedRowDataContact.occupation ? selectedRowDataContact.occupation : "";
+    // let _approval_amount = selectedRowDataContact.approval_amount ? selectedRowDataContact.approval_amount : "";
+    let _approval_amount = selectedRowDataContact.approval_amount
+      ? selectedRowDataContact.approval_amount.toString()
+      : "";
+    let _position_class = selectedRowDataContact.position_class ? selectedRowDataContact.position_class : "1 代表者";
+    let _occupation = selectedRowDataContact.occupation ? selectedRowDataContact.occupation : "1 社長・専務";
     let _call_careful_flag = selectedRowDataContact.call_careful_flag
       ? selectedRowDataContact.call_careful_flag
       : false;
@@ -112,22 +115,24 @@ export const UpdateContactModal = () => {
     setIsOpenUpdateContactModal(false);
   };
   const handleSaveAndClose = async () => {
+    if (name === "") return alert("担当者名の入力は必須です。");
     setLoadingGlobalState(true);
 
     // 編集、保存するデータをオブジェクトにまとめる
     const newContact = {
       id: selectedRowDataContact!.contact_id,
       name: name,
-      direct_line: directLine,
-      direct_fax: directFax,
-      extension: extension,
-      company_cell_phone: companyCellPhone,
-      personal_cell_phone: personalCellPhone,
-      email: email,
-      position_name: position,
-      position_class: selectedPositionClass,
-      occupation: selectedOccupation,
-      approval_amount: approvalAmount,
+      direct_line: directLine ? directLine : null,
+      direct_fax: directFax ? directFax : null,
+      extension: extension ? extension : null,
+      company_cell_phone: companyCellPhone ? companyCellPhone : null,
+      personal_cell_phone: personalCellPhone ? personalCellPhone : null,
+      email: email ? email : null,
+      position_name: position ? position : null,
+      position_class: selectedPositionClass ? selectedPositionClass : null,
+      occupation: selectedOccupation ? selectedOccupation : null,
+      // approval_amount: approvalAmount,
+      approval_amount: approvalAmount ? parseInt(approvalAmount, 10) : null,
       email_ban_flag: emailBanFlag,
       //   email_ban_flag: false,
       sending_materials_ban_flag: sendingMaterialBanFlag,
@@ -414,24 +419,27 @@ export const UpdateContactModal = () => {
                       value={selectedOccupation}
                       onChange={(e) => setSelectedOccupation(e.target.value)}
                     >
-                      <option value="1">1 社長・専務</option>
-                      <option value="2">2 取締役・役員</option>
-                      <option value="3">3 開発・設計</option>
-                      <option value="4">4 生産技術</option>
-                      <option value="5">5 製造</option>
-                      <option value="6">6 品質管理・品質保証</option>
-                      <option value="7">7 人事</option>
-                      <option value="8">8 経理</option>
-                      <option value="9">9 総務</option>
-                      <option value="10">10 法務</option>
-                      <option value="11">11 財務</option>
-                      <option value="12">12 情報システム</option>
-                      <option value="13">13 マーケティング</option>
-                      <option value="14">14 購買</option>
-                      <option value="15">15 営業</option>
-                      <option value="16">16 企画</option>
-                      <option value="17">17 CS</option>
-                      <option value="18">18 その他</option>
+                      <option value="社長・専務">社長・専務</option>
+                      <option value="取締役・役員">取締役・役員</option>
+                      <option value="プロジェクト管理">プロジェクト管理</option>
+                      <option value="営業">営業</option>
+                      <option value="マーケティング">マーケティング</option>
+                      <option value="クリエイティブ">クリエイティブ</option>
+                      <option value="ソフトウェア開発">ソフトウェア開発</option>
+                      <option value="開発・設計">開発・設計</option>
+                      <option value="製造">製造</option>
+                      <option value="品質管理・品質保証">品質管理・品質保証</option>
+                      <option value="生産管理">生産管理</option>
+                      <option value="生産技術">生産技術</option>
+                      <option value="人事">人事</option>
+                      <option value="経理">経理</option>
+                      <option value="総務">総務</option>
+                      <option value="法務">法務</option>
+                      <option value="財務">財務</option>
+                      <option value="購買">購買</option>
+                      <option value="情報システム/IT管理者">情報システム/IT管理者</option>
+                      <option value="CS/カスタマーサービス">CS/カスタマーサービス</option>
+                      <option value="その他">その他</option>
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -481,22 +489,32 @@ export const UpdateContactModal = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>決裁金額(万)</span>
                     <input
+                      // min={"0"}
                       type="text"
-                      placeholder=""
+                      placeholder="例：100、300など"
                       className={`${styles.input_box}`}
-                      min={"0"}
-                      value={approvalAmount !== null ? approvalAmount : ""}
-                      onChange={(e) => {
-                        // Number型の場合
-                        // プラスの数値と空文字以外をstateに格納
-                        // if (e.target.value === "" || e.target.value.search(/^[0-9]+$/) === 0) {
-                        //   console.log("OK", e.target.value.search(/^[-]?[0-9]+$/));
-                        //   setApprovalAmount(e.target.value === "" ? null : Number(e.target.value));
-                        // } else {
-                        //   console.log("NG", e.target.value.search(/^[0-9]+$/));
-                        // }
-                        setApprovalAmount(e.target.value);
-                      }}
+                      // value={approvalAmount !== null ? approvalAmount : ""}
+                      value={!!approvalAmount ? approvalAmount : ""}
+                      onChange={(e) => setApprovalAmount(e.target.value)}
+                      onBlur={() =>
+                        setApprovalAmount(
+                          !!approvalAmount && approvalAmount !== ""
+                            ? (convertToMillions(approvalAmount.trim()) as number).toString()
+                            : ""
+                        )
+                      }
+                      // value={approvalAmount !== null ? approvalAmount : ""}
+                      // onChange={(e) => {
+                      //   // Number型の場合
+                      //   // プラスの数値と空文字以外をstateに格納
+                      //   // if (e.target.value === "" || e.target.value.search(/^[0-9]+$/) === 0) {
+                      //   //   console.log("OK", e.target.value.search(/^[-]?[0-9]+$/));
+                      //   //   setApprovalAmount(e.target.value === "" ? null : Number(e.target.value));
+                      //   // } else {
+                      //   //   console.log("NG", e.target.value.search(/^[0-9]+$/));
+                      //   // }
+                      //   setApprovalAmount(e.target.value);
+                      // }}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>

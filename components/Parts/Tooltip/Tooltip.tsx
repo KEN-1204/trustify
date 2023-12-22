@@ -55,8 +55,8 @@ export const Tooltip = () => {
       const tooltipHalfWidth = tooltipWidth / 2;
       const viewportWidth = window.innerWidth;
       const viewportRightOneThird = (viewportWidth / 3) * 2; // 画面3分の2の幅
-      const viewportRightHalf = viewportWidth / 2; // 画面3分の2の幅
-      // const viewportRightOneFifth = (viewportWidth / 5) * 4; // 画面5分の4の幅
+      const viewportRightHalf = viewportWidth / 2; // 画面2分の1の幅
+      const viewportRightOneFifth = (viewportWidth / 5) * 4; // 画面5分の4の幅
       const leftPosition = hoveredItemPositionX + hoveredItemHalfWidth;
       // const leftPosition = hoveredItemPositionX + tooltipWidth;
       let adjustedLeft = leftPosition;
@@ -78,7 +78,7 @@ export const Tooltip = () => {
           console.log("tooltipWidth", tooltipWidth, "tooltipTextWidth", tooltipTextWidth, "tooltipText", tooltipText);
           // menuRef.current.style.minWidth = `${tooltipWidth}px`;
           menuRef.current.style.minWidth = `max-content`;
-          menuRef.current.style.whiteSpace = "nowrap";
+          // menuRef.current.style.whiteSpace = "nowrap";
           // if (tooltipWidth + hoveredItemPositionX > viewportWidth) {
           // }
           // if (!!tooltipTextWidth && tooltipTextWidth - 20 >= tooltipWidth) {
@@ -99,7 +99,7 @@ export const Tooltip = () => {
       // スタイルを更新
       menuRef.current.style.left = `${adjustedLeft}px`;
     }
-  }, [hoveredItemPositionX, hoveredItemPositionY, hoveredItemHalfWidth]);
+  }, [hoveredItemPositionX, hoveredItemPositionY, hoveredItemHalfWidth, hoveredItemDisplay]);
 
   // console.log("Tooltipコンポーネントレンダリング", hoveredItemPos?.content2, hoveredItemPos?.itemsPosition);
 

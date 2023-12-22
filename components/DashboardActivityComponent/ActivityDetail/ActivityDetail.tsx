@@ -4,7 +4,7 @@ import useRootStore from "@/store/useRootStore";
 import useThemeStore from "@/store/useThemeStore";
 import { ActivityTabHeader } from "./ActivityTabHeader/ActivityTabHeader";
 import { ActivityFunctionHeader } from "./ActivityFunctionHeader/ActivityFunctionHeader";
-import { ActivityMainContainer } from "./ActivityMainContainer/ActivityMainContainer";
+// import { ActivityMainContainer } from "./ActivityMainContainer/ActivityMainContainer";
 import useDashboardStore from "@/store/useDashboardStore";
 import { ActivityMainContainerOneThird } from "./ActivityMainContainer/ActivityMainContainerOneThird";
 

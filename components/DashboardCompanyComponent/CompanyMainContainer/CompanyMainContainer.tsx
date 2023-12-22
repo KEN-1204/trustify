@@ -31,7 +31,7 @@ import { validateAndFormatPhoneNumber } from "@/utils/Helpers/validateAndFormatP
 import { validateAndFormatPostalCode } from "@/utils/Helpers/validateAndFormatPostalCode";
 import { formatJapaneseAddress } from "@/utils/Helpers/formatJapaneseAddress";
 import { toHalfWidthAndSpace } from "@/utils/Helpers/toHalfWidthAndSpace";
-import { optionsIndustryType, optionsMonth } from "./data";
+import { optionsIndustryType, optionsMonth } from "./selectOptionsData";
 
 // ====================== 擬似テストデータ用 ======================
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
@@ -491,7 +491,7 @@ const CompanyMainContainerMemo: FC = () => {
 
   // プロパティ名のユニオン型の作成
   // Client_company_row_data型の全てのプロパティ名をリテラル型のユニオンとして展開
-  type ClientCOmpanyFieldNames = keyof Client_company_row_data;
+  type ClientCompanyFieldNames = keyof Client_company_row_data;
   // ================== 🌟エンターキーで個別フィールドをアップデート inputタグ ==================
   const handleKeyDownUpdateField = async ({
     e,
@@ -502,7 +502,7 @@ const CompanyMainContainerMemo: FC = () => {
   }: {
     e: React.KeyboardEvent<HTMLInputElement>;
     // fieldName: string;
-    fieldName: ClientCOmpanyFieldNames;
+    fieldName: ClientCompanyFieldNames;
     value: any;
     id: string | undefined;
     required: boolean;
@@ -556,7 +556,7 @@ const CompanyMainContainerMemo: FC = () => {
     }
   };
   // ================== ✅エンターキーで個別フィールドをアップデート inputタグ ==================
-  // ================== 🌟エンターキーで個別フィールドをアップデート inputタグ ==================
+  // ================== 🌟エンターキーで個別フィールドをアップデート textareaタグ ==================
   const handleKeyDownUpdateFieldTextarea = async ({
     e,
     fieldName,
@@ -567,7 +567,7 @@ const CompanyMainContainerMemo: FC = () => {
   }: {
     e: React.KeyboardEvent<HTMLTextAreaElement>;
     // fieldName: string;
-    fieldName: ClientCOmpanyFieldNames;
+    fieldName: ClientCompanyFieldNames;
     value: any;
     id: string | undefined;
     required: boolean;
@@ -605,7 +605,7 @@ const CompanyMainContainerMemo: FC = () => {
       setIsEditModeField(null); // エディットモードを終了
     }
   };
-  // ================== ✅エンターキーで個別フィールドをアップデート inputタグ ==================
+  // ================== ✅エンターキーで個別フィールドをアップデート textareaタグ ==================
   // ================== 🌟Sendキーで個別フィールドをアップデート ==================
   const handleClickSendUpdateField = async ({
     e,
@@ -616,7 +616,7 @@ const CompanyMainContainerMemo: FC = () => {
   }: {
     e: React.MouseEvent<HTMLDivElement, MouseEvent>;
     // fieldName: string;
-    fieldName: ClientCOmpanyFieldNames;
+    fieldName: ClientCompanyFieldNames;
     value: any;
     id: string | undefined;
     required: boolean;
@@ -673,7 +673,7 @@ const CompanyMainContainerMemo: FC = () => {
   }: {
     e: ChangeEvent<HTMLSelectElement>;
     // fieldName: string;
-    fieldName: ClientCOmpanyFieldNames;
+    fieldName: ClientCompanyFieldNames;
     value: any;
     id: string | undefined;
   }) => {
@@ -808,7 +808,7 @@ const CompanyMainContainerMemo: FC = () => {
                       )}
                     </div>
                   )}
-                  {/* サーチモード */}
+                  {/* サーチ */}
                   {searchMode && (
                     <input
                       type="text"
@@ -3066,7 +3066,8 @@ const CompanyMainContainerMemo: FC = () => {
                   {/* ディスプレイ */}
                   {!searchMode && isEditModeField !== "corporate_number" && (
                     <span
-                      className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`} // onMouseEnter={(e) => handleOpenTooltip({ e })}
+                      className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
+                      // onMouseEnter={(e) => handleOpenTooltip({ e })}
                       // onMouseLeave={handleCloseTooltip}
                       onClick={handleSingleClickField}
                       onDoubleClick={(e) => {
@@ -3158,17 +3159,17 @@ const CompanyMainContainerMemo: FC = () => {
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
+              {/* ID */}
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center`}>
+                {/* <div className={`${styles.title_box} flex h-full items-center`}>
                   <span className={`${styles.title_min}`}>ID</span>
                   {!searchMode && (
                     <span className={`${styles.value} truncate`}>
                       {selectedRowDataCompany?.id ? selectedRowDataCompany?.id : ""}
                     </span>
                   )}
-                  {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
                 </div>
-                <div className={`${styles.underline}`}></div>
+                <div className={`${styles.underline}`}></div> */}
               </div>
             </div>
 
@@ -3198,6 +3199,7 @@ const CompanyMainContainerMemo: FC = () => {
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
+                  {/* 会長 サーチ */}
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>会長</span>
@@ -3242,6 +3244,7 @@ const CompanyMainContainerMemo: FC = () => {
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
+                  {/* 専務取締役 サーチ */}
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>専務取締役</span>
@@ -3302,6 +3305,7 @@ const CompanyMainContainerMemo: FC = () => {
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
+                  {/* 取締役 サーチ */}
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>取締役</span>
@@ -3356,6 +3360,7 @@ const CompanyMainContainerMemo: FC = () => {
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
+                  {/* 監査役 サーチ */}
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>監査役</span>
@@ -3408,6 +3413,7 @@ const CompanyMainContainerMemo: FC = () => {
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
+                  {/* 担当者サーチ */}
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>担当者</span>
@@ -3464,42 +3470,197 @@ const CompanyMainContainerMemo: FC = () => {
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>代表者</span>
-                      {!searchMode && (
+                      {/* ディスプレイ */}
+                      {!searchMode && isEditModeField !== "representative_name" && (
                         <span
-                          className={`${styles.value}`}
+                          className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
                           data-text={`${
                             selectedRowDataCompany?.representative_name
                               ? selectedRowDataCompany?.representative_name
                               : ""
                           }`}
-                          onMouseEnter={(e) => handleOpenTooltip({ e })}
-                          onMouseLeave={handleCloseTooltip}
+                          // onMouseEnter={(e) => handleOpenTooltip({ e })}
+                          // onMouseLeave={handleCloseTooltip}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            handleCloseTooltip();
+                            handleDoubleClickField({
+                              e,
+                              field: "representative_name",
+                              dispatch: setInputRepresentativeName,
+                            });
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            handleOpenTooltip({ e });
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            handleCloseTooltip();
+                          }}
                         >
                           {selectedRowDataCompany?.representative_name
                             ? selectedRowDataCompany?.representative_name
                             : ""}
                         </span>
                       )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                      {/* ============= フィールドエディットモード関連 ============= */}
+                      {/* フィールドエディットモード inputタグ */}
+                      {!searchMode && isEditModeField === "representative_name" && (
+                        <>
+                          <input
+                            type="text"
+                            placeholder=""
+                            autoFocus
+                            className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                            value={inputRepresentativeName}
+                            onChange={(e) => setInputRepresentativeName(e.target.value)}
+                            onCompositionStart={() => setIsComposing(true)}
+                            onCompositionEnd={() => setIsComposing(false)}
+                            onKeyDown={(e) => {
+                              handleKeyDownUpdateField({
+                                e,
+                                fieldName: "representative_name",
+                                value: toHalfWidthAndSpace(inputRepresentativeName.trim()),
+                                id: selectedRowDataCompany?.id,
+                                required: false,
+                              });
+                            }}
+                          />
+                          {/* 送信ボタンとクローズボタン */}
+                          {!updateClientCompanyFieldMutation.isLoading && (
+                            <InputSendAndCloseBtn
+                              inputState={inputRepresentativeName}
+                              setInputState={setInputRepresentativeName}
+                              onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                                handleClickSendUpdateField({
+                                  e,
+                                  fieldName: "representative_name",
+                                  value: toHalfWidthAndSpace(inputRepresentativeName.trim()),
+                                  id: selectedRowDataCompany?.id,
+                                  required: false,
+                                })
+                              }
+                              required={false}
+                              isDisplayClose={false}
+                            />
+                          )}
+                          {/* エディットフィールド送信中ローディングスピナー */}
+                          {updateClientCompanyFieldMutation.isLoading && (
+                            <div className={`${styles.field_edit_mode_loading_area}`}>
+                              <SpinnerComet w="22px" h="22px" s="3px" />
+                            </div>
+                          )}
+                        </>
+                      )}
+                      {/* フィールドエディットモードオーバーレイ */}
+                      {!searchMode && isEditModeField === "representative_name" && (
+                        <div
+                          className={`${styles.edit_mode_overlay}`}
+                          onClick={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                            setIsEditModeField(null); // エディットモードを終了
+                          }}
+                        />
+                      )}
+                      {/* ============= フィールドエディットモード関連ここまで ============= */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
+                  {/* 会長 通常 */}
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>会長</span>
-                      {!searchMode && (
+                      {/* ディスプレイ */}
+                      {!searchMode && isEditModeField !== "chairperson" && (
                         <span
-                          className={`${styles.value}`}
+                          className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
                           data-text={`${
                             selectedRowDataCompany?.chairperson ? selectedRowDataCompany?.chairperson : ""
                           }`}
-                          onMouseEnter={(e) => handleOpenTooltip({ e })}
-                          onMouseLeave={handleCloseTooltip}
+                          // onMouseEnter={(e) => handleOpenTooltip({ e })}
+                          // onMouseLeave={handleCloseTooltip}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            handleCloseTooltip();
+                            handleDoubleClickField({
+                              e,
+                              field: "chairperson",
+                              dispatch: setInputChairperson,
+                            });
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            handleOpenTooltip({ e });
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            handleCloseTooltip();
+                          }}
                         >
                           {selectedRowDataCompany?.chairperson ? selectedRowDataCompany?.chairperson : ""}
                         </span>
                       )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                      {/* ============= フィールドエディットモード関連 ============= */}
+                      {/* フィールドエディットモード inputタグ */}
+                      {!searchMode && isEditModeField === "chairperson" && (
+                        <>
+                          <input
+                            type="text"
+                            placeholder=""
+                            autoFocus
+                            className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                            value={inputChairperson}
+                            onChange={(e) => setInputChairperson(e.target.value)}
+                            onCompositionStart={() => setIsComposing(true)}
+                            onCompositionEnd={() => setIsComposing(false)}
+                            onKeyDown={(e) => {
+                              handleKeyDownUpdateField({
+                                e,
+                                fieldName: "chairperson",
+                                value: toHalfWidthAndSpace(inputChairperson.trim()),
+                                id: selectedRowDataCompany?.id,
+                                required: false,
+                              });
+                            }}
+                          />
+                          {/* 送信ボタンとクローズボタン */}
+                          {!updateClientCompanyFieldMutation.isLoading && (
+                            <InputSendAndCloseBtn
+                              inputState={inputChairperson}
+                              setInputState={setInputChairperson}
+                              onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                                handleClickSendUpdateField({
+                                  e,
+                                  fieldName: "chairperson",
+                                  value: toHalfWidthAndSpace(inputChairperson.trim()),
+                                  id: selectedRowDataCompany?.id,
+                                  required: false,
+                                })
+                              }
+                              required={false}
+                              isDisplayClose={false}
+                            />
+                          )}
+                          {/* エディットフィールド送信中ローディングスピナー */}
+                          {updateClientCompanyFieldMutation.isLoading && (
+                            <div className={`${styles.field_edit_mode_loading_area}`}>
+                              <SpinnerComet w="22px" h="22px" s="3px" />
+                            </div>
+                          )}
+                        </>
+                      )}
+                      {/* フィールドエディットモードオーバーレイ */}
+                      {!searchMode && isEditModeField === "chairperson" && (
+                        <div
+                          className={`${styles.edit_mode_overlay}`}
+                          onClick={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                            setIsEditModeField(null); // エディットモードを終了
+                          }}
+                        />
+                      )}
+                      {/* ============= フィールドエディットモード関連ここまで ============= */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -3510,46 +3671,201 @@ const CompanyMainContainerMemo: FC = () => {
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>副社長</span>
-                      {!searchMode && (
+                      {/* ディスプレイ */}
+                      {!searchMode && isEditModeField !== "senior_vice_president" && (
                         <span
-                          className={`${styles.value}`}
+                          className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
                           data-text={`${
                             selectedRowDataCompany?.senior_vice_president
                               ? selectedRowDataCompany?.senior_vice_president
                               : ""
                           }`}
-                          onMouseEnter={(e) => handleOpenTooltip({ e })}
-                          onMouseLeave={handleCloseTooltip}
+                          // onMouseEnter={(e) => handleOpenTooltip({ e })}
+                          // onMouseLeave={handleCloseTooltip}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            handleCloseTooltip();
+                            handleDoubleClickField({
+                              e,
+                              field: "senior_vice_president",
+                              dispatch: setInputSeniorVicePresident,
+                            });
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            handleOpenTooltip({ e });
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            handleCloseTooltip();
+                          }}
                         >
                           {selectedRowDataCompany?.senior_vice_president
                             ? selectedRowDataCompany?.senior_vice_president
                             : ""}
                         </span>
                       )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                      {/* ============= フィールドエディットモード関連 ============= */}
+                      {/* フィールドエディットモード inputタグ */}
+                      {!searchMode && isEditModeField === "senior_vice_president" && (
+                        <>
+                          <input
+                            type="text"
+                            placeholder=""
+                            autoFocus
+                            className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                            value={inputSeniorVicePresident}
+                            onChange={(e) => setInputSeniorVicePresident(e.target.value)}
+                            onCompositionStart={() => setIsComposing(true)}
+                            onCompositionEnd={() => setIsComposing(false)}
+                            onKeyDown={(e) => {
+                              handleKeyDownUpdateField({
+                                e,
+                                fieldName: "senior_vice_president",
+                                value: toHalfWidthAndSpace(inputSeniorVicePresident.trim()),
+                                id: selectedRowDataCompany?.id,
+                                required: false,
+                              });
+                            }}
+                          />
+                          {/* 送信ボタンとクローズボタン */}
+                          {!updateClientCompanyFieldMutation.isLoading && (
+                            <InputSendAndCloseBtn
+                              inputState={inputSeniorVicePresident}
+                              setInputState={setInputSeniorVicePresident}
+                              onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                                handleClickSendUpdateField({
+                                  e,
+                                  fieldName: "senior_vice_president",
+                                  value: toHalfWidthAndSpace(inputSeniorVicePresident.trim()),
+                                  id: selectedRowDataCompany?.id,
+                                  required: false,
+                                })
+                              }
+                              required={false}
+                              isDisplayClose={false}
+                            />
+                          )}
+                          {/* エディットフィールド送信中ローディングスピナー */}
+                          {updateClientCompanyFieldMutation.isLoading && (
+                            <div className={`${styles.field_edit_mode_loading_area}`}>
+                              <SpinnerComet w="22px" h="22px" s="3px" />
+                            </div>
+                          )}
+                        </>
+                      )}
+                      {/* フィールドエディットモードオーバーレイ */}
+                      {!searchMode && isEditModeField === "senior_vice_president" && (
+                        <div
+                          className={`${styles.edit_mode_overlay}`}
+                          onClick={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                            setIsEditModeField(null); // エディットモードを終了
+                          }}
+                        />
+                      )}
+                      {/* ============= フィールドエディットモード関連ここまで ============= */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
+                  {/* 専務取締役 通常 */}
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>専務取締役</span>
-                      {!searchMode && (
+                      {/* ディスプレイ */}
+                      {!searchMode && isEditModeField !== "senior_managing_director" && (
                         <span
                           data-text={`${
                             selectedRowDataCompany?.senior_managing_director
                               ? selectedRowDataCompany?.senior_managing_director
                               : ""
                           }`}
-                          className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip({ e })}
-                          onMouseLeave={handleCloseTooltip}
+                          className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
+                          // onMouseEnter={(e) => handleOpenTooltip({ e })}
+                          // onMouseLeave={handleCloseTooltip}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            handleCloseTooltip();
+                            handleDoubleClickField({
+                              e,
+                              field: "senior_managing_director",
+                              dispatch: setInputSeniorManagingDirector,
+                            });
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            handleOpenTooltip({ e });
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            handleCloseTooltip();
+                          }}
                         >
                           {selectedRowDataCompany?.senior_managing_director
                             ? selectedRowDataCompany?.senior_managing_director
                             : ""}
                         </span>
                       )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                      {/* ============= フィールドエディットモード関連 ============= */}
+                      {/* フィールドエディットモード inputタグ */}
+                      {!searchMode && isEditModeField === "senior_managing_director" && (
+                        <>
+                          <input
+                            type="text"
+                            placeholder=""
+                            autoFocus
+                            className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                            value={inputSeniorManagingDirector}
+                            onChange={(e) => setInputSeniorManagingDirector(e.target.value)}
+                            onCompositionStart={() => setIsComposing(true)}
+                            onCompositionEnd={() => setIsComposing(false)}
+                            onKeyDown={(e) => {
+                              handleKeyDownUpdateField({
+                                e,
+                                fieldName: "senior_managing_director",
+                                value: toHalfWidthAndSpace(inputSeniorManagingDirector.trim()),
+                                id: selectedRowDataCompany?.id,
+                                required: false,
+                              });
+                            }}
+                          />
+                          {/* 送信ボタンとクローズボタン */}
+                          {!updateClientCompanyFieldMutation.isLoading && (
+                            <InputSendAndCloseBtn
+                              inputState={inputSeniorManagingDirector}
+                              setInputState={setInputSeniorManagingDirector}
+                              onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                                handleClickSendUpdateField({
+                                  e,
+                                  fieldName: "senior_managing_director",
+                                  value: toHalfWidthAndSpace(inputSeniorManagingDirector.trim()),
+                                  id: selectedRowDataCompany?.id,
+                                  required: false,
+                                })
+                              }
+                              required={false}
+                              isDisplayClose={false}
+                            />
+                          )}
+                          {/* エディットフィールド送信中ローディングスピナー */}
+                          {updateClientCompanyFieldMutation.isLoading && (
+                            <div className={`${styles.field_edit_mode_loading_area}`}>
+                              <SpinnerComet w="22px" h="22px" s="3px" />
+                            </div>
+                          )}
+                        </>
+                      )}
+                      {/* フィールドエディットモードオーバーレイ */}
+                      {!searchMode && isEditModeField === "senior_managing_director" && (
+                        <div
+                          className={`${styles.edit_mode_overlay}`}
+                          onClick={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                            setIsEditModeField(null); // エディットモードを終了
+                          }}
+                        />
+                      )}
+                      {/* ============= フィールドエディットモード関連ここまで ============= */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -3560,36 +3876,193 @@ const CompanyMainContainerMemo: FC = () => {
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>常務取締役</span>
-                      {!searchMode && (
+                      {/* ディスプレイ */}
+                      {!searchMode && isEditModeField !== "managing_director" && (
                         <span
                           data-text={`${
                             selectedRowDataCompany?.managing_director ? selectedRowDataCompany?.managing_director : ""
                           }`}
-                          className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip({ e })}
-                          onMouseLeave={handleCloseTooltip}
+                          className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
+                          // onMouseEnter={(e) => handleOpenTooltip({ e })}
+                          // onMouseLeave={handleCloseTooltip}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            handleCloseTooltip();
+                            handleDoubleClickField({
+                              e,
+                              field: "managing_director",
+                              dispatch: setInputManagingDirector,
+                            });
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            handleOpenTooltip({ e });
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            handleCloseTooltip();
+                          }}
                         >
                           {selectedRowDataCompany?.managing_director ? selectedRowDataCompany?.managing_director : ""}
                         </span>
                       )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                      {/* ============= フィールドエディットモード関連 ============= */}
+                      {/* フィールドエディットモード inputタグ */}
+                      {!searchMode && isEditModeField === "managing_director" && (
+                        <>
+                          <input
+                            type="text"
+                            placeholder=""
+                            autoFocus
+                            className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                            value={inputManagingDirector}
+                            onChange={(e) => setInputManagingDirector(e.target.value)}
+                            onCompositionStart={() => setIsComposing(true)}
+                            onCompositionEnd={() => setIsComposing(false)}
+                            onKeyDown={(e) => {
+                              handleKeyDownUpdateField({
+                                e,
+                                fieldName: "managing_director",
+                                value: toHalfWidthAndSpace(inputManagingDirector.trim()),
+                                id: selectedRowDataCompany?.id,
+                                required: false,
+                              });
+                            }}
+                          />
+                          {/* 送信ボタンとクローズボタン */}
+                          {!updateClientCompanyFieldMutation.isLoading && (
+                            <InputSendAndCloseBtn
+                              inputState={inputManagingDirector}
+                              setInputState={setInputManagingDirector}
+                              onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                                handleClickSendUpdateField({
+                                  e,
+                                  fieldName: "managing_director",
+                                  value: toHalfWidthAndSpace(inputManagingDirector.trim()),
+                                  id: selectedRowDataCompany?.id,
+                                  required: false,
+                                })
+                              }
+                              required={false}
+                              isDisplayClose={false}
+                            />
+                          )}
+                          {/* エディットフィールド送信中ローディングスピナー */}
+                          {updateClientCompanyFieldMutation.isLoading && (
+                            <div className={`${styles.field_edit_mode_loading_area}`}>
+                              <SpinnerComet w="22px" h="22px" s="3px" />
+                            </div>
+                          )}
+                        </>
+                      )}
+                      {/* フィールドエディットモードオーバーレイ */}
+                      {!searchMode && isEditModeField === "managing_director" && (
+                        <div
+                          className={`${styles.edit_mode_overlay}`}
+                          onClick={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                            setIsEditModeField(null); // エディットモードを終了
+                          }}
+                        />
+                      )}
+                      {/* ============= フィールドエディットモード関連ここまで ============= */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
+                  {/* 取締役 通常 */}
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>取締役</span>
-                      {!searchMode && (
+                      {/* ディスプレイ */}
+                      {!searchMode && isEditModeField !== "director" && (
                         <span
-                          className={`${styles.value} truncate`}
+                          className={`${styles.value} truncate ${
+                            isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`
+                          }`}
                           data-text={`${selectedRowDataCompany?.director ? selectedRowDataCompany?.director : ""}`}
-                          onMouseEnter={(e) => handleOpenTooltip({ e })}
-                          onMouseLeave={handleCloseTooltip}
+                          // onMouseEnter={(e) => handleOpenTooltip({ e })}
+                          // onMouseLeave={handleCloseTooltip}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            handleCloseTooltip();
+                            handleDoubleClickField({
+                              e,
+                              field: "director",
+                              dispatch: setInputDirector,
+                            });
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            handleOpenTooltip({ e });
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            handleCloseTooltip();
+                          }}
                         >
                           {selectedRowDataCompany?.director ? selectedRowDataCompany?.director : ""}
                         </span>
                       )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                      {/* ============= フィールドエディットモード関連 ============= */}
+                      {/* フィールドエディットモード inputタグ */}
+                      {!searchMode && isEditModeField === "director" && (
+                        <>
+                          <input
+                            type="text"
+                            placeholder=""
+                            autoFocus
+                            className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                            value={inputDirector}
+                            onChange={(e) => setInputDirector(e.target.value)}
+                            onCompositionStart={() => setIsComposing(true)}
+                            onCompositionEnd={() => setIsComposing(false)}
+                            onKeyDown={(e) => {
+                              handleKeyDownUpdateField({
+                                e,
+                                fieldName: "director",
+                                value: toHalfWidthAndSpace(inputDirector.trim()),
+                                id: selectedRowDataCompany?.id,
+                                required: false,
+                              });
+                            }}
+                          />
+                          {/* 送信ボタンとクローズボタン */}
+                          {!updateClientCompanyFieldMutation.isLoading && (
+                            <InputSendAndCloseBtn
+                              inputState={inputDirector}
+                              setInputState={setInputDirector}
+                              onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                                handleClickSendUpdateField({
+                                  e,
+                                  fieldName: "director",
+                                  value: toHalfWidthAndSpace(inputDirector.trim()),
+                                  id: selectedRowDataCompany?.id,
+                                  required: false,
+                                })
+                              }
+                              required={false}
+                              isDisplayClose={false}
+                            />
+                          )}
+                          {/* エディットフィールド送信中ローディングスピナー */}
+                          {updateClientCompanyFieldMutation.isLoading && (
+                            <div className={`${styles.field_edit_mode_loading_area}`}>
+                              <SpinnerComet w="22px" h="22px" s="3px" />
+                            </div>
+                          )}
+                        </>
+                      )}
+                      {/* フィールドエディットモードオーバーレイ */}
+                      {!searchMode && isEditModeField === "director" && (
+                        <div
+                          className={`${styles.edit_mode_overlay}`}
+                          onClick={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                            setIsEditModeField(null); // エディットモードを終了
+                          }}
+                        />
+                      )}
+                      {/* ============= フィールドエディットモード関連ここまで ============= */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -3600,36 +4073,190 @@ const CompanyMainContainerMemo: FC = () => {
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>役員</span>
-                      {!searchMode && (
+                      {/* ディスプレイ */}
+                      {!searchMode && isEditModeField !== "board_member" && (
                         <span
                           data-text={`${
                             selectedRowDataCompany?.board_member ? selectedRowDataCompany?.board_member : ""
                           }`}
-                          className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip({ e })}
-                          onMouseLeave={handleCloseTooltip}
+                          className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
+                          // onMouseEnter={(e) => handleOpenTooltip({ e })}
+                          // onMouseLeave={handleCloseTooltip}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            handleCloseTooltip();
+                            handleDoubleClickField({
+                              e,
+                              field: "board_member",
+                              dispatch: setInputBoardMember,
+                            });
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            handleOpenTooltip({ e });
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            handleCloseTooltip();
+                          }}
                         >
                           {selectedRowDataCompany?.board_member ? selectedRowDataCompany?.board_member : ""}
                         </span>
                       )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                      {/* ============= フィールドエディットモード関連 ============= */}
+                      {/* フィールドエディットモード inputタグ */}
+                      {!searchMode && isEditModeField === "board_member" && (
+                        <>
+                          <input
+                            type="text"
+                            placeholder=""
+                            autoFocus
+                            className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                            value={inputBoardMember}
+                            onChange={(e) => setInputBoardMember(e.target.value)}
+                            onCompositionStart={() => setIsComposing(true)}
+                            onCompositionEnd={() => setIsComposing(false)}
+                            onKeyDown={(e) => {
+                              handleKeyDownUpdateField({
+                                e,
+                                fieldName: "board_member",
+                                value: toHalfWidthAndSpace(inputBoardMember.trim()),
+                                id: selectedRowDataCompany?.id,
+                                required: false,
+                              });
+                            }}
+                          />
+                          {/* 送信ボタンとクローズボタン */}
+                          {!updateClientCompanyFieldMutation.isLoading && (
+                            <InputSendAndCloseBtn
+                              inputState={inputBoardMember}
+                              setInputState={setInputBoardMember}
+                              onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                                handleClickSendUpdateField({
+                                  e,
+                                  fieldName: "board_member",
+                                  value: toHalfWidthAndSpace(inputBoardMember.trim()),
+                                  id: selectedRowDataCompany?.id,
+                                  required: false,
+                                })
+                              }
+                              required={false}
+                              isDisplayClose={false}
+                            />
+                          )}
+                          {/* エディットフィールド送信中ローディングスピナー */}
+                          {updateClientCompanyFieldMutation.isLoading && (
+                            <div className={`${styles.field_edit_mode_loading_area}`}>
+                              <SpinnerComet w="22px" h="22px" s="3px" />
+                            </div>
+                          )}
+                        </>
+                      )}
+                      {/* フィールドエディットモードオーバーレイ */}
+                      {!searchMode && isEditModeField === "board_member" && (
+                        <div
+                          className={`${styles.edit_mode_overlay}`}
+                          onClick={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                            setIsEditModeField(null); // エディットモードを終了
+                          }}
+                        />
+                      )}
+                      {/* ============= フィールドエディットモード関連ここまで ============= */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>監査役</span>
-                      {!searchMode && (
+                      {/* ディスプレイ */}
+                      {!searchMode && isEditModeField !== "auditor" && (
                         <span
                           data-text={`${selectedRowDataCompany?.auditor ? selectedRowDataCompany?.auditor : ""}`}
-                          className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip({ e })}
-                          onMouseLeave={handleCloseTooltip}
+                          className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
+                          // onMouseEnter={(e) => handleOpenTooltip({ e })}
+                          // onMouseLeave={handleCloseTooltip}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            handleCloseTooltip();
+                            handleDoubleClickField({
+                              e,
+                              field: "auditor",
+                              dispatch: setInputAuditor,
+                            });
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            handleOpenTooltip({ e });
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            handleCloseTooltip();
+                          }}
                         >
                           {selectedRowDataCompany?.auditor ? selectedRowDataCompany?.auditor : ""}
                         </span>
                       )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                      {/* ============= フィールドエディットモード関連 ============= */}
+                      {/* フィールドエディットモード inputタグ */}
+                      {!searchMode && isEditModeField === "auditor" && (
+                        <>
+                          <input
+                            type="text"
+                            placeholder=""
+                            autoFocus
+                            className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                            value={inputAuditor}
+                            onChange={(e) => setInputAuditor(e.target.value)}
+                            onCompositionStart={() => setIsComposing(true)}
+                            onCompositionEnd={() => setIsComposing(false)}
+                            onKeyDown={(e) => {
+                              handleKeyDownUpdateField({
+                                e,
+                                fieldName: "auditor",
+                                value: toHalfWidthAndSpace(inputAuditor.trim()),
+                                id: selectedRowDataCompany?.id,
+                                required: false,
+                              });
+                            }}
+                          />
+                          {/* 送信ボタンとクローズボタン */}
+                          {!updateClientCompanyFieldMutation.isLoading && (
+                            <InputSendAndCloseBtn
+                              inputState={inputAuditor}
+                              setInputState={setInputAuditor}
+                              onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                                handleClickSendUpdateField({
+                                  e,
+                                  fieldName: "auditor",
+                                  value: toHalfWidthAndSpace(inputAuditor.trim()),
+                                  id: selectedRowDataCompany?.id,
+                                  required: false,
+                                })
+                              }
+                              required={false}
+                              isDisplayClose={false}
+                            />
+                          )}
+                          {/* エディットフィールド送信中ローディングスピナー */}
+                          {updateClientCompanyFieldMutation.isLoading && (
+                            <div className={`${styles.field_edit_mode_loading_area}`}>
+                              <SpinnerComet w="22px" h="22px" s="3px" />
+                            </div>
+                          )}
+                        </>
+                      )}
+                      {/* フィールドエディットモードオーバーレイ */}
+                      {!searchMode && isEditModeField === "auditor" && (
+                        <div
+                          className={`${styles.edit_mode_overlay}`}
+                          onClick={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                            setIsEditModeField(null); // エディットモードを終了
+                          }}
+                        />
+                      )}
+                      {/* ============= フィールドエディットモード関連ここまで ============= */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -3640,34 +4267,189 @@ const CompanyMainContainerMemo: FC = () => {
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>部長</span>
-                      {!searchMode && (
+                      {/* ディスプレイ */}
+                      {!searchMode && isEditModeField !== "manager" && (
                         <span
                           data-text={`${selectedRowDataCompany?.manager ? selectedRowDataCompany?.manager : ""}`}
-                          className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip({ e })}
-                          onMouseLeave={handleCloseTooltip}
+                          className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
+                          // onMouseEnter={(e) => handleOpenTooltip({ e })}
+                          // onMouseLeave={handleCloseTooltip}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            handleCloseTooltip();
+                            handleDoubleClickField({
+                              e,
+                              field: "manager",
+                              dispatch: setInputManager,
+                            });
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            handleOpenTooltip({ e });
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            handleCloseTooltip();
+                          }}
                         >
                           {selectedRowDataCompany?.manager ? selectedRowDataCompany?.manager : ""}
                         </span>
                       )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                      {/* ============= フィールドエディットモード関連 ============= */}
+                      {/* フィールドエディットモード inputタグ */}
+                      {!searchMode && isEditModeField === "manager" && (
+                        <>
+                          <input
+                            type="text"
+                            placeholder=""
+                            autoFocus
+                            className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                            value={inputManager}
+                            onChange={(e) => setInputManager(e.target.value)}
+                            onCompositionStart={() => setIsComposing(true)}
+                            onCompositionEnd={() => setIsComposing(false)}
+                            onKeyDown={(e) => {
+                              handleKeyDownUpdateField({
+                                e,
+                                fieldName: "manager",
+                                value: toHalfWidthAndSpace(inputManager.trim()),
+                                id: selectedRowDataCompany?.id,
+                                required: false,
+                              });
+                            }}
+                          />
+                          {/* 送信ボタンとクローズボタン */}
+                          {!updateClientCompanyFieldMutation.isLoading && (
+                            <InputSendAndCloseBtn
+                              inputState={inputManager}
+                              setInputState={setInputManager}
+                              onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                                handleClickSendUpdateField({
+                                  e,
+                                  fieldName: "manager",
+                                  value: toHalfWidthAndSpace(inputManager.trim()),
+                                  id: selectedRowDataCompany?.id,
+                                  required: false,
+                                })
+                              }
+                              required={false}
+                              isDisplayClose={false}
+                            />
+                          )}
+                          {/* エディットフィールド送信中ローディングスピナー */}
+                          {updateClientCompanyFieldMutation.isLoading && (
+                            <div className={`${styles.field_edit_mode_loading_area}`}>
+                              <SpinnerComet w="22px" h="22px" s="3px" />
+                            </div>
+                          )}
+                        </>
+                      )}
+                      {/* フィールドエディットモードオーバーレイ */}
+                      {!searchMode && isEditModeField === "manager" && (
+                        <div
+                          className={`${styles.edit_mode_overlay}`}
+                          onClick={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                            setIsEditModeField(null); // エディットモードを終了
+                          }}
+                        />
+                      )}
+                      {/* ============= フィールドエディットモード関連ここまで ============= */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
+                  {/* 担当者 通常 */}
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>担当者</span>
-                      {!searchMode && (
+                      {/* ディスプレイ */}
+                      {!searchMode && isEditModeField !== "member" && (
                         <span
                           data-text={`${selectedRowDataCompany?.member ? selectedRowDataCompany?.member : ""}`}
-                          className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip({ e })}
-                          onMouseLeave={handleCloseTooltip}
+                          className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
+                          // onMouseEnter={(e) => handleOpenTooltip({ e })}
+                          // onMouseLeave={handleCloseTooltip}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            handleCloseTooltip();
+                            handleDoubleClickField({
+                              e,
+                              field: "member",
+                              dispatch: setInputMember,
+                            });
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            handleOpenTooltip({ e });
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            handleCloseTooltip();
+                          }}
                         >
                           {selectedRowDataCompany?.member ? selectedRowDataCompany?.member : ""}
                         </span>
                       )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                      {/* ============= フィールドエディットモード関連 ============= */}
+                      {/* フィールドエディットモード inputタグ */}
+                      {!searchMode && isEditModeField === "member" && (
+                        <>
+                          <input
+                            type="text"
+                            placeholder=""
+                            autoFocus
+                            className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                            value={inputMember}
+                            onChange={(e) => setInputMember(e.target.value)}
+                            onCompositionStart={() => setIsComposing(true)}
+                            onCompositionEnd={() => setIsComposing(false)}
+                            onKeyDown={(e) => {
+                              handleKeyDownUpdateField({
+                                e,
+                                fieldName: "member",
+                                value: toHalfWidthAndSpace(inputMember.trim()),
+                                id: selectedRowDataCompany?.id,
+                                required: false,
+                              });
+                            }}
+                          />
+                          {/* 送信ボタンとクローズボタン */}
+                          {!updateClientCompanyFieldMutation.isLoading && (
+                            <InputSendAndCloseBtn
+                              inputState={inputMember}
+                              setInputState={setInputMember}
+                              onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                                handleClickSendUpdateField({
+                                  e,
+                                  fieldName: "member",
+                                  value: toHalfWidthAndSpace(inputMember.trim()),
+                                  id: selectedRowDataCompany?.id,
+                                  required: false,
+                                })
+                              }
+                              required={false}
+                              isDisplayClose={false}
+                            />
+                          )}
+                          {/* エディットフィールド送信中ローディングスピナー */}
+                          {updateClientCompanyFieldMutation.isLoading && (
+                            <div className={`${styles.field_edit_mode_loading_area}`}>
+                              <SpinnerComet w="22px" h="22px" s="3px" />
+                            </div>
+                          )}
+                        </>
+                      )}
+                      {/* フィールドエディットモードオーバーレイ */}
+                      {!searchMode && isEditModeField === "member" && (
+                        <div
+                          className={`${styles.edit_mode_overlay}`}
+                          onClick={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                            setIsEditModeField(null); // エディットモードを終了
+                          }}
+                        />
+                      )}
+                      {/* ============= フィールドエディットモード関連ここまで ============= */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
