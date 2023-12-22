@@ -1,5 +1,6 @@
 import { zenkakuToHankaku } from "./zenkakuToHankaku";
 
+// 「兆」「億」「万」「円」を万円単位の数字に変換する関数
 export function convertToMillions(inputString: string): number | null {
   // 入力文字列が空の場合にはnullを返す
   if (inputString.trim() === "") return null;

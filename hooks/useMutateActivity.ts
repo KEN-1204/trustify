@@ -1,6 +1,6 @@
 import useDashboardStore from "@/store/useDashboardStore";
 import useThemeStore from "@/store/useThemeStore";
-import { Activity, Client_company } from "@/types";
+import { Activity, Activity_row_data, Client_company } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React from "react";
@@ -19,6 +19,7 @@ export const useMutateActivity = () => {
   );
 
   // 選択中の行データと更新関数
+  const selectedRowDataActivity = useDashboardStore((state) => state.selectedRowDataActivity);
   const setSelectedRowDataActivity = useDashboardStore((state) => state.setSelectedRowDataActivity);
 
   const supabase = useSupabaseClient();
@@ -182,12 +183,20 @@ export const useMutateActivity = () => {
 
   // 【Activityの個別フィールド毎に編集UPDATE用updateActivityFieldMutation関数】
   // MainContainerからダブルクリックでフィールドエディットモードに移行し、個別にフィールド入力、更新した時に使用 受け取る引数は一つのプロパティのみ
+  type ExcludeKeys = "company_id" | "contact_id" | "activity_id"; // 除外するキー
+  type ActivityFieldNamesForSelectedRowData = Exclude<keyof Activity_row_data, ExcludeKeys>; // Contact_row_dataタイプのプロパティ名のみのデータ型を取得
   const updateActivityFieldMutation = useMutation(
-    async (fieldData: { fieldName: string; value: any; id: string }) => {
-      const { fieldName, value, id } = fieldData;
+    async (fieldData: {
+      fieldName: string;
+      fieldNameForSelectedRowData: ActivityFieldNamesForSelectedRowData;
+      newValue: any;
+      id: string;
+    }) => {
+      console.log("updateActivityFieldMutation実行 引数", fieldData);
+      const { fieldName, fieldNameForSelectedRowData, newValue, id } = fieldData;
       const { data, error } = await supabase
         .from("activities")
-        .update({ [fieldName]: value })
+        .update({ [fieldName]: newValue })
         .eq("id", id)
         .select();
 
@@ -195,19 +204,26 @@ export const useMutateActivity = () => {
 
       console.log("updateActivityFieldMutation実行完了 mutate data", data);
 
-      return data;
+      return { data, fieldNameForSelectedRowData, newValue };
     },
     {
-      onSuccess: async (data) => {
+      onSuccess: async (response) => {
+        const { fieldNameForSelectedRowData, newValue } = response;
+
         console.log(
           "updateActivityFieldMutation実行完了 キャッシュを更新して選択中のセルを再度クリックして更新 onSuccess data[0]",
-          data[0]
+          fieldNameForSelectedRowData,
+          "newValue",
+          newValue
         );
-        // キャッシュ更新より先にZustandのsetSelectedRowDataActivityをupdateで取得したデータで更新する
-        setSelectedRowDataActivity(data[0]);
 
         // companiesに関わるキャッシュのデータを再取得 => これをしないと既に取得済みのキャッシュは古い状態で表示されてしまう
         await queryClient.invalidateQueries({ queryKey: ["activities"] });
+
+        if (!selectedRowDataActivity) return;
+        // キャッシュ更新後ににZustandのsetSelectedRowDataActivityをupdateで取得したデータで更新する
+        const newRowDataActivity = { ...selectedRowDataActivity, [fieldNameForSelectedRowData]: newValue };
+        setSelectedRowDataActivity(newRowDataActivity);
 
         // 再度テーブルの選択セルのDOMをクリックしてsetSelectedRowDataActivityを最新状態にする
         // setIsUpdateRequiredForLatestsetSelectedRowDataActivity(true);

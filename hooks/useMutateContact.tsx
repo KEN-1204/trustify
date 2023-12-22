@@ -235,7 +235,7 @@ export const useMutateContact = () => {
         await queryClient.invalidateQueries({ queryKey: ["contacts"] });
 
         if (!selectedRowDataContact) return;
-        // キャッシュ更新より先にZustandのSelectedRowDataContactをupdateで取得したデータで更新する
+        // キャッシュ更新後にZustandのSelectedRowDataContactをupdateで取得したデータで更新する
         const newRowDataContact = { ...selectedRowDataContact, [fieldNameForSelectedRowData]: newValue };
         setSelectedRowDataContact(newRowDataContact);
 

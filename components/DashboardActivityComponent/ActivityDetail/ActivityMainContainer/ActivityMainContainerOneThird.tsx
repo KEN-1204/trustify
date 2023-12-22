@@ -17,6 +17,7 @@ import { Zoom } from "@/utils/Helpers/toastHelpers";
 import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 import { optionsOccupation } from "@/components/DashboardContactComponent/ContactDetail/ContactMainContainer/selectOptionsData";
+import { useMutateActivity } from "@/hooks/useMutateActivity";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -41,64 +42,37 @@ import { optionsOccupation } from "@/components/DashboardContactComponent/Contac
 
 const ActivityMainContainerOneThirdMemo = () => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
+  // サーチモード
   const searchMode = useDashboardStore((state) => state.searchMode);
   const setSearchMode = useDashboardStore((state) => state.setSearchMode);
-  console.log("🔥 ActivityMainContainerレンダリング searchMode", searchMode);
+  // 編集サーチモード
+  const editSearchMode = useDashboardStore((state) => state.editSearchMode);
+  const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
+  // ツールチップ
   const setHoveredItemPosWrap = useStore((state) => state.setHoveredItemPosWrap);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
+  const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
+  const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
+  const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
   // 上画面の選択中の列データ会社
   const selectedRowDataActivity = useDashboardStore((state) => state.selectedRowDataActivity);
   const setSelectedRowDataActivity = useDashboardStore((state) => state.setSelectedRowDataActivity);
   // 担当者編集モーダルオープン
   const setIsOpenUpdateActivityModal = useDashboardStore((state) => state.setIsOpenUpdateActivityModal);
+  // rpc()サーチ用パラメータ
+  const newSearchActivity_Contact_CompanyParams = useDashboardStore(
+    (state) => state.newSearchActivity_Contact_CompanyParams
+  );
+  const setNewSearchActivity_Contact_CompanyParams = useDashboardStore(
+    (state) => state.setNewSearchActivity_Contact_CompanyParams
+  );
+  // 各フィールドの編集モード => ダブルクリックで各フィールド名をstateに格納し、各フィールドをエディットモードへ
+  const isEditModeField = useDashboardStore((state) => state.isEditModeField);
+  const setIsEditModeField = useDashboardStore((state) => state.setIsEditModeField);
+  const [isComposing, setIsComposing] = useState(false); // 日本語のように変換、確定が存在する言語入力の場合の日本語入力の変換中を保持するstate、日本語入力開始でtrue, エンターキーで変換確定した時にfalse
 
-  const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string = "center") => {
-    // ホバーしたアイテムにツールチップを表示
-    const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
-    // console.log("ツールチップx, y width , height", x, y, width, height);
-    const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
-      ? ((e.target as HTMLDivElement).dataset.text2 as string)
-      : "";
-    const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
-      ? ((e.target as HTMLDivElement).dataset.text3 as string)
-      : "";
-    setHoveredItemPosWrap({
-      x: x,
-      y: y,
-      itemWidth: width,
-      itemHeight: height,
-      content: (e.target as HTMLDivElement).dataset.text as string,
-      content2: content2,
-      content3: content3,
-      display: display,
-    });
-  };
-  // ツールチップを非表示
-  const handleCloseTooltip = () => {
-    setHoveredItemPosWrap(null);
-  };
-
-  // セルダブルクリック モーダル表示
-  // const handleDoubleClick = useCallback((e: React.MouseEvent<HTMLDivElement>, index: number, columnName: string) => {
-  //   console.log("ダブルクリック index", index);
-  //   if (columnName === "id") return console.log("ダブルクリック idのためリターン");
-  //   // if (index === 0) return console.log("リターン");
-  //   if (setTimeoutRef.current) {
-  //     clearTimeout(setTimeoutRef.current);
-
-  //     // console.log(e.detail);
-  //     setTimeoutRef.current = null;
-  //     // ダブルクリック時に実行したい処理
-  //     console.log("ダブルクリック", e.currentTarget);
-  //     // クリックした要素のテキストを格納
-  //     const text = e.currentTarget.innerText;
-  //     setTextareaInput(text);
-  //     setIsOpenEditModal(true);
-  //   }
-  // }, []);
-
-  const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
-  const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
+  // useMutation
+  const { updateActivityFieldMutation } = useMutateActivity();
 
   // 🌟サブミット
   const [inputCompanyName, setInputCompanyName] = useState("");
@@ -163,17 +137,6 @@ const ActivityMainContainerOneThirdMemo = () => {
   const [inputActivityDate, setInputActivityDate] = useState<Date | null>(null);
   const [inputDepartment, setInputDepartment] = useState(""); // 事業部名
   const [inputActivityYearMonth, setInputActivityYearMonth] = useState<number | null>(null);
-
-  const supabase = useSupabaseClient();
-  const newSearchActivity_Contact_CompanyParams = useDashboardStore(
-    (state) => state.newSearchActivity_Contact_CompanyParams
-  );
-  const setNewSearchActivity_Contact_CompanyParams = useDashboardStore(
-    (state) => state.setNewSearchActivity_Contact_CompanyParams
-  );
-  const editSearchMode = useDashboardStore((state) => state.editSearchMode);
-  const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
-  const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
 
   // サーチ編集モードでリプレイス前の値に復元する関数
   function beforeAdjustFieldValue(value: string | null) {
@@ -403,6 +366,9 @@ const ActivityMainContainerOneThirdMemo = () => {
   // サーチ関数実行
   const handleSearchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    // フィールド編集モードがtrueならサブミットせずにリターン
+    if (isEditModeField) return console.log("サブミット フィールドエディットモードのためリターン");
 
     if (!userProfileState || !userProfileState.company_id) return alert("エラー：ユーザー情報が見つかりませんでした。");
 
@@ -657,6 +623,34 @@ const ActivityMainContainerOneThirdMemo = () => {
     // setLoadingGlobalState(false);
   };
 
+  // ================== 🌟ツールチップ🌟 ==================
+  const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string = "center") => {
+    // ホバーしたアイテムにツールチップを表示
+    const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+    // console.log("ツールチップx, y width , height", x, y, width, height);
+    const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
+      ? ((e.target as HTMLDivElement).dataset.text2 as string)
+      : "";
+    const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
+      ? ((e.target as HTMLDivElement).dataset.text3 as string)
+      : "";
+    setHoveredItemPosWrap({
+      x: x,
+      y: y,
+      itemWidth: width,
+      itemHeight: height,
+      content: (e.target as HTMLDivElement).dataset.text as string,
+      content2: content2,
+      content3: content3,
+      display: display,
+    });
+  };
+  // ツールチップを非表示
+  const handleCloseTooltip = () => {
+    setHoveredItemPosWrap(null);
+  };
+  // ================== ✅ツールチップ✅ ==================
+
   const handleClaimChangeSelectTagValue = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
 
@@ -686,6 +680,8 @@ const ActivityMainContainerOneThirdMemo = () => {
         setInputFollowUpFlag(null);
     }
   };
+
+  console.log("🔥 ActivityMainContainerレンダリング searchMode", searchMode);
 
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
   return (

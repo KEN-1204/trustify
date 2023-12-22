@@ -1055,7 +1055,7 @@ export const InsertNewClientCompanyModal = () => {
                     className={`${styles.input_box}`}
                     value={websiteURL}
                     onChange={(e) => setWebsiteURL(e.target.value)}
-                    onBlur={() => setWebsiteURL(toHalfWidth(websiteURL.trim()))}
+                    onBlur={() => toHalfWidth(websiteURL.trim())}
                   />
                 </div>
                 <div className={`${styles.underline}`}></div>

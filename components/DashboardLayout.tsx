@@ -361,19 +361,19 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
       )} */}
       {/* テーマ切り替えボタン */}
       <div
-        className={`flex-center transition-base01 fixed bottom-[2%] right-[2%] z-[10000] h-[35px] w-[35px] cursor-pointer rounded-full ${
-          theme === "dark"
-            ? "bg-[--color-bg-brand05] hover:bg-[--color-bg-brand-f]"
-            : "bg-[var(--color-bg-brand-fc0)] hover:bg-[var(--color-bg-brand-f)]"
-        }`}
+        // className={`flex-center transition-base01 fixed bottom-[2%] right-[2%] z-[10000] h-[35px] w-[35px] cursor-pointer rounded-full ${
+        //   theme === "dark"
+        //     ? "bg-[--color-bg-brand05] hover:bg-[--color-bg-brand-f]"
+        //     : "bg-[var(--color-bg-brand-fc0)] hover:bg-[var(--color-bg-brand-f)]"
+        // }`}
+        className={`flex-center transition-base01 theme_icon_bg_dashboard fixed bottom-[2%] right-[2%] z-[1000] h-[35px] w-[35px] cursor-pointer rounded-full`}
         onClick={changeTheme}
         onMouseEnter={() => hoveredThemeIconRef.current?.classList.add(`${styles.active}`)}
         onMouseLeave={() => hoveredThemeIconRef.current?.classList.remove(`${styles.active}`)}
-        // onMouseEnter={() => setHoveredThemeIcon(true)}
-        // onMouseLeave={() => setHoveredThemeIcon(false)}
       >
-        {theme === "light" && <MdOutlineLightMode className="text-[20px] text-[#fff]" />}
-        {theme === "dark" && <MdOutlineDarkMode className="text-[20px] text-[#fff]" />}
+        <div className="theme_icon_bg_hover"></div>
+        {theme === "light" && <MdOutlineLightMode className="pointer-events-none z-10 text-[20px] text-[#fff]" />}
+        {theme === "dark" && <MdOutlineDarkMode className="pointer-events-none z-10 text-[20px] text-[#fff]" />}
         {/* ツールチップ */}
         {/* {hoveredThemeIcon && (
           <div className={`${styles.tooltip_right_area} fade`}>

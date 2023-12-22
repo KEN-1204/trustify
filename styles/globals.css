@@ -679,6 +679,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-modal-underline-active: #0d99ff; */
   /* 🌟EditModal light */
   --color-modal-bg: #232323c0;
+  /* --color-modal-bg: #393939d0; */
   /* --color-modal-bg: #ffffffe0; */
   --color-modal-border: #ececec;
   --color-modal-inset-border: inset 0px 0px 0px 1px #ffffff90, 0px 0px 0px 1px #000;
@@ -1252,6 +1253,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-btn-box-shadow: inset 0px 0px 0px 1px #999999a0, 0px 0px 0px 1px #333333;
   /* 🌟EditModal dark */
   --color-modal-bg: #232323;
+  --color-modal-bg: #232323e0;
   --color-modal-border: #ececec;
   --color-modal-inset-border: inset 0 0 0 1px #ececec;
   /* --color-modal-inset-border: inset 0px 0px 0px 1px #ffffff50, 0px 0px 0px 1px #000; */
@@ -2332,6 +2334,20 @@ textarea {
 }
 .theme_icon_bg:hover {
   box-shadow: var(--shadow-theme-icon-hover);
+}
+.theme_icon_bg_dashboard {
+  width: 35px;
+  height: 35px;
+  /* overflow: hidden; */
+  background-image: var(--color-bg-btn-brand-gradient);
+  /* border: 1px solid var(--color-bg-brand-f); */
+  border: 1px solid var(--theme-icon-border);
+  /* box-shadow: 0px 3px 15px 3px rgba(255, 255, 255, 0.39); */
+  /* box-shadow: var(--shadow-theme-icon); */
+  transition: box-shadow 0.3s ease;
+}
+.theme_icon_bg_dashboard:hover {
+  box-shadow: var(--shadow-theme-icon);
 }
 
 .theme_icon_bg_hover {

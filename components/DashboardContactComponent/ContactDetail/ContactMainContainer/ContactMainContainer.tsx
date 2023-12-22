@@ -24,6 +24,10 @@ import { InputSendAndCloseBtn } from "@/components/DashboardCompanyComponent/Com
 import { toHalfWidthAndSpace } from "@/utils/Helpers/toHalfWidthAndSpace";
 import { validateAndFormatPhoneNumber } from "@/utils/Helpers/validateAndFormatPhoneNumber";
 import { optionsOccupation, optionsPositionsClass } from "./selectOptionsData";
+import {
+  optionsIndustryType,
+  optionsProductL,
+} from "@/components/DashboardCompanyComponent/CompanyMainContainer/selectOptionsData";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -48,8 +52,12 @@ const ContactUnderRightActivityLog = dynamic(
 
 const ContactMainContainerMemo: FC = () => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
+  // サーチモード
   const searchMode = useDashboardStore((state) => state.searchMode);
   const setSearchMode = useDashboardStore((state) => state.setSearchMode);
+  // 編集サーチモード
+  const editSearchMode = useDashboardStore((state) => state.editSearchMode);
+  const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
   console.log("🔥 ContactMainContainerレンダリング searchMode", searchMode);
   const setHoveredItemPosWrap = useStore((state) => state.setHoveredItemPosWrap);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
@@ -57,8 +65,6 @@ const ContactMainContainerMemo: FC = () => {
   const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
   const newSearchContact_CompanyParams = useDashboardStore((state) => state.newSearchContact_CompanyParams);
   const setNewSearchContact_CompanyParams = useDashboardStore((state) => state.setNewSearchContact_CompanyParams);
-  const editSearchMode = useDashboardStore((state) => state.editSearchMode);
-  const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   // 上画面の選択中の列データ会社
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
@@ -70,8 +76,6 @@ const ContactMainContainerMemo: FC = () => {
   const setIsEditModeField = useDashboardStore((state) => state.setIsEditModeField);
   const [isComposing, setIsComposing] = useState(false); // 日本語のように変換、確定が存在する言語入力の場合の日本語入力の変換中を保持するstate、日本語入力開始でtrue, エンターキーで変換確定した時にfalse
   const [isValidInput, setIsValidInput] = useState(false);
-
-  const supabase = useSupabaseClient();
 
   // useMutation
   const { updateContactFieldMutation } = useMutateContact();
@@ -117,6 +121,12 @@ const ContactMainContainerMemo: FC = () => {
   const [inputApprovalAmount, setInputApprovalAmount] = useState(""); // 決裁金額 stringで入力してnumberに変換 ユーザーの入力が楽になるため(フォーマットもstringならしやすい)
   const [inputCreatedByCompanyId, setInputCreatedByCompanyId] = useState(""); // どの会社が作成したか
   const [inputCreatedByUserId, setInputCreatedByUserId] = useState(""); // どのユーザーが作成したか
+  // フラグ関連 => フラグ関連は同時に理由を記述した方が良いので、モーダルで行う
+  // const [checkboxCallCarefulFlag, setCheckboxCallCarefulFlag] = useState(
+  //   selectedRowDataContact?.call_careful_flag ? selectedRowDataContact.call_careful_flag : false
+  // );
+  // クレームは個別フィールド編集のみ
+  const [inputClaim, setInputClaim] = useState("");
 
   // サーチ編集モードでリプレイス前の値に復元する関数
   function beforeAdjustFieldValue(value: string | null) {
@@ -438,7 +448,7 @@ const ContactMainContainerMemo: FC = () => {
     // setLoadingGlobalState(false);
   };
 
-  // ================== 🌟ツールチップ ==================
+  // ================== 🌟ツールチップ🌟 ==================
   const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string = "center") => {
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
@@ -464,7 +474,7 @@ const ContactMainContainerMemo: FC = () => {
   const handleCloseTooltip = () => {
     setHoveredItemPosWrap(null);
   };
-  // ================== ✅ツールチップ ==================
+  // ================== ✅ツールチップ✅ ==================
 
   // ================== 🌟シングルクリック、ダブルクリックイベント🌟 ==================
   // ダブルクリックで各フィールドごとに個別で編集
@@ -593,12 +603,33 @@ const ContactMainContainerMemo: FC = () => {
         setIsEditModeField(null); // エディットモードを終了
         return;
       }
-      // 資本金などのint4(integer), int8(BIGINT)などは数値型に変換して入力値と現在のvalueを比較する
-      if (["capital"].includes(fieldName)) {
-        if (originalValue === Number(newValue)) {
-          console.log("数値型に変換 同じためリターン", fieldName, "Number(newValue)", Number(newValue));
-          setIsEditModeField(null); // エディットモードを終了
-          return;
+      // 決裁金額などのint4(integer), int8(BIGINT)などは数値型に変換して入力値と現在のvalueを比較する
+      // ダブルクリック時は〜万円になっているため、convertToMillions関数を通して検証する 決裁金額がnullならそのままnullでUPDATE
+      if (["approval_amount"].includes(fieldName) && !!newValue) {
+        console.log(
+          "フィールドアップデート 決裁金額approval_amountチェック オリジナル",
+          originalValue,
+          "新たな値",
+          newValue
+        );
+        // 数字を含んでいるかチェック
+        if (/\d/.test(originalValue) && /\d/.test(newValue)) {
+          console.log(
+            "数字を含んでいるかチェック 含んでいるため同じかチェック",
+            "convertToMillions(originalValue)",
+            convertToMillions(originalValue),
+            "newValue",
+            newValue
+          );
+          if (convertToMillions(originalValue) === newValue) {
+            console.log("数値型に変換 同じためリターン");
+            setIsEditModeField(null); // エディットモードを終了
+            return;
+          }
+        } else {
+          // 決裁金額が数値を含まない文字列の場合はエラー
+          toast.error(`エラー：有効なデータではありません。`, { autoClose: 3000 });
+          return console.log("決裁金額が数値を含まないエラー リターン");
         }
       }
 
@@ -725,8 +756,37 @@ const ContactMainContainerMemo: FC = () => {
       newValue
     );
 
-    // 入力値が現在のvalueと同じであれば更新は不要なため閉じてリターン
-    if (originalValue === newValue) {
+    // 決裁金額などのint4(integer), int8(BIGINT)などは数値型に変換して入力値と現在のvalueを比較する
+    // ダブルクリック時は〜万円になっているため、convertToMillions関数を通して検証する
+    if (["approval_amount"].includes(fieldName) && !!newValue) {
+      console.log(
+        "フィールドアップデート 決裁金額approval_amountチェック オリジナル",
+        originalValue,
+        "新たな値",
+        newValue
+      );
+      // 数字を含んでいるかチェック
+      if (/\d/.test(originalValue) && /\d/.test(newValue)) {
+        console.log(
+          "数字を含んでいるかチェック 含んでいるため同じかチェック",
+          "convertToMillions(originalValue)",
+          convertToMillions(originalValue),
+          "newValue",
+          newValue
+        );
+        if (convertToMillions(originalValue) === newValue) {
+          console.log("数値型に変換 同じためリターン");
+          setIsEditModeField(null); // エディットモードを終了
+          return;
+        }
+      } else {
+        // 決裁金額が数値を含まない文字列の場合はエラー
+        toast.error(`エラー：有効なデータではありません。`, { autoClose: 3000 });
+        return console.log("決裁金額が数値を含まないエラー リターン");
+      }
+    }
+    // 決裁金額以外で入力値が現在のvalueと同じであれば更新は不要なため閉じてリターン
+    else if (originalValue === newValue) {
       console.log("同じためリターン", "originalValue", originalValue, "newValue", newValue);
       setIsEditModeField(null); // エディットモードを終了
       return;
@@ -1242,7 +1302,15 @@ const ContactMainContainerMemo: FC = () => {
                 <div className={`${styles.title_box} flex h-full items-center`}>
                   <span className={`${styles.title}`}>代表TEL</span>
                   {!searchMode && (
-                    <span className={`${styles.value} ${styles.uneditable_field}`}>
+                    <span
+                      className={`${styles.value} ${styles.uneditable_field}`}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataContact?.main_phone_number ? selectedRowDataContact?.main_phone_number : ""}
                     </span>
                   )}
@@ -1390,7 +1458,15 @@ const ContactMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>代表FAX</span>
                   {/* <span className={`${styles.title}`}>会員専用</span> */}
                   {!searchMode && (
-                    <span className={`${styles.value} ${styles.uneditable_field}`}>
+                    <span
+                      className={`${styles.value} ${styles.uneditable_field}`}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataContact?.main_fax ? selectedRowDataContact?.main_fax : ""}
                     </span>
                   )}
@@ -1673,14 +1749,14 @@ const ContactMainContainerMemo: FC = () => {
               </div>
             </div>
 
-            {/* Email */}
+            {/* 担当者Email */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>E-mail</span>
                   {!searchMode && (
                     <span
-                      className={`${styles.value}`}
+                      className={`${styles.value} ${isOurContact ? styles.editable_field : styles.uneditable_field}`}
                       onClick={async () => {
                         if (!selectedRowDataContact?.contact_email) return;
                         try {
@@ -1731,7 +1807,15 @@ const ContactMainContainerMemo: FC = () => {
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>郵便番号</span>
                   {!searchMode && (
-                    <span className={`${styles.value}`}>
+                    <span
+                      className={`${styles.value} ${styles.uneditable_field}`}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataContact?.zipcode ? selectedRowDataContact?.zipcode : ""}
                     </span>
                   )}
@@ -1773,7 +1857,15 @@ const ContactMainContainerMemo: FC = () => {
                 <div className={`${styles.title_box} flex h-full `}>
                   <span className={`${styles.title}`}>○住所</span>
                   {!searchMode && (
-                    <span className={`${styles.textarea_value} h-[45px]`}>
+                    <span
+                      className={`${styles.textarea_value} h-[45px] ${styles.uneditable_field}`}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataContact?.address ? selectedRowDataContact?.address : ""}
                     </span>
                   )}
@@ -2018,7 +2110,12 @@ const ContactMainContainerMemo: FC = () => {
                       onChange={(e) => setInputOccupation(e.target.value)}
                     >
                       <option value=""></option>
-                      <option value="社長・専務">社長・専務</option>
+                      {optionsOccupation.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                      {/* <option value="社長・専務">社長・専務</option>
                       <option value="取締役・役員">取締役・役員</option>
                       <option value="プロジェクト管理">プロジェクト管理</option>
                       <option value="営業">営業</option>
@@ -2038,7 +2135,7 @@ const ContactMainContainerMemo: FC = () => {
                       <option value="購買">購買</option>
                       <option value="情報システム/IT管理者">情報システム/IT管理者</option>
                       <option value="CS/カスタマーサービス">CS/カスタマーサービス</option>
-                      <option value="その他">その他</option>
+                      <option value="その他">その他</option> */}
                     </select>
                   )}
                   {/* ============= フィールドエディットモード関連 ============= */}
@@ -2095,9 +2192,27 @@ const ContactMainContainerMemo: FC = () => {
                     <span>(万円)</span>
                   </div>
 
-                  {!searchMode && (
-                    <span className={`${styles.value}`}>
-                      {selectedRowDataContact?.approval_amount ? selectedRowDataContact?.approval_amount : ""}
+                  {!searchMode && isEditModeField !== "approval_amount" && (
+                    <span
+                      className={`${styles.value} ${isOurContact ? styles.editable_field : styles.uneditable_field}`}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => {
+                        handleDoubleClickField({
+                          e,
+                          field: "approval_amount",
+                          dispatch: setInputApprovalAmount,
+                        });
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
+                      {selectedRowDataContact?.approval_amount
+                        ? convertToJapaneseCurrencyFormat(selectedRowDataContact?.approval_amount)
+                        : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -2115,6 +2230,84 @@ const ContactMainContainerMemo: FC = () => {
                       }
                     />
                   )}
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード inputタグ */}
+                  {!searchMode && isEditModeField === "approval_amount" && (
+                    <>
+                      <input
+                        type="text"
+                        placeholder=""
+                        autoFocus
+                        className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                        value={inputApprovalAmount}
+                        onChange={(e) => setInputApprovalAmount(e.target.value)}
+                        onCompositionStart={() => setIsComposing(true)}
+                        onCompositionEnd={() => setIsComposing(false)}
+                        onKeyDown={(e) =>
+                          handleKeyDownUpdateField({
+                            e,
+                            fieldName: "approval_amount",
+                            fieldNameForSelectedRowData: "approval_amount",
+                            originalValue: originalValueFieldEdit.current,
+                            newValue:
+                              !!inputApprovalAmount && inputApprovalAmount !== ""
+                                ? convertToMillions(inputApprovalAmount.trim())
+                                : "",
+                            // newValue:
+                            //   !!inputApprovalAmount && inputApprovalAmount !== ""
+                            //     ? (convertToMillions(inputApprovalAmount.trim()) as number).toString()
+                            //     : "",
+                            id: selectedRowDataContact?.contact_id,
+                            required: true,
+                          })
+                        }
+                      />
+                      {/* 送信ボタンとクローズボタン */}
+                      {!updateContactFieldMutation.isLoading && (
+                        <InputSendAndCloseBtn
+                          inputState={inputApprovalAmount}
+                          setInputState={setInputApprovalAmount}
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                            handleClickSendUpdateField({
+                              e,
+                              fieldName: "approval_amount",
+                              fieldNameForSelectedRowData: "approval_amount",
+                              originalValue: originalValueFieldEdit.current,
+                              newValue:
+                                !!inputApprovalAmount && inputApprovalAmount !== ""
+                                  ? convertToMillions(inputApprovalAmount.trim())
+                                  : "",
+                              // newValue:
+                              //   !!inputApprovalAmount && inputApprovalAmount !== ""
+                              //     ? (convertToMillions(inputApprovalAmount.trim()) as number).toString()
+                              //     : "",
+                              id: selectedRowDataContact?.contact_id,
+                              required: true,
+                            })
+                          }
+                          required={true}
+                          isDisplayClose={false}
+                        />
+                      )}
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateContactFieldMutation.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "approval_amount" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -2126,19 +2319,21 @@ const ContactMainContainerMemo: FC = () => {
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>規模(ﾗﾝｸ)</span>
                   {!searchMode && (
-                    <span className={`${styles.value}`}>
+                    <span
+                      className={`${styles.value} ${styles.uneditable_field}`}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataContact?.number_of_employees_class
                         ? selectedRowDataContact?.number_of_employees_class
                         : ""}
                     </span>
                   )}
                   {searchMode && (
-                    // <input
-                    //   type="text"
-                    //   className={`${styles.input_box} ml-[20px]`}
-                    //   value={inputProductL}
-                    //   onChange={(e) => setInputProductL(e.target.value)}
-                    // />
                     <select
                       name="position_class"
                       id="position_class"
@@ -2154,14 +2349,6 @@ const ContactMainContainerMemo: FC = () => {
                       <option value="E*">E 100~199名</option>
                       <option value="F*">F 50~99名</option>
                       <option value="G*">G 1~49名</option>
-                      {/* <option value="">回答を選択してください</option> */}
-                      {/* <option value="A 1000名以上">A 1000名以上</option>
-                      <option value="B 500〜999名">B 500〜999名</option>
-                      <option value="C 300〜499名">C 300〜499名</option>
-                      <option value="D 200〜299名">D 200〜299名</option>
-                      <option value="E 100〜199名">E 100〜199名</option>
-                      <option value="F 50〜99名">F 50〜99名</option>
-                      <option value="G 1〜49名">G 1〜49名</option> */}
                     </select>
                   )}
                 </div>
@@ -2171,7 +2358,15 @@ const ContactMainContainerMemo: FC = () => {
                 <div className={`${styles.title_box} flex h-full items-center`}>
                   <span className={`${styles.title}`}>決算月</span>
                   {!searchMode && (
-                    <span className={`${styles.value}`}>
+                    <span
+                      className={`${styles.value} ${styles.uneditable_field}`}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataContact?.fiscal_end_month ? selectedRowDataContact?.fiscal_end_month : ""}
                     </span>
                   )}
@@ -2194,7 +2389,15 @@ const ContactMainContainerMemo: FC = () => {
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>予算申請月1</span>
                   {!searchMode && (
-                    <span className={`${styles.value}`}>
+                    <span
+                      className={`${styles.value} ${styles.uneditable_field}`}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataContact?.budget_request_month1
                         ? selectedRowDataContact?.budget_request_month1
                         : ""}
@@ -2215,7 +2418,15 @@ const ContactMainContainerMemo: FC = () => {
                 <div className={`${styles.title_box} flex h-full items-center`}>
                   <span className={`${styles.title}`}>予算申請月2</span>
                   {!searchMode && (
-                    <span className={`${styles.value}`}>
+                    <span
+                      className={`${styles.value} ${styles.uneditable_field}`}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataContact?.budget_request_month2
                         ? selectedRowDataContact?.budget_request_month2
                         : ""}
@@ -2240,7 +2451,15 @@ const ContactMainContainerMemo: FC = () => {
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>資本金(万円)</span>
                   {!searchMode && (
-                    <span className={`${styles.value}`}>
+                    <span
+                      className={`${styles.value} ${styles.uneditable_field}`}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {/* {selectedRowDataCompany?.capital ? selectedRowDataCompany?.capital : ""} */}
                       {selectedRowDataContact?.capital
                         ? convertToJapaneseCurrencyFormat(selectedRowDataContact.capital)
@@ -2269,7 +2488,15 @@ const ContactMainContainerMemo: FC = () => {
                 <div className={`${styles.title_box} flex h-full items-center`}>
                   <span className={`${styles.title}`}>設立</span>
                   {!searchMode && (
-                    <span className={`${styles.value}`}>
+                    <span
+                      className={`${styles.value} ${styles.uneditable_field}`}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataContact?.established_in ? selectedRowDataContact?.established_in : ""}
                     </span>
                   )}
@@ -2293,17 +2520,21 @@ const ContactMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>事業概要</span>
                   {!searchMode && (
                     <>
-                      {/* <span className={`${styles.textarea_value} h-[45px]`}>
-                        東京都港区芝浦4-20-2
-                        芝浦アイランドブルームタワー602号室あああああああああああああああああああああああああああああ芝浦アイランドブルームタワー602号室222あああああああああああああああああああああああああああああ
-                      </span> */}
                       <span
                         data-text={`${
                           selectedRowDataContact?.business_content ? selectedRowDataContact?.business_content : ""
                         }`}
-                        className={`${styles.textarea_value} h-[45px]`}
-                        onMouseEnter={(e) => handleOpenTooltip(e)}
-                        onMouseLeave={handleCloseTooltip}
+                        className={`${styles.textarea_value} h-[45px] ${styles.uneditable_field}`}
+                        // onMouseEnter={(e) => handleOpenTooltip(e)}
+                        // onMouseLeave={handleCloseTooltip}
+                        onMouseEnter={(e) => {
+                          handleOpenTooltip(e);
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          handleCloseTooltip();
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
                         dangerouslySetInnerHTML={{
                           __html: selectedRowDataContact?.business_content
                             ? selectedRowDataContact?.business_content.replace(/\n/g, "<br>")
@@ -2338,9 +2569,17 @@ const ContactMainContainerMemo: FC = () => {
                   {!searchMode && (
                     <span
                       data-text={`${selectedRowDataContact?.clients ? selectedRowDataContact?.clients : ""}`}
-                      className={`${styles.value}`}
-                      onMouseEnter={(e) => handleOpenTooltip(e)}
-                      onMouseLeave={handleCloseTooltip}
+                      className={`${styles.value} ${styles.uneditable_field}`}
+                      // onMouseEnter={(e) => handleOpenTooltip(e)}
+                      // onMouseLeave={handleCloseTooltip}
+                      onMouseEnter={(e) => {
+                        handleOpenTooltip(e);
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        handleCloseTooltip();
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
                     >
                       {selectedRowDataContact?.clients ? selectedRowDataContact?.clients : ""}
                     </span>
@@ -2366,9 +2605,17 @@ const ContactMainContainerMemo: FC = () => {
                   {!searchMode && (
                     <span
                       data-text={`${selectedRowDataContact?.supplier ? selectedRowDataContact?.supplier : ""}`}
-                      className={`${styles.value}`}
-                      onMouseEnter={(e) => handleOpenTooltip(e)}
-                      onMouseLeave={handleCloseTooltip}
+                      className={`${styles.value} ${styles.uneditable_field}`}
+                      // onMouseEnter={(e) => handleOpenTooltip(e)}
+                      // onMouseLeave={handleCloseTooltip}
+                      onMouseEnter={(e) => {
+                        handleOpenTooltip(e);
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        handleCloseTooltip();
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
                     >
                       {selectedRowDataContact?.supplier ? selectedRowDataContact?.supplier : ""}
                     </span>
@@ -2395,9 +2642,17 @@ const ContactMainContainerMemo: FC = () => {
                     <>
                       <span
                         data-text={`${selectedRowDataContact?.facility ? selectedRowDataContact?.facility : ""}`}
-                        className={`${styles.textarea_value} h-[45px]`}
-                        onMouseEnter={(e) => handleOpenTooltip(e)}
-                        onMouseLeave={handleCloseTooltip}
+                        className={`${styles.textarea_value} h-[45px] ${styles.uneditable_field}`}
+                        // onMouseEnter={(e) => handleOpenTooltip(e)}
+                        // onMouseLeave={handleCloseTooltip}
+                        onMouseEnter={(e) => {
+                          handleOpenTooltip(e);
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          handleCloseTooltip();
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
                         dangerouslySetInnerHTML={{
                           __html: selectedRowDataContact?.facility
                             ? selectedRowDataContact?.facility.replace(/\n/g, "<br>")
@@ -2434,9 +2689,17 @@ const ContactMainContainerMemo: FC = () => {
                       data-text={`${
                         selectedRowDataContact?.business_sites ? selectedRowDataContact?.business_sites : ""
                       }`}
-                      className={`${styles.value}`}
-                      onMouseEnter={(e) => handleOpenTooltip(e)}
-                      onMouseLeave={handleCloseTooltip}
+                      className={`${styles.value} ${styles.uneditable_field}`}
+                      // onMouseEnter={(e) => handleOpenTooltip(e)}
+                      // onMouseLeave={handleCloseTooltip}
+                      onMouseEnter={(e) => {
+                        handleOpenTooltip(e);
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        handleCloseTooltip();
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
                     >
                       {selectedRowDataContact?.business_sites ? selectedRowDataContact?.business_sites : ""}
                     </span>
@@ -2460,9 +2723,17 @@ const ContactMainContainerMemo: FC = () => {
                       data-text={`${
                         selectedRowDataContact?.overseas_bases ? selectedRowDataContact?.overseas_bases : ""
                       }`}
-                      className={`${styles.value}`}
-                      onMouseEnter={(e) => handleOpenTooltip(e)}
-                      onMouseLeave={handleCloseTooltip}
+                      className={`${styles.value} ${styles.uneditable_field}`}
+                      // onMouseEnter={(e) => handleOpenTooltip(e)}
+                      // onMouseLeave={handleCloseTooltip}
+                      onMouseEnter={(e) => {
+                        handleOpenTooltip(e);
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        handleCloseTooltip();
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
                     >
                       {selectedRowDataContact?.overseas_bases ? selectedRowDataContact?.overseas_bases : ""}
                     </span>
@@ -2487,12 +2758,20 @@ const ContactMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>グループ会社</span>
                   {!searchMode && (
                     <span
-                      className={`${styles.value}`}
+                      className={`${styles.value} ${styles.uneditable_field}`}
                       data-text={`${
                         selectedRowDataContact?.group_company ? selectedRowDataContact?.group_company : ""
                       }`}
-                      onMouseEnter={(e) => handleOpenTooltip(e)}
-                      onMouseLeave={handleCloseTooltip}
+                      // onMouseEnter={(e) => handleOpenTooltip(e)}
+                      // onMouseLeave={handleCloseTooltip}
+                      onMouseEnter={(e) => {
+                        handleOpenTooltip(e);
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        handleCloseTooltip();
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
                     >
                       {selectedRowDataContact?.group_company ? selectedRowDataContact?.group_company : ""}
                     </span>
@@ -2521,6 +2800,12 @@ const ContactMainContainerMemo: FC = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                       className={`${styles.value} ${styles.anchor}`}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
                     >
                       {selectedRowDataContact.website_url}
                     </a>
@@ -2549,6 +2834,12 @@ const ContactMainContainerMemo: FC = () => {
                   {!searchMode && (
                     <span
                       className={`${styles.value} ${styles.email_value}`}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
                       onClick={async () => {
                         if (!selectedRowDataContact?.company_email) return;
                         try {
@@ -2600,17 +2891,19 @@ const ContactMainContainerMemo: FC = () => {
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>○業種</span>
                   {!searchMode && (
-                    <span className={`${styles.value}`}>
+                    <span
+                      className={`${styles.value} ${styles.uneditable_field}`}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataContact?.industry_type ? selectedRowDataContact?.industry_type : ""}
                     </span>
                   )}
                   {searchMode && !inputProductL && (
-                    // <input
-                    //   type="text"
-                    //   className={`${styles.input_box}`}
-                    //   value={inputIndustryType}
-                    //   onChange={(e) => setInputIndustryType(e.target.value)}
-                    // />
                     <select
                       name="position_class"
                       id="position_class"
@@ -2619,58 +2912,11 @@ const ContactMainContainerMemo: FC = () => {
                       onChange={(e) => setInputIndustryType(e.target.value)}
                     >
                       <option value=""></option>
-                      <option value="機械要素・部品">機械要素・部品</option>
-                      <option value="自動車・輸送機器">自動車・輸送機器</option>
-                      <option value="電子部品・半導体">電子部品・半導体</option>
-                      <option value="製造・加工受託">製造・加工受託</option>
-                      <option value="産業用機械">産業用機械</option>
-                      <option value="産業用電気機器">産業用電気機器</option>
-                      <option value="IT・情報通信">IT・情報通信</option>
-                      <option value="ソフトウェア">ソフトウェア</option>
-                      <option value="医薬品・バイオ">医薬品・バイオ</option>
-                      <option value="樹脂・プラスチック">樹脂・プラスチック</option>
-                      <option value="ゴム製品">ゴム製品</option>
-                      <option value="鉄/非鉄金属">鉄/非鉄金属</option>
-                      <option value="民生用電気機器">民生用電気機器</option>
-                      <option value="航空・宇宙">航空・宇宙</option>
-                      <option value="CAD/CAM">CAD/CAM</option>
-                      <option value="建材・資材・什器">建材・資材・什器</option>
-                      <option value="小売">小売</option>
-                      <option value="飲食料品">飲食料品</option>
-                      <option value="飲食店・宿泊業">飲食店・宿泊業</option>
-                      <option value="公益・特殊・独立行政法人">公益・特殊・独立行政法人</option>
-                      <option value="水産・農林業">水産・農林業</option>
-                      <option value="繊維">繊維</option>
-                      <option value="ガラス・土石製品">ガラス・土石製品</option>
-                      <option value="造船・重機">造船・重機</option>
-                      <option value="環境">環境</option>
-                      <option value="印刷業">印刷業</option>
-                      <option value="運輸業">運輸業</option>
-                      <option value="金融・証券・保険業">金融・証券・保険業</option>
-                      <option value="警察・消防・自衛隊">警察・消防・自衛隊</option>
-                      <option value="鉱業">鉱業</option>
-                      <option value="紙・バルブ">紙・バルブ</option>
-                      <option value="木材">木材</option>
-                      <option value="ロボット">ロボット</option>
-                      <option value="試験・分析・測定">試験・分析・測定</option>
-                      <option value="エネルギー">エネルギー</option>
-                      <option value="電気・ガス・水道業">電気・ガス・水道業</option>
-                      <option value="医療・福祉">医療・福祉</option>
-                      <option value="サービス業">サービス業</option>
-                      <option value="その他">その他</option>
-                      <option value="化学">化学</option>
-                      <option value="セラミックス">セラミックス</option>
-                      <option value="食品機械">食品機械</option>
-                      <option value="光学機器">光学機器</option>
-                      <option value="医療機器">医療機器</option>
-                      <option value="その他製造">その他製造</option>
-                      <option value="倉庫・運輸関連業">倉庫・運輸関連業</option>
-                      <option value="教育・研究機関">教育・研究機関</option>
-                      <option value="石油・石炭製品">石油・石炭製品</option>
-                      <option value="商社・卸売">商社・卸売</option>
-                      <option value="官公庁">官公庁</option>
-                      <option value="個人">個人</option>
-                      <option value="不明">不明</option>
+                      {optionsIndustryType.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
                     </select>
                   )}
                 </div>
@@ -2688,14 +2934,20 @@ const ContactMainContainerMemo: FC = () => {
                   </div>
                   {!searchMode && (
                     <span
-                      className={`${styles.value}`}
+                      className={`${styles.value} ${styles.uneditable_field}`}
                       data-text={`${
                         selectedRowDataContact?.product_category_large
                           ? selectedRowDataContact?.product_category_large
                           : ""
                       }`}
-                      onMouseEnter={(e) => handleOpenTooltip(e)}
-                      onMouseLeave={handleCloseTooltip}
+                      // onMouseEnter={(e) => handleOpenTooltip(e)}
+                      // onMouseLeave={handleCloseTooltip}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
                     >
                       {selectedRowDataContact?.product_category_large
                         ? selectedRowDataContact?.product_category_large
@@ -2712,21 +2964,11 @@ const ContactMainContainerMemo: FC = () => {
                       onChange={(e) => setInputProductL(e.target.value)}
                     >
                       <option value=""></option>
-                      <option value="電子部品・モジュール">電子部品・モジュール</option>
-                      <option value="機械部品">機械部品</option>
-                      <option value="製造・加工機械">製造・加工機械</option>
-                      <option value="科学・理化学機器">科学・理化学機器</option>
-                      <option value="素材・材料">素材・材料</option>
-                      <option value="測定・分析">測定・分析</option>
-                      <option value="画像処理">画像処理</option>
-                      <option value="制御・電機機器">制御・電機機器</option>
-                      <option value="工具・消耗品・備品">工具・消耗品・備品</option>
-                      <option value="設計・生産支援">設計・生産支援</option>
-                      <option value="IT・ネットワーク">IT・ネットワーク</option>
-                      <option value="オフィス">オフィス</option>
-                      <option value="業務支援サービス">業務支援サービス</option>
-                      <option value="セミナー・スキルアップ">セミナー・スキルアップ</option>
-                      <option value="その他">その他</option>
+                      {optionsProductL.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
                     </select>
                   )}
                 </div>
@@ -2744,14 +2986,20 @@ const ContactMainContainerMemo: FC = () => {
                   </div>
                   {!searchMode && (
                     <span
-                      className={`${styles.value}`}
+                      className={`${styles.value} ${styles.uneditable_field}`}
                       data-text={`${
                         selectedRowDataContact?.product_category_medium
                           ? selectedRowDataContact?.product_category_medium
                           : ""
                       }`}
-                      onMouseEnter={(e) => handleOpenTooltip(e)}
-                      onMouseLeave={handleCloseTooltip}
+                      // onMouseEnter={(e) => handleOpenTooltip(e)}
+                      // onMouseLeave={handleCloseTooltip}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
                     >
                       {selectedRowDataContact?.product_category_medium
                         ? selectedRowDataContact?.product_category_medium
@@ -2759,15 +3007,7 @@ const ContactMainContainerMemo: FC = () => {
                     </span>
                   )}
                   {searchMode && !!inputProductL && (
-                    // <input
-                    //   type="text"
-                    //   className={`${styles.input_box} ml-[20px]`}
-                    //   value={inputProductM}
-                    //   onChange={(e) => setInputProductM(e.target.value)}
-                    // />
                     <select
-                      name="position_class"
-                      id="position_class"
                       value={inputProductM}
                       onChange={(e) => setInputProductM(e.target.value)}
                       // className={`${inputProductL ? "" : "hidden"} ml-auto h-full w-[80%] cursor-pointer ${
@@ -2844,7 +3084,15 @@ const ContactMainContainerMemo: FC = () => {
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>○法人番号</span>
                   {!searchMode && (
-                    <span className={`${styles.value}`}>
+                    <span
+                      className={`${styles.value} ${styles.uneditable_field}`}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataContact?.corporate_number ? selectedRowDataContact?.corporate_number : ""}
                     </span>
                   )}
@@ -3089,16 +3337,49 @@ const ContactMainContainerMemo: FC = () => {
                     <div className={`${styles.title_box} transition-base03 flex h-full items-center `}>
                       <span className={`${styles.check_title}`}>TEL要注意フラグ</span>
 
-                      <div className={`${styles.grid_select_cell_header} `}>
+                      <div
+                        className={`${styles.grid_select_cell_header} `}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         <input
                           type="checkbox"
                           // checked={!!checkedColumnHeader} // 初期値
                           checked={!!selectedRowDataContact?.call_careful_flag}
+                          // checked={checkboxCallCarefulFlag}
                           onChange={() => {
-                            setLoadingGlobalState(false);
+                            // setLoadingGlobalState(false);
                             setIsOpenUpdateContactModal(true);
                           }}
-                          className={`${styles.grid_select_cell_header_input}`}
+                          // onChange={async (e) => {
+                          //   // 個別にチェックボックスを更新するルート
+                          //   if (!selectedRowDataContact?.contact_id)
+                          //     return toast.error(`データが見つかりませんでした🙇‍♀️`);
+                          //   console.log(
+                          //     "チェック 新しい値",
+                          //     !checkboxCallCarefulFlag,
+                          //     "オリジナル",
+                          //     selectedRowDataContact?.call_careful_flag
+                          //   );
+                          //   if (!checkboxCallCarefulFlag === selectedRowDataContact?.call_careful_flag) {
+                          //     toast.error(`アップデートに失敗しました🤦‍♀️`);
+                          //     return;
+                          //   }
+                          //   const updatePayload = {
+                          //     fieldName: "call_careful_flag",
+                          //     fieldNameForSelectedRowData: "call_careful_flag" as "call_careful_flag",
+                          //     newValue: !checkboxCallCarefulFlag,
+                          //     id: selectedRowDataContact.contact_id,
+                          //   };
+                          //   // 直感的にするために先にローカルのチェックボックスを更新する
+                          //   setCheckboxCallCarefulFlag(!checkboxCallCarefulFlag);
+                          //   await updateContactFieldMutation.mutateAsync(updatePayload);
+                          // }}
+                          className={`${styles.grid_select_cell_header_input} `}
                         />
                         <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
                           <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
@@ -3108,7 +3389,11 @@ const ContactMainContainerMemo: FC = () => {
                     <div className={`${styles.underline}`}></div>
                   </div>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                    <div className={`${styles.title_box} flex h-full items-center `}>
+                    <div
+                      className={`${styles.title_box} flex h-full items-center ${
+                        isOurContact ? `${styles.editable_field}` : `${styles.uneditable_field}`
+                      }`}
+                    >
                       <span className={`${styles.right_under_title}`}>注意理由</span>
                       {!searchMode && (
                         <span
@@ -3118,8 +3403,17 @@ const ContactMainContainerMemo: FC = () => {
                               : ""
                           }`}
                           className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e, "right")}
-                          onMouseLeave={handleCloseTooltip}
+                          // onMouseEnter={(e) => handleOpenTooltip(e, "right")}
+                          // onMouseLeave={handleCloseTooltip}
+                          onMouseEnter={(e) => {
+                            handleOpenTooltip(e, "right");
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            handleCloseTooltip();
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                          onDoubleClick={() => setIsOpenUpdateContactModal(true)}
                           // onDoubleClick={(e) => handleDoubleClick(e, index, columnHeaderItemList[index].columnName)}
                         >
                           {selectedRowDataContact?.call_careful_reason
@@ -3139,13 +3433,21 @@ const ContactMainContainerMemo: FC = () => {
                     <div className={`${styles.title_box} transition-base03 flex h-full items-center `}>
                       <span className={`${styles.check_title}`}>メール禁止フラグ</span>
 
-                      <div className={`${styles.grid_select_cell_header} `}>
+                      <div
+                        className={`${styles.grid_select_cell_header} `}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         <input
                           type="checkbox"
                           // checked={!!checkedColumnHeader} // 初期値
                           checked={!!selectedRowDataContact?.email_ban_flag}
                           onChange={() => {
-                            setLoadingGlobalState(false);
+                            // setLoadingGlobalState(false);
                             setIsOpenUpdateContactModal(true);
                           }}
                           className={`${styles.grid_select_cell_header_input}`}
@@ -3161,13 +3463,21 @@ const ContactMainContainerMemo: FC = () => {
                     <div className={`${styles.title_box} transition-base03 flex h-full items-center `}>
                       <span className={`${styles.check_title}`}>資料禁止フラグ</span>
 
-                      <div className={`${styles.grid_select_cell_header} `}>
+                      <div
+                        className={`${styles.grid_select_cell_header} `}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         <input
                           type="checkbox"
                           // checked={!!checkedColumnHeader} // 初期値
                           checked={!!selectedRowDataContact?.sending_materials_ban_flag}
                           onChange={() => {
-                            setLoadingGlobalState(false);
+                            // setLoadingGlobalState(false);
                             setIsOpenUpdateContactModal(true);
                           }}
                           className={`${styles.grid_select_cell_header_input}`}
@@ -3187,13 +3497,21 @@ const ContactMainContainerMemo: FC = () => {
                     <div className={`${styles.title_box} transition-base03 flex h-full items-center `}>
                       <span className={`${styles.check_title}`}>FAX・DM禁止フラグ</span>
 
-                      <div className={`${styles.grid_select_cell_header} `}>
+                      <div
+                        className={`${styles.grid_select_cell_header} `}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         <input
                           type="checkbox"
                           // checked={!!checkedColumnHeader} // 初期値
                           checked={!!selectedRowDataContact?.fax_dm_ban_flag}
                           onChange={() => {
-                            setLoadingGlobalState(false);
+                            // setLoadingGlobalState(false);
                             setIsOpenUpdateContactModal(true);
                           }}
                           className={`${styles.grid_select_cell_header_input}`}
@@ -3211,16 +3529,38 @@ const ContactMainContainerMemo: FC = () => {
                 </div>
 
                 {/* クレーム */}
-                <div className={`${styles.row_area} flex h-[70px] w-full items-center`}>
+                <div className={`${styles.row_area} flex w-full items-center`}>
                   <div className="flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full  `}>
                       <span className={`${styles.title}`}>クレーム</span>
-                      {!searchMode && (
+                      {!searchMode && isEditModeField !== "claim" && (
                         <div
                           data-text={`${selectedRowDataContact?.claim ? selectedRowDataContact?.claim : ""}`}
-                          className={`${styles.value} h-[65px]`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
-                          onMouseLeave={handleCloseTooltip}
+                          // className={`${styles.value} h-[65px] ${
+                          //   isOurContact ? styles.editable_field : styles.uneditable_field
+                          // }`}
+                          className={`${styles.textarea_value} h-[65px] ${
+                            isOurContact ? styles.editable_field : styles.uneditable_field
+                          }`}
+                          // onMouseEnter={(e) => handleOpenTooltip(e)}
+                          // onMouseLeave={handleCloseTooltip}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            handleCloseTooltip();
+                            handleDoubleClickField({
+                              e,
+                              field: "claim",
+                              dispatch: setInputClaim,
+                            });
+                          }}
+                          onMouseEnter={(e) => {
+                            handleOpenTooltip(e);
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            handleCloseTooltip();
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
                           dangerouslySetInnerHTML={{
                             __html: selectedRowDataContact?.claim
                               ? selectedRowDataContact?.claim.replace(/\n/g, "<br>")
@@ -3231,6 +3571,59 @@ const ContactMainContainerMemo: FC = () => {
                         </div>
                       )}
                       {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                      {/* ============= フィールドエディットモード関連 ============= */}
+                      {/* フィールドエディットモード inputタグ */}
+                      {!searchMode && isEditModeField === "claim" && (
+                        <>
+                          <textarea
+                            cols={30}
+                            // rows={10}
+                            placeholder=""
+                            style={{ whiteSpace: "pre-wrap" }}
+                            className={`${styles.textarea_box} ${styles.textarea_box_search_mode} ${styles.field_edit_mode_textarea}`}
+                            value={inputClaim}
+                            onChange={(e) => setInputClaim(e.target.value)}
+                          ></textarea>
+                          {/* 送信ボタンとクローズボタン */}
+                          {!updateContactFieldMutation.isLoading && (
+                            <InputSendAndCloseBtn
+                              inputState={inputClaim}
+                              setInputState={setInputClaim}
+                              onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                                handleClickSendUpdateField({
+                                  e,
+                                  fieldName: "claim",
+                                  fieldNameForSelectedRowData: "claim",
+                                  originalValue: originalValueFieldEdit.current,
+                                  newValue: toHalfWidthAndSpace(inputClaim.trim()),
+                                  id: selectedRowDataContact?.contact_id,
+                                  required: false,
+                                })
+                              }
+                              required={false}
+                              isDisplayClose={true}
+                              btnPositionY="bottom-[8px]"
+                            />
+                          )}
+                          {/* エディットフィールド送信中ローディングスピナー */}
+                          {updateContactFieldMutation.isLoading && (
+                            <div className={`${styles.field_edit_mode_loading_area}`}>
+                              <SpinnerComet w="22px" h="22px" s="3px" />
+                            </div>
+                          )}
+                        </>
+                      )}
+                      {/* フィールドエディットモードオーバーレイ */}
+                      {!searchMode && isEditModeField === "claim" && (
+                        <div
+                          className={`${styles.edit_mode_overlay}`}
+                          onClick={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                            setIsEditModeField(null); // エディットモードを終了
+                          }}
+                        />
+                      )}
+                      {/* ============= フィールドエディットモード関連ここまで ============= */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -3244,9 +3637,20 @@ const ContactMainContainerMemo: FC = () => {
                       {!searchMode && (
                         <div
                           data-text={`${selectedRowDataContact?.ban_reason ? selectedRowDataContact?.ban_reason : ""}`}
-                          className={`${styles.value} h-[65px]`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
-                          onMouseLeave={handleCloseTooltip}
+                          className={`${styles.value} h-[65px] ${
+                            isOurContact ? styles.editable_field : styles.uneditable_field
+                          }`}
+                          // onMouseEnter={(e) => handleOpenTooltip(e)}
+                          // onMouseLeave={handleCloseTooltip}
+                          onMouseEnter={(e) => {
+                            handleOpenTooltip(e);
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            handleCloseTooltip();
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                          onDoubleClick={() => setIsOpenUpdateContactModal(true)}
                           dangerouslySetInnerHTML={{
                             __html: selectedRowDataContact?.ban_reason
                               ? selectedRowDataContact?.ban_reason.replace(/\n/g, "<br>")
