@@ -1,4 +1,4 @@
-import React, { FC, FormEvent, Suspense, memo, useEffect, useState } from "react";
+import React, { ChangeEvent, FC, FormEvent, Suspense, memo, useCallback, useEffect, useRef, useState } from "react";
 import styles from "../ActivityDetail.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import useStore from "@/store";
@@ -18,6 +18,9 @@ import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapane
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 import { optionsOccupation } from "@/components/DashboardContactComponent/ContactDetail/ContactMainContainer/selectOptionsData";
 import { useMutateActivity } from "@/hooks/useMutateActivity";
+import { Activity, Activity_row_data } from "@/types";
+import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
+import { isSameDateLocal } from "@/utils/Helpers/isSameDateLocal";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -120,23 +123,23 @@ const ActivityMainContainerOneThirdMemo = () => {
   const [inputActivityCreatedByUserId, setInputActivityCreatedByUserId] = useState("");
   const [inputActivityCreatedByDepartmentOfUser, setInputActivityCreatedByDepartmentOfUser] = useState("");
   const [inputActivityCreatedByUnitOfUser, setInputActivityCreatedByUnitOfUser] = useState("");
-  const [inputSummary, setInputSummary] = useState("");
-  const [inputScheduledFollowUpDate, setInputScheduledFollowUpDate] = useState<Date | null>(null);
-  const [inputFollowUpFlag, setInputFollowUpFlag] = useState<boolean | null>(null);
-  const [inputDocumentUrl, setInputDocumentUrl] = useState("");
-  const [inputActivityType, setInputActivityType] = useState("");
-  const [inputClaimFlag, setInputClaimFlag] = useState<boolean | null>(null);
-  const [inputProductIntroduction1, setInputProductIntroduction1] = useState("");
-  const [inputProductIntroduction2, setInputProductIntroduction2] = useState("");
-  const [inputProductIntroduction3, setInputProductIntroduction3] = useState("");
-  const [inputProductIntroduction4, setInputProductIntroduction4] = useState("");
-  const [inputProductIntroduction5, setInputProductIntroduction5] = useState("");
-  const [inputBusinessOffice, setInputBusinessOffice] = useState("");
-  const [inputMemberName, setInputMemberName] = useState("");
-  const [inputPriority, setInputPriority] = useState("");
-  const [inputActivityDate, setInputActivityDate] = useState<Date | null>(null);
+  const [inputSummary, setInputSummary] = useState(""); //概要
+  const [inputScheduledFollowUpDate, setInputScheduledFollowUpDate] = useState<Date | null>(null); //次回フォロー予定日
+  const [inputFollowUpFlag, setInputFollowUpFlag] = useState<boolean | null>(null); //フォロー完了フラグ
+  const [inputDocumentUrl, setInputDocumentUrl] = useState(""); //資料、画像ファイル
+  const [inputActivityType, setInputActivityType] = useState(""); //活動タイプ
+  const [inputClaimFlag, setInputClaimFlag] = useState<boolean | null>(null); //クレームフラグ
+  const [inputProductIntroduction1, setInputProductIntroduction1] = useState(""); //実施1
+  const [inputProductIntroduction2, setInputProductIntroduction2] = useState(""); //実施2
+  const [inputProductIntroduction3, setInputProductIntroduction3] = useState(""); //実施3
+  const [inputProductIntroduction4, setInputProductIntroduction4] = useState(""); //実施4
+  const [inputProductIntroduction5, setInputProductIntroduction5] = useState(""); //実施5
+  const [inputBusinessOffice, setInputBusinessOffice] = useState(""); //事業所
+  const [inputMemberName, setInputMemberName] = useState(""); //自社担当
+  const [inputPriority, setInputPriority] = useState(""); //優先度
+  const [inputActivityDate, setInputActivityDate] = useState<Date | null>(null); //活動日
   const [inputDepartment, setInputDepartment] = useState(""); // 事業部名
-  const [inputActivityYearMonth, setInputActivityYearMonth] = useState<number | null>(null);
+  const [inputActivityYearMonth, setInputActivityYearMonth] = useState<number | null>(null); //活動年月度
 
   // サーチ編集モードでリプレイス前の値に復元する関数
   function beforeAdjustFieldValue(value: string | null) {
@@ -651,6 +654,355 @@ const ActivityMainContainerOneThirdMemo = () => {
   };
   // ================== ✅ツールチップ✅ ==================
 
+  // ================== 🌟シングルクリック、ダブルクリックイベント🌟 ==================
+  // ダブルクリックで各フィールドごとに個別で編集
+  const setTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // 選択行データが自社専用の会社データかどうか
+  const isOurActivity =
+    !!userProfileState?.company_id &&
+    !!selectedRowDataActivity?.activity_created_by_company_id &&
+    selectedRowDataActivity.activity_created_by_company_id === userProfileState.company_id;
+
+  // シングルクリック => 何もアクションなし
+  const handleSingleClickField = useCallback(
+    (e: React.MouseEvent<HTMLSpanElement>) => {
+      // 自社で作成した会社でない場合はそのままリターン
+      if (!isOurActivity) return;
+      if (setTimeoutRef.current !== null) return;
+
+      setTimeoutRef.current = setTimeout(() => {
+        setTimeoutRef.current = null;
+        // シングルクリック時に実行したい処理
+        // 0.2秒後に実行されてしまうためここには書かない
+      }, 200);
+      console.log("シングルクリック");
+    },
+    [isOurActivity]
+  );
+
+  // const originalOptionRef = useRef(""); // 同じ選択肢選択時にエディットモード終了用
+  // 編集前のダブルクリック時の値を保持 => 変更されたかどうかを確認
+  const originalValueFieldEdit = useRef<string | null>("");
+  type DoubleClickProps = {
+    e: React.MouseEvent<HTMLSpanElement>;
+    field: string;
+    dispatch: React.Dispatch<React.SetStateAction<any>>;
+    // isSelectChangeEvent?: boolean;
+    dateValue?: string | null;
+  };
+  // ダブルクリック => ダブルクリックしたフィールドを編集モードに変更
+  const handleDoubleClickField = useCallback(
+    ({ e, field, dispatch, dateValue }: DoubleClickProps) => {
+      // 自社で作成した会社でない場合はそのままリターン
+      if (!isOurActivity) return;
+
+      console.log(
+        "ダブルクリック",
+        "field",
+        field,
+        "e.currentTarget.innerText",
+        e.currentTarget.innerText,
+        "e.currentTarget.innerHTML",
+        e.currentTarget.innerHTML
+      );
+      if (setTimeoutRef.current) {
+        clearTimeout(setTimeoutRef.current);
+
+        // console.log(e.detail);
+        setTimeoutRef.current = null;
+        // ダブルクリック時に実行したい処理
+        // クリックした要素のテキストを格納
+        // const text = e.currentTarget.innerText;
+        let text;
+        text = e.currentTarget.innerHTML;
+        if (field === "fiscal_end_month") {
+          text = text.replace(/月/g, ""); // 決算月の場合は、1月の月を削除してstateに格納 optionタグのvalueと一致させるため
+        }
+        // // 「活動日付」「次回フォロー予定日」はinnerHTMLではなく元々の値を格納
+        if (["activity_date", "scheduled_follow_up_date"].includes(field)) {
+          const originalDate = dateValue ? new Date(dateValue) : null;
+          console.log("ダブルクリック 日付格納", dateValue);
+          // originalValueFieldEdit.current = originalDate;
+          dispatch(originalDate); // 編集モードでinputStateをクリックした要素のテキストを初期値に設定
+          setIsEditModeField(field); // クリックされたフィールドの編集モードを開く
+          return;
+        }
+        originalValueFieldEdit.current = text;
+        dispatch(text); // 編集モードでinputStateをクリックした要素のテキストを初期値に設定
+        setIsEditModeField(field); // クリックされたフィールドの編集モードを開く
+        // if (isSelectChangeEvent) originalOptionRef.current = e.currentTarget.innerText; // selectタグ同じ選択肢選択時の編集モード終了用
+      }
+    },
+    [isOurActivity, setIsEditModeField]
+  );
+  // ================== ✅シングルクリック、ダブルクリックイベント✅ ==================
+
+  // プロパティ名のユニオン型の作成
+  // Activity_row_data型の全てのプロパティ名をリテラル型のユニオンとして展開
+  // type ActivityFieldNames = keyof Activity_row_data;
+  type ActivityFieldNames = keyof Activity;
+  type ExcludeKeys = "company_id" | "contact_id" | "activity_id"; // 除外するキー
+  type ActivityFieldNamesForSelectedRowData = Exclude<keyof Activity_row_data, ExcludeKeys>; // Contact_row_dataタイプのプロパティ名のみのデータ型を取得
+  // ================== 🌟エンターキーで個別フィールドをアップデート inputタグ ==================
+  const handleKeyDownUpdateField = async ({
+    e,
+    fieldName,
+    fieldNameForSelectedRowData,
+    originalValue,
+    newValue,
+    id,
+    required,
+  }: {
+    e: React.KeyboardEvent<HTMLInputElement>;
+    // fieldName: string;
+    fieldName: ActivityFieldNames;
+    fieldNameForSelectedRowData: ActivityFieldNamesForSelectedRowData;
+    originalValue: any;
+    newValue: any;
+    id: string | undefined;
+    required: boolean;
+  }) => {
+    // 日本語入力変換中はtrueで変換確定のエンターキーではUPDATEクエリが実行されないようにする
+    // 英語などの入力変換が存在しない言語ではisCompositionStartは発火しないため常にfalse
+    if (e.key === "Enter" && !isComposing) {
+      if (required && (newValue === "" || newValue === null)) return toast.info(`この項目は入力が必須です。`);
+
+      // 先にアンダーラインが残らないようにremoveしておく
+      e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+
+      if (!id || !selectedRowDataActivity) {
+        toast.error(`エラー：データが見つかりませんでした。`);
+        return;
+      }
+      console.log(
+        "フィールドアップデート エンターキー",
+        " ・フィールド名:",
+        fieldName,
+        " ・結合フィールド名:",
+        fieldNameForSelectedRowData,
+        " ・元の値:",
+        originalValue,
+        " ・新たな値:",
+        newValue
+      );
+      // 入力値が現在のvalueと同じであれば更新は不要なため閉じてリターン
+      if (originalValue === newValue) {
+        console.log("同じためリターン");
+        setIsEditModeField(null); // エディットモードを終了
+        return;
+      }
+      // 決裁金額などのint4(integer), int8(BIGINT)などは数値型に変換して入力値と現在のvalueを比較する
+      // ダブルクリック時は〜万円になっているため、convertToMillions関数を通して検証する 決裁金額がnullならそのままnullでUPDATE
+      if (["approval_amount"].includes(fieldName) && !!newValue) {
+        console.log(
+          "フィールドアップデート 決裁金額approval_amountチェック オリジナル",
+          originalValue,
+          "新たな値",
+          newValue
+        );
+        // 数字を含んでいるかチェック
+        if (/\d/.test(originalValue) && /\d/.test(newValue)) {
+          console.log(
+            "数字を含んでいるかチェック 含んでいるため同じかチェック",
+            "convertToMillions(originalValue)",
+            convertToMillions(originalValue),
+            "newValue",
+            newValue
+          );
+          if (convertToMillions(originalValue) === newValue) {
+            console.log("数値型に変換 同じためリターン");
+            setIsEditModeField(null); // エディットモードを終了
+            return;
+          }
+        } else {
+          // 決裁金額が数値を含まない文字列の場合はエラー
+          toast.error(`エラー：有効なデータではありません。`);
+          return console.log("決裁金額が数値を含まないエラー リターン");
+        }
+      }
+
+      const updatePayload = {
+        fieldName: fieldName,
+        fieldNameForSelectedRowData: fieldNameForSelectedRowData,
+        newValue: newValue,
+        id: id,
+      };
+      // 入力変換確定状態でエンターキーが押された場合の処理
+      console.log("onKeyDownイベント エンターキーが入力確定状態でクリック UPDATE実行 updatePayload", updatePayload);
+      await updateActivityFieldMutation.mutateAsync(updatePayload);
+      originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
+      setIsEditModeField(null); // エディットモードを終了
+    }
+  };
+  // ================== ✅エンターキーで個別フィールドをアップデート inputタグ✅ ==================
+  // ================== 🌟Sendキーで個別フィールドをアップデート ==================
+  const handleClickSendUpdateField = async ({
+    e,
+    fieldName,
+    fieldNameForSelectedRowData,
+    originalValue,
+    newValue,
+    id,
+    required,
+  }: {
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>;
+    // fieldName: string;
+    fieldName: ActivityFieldNames;
+    fieldNameForSelectedRowData: ActivityFieldNamesForSelectedRowData;
+    originalValue: any;
+    newValue: any;
+    id: string | undefined;
+    required: boolean;
+  }) => {
+    if (required && (newValue === "" || newValue === null)) return toast.info(`この項目は入力が必須です。`);
+
+    e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+
+    if (!id || !selectedRowDataActivity) {
+      toast.error(`エラー：データが見つかりませんでした。`);
+      return;
+    }
+
+    console.log(
+      "フィールドアップデート Sendキー",
+      "フィールド名: ",
+      fieldName,
+      "結合フィールド名: ",
+      fieldNameForSelectedRowData,
+      "元の値: ",
+      originalValue,
+      "新たな値: ",
+      newValue
+    );
+
+    // 決裁金額などのint4(integer), int8(BIGINT)などは数値型に変換して入力値と現在のvalueを比較する
+    // ダブルクリック時は〜万円になっているため、convertToMillions関数を通して検証する
+    if (["approval_amount"].includes(fieldName) && !!newValue) {
+      console.log(
+        "フィールドアップデート 決裁金額approval_amountチェック オリジナル",
+        originalValue,
+        "新たな値",
+        newValue
+      );
+      // 数字を含んでいるかチェック
+      if (/\d/.test(originalValue) && /\d/.test(newValue)) {
+        console.log(
+          "数字を含んでいるかチェック 含んでいるため同じかチェック",
+          "convertToMillions(originalValue)",
+          convertToMillions(originalValue),
+          "newValue",
+          newValue
+        );
+        if (convertToMillions(originalValue) === newValue) {
+          console.log("数値型に変換 同じためリターン");
+          setIsEditModeField(null); // エディットモードを終了
+          return;
+        }
+      } else {
+        // 決裁金額が数値を含まない文字列の場合はエラー
+        toast.error(`エラー：有効なデータではありません。`);
+        return console.log("決裁金額が数値を含まないエラー リターン");
+      }
+    }
+    // 「活動日付」「次回フォロー予定日」はどちらもUTC時間の文字列「2023-12-26T15:00:00+00:00」で取得しているためそのまま同じかチェック
+    else if (["activity_date", "scheduled_follow_up_date"].includes(fieldName) && !!newValue) {
+      console.log("フィールドアップデート 日付チェック オリジナル", originalValue, "変換前 新たな値", newValue);
+      // 年月日のみで同じ日付か比較
+      const result = isSameDateLocal(originalValue, newValue);
+      if (result) {
+        console.log("日付チェック 同じためリターン");
+        setIsEditModeField(null); // エディットモードを終了
+        return;
+      } else {
+        console.log("日付チェック 新たな日付のためこのまま更新 newValue", newValue);
+      }
+    }
+    // 決裁金額、日付以外でnewValueがnullでない場合で、入力値が現在のvalueと同じであれば更新は不要なため閉じてリターン
+    else if (newValue !== null && originalValue === newValue) {
+      console.log(
+        "決裁金額、日付以外でチェック 同じためリターン",
+        "originalValue",
+        originalValue,
+        "newValue",
+        newValue
+      );
+      setIsEditModeField(null); // エディットモードを終了
+      return;
+    }
+
+    // requiredがfalseで入力必須ではないので、newValueがnullや空文字、0は許容(空文字や0をnullにするかどうかは各フィールドごとに個別で管理する)
+
+    const updatePayload = {
+      fieldName: fieldName,
+      fieldNameForSelectedRowData: fieldNameForSelectedRowData,
+      newValue: newValue,
+      id: id,
+    };
+    // 入力変換確定状態でエンターキーが押された場合の処理
+    console.log("sendアイコンクリックでUPDATE実行 updatePayload", updatePayload);
+    await updateActivityFieldMutation.mutateAsync(updatePayload);
+    originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
+    setIsEditModeField(null); // エディットモードを終了
+  };
+  // ================== ✅Sendキーで個別フィールドをアップデート ==================
+
+  // ================== 🌟セレクトボックスで個別フィールドをアップデート ==================
+
+  const handleChangeSelectUpdateField = async ({
+    e,
+    fieldName,
+    fieldNameForSelectedRowData,
+    originalValue,
+    newValue,
+    id,
+  }: {
+    e: ChangeEvent<HTMLSelectElement>;
+    // fieldName: string;
+    fieldName: ActivityFieldNames;
+    fieldNameForSelectedRowData: ActivityFieldNamesForSelectedRowData;
+    originalValue: any;
+    newValue: any;
+    id: string | undefined;
+  }) => {
+    e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+
+    if (!id || !selectedRowDataActivity) {
+      toast.error(`エラー：データが見つかりませんでした。`, { autoClose: 3000 });
+      return;
+    }
+    // 入力値が現在のvalueと同じであれば更新は不要なため閉じてリターン
+    if (originalValue === newValue) {
+      console.log("同じためリターン");
+      setIsEditModeField(null); // エディットモードを終了
+      return;
+    }
+
+    console.log(
+      "フィールドアップデート セレクトボックス",
+      " ・フィールド名:",
+      fieldName,
+      " ・結合フィールド名:",
+      fieldNameForSelectedRowData,
+      " ・元の値:",
+      originalValue,
+      " ・新たな値:",
+      newValue
+    );
+
+    const updatePayload = {
+      fieldName: fieldName,
+      fieldNameForSelectedRowData: fieldNameForSelectedRowData,
+      newValue: newValue,
+      id: id,
+    };
+    // 入力変換確定状態でエンターキーが押された場合の処理
+    console.log("selectタグでUPDATE実行 updatePayload", updatePayload);
+    await updateActivityFieldMutation.mutateAsync(updatePayload);
+    originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
+    setIsEditModeField(null); // エディットモードを終了
+  };
+  // ================== ✅セレクトボックスで個別フィールドをアップデート ==================
+
   const handleClaimChangeSelectTagValue = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
 
@@ -703,19 +1055,93 @@ const ActivityMainContainerOneThirdMemo = () => {
             {/* --------- ラッパー --------- */}
             <div className={`${styles.left_contents_wrapper} flex h-full w-full flex-col`}>
               {/* 左エリア 活動~クレームまで */}
-              {/* 活動日・クレーム */}
+              {/* 活動日・クレーム 通常 */}
               <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>活動日</span>
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
+                    {!searchMode && isEditModeField !== "activity_date" && (
+                      <span
+                        className={`${styles.value} ${isOurActivity ? styles.editable_field : styles.uneditable_field}`}
+                        onClick={handleSingleClickField}
+                        onDoubleClick={(e) => {
+                          handleDoubleClickField({
+                            e,
+                            field: "activity_date",
+                            dispatch: setInputActivityDate,
+                            dateValue: selectedRowDataActivity?.activity_date
+                              ? selectedRowDataActivity.activity_date
+                              : null,
+                          });
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         {selectedRowDataActivity?.activity_date
-                          ? format(new Date(selectedRowDataActivity.activity_date), "yyyy-MM-dd")
+                          ? format(new Date(selectedRowDataActivity.activity_date), "yyyy/MM/dd")
                           : ""}
                       </span>
                     )}
-                    {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    {/* ============= フィールドエディットモード関連 ============= */}
+                    {/* フィールドエディットモード Date-picker  */}
+                    {!searchMode && isEditModeField === "activity_date" && (
+                      <>
+                        <div className="z-[2000] w-full">
+                          <DatePickerCustomInput
+                            startDate={inputActivityDate}
+                            setStartDate={setInputActivityDate}
+                            required={true}
+                            isFieldEditMode={true}
+                            fieldEditModeBtnAreaPosition="right"
+                            isLoadingSendEvent={updateActivityFieldMutation.isLoading}
+                            onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                              const originalDateUTCString = selectedRowDataActivity?.activity_date
+                                ? selectedRowDataActivity.activity_date
+                                : null; // ISOString UTC時間 2023-12-26T15:00:00+00:00
+                              const newDateUTCString = inputActivityDate ? inputActivityDate.toISOString() : null; // Dateオブジェクト ローカルタイムゾーンに自動で変換済み Thu Dec 28 2023 00:00:00 GMT+0900 (日本標準時)
+                              // const result = isSameDateLocal(originalDateString, newDateString);
+                              console.log(
+                                "日付送信クリック",
+                                "オリジナル(UTC)",
+                                originalDateUTCString,
+                                "新たな値(Dateオブジェクト)",
+                                inputActivityDate,
+                                "新たな値.toISO(UTC)",
+                                newDateUTCString
+                                // "同じかチェック結果",
+                                // result
+                              );
+                              // オリジナルはUTC、新たな値はDateオブジェクト(ローカルタイムゾーン)なのでISOString()でUTCに変換
+                              handleClickSendUpdateField({
+                                e,
+                                fieldName: "activity_date",
+                                fieldNameForSelectedRowData: "activity_date",
+                                // originalValue: originalValueFieldEdit.current,
+                                originalValue: originalDateUTCString,
+                                newValue: newDateUTCString,
+                                id: selectedRowDataActivity?.activity_id,
+                                required: false,
+                              });
+                            }}
+                          />
+                        </div>
+                      </>
+                    )}
+                    {/* フィールドエディットモードオーバーレイ */}
+                    {!searchMode && isEditModeField === "activity_date" && (
+                      <div
+                        className={`${styles.edit_mode_overlay}`}
+                        onClick={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                          setIsEditModeField(null); // エディットモードを終了
+                        }}
+                      />
+                    )}
+                    {/* ============= フィールドエディットモード関連ここまで ============= */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -806,7 +1232,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                         // onMouseLeave={handleCloseTooltip}
                       >
                         {selectedRowDataActivity?.scheduled_follow_up_date
-                          ? format(new Date(selectedRowDataActivity.scheduled_follow_up_date), "yyyy-MM-dd")
+                          ? format(new Date(selectedRowDataActivity.scheduled_follow_up_date), "yyyy/MM/dd")
                           : ""}
                       </span>
                     )}

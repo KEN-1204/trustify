@@ -1,5 +1,5 @@
 import useStore from "@/store";
-import React, { FC, Suspense, useRef } from "react";
+import React, { FC, Suspense, useEffect, useRef, useState } from "react";
 import styles from "./DashboardHomeComponent.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 
@@ -133,6 +133,62 @@ export const DashboardHomeComponent = () => {
     }
   };
 
+  // =========================== 🌟画面のサイズに応じて動的にアイコンサイズを変化させる🌟 ===========================
+  // // 画面サイズに応じて背景アイコンのサイズを動的に決定する
+  // const resizedIconSizeRef = useRef<number>(0);
+  const [resizedIconSize, setResizedIconSize] = useState(0);
+  // // const iconRef = useRef<HTMLOrSVGElement | null>(null);
+  // const lastResizeTime = useRef(0); // 最後にリサイズが行われた時刻を記録するref
+
+  // // リサイズイベントのハンドル関数
+  // const handleResize = (entries: ResizeObserverEntry[]) => {
+  //   const now = performance.now();
+
+  //   // 最後のリサイズから一定時間が経過しているかチェック 16msは約1/60秒で一般的なディスプレイのリフレッシュレートが秒間60フレーム(つまり、１フレームあたり16.67ms)のため
+  //   if (now - lastResizeTime.current > 16) {
+  //     // 現在の時間を更新
+  //     lastResizeTime.current = now;
+
+  //     // 実際のリサイズ処理
+  //     for (let entry of entries) {
+  //       const newIconSize = Math.floor(entry.contentRect.width * 0.28);
+  //       console.log("リサイズ実行 entry.contentRect.width", entry.contentRect.width, "newIconSize", newIconSize);
+  //       // if (iconRef.current) {
+  //       //   iconRef.current?.style.width = `${newIconSize}px`;
+  //       //   iconRef.current?.style.height = `${newIconSize}px`;
+  //       // }
+  //       resizedIconSizeRef.current = newIconSize;
+  //       setResizedIconSize(newIconSize);
+  //     }
+  //   } else {
+  //     console.log("リサイズ次回実行");
+  //     // 一定時間内であれば、次のアニメーションフレームで再試行
+  //     requestAnimationFrame(() => handleResize(entries));
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   // ResizeObserverのセットアップ
+  //   const resizeObserver = new ResizeObserver((entries) => {
+  //     // requestAnimationFrameを使用してリサイズ処理を行う
+  //     requestAnimationFrame(() => handleResize(entries));
+  //   });
+  //   // document.bodyを監視対象に追加
+  //   resizeObserver.observe(document.body);
+
+  //   // コンポーネントのアンマウント時にオブザーバーを解除
+  //   return () => {
+  //     resizeObserver.disconnect();
+  //   };
+  // }, []); // 空の依存配列を指定して、マウント時のみ実行
+
+  // 初回マウント時の画面サイズでアイコンサイズを決定
+  useEffect(() => {
+    const newSize = Math.floor(window.innerWidth * 0.3);
+    setResizedIconSize(newSize);
+  }, []);
+  // =========================== ✅画面のサイズに応じて動的にアイコンサイズを変化させる✅ ===========================
+
   return (
     <div
       className={`flex-center ${styles.app_main_container} relative ${
@@ -183,17 +239,23 @@ export const DashboardHomeComponent = () => {
                 {/* 背景アイコンエリア */}
                 {home_cards.map((item, index) => {
                   // const className = `styles.${item.name}`;
+
                   return (
                     <div
                       key={item.name}
                       ref={(ref) => (backIconsRef.current[index] = ref)}
                       className={`${styles.back_icon}`}
                     >
-                      {index === 0 && neonIconsSettingsGear("500")}
+                      {/* {index === 0 && neonIconsSettingsGear("500")}
                       {index === 1 && neonMailIcon("500")}
                       {index === 2 && neonSearchIcon("500")}
                       {index === 3 && neonPieChart("500")}
-                      {index === 4 && neonCycleIcon("500")}
+                      {index === 4 && neonCycleIcon("500")} */}
+                      {index === 0 && neonIconsSettingsGear(resizedIconSize.toString())}
+                      {index === 1 && neonMailIcon(resizedIconSize.toString())}
+                      {index === 2 && neonSearchIcon(resizedIconSize.toString())}
+                      {index === 3 && neonPieChart(resizedIconSize.toString())}
+                      {index === 4 && neonCycleIcon(resizedIconSize.toString())}
                       {/* {index === 4 && neonMessageIconBg} */}
                     </div>
                   );

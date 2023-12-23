@@ -5501,9 +5501,9 @@ export const winnersIllustration = (
   </svg>
 );
 
-export const neonIconsSettingsGear = (size: string = "48") => (
+export const neonIconsSettingsGear = (size: string = "48", ref?: any) => (
   // <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg ref={ref} width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
     <g filter="url(#filter0_bii_211_742)">
       <g clipPath="url(#clip0_211_742)">
         <rect width="48" height="48" rx="20" fill="white" fillOpacity="0.02" />

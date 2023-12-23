@@ -430,11 +430,14 @@
   justify-content: center;
   align-items: center;
   cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .close_btn:hover {
   /* background: var(--close-bg);
   background: var(--color-bg-sub-deep); */
+  /* background: var(--close-bg-deep);
+  color: #fff; */
 }
 /* .input_box:focus ~ .close_btn {
   display: none;

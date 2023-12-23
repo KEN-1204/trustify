@@ -25,9 +25,14 @@ export const InputSendAndCloseBtn = ({
       {/* バツボタン */}
       {isDisplayClose && (
         <div
+          // className={`${styles.close_btn} ${btnPositionY} right-[10px] ${
+          //   isDisplayClose && inputState !== ""
+          //     ? `hover:bg-[var(--color-bg-sub-deep)]`
+          //     : `!cursor-not-allowed text-[#999]`
+          // }`}
           className={`${styles.close_btn} ${btnPositionY} right-[10px] ${
             isDisplayClose && inputState !== ""
-              ? `hover:bg-[var(--color-bg-sub-deep)]`
+              ? `hover:bg-[var(--close-bg-deep)] hover:text-[#fff]`
               : `!cursor-not-allowed text-[#999]`
           }`}
           onClick={() => {

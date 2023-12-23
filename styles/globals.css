@@ -359,11 +359,24 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --setting-side-bg-select-hover: #00000025; */
   --setting-side-bg-select-hover: #394c6026;
   --close-bg: #eee;
+  --close-bg-deep: #777;
   /* --setting-side-bg-select-deep: #00000055; */
 
   /* light Canva 背景 #fff 背景サブ rgba(64,87,109,.07) #40576d12 */
   --color-bg-base: #fff;
+  --color-bg-base10: #ffffff10;
+  --color-bg-base20: #ffffff20;
+  --color-bg-base30: #ffffff30;
+  --color-bg-base40: #ffffff40;
+  --color-bg-base50: #ffffff50;
+  --color-bg-base60: #ffffff60;
+  --color-bg-base70: #ffffff70;
+  --color-bg-base80: #ffffff80;
+  --color-bg-base90: #ffffff90;
+  --color-bg-basea0: #ffffffa0;
+  --color-bg-baseb0: #ffffffb0;
   --color-bg-basec0: #ffffffc0;
+  --color-bg-based0: #ffffffd0;
   --color-bg-basee0: #ffffffe0;
   --color-bg-base-header: #fff;
   --color-bg-base-deep: #fff;
@@ -981,6 +994,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --setting-side-bg-select-hover: #bbbbbb20; */
   --setting-side-bg-select-hover: #555;
   --close-bg: #777;
+  --close-bg-deep: #777;
+  /* --close-bg-deep: #222; */
 
   /* Youtube背景 background-color: #0f0f0f */
   /* Tiktok背景メイン background-color: rgb(18, 18, 18) #121212 背景サブ background-color: rgb(37, 37, 37) #252525 ブラックサブ2 background-color: rgba(255, 255, 255, 0.08) テーマカラー赤 background-color: rgb(255, 59, 92) #ff3b5c */
@@ -988,7 +1003,19 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-bg-base: #121212; */
   /* --color-bg-base: #191919; */
   --color-bg-base: #202020;
+  --color-bg-base10: #20202010;
+  --color-bg-base20: #20202020;
+  --color-bg-base30: #20202030;
+  --color-bg-base40: #20202040;
+  --color-bg-base50: #20202050;
+  --color-bg-base60: #20202060;
+  --color-bg-base70: #20202070;
+  --color-bg-base80: #20202080;
+  --color-bg-base90: #20202090;
+  --color-bg-basea0: #202020a0;
+  --color-bg-baseb0: #202020b0;
   --color-bg-basec0: #202020c0;
+  --color-bg-based0: #202020d0;
   --color-bg-basee0: #202020e0;
   /* --color-bg-base-header: #191919; */
   --color-bg-base-header: #202020;
