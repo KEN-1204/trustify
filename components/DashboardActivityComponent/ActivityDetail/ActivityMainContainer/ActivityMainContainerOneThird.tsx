@@ -23,6 +23,8 @@ import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { isSameDateLocal } from "@/utils/Helpers/isSameDateLocal";
 import { optionsActivityType, optionsPriority } from "./selectOptionsActivity";
 import { AiTwotoneCalendar } from "react-icons/ai";
+import { toHalfWidthAndSpace } from "@/utils/Helpers/toHalfWidthAndSpace";
+import { InputSendAndCloseBtn } from "@/components/DashboardCompanyComponent/CompanyMainContainer/InputSendAndCloseBtn/InputSendAndCloseBtn";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -672,7 +674,7 @@ const ActivityMainContainerOneThirdMemo = () => {
     !!selectedRowDataActivity?.activity_created_by_company_id &&
     selectedRowDataActivity.activity_created_by_company_id === userProfileState.company_id;
   // 活動タイプが活動テーブルのものであるか => 面談・訪問、案件発生、見積は除外
-  const isNotActivityTypeArray = ["面談・訪問", "案件発生", "見積"];
+  const isNotActivityTypeArray: string[] = ["面談・訪問", "案件発生", "見積"];
   const isOurActivityAndIsTypeActivity =
     isOurActivity &&
     selectedRowDataActivity?.activity_type &&
@@ -680,13 +682,13 @@ const ActivityMainContainerOneThirdMemo = () => {
   const returnMessageNotActivity = (type: string) => {
     switch (type) {
       case "面談・訪問":
-        return `活動タイプ「面談・訪問」は活動画面から編集はできません。タブから「面談・訪問」をクリックして面談・訪問画面から編集してください。`;
+        return `活動タイプ「面談・訪問」のデータを活動画面から編集できるのは「次回フォロー予定日、フォロー完了フラグ、クレーム」のみです。それ以外はタブから「面談・訪問」をクリックして面談・訪問画面から編集してください。`;
         break;
       case "案件発生":
-        return `活動タイプ「案件」は活動画面から編集はできません。タブから「案件」をクリックして案件画面から編集してください。`;
+        return `活動タイプ「案件」のデータを活動画面から編集できるのは「次回フォロー予定日、フォロー完了フラグ、クレーム」のみです。それ以外はタブから「案件」をクリックして案件画面から編集してください。`;
         break;
       case "見積":
-        return `活動タイプ「見積」は活動画面から編集はできません。タブから「見積」をクリックして見積画面から編集してください。`;
+        return `活動タイプ「見積」のデータを活動画面から編集できるのは「次回フォロー予定日、フォロー完了フラグ、クレーム」のみです。それ以外タブから「見積」をクリックして見積画面から編集してください。`;
         break;
 
       default:
@@ -721,10 +723,11 @@ const ActivityMainContainerOneThirdMemo = () => {
     dispatch: React.Dispatch<React.SetStateAction<any>>;
     // isSelectChangeEvent?: boolean;
     dateValue?: string | null;
+    selectedRowDataValue?: any;
   };
   // ダブルクリック => ダブルクリックしたフィールドを編集モードに変更
   const handleDoubleClickField = useCallback(
-    ({ e, field, dispatch, dateValue }: DoubleClickProps) => {
+    ({ e, field, dispatch, dateValue, selectedRowDataValue }: DoubleClickProps) => {
       // 自社で作成した会社でない場合はそのままリターン
       if (!isOurActivity) return;
 
@@ -735,7 +738,9 @@ const ActivityMainContainerOneThirdMemo = () => {
         "e.currentTarget.innerText",
         e.currentTarget.innerText,
         "e.currentTarget.innerHTML",
-        e.currentTarget.innerHTML
+        e.currentTarget.innerHTML,
+        "selectedRowDataValue",
+        selectedRowDataValue && selectedRowDataValue
       );
       if (setTimeoutRef.current) {
         clearTimeout(setTimeoutRef.current);
@@ -747,6 +752,9 @@ const ActivityMainContainerOneThirdMemo = () => {
         // const text = e.currentTarget.innerText;
         let text;
         text = e.currentTarget.innerHTML;
+        if (!!selectedRowDataValue) {
+          text = selectedRowDataValue;
+        }
         if (field === "fiscal_end_month") {
           text = text.replace(/月/g, ""); // 決算月の場合は、1月の月を削除してstateに格納 optionタグのvalueと一致させるため
         }
@@ -1195,15 +1203,19 @@ const ActivityMainContainerOneThirdMemo = () => {
                       <div
                         className={`${styles.grid_select_cell_header} `}
                         onMouseEnter={(e) => {
+                          if (!selectedRowDataActivity) return;
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         }}
                         onMouseLeave={(e) => {
+                          if (!selectedRowDataActivity) return;
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                         }}
                       >
                         <input
                           type="checkbox"
-                          className={`${styles.grid_select_cell_header_input}`}
+                          className={`${styles.grid_select_cell_header_input} ${
+                            !selectedRowDataActivity ? `pointer-events-none` : ``
+                          }`}
                           // checked={!!selectedRowDataActivity?.claim_flag}
                           // onChange={() => {
                           //   // setLoadingGlobalState(false);
@@ -1212,9 +1224,11 @@ const ActivityMainContainerOneThirdMemo = () => {
                           // 個別にチェックボックスを更新するルート
                           checked={checkboxClaimFlagForFieldEdit}
                           onChange={async (e) => {
+                            if (!selectedRowDataActivity) return;
                             // 個別にチェックボックスを更新するルート
                             if (!selectedRowDataActivity?.activity_id)
                               return toast.error(`データが見つかりませんでした🙇‍♀️`);
+
                             console.log(
                               "チェック 新しい値",
                               !checkboxClaimFlagForFieldEdit,
@@ -1439,16 +1453,20 @@ const ActivityMainContainerOneThirdMemo = () => {
                           });
                         }}
                         onMouseEnter={(e) => {
+                          if (!selectedRowDataActivity) return;
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         }}
                         onMouseLeave={(e) => {
+                          if (!selectedRowDataActivity) return;
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                         }}
                       >
                         {selectedRowDataActivity?.scheduled_follow_up_date ? (
                           format(new Date(selectedRowDataActivity.scheduled_follow_up_date), "yyyy/MM/dd")
                         ) : (
-                          <AiTwotoneCalendar className="text-[20px] hover:text-[var(--color-bg-brand-f)]" />
+                          <AiTwotoneCalendar
+                            className={`text-[20px] ${isOurActivity ? `hover:text-[var(--color-bg-brand-f)]` : ``}`}
+                          />
                         )}
                       </span>
                     )}
@@ -1550,15 +1568,15 @@ const ActivityMainContainerOneThirdMemo = () => {
                               "チェック 新しい値",
                               !checkboxFollowUpFlagForFieldEdit,
                               "オリジナル",
-                              selectedRowDataActivity?.claim_flag
+                              selectedRowDataActivity?.follow_up_flag
                             );
-                            if (!checkboxFollowUpFlagForFieldEdit === selectedRowDataActivity?.claim_flag) {
+                            if (!checkboxFollowUpFlagForFieldEdit === selectedRowDataActivity?.follow_up_flag) {
                               toast.error(`アップデートに失敗しました🤦‍♀️`);
                               return;
                             }
                             const updatePayload = {
-                              fieldName: "claim_flag",
-                              fieldNameForSelectedRowData: "claim_flag" as "claim_flag",
+                              fieldName: "follow_up_flag",
+                              fieldNameForSelectedRowData: "follow_up_flag" as "follow_up_flag",
                               newValue: !checkboxFollowUpFlagForFieldEdit,
                               id: selectedRowDataActivity.activity_id,
                             };
@@ -1583,12 +1601,40 @@ const ActivityMainContainerOneThirdMemo = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full `}>
                     <span className={`${styles.title} ${styles.title_sm}`}>概要</span>
-                    {!searchMode && (
+                    {!searchMode && isEditModeField !== "summary" && (
                       <div
-                        className={`${styles.textarea_box} ${styles.textarea_box_bg}`}
-                        // className={`${styles.value} h-[85px] ${styles.textarea_box} ${styles.textarea_box_bg}`}
-                        // onMouseEnter={(e) => handleOpenTooltip(e)}
-                        // onMouseLeave={handleCloseTooltip}
+                        data-text={`${selectedRowDataActivity?.summary ? selectedRowDataActivity?.summary : ""}`}
+                        className={`${styles.textarea_box} ${styles.textarea_box_bg} ${
+                          isOurActivityAndIsTypeActivity ? styles.editable_field : styles.uneditable_field
+                        }`}
+                        // style={{ whiteSpace: "pre-wrap" }}
+                        onClick={handleSingleClickField}
+                        onDoubleClick={(e) => {
+                          if (!selectedRowDataActivity?.activity_type) return;
+                          if (isNotActivityTypeArray.includes(selectedRowDataActivity.activity_type))
+                            return alert(returnMessageNotActivity(selectedRowDataActivity.activity_type));
+                          handleCloseTooltip();
+                          handleDoubleClickField({
+                            e,
+                            field: "summary",
+                            dispatch: setInputSummary,
+                            selectedRowDataValue: selectedRowDataActivity?.summary
+                              ? selectedRowDataActivity?.summary
+                              : null,
+                          });
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          if (!selectedRowDataActivity?.activity_type) return;
+                          if (isNotActivityTypeArray.includes(selectedRowDataActivity.activity_type)) return;
+                          handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (!selectedRowDataActivity?.activity_type) return;
+                          if (isNotActivityTypeArray.includes(selectedRowDataActivity.activity_type)) return;
+                          handleCloseTooltip();
+                        }}
                         dangerouslySetInnerHTML={{
                           __html: selectedRowDataActivity?.summary
                             ? selectedRowDataActivity?.summary.replace(/\n/g, "<br>")
@@ -1596,17 +1642,84 @@ const ActivityMainContainerOneThirdMemo = () => {
                         }}
                       ></div>
                     )}
-                    {/* {searchMode && (
+                    {/* ============= フィールドエディットモード関連 ============= */}
+                    {/* フィールドエディットモード inputタグ */}
+                    {!searchMode && isEditModeField === "summary" && (
+                      <>
                         <textarea
-                          name="activity_summary"
-                          id="activity_summary"
                           cols={30}
-                          rows={10}
-                          className={`${styles.textarea_box} `}
+                          // rows={10}
+                          placeholder=""
+                          style={{ whiteSpace: "pre-wrap" }}
+                          className={`${styles.textarea_box} ${styles.textarea_box_search_mode} ${styles.field_edit_mode_textarea}`}
                           value={inputSummary}
                           onChange={(e) => setInputSummary(e.target.value)}
                         ></textarea>
-                      )} */}
+                        {/* 送信ボタンとクローズボタン */}
+                        <InputSendAndCloseBtn
+                          inputState={inputSummary}
+                          setInputState={setInputSummary}
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                            handleClickSendUpdateField({
+                              e,
+                              fieldName: "summary",
+                              fieldNameForSelectedRowData: "summary",
+                              originalValue: originalValueFieldEdit.current,
+                              // newValue: toHalfWidthAndSpace(inputSummary.trim()),
+                              newValue: inputSummary.trim(),
+                              id: selectedRowDataActivity?.contact_id,
+                              required: false,
+                            })
+                          }
+                          required={false}
+                          // isDisplayClose={true}
+                          // btnPositionY="bottom-[8px]"
+                          isOutside={true}
+                          outsidePosition="under_right"
+                          isLoadingSendEvent={updateActivityFieldMutation.isLoading}
+                        />
+                        {/* {updateActivityFieldMutation.isLoading && (
+                          <InputSendAndCloseBtn
+                            inputState={inputSummary}
+                            setInputState={setInputSummary}
+                            onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                              handleClickSendUpdateField({
+                                e,
+                                fieldName: "summary",
+                                fieldNameForSelectedRowData: "summary",
+                                originalValue: originalValueFieldEdit.current,
+                                // newValue: toHalfWidthAndSpace(inputSummary.trim()),
+                                newValue: inputSummary.trim(),
+                                id: selectedRowDataActivity?.contact_id,
+                                required: false,
+                              })
+                            }
+                            required={false}
+                            // isDisplayClose={true}
+                            // btnPositionY="bottom-[8px]"
+                            isOutside={true}
+                            outsidePosition="under_right"
+                          />
+                        )} */}
+                        {/* エディットフィールド送信中ローディングスピナー */}
+                        {/* {updateActivityFieldMutation.isLoading && (
+                          <div className={`${styles.field_edit_mode_loading_area}`}>
+                            <SpinnerComet w="22px" h="22px" s="3px" />
+                          </div>
+                        )} */}
+                      </>
+                    )}
+                    {/* フィールドエディットモードオーバーレイ */}
+                    {!searchMode && isEditModeField === "summary" && (
+                      <div
+                        className={`${styles.edit_mode_overlay}`}
+                        onClick={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                          setIsEditModeField(null); // エディットモードを終了
+                        }}
+                      />
+                    )}
+                    {/* ============= フィールドエディットモード関連ここまで ============= */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>

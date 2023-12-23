@@ -452,9 +452,10 @@ const CompanyMainContainerMemo: FC = () => {
     field: string;
     dispatch: React.Dispatch<React.SetStateAction<any>>;
     // isSelectChangeEvent?: boolean;
+    selectedRowDataValue?: any;
   };
   const handleDoubleClickField = useCallback(
-    ({ e, field, dispatch }: DoubleClickProps) => {
+    ({ e, field, dispatch, selectedRowDataValue }: DoubleClickProps) => {
       // 自社で作成した会社でない場合はそのままリターン
       if (!isOwnCompany) return;
 
@@ -477,6 +478,9 @@ const CompanyMainContainerMemo: FC = () => {
         // const text = e.currentTarget.innerText;
         let text;
         text = e.currentTarget.innerHTML;
+        if (!!selectedRowDataValue) {
+          text = selectedRowDataValue;
+        }
         if (field === "fiscal_end_month") {
           text = text.replace(/月/g, ""); // 決算月の場合は、1月の月を削除してstateに格納 optionタグのvalueと一致させるため
         }
@@ -1852,6 +1856,9 @@ const CompanyMainContainerMemo: FC = () => {
                             e,
                             field: "business_content",
                             dispatch: setInputContent,
+                            selectedRowDataValue: selectedRowDataCompany?.business_content
+                              ? selectedRowDataCompany?.business_content
+                              : null,
                           });
                         }}
                         onMouseEnter={(e) => {
@@ -1862,8 +1869,13 @@ const CompanyMainContainerMemo: FC = () => {
                           handleCloseTooltip();
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                         }}
+                        dangerouslySetInnerHTML={{
+                          __html: selectedRowDataCompany?.business_content
+                            ? selectedRowDataCompany.business_content.replace(/\n/g, "<br>")
+                            : "",
+                        }}
                       >
-                        {selectedRowDataCompany?.business_content ? selectedRowDataCompany?.business_content : ""}
+                        {/* {selectedRowDataCompany?.business_content ? selectedRowDataCompany?.business_content : ""} */}
                       </span>
                     </>
                   )}
@@ -2655,6 +2667,9 @@ const CompanyMainContainerMemo: FC = () => {
                           e,
                           field: "facility",
                           dispatch: setInputFacility,
+                          selectedRowDataValue: selectedRowDataCompany?.facility
+                            ? selectedRowDataCompany?.facility
+                            : null,
                         });
                       }}
                       onMouseEnter={(e) => {
@@ -2665,8 +2680,13 @@ const CompanyMainContainerMemo: FC = () => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                         handleCloseTooltip();
                       }}
+                      dangerouslySetInnerHTML={{
+                        __html: selectedRowDataCompany?.facility
+                          ? selectedRowDataCompany?.facility.replace(/\n/g, "<br>")
+                          : "",
+                      }}
                     >
-                      {selectedRowDataCompany?.facility ? selectedRowDataCompany?.facility : ""}
+                      {/* {selectedRowDataCompany?.facility ? selectedRowDataCompany?.facility : ""} */}
                     </span>
                   )}
                   {/* サーチ */}

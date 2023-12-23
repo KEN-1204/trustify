@@ -510,10 +510,11 @@ const ContactMainContainerMemo: FC = () => {
     field: string;
     dispatch: React.Dispatch<React.SetStateAction<any>>;
     // isSelectChangeEvent?: boolean;
+    selectedRowDataValue?: any;
   };
   // ダブルクリック => ダブルクリックしたフィールドを編集モードに変更
   const handleDoubleClickField = useCallback(
-    ({ e, field, dispatch }: DoubleClickProps) => {
+    ({ e, field, dispatch, selectedRowDataValue }: DoubleClickProps) => {
       // 自社で作成した会社でない場合はそのままリターン
       if (!isOurContact) return;
 
@@ -536,6 +537,9 @@ const ContactMainContainerMemo: FC = () => {
         // const text = e.currentTarget.innerText;
         let text;
         text = e.currentTarget.innerHTML;
+        if (!!selectedRowDataValue) {
+          text = selectedRowDataValue;
+        }
         if (field === "fiscal_end_month") {
           text = text.replace(/月/g, ""); // 決算月の場合は、1月の月を削除してstateに格納 optionタグのvalueと一致させるため
         }
@@ -1858,7 +1862,7 @@ const ContactMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>○住所</span>
                   {!searchMode && (
                     <span
-                      className={`${styles.textarea_value} h-[45px] ${styles.uneditable_field}`}
+                      className={`${styles.textarea_value} ${styles.address} ${styles.uneditable_field}`}
                       onMouseEnter={(e) => {
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                       }}
@@ -3539,27 +3543,35 @@ const ContactMainContainerMemo: FC = () => {
                           // className={`${styles.value} h-[65px] ${
                           //   isOurContact ? styles.editable_field : styles.uneditable_field
                           // }`}
-                          className={`${styles.textarea_value} h-[65px] ${
-                            isOurContact ? styles.editable_field : styles.uneditable_field
-                          }`}
+                          // className={`${styles.textarea_value} ${
+                          //   isOurContact ? styles.editable_field : styles.uneditable_field
+                          // }`}
+                          className={`${
+                            !!selectedRowDataContact?.claim ? styles.textarea_box : styles.textarea_value
+                          } ${isOurContact ? styles.editable_field : styles.uneditable_field}`}
                           // onMouseEnter={(e) => handleOpenTooltip(e)}
                           // onMouseLeave={handleCloseTooltip}
                           onClick={handleSingleClickField}
                           onDoubleClick={(e) => {
-                            handleCloseTooltip();
+                            // handleCloseTooltip();
                             handleDoubleClickField({
                               e,
                               field: "claim",
                               dispatch: setInputClaim,
+                              selectedRowDataValue: selectedRowDataContact?.claim
+                                ? selectedRowDataContact?.claim
+                                : null,
                             });
                           }}
                           onMouseEnter={(e) => {
-                            handleOpenTooltip(e);
+                            if (!selectedRowDataContact?.claim) return;
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            // handleOpenTooltip(e);
                           }}
                           onMouseLeave={(e) => {
-                            handleCloseTooltip();
+                            if (!selectedRowDataContact?.claim) return;
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            // handleCloseTooltip();
                           }}
                           dangerouslySetInnerHTML={{
                             __html: selectedRowDataContact?.claim
@@ -3630,24 +3642,24 @@ const ContactMainContainerMemo: FC = () => {
                 </div>
 
                 {/* 禁止理由 */}
-                <div className={`${styles.row_area} flex h-[70px] w-full items-center`}>
+                <div className={`${styles.row_area} flex w-full items-center`}>
                   <div className="flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full `}>
                       <span className={`${styles.title}`}>禁止理由</span>
                       {!searchMode && (
                         <div
                           data-text={`${selectedRowDataContact?.ban_reason ? selectedRowDataContact?.ban_reason : ""}`}
-                          className={`${styles.value} h-[65px] ${
-                            isOurContact ? styles.editable_field : styles.uneditable_field
-                          }`}
+                          className={`${
+                            !!selectedRowDataContact?.ban_reason ? styles.textarea_box : styles.textarea_value
+                          } ${isOurContact ? styles.editable_field : styles.uneditable_field}`}
                           // onMouseEnter={(e) => handleOpenTooltip(e)}
                           // onMouseLeave={handleCloseTooltip}
                           onMouseEnter={(e) => {
-                            handleOpenTooltip(e);
+                            // handleOpenTooltip(e);
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           }}
                           onMouseLeave={(e) => {
-                            handleCloseTooltip();
+                            // handleCloseTooltip();
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                           }}
                           onDoubleClick={() => setIsOpenUpdateContactModal(true)}

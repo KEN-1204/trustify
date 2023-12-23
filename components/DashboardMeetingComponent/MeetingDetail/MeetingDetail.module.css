@@ -373,6 +373,8 @@
   display: -webkit-inline-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  min-height: 48px;
+  line-height: 22px;
 }
 .anchor {
   color: var(--color-text-brand-f);
@@ -432,7 +434,8 @@
   /* padding: 6px 8px; */
   padding: 4px 8px;
   font-size: 14px;
-  line-height: 24px;
+  /* line-height: 24px; */
+  line-height: 22px;
   border-radius: 6px;
   resize: none;
   /* box-sizing: border-box; */

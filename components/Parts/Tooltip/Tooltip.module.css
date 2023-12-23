@@ -21,6 +21,7 @@
   min-height: fit-content;
   /* padding: 3px 7px; */
   padding: 3px 9px;
+  padding: 2px 9px;
   transform: translateX(-50%);
   /* background: #282828; */
   background: #282828f0;
@@ -282,6 +283,7 @@
   white-space: pre-wrap;
   pointer-events: none;
   user-select: none;
+  line-height: 20px;
 }
 .dropdown_item:hover {
   /* background: var(--color-bg-brand); */

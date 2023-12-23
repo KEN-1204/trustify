@@ -424,6 +424,8 @@
   display: -webkit-inline-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  min-height: 48px;
+  line-height: 22px;
 }
 .input_box {
   height: 100%;

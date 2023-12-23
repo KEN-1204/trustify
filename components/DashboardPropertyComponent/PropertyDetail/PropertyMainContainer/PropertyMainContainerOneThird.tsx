@@ -2585,32 +2585,21 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box}  flex h-full`}>
                     <span className={`${styles.title}`}>事業内容</span>
                     {!searchMode && (
-                      <>
-                        <span
-                          // data-text={`${
-                          //   selectedRowDataProperty?.business_content ? selectedRowDataProperty?.business_content : ""
-                          // }`}
-                          // onMouseEnter={(e) => handleOpenTooltip(e)}
-                          // onMouseLeave={handleCloseTooltip}
-                          className={`${styles.textarea_box} `}
-                          dangerouslySetInnerHTML={{
-                            __html: selectedRowDataProperty?.business_content
-                              ? selectedRowDataProperty?.business_content.replace(/\n/g, "<br>")
-                              : "",
-                          }}
-                        ></span>
-                        {/* <div
-                          className={`max-h-max min-h-[70px] ${styles.textarea_box} ${styles.textarea_box_bg}`}
-                          // className={`${styles.value} h-[85px] ${styles.textarea_box} ${styles.textarea_box_bg}`}
-                          // onMouseEnter={(e) => handleOpenTooltip(e)}
-                          // onMouseLeave={handleCloseTooltip}
-                          dangerouslySetInnerHTML={{
-                            __html: selectedRowDataProperty?.business_content
-                              ? selectedRowDataProperty?.business_content.replace(/\n/g, "<br>")
-                              : "",
-                          }}
-                        ></div> */}
-                      </>
+                      <span
+                        data-text={`${
+                          selectedRowDataProperty?.business_content ? selectedRowDataProperty?.business_content : ""
+                        }`}
+                        // onMouseEnter={(e) => handleOpenTooltip(e)}
+                        onMouseEnter={(e) => handleOpenTooltip({ e })}
+                        onMouseLeave={handleCloseTooltip}
+                        // className={`${styles.textarea_box} `}
+                        className={`${styles.textarea_value} `}
+                        dangerouslySetInnerHTML={{
+                          __html: selectedRowDataProperty?.business_content
+                            ? selectedRowDataProperty?.business_content.replace(/\n/g, "<br>")
+                            : "",
+                        }}
+                      ></span>
                     )}
                     {searchMode && (
                       <textarea

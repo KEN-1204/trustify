@@ -359,6 +359,8 @@
   display: -webkit-inline-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+  min-height: 48px;
+  line-height: 22px;
 }
 .anchor {
   color: var(--color-text-brand-f);
@@ -433,8 +435,8 @@
 }
 .textarea_box {
   /* height: 100%; */
-  /* min-height: 78px; */
-  min-height: 110px;
+  min-height: 78px;
+  /* min-height: 110px; */
   width: 100%;
   background: var(--color-bg-under-input);
   /* color: var(--color-text-under-input); */
@@ -446,7 +448,8 @@
   /* padding: 9px 10px; */
   padding: 6px 10px;
   font-size: 14px;
-  line-height: 24px;
+  /* line-height: 24px; */
+  /* line-height: 22px; */
   border-radius: 6px;
   resize: none;
 }
@@ -762,8 +765,9 @@
 }
 .field_edit_mode_textarea {
   z-index: 2000;
-  padding-right: 65px;
-  min-height: 75px;
+  /* padding-right: 65px; */
+  /* min-height: 75px; */
+  min-height: 120px;
   /* white-space: pre-line; */
   /* background: #00000030; */
 }

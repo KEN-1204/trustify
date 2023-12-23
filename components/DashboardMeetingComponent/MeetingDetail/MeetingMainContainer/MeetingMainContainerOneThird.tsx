@@ -1031,7 +1031,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
               </div>
 
-              {/* 事前ｺﾒﾝﾄ */}
+              {/* 事前コメント */}
               {/* <div className={`${styles.row_area} flex h-[90px] w-full items-center`}> */}
               <div className={`${styles.row_area_lg_box} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
@@ -2119,12 +2119,14 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     {!searchMode && (
                       <>
                         <span
-                          // data-text={`${
-                          //   selectedRowDataMeeting?.business_content ? selectedRowDataMeeting?.business_content : ""
-                          // }`}
+                          data-text={`${
+                            selectedRowDataMeeting?.business_content ? selectedRowDataMeeting?.business_content : ""
+                          }`}
                           // onMouseEnter={(e) => handleOpenTooltip(e)}
                           // onMouseLeave={handleCloseTooltip}
-                          className={`${styles.textarea_box} `}
+                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseLeave={handleCloseTooltip}
+                          className={`${styles.textarea_value} `}
                           dangerouslySetInnerHTML={{
                             __html: selectedRowDataMeeting?.business_content
                               ? selectedRowDataMeeting?.business_content.replace(/\n/g, "<br>")

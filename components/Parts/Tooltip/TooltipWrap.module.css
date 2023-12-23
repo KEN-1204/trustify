@@ -175,6 +175,7 @@
   letter-spacing: 0.3px;
   pointer-events: none;
   user-select: none;
+  line-height: 22px;
   /* direction: rtl; */
   /* white-space: nowrap; */
 }
