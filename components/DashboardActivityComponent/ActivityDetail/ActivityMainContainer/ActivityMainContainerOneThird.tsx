@@ -21,6 +21,8 @@ import { useMutateActivity } from "@/hooks/useMutateActivity";
 import { Activity, Activity_row_data } from "@/types";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { isSameDateLocal } from "@/utils/Helpers/isSameDateLocal";
+import { optionsActivityType, optionsPriority } from "./selectOptionsActivity";
+import { AiTwotoneCalendar } from "react-icons/ai";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -140,6 +142,13 @@ const ActivityMainContainerOneThirdMemo = () => {
   const [inputActivityDate, setInputActivityDate] = useState<Date | null>(null); //活動日
   const [inputDepartment, setInputDepartment] = useState(""); // 事業部名
   const [inputActivityYearMonth, setInputActivityYearMonth] = useState<number | null>(null); //活動年月度
+  // フラグ関連 フィールドエディット用
+  const [checkboxClaimFlagForFieldEdit, setCheckboxClaimFlagForFieldEdit] = useState(
+    selectedRowDataActivity?.claim_flag ? selectedRowDataActivity.claim_flag : false
+  ); // クレームフラグ フィールドエディット用
+  const [checkboxFollowUpFlagForFieldEdit, setCheckboxFollowUpFlagForFieldEdit] = useState(
+    selectedRowDataActivity?.follow_up_flag ? selectedRowDataActivity.follow_up_flag : false
+  );
 
   // サーチ編集モードでリプレイス前の値に復元する関数
   function beforeAdjustFieldValue(value: string | null) {
@@ -662,6 +671,29 @@ const ActivityMainContainerOneThirdMemo = () => {
     !!userProfileState?.company_id &&
     !!selectedRowDataActivity?.activity_created_by_company_id &&
     selectedRowDataActivity.activity_created_by_company_id === userProfileState.company_id;
+  // 活動タイプが活動テーブルのものであるか => 面談・訪問、案件発生、見積は除外
+  const isNotActivityTypeArray = ["面談・訪問", "案件発生", "見積"];
+  const isOurActivityAndIsTypeActivity =
+    isOurActivity &&
+    selectedRowDataActivity?.activity_type &&
+    !isNotActivityTypeArray.includes(selectedRowDataActivity.activity_type);
+  const returnMessageNotActivity = (type: string) => {
+    switch (type) {
+      case "面談・訪問":
+        return `活動タイプ「面談・訪問」は活動画面から編集はできません。タブから「面談・訪問」をクリックして面談・訪問画面から編集してください。`;
+        break;
+      case "案件発生":
+        return `活動タイプ「案件」は活動画面から編集はできません。タブから「案件」をクリックして案件画面から編集してください。`;
+        break;
+      case "見積":
+        return `活動タイプ「見積」は活動画面から編集はできません。タブから「見積」をクリックして見積画面から編集してください。`;
+        break;
+
+      default:
+        return `このデータは活動画面から編集できません。`;
+        break;
+    }
+  };
 
   // シングルクリック => 何もアクションなし
   const handleSingleClickField = useCallback(
@@ -905,8 +937,14 @@ const ActivityMainContainerOneThirdMemo = () => {
       }
     }
     // 「活動日付」「次回フォロー予定日」はどちらもUTC時間の文字列「2023-12-26T15:00:00+00:00」で取得しているためそのまま同じかチェック
-    else if (["activity_date", "scheduled_follow_up_date"].includes(fieldName) && !!newValue) {
+    else if (["activity_date", "scheduled_follow_up_date"].includes(fieldName)) {
       console.log("フィールドアップデート 日付チェック オリジナル", originalValue, "変換前 新たな値", newValue);
+      // 前回と今回も両方nullの場合はアップデート無しなので、リターンする
+      if (originalValue === null && newValue === null) {
+        console.log("日付チェック 前回も今回もnullのためリターン");
+        setIsEditModeField(null); // エディットモードを終了
+        return;
+      }
       // 年月日のみで同じ日付か比較
       const result = isSameDateLocal(originalValue, newValue);
       if (result) {
@@ -992,7 +1030,7 @@ const ActivityMainContainerOneThirdMemo = () => {
     const updatePayload = {
       fieldName: fieldName,
       fieldNameForSelectedRowData: fieldNameForSelectedRowData,
-      newValue: newValue,
+      newValue: newValue !== "" ? newValue : null,
       id: id,
     };
     // 入力変換確定状態でエンターキーが押された場合の処理
@@ -1099,6 +1137,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                             fieldEditModeBtnAreaPosition="right"
                             isLoadingSendEvent={updateActivityFieldMutation.isLoading}
                             onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                              if (!inputActivityDate) return alert("このデータは入力が必須です。");
                               const originalDateUTCString = selectedRowDataActivity?.activity_date
                                 ? selectedRowDataActivity.activity_date
                                 : null; // ISOString UTC時間 2023-12-26T15:00:00+00:00
@@ -1115,6 +1154,10 @@ const ActivityMainContainerOneThirdMemo = () => {
                                 // "同じかチェック結果",
                                 // result
                               );
+                              if (e.currentTarget.parentElement?.parentElement?.parentElement)
+                                e.currentTarget.parentElement.parentElement.parentElement.classList.remove(
+                                  `${styles.active}`
+                                );
                               // オリジナルはUTC、新たな値はDateオブジェクト(ローカルタイムゾーン)なのでISOString()でUTCに変換
                               handleClickSendUpdateField({
                                 e,
@@ -1147,18 +1190,51 @@ const ActivityMainContainerOneThirdMemo = () => {
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title}`}>クレーム</span>
+                    <span className={`${styles.check_title}`}>クレーム</span>
                     {!searchMode && (
-                      <div className={`${styles.grid_select_cell_header} `}>
+                      <div
+                        className={`${styles.grid_select_cell_header} `}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         <input
                           type="checkbox"
-                          // checked={!!checkedColumnHeader} // 初期値
-                          checked={!!selectedRowDataActivity?.claim_flag}
-                          onChange={() => {
-                            setLoadingGlobalState(false);
-                            setIsOpenUpdateActivityModal(true);
-                          }}
                           className={`${styles.grid_select_cell_header_input}`}
+                          // checked={!!selectedRowDataActivity?.claim_flag}
+                          // onChange={() => {
+                          //   // setLoadingGlobalState(false);
+                          //   setIsOpenUpdateActivityModal(true);
+                          // }}
+                          // 個別にチェックボックスを更新するルート
+                          checked={checkboxClaimFlagForFieldEdit}
+                          onChange={async (e) => {
+                            // 個別にチェックボックスを更新するルート
+                            if (!selectedRowDataActivity?.activity_id)
+                              return toast.error(`データが見つかりませんでした🙇‍♀️`);
+                            console.log(
+                              "チェック 新しい値",
+                              !checkboxClaimFlagForFieldEdit,
+                              "オリジナル",
+                              selectedRowDataActivity?.claim_flag
+                            );
+                            if (!checkboxClaimFlagForFieldEdit === selectedRowDataActivity?.claim_flag) {
+                              toast.error(`アップデートに失敗しました🤦‍♀️`);
+                              return;
+                            }
+                            const updatePayload = {
+                              fieldName: "claim_flag",
+                              fieldNameForSelectedRowData: "claim_flag" as "claim_flag",
+                              newValue: !checkboxClaimFlagForFieldEdit,
+                              id: selectedRowDataActivity.activity_id,
+                            };
+                            // 直感的にするために先にローカルのチェックボックスを更新する
+                            setCheckboxClaimFlagForFieldEdit(!checkboxClaimFlagForFieldEdit);
+                            await updateActivityFieldMutation.mutateAsync(updatePayload);
+                          }}
                         />
                         <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
                           <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
@@ -1176,38 +1252,165 @@ const ActivityMainContainerOneThirdMemo = () => {
                 </div>
               </div>
 
-              {/* 活動タイプ・優先度 */}
+              {/* 活動タイプ・優先度 通常 */}
               <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>活動ﾀｲﾌﾟ</span>
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
+                    {!searchMode && isEditModeField !== "activity_type" && (
+                      <span
+                        className={`${styles.value} ${
+                          isOurActivityAndIsTypeActivity ? styles.editable_field : styles.uneditable_field
+                        }`}
+                        onClick={handleSingleClickField}
+                        onDoubleClick={(e) => {
+                          if (!selectedRowDataActivity?.activity_type) return;
+                          if (isNotActivityTypeArray.includes(selectedRowDataActivity.activity_type))
+                            return alert(returnMessageNotActivity(selectedRowDataActivity.activity_type));
+                          handleDoubleClickField({
+                            e,
+                            field: "activity_type",
+                            dispatch: setInputActivityType,
+                          });
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         {selectedRowDataActivity?.activity_type ? selectedRowDataActivity?.activity_type : ""}
                       </span>
                     )}
-                    {searchMode && <input type="text" className={`${styles.input_box}`} />}
+
+                    {/* ============= フィールドエディットモード関連 ============= */}
+                    {/* フィールドエディットモード selectタグ  */}
+                    {!searchMode && isEditModeField === "activity_type" && (
+                      <>
+                        <select
+                          className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                          value={inputActivityType}
+                          onChange={(e) => {
+                            handleChangeSelectUpdateField({
+                              e,
+                              fieldName: "activity_type",
+                              fieldNameForSelectedRowData: "activity_type",
+                              newValue: e.target.value,
+                              originalValue: originalValueFieldEdit.current,
+                              id: selectedRowDataActivity?.activity_id,
+                            });
+                          }}
+                          // onChange={(e) => {
+                          //   setInputActivityType(e.target.value);
+                          // }}
+                        >
+                          {/* <option value=""></option> */}
+                          {optionsActivityType.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                        {/* エディットフィールド送信中ローディングスピナー */}
+                        {updateActivityFieldMutation.isLoading && (
+                          <div
+                            className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                          >
+                            <SpinnerComet w="22px" h="22px" s="3px" />
+                          </div>
+                        )}
+                      </>
+                    )}
+                    {/* フィールドエディットモードオーバーレイ */}
+                    {!searchMode && isEditModeField === "activity_type" && (
+                      <div
+                        className={`${styles.edit_mode_overlay}`}
+                        onClick={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                          setIsEditModeField(null); // エディットモードを終了
+                        }}
+                      />
+                    )}
+                    {/* ============= フィールドエディットモード関連ここまで ============= */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title}`}>優先度</span>
-                    {!searchMode && (
+                    <span className={`${styles.check_title}`}>優先度</span>
+                    {!searchMode && isEditModeField !== "priority" && (
                       <span
-                        // data-text={`${
-                        //   selectedRowDataActivity?.priority
-                        //     ? selectedRowDataActivity?.priority
-                        //     : ""
-                        // }`}
-                        className={`${styles.value} !w-full text-center`}
-                        // onMouseEnter={(e) => handleOpenTooltip(e)}
-                        // onMouseLeave={handleCloseTooltip}
+                        className={`${styles.value} !w-full text-center ${
+                          isOurActivityAndIsTypeActivity ? styles.editable_field : styles.uneditable_field
+                        }`}
+                        onClick={handleSingleClickField}
+                        onDoubleClick={(e) => {
+                          if (!selectedRowDataActivity?.activity_type) return;
+                          if (isNotActivityTypeArray.includes(selectedRowDataActivity.activity_type))
+                            return alert(returnMessageNotActivity(selectedRowDataActivity.activity_type));
+                          handleDoubleClickField({
+                            e,
+                            field: "priority",
+                            dispatch: setInputPriority,
+                          });
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
                       >
                         {selectedRowDataActivity?.priority ? selectedRowDataActivity?.priority : ""}
                       </span>
                     )}
-                    {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    {/* ============= フィールドエディットモード関連 ============= */}
+                    {/* フィールドエディットモード selectタグ  */}
+                    {!searchMode && isEditModeField === "priority" && (
+                      <>
+                        <select
+                          className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                          value={inputPriority}
+                          onChange={(e) => {
+                            handleChangeSelectUpdateField({
+                              e,
+                              fieldName: "priority",
+                              fieldNameForSelectedRowData: "priority",
+                              newValue: e.target.value,
+                              originalValue: originalValueFieldEdit.current,
+                              id: selectedRowDataActivity?.activity_id,
+                            });
+                          }}
+                        >
+                          <option value=""></option>
+                          {optionsPriority.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                        {/* エディットフィールド送信中ローディングスピナー */}
+                        {updateActivityFieldMutation.isLoading && (
+                          <div
+                            className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                          >
+                            <SpinnerComet w="22px" h="22px" s="3px" />
+                          </div>
+                        )}
+                      </>
+                    )}
+                    {/* フィールドエディットモードオーバーレイ */}
+                    {!searchMode && isEditModeField === "priority" && (
+                      <div
+                        className={`${styles.edit_mode_overlay}`}
+                        onClick={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                          setIsEditModeField(null); // エディットモードを終了
+                        }}
+                      />
+                    )}
+                    {/* ============= フィールドエディットモード関連ここまで ============= */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1221,22 +1424,97 @@ const ActivityMainContainerOneThirdMemo = () => {
                       <span>次回ﾌｫﾛｰ</span>
                       <span>予定日</span>
                     </div>
-                    {/* <span className={`${styles.title} !mr-[15px]`}>次回ﾌｫﾛｰ予定日</span> */}
-                    {!searchMode && (
+                    {!searchMode && isEditModeField !== "scheduled_follow_up_date" && (
                       <span
-                        // data-text={`${
-                        //   selectedRowDataActivity?.managing_director ? selectedRowDataActivity?.managing_director : ""
-                        // }`}
-                        className={`${styles.value}`}
-                        // onMouseEnter={(e) => handleOpenTooltip(e)}
-                        // onMouseLeave={handleCloseTooltip}
+                        className={`${styles.value} ${isOurActivity ? styles.editable_field : styles.uneditable_field}`}
+                        onClick={handleSingleClickField}
+                        onDoubleClick={(e) => {
+                          handleDoubleClickField({
+                            e,
+                            field: "scheduled_follow_up_date",
+                            dispatch: setInputScheduledFollowUpDate,
+                            dateValue: selectedRowDataActivity?.scheduled_follow_up_date
+                              ? selectedRowDataActivity.scheduled_follow_up_date
+                              : null,
+                          });
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
                       >
-                        {selectedRowDataActivity?.scheduled_follow_up_date
-                          ? format(new Date(selectedRowDataActivity.scheduled_follow_up_date), "yyyy/MM/dd")
-                          : ""}
+                        {selectedRowDataActivity?.scheduled_follow_up_date ? (
+                          format(new Date(selectedRowDataActivity.scheduled_follow_up_date), "yyyy/MM/dd")
+                        ) : (
+                          <AiTwotoneCalendar className="text-[20px] hover:text-[var(--color-bg-brand-f)]" />
+                        )}
                       </span>
                     )}
-                    {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    {/* ============= フィールドエディットモード関連 ============= */}
+                    {/* フィールドエディットモード Date-picker  */}
+                    {!searchMode && isEditModeField === "scheduled_follow_up_date" && (
+                      <>
+                        <div className="z-[2000] w-full">
+                          <DatePickerCustomInput
+                            startDate={inputScheduledFollowUpDate}
+                            setStartDate={setInputScheduledFollowUpDate}
+                            // required={true}
+                            required={false}
+                            isFieldEditMode={true}
+                            fieldEditModeBtnAreaPosition="right"
+                            isLoadingSendEvent={updateActivityFieldMutation.isLoading}
+                            onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                              const originalDateUTCString = selectedRowDataActivity?.scheduled_follow_up_date
+                                ? selectedRowDataActivity.scheduled_follow_up_date
+                                : null; // ISOString UTC時間 2023-12-26T15:00:00+00:00
+                              const newDateUTCString = inputScheduledFollowUpDate
+                                ? inputScheduledFollowUpDate.toISOString()
+                                : null; // Dateオブジェクト ローカルタイムゾーンに自動で変換済み Thu Dec 28 2023 00:00:00 GMT+0900 (日本標準時)
+                              // const result = isSameDateLocal(originalDateString, newDateString);
+                              console.log(
+                                "日付送信クリック",
+                                "オリジナル(UTC)",
+                                originalDateUTCString,
+                                "新たな値(Dateオブジェクト)",
+                                inputScheduledFollowUpDate,
+                                "新たな値.toISO(UTC)",
+                                newDateUTCString
+                                // "同じかチェック結果",
+                                // result
+                              );
+                              if (e.currentTarget.parentElement?.parentElement?.parentElement)
+                                e.currentTarget.parentElement.parentElement.parentElement.classList.remove(
+                                  `${styles.active}`
+                                );
+                              // オリジナルはUTC、新たな値はDateオブジェクト(ローカルタイムゾーン)なのでISOString()でUTCに変換
+                              handleClickSendUpdateField({
+                                e,
+                                fieldName: "scheduled_follow_up_date",
+                                fieldNameForSelectedRowData: "scheduled_follow_up_date",
+                                // originalValue: originalValueFieldEdit.current,
+                                originalValue: originalDateUTCString,
+                                newValue: newDateUTCString,
+                                id: selectedRowDataActivity?.activity_id,
+                                required: false,
+                              });
+                            }}
+                          />
+                        </div>
+                      </>
+                    )}
+                    {/* フィールドエディットモードオーバーレイ */}
+                    {!searchMode && isEditModeField === "scheduled_follow_up_date" && (
+                      <div
+                        className={`${styles.edit_mode_overlay}`}
+                        onClick={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                          setIsEditModeField(null); // エディットモードを終了
+                        }}
+                      />
+                    )}
+                    {/* ============= フィールドエディットモード関連ここまで ============= */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1245,15 +1523,49 @@ const ActivityMainContainerOneThirdMemo = () => {
                     <div className={`${styles.title_box} transition-base03 flex h-full items-center `}>
                       <span className={`${styles.check_title}`}>フォロー完了</span>
 
-                      <div className={`${styles.grid_select_cell_header} `}>
+                      <div
+                        className={`${styles.grid_select_cell_header} `}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         <input
                           type="checkbox"
-                          checked={!!selectedRowDataActivity?.follow_up_flag}
-                          onChange={() => {
-                            setLoadingGlobalState(false);
-                            setIsOpenUpdateActivityModal(true);
-                          }}
                           className={`${styles.grid_select_cell_header_input}`}
+                          // checked={!!selectedRowDataActivity?.follow_up_flag}
+                          // onChange={() => {
+                          //   setLoadingGlobalState(false);
+                          //   setIsOpenUpdateActivityModal(true);
+                          // }}
+                          // 個別にチェックボックスを更新するルート
+                          checked={checkboxFollowUpFlagForFieldEdit}
+                          onChange={async (e) => {
+                            // 個別にチェックボックスを更新するルート
+                            if (!selectedRowDataActivity?.activity_id)
+                              return toast.error(`データが見つかりませんでした🙇‍♀️`);
+                            console.log(
+                              "チェック 新しい値",
+                              !checkboxFollowUpFlagForFieldEdit,
+                              "オリジナル",
+                              selectedRowDataActivity?.claim_flag
+                            );
+                            if (!checkboxFollowUpFlagForFieldEdit === selectedRowDataActivity?.claim_flag) {
+                              toast.error(`アップデートに失敗しました🤦‍♀️`);
+                              return;
+                            }
+                            const updatePayload = {
+                              fieldName: "claim_flag",
+                              fieldNameForSelectedRowData: "claim_flag" as "claim_flag",
+                              newValue: !checkboxFollowUpFlagForFieldEdit,
+                              id: selectedRowDataActivity.activity_id,
+                            };
+                            // 直感的にするために先にローカルのチェックボックスを更新する
+                            setCheckboxFollowUpFlagForFieldEdit(!checkboxFollowUpFlagForFieldEdit);
+                            await updateActivityFieldMutation.mutateAsync(updatePayload);
+                          }}
                         />
                         <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
                           <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />

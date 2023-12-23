@@ -367,8 +367,10 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
         // .or(`meeting_created_by_user_id.eq.${userProfileState.id},meeting_created_by_user_id.is.null`)
         .range(from, to)
         // .order("company_name", { ascending: true });
-        .order("meeting_created_at", { ascending: false })
-        .order("company_name", { ascending: true });
+        // .order("meeting_created_at", { ascending: false }) //面談作成日時
+        .order("planned_date", { ascending: false }) //面談・訪問日(予定)
+        .order("meeting_created_at", { ascending: false }) //面談作成日時
+        .order("company_name", { ascending: true }); //会社名
       // 成功バージョン
       // const { data, error, count } = await supabase
       //   .rpc("search_meetings_and_companies_and_contacts", { params }, { count: "exact" })
@@ -441,8 +443,10 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
         // .or(`meeting_created_by_user_id.eq.${userProfileState.id},meeting_created_by_user_id.is.null`)
         .range(from, to)
         // .order("company_name", { ascending: true });
-        .order("meeting_created_at", { ascending: false })
-        .order("company_name", { ascending: true });
+        // .order("meeting_created_at", { ascending: false }) //面談作成日時
+        .order("planned_date", { ascending: false }) //面談・訪問日(予定)
+        .order("meeting_created_at", { ascending: false }) //面談作成日時
+        .order("company_name", { ascending: true }); //会社名
       // 成功バージョン
       // const { data, error, count } = await supabase
       //   .rpc("search_meetings_and_companies_and_contacts", { params }, { count: "exact" })
@@ -686,7 +690,8 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
     console.log("🌟ヘッダーカラム生成 gotData ===========================", gotData);
 
     // ========================= 🔥テスト ローカルストレージ ルート =========================
-    const localStorageColumnHeaderItemListJSON = localStorage.getItem("grid_columns_meeting");
+    // const localStorageColumnHeaderItemListJSON = localStorage.getItem("grid_columns_meeting");
+    const localStorageColumnHeaderItemListJSON = localStorage.getItem("grid_columns_meetings");
     // const localStorageColumnHeaderItemListJSON = localStorage.getItem("grid_columns_contacts");
     if (localStorageColumnHeaderItemListJSON) {
       console.log("useEffect ローカルストレージルート🔥");
@@ -889,7 +894,8 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
 
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
     const meetingColumnHeaderItemListJSON = JSON.stringify(firstColumnItemListArray);
-    localStorage.setItem("grid_columns_meeting", meetingColumnHeaderItemListJSON);
+    // localStorage.setItem("grid_columns_meeting", meetingColumnHeaderItemListJSON);
+    localStorage.setItem("grid_columns_meetings", meetingColumnHeaderItemListJSON);
     // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
   }, [gotData]); // gotDataのstateがtrueになったら再度実行
@@ -1014,7 +1020,8 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
       }
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
       const meetingColumnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
-      localStorage.setItem("grid_columns_meeting", meetingColumnHeaderItemListJSON);
+      // localStorage.setItem("grid_columns_meeting", meetingColumnHeaderItemListJSON);
+      localStorage.setItem("grid_columns_meetings", meetingColumnHeaderItemListJSON);
       // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
     };
@@ -1995,7 +2002,8 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
     console.log("Drop✅");
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
     const meetingColumnHeaderItemListJSON = JSON.stringify(meetingColumnHeaderItemList);
-    localStorage.setItem("grid_columns_meeting", meetingColumnHeaderItemListJSON);
+    // localStorage.setItem("grid_columns_meeting", meetingColumnHeaderItemListJSON);
+    localStorage.setItem("grid_columns_meetings", meetingColumnHeaderItemListJSON);
     // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
     // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ===============
@@ -2082,7 +2090,8 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
 
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
       const meetingColumnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
-      localStorage.setItem("grid_columns_meeting", meetingColumnHeaderItemListJSON);
+      // localStorage.setItem("grid_columns_meeting", meetingColumnHeaderItemListJSON);
+      localStorage.setItem("grid_columns_meetings", meetingColumnHeaderItemListJSON);
       // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
 
@@ -2184,7 +2193,8 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
 
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
       const meetingColumnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
-      localStorage.setItem("grid_columns_meeting", meetingColumnHeaderItemListJSON);
+      // localStorage.setItem("grid_columns_meeting", meetingColumnHeaderItemListJSON);
+      localStorage.setItem("grid_columns_meetings", meetingColumnHeaderItemListJSON);
       // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
 
@@ -2379,6 +2389,7 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
     meeting_created_at: "yyyy/MM/dd HH:mm:ss",
     meeting_updated_at: "yyyy/MM/dd HH:mm:ss",
   };
+
   const flagMapping: { [key: string]: { [value: string]: React.JSX.Element } } = {
     planned_appoint_check_flag: {
       true: (
@@ -2416,12 +2427,6 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
   }
   // トップレベルの定義に追加
   const timeColumns = ["planned_start_time", "result_start_time", "result_end_time"];
-  // const flagMapping: { [key: string]: { [value: string]: string } } = {
-  //   planned_appoint_check_flag: {
-  //     true: "有り",
-  //     false: "無し",
-  //   },
-  // };
 
   const formatDisplayValue = (columnName: string, value: any) => {
     switch (columnName) {
@@ -2430,6 +2435,46 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
         if (!!value && language === "ja") return `${value}月`;
         if (!!value && language === "en") return value;
         if (!value) return value;
+        break;
+
+      case "planned_start_time":
+      case "result_start_time":
+      case "result_end_time":
+        // formatに入れる前にまず値が「08:40:20」「12:30:00」の形になっているか確認する
+        const regexTimeCheck = /^([01]?[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$/;
+        if (!!value && regexTimeCheck.test(value)) {
+          // 「08:30:00」「8:30:00」「8:05:05」時間は1桁または2桁、分、秒は2桁のみ
+          // これを「08:30」の時間、分のみに変換して表示
+          return formatTime(value);
+        } else {
+          return value;
+        }
+        break;
+
+      case "planned_appoint_check_flag":
+        // if (!value) return value;
+        return flagMapping[columnName][String(value)];
+        break;
+
+      case "planned_date":
+      case "result_date":
+      case "meeting_created_at":
+      case "meeting_updated_at":
+        try {
+          // 存在しない日付かどうかのチェック .getTimeは存在しない日付の場合NaNを返す
+          // カラム入れ替えで最上位入れ替えを行った時にuseEffectで各セルの列indexが切り替わる前にcolumnHeaderItemListのstateの順番が変わり最初のレンダリングではカラムのみ入れ替わり、rowgroupのセルのColindexはまだ入れ替わっていないため、columnNameは「result_date」でも、valueは「面談時間の13:00」のため、new Dateに日付ではない文字列が入るため「Invalid time value」のエラーが発生する。そのため、formatに入れる前に日付のUTC文字列か確認してからformatに入れる
+          // 🌟getTime()メソッドは存在しない日付で実行するとNaNを返すのでgetTime()メソッドの結果をNumber.isNaNメソッドに渡してtrue or falseを判定するようにします。
+          if (!!value && !Number.isNaN(new Date(value).getTime())) {
+            console.log("日付チェックOK 存在する日付のためformatに入れる");
+            return format(new Date(value), formatDateMapping[columnName]);
+          } else {
+            console.log("❎日付チェック 存在しない日付のためformatせず");
+            return value;
+          }
+        } catch (e: any) {
+          console.error(`日付チェック エラー発生 e`, e);
+          return value;
+        }
         break;
 
       default:
@@ -2962,17 +3007,12 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
                                 const columnName = meetingColumnHeaderItemList[index]?.columnName;
                                 let displayValue = value;
                                 // 活動日、次回フォロー予定日、作成日時、更新日時はformat関数を通す
-                                if (columnName in formatDateMapping && value) {
-                                  displayValue = format(new Date(value), formatDateMapping[columnName]);
-                                }
-                                // planned_appoint_check_flagの変換処理
-                                if (columnName in flagMapping && value !== null) {
-                                  displayValue = flagMapping[columnName][String(value)];
-                                }
-                                // 時間のカラム（planned_start_time, result_start_time, result_end_time）の変換
-                                if (timeColumns.includes(columnName) && value) {
-                                  displayValue = formatTime(value);
-                                }
+                                // if (columnName in formatDateMapping && !!value) {
+                                // }
+                                // planned_appoint_check_flagの変換処理 => formatDisplayValue関数に移行
+                                // if (columnName in flagMapping && value !== null) {
+                                //   displayValue = flagMapping[columnName][String(value)];
+                                // }
                                 displayValue = formatDisplayValue(columnName, displayValue);
                                 return (
                                   <div

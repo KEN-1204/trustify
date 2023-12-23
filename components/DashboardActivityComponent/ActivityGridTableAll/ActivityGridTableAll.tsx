@@ -368,8 +368,10 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
         // .or(`activity_created_by_user_id.eq.${userProfileState.id},activity_created_by_user_id.is.null`)
         .range(from, to)
         // .order("company_name", { ascending: true });
-        .order("activity_created_at", { ascending: false })
-        .order("company_name", { ascending: true });
+        .order("activity_date", { ascending: false }) // 活動日
+        .order("activity_created_at", { ascending: false }); // 活動作成日
+      // .order("company_name", { ascending: true });
+      // .order("activity_updated_at", { ascending: false }); //活動更新日時
       // 成功バージョン
       // const { data, error, count } = await supabase
       //   .rpc("search_activities_and_companies_and_contacts", { params }, { count: "exact" })
@@ -442,7 +444,10 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
         // .or(`activity_created_by_user_id.eq.${userProfileState.id},activity_created_by_user_id.is.null`)
         .range(from, to)
         // .order("company_name", { ascending: true });
-        .order("activity_created_at", { ascending: false });
+        .order("activity_date", { ascending: false }) // 活動日
+        .order("activity_created_at", { ascending: false }); //活動作成日時
+      // .order("company_name", { ascending: true }); //会社名
+      // .order("activity_updated_at", { ascending: false }); //活動更新日時
       // 成功バージョン
       // const { data, error, count } = await supabase
       //   .rpc("search_activities_and_companies_and_contacts", { params }, { count: "exact" })
@@ -2384,9 +2389,37 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
     activity_updated_at: "yyyy/MM/dd HH:mm:ss",
   };
 
-  // クレーム有無フラグ claim_flagフィールド
+  // クレーム有無フラグ claim_flagフィールド、follow_up_flag(フォロー完了フラグ)
   const flagMapping: { [key: string]: { [value: string]: React.JSX.Element } } = {
     claim_flag: {
+      true: (
+        <div className={`${styles.grid_select_cell_header} `}>
+          <input
+            type="checkbox"
+            checked={true}
+            readOnly
+            className={`${styles.grid_select_cell_header_input} pointer-events-none`}
+          />
+          <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+          </svg>
+        </div>
+      ),
+      false: (
+        <div className={`${styles.grid_select_cell_header} `}>
+          <input
+            type="checkbox"
+            checked={false}
+            readOnly
+            className={`${styles.grid_select_cell_header_input} pointer-events-none`}
+          />
+          <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+          </svg>
+        </div>
+      ),
+    },
+    follow_up_flag: {
       true: (
         <div className={`${styles.grid_select_cell_header} `}>
           <input
@@ -2423,6 +2456,31 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
         if (!!value && language === "ja") return `${value}月`;
         if (!!value && language === "en") return value;
         if (!value) return value;
+        break;
+
+      // クレームフラグ
+      case "claim_flag":
+      case "follow_up_flag":
+        // if (!value) return value;
+        return flagMapping[columnName][String(value)];
+        break;
+
+      // 活動日、次回フォロー予定日、活動作成日時、活動更新日時
+      case "activity_date":
+      case "scheduled_follow_up_date":
+      case "activity_created_at":
+      case "activity_updated_at":
+        try {
+          if (!!value && !Number.isNaN(new Date(value).getTime())) {
+            return format(new Date(value), formatDateMapping[columnName]);
+          } else {
+            console.log("❎日付チェック 存在しない日付のためformatせず");
+            return value;
+          }
+        } catch (e: any) {
+          console.error(`日付チェック エラー発生 e`, e);
+          return value;
+        }
         break;
 
       default:
@@ -2958,13 +3016,13 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
                                 const columnName = activityColumnHeaderItemList[index]?.columnName;
                                 let displayValue = value;
                                 // 活動日、次回フォロー予定日、作成日時、更新日時はformat関数を通す
-                                if (columnName in formatDateMapping && value) {
-                                  displayValue = format(new Date(value), formatDateMapping[columnName]);
-                                }
+                                // if (columnName in formatDateMapping && value) {
+                                //   displayValue = format(new Date(value), formatDateMapping[columnName]);
+                                // }
                                 // クレームフラグの変換処理
-                                if (columnName in flagMapping && value !== null) {
-                                  displayValue = flagMapping[columnName][String(value)];
-                                }
+                                // if (columnName in flagMapping && value !== null) {
+                                //   displayValue = flagMapping[columnName][String(value)];
+                                // }
                                 displayValue = formatDisplayValue(columnName, displayValue);
                                 return (
                                   <div

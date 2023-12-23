@@ -214,6 +214,9 @@ export const columnNameToJapaneseActivity = (columnName: string) => {
     case "scheduled_follow_up_date":
       return "次回フォロー予定日";
       break;
+    case "follow_up_flag":
+      return "フォロー完了フラグ";
+      break;
     case "priority":
       return "優先度";
       break;

@@ -199,7 +199,7 @@ const EditColumnsModalDisplayOnlyMemo: FC<Props> = ({ columnHeaderItemList }) =>
     // ヘッダーカラムリストのcolumnIndexプロパティの値を順番入れ替え後の並び順で再度2,3,4と書き換える
     // 2から始まるのはチェックボックスカラムのcolumnIndexが1となるため
     newRightArray.forEach((item, index) => {
-      console.log("columnIndex", item.columnIndex);
+      // console.log("columnIndex", item.columnIndex);
       return (item.columnIndex = index + 2);
     });
     // カラム順番入れ替え後のローカルStateを更新

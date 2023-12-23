@@ -854,11 +854,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
               </div>
 
-              {/* ●訪問日・●訪問ﾀｲﾌﾟ */}
+              {/* ●面談日・●面談ﾀｲﾌﾟ */}
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>●訪問日</span>
+                    <span className={`${styles.title}`}>●面談日</span>
                     {!searchMode && (
                       <span className={`${styles.value}`}>
                         {selectedRowDataMeeting?.planned_date
@@ -872,7 +872,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title}`}>●訪問ﾀｲﾌﾟ</span>
+                    <span className={`${styles.title}`}>●面談ﾀｲﾌﾟ</span>
                     {!searchMode && (
                       <span className={`${styles.value} text-center`}>
                         {selectedRowDataMeeting?.meeting_type ? selectedRowDataMeeting?.meeting_type : ""}
@@ -945,12 +945,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
               </div>
 
-              {/* 訪問目的・アポ有 */}
+              {/* 面談目的(訪問目的)・アポ有 */}
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <div className={`${styles.title} !mr-[15px] flex flex-col`}>
-                      <span className={``}>訪問目的</span>
+                      <span className={``}>面談目的</span>
                     </div>
                     {!searchMode && (
                       <span

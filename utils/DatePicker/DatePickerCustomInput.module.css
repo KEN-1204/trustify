@@ -50,6 +50,19 @@
   background: var(--close-bg-deep);
   color: #fff;
 }
+.close_btn_field_edit_mode_empty {
+  z-index: 1;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: not-allowed;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  color: #999;
+}
+
 .field_edit_mode_btn_area {
   position: absolute;
   z-index: 2000;

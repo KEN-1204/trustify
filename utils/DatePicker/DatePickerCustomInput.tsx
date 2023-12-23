@@ -77,7 +77,8 @@ export const DatePickerCustomInput: FC<Props> = ({
         </div>
       )}
       {/* フィールドエディットモード専用エリア 入力ボックスの右下に配置 */}
-      {startDate && isFieldEditMode && (
+      {/* {startDate && isFieldEditMode && ( */}
+      {isFieldEditMode && (
         <div
           className={`${styles.field_edit_mode_btn_area} ${
             fieldEditModeBtnAreaPosition === "right" && !isLoadingSendEvent
@@ -88,15 +89,35 @@ export const DatePickerCustomInput: FC<Props> = ({
           {/* 送信ボタン フィールドエディットモード専用 */}
           {!isLoadingSendEvent && (
             <div
-              className={`flex-center transition-bg03 border-[var(--color-bg-brand-f) group min-h-[26px] min-w-[26px] cursor-pointer rounded-full border border-solid border-transparent hover:bg-[var(--color-bg-brand-f)] hover:shadow-lg`}
+              className={`flex-center transition-bg03 group min-h-[26px] min-w-[26px] rounded-full border border-solid border-transparent ${
+                required && startDate === null
+                  ? `cursor-not-allowed text-[#999]`
+                  : `border-[var(--color-bg-brand-f) cursor-pointer hover:bg-[var(--color-bg-brand-f)] hover:shadow-lg`
+              }`}
               onClick={onClickSendEvent}
             >
-              <IoIosSend className={`text-[20px] text-[var(--color-bg-brand-f)] group-hover:text-[#fff] `} />
+              <IoIosSend
+                className={`text-[20px] ${
+                  required && startDate === null
+                    ? `text-[#999] group-hover:text-[#999]`
+                    : `text-[var(--color-bg-brand-f)] group-hover:text-[#fff]`
+                }`}
+              />
             </div>
           )}
           {/* バツボタン フィールドエディットモード専用 */}
           {!isLoadingSendEvent && (
-            <div className={`${styles.close_btn_field_edit_mode} hover:shadow-lg`} onClick={() => setStartDate(null)}>
+            <div
+              className={`${
+                startDate
+                  ? `${styles.close_btn_field_edit_mode} hover:shadow-lg`
+                  : `${styles.close_btn_field_edit_mode_empty}`
+              }`}
+              onClick={() => {
+                if (!startDate) return;
+                setStartDate(null);
+              }}
+            >
               <MdClose className="text-[20px] " />
             </div>
           )}

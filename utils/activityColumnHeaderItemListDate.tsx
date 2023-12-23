@@ -71,6 +71,12 @@ const activityColumnHeaderItemListArray: Obj[] = [
     columnName: "scheduled_follow_up_date",
     columnWidth: "100px",
     isFrozen: false,
+    isOverflow: true,
+  },
+  {
+    columnName: "follow_up_flag",
+    columnWidth: "100px",
+    isFrozen: false,
     isOverflow: false,
   },
   {

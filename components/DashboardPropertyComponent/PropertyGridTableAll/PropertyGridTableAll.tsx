@@ -368,8 +368,9 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
         .range(from, to)
         // .order("company_name", { ascending: true });
         // .order("property_created_at", { ascending: false })
-        .order("expected_order_date", { ascending: false })
-        .order("company_name", { ascending: true });
+        .order("expected_order_date", { ascending: false }) //面談・訪問日(予定)
+        .order("property_created_at", { ascending: false }); //面談作成日時
+      // .order("company_name", { ascending: true });//会社名
       // 成功バージョン
       // const { data, error, count } = await supabase
       //   .rpc("search_properties_and_companies_and_contacts", { params }, { count: "exact" })
@@ -442,7 +443,8 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
         .range(from, to)
         // .order("company_name", { ascending: true });
         // .order("property_created_at", { ascending: false });
-        .order("expected_order_date", { ascending: false });
+        .order("expected_order_date", { ascending: false }) //面談・訪問日(予定)
+        .order("property_created_at", { ascending: false }); //面談作成日時
       // 成功バージョン
       // const { data, error, count } = await supabase
       //   .rpc("search_properties_and_companies_and_contacts", { params }, { count: "exact" })
@@ -2453,6 +2455,50 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
         if (!value) return value;
         break;
 
+      // 獲得予定時期、展開日付、売上日付、サブスク開始日、サブスク解約日、リース満了日、物件発生日、物件作成日時、物件更新日時、
+      case "expected_order_date":
+      case "expansion_date":
+      case "sales_date":
+      case "subscription_start_date":
+      case "subscription_canceled_at":
+      case "lease_expiration_date":
+      case "competitor_appearance_date":
+      case "property_date":
+      case "property_created_at":
+      case "property_updated_at":
+        try {
+          if (!!value && !Number.isNaN(new Date(value).getTime())) {
+            return format(new Date(value), formatDateMapping[columnName]);
+          } else {
+            console.log("❎日付チェック 存在しない日付のためformatせず");
+            return value;
+          }
+        } catch (e: any) {
+          console.error(`日付チェック エラー発生 e`, e);
+          return value;
+        }
+
+      // 面談開始(予定)、面談開始(結果)、面談終了(結果)
+      case "planned_start_time":
+      case "result_start_time":
+      case "result_end_time":
+        // 「08:30:00」を時間と分のみに変換
+        const regexTimeCheck = /^([01]?[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$/;
+        if (!!value && regexTimeCheck.test(value)) {
+          // 「08:30:00」「8:30:00」「8:05:05」時間は1桁または2桁、分、秒は2桁のみ
+          // これを「08:30」の時間、分のみに変換して表示
+          return formatTime(value);
+        } else {
+          return value;
+        }
+
+      // ペンディング、物件没、責任者物件介入、リピートフラグ
+      case "pending_flag":
+      case "rejected_flag":
+      case "step_in_flag":
+      case "repeat_flag":
+        return flagMapping[columnName][String(value)];
+
       default:
         return value;
         break;
@@ -2983,17 +3029,17 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
                                 const columnName = propertyColumnHeaderItemList[index]?.columnName;
                                 let displayValue = value;
                                 // 活動日、次回フォロー予定日、作成日時、更新日時はformat関数を通す
-                                if (columnName in formatDateMapping && value) {
-                                  displayValue = format(new Date(value), formatDateMapping[columnName]);
-                                }
+                                // if (columnName in formatDateMapping && value) {
+                                //   displayValue = format(new Date(value), formatDateMapping[columnName]);
+                                // }
                                 // planned_appoint_check_flagの変換処理
-                                if (columnName in flagMapping && value !== null) {
-                                  displayValue = flagMapping[columnName][String(value)];
-                                }
+                                // if (columnName in flagMapping && value !== null) {
+                                //   displayValue = flagMapping[columnName][String(value)];
+                                // }
                                 // 時間のカラム（planned_start_time, result_start_time, result_end_time）の変換
-                                if (timeColumns.includes(columnName) && value) {
-                                  displayValue = formatTime(value);
-                                }
+                                // if (timeColumns.includes(columnName) && value) {
+                                //   displayValue = formatTime(value);
+                                // }
                                 displayValue = formatDisplayValue(columnName, displayValue);
                                 return (
                                   <div

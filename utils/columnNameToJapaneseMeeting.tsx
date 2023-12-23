@@ -195,7 +195,7 @@ export const columnNameToJapaneseMeeting = (columnName: string) => {
       break;
     // 面談テーブル
     case "meeting_type":
-      return "面談日";
+      return "面談タイプ";
       break;
     case "web_tool":
       return "WEBツール";

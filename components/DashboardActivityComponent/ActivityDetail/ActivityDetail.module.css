@@ -725,6 +725,30 @@
   min-height: 26px;
   min-width: 26px;
 }
+.field_edit_mode_loading_area_for_select_box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  z-index: 2100;
+  min-height: 26px;
+  min-width: 26px;
+  background-color: var(--color-bg-based0);
+  box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f30), 0px 0px 0px 1px var(--color-bg-brand-f);
+  backdrop-filter: blur(4px);
+  padding: 0px 5px;
+  height: 30px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  /* justify-content: flex-start; */
+  align-items: center;
+}
+.field_edit_mode_loading_area_for_select_box.right_position {
+  right: -40px;
+  top: 50%;
+  transform: translateY(-56%);
+}
 .field_edit_mode_input_box {
   padding-right: 38px;
   z-index: 2000;
