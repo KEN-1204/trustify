@@ -1,11 +1,9 @@
 import useDashboardStore from "@/store/useDashboardStore";
 import useThemeStore from "@/store/useThemeStore";
-import { Meeting, Client_company, Activity } from "@/types";
+import { Meeting, Activity } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import React from "react";
 import { toast } from "react-toastify";
-import { ContainerInstance } from "react-toastify/dist/hooks";
 
 export const useMutateMeeting = () => {
   const theme = useThemeStore((state) => state.theme);
@@ -19,6 +17,7 @@ export const useMutateMeeting = () => {
   );
 
   // 選択中の行データと更新関数
+  const selectedRowDataActivity = useDashboardStore((state) => state.selectedRowDataActivity);
   const setSelectedRowDataMeeting = useDashboardStore((state) => state.setSelectedRowDataMeeting);
 
   const supabase = useSupabaseClient();

@@ -9,7 +9,7 @@
   /* min-height: 32px; */
   /* font-size: 15px; */
   border-radius: 6px;
-  cursor: pointer;
+  /* cursor: pointer; */
 }
 .input_box:focus {
   box-shadow: var(--color-bg-under-input-active-box-shadow);
@@ -33,6 +33,7 @@
 .close_btn:hover {
   /* background: var(--close-bg); */
   background: var(--close-bg-deep);
+  color: #fff;
 }
 .close_btn_field_edit_mode {
   z-index: 1;
@@ -111,9 +112,47 @@
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  pointer-events: none;
+  /* pointer-events: none; */
 }
 
 .date_picker_field_edit_mode {
   z-index: 2100 !important;
+}
+
+.is_not_null_for_search {
+  position: absolute;
+  right: 35px;
+  top: 50%;
+  z-index: 2300;
+  transform: translateY(-57%);
+  /* background: #00000020; */
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.is_null_for_search {
+  position: absolute;
+  right: 65px;
+  top: 50%;
+  z-index: 2300;
+  transform: translateY(-57%);
+  /* background: #00000020; */
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+.calendar_btn:hover,
+.is_not_null_for_search:hover,
+.is_null_for_search:hover {
+  /* background: var(--color-bg-sub-deep); */
+  color: var(--color-text-brand-f);
 }

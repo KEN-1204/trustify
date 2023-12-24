@@ -239,7 +239,6 @@ export const DashboardHomeComponent = () => {
                 {/* 背景アイコンエリア */}
                 {home_cards.map((item, index) => {
                   // const className = `styles.${item.name}`;
-
                   return (
                     <div
                       key={item.name}
@@ -261,6 +260,7 @@ export const DashboardHomeComponent = () => {
                   );
                 })}
                 {/* 背景アイコンエリアここまで */}
+
                 <div className="flex h-[70dvh] w-[40%] flex-col items-center rounded-[4px] ">
                   {/* <div className="flex h-[calc(100dvh-var(--header-height))] w-[40%] flex-col items-center justify-center rounded-[4px]"> */}
                   {/* <div className={`${styles.title_area} flex-col-center mt-[-6vh] w-full`}> */}

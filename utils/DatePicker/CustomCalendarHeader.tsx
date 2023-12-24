@@ -28,7 +28,9 @@ export const CustomCalendarHeader: React.FC<CustomCalendarHeaderProps> = ({
   return (
     <div className="react-datepicker__header">
       <div className="" style={{ marginBottom: "5px" }}>
+        {/* <button */}
         <button
+          type="button"
           className="react-datepicker__navigation react-datepicker__navigation--previous"
           onClick={decreaseMonth}
           disabled={prevMonthButtonDisabled}
@@ -39,6 +41,7 @@ export const CustomCalendarHeader: React.FC<CustomCalendarHeaderProps> = ({
           {date.toLocaleDateString("ja-JP", { year: "numeric", month: "long" })}
         </div>
         <button
+          type="button"
           className="react-datepicker__navigation react-datepicker__navigation--next"
           onClick={increaseMonth}
           disabled={nextMonthButtonDisabled}
@@ -49,6 +52,7 @@ export const CustomCalendarHeader: React.FC<CustomCalendarHeaderProps> = ({
 
       <div className={`w-full `}>
         <button
+          type="button"
           className="react-datepicker__navigation react-datepicker__navigation--previous"
           onClick={decreaseMonth}
           disabled={prevMonthButtonDisabled}
@@ -80,6 +84,7 @@ export const CustomCalendarHeader: React.FC<CustomCalendarHeaderProps> = ({
           </select>
         </div>
         <button
+          type="button"
           className="react-datepicker__navigation react-datepicker__navigation--next"
           onClick={increaseMonth}
           disabled={nextMonthButtonDisabled}

@@ -21,6 +21,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 import { FiRefreshCw } from "react-icons/fi";
+import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
 
 const SettingCompanyMemo = () => {
   const supabase = useSupabaseClient();
@@ -43,7 +44,8 @@ const SettingCompanyMemo = () => {
   const [editedCompanyName, setEditedCompanyName] = useState("");
   // 決算月
   const [editFiscalEndMonthMode, setEditFiscalEndMonthMode] = useState(false);
-  const [editedFiscalEndMonth, setEditedFiscalEndMonth] = useState("");
+  // const [editedFiscalEndMonth, setEditedFiscalEndMonth] = useState("");
+  const [editedFiscalEndMonth, setEditedFiscalEndMonth] = useState<Date | null>(null);
   // 規模
   const [editNumberOfEmployeeClassMode, setEditNumberOfEmployeeClassMode] = useState(false);
   const [editedNumberOfEmployeeClass, setEditedNumberOfEmployeeClass] = useState("");
@@ -674,7 +676,9 @@ const SettingCompanyMemo = () => {
                     className={`transition-base01 min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                     onClick={() => {
                       setEditedFiscalEndMonth(
-                        userProfileState?.customer_fiscal_end_month ? userProfileState.customer_fiscal_end_month : ""
+                        !!userProfileState?.customer_fiscal_end_month
+                          ? new Date(userProfileState.customer_fiscal_end_month)
+                          : null
                       );
                       setEditFiscalEndMonthMode(true);
                     }}
@@ -686,7 +690,8 @@ const SettingCompanyMemo = () => {
             )}
             {editFiscalEndMonthMode && (
               <div className={`flex h-full w-full items-center justify-between`}>
-                <select
+                {/* セレクトボックスver */}
+                {/* <select
                   name="profile_occupation"
                   id="profile_occupation"
                   className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
@@ -706,18 +711,100 @@ const SettingCompanyMemo = () => {
                   <option value="10月">10月</option>
                   <option value="11月">11月</option>
                   <option value="12月">12月</option>
-                </select>
+                </select> */}
+                {/* セレクトボックスver */}
+                {/* DatePicker ver */}
+                <DatePickerCustomInput
+                  startDate={editedFiscalEndMonth}
+                  setStartDate={setEditedFiscalEndMonth}
+                  required={true}
+                  isFieldEditMode={false}
+                />
+                {/* DatePicker ver */}
                 <div className="flex">
                   <div
                     className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                     onClick={() => {
-                      setEditedFiscalEndMonth("");
+                      // setEditedFiscalEndMonth("");
+                      setEditedFiscalEndMonth(null);
                       setEditFiscalEndMonthMode(false);
                     }}
                   >
                     キャンセル
                   </div>
                   <div
+                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                    onClick={async () => {
+                      if (editedFiscalEndMonth === null) {
+                        alert("有効な決算月を入力してください");
+                        return;
+                      }
+                      if (!userProfileState?.company_id)
+                        return alert("エラー：お客様のユーザー情報が見つかりませんでした。");
+
+                      console.log("editedFiscalEndMonth", editedFiscalEndMonth);
+                      console.log("editedFiscalEndMonth", editedFiscalEndMonth.toISOString());
+                      return;
+                      // // ローディング開始
+                      // setLoadingGlobalState(true);
+
+                      // const { data: companyData, error } = await supabase
+                      //   .from("companies")
+                      //   .update({ customer_fiscal_end_month: editedFiscalEndMonth })
+                      //   .eq("id", userProfileState.company_id)
+                      //   .select("customer_fiscal_end_month")
+                      //   .single();
+
+                      // if (error) {
+                      //   setTimeout(() => {
+                      //     setLoadingGlobalState(false);
+                      //     setEditFiscalEndMonthMode(false);
+                      //     alert(error.message);
+                      //     console.log("決算月UPDATEエラー", error.message);
+                      //     toast.error("決算月の更新に失敗しました!", {
+                      //       position: "top-right",
+                      //       autoClose: 3000,
+                      //       hideProgressBar: false,
+                      //       closeOnClick: true,
+                      //       pauseOnHover: true,
+                      //       draggable: true,
+                      //       progress: undefined,
+                      //       // theme: `${theme === "light" ? "light" : "dark"}`,
+                      //     });
+                      //   }, 500);
+                      //   return;
+                      // }
+                      // setTimeout(() => {
+                      //   console.log("決算月UPDATE成功 companyData", companyData);
+                      //   console.log(
+                      //     "決算月UPDATE成功 companyData.customer_fiscal_end_month",
+                      //     companyData.customer_fiscal_end_month
+                      //   );
+                      //   setUserProfileState({
+                      //     // ...(companyData as UserProfile),
+                      //     ...(userProfileState as UserProfileCompanySubscription),
+                      //     customer_fiscal_end_month: companyData.customer_fiscal_end_month
+                      //       ? companyData.customer_fiscal_end_month
+                      //       : null,
+                      //   });
+                      //   setLoadingGlobalState(false);
+                      //   setEditFiscalEndMonthMode(false);
+                      //   toast.success("決算月の更新が完了しました!", {
+                      //     position: "top-right",
+                      //     autoClose: 3000,
+                      //     hideProgressBar: false,
+                      //     closeOnClick: true,
+                      //     pauseOnHover: true,
+                      //     draggable: true,
+                      //     progress: undefined,
+                      //     // theme: `${theme === "light" ? "light" : "dark"}`,
+                      //   });
+                      // }, 500);
+                    }}
+                  >
+                    保存
+                  </div>
+                  {/* <div
                     className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                     onClick={async () => {
                       if (editedFiscalEndMonth === "") {
@@ -781,7 +868,7 @@ const SettingCompanyMemo = () => {
                     }}
                   >
                     保存
-                  </div>
+                  </div> */}
                 </div>
               </div>
             )}

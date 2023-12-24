@@ -74,7 +74,14 @@ export const TooltipWrap = () => {
     }
   }, [hoveredItemPositionX, hoveredItemPositionY, hoveredItemHalfWidth]);
 
-  console.log("TooltipWrapコンポーネントレンダリング X Y", hoveredItemPositionX, hoveredItemPositionY, menuRef);
+  // 0は許容し、それ以外のfalsyはリターン
+  if (
+    hoveredItemPosWrap?.content === "" ||
+    hoveredItemPosWrap?.content === null ||
+    typeof hoveredItemPosWrap?.content === "undefined"
+  ) {
+    return;
+  }
 
   // 右寄りのアイテムに対してのルート
   if (hoveredItemPosWrap?.display === "right") {

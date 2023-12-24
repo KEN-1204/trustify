@@ -22,7 +22,8 @@ const SpinnerIDS2: FC<Props> = ({
   right = 0,
   bottom = 0,
   left = 0,
-  color = "#ccc",
+  // color = "#ccc",
+  color = "#aaa",
 }) => {
   // const SpinnerIDS: FC<Props> = ({ scale = "scale-[0.4]" }) => {
   return (

@@ -1975,6 +1975,12 @@ const CompanyMainContainerMemo: FC = () => {
                       target="_blank"
                       rel="noopener noreferrer"
                       className={`${styles.value} ${styles.anchor}`}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
                     >
                       {selectedRowDataCompany.website_url}
                     </a>
@@ -2003,6 +2009,12 @@ const CompanyMainContainerMemo: FC = () => {
                   {!searchMode && (
                     <span
                       className={`${styles.value} ${styles.email_value}`}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
                       onClick={async () => {
                         if (!selectedRowDataCompany?.email) return;
                         try {

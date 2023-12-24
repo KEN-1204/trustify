@@ -103,6 +103,15 @@ export const Tooltip = () => {
 
   // console.log("Tooltipコンポーネントレンダリング", hoveredItemPos?.content2, hoveredItemPos?.itemsPosition);
 
+  // 0は許容し、それ以外のfalsyはリターン
+  if (
+    hoveredItemPos?.content === "" ||
+    hoveredItemPos?.content === null ||
+    typeof hoveredItemPos?.content === "undefined"
+  ) {
+    return;
+  }
+
   if (hoveredItemDisplay === "top") {
     return (
       <div

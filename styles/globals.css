@@ -2393,3 +2393,16 @@ textarea {
 .theme_icon_bg_hover:hover {
   opacity: 1;
 }
+
+/* ================= datePickerスタイル =================== */
+.react-datepicker__tab-loop {
+  z-index: 3000;
+}
+.react-datepicker__input-container input.active-color-placeholder::placeholder {
+  color: var(--color-text-title);
+}
+
+.react-datepicker__month-select,
+.react-datepicker__year-select {
+  background-color: #fff;
+}

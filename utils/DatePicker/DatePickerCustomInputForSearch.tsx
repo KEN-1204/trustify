@@ -14,9 +14,9 @@ import { IoIosSend } from "react-icons/io";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 
 type Props = {
-  startDate: Date | null;
+  startDate: Date | null | "is not null" | "is null";
   //   setStartDate: (date: Date) => void;
-  setStartDate: Dispatch<SetStateAction<Date | null>>;
+  setStartDate: Dispatch<SetStateAction<Date | null | "is not null" | "is null">>;
   required?: boolean;
   isFieldEditMode?: boolean;
   fieldEditModeBtnAreaPosition?: string;
@@ -36,7 +36,7 @@ type Props = {
   placeholderText?: string;
 };
 
-export const DatePickerCustomInput: FC<Props> = ({
+export const DatePickerCustomInputForSearch: FC<Props> = ({
   startDate,
   setStartDate,
   required = true,
@@ -75,12 +75,12 @@ export const DatePickerCustomInput: FC<Props> = ({
   registerLocale("ja", ja);
   registerLocale("en", enUS);
 
-  // // プレイスホルダー文字
-  // const getPlaceholderText = () => {
-  //   if (startDate === "is not null") return "フォロー予定有りのみ";
-  //   if (startDate === "is null") return "フォロー予定無しのみ";
-  //   return `日付を選択`;
-  // };
+  // プレイスホルダー文字
+  const getPlaceholderText = () => {
+    if (startDate === "is not null") return "フォロー予定有りのみ";
+    if (startDate === "is null") return "フォロー予定無しのみ";
+    return `日付を選択`;
+  };
 
   // カレンダーアイコンをクリックして日付ピッカーを表示する関数(通常はinputタグをフォーカスして表示)
   const handleOpenDatePicker = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
@@ -108,14 +108,14 @@ export const DatePickerCustomInput: FC<Props> = ({
     console.log(target);
 
     (target as HTMLInputElement).blur(); // inputタグのフォーカスを切る
-    // setStartDate("is not null");
+    setStartDate("is not null");
     // if (isNullForSearch) setIsNullForSearch(false); // is nullでは無いためfalseに切り替え
     !!handleCloseTooltip && handleCloseTooltip(); // ツールチップをクリック時に閉じる
   };
 
   // is null設定用関数 サーチ用
   const handleSetIsNullForSearch = () => {
-    // setStartDate("is null");
+    setStartDate("is null");
     // setIsNullForSearch(true);
     !!handleCloseTooltip && handleCloseTooltip(); // ツールチップをクリック時に閉じる
   };
@@ -245,25 +245,29 @@ export const DatePickerCustomInput: FC<Props> = ({
 
       {language === "ja" ? (
         <DatePicker
-          className={`rounded border-gray-100 ${px} ${py} date_input_flag truncate text-base outline-0  ${placeholderText} ${minHeight} ${fontSize} ${styles.input_box}`}
+          className={`rounded border-gray-100 ${px} ${py} date_input_flag truncate text-base outline-0 ${
+            startDate === "is not null" || startDate === "is null"
+              ? `active-color-placeholder`
+              : `not-active-color-placeholder`
+          } ${placeholderText} ${minHeight} ${fontSize} ${styles.input_box}`}
           wrapperClassName="react-datepicker__input-container"
-          placeholderText={"日付を選択"}
+          // placeholderText={"日付を選択"}
           // placeholderText={`${startDate === "is not null" ? "フォロー予定有りのみ" : `日付を選択`}`}
-          // placeholderText={getPlaceholderText()}
-          selected={startDate}
-          // selected={startDate instanceof Date ? startDate : null}
-          onChange={(date: Date) => setStartDate(date)}
-          // onChange={(date: Date) => {
-          //   console.log(
-          //     "date",
-          //     date,
-          //     'typeof date === "string"',
-          //     typeof date === "string",
-          //     "date instanceof Date",
-          //     date instanceof Date
-          //   );
-          //   setStartDate(date);
-          // }}
+          placeholderText={getPlaceholderText()}
+          // selected={startDate}
+          selected={startDate instanceof Date ? startDate : null}
+          // onChange={(date: Date) => setStartDate(date)}
+          onChange={(date: Date) => {
+            console.log(
+              "date",
+              date,
+              'typeof date === "string"',
+              typeof date === "string",
+              "date instanceof Date",
+              date instanceof Date
+            );
+            setStartDate(date);
+          }}
           //   selected={inputComment.date ? new Date(inputComment.date) : null}
           //   onChange={(date) =>
           //     setInputComment({
@@ -301,8 +305,8 @@ export const DatePickerCustomInput: FC<Props> = ({
         <DatePicker
           className={`rounded border-gray-100 p-1.5 text-base outline-0 ${isFieldEditMode ? `z-[2100]` : ``}`}
           placeholderText={"Please select date"}
-          selected={startDate}
-          // selected={startDate instanceof Date ? startDate : null}
+          // selected={startDate}
+          selected={startDate instanceof Date ? startDate : null}
           onChange={(date: Date) => setStartDate(date)}
           //   selected={inputComment.date ? new Date(inputComment.date) : null}
           //   onChange={(date) =>

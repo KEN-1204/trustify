@@ -43,7 +43,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const searchMode = useDashboardStore((state) => state.searchMode);
   const setSearchMode = useDashboardStore((state) => state.setSearchMode);
-  console.log("🔥 MeetingMainContainerレンダリング searchMode", searchMode);
   const setHoveredItemPosWrap = useStore((state) => state.setHoveredItemPosWrap);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   // 上画面の選択中の列データ会社
@@ -51,51 +50,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const setSelectedRowDataMeeting = useDashboardStore((state) => state.setSelectedRowDataMeeting);
   // 担当者編集モーダルオープン
   const setIsOpenUpdateMeetingModal = useDashboardStore((state) => state.setIsOpenUpdateMeetingModal);
-
-  const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string = "center") => {
-    // ホバーしたアイテムにツールチップを表示
-    const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
-    // console.log("ツールチップx, y width , height", x, y, width, height);
-    const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
-      ? ((e.target as HTMLDivElement).dataset.text2 as string)
-      : "";
-    const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
-      ? ((e.target as HTMLDivElement).dataset.text3 as string)
-      : "";
-    setHoveredItemPosWrap({
-      x: x,
-      y: y,
-      itemWidth: width,
-      itemHeight: height,
-      content: (e.target as HTMLDivElement).dataset.text as string,
-      content2: content2,
-      content3: content3,
-      display: display,
-    });
-  };
-  // ツールチップを非表示
-  const handleCloseTooltip = () => {
-    setHoveredItemPosWrap(null);
-  };
-
-  // セルダブルクリック モーダル表示
-  // const handleDoubleClick = useCallback((e: React.MouseEvent<HTMLDivElement>, index: number, columnName: string) => {
-  //   console.log("ダブルクリック index", index);
-  //   if (columnName === "id") return console.log("ダブルクリック idのためリターン");
-  //   // if (index === 0) return console.log("リターン");
-  //   if (setTimeoutRef.current) {
-  //     clearTimeout(setTimeoutRef.current);
-
-  //     // console.log(e.detail);
-  //     setTimeoutRef.current = null;
-  //     // ダブルクリック時に実行したい処理
-  //     console.log("ダブルクリック", e.currentTarget);
-  //     // クリックした要素のテキストを格納
-  //     const text = e.currentTarget.innerText;
-  //     setTextareaInput(text);
-  //     setIsOpenEditModal(true);
-  //   }
-  // }, []);
 
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
   const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
@@ -210,7 +164,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     if (value === null) return null; // 全てのデータ
     return value;
   }
-  console.log("🔥メインコンテナーnewSearchMeeting_Contact_CompanyParams", newSearchMeeting_Contact_CompanyParams);
 
   // 編集モードtrueの場合、サーチ条件をinputタグのvalueに格納
   // 新規サーチの場合には、サーチ条件を空にする
@@ -795,6 +748,34 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     // setLoadingGlobalState(false);
   };
 
+  // ==================================== 🌟ツールチップ🌟 ====================================
+  const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string = "center") => {
+    // ホバーしたアイテムにツールチップを表示
+    const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+    // console.log("ツールチップx, y width , height", x, y, width, height);
+    const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
+      ? ((e.target as HTMLDivElement).dataset.text2 as string)
+      : "";
+    const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
+      ? ((e.target as HTMLDivElement).dataset.text3 as string)
+      : "";
+    setHoveredItemPosWrap({
+      x: x,
+      y: y,
+      itemWidth: width,
+      itemHeight: height,
+      content: (e.target as HTMLDivElement).dataset.text as string,
+      content2: content2,
+      content3: content3,
+      display: display,
+    });
+  };
+  // ツールチップを非表示
+  const handleCloseTooltip = () => {
+    setHoveredItemPosWrap(null);
+  };
+  // ==================================== 🌟ツールチップ🌟 ====================================
+
   const handleAppointCheckChangeSelectTagValue = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
 
@@ -820,6 +801,13 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     return `${hour}:${minute}`;
   }
 
+  console.log(
+    "🔥MeetingMainContainerレンダリング",
+    "selectedRowDataMeeting",
+    selectedRowDataMeeting,
+    "newSearchMeeting_Contact_CompanyParams",
+    newSearchMeeting_Contact_CompanyParams
+  );
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
   return (
     <form className={`${styles.main_container} w-full `} onSubmit={handleSearchSubmit}>

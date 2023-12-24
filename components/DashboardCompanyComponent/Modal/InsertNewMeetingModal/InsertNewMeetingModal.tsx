@@ -135,7 +135,7 @@ export const InsertNewMeetingModal = () => {
     if (plannedPurpose === "") return alert("訪問目的を選択してください");
     if (plannedStartTimeHour === "") return alert("面談開始 時間を選択してください");
     if (plannedStartTimeMinute === "") return alert("面談開始 分を選択してください");
-    if (!meetingYearMonth) return alert("活動年月度を入力してください");
+    if (!meetingYearMonth) return alert("面談年月度を入力してください");
     if (meetingMemberName === "") return alert("自社担当を入力してください");
 
     setLoadingGlobalState(true);
@@ -210,7 +210,7 @@ export const InsertNewMeetingModal = () => {
     if (plannedPurpose === "") return alert("訪問目的を選択してください");
     if (plannedStartTimeHour === "") return alert("面談開始 時間を選択してください");
     if (plannedStartTimeMinute === "") return alert("面談開始 分を選択してください");
-    if (!meetingYearMonth) return alert("活動年月度を入力してください");
+    if (!meetingYearMonth) return alert("面談年月度を入力してください");
     if (meetingMemberName === "") return alert("自社担当を入力してください");
 
     setLoadingGlobalState(true);
@@ -285,7 +285,7 @@ export const InsertNewMeetingModal = () => {
     if (plannedPurpose === "") return alert("訪問目的を選択してください");
     if (plannedStartTimeHour === "") return alert("面談開始 時間を選択してください");
     if (plannedStartTimeMinute === "") return alert("面談開始 分を選択してください");
-    if (!meetingYearMonth) return alert("活動年月度を入力してください");
+    if (!meetingYearMonth) return alert("面談年月度を入力してください");
     if (meetingMemberName === "") return alert("自社担当を入力してください");
 
     setLoadingGlobalState(true);
@@ -911,11 +911,11 @@ export const InsertNewMeetingModal = () => {
             </div>
             {/* --------- 右ラッパー --------- */}
             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* ●活動年月度 */}
+              {/* ●面談年月度 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●活動年月度</span>
+                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●面談年月度</span>
                     <input
                       type="number"
                       min="0"

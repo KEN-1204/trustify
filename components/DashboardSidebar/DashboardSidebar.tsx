@@ -39,6 +39,12 @@ export const DashboardSidebarMemo: FC = () => {
   // アカウント設定モーダル
   const setIsOpenSettingAccountModal = useDashboardStore((state) => state.setIsOpenSettingAccountModal);
   const setSelectedSettingAccountMenu = useDashboardStore((state) => state.setSelectedSettingAccountMenu);
+  // 各タブの選択しているRowデータをタブ移動ごとにリセットする
+  const setSelectedRowDataCompany = useDashboardStore((state) => state.setSelectedRowDataCompany);
+  const setSelectedRowDataContact = useDashboardStore((state) => state.setSelectedRowDataContact);
+  const setSelectedRowDataActivity = useDashboardStore((state) => state.setSelectedRowDataActivity);
+  const setSelectedRowDataMeeting = useDashboardStore((state) => state.setSelectedRowDataMeeting);
+  const setSelectedRowDataProperty = useDashboardStore((state) => state.setSelectedRowDataProperty);
 
   // ツールチップ表示
   const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
@@ -77,11 +83,25 @@ export const DashboardSidebarMemo: FC = () => {
     setSelectedSettingAccountMenu("Company");
   };
 
+  // タブ名によって選択中のRowデータをリセットする関数
+  const resetSelectedRowData = (newTabName: string, currentTabName: string) => {
+    // 現在のタブと違うタブに移動する場合には全てのselectedRowDataをリセット
+    if (newTabName !== currentTabName) {
+      setSelectedRowDataCompany(null);
+      setSelectedRowDataContact(null);
+      setSelectedRowDataActivity(null);
+      setSelectedRowDataMeeting(null);
+      setSelectedRowDataProperty(null);
+    }
+    // 現在のタブと一緒なら選択中のRowデータはリセットしない
+  };
+
   // タブ切り替えでサーチモードをfalseに
   const switchActiveTab = (tabName: string) => {
     if (searchMode) setSearchMode(false);
     if (editSearchMode) setEditSearchMode(false);
     // if (loadingGlobalState) setLoadingGlobalState(false);
+    resetSelectedRowData(tabName, activeMenuTab);
     setActiveMenuTab(tabName);
   };
 

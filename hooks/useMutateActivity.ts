@@ -1,11 +1,9 @@
 import useDashboardStore from "@/store/useDashboardStore";
 import useThemeStore from "@/store/useThemeStore";
-import { Activity, Activity_row_data, Client_company } from "@/types";
+import { Activity, Activity_row_data } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import React from "react";
 import { toast } from "react-toastify";
-import { ContainerInstance } from "react-toastify/dist/hooks";
 
 export const useMutateActivity = () => {
   const theme = useThemeStore((state) => state.theme);
@@ -183,7 +181,7 @@ export const useMutateActivity = () => {
 
   // 【Activityの個別フィールド毎に編集UPDATE用updateActivityFieldMutation関数】
   // MainContainerからダブルクリックでフィールドエディットモードに移行し、個別にフィールド入力、更新した時に使用 受け取る引数は一つのプロパティのみ
-  type ExcludeKeys = "company_id" | "contact_id" | "activity_id"; // 除外するキー
+  type ExcludeKeys = "company_id" | "contact_id" | "activity_id"; // 除外するキー idはUPDATEすることは無いため
   type ActivityFieldNamesForSelectedRowData = Exclude<keyof Activity_row_data, ExcludeKeys>; // Contact_row_dataタイプのプロパティ名のみのデータ型を取得
   const updateActivityFieldMutation = useMutation(
     async (fieldData: {

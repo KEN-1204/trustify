@@ -26,6 +26,7 @@ import { AiTwotoneCalendar } from "react-icons/ai";
 import { toHalfWidthAndSpace } from "@/utils/Helpers/toHalfWidthAndSpace";
 import { InputSendAndCloseBtn } from "@/components/DashboardCompanyComponent/CompanyMainContainer/InputSendAndCloseBtn/InputSendAndCloseBtn";
 import { useMedia } from "react-use";
+import { DatePickerCustomInputForSearch } from "@/utils/DatePicker/DatePickerCustomInputForSearch";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -140,7 +141,11 @@ const ActivityMainContainerOneThirdMemo = () => {
   const [inputActivityCreatedByDepartmentOfUser, setInputActivityCreatedByDepartmentOfUser] = useState("");
   const [inputActivityCreatedByUnitOfUser, setInputActivityCreatedByUnitOfUser] = useState("");
   const [inputSummary, setInputSummary] = useState(""); //概要
-  const [inputScheduledFollowUpDate, setInputScheduledFollowUpDate] = useState<Date | null>(null); //次回フォロー予定日
+  const [inputScheduledFollowUpDate, setInputScheduledFollowUpDate] = useState<Date | null | "is not null" | "is null">(
+    null
+  ); //次回フォロー予定日
+  const [inputScheduledFollowUpDateForFieldEditMode, setInputScheduledFollowUpDateForFieldEditMode] =
+    useState<Date | null>(null); //次回フォロー予定日
   const [inputFollowUpFlag, setInputFollowUpFlag] = useState<boolean | null>(null); //フォロー完了フラグ
   const [inputDocumentUrl, setInputDocumentUrl] = useState(""); //資料、画像ファイル
   const [inputActivityType, setInputActivityType] = useState(""); //活動タイプ
@@ -153,16 +158,23 @@ const ActivityMainContainerOneThirdMemo = () => {
   const [inputBusinessOffice, setInputBusinessOffice] = useState(""); //事業所
   const [inputMemberName, setInputMemberName] = useState(""); //自社担当
   const [inputPriority, setInputPriority] = useState(""); //優先度
-  const [inputActivityDate, setInputActivityDate] = useState<Date | null>(null); //活動日
+  const [inputActivityDate, setInputActivityDate] = useState<Date | null | "is not null" | "is null">(null); //活動日
+  const [inputActivityDateForFieldEditMode, setInputActivityDateForFieldEditMode] = useState<Date | null>(null); //活動日
   const [inputDepartment, setInputDepartment] = useState(""); // 事業部名
   const [inputActivityYearMonth, setInputActivityYearMonth] = useState<number | null>(null); //活動年月度
-  // フラグ関連 フィールドエディット用
-  const [checkboxClaimFlagForFieldEdit, setCheckboxClaimFlagForFieldEdit] = useState(
-    selectedRowDataActivity?.claim_flag ? selectedRowDataActivity.claim_flag : false
-  ); // クレームフラグ フィールドエディット用
-  const [checkboxFollowUpFlagForFieldEdit, setCheckboxFollowUpFlagForFieldEdit] = useState(
-    selectedRowDataActivity?.follow_up_flag ? selectedRowDataActivity.follow_up_flag : false
-  );
+  // フラグ関連 フィールドエディット用 初期はfalseにしておき、useEffectでselectedRowDataのフラグを反映する
+  const [checkboxClaimFlagForFieldEdit, setCheckboxClaimFlagForFieldEdit] = useState(false); // クレームフラグ フィールドエディット用
+  const [checkboxFollowUpFlagForFieldEdit, setCheckboxFollowUpFlagForFieldEdit] = useState(false);
+
+  // フラグの初期値を更新
+  useEffect(() => {
+    if (selectedRowDataActivity?.claim_flag) {
+      setCheckboxClaimFlagForFieldEdit(selectedRowDataActivity.claim_flag);
+    }
+    if (selectedRowDataActivity?.follow_up_flag) {
+      setCheckboxFollowUpFlagForFieldEdit(selectedRowDataActivity.follow_up_flag);
+    }
+  }, [selectedRowDataActivity]);
 
   // サーチ編集モードでリプレイス前の値に復元する関数
   function beforeAdjustFieldValue(value: string | null) {
@@ -461,7 +473,12 @@ const ActivityMainContainerOneThirdMemo = () => {
     let _activity_created_by_unit_of_user = adjustFieldValue(inputActivityCreatedByUnitOfUser);
     let _summary = adjustFieldValue(inputSummary);
     // let _scheduled_follow_up_date = adjustFieldValue(inputScheduledFollowUpDate);
-    let _scheduled_follow_up_date = inputScheduledFollowUpDate ? inputScheduledFollowUpDate.toISOString() : null;
+    let _scheduled_follow_up_date =
+      inputScheduledFollowUpDate instanceof Date
+        ? inputScheduledFollowUpDate.toISOString()
+        : typeof inputScheduledFollowUpDate === "string" // "is null"か"is not null"の文字列は変換
+        ? adjustFieldValue(inputScheduledFollowUpDate)
+        : null;
     let _follow_up_flag = inputFollowUpFlag;
     let _document_url = adjustFieldValue(inputDocumentUrl);
     let _activity_type = adjustFieldValue(inputActivityType);
@@ -475,7 +492,13 @@ const ActivityMainContainerOneThirdMemo = () => {
     let _member_name = adjustFieldValue(inputMemberName);
     let _priority = adjustFieldValue(inputPriority);
     // let _activity_date = adjustFieldValue(inputActivityDate);
-    let _activity_date = inputActivityDate ? inputActivityDate.toISOString() : null;
+    // let _activity_date = inputActivityDate ? inputActivityDate.toISOString() : null;
+    let _activity_date =
+      inputActivityDate instanceof Date
+        ? inputActivityDate.toISOString()
+        : typeof inputActivityDate === "string"
+        ? adjustFieldValue(inputActivityDate)
+        : null;
     let _department = adjustFieldValue(inputDepartment);
     let _activity_year_month = adjustFieldValueNumber(inputActivityYearMonth);
 
@@ -649,7 +672,7 @@ const ActivityMainContainerOneThirdMemo = () => {
     // setLoadingGlobalState(false);
   };
 
-  // ================== 🌟ツールチップ🌟 ==================
+  // ==================================== 🌟ツールチップ🌟 ====================================
   // const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string = "center") => {
   const handleOpenTooltip = (
     e: React.MouseEvent<HTMLElement, MouseEvent>,
@@ -679,7 +702,7 @@ const ActivityMainContainerOneThirdMemo = () => {
   const handleCloseTooltip = () => {
     if (!!hoveredItemPosWrap) setHoveredItemPosWrap(null);
   };
-  // ================== ✅ツールチップ✅ ==================
+  // ==================================== ✅ツールチップ✅ ====================================
 
   // ================== 🌟シングルクリック、ダブルクリックイベント🌟 ==================
   // ダブルクリックで各フィールドごとに個別で編集
@@ -701,7 +724,7 @@ const ActivityMainContainerOneThirdMemo = () => {
         return `活動タイプ「面談・訪問」のデータを活動画面から編集できるのは「次回フォロー予定日、フォロー完了フラグ、クレーム」のみです。それ以外はタブから「面談・訪問」をクリックして面談・訪問画面から編集してください。`;
         break;
       case "案件発生":
-        return `活動タイプ「案件」のデータを活動画面から編集できるのは「次回フォロー予定日、フォロー完了フラグ、クレーム」のみです。それ以外はタブから「案件」をクリックして案件画面から編集してください。`;
+        return `活動タイプ「案件発生」のデータを活動画面から編集できるのは「次回フォロー予定日、フォロー完了フラグ、クレーム」のみです。それ以外はタブから「案件」をクリックして案件画面から編集してください。`;
         break;
       case "見積":
         return `活動タイプ「見積」のデータを活動画面から編集できるのは「次回フォロー予定日、フォロー完了フラグ、クレーム」のみです。それ以外タブから「見積」をクリックして見積画面から編集してください。`;
@@ -1099,7 +1122,13 @@ const ActivityMainContainerOneThirdMemo = () => {
     "🔥 ActivityMainContainerレンダリング searchMode",
     searchMode,
     "useMedia isDesktopGTE1600",
-    isDesktopGTE1600
+    isDesktopGTE1600,
+    "selectedRowDataActivity.scheduled_follow_up_date",
+    selectedRowDataActivity?.scheduled_follow_up_date,
+    selectedRowDataActivity?.scheduled_follow_up_date &&
+      (selectedRowDataActivity.scheduled_follow_up_date as any) instanceof Date,
+    typeof selectedRowDataActivity?.scheduled_follow_up_date === "string"
+
     // "window.innerWidth",
     // window.innerWidth
   );
@@ -1137,17 +1166,24 @@ const ActivityMainContainerOneThirdMemo = () => {
                           handleDoubleClickField({
                             e,
                             field: "activity_date",
-                            dispatch: setInputActivityDate,
+                            dispatch: setInputActivityDateForFieldEditMode,
                             dateValue: selectedRowDataActivity?.activity_date
                               ? selectedRowDataActivity.activity_date
                               : null,
                           });
                         }}
+                        data-text={`${
+                          selectedRowDataActivity?.activity_date
+                            ? format(new Date(selectedRowDataActivity.activity_date), "yyyy/MM/dd")
+                            : ""
+                        }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          if (!isDesktopGTE1600 && isOpenSidebar) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataActivity?.activity_date
@@ -1161,18 +1197,20 @@ const ActivityMainContainerOneThirdMemo = () => {
                       <>
                         <div className="z-[2000] w-full">
                           <DatePickerCustomInput
-                            startDate={inputActivityDate}
-                            setStartDate={setInputActivityDate}
+                            startDate={inputActivityDateForFieldEditMode}
+                            setStartDate={setInputActivityDateForFieldEditMode}
                             required={true}
                             isFieldEditMode={true}
                             fieldEditModeBtnAreaPosition="right"
                             isLoadingSendEvent={updateActivityFieldMutation.isLoading}
                             onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-                              if (!inputActivityDate) return alert("このデータは入力が必須です。");
+                              if (!inputActivityDateForFieldEditMode) return alert("このデータは入力が必須です。");
                               const originalDateUTCString = selectedRowDataActivity?.activity_date
                                 ? selectedRowDataActivity.activity_date
                                 : null; // ISOString UTC時間 2023-12-26T15:00:00+00:00
-                              const newDateUTCString = inputActivityDate ? inputActivityDate.toISOString() : null; // Dateオブジェクト ローカルタイムゾーンに自動で変換済み Thu Dec 28 2023 00:00:00 GMT+0900 (日本標準時)
+                              const newDateUTCString = inputActivityDateForFieldEditMode
+                                ? inputActivityDateForFieldEditMode.toISOString()
+                                : null; // Dateオブジェクト ローカルタイムゾーンに自動で変換済み Thu Dec 28 2023 00:00:00 GMT+0900 (日本標準時)
                               // const result = isSameDateLocal(originalDateString, newDateString);
                               console.log(
                                 "日付送信クリック",
@@ -1283,7 +1321,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                           {selectedRowDataActivity?.claim_flag ? selectedRowDataActivity?.claim_flag : ""}
                         </span>
                       )} */}
-                    {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1310,11 +1348,16 @@ const ActivityMainContainerOneThirdMemo = () => {
                             dispatch: setInputActivityType,
                           });
                         }}
+                        data-text={`${
+                          selectedRowDataActivity?.activity_type ? selectedRowDataActivity?.activity_type : ""
+                        }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          if (!isDesktopGTE1600) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataActivity?.activity_type ? selectedRowDataActivity?.activity_type : ""}
@@ -1453,7 +1496,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                 </div>
               </div>
 
-              {/* 次回ﾌｫﾛｰ予定日・フォロー完了 */}
+              {/* 次回フォロー予定日・フォロー完了 */}
               <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
@@ -1469,7 +1512,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                           handleDoubleClickField({
                             e,
                             field: "scheduled_follow_up_date",
-                            dispatch: setInputScheduledFollowUpDate,
+                            dispatch: setInputScheduledFollowUpDateForFieldEditMode,
                             dateValue: selectedRowDataActivity?.scheduled_follow_up_date
                               ? selectedRowDataActivity.scheduled_follow_up_date
                               : null,
@@ -1499,8 +1542,8 @@ const ActivityMainContainerOneThirdMemo = () => {
                       <>
                         <div className="z-[2000] w-full">
                           <DatePickerCustomInput
-                            startDate={inputScheduledFollowUpDate}
-                            setStartDate={setInputScheduledFollowUpDate}
+                            startDate={inputScheduledFollowUpDateForFieldEditMode}
+                            setStartDate={setInputScheduledFollowUpDateForFieldEditMode}
                             // required={true}
                             required={false}
                             isFieldEditMode={true}
@@ -1510,8 +1553,8 @@ const ActivityMainContainerOneThirdMemo = () => {
                               const originalDateUTCString = selectedRowDataActivity?.scheduled_follow_up_date
                                 ? selectedRowDataActivity.scheduled_follow_up_date
                                 : null; // ISOString UTC時間 2023-12-26T15:00:00+00:00
-                              const newDateUTCString = inputScheduledFollowUpDate
-                                ? inputScheduledFollowUpDate.toISOString()
+                              const newDateUTCString = inputScheduledFollowUpDateForFieldEditMode
+                                ? inputScheduledFollowUpDateForFieldEditMode.toISOString()
                                 : null; // Dateオブジェクト ローカルタイムゾーンに自動で変換済み Thu Dec 28 2023 00:00:00 GMT+0900 (日本標準時)
                               // const result = isSameDateLocal(originalDateString, newDateString);
                               console.log(
@@ -1519,7 +1562,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                                 "オリジナル(UTC)",
                                 originalDateUTCString,
                                 "新たな値(Dateオブジェクト)",
-                                inputScheduledFollowUpDate,
+                                inputScheduledFollowUpDateForFieldEditMode,
                                 "新たな値.toISO(UTC)",
                                 newDateUTCString
                                 // "同じかチェック結果",
@@ -1594,6 +1637,14 @@ const ActivityMainContainerOneThirdMemo = () => {
                               selectedRowDataActivity?.follow_up_flag
                             );
                             if (!checkboxFollowUpFlagForFieldEdit === selectedRowDataActivity?.follow_up_flag) {
+                              console.log(
+                                `selectedRowDataActivity?.follow_up_flag`,
+                                selectedRowDataActivity?.follow_up_flag,
+                                "checkboxFollowUpFlagForFieldEdit",
+                                checkboxFollowUpFlagForFieldEdit,
+                                "selectedRowDataActivity",
+                                selectedRowDataActivity
+                              );
                               toast.error(`アップデートに失敗しました🤦‍♀️`);
                               return;
                             }
@@ -1603,9 +1654,9 @@ const ActivityMainContainerOneThirdMemo = () => {
                               newValue: !checkboxFollowUpFlagForFieldEdit,
                               id: selectedRowDataActivity.activity_id,
                             };
-                            // 直感的にするために先にローカルのチェックボックスを更新する
+                            // 直感的にするためにmutateAsyncではなくmutateにして非同期処理のまま更新関数でローカルのチェックボックスを更新する
+                            updateActivityFieldMutation.mutate(updatePayload);
                             setCheckboxFollowUpFlagForFieldEdit(!checkboxFollowUpFlagForFieldEdit);
-                            await updateActivityFieldMutation.mutateAsync(updatePayload);
                           }}
                         />
                         <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -1684,7 +1735,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                           // rows={10}
                           placeholder=""
                           style={{ whiteSpace: "pre-wrap" }}
-                          className={`${styles.textarea_box} ${styles.textarea_box_search_mode} ${styles.field_edit_mode_textarea}`}
+                          className={`${styles.textarea_box} ${styles.textarea_box_search_mode} ${styles.field_edit_mode_textarea} ${styles.xl}`}
                           value={inputSummary}
                           onChange={(e) => setInputSummary(e.target.value)}
                         ></textarea>
@@ -1986,7 +2037,9 @@ const ActivityMainContainerOneThirdMemo = () => {
                         readOnly
                         // onChange={() => {}}
                         onClick={() => alert("「TEL要注意フラグ」は担当者画面から編集可能です。")}
-                        className={`${styles.grid_select_cell_header_input}`}
+                        className={`${styles.grid_select_cell_header_input} ${
+                          !selectedRowDataActivity ? `pointer-events-none` : ``
+                        }`}
                       />
                       <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
@@ -2052,7 +2105,9 @@ const ActivityMainContainerOneThirdMemo = () => {
                         checked={!!selectedRowDataActivity?.email_ban_flag}
                         readOnly
                         onClick={() => alert("「メール禁止フラグ」は担当者画面から編集可能です。")}
-                        className={`${styles.grid_select_cell_header_input}`}
+                        className={`${styles.grid_select_cell_header_input} ${
+                          !selectedRowDataActivity ? `pointer-events-none` : ``
+                        }`}
                       />
                       <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
@@ -2083,7 +2138,9 @@ const ActivityMainContainerOneThirdMemo = () => {
                         checked={!!selectedRowDataActivity?.sending_materials_ban_flag}
                         readOnly
                         onClick={() => alert("「資料禁止フラグ」は担当者画面から編集可能です。")}
-                        className={`${styles.grid_select_cell_header_input}`}
+                        className={`${styles.grid_select_cell_header_input} ${
+                          !selectedRowDataActivity ? `pointer-events-none` : ``
+                        }`}
                       />
                       <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
@@ -2118,7 +2175,9 @@ const ActivityMainContainerOneThirdMemo = () => {
                         checked={!!selectedRowDataActivity?.fax_dm_ban_flag}
                         readOnly
                         onClick={() => alert("「FAX・DM禁止フラグ」は担当者画面から編集可能です。")}
-                        className={`${styles.grid_select_cell_header_input}`}
+                        className={`${styles.grid_select_cell_header_input} ${
+                          !selectedRowDataActivity ? `pointer-events-none` : ``
+                        }`}
                       />
                       <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
@@ -2146,7 +2205,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                           !!selectedRowDataActivity?.ban_reason
                             ? `${styles.textarea_box} ${styles.one_third}`
                             : styles.textarea_value
-                        }`}
+                        } ${!!selectedRowDataActivity?.ban_reason ? `${styles.uneditable_field}` : ``}`}
                         onClick={handleSingleClickField}
                         onDoubleClick={(e) => {
                           if (!selectedRowDataActivity) return;
@@ -2184,7 +2243,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                           !!selectedRowDataActivity?.claim
                             ? `${styles.textarea_box} ${styles.one_third}`
                             : styles.textarea_value
-                        }`}
+                        } ${selectedRowDataActivity?.claim ? `${styles.uneditable_field}` : ``}`}
                         onClick={handleSingleClickField}
                         onDoubleClick={(e) => {
                           if (!selectedRowDataActivity) return;
@@ -3255,10 +3314,10 @@ const ActivityMainContainerOneThirdMemo = () => {
                     {!searchMode && (
                       <>
                         <span
-                          data-text={`${selectedRowDataActivity?.facility ? selectedRowDataActivity?.facility : ""}`}
                           className={`${styles.textarea_value} h-[45px]`}
                           // onMouseEnter={(e) => handleOpenTooltip(e)}
                           // onMouseLeave={handleCloseTooltip}
+                          data-text={`${selectedRowDataActivity?.facility ? selectedRowDataActivity?.facility : ""}`}
                           onMouseEnter={(e) => {
                             handleOpenTooltip(e);
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
@@ -3411,7 +3470,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                 </div>
               </div>
 
-              {/* HP */}
+              {/* HP 通常 */}
               <div
                 className={`${styles.row_area} ${
                   searchMode ? `${styles.row_area_search_mode}` : ``
@@ -3426,6 +3485,12 @@ const ActivityMainContainerOneThirdMemo = () => {
                         target="_blank"
                         rel="noopener noreferrer"
                         className={`${styles.value} ${styles.anchor}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
                       >
                         {selectedRowDataActivity.website_url}
                       </a>
@@ -3458,6 +3523,12 @@ const ActivityMainContainerOneThirdMemo = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value} ${styles.email_value}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
                         onClick={async () => {
                           if (!selectedRowDataActivity?.company_email) return;
                           try {
@@ -3489,7 +3560,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                         {selectedRowDataActivity?.company_email ? selectedRowDataActivity?.company_email : ""}
                       </span>
                     )}
-                    {searchMode && (
+                    {/* {searchMode && (
                       <input
                         type="text"
                         className={`${styles.input_box}`}
@@ -3497,7 +3568,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                         value={inputCompanyEmail}
                         onChange={(e) => setInputCompanyEmail(e.target.value)}
                       />
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -3513,17 +3584,19 @@ const ActivityMainContainerOneThirdMemo = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>○業種</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         {selectedRowDataActivity?.industry_type ? selectedRowDataActivity?.industry_type : ""}
                       </span>
                     )}
-                    {searchMode && !inputProductL && (
-                      // <input
-                      //   type="text"
-                      //   className={`${styles.input_box}`}
-                      //   value={inputIndustryType}
-                      //   onChange={(e) => setInputIndustryType(e.target.value)}
-                      // />
+                    {/* {searchMode && !inputProductL && (
                       <select
                         name="position_class"
                         id="position_class"
@@ -3585,7 +3658,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                         <option value="個人">個人</option>
                         <option value="不明">不明</option>
                       </select>
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -3606,26 +3679,26 @@ const ActivityMainContainerOneThirdMemo = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
-                        data-text={`${
-                          selectedRowDataActivity?.product_category_large
-                            ? selectedRowDataActivity?.product_category_large
-                            : ""
-                        }`}
-                        onMouseEnter={(e) => handleOpenTooltip(e)}
-                        onMouseLeave={handleCloseTooltip}
+                        // data-text={`${
+                        //   selectedRowDataActivity?.product_category_large
+                        //     ? selectedRowDataActivity?.product_category_large
+                        //     : ""
+                        // }`}
+                        // onMouseEnter={(e) => handleOpenTooltip(e)}
+                        // onMouseLeave={handleCloseTooltip}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
                       >
                         {selectedRowDataActivity?.product_category_large
                           ? selectedRowDataActivity?.product_category_large
                           : ""}
                       </span>
                     )}
-                    {searchMode && !inputIndustryType && (
-                      // <input
-                      //   type="text"
-                      //   className={`${styles.input_box} ml-[20px]`}
-                      //   value={inputProductL}
-                      //   onChange={(e) => setInputProductL(e.target.value)}
-                      // />
+                    {/* {searchMode && !inputIndustryType && (
                       <select
                         name="position_class"
                         id="position_class"
@@ -3650,7 +3723,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                         <option value="セミナー・スキルアップ">セミナー・スキルアップ</option>
                         <option value="その他">その他</option>
                       </select>
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -3671,26 +3744,26 @@ const ActivityMainContainerOneThirdMemo = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
-                        data-text={`${
-                          selectedRowDataActivity?.product_category_medium
-                            ? selectedRowDataActivity?.product_category_medium
-                            : ""
-                        }`}
-                        onMouseEnter={(e) => handleOpenTooltip(e)}
-                        onMouseLeave={handleCloseTooltip}
+                        // data-text={`${
+                        //   selectedRowDataActivity?.product_category_medium
+                        //     ? selectedRowDataActivity?.product_category_medium
+                        //     : ""
+                        // }`}
+                        // onMouseEnter={(e) => handleOpenTooltip(e)}
+                        // onMouseLeave={handleCloseTooltip}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
                       >
                         {selectedRowDataActivity?.product_category_medium
                           ? selectedRowDataActivity?.product_category_medium
                           : ""}
                       </span>
                     )}
-                    {searchMode && !!inputProductL && (
-                      // <input
-                      //   type="text"
-                      //   className={`${styles.input_box} ml-[20px]`}
-                      //   value={inputProductM}
-                      //   onChange={(e) => setInputProductM(e.target.value)}
-                      // />
+                    {/* {searchMode && !!inputProductL && (
                       <select
                         name="position_class"
                         id="position_class"
@@ -3726,7 +3799,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                           productCategoriesM.skillUpCategoryM.map((option) => option)}
                         {inputProductL === "その他" && productCategoriesM.othersCategoryM.map((option) => option)}
                       </select>
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -3775,18 +3848,31 @@ const ActivityMainContainerOneThirdMemo = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>○法人番号</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataActivity?.corporate_number ? selectedRowDataActivity?.corporate_number : ""
+                        }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          if (!isDesktopGTE1600 && isOpenSidebar) handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
                         {selectedRowDataActivity?.corporate_number ? selectedRowDataActivity?.corporate_number : ""}
                       </span>
                     )}
-                    {searchMode && (
+                    {/* {searchMode && (
                       <input
                         type="text"
                         className={`${styles.input_box}`}
                         value={inputCorporateNum}
                         onChange={(e) => setInputCorporateNum(e.target.value)}
                       />
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -3799,7 +3885,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                       </span>
                     )}
                   </div> */}
-                  <div className={`${styles.underline}`}></div>
+                  {/* <div className={`${styles.underline}`}></div> */}
                 </div>
               </div>
               {/* コンテンツエリア row_areaグループ 役職名=会社IDまで ここまで */}
@@ -5123,10 +5209,19 @@ const ActivityMainContainerOneThirdMemo = () => {
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>活動日</span>
                       {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
-                      <DatePickerCustomInput
+                      {/* <DatePickerCustomInputForSearch
                         startDate={inputActivityDate}
                         setStartDate={setInputActivityDate}
                         required={false}
+                      /> */}
+                      <DatePickerCustomInputForSearch
+                        startDate={inputActivityDate}
+                        setStartDate={setInputActivityDate}
+                        required={false}
+                        isNotNullForSearch={true}
+                        handleOpenTooltip={handleOpenTooltip}
+                        handleCloseTooltip={handleCloseTooltip}
+                        tooltipDataText="活動日"
                       />
                     </div>
                     <div className={`${styles.underline}`}></div>
@@ -5226,7 +5321,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                   </div>
                 </div>
 
-                {/* 次回ﾌｫﾛｰ予定日・フォロー完了 サーチ */}
+                {/* 次回フォロー予定日・フォロー完了 サーチ */}
                 <div
                   className={`${styles.row_area} ${
                     searchMode ? `${styles.row_area_search_mode}` : ``
@@ -5239,10 +5334,14 @@ const ActivityMainContainerOneThirdMemo = () => {
                         <span>予定日</span>
                       </div>
                       {/* <span className={`${styles.title} !mr-[15px]`}>次回ﾌｫﾛｰ予定日</span> */}
-                      <DatePickerCustomInput
+                      <DatePickerCustomInputForSearch
                         startDate={inputScheduledFollowUpDate}
                         setStartDate={setInputScheduledFollowUpDate}
                         required={false}
+                        isNotNullForSearch={true}
+                        handleOpenTooltip={handleOpenTooltip}
+                        handleCloseTooltip={handleCloseTooltip}
+                        tooltipDataText="次回フォロー予定日"
                       />
                     </div>
                     <div className={`${styles.underline}`}></div>

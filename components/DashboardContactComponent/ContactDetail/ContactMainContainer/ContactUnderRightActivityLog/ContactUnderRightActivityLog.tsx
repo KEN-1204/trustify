@@ -524,7 +524,7 @@ const ContactUnderRightActivityLogMemo: FC = () => {
               </div>
             )}
             {!refetchLoading && <FiRefreshCw className="text-[11px]" />}
-            <span>リフレッシュ</span>
+            <span className={`${refetchLoading ? `text-[#aaa]` : ``}`}>リフレッシュ</span>
           </div>
         </div>
         {/* ================== Gridスクロールコンテナ ================== */}
