@@ -2432,6 +2432,8 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                   console.log("リフレッシュ クリック");
                   setRefetchLoading(true);
                   await queryClient.invalidateQueries({ queryKey: ["contacts"] });
+                  // 再度テーブルの選択セルのDOMをクリックしてselectedRowDataContactを最新状態にする
+                  setIsUpdateRequiredForLatestSelectedRowDataContact(true);
                   // await refetch();
                   setRefetchLoading(false);
                 }}

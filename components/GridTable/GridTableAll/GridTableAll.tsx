@@ -958,7 +958,10 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       "🌟useEffect Object.keys(data?.pages[0].rows[0] as object",
       Object.keys(data?.pages[0].rows[0] as object)
     );
-    const newColsWidths = new Array(Object.keys(data?.pages[0].rows[0] as object).length + 1).fill("120px");
+    // 初回カラム生成時には必ずidフィールドもフェッチするためidカラムが含まれてしまうが、idフィールドはフェッチしてselectedRowDataにはidフィールドを保持しつつ、テーブルにはidカラムは表示しないようにするためにfilterメソッドでカラム生成時にidをとり除く
+    const filteredArrayOmitId = Object.keys(data?.pages[0].rows[0] as object).filter((field) => field !== "id");
+    const newColsWidths = new Array(filteredArrayOmitId.length + 1).fill("120px");
+    // const newColsWidths = new Array(Object.keys(data?.pages[0].rows[0] as object).length + 1).fill("120px");
     // newColsWidths.fill("65px", 0, 1); // 1列目を65pxに変更 チェックボックス
     // newColsWidths.fill("50px", 1, 2); // 2列目を100pxに変更 id
     // newColsWidths.fill("100px", 2, 3); // 2列目を100pxに変更 法人番号
@@ -1036,8 +1039,10 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
 
     // ====================== カラム順番入れ替え用の列アイテムリストに格納 ======================
     // colsWidthsの最初2つはcheckboxとidの列なので、最初から3つ目で入れ替え
-    const tempFirstColumnItemListArray = Object.keys(data?.pages[0].rows[0] as object);
-    const firstColumnItemListArray = tempFirstColumnItemListArray.map((item, index) => {
+    // const tempFirstColumnItemListArray = Object.keys(data?.pages[0].rows[0] as object);
+    // const firstColumnItemListArray = tempFirstColumnItemListArray.map((item, index) => {
+    // id無しバージョン
+    const firstColumnItemListArray = filteredArrayOmitId.map((item, index) => {
       // 初回カラム生成は最初の列（現在はid列）はisFrozenとisLastDrozenをtrueにする
       if (index === 0) {
         return {
@@ -1059,7 +1064,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
         isFrozen: false,
       };
     });
-    console.log(`初回ヘッダー生成 初期カラム配列`, tempFirstColumnItemListArray);
+    // console.log(`初回ヘッダー生成 初期カラム配列`, tempFirstColumnItemListArray);
+    console.log(`初回ヘッダー生成 初期カラム配列`, filteredArrayOmitId);
     console.log(`初回ヘッダー生成 整形後カラム配列`, firstColumnItemListArray);
     setColumnHeaderItemList(firstColumnItemListArray);
     // isFrozenがtrueの個数をRefに格納
@@ -2716,6 +2722,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                   console.log("リフレッシュ クリック");
                   setRefetchLoading(true);
                   await queryClient.invalidateQueries({ queryKey: ["companies"] });
+                  // 再度テーブルの選択セルのDOMをクリックしてselectedRowDataCompanyを最新状態にする
+                  setIsUpdateRequiredForLatestSelectedRowDataCompany(true);
                   // await refetch();
                   setRefetchLoading(false);
                 }}

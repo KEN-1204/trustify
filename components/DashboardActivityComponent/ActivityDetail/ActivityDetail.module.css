@@ -353,15 +353,7 @@
 .value_highlight {
   color: var(--color-text-brand);
 }
-.textarea_value {
-  color: var(--color-text-under-value);
-  overflow: hidden;
-  display: -webkit-inline-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  min-height: 48px;
-  line-height: 22px;
-}
+
 .anchor {
   color: var(--color-text-brand-f);
   text-decoration: underline;
@@ -453,6 +445,9 @@
   border-radius: 6px;
   resize: none;
 }
+.textarea_box.one_third {
+  min-height: 58px;
+}
 .textarea_box:focus {
   box-shadow: var(--color-bg-under-input-active-box-shadow);
 }
@@ -462,6 +457,25 @@
 .textarea_box_search_mode {
   padding: 6px 8px;
   line-height: normal;
+}
+.textarea_value {
+  color: var(--color-text-under-value);
+  overflow: hidden;
+  display: -webkit-inline-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  min-height: 48px;
+  line-height: 22px;
+}
+.textarea_box.address {
+  min-height: 52px;
+  max-height: 52px;
+}
+.select_box {
+  box-shadow: var(--color-bg-under-input-box-shadow);
+  padding-left: 5px;
+  background: var(--color-bg-under-input);
+  border-radius: 6px;
 }
 
 /* ------------------------------- 右側エリア ------------------------------- */
@@ -687,12 +701,7 @@
 .btn:hover {
   background-color: var(--color-btn-brand-f-hover);
 }
-.select_box {
-  box-shadow: var(--color-bg-under-input-box-shadow);
-  padding-left: 5px;
-  background: var(--color-bg-under-input);
-  border-radius: 6px;
-}
+
 .edit_mode_overlay {
   position: fixed;
   left: 0;

@@ -150,7 +150,7 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
     setActivityColumnHeaderItemList([...editedColumnHeaderItemList]);
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
     const activityColumnHeaderItemListJSON = JSON.stringify(editedColumnHeaderItemList);
-    localStorage.setItem("grid_columns_activitys", activityColumnHeaderItemListJSON);
+    localStorage.setItem("grid_columns_activities", activityColumnHeaderItemListJSON);
     // localStorage.setItem("grid_columns_activitys", activityColumnHeaderItemListJSON);
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
     // colsWidthの配列内の各カラムのサイズも更新する
@@ -691,7 +691,7 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
     console.log("🌟ヘッダーカラム生成 gotData ===========================", gotData);
 
     // ========================= 🔥テスト ローカルストレージ ルート =========================
-    const localStorageColumnHeaderItemListJSON = localStorage.getItem("grid_columns_activity");
+    const localStorageColumnHeaderItemListJSON = localStorage.getItem("grid_columns_activities");
     // const localStorageColumnHeaderItemListJSON = localStorage.getItem("grid_columns_contacts");
     if (localStorageColumnHeaderItemListJSON) {
       console.log("useEffect ローカルストレージルート🔥");
@@ -894,7 +894,7 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
 
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
     const activityColumnHeaderItemListJSON = JSON.stringify(firstColumnItemListArray);
-    localStorage.setItem("grid_columns_activity", activityColumnHeaderItemListJSON);
+    localStorage.setItem("grid_columns_activities", activityColumnHeaderItemListJSON);
     // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
   }, [gotData]); // gotDataのstateがtrueになったら再度実行
@@ -1019,7 +1019,7 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
       }
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
       const activityColumnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
-      localStorage.setItem("grid_columns_activity", activityColumnHeaderItemListJSON);
+      localStorage.setItem("grid_columns_activities", activityColumnHeaderItemListJSON);
       // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
     };
@@ -2000,7 +2000,7 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
     console.log("Drop✅");
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
     const activityColumnHeaderItemListJSON = JSON.stringify(activityColumnHeaderItemList);
-    localStorage.setItem("grid_columns_activity", activityColumnHeaderItemListJSON);
+    localStorage.setItem("grid_columns_activities", activityColumnHeaderItemListJSON);
     // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
     // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ===============
@@ -2089,7 +2089,7 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
 
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
       const activityColumnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
-      localStorage.setItem("grid_columns_activity", activityColumnHeaderItemListJSON);
+      localStorage.setItem("grid_columns_activities", activityColumnHeaderItemListJSON);
       // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
 
@@ -2193,7 +2193,7 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
 
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
       const activityColumnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
-      localStorage.setItem("grid_columns_activity", activityColumnHeaderItemListJSON);
+      localStorage.setItem("grid_columns_activities", activityColumnHeaderItemListJSON);
       // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
 
@@ -2565,6 +2565,8 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
                   setRefetchLoading(true);
                   await queryClient.invalidateQueries({ queryKey: ["activities"] });
                   // await refetch();
+                  // 再度テーブルの選択セルのDOMをクリックしてselectedRowDataActivityを最新状態にする
+                  setIsUpdateRequiredForLatestSelectedRowDataActivity(true);
                   setRefetchLoading(false);
                 }}
                 onMouseEnter={(e) =>

@@ -228,24 +228,6 @@ const activityColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "business_sites",
-    columnWidth: "100px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-  {
-    columnName: "overseas_bases",
-    columnWidth: "100px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-  {
-    columnName: "group_company",
-    columnWidth: "100px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-  {
     columnName: "industry_type",
     columnWidth: "100px",
     isFrozen: false,
@@ -263,12 +245,43 @@ const activityColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
+  // {
+  //   columnName: "product_category_small",
+  //   columnWidth: "100px",
+  //   isFrozen: false,
+  //   isOverflow: false,
+  // },
   {
-    columnName: "product_category_small",
+    columnName: "website_url",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
   },
+  {
+    columnName: "company_email",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "business_sites",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "overseas_bases",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "group_company",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+
   {
     columnName: "corporate_number",
     columnWidth: "100px",

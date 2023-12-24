@@ -233,6 +233,7 @@ const UnderRightActivityLogMemo: FC = () => {
           _our_company_id: userProfileState.company_id,
           _client_company_id: selectedRowDataCompany.id,
         };
+
         const {
           data,
           error,
@@ -260,7 +261,9 @@ const UnderRightActivityLogMemo: FC = () => {
           from,
           to,
           "rows",
-          rows
+          rows,
+          "selectPayload",
+          selectPayload
         );
       } catch (e: any) {
         console.error(`右下活動履歴 fetchServerPage関数 DBからデータ取得に失敗、エラー: `, e);

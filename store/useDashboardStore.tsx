@@ -251,7 +251,7 @@ type State = {
   // =================== 上画面の列選択した時に下画面に会社情報を映す用のState ===================
   // 選択中の行データオブジェクト
   selectedRowDataCompany: Client_company_row_data | null;
-  setSelectedRowDataCompany: (payload: Client_company_row_data) => void;
+  setSelectedRowDataCompany: (payload: Client_company_row_data | null) => void;
 
   // 会社データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
   // newSearchCompanyCondition: Omit<Client_company_row_data, ''>

@@ -150,7 +150,7 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
     setPropertyColumnHeaderItemList([...editedColumnHeaderItemList]);
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
     const propertyColumnHeaderItemListJSON = JSON.stringify(editedColumnHeaderItemList);
-    localStorage.setItem("grid_columns_property", propertyColumnHeaderItemListJSON);
+    localStorage.setItem("grid_columns_properties", propertyColumnHeaderItemListJSON);
     // localStorage.setItem("grid_columns_property", propertyColumnHeaderItemListJSON);
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
     // colsWidthの配列内の各カラムのサイズも更新する
@@ -688,7 +688,7 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
     console.log("🌟ヘッダーカラム生成 gotData ===========================", gotData);
 
     // ========================= 🔥テスト ローカルストレージ ルート =========================
-    const localStorageColumnHeaderItemListJSON = localStorage.getItem("grid_columns_property");
+    const localStorageColumnHeaderItemListJSON = localStorage.getItem("grid_columns_properties");
     // const localStorageColumnHeaderItemListJSON = localStorage.getItem("grid_columns_contacts");
     if (localStorageColumnHeaderItemListJSON) {
       console.log("useEffect ローカルストレージルート🔥");
@@ -892,7 +892,7 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
 
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
     const propertyColumnHeaderItemListJSON = JSON.stringify(firstColumnItemListArray);
-    localStorage.setItem("grid_columns_property", propertyColumnHeaderItemListJSON);
+    localStorage.setItem("grid_columns_properties", propertyColumnHeaderItemListJSON);
     // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
   }, [gotData]); // gotDataのstateがtrueになったら再度実行
@@ -1017,7 +1017,7 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
       }
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
       const propertyColumnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
-      localStorage.setItem("grid_columns_property", propertyColumnHeaderItemListJSON);
+      localStorage.setItem("grid_columns_properties", propertyColumnHeaderItemListJSON);
       // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
     };
@@ -1998,7 +1998,7 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
     console.log("Drop✅");
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
     const propertyColumnHeaderItemListJSON = JSON.stringify(propertyColumnHeaderItemList);
-    localStorage.setItem("grid_columns_property", propertyColumnHeaderItemListJSON);
+    localStorage.setItem("grid_columns_properties", propertyColumnHeaderItemListJSON);
     // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
     // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ===============
@@ -2087,7 +2087,7 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
 
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
       const propertyColumnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
-      localStorage.setItem("grid_columns_property", propertyColumnHeaderItemListJSON);
+      localStorage.setItem("grid_columns_properties", propertyColumnHeaderItemListJSON);
       // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
 
@@ -2191,7 +2191,7 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
 
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
       const propertyColumnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
-      localStorage.setItem("grid_columns_property", propertyColumnHeaderItemListJSON);
+      localStorage.setItem("grid_columns_properties", propertyColumnHeaderItemListJSON);
       // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
 
@@ -2580,6 +2580,8 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
                   console.log("リフレッシュ クリック");
                   setRefetchLoading(true);
                   await queryClient.invalidateQueries({ queryKey: ["properties"] });
+                  // 再度テーブルの選択セルのDOMをクリックしてselectedRowDataPropertyを最新状態にする
+                  setIsUpdateRequiredForLatestSelectedRowDataProperty(true);
                   // await refetch();
                   setRefetchLoading(false);
                 }}

@@ -51,6 +51,13 @@ export const DashboardHeaderMemo: FC = () => {
   const [tabPage, setTabPage] = useState(1);
   // リフェッチローディング
   const [refetchLoading, setRefetchLoading] = useState(false);
+  // 各タブの選択しているRowデータをタブ移動ごとにリセットする
+  const setSelectedRowDataCompany = useDashboardStore((state) => state.setSelectedRowDataCompany);
+  const setSelectedRowDataContact = useDashboardStore((state) => state.setSelectedRowDataContact);
+  const setSelectedRowDataActivity = useDashboardStore((state) => state.setSelectedRowDataActivity);
+  const setSelectedRowDataMeeting = useDashboardStore((state) => state.setSelectedRowDataMeeting);
+  const setSelectedRowDataProperty = useDashboardStore((state) => state.setSelectedRowDataProperty);
+  // テーマ別ロゴ
   const logoSrc =
     theme === "light" ? "/assets/images/Trustify_logo_white1.png" : "/assets/images/Trustify_logo_black.png";
 
@@ -516,11 +523,25 @@ export const DashboardHeaderMemo: FC = () => {
     setSelectedSettingAccountMenu("Company");
   };
 
+  // タブ名によって選択中のRowデータをリセットする関数
+  const resetSelectedRowData = (newTabName: string, currentTabName: string) => {
+    // 現在のタブと違うタブに移動する場合には全てのselectedRowDataをリセット
+    if (newTabName !== currentTabName) {
+      setSelectedRowDataCompany(null);
+      setSelectedRowDataContact(null);
+      setSelectedRowDataActivity(null);
+      setSelectedRowDataMeeting(null);
+      setSelectedRowDataProperty(null);
+    }
+    // 現在のタブと一緒なら選択中のRowデータはリセットしない
+  };
+
   // タブ切り替えでサーチモードをfalseに
   const switchActiveTab = (tabName: string) => {
     if (searchMode) setSearchMode(false);
     if (editSearchMode) setEditSearchMode(false);
     if (loadingGlobalState) setLoadingGlobalState(false);
+    resetSelectedRowData(tabName, activeMenuTab);
     setActiveMenuTab(tabName);
   };
 
@@ -548,8 +569,7 @@ export const DashboardHeaderMemo: FC = () => {
             // placeholder="blur"
             // blurDataURL={theme === "dark" ? blurDataURLDark : blurDataURL}
             // className="!relative !h-[60px] !w-[200px] object-cover"
-            // onClick={() => setActiveMenuTab("HOME")}
-            onClick={() => switchActiveTab("HOME")}
+            onClick={() => setActiveMenuTab("HOME")}
           />
         </div>
         {/* ヘッダータブ左スクロール時に連続でツールチップが表示されないようにするためのオーバーレイ */}

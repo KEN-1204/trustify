@@ -307,17 +307,6 @@
 .editable_field {
   cursor: pointer;
 }
-.textarea_value {
-  color: var(--color-text-under-value);
-  overflow: hidden;
-  display: -webkit-inline-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  height: 45px;
-}
-.address {
-  max-height: 45px;
-}
 
 .anchor {
   color: var(--color-text-brand-f);
@@ -403,6 +392,19 @@
 .textarea_box_search_mode:focus {
   box-shadow: var(--color-bg-under-input-active-box-shadow);
 }
+.textarea_value {
+  color: var(--color-text-under-value);
+  overflow: hidden;
+  display: -webkit-inline-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  height: 45px;
+}
+.textarea_box.address {
+  min-height: 52px;
+  max-height: 52px;
+}
+
 .select_box {
   box-shadow: var(--color-bg-under-input-box-shadow);
   background: var(--color-bg-under-input);
@@ -472,9 +474,6 @@
   min-height: 120px;
   /* white-space: pre-line; */
   /* background: #00000030; */
-}
-.address {
-  max-height: 45px;
 }
 
 /* ------------------------------- 右側エリア ------------------------------- */

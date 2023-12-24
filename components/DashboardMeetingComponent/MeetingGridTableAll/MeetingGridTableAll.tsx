@@ -2558,6 +2558,8 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
                   console.log("リフレッシュ クリック");
                   setRefetchLoading(true);
                   await queryClient.invalidateQueries({ queryKey: ["meetings"] });
+                  // 再度テーブルの選択セルのDOMをクリックしてselectedRowDataMeetingを最新状態にする
+                  setIsUpdateRequiredForLatestSelectedRowDataMeeting(true);
                   // await refetch();
                   setRefetchLoading(false);
                 }}

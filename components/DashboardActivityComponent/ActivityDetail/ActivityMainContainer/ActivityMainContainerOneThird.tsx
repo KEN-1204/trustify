@@ -25,6 +25,7 @@ import { optionsActivityType, optionsPriority } from "./selectOptionsActivity";
 import { AiTwotoneCalendar } from "react-icons/ai";
 import { toHalfWidthAndSpace } from "@/utils/Helpers/toHalfWidthAndSpace";
 import { InputSendAndCloseBtn } from "@/components/DashboardCompanyComponent/CompanyMainContainer/InputSendAndCloseBtn/InputSendAndCloseBtn";
+import { useMedia } from "react-use";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -56,6 +57,7 @@ const ActivityMainContainerOneThirdMemo = () => {
   const editSearchMode = useDashboardStore((state) => state.editSearchMode);
   const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
   // ツールチップ
+  const hoveredItemPosWrap = useStore((state) => state.hoveredItemPosWrap);
   const setHoveredItemPosWrap = useStore((state) => state.setHoveredItemPosWrap);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
@@ -80,6 +82,16 @@ const ActivityMainContainerOneThirdMemo = () => {
 
   // useMutation
   const { updateActivityFieldMutation } = useMutateActivity();
+
+  // メディアクエリState
+  // デスクトップモニター
+  const isDesktopGTE1600Media = useMedia("(min-width: 1600px)", false);
+  const [isDesktopGTE1600, setIsDesktopGTE1600] = useState(isDesktopGTE1600Media);
+  useEffect(() => {
+    setIsDesktopGTE1600(isDesktopGTE1600Media);
+  }, [isDesktopGTE1600Media]);
+  // 横幅1600px以下で、かつ、サイドバーが開いている場合はツールチップを必要とする変数
+  // const isRequireTooltipOpenSidebar = !isDesktopGTE1600 && isOpenSidebar;
 
   // 🌟サブミット
   const [inputCompanyName, setInputCompanyName] = useState("");
@@ -638,7 +650,11 @@ const ActivityMainContainerOneThirdMemo = () => {
   };
 
   // ================== 🌟ツールチップ🌟 ==================
-  const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string = "center") => {
+  // const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string = "center") => {
+  const handleOpenTooltip = (
+    e: React.MouseEvent<HTMLElement, MouseEvent>,
+    display: "top" | "right" | "bottom" | "left" | "" = ""
+  ) => {
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
     // console.log("ツールチップx, y width , height", x, y, width, height);
@@ -661,7 +677,7 @@ const ActivityMainContainerOneThirdMemo = () => {
   };
   // ツールチップを非表示
   const handleCloseTooltip = () => {
-    setHoveredItemPosWrap(null);
+    if (!!hoveredItemPosWrap) setHoveredItemPosWrap(null);
   };
   // ================== ✅ツールチップ✅ ==================
 
@@ -963,8 +979,8 @@ const ActivityMainContainerOneThirdMemo = () => {
         console.log("日付チェック 新たな日付のためこのまま更新 newValue", newValue);
       }
     }
-    // 決裁金額、日付以外でnewValueがnullでない場合で、入力値が現在のvalueと同じであれば更新は不要なため閉じてリターン
-    else if (newValue !== null && originalValue === newValue) {
+    // 入力値が現在のvalueと同じであれば更新は不要なため閉じてリターン null = null ''とnullもリターン textareaはnullの場合表示は空文字でされているため
+    else if ((!required && originalValue === newValue) || (!originalValue && !newValue)) {
       console.log(
         "決裁金額、日付以外でチェック 同じためリターン",
         "originalValue",
@@ -1079,7 +1095,14 @@ const ActivityMainContainerOneThirdMemo = () => {
     }
   };
 
-  console.log("🔥 ActivityMainContainerレンダリング searchMode", searchMode);
+  console.log(
+    "🔥 ActivityMainContainerレンダリング searchMode",
+    searchMode,
+    "useMedia isDesktopGTE1600",
+    isDesktopGTE1600
+    // "window.innerWidth",
+    // window.innerWidth
+  );
 
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
   return (
@@ -1595,7 +1618,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                 )}
               </div>
 
-              {/* 概要 */}
+              {/* 概要 通常 */}
               {/* <div className={`${styles.row_area} flex h-[90px] w-full items-center`}> */}
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
@@ -1603,7 +1626,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                     <span className={`${styles.title} ${styles.title_sm}`}>概要</span>
                     {!searchMode && isEditModeField !== "summary" && (
                       <div
-                        data-text={`${selectedRowDataActivity?.summary ? selectedRowDataActivity?.summary : ""}`}
+                        // data-text={`${selectedRowDataActivity?.summary ? selectedRowDataActivity?.summary : ""}`}
                         className={`${styles.textarea_box} ${styles.textarea_box_bg} ${
                           isOurActivityAndIsTypeActivity ? styles.editable_field : styles.uneditable_field
                         }`}
@@ -1625,15 +1648,25 @@ const ActivityMainContainerOneThirdMemo = () => {
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          if (!selectedRowDataActivity?.activity_type) return;
-                          if (isNotActivityTypeArray.includes(selectedRowDataActivity.activity_type)) return;
-                          handleOpenTooltip(e);
+                          // if (!selectedRowDataActivity?.activity_type) return;
+                          // if (
+                          //   isNotActivityTypeArray.includes(selectedRowDataActivity.activity_type) ||
+                          //   !selectedRowDataActivity?.summary
+                          // ) {
+                          //   return;
+                          // }
+                          // handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (!selectedRowDataActivity?.activity_type) return;
-                          if (isNotActivityTypeArray.includes(selectedRowDataActivity.activity_type)) return;
-                          handleCloseTooltip();
+                          // if (!selectedRowDataActivity?.activity_type) return;
+                          // if (
+                          //   isNotActivityTypeArray.includes(selectedRowDataActivity.activity_type) ||
+                          //   !selectedRowDataActivity?.summary
+                          // ) {
+                          //   return;
+                          // }
+                          // handleCloseTooltip();
                         }}
                         dangerouslySetInnerHTML={{
                           __html: selectedRowDataActivity?.summary
@@ -1665,9 +1698,8 @@ const ActivityMainContainerOneThirdMemo = () => {
                               fieldName: "summary",
                               fieldNameForSelectedRowData: "summary",
                               originalValue: originalValueFieldEdit.current,
-                              // newValue: toHalfWidthAndSpace(inputSummary.trim()),
-                              newValue: inputSummary.trim(),
-                              id: selectedRowDataActivity?.contact_id,
+                              newValue: inputSummary ? inputSummary.trim() : null,
+                              id: selectedRowDataActivity?.activity_id,
                               required: false,
                             })
                           }
@@ -1678,35 +1710,6 @@ const ActivityMainContainerOneThirdMemo = () => {
                           outsidePosition="under_right"
                           isLoadingSendEvent={updateActivityFieldMutation.isLoading}
                         />
-                        {/* {updateActivityFieldMutation.isLoading && (
-                          <InputSendAndCloseBtn
-                            inputState={inputSummary}
-                            setInputState={setInputSummary}
-                            onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
-                              handleClickSendUpdateField({
-                                e,
-                                fieldName: "summary",
-                                fieldNameForSelectedRowData: "summary",
-                                originalValue: originalValueFieldEdit.current,
-                                // newValue: toHalfWidthAndSpace(inputSummary.trim()),
-                                newValue: inputSummary.trim(),
-                                id: selectedRowDataActivity?.contact_id,
-                                required: false,
-                              })
-                            }
-                            required={false}
-                            // isDisplayClose={true}
-                            // btnPositionY="bottom-[8px]"
-                            isOutside={true}
-                            outsidePosition="under_right"
-                          />
-                        )} */}
-                        {/* エディットフィールド送信中ローディングスピナー */}
-                        {/* {updateActivityFieldMutation.isLoading && (
-                          <div className={`${styles.field_edit_mode_loading_area}`}>
-                            <SpinnerComet w="22px" h="22px" s="3px" />
-                          </div>
-                        )} */}
                       </>
                     )}
                     {/* フィールドエディットモードオーバーレイ */}
@@ -1725,17 +1728,24 @@ const ActivityMainContainerOneThirdMemo = () => {
                 </div>
               </div>
 
-              {/* 事業部名 */}
+              {/* 事業部名 通常 */}
               <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>事業部名</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         {selectedRowDataActivity?.department ? selectedRowDataActivity?.department : ""}
                       </span>
                     )}
-                    {searchMode && <input type="text" className={`${styles.input_box}`} />}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1744,14 +1754,13 @@ const ActivityMainContainerOneThirdMemo = () => {
                     <span className={`${styles.title}`}>活動年月度</span>
                     {!searchMode && (
                       <span
-                        // data-text={`${
-                        //   selectedRowDataActivity?.senior_managing_director
-                        //     ? selectedRowDataActivity?.senior_managing_director
-                        //     : ""
-                        // }`}
                         className={`${styles.value}`}
-                        // onMouseEnter={(e) => handleOpenTooltip(e)}
-                        // onMouseLeave={handleCloseTooltip}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
                       >
                         {selectedRowDataActivity?.activity_year_month
                           ? selectedRowDataActivity?.activity_year_month
@@ -1769,7 +1778,15 @@ const ActivityMainContainerOneThirdMemo = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>事業所</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         {selectedRowDataActivity?.business_office ? selectedRowDataActivity?.business_office : ""}
                       </span>
                     )}
@@ -1782,14 +1799,13 @@ const ActivityMainContainerOneThirdMemo = () => {
                     <span className={`${styles.title}`}>自社担当</span>
                     {!searchMode && (
                       <span
-                        // data-text={`${
-                        //   selectedRowDataActivity?.member_name
-                        //     ? selectedRowDataActivity?.member_name
-                        //     : ""
-                        // }`}
                         className={`${styles.value}`}
-                        // onMouseEnter={(e) => handleOpenTooltip(e)}
-                        // onMouseLeave={handleCloseTooltip}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
                       >
                         {selectedRowDataActivity?.member_name ? selectedRowDataActivity?.member_name : ""}
                       </span>
@@ -1806,7 +1822,15 @@ const ActivityMainContainerOneThirdMemo = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>実施1</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         {selectedRowDataActivity?.product_introduction1
                           ? selectedRowDataActivity?.product_introduction1
                           : ""}
@@ -1821,14 +1845,13 @@ const ActivityMainContainerOneThirdMemo = () => {
                     <span className={`${styles.title}`}>実施2</span>
                     {!searchMode && (
                       <span
-                        // data-text={`${
-                        //   selectedRowDataActivity?.senior_managing_director
-                        //     ? selectedRowDataActivity?.senior_managing_director
-                        //     : ""
-                        // }`}
                         className={`${styles.value}`}
-                        // onMouseEnter={(e) => handleOpenTooltip(e)}
-                        // onMouseLeave={handleCloseTooltip}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
                       >
                         {selectedRowDataActivity?.product_introduction2
                           ? selectedRowDataActivity?.product_introduction2
@@ -1847,7 +1870,15 @@ const ActivityMainContainerOneThirdMemo = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>実施3</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         {selectedRowDataActivity?.product_introduction3
                           ? selectedRowDataActivity?.product_introduction3
                           : ""}
@@ -1862,14 +1893,13 @@ const ActivityMainContainerOneThirdMemo = () => {
                     <span className={`${styles.title}`}>実施4</span>
                     {!searchMode && (
                       <span
-                        // data-text={`${
-                        //   selectedRowDataActivity?.senior_managing_director
-                        //     ? selectedRowDataActivity?.senior_managing_director
-                        //     : ""
-                        // }`}
                         className={`${styles.value}`}
-                        // onMouseEnter={(e) => handleOpenTooltip(e)}
-                        // onMouseLeave={handleCloseTooltip}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
                       >
                         {selectedRowDataActivity?.product_introduction4
                           ? selectedRowDataActivity?.product_introduction4
@@ -1888,7 +1918,15 @@ const ActivityMainContainerOneThirdMemo = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>実施5</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         {selectedRowDataActivity?.product_introduction5
                           ? selectedRowDataActivity?.product_introduction5
                           : ""}
@@ -1933,15 +1971,21 @@ const ActivityMainContainerOneThirdMemo = () => {
                       <span>要注意フラグ</span>
                     </div>
 
-                    <div className={`${styles.grid_select_cell_header} `}>
+                    <div
+                      className={`${styles.grid_select_cell_header} `}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       <input
                         type="checkbox"
-                        // checked={!!checkedColumnHeader} // 初期値
                         checked={!!selectedRowDataActivity?.call_careful_flag}
-                        onChange={() => {
-                          setLoadingGlobalState(false);
-                          setIsOpenUpdateActivityModal(true);
-                        }}
+                        readOnly
+                        // onChange={() => {}}
+                        onClick={() => alert("「TEL要注意フラグ」は担当者画面から編集可能です。")}
                         className={`${styles.grid_select_cell_header_input}`}
                       />
                       <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -1962,8 +2006,16 @@ const ActivityMainContainerOneThirdMemo = () => {
                             : ""
                         }`}
                         className={`${styles.value}`}
-                        onMouseEnter={(e) => handleOpenTooltip(e, "right")}
-                        onMouseLeave={handleCloseTooltip}
+                        // onMouseEnter={(e) => handleOpenTooltip(e, "right")}
+                        // onMouseLeave={handleCloseTooltip}
+                        onMouseEnter={(e) => {
+                          handleOpenTooltip(e);
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          handleCloseTooltip();
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
                       >
                         {selectedRowDataActivity?.call_careful_reason
                           ? selectedRowDataActivity?.call_careful_reason
@@ -1986,14 +2038,20 @@ const ActivityMainContainerOneThirdMemo = () => {
                       <span>禁止フラグ</span>
                     </div>
 
-                    <div className={`${styles.grid_select_cell_header} `}>
+                    <div
+                      className={`${styles.grid_select_cell_header} `}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       <input
                         type="checkbox"
                         checked={!!selectedRowDataActivity?.email_ban_flag}
-                        onChange={() => {
-                          setLoadingGlobalState(false);
-                          setIsOpenUpdateActivityModal(true);
-                        }}
+                        readOnly
+                        onClick={() => alert("「メール禁止フラグ」は担当者画面から編集可能です。")}
                         className={`${styles.grid_select_cell_header_input}`}
                       />
                       <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -2011,14 +2069,20 @@ const ActivityMainContainerOneThirdMemo = () => {
                       <span>禁止フラグ</span>
                     </div>
 
-                    <div className={`${styles.grid_select_cell_header} `}>
+                    <div
+                      className={`${styles.grid_select_cell_header} `}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       <input
                         type="checkbox"
                         checked={!!selectedRowDataActivity?.sending_materials_ban_flag}
-                        onChange={() => {
-                          setLoadingGlobalState(false);
-                          setIsOpenUpdateActivityModal(true);
-                        }}
+                        readOnly
+                        onClick={() => alert("「資料禁止フラグ」は担当者画面から編集可能です。")}
                         className={`${styles.grid_select_cell_header_input}`}
                       />
                       <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -2040,14 +2104,20 @@ const ActivityMainContainerOneThirdMemo = () => {
                       <span>禁止フラグ</span>
                     </div>
 
-                    <div className={`${styles.grid_select_cell_header} `}>
+                    <div
+                      className={`${styles.grid_select_cell_header} `}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       <input
                         type="checkbox"
                         checked={!!selectedRowDataActivity?.fax_dm_ban_flag}
-                        onChange={() => {
-                          setLoadingGlobalState(false);
-                          setIsOpenUpdateActivityModal(true);
-                        }}
+                        readOnly
+                        onClick={() => alert("「FAX・DM禁止フラグ」は担当者画面から編集可能です。")}
                         className={`${styles.grid_select_cell_header_input}`}
                       />
                       <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -2063,16 +2133,31 @@ const ActivityMainContainerOneThirdMemo = () => {
               </div>
 
               {/* 禁止理由 */}
-              <div className={`${styles.row_area} flex h-[70px] w-full items-center`}>
+              {/* <div className={`${styles.row_area} flex h-[70px] w-full items-center`}> */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full `}>
                     <span className={`${styles.title}`}>禁止理由</span>
                     {!searchMode && (
                       <div
-                        data-text={`${selectedRowDataActivity?.ban_reason ? selectedRowDataActivity?.ban_reason : ""}`}
-                        className={`${styles.value} h-[65px]`}
-                        onMouseEnter={(e) => handleOpenTooltip(e)}
-                        onMouseLeave={handleCloseTooltip}
+                        // data-text={`${selectedRowDataActivity?.ban_reason ? selectedRowDataActivity?.ban_reason : ""}`}
+                        // className={`${styles.value} h-[65px]`}
+                        className={`${styles.value} ${
+                          !!selectedRowDataActivity?.ban_reason
+                            ? `${styles.textarea_box} ${styles.one_third}`
+                            : styles.textarea_value
+                        }`}
+                        onClick={handleSingleClickField}
+                        onDoubleClick={(e) => {
+                          if (!selectedRowDataActivity) return;
+                          alert("「禁止理由」は担当者画面から編集可能です。");
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
                         dangerouslySetInnerHTML={{
                           __html: selectedRowDataActivity?.ban_reason
                             ? selectedRowDataActivity?.ban_reason.replace(/\n/g, "<br>")
@@ -2086,16 +2171,31 @@ const ActivityMainContainerOneThirdMemo = () => {
                 </div>
               </div>
               {/* クレーム */}
-              <div className={`${styles.row_area} flex h-[70px] w-full items-center`}>
+              {/* <div className={`${styles.row_area} flex h-[70px] w-full items-center`}> */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full  `}>
                     <span className={`${styles.title}`}>クレーム</span>
                     {!searchMode && (
                       <div
                         data-text={`${selectedRowDataActivity?.claim ? selectedRowDataActivity?.claim : ""}`}
-                        className={`${styles.value} h-[65px]`}
-                        onMouseEnter={(e) => handleOpenTooltip(e)}
-                        onMouseLeave={handleCloseTooltip}
+                        // className={`${styles.value} h-[65px]`}
+                        className={`${styles.value} ${
+                          !!selectedRowDataActivity?.claim
+                            ? `${styles.textarea_box} ${styles.one_third}`
+                            : styles.textarea_value
+                        }`}
+                        onClick={handleSingleClickField}
+                        onDoubleClick={(e) => {
+                          if (!selectedRowDataActivity) return;
+                          alert("「クレーム内容」は担当者画面から編集可能です。");
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
                         dangerouslySetInnerHTML={{
                           __html: selectedRowDataActivity?.claim
                             ? selectedRowDataActivity?.claim.replace(/\n/g, "<br>")
@@ -2140,11 +2240,19 @@ const ActivityMainContainerOneThirdMemo = () => {
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>●会社名</span>
                       {!searchMode && (
-                        <span className={`${styles.value} ${styles.value_highlight}`}>
+                        <span
+                          className={`${styles.value} ${styles.value_highlight}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
                           {selectedRowDataActivity?.company_name ? selectedRowDataActivity?.company_name : ""}
                         </span>
                       )}
-                      {searchMode && (
+                      {/* {searchMode && (
                         <input
                           type="text"
                           placeholder="株式会社○○"
@@ -2153,7 +2261,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                           value={inputCompanyName}
                           onChange={(e) => setInputCompanyName(e.target.value)}
                         />
-                      )}
+                      )} */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -2169,11 +2277,19 @@ const ActivityMainContainerOneThirdMemo = () => {
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>●部署名</span>
                       {!searchMode && (
-                        <span className={`${styles.value}`}>
+                        <span
+                          className={`${styles.value}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
                           {selectedRowDataActivity?.department_name ? selectedRowDataActivity?.department_name : ""}
                         </span>
                       )}
-                      {searchMode && (
+                      {/* {searchMode && (
                         <input
                           type="text"
                           placeholder="「代表取締役＊」や「＊製造部＊」「＊品質＊」など"
@@ -2181,7 +2297,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                           value={inputDepartmentName}
                           onChange={(e) => setInputDepartmentName(e.target.value)}
                         />
-                      )}
+                      )} */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -2197,11 +2313,19 @@ const ActivityMainContainerOneThirdMemo = () => {
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>担当者名</span>
                       {!searchMode && (
-                        <span className={`${styles.value}`}>
+                        <span
+                          className={`${styles.value}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
                           {selectedRowDataActivity?.contact_name ? selectedRowDataActivity?.contact_name : ""}
                         </span>
                       )}
-                      {searchMode && (
+                      {/* {searchMode && (
                         <input
                           type="tel"
                           placeholder=""
@@ -2209,7 +2333,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                           value={inputContactName}
                           onChange={(e) => setInputContactName(e.target.value)}
                         />
-                      )}
+                      )} */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -2217,18 +2341,31 @@ const ActivityMainContainerOneThirdMemo = () => {
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>直通TEL</span>
                       {!searchMode && (
-                        <span className={`${styles.value}`}>
+                        <span
+                          className={`${styles.value}`}
+                          data-text={`${
+                            selectedRowDataActivity?.direct_line ? selectedRowDataActivity?.direct_line : ""
+                          }`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          }}
+                        >
                           {selectedRowDataActivity?.direct_line ? selectedRowDataActivity?.direct_line : ""}
                         </span>
                       )}
-                      {searchMode && (
+                      {/* {searchMode && (
                         <input
                           type="tel"
                           className={`${styles.input_box}`}
                           value={inputDirectLine}
                           onChange={(e) => setInputDirectLine(e.target.value)}
                         />
-                      )}
+                      )} */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -2244,11 +2381,22 @@ const ActivityMainContainerOneThirdMemo = () => {
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>内線TEL</span>
                       {!searchMode && (
-                        <span className={`${styles.value}`}>
+                        <span
+                          className={`${styles.value}`}
+                          data-text={`${selectedRowDataActivity?.extension ? selectedRowDataActivity?.extension : ""}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          }}
+                        >
                           {selectedRowDataActivity?.extension ? selectedRowDataActivity?.extension : ""}
                         </span>
                       )}
-                      {searchMode && (
+                      {/* {searchMode && (
                         <input
                           type="tel"
                           placeholder=""
@@ -2256,7 +2404,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                           value={inputExtension}
                           onChange={(e) => setInputExtension(e.target.value)}
                         />
-                      )}
+                      )} */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -2264,18 +2412,31 @@ const ActivityMainContainerOneThirdMemo = () => {
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>代表TEL</span>
                       {!searchMode && (
-                        <span className={`${styles.value}`}>
+                        <span
+                          className={`${styles.value}`}
+                          data-text={`${
+                            selectedRowDataActivity?.main_phone_number ? selectedRowDataActivity?.main_phone_number : ""
+                          }`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          }}
+                        >
                           {selectedRowDataActivity?.main_phone_number ? selectedRowDataActivity?.main_phone_number : ""}
                         </span>
                       )}
-                      {searchMode && (
+                      {/* {searchMode && (
                         <input
                           type="tel"
                           className={`${styles.input_box}`}
                           value={inputTel}
                           onChange={(e) => setInputTel(e.target.value)}
                         />
-                      )}
+                      )} */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -2291,18 +2452,31 @@ const ActivityMainContainerOneThirdMemo = () => {
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>直通FAX</span>
                       {!searchMode && (
-                        <span className={`${styles.value}`}>
+                        <span
+                          className={`${styles.value}`}
+                          data-text={`${
+                            selectedRowDataActivity?.direct_fax ? selectedRowDataActivity?.direct_fax : ""
+                          }`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          }}
+                        >
                           {selectedRowDataActivity?.direct_fax ? selectedRowDataActivity?.direct_fax : ""}
                         </span>
                       )}
-                      {searchMode && (
+                      {/* {searchMode && (
                         <input
                           type="text"
                           className={`${styles.input_box}`}
                           value={inputDirectFax}
                           onChange={(e) => setInputDirectFax(e.target.value)}
                         />
-                      )}
+                      )} */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -2311,18 +2485,29 @@ const ActivityMainContainerOneThirdMemo = () => {
                       <span className={`${styles.title}`}>代表FAX</span>
                       {/* <span className={`${styles.title}`}>会員専用</span> */}
                       {!searchMode && (
-                        <span className={`${styles.value}`}>
+                        <span
+                          className={`${styles.value}`}
+                          data-text={`${selectedRowDataActivity?.main_fax ? selectedRowDataActivity?.main_fax : ""}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          }}
+                        >
                           {selectedRowDataActivity?.main_fax ? selectedRowDataActivity?.main_fax : ""}
                         </span>
                       )}
-                      {searchMode && (
+                      {/* {searchMode && (
                         <input
                           type="text"
                           className={`${styles.input_box}`}
                           value={inputFax}
                           onChange={(e) => setInputFax(e.target.value)}
                         />
-                      )}
+                      )} */}
                       {/* {!searchMode && <span className={`${styles.value}`}>有料会員様専用のフィールドです</span>} */}
                       {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
                       {/* サブスク未加入者にはブラーを表示 */}
@@ -2344,7 +2529,22 @@ const ActivityMainContainerOneThirdMemo = () => {
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>社用携帯</span>
                       {!searchMode && (
-                        <span className={`${styles.value}`}>
+                        <span
+                          className={`${styles.value}`}
+                          data-text={`${
+                            selectedRowDataActivity?.company_cell_phone
+                              ? selectedRowDataActivity?.company_cell_phone
+                              : ""
+                          }`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          }}
+                        >
                           {selectedRowDataActivity?.company_cell_phone
                             ? selectedRowDataActivity?.company_cell_phone
                             : ""}
@@ -2365,7 +2565,22 @@ const ActivityMainContainerOneThirdMemo = () => {
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>私用携帯</span>
                       {!searchMode && (
-                        <span className={`${styles.value}`}>
+                        <span
+                          className={`${styles.value}`}
+                          data-text={`${
+                            selectedRowDataActivity?.personal_cell_phone
+                              ? selectedRowDataActivity?.personal_cell_phone
+                              : ""
+                          }`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          }}
+                        >
                           {selectedRowDataActivity?.personal_cell_phone
                             ? selectedRowDataActivity?.personal_cell_phone
                             : ""}
@@ -2394,18 +2609,26 @@ const ActivityMainContainerOneThirdMemo = () => {
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>E-mail</span>
                       {!searchMode && (
-                        <span className={`${styles.value}`}>
+                        <span
+                          className={`${styles.value}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
                           {selectedRowDataActivity?.contact_email ? selectedRowDataActivity?.contact_email : ""}
                         </span>
                       )}
-                      {searchMode && (
+                      {/* {searchMode && (
                         <input
                           type="text"
                           className={`${styles.input_box}`}
                           value={inputContactEmail}
                           onChange={(e) => setInputContactEmail(e.target.value)}
                         />
-                      )}
+                      )} */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -2421,18 +2644,26 @@ const ActivityMainContainerOneThirdMemo = () => {
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>郵便番号</span>
                       {!searchMode && (
-                        <span className={`${styles.value}`}>
+                        <span
+                          className={`${styles.value}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
                           {selectedRowDataActivity?.zipcode ? selectedRowDataActivity?.zipcode : ""}
                         </span>
                       )}
-                      {searchMode && (
+                      {/* {searchMode && (
                         <input
                           type="text"
                           className={`${styles.input_box}`}
                           value={inputZipcode}
                           onChange={(e) => setInputZipcode(e.target.value)}
                         />
-                      )}
+                      )} */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -2467,11 +2698,19 @@ const ActivityMainContainerOneThirdMemo = () => {
                     <div className={`${styles.title_box} flex h-full `}>
                       <span className={`${styles.title}`}>○住所</span>
                       {!searchMode && (
-                        <span className={`${styles.textarea_value} h-[45px]`}>
+                        <span
+                          className={`${styles.textarea_value} h-[45px]`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
                           {selectedRowDataActivity?.address ? selectedRowDataActivity?.address : ""}
                         </span>
                       )}
-                      {searchMode && (
+                      {/* {searchMode && (
                         <textarea
                           name="address"
                           id="address"
@@ -2482,7 +2721,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                           value={inputAddress}
                           onChange={(e) => setInputAddress(e.target.value)}
                         ></textarea>
-                      )}
+                      )} */}
                     </div>
                     <div className={`${styles.underline} `}></div>
                   </div>
@@ -2516,18 +2755,31 @@ const ActivityMainContainerOneThirdMemo = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>役職名</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataActivity?.position_name ? selectedRowDataActivity?.position_name : ""
+                        }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          if (!isDesktopGTE1600) handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
                         {selectedRowDataActivity?.position_name ? selectedRowDataActivity?.position_name : ""}
                       </span>
                     )}
-                    {searchMode && (
+                    {/* {searchMode && (
                       <input
                         type="text"
                         className={`${styles.input_box}`}
                         value={inputPositionName}
                         onChange={(e) => setInputPositionName(e.target.value)}
                       />
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -2535,17 +2787,19 @@ const ActivityMainContainerOneThirdMemo = () => {
                   <div className={`${styles.title_box} flex h-full items-center`}>
                     <span className={`${styles.title}`}>職位</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         {selectedRowDataActivity?.position_class ? selectedRowDataActivity?.position_class : ""}
                       </span>
                     )}
-                    {searchMode && (
-                      // <input
-                      //   type="text"
-                      //   className={`${styles.input_box} ml-[20px]`}
-                      //   value={inputProductL}
-                      //   onChange={(e) => setInputProductL(e.target.value)}
-                      // />
+                    {/* {searchMode && (
                       <select
                         name="position_class"
                         id="position_class"
@@ -2562,7 +2816,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                         <option value="6 所長・工場長">6 所長・工場長</option>
                         <option value="7 不明">7 不明</option>
                       </select>
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -2578,11 +2832,19 @@ const ActivityMainContainerOneThirdMemo = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>担当職種</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         {selectedRowDataActivity?.occupation ? selectedRowDataActivity?.occupation : ""}
                       </span>
                     )}
-                    {searchMode && (
+                    {/* {searchMode && (
                       <select
                         name="position_class"
                         id="position_class"
@@ -2597,7 +2859,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                           </option>
                         ))}
                       </select>
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -2609,7 +2871,15 @@ const ActivityMainContainerOneThirdMemo = () => {
                       <span>(万円)</span>
                     </div>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         {selectedRowDataActivity?.approval_amount ? selectedRowDataActivity?.approval_amount : ""}
                       </span>
                     )}
@@ -2628,19 +2898,28 @@ const ActivityMainContainerOneThirdMemo = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>規模(ﾗﾝｸ)</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataActivity?.number_of_employees_class
+                            ? selectedRowDataActivity?.number_of_employees_class
+                            : ""
+                        }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          if (!isDesktopGTE1600 && isOpenSidebar) handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
                         {selectedRowDataActivity?.number_of_employees_class
                           ? selectedRowDataActivity?.number_of_employees_class
                           : ""}
                       </span>
                     )}
-                    {searchMode && (
-                      // <input
-                      //   type="text"
-                      //   className={`${styles.input_box} ml-[20px]`}
-                      //   value={inputProductL}
-                      //   onChange={(e) => setInputProductL(e.target.value)}
-                      // />
+                    {/* {searchMode && (
                       <select
                         name="position_class"
                         id="position_class"
@@ -2657,7 +2936,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                         <option value="F*">F 50~99名</option>
                         <option value="G*">G 1~49名</option>
                       </select>
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -2665,18 +2944,26 @@ const ActivityMainContainerOneThirdMemo = () => {
                   <div className={`${styles.title_box} flex h-full items-center`}>
                     <span className={`${styles.title}`}>決算月</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         {selectedRowDataActivity?.fiscal_end_month ? selectedRowDataActivity?.fiscal_end_month : ""}
                       </span>
                     )}
-                    {searchMode && (
+                    {/* {searchMode && (
                       <input
                         type="text"
                         className={`${styles.input_box}`}
                         value={inputFiscal}
                         onChange={(e) => setInputFiscal(e.target.value)}
                       />
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -2696,20 +2983,28 @@ const ActivityMainContainerOneThirdMemo = () => {
                       <span>申請月1</span>
                     </div>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         {selectedRowDataActivity?.budget_request_month1
                           ? selectedRowDataActivity?.budget_request_month1
                           : ""}
                       </span>
                     )}
-                    {searchMode && (
+                    {/* {searchMode && (
                       <input
                         type="text"
                         className={`${styles.input_box}`}
                         value={inputBudgetRequestMonth1}
                         onChange={(e) => setInputBudgetRequestMonth1(e.target.value)}
                       />
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -2721,20 +3016,28 @@ const ActivityMainContainerOneThirdMemo = () => {
                       <span>申請月2</span>
                     </div>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         {selectedRowDataActivity?.budget_request_month2
                           ? selectedRowDataActivity?.budget_request_month2
                           : ""}
                       </span>
                     )}
-                    {searchMode && (
+                    {/* {searchMode && (
                       <input
                         type="text"
                         className={`${styles.input_box}`}
                         value={inputBudgetRequestMonth2}
                         onChange={(e) => setInputBudgetRequestMonth2(e.target.value)}
                       />
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -2750,14 +3053,22 @@ const ActivityMainContainerOneThirdMemo = () => {
                       <span>(万円)</span>
                     </div>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         {/* {selectedRowDataCompany?.capital ? selectedRowDataCompany?.capital : ""} */}
                         {selectedRowDataActivity?.capital
                           ? convertToJapaneseCurrencyFormat(selectedRowDataActivity.capital)
                           : ""}
                       </span>
                     )}
-                    {searchMode && (
+                    {/* {searchMode && (
                       <input
                         type="text"
                         className={`${styles.input_box}`}
@@ -2771,7 +3082,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                           )
                         }
                       />
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -2779,18 +3090,26 @@ const ActivityMainContainerOneThirdMemo = () => {
                   <div className={`${styles.title_box} flex h-full items-center`}>
                     <span className={`${styles.title}`}>設立</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         {selectedRowDataActivity?.established_in ? selectedRowDataActivity?.established_in : ""}
                       </span>
                     )}
-                    {searchMode && (
+                    {/* {searchMode && (
                       <input
                         type="text"
                         className={`${styles.input_box}`}
                         value={inputFound}
                         onChange={(e) => setInputFound(e.target.value)}
                       />
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -2803,17 +3122,21 @@ const ActivityMainContainerOneThirdMemo = () => {
                     <span className={`${styles.title}`}>事業内容</span>
                     {!searchMode && (
                       <>
-                        {/* <span className={`${styles.textarea_value} h-[45px]`}>
-                        東京都港区芝浦4-20-2
-                        芝浦アイランドブルームタワー602号室あああああああああああああああああああああああああああああ芝浦アイランドブルームタワー602号室222あああああああああああああああああああああああああああああ
-                      </span> */}
                         <span
                           data-text={`${
                             selectedRowDataActivity?.business_content ? selectedRowDataActivity?.business_content : ""
                           }`}
                           className={`${styles.textarea_value} h-[45px]`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
-                          onMouseLeave={handleCloseTooltip}
+                          // onMouseEnter={(e) => handleOpenTooltip(e)}
+                          // onMouseLeave={handleCloseTooltip}
+                          onMouseEnter={(e) => {
+                            handleOpenTooltip(e);
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            handleCloseTooltip();
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
                           dangerouslySetInnerHTML={{
                             __html: selectedRowDataActivity?.business_content
                               ? selectedRowDataActivity?.business_content.replace(/\n/g, "<br>")
@@ -2824,7 +3147,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                         </span>
                       </>
                     )}
-                    {searchMode && (
+                    {/* {searchMode && (
                       <textarea
                         name="address"
                         id="address"
@@ -2834,7 +3157,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                         value={inputContent}
                         onChange={(e) => setInputContent(e.target.value)}
                       ></textarea>
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -2853,20 +3176,28 @@ const ActivityMainContainerOneThirdMemo = () => {
                       <span
                         data-text={`${selectedRowDataActivity?.clients ? selectedRowDataActivity?.clients : ""}`}
                         className={`${styles.value}`}
-                        onMouseEnter={(e) => handleOpenTooltip(e)}
-                        onMouseLeave={handleCloseTooltip}
+                        // onMouseEnter={(e) => handleOpenTooltip(e)}
+                        // onMouseLeave={handleCloseTooltip}
+                        onMouseEnter={(e) => {
+                          handleOpenTooltip(e);
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          handleCloseTooltip();
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
                       >
                         {selectedRowDataActivity?.clients ? selectedRowDataActivity?.clients : ""}
                       </span>
                     )}
-                    {searchMode && (
+                    {/* {searchMode && (
                       <input
                         type="text"
                         className={`${styles.input_box}`}
                         value={inputClient}
                         onChange={(e) => setInputClient(e.target.value)}
                       />
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -2885,20 +3216,28 @@ const ActivityMainContainerOneThirdMemo = () => {
                       <span
                         data-text={`${selectedRowDataActivity?.supplier ? selectedRowDataActivity?.supplier : ""}`}
                         className={`${styles.value}`}
-                        onMouseEnter={(e) => handleOpenTooltip(e)}
-                        onMouseLeave={handleCloseTooltip}
+                        // onMouseEnter={(e) => handleOpenTooltip(e)}
+                        // onMouseLeave={handleCloseTooltip}
+                        onMouseEnter={(e) => {
+                          handleOpenTooltip(e);
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          handleCloseTooltip();
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
                       >
                         {selectedRowDataActivity?.supplier ? selectedRowDataActivity?.supplier : ""}
                       </span>
                     )}
-                    {searchMode && (
+                    {/* {searchMode && (
                       <input
                         type="text"
                         className={`${styles.input_box}`}
                         value={inputSupplier}
                         onChange={(e) => setInputSupplier(e.target.value)}
                       />
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -2918,8 +3257,16 @@ const ActivityMainContainerOneThirdMemo = () => {
                         <span
                           data-text={`${selectedRowDataActivity?.facility ? selectedRowDataActivity?.facility : ""}`}
                           className={`${styles.textarea_value} h-[45px]`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
-                          onMouseLeave={handleCloseTooltip}
+                          // onMouseEnter={(e) => handleOpenTooltip(e)}
+                          // onMouseLeave={handleCloseTooltip}
+                          onMouseEnter={(e) => {
+                            handleOpenTooltip(e);
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            handleCloseTooltip();
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
                           dangerouslySetInnerHTML={{
                             __html: selectedRowDataActivity?.facility
                               ? selectedRowDataActivity?.facility.replace(/\n/g, "<br>")
@@ -2930,7 +3277,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                         </span>
                       </>
                     )}
-                    {searchMode && (
+                    {/* {searchMode && (
                       <textarea
                         name="address"
                         id="address"
@@ -2940,7 +3287,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                         value={inputFacility}
                         onChange={(e) => setInputFacility(e.target.value)}
                       ></textarea>
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -2961,20 +3308,28 @@ const ActivityMainContainerOneThirdMemo = () => {
                           selectedRowDataActivity?.business_sites ? selectedRowDataActivity?.business_sites : ""
                         }`}
                         className={`${styles.value}`}
-                        onMouseEnter={(e) => handleOpenTooltip(e)}
-                        onMouseLeave={handleCloseTooltip}
+                        // onMouseEnter={(e) => handleOpenTooltip(e)}
+                        // onMouseLeave={handleCloseTooltip}
+                        onMouseEnter={(e) => {
+                          handleOpenTooltip(e);
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          handleCloseTooltip();
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
                       >
                         {selectedRowDataActivity?.business_sites ? selectedRowDataActivity?.business_sites : ""}
                       </span>
                     )}
-                    {searchMode && (
+                    {/* {searchMode && (
                       <input
                         type="text"
                         className={`${styles.input_box}`}
                         value={inputBusinessSite}
                         onChange={(e) => setInputBusinessSite(e.target.value)}
                       />
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -2987,20 +3342,28 @@ const ActivityMainContainerOneThirdMemo = () => {
                           selectedRowDataActivity?.overseas_bases ? selectedRowDataActivity?.overseas_bases : ""
                         }`}
                         className={`${styles.value}`}
-                        onMouseEnter={(e) => handleOpenTooltip(e)}
-                        onMouseLeave={handleCloseTooltip}
+                        // onMouseEnter={(e) => handleOpenTooltip(e)}
+                        // onMouseLeave={handleCloseTooltip}
+                        onMouseEnter={(e) => {
+                          handleOpenTooltip(e);
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          handleCloseTooltip();
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
                       >
                         {selectedRowDataActivity?.overseas_bases ? selectedRowDataActivity?.overseas_bases : ""}
                       </span>
                     )}
-                    {searchMode && (
+                    {/* {searchMode && (
                       <input
                         type="text"
                         className={`${styles.input_box}`}
                         value={inputOverseas}
                         onChange={(e) => setInputOverseas(e.target.value)}
                       />
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -3021,20 +3384,28 @@ const ActivityMainContainerOneThirdMemo = () => {
                         data-text={`${
                           selectedRowDataActivity?.group_company ? selectedRowDataActivity?.group_company : ""
                         }`}
-                        onMouseEnter={(e) => handleOpenTooltip(e)}
-                        onMouseLeave={handleCloseTooltip}
+                        // onMouseEnter={(e) => handleOpenTooltip(e)}
+                        // onMouseLeave={handleCloseTooltip}
+                        onMouseEnter={(e) => {
+                          handleOpenTooltip(e);
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          handleCloseTooltip();
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
                       >
                         {selectedRowDataActivity?.group_company ? selectedRowDataActivity?.group_company : ""}
                       </span>
                     )}
-                    {searchMode && (
+                    {/* {searchMode && (
                       <input
                         type="text"
                         className={`${styles.input_box}`}
                         value={inputGroup}
                         onChange={(e) => setInputGroup(e.target.value)}
                       />
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -3061,7 +3432,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                     ) : (
                       <span></span>
                     )}
-                    {searchMode && (
+                    {/* {searchMode && (
                       <input
                         type="text"
                         className={`${styles.input_box}`}
@@ -3069,7 +3440,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                         value={inputHP}
                         onChange={(e) => setInputHP(e.target.value)}
                       />
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -3809,7 +4180,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                           cols={30}
                           // rows={10}
                           placeholder="「神奈川県＊」や「＊大田区＊」など"
-                          className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
+                          className={`${styles.textarea_box} ${styles.textarea_box_search_mode} ${styles.address}`}
                           value={inputAddress}
                           onChange={(e) => setInputAddress(e.target.value)}
                         ></textarea>

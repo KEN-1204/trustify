@@ -1880,7 +1880,7 @@ const ContactMainContainerMemo: FC = () => {
                       cols={30}
                       // rows={10}
                       placeholder="「神奈川県＊」や「＊大田区＊」など"
-                      className={`${styles.textarea_box} ${styles.textarea_box_bg} ${styles.textarea_box_search_mode}`}
+                      className={`${styles.textarea_box} ${styles.textarea_box_bg} ${styles.textarea_box_search_mode} ${styles.address}`}
                       value={inputAddress}
                       onChange={(e) => setInputAddress(e.target.value)}
                     ></textarea>
@@ -3607,7 +3607,7 @@ const ContactMainContainerMemo: FC = () => {
                                   fieldName: "claim",
                                   fieldNameForSelectedRowData: "claim",
                                   originalValue: originalValueFieldEdit.current,
-                                  newValue: toHalfWidthAndSpace(inputClaim.trim()),
+                                  newValue: inputClaim ? toHalfWidthAndSpace(inputClaim.trim()) : null,
                                   id: selectedRowDataContact?.contact_id,
                                   required: false,
                                 })
