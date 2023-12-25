@@ -366,7 +366,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
         //     ? "bg-[--color-bg-brand05] hover:bg-[--color-bg-brand-f]"
         //     : "bg-[var(--color-bg-brand-fc0)] hover:bg-[var(--color-bg-brand-f)]"
         // }`}
-        className={`flex-center transition-base01 theme_icon_bg_dashboard fixed bottom-[2%] right-[2%] z-[1000] h-[35px] w-[35px] cursor-pointer rounded-full`}
+        className={`flex-center transition-base01 theme_icon_bg_dashboard fixed bottom-[2%] right-[2%] z-[10000] h-[35px] w-[35px] cursor-pointer rounded-full`}
         onClick={changeTheme}
         onMouseEnter={() => hoveredThemeIconRef.current?.classList.add(`${styles.active}`)}
         onMouseLeave={() => hoveredThemeIconRef.current?.classList.remove(`${styles.active}`)}

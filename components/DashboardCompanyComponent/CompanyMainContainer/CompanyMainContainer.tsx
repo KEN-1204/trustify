@@ -15,7 +15,7 @@ import { BsCheck2 } from "react-icons/bs";
 import { FallbackUnderRightActivityLog } from "./UnderRightActivityLog/FallbackUnderRightActivityLog";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
-import { MdClose } from "react-icons/md";
+import { MdClose, MdEdit } from "react-icons/md";
 import { HiOutlineSearch } from "react-icons/hi";
 import { IoIosSend } from "react-icons/io";
 import { InputSendAndCloseBtn } from "./InputSendAndCloseBtn/InputSendAndCloseBtn";
@@ -31,7 +31,8 @@ import { validateAndFormatPhoneNumber } from "@/utils/Helpers/validateAndFormatP
 import { validateAndFormatPostalCode } from "@/utils/Helpers/validateAndFormatPostalCode";
 import { formatJapaneseAddress } from "@/utils/Helpers/formatJapaneseAddress";
 import { toHalfWidthAndSpace } from "@/utils/Helpers/toHalfWidthAndSpace";
-import { optionsIndustryType, optionsMonth } from "./selectOptionsData";
+import { optionsIndustryType, optionsMonth, optionsProductL } from "./selectOptionsData";
+import { CiEdit } from "react-icons/ci";
 
 // ====================== 擬似テストデータ用 ======================
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
@@ -85,7 +86,7 @@ const CompanyMainContainerMemo: FC = () => {
   const queryClient = useQueryClient();
 
   // useMutation
-  const { updateClientCompanyFieldMutation } = useMutateClientCompany();
+  const { updateClientCompanyFieldMutation, updateMultipleClientCompanyFields } = useMutateClientCompany();
 
   // 🌟サブミット
   const [inputName, setInputName] = useState("");
@@ -123,6 +124,8 @@ const CompanyMainContainerMemo: FC = () => {
   const [inputAuditor, setInputAuditor] = useState("");
   const [inputManager, setInputManager] = useState("");
   const [inputMember, setInputMember] = useState("");
+  // 従業員数 フィールドエディットモードのみでサーチなし
+  const [inputNumberOfEmployees, setInputNumberOfEmployees] = useState("");
 
   // サーチ編集モードでリプレイス前の値に復元する関数
   function beforeAdjustFieldValue(value: string | null) {
@@ -694,14 +697,27 @@ const CompanyMainContainerMemo: FC = () => {
       return;
     }
 
-    const updatePayload = {
-      fieldName: fieldName,
-      value: value,
-      id: id,
-    };
-    // 入力変換確定状態でエンターキーが押された場合の処理
-    console.log("selectタグでUPDATE実行 updatePayload", updatePayload);
-    await updateClientCompanyFieldMutation.mutateAsync(updatePayload);
+    // 製品分類(大分類以外)
+    if (fieldName !== "product_category_large") {
+      const updatePayload = {
+        fieldName: fieldName,
+        value: value,
+        id: id,
+      };
+      // 入力変換確定状態でエンターキーが押された場合の処理
+      console.log("selectタグでUPDATE実行 updatePayload", updatePayload);
+      await updateClientCompanyFieldMutation.mutateAsync(updatePayload);
+    }
+    // 製品分類(大分類以外)のUPDATE、同時に製品分類(中分類)をnullに更新してリセット
+    else if (fieldName === "product_category_large") {
+      const updateObject = { product_category_large: value, product_category_medium: null };
+      const updateProductCategoryLargePayload = {
+        updateObject: updateObject,
+        id: id,
+      };
+      console.log("selectタグでUPDATE実行 updateProductCategoryLargePayload", updateProductCategoryLargePayload);
+      await updateMultipleClientCompanyFields.mutateAsync(updateProductCategoryLargePayload);
+    }
     setIsEditModeField(null); // エディットモードを終了
   };
   // selectタグで同じ選択肢を選択した際にフィールドエディットモードを終了させるイベントハンドラ
@@ -810,6 +826,22 @@ const CompanyMainContainerMemo: FC = () => {
                           <BsCheck2 className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
                         </div>
                       )}
+                      {!!selectedRowDataCompany && (
+                        <div
+                          className={`relative !ml-[4px] h-[22px] w-[22px] ${styles.editable_icon}`}
+                          data-text={`表示されている各データをダブルクリックすることで個別に編集可能です。`}
+                          data-text2={`編集できるのは自社で作成した自社専用データのみです。`}
+                          onMouseEnter={(e) => {
+                            handleOpenTooltip({ e, display: "top" });
+                          }}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          <CiEdit
+                            className={`pointer-events-none min-h-[22px] min-w-[22px] text-[22px] text-[var(--color-text-sub)]`}
+                          />
+                        </div>
+                      )}
+                      {/* <MdEdit className="min-h-[18px] min-w-[18px] text-[18px] text-[var(--color-text-sub)]" /> */}
                     </div>
                   )}
                   {/* サーチ */}
@@ -1900,7 +1932,7 @@ const CompanyMainContainerMemo: FC = () => {
                         // rows={10}
                         placeholder=""
                         style={{ whiteSpace: "pre-wrap" }}
-                        className={`${styles.textarea_box} ${styles.textarea_box_search_mode} ${styles.field_edit_mode_textarea}`}
+                        className={`${styles.textarea_box} ${styles.textarea_box_search_mode} ${styles.field_edit_mode_textarea} ${styles.xl}`}
                         value={inputContent}
                         onChange={(e) => setInputContent(e.target.value)}
                         // onCompositionStart={() => setIsComposing(true)}
@@ -1937,7 +1969,7 @@ const CompanyMainContainerMemo: FC = () => {
                       )}
                       {/* エディットフィールド送信中ローディングスピナー */}
                       {updateClientCompanyFieldMutation.isLoading && (
-                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                        <div className={`${styles.field_edit_mode_loading_area} ${styles.under_right}`}>
                           <SpinnerComet w="22px" h="22px" s="3px" />
                         </div>
                       )}
@@ -2203,8 +2235,24 @@ const CompanyMainContainerMemo: FC = () => {
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title} !mr-[15px] !min-w-max`}>○製品分類(大分類)</span>
                   {/* ディスプレイ 大分類・中分類は個別に編集できないためエディットモードは無し */}
-                  {!searchMode && (
-                    <span className={`${styles.value}`}>
+                  {!searchMode && isEditModeField !== "product_category_large" && (
+                    <span
+                      className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => {
+                        handleDoubleClickField({
+                          e,
+                          field: "product_category_large",
+                          dispatch: setInputProductL,
+                        });
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataCompany?.product_category_large
                         ? selectedRowDataCompany?.product_category_large
                         : ""}
@@ -2237,6 +2285,48 @@ const CompanyMainContainerMemo: FC = () => {
                       <option value="その他">その他</option>
                     </select>
                   )}
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード selectタグ  */}
+                  {!searchMode && isEditModeField === "product_category_large" && (
+                    <>
+                      <select
+                        className={`ml-auto h-full w-full cursor-pointer ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                        value={inputProductL}
+                        onChange={async (e) => {
+                          // setInputEmployeesClass(e.target.value);
+                          await handleChangeSelectUpdateField({
+                            e,
+                            fieldName: "product_category_large",
+                            value: e.target.value,
+                            id: selectedRowDataCompany?.id,
+                          });
+                        }}
+                      >
+                        {optionsProductL.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateMultipleClientCompanyFields.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "product_category_large" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -2246,23 +2336,37 @@ const CompanyMainContainerMemo: FC = () => {
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title} !mr-[15px] !min-w-max`}>○製品分類(中分類)</span>
-                  {!searchMode && (
-                    <span className={`${styles.value}`}>
+                  {!searchMode && !!selectedRowDataCompany && isEditModeField !== "product_category_medium" && (
+                    <span
+                      className={`${styles.value}  ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => {
+                        handleDoubleClickField({
+                          e,
+                          field: "product_category_medium",
+                          dispatch: setInputProductM,
+                        });
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataCompany?.product_category_medium
                         ? selectedRowDataCompany?.product_category_medium
+                        : selectedRowDataCompany?.product_category_large
+                        ? "-"
                         : ""}
                     </span>
                   )}
+                  {!searchMode && !selectedRowDataCompany && isEditModeField !== "product_category_medium" && (
+                    <span className={`${styles.value}`}></span>
+                  )}
+                  {/* サーチ */}
                   {searchMode && !!inputProductL && (
-                    // <input
-                    //   type="text"
-                    //   className={`${styles.input_box} ml-[20px]`}
-                    //   value={inputProductM}
-                    //   onChange={(e) => setInputProductM(e.target.value)}
-                    // />
                     <select
-                      name="position_class"
-                      id="position_class"
                       value={inputProductM}
                       onChange={(e) => setInputProductM(e.target.value)}
                       className={`${inputProductL ? "" : "hidden"} ml-auto h-full w-[80%] cursor-pointer ${
@@ -2294,6 +2398,73 @@ const CompanyMainContainerMemo: FC = () => {
                       {inputProductL === "その他" && productCategoriesM.othersCategoryM.map((option) => option)}
                     </select>
                   )}
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード selectタグ  */}
+                  {!searchMode && isEditModeField === "product_category_medium" && (
+                    <>
+                      <select
+                        className={`ml-auto h-full w-full cursor-pointer ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                        value={inputProductM}
+                        onChange={(e) => {
+                          // setInputEmployeesClass(e.target.value);
+                          handleChangeSelectUpdateField({
+                            e,
+                            fieldName: "product_category_medium",
+                            value: e.target.value,
+                            id: selectedRowDataCompany?.id,
+                          });
+                        }}
+                      >
+                        {selectedRowDataCompany?.product_category_large === "電子部品・モジュール" &&
+                          productCategoriesM.moduleCategoryM.map((option) => option)}
+                        {selectedRowDataCompany?.product_category_large === "機械部品" &&
+                          productCategoriesM.machinePartsCategoryM.map((option) => option)}
+                        {selectedRowDataCompany?.product_category_large === "製造・加工機械" &&
+                          productCategoriesM.processingMachineryCategoryM.map((option) => option)}
+                        {selectedRowDataCompany?.product_category_large === "科学・理化学機器" &&
+                          productCategoriesM.scienceCategoryM.map((option) => option)}
+                        {selectedRowDataCompany?.product_category_large === "素材・材料" &&
+                          productCategoriesM.materialCategoryM.map((option) => option)}
+                        {selectedRowDataCompany?.product_category_large === "測定・分析" &&
+                          productCategoriesM.analysisCategoryM.map((option) => option)}
+                        {selectedRowDataCompany?.product_category_large === "画像処理" &&
+                          productCategoriesM.imageProcessingCategoryM.map((option) => option)}
+                        {selectedRowDataCompany?.product_category_large === "制御・電機機器" &&
+                          productCategoriesM.controlEquipmentCategoryM.map((option) => option)}
+                        {selectedRowDataCompany?.product_category_large === "工具・消耗品・備品" &&
+                          productCategoriesM.toolCategoryM.map((option) => option)}
+                        {selectedRowDataCompany?.product_category_large === "設計・生産支援" &&
+                          productCategoriesM.designCategoryM.map((option) => option)}
+                        {selectedRowDataCompany?.product_category_large === "IT・ネットワーク" &&
+                          productCategoriesM.ITCategoryM.map((option) => option)}
+                        {selectedRowDataCompany?.product_category_large === "オフィス" &&
+                          productCategoriesM.OfficeCategoryM.map((option) => option)}
+                        {selectedRowDataCompany?.product_category_large === "業務支援サービス" &&
+                          productCategoriesM.businessSupportCategoryM.map((option) => option)}
+                        {selectedRowDataCompany?.product_category_large === "セミナー・スキルアップ" &&
+                          productCategoriesM.skillUpCategoryM.map((option) => option)}
+                        {selectedRowDataCompany?.product_category_large === "その他" &&
+                          productCategoriesM.othersCategoryM.map((option) => option)}
+                      </select>
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateClientCompanyFieldMutation.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "product_category_medium" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -2330,11 +2501,87 @@ const CompanyMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>従業員数</span>
                   {/* <span className={`${styles.title}`}>会員専用</span> */}
                   {/* ディスプレイ */}
-                  {!searchMode && (
-                    <span className={`${styles.value}`}>
+                  {!searchMode && isEditModeField !== "number_of_employees" && (
+                    <span
+                      className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => {
+                        handleDoubleClickField({
+                          e,
+                          field: "number_of_employees",
+                          dispatch: setInputNumberOfEmployees,
+                        });
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       {selectedRowDataCompany?.number_of_employees ? selectedRowDataCompany?.number_of_employees : ""}
                     </span>
                   )}
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード inputタグ */}
+                  {!searchMode && isEditModeField === "number_of_employees" && (
+                    <>
+                      <input
+                        type="text"
+                        placeholder=""
+                        autoFocus
+                        className={`${styles.input_box} ${styles.field_edit_mode_input_box_with_close}`}
+                        value={inputNumberOfEmployees}
+                        onChange={(e) => setInputNumberOfEmployees(e.target.value)}
+                        onCompositionStart={() => setIsComposing(true)}
+                        onCompositionEnd={() => setIsComposing(false)}
+                        onKeyDown={(e) =>
+                          handleKeyDownUpdateField({
+                            e,
+                            fieldName: "number_of_employees",
+                            value: toHalfWidthAndSpace(inputNumberOfEmployees.trim()),
+                            id: selectedRowDataCompany?.id,
+                            required: true,
+                          })
+                        }
+                      />
+                      {/* 送信ボタンとクローズボタン */}
+                      {!updateClientCompanyFieldMutation.isLoading && (
+                        <InputSendAndCloseBtn
+                          inputState={inputNumberOfEmployees}
+                          setInputState={setInputNumberOfEmployees}
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                            handleClickSendUpdateField({
+                              e,
+                              fieldName: "number_of_employees",
+                              value: toHalfWidthAndSpace(inputNumberOfEmployees.trim()),
+                              id: selectedRowDataCompany?.id,
+                              required: true,
+                            })
+                          }
+                          required={true}
+                          isDisplayClose={false}
+                        />
+                      )}
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateClientCompanyFieldMutation.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ */}
+                  {!searchMode && isEditModeField === "number_of_employees" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                   {/* サーチは従業員数の詳細では必要なし */}
 
                   {/* {!searchMode && <span className={`${styles.value}`}>有料会員様専用のフィールドです</span>} */}
@@ -2720,7 +2967,7 @@ const CompanyMainContainerMemo: FC = () => {
                         // rows={10}
                         placeholder=""
                         style={{ whiteSpace: "pre-wrap" }}
-                        className={`${styles.textarea_box} ${styles.textarea_box_search_mode} ${styles.field_edit_mode_textarea}`}
+                        className={`${styles.textarea_box} ${styles.textarea_box_search_mode} ${styles.field_edit_mode_textarea} ${styles.xl}`}
                         value={inputFacility}
                         onChange={(e) => setInputFacility(e.target.value)}
                       ></textarea>
@@ -2745,7 +2992,7 @@ const CompanyMainContainerMemo: FC = () => {
                       )}
                       {/* エディットフィールド送信中ローディングスピナー */}
                       {updateClientCompanyFieldMutation.isLoading && (
-                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                        <div className={`${styles.field_edit_mode_loading_area} ${styles.under_right}`}>
                           <SpinnerComet w="22px" h="22px" s="3px" />
                         </div>
                       )}

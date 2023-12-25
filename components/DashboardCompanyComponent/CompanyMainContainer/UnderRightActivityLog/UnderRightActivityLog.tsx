@@ -852,6 +852,7 @@ const UnderRightActivityLogMemo: FC = () => {
                               style={{
                                 gridColumnStart: index + 1,
                                 ...(columnHeaderList[index] === "summary" && { cursor: "pointer" }),
+                                ...(columnHeaderList.length - 1 === index && { borderRight: "none" }),
                               }}
                               onClick={handleSingleClickGridCell}
                               onDoubleClick={(e) => handleDoubleClickGridCell(e, index, columnHeaderList[index])}

@@ -310,6 +310,10 @@ const SettingProfileMemo = () => {
                         alert("有効な名前を入力してください");
                         return;
                       }
+                      if (userProfileState?.profile_name === editedName) {
+                        setEditNameMode(false);
+                        return;
+                      }
                       if (!userProfileState?.id) return alert("ユーザーIDが見つかりません");
                       setLoadingGlobalState(true);
                       const { data: profileData, error } = await supabase
@@ -421,6 +425,10 @@ const SettingProfileMemo = () => {
                         alert("有効なメールを入力してください");
                         return;
                       }
+                      if (userProfileState?.email === editedEmail) {
+                        setEditEmailMode(false);
+                        return;
+                      }
                       if (!userProfileState?.id) return alert("ユーザーIDが見つかりません");
                       setLoadingGlobalState(true);
                       const { data: profileData, error } = await supabase
@@ -528,6 +536,10 @@ const SettingProfileMemo = () => {
                     onClick={async () => {
                       if (editedTEL === "") {
                         alert("有効な電話番号を入力してください");
+                        return;
+                      }
+                      if (userProfileState?.direct_line === editedTEL) {
+                        setEditTELMode(false);
                         return;
                       }
                       if (!userProfileState?.id) return alert("ユーザーIDが見つかりません");
@@ -639,6 +651,10 @@ const SettingProfileMemo = () => {
                         alert("有効な部署を入力してください");
                         return;
                       }
+                      if (userProfileState?.department === editedDepartment) {
+                        setEditDepartmentMode(false);
+                        return;
+                      }
                       if (!userProfileState?.id) return alert("ユーザーIDが見つかりません");
                       setLoadingGlobalState(true);
                       const { data: profileData, error } = await supabase
@@ -746,6 +762,10 @@ const SettingProfileMemo = () => {
                     onClick={async () => {
                       if (editedUnit === "") {
                         alert("有効な係・チームを入力してください");
+                        return;
+                      }
+                      if (userProfileState?.unit === editedUnit) {
+                        setEditUnitMode(false);
                         return;
                       }
                       if (!userProfileState?.id) return alert("ユーザーIDが見つかりません");
@@ -877,6 +897,10 @@ const SettingProfileMemo = () => {
                         alert("有効な職種を入力してください");
                         return;
                       }
+                      if (userProfileState?.occupation === editedOccupation) {
+                        setEditOccupationMode(false);
+                        return;
+                      }
                       if (!userProfileState?.id) return alert("ユーザーIDが見つかりません");
                       if (editedOccupation === userProfileState.occupation) {
                         setEditOccupationMode(false);
@@ -980,14 +1004,6 @@ const SettingProfileMemo = () => {
                   <option value="5 チームメンバー">チームメンバー</option>
                   <option value="6 所長・工場長">所長・工場長</option>
                   <option value="7 フリーランス・個人事業主">フリーランス・個人事業主</option>
-                  {/* <option value="1 代表者">1 代表者</option>
-                        <option value="2 取締役/役員">2 取締役/役員</option>
-                        <option value="3 部長">3 部長</option>
-                        <option value="4 課長">4 課長</option>
-                        <option value="5 チームメンバー">5 チームメンバー</option>
-                        <option value="6 所長">6 所長</option>
-                        <option value="7 個人事業主・フリーランス">7 個人事業主・フリーランス</option>
-                        <option value="8 個人利用">8 個人利用</option> */}
                 </select>
                 <div className="flex">
                   <div
@@ -1004,6 +1020,10 @@ const SettingProfileMemo = () => {
                     onClick={async () => {
                       if (editedPositionClass === "") {
                         alert("有効な役職クラスを入力してください");
+                        return;
+                      }
+                      if (userProfileState?.position_class === editedPositionClass) {
+                        setEditPositionClassMode(false);
                         return;
                       }
                       if (!userProfileState?.id) return alert("ユーザーIDが見つかりません");
@@ -1119,6 +1139,10 @@ const SettingProfileMemo = () => {
                         alert("有効な役職名を入力してください");
                         return;
                       }
+                      if (userProfileState?.position_name === editedPositionName) {
+                        setEditPositionNameMode(false);
+                        return;
+                      }
                       if (!userProfileState?.id) return alert("ユーザーIDが見つかりません");
                       setLoadingGlobalState(true);
                       const { data: profileData, error } = await supabase
@@ -1228,6 +1252,10 @@ const SettingProfileMemo = () => {
                         alert("有効な所属事業所・営業所を入力してください");
                         return;
                       }
+                      if (userProfileState?.office === editedOffice) {
+                        setEditOfficeMode(false);
+                        return;
+                      }
                       if (!userProfileState?.id) return alert("ユーザーIDが見つかりません");
                       setLoadingGlobalState(true);
                       const { data: profileData, error } = await supabase
@@ -1335,6 +1363,10 @@ const SettingProfileMemo = () => {
                     onClick={async () => {
                       if (editedEmployeeId === "") {
                         alert("有効な社員番号・IDを入力してください");
+                        return;
+                      }
+                      if (userProfileState?.employee_id === editedEmployeeId) {
+                        setEditEmployeeIdMode(false);
                         return;
                       }
                       if (!userProfileState?.id) return alert("ユーザーIDが見つかりません");
@@ -1449,6 +1481,10 @@ const SettingProfileMemo = () => {
                     onClick={async () => {
                       if (editedUsage === "") {
                         alert("有効な利用用途を入力してください");
+                        return;
+                      }
+                      if (userProfileState?.usage === editedUsage) {
+                        setEditUsageMode(false);
                         return;
                       }
                       if (!userProfileState?.id) return alert("ユーザーIDが見つかりません");

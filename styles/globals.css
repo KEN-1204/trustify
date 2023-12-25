@@ -1986,6 +1986,15 @@ textarea {
     rgba(20, 20, 20, 0.9) 100%
   );
 }
+.shadow-gradient-bt-table {
+  background: linear-gradient(
+    to top,
+    rgba(20, 20, 20, 0.2) 0%,
+    rgba(20, 20, 20, 0.05) 30%,
+    rgba(20, 20, 20, 0.05) 90%,
+    rgba(20, 20, 20, 0) 100%
+  );
+}
 /* 左右方向にアンダーラインが広がるアニメーション */
 .input-underline-transition {
   transition: all 0.4s ease;

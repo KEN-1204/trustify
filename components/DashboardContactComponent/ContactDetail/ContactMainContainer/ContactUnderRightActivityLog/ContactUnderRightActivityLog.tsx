@@ -1,4 +1,4 @@
-import React, { FC, memo, useEffect, useRef, useState } from "react";
+import React, { FC, memo, useCallback, useEffect, useRef, useState } from "react";
 import styles from "./ContactUnderRightActivityLog.module.css";
 import useStore from "@/store";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
@@ -56,6 +56,9 @@ const ContactUnderRightActivityLogMemo: FC = () => {
   const fetchEnabledRef = useRef(false);
   // フェッチカウント
   const fetchCountRef = useRef(0);
+  // ダブルクリックでセルの詳細を確認
+  const setIsOpenEditModal = useDashboardStore((state) => state.setIsOpenEditModal);
+  const setTextareaInput = useDashboardStore((state) => state.setTextareaInput);
 
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
@@ -446,6 +449,46 @@ const ContactUnderRightActivityLogMemo: FC = () => {
   };
   // ===================== ✅ツールチップ 3点リーダーの時にツールチップ表示✅ =====================
 
+  // ================== 🌟セル シングルクリック、ダブルクリックイベント ==================
+  // クリックで概要の詳細を確認
+  const setTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleSingleClickGridCell = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (setTimeoutRef.current !== null) return;
+
+    setTimeoutRef.current = setTimeout(() => {
+      setTimeoutRef.current = null;
+      // シングルクリック時に実行したい処理
+      // 0.2秒後に実行されてしまうためここには書かない
+    }, 200);
+
+    console.log("シングルクリック");
+  }, []);
+
+  // セルダブルクリック
+  const handleDoubleClickGridCell = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>, index: number, columnName: string) => {
+      console.log("ダブルクリック", e.currentTarget, "index", index);
+      if (columnName !== "summary") return console.log("ダブルクリック summaryでないためリターン");
+
+      if (setTimeoutRef.current) {
+        clearTimeout(setTimeoutRef.current);
+
+        // console.log(e.detail);
+        setTimeoutRef.current = null;
+        // ダブルクリック時に実行したい処理
+
+        // クリックした要素のテキストを格納
+        // const text = e.currentTarget.innerText;
+        const text = e.currentTarget.innerHTML;
+        setTextareaInput(text);
+        setIsOpenEditModal(true);
+      }
+    },
+    [setTextareaInput, setIsOpenEditModal]
+  );
+  // ================== 🌟セル シングルクリック、ダブルクリックイベント ここまで ==================
+
   // 🌟現在のカラム.map((obj) => Object.values(row)[obj.columnId])で展開してGridセルを表示する
   // カラムNameの値のみ配列バージョンで順番入れ替え
   const columnOrder = [...columnHeaderList].map((columnName, index) => columnName as keyof TableDataType); // columnNameのみの配列を取得
@@ -463,6 +506,39 @@ const ContactUnderRightActivityLogMemo: FC = () => {
     // activity_created_at: "yyyy/MM/dd HH:mm:ss",
     // activity_updated_at: "yyyy/MM/dd HH:mm:ss",
   };
+
+  // ================== 🌟intersectionObserver 最後のアイテムまでスクロールしたらshadowを非表示🌟 ==================
+  // const lastRowRef = useRef<HTMLDivElement | null>(null);
+  // const shadowRef = useRef<HTMLDivElement | null>(null);
+  // useEffect(() => {
+  //   const lastRowObserver = new IntersectionObserver(
+  //     // IntersectionObserver第一引数コールバック関数
+  //     (entries) => {
+  //       // const lastRow = entries[0];
+  //       // if (!lastRow.isIntersecting) return;
+  //       // 最後のRowのisIntersectingがtrueになったら、shadowを非表示にする
+  //       entries.forEach((entry) => {
+  //         if (!shadowRef.current) return;
+  //         shadowRef.current.classList.toggle(`${styles.show}`, entry.isIntersecting);
+  //         console.log("✅");
+  //       });
+  //     },
+  //     {
+  //       threshold: 0, //閾値 0~1% 1はentry対象が全て画面に入ったらIntersectingがtrueに
+  //       rootMargin: "40px 0px",
+  //       root: parentGridScrollContainer.current,
+  //     }
+  //   );
+
+  //   if (lastRowRef.current) {
+  //     lastRowObserver.observe(lastRowRef.current);
+  //   }
+  //   return () => {
+  //     if (!lastRowRef.current) return;
+  //     lastRowObserver.unobserve(lastRowRef.current);
+  //   };
+  // }, []);
+  // ================== ✅intersectionObserver 最後のアイテムまでスクロールしたらshadowを非表示✅ ==================
 
   console.log(
     "右下 フェッチ回数",
@@ -691,7 +767,11 @@ const ContactUnderRightActivityLogMemo: FC = () => {
                               className={`${styles.grid_cell} ${styles.grid_cell_resizable}`}
                               style={{
                                 gridColumnStart: index + 1,
+                                ...(columnHeaderList[index] === "summary" && { cursor: "pointer" }),
+                                ...(columnHeaderList.length - 1 === index && { borderRight: "none" }),
                               }}
+                              onClick={handleSingleClickGridCell}
+                              onDoubleClick={(e) => handleDoubleClickGridCell(e, index, columnHeaderList[index])}
                             >
                               {/* {value} */}
                               {displayValue}
@@ -722,10 +802,12 @@ const ContactUnderRightActivityLogMemo: FC = () => {
                   </div>
                 );
               })}
+              {/* <div ref={lastRowRef} className="last_item"></div> */}
             </div>
           )}
           {/* ======================== Grid列トラック Row ======================== */}
         </div>
+        {/* <div ref={shadowRef} className={`${styles.show}`}></div> */}
         {/* ================== Gridスクロールコンテナ ここまで ================== */}
         {/* =============== Gridフッター ここから スクロールコンテナと同列で配置 =============== */}
         {/* <ContactUnderRightGridTableFooter getItemCount={allRows.length} /> */}

@@ -4,7 +4,7 @@ import "react-datepicker/dist/react-datepicker.css";
 
 interface CustomCalendarHeaderProps {
   date: Date;
-  changeYear: (year: number) => void;
+  //   changeYear: (year: number) => void;
   changeMonth: (month: number) => void;
   decreaseMonth: () => void;
   increaseMonth: () => void;
@@ -12,12 +12,13 @@ interface CustomCalendarHeaderProps {
   nextMonthButtonDisabled: boolean;
 }
 
-// 今年から遡って10年分を選択することができるようにする
-const YEARS_FOR_DROPDOWN = 10;
+// 今年分のみを選択することができるようにする
+// const YEARS_FOR_DROPDOWN = 10;
+const YEARS_FOR_DROPDOWN = 1;
 
-export const CustomCalendarHeader: React.FC<CustomCalendarHeaderProps> = ({
+export const CustomCalendarHeaderOnlyMonth: React.FC<CustomCalendarHeaderProps> = ({
   date,
-  changeYear,
+  //   changeYear,
   changeMonth,
   decreaseMonth,
   increaseMonth,
@@ -26,6 +27,8 @@ export const CustomCalendarHeader: React.FC<CustomCalendarHeaderProps> = ({
 }) => {
   // [2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015, 2014]
   const years = [...Array(YEARS_FOR_DROPDOWN)].map((_, i) => new Date().getFullYear() - i);
+
+  //   console.log("カレンダーヘッダーyears", years);
 
   return (
     <div className="react-datepicker__header">
@@ -60,7 +63,7 @@ export const CustomCalendarHeader: React.FC<CustomCalendarHeaderProps> = ({
           disabled={prevMonthButtonDisabled}
         />
         <div className="w-full space-x-4">
-          <select
+          {/* <select
             value={date.getFullYear()}
             onChange={({ target: { value } }: ChangeEvent<HTMLSelectElement>) => changeYear(Number(value))}
             className="react-datepicker__year-select mr-2 mt-2"
@@ -70,7 +73,7 @@ export const CustomCalendarHeader: React.FC<CustomCalendarHeaderProps> = ({
                 {year}
               </option>
             ))}
-          </select>
+          </select> */}
           <select
             value={date.getMonth()}
             onChange={({ target: { value } }: ChangeEvent<HTMLSelectElement>) => changeMonth(Number(value))}

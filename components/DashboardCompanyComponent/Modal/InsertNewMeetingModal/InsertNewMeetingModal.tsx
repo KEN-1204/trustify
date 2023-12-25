@@ -75,7 +75,6 @@ export const InsertNewMeetingModal = () => {
   const [departmentName, setDepartmentName] = useState(userProfileState?.department ? userProfileState.department : "");
   const [meetingYearMonth, setMeetingYearMonth] = useState<number | null>(Number(meetingYearMonthInitialValue));
 
-  const supabase = useSupabaseClient();
   const { createMeetingMutation } = useMutateMeeting();
 
   //   useEffect(() => {
@@ -84,6 +83,19 @@ export const InsertNewMeetingModal = () => {
   //     setMeetingBusinessOffice(userProfileState.office ? userProfileState.office : "");
   //     setMeetingDepartment(userProfileState.department ? userProfileState.department : "");
   //   }, []);
+
+  // 面談日を更新したら面談年月度をユーザーの締め日に応じて更新する
+  useEffect(() => {
+    if (!plannedDate) {
+      setMeetingYearMonth(null);
+      return;
+    }
+    plannedDate.setHours(0, 0, 0, 0);
+    const year = plannedDate.getFullYear(); // 例: 2023
+    const month = plannedDate.getMonth() + 1; // getMonth()は0から11で返されるため、+1して1から12に調整
+    const meetingYearMonthUpdatedValue = `${year}${month < 10 ? "0" + month : month}`; // 月が1桁の場合は先頭に0を追加
+    setMeetingYearMonth(Number(meetingYearMonthUpdatedValue));
+  }, [plannedDate]);
 
   // 予定面談開始時間、時間、分、結合用useEffect
   useEffect(() => {

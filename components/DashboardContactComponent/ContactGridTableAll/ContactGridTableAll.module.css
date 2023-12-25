@@ -460,6 +460,9 @@
   background-image: linear-gradient(to top right, var(--color-table-dragging-gradient));
   cursor: grabbing;
 }
+.grid_column_header_all.dragging_change_order .grid_column_header_inner_name {
+  /* color: #fff; */
+}
 
 .grid_column_frozen {
   position: sticky;

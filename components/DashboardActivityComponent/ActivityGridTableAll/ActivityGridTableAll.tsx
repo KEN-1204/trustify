@@ -19,6 +19,8 @@ import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 import { format } from "date-fns";
 import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 import { GridTableFooter } from "@/components/GridTable/GridTableFooter/GridTableFooter";
+import { GridCellCheckboxTrue } from "@/components/DashboardActivityComponent/ActivityGridTableAll/GridCellCheckbox/GridCellCheckboxTrue";
+import { GridCellCheckboxFalse } from "@/components/DashboardActivityComponent/ActivityGridTableAll/GridCellCheckbox/GridCellCheckboxFalse";
 
 type TableDataType = {
   id: number;
@@ -2420,32 +2422,8 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
       ),
     },
     follow_up_flag: {
-      true: (
-        <div className={`${styles.grid_select_cell_header} `}>
-          <input
-            type="checkbox"
-            checked={true}
-            readOnly
-            className={`${styles.grid_select_cell_header_input} pointer-events-none`}
-          />
-          <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
-          </svg>
-        </div>
-      ),
-      false: (
-        <div className={`${styles.grid_select_cell_header} `}>
-          <input
-            type="checkbox"
-            checked={false}
-            readOnly
-            className={`${styles.grid_select_cell_header_input} pointer-events-none`}
-          />
-          <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
-          </svg>
-        </div>
-      ),
+      true: <GridCellCheckboxTrue />,
+      false: <GridCellCheckboxFalse />,
     },
   };
 

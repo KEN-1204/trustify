@@ -1,6 +1,6 @@
 import useDashboardStore from "@/store/useDashboardStore";
 import Image from "next/image";
-import React, { Suspense, memo, useEffect, useState } from "react";
+import React, { Suspense, memo, useEffect, useRef, useState } from "react";
 import styles from "./SettingCompany.module.css";
 import { useDownloadUrl } from "@/hooks/useDownloadUrl";
 import { useUploadAvatarImg } from "@/hooks/useUploadAvatarImg";
@@ -21,7 +21,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 import { FiRefreshCw } from "react-icons/fi";
-import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
+import { DatePickerCustomInputForSettings } from "@/utils/DatePicker/DatePickerCustomInputForSettings";
 
 const SettingCompanyMemo = () => {
   const supabase = useSupabaseClient();
@@ -46,10 +46,10 @@ const SettingCompanyMemo = () => {
   const [editFiscalEndMonthMode, setEditFiscalEndMonthMode] = useState(false);
   // const [editedFiscalEndMonth, setEditedFiscalEndMonth] = useState("");
   const [editedFiscalEndMonth, setEditedFiscalEndMonth] = useState<Date | null>(null);
+  const prevFiscalEndMonthRef = useRef<Date | null>(null);
   // 規模
   const [editNumberOfEmployeeClassMode, setEditNumberOfEmployeeClassMode] = useState(false);
   const [editedNumberOfEmployeeClass, setEditedNumberOfEmployeeClass] = useState("");
-
   // ローディング
   const [refetchLoading, setRefetchLoading] = useState(false);
 
@@ -593,6 +593,11 @@ const SettingCompanyMemo = () => {
                   <div
                     className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                     onClick={async () => {
+                      if (editedCompanyName === userProfileState?.customer_name) {
+                        console.log("editedCompanyName", editedCompanyName, userProfileState?.customer_name);
+                        setEditCompanyNameMode(false);
+                        return;
+                      }
                       if (editedCompanyName === "") {
                         alert("有効な会社名を入力してください");
                         return;
@@ -601,51 +606,30 @@ const SettingCompanyMemo = () => {
                       setLoadingGlobalState(true);
                       const { data: companyData, error } = await supabase
                         .from("companies")
-                        .update({ profile_name: editedCompanyName })
+                        .update({ customer_name: editedCompanyName })
                         .eq("id", userProfileState.company_id)
                         .select("customer_name")
                         .single();
 
                       if (error) {
-                        setTimeout(() => {
-                          setLoadingGlobalState(false);
-                          setEditCompanyNameMode(false);
-                          alert(error.message);
-                          console.log("会社名UPDATEエラー", error.message);
-                          toast.error("会社名・チーム名の更新に失敗しました!", {
-                            position: "top-right",
-                            autoClose: 3000,
-                            hideProgressBar: false,
-                            closeOnClick: true,
-                            pauseOnHover: true,
-                            draggable: true,
-                            progress: undefined,
-                            // theme: `${theme === "light" ? "light" : "dark"}`,
-                          });
-                        }, 500);
-                        return;
-                      }
-                      setTimeout(() => {
-                        console.log("会社名UPDATE成功 companyData", companyData);
-                        console.log("会社名UPDATE成功 companyData.customer_name", companyData.customer_name);
-                        setUserProfileState({
-                          // ...(companyData as UserProfile),
-                          ...(userProfileState as UserProfileCompanySubscription),
-                          customer_name: companyData.customer_name ? companyData.customer_name : null,
-                        });
                         setLoadingGlobalState(false);
                         setEditCompanyNameMode(false);
-                        toast.success("会社名・チーム名の更新が完了しました!", {
-                          position: "top-right",
-                          autoClose: 3000,
-                          hideProgressBar: false,
-                          closeOnClick: true,
-                          pauseOnHover: true,
-                          draggable: true,
-                          progress: undefined,
-                          // theme: `${theme === "light" ? "light" : "dark"}`,
-                        });
-                      }, 500);
+                        alert(error.message);
+                        console.log("会社名UPDATEエラー", error.message);
+                        toast.error("会社名・チーム名の更新に失敗しました!");
+                        return;
+                      }
+
+                      console.log("会社名UPDATE成功 companyData", companyData);
+                      console.log("会社名UPDATE成功 companyData.customer_name", companyData.customer_name);
+                      setUserProfileState({
+                        // ...(companyData as UserProfile),
+                        ...(userProfileState as UserProfileCompanySubscription),
+                        customer_name: companyData.customer_name ? companyData.customer_name : null,
+                      });
+                      setLoadingGlobalState(false);
+                      setEditCompanyNameMode(false);
+                      toast.success("会社名・チーム名の更新が完了しました!");
                     }}
                   >
                     保存
@@ -659,28 +643,46 @@ const SettingCompanyMemo = () => {
           <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
 
           {/* 決算月 */}
-          <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
-            <div className="flex items-center space-x-4">
+          <div className={`mt-[20px] flex min-h-[95px] w-full flex-col `}>
+            <div className="flex items-start space-x-4">
               <div className={`${styles.section_title}`}>決算月</div>
-              <div className={`text-[13px] text-[var(--color-text-brand-f)]`}>
-                ※決算月を入力すると、上期下期、四半期ごとにデータ分析が可能となります。
+              {/* <div className={`text-[13px] text-[var(--color-text-brand-f)]`}>
+                ※決算月を入力すると、期首から期末まで上期下期、四半期ごとに正確なデータ分析が可能となります。
+              </div> */}
+              <div className={`flex flex-col text-[13px] text-[var(--color-text-brand-f)]`}>
+                <p>※決算月を入力すると、期首から期末まで上期下期、四半期ごとに正確なデータ分析が可能となります。</p>
+                <p className="text-[var(--color-text-sub)]">
+                  　(決算月(締め日含む)が未設定の場合は、デフォルトで期末が3月31日、期首が4月1日に設定されます。)
+                </p>
               </div>
             </div>
             {!editFiscalEndMonthMode && (
-              <div className={`flex h-full w-full items-center justify-between`}>
+              <div className={`flex h-full min-h-[74px] w-full items-center justify-between`}>
                 <div className={`${styles.section_value}`}>
-                  {userProfileState?.customer_fiscal_end_month ? userProfileState.customer_fiscal_end_month : "未設定"}
+                  {userProfileState?.customer_fiscal_end_month
+                    ? format(new Date(userProfileState.customer_fiscal_end_month), "M月dd日")
+                    : "未設定"}
                 </div>
                 <div>
                   <div
                     className={`transition-base01 min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                     onClick={() => {
-                      setEditedFiscalEndMonth(
-                        !!userProfileState?.customer_fiscal_end_month
-                          ? new Date(userProfileState.customer_fiscal_end_month)
-                          : null
-                      );
+                      let fiscalEndDate: Date;
+                      if (userProfileState?.customer_fiscal_end_month) {
+                        fiscalEndDate = new Date(userProfileState.customer_fiscal_end_month);
+                      } else {
+                        // customer_fiscal_end_monthが未設定の場合は3月31日を決算月に設定する
+                        const currentYear = new Date().getFullYear(); //現在の年を取得
+                        // 3月31日の日付オブジェクトを作成(月は０から始まるので、3月は2)
+                        fiscalEndDate = new Date(currentYear, 2, 31);
+                        // 期末のため時刻情報を日の終わりに設定(999はミリ秒、これで空白の時間がなくなる)
+                        fiscalEndDate.setHours(23, 59, 59, 999);
+                        // 必要に応じてISO文字列に変換
+                        // const fiscalEndDateString = fiscalEndDate.toISOString()
+                      }
+                      setEditedFiscalEndMonth(fiscalEndDate);
                       setEditFiscalEndMonthMode(true);
+                      prevFiscalEndMonthRef.current = fiscalEndDate;
                     }}
                   >
                     編集
@@ -689,37 +691,15 @@ const SettingCompanyMemo = () => {
               </div>
             )}
             {editFiscalEndMonthMode && (
-              <div className={`flex h-full w-full items-center justify-between`}>
-                {/* セレクトボックスver */}
-                {/* <select
-                  name="profile_occupation"
-                  id="profile_occupation"
-                  className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                  value={editedFiscalEndMonth}
-                  onChange={(e) => setEditedFiscalEndMonth(e.target.value)}
-                >
-                  <option value="">回答を選択してください</option>
-                  <option value="1月">1月</option>
-                  <option value="2月">2月</option>
-                  <option value="3月">3月</option>
-                  <option value="4月">4月</option>
-                  <option value="5月">5月</option>
-                  <option value="6月">6月</option>
-                  <option value="7月">7月</option>
-                  <option value="8月">8月</option>
-                  <option value="9月">9月</option>
-                  <option value="10月">10月</option>
-                  <option value="11月">11月</option>
-                  <option value="12月">12月</option>
-                </select> */}
-                {/* セレクトボックスver */}
+              <div className={`relative flex h-full min-h-[74px] w-full items-center justify-between`}>
                 {/* DatePicker ver */}
-                <DatePickerCustomInput
-                  startDate={editedFiscalEndMonth}
-                  setStartDate={setEditedFiscalEndMonth}
-                  required={true}
-                  isFieldEditMode={false}
-                />
+                <div className="relative">
+                  <DatePickerCustomInputForSettings
+                    startDate={editedFiscalEndMonth}
+                    setStartDate={setEditedFiscalEndMonth}
+                    required={true}
+                  />
+                </div>
                 {/* DatePicker ver */}
                 <div className="flex">
                   <div
@@ -735,71 +715,48 @@ const SettingCompanyMemo = () => {
                   <div
                     className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                     onClick={async () => {
+                      if (prevFiscalEndMonthRef.current?.getTime() === editedFiscalEndMonth?.getTime()) {
+                        setEditFiscalEndMonthMode(false);
+                        return;
+                      }
                       if (editedFiscalEndMonth === null) {
                         alert("有効な決算月を入力してください");
                         return;
                       }
                       if (!userProfileState?.company_id)
                         return alert("エラー：お客様のユーザー情報が見つかりませんでした。");
+                      // ローディング開始
+                      setLoadingGlobalState(true);
 
-                      console.log("editedFiscalEndMonth", editedFiscalEndMonth);
-                      console.log("editedFiscalEndMonth", editedFiscalEndMonth.toISOString());
-                      return;
-                      // // ローディング開始
-                      // setLoadingGlobalState(true);
+                      const { data: companyData, error } = await supabase
+                        .from("companies")
+                        .update({ customer_fiscal_end_month: editedFiscalEndMonth })
+                        .eq("id", userProfileState.company_id)
+                        .select("customer_fiscal_end_month")
+                        .single();
 
-                      // const { data: companyData, error } = await supabase
-                      //   .from("companies")
-                      //   .update({ customer_fiscal_end_month: editedFiscalEndMonth })
-                      //   .eq("id", userProfileState.company_id)
-                      //   .select("customer_fiscal_end_month")
-                      //   .single();
-
-                      // if (error) {
-                      //   setTimeout(() => {
-                      //     setLoadingGlobalState(false);
-                      //     setEditFiscalEndMonthMode(false);
-                      //     alert(error.message);
-                      //     console.log("決算月UPDATEエラー", error.message);
-                      //     toast.error("決算月の更新に失敗しました!", {
-                      //       position: "top-right",
-                      //       autoClose: 3000,
-                      //       hideProgressBar: false,
-                      //       closeOnClick: true,
-                      //       pauseOnHover: true,
-                      //       draggable: true,
-                      //       progress: undefined,
-                      //       // theme: `${theme === "light" ? "light" : "dark"}`,
-                      //     });
-                      //   }, 500);
-                      //   return;
-                      // }
-                      // setTimeout(() => {
-                      //   console.log("決算月UPDATE成功 companyData", companyData);
-                      //   console.log(
-                      //     "決算月UPDATE成功 companyData.customer_fiscal_end_month",
-                      //     companyData.customer_fiscal_end_month
-                      //   );
-                      //   setUserProfileState({
-                      //     // ...(companyData as UserProfile),
-                      //     ...(userProfileState as UserProfileCompanySubscription),
-                      //     customer_fiscal_end_month: companyData.customer_fiscal_end_month
-                      //       ? companyData.customer_fiscal_end_month
-                      //       : null,
-                      //   });
-                      //   setLoadingGlobalState(false);
-                      //   setEditFiscalEndMonthMode(false);
-                      //   toast.success("決算月の更新が完了しました!", {
-                      //     position: "top-right",
-                      //     autoClose: 3000,
-                      //     hideProgressBar: false,
-                      //     closeOnClick: true,
-                      //     pauseOnHover: true,
-                      //     draggable: true,
-                      //     progress: undefined,
-                      //     // theme: `${theme === "light" ? "light" : "dark"}`,
-                      //   });
-                      // }, 500);
+                      if (error) {
+                        setLoadingGlobalState(false);
+                        setEditFiscalEndMonthMode(false);
+                        alert(error.message);
+                        console.log("決算月UPDATEエラー", error.message);
+                        toast.error("決算月の更新に失敗しました!");
+                        return;
+                      }
+                      console.log(
+                        "決算月UPDATE成功 companyData.customer_fiscal_end_month",
+                        companyData.customer_fiscal_end_month
+                      );
+                      setUserProfileState({
+                        // ...(companyData as UserProfile),
+                        ...(userProfileState as UserProfileCompanySubscription),
+                        customer_fiscal_end_month: companyData.customer_fiscal_end_month
+                          ? companyData.customer_fiscal_end_month
+                          : null,
+                      });
+                      setLoadingGlobalState(false);
+                      setEditFiscalEndMonthMode(false);
+                      toast.success("決算月の更新が完了しました!");
                     }}
                   >
                     保存
@@ -826,16 +783,7 @@ const SettingCompanyMemo = () => {
                           setEditFiscalEndMonthMode(false);
                           alert(error.message);
                           console.log("決算月UPDATEエラー", error.message);
-                          toast.error("決算月の更新に失敗しました!", {
-                            position: "top-right",
-                            autoClose: 3000,
-                            hideProgressBar: false,
-                            closeOnClick: true,
-                            pauseOnHover: true,
-                            draggable: true,
-                            progress: undefined,
-                            // theme: `${theme === "light" ? "light" : "dark"}`,
-                          });
+                          toast.error("決算月の更新に失敗しました!");
                         }, 500);
                         return;
                       }
@@ -882,7 +830,7 @@ const SettingCompanyMemo = () => {
             <div className={`${styles.section_title}`}>規模</div>
 
             {!editNumberOfEmployeeClassMode && (
-              <div className={`flex h-full w-full items-center justify-between`}>
+              <div className={`flex h-full min-h-[74px] w-full items-center justify-between`}>
                 <div className={`${styles.section_value}`}>
                   {userProfileState?.customer_number_of_employees_class
                     ? userProfileState.customer_number_of_employees_class
@@ -906,7 +854,7 @@ const SettingCompanyMemo = () => {
               </div>
             )}
             {editNumberOfEmployeeClassMode && (
-              <div className={`flex h-full w-full items-center justify-between`}>
+              <div className={`flex h-full min-h-[74px] w-full items-center justify-between`}>
                 <select
                   name="profile_occupation"
                   id="profile_occupation"
@@ -936,6 +884,10 @@ const SettingCompanyMemo = () => {
                   <div
                     className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                     onClick={async () => {
+                      if (userProfileState.customer_number_of_employees_class === editedNumberOfEmployeeClass) {
+                        setEditNumberOfEmployeeClassMode(false);
+                        return;
+                      }
                       if (editedNumberOfEmployeeClass === "") {
                         alert("有効な決算月を入力してください");
                         return;
@@ -950,50 +902,27 @@ const SettingCompanyMemo = () => {
                         .single();
 
                       if (error) {
-                        setTimeout(() => {
-                          setLoadingGlobalState(false);
-                          setEditNumberOfEmployeeClassMode(false);
-                          alert(error.message);
-                          console.log("決算月UPDATEエラー", error.message);
-                          toast.error("決算月の更新に失敗しました!", {
-                            position: "top-right",
-                            autoClose: 3000,
-                            hideProgressBar: false,
-                            closeOnClick: true,
-                            pauseOnHover: true,
-                            draggable: true,
-                            progress: undefined,
-                            // theme: `${theme === "light" ? "light" : "dark"}`,
-                          });
-                        }, 500);
-                        return;
-                      }
-                      setTimeout(() => {
-                        console.log("決算月UPDATE成功 companyData", companyData);
-                        console.log(
-                          "決算月UPDATE成功 companyData.customer_number_of_employees_class",
-                          companyData.customer_number_of_employees_class
-                        );
-                        setUserProfileState({
-                          // ...(companyData as UserProfile),
-                          ...(userProfileState as UserProfileCompanySubscription),
-                          customer_number_of_employees_class: companyData.customer_number_of_employees_class
-                            ? companyData.customer_number_of_employees_class
-                            : null,
-                        });
                         setLoadingGlobalState(false);
                         setEditNumberOfEmployeeClassMode(false);
-                        toast.success("決算月の更新が完了しました!", {
-                          position: "top-right",
-                          autoClose: 3000,
-                          hideProgressBar: false,
-                          closeOnClick: true,
-                          pauseOnHover: true,
-                          draggable: true,
-                          progress: undefined,
-                          // theme: `${theme === "light" ? "light" : "dark"}`,
-                        });
-                      }, 500);
+                        alert(error.message);
+                        console.log("決算月UPDATEエラー", error.message);
+                        toast.error("決算月の更新に失敗しました!");
+                        return;
+                      }
+                      console.log(
+                        "決算月UPDATE成功 companyData.customer_number_of_employees_class",
+                        companyData.customer_number_of_employees_class
+                      );
+                      setUserProfileState({
+                        // ...(companyData as UserProfile),
+                        ...(userProfileState as UserProfileCompanySubscription),
+                        customer_number_of_employees_class: companyData.customer_number_of_employees_class
+                          ? companyData.customer_number_of_employees_class
+                          : null,
+                      });
+                      setLoadingGlobalState(false);
+                      setEditNumberOfEmployeeClassMode(false);
+                      toast.success("決算月の更新が完了しました!");
                     }}
                   >
                     保存
@@ -1018,7 +947,7 @@ const SettingCompanyMemo = () => {
               )}
 
               {userProfileState?.account_company_role === "company_owner" && (
-                <div className={`flex h-full w-full items-center justify-between`}>
+                <div className={`flex h-full min-h-[74px] w-full items-center justify-between`}>
                   <div className="text-[14px] text-[var(--color-text-title)]">
                     現在の所有者である自分を削除し、代わりに別のメンバーを任命します。注：1つのチームに任命できる所有者は1人だけです。
                   </div>
@@ -1033,7 +962,7 @@ const SettingCompanyMemo = () => {
                 </div>
               )}
               {userProfileState?.account_company_role !== "company_owner" && (
-                <div className={`flex h-full w-full items-center justify-between`}>
+                <div className={`flex h-full min-h-[74px] w-full items-center justify-between`}>
                   <div className={`${styles.section_value}`}>{companyOwnerName}</div>
                   <div></div>
                 </div>
@@ -1050,7 +979,7 @@ const SettingCompanyMemo = () => {
               <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
                 {/* {userProfileState?.is_subscriber && <div className={`${styles.section_title}`}>チームの所有者の変更</div>} */}
                 {userProfileState?.account_company_role !== "company_owner" && (
-                  <div className={`${styles.section_title} flex items-center`}>
+                  <div className={`${styles.section_title} flex min-h-[74px] items-center`}>
                     <span className="mr-[5px]">チームの所有権の任命を受け入れる</span>
                     <div className="flex-center max-h-[18px] rounded-full bg-[var(--color-red-tk)] px-[10px] py-[2px] text-[10px] text-[#fff]">
                       <span className="">確認が必要</span>
@@ -1059,7 +988,7 @@ const SettingCompanyMemo = () => {
                 )}
 
                 {userProfileState?.account_company_role !== "company_owner" && (
-                  <div className={`flex h-full w-full items-center justify-between`}>
+                  <div className={`flex h-full min-h-[74px] w-full items-center justify-between`}>
                     <div className="text-[14px] text-[var(--color-text-title)]">
                       {/* <span className="font-bold">{changeOwnerNotificationState?.from_user_name}</span>さん（
                       <span className="font-bold">{changeOwnerNotificationState?.from_user_email}</span>）が

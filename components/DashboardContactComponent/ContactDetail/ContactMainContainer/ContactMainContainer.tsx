@@ -121,12 +121,37 @@ const ContactMainContainerMemo: FC = () => {
   const [inputApprovalAmount, setInputApprovalAmount] = useState(""); // 決裁金額 stringで入力してnumberに変換 ユーザーの入力が楽になるため(フォーマットもstringならしやすい)
   const [inputCreatedByCompanyId, setInputCreatedByCompanyId] = useState(""); // どの会社が作成したか
   const [inputCreatedByUserId, setInputCreatedByUserId] = useState(""); // どのユーザーが作成したか
-  // フラグ関連 => フラグ関連は同時に理由を記述した方が良いので、モーダルで行う
-  // const [checkboxCallCarefulFlag, setCheckboxCallCarefulFlag] = useState(
-  //   selectedRowDataContact?.call_careful_flag ? selectedRowDataContact.call_careful_flag : false
-  // );
-  // クレームは個別フィールド編集のみ
+  // フラグ関連 フィールドエディット用 初期はfalseにしておき、useEffectでselectedRowDataのフラグを反映する
+  const [checkboxCallCarefulFlag, setCheckboxCallCarefulFlag] = useState(false); //TEL要注意フラグ
+  const [checkboxEmailBanFlag, setCheckboxEmailBanFlag] = useState(false); //メール禁止フラグ
+  const [checkboxSendingMaterialFlag, setCheckboxSendingMaterialFlag] = useState(false); //資料禁止フラグ
+  const [checkboxFaxDmFlag, setCheckboxFaxDmFlag] = useState(false); //FAX・DM禁止
+  // 注意理由、クレーム、禁止理由は個別フィールド編集のみ
+  const [inputCarefulReason, setInputCarefulReason] = useState("");
   const [inputClaim, setInputClaim] = useState("");
+  const [inputBanReason, setInputBanReason] = useState("");
+
+  // フラグの初期値を更新
+  // TEL要注意フラグ
+  useEffect(() => {
+    setCheckboxCallCarefulFlag(
+      selectedRowDataContact?.call_careful_flag ? selectedRowDataContact.call_careful_flag : false
+    );
+  }, [selectedRowDataContact?.call_careful_flag]);
+  // メール禁止フラグ
+  useEffect(() => {
+    setCheckboxEmailBanFlag(selectedRowDataContact?.email_ban_flag ? selectedRowDataContact.email_ban_flag : false);
+  }, [selectedRowDataContact?.email_ban_flag]);
+  // 資料禁止フラグ
+  useEffect(() => {
+    setCheckboxSendingMaterialFlag(
+      selectedRowDataContact?.sending_materials_ban_flag ? selectedRowDataContact.sending_materials_ban_flag : false
+    );
+  }, [selectedRowDataContact?.sending_materials_ban_flag]);
+  // FAX・DM禁止
+  useEffect(() => {
+    setCheckboxFaxDmFlag(selectedRowDataContact?.fax_dm_ban_flag ? selectedRowDataContact.fax_dm_ban_flag : false);
+  }, [selectedRowDataContact?.fax_dm_ban_flag]);
 
   // サーチ編集モードでリプレイス前の値に復元する関数
   function beforeAdjustFieldValue(value: string | null) {
@@ -542,6 +567,9 @@ const ContactMainContainerMemo: FC = () => {
         }
         if (field === "fiscal_end_month") {
           text = text.replace(/月/g, ""); // 決算月の場合は、1月の月を削除してstateに格納 optionタグのvalueと一致させるため
+        }
+        if (["call_careful_reason"].includes(field) && text === "-") {
+          text = "";
         }
         originalValueFieldEdit.current = text;
         dispatch(text); // 編集モードでinputStateをクリックした要素のテキストを初期値に設定
@@ -3336,7 +3364,7 @@ const ContactMainContainerMemo: FC = () => {
                   </div>
                 </div> */}
                 {/* TEL要注意フラグ・TEL要注意理由 */}
-                <div className={`${styles.right_row_area}  mt-[10px] flex h-[35px] w-full grow items-center`}>
+                <div className={`${styles.right_row_area}  mt-[10px] flex min-h-[35px] w-full grow items-start`}>
                   <div className="transition-base03 flex h-full w-1/2  flex-col pr-[20px]">
                     <div className={`${styles.title_box} transition-base03 flex h-full items-center `}>
                       <span className={`${styles.check_title}`}>TEL要注意フラグ</span>
@@ -3352,38 +3380,33 @@ const ContactMainContainerMemo: FC = () => {
                       >
                         <input
                           type="checkbox"
-                          // checked={!!checkedColumnHeader} // 初期値
-                          checked={!!selectedRowDataContact?.call_careful_flag}
-                          // checked={checkboxCallCarefulFlag}
-                          onChange={() => {
-                            // setLoadingGlobalState(false);
-                            setIsOpenUpdateContactModal(true);
-                          }}
-                          // onChange={async (e) => {
-                          //   // 個別にチェックボックスを更新するルート
-                          //   if (!selectedRowDataContact?.contact_id)
-                          //     return toast.error(`データが見つかりませんでした🙇‍♀️`);
-                          //   console.log(
-                          //     "チェック 新しい値",
-                          //     !checkboxCallCarefulFlag,
-                          //     "オリジナル",
-                          //     selectedRowDataContact?.call_careful_flag
-                          //   );
-                          //   if (!checkboxCallCarefulFlag === selectedRowDataContact?.call_careful_flag) {
-                          //     toast.error(`アップデートに失敗しました🤦‍♀️`);
-                          //     return;
-                          //   }
-                          //   const updatePayload = {
-                          //     fieldName: "call_careful_flag",
-                          //     fieldNameForSelectedRowData: "call_careful_flag" as "call_careful_flag",
-                          //     newValue: !checkboxCallCarefulFlag,
-                          //     id: selectedRowDataContact.contact_id,
-                          //   };
-                          //   // 直感的にするために先にローカルのチェックボックスを更新する
-                          //   setCheckboxCallCarefulFlag(!checkboxCallCarefulFlag);
-                          //   await updateContactFieldMutation.mutateAsync(updatePayload);
-                          // }}
                           className={`${styles.grid_select_cell_header_input} `}
+                          // checked={!!checkedColumnHeader} // 初期値
+                          // checked={!!selectedRowDataContact?.call_careful_flag}
+                          // onChange={() => {
+                          //   // setLoadingGlobalState(false);
+                          //   setIsOpenUpdateContactModal(true);
+                          // }}
+                          checked={checkboxCallCarefulFlag}
+                          onChange={async (e) => {
+                            // 個別にチェックボックスを更新するルート
+                            if (!selectedRowDataContact) return;
+                            if (!selectedRowDataContact?.contact_id)
+                              return toast.error(`データが見つかりませんでした🙇‍♀️`);
+                            if (!checkboxCallCarefulFlag === selectedRowDataContact?.call_careful_flag) {
+                              toast.error(`アップデートに失敗しました🤦‍♀️`);
+                              return;
+                            }
+                            const updatePayload = {
+                              fieldName: "call_careful_flag",
+                              fieldNameForSelectedRowData: "call_careful_flag" as "call_careful_flag",
+                              newValue: !checkboxCallCarefulFlag,
+                              id: selectedRowDataContact.contact_id,
+                            };
+                            // 直感的にするためにmutateにして非同期処理のまま後続のローカルのチェックボックスを更新する
+                            updateContactFieldMutation.mutate(updatePayload);
+                            setCheckboxCallCarefulFlag(!checkboxCallCarefulFlag);
+                          }}
                         />
                         <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
                           <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
@@ -3393,39 +3416,141 @@ const ContactMainContainerMemo: FC = () => {
                     <div className={`${styles.underline}`}></div>
                   </div>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                    <div
-                      className={`${styles.title_box} flex h-full items-center ${
-                        isOurContact ? `${styles.editable_field}` : `${styles.uneditable_field}`
-                      }`}
-                    >
+                    <div className={`${styles.title_box} flex h-full items-start`}>
                       <span className={`${styles.right_under_title}`}>注意理由</span>
-                      {!searchMode && (
+                      {!searchMode && isEditModeField !== "call_careful_reason" && (
                         <span
                           data-text={`${
                             selectedRowDataContact?.call_careful_reason
                               ? selectedRowDataContact?.call_careful_reason
                               : ""
                           }`}
-                          className={`${styles.value}`}
+                          className={`${styles.value} ${styles.editable_field}`}
                           // onMouseEnter={(e) => handleOpenTooltip(e, "right")}
                           // onMouseLeave={handleCloseTooltip}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            handleCloseTooltip();
+                            handleDoubleClickField({
+                              e,
+                              field: "call_careful_reason",
+                              dispatch: setInputCarefulReason,
+                            });
+                          }}
                           onMouseEnter={(e) => {
-                            handleOpenTooltip(e, "right");
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            // if (!selectedRowDataContact?.call_careful_reason) return;
+                            handleOpenTooltip(e, "right");
                           }}
                           onMouseLeave={(e) => {
-                            handleCloseTooltip();
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            // if (!selectedRowDataContact?.call_careful_reason) return;
+                            handleCloseTooltip();
                           }}
-                          onDoubleClick={() => setIsOpenUpdateContactModal(true)}
-                          // onDoubleClick={(e) => handleDoubleClick(e, index, columnHeaderItemList[index].columnName)}
+                          // onDoubleClick={() => setIsOpenUpdateContactModal(true)}
                         >
                           {selectedRowDataContact?.call_careful_reason
                             ? selectedRowDataContact?.call_careful_reason
+                            : selectedRowDataContact?.call_careful_flag
+                            ? "-"
                             : ""}
                         </span>
                       )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                      {/* ============= フィールドエディットモード関連 ============= */}
+                      {/* フィールドエディットモード inputタグ */}
+                      {!searchMode && isEditModeField === "call_careful_reason" && (
+                        <>
+                          {/* <input
+                            type="text"
+                            placeholder=""
+                            autoFocus
+                            className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                            value={inputCarefulReason}
+                            onChange={(e) => setInputCarefulReason(e.target.value)}
+                            onCompositionStart={() => setIsComposing(true)}
+                            onCompositionEnd={() => setIsComposing(false)}
+                            onKeyDown={(e) =>
+                              handleKeyDownUpdateField({
+                                e,
+                                fieldName: "call_careful_reason",
+                                fieldNameForSelectedRowData: "call_careful_reason",
+                                originalValue: originalValueFieldEdit.current,
+                                newValue: toHalfWidthAndSpace(inputCarefulReason.trim()),
+                                id: selectedRowDataContact?.contact_id,
+                                required: false,
+                              })
+                            }
+                          /> */}
+                          <textarea
+                            cols={30}
+                            // rows={10}
+                            placeholder=""
+                            style={{ whiteSpace: "pre-wrap" }}
+                            className={`${styles.textarea_box} ${styles.textarea_box_search_mode} ${styles.field_edit_mode_textarea} ${styles.xl}`}
+                            value={inputCarefulReason}
+                            onChange={(e) => setInputCarefulReason(e.target.value)}
+                          ></textarea>
+                          {/* 送信ボタンとクローズボタン */}
+                          <InputSendAndCloseBtn
+                            inputState={inputCarefulReason}
+                            setInputState={setInputCarefulReason}
+                            onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                              handleClickSendUpdateField({
+                                e,
+                                fieldName: "call_careful_reason",
+                                fieldNameForSelectedRowData: "call_careful_reason",
+                                originalValue: originalValueFieldEdit.current,
+                                newValue: inputCarefulReason ? inputCarefulReason.trim() : null,
+                                id: selectedRowDataContact?.contact_id,
+                                required: false,
+                              })
+                            }
+                            required={false}
+                            // isDisplayClose={true}
+                            // btnPositionY="bottom-[8px]"
+                            isOutside={true}
+                            outsidePosition="under_right"
+                            isLoadingSendEvent={updateContactFieldMutation.isLoading}
+                          />
+                          {/* 送信ボタンとクローズボタン */}
+                          {/* {!updateContactFieldMutation.isLoading && (
+                            <InputSendAndCloseBtn
+                              inputState={inputCarefulReason}
+                              setInputState={setInputCarefulReason}
+                              onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                                handleClickSendUpdateField({
+                                  e,
+                                  fieldName: "call_careful_reason",
+                                  fieldNameForSelectedRowData: "call_careful_reason",
+                                  originalValue: originalValueFieldEdit.current,
+                                  newValue: toHalfWidthAndSpace(inputCarefulReason.trim()),
+                                  id: selectedRowDataContact?.contact_id,
+                                  required: false,
+                                })
+                              }
+                              required={false}
+                              isDisplayClose={true}
+                            />
+                          )} */}
+                          {/* エディットフィールド送信中ローディングスピナー */}
+                          {/* {updateContactFieldMutation.isLoading && (
+                            <div className={`${styles.field_edit_mode_loading_area}`}>
+                              <SpinnerComet w="22px" h="22px" s="3px" />
+                            </div>
+                          )} */}
+                        </>
+                      )}
+                      {/* フィールドエディットモードオーバーレイ */}
+                      {!searchMode && isEditModeField === "call_careful_reason" && (
+                        <div
+                          className={`${styles.edit_mode_overlay}`}
+                          onClick={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                            setIsEditModeField(null); // エディットモードを終了
+                          }}
+                        />
+                      )}
+                      {/* ============= フィールドエディットモード関連ここまで ============= */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -3448,13 +3573,29 @@ const ContactMainContainerMemo: FC = () => {
                       >
                         <input
                           type="checkbox"
-                          // checked={!!checkedColumnHeader} // 初期値
-                          checked={!!selectedRowDataContact?.email_ban_flag}
-                          onChange={() => {
-                            // setLoadingGlobalState(false);
-                            setIsOpenUpdateContactModal(true);
-                          }}
                           className={`${styles.grid_select_cell_header_input}`}
+                          // checked={!!checkedColumnHeader} // 初期値
+                          // checked={!!selectedRowDataContact?.email_ban_flag}
+                          checked={checkboxEmailBanFlag}
+                          onChange={async (e) => {
+                            // 個別にチェックボックスを更新するルート
+                            if (!selectedRowDataContact) return;
+                            if (!selectedRowDataContact?.contact_id)
+                              return toast.error(`データが見つかりませんでした🙇‍♀️`);
+                            if (!checkboxEmailBanFlag === selectedRowDataContact?.email_ban_flag) {
+                              toast.error(`アップデートに失敗しました🤦‍♀️`);
+                              return;
+                            }
+                            const updatePayload = {
+                              fieldName: "email_ban_flag",
+                              fieldNameForSelectedRowData: "email_ban_flag" as "email_ban_flag",
+                              newValue: !checkboxEmailBanFlag,
+                              id: selectedRowDataContact.contact_id,
+                            };
+                            // 直感的にするためにmutateにして非同期処理のまま後続のローカルのチェックボックスを更新する
+                            updateContactFieldMutation.mutate(updatePayload);
+                            setCheckboxEmailBanFlag(!checkboxEmailBanFlag);
+                          }}
                         />
                         <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
                           <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
@@ -3478,13 +3619,29 @@ const ContactMainContainerMemo: FC = () => {
                       >
                         <input
                           type="checkbox"
-                          // checked={!!checkedColumnHeader} // 初期値
-                          checked={!!selectedRowDataContact?.sending_materials_ban_flag}
-                          onChange={() => {
-                            // setLoadingGlobalState(false);
-                            setIsOpenUpdateContactModal(true);
-                          }}
                           className={`${styles.grid_select_cell_header_input}`}
+                          // checked={!!checkedColumnHeader} // 初期値
+                          // checked={!!selectedRowDataContact?.sending_materials_ban_flag}
+                          checked={checkboxSendingMaterialFlag}
+                          onChange={async (e) => {
+                            // 個別にチェックボックスを更新するルート
+                            if (!selectedRowDataContact) return;
+                            if (!selectedRowDataContact?.contact_id)
+                              return toast.error(`データが見つかりませんでした🙇‍♀️`);
+                            if (!checkboxSendingMaterialFlag === selectedRowDataContact?.sending_materials_ban_flag) {
+                              toast.error(`アップデートに失敗しました🤦‍♀️`);
+                              return;
+                            }
+                            const updatePayload = {
+                              fieldName: "sending_materials_ban_flag",
+                              fieldNameForSelectedRowData: "sending_materials_ban_flag" as "sending_materials_ban_flag",
+                              newValue: !checkboxSendingMaterialFlag,
+                              id: selectedRowDataContact.contact_id,
+                            };
+                            // 直感的にするためにmutateにして非同期処理のまま後続のローカルのチェックボックスを更新する
+                            updateContactFieldMutation.mutate(updatePayload);
+                            setCheckboxSendingMaterialFlag(!checkboxSendingMaterialFlag);
+                          }}
                         />
                         <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
                           <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
@@ -3512,13 +3669,29 @@ const ContactMainContainerMemo: FC = () => {
                       >
                         <input
                           type="checkbox"
-                          // checked={!!checkedColumnHeader} // 初期値
-                          checked={!!selectedRowDataContact?.fax_dm_ban_flag}
-                          onChange={() => {
-                            // setLoadingGlobalState(false);
-                            setIsOpenUpdateContactModal(true);
-                          }}
                           className={`${styles.grid_select_cell_header_input}`}
+                          // checked={!!checkedColumnHeader} // 初期値
+                          // checked={!!selectedRowDataContact?.fax_dm_ban_flag}
+                          checked={checkboxFaxDmFlag}
+                          onChange={async (e) => {
+                            // 個別にチェックボックスを更新するルート
+                            if (!selectedRowDataContact) return;
+                            if (!selectedRowDataContact?.contact_id)
+                              return toast.error(`データが見つかりませんでした🙇‍♀️`);
+                            if (!checkboxFaxDmFlag === selectedRowDataContact?.fax_dm_ban_flag) {
+                              toast.error(`アップデートに失敗しました🤦‍♀️`);
+                              return;
+                            }
+                            const updatePayload = {
+                              fieldName: "fax_dm_ban_flag",
+                              fieldNameForSelectedRowData: "fax_dm_ban_flag" as "fax_dm_ban_flag",
+                              newValue: !checkboxFaxDmFlag,
+                              id: selectedRowDataContact.contact_id,
+                            };
+                            // 直感的にするためにmutateにして非同期処理のまま後続のローカルのチェックボックスを更新する
+                            updateContactFieldMutation.mutate(updatePayload);
+                            setCheckboxFaxDmFlag(!checkboxFaxDmFlag);
+                          }}
                         />
                         <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
                           <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
@@ -3546,9 +3719,12 @@ const ContactMainContainerMemo: FC = () => {
                           // className={`${styles.textarea_value} ${
                           //   isOurContact ? styles.editable_field : styles.uneditable_field
                           // }`}
-                          className={`${
-                            !!selectedRowDataContact?.claim ? styles.textarea_box : styles.textarea_value
-                          } ${isOurContact ? styles.editable_field : styles.uneditable_field}`}
+                          // className={`${
+                          //   !!selectedRowDataContact?.claim ? styles.textarea_box : styles.textarea_value
+                          // } ${isOurContact ? styles.editable_field : styles.uneditable_field}`}
+                          className={`${styles.textarea_box} ${
+                            isOurContact ? styles.editable_field : styles.uneditable_field
+                          }`}
                           // onMouseEnter={(e) => handleOpenTooltip(e)}
                           // onMouseLeave={handleCloseTooltip}
                           onClick={handleSingleClickField}
@@ -3592,7 +3768,7 @@ const ContactMainContainerMemo: FC = () => {
                             // rows={10}
                             placeholder=""
                             style={{ whiteSpace: "pre-wrap" }}
-                            className={`${styles.textarea_box} ${styles.textarea_box_search_mode} ${styles.field_edit_mode_textarea}`}
+                            className={`${styles.textarea_box} ${styles.textarea_box_search_mode} ${styles.field_edit_mode_textarea} ${styles.xl}`}
                             value={inputClaim}
                             onChange={(e) => setInputClaim(e.target.value)}
                           ></textarea>
@@ -3619,7 +3795,7 @@ const ContactMainContainerMemo: FC = () => {
                           )}
                           {/* エディットフィールド送信中ローディングスピナー */}
                           {updateContactFieldMutation.isLoading && (
-                            <div className={`${styles.field_edit_mode_loading_area}`}>
+                            <div className={`${styles.field_edit_mode_loading_area} ${styles.under_right}`}>
                               <SpinnerComet w="22px" h="22px" s="3px" />
                             </div>
                           )}
@@ -3646,23 +3822,42 @@ const ContactMainContainerMemo: FC = () => {
                   <div className="flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full `}>
                       <span className={`${styles.title}`}>禁止理由</span>
-                      {!searchMode && (
+                      {!searchMode && isEditModeField !== "ban_reason" && (
                         <div
                           data-text={`${selectedRowDataContact?.ban_reason ? selectedRowDataContact?.ban_reason : ""}`}
                           className={`${
-                            !!selectedRowDataContact?.ban_reason ? styles.textarea_box : styles.textarea_value
+                            !!selectedRowDataContact?.ban_reason ||
+                            !!selectedRowDataContact?.email_ban_flag ||
+                            !!selectedRowDataContact?.fax_dm_ban_flag ||
+                            !!selectedRowDataContact?.sending_materials_ban_flag
+                              ? styles.textarea_box
+                              : styles.textarea_value
                           } ${isOurContact ? styles.editable_field : styles.uneditable_field}`}
                           // onMouseEnter={(e) => handleOpenTooltip(e)}
                           // onMouseLeave={handleCloseTooltip}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            // handleCloseTooltip();
+                            handleDoubleClickField({
+                              e,
+                              field: "ban_reason",
+                              dispatch: setInputBanReason,
+                              selectedRowDataValue: selectedRowDataContact?.ban_reason
+                                ? selectedRowDataContact?.ban_reason
+                                : null,
+                            });
+                          }}
                           onMouseEnter={(e) => {
-                            // handleOpenTooltip(e);
+                            if (!selectedRowDataContact?.ban_reason) return;
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            // handleOpenTooltip(e);
                           }}
                           onMouseLeave={(e) => {
-                            // handleCloseTooltip();
+                            if (!selectedRowDataContact?.ban_reason) return;
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            // handleCloseTooltip();
                           }}
-                          onDoubleClick={() => setIsOpenUpdateContactModal(true)}
+                          // onDoubleClick={() => setIsOpenUpdateContactModal(true)}
                           dangerouslySetInnerHTML={{
                             __html: selectedRowDataContact?.ban_reason
                               ? selectedRowDataContact?.ban_reason.replace(/\n/g, "<br>")
@@ -3674,7 +3869,70 @@ const ContactMainContainerMemo: FC = () => {
                             : ""} */}
                         </div>
                       )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                      {/* ============= フィールドエディットモード関連 ============= */}
+                      {/* フィールドエディットモード inputタグ */}
+                      {(!!selectedRowDataContact?.email_ban_flag ||
+                        !!selectedRowDataContact?.fax_dm_ban_flag ||
+                        !!selectedRowDataContact?.sending_materials_ban_flag) &&
+                        !searchMode &&
+                        isEditModeField === "ban_reason" && (
+                          <>
+                            <textarea
+                              cols={30}
+                              // rows={10}
+                              placeholder=""
+                              style={{ whiteSpace: "pre-wrap" }}
+                              className={`${styles.textarea_box} ${styles.textarea_box_search_mode} ${styles.field_edit_mode_textarea} ${styles.xl}`}
+                              value={inputBanReason}
+                              onChange={(e) => setInputBanReason(e.target.value)}
+                            ></textarea>
+                            {/* 送信ボタンとクローズボタン */}
+                            {!updateContactFieldMutation.isLoading && (
+                              <InputSendAndCloseBtn
+                                inputState={inputBanReason}
+                                setInputState={setInputBanReason}
+                                onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                                  handleClickSendUpdateField({
+                                    e,
+                                    fieldName: "ban_reason",
+                                    fieldNameForSelectedRowData: "ban_reason",
+                                    originalValue: originalValueFieldEdit.current,
+                                    newValue: inputBanReason ? toHalfWidthAndSpace(inputBanReason.trim()) : null,
+                                    id: selectedRowDataContact?.contact_id,
+                                    required: false,
+                                  })
+                                }
+                                required={false}
+                                isDisplayClose={true}
+                                btnPositionY="bottom-[8px]"
+                              />
+                            )}
+                            {/* エディットフィールド送信中ローディングスピナー */}
+                            {updateContactFieldMutation.isLoading && (
+                              <div className={`${styles.field_edit_mode_loading_area} ${styles.under_right}`}>
+                                <SpinnerComet w="22px" h="22px" s="3px" />
+                              </div>
+                            )}
+                            {/* エディットフィールド送信中ローディングスピナー */}
+                            {updateContactFieldMutation.isLoading && (
+                              <div className={`${styles.field_edit_mode_loading_area} ${styles.under_right}`}>
+                                <SpinnerComet w="22px" h="22px" s="3px" />
+                              </div>
+                            )}
+                          </>
+                        )}
+                      {/* フィールドエディットモードオーバーレイ */}
+                      {!searchMode && isEditModeField === "ban_reason" && (
+                        <div
+                          className={`${styles.edit_mode_overlay}`}
+                          onClick={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                            setIsEditModeField(null); // エディットモードを終了
+                          }}
+                        />
+                      )}
+                      {/* ============= フィールドエディットモード関連ここまで ============= */}
+                      {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>

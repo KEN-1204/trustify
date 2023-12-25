@@ -230,5 +230,57 @@ export const useMutateClientCompany = () => {
     }
   );
 
-  return { createClientCompanyMutation, updateClientCompanyMutation, updateClientCompanyFieldMutation };
+  // 【ClientCompanyの複数フィールドを編集UPDATE用updateMultipleClientCompanyFields関数】
+  // 製品分類(大分類)を変更した際に、同時に製品分類(中分類)をnullに更新する関数
+  type UpdateObject = { [key: string]: any };
+  const updateMultipleClientCompanyFields = useMutation(
+    async (fieldData: { updateObject: UpdateObject; id: string }) => {
+      const { updateObject, id } = fieldData;
+      const { data, error } = await supabase.from("client_companies").update(updateObject).eq("id", id).select();
+
+      if (error) throw error;
+
+      console.log("updateMultipleClientCompanyFields実行完了 mutate data", data);
+
+      return data;
+    },
+    {
+      onSuccess: async (data) => {
+        console.log(
+          "updateMultipleClientCompanyFields実行完了 キャッシュを更新して選択中のセルを再度クリックして更新 onSuccess data[0]",
+          data[0]
+        );
+        // キャッシュ更新より先にZustandのSelectedRowDataCompanyをupdateで取得したデータで更新する
+        setSelectedRowDataCompany(data[0]);
+
+        // companiesに関わるキャッシュのデータを再取得 => これをしないと既に取得済みのキャッシュは古い状態で表示されてしまう
+        await queryClient.invalidateQueries({ queryKey: ["companies"] });
+
+        // 再度テーブルの選択セルのDOMをクリックしてselectedRowDataCompanyを最新状態にする
+        // setIsUpdateRequiredForLatestSelectedRowDataCompany(true);
+
+        // if (loadingGlobalState) setLoadingGlobalState(false);
+        // toast.success("会社の更新が完了しました🌟", {
+        //   position: "top-right",
+        //   autoClose: 1500
+        // });
+      },
+      onError: (err: any) => {
+        // if (loadingGlobalState) setLoadingGlobalState(false);
+        console.error("フィールドエディットモード updateエラー", err);
+        console.error(`Update failed client_companies field` + err.message);
+        toast.error("アップデートに失敗しました...", {
+          position: "top-right",
+          autoClose: 1500,
+        });
+      },
+    }
+  );
+
+  return {
+    createClientCompanyMutation,
+    updateClientCompanyMutation,
+    updateClientCompanyFieldMutation,
+    updateMultipleClientCompanyFields,
+  };
 };

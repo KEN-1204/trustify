@@ -207,6 +207,49 @@ const contactColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
+  // フラグ・クレーム・禁止理由関連
+  {
+    columnName: "call_careful_flag",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "call_careful_reason",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "email_ban_flag",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "sending_materials_ban_flag",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "fax_dm_ban_flag",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "ban_reason",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "claim",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
 ];
 
 export const contactColumnHeaderItemListData: ColumnHeaderItemList[] = contactColumnHeaderItemListArray.map(

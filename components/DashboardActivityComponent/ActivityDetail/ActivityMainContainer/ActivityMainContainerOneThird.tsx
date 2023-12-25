@@ -164,17 +164,19 @@ const ActivityMainContainerOneThirdMemo = () => {
   const [inputActivityYearMonth, setInputActivityYearMonth] = useState<number | null>(null); //活動年月度
   // フラグ関連 フィールドエディット用 初期はfalseにしておき、useEffectでselectedRowDataのフラグを反映する
   const [checkboxClaimFlagForFieldEdit, setCheckboxClaimFlagForFieldEdit] = useState(false); // クレームフラグ フィールドエディット用
-  const [checkboxFollowUpFlagForFieldEdit, setCheckboxFollowUpFlagForFieldEdit] = useState(false);
+  const [checkboxFollowUpFlagForFieldEdit, setCheckboxFollowUpFlagForFieldEdit] = useState(false); //フォロー完了フラグ
 
   // フラグの初期値を更新
+  // クレームフラグ
   useEffect(() => {
-    if (selectedRowDataActivity?.claim_flag) {
-      setCheckboxClaimFlagForFieldEdit(selectedRowDataActivity.claim_flag);
-    }
-    if (selectedRowDataActivity?.follow_up_flag) {
-      setCheckboxFollowUpFlagForFieldEdit(selectedRowDataActivity.follow_up_flag);
-    }
-  }, [selectedRowDataActivity]);
+    setCheckboxClaimFlagForFieldEdit(selectedRowDataActivity?.claim_flag ? selectedRowDataActivity?.claim_flag : false);
+  }, [selectedRowDataActivity?.claim_flag]);
+  // フォロー完了フラグ
+  useEffect(() => {
+    setCheckboxFollowUpFlagForFieldEdit(
+      selectedRowDataActivity?.follow_up_flag ? selectedRowDataActivity?.follow_up_flag : false
+    );
+  }, [selectedRowDataActivity?.follow_up_flag]);
 
   // サーチ編集モードでリプレイス前の値に復元する関数
   function beforeAdjustFieldValue(value: string | null) {
@@ -1306,9 +1308,9 @@ const ActivityMainContainerOneThirdMemo = () => {
                               newValue: !checkboxClaimFlagForFieldEdit,
                               id: selectedRowDataActivity.activity_id,
                             };
-                            // 直感的にするために先にローカルのチェックボックスを更新する
+                            // 直感的にするためにmutateにして非同期処理のまま後続のローカルのチェックボックスを更新する
+                            updateActivityFieldMutation.mutate(updatePayload);
                             setCheckboxClaimFlagForFieldEdit(!checkboxClaimFlagForFieldEdit);
-                            await updateActivityFieldMutation.mutateAsync(updatePayload);
                           }}
                         />
                         <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">

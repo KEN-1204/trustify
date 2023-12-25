@@ -18,6 +18,8 @@ import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 import { GridTableFooter } from "@/components/GridTable/GridTableFooter/GridTableFooter";
+import { GridCellCheckboxTrue } from "@/components/DashboardActivityComponent/ActivityGridTableAll/GridCellCheckbox/GridCellCheckboxTrue";
+import { GridCellCheckboxFalse } from "@/components/DashboardActivityComponent/ActivityGridTableAll/GridCellCheckbox/GridCellCheckboxFalse";
 
 type TableDataType = {
   id: number;
@@ -2353,6 +2355,26 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
   // 🌟カラム3点リーダー表示中はホバー時にツールチップを有効化
   // console.log("✅isOverflowColumnHeader", isOverflowColumnHeader);
 
+  // クレーム有無フラグ claim_flagフィールド、follow_up_flag(フォロー完了フラグ)
+  const flagMapping: { [key: string]: { [value: string]: React.JSX.Element } } = {
+    call_careful_flag: {
+      true: <GridCellCheckboxTrue />,
+      false: <GridCellCheckboxFalse />,
+    },
+    email_ban_flag: {
+      true: <GridCellCheckboxTrue />,
+      false: <GridCellCheckboxFalse />,
+    },
+    sending_materials_ban_flag: {
+      true: <GridCellCheckboxTrue />,
+      false: <GridCellCheckboxFalse />,
+    },
+    fax_dm_ban_flag: {
+      true: <GridCellCheckboxTrue />,
+      false: <GridCellCheckboxFalse />,
+    },
+  };
+
   // セルの値の表記方法を各条件で変更
   const formatDisplayValue = (columnName: string, value: any) => {
     switch (columnName) {
@@ -2361,6 +2383,15 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
         if (!!value && language === "ja") return `${value}月`;
         if (!!value && language === "en") return value;
         if (!value) return value;
+        break;
+
+      // クレームフラグ
+      case "call_careful_flag":
+      case "email_ban_flag":
+      case "sending_materials_ban_flag":
+      case "fax_dm_ban_flag":
+        // if (!value) return value;
+        return flagMapping[columnName][String(value)];
         break;
 
       default:

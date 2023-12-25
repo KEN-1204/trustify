@@ -252,6 +252,15 @@
   position: relative;
   padding-bottom: 5px;
 }
+.editable_icon {
+  /* display: hidden; */
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.title_box:hover .editable_icon {
+  /* display: block; */
+  opacity: 1;
+}
 .limited_lock_cover_half {
   position: absolute;
   z-index: 1;
@@ -458,6 +467,13 @@
   min-height: 26px;
   min-width: 26px;
 }
+.field_edit_mode_loading_area.under_right {
+  /* top: calc(50% - 2.5px); */
+  /* transform: translateY(-50%); */
+  top: 100%;
+  transform: translateY(-34.5px);
+  right: 10px;
+}
 .field_edit_mode_input_box {
   padding-right: 38px;
   z-index: 2000;
@@ -482,6 +498,9 @@
 }
 .field_edit_mode_textarea.address {
   min-height: 55px;
+}
+.field_edit_mode_textarea.xl {
+  min-height: 180px;
 }
 /* ------------------------------- 右側エリア ------------------------------- */
 .right_container {

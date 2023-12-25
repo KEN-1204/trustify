@@ -458,6 +458,11 @@
   min-height: 26px;
   min-width: 26px;
 }
+.field_edit_mode_loading_area.under_right {
+  top: 100%;
+  transform: translateY(-34.5px);
+  right: 10px;
+}
 .field_edit_mode_input_box {
   padding-right: 38px;
   z-index: 2000;
@@ -476,6 +481,9 @@
   min-height: 120px;
   /* white-space: pre-line; */
   /* background: #00000030; */
+}
+.field_edit_mode_textarea.xl {
+  min-height: 180px;
 }
 
 /* ------------------------------- 右側エリア ------------------------------- */
@@ -664,7 +672,8 @@
   /* min-width: 80px; */
   /* min-width: 90px; */
   /* min-width: 75px; */
-  min-width: 100px;
+  /* min-width: 100px; */
+  min-width: 140px;
   /* min-width: 70px; */
   font-weight: 600;
   user-select: none;
