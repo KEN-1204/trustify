@@ -346,6 +346,7 @@
   min-height: 2px;
   width: 100%;
   background-color: var(--color-bg-brand-f);
+  background-color: var(--vivid-green);
 }
 
 .close_btn_number {

@@ -37,7 +37,7 @@ export const TooltipBlur = () => {
     hoveredItemDisplay = hoveredItemPosHorizon.display;
   }
 
-  console.log("🌟Horizonレンダリング", hoveredItemDisplay, hoveredItemPosHorizon);
+  // console.log("🌟Horizonレンダリング", hoveredItemDisplay, hoveredItemPosHorizon);
   if (hoveredItemDisplay === "top")
     return (
       <div

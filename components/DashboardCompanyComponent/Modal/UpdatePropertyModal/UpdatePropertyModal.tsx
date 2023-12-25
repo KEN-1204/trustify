@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styles from "./UpdatePropertyModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -13,6 +13,10 @@ import { MdClose } from "react-icons/md";
 import { useQueryProducts } from "@/hooks/useQueryProducts";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { BsChevronLeft } from "react-icons/bs";
+import useStore from "@/store";
+import { AiOutlineQuestionCircle } from "react-icons/ai";
+import { ImInfo } from "react-icons/im";
+import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
 
 export const UpdatePropertyModal = () => {
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
@@ -257,7 +261,7 @@ export const UpdatePropertyModal = () => {
     if (!selectedRowDataProperty?.company_id) return alert("相手先の会社情報が存在しません");
     if (!selectedRowDataProperty?.contact_id) return alert("担当者情報が存在しません");
     if (currentStatus === "") return alert("ステータスを選択してください");
-    if (!expectedOrderDate) return alert("獲得予定時期を入力してください");
+    // if (!expectedOrderDate) return alert("獲得予定時期を入力してください");
     if (!propertyDate) return alert("案件発生日付を入力してください");
     if (!PropertyYearMonth) return alert("案件年月度を入力してください");
     if (PropertyMemberName === "") return alert("自社担当を入力してください");
@@ -427,6 +431,64 @@ export const UpdatePropertyModal = () => {
   const minutes5 = Array.from({ length: 12 }, (_, index) => (index * 5 < 10 ? "0" + index * 5 : "" + index * 5));
   const minutes = Array.from({ length: 60 }, (_, i) => (i < 10 ? "0" + i : "" + i));
 
+  // ================================ ツールチップ ================================
+  type TooltipParams = {
+    e: React.MouseEvent<HTMLElement, MouseEvent>;
+    display: string;
+    content: string;
+    content2?: string | undefined | null;
+    content3?: string | undefined | null;
+    marginTop?: number;
+    itemsPosition?: string;
+    whiteSpace?: "normal" | "pre" | "nowrap" | "pre-wrap" | "pre-line" | "break-spaces" | undefined;
+  };
+  const modalContainerRef = useRef<HTMLDivElement | null>(null);
+  const hoveredItemPosModal = useStore((state) => state.hoveredItemPosModal);
+  const setHoveredItemPosModal = useStore((state) => state.setHoveredItemPosModal);
+  // const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
+  const handleOpenTooltip = ({
+    e,
+    display,
+    content,
+    content2,
+    content3,
+    marginTop,
+    itemsPosition = "center",
+    whiteSpace,
+  }: TooltipParams) => {
+    // モーダルコンテナのleftを取得する
+    if (!modalContainerRef.current) return;
+    const containerLeft = modalContainerRef.current?.getBoundingClientRect().left;
+    const containerTop = modalContainerRef.current?.getBoundingClientRect().top;
+    // ホバーしたアイテムにツールチップを表示
+    const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+    // const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
+    //   ? ((e.target as HTMLDivElement).dataset.text2 as string)
+    //   : "";
+    // const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
+    //   ? ((e.target as HTMLDivElement).dataset.text3 as string)
+    //   : "";
+    setHoveredItemPosModal({
+      x: x - containerLeft,
+      y: y - containerTop,
+      itemWidth: width,
+      itemHeight: height,
+      content: content,
+      content2: content2,
+      content3: content3,
+      display: display,
+      marginTop: marginTop,
+      itemsPosition: itemsPosition,
+      whiteSpace: whiteSpace,
+    });
+  };
+  // ============================================================================================
+  // ================================ ツールチップを非表示 ================================
+  const handleCloseTooltip = () => {
+    setHoveredItemPosModal(null);
+  };
+  // ============================================================================================
+
   console.log(
     "面談予定作成モーダル selectedRowDataContact",
     selectedRowDataContact,
@@ -444,7 +506,10 @@ export const UpdatePropertyModal = () => {
           <SpinnerIDS scale={"scale-[0.5]"} />
         </div>
       )} */}
-      <div className={`${styles.container} fade03`}>
+      <div className={`${styles.container} fade03`} ref={modalContainerRef}>
+        {/* ツールチップ */}
+        {hoveredItemPosModal && <TooltipModal />}
+        {/* ローディングオーバーレイ */}
         {loadingGlobalState && (
           <div className={`${styles.loading_overlay_modal} `}>
             {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
@@ -470,7 +535,7 @@ export const UpdatePropertyModal = () => {
               <span>戻る</span>
             </div>
           </div>
-          <div className="min-w-[150px] select-none font-bold">案件 新規作成</div>
+          <div className="min-w-[150px] select-none font-bold">案件 編集</div>
 
           {selectedRowDataProperty && (
             <div
@@ -496,15 +561,19 @@ export const UpdatePropertyModal = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●現ステータス</span>
                     <select
-                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box} ${
+                        !currentStatus ? `text-[#9ca3af]` : ``
+                      }`}
                       value={currentStatus}
                       onChange={(e) => {
                         // if (e.target.value === "") return alert("訪問目的を選択してください");
                         setCurrentStatus(e.target.value);
                       }}
                     >
+                      {/* <option value="">ステータスを選択してください</option> */}
                       <option value="">ステータスを選択してください</option>
-                      <option value="展開">展開 (案件発生)</option>
+                      <option value="リード">リード</option>
+                      <option value="展開">展開</option>
                       <option value="申請">申請 (予算申請案件)</option>
                       <option value="受注">受注</option>
                     </select>
@@ -527,6 +596,98 @@ export const UpdatePropertyModal = () => {
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div> */}
+
+              {/* 現ステータス解説 */}
+              <div className={`mt-[18px] flex h-[35px] w-full items-center`}>
+                <div className="mr-[20px] flex items-center space-x-[4px] text-[15px] font-bold">
+                  <ImInfo className={`text-[var(--color-text-brand-f)]`} />
+                  <span>現ステータス解説：</span>
+                </div>
+                <div className="flex items-center space-x-[20px] text-[15px]">
+                  <div
+                    className={`flex cursor-pointer items-center space-x-[4px] text-[var(--color-text-sub)] hover:text-[var(--color-text-brand-f)] hover:underline`}
+                    // data-text="マーケティングが獲得した引合・リードを管理することで、"
+                    // data-text2="獲得したリードから営業のフォロー状況を確認することができます。"
+                    // onMouseEnter={(e) => {
+                    //   handleOpenTooltip(e, "top");
+                    // }}
+                    onMouseEnter={(e) =>
+                      handleOpenTooltip({
+                        e: e,
+                        display: "top",
+                        content: "マーケティングが引合・リードを獲得した際に使用します。",
+                        content2: "リード獲得後の営業のフォロー状況やリード発生での受注状況を把握することで",
+                        content3: "マーケティングの成果を正確に管理することが可能です。",
+                        marginTop: 57,
+                        itemsPosition: "center",
+                        whiteSpace: "nowrap",
+                      })
+                    }
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <span className="pointer-events-none">リード</span>
+                    <AiOutlineQuestionCircle className={`pointer-events-none`} />
+                  </div>
+                  <div
+                    className={`flex cursor-pointer items-center space-x-[4px] text-[var(--color-text-sub)] hover:text-[var(--color-text-brand-f)] hover:underline`}
+                    onMouseEnter={(e) =>
+                      handleOpenTooltip({
+                        e: e,
+                        display: "top",
+                        content:
+                          "営業担当の訪問・Web面談から客先が今期、または来期に導入の可能性がある際に使用します。",
+                        content2: "面談から展開率(どれだけ受注可能性のある案件に展開したか)を把握することが可能です。",
+                        content3:
+                          "受注率、展開率、アポ率を把握することで目標達成に必要なプロセスと改善点が明確になります。",
+                        marginTop: 57,
+                        itemsPosition: "center",
+                        whiteSpace: "nowrap",
+                      })
+                    }
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <span className="pointer-events-none">展開</span>
+                    <AiOutlineQuestionCircle className={`pointer-events-none`} />
+                  </div>
+                  <div
+                    className={`flex cursor-pointer items-center space-x-[4px] text-[var(--color-text-sub)] hover:text-[var(--color-text-brand-f)] hover:underline`}
+                    onMouseEnter={(e) =>
+                      handleOpenTooltip({
+                        e: e,
+                        display: "top",
+                        content: "お客様が予算申請に上げていただいた際に使用します。",
+                        content2: "長期的な案件も予定通り取り切るために管理することができます。",
+                        marginTop: 36,
+                        itemsPosition: "center",
+                        whiteSpace: "nowrap",
+                      })
+                    }
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <span className="pointer-events-none">申請</span>
+                    <AiOutlineQuestionCircle className={`pointer-events-none`} />
+                  </div>
+                  <div
+                    className={`flex cursor-pointer items-center space-x-[4px] text-[var(--color-text-sub)] hover:text-[var(--color-text-brand-f)] hover:underline`}
+                    onMouseEnter={(e) =>
+                      handleOpenTooltip({
+                        e: e,
+                        display: "top",
+                        content: "案件を受注した際に使用します。",
+                        content2:
+                          "受注率、展開率、アポ率を把握することで目標達成に必要なプロセスと改善点が明確になります。",
+                        marginTop: 36,
+                        itemsPosition: "center",
+                        whiteSpace: "nowrap",
+                      })
+                    }
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <span className="pointer-events-none">受注</span>
+                    <AiOutlineQuestionCircle className={`pointer-events-none`} />
+                  </div>
+                </div>
+              </div>
 
               {/* 右ラッパーここまで */}
             </div>

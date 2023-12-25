@@ -35,7 +35,16 @@ export const TooltipModal: FC = () => {
     hoveredItemDisplay = hoveredItemPosModal.display;
   }
 
-  console.log("Tooltipコンポーネントレンダリング", hoveredItemPosModal);
+  // console.log("Tooltipコンポーネントレンダリング", hoveredItemPosModal);
+
+  // 0は許容し、それ以外のfalsyはリターン
+  if (
+    hoveredItemPosModal?.content === "" ||
+    hoveredItemPosModal?.content === null ||
+    typeof hoveredItemPosModal?.content === "undefined"
+  ) {
+    return;
+  }
 
   // console.log(window.innerWidth);
   // 左寄りのアイテムに対して右に表示するツールチップ
@@ -47,13 +56,16 @@ export const TooltipModal: FC = () => {
           position: "absolute",
           zIndex: 10000,
           left: `${`${hoveredItemPositionX + hoveredItemHalfWidth}px`}`,
-          top: `${`${hoveredItemPositionY - hoveredItemHeight - 8}px`}`,
+          top: `${`${hoveredItemPositionY - hoveredItemHeight - 8 - (hoveredItemPosModal?.marginTop ?? 0)}px`}`,
         }}
         ref={menuRef}
       >
         <div className={`${styles.tooltip_over}`}>
           <div
-            className={`flex-col-center ${styles.dropdown_item}`}
+            className={`flex flex-col ${
+              hoveredItemPosModal?.itemsPosition === "center" ? `items-center` : "items-start"
+            } justify-center ${styles.dropdown_item}`}
+            style={{ ...(hoveredItemPosModal?.whiteSpace && { whiteSpace: hoveredItemPosModal?.whiteSpace }) }}
             onClick={() => {
               setHoveredItemPosModal(null);
             }}

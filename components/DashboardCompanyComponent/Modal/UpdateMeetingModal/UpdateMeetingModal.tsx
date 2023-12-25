@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styles from "./UpdateMeetingModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -12,6 +12,10 @@ import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput"
 import { MdClose } from "react-icons/md";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { BsChevronLeft } from "react-icons/bs";
+import { ImInfo } from "react-icons/im";
+import useStore from "@/store";
+import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
+import { AiOutlineQuestionCircle } from "react-icons/ai";
 
 export const UpdateMeetingModal = () => {
   //   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
@@ -62,18 +66,24 @@ export const UpdateMeetingModal = () => {
   const [resultNegotiateDecisionMaker, setResultNegotiateDecisionMaker] = useState("");
   const [preMeetingParticipationRequest, setPreMeetingParticipationRequest] = useState("");
   const [meetingParticipationRequest, setMeetingParticipationRequest] = useState("");
+  // 所属事業所
   const [meetingBusinessOffice, setMeetingBusinessOffice] = useState(
     userProfileState?.office ? userProfileState.office : ""
   );
+  // 事業部名
   const [meetingDepartment, setMeetingDepartment] = useState(
     userProfileState?.department ? userProfileState?.department : ""
   );
+  // 自社担当名
   const [meetingMemberName, setMeetingMemberName] = useState(
     userProfileState?.profile_name ? userProfileState.profile_name : ""
   );
+  // 面談年月度
   const [meetingYearMonth, setMeetingYearMonth] = useState<number | null>(Number(meetingYearMonthInitialValue));
+  // ユーザーの決算月と締め日を取得
+  const fiscalEndMonthObjRef = useRef<Date | null>(null);
+  const closingDayRef = useRef<number | null>(null);
 
-  const supabase = useSupabaseClient();
   const { updateMeetingMutation } = useMutateMeeting();
 
   function formatTime(timeStr: string) {
@@ -81,7 +91,7 @@ export const UpdateMeetingModal = () => {
     return `${hour}:${minute}`;
   }
 
-  // 初回マウント時に選択中の担当者&会社の列データの情報をStateに格納
+  // 🌟初回マウント時に選択中の担当者&会社の列データの情報をStateに格納
   useEffect(() => {
     if (!selectedRowDataMeeting) return;
     const selectedInitialMeetingDate = selectedRowDataMeeting.planned_date
@@ -203,7 +213,7 @@ export const UpdateMeetingModal = () => {
   //     setMeetingDepartment(userProfileState.department ? userProfileState.department : "");
   //   }, []);
 
-  // 面談開始から面談終了時間の間の面談時間を計算
+  // 🌟面談開始から面談終了時間の間の面談時間を計算する関数
   function isCompleteTime(timeStr: string) {
     const [hour, minute] = timeStr.split(":");
     return hour && minute;
@@ -228,7 +238,7 @@ export const UpdateMeetingModal = () => {
     return diffMinutes;
   };
 
-  // 予定面談開始時間、時間、分、結合用useEffect
+  // 🌟予定面談開始時間、時間、分、結合用useEffect
   useEffect(() => {
     // const formattedTime = `${plannedStartTimeHour}:${plannedStartTimeMinute}`;
     // setPlannedStartTime(formattedTime);
@@ -239,7 +249,7 @@ export const UpdateMeetingModal = () => {
       setPlannedStartTime(""); // or setResultStartTime('');
     }
   }, [plannedStartTimeHour, plannedStartTimeMinute]);
-  // 結果面談開始時間、時間、分、結合用useEffect
+  // 🌟結果面談開始時間、時間、分、結合用useEffect
   useEffect(() => {
     // const formattedTime = `${resultStartTimeHour}:${resultStartTimeMinute}`;
     // setResultStartTime(formattedTime);
@@ -250,7 +260,7 @@ export const UpdateMeetingModal = () => {
       setResultStartTime(""); // or setResultStartTime('');
     }
   }, [resultStartTimeHour, resultStartTimeMinute]);
-  // 結果面談終了時間、時間、分、結合用useEffect
+  // 🌟結果面談終了時間、時間、分、結合用useEffect
   useEffect(() => {
     // const formattedTime = `${resultEndTimeHour}:${resultEndTimeMinute}`;
     // setResultEndTime(formattedTime);
@@ -261,7 +271,7 @@ export const UpdateMeetingModal = () => {
       setResultEndTime(""); // or setResultStartTime('');
     }
   }, [resultEndTimeHour, resultEndTimeMinute]);
-  // 面談時間計算用useEffect
+  // 🌟面談時間計算用useEffect
   useEffect(() => {
     if (isCompleteTime(resultStartTime) && isCompleteTime(resultEndTime)) {
       const duration = calculateDuration(resultStartTime, resultEndTime);
@@ -271,11 +281,61 @@ export const UpdateMeetingModal = () => {
     }
   }, [resultStartTime, resultEndTime]);
 
-  // キャンセルでモーダルを閉じる
+  // 🌟ユーザーの決算月の締め日を初回マウント時に取得
+  useEffect(() => {
+    // ユーザーの決算月から締め日を取得、決算つきが未設定の場合は現在の年と3月31日を設定
+    const fiscalEndMonth = userProfileState?.customer_fiscal_end_month
+      ? new Date(userProfileState.customer_fiscal_end_month)
+      : new Date(new Date().getFullYear(), 2, 31);
+    const closingDay = fiscalEndMonth.getDate(); //ユーザーの締め日
+    fiscalEndMonthObjRef.current = fiscalEndMonth; //refに格納
+    closingDayRef.current = closingDay; //refに格納
+  }, []);
+
+  // 🌟結果面談日を更新したら面談年月度をユーザーの締め日に応じて更新するuseEffect
+  // ユーザーの財務サイクルに合わせて面談年月度を自動的に取得する関数(決算月の締め日の翌日を新たな月度の開始日とする)
+  useEffect(() => {
+    // 更新はresultDateの面談日(結果)で計算を行う
+    if (!resultDate || !closingDayRef.current) {
+      // setMeetingYearMonth(null);
+      setMeetingYearMonth(
+        selectedRowDataMeeting?.meeting_year_month ? selectedRowDataMeeting?.meeting_year_month : null
+      );
+      return;
+    }
+    // 面談予定日の年と日を取得
+    let year = resultDate.getFullYear(); // 例: 2023
+    let month = resultDate.getMonth() + 1; // getMonth()は0から11で返されるため、+1して1から12に調整
+
+    console.log("決算月", fiscalEndMonthObjRef.current);
+    console.log("締め日", closingDayRef.current);
+    console.log("resultDate", resultDate);
+    console.log("year", year);
+    console.log("month", month);
+
+    // 面談日の締め日の翌日以降の場合、次の月度とみなす
+    if (resultDate.getDate() > closingDayRef.current) {
+      month += 1;
+      if (month > 12) {
+        month = 1;
+        year += 1;
+      }
+    }
+    // 年月度を6桁の数値で表現
+    const fiscalYearMonth = year * 100 + month;
+    console.log("fiscalYearMonth", fiscalYearMonth);
+    setMeetingYearMonth(fiscalYearMonth);
+    // const meetingYearMonthUpdatedValue = `${year}${month < 10 ? "0" + month : month}`; // 月が1桁の場合は先頭に0を追加
+    // setMeetingYearMonth(Number(meetingYearMonthUpdatedValue));
+  }, [resultDate]);
+
+  // 🌟キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
     if (loadingGlobalState) return;
     setIsOpenUpdateMeetingModal(false);
   };
+
+  // 🌟面談データの更新
   const handleSaveAndClose = async () => {
     // if (!summary) return alert("活動概要を入力してください");
     // if (!MeetingType) return alert("活動タイプを選択してください");
@@ -285,6 +345,7 @@ export const UpdateMeetingModal = () => {
     if (plannedPurpose === "") return alert("訪問目的を選択してください");
     if (plannedStartTimeHour === "") return alert("予定面談開始 時間を選択してください");
     if (plannedStartTimeMinute === "") return alert("予定面談開始 分を選択してください");
+    if (!plannedDate) return alert("予定面談日の入力は必須です");
     // if (resultStartTimeHour === "") return alert("結果面談開始 時間を選択してください");
     // if (resultStartTimeMinute === "") return alert("結果面談開始 分を選択してください");
     // if (resultEndTimeHour === "") return alert("結果面談終了 時間を選択してください");
@@ -328,7 +389,7 @@ export const UpdateMeetingModal = () => {
       result_presentation_product3: resultPresentationProduct3 ? resultPresentationProduct3 : null,
       result_presentation_product4: resultPresentationProduct4 ? resultPresentationProduct4 : null,
       result_presentation_product5: resultPresentationProduct5 ? resultPresentationProduct5 : null,
-      result_category: resultCategory ? resultCategory : null,
+      result_category: !!resultCategory ? resultCategory : null,
       result_summary: resultSummary ? resultSummary : null,
       result_negotiate_decision_maker: resultNegotiateDecisionMaker ? resultNegotiateDecisionMaker : null,
       pre_meeting_participation_request: preMeetingParticipationRequest ? preMeetingParticipationRequest : null,
@@ -462,6 +523,64 @@ export const UpdateMeetingModal = () => {
   const minutes5 = Array.from({ length: 12 }, (_, index) => (index * 5 < 10 ? "0" + index * 5 : "" + index * 5));
   const minutes = Array.from({ length: 60 }, (_, i) => (i < 10 ? "0" + i : "" + i));
 
+  // ================================ ツールチップ ================================
+  type TooltipParams = {
+    e: React.MouseEvent<HTMLElement, MouseEvent>;
+    display: string;
+    content: string;
+    content2?: string | undefined | null;
+    content3?: string | undefined | null;
+    marginTop?: number;
+    itemsPosition?: string;
+    whiteSpace?: "normal" | "pre" | "nowrap" | "pre-wrap" | "pre-line" | "break-spaces" | undefined;
+  };
+  const modalContainerRef = useRef<HTMLDivElement | null>(null);
+  const hoveredItemPosModal = useStore((state) => state.hoveredItemPosModal);
+  const setHoveredItemPosModal = useStore((state) => state.setHoveredItemPosModal);
+  // const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
+  const handleOpenTooltip = ({
+    e,
+    display,
+    content,
+    content2,
+    content3,
+    marginTop,
+    itemsPosition = "center",
+    whiteSpace,
+  }: TooltipParams) => {
+    // モーダルコンテナのleftを取得する
+    if (!modalContainerRef.current) return;
+    const containerLeft = modalContainerRef.current?.getBoundingClientRect().left;
+    const containerTop = modalContainerRef.current?.getBoundingClientRect().top;
+    // ホバーしたアイテムにツールチップを表示
+    const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+    // const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
+    //   ? ((e.target as HTMLDivElement).dataset.text2 as string)
+    //   : "";
+    // const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
+    //   ? ((e.target as HTMLDivElement).dataset.text3 as string)
+    //   : "";
+    setHoveredItemPosModal({
+      x: x - containerLeft,
+      y: y - containerTop,
+      itemWidth: width,
+      itemHeight: height,
+      content: content,
+      content2: content2,
+      content3: content3,
+      display: display,
+      marginTop: marginTop,
+      itemsPosition: itemsPosition,
+      whiteSpace: whiteSpace,
+    });
+  };
+  // ============================================================================================
+  // ================================ ツールチップを非表示 ================================
+  const handleCloseTooltip = () => {
+    setHoveredItemPosModal(null);
+  };
+  // ============================================================================================
+
   console.log(
     "面談予定作成モーダル ",
     "selectedRowDataMeeting",
@@ -480,7 +599,10 @@ export const UpdateMeetingModal = () => {
           <SpinnerIDS scale={"scale-[0.5]"} />
         </div>
       )} */}
-      <div className={`${styles.container} fade03`}>
+      <div className={`${styles.container} fade03`} ref={modalContainerRef}>
+        {/* ツールチップ */}
+        {hoveredItemPosModal && <TooltipModal />}
+        {/* ローディングオーバーレイ */}
         {loadingGlobalState && (
           <div className={`${styles.loading_overlay_modal} `}>
             {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
@@ -914,7 +1036,7 @@ export const UpdateMeetingModal = () => {
             {/* --------- 右ラッパー --------- */}
             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
               {/* ●面談年月度 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              {/* <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px] ${styles.required_title}${styles.required_title}`}>
@@ -945,7 +1067,7 @@ export const UpdateMeetingModal = () => {
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
-              </div>
+              </div> */}
             </div>
 
             {/* 右ラッパーここまで */}
@@ -1030,7 +1152,7 @@ export const UpdateMeetingModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●面談日</span>
+                    <span className={`${styles.title} !min-w-[140px]`}>●面談日</span>
                     <DatePickerCustomInput
                       startDate={resultDate}
                       setStartDate={setResultDate}
@@ -1049,26 +1171,60 @@ export const UpdateMeetingModal = () => {
 
             {/* --------- 右ラッパー --------- */}
             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* ●面談タイプ */}
+              {/* ●面談年月度(結果で修正) */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    {/* <span className={`${styles.title} !min-w-[140px]`}>●面談タイプ</span>
-                    <select
-                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      value={meetingType}
-                      onChange={(e) => {
-                        setMeetingType(e.target.value);
-                      }}
+                    {/* <span className={`${styles.title} !min-w-[140px] ${styles.required_title}${styles.required_title}`}>
+                      ●面談年月度
+                    </span> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title}  ${styles.required_title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "面談日(結果)を選択することで自動的に面談年月度は計算されます。",
+                          content2:
+                            "面談年月度は決算月の期末日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
+                          content3: "決算月が未設定の場合は、デフォルトで3月31日が決算月日として設定されます。",
+                          marginTop: 57,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
                     >
-                      <option value="訪問">訪問</option>
-                      <option value="WEB">WEB</option>
-                    </select> */}
+                      <span className={`mr-[6px]`}>●面談年月度</span>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+                    </div>
+                    <input
+                      type="number"
+                      min="0"
+                      className={`${styles.input_box} pointer-events-none`}
+                      // placeholder='"202109" や "202312" などを入力'
+                      placeholder="面談日(結果)を選択してください。"
+                      value={meetingYearMonth === null ? "" : meetingYearMonth}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "") {
+                          setMeetingYearMonth(null);
+                        } else {
+                          const numValue = Number(val);
+
+                          // 入力値がマイナスかチェック
+                          if (numValue < 0) {
+                            setMeetingYearMonth(0);
+                          } else {
+                            setMeetingYearMonth(numValue);
+                          }
+                        }
+                      }}
+                    />
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
-
               {/* 右ラッパーここまで */}
             </div>
           </div>
@@ -1416,10 +1572,12 @@ export const UpdateMeetingModal = () => {
           {/* --------- 横幅全体ラッパー --------- */}
           <div className={`${styles.full_contents_wrapper} flex w-full`}>
             {/* --------- 左ラッパー --------- */}
-            <div className={`flex h-full w-full flex-col`}>
+            {/* <div className={`flex h-full w-full flex-col`}> */}
+            <div className={`${styles.left_contents_wrapper} flex h-full w-full flex-col`}>
               {/* 面談結果 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-[50%] flex-col pr-[20px]">
+                {/* <div className="flex h-full w-[50%] flex-col pr-[20px]"> */}
+                <div className="flex h-full w-[100%] flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
                     <span className={`${styles.title} !min-w-[140px]`}>面談結果</span>
                     <select
@@ -1436,7 +1594,7 @@ export const UpdateMeetingModal = () => {
                       <option value="展開継続">展開継続</option>
                       <option value="時期尚早">時期尚早</option>
                       <option value="頻度低い(ニーズあるが頻度低く導入には及ばず)">
-                        頻度低い(ニーズあるが頻度低く導入には及ばず)
+                        頻度低い(ニーズあるが使用頻度低く導入には及ばず)
                       </option>
                       <option value="結果出ず(再度面談や検証が必要)">結果出ず(再度面談や検証が必要)</option>
                       <option value="担当者の推進力無し(ニーズあり、上長・キーマンにあたる必要有り)">
@@ -1450,9 +1608,83 @@ export const UpdateMeetingModal = () => {
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
-
-              {/* 左ラッパーここまで */}
             </div>
+            {/* 左ラッパーここまで */}
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* 現ステータス解説 */}
+              <div className={`mt-[18px] flex h-[35px] w-full items-center`}>
+                <div className="mr-[20px] flex items-center space-x-[4px] text-[15px] font-bold">
+                  <ImInfo className={`text-[var(--color-text-brand-f)]`} />
+                  <span>結果タイプ解説：</span>
+                </div>
+                <div className="flex items-center space-x-[20px] text-[15px]">
+                  <div
+                    className={`flex cursor-pointer items-center space-x-[4px] text-[var(--color-text-sub)] hover:text-[var(--color-text-brand-f)] hover:underline`}
+                    // data-text="マーケティングが獲得した引合・リードを管理することで、"
+                    // data-text2="獲得したリードから営業のフォロー状況を確認することができます。"
+                    // onMouseEnter={(e) => {
+                    //   handleOpenTooltip(e, "top");
+                    // }}
+                    onMouseEnter={(e) =>
+                      handleOpenTooltip({
+                        e: e,
+                        display: "top",
+                        content: "面談した結果、「当期中」に導入の可能性がある案件へと展開した際に使用します。",
+                        content2: "展開した場合は「案件_作成」から案件を作成しましょう。",
+                        // marginTop: 57,
+                        marginTop: 39,
+                        itemsPosition: "center",
+                        whiteSpace: "nowrap",
+                      })
+                    }
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <span className="pointer-events-none">展開F</span>
+                    <AiOutlineQuestionCircle className={`pointer-events-none`} />
+                  </div>
+                  <div
+                    className={`flex cursor-pointer items-center space-x-[4px] text-[var(--color-text-sub)] hover:text-[var(--color-text-brand-f)] hover:underline`}
+                    onMouseEnter={(e) =>
+                      handleOpenTooltip({
+                        e: e,
+                        display: "top",
+                        content: "面談した結果、「来期」に導入の可能性がある案件へと展開した際に使用します。",
+                        content2: "展開した場合は「案件_作成」から案件を作成しましょう。",
+                        // marginTop: 57,
+                        marginTop: 39,
+                        itemsPosition: "center",
+                        whiteSpace: "nowrap",
+                      })
+                    }
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <span className="pointer-events-none">展開N</span>
+                    <AiOutlineQuestionCircle className={`pointer-events-none`} />
+                  </div>
+                  <div
+                    className={`flex cursor-pointer items-center space-x-[4px] text-[var(--color-text-sub)] hover:text-[var(--color-text-brand-f)] hover:underline`}
+                    onMouseEnter={(e) =>
+                      handleOpenTooltip({
+                        e: e,
+                        display: "top",
+                        content: "展開中の客先への再面談で引き続き",
+                        content2: "展開が継続、もしくは受注した際に使用します。",
+                        // marginTop: 18,
+                        marginTop: 39,
+                        itemsPosition: "center",
+                        whiteSpace: "nowrap",
+                      })
+                    }
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <span className="pointer-events-none">展開継続</span>
+                    <AiOutlineQuestionCircle className={`pointer-events-none`} />
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* --------- 右ラッパー ---------ここまで */}
           </div>
           {/* --------- 横幅全体ラッパーここまで --------- */}
 

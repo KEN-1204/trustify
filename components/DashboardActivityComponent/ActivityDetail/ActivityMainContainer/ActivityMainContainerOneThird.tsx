@@ -1531,10 +1531,12 @@ const ActivityMainContainerOneThirdMemo = () => {
                       >
                         {selectedRowDataActivity?.scheduled_follow_up_date ? (
                           format(new Date(selectedRowDataActivity.scheduled_follow_up_date), "yyyy/MM/dd")
-                        ) : (
+                        ) : !!selectedRowDataActivity ? (
                           <AiTwotoneCalendar
                             className={`text-[20px] ${isOurActivity ? `hover:text-[var(--color-bg-brand-f)]` : ``}`}
                           />
+                        ) : (
+                          ""
                         )}
                       </span>
                     )}

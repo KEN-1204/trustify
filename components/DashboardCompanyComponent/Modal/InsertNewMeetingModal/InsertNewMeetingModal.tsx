@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styles from "./InsertNewMeetingModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -12,6 +12,9 @@ import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput"
 import { MdClose } from "react-icons/md";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { BsChevronLeft } from "react-icons/bs";
+import { ImInfo } from "react-icons/im";
+import useStore from "@/store";
+import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
 
 export const InsertNewMeetingModal = () => {
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
@@ -32,18 +35,18 @@ export const InsertNewMeetingModal = () => {
   const month = initialDate.getMonth() + 1; // getMonth()は0から11で返されるため、+1して1から12に調整
   const meetingYearMonthInitialValue = `${year}${month < 10 ? "0" + month : month}`; // 月が1桁の場合は先頭に0を追加
   // const [MeetingDate, setMeetingDate] = useState<Date | null>(new Date());
-  const [meetingType, setMeetingType] = useState("訪問");
-  const [webTool, setWebTool] = useState("");
-  const [plannedDate, setPlannedDate] = useState<Date | null>(initialDate);
-  const [plannedStartTime, setPlannedStartTime] = useState<string>("");
+  const [meetingType, setMeetingType] = useState("訪問"); //面談タイプ
+  const [webTool, setWebTool] = useState(""); //webツール
+  const [plannedDate, setPlannedDate] = useState<Date | null>(initialDate); //面談日付(予定)
+  const [plannedStartTime, setPlannedStartTime] = useState<string>(""); //面談開始時刻(予定)
   const [plannedStartTimeHour, setPlannedStartTimeHour] = useState<string>("");
   const [plannedStartTimeMinute, setPlannedStartTimeMinute] = useState<string>("");
-  const [plannedPurpose, setPlannedPurpose] = useState("");
-  const [plannedDuration, setPlannedDuration] = useState<number | null>(null);
-  const [plannedAppointCheckFlag, setPlannedAppointCheckFlag] = useState(false);
-  const [plannedProduct1, setPlannedProduct1] = useState("");
-  const [plannedProduct2, setPlannedProduct2] = useState("");
-  const [plannedComment, setPlannedComment] = useState("");
+  const [plannedPurpose, setPlannedPurpose] = useState(""); //面談目的
+  const [plannedDuration, setPlannedDuration] = useState<number | null>(null); //面談予定時間
+  const [plannedAppointCheckFlag, setPlannedAppointCheckFlag] = useState(false); //アポ有無フラグ
+  const [plannedProduct1, setPlannedProduct1] = useState(""); //実施予定１
+  const [plannedProduct2, setPlannedProduct2] = useState(""); //実施予定２
+  const [plannedComment, setPlannedComment] = useState(""); //事前コメント
   const [resultDate, setResultDate] = useState<Date | null>(null);
   const [resultStartTime, setResultStartTime] = useState<string>("");
   const [resultStartTimeHour, setResultStartTimeHour] = useState<string>("");
@@ -61,19 +64,21 @@ export const InsertNewMeetingModal = () => {
   const [resultCategory, setResultCategory] = useState("");
   const [resultSummary, setResultSummary] = useState("");
   const [resultNegotiateDecisionMaker, setResultNegotiateDecisionMaker] = useState("");
-  const [preMeetingParticipationRequest, setPreMeetingParticipationRequest] = useState("");
+  const [preMeetingParticipationRequest, setPreMeetingParticipationRequest] = useState(""); //事前同席依頼
   const [meetingParticipationRequest, setMeetingParticipationRequest] = useState("");
   const [meetingBusinessOffice, setMeetingBusinessOffice] = useState(
     userProfileState?.office ? userProfileState.office : ""
-  );
+  ); //所属事業所
   const [meetingDepartment, setMeetingDepartment] = useState(
     userProfileState?.department ? userProfileState?.department : ""
-  );
+  ); //事業部名
   const [meetingMemberName, setMeetingMemberName] = useState(
     userProfileState?.profile_name ? userProfileState.profile_name : ""
-  );
-  const [departmentName, setDepartmentName] = useState(userProfileState?.department ? userProfileState.department : "");
-  const [meetingYearMonth, setMeetingYearMonth] = useState<number | null>(Number(meetingYearMonthInitialValue));
+  ); //自社担当名
+  const [meetingYearMonth, setMeetingYearMonth] = useState<number | null>(Number(meetingYearMonthInitialValue)); //面談年月度
+  // ユーザーの決算月と締め日を取得
+  const fiscalEndMonthObjRef = useRef<Date | null>(null);
+  const closingDayRef = useRef<number | null>(null);
 
   const { createMeetingMutation } = useMutateMeeting();
 
@@ -83,19 +88,6 @@ export const InsertNewMeetingModal = () => {
   //     setMeetingBusinessOffice(userProfileState.office ? userProfileState.office : "");
   //     setMeetingDepartment(userProfileState.department ? userProfileState.department : "");
   //   }, []);
-
-  // 面談日を更新したら面談年月度をユーザーの締め日に応じて更新する
-  useEffect(() => {
-    if (!plannedDate) {
-      setMeetingYearMonth(null);
-      return;
-    }
-    plannedDate.setHours(0, 0, 0, 0);
-    const year = plannedDate.getFullYear(); // 例: 2023
-    const month = plannedDate.getMonth() + 1; // getMonth()は0から11で返されるため、+1して1から12に調整
-    const meetingYearMonthUpdatedValue = `${year}${month < 10 ? "0" + month : month}`; // 月が1桁の場合は先頭に0を追加
-    setMeetingYearMonth(Number(meetingYearMonthUpdatedValue));
-  }, [plannedDate]);
 
   // 予定面談開始時間、時間、分、結合用useEffect
   useEffect(() => {
@@ -131,11 +123,56 @@ export const InsertNewMeetingModal = () => {
     }
   }, [resultEndTimeHour, resultEndTimeMinute]);
 
-  // キャンセルでモーダルを閉じる
+  // 🌟ユーザーの決算月の締め日を初回マウント時に取得
+  useEffect(() => {
+    // ユーザーの決算月から締め日を取得、決算つきが未設定の場合は現在の年と3月31日を設定
+    const fiscalEndMonth = userProfileState?.customer_fiscal_end_month
+      ? new Date(userProfileState.customer_fiscal_end_month)
+      : new Date(new Date().getFullYear(), 2, 31);
+    const closingDay = fiscalEndMonth.getDate(); //ユーザーの締め日
+    fiscalEndMonthObjRef.current = fiscalEndMonth; //refに格納
+    closingDayRef.current = closingDay; //refに格納
+  }, []);
+
+  // 🌟面談日を更新したら面談年月度をユーザーの締め日に応じて更新するuseEffect
+  // ユーザーの財務サイクルに合わせて面談年月度を自動的に取得する関数(決算月の締め日の翌日を新たな月度の開始日とする)
+  useEffect(() => {
+    if (!plannedDate || !closingDayRef.current) {
+      setMeetingYearMonth(null);
+      return;
+    }
+    // 面談予定日の年と日を取得
+    let year = plannedDate.getFullYear(); // 例: 2023
+    let month = plannedDate.getMonth() + 1; // getMonth()は0から11で返されるため、+1して1から12に調整
+
+    console.log("決算月", fiscalEndMonthObjRef.current);
+    console.log("締め日", closingDayRef.current);
+    console.log("plannedDate", plannedDate);
+    console.log("year", year);
+    console.log("month", month);
+
+    // 面談日の締め日の翌日以降の場合、次の月度とみなす
+    if (plannedDate.getDate() > closingDayRef.current) {
+      month += 1;
+      if (month > 12) {
+        month = 1;
+        year += 1;
+      }
+    }
+    // 年月度を6桁の数値で表現
+    const fiscalYearMonth = year * 100 + month;
+    console.log("fiscalYearMonth", fiscalYearMonth);
+    setMeetingYearMonth(fiscalYearMonth);
+    // const meetingYearMonthUpdatedValue = `${year}${month < 10 ? "0" + month : month}`; // 月が1桁の場合は先頭に0を追加
+    // setMeetingYearMonth(Number(meetingYearMonthUpdatedValue));
+  }, [plannedDate]);
+
+  // 🌟キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
     if (loadingGlobalState) return;
     setIsOpenInsertNewMeetingModal(false);
   };
+  // ✅
 
   // 🌟活動画面から面談を作成 活動画面で選択したRowデータを使用する
   const handleSaveAndClose = async () => {
@@ -469,6 +506,64 @@ export const InsertNewMeetingModal = () => {
   const minutes5 = Array.from({ length: 12 }, (_, index) => (index * 5 < 10 ? "0" + index * 5 : "" + index * 5));
   const minutes = Array.from({ length: 60 }, (_, i) => (i < 10 ? "0" + i : "" + i));
 
+  // ================================ ツールチップ ================================
+  type TooltipParams = {
+    e: React.MouseEvent<HTMLElement, MouseEvent>;
+    display: string;
+    content: string;
+    content2?: string | undefined | null;
+    content3?: string | undefined | null;
+    marginTop?: number;
+    itemsPosition?: string;
+    whiteSpace?: "normal" | "pre" | "nowrap" | "pre-wrap" | "pre-line" | "break-spaces" | undefined;
+  };
+  const modalContainerRef = useRef<HTMLDivElement | null>(null);
+  const hoveredItemPosModal = useStore((state) => state.hoveredItemPosModal);
+  const setHoveredItemPosModal = useStore((state) => state.setHoveredItemPosModal);
+  // const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
+  const handleOpenTooltip = ({
+    e,
+    display,
+    content,
+    content2,
+    content3,
+    marginTop,
+    itemsPosition = "center",
+    whiteSpace,
+  }: TooltipParams) => {
+    // モーダルコンテナのleftを取得する
+    if (!modalContainerRef.current) return;
+    const containerLeft = modalContainerRef.current?.getBoundingClientRect().left;
+    const containerTop = modalContainerRef.current?.getBoundingClientRect().top;
+    // ホバーしたアイテムにツールチップを表示
+    const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+    // const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
+    //   ? ((e.target as HTMLDivElement).dataset.text2 as string)
+    //   : "";
+    // const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
+    //   ? ((e.target as HTMLDivElement).dataset.text3 as string)
+    //   : "";
+    setHoveredItemPosModal({
+      x: x - containerLeft,
+      y: y - containerTop,
+      itemWidth: width,
+      itemHeight: height,
+      content: content,
+      content2: content2,
+      content3: content3,
+      display: display,
+      marginTop: marginTop,
+      itemsPosition: itemsPosition,
+      whiteSpace: whiteSpace,
+    });
+  };
+  // ============================================================================================
+  // ================================ ツールチップを非表示 ================================
+  const handleCloseTooltip = () => {
+    setHoveredItemPosModal(null);
+  };
+  // ============================================================================================
+
   console.log(
     "面談予定作成モーダル selectedRowDataActivity",
     selectedRowDataActivity,
@@ -486,7 +581,10 @@ export const InsertNewMeetingModal = () => {
           <SpinnerIDS scale={"scale-[0.5]"} />
         </div>
       )} */}
-      <div className={`${styles.container} fade03`}>
+      <div className={`${styles.container} fade03`} ref={modalContainerRef}>
+        {/* ツールチップ */}
+        {hoveredItemPosModal && <TooltipModal />}
+        {/* ローディングオーバーレイ */}
         {loadingGlobalState && (
           <div className={`${styles.loading_overlay_modal} `}>
             {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
@@ -927,7 +1025,27 @@ export const InsertNewMeetingModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●面談年月度</span>
+                    {/* <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●面談年月度</span> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title}  ${styles.required_title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content:
+                            "面談年月度は決算月の期末日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
+                          content2: "決算月が未設定の場合は、デフォルトで3月31日が決算月日として設定されます。",
+                          content3: "変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
+                          marginTop: 57,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <span className={`mr-[6px]`}>●面談年月度</span>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+                    </div>
                     <input
                       type="number"
                       min="0"

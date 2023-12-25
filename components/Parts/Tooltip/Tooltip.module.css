@@ -9,7 +9,8 @@
 /* ブラック */
 .tooltip_area {
   position: absolute;
-  z-index: 1500;
+  /* z-index: 1500; */
+  z-index: 20000;
   pointer-events: none;
 }
 .tooltip {
