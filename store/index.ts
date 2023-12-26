@@ -1,4 +1,10 @@
-import { ClickedItemPos, hoveredItemPos, hoveredItemPosHorizon, hoveredItemPosWrap } from "@/types";
+import {
+  ClickedItemPos,
+  hoveredItemPos,
+  hoveredItemPosHorizon,
+  hoveredItemPosModal,
+  hoveredItemPosWrap,
+} from "@/types";
 // @ts-ignore
 import { Session } from "@supabase/supabase-js";
 import { ReactNode } from "react";
@@ -19,8 +25,8 @@ type State = {
   hoveredItemPosHorizon: hoveredItemPosHorizon;
   setHoveredItemPosHorizon: (payload: hoveredItemPosHorizon) => void;
   // ツールチップ ホバー位置 カラム編集モーダル
-  hoveredItemPosModal: hoveredItemPos;
-  setHoveredItemPosModal: (payload: hoveredItemPos) => void;
+  hoveredItemPosModal: hoveredItemPosModal;
+  setHoveredItemPosModal: (payload: hoveredItemPosModal) => void;
   // 【ホバーしたアイテムのポジションを取得 折り返し有り MouseEnterした位置で動的に上下にツールチップを表示】
   hoveredItemPosWrap: hoveredItemPosWrap;
   setHoveredItemPosWrap: (payload: hoveredItemPosWrap) => void;

@@ -26,6 +26,27 @@ export type hoveredItemPos = {
   maxWidth?: number;
   whiteSpace?: "normal" | "pre" | "nowrap" | "pre-wrap" | "pre-line" | "break-spaces";
 } | null;
+// モーダル
+export type hoveredItemPosModal = {
+  x: number;
+  y: number;
+  itemWidth: number;
+  itemHeight: number;
+  containerLeft?: number;
+  containerTop?: number;
+  containerWidth?: number;
+  containerHeight?: number;
+  content: string;
+  content2?: string | null;
+  content3?: string | null;
+  display: string;
+  textLength?: number;
+  marginTop?: number;
+  marginBottom?: number;
+  itemsPosition?: string;
+  maxWidth?: number;
+  whiteSpace?: "normal" | "pre" | "nowrap" | "pre-wrap" | "pre-line" | "break-spaces";
+} | null;
 // 左右にツールチップを表示
 export type hoveredItemPosHorizon = {
   x: number;

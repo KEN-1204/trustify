@@ -670,6 +670,7 @@ const SettingCompanyMemo = () => {
                       let fiscalEndDate: Date;
                       if (userProfileState?.customer_fiscal_end_month) {
                         fiscalEndDate = new Date(userProfileState.customer_fiscal_end_month);
+                        fiscalEndDate.setHours(23, 59, 59, 999);
                       } else {
                         // customer_fiscal_end_monthが未設定の場合は3月31日を決算月に設定する
                         const currentYear = new Date().getFullYear(); //現在の年を取得
@@ -730,7 +731,7 @@ const SettingCompanyMemo = () => {
 
                       const { data: companyData, error } = await supabase
                         .from("companies")
-                        .update({ customer_fiscal_end_month: editedFiscalEndMonth })
+                        .update({ customer_fiscal_end_month: editedFiscalEndMonth.toISOString() })
                         .eq("id", userProfileState.company_id)
                         .select("customer_fiscal_end_month")
                         .single();
@@ -744,8 +745,10 @@ const SettingCompanyMemo = () => {
                         return;
                       }
                       console.log(
-                        "決算月UPDATE成功 companyData.customer_fiscal_end_month",
-                        companyData.customer_fiscal_end_month
+                        "決算月UPDATE成功 更新後決算月 companyData.customer_fiscal_end_month",
+                        companyData.customer_fiscal_end_month,
+                        "editedFiscalEndMonth",
+                        editedFiscalEndMonth
                       );
                       setUserProfileState({
                         // ...(companyData as UserProfile),
@@ -884,12 +887,13 @@ const SettingCompanyMemo = () => {
                   <div
                     className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                     onClick={async () => {
+                      if (!userProfileState) return;
                       if (userProfileState.customer_number_of_employees_class === editedNumberOfEmployeeClass) {
                         setEditNumberOfEmployeeClassMode(false);
                         return;
                       }
                       if (editedNumberOfEmployeeClass === "") {
-                        alert("有効な決算月を入力してください");
+                        alert("有効な規模を入力してください");
                         return;
                       }
                       if (!userProfileState?.company_id) return alert("会社IDが見つかりません");
@@ -905,12 +909,12 @@ const SettingCompanyMemo = () => {
                         setLoadingGlobalState(false);
                         setEditNumberOfEmployeeClassMode(false);
                         alert(error.message);
-                        console.log("決算月UPDATEエラー", error.message);
-                        toast.error("決算月の更新に失敗しました!");
+                        console.log("規模UPDATEエラー", error.message);
+                        toast.error("規模の更新に失敗しました!");
                         return;
                       }
                       console.log(
-                        "決算月UPDATE成功 companyData.customer_number_of_employees_class",
+                        "規模UPDATE成功 companyData.customer_number_of_employees_class",
                         companyData.customer_number_of_employees_class
                       );
                       setUserProfileState({
@@ -922,7 +926,7 @@ const SettingCompanyMemo = () => {
                       });
                       setLoadingGlobalState(false);
                       setEditNumberOfEmployeeClassMode(false);
-                      toast.success("決算月の更新が完了しました!");
+                      toast.success("規模の更新が完了しました!");
                     }}
                   >
                     保存

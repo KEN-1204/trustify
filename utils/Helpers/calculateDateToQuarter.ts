@@ -1,7 +1,7 @@
 // // 展開日付からユーザーの財務サイクルに応じた展開四半期を取得
 // // 「20231」「20232」「20233」「20234」の数値で取得して範囲検索を容易にし、ブラウザ表示ではQを末尾につける
 // // 例: 面談日2023年6月20日(第一四半期) 決算月日3月20日
-// const calculateDateToQuarter = (inputDateObj: Date, fiscalEndMonth: number, fiscalEndDay: number): Date => {
+// const calculateDateToQuarter = (inputDateObj: Date, fiscalEndMonth: number, fiscalEndDay: number): { date: Date, quarter: number} => {
 //   // 決算月日のDateオブジェクトを作成(今年の決算月日)
 //   let inputDateYear = inputDateObj.getFullYear(); // 入力された面談日の年 2023
 //   //   let currentFiscalYear: number; //ユーザーの決算年度
@@ -48,4 +48,4 @@
 //   // input: 6月20日 => ~3/20✖️ ~6/20○ => return 6
 //   // input: 6月21日 => ~3/20✖️ ~6/20✖️ ~9/20○ => return 9
 //   const targetDateQuarter = quarters.findIndex((endOfQuarter) => dateObj <= endOfQuarter);
-// }
+// };

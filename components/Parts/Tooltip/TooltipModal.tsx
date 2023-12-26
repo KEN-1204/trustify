@@ -4,6 +4,7 @@ import styles from "./TooltipModal.module.css";
 
 export const TooltipModal: FC = () => {
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const arrowRef = useRef<HTMLDivElement | null>(null);
   const hoveredItemPosModal = useStore((state) => state.hoveredItemPosModal);
   const setHoveredItemPosModal = useStore((state) => state.setHoveredItemPosModal);
   //   const rect = menuRef.current?.getBoundingClientRect();
@@ -25,7 +26,7 @@ export const TooltipModal: FC = () => {
   let hoveredItemHeight = 0;
   let hoveredItemPositionX = 0;
   let hoveredItemPositionY = 0;
-  let hoveredItemDisplay;
+  let hoveredItemDisplay: string | undefined;
   if (hoveredItemPosModal) {
     hoveredItemHalfWidth = hoveredItemPosModal.itemWidth / 2;
     hoveredItemWidth = hoveredItemPosModal.itemWidth;
@@ -35,7 +36,81 @@ export const TooltipModal: FC = () => {
     hoveredItemDisplay = hoveredItemPosModal.display;
   }
 
-  // console.log("Tooltipコンポーネントレンダリング", hoveredItemPosModal);
+  // useEffectフックを使ってツールチップの幅を取得して、画面端20pxの位置に表示
+  useEffect(() => {
+    // 最初から左か右に矢印を配置する場合は計算不要
+    if (
+      (!!hoveredItemDisplay && hoveredItemDisplay === "left") ||
+      hoveredItemDisplay === "right" ||
+      hoveredItemDisplay === "right-top"
+    )
+      return;
+
+    if (menuRef.current) {
+      const tooltipWidth = menuRef.current.offsetWidth;
+      // const tooltipRectWidth = menuRef.current.getBoundingClientRect().width;
+      console.log("tooltipOffsetWidth,", tooltipWidth);
+      const tooltipHalfWidth = tooltipWidth / 2;
+      const viewportWidth = window.innerWidth;
+      const viewportRightOneThird = (viewportWidth / 3) * 2; // 画面3分の2の幅
+      const viewportRightHalf = viewportWidth / 2; // 画面2分の1の幅
+      const viewportRightOneFifth = (viewportWidth / 5) * 4; // 画面5分の4の幅
+      const leftPosition = hoveredItemPositionX + hoveredItemHalfWidth;
+      // const leftPosition = hoveredItemPositionX + tooltipWidth;
+      let adjustedLeft = leftPosition;
+      let tooltipLeftPosition = leftPosition - tooltipHalfWidth;
+
+      // 画面右端を超えている場合、位置を左に調整 右に10px余白を設けた位置にツールチップを表示
+      if (leftPosition + tooltipHalfWidth > viewportWidth - 10) {
+        console.log("みぎ！！！！！！！！！！！！！！！！炎");
+        adjustedLeft = viewportWidth - tooltipHalfWidth - 10 - 10; // 20pxの余白を残す
+        const addWidth = viewportWidth - 10 - adjustedLeft - tooltipHalfWidth;
+        menuRef.current.style.width = `${tooltipWidth + addWidth}px`;
+        menuRef.current.style.overflowWrap = "normal";
+        // 超えている場合は矢印を消去
+        if (arrowRef.current) arrowRef.current.style.opacity = "0";
+        if (arrowRef.current) arrowRef.current.style.display = "hidden";
+      } else {
+        // 画面右端を超えていないなら、画面左3分の2の位置よりも右の位置にある場合はnowrapにする
+        if (adjustedLeft > viewportRightHalf) {
+          console.log("右半分！！！！！！！！！！！！！！！！炎", leftPosition);
+          const tooltipText = menuRef.current.querySelector(`.tooltip_text`);
+          const tooltipTextWidth = tooltipText?.getBoundingClientRect().width;
+          console.log("tooltipWidth", tooltipWidth, "tooltipTextWidth", tooltipTextWidth, "tooltipText", tooltipText);
+          // menuRef.current.style.minWidth = `${tooltipWidth}px`;
+          menuRef.current.style.minWidth = `max-content`;
+        }
+        // 画面左を超えているか モーダルLeft位置と、そのLeft位置からツールチップの中心点までの距離を合算した距離よりもツールチップの半分の長さが超えている場合
+        if ((hoveredItemPosModal?.containerLeft ?? 0) + leftPosition < tooltipHalfWidth) {
+          console.log(
+            "ビューポートより左🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥！！！！！！！！！！！！！！！！炎",
+            tooltipLeftPosition,
+            leftPosition,
+            (hoveredItemPosModal?.containerLeft ?? 0) + leftPosition,
+            tooltipHalfWidth,
+            (hoveredItemPosModal?.containerLeft ?? 0) + leftPosition - tooltipHalfWidth
+          );
+
+          const addWidth = Math.abs((hoveredItemPosModal?.containerLeft ?? 0) + leftPosition - tooltipHalfWidth) + 20;
+          // adjustedLeft = 0 - (hoveredItemPosModal?.containerLeft ?? 0);
+          adjustedLeft += addWidth;
+          // 超えている場合は矢印を消去
+          if (arrowRef.current) arrowRef.current.style.opacity = "0";
+          if (arrowRef.current) arrowRef.current.style.display = "hidden";
+        }
+      }
+
+      // 画面左端を超えている場合、位置を右に調整
+      if (leftPosition < 0) {
+        console.log("🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥！！！！！！！！！！！！！！！！炎");
+        adjustedLeft = 10; // 10pxの余白を残す
+      }
+
+      // スタイルを更新
+      // adjustedLeft = adjustedLeft - tooltipHalfWidth;
+      menuRef.current.style.left = `${adjustedLeft}px`;
+    }
+  }, [hoveredItemPositionX, hoveredItemPositionY, hoveredItemHalfWidth, hoveredItemDisplay]);
 
   // 0は許容し、それ以外のfalsyはリターン
   if (
@@ -54,9 +129,10 @@ export const TooltipModal: FC = () => {
         className={`${styles.tooltip_area}  ${hoveredItemPosModal ? `block ${styles.fade}` : "transition-base hidden"}`}
         style={{
           position: "absolute",
-          zIndex: 10000,
-          left: `${`${hoveredItemPositionX + hoveredItemHalfWidth}px`}`,
+          zIndex: 20000,
+          // left: `${`${hoveredItemPositionX + hoveredItemHalfWidth}px`}`,
           top: `${`${hoveredItemPositionY - hoveredItemHeight - 8 - (hoveredItemPosModal?.marginTop ?? 0)}px`}`,
+          ...(!!hoveredItemPosModal?.maxWidth && { maxWidth: hoveredItemPosModal.maxWidth }),
         }}
         ref={menuRef}
       >
@@ -75,7 +151,7 @@ export const TooltipModal: FC = () => {
             {hoveredItemPosModal?.content3 && <span>{hoveredItemPosModal?.content3}</span>}
           </div>
         </div>
-        <div className={`${styles.tooltip_arrow_over}`}></div>
+        <div ref={arrowRef} className={`${styles.tooltip_arrow_over}`}></div>
       </div>
     );
     // return (
@@ -164,9 +240,10 @@ export const TooltipModal: FC = () => {
       style={{
         position: "absolute",
 
-        zIndex: 10000,
-        left: `${`${hoveredItemPositionX + hoveredItemHalfWidth}px`}`,
+        zIndex: 20000,
+        // left: `${`${hoveredItemPositionX + hoveredItemHalfWidth}px`}`,
         top: `${`${hoveredItemPositionY + hoveredItemHeight + 10}px`}`,
+        ...(!!hoveredItemPosModal?.maxWidth && { maxWidth: hoveredItemPosModal.maxWidth }),
       }}
       ref={menuRef}
     >

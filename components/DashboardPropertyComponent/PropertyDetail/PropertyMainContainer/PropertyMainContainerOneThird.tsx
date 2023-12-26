@@ -944,7 +944,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
 
     let yearQuarters: number[] = [];
 
-    for (let year = startYear; year < endYear; year++) {
+    for (let year = startYear; year <= endYear; year++) {
       for (let i = 1; i <= 4; i++) {
         const yearQuarter = parseInt(`${year}${i}`, 10); // 20201, 20203
         yearQuarters.push(yearQuarter);

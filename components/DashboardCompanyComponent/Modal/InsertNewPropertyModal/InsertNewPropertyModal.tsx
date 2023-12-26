@@ -5,7 +5,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 import { toast } from "react-toastify";
 import useThemeStore from "@/store/useThemeStore";
-import { isNaN } from "lodash";
+import { isNaN, set } from "lodash";
 import { useMutateProperty } from "@/hooks/useMutateProperty";
 import productCategoriesM from "@/utils/productCategoryM";
 import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
@@ -17,6 +17,10 @@ import { ImInfo } from "react-icons/im";
 import { AiOutlineQuestionCircle } from "react-icons/ai";
 import useStore from "@/store";
 import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
+import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMonth";
+import { format } from "date-fns";
+import { getFiscalQuarter } from "@/utils/Helpers/getFiscalQuarter";
+import { getFiscalQuarterTest } from "@/utils/Helpers/getFiscalQuarterTest";
 
 export const InsertNewPropertyModal = () => {
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
@@ -44,11 +48,6 @@ export const InsertNewPropertyModal = () => {
   //   isLoading,
   // } = useQueryProducts(userProfileState?.company_id, userProfileState?.id);
 
-  const initialDate = new Date();
-  initialDate.setHours(0, 0, 0, 0);
-  const year = initialDate.getFullYear(); // 例: 2023
-  const month = initialDate.getMonth() + 1; // getMonth()は0から11で返されるため、+1して1から12に調整
-  const PropertyYearMonthInitialValue = `${year}${month < 10 ? "0" + month : month}`; // 月が1桁の場合は先頭に0を追加
   const [currentStatus, setCurrentStatus] = useState(""); //現ステータス
   const [propertyName, setPropertyName] = useState(""); //案件名
   const [propertySummary, setPropertySummary] = useState(""); //案件概要
@@ -66,10 +65,6 @@ export const InsertNewPropertyModal = () => {
   const [discountedPrice, setDiscountedPrice] = useState<number | null>(null); //値引き価格
   const [discountedRate, setDiscountedRate] = useState<number | null>(null); //値引率
   const [salesClass, setSalesClass] = useState(""); //導入分類
-  const [expansionDate, setExpansionDate] = useState<Date | null>(null); //展開日付
-  const [salesDate, setSalesDate] = useState<Date | null>(null); //売上日付
-  const [expansionQuarter, setExpansionQuarter] = useState(""); //展開四半期
-  const [salesQuarter, setSalesQuarter] = useState(""); //売上四半期
   const [subscriptionStartDate, setSubscriptionStartDate] = useState<Date | null>(null); //サブスク開始日
   const [subscriptionCanceledAt, setSubscriptionCanceledAt] = useState<Date | null>(null); //サブスク解約日
   const [leasingCompany, setLeasingCompany] = useState(""); //リース会社
@@ -86,9 +81,24 @@ export const InsertNewPropertyModal = () => {
   const [reasonDetail, setReasonDetail] = useState(""); //動機詳細
   const [customerBudget, setCustomerBudget] = useState<number | null>(null); //客先予算
   const [decisionMakerNegotiation, setDecisionMakerNegotiation] = useState(""); //決裁者商談有無
+  // ============================== 日付。年月、四半期関連
+  const initialDate = new Date();
+  initialDate.setHours(0, 0, 0, 0);
+  const year = initialDate.getFullYear(); // 例: 2023
+  const month = initialDate.getMonth() + 1; // getMonth()は0から11で返されるため、+1して1から12に調整
+  const PropertyYearMonthInitialValue = `${year}${month < 10 ? "0" + month : month}`; // 月が1桁の場合は先頭に0を追加
+
+  const [expansionDate, setExpansionDate] = useState<Date | null>(null); //展開日付
+  const [expansionQuarterSelectedYear, setExpansionQuarterSelectedYear] = useState<number | null>(null); //展開四半期
+  const [expansionQuarterSelectedQuarter, setExpansionQuarterSelectedQuarter] = useState<number | null>(null); //展開四半期
+  const [expansionQuarter, setExpansionQuarter] = useState(""); //展開四半期
   const [expansionYearMonth, setExpansionYearMonth] = useState<number | null>(null); //展開年月度
+  const [salesDate, setSalesDate] = useState<Date | null>(null); //売上日付
+  const [salesQuarter, setSalesQuarter] = useState(""); //売上四半期
   const [salesYearMonth, setSalesYearMonth] = useState<number | null>(null); //売上年月度
+  const [propertyDate, setPropertyDate] = useState<Date | null>(initialDate); //案件発生日付
   const [PropertyYearMonth, setPropertyYearMonth] = useState<number | null>(Number(PropertyYearMonthInitialValue)); //案件年月度
+  // ============================== 日付。年月、四半期関連 ここまで
   const [subscriptionInterval, setSubscriptionInterval] = useState(""); //サブスク分類
   const [competitionState, setCompetitionState] = useState(""); //競合状況
   const [PropertyDepartment, setPropertyDepartment] = useState(
@@ -100,19 +110,63 @@ export const InsertNewPropertyModal = () => {
   const [PropertyMemberName, setPropertyMemberName] = useState(
     userProfileState?.profile_name ? userProfileState.profile_name : ""
   ); //自社担当
-  const [propertyDate, setPropertyDate] = useState<Date | null>(initialDate); //案件発生日付
+
   // ユーザーの決算月と締め日を取得
   const fiscalEndMonthObjRef = useRef<Date | null>(null);
   const closingDayRef = useRef<number | null>(null);
 
   const { createPropertyMutation } = useMutateProperty();
 
-  //   useEffect(() => {
-  //     if (!userProfileState) return;
-  //     setPropertyMemberName(userProfileState.profile_name ? userProfileState.profile_name : "");
-  //     setPropertyBusinessOffice(userProfileState.office ? userProfileState.office : "");
-  //     setPropertyDepartment(userProfileState.department ? userProfileState.department : "");
-  //   }, []);
+  // 🌟ユーザーの決算月の締め日を初回マウント時に取得
+  useEffect(() => {
+    // ユーザーの決算月から締め日を取得、決算つきが未設定の場合は現在の年と3月31日を設定
+    const fiscalEndMonth = userProfileState?.customer_fiscal_end_month
+      ? new Date(userProfileState.customer_fiscal_end_month)
+      : new Date(new Date().getFullYear(), 2, 31);
+    const closingDay = fiscalEndMonth.getDate(); //ユーザーの締め日
+    fiscalEndMonthObjRef.current = fiscalEndMonth; //決算月Dateオブジェクトをrefに格納
+    closingDayRef.current = closingDay; //refに格納
+    console.log("ユーザー決算月", userProfileState?.customer_fiscal_end_month);
+    console.log("ユーザー決算月", format(fiscalEndMonth, "yyyy年MM月dd日 HH:mm:ss"));
+    console.log("ユーザー決算月", fiscalEndMonthObjRef.current);
+    console.log("ユーザー決算月", format(fiscalEndMonthObjRef.current, "yyyy年MM月dd日 HH:mm:ss"));
+  }, []);
+
+  // 🌟展開日付から展開年月度、展開四半期を自動で計算、入力するuseEffect
+  useEffect(() => {
+    // initialDate.setHours(0, 0, 0, 0);
+    if (!expansionDate || !closingDayRef.current || !fiscalEndMonthObjRef.current) {
+      setExpansionYearMonth(null);
+      return;
+    }
+    // 面談日付からユーザーの財務サイクルに応じた面談年月度を取得
+    const fiscalYearMonth = calculateDateToYearMonth(expansionDate, closingDayRef.current);
+    setExpansionYearMonth(fiscalYearMonth);
+
+    // 四半期を自動で入力
+    // 四半期の年部分をセット
+    setExpansionQuarterSelectedYear(expansionDate.getFullYear() ?? null);
+    // 四半期のQ部分をセット
+    // const _expansionFiscalQuarter = getFiscalQuarter(fiscalEndMonthObjRef.current, expansionDate);
+    const _expansionFiscalQuarter = getFiscalQuarterTest(fiscalEndMonthObjRef.current, expansionDate);
+    console.log("四半期", _expansionFiscalQuarter);
+    setExpansionQuarterSelectedQuarter(_expansionFiscalQuarter);
+  }, [expansionDate]);
+
+  // 🌟売上日付から売上年月度、売上四半期を自動で計算、入力するuseEffect
+  useEffect(() => {
+    // initialDate.setHours(0, 0, 0, 0);
+    if (!salesDate) return;
+    const year = salesDate.getFullYear(); // 例: 2023
+    const month = salesDate.getMonth() + 1; // getMonth()は0から11で返されるため、+1して1から12に調整
+    const salesYearMonthInitialValue = `${year}${month < 10 ? "0" + month : month}`; // 月が1桁の場合は先頭に0を追加
+    console.log("年月日salesYearMonthInitialValue", salesYearMonthInitialValue, "salesDate", salesDate);
+    if (salesYearMonthInitialValue) {
+      setSalesYearMonth(Number(salesYearMonthInitialValue));
+    } else {
+      setSalesYearMonth(null); // or setResultStartTime('');
+    }
+  }, [salesDate]);
 
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
@@ -444,33 +498,6 @@ export const InsertNewPropertyModal = () => {
     // setIsOpenInsertNewPropertyModal(false);
   };
 
-  useEffect(() => {
-    // initialDate.setHours(0, 0, 0, 0);
-    if (!expansionDate) return;
-    const year = expansionDate.getFullYear(); // 例: 2023
-    const month = expansionDate.getMonth() + 1; // getMonth()は0から11で返されるため、+1して1から12に調整
-    const expansionYearMonthInitialValue = `${year}${month < 10 ? "0" + month : month}`; // 月が1桁の場合は先頭に0を追加
-    console.log("年月日expansionYearMonthInitialValue", expansionYearMonthInitialValue, "expansionDate", expansionDate);
-    if (expansionYearMonthInitialValue) {
-      setExpansionYearMonth(Number(expansionYearMonthInitialValue));
-    } else {
-      setExpansionYearMonth(null); // or setResultStartTime('');
-    }
-  }, [expansionDate]);
-  useEffect(() => {
-    // initialDate.setHours(0, 0, 0, 0);
-    if (!salesDate) return;
-    const year = salesDate.getFullYear(); // 例: 2023
-    const month = salesDate.getMonth() + 1; // getMonth()は0から11で返されるため、+1して1から12に調整
-    const salesYearMonthInitialValue = `${year}${month < 10 ? "0" + month : month}`; // 月が1桁の場合は先頭に0を追加
-    console.log("年月日salesYearMonthInitialValue", salesYearMonthInitialValue, "salesDate", salesDate);
-    if (salesYearMonthInitialValue) {
-      setSalesYearMonth(Number(salesYearMonthInitialValue));
-    } else {
-      setSalesYearMonth(null); // or setResultStartTime('');
-    }
-  }, [salesDate]);
-
   // 全角文字を半角に変換する関数
   const toHalfWidth = (strVal: string) => {
     // 全角文字コードの範囲は65281 - 65374、スペースの全角文字コードは12288
@@ -568,6 +595,8 @@ export const InsertNewPropertyModal = () => {
     if (!modalContainerRef.current) return;
     const containerLeft = modalContainerRef.current?.getBoundingClientRect().left;
     const containerTop = modalContainerRef.current?.getBoundingClientRect().top;
+    const containerWidth = modalContainerRef.current?.getBoundingClientRect().width;
+    const containerHeight = modalContainerRef.current?.getBoundingClientRect().height;
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
     // const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
@@ -581,6 +610,10 @@ export const InsertNewPropertyModal = () => {
       y: y - containerTop,
       itemWidth: width,
       itemHeight: height,
+      containerLeft: containerLeft,
+      containerTop: containerTop,
+      containerWidth: containerWidth,
+      containerHeight: containerHeight,
       content: content,
       content2: content2,
       content3: content3,
@@ -596,6 +629,8 @@ export const InsertNewPropertyModal = () => {
     setHoveredItemPosModal(null);
   };
   // ============================================================================================
+
+  const selectOptionsYear = Array.from({ length: 2 }, (_, index) => new Date().getFullYear() - index);
 
   console.log(
     "面談予定作成モーダル selectedRowDataContact",
@@ -1519,16 +1554,67 @@ export const InsertNewPropertyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>展開四半期</span>
-                    <input
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>展開四半期</span> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content:
+                            "展開四半期は決算月の期末日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
+                          content2: "決算月が未設定の場合は、デフォルトで3月31日が決算月日として設定されます。",
+                          content3: "変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
+                          marginTop: 57,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <span className={`mr-[6px]`}>展開四半期</span>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+                    </div>
+                    {/* <input
                       type="text"
                       placeholder="20201Q、20202Q、20203Q、20204Qなど"
                       required
                       className={`${styles.input_box}`}
                       value={expansionQuarter}
                       onChange={(e) => setExpansionQuarter(e.target.value)}
-                      // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
-                    />
+                    /> */}
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      placeholder="時"
+                      value={expansionQuarterSelectedYear ? expansionQuarterSelectedYear : ""}
+                      onChange={(e) =>
+                        setExpansionQuarterSelectedYear(e.target.value === "" ? null : Number(e.target.value))
+                      }
+                    >
+                      <option value=""></option>
+                      {selectOptionsYear.map((year) => (
+                        <option key={year} value={year}>
+                          {year}
+                        </option>
+                      ))}
+                    </select>
+
+                    <span className="mx-[10px]">年</span>
+
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      placeholder="分"
+                      value={expansionQuarterSelectedQuarter ? expansionQuarterSelectedQuarter : ""}
+                      onChange={(e) =>
+                        setExpansionQuarterSelectedQuarter(e.target.value === "" ? null : Number(e.target.value))
+                      }
+                    >
+                      <option value=""></option>
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                      <option value="4">4</option>
+                    </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1543,15 +1629,34 @@ export const InsertNewPropertyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>売上四半期</span>
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>売上四半期</span> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content:
+                            "売上四半期は決算月の期末日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
+                          content2: "決算月が未設定の場合は、デフォルトで3月31日が決算月日として設定されます。",
+                          content3: "変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
+                          marginTop: 57,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <span className={`mr-[6px]`}>売上四半期</span>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+                    </div>
                     <input
                       type="text"
-                      placeholder="20231Q、20232Q、20233Q、20234Qなど"
+                      placeholder=""
                       required
                       className={`${styles.input_box}`}
                       value={salesQuarter}
                       onChange={(e) => setSalesQuarter(e.target.value)}
-                      // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -1571,12 +1676,32 @@ export const InsertNewPropertyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>展開年月度</span>
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>展開年月度</span> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content:
+                            "展開年月度は決算月の期末日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
+                          content2: "決算月が未設定の場合は、デフォルトで3月31日が決算月日として設定されます。",
+                          content3: "変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
+                          marginTop: 57,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <span className={`mr-[6px]`}>展開年月度</span>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+                    </div>
                     <input
                       type="number"
                       min="0"
                       className={`${styles.input_box}`}
-                      placeholder=""
+                      placeholder="展開日付を選択してください。"
                       value={expansionYearMonth === null ? "" : expansionYearMonth}
                       onChange={(e) => {
                         const val = e.target.value;
@@ -1614,12 +1739,32 @@ export const InsertNewPropertyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>売上年月度</span>
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>売上年月度</span> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content:
+                            "売上年月度は決算月の期末日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
+                          content2: "決算月が未設定の場合は、デフォルトで3月31日が決算月日として設定されます。",
+                          content3: "変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
+                          marginTop: 57,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <span className={`mr-[6px]`}>売上年月度</span>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+                    </div>
                     <input
                       type="number"
                       min="0"
                       className={`${styles.input_box}`}
-                      placeholder=""
+                      placeholder="売上日付を選択してください。"
                       value={salesYearMonth === null ? "" : salesYearMonth}
                       onChange={(e) => {
                         const val = e.target.value;
