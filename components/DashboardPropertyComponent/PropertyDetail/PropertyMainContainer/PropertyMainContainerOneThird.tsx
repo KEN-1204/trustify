@@ -1,4 +1,4 @@
-import React, { FC, FormEvent, Suspense, memo, useEffect, useState } from "react";
+import React, { FC, FormEvent, Suspense, memo, useEffect, useMemo, useState } from "react";
 import styles from "../PropertyDetail.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import useStore from "@/store";
@@ -17,6 +17,7 @@ import { Zoom } from "@/utils/Helpers/toastHelpers";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
 import { optionsOccupation } from "@/components/DashboardContactComponent/ContactDetail/ContactMainContainer/selectOptionsData";
+import { generateYearQuarters } from "@/utils/Helpers/generateYearQuarters";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -169,8 +170,10 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
   const [inputSalesClass, setInputSalesClass] = useState("");
   const [inputExpansionDate, setInputExpansionDate] = useState<Date | null>(null);
   const [inputSalesDate, setInputSalesDate] = useState<Date | null>(null);
-  const [inputExpansionQuarter, setInputExpansionQuarter] = useState("");
-  const [inputSalesQuarter, setInputSalesQuarter] = useState("");
+  // const [inputExpansionQuarter, setInputExpansionQuarter] = useState("");
+  // const [inputSalesQuarter, setInputSalesQuarter] = useState("");
+  const [inputExpansionQuarter, setInputExpansionQuarter] = useState<number | null>(null);
+  const [inputSalesQuarter, setInputSalesQuarter] = useState<number | null>(null);
   const [inputSubscriptionStartDate, setInputSubscriptionStartDate] = useState<Date | null>(null);
   const [inputSubscriptionCanceledAt, setInputSubscriptionCanceledAt] = useState<Date | null>(null);
   const [inputLeasingCompany, setInputLeasingCompany] = useState("");
@@ -355,8 +358,10 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
           ? new Date(newSearchProperty_Contact_CompanyParams.sales_date)
           : null
       );
-      setInputExpansionQuarter(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.expansion_quarter));
-      setInputSalesQuarter(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.sales_quarter));
+      // setInputExpansionQuarter(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.expansion_quarter));
+      // setInputSalesQuarter(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.sales_quarter));
+      setInputExpansionQuarter(adjustFieldValueNumber(newSearchProperty_Contact_CompanyParams.expansion_quarter));
+      setInputSalesQuarter(adjustFieldValueNumber(newSearchProperty_Contact_CompanyParams.sales_quarter));
       setInputSubscriptionStartDate(
         newSearchProperty_Contact_CompanyParams.subscription_start_date
           ? new Date(newSearchProperty_Contact_CompanyParams.subscription_start_date)
@@ -484,8 +489,10 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       if (!!inputSalesClass) setInputSalesClass("");
       if (!!inputExpansionDate) setInputExpansionDate(null);
       if (!!inputSalesDate) setInputSalesDate(null);
-      if (!!inputExpansionQuarter) setInputExpansionQuarter("");
-      if (!!inputSalesQuarter) setInputSalesQuarter("");
+      // if (!!inputExpansionQuarter) setInputExpansionQuarter("");
+      // if (!!inputSalesQuarter) setInputSalesQuarter("");
+      if (!!inputExpansionQuarter) setInputExpansionQuarter(null);
+      if (!!inputSalesQuarter) setInputSalesQuarter(null);
       if (!!inputSubscriptionStartDate) setInputSubscriptionStartDate(null);
       if (!!inputSubscriptionCanceledAt) setInputSubscriptionCanceledAt(null);
       if (!!inputLeasingCompany) setInputLeasingCompany("");
@@ -599,8 +606,10 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
     let _sales_class = adjustFieldValue(inputSalesClass);
     let _expansion_date = inputExpansionDate ? inputExpansionDate.toISOString() : null;
     let _sales_date = inputSalesDate ? inputSalesDate.toISOString() : null;
-    let _expansion_quarter = adjustFieldValue(inputExpansionQuarter);
-    let _sales_quarter = adjustFieldValue(inputSalesQuarter);
+    // let _expansion_quarter = adjustFieldValue(inputExpansionQuarter);
+    // let _sales_quarter = adjustFieldValue(inputSalesQuarter);
+    let _expansion_quarter = adjustFieldValueNumber(inputExpansionQuarter);
+    let _sales_quarter = adjustFieldValueNumber(inputSalesQuarter);
     let _subscription_start_date = inputSubscriptionStartDate ? inputSubscriptionStartDate.toISOString() : null;
     let _subscription_canceled_at = inputSubscriptionCanceledAt ? inputSubscriptionCanceledAt.toISOString() : null;
     let _leasing_company = adjustFieldValue(inputLeasingCompany);
@@ -797,8 +806,10 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
     setInputSalesClass("");
     setInputExpansionDate(null);
     setInputSalesDate(null);
-    setInputExpansionQuarter("");
-    setInputSalesQuarter("");
+    // setInputExpansionQuarter("");
+    // setInputSalesQuarter("");
+    setInputExpansionQuarter(null);
+    setInputSalesQuarter(null);
     setInputSubscriptionStartDate(null);
     setInputSubscriptionCanceledAt(null);
     setInputLeasingCompany("");
@@ -925,6 +936,23 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
     const [hour, minute] = timeStr.split(":");
     return `${hour}:${minute}`;
   }
+
+  // 四半期のselectタグの選択肢 20211, 20214
+  const optionsYearQuarter = useMemo((): number[] => {
+    const startYear = 2010;
+    const endYear = new Date().getFullYear();
+
+    let yearQuarters: number[] = [];
+
+    for (let year = startYear; year < endYear; year++) {
+      for (let i = 1; i <= 4; i++) {
+        const yearQuarter = parseInt(`${year}${i}`, 10); // 20201, 20203
+        yearQuarters.push(yearQuarter);
+      }
+    }
+    const sortedYearQuarters = yearQuarters.reverse();
+    return sortedYearQuarters;
+  }, []);
 
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
   return (
@@ -1406,7 +1434,10 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     <span className={`${styles.title} text-[12px]`}>展開四半期</span>
                     {!searchMode && (
                       <span className={`${styles.value}`}>
-                        {selectedRowDataProperty?.expansion_quarter ? selectedRowDataProperty?.expansion_quarter : ""}
+                        {/* {selectedRowDataProperty?.expansion_quarter ? selectedRowDataProperty?.expansion_quarter : ""} */}
+                        {selectedRowDataProperty?.expansion_quarter
+                          ? `${selectedRowDataProperty.expansion_quarter.toString()}Q`
+                          : null}
                       </span>
                     )}
                   </div>
@@ -1417,7 +1448,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     <span className={`${styles.title} text-[12px]`}>売上四半期</span>
                     {!searchMode && (
                       <span className={`${styles.value}`}>
-                        {selectedRowDataProperty?.sales_quarter ? selectedRowDataProperty?.sales_quarter : ""}
+                        {/* {selectedRowDataProperty?.sales_quarter ? selectedRowDataProperty?.sales_quarter : ""} */}
+                        {selectedRowDataProperty?.sales_quarter ? `${selectedRowDataProperty.sales_quarter}Q` : null}
                       </span>
                     )}
                   </div>
@@ -3841,26 +3873,81 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode} text-[12px]`}>展開四半期</span>
-                    <input
+                    {/* <input
                       type="text"
                       className={`${styles.input_box}`}
                       placeholder=""
                       value={inputExpansionQuarter}
                       onChange={(e) => setInputExpansionQuarter(e.target.value)}
-                    />
+                    /> */}
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
+                      value={inputExpansionQuarter === null ? "" : inputExpansionQuarter.toString()}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "") {
+                          setInputExpansionQuarter(null);
+                        } else {
+                          setInputExpansionQuarter(Number(val));
+                        }
+                      }}
+                    >
+                      {/* <option value=""></option>
+                      <option value="1 代表者">1 代表者</option>
+                      <option value="2 取締役/役員">2 取締役/役員</option>
+                      <option value="3 部長">3 部長</option>
+                      <option value="4 課長">4 課長</option>
+                      <option value="5 課長未満">5 課長未満</option>
+                      <option value="6 所長・工場長">6 所長・工場長</option>
+                      <option value="7 不明">7 不明</option> */}
+                      <option value=""></option>
+                      {optionsYearQuarter.map((option) => (
+                        <option key={option} value={option.toString()}>
+                          {option}Q
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
                     <span className={`${styles.title_search_mode} text-[12px]`}>売上四半期</span>
-                    <input
+                    {/* <input
                       type="text"
                       className={`${styles.input_box}`}
                       placeholder=""
                       value={inputSalesQuarter}
                       onChange={(e) => setInputSalesQuarter(e.target.value)}
-                    />
+                    /> */}
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
+                      value={inputSalesQuarter === null ? "" : inputSalesQuarter.toString()}
+                      // onChange={(e) => setInputSalesQuarter(Number(e.target.value))}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "") {
+                          setInputSalesQuarter(null);
+                        } else {
+                          setInputSalesQuarter(Number(val));
+                        }
+                      }}
+                    >
+                      {/* <option value=""></option>
+                      <option value="1 代表者">1 代表者</option>
+                      <option value="2 取締役/役員">2 取締役/役員</option>
+                      <option value="3 部長">3 部長</option>
+                      <option value="4 課長">4 課長</option>
+                      <option value="5 課長未満">5 課長未満</option>
+                      <option value="6 所長・工場長">6 所長・工場長</option>
+                      <option value="7 不明">7 不明</option> */}
+                      <option value=""></option>
+                      {optionsYearQuarter.map((option) => (
+                        <option key={option} value={option.toString()}>
+                          {option}Q
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>

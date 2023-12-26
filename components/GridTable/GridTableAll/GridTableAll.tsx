@@ -2733,7 +2733,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                     e: e,
                     display: "top",
                     content: "最新の状態にリフレッシュ",
-                    marginTop: 5,
+                    marginTop: 8,
                   })
                 }
                 onMouseLeave={handleCloseTooltip}
@@ -2794,7 +2794,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                         ? ``
                         : `左右スクロール時にカラムを左端に固定できます`
                     }`,
-                    marginTop: activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) ? 5 : 20,
+                    marginTop: activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) ? 8 : 22,
                     itemsPosition: "center",
                   })
                 }

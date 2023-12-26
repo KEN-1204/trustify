@@ -78,6 +78,7 @@ export const Tooltip = () => {
           console.log("tooltipWidth", tooltipWidth, "tooltipTextWidth", tooltipTextWidth, "tooltipText", tooltipText);
           // menuRef.current.style.minWidth = `${tooltipWidth}px`;
           menuRef.current.style.minWidth = `max-content`;
+          // テスト
           // menuRef.current.style.whiteSpace = "nowrap";
           // if (tooltipWidth + hoveredItemPositionX > viewportWidth) {
           // }
@@ -97,6 +98,7 @@ export const Tooltip = () => {
       }
 
       // スタイルを更新
+      adjustedLeft = adjustedLeft - tooltipHalfWidth;
       menuRef.current.style.left = `${adjustedLeft}px`;
     }
   }, [hoveredItemPositionX, hoveredItemPositionY, hoveredItemHalfWidth, hoveredItemDisplay]);
@@ -115,7 +117,7 @@ export const Tooltip = () => {
   if (hoveredItemDisplay === "top") {
     return (
       <div
-        className={`${styles.tooltip_area} ${hoveredItemPos ? `block ${styles.fade}` : "transition-base hidden"}`}
+        className={`${styles.tooltip_area} ${styles.fade} ${hoveredItemPos ? `block` : "hidden"}`}
         style={{
           position: "absolute",
           zIndex: 100,
@@ -172,7 +174,7 @@ export const Tooltip = () => {
   if (hoveredItemDisplay === "left") {
     return (
       <div
-        className={`${styles.tooltip_area}  ${hoveredItemPos ? `block ${styles.fade}` : "transition-base hidden"}`}
+        className={`${styles.tooltip_area} ${styles.fade} ${hoveredItemPos ? `block` : "hidden"}`}
         style={{
           position: "absolute",
           zIndex: 100,
@@ -221,7 +223,7 @@ export const Tooltip = () => {
     return (
       <div
         // className={`${styles.tooltip_right}  ${hoveredItemPos ? `block ${styles.fade}` : "transition-base hidden"}`}
-        className={`${styles.tooltip_area}  ${hoveredItemPos ? `block ${styles.fade}` : "transition-base hidden"}`}
+        className={`${styles.tooltip_area} ${styles.fade} ${hoveredItemPos ? `block` : "hidden"}`}
         style={{
           position: "absolute",
           zIndex: 100,
@@ -249,7 +251,7 @@ export const Tooltip = () => {
     return (
       <div
         // className={`${styles.tooltip_right}  ${hoveredItemPos ? `block ${styles.fade}` : "transition-base hidden"}`}
-        className={`${styles.tooltip_area}  ${hoveredItemPos ? `block ${styles.fade}` : "transition-base hidden"}`}
+        className={`${styles.tooltip_area} ${styles.fade} ${hoveredItemPos ? `block` : "hidden"}`}
         style={{
           position: "absolute",
           zIndex: 100,
@@ -276,11 +278,11 @@ export const Tooltip = () => {
   // 真ん中で表示
   return (
     <div
-      className={`${styles.tooltip_area}  ${hoveredItemPos ? `block ${styles.fade}` : "transition-base hidden"}`}
+      className={`${styles.tooltip_area} ${styles.fade} ${hoveredItemPos ? `block` : "hidden"}`}
       // className={`${styles.tooltip}  ${hoveredItemPos ? `block ${styles.fade}` : "transition-base hidden"}`}
       style={{
         position: "absolute",
-        zIndex: 100,
+        zIndex: 20000,
         // left: `${`${hoveredItemPositionX + hoveredItemHalfWidth}px`}`,
         // // leftのスタイルはuseEffect内で動的に設定
         top: `${`${hoveredItemPositionY + hoveredItemHeight + 10}px`}`,

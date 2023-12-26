@@ -15,6 +15,7 @@ import { BsChevronLeft } from "react-icons/bs";
 import { ImInfo } from "react-icons/im";
 import useStore from "@/store";
 import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
+import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMonth";
 
 export const InsertNewMeetingModal = () => {
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
@@ -141,26 +142,21 @@ export const InsertNewMeetingModal = () => {
       setMeetingYearMonth(null);
       return;
     }
-    // 面談予定日の年と日を取得
-    let year = plannedDate.getFullYear(); // 例: 2023
-    let month = plannedDate.getMonth() + 1; // getMonth()は0から11で返されるため、+1して1から12に調整
+    // // 面談予定日の年と日を取得
+    // let year = plannedDate.getFullYear(); // 例: 2023
+    // let month = plannedDate.getMonth() + 1; // getMonth()は0から11で返されるため、+1して1から12に調整
 
-    console.log("決算月", fiscalEndMonthObjRef.current);
-    console.log("締め日", closingDayRef.current);
-    console.log("plannedDate", plannedDate);
-    console.log("year", year);
-    console.log("month", month);
-
-    // 面談日の締め日の翌日以降の場合、次の月度とみなす
-    if (plannedDate.getDate() > closingDayRef.current) {
-      month += 1;
-      if (month > 12) {
-        month = 1;
-        year += 1;
-      }
-    }
-    // 年月度を6桁の数値で表現
-    const fiscalYearMonth = year * 100 + month;
+    // // 面談日が締め日の翌日以降の場合、次の月度とみなす
+    // if (plannedDate.getDate() > closingDayRef.current) {
+    //   month += 1;
+    //   if (month > 12) {
+    //     month = 1;
+    //     year += 1;
+    //   }
+    // }
+    // // 年月度を6桁の数値で表現
+    // const fiscalYearMonth = year * 100 + month;
+    const fiscalYearMonth = calculateDateToYearMonth(plannedDate, closingDayRef.current);
     console.log("fiscalYearMonth", fiscalYearMonth);
     setMeetingYearMonth(fiscalYearMonth);
     // const meetingYearMonthUpdatedValue = `${year}${month < 10 ? "0" + month : month}`; // 月が1桁の場合は先頭に0を追加
@@ -1049,8 +1045,9 @@ export const InsertNewMeetingModal = () => {
                     <input
                       type="number"
                       min="0"
-                      className={`${styles.input_box}`}
-                      placeholder='"202109" や "202312" などを入力'
+                      className={`${styles.input_box} pointer-events-none`}
+                      // placeholder='"202109" や "202312" などを入力'
+                      placeholder="面談日付を選択してください"
                       value={meetingYearMonth === null ? "" : meetingYearMonth}
                       onChange={(e) => {
                         const val = e.target.value;

@@ -29,7 +29,8 @@
   min-height: fit-content;
   padding: 3px 7px;
   transform: translateX(-50%);
-  background: #282828;
+  /* background: #282828; */
+  background: var(--color-tooltip-light);
   transition-delay: 0.5s;
   border-radius: 6px;
   box-shadow: inset 0px 0px 0px 1px #ffffff80, 0px 0px 0px 1px #000;
@@ -43,7 +44,8 @@
   left: 50%;
   transform: translateX(-50%) rotate(135deg);
   transform-origin: center center;
-  background: #282828;
+  /* background: #282828; */
+  background: var(--color-tooltip-light);
   width: 8px;
   height: 8px;
   pointer-events: none;
@@ -76,6 +78,7 @@
   position: absolute;
   z-index: 1500;
   pointer-events: none;
+  font-family: "Hiragino Sans", sans-serif, Roboto, system-ui;
 }
 .tooltip_over {
   /* top: 38px; */
@@ -89,7 +92,8 @@
   padding: 3px 7px;
   transform: translateX(-50%);
   /* background: #282828; */
-  background: #282828f0;
+  /* background: #282828f0; */
+  background: var(--color-tooltip-light);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   transition-delay: 0.5s;
@@ -107,7 +111,7 @@
   left: 0;
   transform: translateX(-50%) rotate(135deg);
   transform-origin: center center;
-  background: var(--color-tooltip-arrow);
+  background: var(--color-tooltip-light);
   width: 8px;
   height: 8px;
   /* border-top: 4px solid #000; */
@@ -122,7 +126,8 @@
   z-index: 1500;
   min-height: fit-content;
   padding: 3px 7px;
-  background: #282828;
+  /* background: #282828; */
+  background: var(--color-tooltip-light);
   transition-delay: 0.5s;
   border-radius: 6px;
   box-shadow: inset 0px 0px 0px 1px #ffffff80, 0px 0px 0px 1px #000;
@@ -135,7 +140,8 @@
   left: 20px;
   transform: translateX(-50%) rotate(135deg);
   transform-origin: center center;
-  background: #282828;
+  /* background: #282828; */
+  background: var(--color-tooltip-light);
   /* background: rgb(39 39 39 / 0.7); */
   width: 8px;
   height: 8px;
@@ -162,7 +168,7 @@
   padding: 3px 3px;
   cursor: pointer;
   font-size: 12px;
-  font-weight: 500;
+  /* font-weight: 500; */
   /* direction: rtl; */
   /* white-space: nowrap; */
   white-space: pre-wrap;

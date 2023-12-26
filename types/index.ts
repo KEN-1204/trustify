@@ -977,8 +977,10 @@ export type Property_row_data = {
   sales_class: string | null;
   expansion_date: string | null;
   sales_date: string | null;
-  expansion_quarter: string | null;
-  sales_quarter: string | null;
+  // expansion_quarter: string | null;
+  // sales_quarter: string | null;
+  expansion_quarter: number | null;
+  sales_quarter: number | null;
   subscription_start_date: string | null;
   subscription_canceled_at: string | null;
   leasing_company: string | null;
@@ -1334,8 +1336,10 @@ export type NewSearchProperty_Contact_CompanyParams = {
   sales_class: string | null;
   expansion_date: string | null;
   sales_date: string | null;
-  expansion_quarter: string | null;
-  sales_quarter: string | null;
+  // expansion_quarter: string | null;
+  // sales_quarter: string | null;
+  expansion_quarter: number | null;
+  sales_quarter: number | null;
   subscription_start_date: string | null;
   subscription_canceled_at: string | null;
   leasing_company: string | null;

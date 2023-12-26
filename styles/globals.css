@@ -885,7 +885,11 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* ツールチップ */
   --color-tooltip-arrow: #282828;
   --color-tooltip-dark: #333;
-  --color-tooltip-light: #424242;
+  /* --color-tooltip-light: #424242;
+  --color-tooltip-light: #484848;
+  --color-tooltip-light: #525252; */
+  /* --color-tooltip-light: #585858; */
+  --color-tooltip-light: #525252;
 
   /* HP セクションタイトル light */
   --section-title-hp: -webkit-linear-gradient(135deg, #37352f, #333, #bbb, #333, #37352f);
@@ -1444,7 +1448,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* ツールチップ dark */
   --color-tooltip-arrow: #333;
   --color-tooltip-dark: #282828;
-  --color-tooltip-light: #333;
+  /* --color-tooltip-light: #333; */
+  --color-tooltip-light: #393939;
 
   /* HP セクションタイトル light */
 

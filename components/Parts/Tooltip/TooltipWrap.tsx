@@ -70,6 +70,7 @@ export const TooltipWrap = () => {
       }
 
       // スタイルを更新
+      adjustedLeft = adjustedLeft - tooltipHalfWidth;
       menuRef.current.style.left = `${adjustedLeft}px`;
     }
   }, [hoveredItemPositionX, hoveredItemPositionY, hoveredItemHalfWidth]);
@@ -90,10 +91,10 @@ export const TooltipWrap = () => {
     if (window.innerHeight - window.innerHeight / 3 < hoveredItemPositionY) {
       return (
         <div
-          className={`${styles.tooltip_area} ${hoveredItemPosWrap ? `block ${styles.fade}` : "transition-base hidden"}`}
+          className={`${styles.tooltip_area} ${styles.fade} ${hoveredItemPosWrap ? `block` : "hidden"}`}
           style={{
             position: "absolute",
-            zIndex: 100,
+            zIndex: 20000,
             // left: `${`${hoveredItemPositionX}px`}`,
             // right: `${`${-hoveredItemWidth}px`}`,
             // right: `${`${-hoveredItemHalfWidth}px`}`,
@@ -133,10 +134,10 @@ export const TooltipWrap = () => {
     // 上2/3でエンターしたなら下方向に表示
     return (
       <div
-        className={`${styles.tooltip_right}  ${hoveredItemPosWrap ? `block ${styles.fade}` : "transition-base hidden"}`}
+        className={`${styles.tooltip_right} ${styles.fade} ${hoveredItemPosWrap ? `block` : "hidden"}`}
         style={{
           position: "absolute",
-          zIndex: 100,
+          zIndex: 20000,
           // left: `${`${hoveredItemPositionX}px`}`,
           // leftのスタイルはuseEffect内で動的に設定
           top: `${`${hoveredItemPositionY + hoveredItemHeight + 10}px`}`,
@@ -170,10 +171,10 @@ export const TooltipWrap = () => {
   if (window.innerHeight - window.innerHeight / 3 < hoveredItemPositionY || hoveredItemPosWrap?.display === "top") {
     return (
       <div
-        className={`${styles.tooltip_area} ${hoveredItemPosWrap ? `block ${styles.fade}` : "transition-base hidden"}`}
+        className={`${styles.tooltip_area} ${styles.fade} ${hoveredItemPosWrap ? `block ` : "hidden"}`}
         style={{
           position: "absolute",
-          zIndex: 100,
+          zIndex: 20000,
           // left: `${`${hoveredItemPositionX + hoveredItemHalfWidth}px`}`,
           // leftのスタイルはuseEffect内で動的に設定
           bottom: `${`${hoveredItemPositionYOver + 10}px`}`,
@@ -206,10 +207,10 @@ export const TooltipWrap = () => {
   // 上2/3でエンターしたなら下方向に表示
   return (
     <div
-      className={`${styles.tooltip_area}  ${hoveredItemPosWrap ? `block ${styles.fade}` : "transition-base hidden"}`}
+      className={`${styles.tooltip_area} ${styles.fade} ${hoveredItemPosWrap ? `block` : "hidden"}`}
       style={{
         position: "absolute",
-        zIndex: 100,
+        zIndex: 20000,
         // left: `${`${hoveredItemPositionX + hoveredItemHalfWidth}px`}`,
         // leftのスタイルはuseEffect内で動的に設定
         top: `${`${hoveredItemPositionY + hoveredItemHeight + 10}px`}`,

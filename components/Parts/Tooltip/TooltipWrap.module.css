@@ -9,8 +9,9 @@
 /* ブラック */
 .tooltip_area {
   position: absolute;
-  z-index: 1500;
+  /* z-index: 1500; */
   font-family: "Hiragino Sans", sans-serif, Roboto, system-ui;
+  /* background: #000; */
 }
 .tooltip {
   /* position: absolute; */
@@ -19,6 +20,7 @@
   /* z-index: 150; */
   /* z-index: 1500; */
   position: relative;
+  left: 50%;
   z-index: 1;
   min-height: fit-content;
   /* padding: 3px 7px; */
@@ -82,6 +84,7 @@
   /* position: absolute;
   z-index: 1500; */
   position: relative;
+  left: 50%;
   z-index: 1;
   min-height: fit-content;
   padding: 3px 7px;
@@ -132,7 +135,7 @@
   padding: 3px 7px;
   padding: 6px 10px;
   background: #282828;
-  transition-delay: 0.5s;
+  /* transition-delay: 0.5s; */
   border-radius: 6px;
   box-shadow: inset 0px 0px 0px 1px #ffffff80, 0px 0px 0px 1px #000;
 
