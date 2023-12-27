@@ -21,7 +21,7 @@ export const useMutateDepartment = () => {
     async (newDepartment: Omit<Department, "id" | "created_at">) => {
       // setLoadingGlobalState(true);
       const { error } = await supabase.from("departments").insert(newDepartment);
-      if (error) throw new Error(error.message);
+      if (error) throw error;
     },
     {
       onSuccess: async () => {
@@ -37,7 +37,7 @@ export const useMutateDepartment = () => {
       onError: (err: any) => {
         if (loadingGlobalState) setLoadingGlobalState(false);
         // setIsOpenInsertNewDepartmentModal(false);
-        console.error("INSERTエラー", err.message);
+        console.error("INSERTエラー", err);
         toast.error("事業部の作成に失敗しました!");
       },
     }
@@ -98,15 +98,40 @@ export const useMutateDepartment = () => {
 
         // companiesに関わるキャッシュのデータを再取得 => これをしないと既に取得済みのキャッシュは古い状態で表示されてしまう
         // await queryClient.invalidateQueries({ queryKey: ["companies"] });
+        if (loadingGlobalState) setLoadingGlobalState(false);
+        toast.success("事業部の更新が完了しました🌟");
       },
       onError: (err: any) => {
-        // if (loadingGlobalState) setLoadingGlobalState(false);
+        if (loadingGlobalState) setLoadingGlobalState(false);
         console.error("フィールドエディットモード updateエラー", err);
         console.error(`Update failed departments field` + err.message);
-        toast.error("アップデートに失敗しました...", {
-          position: "top-right",
-          autoClose: 1500,
-        });
+        toast.error("アップデートに失敗しました...");
+      },
+    }
+  );
+
+  // 【Department削除DELETE用deleteDepartmentMutation関数】
+  const deleteDepartmentMutation = useMutation(
+    async (departmentId: string) => {
+      // setLoadingGlobalState(true);
+      const { error } = await supabase.from("departments").delete().match({ id: departmentId });
+      if (error) throw error;
+    },
+    {
+      onSuccess: async () => {
+        // キャッシュのデータを再取得
+        // await queryClient.invalidateQueries({ queryKey: ["departments"] });
+        // TanStack Queryでデータの変更に合わせて別のデータを再取得する
+        // https://zenn.dev/masatakaitoh/articles/3c2f8602d2bb9d
+        if (loadingGlobalState) setLoadingGlobalState(false);
+        // setIsOpenUpdateProductModal(false);
+        toast.success("事業部の削除が完了しました🌟");
+      },
+      onError: (err: any) => {
+        if (loadingGlobalState) setLoadingGlobalState(false);
+        // setIsOpenUpdateProductModal(false);
+        console.log("DELETEエラー", err);
+        toast.error("事業部の削除に失敗しました🙇‍♀️");
       },
     }
   );
@@ -115,5 +140,6 @@ export const useMutateDepartment = () => {
     createDepartmentMutation,
     // updateDepartmentMutation,
     updateDepartmentFieldMutation,
+    deleteDepartmentMutation,
   };
 };

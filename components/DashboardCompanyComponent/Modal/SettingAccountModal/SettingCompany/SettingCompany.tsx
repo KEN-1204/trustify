@@ -6,7 +6,7 @@ import { useDownloadUrl } from "@/hooks/useDownloadUrl";
 import { useUploadAvatarImg } from "@/hooks/useUploadAvatarImg";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { toast } from "react-toastify";
-import { Notification, UserProfileCompanySubscription } from "@/types";
+import { Department, Notification, UserProfileCompanySubscription } from "@/types";
 import { MdClose } from "react-icons/md";
 import { teamIllustration } from "@/components/assets";
 import { ChangeTeamOwnerModal } from "./ChangeTeamOwnerModal/ChangeTeamOwnerModal";
@@ -23,6 +23,9 @@ import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 import { FiRefreshCw } from "react-icons/fi";
 import { DatePickerCustomInputForSettings } from "@/utils/DatePicker/DatePickerCustomInputForSettings";
 import { useQueryDepartments } from "@/hooks/useQueryDepartments";
+import { useMutateDepartment } from "@/hooks/useMutateDepartment";
+import { departmentTagIcons, departmentTagIconsTest } from "./data";
+import { BsChevronLeft, BsChevronRight } from "react-icons/bs";
 
 const SettingCompanyMemo = () => {
   const supabase = useSupabaseClient();
@@ -51,6 +54,13 @@ const SettingCompanyMemo = () => {
   // 規模
   const [editNumberOfEmployeeClassMode, setEditNumberOfEmployeeClassMode] = useState(false);
   const [editedNumberOfEmployeeClass, setEditedNumberOfEmployeeClass] = useState("");
+  // 事業部 追加・編集
+  const [insertDepartmentMode, setInsertDepartmentMode] = useState(false);
+  const [inputDepartmentName, setInputDepartmentName] = useState("");
+  const [editDepartmentMode, setEditDepartmentMode] = useState(false);
+  const [editedDepartment, setEditedDepartment] = useState<Omit<Department, "created_at"> | null>(null);
+  const originalDepartmentNameRef = useRef<string | null>(null);
+  const [activeDepartmentTagIndex, setActiveDepartmentTagIndex] = useState<number | null>(null);
   // ローディング
   const [refetchLoading, setRefetchLoading] = useState(false);
 
@@ -66,6 +76,9 @@ const SettingCompanyMemo = () => {
   const { data: departmentDataArray, isLoading: isLoadingQueryDepartment } = useQueryDepartments(
     userProfileState?.company_id
   );
+
+  // useMutation
+  const { createDepartmentMutation, updateDepartmentFieldMutation, deleteDepartmentMutation } = useMutateDepartment();
   // ================================ ✅事業部リスト取得useQuery✅ ================================
 
   // ================================ 🌟お知らせ所有権変更関連🌟 ================================
@@ -369,6 +382,52 @@ const SettingCompanyMemo = () => {
     setOpenCancelChangeTeamOwnerModal(false);
   };
 
+  // ====================== 🌟事業部タグをボタンクリックで左右にスクロールする関数🌟 ======================
+  const rowRef = useRef<HTMLDivElement | null>(null);
+  const arrowIconAreaLeft = useRef<HTMLDivElement | null>(null);
+  const arrowIconAreaRight = useRef<HTMLDivElement | null>(null);
+  const [isMoved, setIsMoved] = useState(false);
+
+  const handleClickScroll = (direction: string) => {
+    if (rowRef.current) {
+      setIsMoved(true);
+      const { scrollLeft, clientWidth } = rowRef.current;
+      console.log("scrollLeft", scrollLeft);
+      let scrollTo = direction === "left" ? scrollLeft - clientWidth : scrollLeft + clientWidth;
+      rowRef.current.scrollTo({ left: scrollTo, behavior: "smooth" });
+
+      if (direction === "right" && arrowIconAreaLeft?.current) {
+        arrowIconAreaLeft.current.style.opacity = "1";
+        arrowIconAreaLeft.current.style.pointerEvents = "auto";
+      }
+      if (direction === "left" && arrowIconAreaRight?.current) {
+        arrowIconAreaRight.current.style.opacity = "1";
+        arrowIconAreaRight.current.style.pointerEvents = "auto";
+      }
+      setTimeout(() => {
+        if (arrowIconAreaLeft.current && rowRef?.current && arrowIconAreaRight.current) {
+          const { scrollLeft: scrollLeftAfterEnd } = rowRef.current;
+          // 左アイコンエリア
+          console.log("scrollLeftAfterEnd", scrollLeftAfterEnd);
+          // arrowIconAreaLeft.current.style.display = scrollLeftAfterEnd > 0 ? "flex" : "none";
+          arrowIconAreaLeft.current.style.opacity = scrollLeftAfterEnd > 0 ? "1" : "0";
+          arrowIconAreaLeft.current.style.pointerEvents = scrollLeftAfterEnd > 0 ? "auto" : "none";
+          // 右アイコンエリア
+          let maxScrollableWidth = rowRef.current.scrollWidth - rowRef.current.clientWidth;
+          // arrowIconAreaRight.current.style.display = maxScrollableWidth > scrollLeftAfterEnd + 0 ? "flex" : "none";
+          arrowIconAreaRight.current.style.opacity = maxScrollableWidth > scrollLeftAfterEnd ? "1" : "0";
+          arrowIconAreaRight.current.style.pointerEvents = maxScrollableWidth > scrollLeftAfterEnd ? "auto" : "none";
+          setIsMoved(false);
+        }
+        // }, 500);
+      }, 680);
+    }
+  };
+
+  // console.log("left", rowRef?.current?.scrollLeft);
+  // console.log("left", rowRef?.current?.scrollWidth - rowRef?.current?.clientWidth);
+  // ====================== ✅事業部タグをボタンクリックで左右にスクロールする関数✅ ======================
+
   return (
     <>
       {/* 右側メインエリア 会社・チーム */}
@@ -549,17 +608,17 @@ const SettingCompanyMemo = () => {
 
           <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
 
-          {/* 決算月 */}
+          {/* 決算日 */}
           <div className={`mt-[20px] flex min-h-[115px] w-full flex-col `}>
             <div className="flex items-start space-x-4">
-              <div className={`${styles.section_title}`}>決算月</div>
+              <div className={`${styles.section_title}`}>決算日</div>
               {/* <div className={`text-[13px] text-[var(--color-text-brand-f)]`}>
                 ※決算月を入力すると、期首から期末まで上期下期、四半期ごとに正確なデータ分析が可能となります。
               </div> */}
               <div className={`flex flex-col text-[13px] text-[var(--color-text-brand-f)]`}>
-                <p>※決算月を入力すると、期首から期末まで上期下期、四半期ごとに正確なデータ分析が可能となります。</p>
+                <p>※決算日を入力すると、期首から期末まで上期下期、四半期ごとに正確なデータ分析が可能となります。</p>
                 <p className="text-[var(--color-text-sub)]">
-                  　(決算月(締め日含む)が未設定の場合は、デフォルトで期末が3月31日、期首が4月1日に設定されます。)
+                  　(決算日(締め日含む)が未設定の場合は、デフォルトで期末が3月31日、期首が4月1日に設定されます。)
                 </p>
               </div>
             </div>
@@ -606,6 +665,7 @@ const SettingCompanyMemo = () => {
                     startDate={editedFiscalEndMonth}
                     setStartDate={setEditedFiscalEndMonth}
                     required={true}
+                    minHeight="min-h-[40px]"
                   />
                 </div>
                 {/* DatePicker ver */}
@@ -628,7 +688,7 @@ const SettingCompanyMemo = () => {
                         return;
                       }
                       if (editedFiscalEndMonth === null) {
-                        alert("有効な決算月を入力してください");
+                        alert("有効な決算日を入力してください");
                         return;
                       }
                       if (!userProfileState?.company_id)
@@ -647,12 +707,12 @@ const SettingCompanyMemo = () => {
                         setLoadingGlobalState(false);
                         setEditFiscalEndMonthMode(false);
                         alert(error.message);
-                        console.log("決算月UPDATEエラー", error.message);
-                        toast.error("決算月の更新に失敗しました!");
+                        console.log("決算日UPDATEエラー", error.message);
+                        toast.error("決算日の更新に失敗しました!");
                         return;
                       }
                       console.log(
-                        "決算月UPDATE成功 更新後決算月 companyData.customer_fiscal_end_month",
+                        "決算日UPDATE成功 更新後決算日 companyData.customer_fiscal_end_month",
                         companyData.customer_fiscal_end_month,
                         "editedFiscalEndMonth",
                         editedFiscalEndMonth
@@ -666,7 +726,7 @@ const SettingCompanyMemo = () => {
                       });
                       setLoadingGlobalState(false);
                       setEditFiscalEndMonthMode(false);
-                      toast.success("決算月の更新が完了しました!");
+                      toast.success("決算日の更新が完了しました!");
                     }}
                   >
                     保存
@@ -736,27 +796,137 @@ const SettingCompanyMemo = () => {
           <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
 
           {/* 事業部リスト */}
-          <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
-            <div className={`${styles.section_title}`}>事業部</div>
+          {/* <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}> */}
+          <div
+            className={`mt-[20px] flex w-full flex-col ${
+              !!departmentDataArray && departmentDataArray.length >= 1 ? `min-h-[105px]` : `min-h-[95px]`
+            }`}
+            // className={`mt-[20px] flex w-full flex-col ${true ? `min-h-[105px]` : `min-h-[95px]`}`}
+          >
+            {/* <div className={`${styles.section_title}`}>事業部</div> */}
+            <div className="flex items-start space-x-4">
+              <div className={`${styles.section_title}`}>事業部</div>
+              <div className={`flex flex-col text-[13px] text-[var(--color-text-brand-f)]`}>
+                <p>※事業部を作成することで事業部ごとに商品、営業、売上データを管理できます。</p>
+                {/* <p className="text-[var(--color-text-sub)]">
+                  　(決算日(締め日含む)が未設定の場合は、デフォルトで期末が3月31日、期首が4月1日に設定されます。)
+                </p> */}
+              </div>
+            </div>
 
-            {!editNumberOfEmployeeClassMode && (
-              <div className={`flex h-full min-h-[74px] w-full items-center justify-between`}>
-                <div className={`${styles.section_value}`}>
-                  {userProfileState?.customer_number_of_employees_class
-                    ? userProfileState.customer_number_of_employees_class
-                    : "未設定"}
-                </div>
+            {!editDepartmentMode && !insertDepartmentMode && (
+              <div
+                className={`flex h-full min-h-[74px] w-full items-center justify-between ${
+                  !!departmentDataArray && departmentDataArray.length >= 1 && `mt-[10px]`
+                }`}
+                // className={`flex h-full min-h-[74px] w-full items-center justify-between ${true && `mt-[10px]`}`}
+              >
+                {(!departmentDataArray || departmentDataArray.length === 0) && (
+                  <div className={`${styles.section_value}`}>未設定</div>
+                )}
+                {/* mapメソッドで事業部タグリストを展開 */}
+                {/* {true && ( */}
+                {!!departmentDataArray && departmentDataArray.length >= 1 && (
+                  <div
+                    className={`relative max-w-[calc(761px-78px-20px)] overflow-x-hidden ${styles.department_tag_container}`}
+                  >
+                    {/* 左矢印エリア(シャドウあり) */}
+                    <div
+                      ref={arrowIconAreaLeft}
+                      className={`${styles.scroll_icon_area}`}
+                      // style={{ ...(isMoved && { display: "none" }) }}
+                    >
+                      <div
+                        className={`flex-center ${styles.scroll_icon}`}
+                        onClick={() => !isMoved && handleClickScroll("left")}
+                        // onClick={() => {
+                        //   if (tabPage === 1) return;
+                        //   setTabPage((prev) => {
+                        //     const newPage = prev - 1;
+                        //     return newPage;
+                        //   });
+                        // }}
+                      >
+                        <BsChevronLeft className="text-[var(--color-text-title)]" />
+                      </div>
+                    </div>
+                    {/* Rowグループ */}
+                    <div
+                      ref={rowRef}
+                      className={`${styles.row_group} scrollbar-hide flex items-center space-x-[12px] overflow-x-scroll`}
+                    >
+                      {Array(12)
+                        .fill(null)
+                        .map((_, index) => (
+                          <div
+                            key={index}
+                            className={`flex h-[45px] min-h-[45px] items-center space-x-[6px] text-[14px] text-[var(--color-text-title)]`}
+                          >
+                            <div className="transition-bg03 flex h-[35px] min-w-max max-w-[150px] cursor-pointer select-none items-center justify-center space-x-2 rounded-full border border-solid border-[#d6dbe0] px-[18px] hover:border-[var(--color-bg-brand-f)]">
+                              <Image
+                                // src="/assets/images/icons/business/icons8-businesswoman-94.png"
+                                src={departmentTagIconsTest[index % departmentTagIconsTest.length].iconURL}
+                                alt="tag"
+                                className="ml-[-4px] w-[22px]"
+                                width={22}
+                                height={22}
+                              />
+                              <span className="truncate text-[13px]">
+                                {departmentTagIconsTest[index % departmentTagIconsTest.length].name}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+
+                    {/* 右矢印エリア(シャドウあり) */}
+                    <div ref={arrowIconAreaRight} className={`${styles.scroll_icon_area}`}>
+                      <div
+                        className={`flex-center ${styles.scroll_icon} ${isMoved && "opacity-0"}`}
+                        onClick={() => !isMoved && handleClickScroll("right")}
+                      >
+                        <BsChevronRight className="text-[var(--color-text-title)]" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {/* {!!departmentDataArray && departmentDataArray.length >= 1 && (
+                  <>
+                    {Array(4)
+                      .fill(null)
+                      .map((_, index) => (
+                        <div
+                          key={index}
+                          className={`flex h-[45px] min-h-[45px] items-center space-x-3 text-[14px] text-[var(--color-text-title)]`}
+                        >
+                          <div className="flex h-[40px] items-center space-x-2  rounded-full border  border-[#d6dbe0] px-[15px]">
+                            <Image
+                              src="/assets/images/icons/business/icons8-businesswoman-94 (1).png"
+                              alt=""
+                              className="ml-[-4px] w-[24px] rounded-[4px]"
+                            />
+                            <span>事業部</span>
+                          </div>
+                        </div>
+                      ))}
+                  </>
+                )} */}
                 <div>
                   {!!departmentDataArray && departmentDataArray.length >= 1 && (
                     <div
                       className={`transition-base01 min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                       onClick={() => {
-                        setEditedNumberOfEmployeeClass(
-                          userProfileState?.customer_number_of_employees_class
-                            ? userProfileState.customer_number_of_employees_class
-                            : ""
-                        );
-                        setEditNumberOfEmployeeClassMode(true);
+                        if (!activeDepartmentTagIndex) return;
+                        if (!departmentDataArray[activeDepartmentTagIndex]) return;
+                        const departmentPayload = {
+                          id: departmentDataArray[activeDepartmentTagIndex].id,
+                          created_by_company_id: departmentDataArray[activeDepartmentTagIndex].created_by_company_id,
+                          department_name: departmentDataArray[activeDepartmentTagIndex].department_name,
+                        };
+                        originalDepartmentNameRef.current =
+                          departmentDataArray[activeDepartmentTagIndex].department_name;
+                        setEditedDepartment(departmentPayload);
+                        setEditDepartmentMode(true);
                       }}
                     >
                       編集
@@ -767,12 +937,7 @@ const SettingCompanyMemo = () => {
                       <div
                         className={`transition-base01 min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                         onClick={() => {
-                          setEditedNumberOfEmployeeClass(
-                            userProfileState?.customer_number_of_employees_class
-                              ? userProfileState.customer_number_of_employees_class
-                              : ""
-                          );
-                          setEditNumberOfEmployeeClassMode(true);
+                          setInsertDepartmentMode(true);
                         }}
                       >
                         追加
@@ -781,30 +946,26 @@ const SettingCompanyMemo = () => {
                 </div>
               </div>
             )}
-            {editNumberOfEmployeeClassMode && (
+
+            {/* 新たに事業部を作成するinputエリア */}
+            {insertDepartmentMode && (
               <div className={`flex h-full min-h-[74px] w-full items-center justify-between`}>
-                <select
-                  name="profile_occupation"
-                  id="profile_occupation"
-                  className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                  value={editedNumberOfEmployeeClass}
-                  onChange={(e) => setEditedNumberOfEmployeeClass(e.target.value)}
-                >
-                  <option value="">回答を選択してください</option>
-                  <option value="G 1〜49名">1〜49名</option>
-                  <option value="F 50〜99名">50〜99名</option>
-                  <option value="E 100〜199名">100〜199名</option>
-                  <option value="D 200〜299名">200〜299名</option>
-                  <option value="C 300〜499名">300〜499名</option>
-                  <option value="B 500〜999名">500〜999名</option>
-                  <option value="A 1000名以上">1000名以上</option>
-                </select>
+                <input
+                  type="text"
+                  placeholder="事業部名を入力してください"
+                  required
+                  autoFocus
+                  className={`${styles.input_box}`}
+                  value={inputDepartmentName}
+                  onChange={(e) => setInputDepartmentName(e.target.value)}
+                  onBlur={() => setInputDepartmentName(toHalfWidthAndSpace(inputDepartmentName.trim()))}
+                />
                 <div className="flex">
                   <div
                     className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                     onClick={() => {
-                      setEditedNumberOfEmployeeClass("");
-                      setEditNumberOfEmployeeClassMode(false);
+                      setInputDepartmentName("");
+                      setInsertDepartmentMode(false);
                     }}
                   >
                     キャンセル
@@ -812,46 +973,105 @@ const SettingCompanyMemo = () => {
                   <div
                     className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                     onClick={async () => {
-                      if (!userProfileState) return;
-                      if (userProfileState.customer_number_of_employees_class === editedNumberOfEmployeeClass) {
-                        setEditNumberOfEmployeeClassMode(false);
+                      // 事業部の編集
+                      if (!editedDepartment || editedDepartment.department_name === originalDepartmentNameRef.current) {
+                        setInputDepartmentName("");
+                        setInsertDepartmentMode(false);
                         return;
                       }
-                      if (editedNumberOfEmployeeClass === "") {
-                        alert("有効な事業部を入力してください");
+                      if (!userProfileState?.company_id) {
+                        alert("エラー：会社データが見つかりませんでした。");
+                        setInputDepartmentName("");
+                        setInsertDepartmentMode(false);
                         return;
                       }
-                      if (!userProfileState?.company_id) return alert("会社IDが見つかりません");
-                      setLoadingGlobalState(true);
-                      const { data: companyData, error } = await supabase
-                        .from("companies")
-                        .update({ customer_number_of_employees_class: editedNumberOfEmployeeClass })
-                        .eq("id", userProfileState.company_id)
-                        .select("customer_number_of_employees_class")
-                        .single();
 
-                      if (error) {
-                        setLoadingGlobalState(false);
-                        setEditNumberOfEmployeeClassMode(false);
-                        alert(error.message);
-                        console.log("事業部UPDATEエラー", error.message);
-                        toast.error("事業部の更新に失敗しました!");
+                      const insertFieldPayload = {
+                        created_by_company_id: userProfileState.company_id,
+                        department_name: inputDepartmentName,
+                      };
+
+                      await createDepartmentMutation.mutateAsync(insertFieldPayload);
+
+                      setInputDepartmentName("");
+                      setInsertDepartmentMode(false);
+                    }}
+                  >
+                    保存
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 既存の事業部を編集、更新するinputエリア */}
+            {editDepartmentMode && !!editedDepartment && (
+              <div className={`flex h-full min-h-[74px] w-full items-center justify-between`}>
+                <input
+                  type="text"
+                  placeholder="事業部名を入力してください"
+                  required
+                  autoFocus
+                  className={`${styles.input_box}`}
+                  value={editedDepartment?.department_name ? editedDepartment.department_name : ""}
+                  onChange={(e) => setEditedDepartment({ ...editedDepartment, department_name: e.target.value })}
+                  onBlur={() => {
+                    const newName = toHalfWidthAndSpace(editedDepartment.department_name.trim());
+                    setEditedDepartment({ ...editedDepartment, department_name: newName });
+                  }}
+                />
+                <div className="flex">
+                  <div
+                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                    onClick={() => {
+                      setEditedDepartment(null);
+                      setEditDepartmentMode(false);
+                      originalDepartmentNameRef.current = null;
+                    }}
+                  >
+                    キャンセル
+                  </div>
+                  <div
+                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                    onClick={async () => {
+                      // 事業部の編集
+                      if (!editedDepartment || editedDepartment.department_name === originalDepartmentNameRef.current) {
+                        setEditedDepartment(null);
+                        setEditDepartmentMode(false);
                         return;
                       }
-                      console.log(
-                        "事業部UPDATE成功 companyData.customer_number_of_employees_class",
-                        companyData.customer_number_of_employees_class
-                      );
-                      setUserProfileState({
-                        // ...(companyData as UserProfile),
-                        ...(userProfileState as UserProfileCompanySubscription),
-                        customer_number_of_employees_class: companyData.customer_number_of_employees_class
-                          ? companyData.customer_number_of_employees_class
-                          : null,
-                      });
-                      setLoadingGlobalState(false);
-                      setEditNumberOfEmployeeClassMode(false);
-                      toast.success("事業部の更新が完了しました!");
+                      // try {
+                      //   setLoadingGlobalState(true);
+                      //   const { error } = await supabase
+                      //     .from("departments")
+                      //     .update({ department_name: editedDepartment })
+                      //     .eq("created_by_company_id", userProfileState.company_id)
+
+                      //   if (error) throw error
+
+                      //   setLoadingGlobalState(false);
+                      //   setEditedDepartment("");
+                      //   setEditDepartmentMode(false);
+                      //   toast.success("事業部名の更新が完了しました🌟");
+                      //   return
+                      // } catch (e: any) {
+                      //   setLoadingGlobalState(false);
+                      //   setEditedDepartment("");
+                      //   setEditDepartmentMode(false);
+                      //   console.log("❌事業部名UPDATEエラー", e);
+                      //   toast.error("事業部名の更新に失敗しました🙇‍♀️");
+                      //   return;
+                      // }
+
+                      const updateFieldPayload = {
+                        fieldName: "department_name",
+                        value: editedDepartment.department_name,
+                        id: editedDepartment.id,
+                      };
+
+                      await updateDepartmentFieldMutation.mutateAsync(updateFieldPayload);
+
+                      setEditedDepartment(null);
+                      setEditDepartmentMode(false);
                     }}
                   >
                     保存

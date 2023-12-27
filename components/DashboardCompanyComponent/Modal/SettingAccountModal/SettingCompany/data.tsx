@@ -160,3 +160,18 @@ export const teamIllustration = (
     />
   </svg>
 );
+
+export const departmentTagIcons = [
+  "/assets/images/icons/business/icons8-positive-dynamic-94.png",
+  "/assets/images/icons/business/icons8-slice-94.png",
+  "/assets/images/icons/business/icons8-process-94.png",
+  "/assets/images/icons/business/icons8-businessman-94_2.png",
+  "/assets/images/icons/business/icons8-businesswoman-94_3.png",
+];
+export const departmentTagIconsTest = [
+  { name: "セールス", iconURL: "/assets/images/icons/business/icons8-positive-dynamic-94.png" },
+  { name: "マーケティング", iconURL: "/assets/images/icons/business/icons8-slice-94.png" },
+  { name: "財務", iconURL: "/assets/images/icons/business/icons8-process-94.png" },
+  { name: "事業推進本部販売促進グループ", iconURL: "/assets/images/icons/business/icons8-businessman-94_2.png" },
+  { name: "プロダクト開発本部", iconURL: "/assets/images/icons/business/icons8-businesswoman-94_3.png" },
+];

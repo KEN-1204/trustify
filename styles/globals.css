@@ -848,7 +848,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* ヘッダー ライト */
   --color-dashboard-header-text: #0d99ff;
 
-  /* アイコンカラー */
+  /* アイコンカラー light */
   /* --color-icon: rgba(0, 0, 0, 0.9);  */
   --color-icon: #0d1216;
   --color-icon-home: #0d1216;
@@ -856,6 +856,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-icon-brand: #007be5;
   --color-icon-brand-pressed: #0768cf;
   --color-icon-brand-secondary: #80caff;
+  --color-tag-text: #fff;
 
   /* 🌟selection light */
   /* Next.js #0070f3 #0d99ff */
@@ -886,9 +887,10 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-tooltip-arrow: #282828;
   --color-tooltip-dark: #333;
   /* --color-tooltip-light: #424242; */
-  --color-tooltip-light: #484848;
+  /* --color-tooltip-light: #484848; */
   /* --color-tooltip-light: #585858; */
-  /* --color-tooltip-light: #525252; */
+  --color-tooltip-light: #525252;
+  --color-tooltip-light: #505050;
 
   /* HP セクションタイトル light */
   --section-title-hp: -webkit-linear-gradient(135deg, #37352f, #333, #bbb, #333, #37352f);
@@ -1423,6 +1425,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-icon-brand: #7cc4f8;
   --color-icon-brand-pressed: #0c8ce9;
   --color-icon-brand-secondary: #536383;
+  --color-tag-text: #272727;
 
   /* 🌟selection dark */
   /* Next.js #0070f3 #0d99ff */
@@ -1597,6 +1600,12 @@ textarea {
 .input-selection::selection {
   background-color: #ff3b5b;
   /* background-color: #1da1f2; */
+}
+
+/* 共通 スクロールバーの非表示(特定のスクロールコンテナに対して) */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+  scrollbar-width: none;
 }
 
 .border-shadow {

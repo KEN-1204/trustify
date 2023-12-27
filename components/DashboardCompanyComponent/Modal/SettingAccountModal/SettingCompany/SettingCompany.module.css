@@ -322,6 +322,9 @@
   box-shadow: var(--color-bg-under-input-box-shadow);
   padding-left: 5px;
   background: var(--color-bg-under-input);
+  /* min-height: 32px; */
+  min-height: 40px;
+  border-radius: 6px;
 }
 .section_title {
   font-weight: 700;
@@ -533,4 +536,50 @@
   100% {
     opacity: 100;
   }
+}
+
+/* 事業部タグスクロールエリア */
+.scroll_icon_area {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 60px;
+  display: flex;
+  align-items: center;
+  transition: opacity 0.3s ease;
+}
+.scroll_icon_area:first-child {
+  left: 0;
+  /* background: linear-gradient(90deg, #fff 70%, transparent); */
+  background: linear-gradient(90deg, var(--color-edit-bg-solid) 70%, transparent);
+  /* display: none; */
+  opacity: 0;
+  /* pointer-events: none; */
+}
+.scroll_icon_area:last-child {
+  right: 0;
+  justify-content: flex-end;
+  background: linear-gradient(-90deg, var(--color-edit-bg-solid) 70%, transparent);
+}
+.scroll_icon {
+  height: 35px;
+  width: 35px;
+  cursor: pointer;
+  border-radius: 50%;
+  opacity: 0;
+  transition: background-color 0.2s ease;
+}
+.scroll_icon:hover {
+  background-color: var(--color-bg-brand-f05);
+  background-color: var(--color-bg-sub);
+}
+.scroll_icon svg {
+  transition: fill 0.2s ease, transform 0.2s ease;
+}
+.scroll_icon:hover svg {
+  transform: scale(1.2);
+  fill: var(--color-bg-brand-f);
+}
+.department_tag_container:hover .scroll_icon_area .scroll_icon {
+  opacity: 1;
 }

@@ -20,12 +20,13 @@ export const useQueryDepartments = (company_id: string | null | undefined) => {
       console.log("❌getProductsFreeエラー発生", error.message);
       throw error;
     }
+    console.log("useQueryDepartments getOurDepartments関数実行取得結果 data", data);
 
     return data as Department[];
   };
 
   return useQuery({
-    queryKey: ["our_departments"],
+    queryKey: ["departments"],
     queryFn: getOurDepartments,
     staleTime: Infinity,
     onError: (error) => {
