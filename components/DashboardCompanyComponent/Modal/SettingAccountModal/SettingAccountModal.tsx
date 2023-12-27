@@ -26,7 +26,7 @@ export const SettingAccountModal = () => {
   const setIsOpenSettingAccountModal = useDashboardStore((state) => state.setIsOpenSettingAccountModal);
   const selectedSettingAccountMenu = useDashboardStore((state) => state.selectedSettingAccountMenu);
   const setSelectedSettingAccountMenu = useDashboardStore((state) => state.setSelectedSettingAccountMenu);
-  const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
+  // const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const settingModalProperties = useDashboardStore((state) => state.settingModalProperties);
   const setSettingModalProperties = useDashboardStore((state) => state.setSettingModalProperties);
   // const theme = useThemeStore((state) => state.theme);
@@ -69,11 +69,13 @@ export const SettingAccountModal = () => {
   return (
     <>
       <div className={`${styles.overlay} `} onClick={handleCancelAndReset} />
-      {loadingGlobalState && (
-        <div className={`${styles.loading_overlay} `}>
-          <SpinnerIDS scale={"scale-[0.5]"} />
+      {/* {!loadingGlobalState && (
+        <div className={`${styles.loading_overlay_modal_outside}`}>
+          <div className={`${styles.loading_overlay_modal_inside}`}>
+            <SpinnerIDS scale={"scale-[0.5]"} />
+          </div>
         </div>
-      )}
+      )} */}
       <div className={`${styles.container} fade02`} ref={settingModalRef}>
         {/* メインコンテンツ コンテナ */}
         <div className={`${styles.main_contents_container}`}>
@@ -188,7 +190,7 @@ export const SettingAccountModal = () => {
               <div className="flex-center mr-[15px] h-[24px] w-[24px]">
                 <IoSettingsOutline className="text-[22px]" />
               </div>
-              <span>サービス・製品</span>
+              <span>サービス・商品</span>
             </div>
             <div
               className={`rounded-[4px]] mb-[3px] flex h-[40px] w-full cursor-pointer select-none items-center truncate rounded-[4px] px-[10px] py-[6px] font-bold hover:bg-[var(--setting-side-bg-select)] ${

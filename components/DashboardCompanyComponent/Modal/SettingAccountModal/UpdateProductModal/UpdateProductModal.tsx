@@ -1,15 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styles from "./UpdateProductModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
-import { toast } from "react-toastify";
-import useThemeStore from "@/store/useThemeStore";
-import { isNaN } from "lodash";
 import { useMutateProduct } from "@/hooks/useMutateProduct";
-import productCategoriesM from "@/utils/productCategoryM";
-import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
-import { MdClose } from "react-icons/md";
+import useStore from "@/store";
+import { ImInfo } from "react-icons/im";
+import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
+import { convertToYen } from "@/utils/Helpers/convertToYen";
 
 export const UpdateProductModal = () => {
   const setIsOpenUpdateProductModal = useDashboardStore((state) => state.setIsOpenUpdateProductModal);
@@ -22,11 +20,11 @@ export const UpdateProductModal = () => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
 
   const [productName, setProductName] = useState(editedProduct.product_name);
-  const [unitPrice, setUnitPrice] = useState<number | null>(editedProduct.unit_price);
+  // const [unitPrice, setUnitPrice] = useState<number | null>(editedProduct.unit_price);
+  const [unitPrice, setUnitPrice] = useState<string>(editedProduct.unit_price);
   const [insideShortName, setInsideShortName] = useState(editedProduct.inside_short_name);
   const [outsideShortName, setOutsideShortName] = useState(editedProduct.outside_short_name);
 
-  const supabase = useSupabaseClient();
   const { updateProductMutation } = useMutateProduct();
 
   // キャンセルでモーダルを閉じる
@@ -52,7 +50,11 @@ export const UpdateProductModal = () => {
       created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
       created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
       product_name: productName,
-      unit_price: unitPrice,
+      // unit_price: unitPrice,
+      unit_price:
+        unitPrice !== null && unitPrice !== undefined && unitPrice !== ""
+          ? parseInt(unitPrice.replace(/,/g, ""), 10)
+          : null, // 0以外のfalsyならnullをセット 0円は許容
       inside_short_name: insideShortName ? insideShortName : null,
       outside_short_name: outsideShortName ? outsideShortName : null,
     };
@@ -96,24 +98,96 @@ export const UpdateProductModal = () => {
     return str;
   }
 
+  // ================================ ツールチップ ================================
+  type TooltipParams = {
+    e: React.MouseEvent<HTMLElement, MouseEvent>;
+    display: string;
+    content: string;
+    content2?: string | undefined | null;
+    content3?: string | undefined | null;
+    content4?: string | undefined | null;
+    marginTop?: number;
+    itemsPosition?: string;
+    whiteSpace?: "normal" | "pre" | "nowrap" | "pre-wrap" | "pre-line" | "break-spaces" | undefined;
+  };
+  const modalContainerRef = useRef<HTMLDivElement | null>(null);
+  const hoveredItemPosModal = useStore((state) => state.hoveredItemPosModal);
+  const setHoveredItemPosModal = useStore((state) => state.setHoveredItemPosModal);
+  // const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
+  const handleOpenTooltip = ({
+    e,
+    display,
+    content,
+    content2,
+    content3,
+    content4,
+    marginTop,
+    itemsPosition = "center",
+    whiteSpace,
+  }: TooltipParams) => {
+    // モーダルコンテナのleftを取得する
+    if (!modalContainerRef.current) return;
+    const containerLeft = modalContainerRef.current?.getBoundingClientRect().left;
+    const containerTop = modalContainerRef.current?.getBoundingClientRect().top;
+    const containerWidth = modalContainerRef.current?.getBoundingClientRect().width;
+    const containerHeight = modalContainerRef.current?.getBoundingClientRect().height;
+    // ホバーしたアイテムにツールチップを表示
+    const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+    // const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
+    //   ? ((e.target as HTMLDivElement).dataset.text2 as string)
+    //   : "";
+    // const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
+    //   ? ((e.target as HTMLDivElement).dataset.text3 as string)
+    //   : "";
+    setHoveredItemPosModal({
+      x: x - containerLeft,
+      y: y - containerTop,
+      itemWidth: width,
+      itemHeight: height,
+      containerLeft: containerLeft,
+      containerTop: containerTop,
+      containerWidth: containerWidth,
+      containerHeight: containerHeight,
+      content: content,
+      content2: content2,
+      content3: content3,
+      content4: content4,
+      display: display,
+      marginTop: marginTop,
+      itemsPosition: itemsPosition,
+      whiteSpace: whiteSpace,
+    });
+  };
+  // ============================================================================================
+  // ================================ ツールチップを非表示 ================================
+  const handleCloseTooltip = () => {
+    setHoveredItemPosModal(null);
+  };
+  // ============================================================================================
+
   return (
     <>
       <div className={`${styles.overlay} `} onClick={handleCancelAndReset} />
+      {/* ローディングオーバーレイ */}
       {loadingGlobalState && (
-        <div className={`${styles.loading_overlay} `}>
-          <SpinnerIDS scale={"scale-[0.5]"} />
+        <div className={`${styles.loading_overlay_modal_outside}`}>
+          <div className={`${styles.loading_overlay_modal_inside}`}>
+            <SpinnerIDS scale={"scale-[0.5]"} />
+          </div>
         </div>
       )}
-      <div className={`${styles.container} `}>
+      <div className={`${styles.container} `} ref={modalContainerRef}>
+        {/* ツールチップ */}
+        {hoveredItemPosModal && <TooltipModal />}
         {/* 保存・タイトル・キャンセルエリア */}
         <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[20px] text-center text-[18px]">
-          <div className="cursor-pointer font-semibold hover:text-[#aaa]" onClick={handleCancelAndReset}>
+          <div className="cursor-pointer select-none font-semibold hover:text-[#aaa]" onClick={handleCancelAndReset}>
             キャンセル
           </div>
-          <div className="-translate-x-[25px] font-bold">自社製品 編集</div>
+          <div className="-translate-x-[25px] select-none font-bold">自社商品 編集</div>
 
           <div
-            className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
+            className={`cursor-pointer select-none font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
             onClick={handleSaveAndClose}
           >
             保存
@@ -129,7 +203,31 @@ export const UpdateProductModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>製品・サービス名</span>
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>商品・サービス名</span> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "商品ごとにデータを管理することが可能となります。",
+                          content2: "この商品名が見積書の品名に記載されます。",
+                          // marginTop: 57,
+                          // marginTop: 38,
+                          marginTop: 9,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      {/* <span className={`mr-[6px]`}>展開四半期</span> */}
+                      <div className={`mr-[8px] flex flex-col text-[15px]`}>
+                        <span className={``}>商品名・</span>
+                        <span className={``}>サービス名</span>
+                      </div>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+                    </div>
                     <input
                       type="text"
                       placeholder=""
@@ -153,28 +251,40 @@ export const UpdateProductModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>単価</span>
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>単価</span> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "円単位でデータを管理します。",
+                          content2: "600万円と入力しても円単位に自動補完されます。",
+                          // marginTop: 57,
+                          marginTop: 39,
+                          // marginTop: 10,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <span className={`mr-[6px]`}>単価（円）</span>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+                    </div>
                     <input
-                      type="number"
-                      min="0"
+                      type="text"
+                      placeholder="例：600万円 → 6000000　※半角で入力"
                       className={`${styles.input_box}`}
-                      placeholder=""
-                      value={unitPrice === null ? "" : unitPrice}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === "") {
-                          setUnitPrice(null);
-                        } else {
-                          const numValue = Number(val);
-
-                          // 入力値がマイナスかチェック
-                          if (numValue < 0) {
-                            setUnitPrice(0); // ここで0に設定しているが、必要に応じて他の正の値に変更することもできる
-                          } else {
-                            setUnitPrice(numValue);
-                          }
-                        }
-                      }}
+                      value={!!unitPrice ? unitPrice : ""}
+                      onChange={(e) => setUnitPrice(e.target.value)}
+                      onBlur={() =>
+                        setUnitPrice(
+                          !!unitPrice && unitPrice !== ""
+                            ? (convertToYen(unitPrice.trim()) as number).toLocaleString()
+                            : ""
+                        )
+                      }
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -194,9 +304,33 @@ export const UpdateProductModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <div className={`${styles.title} flex !min-w-[140px] flex-col !text-[15px]`}>
+                    {/* <div className={`${styles.title} flex !min-w-[140px] flex-col !text-[15px]`}>
                       <span>型式・名称</span>
                       <span>(顧客向け)</span>
+                    </div> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "型式が存在する場合に使用します。",
+                          content2: "型式を入力した場合、顧客向けの見積書の品名の隣に型式が記載されます。",
+                          // marginTop: 57,
+                          // marginTop: 38,
+                          marginTop: 12,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      {/* <span className={`mr-[6px]`}>展開四半期</span> */}
+                      <div className={`mr-[8px] flex flex-col text-[15px]`}>
+                        <span className={``}>型式・名称</span>
+                        <span className={``}>(顧客向け)</span>
+                      </div>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
                     </div>
                     <input
                       type="text"
@@ -221,9 +355,35 @@ export const UpdateProductModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <div className={`${styles.title} flex !min-w-[140px] flex-col !text-[15px]`}>
+                    {/* <div className={`${styles.title} flex !min-w-[140px] flex-col !text-[15px]`}>
                       <span>型式・略称</span>
                       <span>(社内向け)</span>
+                    </div> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          // content: "社内向け商品を略称で使用している場合に使用します。",
+                          content: "情報漏洩対策など社内向けに商品の略称を使用している場合に使用します。",
+                          content2: "こちらを入力することでデータベース上での表記に使用されます。",
+                          // marginTop: 57,
+                          // marginTop: 39,
+                          // marginTop: 33,
+                          marginTop: 12,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      {/* <span className={`mr-[6px]`}>展開四半期</span> */}
+                      <div className={`mr-[8px] flex flex-col text-[15px]`}>
+                        <span className={``}>型式・略称</span>
+                        <span className={``}>(社内向け)</span>
+                      </div>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
                     </div>
                     <input
                       type="text"

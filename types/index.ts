@@ -1486,7 +1486,15 @@ export type EditedProduct = {
   product_name: string;
   inside_short_name: string;
   outside_short_name: string;
-  unit_price: number | null;
+  // unit_price: number | null;
+  unit_price: string; //編集時はテキストで編集して保存時にnumber型に変換する
+};
+// 部署リストテーブル
+export type Department = {
+  id: string;
+  created_at: string;
+  created_by_company_id: string;
+  department_name: string;
 };
 
 // 案件・物件 propertiesテーブル

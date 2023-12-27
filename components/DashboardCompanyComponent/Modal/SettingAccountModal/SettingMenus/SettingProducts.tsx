@@ -57,12 +57,12 @@ const SettingProductsMemo: FC = () => {
       {/* 右側メインエリア プロフィール */}
       {selectedSettingAccountMenu === "Products" && (
         <div className={`flex h-full w-full flex-col overflow-y-scroll px-[20px] py-[20px] pr-[80px]`}>
-          <div className={`text-[18px] font-bold !text-[var(--color-text-title)]`}>サービス・製品</div>
+          <div className={`text-[18px] font-bold !text-[var(--color-text-title)]`}>サービス・商品</div>
           {/* 製品1 */}
           {products?.map((item, index) => (
             <React.Fragment key={item.id}>
               <div key={item.id} className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
-                <div className={`text-[14px] font-bold !text-[var(--color-text-title)]`}>製品{index + 1}</div>
+                <div className={`text-[14px] font-bold !text-[var(--color-text-title)]`}>商品{index + 1}</div>
 
                 <div className={`flex h-full w-full items-center justify-between`}>
                   <div className="flex">
@@ -91,6 +91,7 @@ const SettingProductsMemo: FC = () => {
                       <div
                         className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center text-[14px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                         onClick={() => {
+                          console.log("item.unit_price", item.unit_price);
                           setEditedProduct({
                             id: item.id,
                             created_at: item.created_at,
@@ -103,7 +104,7 @@ const SettingProductsMemo: FC = () => {
                             product_name: item.product_name ? item.product_name : "",
                             inside_short_name: item.inside_short_name ? item.inside_short_name : "",
                             outside_short_name: item.outside_short_name ? item.outside_short_name : "",
-                            unit_price: item.unit_price,
+                            unit_price: item.unit_price ? item.unit_price.toLocaleString() : "",
                           });
                           setIsOpenUpdateProductModal(true);
                         }}
@@ -136,7 +137,7 @@ const SettingProductsMemo: FC = () => {
               onClick={() => setIsOpenInsertNewProductModal(true)}
             >
               <span>＋</span>
-              <span>製品追加</span>
+              <span>商品追加</span>
             </div>
           </div>
         </div>

@@ -1,17 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import styles from "./InsertNewProductModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
-import { toast } from "react-toastify";
-import useThemeStore from "@/store/useThemeStore";
-import { isNaN } from "lodash";
 import { useMutateProduct } from "@/hooks/useMutateProduct";
-import productCategoriesM from "@/utils/productCategoryM";
-import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
-import { MdClose } from "react-icons/md";
 import { ImInfo } from "react-icons/im";
 import useStore from "@/store";
+import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
+import { convertToYen } from "@/utils/Helpers/convertToYen";
 
 export const InsertNewProductModal = () => {
   const setIsOpenInsertNewProductModal = useDashboardStore((state) => state.setIsOpenInsertNewProductModal);
@@ -23,11 +18,11 @@ export const InsertNewProductModal = () => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
 
   const [productName, setProductName] = useState("");
-  const [unitPrice, setUnitPrice] = useState<number | null>(null);
+  // const [unitPrice, setUnitPrice] = useState<number | null>(null);
+  const [unitPrice, setUnitPrice] = useState<string>("");
   const [insideShortName, setInsideShortName] = useState("");
   const [outsideShortName, setOutsideShortName] = useState("");
 
-  const supabase = useSupabaseClient();
   const { createProductMutation } = useMutateProduct();
 
   // キャンセルでモーダルを閉じる
@@ -52,7 +47,11 @@ export const InsertNewProductModal = () => {
       created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
       created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
       product_name: productName,
-      unit_price: unitPrice,
+      // unit_price: unitPrice,
+      unit_price:
+        unitPrice !== null && unitPrice !== undefined && unitPrice !== ""
+          ? parseInt(unitPrice.replace(/,/g, ""), 10)
+          : null, // 0以外のfalsyならnullをセット 0円は許容
       inside_short_name: insideShortName ? insideShortName : null,
       outside_short_name: outsideShortName ? outsideShortName : null,
     };
@@ -168,18 +167,23 @@ export const InsertNewProductModal = () => {
   return (
     <>
       <div className={`${styles.overlay} `} onClick={handleCancelAndReset} />
+      {/* ローディングオーバーレイ */}
       {loadingGlobalState && (
-        <div className={`${styles.loading_overlay} `}>
-          <SpinnerIDS scale={"scale-[0.5]"} />
+        <div className={`${styles.loading_overlay_modal_outside}`}>
+          <div className={`${styles.loading_overlay_modal_inside}`}>
+            <SpinnerIDS scale={"scale-[0.5]"} />
+          </div>
         </div>
       )}
-      <div className={`${styles.container} `}>
+      <div className={`${styles.container} `} ref={modalContainerRef}>
+        {/* ツールチップ */}
+        {hoveredItemPosModal && <TooltipModal />}
         {/* 保存・タイトル・キャンセルエリア */}
         <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[20px] text-center text-[18px]">
           <div className="cursor-pointer select-none font-semibold hover:text-[#aaa]" onClick={handleCancelAndReset}>
             キャンセル
           </div>
-          <div className="-translate-x-[25px] select-none font-bold">自社製品 追加</div>
+          <div className="-translate-x-[25px] select-none font-bold">自社商品 追加</div>
 
           <div
             className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text} select-none`}
@@ -189,7 +193,7 @@ export const InsertNewProductModal = () => {
           </div>
         </div>
         {/* メインコンテンツ コンテナ */}
-        <div className={`${styles.main_contents_container}`} ref={modalContainerRef}>
+        <div className={`${styles.main_contents_container}`}>
           {/* --------- 横幅全体ラッパー --------- */}
           <div className={`${styles.full_contents_wrapper} flex w-full`}>
             {/* --------- 左ラッパー --------- */}
@@ -205,9 +209,11 @@ export const InsertNewProductModal = () => {
                         handleOpenTooltip({
                           e: e,
                           display: "top",
-                          content: "展開四半期は決算日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
-                          content2: "変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
-                          marginTop: 57,
+                          content: "商品ごとにデータを管理することが可能となります。",
+                          content2: "この商品名が見積書の品名に記載されます。",
+                          // marginTop: 57,
+                          // marginTop: 38,
+                          marginTop: 9,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",
                         })
@@ -216,14 +222,14 @@ export const InsertNewProductModal = () => {
                     >
                       {/* <span className={`mr-[6px]`}>展開四半期</span> */}
                       <div className={`mr-[8px] flex flex-col text-[15px]`}>
-                        <span className={``}>製品名・</span>
+                        <span className={``}>商品名・</span>
                         <span className={``}>サービス名</span>
                       </div>
                       <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
                     </div>
                     <input
                       type="text"
-                      placeholder=""
+                      placeholder="商品名を入力"
                       required
                       className={`${styles.input_box}`}
                       value={productName}
@@ -244,8 +250,28 @@ export const InsertNewProductModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>単価（円）</span>
-                    <input
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>単価（円）</span> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "円単位でデータを管理します。",
+                          content2: "600万円と入力しても円単位に自動補完されます。",
+                          // marginTop: 57,
+                          marginTop: 39,
+                          // marginTop: 10,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <span className={`mr-[6px]`}>単価（円）</span>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+                    </div>
+                    {/* <input
                       type="number"
                       min="0"
                       className={`${styles.input_box}`}
@@ -266,6 +292,25 @@ export const InsertNewProductModal = () => {
                           }
                         }
                       }}
+                    /> */}
+                    <input
+                      type="text"
+                      placeholder="例：600万円 → 6000000　※半角で入力"
+                      className={`${styles.input_box}`}
+                      value={!!unitPrice ? unitPrice : ""}
+                      onChange={(e) => setUnitPrice(e.target.value)}
+                      // onBlur={() =>
+                      //   setUnitPrice(
+                      //     !!unitPrice && unitPrice !== "" ? (convertToYen(unitPrice.trim()) as number).toString() : ""
+                      //   )
+                      // }
+                      onBlur={() =>
+                        setUnitPrice(
+                          !!unitPrice && unitPrice !== ""
+                            ? (convertToYen(unitPrice.trim()) as number).toLocaleString()
+                            : ""
+                        )
+                      }
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -285,13 +330,37 @@ export const InsertNewProductModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <div className={`${styles.title} flex !min-w-[140px] flex-col !text-[15px]`}>
+                    {/* <div className={`${styles.title} flex !min-w-[140px] flex-col !text-[15px]`}>
                       <span>型式・名称</span>
                       <span>(顧客向け)</span>
+                    </div> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "型式が存在する場合に使用します。",
+                          content2: "型式を入力した場合、顧客向けの見積書の品名の隣に型式が記載されます。",
+                          // marginTop: 57,
+                          // marginTop: 38,
+                          marginTop: 12,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      {/* <span className={`mr-[6px]`}>展開四半期</span> */}
+                      <div className={`mr-[8px] flex flex-col text-[15px]`}>
+                        <span className={``}>型式・名称</span>
+                        <span className={``}>(顧客向け)</span>
+                      </div>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
                     </div>
                     <input
                       type="text"
-                      placeholder="型式が存在する場合は入力してください。 例：KI-1200"
+                      placeholder="型式が存在する場合は入力　例：KI-1204, KI-X 等"
                       required
                       className={`${styles.input_box} placeholder:text-[14px]`}
                       value={outsideShortName}
@@ -312,13 +381,39 @@ export const InsertNewProductModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <div className={`${styles.title} flex !min-w-[140px] flex-col !text-[15px]`}>
+                    {/* <div className={`${styles.title} flex !min-w-[140px] flex-col !text-[15px]`}>
                       <span>型式・略称</span>
                       <span>(社内向け)</span>
+                    </div> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          // content: "社内向け商品を略称で使用している場合に使用します。",
+                          content: "情報漏洩対策など社内向けに商品の略称を使用している場合に使用します。",
+                          content2: "こちらを入力することでデータベース上での表記に使用されます。",
+                          // marginTop: 57,
+                          // marginTop: 39,
+                          // marginTop: 33,
+                          marginTop: 12,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      {/* <span className={`mr-[6px]`}>展開四半期</span> */}
+                      <div className={`mr-[8px] flex flex-col text-[15px]`}>
+                        <span className={``}>型式・略称</span>
+                        <span className={``}>(社内向け)</span>
+                      </div>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
                     </div>
                     <input
                       type="text"
-                      placeholder="社内で使用する略称があれば入力してください。例：KI2など"
+                      placeholder="社内で使用する略称があれば入力　例：KI2, KIX 等"
                       className={`${styles.input_box} placeholder:text-[13px]`}
                       value={insideShortName}
                       onChange={(e) => setInsideShortName(e.target.value)}

@@ -22,6 +22,7 @@ import { format } from "date-fns";
 import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 import { FiRefreshCw } from "react-icons/fi";
 import { DatePickerCustomInputForSettings } from "@/utils/DatePicker/DatePickerCustomInputForSettings";
+import { useQueryDepartments } from "@/hooks/useQueryDepartments";
 
 const SettingCompanyMemo = () => {
   const supabase = useSupabaseClient();
@@ -61,7 +62,13 @@ const SettingCompanyMemo = () => {
   // const notificationsCacheData = queryClient.getQueryData<Notification[]>(["my_notifications"]);
   // const [changeOwnerNotificationState, setChangeOwnerNotificationState] = useState<Notification | null>(null);
 
-  // ================================ お知らせ所有権変更関連 ================================
+  // ================================ 🌟事業部リスト取得useQuery🌟 ================================
+  const { data: departmentDataArray, isLoading: isLoadingQueryDepartment } = useQueryDepartments(
+    userProfileState?.company_id
+  );
+  // ================================ ✅事業部リスト取得useQuery✅ ================================
+
+  // ================================ 🌟お知らせ所有権変更関連🌟 ================================
   // 【お知らせの所有者変更モーダル開閉状態】
   const setOpenNotificationChangeTeamOwnerModal = useDashboardStore(
     (state) => state.setOpenNotificationChangeTeamOwnerModal
@@ -177,77 +184,6 @@ const SettingCompanyMemo = () => {
     checkNoticeRelatedToMe();
   }, [changeTeamOwnerData]);
 
-  // useEffect(() => {
-  //   // お知らせから所有者変更のお知らせが自分宛、もしくは所有権を自分からメンバーへ移行している物があればStateに格納
-  //   const checkNoticeRelatedToMe = () => {
-  //     if (typeof notificationsCacheData === "undefined" || notificationsCacheData.length === 0)
-  //       return console.log("自分のお知らせ無し");
-  //     if (!userProfileState) return console.log("自身のプロフィールデータなし");
-
-  //     // 保留中があるかどうか 自分からメンバーへの所有権変更 onHold
-  //     const checkedOnHoldNoticeRelatedToMeIndex = notificationsCacheData.findIndex(
-  //       (value: Notification) =>
-  //         value.completed === false && value.type === "change_team_owner" && value.from_user_id === userProfileState.id
-  //     );
-  //     // 要確認があるかどうか 自分向けの所有権変更 needConfirmation
-  //     const checkedNeedConfirmationNoticeRelatedToMeIndex = notificationsCacheData.findIndex(
-  //       (value: Notification) =>
-  //         value.completed === false && value.type === "change_team_owner" && value.to_user_id === userProfileState.id
-  //     );
-
-  //     // 保留中が存在し、要確認がなければ
-  //     if (checkedOnHoldNoticeRelatedToMeIndex !== -1 && checkedNeedConfirmationNoticeRelatedToMeIndex === -1) {
-  //       const needConfirmedNotification = notificationsCacheData[checkedOnHoldNoticeRelatedToMeIndex];
-  //       console.log(
-  //         "お知らせ 保留中を格納",
-  //         "checkedOnHoldNoticeRelatedToMeIndex",
-  //         checkedOnHoldNoticeRelatedToMeIndex,
-  //         "checkedNeedConfirmationNoticeRelatedToMeIndex",
-  //         checkedNeedConfirmationNoticeRelatedToMeIndex,
-  //         "格納する要確認のお知らせ",
-  //         needConfirmedNotification
-  //       );
-  //       setChangeOwnerNotificationType("onHold");
-
-  //       setChangeOwnerNotificationState(needConfirmedNotification);
-  //     }
-  //     // 要確認が存在し、保留中がなければ
-  //     else if (checkedOnHoldNoticeRelatedToMeIndex === -1 && checkedNeedConfirmationNoticeRelatedToMeIndex !== -1) {
-  //       const onHoldNotification = notificationsCacheData[checkedNeedConfirmationNoticeRelatedToMeIndex];
-  //       console.log(
-  //         "お知らせ 要確認を格納",
-  //         "checkedOnHoldNoticeRelatedToMeIndex",
-  //         checkedOnHoldNoticeRelatedToMeIndex,
-  //         "checkedNeedConfirmationNoticeRelatedToMeIndex",
-  //         checkedNeedConfirmationNoticeRelatedToMeIndex,
-  //         "格納する保留中のお知らせ",
-  //         onHoldNotification
-  //       );
-  //       setChangeOwnerNotificationType("needConfirmation");
-  //       setChangeOwnerNotificationState(onHoldNotification);
-  //     } else {
-  //       console.log(
-  //         "お知らせ 何もなし",
-  //         "checkedOnHoldNoticeRelatedToMeIndex",
-  //         checkedOnHoldNoticeRelatedToMeIndex,
-  //         "checkedNeedConfirmationNoticeRelatedToMeIndex",
-  //         checkedNeedConfirmationNoticeRelatedToMeIndex
-  //       );
-  //       setChangeOwnerNotificationType(null);
-  //     }
-  //   };
-
-  //   checkNoticeRelatedToMe();
-  // }, [notificationsCacheData]);
-
-  // 全角文字を半角に変換する関数
-  const toHalfWidth = (strVal: string) => {
-    // 全角文字コードの範囲は65281 - 65374、スペースの全角文字コードは12288
-    return strVal.replace(/[！-～]/g, (match) => {
-      return String.fromCharCode(match.charCodeAt(0) - 0xfee0);
-    });
-    // .replace(/　/g, " "); // 全角スペースを半角スペースに
-  };
   const toHalfWidthAndSpace = (strVal: string) => {
     // 全角文字コードの範囲は65281 - 65374、スペースの全角文字コードは12288
     return strVal
@@ -256,35 +192,6 @@ const SettingCompanyMemo = () => {
       })
       .replace(/　/g, " "); // 全角スペースを半角スペースに
   };
-  const toHalfWidthAndSpaceAndHyphen = (strVal: string) => {
-    // 全角文字コードの範囲は65281 - 65374、スペースの全角文字コードは12288
-    return strVal
-      .replace(/[！-～]/g, (match) => {
-        return String.fromCharCode(match.charCodeAt(0) - 0xfee0);
-      })
-      .replace(/　/g, " ") // 全角スペースを半角スペースに
-      .replace(/ー/g, "-"); // 全角ハイフンを半角ハイフンに
-  };
-
-  type Era = "昭和" | "平成" | "令和";
-  const eras = {
-    昭和: 1925, // 昭和の開始年 - 1
-    平成: 1988, // 平成の開始年 - 1
-    令和: 2018, // 令和の開始年 - 1
-  };
-  // 昭和や平成、令和の元号を西暦に変換する 例："平成4年12月" を "1992年12月" に変換
-  function matchEraToYear(value: string): string {
-    const pattern = /(?<era>昭和|平成|令和)(?<year>\d+)(?:年)?(?<month>\d+)?/;
-    const match = pattern.exec(value);
-
-    if (!match) return value; // 元号の形式でなければ元の文字列をそのまま返す
-
-    const era: Era = match.groups?.era as Era;
-    const year = eras[era] + parseInt(match.groups?.year || "0", 10);
-    const month = match.groups?.month ? `${match.groups?.month}月` : "";
-
-    return `${year}年${month}`;
-  }
 
   // 全角を半角に変換する関数
   function zenkakuToHankaku(str: string) {
@@ -643,7 +550,7 @@ const SettingCompanyMemo = () => {
           <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
 
           {/* 決算月 */}
-          <div className={`mt-[20px] flex min-h-[95px] w-full flex-col `}>
+          <div className={`mt-[20px] flex min-h-[115px] w-full flex-col `}>
             <div className="flex items-start space-x-4">
               <div className={`${styles.section_title}`}>決算月</div>
               {/* <div className={`text-[13px] text-[var(--color-text-brand-f)]`}>
@@ -825,6 +732,135 @@ const SettingCompanyMemo = () => {
             )}
           </div>
           {/* 決算月ここまで */}
+
+          <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
+
+          {/* 事業部リスト */}
+          <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
+            <div className={`${styles.section_title}`}>事業部</div>
+
+            {!editNumberOfEmployeeClassMode && (
+              <div className={`flex h-full min-h-[74px] w-full items-center justify-between`}>
+                <div className={`${styles.section_value}`}>
+                  {userProfileState?.customer_number_of_employees_class
+                    ? userProfileState.customer_number_of_employees_class
+                    : "未設定"}
+                </div>
+                <div>
+                  {!!departmentDataArray && departmentDataArray.length >= 1 && (
+                    <div
+                      className={`transition-base01 min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                      onClick={() => {
+                        setEditedNumberOfEmployeeClass(
+                          userProfileState?.customer_number_of_employees_class
+                            ? userProfileState.customer_number_of_employees_class
+                            : ""
+                        );
+                        setEditNumberOfEmployeeClassMode(true);
+                      }}
+                    >
+                      編集
+                    </div>
+                  )}
+                  {!departmentDataArray ||
+                    (departmentDataArray?.length === 0 && (
+                      <div
+                        className={`transition-base01 min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                        onClick={() => {
+                          setEditedNumberOfEmployeeClass(
+                            userProfileState?.customer_number_of_employees_class
+                              ? userProfileState.customer_number_of_employees_class
+                              : ""
+                          );
+                          setEditNumberOfEmployeeClassMode(true);
+                        }}
+                      >
+                        追加
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+            {editNumberOfEmployeeClassMode && (
+              <div className={`flex h-full min-h-[74px] w-full items-center justify-between`}>
+                <select
+                  name="profile_occupation"
+                  id="profile_occupation"
+                  className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                  value={editedNumberOfEmployeeClass}
+                  onChange={(e) => setEditedNumberOfEmployeeClass(e.target.value)}
+                >
+                  <option value="">回答を選択してください</option>
+                  <option value="G 1〜49名">1〜49名</option>
+                  <option value="F 50〜99名">50〜99名</option>
+                  <option value="E 100〜199名">100〜199名</option>
+                  <option value="D 200〜299名">200〜299名</option>
+                  <option value="C 300〜499名">300〜499名</option>
+                  <option value="B 500〜999名">500〜999名</option>
+                  <option value="A 1000名以上">1000名以上</option>
+                </select>
+                <div className="flex">
+                  <div
+                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                    onClick={() => {
+                      setEditedNumberOfEmployeeClass("");
+                      setEditNumberOfEmployeeClassMode(false);
+                    }}
+                  >
+                    キャンセル
+                  </div>
+                  <div
+                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                    onClick={async () => {
+                      if (!userProfileState) return;
+                      if (userProfileState.customer_number_of_employees_class === editedNumberOfEmployeeClass) {
+                        setEditNumberOfEmployeeClassMode(false);
+                        return;
+                      }
+                      if (editedNumberOfEmployeeClass === "") {
+                        alert("有効な事業部を入力してください");
+                        return;
+                      }
+                      if (!userProfileState?.company_id) return alert("会社IDが見つかりません");
+                      setLoadingGlobalState(true);
+                      const { data: companyData, error } = await supabase
+                        .from("companies")
+                        .update({ customer_number_of_employees_class: editedNumberOfEmployeeClass })
+                        .eq("id", userProfileState.company_id)
+                        .select("customer_number_of_employees_class")
+                        .single();
+
+                      if (error) {
+                        setLoadingGlobalState(false);
+                        setEditNumberOfEmployeeClassMode(false);
+                        alert(error.message);
+                        console.log("事業部UPDATEエラー", error.message);
+                        toast.error("事業部の更新に失敗しました!");
+                        return;
+                      }
+                      console.log(
+                        "事業部UPDATE成功 companyData.customer_number_of_employees_class",
+                        companyData.customer_number_of_employees_class
+                      );
+                      setUserProfileState({
+                        // ...(companyData as UserProfile),
+                        ...(userProfileState as UserProfileCompanySubscription),
+                        customer_number_of_employees_class: companyData.customer_number_of_employees_class
+                          ? companyData.customer_number_of_employees_class
+                          : null,
+                      });
+                      setLoadingGlobalState(false);
+                      setEditNumberOfEmployeeClassMode(false);
+                      toast.success("事業部の更新が完了しました!");
+                    }}
+                  >
+                    保存
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          {/* 部署ここまで */}
 
           <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
 

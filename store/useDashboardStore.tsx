@@ -423,7 +423,8 @@ const useDashboardStore = create<State>((set) => ({
     product_name: "",
     inside_short_name: "",
     outside_short_name: "",
-    unit_price: null,
+    // unit_price: null,
+    unit_price: '',
   },
   setEditedProduct: (payload) => set({ editedProduct: payload }),
   // 現在の製品情報をStateに格納
