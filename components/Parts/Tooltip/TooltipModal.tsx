@@ -149,6 +149,7 @@ export const TooltipModal: FC = () => {
             <span>{hoveredItemPosModal?.content}</span>
             <span>{hoveredItemPosModal?.content2}</span>
             {hoveredItemPosModal?.content3 && <span>{hoveredItemPosModal?.content3}</span>}
+            {hoveredItemPosModal?.content4 && <span>{hoveredItemPosModal?.content4}</span>}
           </div>
         </div>
         <div ref={arrowRef} className={`${styles.tooltip_arrow_over}`}></div>
@@ -256,6 +257,7 @@ export const TooltipModal: FC = () => {
         <span>{hoveredItemPosModal?.content}</span>
         <span>{hoveredItemPosModal?.content2}</span>
         {hoveredItemPosModal?.content3 && <span>{hoveredItemPosModal?.content3}</span>}
+        {hoveredItemPosModal?.content4 && <span>{hoveredItemPosModal?.content4}</span>}
       </div>
     </div>
   );

@@ -660,7 +660,7 @@ const SettingCompanyMemo = () => {
               <div className={`flex h-full min-h-[74px] w-full items-center justify-between`}>
                 <div className={`${styles.section_value}`}>
                   {userProfileState?.customer_fiscal_end_month
-                    ? format(new Date(userProfileState.customer_fiscal_end_month), "M月dd日")
+                    ? format(new Date(userProfileState.customer_fiscal_end_month), "M月d日")
                     : "未設定"}
                 </div>
                 <div>

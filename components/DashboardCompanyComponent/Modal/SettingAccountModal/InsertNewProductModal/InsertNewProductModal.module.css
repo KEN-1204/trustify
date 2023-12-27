@@ -4,9 +4,11 @@
   /* z-index: 100; */
   inset: 0;
   /* background: #00000030; */
+  background-color: var(--color-overlay-insert-update-modal);
   backdrop-filter: blur(4px);
   /* transform: translateY(-20px) scaleY(1.1); */
 }
+/* 画面全体でのローディング */
 .loading_overlay {
   position: fixed;
   z-index: 2000;
@@ -15,6 +17,17 @@
   display: flex;
   justify-content: center;
   align-items: center;
+}
+/* モーダル内でのローディング */
+.loading_overlay_modal {
+  position: fixed;
+  z-index: 2000;
+  inset: 0;
+  background: #ffffff42;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
 }
 
 .container {
@@ -47,6 +60,8 @@
   color: #333;
   color: var(--color-edit-text);
   font-family: sans-serif;
+  /* font-family: "Hiragino Sans", Roboto, system-ui;
+  font-family: Roboto, system-ui; */
 }
 .main_contents_container {
   width: 100%;
@@ -177,9 +192,11 @@
   background: var(--color-bg-under-input);
   color: var(--color-text-under-input);
   box-shadow: var(--color-bg-under-input-box-shadow);
+  min-height: 32px;
   /* padding: 0px 6px; */
-  padding: 4px 8px;
-  border-radius: 2px;
+  padding: 6px 8px;
+  font-size: 15px;
+  border-radius: 6px;
 }
 .input_box:focus {
   box-shadow: var(--color-bg-under-input-active-box-shadow);
@@ -200,7 +217,7 @@
   color: var(--color-text-under-input);
   box-shadow: var(--color-bg-under-input-box-shadow);
   padding: 6px 8px;
-  border-radius: 2px;
+  border-radius: 6px;
   resize: none;
 }
 .select_box {

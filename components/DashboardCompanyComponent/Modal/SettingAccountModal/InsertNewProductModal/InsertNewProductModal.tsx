@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styles from "./InsertNewProductModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -10,6 +10,8 @@ import { useMutateProduct } from "@/hooks/useMutateProduct";
 import productCategoriesM from "@/utils/productCategoryM";
 import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
 import { MdClose } from "react-icons/md";
+import { ImInfo } from "react-icons/im";
+import useStore from "@/store";
 
 export const InsertNewProductModal = () => {
   const setIsOpenInsertNewProductModal = useDashboardStore((state) => state.setIsOpenInsertNewProductModal);
@@ -94,6 +96,73 @@ export const InsertNewProductModal = () => {
     return str;
   }
 
+  // ================================ ツールチップ ================================
+  type TooltipParams = {
+    e: React.MouseEvent<HTMLElement, MouseEvent>;
+    display: string;
+    content: string;
+    content2?: string | undefined | null;
+    content3?: string | undefined | null;
+    content4?: string | undefined | null;
+    marginTop?: number;
+    itemsPosition?: string;
+    whiteSpace?: "normal" | "pre" | "nowrap" | "pre-wrap" | "pre-line" | "break-spaces" | undefined;
+  };
+  const modalContainerRef = useRef<HTMLDivElement | null>(null);
+  const hoveredItemPosModal = useStore((state) => state.hoveredItemPosModal);
+  const setHoveredItemPosModal = useStore((state) => state.setHoveredItemPosModal);
+  // const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
+  const handleOpenTooltip = ({
+    e,
+    display,
+    content,
+    content2,
+    content3,
+    content4,
+    marginTop,
+    itemsPosition = "center",
+    whiteSpace,
+  }: TooltipParams) => {
+    // モーダルコンテナのleftを取得する
+    if (!modalContainerRef.current) return;
+    const containerLeft = modalContainerRef.current?.getBoundingClientRect().left;
+    const containerTop = modalContainerRef.current?.getBoundingClientRect().top;
+    const containerWidth = modalContainerRef.current?.getBoundingClientRect().width;
+    const containerHeight = modalContainerRef.current?.getBoundingClientRect().height;
+    // ホバーしたアイテムにツールチップを表示
+    const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+    // const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
+    //   ? ((e.target as HTMLDivElement).dataset.text2 as string)
+    //   : "";
+    // const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
+    //   ? ((e.target as HTMLDivElement).dataset.text3 as string)
+    //   : "";
+    setHoveredItemPosModal({
+      x: x - containerLeft,
+      y: y - containerTop,
+      itemWidth: width,
+      itemHeight: height,
+      containerLeft: containerLeft,
+      containerTop: containerTop,
+      containerWidth: containerWidth,
+      containerHeight: containerHeight,
+      content: content,
+      content2: content2,
+      content3: content3,
+      content4: content4,
+      display: display,
+      marginTop: marginTop,
+      itemsPosition: itemsPosition,
+      whiteSpace: whiteSpace,
+    });
+  };
+  // ============================================================================================
+  // ================================ ツールチップを非表示 ================================
+  const handleCloseTooltip = () => {
+    setHoveredItemPosModal(null);
+  };
+  // ============================================================================================
+
   console.log("面談予定作成モーダル ");
 
   return (
@@ -120,7 +189,7 @@ export const InsertNewProductModal = () => {
           </div>
         </div>
         {/* メインコンテンツ コンテナ */}
-        <div className={`${styles.main_contents_container}`}>
+        <div className={`${styles.main_contents_container}`} ref={modalContainerRef}>
           {/* --------- 横幅全体ラッパー --------- */}
           <div className={`${styles.full_contents_wrapper} flex w-full`}>
             {/* --------- 左ラッパー --------- */}
@@ -129,7 +198,29 @@ export const InsertNewProductModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>製品・サービス名</span>
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>製品・サービス名</span> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "展開四半期は決算日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
+                          content2: "変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
+                          marginTop: 57,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      {/* <span className={`mr-[6px]`}>展開四半期</span> */}
+                      <div className={`mr-[8px] flex flex-col text-[15px]`}>
+                        <span className={``}>製品名・</span>
+                        <span className={``}>サービス名</span>
+                      </div>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+                    </div>
                     <input
                       type="text"
                       placeholder=""
@@ -200,9 +291,9 @@ export const InsertNewProductModal = () => {
                     </div>
                     <input
                       type="text"
-                      placeholder=""
+                      placeholder="型式が存在する場合は入力してください。 例：KI-1200"
                       required
-                      className={`${styles.input_box}`}
+                      className={`${styles.input_box} placeholder:text-[14px]`}
                       value={outsideShortName}
                       onChange={(e) => setOutsideShortName(e.target.value)}
                       onBlur={() => setOutsideShortName(toHalfWidth(outsideShortName.trim()))}
@@ -227,8 +318,8 @@ export const InsertNewProductModal = () => {
                     </div>
                     <input
                       type="text"
-                      placeholder=""
-                      className={`${styles.input_box}`}
+                      placeholder="社内で使用する略称があれば入力してください。例：KI2など"
+                      className={`${styles.input_box} placeholder:text-[13px]`}
                       value={insideShortName}
                       onChange={(e) => setInsideShortName(e.target.value)}
                       onBlur={() => setInsideShortName(toHalfWidth(insideShortName.trim()))}

@@ -39,6 +39,7 @@ export type hoveredItemPosModal = {
   content: string;
   content2?: string | null;
   content3?: string | null;
+  content4?: string | null;
   display: string;
   textLength?: number;
   marginTop?: number;
@@ -1518,8 +1519,10 @@ export type Property = {
   sales_class: string | null;
   expansion_date: string | null;
   sales_date: string | null;
-  expansion_quarter: string | null;
-  sales_quarter: string | null;
+  // expansion_quarter: string | null;
+  // sales_quarter: string | null;
+  expansion_quarter: number | null;
+  sales_quarter: number | null;
   subscription_start_date: string | null;
   subscription_canceled_at: string | null;
   leasing_company: string | null;
