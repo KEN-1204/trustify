@@ -26,8 +26,12 @@ import { useQueryDepartments } from "@/hooks/useQueryDepartments";
 import { useMutateDepartment } from "@/hooks/useMutateDepartment";
 import { departmentTagIcons, departmentTagIconsTest } from "./data";
 import { BsChevronLeft, BsChevronRight } from "react-icons/bs";
+import SpinnerIDS3 from "@/components/Parts/SpinnerIDS/SpinnerIDS3";
+import useStore from "@/store";
+import { invertFalsyExcludeZero } from "@/utils/Helpers/invertFalsyExcludeZero";
 
 const SettingCompanyMemo = () => {
+  const language = useStore((state) => state.language);
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
   const userProfileState = useDashboardStore((state) => state.userProfileState);
@@ -73,9 +77,11 @@ const SettingCompanyMemo = () => {
   // const [changeOwnerNotificationState, setChangeOwnerNotificationState] = useState<Notification | null>(null);
 
   // ================================ 🌟事業部リスト取得useQuery🌟 ================================
-  const { data: departmentDataArray, isLoading: isLoadingQueryDepartment } = useQueryDepartments(
-    userProfileState?.company_id
-  );
+  const {
+    data: departmentDataArray,
+    isLoading: isLoadingQueryDepartment,
+    refetch,
+  } = useQueryDepartments(userProfileState?.company_id);
 
   // useMutation
   const { createDepartmentMutation, updateDepartmentFieldMutation, deleteDepartmentMutation } = useMutateDepartment();
@@ -383,10 +389,57 @@ const SettingCompanyMemo = () => {
   };
 
   // ====================== 🌟事業部タグをボタンクリックで左右にスクロールする関数🌟 ======================
+  const rowContainer = useRef<HTMLDivElement | null>(null);
   const rowRef = useRef<HTMLDivElement | null>(null);
   const arrowIconAreaLeft = useRef<HTMLDivElement | null>(null);
   const arrowIconAreaRight = useRef<HTMLDivElement | null>(null);
   const [isMoved, setIsMoved] = useState(false);
+
+  // rowグループが親コンテナの横幅を超えてなければ、矢印エリアは非表示にする
+  useEffect(() => {
+    if (!rowContainer.current || !rowRef.current || !arrowIconAreaLeft.current || !arrowIconAreaRight.current) return;
+    console.log(
+      "横幅",
+      // rowRef.current.clientWidth,
+      rowRef.current.scrollWidth,
+      rowContainer.current.clientWidth,
+      // rowContainer.current.scrollWidth,
+      rowRef.current.scrollWidth < rowContainer.current.clientWidth
+      // rowRef.current.getBoundingClientRect().width,
+      // rowContainer.current.getBoundingClientRect().width
+    );
+    console.log("left", rowRef.current.scrollLeft);
+    if (rowRef.current.scrollWidth <= rowContainer.current.clientWidth) {
+      console.log("🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥");
+      rowContainer.current.classList.add(`${styles.inactive}`);
+      arrowIconAreaLeft.current.style.opacity = "0";
+      arrowIconAreaLeft.current.style.pointerEvents = "none";
+      arrowIconAreaRight.current.style.opacity = "0";
+      arrowIconAreaRight.current.style.pointerEvents = "none";
+    } else if (rowRef.current.scrollWidth > rowContainer.current.clientWidth) {
+      console.log("✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅");
+      rowContainer.current.classList.remove(`${styles.inactive}`);
+      let maxScrollableWidth = rowRef.current.scrollWidth - rowRef.current.clientWidth;
+      if (rowRef.current.scrollLeft === 0) {
+        console.log("✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅左端なら");
+        // 左端なら
+        arrowIconAreaRight.current.style.opacity = "1";
+        arrowIconAreaRight.current.style.pointerEvents = "auto";
+      } else if (rowRef.current.scrollLeft === maxScrollableWidth) {
+        console.log("✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅右端なら");
+        // 右端なら
+        arrowIconAreaLeft.current.style.opacity = "1";
+        arrowIconAreaLeft.current.style.pointerEvents = "auto";
+      } else {
+        console.log("✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅右端なら");
+        // 真ん中なら
+        arrowIconAreaRight.current.style.opacity = "1";
+        arrowIconAreaRight.current.style.pointerEvents = "auto";
+        arrowIconAreaLeft.current.style.opacity = "1";
+        arrowIconAreaLeft.current.style.pointerEvents = "auto";
+      }
+    }
+  }, [departmentDataArray, editDepartmentMode, insertDepartmentMode]);
 
   const handleClickScroll = (direction: string) => {
     if (rowRef.current) {
@@ -814,6 +867,7 @@ const SettingCompanyMemo = () => {
               </div>
             </div>
 
+            {/* 通常 */}
             {!editDepartmentMode && !insertDepartmentMode && (
               <div
                 className={`flex h-full min-h-[74px] w-full items-center justify-between ${
@@ -828,7 +882,8 @@ const SettingCompanyMemo = () => {
                 {/* {true && ( */}
                 {!!departmentDataArray && departmentDataArray.length >= 1 && (
                   <div
-                    className={`relative max-w-[calc(761px-78px-20px)] overflow-x-hidden ${styles.department_tag_container}`}
+                    ref={rowContainer}
+                    className={`relative min-w-[calc(761px-78px-20px)] max-w-[calc(761px-78px-20px)] overflow-x-hidden ${styles.department_tag_container}`}
                   >
                     {/* 左矢印エリア(シャドウあり) */}
                     <div
@@ -855,7 +910,56 @@ const SettingCompanyMemo = () => {
                       ref={rowRef}
                       className={`${styles.row_group} scrollbar-hide flex items-center space-x-[12px] overflow-x-scroll`}
                     >
-                      {Array(12)
+                      {departmentDataArray
+                        .sort((a, b) =>
+                          a.department_name.localeCompare(b.department_name, language === "ja" ? "ja" : "en")
+                        )
+                        .map((departmentData, index) => (
+                          <div
+                            key={index}
+                            className={`transition-bg03 flex h-[35px] min-h-[35px] min-w-max max-w-[150px] cursor-pointer select-none items-center justify-center space-x-2 rounded-full border border-solid border-[#d6dbe0] px-[18px] text-[14px] hover:border-[var(--color-bg-brand-f)] ${
+                              activeDepartmentTagIndex === index
+                                ? `border-[var(--color-bg-brand-f)] bg-[var(--color-bg-brand-f)] text-[#fff]`
+                                : `text-[var(--color-text-title)]`
+                            }`}
+                            onClick={() => {
+                              if (activeDepartmentTagIndex === index) return setActiveDepartmentTagIndex(null);
+                              setActiveDepartmentTagIndex(index);
+                            }}
+                          >
+                            <Image
+                              // src="/assets/images/icons/business/icons8-businesswoman-94.png"
+                              src={departmentTagIconsTest[index % departmentTagIconsTest.length].iconURL}
+                              alt="tag"
+                              className="ml-[-4px] w-[22px]"
+                              width={22}
+                              height={22}
+                            />
+                            <span className="truncate text-[13px]">{departmentData.department_name}</span>
+                          </div>
+                        ))}
+                      {/* テストデータ */}
+                      {/* {Array(12)
+                        .fill(null)
+                        .map((_, index) => (
+                          <div
+                            key={index}
+                            className="transition-bg03 flex h-[35px] min-h-[35px] min-w-max max-w-[150px] cursor-pointer select-none items-center justify-center space-x-2 rounded-full border border-solid border-[#d6dbe0] px-[18px] text-[14px] text-[var(--color-text-title)] hover:border-[var(--color-bg-brand-f)]"
+                          >
+                            <Image
+                              // src="/assets/images/icons/business/icons8-businesswoman-94.png"
+                              src={departmentTagIconsTest[index % departmentTagIconsTest.length].iconURL}
+                              alt="tag"
+                              className="ml-[-4px] w-[22px]"
+                              width={22}
+                              height={22}
+                            />
+                            <span className="truncate text-[13px]">
+                              {departmentTagIconsTest[index % departmentTagIconsTest.length].name}
+                            </span>
+                          </div>
+                        ))} */}
+                      {/* {Array(12)
                         .fill(null)
                         .map((_, index) => (
                           <div
@@ -876,7 +980,7 @@ const SettingCompanyMemo = () => {
                               </span>
                             </div>
                           </div>
-                        ))}
+                        ))} */}
                     </div>
 
                     {/* 右矢印エリア(シャドウあり) */}
@@ -911,43 +1015,60 @@ const SettingCompanyMemo = () => {
                       ))}
                   </>
                 )} */}
-                <div>
-                  {!!departmentDataArray && departmentDataArray.length >= 1 && (
+                <div className={`relative`}>
+                  {activeDepartmentTagIndex !== null && !!departmentDataArray && (
+                    <>
+                      <div
+                        className={`transition-base01 ${styles.section_title} ${styles.active} ${styles.delete_btn}`}
+                      >
+                        削除
+                      </div>
+                      <div
+                        className={`transition-base01 min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} ${styles.active} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                        onClick={() => {
+                          console.log("activeDepartmentTagIndex", activeDepartmentTagIndex);
+                          console.log(
+                            "departmentDataArray[activeDepartmentTagIndex]",
+                            departmentDataArray[activeDepartmentTagIndex]
+                          );
+                          console.log("departmentDataArray", departmentDataArray);
+                          console.log(
+                            "invertFalsyExcludeZero(activeDepartmentTagIndex)",
+                            invertFalsyExcludeZero(activeDepartmentTagIndex)
+                          );
+                          if (invertFalsyExcludeZero(activeDepartmentTagIndex)) return;
+                          if (!departmentDataArray[activeDepartmentTagIndex]) return;
+                          const departmentPayload = {
+                            id: departmentDataArray[activeDepartmentTagIndex].id,
+                            created_by_company_id: departmentDataArray[activeDepartmentTagIndex].created_by_company_id,
+                            department_name: departmentDataArray[activeDepartmentTagIndex].department_name,
+                          };
+                          originalDepartmentNameRef.current =
+                            departmentDataArray[activeDepartmentTagIndex].department_name;
+                          console.log("departmentPayload", departmentPayload);
+                          setEditedDepartment(departmentPayload);
+                          setEditDepartmentMode(true);
+                        }}
+                      >
+                        編集
+                      </div>
+                    </>
+                  )}
+                  {activeDepartmentTagIndex === null && (
                     <div
                       className={`transition-base01 min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                       onClick={() => {
-                        if (!activeDepartmentTagIndex) return;
-                        if (!departmentDataArray[activeDepartmentTagIndex]) return;
-                        const departmentPayload = {
-                          id: departmentDataArray[activeDepartmentTagIndex].id,
-                          created_by_company_id: departmentDataArray[activeDepartmentTagIndex].created_by_company_id,
-                          department_name: departmentDataArray[activeDepartmentTagIndex].department_name,
-                        };
-                        originalDepartmentNameRef.current =
-                          departmentDataArray[activeDepartmentTagIndex].department_name;
-                        setEditedDepartment(departmentPayload);
-                        setEditDepartmentMode(true);
+                        setInsertDepartmentMode(true);
                       }}
                     >
-                      編集
+                      追加
                     </div>
                   )}
-                  {!departmentDataArray ||
-                    (departmentDataArray?.length === 0 && (
-                      <div
-                        className={`transition-base01 min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
-                        onClick={() => {
-                          setInsertDepartmentMode(true);
-                        }}
-                      >
-                        追加
-                      </div>
-                    ))}
                 </div>
               </div>
             )}
 
-            {/* 新たに事業部を作成するinputエリア */}
+            {/* INSERT 新たに事業部を作成するinputエリア */}
             {insertDepartmentMode && (
               <div className={`flex h-full min-h-[74px] w-full items-center justify-between`}>
                 <input
@@ -964,6 +1085,7 @@ const SettingCompanyMemo = () => {
                   <div
                     className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                     onClick={() => {
+                      if (createDepartmentMutation.isLoading) return;
                       setInputDepartmentName("");
                       setInsertDepartmentMode(false);
                     }}
@@ -973,8 +1095,9 @@ const SettingCompanyMemo = () => {
                   <div
                     className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                     onClick={async () => {
+                      if (createDepartmentMutation.isLoading) return;
                       // 事業部の編集
-                      if (!editedDepartment || editedDepartment.department_name === originalDepartmentNameRef.current) {
+                      if (inputDepartmentName === "") {
                         setInputDepartmentName("");
                         setInsertDepartmentMode(false);
                         return;
@@ -990,6 +1113,7 @@ const SettingCompanyMemo = () => {
                         created_by_company_id: userProfileState.company_id,
                         department_name: inputDepartmentName,
                       };
+                      console.log("insertFieldPayload", insertFieldPayload);
 
                       await createDepartmentMutation.mutateAsync(insertFieldPayload);
 
@@ -997,13 +1121,18 @@ const SettingCompanyMemo = () => {
                       setInsertDepartmentMode(false);
                     }}
                   >
-                    保存
+                    {!createDepartmentMutation.isLoading && <span>保存</span>}
+                    {createDepartmentMutation.isLoading && (
+                      <div className="relative h-full w-full">
+                        <SpinnerIDS3 fontSize={20} width={20} height={20} color="#fff" />
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
             )}
 
-            {/* 既存の事業部を編集、更新するinputエリア */}
+            {/* UPDATE/DELETE 既存の事業部を編集、更新するinputエリア */}
             {editDepartmentMode && !!editedDepartment && (
               <div className={`flex h-full min-h-[74px] w-full items-center justify-between`}>
                 <input
@@ -1026,6 +1155,7 @@ const SettingCompanyMemo = () => {
                       setEditedDepartment(null);
                       setEditDepartmentMode(false);
                       originalDepartmentNameRef.current = null;
+                      setActiveDepartmentTagIndex(null);
                     }}
                   >
                     キャンセル

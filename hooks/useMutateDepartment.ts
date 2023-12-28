@@ -19,16 +19,17 @@ export const useMutateDepartment = () => {
   // 【Department新規作成INSERT用createDepartmentMutation関数】
   const createDepartmentMutation = useMutation(
     async (newDepartment: Omit<Department, "id" | "created_at">) => {
-      // setLoadingGlobalState(true);
+      setLoadingGlobalState(true);
       const { error } = await supabase.from("departments").insert(newDepartment);
       if (error) throw error;
     },
     {
       onSuccess: async () => {
         // キャッシュのデータを再取得
-        // await queryClient.invalidateQueries({ queryKey: ["companies"] });
+        await queryClient.invalidateQueries({ queryKey: ["departments"] });
         // TanStack Queryでデータの変更に合わせて別のデータを再取得する
         // https://zenn.dev/masatakaitoh/articles/3c2f8602d2bb9d
+        // https://zenn.dev/maro12/articles/ff825d35e8f776
 
         if (loadingGlobalState) setLoadingGlobalState(false);
         // setIsOpenInsertNewDepartmentModal(false);
@@ -53,9 +54,7 @@ export const useMutateDepartment = () => {
     {
       onSuccess: async () => {
         // キャッシュのデータを再取得
-        // await queryClient.invalidateQueries({ queryKey: ["companies"] });
-        // TanStack Queryでデータの変更に合わせて別のデータを再取得する
-        // https://zenn.dev/masatakaitoh/articles/3c2f8602d2bb9d
+        await queryClient.invalidateQueries({ queryKey: ["departments"] });
 
         if (loadingGlobalState) setLoadingGlobalState(false);
         // setIsOpenUpdateDepartmentModal(false);
@@ -97,7 +96,7 @@ export const useMutateDepartment = () => {
         // setSelectedRowDataCompany(data[0]);
 
         // companiesに関わるキャッシュのデータを再取得 => これをしないと既に取得済みのキャッシュは古い状態で表示されてしまう
-        // await queryClient.invalidateQueries({ queryKey: ["companies"] });
+        await queryClient.invalidateQueries({ queryKey: ["departments"] });
         if (loadingGlobalState) setLoadingGlobalState(false);
         toast.success("事業部の更新が完了しました🌟");
       },
@@ -120,9 +119,8 @@ export const useMutateDepartment = () => {
     {
       onSuccess: async () => {
         // キャッシュのデータを再取得
-        // await queryClient.invalidateQueries({ queryKey: ["departments"] });
-        // TanStack Queryでデータの変更に合わせて別のデータを再取得する
-        // https://zenn.dev/masatakaitoh/articles/3c2f8602d2bb9d
+        await queryClient.invalidateQueries({ queryKey: ["departments"] });
+
         if (loadingGlobalState) setLoadingGlobalState(false);
         // setIsOpenUpdateProductModal(false);
         toast.success("事業部の削除が完了しました🌟");
