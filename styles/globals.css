@@ -538,6 +538,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-table-reflection: #d9eafb; */
   /* --color-table-loading-spinner: #0d99ffd0; */
   --color-table-loading-spinner: #0d99ffc0;
+  --color-spinner-ids: #aaa;
   /* --color-table-row-hover: #ecf4fca0; */
   /* --color-table-row-hover: rgba(55, 53, 47, 0.08); */
   /* --color-table-row-hover: #f0f0f0; */
@@ -578,7 +579,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-text-under-title: #121212;
   --color-text-under-title: #282828;
   --color-text-under-value: #424242;
-
+  /* セレクトボックス 会社設定画面事業部選択 */
+  --color-bg-select-box-setting: #fff;
   /* インプットボックス */
   --color-bg-under-input: #fff;
   --color-bg-under-input: #fafafa;
@@ -1156,7 +1158,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-table-bg-loading: #121212;
   /* --color-table-reflection: rgba(255, 255, 255, 0.2); */
   --color-table-reflection: rgba(255, 255, 255, 0.3);
-  --color-table-loading-spinner: #787878;
+  --color-table-loading-spinner: #7878 78;
+  --color-spinner-ids: #fff;
   --color-table-row-hover: #232323;
   --color-table-row-hover: var(--color-bg-brand-f20);
   --color-table-row-hover: var(--color-bg-brand-f30);
@@ -1192,6 +1195,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* タイトル */
   --color-text-under-title: #eee;
   --color-text-under-value: #ececec;
+  /* セレクトボックス 会社設定画面事業部選択 */
+  --color-bg-select-box-setting: #00000078;
   /* インプットボックス */
   --color-bg-under-input: #fff;
   --color-bg-under-input: #3c3c3c;

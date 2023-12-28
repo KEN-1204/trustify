@@ -2626,8 +2626,10 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
               {
                 // allRows[0] &&
                 //   Object.keys(allRows[0]).map((key, index) => (
+                // !!contactColumnHeaderItemList.length &&
+                //   contactColumnHeaderItemList
                 !!contactColumnHeaderItemList.length &&
-                  contactColumnHeaderItemList
+                  [...contactColumnHeaderItemList]
                     .sort((a, b) => a.columnIndex - b.columnIndex) // columnIndexで並び替え
                     .map((key, index) => (
                       <div

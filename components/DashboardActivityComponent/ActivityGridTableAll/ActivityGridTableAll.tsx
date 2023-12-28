@@ -2705,8 +2705,10 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
               {
                 // allRows[0] &&
                 //   Object.keys(allRows[0]).map((key, index) => (
+                // !!activityColumnHeaderItemList.length &&
+                //   activityColumnHeaderItemList
                 !!activityColumnHeaderItemList.length &&
-                  activityColumnHeaderItemList
+                  [...activityColumnHeaderItemList]
                     .sort((a, b) => a.columnIndex - b.columnIndex) // columnIndexで並び替え
                     .map((key, index) => (
                       <div

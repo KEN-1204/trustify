@@ -21,7 +21,7 @@ const SpinnerIDS3: FC<Props> = ({
   left = "50%",
   transform = "translate(-50%, -50%)",
   // color = "#ccc",
-  color = "#aaa",
+  color = "var(--color-spinner-ids)",
 }) => {
   // const SpinnerIDS: FC<Props> = ({ scale = "scale-[0.4]" }) => {
   return (

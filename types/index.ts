@@ -1489,12 +1489,27 @@ export type EditedProduct = {
   // unit_price: number | null;
   unit_price: string; //編集時はテキストで編集して保存時にnumber型に変換する
 };
-// 部署リストテーブル
+// 事業部リストテーブル
 export type Department = {
   id: string;
   created_at: string;
   created_by_company_id: string;
   department_name: string;
+};
+// 係・ユニットリストテーブル
+export type Unit = {
+  id: string;
+  created_at: string;
+  created_by_company_id: string;
+  created_by_department_id: string;
+  unit_name: string;
+};
+// 事業所・営業所リストテーブル
+export type Office = {
+  id: string;
+  created_at: string;
+  created_by_company_id: string;
+  office_name: string;
 };
 
 // 案件・物件 propertiesテーブル

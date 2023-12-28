@@ -1,8 +1,6 @@
-import useDashboardStore from "@/store/useDashboardStore";
-import { Department, Product } from "@/types";
+import { Department } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
-import React from "react";
 
 export const useQueryDepartments = (company_id: string | null | undefined) => {
   const supabase = useSupabaseClient();
@@ -17,7 +15,7 @@ export const useQueryDepartments = (company_id: string | null | undefined) => {
       .order("department_name", { ascending: true });
 
     if (error) {
-      console.log("❌getProductsFreeエラー発生", error.message);
+      console.log("❌getOurDepartmentsエラー発生", error.message);
       throw error;
     }
     console.log("useQueryDepartments getOurDepartments関数実行取得結果 data", data);

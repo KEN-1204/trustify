@@ -2920,8 +2920,10 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
               {
                 // allRows[0] &&
                 //   Object.keys(allRows[0]).map((key, index) => (
+                // !!columnHeaderItemList.length &&
+                //   columnHeaderItemList
                 !!columnHeaderItemList.length &&
-                  columnHeaderItemList
+                  [...columnHeaderItemList]
                     .sort((a, b) => a.columnIndex - b.columnIndex) // columnIndexで並び替え
                     .map((key, index) => (
                       <div
