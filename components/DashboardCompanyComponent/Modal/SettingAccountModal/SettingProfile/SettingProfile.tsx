@@ -1,16 +1,23 @@
-import React, { useState, memo } from "react";
+import React, { useState, memo, useEffect } from "react";
 import styles from "../SettingAccountModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 import { toast } from "react-toastify";
-import { UserProfileCompanySubscription } from "@/types";
+import { Department, Employee_id, Office, Unit, UserProfileCompanySubscription } from "@/types";
 import { useUploadAvatarImg } from "@/hooks/useUploadAvatarImg";
 import { useDownloadUrl } from "@/hooks/useDownloadUrl";
 import Image from "next/image";
+import { useQueryDepartments } from "@/hooks/useQueryDepartments";
+import { useQueryUnits } from "@/hooks/useQueryUnits";
+import { useQueryOffices } from "@/hooks/useQueryOffices";
+import useStore from "@/store";
+import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 
 const SettingProfileMemo = () => {
+  const language = useStore((state) => state.language);
   const selectedSettingAccountMenu = useDashboardStore((state) => state.selectedSettingAccountMenu);
+  const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   // const theme = useThemeStore((state) => state.theme);
   // 上画面の選択中の列データ会社
@@ -27,12 +34,16 @@ const SettingProfileMemo = () => {
   // 電話番号
   const [editTELMode, setEditTELMode] = useState(false);
   const [editedTEL, setEditedTEL] = useState("");
-  // 部署
+  // 事業部
   const [editDepartmentMode, setEditDepartmentMode] = useState(false);
   const [editedDepartment, setEditedDepartment] = useState("");
+  const [isSelectModeDepartment, setIsSelectModeDepartment] = useState(true); // セレクトボックスで選択
+  const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
   // 係・チーム
   const [editUnitMode, setEditUnitMode] = useState(false);
   const [editedUnit, setEditedUnit] = useState("");
+  const [isSelectModeUnit, setIsSelectModeUnit] = useState(true); // セレクトボックスで選択
+  const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
   // 役職クラス
   const [editPositionClassMode, setEditPositionClassMode] = useState(false);
   const [editedPositionClass, setEditedPositionClass] = useState("");
@@ -42,6 +53,8 @@ const SettingProfileMemo = () => {
   // 所属事業所・営業所
   const [editOfficeMode, setEditOfficeMode] = useState(false);
   const [editedOffice, setEditedOffice] = useState("");
+  const [isSelectModeOffice, setIsSelectModeOffice] = useState(true); // セレクトボックスで選択
+  const [selectedOffice, setSelectedOffice] = useState<Office | null>(null);
   // 社員番号・ID
   const [editEmployeeIdMode, setEditEmployeeIdMode] = useState(false);
   const [editedEmployeeId, setEditedEmployeeId] = useState("");
@@ -59,6 +72,62 @@ const SettingProfileMemo = () => {
   // const { createActivityMutation } = useMutateActivity();
   const { useMutateUploadAvatarImg, useMutateDeleteAvatarImg } = useUploadAvatarImg();
   const { fullUrl: avatarUrl, isLoading } = useDownloadUrl(userProfileState?.avatar_url, "avatars");
+
+  // ================================ 🌟事業部リスト取得useQuery🌟 ================================
+  const {
+    data: departmentDataArray,
+    isLoading: isLoadingQueryDepartment,
+    refetch: refetchQUeryDepartments,
+  } = useQueryDepartments(userProfileState?.company_id);
+  console.log("departmentDataArray", departmentDataArray, "selectedDepartment", selectedDepartment);
+
+  // useMutation
+  // const { createDepartmentMutation, updateDepartmentFieldMutation, deleteDepartmentMutation } = useMutateDepartment();
+  // ================================ ✅事業部リスト取得useQuery✅ ================================
+  // ================================ 🌟係・チームリスト取得useQuery🌟 ================================
+  const {
+    data: unitDataArray,
+    isLoading: isLoadingQueryUnit,
+    refetch: refetchQUeryUnits,
+  } = useQueryUnits(userProfileState?.company_id);
+  console.log("unitDataArray", unitDataArray);
+
+  // useMutation
+  // const { createUnitMutation, updateUnitFieldMutation, updateMultipleUnitFieldsMutation, deleteUnitMutation } =
+  // useMutateUnit();
+  // ================================ ✅係・チームリスト取得useQuery✅ ================================
+  // ================================ 🌟事業所・営業所リスト取得useQuery🌟 ================================
+  const {
+    data: officeDataArray,
+    isLoading: isLoadingQueryOffice,
+    refetch: refetchQUeryOffices,
+  } = useQueryOffices(userProfileState?.company_id);
+  console.log("officeDataArray", officeDataArray);
+
+  // useMutation
+  // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
+  // ================================ ✅事業所・営業所リスト取得useQuery✅ ================================
+  // ======================= 🌟現在の選択した事業部でチームを絞り込むuseEffect🌟 =======================
+  const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
+  useEffect(() => {
+    // unitが存在せず、stateに要素が1つ以上存在しているなら空にする
+    if (!unitDataArray && !userProfileState?.assigned_department_id) return setFilteredUnitBySelectedDepartment([]);
+    // selectの選択中の事業部が空(全て)でunitDataArrayが存在しているならunitDataArrayをそのまま更新する
+    if (!userProfileState?.assigned_department_id && unitDataArray) {
+      setFilteredUnitBySelectedDepartment(unitDataArray);
+      return;
+    }
+    // 選択中の事業部が変化するか、unitDataArrayの内容に変更があったら新たに絞り込んで更新する
+    if (unitDataArray && userProfileState?.assigned_department_id) {
+      const filteredUnitArray = unitDataArray.filter(
+        (unit) => unit.created_by_department_id === userProfileState.assigned_department_id
+      );
+      setFilteredUnitBySelectedDepartment(filteredUnitArray);
+    }
+  }, [unitDataArray, userProfileState?.assigned_department_id]);
+  console.log("フィルターfilteredUnitBySelectedDepartment", filteredUnitBySelectedDepartment);
+  console.log("ユーザープロフィール", userProfileState);
+  // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
 
   // 全角文字を半角に変換する関数
   const toHalfWidth = (strVal: string) => {
@@ -178,6 +247,14 @@ const SettingProfileMemo = () => {
   };
   return (
     <>
+      {loadingGlobalState && (
+        <div className={`${styles.loading_overlay_modal_outside}`}>
+          <div className={`${styles.loading_overlay_modal_inside}`}>
+            {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
+            <SpinnerComet w="52px" h="52px" />
+          </div>
+        </div>
+      )}
       {selectedSettingAccountMenu === "Profile" && (
         <div className={`flex h-full w-full flex-col overflow-y-scroll px-[20px] py-[20px] pr-[80px]`}>
           <div className={`text-[18px] font-bold`}>プロフィール</div>
@@ -601,19 +678,43 @@ const SettingProfileMemo = () => {
 
           <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
 
-          {/* 部署 */}
+          {/* 事業部 */}
           <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
-            <div className={`${styles.section_title}`}>部署</div>
+            <div className={`${styles.section_title}`}>事業部</div>
             {!editDepartmentMode && (
               <div className={`flex h-full w-full items-center justify-between`}>
-                <div className={`${styles.section_value}`}>
-                  {userProfileState?.department ? userProfileState.department : "未設定"}
-                </div>
+                {!userProfileState?.assigned_department_name && (
+                  <div className={`${styles.section_value}`}>
+                    {userProfileState?.department ? userProfileState.department : "未設定"}
+                  </div>
+                )}
+                {userProfileState?.assigned_department_name && (
+                  <div className={`${styles.section_value}`}>
+                    {userProfileState?.assigned_department_name ? userProfileState.assigned_department_name : "未設定"}
+                  </div>
+                )}
                 <div>
                   <div
                     className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                     onClick={() => {
-                      setEditedDepartment(userProfileState?.department ? userProfileState.department : "");
+                      if (!!departmentDataArray && departmentDataArray.length >= 1) {
+                        if (userProfileState?.assigned_department_id) {
+                          const selectedDepartmentObj = departmentDataArray.find(
+                            (obj) => obj.id === userProfileState.assigned_department_id
+                          );
+                          console.log(
+                            "🔥selectedDepartmentObj",
+                            selectedDepartmentObj,
+                            "userProfileState?.assigned_department_id",
+                            userProfileState.assigned_department_id
+                          );
+                          setSelectedDepartment(selectedDepartmentObj ? selectedDepartmentObj : departmentDataArray[0]);
+                        } else {
+                          setSelectedDepartment(departmentDataArray[0]);
+                        }
+                      } else {
+                        setEditedDepartment(userProfileState?.department ? userProfileState.department : "");
+                      }
                       setEditDepartmentMode(true);
                     }}
                   >
@@ -624,21 +725,53 @@ const SettingProfileMemo = () => {
             )}
             {editDepartmentMode && (
               <div className={`flex h-full w-full items-center justify-between`}>
-                <input
-                  type="text"
-                  placeholder="部署を入力してください"
-                  required
-                  autoFocus
-                  className={`${styles.input_box}`}
-                  value={editedDepartment}
-                  onChange={(e) => setEditedDepartment(e.target.value)}
-                  onBlur={() => setEditedDepartment(toHalfWidth(editedDepartment.trim()))}
-                />
+                {(!departmentDataArray || departmentDataArray?.length === 0 || !isSelectModeDepartment) && (
+                  <input
+                    type="text"
+                    placeholder="事業部を入力してください"
+                    required
+                    autoFocus
+                    className={`${styles.input_box}`}
+                    value={editedDepartment}
+                    onChange={(e) => setEditedDepartment(e.target.value)}
+                    onBlur={() => setEditedDepartment(toHalfWidth(editedDepartment.trim()))}
+                  />
+                )}
+                {!!departmentDataArray && departmentDataArray.length >= 1 && isSelectModeDepartment && (
+                  <select
+                    className={`${styles.select_box}`}
+                    value={!!selectedDepartment ? selectedDepartment.id : ""}
+                    onChange={(e) => {
+                      if (!departmentDataArray) return;
+                      const selectedDepartmentObj = departmentDataArray.find((obj) => obj.id === e.target.value);
+                      console.log("e.target.value", e.target.value, "selectedDepartmentObj", selectedDepartmentObj);
+                      if (selectedDepartmentObj === undefined)
+                        return alert("エラー：事業部データの取得にエラーが発生しました。");
+                      setSelectedDepartment(selectedDepartmentObj);
+                    }}
+                  >
+                    {/* <option value="">すべての事業部</option> */}
+                    {!!departmentDataArray &&
+                      [...departmentDataArray]
+                        .sort((a, b) =>
+                          a.department_name.localeCompare(b.department_name, language === "ja" ? "ja" : "en")
+                        )
+                        .map((department, index) => (
+                          <option key={department.id} value={department.id}>
+                            {department.department_name}
+                          </option>
+                        ))}
+                  </select>
+                )}
                 <div className="flex">
                   <div
                     className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                     onClick={() => {
-                      setEditedDepartment("");
+                      if (!isSelectModeDepartment) {
+                        setEditedDepartment("");
+                      } else {
+                        setSelectedDepartment(null);
+                      }
                       setEditDepartmentMode(false);
                     }}
                   >
@@ -647,61 +780,144 @@ const SettingProfileMemo = () => {
                   <div
                     className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                     onClick={async () => {
-                      if (editedDepartment === "") {
-                        alert("有効な部署を入力してください");
-                        return;
-                      }
-                      if (userProfileState?.department === editedDepartment) {
-                        setEditDepartmentMode(false);
-                        return;
-                      }
                       if (!userProfileState?.id) return alert("ユーザーIDが見つかりません");
-                      setLoadingGlobalState(true);
-                      const { data: profileData, error } = await supabase
-                        .from("profiles")
-                        .update({ department: editedDepartment })
-                        .eq("id", userProfileState.id)
-                        .select("department")
-                        .single();
+                      if (!isSelectModeDepartment) {
+                        // inputタグで入力ルート
+                        if (editedDepartment === "") {
+                          alert("有効な事業部を入力してください");
+                          return;
+                        }
+                        if (userProfileState?.department === editedDepartment) {
+                          setEditDepartmentMode(false);
+                          return;
+                        }
+                        setLoadingGlobalState(true);
+                        const { data: profileData, error } = await supabase
+                          .from("profiles")
+                          .update({ department: editedDepartment })
+                          .eq("id", userProfileState.id)
+                          .select("department")
+                          .single();
 
-                      if (error) {
+                        if (error) {
+                          setTimeout(() => {
+                            setLoadingGlobalState(false);
+                            setEditDepartmentMode(false);
+                            console.log("事業部UPDATEエラー", error.message);
+                            toast.error("事業部の更新に失敗しました🙇‍♀️");
+                          }, 500);
+                          return;
+                        }
                         setTimeout(() => {
+                          console.log("事業部UPDATE成功 profileData", profileData);
+                          setUserProfileState({
+                            ...(userProfileState as UserProfileCompanySubscription),
+                            department: profileData.department ? profileData.department : null,
+                          });
                           setLoadingGlobalState(false);
                           setEditDepartmentMode(false);
-                          alert(error.message);
-                          console.log("部署UPDATEエラー", error.message);
-                          toast.error("部署の更新に失敗しました!", {
-                            position: "top-right",
-                            autoClose: 3000,
-                            hideProgressBar: false,
-                            closeOnClick: true,
-                            pauseOnHover: true,
-                            draggable: true,
-                            progress: undefined,
-                            // theme: `${theme === "light" ? "light" : "dark"}`,
-                          });
+                          toast.success("事業部の更新が完了しました🌟");
                         }, 500);
-                        return;
+                      } else {
+                        // セレクトボックスから選択ルート
+                        if (!selectedDepartment) return alert("有効な事業部を選択してください。");
+                        // まだdepartment_assignmentsテーブルに割り当てられてない場合には、INSERT
+                        if (!userProfileState?.assigned_department_id) {
+                          try {
+                            setLoadingGlobalState(true);
+                            const insertPayload = {
+                              created_by_company_id: userProfileState.company_id,
+                              to_user_id: userProfileState.id,
+                              department_id: selectedDepartment.id,
+                            };
+                            const { data: insertData, error: insertError } = await supabase
+                              .from("department_assignments")
+                              .insert(insertPayload);
+
+                            if (insertError) throw insertError;
+
+                            console.log("事業部UPDATE成功 insertData", insertData);
+                            setUserProfileState({
+                              ...(userProfileState as UserProfileCompanySubscription),
+                              department: selectedDepartment.department_name
+                                ? selectedDepartment.department_name
+                                : null,
+                              assigned_department_id: selectedDepartment.id,
+                              assigned_department_name: selectedDepartment.department_name,
+                            });
+                            toast.success("事業部の更新が完了しました🌟");
+                          } catch (e: any) {
+                            console.error("事業部UPDATEエラー", e);
+                            toast.error("事業部の更新に失敗しました🙇‍♀️");
+                          }
+                          setLoadingGlobalState(false);
+                          setEditDepartmentMode(false);
+                          return;
+                        } else {
+                          // 既にdepartment_assignmentsに割り当てられている場合は、department_idを変更する
+                          try {
+                            setLoadingGlobalState(true);
+                            // 既に係unit_idが設定されている場合は事業部の変更に伴い係をリセットする
+                            // unitが既に割り当てられている場合は事業部が変わるためunit_idをnullにする
+                            if (userProfileState.assigned_unit_id) {
+                              const updatePayload = {
+                                _department_id: selectedDepartment.id,
+                                _company_id: userProfileState.company_id,
+                                _user_id: userProfileState.id,
+                                _unit_id: userProfileState.assigned_unit_id,
+                              };
+                              const { error: updateError } = await supabase.rpc(
+                                "update_department_delete_unit",
+                                updatePayload
+                              );
+                              if (updateError) throw updateError;
+
+                              setUserProfileState({
+                                ...(userProfileState as UserProfileCompanySubscription),
+                                department: selectedDepartment.department_name
+                                  ? selectedDepartment.department_name
+                                  : null,
+                                assigned_department_id: selectedDepartment.id,
+                                assigned_department_name: selectedDepartment.department_name,
+                                unit: null,
+                                assigned_unit_id: null,
+                                assigned_unit_name: null,
+                              });
+                            } else {
+                              // まだ係unit_idが未設定の場合には事業部のみ更新する
+                              const updatePayload = {
+                                department_id: selectedDepartment.id,
+                              };
+                              const { data: updateData, error: updateError } = await supabase
+                                .from("department_assignments")
+                                .update(updatePayload)
+                                .eq("to_user_id", userProfileState.id)
+                                .eq("created_by_company_id", userProfileState.company_id)
+                                .select();
+
+                              if (updateError) throw updateError;
+
+                              console.log("事業部UPDATE成功 updateData", updateData);
+
+                              setUserProfileState({
+                                ...(userProfileState as UserProfileCompanySubscription),
+                                department: selectedDepartment.department_name
+                                  ? selectedDepartment.department_name
+                                  : null,
+                                assigned_department_id: selectedDepartment.id,
+                                assigned_department_name: selectedDepartment.department_name,
+                              });
+                            }
+
+                            toast.success("事業部の更新が完了しました🌟");
+                          } catch (e: any) {
+                            console.error("事業部UPDATEエラー", e);
+                            toast.error("事業部の更新に失敗しました🙇‍♀️");
+                          }
+                          setLoadingGlobalState(false);
+                          setEditDepartmentMode(false);
+                        }
                       }
-                      setTimeout(() => {
-                        console.log("部署UPDATE成功 profileData", profileData);
-                        setUserProfileState({
-                          ...(userProfileState as UserProfileCompanySubscription),
-                          department: profileData.department ? profileData.department : null,
-                        });
-                        setLoadingGlobalState(false);
-                        setEditDepartmentMode(false);
-                        toast.success("部署の更新が完了しました!", {
-                          position: "top-right",
-                          autoClose: 3000,
-                          hideProgressBar: false,
-                          closeOnClick: true,
-                          pauseOnHover: true,
-                          draggable: true,
-                          progress: undefined,
-                          // theme: `${theme === "light" ? "light" : "dark"}`,
-                        });
-                      }, 500);
                     }}
                   >
                     保存
@@ -710,7 +926,7 @@ const SettingProfileMemo = () => {
               </div>
             )}
           </div>
-          {/* 部署ここまで */}
+          {/* 事業部ここまで */}
 
           <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
 
@@ -719,14 +935,37 @@ const SettingProfileMemo = () => {
             <div className={`${styles.section_title}`}>係・チーム</div>
             {!editUnitMode && (
               <div className={`flex h-full w-full items-center justify-between`}>
-                <div className={`${styles.section_value}`}>
-                  {userProfileState?.unit ? userProfileState.unit : "未設定"}
-                </div>
+                {!userProfileState?.assigned_unit_name && (
+                  <div className={`${styles.section_value}`}>
+                    {userProfileState?.unit ? userProfileState.unit : "未設定"}
+                  </div>
+                )}
+                {userProfileState?.assigned_unit_name && (
+                  <div className={`${styles.section_value}`}>{userProfileState.assigned_unit_name}</div>
+                )}
                 <div>
                   <div
                     className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                     onClick={() => {
-                      setEditedUnit(userProfileState?.unit ? userProfileState.unit : "");
+                      // setEditedUnit(userProfileState?.unit ? userProfileState.unit : "");
+                      // setEditUnitMode(true);
+                      if (!userProfileState?.assigned_department_id) return alert("先に事業部を設定してください。");
+                      if (!filteredUnitBySelectedDepartment || filteredUnitBySelectedDepartment?.length === 0)
+                        return alert(
+                          "係・チームデータが存在しません。先に左メニューの「会社・チーム」から「係・チーム」を作成してください。"
+                        );
+                      if (!!filteredUnitBySelectedDepartment && filteredUnitBySelectedDepartment.length >= 1) {
+                        if (userProfileState?.assigned_unit_id) {
+                          const selectedUnitObj = filteredUnitBySelectedDepartment.find(
+                            (obj) => obj.id === userProfileState.assigned_unit_id
+                          );
+                          setSelectedUnit(selectedUnitObj ? selectedUnitObj : filteredUnitBySelectedDepartment[0]);
+                        } else {
+                          setSelectedUnit(filteredUnitBySelectedDepartment[0]);
+                        }
+                      } else {
+                        setEditedDepartment(userProfileState?.unit ? userProfileState.unit : "");
+                      }
                       setEditUnitMode(true);
                     }}
                   >
@@ -737,21 +976,63 @@ const SettingProfileMemo = () => {
             )}
             {editUnitMode && (
               <div className={`flex h-full w-full items-center justify-between`}>
-                <input
-                  type="text"
-                  placeholder="係・チームを入力してください"
-                  required
-                  autoFocus
-                  className={`${styles.input_box}`}
-                  value={editedUnit}
-                  onChange={(e) => setEditedUnit(e.target.value)}
-                  onBlur={() => setEditedUnit(toHalfWidth(editedUnit.trim()))}
-                />
+                {(!filteredUnitBySelectedDepartment ||
+                  filteredUnitBySelectedDepartment?.length === 0 ||
+                  !isSelectModeUnit) && (
+                  <input
+                    type="text"
+                    placeholder="係・チームを入力してください"
+                    required
+                    autoFocus
+                    className={`${styles.input_box}`}
+                    value={editedUnit}
+                    onChange={(e) => setEditedUnit(e.target.value)}
+                    onBlur={() => setEditedUnit(toHalfWidth(editedUnit.trim()))}
+                  />
+                )}
+                {(!filteredUnitBySelectedDepartment || filteredUnitBySelectedDepartment?.length === 0) &&
+                  isSelectModeUnit && <div>係・チームデータが存在しません。</div>}
+                {!!filteredUnitBySelectedDepartment &&
+                  filteredUnitBySelectedDepartment.length >= 1 &&
+                  isSelectModeUnit && (
+                    <select
+                      className={`${styles.select_box}`}
+                      value={!!selectedUnit ? selectedUnit.id : ""}
+                      onChange={(e) => {
+                        if (!filteredUnitBySelectedDepartment) return;
+                        const selectedUnitObj = filteredUnitBySelectedDepartment.find(
+                          (obj) => obj.id === e.target.value
+                        );
+                        console.log("e.target.value", e.target.value, "selectedUnitObj", selectedUnitObj);
+                        if (selectedUnitObj === undefined)
+                          return alert("エラー：係・チームデータの取得にエラーが発生しました。");
+                        setSelectedUnit(selectedUnitObj);
+                      }}
+                    >
+                      {/* <option value="">すべての事業部</option> */}
+                      {
+                        // !!unitDataArray &&
+                        //   [...unitDataArray]
+                        !!filteredUnitBySelectedDepartment &&
+                          [...filteredUnitBySelectedDepartment]
+                            .sort((a, b) => a.unit_name.localeCompare(b.unit_name, language === "ja" ? "ja" : "en"))
+                            .map((unit, index) => (
+                              <option key={unit.id} value={unit.id}>
+                                {unit.unit_name}
+                              </option>
+                            ))
+                      }
+                    </select>
+                  )}
                 <div className="flex">
                   <div
                     className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                     onClick={() => {
-                      setEditedUnit("");
+                      if (isSelectModeUnit) {
+                        setEditedUnit("");
+                      } else {
+                        setSelectedUnit(null);
+                      }
                       setEditUnitMode(false);
                     }}
                   >
@@ -760,61 +1041,134 @@ const SettingProfileMemo = () => {
                   <div
                     className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                     onClick={async () => {
-                      if (editedUnit === "") {
-                        alert("有効な係・チームを入力してください");
-                        return;
-                      }
-                      if (userProfileState?.unit === editedUnit) {
-                        setEditUnitMode(false);
-                        return;
-                      }
                       if (!userProfileState?.id) return alert("ユーザーIDが見つかりません");
-                      setLoadingGlobalState(true);
-                      const { data: profileData, error } = await supabase
-                        .from("profiles")
-                        .update({ unit: editedUnit })
-                        .eq("id", userProfileState.id)
-                        .select("unit")
-                        .single();
+                      if (!isSelectModeUnit) {
+                        if (editedUnit === "") {
+                          alert("有効な係・チームを入力してください");
+                          return;
+                        }
+                        if (userProfileState?.unit === editedUnit) {
+                          setEditUnitMode(false);
+                          return;
+                        }
 
-                      if (error) {
+                        setLoadingGlobalState(true);
+                        const { data: profileData, error } = await supabase
+                          .from("profiles")
+                          .update({ unit: editedUnit })
+                          .eq("id", userProfileState.id)
+                          .select("unit")
+                          .single();
+
+                        if (error) {
+                          setTimeout(() => {
+                            setLoadingGlobalState(false);
+                            setEditUnitMode(false);
+                            alert(error.message);
+                            console.log("係・チームUPDATEエラー", error.message);
+                            toast.error("係・チームの更新に失敗しました!", {
+                              position: "top-right",
+                              autoClose: 3000,
+                              hideProgressBar: false,
+                              closeOnClick: true,
+                              pauseOnHover: true,
+                              draggable: true,
+                              progress: undefined,
+                              // theme: `${theme === "light" ? "light" : "dark"}`,
+                            });
+                          }, 500);
+                          return;
+                        }
                         setTimeout(() => {
+                          console.log("係・チームUPDATE成功 profileData", profileData);
+                          setUserProfileState({
+                            ...(userProfileState as UserProfileCompanySubscription),
+                            unit: profileData.unit ? profileData.unit : null,
+                          });
                           setLoadingGlobalState(false);
                           setEditUnitMode(false);
-                          alert(error.message);
-                          console.log("係・チームUPDATEエラー", error.message);
-                          toast.error("係・チームの更新に失敗しました!", {
-                            position: "top-right",
-                            autoClose: 3000,
-                            hideProgressBar: false,
-                            closeOnClick: true,
-                            pauseOnHover: true,
-                            draggable: true,
-                            progress: undefined,
-                            // theme: `${theme === "light" ? "light" : "dark"}`,
-                          });
+                          toast.success("係・チームの更新が完了しました!");
                         }, 500);
-                        return;
+                      } else {
+                        // 🔹セレクトボックスから選択ルート
+                        console.log("係🔹セレクトボックスから選択ルート");
+                        if (!selectedUnit) return alert("有効な係・チームを選択してください。");
+                        if (userProfileState?.assigned_unit_name === selectedUnit.unit_name) {
+                          setEditUnitMode(false);
+                          return;
+                        }
+                        // 🔹🔹まだunit_assignmentsテーブルに割り当てられてない場合には、INSERT
+                        if (!userProfileState?.assigned_unit_id) {
+                          console.log(
+                            "係🔹セレクトボックスから選択ルート userProfileState?.assigned_unit_idなしINSERT"
+                          );
+                          try {
+                            setLoadingGlobalState(true);
+                            const insertPayload = {
+                              created_by_company_id: userProfileState.company_id,
+                              created_by_department_id: selectedUnit.created_by_department_id,
+                              to_user_id: userProfileState.id,
+                              unit_id: selectedUnit.id,
+                            };
+                            const { data: insertData, error: insertError } = await supabase
+                              .from("unit_assignments")
+                              .insert(insertPayload);
+
+                            if (insertError) throw insertError;
+
+                            console.log("係・チームUPDATE成功 insertData", insertData);
+                            setUserProfileState({
+                              ...(userProfileState as UserProfileCompanySubscription),
+                              unit: selectedUnit.unit_name ? selectedUnit.unit_name : null,
+                              assigned_unit_id: selectedUnit.id,
+                              assigned_unit_name: selectedUnit.unit_name,
+                            });
+                            toast.success("係・チームの作成が完了しました🌟");
+                          } catch (e: any) {
+                            console.error("係・チームUPDATEエラー", e);
+                            toast.error("係・チームの作成に失敗しました🙇‍♀️");
+                          }
+                          setLoadingGlobalState(false);
+                          setEditUnitMode(false);
+                          return;
+                        } else {
+                          // 🔹🔹既にunit_assignmentsに割り当てられている場合は、unit_idを変更する
+                          console.log(
+                            "係🔹セレクトボックスから選択ルート userProfileState?.assigned_unit_id有りUPDATE",
+                            userProfileState.assigned_department_id
+                          );
+                          try {
+                            setLoadingGlobalState(true);
+                            const updatePayload = {
+                              unit_id: selectedUnit.id,
+                            };
+                            const { data: updateData, error: updateError } = await supabase
+                              .from("unit_assignments")
+                              .update(updatePayload)
+                              .eq("to_user_id", userProfileState.id)
+                              .eq("created_by_company_id", userProfileState.company_id)
+                              .eq("created_by_department_id", userProfileState.assigned_department_id)
+                              .select();
+
+                            if (updateError) throw updateError;
+
+                            console.log("係・チームUPDATE成功 updateData", updateData);
+                            setUserProfileState({
+                              ...(userProfileState as UserProfileCompanySubscription),
+                              unit: selectedUnit.unit_name ? selectedUnit.unit_name : null,
+                              assigned_unit_id: selectedUnit.id,
+                              assigned_unit_name: selectedUnit.unit_name,
+                            });
+
+                            toast.success("係・チームの更新が完了しました🌟");
+                          } catch (e: any) {
+                            console.error("係・チームUPDATEエラー", e);
+                            toast.error("係・チームの更新に失敗しました🙇‍♀️");
+                          }
+                          setLoadingGlobalState(false);
+                          setEditUnitMode(false);
+                        }
                       }
-                      setTimeout(() => {
-                        console.log("係・チームUPDATE成功 profileData", profileData);
-                        setUserProfileState({
-                          ...(userProfileState as UserProfileCompanySubscription),
-                          unit: profileData.unit ? profileData.unit : null,
-                        });
-                        setLoadingGlobalState(false);
-                        setEditUnitMode(false);
-                        toast.success("係・チームの更新が完了しました!", {
-                          position: "top-right",
-                          autoClose: 3000,
-                          hideProgressBar: false,
-                          closeOnClick: true,
-                          pauseOnHover: true,
-                          draggable: true,
-                          progress: undefined,
-                          // theme: `${theme === "light" ? "light" : "dark"}`,
-                        });
-                      }, 500);
                     }}
                   >
                     保存
@@ -1207,14 +1561,44 @@ const SettingProfileMemo = () => {
             <div className={`${styles.section_title}`}>所属事業所・営業所</div>
             {!editOfficeMode && (
               <div className={`flex h-full w-full items-center justify-between`}>
-                <div className={`${styles.section_value}`}>
-                  {userProfileState?.office ? userProfileState.office : "未設定"}
-                </div>
+                {!userProfileState?.assigned_office_name && (
+                  <div className={`${styles.section_value}`}>
+                    {userProfileState?.office ? userProfileState.office : "未設定"}
+                  </div>
+                )}
+                {userProfileState?.assigned_office_name && (
+                  <div className={`${styles.section_value}`}>
+                    {userProfileState?.assigned_office_name ? userProfileState.assigned_office_name : "未設定"}
+                  </div>
+                )}
                 <div>
                   <div
                     className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                     onClick={() => {
-                      setEditedOffice(userProfileState?.office ? userProfileState.office : "");
+                      // setEditedOffice(userProfileState?.office ? userProfileState.office : "");
+                      // setEditOfficeMode(true);
+                      if (!!officeDataArray && officeDataArray.length >= 1) {
+                        if (userProfileState?.assigned_office_id) {
+                          const selectedOfficeObj = officeDataArray.find(
+                            (obj) => obj.id === userProfileState.assigned_office_id
+                          );
+                          console.log(
+                            "🔥selectedOfficeObj",
+                            selectedOfficeObj,
+                            "userProfileState?.assigned_office_id",
+                            userProfileState.assigned_office_id
+                          );
+                          setSelectedOffice(selectedOfficeObj ? selectedOfficeObj : officeDataArray[0]);
+                        } else {
+                          const topSelectedOffice = [...officeDataArray].sort((a, b) =>
+                            a.office_name.localeCompare(b.office_name, language === "ja" ? "ja" : "en")
+                          )[0];
+                          // setSelectedOffice(officeDataArray[0]);
+                          setSelectedOffice(topSelectedOffice);
+                        }
+                      } else {
+                        setEditedOffice(userProfileState?.office ? userProfileState.office : "");
+                      }
                       setEditOfficeMode(true);
                     }}
                   >
@@ -1225,21 +1609,51 @@ const SettingProfileMemo = () => {
             )}
             {editOfficeMode && (
               <div className={`flex h-full w-full items-center justify-between`}>
-                <input
-                  type="text"
-                  placeholder="所属事業所・営業所を入力してください"
-                  required
-                  autoFocus
-                  className={`${styles.input_box}`}
-                  value={editedOffice}
-                  onChange={(e) => setEditedOffice(e.target.value)}
-                  onBlur={() => setEditedOffice(toHalfWidth(editedOffice.trim()))}
-                />
+                {(!officeDataArray || officeDataArray?.length === 0 || !isSelectModeOffice) && (
+                  <input
+                    type="text"
+                    placeholder="所属事業所・営業所を入力してください"
+                    required
+                    autoFocus
+                    className={`${styles.input_box}`}
+                    value={editedOffice}
+                    onChange={(e) => setEditedOffice(e.target.value)}
+                    onBlur={() => setEditedOffice(toHalfWidth(editedOffice.trim()))}
+                  />
+                )}
+                {!!officeDataArray && officeDataArray.length >= 1 && isSelectModeOffice && (
+                  <select
+                    className={`${styles.select_box}`}
+                    value={!!selectedOffice ? selectedOffice.id : ""}
+                    onChange={(e) => {
+                      if (!officeDataArray) return;
+                      const selectedOfficeObj = officeDataArray.find((obj) => obj.id === e.target.value);
+                      console.log("e.target.value", e.target.value, "selectedOfficeObj", selectedOfficeObj);
+                      if (selectedOfficeObj === undefined)
+                        return alert("エラー：事業部データの取得にエラーが発生しました。");
+                      setSelectedOffice(selectedOfficeObj);
+                    }}
+                  >
+                    {/* <option value="">すべての事業部</option> */}
+                    {!!officeDataArray &&
+                      [...officeDataArray]
+                        .sort((a, b) => a.office_name.localeCompare(b.office_name, language === "ja" ? "ja" : "en"))
+                        .map((office, index) => (
+                          <option key={office.id} value={office.id}>
+                            {office.office_name}
+                          </option>
+                        ))}
+                  </select>
+                )}
                 <div className="flex">
                   <div
                     className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                     onClick={() => {
-                      setEditedOffice("");
+                      if (!isSelectModeOffice) {
+                        setEditedOffice("");
+                      } else {
+                        setSelectedOffice(null);
+                      }
                       setEditOfficeMode(false);
                     }}
                   >
@@ -1248,61 +1662,112 @@ const SettingProfileMemo = () => {
                   <div
                     className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                     onClick={async () => {
-                      if (editedOffice === "") {
-                        alert("有効な所属事業所・営業所を入力してください");
-                        return;
-                      }
-                      if (userProfileState?.office === editedOffice) {
-                        setEditOfficeMode(false);
-                        return;
-                      }
                       if (!userProfileState?.id) return alert("ユーザーIDが見つかりません");
-                      setLoadingGlobalState(true);
-                      const { data: profileData, error } = await supabase
-                        .from("profiles")
-                        .update({ office: editedOffice })
-                        .eq("id", userProfileState.id)
-                        .select("office")
-                        .single();
+                      if (!isSelectModeOffice) {
+                        // 🔹inputタグで入力ルート
+                        if (editedOffice === "") {
+                          alert("有効な所属事業所・営業所を入力してください");
+                          return;
+                        }
+                        if (userProfileState?.office === editedOffice) {
+                          setEditOfficeMode(false);
+                          return;
+                        }
 
-                      if (error) {
+                        setLoadingGlobalState(true);
+                        const { data: profileData, error } = await supabase
+                          .from("profiles")
+                          .update({ office: editedOffice })
+                          .eq("id", userProfileState.id)
+                          .select("office")
+                          .single();
+
+                        if (error) {
+                          setTimeout(() => {
+                            setLoadingGlobalState(false);
+                            setEditOfficeMode(false);
+                            alert(error.message);
+                            console.log("所属事業所・営業所UPDATEエラー", error.message);
+                            toast.error("所属事業所・営業所の更新に失敗しました!");
+                          }, 500);
+                          return;
+                        }
                         setTimeout(() => {
+                          console.log("所属事業所・営業所UPDATE成功 profileData", profileData);
+                          setUserProfileState({
+                            ...(userProfileState as UserProfileCompanySubscription),
+                            office: profileData.office ? profileData.office : null,
+                          });
                           setLoadingGlobalState(false);
                           setEditOfficeMode(false);
-                          alert(error.message);
-                          console.log("所属事業所・営業所UPDATEエラー", error.message);
-                          toast.error("所属事業所・営業所の更新に失敗しました!", {
-                            position: "top-right",
-                            autoClose: 3000,
-                            hideProgressBar: false,
-                            closeOnClick: true,
-                            pauseOnHover: true,
-                            draggable: true,
-                            progress: undefined,
-                            // theme: `${theme === "light" ? "light" : "dark"}`,
-                          });
+                          toast.success("所属事業所・営業所の更新が完了しました!");
                         }, 500);
-                        return;
+                      } else {
+                        // 🔹セレクトボックスから選択ルート
+                        if (!selectedOffice) return alert("有効な事業所・営業所を選択してください。");
+                        // まだoffice_assignmentsテーブルに割り当てられてない場合には、INSERT
+                        if (!userProfileState?.assigned_office_id) {
+                          try {
+                            setLoadingGlobalState(true);
+                            const insertPayload = {
+                              created_by_company_id: userProfileState.company_id,
+                              to_user_id: userProfileState.id,
+                              office_id: selectedOffice.id,
+                            };
+                            const { data: insertData, error: insertError } = await supabase
+                              .from("office_assignments")
+                              .insert(insertPayload);
+
+                            if (insertError) throw insertError;
+
+                            console.log("所属事業所・営業所UPDATE成功 insertData", insertData);
+                            setUserProfileState({
+                              ...(userProfileState as UserProfileCompanySubscription),
+                              office: selectedOffice.office_name ? selectedOffice.office_name : null,
+                              assigned_office_id: selectedOffice.id,
+                              assigned_office_name: selectedOffice.office_name,
+                            });
+                            toast.success("所属事業所・営業所の更新が完了しました🌟");
+                          } catch (e: any) {
+                            console.error("所属事業所・営業所UPDATEエラー", e);
+                            toast.error("所属事業所・営業所の更新に失敗しました🙇‍♀️");
+                          }
+                          setLoadingGlobalState(false);
+                          setEditOfficeMode(false);
+                          return;
+                        } else {
+                          // 🔹既にoffice_assignmentsに割り当てられている場合は、office_idを変更する
+                          try {
+                            const updatePayload = {
+                              office_id: selectedOffice.id,
+                            };
+                            const { data: updateData, error: updateError } = await supabase
+                              .from("office_assignments")
+                              .update(updatePayload)
+                              .eq("to_user_id", userProfileState.id)
+                              .eq("created_by_company_id", userProfileState.company_id)
+                              .select();
+
+                            if (updateError) throw updateError;
+
+                            console.log("所属事業所・営業所UPDATE成功 updateData", updateData);
+
+                            setUserProfileState({
+                              ...(userProfileState as UserProfileCompanySubscription),
+                              office: selectedOffice.office_name ? selectedOffice.office_name : null,
+                              assigned_office_id: selectedOffice.id,
+                              assigned_office_name: selectedOffice.office_name,
+                            });
+
+                            toast.success("所属事業所・営業所の更新が完了しました🌟");
+                          } catch (e: any) {
+                            console.error("所属事業所・営業所UPDATEエラー", e);
+                            toast.error("所属事業所・営業所の更新に失敗しました🙇‍♀️");
+                          }
+                          setLoadingGlobalState(false);
+                          setEditOfficeMode(false);
+                        }
                       }
-                      setTimeout(() => {
-                        console.log("所属事業所・営業所UPDATE成功 profileData", profileData);
-                        setUserProfileState({
-                          ...(userProfileState as UserProfileCompanySubscription),
-                          office: profileData.office ? profileData.office : null,
-                        });
-                        setLoadingGlobalState(false);
-                        setEditOfficeMode(false);
-                        toast.success("所属事業所・営業所の更新が完了しました!", {
-                          position: "top-right",
-                          autoClose: 3000,
-                          hideProgressBar: false,
-                          closeOnClick: true,
-                          pauseOnHover: true,
-                          draggable: true,
-                          progress: undefined,
-                          // theme: `${theme === "light" ? "light" : "dark"}`,
-                        });
-                      }, 500);
                     }}
                   >
                     保存
@@ -1320,14 +1785,27 @@ const SettingProfileMemo = () => {
             <div className={`${styles.section_title}`}>社員番号・ID</div>
             {!editEmployeeIdMode && (
               <div className={`flex h-full w-full items-center justify-between`}>
-                <div className={`${styles.section_value}`}>
-                  {userProfileState?.employee_id ? userProfileState.employee_id : "未設定"}
-                </div>
+                {!userProfileState?.assigned_employee_id_name && (
+                  <div className={`${styles.section_value}`}>
+                    {userProfileState?.employee_id ? userProfileState.employee_id : "未設定"}
+                  </div>
+                )}
+                {userProfileState?.assigned_employee_id_name && (
+                  <div className={`${styles.section_value}`}>
+                    {userProfileState?.assigned_employee_id_name
+                      ? userProfileState.assigned_employee_id_name
+                      : "未設定"}
+                  </div>
+                )}
                 <div>
                   <div
                     className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                     onClick={() => {
-                      setEditedEmployeeId(userProfileState?.employee_id ? userProfileState.employee_id : "");
+                      if (userProfileState?.assigned_employee_id_name) {
+                        setEditedEmployeeId(userProfileState.assigned_employee_id_name);
+                      } else {
+                        setEditedEmployeeId(userProfileState?.employee_id ? userProfileState.employee_id : "");
+                      }
                       setEditEmployeeIdMode(true);
                     }}
                   >
@@ -1370,56 +1848,78 @@ const SettingProfileMemo = () => {
                         return;
                       }
                       if (!userProfileState?.id) return alert("ユーザーIDが見つかりません");
-                      if (editedEmployeeId === userProfileState.employee_id) {
+                      // if (editedEmployeeId === userProfileState.employee_id) {
+                      if (editedEmployeeId === userProfileState.assigned_employee_id_name) {
                         setEditEmployeeIdMode(false);
                         return;
                       }
-                      setLoadingGlobalState(true);
-                      const { data: profileData, error } = await supabase
-                        .from("profiles")
-                        .update({ employee_id: editedEmployeeId })
-                        .eq("id", userProfileState.id)
-                        .select("employee_id")
-                        .single();
+                      try {
+                        // const { data: profileData, error } = await supabase
+                        //   .from("profiles")
+                        //   .update({ employee_id: editedEmployeeId })
+                        //   .eq("id", userProfileState.id)
+                        //   .select("employee_id")
+                        //   .single();
+                        setLoadingGlobalState(true);
 
-                      if (error) {
+                        if (!userProfileState.assigned_employee_id) {
+                          // 🔹まだ社員番号テーブルに割り当てられてないならINSERT
+                          const insertPayload = {
+                            created_by_company_id: userProfileState.company_id,
+                            to_user_id: userProfileState.id,
+                            employee_id_name: editedEmployeeId,
+                          };
+                          const { data: insertData, error }: { data: Employee_id[]; error: any } = await supabase
+                            .from("employee_ids")
+                            .insert(insertPayload)
+                            .select();
+
+                          if (error) throw error;
+
+                          setTimeout(() => {
+                            console.log("社員番号・ID INSERT成功 insertData[0]", insertData[0]);
+                            setUserProfileState({
+                              ...(userProfileState as UserProfileCompanySubscription),
+                              assigned_employee_id: insertData[0] ? insertData[0].id : null,
+                              assigned_employee_id_name: insertData[0] ? insertData[0].employee_id_name : null,
+                            });
+                            setLoadingGlobalState(false);
+                            setEditEmployeeIdMode(false);
+                            toast.success("社員番号・IDの更新が完了しました🌟");
+                          }, 500);
+                        } else {
+                          // 🔹既に社員番号テーブルに設定済みならnameのみ変更
+                          const updatePayload = {
+                            employee_id_name: editedEmployeeId,
+                          };
+                          const { data: updateData, error }: { data: Employee_id[]; error: any } = await supabase
+                            .from("employee_ids")
+                            .update(updatePayload)
+                            .eq("id", userProfileState.assigned_employee_id)
+                            .select();
+
+                          if (error) throw error;
+
+                          setTimeout(() => {
+                            console.log("社員番号・ID UPDATE成功 updateData", updateData[0]);
+                            setUserProfileState({
+                              ...(userProfileState as UserProfileCompanySubscription),
+                              assigned_employee_id_name: updateData[0] ? updateData[0].employee_id_name : null,
+                            });
+                            setLoadingGlobalState(false);
+                            setEditEmployeeIdMode(false);
+                            toast.success("社員番号・IDの更新が完了しました🌟");
+                          }, 500);
+                        }
+                      } catch (e: any) {
                         setTimeout(() => {
                           setLoadingGlobalState(false);
                           setEditEmployeeIdMode(false);
-                          alert(error.message);
-                          console.log("社員番号・ID UPDATEエラー", error.message);
-                          toast.error("社員番号・IDの更新に失敗しました!", {
-                            position: "top-right",
-                            autoClose: 3000,
-                            hideProgressBar: false,
-                            closeOnClick: true,
-                            pauseOnHover: true,
-                            draggable: true,
-                            progress: undefined,
-                            // theme: `${theme === "light" ? "light" : "dark"}`,
-                          });
+                          console.error("社員番号・ID UPDATEエラー", e.message);
+                          toast.error("社員番号・IDの更新に失敗しました🙇‍♀️");
                         }, 500);
                         return;
                       }
-                      setTimeout(() => {
-                        console.log("社員番号・ID UPDATE成功 profileData", profileData);
-                        setUserProfileState({
-                          ...(userProfileState as UserProfileCompanySubscription),
-                          employee_id: profileData.employee_id ? profileData.employee_id : null,
-                        });
-                        setLoadingGlobalState(false);
-                        setEditEmployeeIdMode(false);
-                        toast.success("社員番号・IDの更新が完了しました!", {
-                          position: "top-right",
-                          autoClose: 3000,
-                          hideProgressBar: false,
-                          closeOnClick: true,
-                          pauseOnHover: true,
-                          draggable: true,
-                          progress: undefined,
-                          // theme: `${theme === "light" ? "light" : "dark"}`,
-                        });
-                      }, 500);
                     }}
                   >
                     保存

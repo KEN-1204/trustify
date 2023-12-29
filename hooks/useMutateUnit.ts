@@ -66,7 +66,7 @@ export const useMutateUnit = () => {
     }
   );
 
-  // 【Departmentの個別フィールド毎に編集UPDATE用updateUnitFieldMutation関数】
+  // 【Unitの個別フィールド毎に編集UPDATE用updateUnitFieldMutation関数】
   // MainContainerからダブルクリックでフィールドエディットモードに移行し、個別にフィールド入力、更新した時に使用 受け取る引数は一つのプロパティのみ
   const updateUnitFieldMutation = useMutation(
     async (fieldData: { fieldName: string; value: any; id: string }) => {
@@ -106,6 +106,41 @@ export const useMutateUnit = () => {
     }
   );
 
+  // 【unitの複数フィールドを編集UPDATE用updateMultipleUnitFields関数】
+  // 製品分類(大分類)を変更した際に、同時に製品分類(中分類)をnullに更新する関数
+  type UpdateObject = { [key: string]: any };
+  const updateMultipleUnitFieldsMutation = useMutation(
+    async (fieldData: { updateObject: UpdateObject; id: string }) => {
+      const { updateObject, id } = fieldData;
+      const { data, error } = await supabase.from("units").update(updateObject).eq("id", id).select();
+
+      if (error) throw error;
+
+      console.log("updateMultipleUnitFields実行完了 mutate data", data);
+
+      return data;
+    },
+    {
+      onSuccess: async (data) => {
+        console.log(
+          "updateMultipleUnitFields実行完了 キャッシュを更新して選択中のセルを再度クリックして更新 onSuccess data[0]",
+          data[0]
+        );
+
+        // unitsに関わるキャッシュのデータを再取得 => これをしないと既に取得済みのキャッシュは古い状態で表示されてしまう
+        await queryClient.invalidateQueries({ queryKey: ["units"] });
+        if (loadingGlobalState) setLoadingGlobalState(false);
+        toast.success("係・ユニットの更新が完了しました🌟");
+      },
+      onError: (err: any) => {
+        if (loadingGlobalState) setLoadingGlobalState(false);
+        console.error("フィールドエディットモード updateエラー", err);
+        console.error(`Update failed unit field` + err.message);
+        toast.error("アップデートに失敗しました...");
+      },
+    }
+  );
+
   // 【Department削除DELETE用deleteUnitMutation関数】
   const deleteUnitMutation = useMutation(
     async (unitId: string) => {
@@ -135,6 +170,7 @@ export const useMutateUnit = () => {
     createUnitMutation,
     // updateUnitMutation,
     updateUnitFieldMutation,
+    updateMultipleUnitFieldsMutation,
     deleteUnitMutation,
   };
 };

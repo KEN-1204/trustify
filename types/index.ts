@@ -401,6 +401,15 @@ export type UserProfileCompanySubscription = {
   accounts_to_create: number | null;
   number_of_active_subscribed_accounts: number | null;
   cancel_at_period_end: boolean | null;
+  // 事業部、係、事業所、社員番号
+  assigned_department_id: string | null;
+  assigned_department_name: string | null;
+  assigned_unit_id: string | null;
+  assigned_unit_name: string | null;
+  assigned_office_id: string | null;
+  assigned_office_name: string | null;
+  assigned_employee_id: string | null;
+  assigned_employee_id_name: string | null;
 };
 export type Subscription = {
   id: string;
@@ -1510,6 +1519,13 @@ export type Office = {
   created_at: string;
   created_by_company_id: string;
   office_name: string;
+};
+export type Employee_id = {
+  id: string;
+  created_at: string;
+  created_by_company_id: string;
+  to_user_id: string;
+  employee_id_name: string;
 };
 
 // 案件・物件 propertiesテーブル

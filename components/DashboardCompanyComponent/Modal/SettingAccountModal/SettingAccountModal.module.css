@@ -30,9 +30,15 @@
 .loading_overlay_modal_outside {
   position: fixed;
   z-index: 2000;
-  inset: 0;
+  /* inset: 0; */
+  left: -50vw;
+  top: -50vh;
+  width: 200vw;
+  height: 200vh;
   /* background: #ffffff42; */
+  /* background: #62afe642; */
   /* background: #00000090; */
+  /* background: #00000020; */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -49,8 +55,8 @@
   height: 90vh;
   max-width: 1150px;
   max-height: 730px;
-  /* background: #ffffff42; */
-  background: #00000090;
+  background: #ffffff42;
+  /* background: #00000090; */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -260,12 +266,6 @@
   border-radius: 2px;
   resize: none;
 }
-.select_box {
-  box-shadow: var(--color-bg-under-input-box-shadow);
-  padding-left: 5px;
-  height: 30px;
-  background: var(--color-bg-under-input);
-}
 
 .grid_select_cell_header {
   position: relative;
@@ -365,9 +365,17 @@
 .select_box {
   box-shadow: var(--color-bg-under-input-box-shadow);
   padding-left: 5px;
+  height: 30px;
   background: var(--color-bg-under-input);
+  min-height: 40px;
+  border-radius: 6px;
+  width: 100%;
+  cursor: pointer;
+  transition: box-shadow 0.3s ease;
 }
-
+.select_box:hover {
+  box-shadow: var(--color-bg-under-input-active-box-shadow);
+}
 .section_title {
   font-weight: 700;
   font-size: 14px;

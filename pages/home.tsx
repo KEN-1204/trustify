@@ -274,24 +274,25 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   //   .eq("id", session.user.id)
   //   .single();
   // Postgres関数で作成したget_user_data関数でprofilesテーブル、companiesテーブル、subscribed_accountsテーブル、subscriptionsテーブルの4つを外部結合したSELECTクエリでデータを取得する
-  const { data: userProfile, error: error } = await supabase
-    .rpc("get_user_data", { _user_id: session.user.id })
-    .single();
+  // const { data: userProfile, error: error } = await supabase
+  //   .rpc("get_user_data", { _user_id: session.user.id })
+  //   .single();
+  const { data: userProfile, error: error } = await supabase.rpc("get_user_data", { _user_id: session.user.id });
 
   if (userProfile) console.log("🌟/homeサーバーサイド userProfileあり");
   if (error) console.log("🌟/homeサーバーサイド get_user_data関数でerror発生 error: ", error);
 
   // エラーが発生したら/にリダイレクト
-  if (error) {
-    console.log("/homeサーバーサイド get_user_data関数でエラー発生 /にリダイレクト");
-    return {
-      redirect: {
-        destination: "/",
-        permanent: false,
-      },
-      props: {},
-    };
-  }
+  // if (error) {
+  //   console.log("/homeサーバーサイド get_user_data関数でエラー発生 /にリダイレクト");
+  //   return {
+  //     redirect: {
+  //       destination: "/",
+  //       permanent: false,
+  //     },
+  //     props: {},
+  //   };
+  // }
 
   // notificationsテーブルのデータを取得
   // const {data: notificationData, error: notificationError} = await supabase.from('notifications').select().eq('to_user_id', )
@@ -304,7 +305,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       user: session.user,
       // userProfile: userProfile ? userProfile[0] : {},
       // userProfile: userProfile ? userProfile[0] : null,
-      userProfile: userProfile ? userProfile : null,
+      userProfile: userProfile ? userProfile[0] : null,
       // userProfile1: userProfile1 ? userProfile1 : null,
     },
   };

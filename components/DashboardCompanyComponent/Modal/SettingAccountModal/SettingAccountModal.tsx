@@ -224,6 +224,9 @@ export const SettingAccountModal = () => {
                 </Suspense>
               </ErrorBoundary>
             )}
+            {/* {selectedSettingAccountMenu === "Profile" && (
+              <Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />
+            )} */}
             {/* 右側メインエリア プロフィール ここまで */}
 
             {/* 右側メインエリア サービス・製品 */}

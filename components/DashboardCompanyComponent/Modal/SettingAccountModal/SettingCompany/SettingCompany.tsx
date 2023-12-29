@@ -77,7 +77,8 @@ const SettingCompanyMemo = () => {
   const [inputUnitName, setInputUnitName] = useState("");
   const [editUnitMode, setEditUnitMode] = useState(false);
   const [editedUnit, setEditedUnit] = useState<Omit<Unit, "created_at"> | null>(null);
-  const originalUnitNameRef = useRef<string | null>(null);
+  const originalUnitNameRef = useRef<Unit | null>(null);
+  // const originalUnitNameRef = useRef<string | null>(null);
   // const [activeUnitTagIndex, setActiveUnitTagIndex] = useState<number | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
   const [selectedDepartmentForUnit, setSelectedDepartmentForUnit] = useState<Department | null>(null);
@@ -113,7 +114,7 @@ const SettingCompanyMemo = () => {
   // useMutation
   const { createDepartmentMutation, updateDepartmentFieldMutation, deleteDepartmentMutation } = useMutateDepartment();
   // ================================ ✅事業部リスト取得useQuery✅ ================================
-  // ================================ 🌟係・ユニットリスト取得useQuery🌟 ================================
+  // ================================ 🌟係・チームリスト取得useQuery🌟 ================================
   const {
     data: unitDataArray,
     isLoading: isLoadingQueryUnit,
@@ -121,8 +122,9 @@ const SettingCompanyMemo = () => {
   } = useQueryUnits(userProfileState?.company_id);
 
   // useMutation
-  const { createUnitMutation, updateUnitFieldMutation, deleteUnitMutation } = useMutateUnit();
-  // ================================ ✅係・ユニットリスト取得useQuery✅ ================================
+  const { createUnitMutation, updateUnitFieldMutation, updateMultipleUnitFieldsMutation, deleteUnitMutation } =
+    useMutateUnit();
+  // ================================ ✅係・チームリスト取得useQuery✅ ================================
   // ================================ 🌟事業所・営業所リスト取得useQuery🌟 ================================
   const {
     data: officeDataArray,
@@ -556,7 +558,7 @@ const SettingCompanyMemo = () => {
   }, [selectedDepartmentForUnit, unitDataArray]);
   // ====================== ✅選択した事業部でユニットを絞り込む関数✅ ======================
 
-  // ====================== 🌟係・ユニットタグをボタンクリックで左右にスクロールする関数🌟 ======================
+  // ====================== 🌟係・チームタグをボタンクリックで左右にスクロールする関数🌟 ======================
   const rowUnitContainer = useRef<HTMLDivElement | null>(null);
   const rowUnitRef = useRef<HTMLDivElement | null>(null);
   const arrowIconUnitAreaLeft = useRef<HTMLDivElement | null>(null);
@@ -1408,6 +1410,10 @@ const SettingCompanyMemo = () => {
                         created_by_company_id: userProfileState.company_id,
                         department_name: inputDepartmentName,
                       };
+                      // const insertFieldPayload = {
+                      //   _company_id_arg: userProfileState.company_id,
+                      //   _department_name_arg: inputDepartmentName,
+                      // };
                       console.log("insertFieldPayload", insertFieldPayload);
 
                       await createDepartmentMutation.mutateAsync(insertFieldPayload);
@@ -1502,7 +1508,7 @@ const SettingCompanyMemo = () => {
 
           <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
 
-          {/* 係・ユニットリスト */}
+          {/* 係・チームリスト */}
           {/* <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}> */}
           <div
             className={`mt-[15px] flex w-full flex-col ${
@@ -1513,15 +1519,24 @@ const SettingCompanyMemo = () => {
           >
             {/* セクションタイトルエリア */}
             <div className="flex items-center space-x-4">
-              <div className={`${styles.section_title} min-w-max`}>係・ユニット</div>
+              <div className={`${styles.section_title} min-w-max`}>係・チーム</div>
               <div className={`flex space-x-[6px] text-[13px] text-[var(--color-text-brand-f)]`}>
                 <select
                   className={`${styles.language_btn} ${styles.btn_common} transition-bg02`}
                   value={!!selectedDepartmentForUnit ? selectedDepartmentForUnit.id : ""}
                   onChange={(e) => {
-                    // すべての事業部を閃t無くしてらnullで更新する
-                    if (e.target.value === "") return setSelectedDepartmentForUnit(null);
                     if (!departmentDataArray) return;
+                    // すべての事業部を閃t無くしてらnullで更新する
+                    if (e.target.value === "") {
+                      // if (!!originalUnitNameRef.current) {
+                      //   originalUnitNameRef.current = {
+                      //     ...originalUnitNameRef.current,
+                      //     created_by_department_id: "",
+                      //   };
+                      // }
+                      setSelectedDepartmentForUnit(null);
+                      return;
+                    }
                     const selectedDepartmentObj = departmentDataArray.find((obj) => obj.id === e.target.value);
                     console.log("e.target.value", e.target.value, "selectedDepartmentObj", selectedDepartmentObj);
                     if (selectedDepartmentObj === undefined)
@@ -1545,19 +1560,19 @@ const SettingCompanyMemo = () => {
               </div>
               {/* <div className={`flex flex-col text-[13px] text-[var(--color-text-sub)]`}> */}
               {/* <div className={`flex flex-col text-[13px] text-[var(--color-text-brand-f)]`}>
-                <p>※事業部内に係・ユニットを作成することで係単位で商品、営業、売上データを管理できます。</p>
+                <p>※事業部内に係・チームを作成することで係単位で商品、営業、売上データを管理できます。</p>
               </div> */}
             </div>
 
             {/* 説明エリア */}
             {!insertUnitMode && !editUnitMode && (
               <div className="mt-[5px] flex items-start space-x-4 pl-[100px] text-[13px] text-[var(--color-text-sub)]">
-                <p>※事業部内に係・ユニットを作成することで係単位で商品、営業、売上データを管理できます。</p>
+                <p>※事業部内に係・チームを作成することで係単位で商品、営業、売上データを管理できます。</p>
               </div>
             )}
             {(insertUnitMode || editUnitMode) && (
               <div className="mt-[15px] flex items-start space-x-4 text-[13px] text-[var(--color-text-brand-f)]">
-                <p>係・ユニットが属する事業部を選択してから係・ユニットを保存してください。</p>
+                <p>係・チームが属する事業部を選択してから係・チームを保存してください。</p>
               </div>
             )}
 
@@ -1709,7 +1724,8 @@ const SettingCompanyMemo = () => {
                             created_by_department_id: selectedUnit.created_by_department_id,
                             unit_name: selectedUnit.unit_name,
                           };
-                          originalUnitNameRef.current = selectedUnit.unit_name;
+                          // originalUnitNameRef.current = selectedUnit.unit_name;
+                          originalUnitNameRef.current = selectedUnit;
                           console.log("unitPayload", unitPayload);
                           setEditedUnit(unitPayload);
                           setEditUnitMode(true);
@@ -1733,12 +1749,12 @@ const SettingCompanyMemo = () => {
               </div>
             )}
 
-            {/* INSERT 新たに係・ユニットを作成するinputエリア */}
+            {/* INSERT 新たに係・チームを作成するinputエリア */}
             {insertUnitMode && (
               <div className={`mt-[5px] flex h-full min-h-[59px] w-full items-start justify-between`}>
                 <input
                   type="text"
-                  placeholder="係・ユニット名を入力してください"
+                  placeholder="係・チーム名を入力してください"
                   required
                   autoFocus
                   className={`${styles.input_box}`}
@@ -1774,7 +1790,7 @@ const SettingCompanyMemo = () => {
                         return;
                       }
                       if (!selectedDepartmentForUnit || !selectedDepartmentForUnit?.id) {
-                        alert("係・ユニットが属する事業部を選択してください。");
+                        alert("係・チームが属する事業部を選択してください。");
                         return;
                       }
 
@@ -1803,12 +1819,12 @@ const SettingCompanyMemo = () => {
               </div>
             )}
 
-            {/* UPDATE/DELETE 既存の係・ユニットを編集、更新するinputエリア */}
+            {/* UPDATE/DELETE 既存の係・チームを編集、更新するinputエリア */}
             {editUnitMode && !!editedUnit && (
               <div className={`mt-[5px] flex h-full min-h-[59px] w-full items-start justify-between`}>
                 <input
                   type="text"
-                  placeholder="係・ユニット名を入力してください"
+                  placeholder="係・チーム名を入力してください"
                   required
                   autoFocus
                   className={`${styles.input_box}`}
@@ -1823,7 +1839,7 @@ const SettingCompanyMemo = () => {
                   <div
                     className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                     onClick={() => {
-                      if (updateUnitFieldMutation.isLoading) return;
+                      if (updateMultipleUnitFieldsMutation.isLoading) return;
                       setEditedUnit(null);
                       setEditUnitMode(false);
                       originalUnitNameRef.current = null;
@@ -1836,34 +1852,62 @@ const SettingCompanyMemo = () => {
                     className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${
                       styles.save_section_title
                     } text-[#fff]  ${
-                      updateUnitFieldMutation.isLoading ? `` : `hover:bg-[var(--color-bg-brand-f-deep)]`
+                      updateMultipleUnitFieldsMutation.isLoading ? `` : `hover:bg-[var(--color-bg-brand-f-deep)]`
                     }`}
                     onClick={async () => {
-                      if (updateUnitFieldMutation.isLoading) return;
+                      if (updateMultipleUnitFieldsMutation.isLoading) return;
                       // 事業部の編集
-                      if (!editedUnit || editedUnit.unit_name === originalUnitNameRef.current) {
+                      // if (!editedUnit || editedUnit.unit_name === originalUnitNameRef.current) {
+                      if (
+                        !editedUnit ||
+                        (editedUnit.unit_name === originalUnitNameRef.current?.unit_name &&
+                          editedUnit.created_by_department_id === selectedDepartmentForUnit?.id)
+                      ) {
                         setEditedUnit(null);
                         setEditUnitMode(false);
                         setSelectedUnit(null);
                         return;
                       }
-                      if (editedUnit.unit_name === "") return alert(`係・ユニット名を入力してください。`);
+                      if (editedUnit.unit_name === "") return alert(`係・チーム名を入力してください。`);
+                      if (
+                        !selectedDepartmentForUnit ||
+                        !selectedDepartmentForUnit?.id ||
+                        (editedUnit.unit_name === originalUnitNameRef.current?.unit_name &&
+                          selectedDepartmentForUnit === null)
+                      )
+                        return alert(`係・チームが属する事業部を選択してください。`);
 
-                      const updateFieldPayload = {
-                        fieldName: "unit_name",
-                        value: editedUnit.unit_name,
+                      // const updateFieldPayload = {
+                      //   fieldName: "unit_name",
+                      //   value: editedUnit.unit_name,
+                      //   id: editedUnit.id,
+                      // };
+                      const updateObject = {
+                        unit_name: editedUnit.unit_name,
+                        created_by_department_id: selectedDepartmentForUnit.id,
+                      };
+                      const updateProductCategoryLargePayload = {
+                        updateObject: updateObject,
                         id: editedUnit.id,
                       };
 
-                      await updateUnitFieldMutation.mutateAsync(updateFieldPayload);
+                      await updateMultipleUnitFieldsMutation.mutateAsync(updateProductCategoryLargePayload);
+
+                      if (!!originalUnitNameRef.current?.id) {
+                        originalUnitNameRef.current = {
+                          ...originalUnitNameRef.current,
+                          unit_name: editedUnit.unit_name,
+                          created_by_department_id: selectedDepartmentForUnit.id,
+                        };
+                      }
 
                       setEditedUnit(null);
                       setEditUnitMode(false);
                       setSelectedUnit(null);
                     }}
                   >
-                    {!updateUnitFieldMutation.isLoading && <span>保存</span>}
-                    {updateUnitFieldMutation.isLoading && (
+                    {!updateMultipleUnitFieldsMutation.isLoading && <span>保存</span>}
+                    {updateMultipleUnitFieldsMutation.isLoading && (
                       <div className="relative h-full w-full">
                         <SpinnerIDS3 fontSize={20} width={20} height={20} color="#fff" />
                       </div>
@@ -1873,7 +1917,7 @@ const SettingCompanyMemo = () => {
               </div>
             )}
           </div>
-          {/* 係・ユニットここまで */}
+          {/* 係・チームここまで */}
 
           <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
 
@@ -2745,7 +2789,7 @@ const SettingCompanyMemo = () => {
         <ConfirmationModal
           titleText="削除してもよろしいですか？"
           sectionP1="この操作を実行した後にキャンセルすることはできません。"
-          sectionP2="注：この操作により、事業部に紐づく課・セクションや係・ユニット・データも同時に削除されます。"
+          sectionP2="注：この操作により、事業部に紐づく課・セクションや係・チーム・データも同時に削除されます。"
           cancelText="戻る"
           submitText="削除する"
           clickEventClose={() => {

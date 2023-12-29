@@ -178,7 +178,9 @@ export const departmentTagIconsTest = [
 ];
 export const unitTagIcons = [
   // { name: "1係", iconURL: "/assets/images/icons/business/icons8-mind-map-94.png" },
-  { name: "1係", iconURL: "/assets/images/icons/business/icons8-business-building-94.png" },
+  // { name: "1係", iconURL: "/assets/images/icons/business/icons8-people-94_3.png" },
+  { name: "1係", iconURL: "/assets/images/icons/business/icons8-administrator-male-94_1.png" },
+  // { name: "1係", iconURL: "/assets/images/icons/business/icons8-business-building-94.png" },
   // { name: "1係", iconURL: "/assets/images/icons/business/icons8-administrator-male-94.png" },
   // { name: "1係", iconURL: "/assets/images/icons/business/icons8-user-account-94_mens_b.png" },
   // { name: "2係", iconURL: "/assets/images/icons/business/icons8-user-group-94_womans.png" },

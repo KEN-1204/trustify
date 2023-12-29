@@ -345,7 +345,8 @@ const SettingMemberAccountsMemo: FC = () => {
             <div className="flex flex-col space-y-3 p-[24px] pr-[0px]">
               <h4 className="font-bold">チーム全員がデータを残すかどうかが勝負の分かれ目</h4>
               <p className="text-[13px]">
-                <span>コラボレーションとデータサイエンスを駆使して、仕事を素早く終わらせましょう</span>
+                {/* <span>コラボレーションとデータサイエンスを駆使して、仕事を素早く終わらせましょう</span> */}
+                <span>コラボレーションとデータサイエンスを駆使して、付加価値を最大化させましょう</span>
               </p>
               <div className="w-full">
                 <button

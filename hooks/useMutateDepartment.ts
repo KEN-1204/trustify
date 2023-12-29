@@ -4,6 +4,11 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 
+type insertPayload = {
+  _company_id_arg: string;
+  _department_name_arg: string;
+};
+
 export const useMutateDepartment = () => {
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
@@ -16,8 +21,10 @@ export const useMutateDepartment = () => {
   // 【Department新規作成INSERT用createDepartmentMutation関数】
   const createDepartmentMutation = useMutation(
     async (newDepartment: Omit<Department, "id" | "created_at">) => {
-      setLoadingGlobalState(true);
+      // async (newDepartment: insertPayload) => {
+      // setLoadingGlobalState(true);
       const { error } = await supabase.from("departments").insert(newDepartment);
+      // const { error } = await supabase.rpc(`insert_department`, newDepartment);
       if (error) throw error;
     },
     {
@@ -42,29 +49,29 @@ export const useMutateDepartment = () => {
   );
 
   // 【Department一括編集UPDATE用updateDepartmentMutation関数】
-  const updateDepartmentMutation = useMutation(
-    async (newDepartment: Omit<Department, "created_at">) => {
-      // setLoadingGlobalState(true);
-      const { error } = await supabase.from("departments").update(newDepartment).eq("id", newDepartment.id);
-      if (error) throw new Error(error.message);
-    },
-    {
-      onSuccess: async () => {
-        // キャッシュのデータを再取得
-        await queryClient.invalidateQueries({ queryKey: ["departments"] });
+  // const updateDepartmentMutation = useMutation(
+  //   async (newDepartment: Omit<Department, "created_at">) => {
+  //     // setLoadingGlobalState(true);
+  //     const { error } = await supabase.from("departments").update(newDepartment).eq("id", newDepartment.id);
+  //     if (error) throw new Error(error.message);
+  //   },
+  //   {
+  //     onSuccess: async () => {
+  //       // キャッシュのデータを再取得
+  //       await queryClient.invalidateQueries({ queryKey: ["departments"] });
 
-        if (loadingGlobalState) setLoadingGlobalState(false);
-        // setIsOpenUpdateDepartmentModal(false);
-        toast.success("事業部の更新が完了しました🌟");
-      },
-      onError: (err: any) => {
-        if (loadingGlobalState) setLoadingGlobalState(false);
-        // setIsOpenUpdateDepartmentModal(false);
-        console.error("INSERTエラー", err.message);
-        toast.error("事業部の更新に失敗しました!");
-      },
-    }
-  );
+  //       if (loadingGlobalState) setLoadingGlobalState(false);
+  //       // setIsOpenUpdateDepartmentModal(false);
+  //       toast.success("事業部の更新が完了しました🌟");
+  //     },
+  //     onError: (err: any) => {
+  //       if (loadingGlobalState) setLoadingGlobalState(false);
+  //       // setIsOpenUpdateDepartmentModal(false);
+  //       console.error("INSERTエラー", err.message);
+  //       toast.error("事業部の更新に失敗しました!");
+  //     },
+  //   }
+  // );
 
   // 【Departmentの個別フィールド毎に編集UPDATE用updateDepartmentFieldMutation関数】
   // MainContainerからダブルクリックでフィールドエディットモードに移行し、個別にフィールド入力、更新した時に使用 受け取る引数は一つのプロパティのみ
