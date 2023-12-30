@@ -438,6 +438,45 @@ export type SubscribedAccount = {
   invited_email: string | null;
 };
 // profilesとsubscribed_accountsの外部結合データ
+// 部署、係、事業所、社員番号なしvar
+// export type MemberAccounts = {
+//   id: string;
+//   created_at: string;
+//   updated_at: string | null;
+//   avatar_url: string | null;
+//   is_subscriber: boolean | null;
+//   company_role: string | null;
+//   role: string | null;
+//   stripe_customer_id: string | null;
+//   last_name: string | null;
+//   first_name: string | null;
+//   email: string | null;
+//   department: string | null;
+//   position_name: string | null;
+//   position_class: string | null;
+//   direct_line: string | null;
+//   company_cell_phone: string | null;
+//   personal_cell_phone: string | null;
+//   occupation: string | null;
+//   direct_fax: string | null;
+//   signature_stamp_id: string | null;
+//   employee_id: string | null;
+//   is_active: boolean | null;
+//   profile_name: string | null;
+//   accept_notification: boolean | null;
+//   first_time_login: boolean | null;
+//   office: string | null;
+//   unit: string | null;
+//   usage: string | null;
+//   purpose_of_use: string | null;
+//   subscribed_account_id: string | null;
+//   account_created_at: string | null;
+//   account_company_role: string | null;
+//   account_state: string | null;
+//   account_invited_email: string | null;
+// };
+// profilesとsubscribed_accountsの外部結合データ
+// 部署、係、事業所、社員番号なしvar
 export type MemberAccounts = {
   id: string;
   created_at: string;
@@ -473,6 +512,14 @@ export type MemberAccounts = {
   account_company_role: string | null;
   account_state: string | null;
   account_invited_email: string | null;
+  assigned_department_id: string | null;
+  assigned_department_name: string | null;
+  assigned_unit_id: string | null;
+  assigned_unit_name: string | null;
+  assigned_office_id: string | null;
+  assigned_office_name: string | null;
+  assigned_employee_id: string | null;
+  assigned_employee_id_name: string | null;
 };
 
 export type Invitation = {
@@ -1502,30 +1549,30 @@ export type EditedProduct = {
 export type Department = {
   id: string;
   created_at: string;
-  created_by_company_id: string;
-  department_name: string;
+  created_by_company_id: string | null;
+  department_name: string | null;
 };
 // 係・ユニットリストテーブル
 export type Unit = {
   id: string;
   created_at: string;
-  created_by_company_id: string;
-  created_by_department_id: string;
-  unit_name: string;
+  created_by_company_id: string | null;
+  created_by_department_id: string | null;
+  unit_name: string | null;
 };
 // 事業所・営業所リストテーブル
 export type Office = {
   id: string;
   created_at: string;
-  created_by_company_id: string;
-  office_name: string;
+  created_by_company_id: string | null;
+  office_name: string | null;
 };
 export type Employee_id = {
   id: string;
   created_at: string;
-  created_by_company_id: string;
-  to_user_id: string;
-  employee_id_name: string;
+  created_by_company_id: string | null;
+  to_user_id: string | null;
+  employee_id_name: string | null;
 };
 
 // 案件・物件 propertiesテーブル

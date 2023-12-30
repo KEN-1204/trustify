@@ -111,7 +111,8 @@ const SettingProfileMemo = () => {
   const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
   useEffect(() => {
     // unitが存在せず、stateに要素が1つ以上存在しているなら空にする
-    if (!unitDataArray && !userProfileState?.assigned_department_id) return setFilteredUnitBySelectedDepartment([]);
+    if (!unitDataArray?.length && !userProfileState?.assigned_department_id)
+      return setFilteredUnitBySelectedDepartment([]);
     // selectの選択中の事業部が空(全て)でunitDataArrayが存在しているならunitDataArrayをそのまま更新する
     if (!userProfileState?.assigned_department_id && unitDataArray) {
       setFilteredUnitBySelectedDepartment(unitDataArray);
@@ -753,6 +754,19 @@ const SettingProfileMemo = () => {
                     {/* <option value="">すべての事業部</option> */}
                     {!!departmentDataArray &&
                       [...departmentDataArray]
+                        .sort((a, b) => {
+                          if (a.department_name === null || b.department_name === null) return 0;
+                          return (
+                            a.department_name.localeCompare(b.department_name, language === "ja" ? "ja" : "en") ?? 0
+                          );
+                        })
+                        .map((department, index) => (
+                          <option key={department.id} value={department.id}>
+                            {department.department_name}
+                          </option>
+                        ))}
+                    {/* {!!departmentDataArray &&
+                      [...departmentDataArray]
                         .sort((a, b) =>
                           a.department_name.localeCompare(b.department_name, language === "ja" ? "ja" : "en")
                         )
@@ -760,7 +774,7 @@ const SettingProfileMemo = () => {
                           <option key={department.id} value={department.id}>
                             {department.department_name}
                           </option>
-                        ))}
+                        ))} */}
                   </select>
                 )}
                 <div className="flex">
@@ -1015,7 +1029,10 @@ const SettingProfileMemo = () => {
                         //   [...unitDataArray]
                         !!filteredUnitBySelectedDepartment &&
                           [...filteredUnitBySelectedDepartment]
-                            .sort((a, b) => a.unit_name.localeCompare(b.unit_name, language === "ja" ? "ja" : "en"))
+                            .sort((a, b) => {
+                              if (a.unit_name === null || b.unit_name === null) return 0;
+                              return a.unit_name.localeCompare(b.unit_name, language === "ja" ? "ja" : "en") ?? 0;
+                            })
                             .map((unit, index) => (
                               <option key={unit.id} value={unit.id}>
                                 {unit.unit_name}
@@ -1590,9 +1607,13 @@ const SettingProfileMemo = () => {
                           );
                           setSelectedOffice(selectedOfficeObj ? selectedOfficeObj : officeDataArray[0]);
                         } else {
-                          const topSelectedOffice = [...officeDataArray].sort((a, b) =>
-                            a.office_name.localeCompare(b.office_name, language === "ja" ? "ja" : "en")
-                          )[0];
+                          // const topSelectedOffice = [...officeDataArray].sort((a, b) =>
+                          //   a.office_name.localeCompare(b.office_name, language === "ja" ? "ja" : "en")
+                          // )[0];
+                          const topSelectedOffice = [...officeDataArray].sort((a, b) => {
+                            if (a.office_name === null || b.office_name === null) return 0;
+                            return a.office_name.localeCompare(b.office_name, language === "ja" ? "ja" : "en") ?? 0;
+                          })[0];
                           // setSelectedOffice(officeDataArray[0]);
                           setSelectedOffice(topSelectedOffice);
                         }
@@ -1637,12 +1658,23 @@ const SettingProfileMemo = () => {
                     {/* <option value="">すべての事業部</option> */}
                     {!!officeDataArray &&
                       [...officeDataArray]
-                        .sort((a, b) => a.office_name.localeCompare(b.office_name, language === "ja" ? "ja" : "en"))
+                        .sort((a, b) => {
+                          if (a.office_name === null || b.office_name === null) return 0;
+                          return a.office_name.localeCompare(b.office_name, language === "ja" ? "ja" : "en") ?? 0;
+                        })
                         .map((office, index) => (
                           <option key={office.id} value={office.id}>
                             {office.office_name}
                           </option>
                         ))}
+                    {/* {!!officeDataArray &&
+                      [...officeDataArray]
+                        .sort((a, b) => a.office_name.localeCompare(b.office_name, language === "ja" ? "ja" : "en"))
+                        .map((office, index) => (
+                          <option key={office.id} value={office.id}>
+                            {office.office_name}
+                          </option>
+                        ))} */}
                   </select>
                 )}
                 <div className="flex">

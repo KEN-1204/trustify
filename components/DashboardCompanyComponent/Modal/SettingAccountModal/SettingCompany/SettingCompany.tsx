@@ -1544,9 +1544,10 @@ const SettingCompanyMemo = () => {
                     setSelectedDepartmentForUnit(selectedDepartmentObj);
                   }}
                 >
-                  <option value="">すべての事業部</option>
                   {/* <option value="1">すべての事業部すべての事業部すべての事業部すべての事業部</option> */}
+                  <option value="">すべての事業部</option>
                   {!!departmentDataArray &&
+                    departmentDataArray >= 1 &&
                     [...departmentDataArray]
                       .sort((a, b) =>
                         a.department_name.localeCompare(b.department_name, language === "ja" ? "ja" : "en")

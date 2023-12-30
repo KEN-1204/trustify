@@ -13,8 +13,10 @@ import { toast } from "react-toastify";
 import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import useStore from "@/store";
-import { MdClose } from "react-icons/md";
+import { MdClose, MdOutlineEdit } from "react-icons/md";
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
+import { DropDownMenuUpdateMember } from "./DropdownMenuUpdateMember/DropdownMenuUpdateMember";
+import { CiEdit } from "react-icons/ci";
 
 // type Props = {
 //   id: string;
@@ -53,6 +55,8 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
   // const [checked, setChecked] = useState(false);
   // チームロールドロップダウンメニュー
   const [isOpenRoleMenu, setIsOpenRoleMenu] = useState(false);
+  // メンバーデータ編集ドロップダウンメニュー
+  const [isOpenDropdownMenuUpdateMember, setIsOpenDropdownMenuUpdateMember] = useState(false);
   // const isOpenRoleMenu = useDashboardStore((state) => state.isOpenRoleMenu);
   // const setIsOpenRoleMenu = useDashboardStore((state) => state.setIsOpenRoleMenu);
   // チームでの役割を保持するState
@@ -61,6 +65,11 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
   );
   // チームの役割クリック時の位置を保持するState
   const [clickedItemPosition, setClickedItemPosition] = useState<string | null>(null);
+  type ClickedItemPos = { displayPos: "up" | "center" | "down"; clickedItemWidth: number | null };
+  const [clickedItemPositionMember, setClickedItemPositionMember] = useState<ClickedItemPos>({
+    displayPos: "up",
+    clickedItemWidth: null,
+  });
 
   // 一つの投稿に紐づいた画像のフルパスをダウンロードするためのuseDownloadUrlフックをpostsバケット用の切り替え用キーワードを渡して実行
   // 第一引数には、propsで受け取ったpost_urlを渡してpostUrlという名前をつけてfullUrlを取得
@@ -108,16 +117,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
       // setEditNameMode(false);
       alert(error.message);
       console.log("UPDATEエラー", error.message);
-      toast.error("役割の変更に失敗しました!", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        // theme: `${theme === "light" ? "light" : "dark"}`,
-      });
+      toast.error("役割の変更に失敗しました!");
 
       return;
     }
@@ -140,16 +140,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
     console.log("更新後", previousMemberAccounts);
     queryClient.setQueryData(["member_accounts"], [...previousMemberAccounts]);
     setRoleAtTeam(data.company_role);
-    toast.success("役割の変更が完了しました!", {
-      position: "top-right",
-      autoClose: 3000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      // theme: `${theme === "light" ? "light" : "dark"}`,
-    });
+    toast.success("役割の変更が完了しました!");
   };
 
   // =============================== チームから削除する
@@ -172,26 +163,10 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
 
     if (accountUpdateError) {
       console.log("アカウントのuser_idの解除に失敗", accountUpdateError);
-      toast.error(`チームからメンバーの削除に失敗しました!`, {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
+      toast.error(`チームからメンバーの削除に失敗しました!`);
       return;
     }
-    toast.success(`チームからメンバーの削除が完了しました!`, {
-      position: "top-right",
-      autoClose: 5000,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-    });
+    toast.success(`チームからメンバーの削除が完了しました!`);
     console.log("チームから削除成功");
 
     // アカウントとユーザーの紐付け解除完了後はMemberAccountsキャッシュをリフレッシュ
@@ -218,26 +193,10 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
         },
       });
       // 招待状の送信完了
-      toast.success(`${memberAccount.account_invited_email}の招待の送信が完了しました!`, {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
+      toast.success(`${memberAccount.account_invited_email}の招待の送信が完了しました!`);
     } catch (error: any) {
       console.error(`${memberAccount.account_invited_email}の招待にエラーが発生しました：${error.message}`);
-      toast.error(`${memberAccount.account_invited_email}の招待に失敗しました!`, {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
+      toast.error(`${memberAccount.account_invited_email}の招待に失敗しました!`);
     }
     setLoading(false);
   };
@@ -277,28 +236,12 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
         throw new Error(accountError.message);
       }
 
-      toast.success(`${memberAccount.account_invited_email}の招待キャンセルが完了しました!`, {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
+      toast.success(`${memberAccount.account_invited_email}の招待キャンセルが完了しました!`);
       // 招待キャンセル完了後はMemberAccountsキャッシュをリフレッシュ
       await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
     } catch (error: any) {
       console.error(`招待キャンセルでエラー`, error);
-      toast.error(`${memberAccount.account_invited_email}の招待キャンセルに失敗しました!`, {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
+      toast.error(`${memberAccount.account_invited_email}の招待キャンセルに失敗しました!`);
     }
     setLoadingCancel(false);
   };
@@ -335,22 +278,12 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
       toast.success(`${email}の送信が完了しました!`, {
         position: "top-right",
         autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
       });
     } catch (e: any) {
       console.error("送信エラー", email, e);
       toast.error(`${email}の送信に失敗しました!`, {
         position: "top-right",
         autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
       });
     }
     setLoading(false);
@@ -405,22 +338,12 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
       toast.success(`${email}の招待のキャンセルが完了しました!`, {
         position: "top-right",
         autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
       });
     } catch (e: any) {
       console.error("送信エラー", email, e);
       toast.error(`${email}の招待のキャンセルに失敗しました...`, {
         position: "top-right",
         autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
       });
     }
     setLoadingCancel(false);
@@ -432,6 +355,16 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
 
   return (
     <>
+      {/* メンバーデータ編集ドロップダウンメニュー オーバーレイ */}
+      {isOpenDropdownMenuUpdateMember && (
+        <div
+          className="fixed left-[-100vw] top-[-50%] z-[1000] h-[200vh] w-[300vw] bg-[#00000000]"
+          onClick={() => {
+            setIsOpenDropdownMenuUpdateMember(false);
+          }}
+        ></div>
+      )}
+      {/* ローディング */}
       {loading && (
         <div className={`flex-center fixed left-0 top-0 z-[6000] h-[100%] w-[100%] rounded-[8px] bg-[#00000090]`}>
           <SpinnerIDS scale={"scale-[0.5]"} />
@@ -442,7 +375,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
           {/* アバターアイコン画像 */}
           {!avatarUrl && memberAccount.id && memberAccount.profile_name && (
             <div
-              className={`flex-center h-[40px] w-[40px] rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip} mr-[15px]`}
+              className={`flex-center min-h-[40px] min-w-[40px] rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip} mr-[15px]`}
             >
               <span className={`select-none text-[20px]`}>
                 {memberAccount?.profile_name ? getInitial(memberAccount.profile_name) : `${getInitial("NoName")}`}
@@ -451,7 +384,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
           )}
           {!avatarUrl && !memberAccount.profile_name && (
             <div
-              className={`flex-center mr-[15px] h-[40px] w-[40px] overflow-hidden rounded-full hover:bg-[#00000020]`}
+              className={`flex-center mr-[15px] min-h-[40px] min-w-[40px] overflow-hidden rounded-full hover:bg-[#00000020]`}
             >
               <Image
                 src={`${
@@ -470,7 +403,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
           )}
           {avatarUrl && (
             <div
-              className={`flex-center mr-[15px] h-[40px] w-[40px] overflow-hidden rounded-full hover:bg-[#00000020]`}
+              className={`flex-center mr-[15px] min-h-[40px] min-w-[40px] overflow-hidden rounded-full hover:bg-[#00000020]`}
             >
               <Image
                 src={avatarUrl}
@@ -489,11 +422,131 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
             <span className={`text-[var(--main-color-tk)]`}>削除リクエスト済み</span>
           )}
           {memberAccount.account_company_role && (
-            <span className={`${!memberAccount.profile_name ? `text-[var(--color-text-sub)]` : ``}`}>
-              {memberAccount.profile_name ? memberAccount.profile_name : "招待済み"}
-            </span>
+            <div
+              className={`relative flex max-h-[73px] max-w-[140px] flex-col justify-center hover:underline ${
+                isOpenDropdownMenuUpdateMember ? `cursor-default` : `cursor-pointer`
+              }`}
+              onClick={(e) => {
+                if (isOpenDropdownMenuUpdateMember) return;
+                const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+                // const clickedPositionPlusItemHeight =
+                //   y + 220 + 40 - 10 + (memberAccount.profile_name === null ? 43.5 : 0); // 40はmargin分 -10pxは微調整
+                // const clickedPositionPlusItemHeight = y + 340 + (memberAccount.profile_name === null ? 43.5 : 0); // 340はメニューの最低高さ 40はmargin分 -10pxは微調整
+                // const clickedPositionPlusItemHeight = y + 340 + 5; // 340はメニューの最低高さ 40はmargin分 -10pxは微調整
+                const clickedPositionPlusItemHeight = y + 400 + 5; // 400はメニューの最低高さ 40はmargin分 -10pxは微調整
+                // const clickedPositionMinusItemHeight = y - 400 - 5; // 400はメニューの最低高さ 40はmargin分 -10pxは微調整
+                const clickedPositionMinusItemHeight = y - 400 + height - 5; // 400はメニューの最低高さ 40はmargin分 -10pxは微調整 heightは名前エリア高さ分メニューを下げているため
+                // const modalHeight = window.innerHeight * 0.9;
+                const modalHeight = settingModalProperties?.height ?? window.innerHeight * 0.9;
+                const halfBlankSpaceWithoutModal = (window.innerHeight - modalHeight) / 2;
+                const modalBottomPosition =
+                  settingModalProperties?.bottom ?? window.innerHeight - halfBlankSpaceWithoutModal;
+                const modalTopPosition = settingModalProperties?.top ?? halfBlankSpaceWithoutModal;
+                // const oneThird = window.innerHeight - window.innerHeight / 3;
+                if (
+                  modalBottomPosition < clickedPositionPlusItemHeight &&
+                  modalTopPosition < clickedPositionMinusItemHeight
+                ) {
+                  console.log(
+                    "アップ",
+                    "y",
+                    y,
+                    "width",
+                    width,
+                    "モーダル下部",
+                    modalBottomPosition,
+                    "クリック位置とメニューYの合計",
+                    clickedPositionPlusItemHeight,
+                    "height",
+                    height,
+                    "モーダル上部",
+                    modalTopPosition,
+                    "クリック位置とメニューYを引いた合計",
+                    clickedPositionMinusItemHeight,
+                    "window.innerHeight",
+                    window.innerHeight,
+                    "settingModalProperties?.top",
+                    settingModalProperties?.top
+                  );
+                  setClickedItemPositionMember({ displayPos: "up", clickedItemWidth: width });
+                } else if (
+                  modalTopPosition > clickedPositionMinusItemHeight &&
+                  modalBottomPosition < clickedPositionPlusItemHeight
+                ) {
+                  console.log(
+                    "センター",
+                    "y",
+                    y,
+                    "width",
+                    width,
+                    "モーダル下部",
+                    modalBottomPosition,
+                    "クリック位置とメニューYの合計",
+                    clickedPositionPlusItemHeight,
+                    "height",
+                    height,
+                    "モーダル上部",
+                    modalTopPosition,
+                    "クリック位置とメニューYを引いた合計",
+                    clickedPositionMinusItemHeight,
+                    "settingModalProperties?.top",
+                    settingModalProperties?.top
+                  );
+                  setClickedItemPositionMember({ displayPos: "center", clickedItemWidth: width });
+                } else {
+                  console.log(
+                    "ダウン",
+                    "y",
+                    y,
+                    "width",
+                    width,
+                    "モーダル下部",
+                    modalBottomPosition,
+                    "クリック位置とメニューYの合計",
+                    clickedPositionPlusItemHeight,
+                    "height",
+                    height,
+                    "モーダル上部",
+                    modalTopPosition,
+                    "クリック位置とメニューYを引いた合計",
+                    clickedPositionMinusItemHeight,
+                    "window.innerHeight",
+                    window.innerHeight,
+                    "settingModalProperties?.top",
+                    settingModalProperties?.top
+                  );
+                  setClickedItemPositionMember({ displayPos: "down", clickedItemWidth: width });
+                }
+                setIsOpenDropdownMenuUpdateMember(true);
+              }}
+            >
+              <div className="flex items-center">
+                <span className={`${!memberAccount.profile_name ? `text-[var(--color-text-sub)]` : ``}`}>
+                  {memberAccount.profile_name ? memberAccount.profile_name : "招待済み"}{" "}
+                </span>
+                <MdOutlineEdit
+                  className={`pointer-events-none ml-[6px] min-h-[16px] min-w-[16px] text-[16px] text-[var(--color-text-sub-light)] ${styles.edit_icon} mb-[2px]`}
+                />
+              </div>
+              {memberAccount.profile_name && (
+                <span className="truncate text-[11px] text-[var(--color-text-sub)]">
+                  {memberAccount.assigned_department_name ? memberAccount.assigned_department_name : "事業部未設定"}　
+                  {memberAccount.assigned_unit_name ? memberAccount.assigned_unit_name : ""}
+                </span>
+              )}
+              {/* メンバーデータ編集ドロップダウンメニュー */}
+              {isOpenDropdownMenuUpdateMember && (
+                <DropDownMenuUpdateMember
+                  memberAccount={memberAccount}
+                  setIsOpenDropdownMenuUpdateMember={setIsOpenDropdownMenuUpdateMember}
+                  clickedItemPositionMember={clickedItemPositionMember}
+                />
+              )}
+              {/* メンバーデータ編集ドロップダウンメニューここまで */}
+            </div>
           )}
         </div>
+        {/* 氏名グリッドセル ここまで */}
         {/* メールアドレス */}
         <div
           role="gridcell"
@@ -514,7 +567,8 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
             }`}
             onClick={(e) => {
               // if (memberAccount.is_subscriber || !memberAccount.account_company_role) return;
-              if (memberAccount.account_company_role === "company_owner" || !memberAccount.account_company_role) return;
+              // if (memberAccount.account_company_role === "company_owner" || !memberAccount.account_company_role)
+              //   return;
               setIsOpenRoleMenu(true);
               // クリック位置を取得
               // const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
@@ -591,8 +645,12 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
                   <li
                     className={`flex min-h-[40px] w-full cursor-pointer items-center justify-between rounded-tl-[8px] rounded-tr-[8px] px-[14px] py-[12px] pr-[18px] hover:bg-[var(--color-bg-sub)]`}
                     onClick={() => {
+                      if (userProfileState?.account_company_role !== "company_owner") {
+                        return alert(`管理者権限を変更できるのはオーナー権限を持つユーザーのみです。`);
+                      }
                       if (memberAccount.account_company_role === "company_admin") {
                         setIsOpenRoleMenu(false);
+                        return;
                       }
                       handleChangeRole("company_admin");
                       setIsOpenRoleMenu(false);
@@ -606,8 +664,12 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
                   <li
                     className={`flex min-h-[40px] w-full cursor-pointer items-center justify-between px-[14px] py-[12px] pr-[18px] hover:bg-[var(--color-bg-sub)]`}
                     onClick={() => {
+                      if (!["company_owner", "company_admin"].includes(userProfileState?.account_company_role ?? "")) {
+                        return alert(`マネージャー権限を変更できるのはオーナーと管理者の権限を持つユーザーのみです。`);
+                      }
                       if (memberAccount.account_company_role === "company_manager") {
                         setIsOpenRoleMenu(false);
+                        return;
                       }
                       handleChangeRole("company_manager");
                       setIsOpenRoleMenu(false);
@@ -623,6 +685,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
                     onClick={() => {
                       if (memberAccount.account_company_role === "company_member") {
                         setIsOpenRoleMenu(false);
+                        return;
                       }
                       handleChangeRole("company_member");
                       setIsOpenRoleMenu(false);
@@ -638,6 +701,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
                     onClick={() => {
                       if (memberAccount.account_company_role === "guest") {
                         setIsOpenRoleMenu(false);
+                        return;
                       }
                       handleChangeRole("guest");
                       setIsOpenRoleMenu(false);

@@ -15,7 +15,7 @@ import { BsCheck2 } from "react-icons/bs";
 import { FallbackUnderRightActivityLog } from "./UnderRightActivityLog/FallbackUnderRightActivityLog";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
-import { MdClose, MdEdit } from "react-icons/md";
+import { MdClose, MdEdit, MdOutlineEdit } from "react-icons/md";
 import { HiOutlineSearch } from "react-icons/hi";
 import { IoIosSend } from "react-icons/io";
 import { InputSendAndCloseBtn } from "./InputSendAndCloseBtn/InputSendAndCloseBtn";
@@ -836,6 +836,9 @@ const CompanyMainContainerMemo: FC = () => {
                           }}
                           onMouseLeave={handleCloseTooltip}
                         >
+                          {/* <MdOutlineEdit
+                            className={`pointer-events-none min-h-[20px] min-w-[20px] text-[20px] text-[var(--color-text-sub-light)]`}
+                          /> */}
                           <CiEdit
                             className={`pointer-events-none min-h-[22px] min-w-[22px] text-[22px] text-[var(--color-text-sub)]`}
                           />

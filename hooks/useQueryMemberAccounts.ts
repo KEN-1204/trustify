@@ -9,14 +9,22 @@ export const useQueryMemberAccounts = () => {
 
   const getMemberAccounts = async () => {
     // setLoadingGlobalState(true);
-    if (!userProfileState) return null;
+    if (!userProfileState) return [];
     console.log(
       "useQueryMemberAccountsカスタムフック getMemberAccounts関数 userProfileState.subscription_id",
       userProfileState.subscription_id
     );
+    // メンバーのプロフィールとアカウントのみ
+    // const { data: memberAccountsData, error } = await supabase
+    //   .rpc("get_member_accounts_data", {
+    //     _subscription_id: userProfileState.subscription_id,
+    //   })
+    //   .order("profile_name", { ascending: true });
+    // メンバーのプロフィールとアカウントと事業部、係、事業所、社員番号も同時に取得
     const { data: memberAccountsData, error } = await supabase
-      .rpc("get_member_accounts_data", {
+      .rpc("get_member_accounts_all_data", {
         _subscription_id: userProfileState.subscription_id,
+        _company_id: userProfileState.company_id,
       })
       .order("profile_name", { ascending: true });
 
@@ -38,6 +46,7 @@ export const useQueryMemberAccounts = () => {
     onError: (error: any) => {
       alert(error.message);
       console.error("useQueryMemberAccountsカスタムフック error:", error);
+      return [];
     },
   });
 };

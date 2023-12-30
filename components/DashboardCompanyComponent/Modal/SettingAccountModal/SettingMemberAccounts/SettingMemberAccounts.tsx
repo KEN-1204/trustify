@@ -21,8 +21,14 @@ import { dataIllustration } from "@/components/assets";
 import { toast } from "react-toastify";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { MemberAccounts } from "@/types";
+import { Department, Employee_id, MemberAccounts, Office, Unit } from "@/types";
 import { compareAccounts } from "@/utils/Helpers/getRoleRank";
+import { useQueryDepartments } from "@/hooks/useQueryDepartments";
+import { useQueryUnits } from "@/hooks/useQueryUnits";
+import { useQueryOffices } from "@/hooks/useQueryOffices";
+import { CiFilter } from "react-icons/ci";
+import { DropDownMenuFilter } from "./DropDownMenuFilter/DropDownMenuFilter";
+import { BsCheck2 } from "react-icons/bs";
 
 const SettingMemberAccountsMemo: FC = () => {
   const supabase = useSupabaseClient();
@@ -61,12 +67,48 @@ const SettingMemberAccountsMemo: FC = () => {
   // const isOpenRoleMenu = useDashboardStore((state) => state.isOpenRoleMenu);
   // const setIsOpenRoleMenu = useDashboardStore((state) => state.setIsOpenRoleMenu);
 
+  // ================================ 🌟メンバーアカウント取得useQuery🌟 ================================
   const {
     data: memberAccountsDataArray,
     error: useQueryError,
     isLoading: useQueryIsLoading,
     refetch: refetchMemberAccounts,
   } = useQueryMemberAccounts();
+  // ================================ ✅メンバーアカウント取得useQuery✅ ================================
+  // ================================ 🌟事業部リスト取得useQuery🌟 ================================
+  const {
+    data: departmentDataArray,
+    isLoading: isLoadingQueryDepartment,
+    refetch: refetchQUeryDepartments,
+  } = useQueryDepartments(userProfileState?.company_id);
+  // console.log("departmentDataArray", departmentDataArray);
+
+  // useMutation
+  // const { createDepartmentMutation, updateDepartmentFieldMutation, deleteDepartmentMutation } = useMutateDepartment();
+  // ================================ ✅事業部リスト取得useQuery✅ ================================
+  // ================================ 🌟係・チームリスト取得useQuery🌟 ================================
+  const {
+    data: unitDataArray,
+    isLoading: isLoadingQueryUnit,
+    refetch: refetchQUeryUnits,
+  } = useQueryUnits(userProfileState?.company_id);
+  // console.log("unitDataArray", unitDataArray);
+
+  // useMutation
+  // const { createUnitMutation, updateUnitFieldMutation, updateMultipleUnitFieldsMutation, deleteUnitMutation } =
+  // useMutateUnit();
+  // ================================ ✅係・チームリスト取得useQuery✅ ================================
+  // ================================ 🌟事業所・営業所リスト取得useQuery🌟 ================================
+  const {
+    data: officeDataArray,
+    isLoading: isLoadingQueryOffice,
+    refetch: refetchQUeryOffices,
+  } = useQueryOffices(userProfileState?.company_id);
+  // console.log("officeDataArray", officeDataArray);
+
+  // useMutation
+  // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
+  // ================================ ✅事業所・営業所リスト取得useQuery✅ ================================
 
   // メンバー数分チェックするStateの配列
   const [checkedMembersArray, setCheckedMembersArray] = useState(
@@ -76,7 +118,7 @@ const SettingMemberAccountsMemo: FC = () => {
   );
 
   // 並べ替え後の配列
-  const [sortedMemberAccountsState, setSortedMemberAccountsState] = useState<MemberAccounts[]>([]);
+  // const [sortedMemberAccountsState, setSortedMemberAccountsState] = useState<MemberAccounts[]>([]);
   useEffect(() => {
     if (typeof memberAccountsDataArray === "undefined") return;
     if (!memberAccountsDataArray) {
@@ -115,8 +157,8 @@ const SettingMemberAccountsMemo: FC = () => {
     // 招待済み: id有りだが、profile_name無し
     // 未設定: id有りだが、profile_name無し
 
-    const sortedMemberAccountsArray = memberAccountsDataArray.sort(compareAccounts);
-    setSortedMemberAccountsState(sortedMemberAccountsArray);
+    // const sortedMemberAccountsArray = memberAccountsDataArray.sort(compareAccounts);
+    // setSortedMemberAccountsState(sortedMemberAccountsArray);
 
     console.log(
       "nullIdAccounts",
@@ -126,9 +168,9 @@ const SettingMemberAccountsMemo: FC = () => {
       "削除リクエスト済みアカウント数",
       deleteRequestedAccounts,
       "memberAccountsDataArray",
-      memberAccountsDataArray,
-      "sortedMemberAccountsArray",
-      sortedMemberAccountsArray
+      memberAccountsDataArray
+      // "sortedMemberAccountsArray",
+      // sortedMemberAccountsArray
     );
     // グローバルStateに格納
     // setNotSetAccountsCount(nullIdCount);
@@ -146,6 +188,68 @@ const SettingMemberAccountsMemo: FC = () => {
     // );
   }, [memberAccountsDataArray, setNotSetAccounts]);
 
+  // ======================= 🌟現在の選択した事業部でチームを絞り込むuseEffect🌟 =======================
+  // 検索条件
+  // const departmentValuesArray = !!departmentDataArray ? departmentDataArray.map(obj => obj.department_name) : []
+  // type DepartmentElementType = typeof departmentValuesArray extends [] ? string : typeof departmentValuesArray[number]
+  // type FilterCondition<T> = {department: T | null}
+  type FilterCondition = {
+    department: Department["department_name"] | null;
+    unit: Unit["unit_name"] | null;
+    office: Office["office_name"] | null;
+    employee_id: Employee_id["employee_id_name"] | null;
+  };
+  const [filterCondition, setFilterCondition] = useState<FilterCondition>({
+    department: null,
+    unit: null,
+    office: null,
+    employee_id: null,
+  });
+  const [filteredMemberArray, setFilteredMemberArray] = useState<MemberAccounts[]>([]);
+  const [isComposing, setIsComposing] = useState(false); // 日本語のように変換、確定が存在する言語入力の場合の日本語入力の変換中を保持するstate、日本語入力開始でtrue, エンターキーで変換確定した時にfalse
+  const [isOpenDropdownMenuFilter, setIsOpenDropdownMenuFilter] = useState(false);
+  const [isActiveFilter, setIsActiveFilter] = useState(false);
+
+  useEffect(() => {
+    if (isComposing) return console.log("🔥useEffect 入力変換中のためリターン");
+    console.log("🔥useEffect 入力変換確定済みなのでフィルター実行");
+    // unitが存在せず空にする
+    if (!memberAccountsDataArray) return setFilteredMemberArray([]);
+
+    // 検索条件が全てnullならそのまま取得したmemberAccountsDataArrayを全て表示
+    if (Object.values(filterCondition).every((value) => value === null || value === "")) {
+      console.log("🔥useEffect フィルター全てnull");
+      setFilteredMemberArray(memberAccountsDataArray);
+      if (isActiveFilter) setIsActiveFilter(false);
+    } else {
+      // 検索条件が一つ以上選択されているパターン
+      const filteredData = memberAccountsDataArray.filter((member) => {
+        const matchesDepartment = filterCondition.department
+          ? member.assigned_department_name?.includes(filterCondition.department)
+          : true;
+        const matchesUnit = filterCondition.unit ? member.assigned_unit_name?.includes(filterCondition.unit) : true;
+        const matchesOffice = filterCondition.office
+          ? member.assigned_office_name?.includes(filterCondition.office)
+          : true;
+        const matchesEmployeeId = filterCondition.employee_id
+          ? member.assigned_employee_id_name?.includes(filterCondition.employee_id)
+          : true;
+
+        return matchesDepartment && matchesUnit && matchesOffice && matchesEmployeeId;
+      });
+      console.log("🔥useEffect フィルター結果", filteredData);
+      const sortedMemberAccountsArray = [...filteredData].sort(compareAccounts);
+      setFilteredMemberArray(sortedMemberAccountsArray);
+      if (!isActiveFilter) setIsActiveFilter(true);
+      // setFilteredMemberArray(filteredData);
+    }
+  }, [memberAccountsDataArray, filterCondition, isComposing]);
+
+  // console.log("フィルター前memberAccountsDataArray", memberAccountsDataArray);
+  // console.log("フィルター後filteredMemberArray", filteredMemberArray);
+  // console.log("filterCondition", filterCondition);
+  // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
+
   // useQueryMemberAccountsで製品テーブルからデータ一覧を取得
   console.log(
     "useQuery前 ",
@@ -153,8 +257,12 @@ const SettingMemberAccountsMemo: FC = () => {
     userProfileState?.subscription_id,
     "memberAccountsDataArray",
     memberAccountsDataArray,
-    "並び替え後sortedMemberAccountsState",
-    sortedMemberAccountsState,
+    // "並び替え後sortedMemberAccountsState",
+    // sortedMemberAccountsState,
+    "フィルター並び替え後filteredMemberArray",
+    filteredMemberArray,
+    "filterCondition",
+    filterCondition,
     "useQueryError",
     useQueryError,
     "useQueryIsLoading",
@@ -162,6 +270,9 @@ const SettingMemberAccountsMemo: FC = () => {
     "各チェック配列checkedMembersArray",
     checkedMembersArray
   );
+  console.log("memberAccountsDataArray", memberAccountsDataArray);
+  // console.log("並び替え後sortedMemberAccountsState", sortedMemberAccountsState);
+  console.log("フィルター後filteredMemberArray", filteredMemberArray);
 
   // ================================ 一括で役割を変更する関数 ================================
   // 役割の変更関数
@@ -376,7 +487,7 @@ const SettingMemberAccountsMemo: FC = () => {
             // className={`sticky top-[168px] z-10 mt-[20px] flex w-full items-center border-b border-solid border-[var(--color-border-deep)] bg-[var(--color-edit-bg-solid)] py-[8px]`}
           >
             <button
-              className={`flex-center transition-base03 relative  h-[26px] min-w-[118px]  cursor-pointer space-x-1  rounded-[4px] border border-solid border-transparent px-[15px] text-[12px] text-[var(--color-text-sub)] hover:border-[var(--color-bg-brand-f)] hover:bg-[var(--setting-bg-sub)] hover:text-[var(--color-text)] ${styles.fh_text_btn}`}
+              className={`flex-center transition-bg03 relative  h-[26px] min-w-[110px]  cursor-pointer space-x-1  rounded-[4px] border border-solid border-transparent px-[6px] text-[12px] text-[var(--color-text-sub)] hover:border-[var(--color-bg-brand-f)] hover:bg-[var(--setting-bg-sub)] hover:text-[var(--color-text)] ${styles.fh_text_btn}`}
               onClick={async () => {
                 console.log("リフレッシュ クリック");
                 setRefetchLoading(true);
@@ -400,6 +511,47 @@ const SettingMemberAccountsMemo: FC = () => {
               )}
               <span className="whitespace-nowrap">リフレッシュ</span>
             </button>
+            <button
+              className={`flex-center transition-bg03 relative  ml-[4px] h-[26px]  min-w-[100px]  space-x-1 rounded-[4px] border border-solid border-transparent px-[6px] text-[12px] hover:border-[var(--color-bg-brand-f)] hover:bg-[var(--setting-bg-sub)] ${
+                styles.fh_text_btn
+              } ${isOpenDropdownMenuFilter ? `cursor-default` : `cursor-pointer`} ${
+                isActiveFilter
+                  ? `text-[var(--color-text-brand-f)]`
+                  : `text-[var(--color-text-sub)] hover:text-[var(--color-text)]`
+              }`}
+              onClick={() => {
+                if (!isOpenDropdownMenuFilter) setIsOpenDropdownMenuFilter(true);
+              }}
+            >
+              {/* <FiRefreshCw /> */}
+              {/* {!refetchLoading && <SpinnerIDS scale={"scale-[0.2]"} width={12} height={12} />} */}
+              {refetchLoading && (
+                <div className="relative">
+                  <div className="mr-[2px] h-[12px] w-[12px]"></div>
+                  <SpinnerIDS2 fontSize={20} width={20} height={20} />
+                </div>
+              )}
+              {!refetchLoading && (
+                <div className="flex-center mr-[1px]">
+                  <CiFilter className="stroke-[0.5] text-[17px]" />
+                </div>
+              )}
+              <span className="whitespace-nowrap">フィルター</span>
+              {isOpenDropdownMenuFilter && (
+                <DropDownMenuFilter
+                  setIsOpenDropdownMenuFilter={setIsOpenDropdownMenuFilter}
+                  departmentDataArray={departmentDataArray}
+                  unitDataArray={unitDataArray}
+                  officeDataArray={officeDataArray}
+                  filterCondition={filterCondition}
+                  setFilterCondition={setFilterCondition}
+                  setIsComposing={setIsComposing}
+                />
+              )}
+              {/* {isActiveFilter && (
+                <BsCheck2 className="pointer-events-none min-h-[17px] min-w-[17px] stroke-1 text-[17px] text-[#00d436]" />
+              )} */}
+            </button>
             {/* <RippleButton
               title={`リフレッシュ`}
               // bgColor="var(--color-btn-brand-f-re)"
@@ -415,7 +567,8 @@ const SettingMemberAccountsMemo: FC = () => {
             /> */}
             <div className="ml-auto mr-[10px] text-[12px] text-[var(--color-text-sub)]">
               {!!notSetAccounts.length && (
-                <span className={`${!!notSetAndDeleteRequestedAccounts.length ? `mr-[40px]` : ``}`}>
+                // <span className={`${!!notSetAndDeleteRequestedAccounts.length ? `mr-[40px]` : ``}`}>
+                <span className={`mr-[20px] ${!!notSetAndDeleteRequestedAccounts.length ? `mr-[40px]` : ``}`}>
                   メンバー未設定アカウント数：{notSetAccounts.length}
                 </span>
               )}
@@ -423,13 +576,15 @@ const SettingMemberAccountsMemo: FC = () => {
               {!!notSetAndDeleteRequestedAccounts.length && (
                 <span className="">削除リクエスト済みアカウント数：{notSetAndDeleteRequestedAccounts.length}</span>
               )}
+              <span className="">削除リクエスト済みアカウント数：6</span>
             </div>
           </div>
 
           {/* メンバーテーブル sticky mtありでtop231、なしで211 */}
           <div className="z-5 relative mt-[0px] w-full">
             <div role="grid" className="w-full">
-              <div role="row" className={`${styles.grid_row} sticky top-[53px] z-10 bg-[var(--color-edit-bg-solid)]`}>
+              {/* <div role="row" className={`${styles.grid_row} sticky top-[53px] z-10 bg-[var(--color-edit-bg-solid)]`}> */}
+              <div role="row" className={`${styles.grid_row} sticky top-[53px] z-[8] bg-[var(--color-edit-bg-solid)]`}>
                 {/* <div role="row" className={`${styles.grid_row} sticky top-[211px]`}> */}
                 <div role="columnheader" className={styles.column_header}>
                   氏名
@@ -445,8 +600,16 @@ const SettingMemberAccountsMemo: FC = () => {
               <div role="rowgroup" className="pb-[calc(74px*7)]">
                 {/* Row2 */}
                 {/* 並び替え有りバージョン */}
-                {sortedMemberAccountsState &&
-                  sortedMemberAccountsState.map((account, index) => (
+                {/* {sortedMemberAccountsState &&
+                  sortedMemberAccountsState.map((account, index) => ( */}
+                {filteredMemberArray?.length === 0 && (
+                  <div className="flex-center h-[100px] w-full">
+                    <p className="text-[13px] text-[var(--color-text-sub)]">データが見つかりませんでした。</p>
+                  </div>
+                )}
+                {filteredMemberArray &&
+                  filteredMemberArray.length >= 1 &&
+                  filteredMemberArray.map((account, index) => (
                     <React.Fragment key={account.subscribed_account_id}>
                       <GridRowMember
                         memberAccount={account}

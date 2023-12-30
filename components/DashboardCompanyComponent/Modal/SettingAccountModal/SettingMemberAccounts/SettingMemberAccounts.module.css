@@ -30,10 +30,18 @@
 .grid_row_member:hover {
   background-color: var(--color-bg-sub);
 }
+.edit_icon {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.grid_row_member:hover .edit_icon {
+  opacity: 1;
+}
 .column_header {
   font-size: 13px;
   font-weight: 600;
   padding-left: 8px;
+  background-color: var(--color-edit-bg-solid);
 }
 .grid_cell {
   width: 100%;
@@ -45,6 +53,10 @@
   display: flex;
   align-items: center;
   word-break: break-all;
+}
+.grid_cell:first-of-type {
+  max-width: 200px;
+  /* cursor: pointer; */
 }
 
 .grid_select_cell_header {
@@ -163,4 +175,7 @@
   display: flex;
   justify-content: flex-start;
   align-items: center;
+}
+.fh_text_btn {
+  user-select: none;
 }
