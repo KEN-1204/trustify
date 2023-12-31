@@ -9,18 +9,24 @@ import { toHalfWidthAndSpace } from "@/utils/Helpers/toHalfWidthAndSpace";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { toast } from "react-toastify";
+import { getValueOrNull } from "@/utils/Helpers/getValueOrNull";
 
 type EditedMemberData = {
-  department_id: Department["id"] | null;
-  unit_id: Unit["id"] | null;
-  office_id: Office["id"] | null;
-  employee_id_name: Employee_id["id"] | null;
+  // department_id: Department["id"] | null;
+  // unit_id: Unit["id"] | null;
+  // office_id: Office["id"] | null;
+  // employee_id_name: Employee_id["id"] | null;
+  department_id: Department["id"];
+  unit_id: Unit["id"];
+  office_id: Office["id"];
+  employee_id_name: Employee_id["id"];
 };
 type ClickedItemPos = { displayPos: "up" | "center" | "down"; clickedItemWidth: number | null };
 
 type Props = {
   memberAccount: MemberAccounts;
   setIsOpenDropdownMenuUpdateMember: Dispatch<SetStateAction<boolean>>;
+  setIsLoadingUpsertMember: Dispatch<SetStateAction<boolean>>;
   clickedItemPositionMember: ClickedItemPos;
   //   filterCondition: FilterCondition;
   //   setFilterCondition: Dispatch<React.SetStateAction<FilterCondition>>;
@@ -30,6 +36,7 @@ type Props = {
 export const DropDownMenuUpdateMember = ({
   memberAccount,
   setIsOpenDropdownMenuUpdateMember,
+  setIsLoadingUpsertMember,
   clickedItemPositionMember,
 }: //   filterCondition,
 //   setFilterCondition,
@@ -37,6 +44,7 @@ export const DropDownMenuUpdateMember = ({
 Props) => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const setUserProfileState = useDashboardStore((state) => state.setUserProfileState);
+  const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   const language = useStore((state) => state.language);
 
   const supabase = useSupabaseClient();
@@ -59,7 +67,7 @@ Props) => {
   useEffect(() => {
     if (menuRef.current) {
       const menuHeight = menuRef.current.getBoundingClientRect().height;
-      menuRef.current.style.left = `${clickedItemPositionMember.clickedItemWidth}px`;
+      menuRef.current.style.left = `${(clickedItemPositionMember.clickedItemWidth ?? 135) + 10}px`;
       if (clickedItemPositionMember.displayPos === "up") {
         menuRef.current.style.top = `${-menuHeight + 36}px`;
         // if (memberAccount.profile_name) {
@@ -89,12 +97,17 @@ Props) => {
       setFilteredUnitBySelectedDepartment(filteredUnitArray);
     }
   }, [cacheUnitsArray, memberAccount?.assigned_department_id, editedMemberData.department_id]);
-  console.log("フィルターfilteredUnitBySelectedDepartment", filteredUnitBySelectedDepartment);
+  console.log(
+    "フィルターfilteredUnitBySelectedDepartment",
+    filteredUnitBySelectedDepartment,
+    "cacheDepartmentsArray",
+    cacheDepartmentsArray,
+    "cacheUnitsArray",
+    cacheUnitsArray,
+    "cacheOfficesArray",
+    cacheOfficesArray
+  );
   // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
-
-  console.log("DropDownMenuUpdateMember", cacheDepartmentsArray);
-  console.log("DropDownMenuUpdateMember", cacheUnitsArray);
-  console.log("DropDownMenuUpdateMember", cacheOfficesArray);
 
   const handleUpdateSubmit = async () => {
     if (!userProfileState?.company_id) {
@@ -106,16 +119,28 @@ Props) => {
       setIsOpenDropdownMenuUpdateMember(false);
       return;
     }
-    // 現在のメンバーの値と全て変わらない場合はメニューを閉じる
-    const isMatchDepartment = editedMemberData.department_id === memberAccount.assigned_department_id;
-    const isMatchUnit = editedMemberData.unit_id === memberAccount.assigned_unit_id;
-    const isMatchOffice = editedMemberData.office_id === memberAccount.assigned_office_id;
-    const isMatchEmployeeIdName = editedMemberData.employee_id_name === memberAccount.assigned_employee_id_name;
+
+    // 現在のメンバーの値と全て変わらない場合はメニューを閉じる editedMemberDataの各値は空文字でmemberAccountの各所属関連情報がない場合にはnullなので、互いに二重否定でfalsyかをチェック
+    const isMatchDepartment = getValueOrNull(editedMemberData.department_id) === memberAccount.assigned_department_id;
+    const isMatchUnit = getValueOrNull(editedMemberData.unit_id) === memberAccount.assigned_unit_id;
+    const isMatchOffice = getValueOrNull(editedMemberData.office_id) === memberAccount.assigned_office_id;
+    const isMatchEmployeeIdName =
+      getValueOrNull(editedMemberData.employee_id_name) === memberAccount.assigned_employee_id_name;
     if (isMatchDepartment && isMatchUnit && isMatchOffice && isMatchEmployeeIdName) {
       console.log("全て同じためリターン");
       setIsOpenDropdownMenuUpdateMember(false);
       return;
     }
+
+    // 既に社員番号が存在していて、社員番号をリセットしようとするならリターンする
+    if (memberAccount.assigned_employee_id_name && editedMemberData.employee_id_name === "") {
+      alert("社員番号・IDを入力してください。");
+      return;
+    }
+
+    // ローディング開始
+    setIsLoadingUpsertMember(true);
+
     let newDepartmentId = null;
     let newUnitId = null;
     let newOfficeId = null;
@@ -124,25 +149,29 @@ Props) => {
     // 事業部
     if (!!editedMemberData.department_id) {
       // newDepartmentObj = cacheDepartmentsArray?.filter((departmentObj) => departmentObj.id === editedMemberData.department_id);
-      newDepartmentId = editedMemberData.department_id;
+      newDepartmentId =
+        editedMemberData.department_id !== memberAccount.assigned_department_id ? editedMemberData.department_id : null;
     }
     // 係・チーム
     if (!!editedMemberData.unit_id) {
       // newUnitObj = cacheUnitsArray?.filter(
       //   (unitObj) => unitObj.id === editedMemberData.unit_id
       // );
-      newUnitId = editedMemberData.unit_id;
+      newUnitId = editedMemberData.unit_id !== memberAccount.assigned_unit_id ? editedMemberData.unit_id : null;
     }
     // 事業所・営業所
     if (!!editedMemberData.office_id) {
       // newOfficeObj = cacheOfficesArray?.filter(
       //   (officeObj) => officeObj.id === editedMemberData.office_id
       // );
-      newOfficeId = editedMemberData.office_id;
+      newOfficeId = editedMemberData.office_id !== memberAccount.assigned_office_id ? editedMemberData.office_id : null;
     }
     // 社員番号・ID
     if (!!editedMemberData.employee_id_name) {
-      newEmployeeIdName = editedMemberData.employee_id_name;
+      newEmployeeIdName =
+        editedMemberData.employee_id_name !== memberAccount.assigned_employee_id_name
+          ? editedMemberData.employee_id_name
+          : null;
     }
     console.log("結果");
     console.log("newDepartmentId", newDepartmentId);
@@ -151,6 +180,19 @@ Props) => {
     console.log("newEmployeeIdName", newEmployeeIdName);
 
     try {
+      let isExecuteUpdateUnit;
+      // 既に係が存在していて、事業部変更により係が空になったらisExecuteをtrueにする
+      if (editedMemberData.unit_id === "" && !!memberAccount.assigned_unit_id && !newUnitId) {
+        console.log(
+          "既に係が存在していて、事業部変更により係が空になったらisExecuteをtrueにする",
+          newUnitId,
+          memberAccount.assigned_unit_id
+        );
+        isExecuteUpdateUnit = true;
+        newUnitId = null;
+      } else {
+        isExecuteUpdateUnit = !!newUnitId;
+      }
       // 各テーブルの変数がnullの場合にはUPSERTは行わず、null以外のテーブルのみUPSERTを実行
       // unit_assignmentsテーブルのUPSERT有りルート
       const upsertPayload = {
@@ -161,31 +203,44 @@ Props) => {
         _office_id: newOfficeId,
         _employee_id_name: newEmployeeIdName,
         _execute_department_upsert: !!newDepartmentId,
-        _execute_unit_upsert: !!newUnitId,
+        // _execute_unit_upsert: !!newUnitId,
+        _execute_unit_upsert: isExecuteUpdateUnit,
         _execute_office_upsert: !!newOfficeId,
         _execute_employee_id_upsert: !!newEmployeeIdName,
       };
       console.log("upsertPayload", upsertPayload);
 
-      const { error } = await supabase.rpc("upsert_member_assignments", upsertPayload);
+      const { data: new_employee_id, error } = await supabase.rpc("upsert_member_assignments", upsertPayload);
 
       if (error) throw error;
 
-      console.log("事業部UPDATE成功 upsertPayload", upsertPayload);
+      console.log("事業部UPDATE成功 返り値new_employee_id", new_employee_id);
       // UPSERT成功 自分の更新だった場合にはZustandのuserProfileStateを更新してmember_accountsキャッシュのみinValidate
       // 自身の更新だった場合
       if (memberAccount.id === userProfileState.id) {
-        let newUserProfile = { ...userProfileState };
+        // let newUserProfile = { ...userProfileState };
+
+        // 変更をまとめすためのオブジェクトを初期化
+        let changes = {};
 
         // 事業部
         if (!!newDepartmentId) {
           //  const newDepartmentObj = cacheDepartmentsArray?.filter((departmentObj) => departmentObj.id === editedMemberData.department_id);
-          const newDepartmentObj = cacheDepartmentsArray?.filter(
+          // const newDepartmentObj = cacheDepartmentsArray?.filter(
+          //   (departmentObj) => departmentObj.id === editedMemberData.department_id
+          // )[0];
+          const newDepartmentObj = cacheDepartmentsArray?.find(
             (departmentObj) => departmentObj.id === editedMemberData.department_id
-          )[0];
+          );
           if (newDepartmentObj) {
-            newUserProfile = {
-              ...newUserProfile,
+            // newUserProfile = {
+            //   ...newUserProfile,
+            //   department: newDepartmentObj.department_name,
+            //   assigned_department_id: newDepartmentObj.id,
+            //   assigned_department_name: newDepartmentObj.department_name,
+            // };
+            changes = {
+              ...changes,
               department: newDepartmentObj.department_name,
               assigned_department_id: newDepartmentObj.id,
               assigned_department_name: newDepartmentObj.department_name,
@@ -194,24 +249,35 @@ Props) => {
         }
 
         // 係
-        if (!!newUnitId) {
-          const newUnitObj = cacheUnitsArray?.filter((unitObj) => unitObj.id === editedMemberData.unit_id)[0];
-          if (newUnitObj) {
-            newUserProfile = {
-              ...newUserProfile,
-              unit: newUnitObj.unit_name,
-              assigned_unit_id: newUnitObj.id,
-              assigned_unit_name: newUnitObj.unit_name,
+        if (isExecuteUpdateUnit) {
+          if (!!editedMemberData.unit_id) {
+            const newUnitObj = cacheUnitsArray?.find((unitObj) => unitObj.id === editedMemberData.unit_id);
+            console.log("🔥🔥🔥🔥🔥", newUnitObj);
+            if (newUnitObj) {
+              changes = {
+                ...changes,
+                unit: newUnitObj.unit_name,
+                assigned_unit_id: newUnitObj.id,
+                assigned_unit_name: newUnitObj.unit_name,
+              };
+            }
+          } else if (editedMemberData.unit_id === "") {
+            console.log("🔥🔥🔥🔥🔥unitを空にする");
+            changes = {
+              ...changes,
+              unit: null,
+              assigned_unit_id: null,
+              assigned_unit_name: null,
             };
           }
         }
 
         // オフィス
         if (!!newOfficeId) {
-          const newOfficeObj = cacheOfficesArray?.filter((officeObj) => officeObj.id === editedMemberData.office_id)[0];
+          const newOfficeObj = cacheOfficesArray?.find((officeObj) => officeObj.id === editedMemberData.office_id);
           if (newOfficeObj) {
-            newUserProfile = {
-              ...newUserProfile,
+            changes = {
+              ...changes,
               office: newOfficeObj.office_name,
               assigned_office_id: newOfficeObj.id,
               assigned_office_name: newOfficeObj.office_name,
@@ -221,19 +287,37 @@ Props) => {
 
         // 社員番号
         if (!!newEmployeeIdName) {
+          changes = {
+            ...changes,
+            office: editedMemberData.employee_id_name,
+            // assigned_employee_id: Array.isArray(new_employee_id) ? new_employee_id[0] : new_employee_id,
+            assigned_employee_id: new_employee_id,
+            assigned_employee_id_name: editedMemberData.employee_id_name,
+          };
         }
-      }
 
-      // setUserProfileState({
-      //   ...(userProfileState as UserProfileCompanySubscription),
-      //   department:
-      // });
+        console.log("🔥🔥🔥🔥🔥 changes", changes);
+
+        // 新しいプロファイルオブジェクトを生成してZUstandの状態を更新
+        const newUserProfile = { ...userProfileState, ...changes };
+
+        // 自身のZustandを更新
+        setUserProfileState(newUserProfile);
+      } else {
+      }
+      // 自分以外のメンバーを更新したルート
+      await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
+      toast.success("メンバーの更新に成功しました🌟");
     } catch (e: any) {
       console.error("UPSERTエラー e", e);
       toast.error("メンバーの更新に失敗しました🙇‍♀️");
-      setIsOpenDropdownMenuUpdateMember(false);
     }
+    // ローディング開始
+    setIsLoadingUpsertMember(false);
+    // メニューを閉じる
+    setIsOpenDropdownMenuUpdateMember(false);
   };
+  console.log("edit", editedMemberData);
 
   return (
     <>
@@ -263,6 +347,7 @@ Props) => {
                 height={24}
                 src={`/assets/images/icons/business/icons8-process-94.png`}
                 alt="setting"
+                className={`${styles.title_icon}`}
               />
             </span>
           </h2>
@@ -277,6 +362,7 @@ Props) => {
         {/* テーマ・アカウント設定エリア */}
         <div className="flex w-full flex-col">
           <ul className={`flex flex-col px-[1px] pb-[1px] text-[13px] text-[var(--color-text-title)]`}>
+            {/* 事業部 */}
             <li
               className={`relative flex h-[40px] w-full min-w-max items-center justify-between space-x-[30px] px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
               //   onMouseEnter={() => setHoveredThemeMenu(true)}
@@ -298,11 +384,31 @@ Props) => {
                     // setIsOpenDropdownMenuUpdateMember(false);
                     // setIsFetchAllCompanies(e.target.value === "All");
                     let newCondition: EditedMemberData;
+                    // unit_idが選択されてる状態で事業部が変更されたら、user_idを初期値に設定する
                     if (editedMemberData.unit_id) {
-                      newCondition = { ...editedMemberData, department_id: e.target.value, unit_id: "" };
+                      if (cacheUnitsArray && cacheUnitsArray?.length >= 1) {
+                        const firstUnitData = cacheUnitsArray.find(
+                          (unit) => unit.created_by_department_id === e.target.value
+                        );
+                        console.log("フィルターfirstUnitData", firstUnitData);
+                        // unitsキャッシュに要素が1つ以上存在するならキャッシュの１番目を初期値として格納
+                        newCondition = {
+                          ...editedMemberData,
+                          department_id: e.target.value,
+                          unit_id: firstUnitData?.id ?? "",
+                        };
+                      } else {
+                        // unitsキャッシュに要素がundefinedか空なら、unit_idに初期値の空文字をセットする
+                        newCondition = {
+                          ...editedMemberData,
+                          department_id: e.target.value,
+                          unit_id: "",
+                        };
+                      }
                     } else {
                       newCondition = { ...editedMemberData, department_id: e.target.value };
                     }
+
                     setEditedMemberData(newCondition);
                   }}
                 >
@@ -329,6 +435,7 @@ Props) => {
 
             {/* <hr className={`min-h-[1px] w-full bg-[var(--color-border-light)]`} /> */}
 
+            {/* 係・チーム */}
             <li
               className={`relative flex h-[40px] w-full min-w-max items-center justify-between space-x-[30px] px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
             >

@@ -31,7 +31,14 @@ export const DropDownMenuSearchMode = ({ setIsOpenDropdownMenuSearchMode }: Prop
             <span>
               {/* <img width="24" height="24" src="https://img.icons8.com/3d-fluency/24/job.png" alt="job" /> */}
               {/* <NextImage width={24} height={24} src={`https://img.icons8.com/3d-fluency/24/job.png`} alt="setting" /> */}
-              <NextImage width={24} height={24} src={`/assets/images/icons/icons8-job-94.png`} alt="setting" />
+              {/* <NextImage width={24} height={24} src={`/assets/images/icons/icons8-job-94.png`} alt="setting" /> */}
+              <NextImage
+                width={24}
+                height={24}
+                src={`/assets/images/icons/business/icons8-process-94.png`}
+                alt="setting"
+                className={`${styles.title_icon}`}
+              />
             </span>
           </h2>
           <p className="text-start text-[12px] text-[var(--color-text-title)]">

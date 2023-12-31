@@ -397,6 +397,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
       </div>
 
       {/* ==================== BANにしたユーザー向けブロックモーダル ==================== */}
+      {/* !!userProfileState && userProfileState?.is_active === false */}
       {showBlockModalForBannedUser && <BlockModal />}
       {/* ============== 初回サブスクプランモーダルコンポーネント 他チームからの招待無しの場合 ============== */}
       {/* 初回ログイン 招待無し */}

@@ -7,7 +7,7 @@ export const useQueryUnits = (company_id: string | null | undefined) => {
 
   const getOurUnits = async () => {
     if (!company_id) return [];
-    console.log("useQueryUnits getOurUnits関数実行 company_id", company_id);
+    // console.log("useQueryUnits getOurUnits関数実行 company_id", company_id);
     const { data, error } = await supabase
       .from("units")
       .select("*")
@@ -18,7 +18,9 @@ export const useQueryUnits = (company_id: string | null | undefined) => {
       console.log("❌getOurUnitsエラー発生", error.message);
       throw error;
     }
-    console.log("useQueryUnits getOurUnits関数実行取得結果 data", data);
+    // console.log("useQueryUnits getOurUnits関数実行取得結果 data", data);
+    // 0.8秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     return data as Unit[];
   };

@@ -38,13 +38,15 @@ import { CiEdit } from "react-icons/ci";
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
 // const DynamicComponent = dynamic(() => import('../components/hello'));
+// 通常
+import { UnderRightActivityLog } from "./UnderRightActivityLog/UnderRightActivityLog";
 // 名前付きエクスポートの場合のダイナミックインポート
-const UnderRightActivityLog = dynamic(
-  () => import("./UnderRightActivityLog/UnderRightActivityLog").then((mod) => mod.UnderRightActivityLog),
-  {
-    ssr: false,
-  }
-);
+// const UnderRightActivityLog = dynamic(
+//   () => import("./UnderRightActivityLog/UnderRightActivityLog").then((mod) => mod.UnderRightActivityLog),
+//   {
+//     ssr: false,
+//   }
+// );
 // ====================== 擬似テストデータ用 ======================
 /**カスタムローディングコンポーネント オプションの loading コンポーネントを追加して、動的コンポーネントの読み込み中に読み込み状態をレンダリングできます
  * const DynamicComponentWithCustomLoading = dynamic(() => import('../components/hello'), {

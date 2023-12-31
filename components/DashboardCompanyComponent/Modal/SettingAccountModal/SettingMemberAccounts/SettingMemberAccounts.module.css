@@ -16,7 +16,10 @@
 
 .grid_row {
   display: grid;
-  grid-template-columns: 200px 269px 150px 150px;
+  /* grid-template-columns: 200px 269px 150px 150px; */
+  grid-template-columns: 219px 250px 150px 150px;
+  grid-template-columns: 229px 240px 150px 150px;
+  grid-template-columns: 224px 245px 150px 150px;
   grid-template-rows: 73px;
   height: 73px;
   /* grid-template-rows: 54px;
@@ -56,6 +59,8 @@
 }
 .grid_cell:first-of-type {
   max-width: 200px;
+  max-width: 229px;
+  max-width: 224px;
   /* cursor: pointer; */
 }
 

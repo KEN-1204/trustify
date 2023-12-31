@@ -17,6 +17,7 @@ import { MdClose, MdOutlineEdit } from "react-icons/md";
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 import { DropDownMenuUpdateMember } from "./DropdownMenuUpdateMember/DropdownMenuUpdateMember";
 import { CiEdit } from "react-icons/ci";
+import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 
 // type Props = {
 //   id: string;
@@ -57,6 +58,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
   const [isOpenRoleMenu, setIsOpenRoleMenu] = useState(false);
   // メンバーデータ編集ドロップダウンメニュー
   const [isOpenDropdownMenuUpdateMember, setIsOpenDropdownMenuUpdateMember] = useState(false);
+  const [isLoadingUpsertMember, setIsLoadingUpsertMember] = useState(false);
   // const isOpenRoleMenu = useDashboardStore((state) => state.isOpenRoleMenu);
   // const setIsOpenRoleMenu = useDashboardStore((state) => state.setIsOpenRoleMenu);
   // チームでの役割を保持するState
@@ -364,6 +366,16 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
           }}
         ></div>
       )}
+      {/* ローディング用 */}
+      {isOpenDropdownMenuUpdateMember && isLoadingUpsertMember && (
+        <div className="flex-center fixed left-[-100vw] top-[-50%] z-[21000] h-[200vh] w-[300vw] bg-[#00000000]">
+          <div
+            className={`flex-center fixed left-0 top-0 z-[6000] h-[100%] w-[100%] rounded-[8px] bg-[var(--overlay-relight)]`}
+          >
+            <SpinnerComet h="60px" w="60px" s="5px" />
+          </div>
+        </div>
+      )}
       {/* ローディング */}
       {loading && (
         <div className={`flex-center fixed left-0 top-0 z-[6000] h-[100%] w-[100%] rounded-[8px] bg-[#00000090]`}>
@@ -375,7 +387,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
           {/* アバターアイコン画像 */}
           {!avatarUrl && memberAccount.id && memberAccount.profile_name && (
             <div
-              className={`flex-center min-h-[40px] min-w-[40px] rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip} mr-[15px]`}
+              className={`flex-center max-h-[40px] min-h-[40px] min-w-[40px] max-w-[40px] rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip} mr-[15px]`}
             >
               <span className={`select-none text-[20px]`}>
                 {memberAccount?.profile_name ? getInitial(memberAccount.profile_name) : `${getInitial("NoName")}`}
@@ -384,7 +396,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
           )}
           {!avatarUrl && !memberAccount.profile_name && (
             <div
-              className={`flex-center mr-[15px] min-h-[40px] min-w-[40px] overflow-hidden rounded-full hover:bg-[#00000020]`}
+              className={`flex-center mr-[15px] max-h-[40px] min-h-[40px] min-w-[40px] max-w-[40px] overflow-hidden rounded-full hover:bg-[#00000020]`}
             >
               <Image
                 src={`${
@@ -403,7 +415,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
           )}
           {avatarUrl && (
             <div
-              className={`flex-center mr-[15px] min-h-[40px] min-w-[40px] overflow-hidden rounded-full hover:bg-[#00000020]`}
+              className={`flex-center mr-[15px] max-h-[40px] min-h-[40px] min-w-[40px] max-w-[40px] overflow-hidden rounded-full hover:bg-[#00000020]`}
             >
               <Image
                 src={avatarUrl}
@@ -423,7 +435,10 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
           )}
           {memberAccount.account_company_role && (
             <div
-              className={`relative flex max-h-[73px] max-w-[140px] flex-col justify-center hover:underline ${
+              // className={`relative flex max-h-[73px] max-w-[140px] flex-col justify-center hover:underline ${
+              //   isOpenDropdownMenuUpdateMember ? `cursor-default` : `cursor-pointer`
+              // }`}
+              className={`relative flex max-h-[73px] max-w-[164px] flex-col justify-center hover:underline ${
                 isOpenDropdownMenuUpdateMember ? `cursor-default` : `cursor-pointer`
               }`}
               onClick={(e) => {
@@ -435,7 +450,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
                 // const clickedPositionPlusItemHeight = y + 340 + 5; // 340はメニューの最低高さ 40はmargin分 -10pxは微調整
                 const clickedPositionPlusItemHeight = y + 400 + 5; // 400はメニューの最低高さ 40はmargin分 -10pxは微調整
                 // const clickedPositionMinusItemHeight = y - 400 - 5; // 400はメニューの最低高さ 40はmargin分 -10pxは微調整
-                const clickedPositionMinusItemHeight = y - 400 + height - 5; // 400はメニューの最低高さ 40はmargin分 -10pxは微調整 heightは名前エリア高さ分メニューを下げているため
+                const clickedPositionMinusItemHeight = y - 400 + height - 25; // 400はメニューの最低高さ 40はmargin分 -10pxは微調整 heightは名前エリア高さ分メニューを下げているため
                 // const modalHeight = window.innerHeight * 0.9;
                 const modalHeight = settingModalProperties?.height ?? window.innerHeight * 0.9;
                 const halfBlankSpaceWithoutModal = (window.innerHeight - modalHeight) / 2;
@@ -529,9 +544,15 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
                 />
               </div>
               {memberAccount.profile_name && (
-                <span className="truncate text-[11px] text-[var(--color-text-sub)]">
-                  {memberAccount.assigned_department_name ? memberAccount.assigned_department_name : "事業部未設定"}　
+                <span className="truncate text-[10px] text-[var(--color-text-sub)]">
+                  {memberAccount.assigned_department_name ? memberAccount.assigned_department_name : "事業部未設定"}{" "}
                   {memberAccount.assigned_unit_name ? memberAccount.assigned_unit_name : ""}
+                </span>
+              )}
+              {memberAccount.profile_name && memberAccount.assigned_office_name && (
+                <span className="truncate text-[10px] text-[var(--color-text-sub)]">
+                  {memberAccount.assigned_employee_id_name ? memberAccount.assigned_employee_id_name : ""}{" "}
+                  {memberAccount.assigned_office_name ? memberAccount.assigned_office_name : ""}
                 </span>
               )}
               {/* メンバーデータ編集ドロップダウンメニュー */}
@@ -540,6 +561,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
                   memberAccount={memberAccount}
                   setIsOpenDropdownMenuUpdateMember={setIsOpenDropdownMenuUpdateMember}
                   clickedItemPositionMember={clickedItemPositionMember}
+                  setIsLoadingUpsertMember={setIsLoadingUpsertMember}
                 />
               )}
               {/* メンバーデータ編集ドロップダウンメニューここまで */}

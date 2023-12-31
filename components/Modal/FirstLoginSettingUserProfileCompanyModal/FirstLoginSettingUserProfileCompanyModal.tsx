@@ -200,9 +200,9 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
       setUserProfileState(newUserProfile);
       console.log("🌟プロフィール会社更新 セットアップ成功🌟 newUserProfile", newUserProfile);
       setIsLoadingSubmit(false);
-      toast.success("セットアップ完了！TRUSTiFYへようこそ！", {
+      toast.success("セットアップ完了！TRUSTiFYへようこそ！🌟", {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 5000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
@@ -325,10 +325,21 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
           <SpinnerIDS scale={"scale-[0.5]"} />
         </div>
       )}
+      {/* クローズボタン */}
+      <button
+        // className={`flex-center z-100 shadow-all-md absolute bottom-[-23px] right-[-60px] h-[35px] w-[35px] rounded-full bg-[var(--color-sign-out-bg)] hover:bg-[var(--color-sign-out-bg-hover)]`}
+        className={`flex-center shadow-all-md fixed bottom-[2%] right-[calc(2%+60px)] z-[20000] h-[35px] w-[35px] rounded-full bg-[var(--color-sign-out-bg)] hover:bg-[var(--color-sign-out-bg-hover)]`}
+        data-text="ログアウトする"
+        onMouseEnter={(e) => handleOpenTooltip(e, "top")}
+        onMouseLeave={handleCloseTooltip}
+        onClick={handleSignOut}
+      >
+        <IoLogOutOutline className="mr-[-3px] text-[20px] text-[#fff]" />
+      </button>
       <div className={`${styles.container} `} ref={modalContainerRef}>
         {hoveredItemPosModal && <TooltipModal />}
         {/* クローズボタン */}
-        <button
+        {/* <button
           className={`flex-center z-100 shadow-all-md absolute bottom-[-23px] right-[-60px] h-[35px] w-[35px] rounded-full bg-[var(--color-sign-out-bg)] hover:bg-[var(--color-sign-out-bg-hover)]`}
           // className={`flex-center z-100 group absolute right-[-45px] top-[5px] h-[35px] w-[35px] rounded-full bg-[#00000090] hover:bg-[#000000c0]`}
           data-text="ログアウトする"
@@ -337,7 +348,7 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
           onClick={handleSignOut}
         >
           <IoLogOutOutline className="mr-[-3px] text-[20px] text-[#fff]" />
-        </button>
+        </button> */}
         {/* メインコンテンツ コンテナ */}
         <div className={`${styles.main_contents_container}`}>
           {/* 左コンテナ */}

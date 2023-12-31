@@ -32,16 +32,18 @@ import {
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
 // const DynamicComponent = dynamic(() => import('../components/hello'));
+// 通常
+import { ContactUnderRightActivityLog } from "./ContactUnderRightActivityLog/ContactUnderRightActivityLog";
 // 名前付きエクスポートの場合のダイナミックインポート
-const ContactUnderRightActivityLog = dynamic(
-  () =>
-    import("./ContactUnderRightActivityLog/ContactUnderRightActivityLog").then(
-      (mod) => mod.ContactUnderRightActivityLog
-    ),
-  {
-    ssr: false,
-  }
-);
+// const ContactUnderRightActivityLog = dynamic(
+//   () =>
+//     import("./ContactUnderRightActivityLog/ContactUnderRightActivityLog").then(
+//       (mod) => mod.ContactUnderRightActivityLog
+//     ),
+//   {
+//     ssr: false,
+//   }
+// );
 /**カスタムローディングコンポーネント オプションの loading コンポーネントを追加して、動的コンポーネントの読み込み中に読み込み状態をレンダリングできます
  * const DynamicComponentWithCustomLoading = dynamic(() => import('../components/hello'), {
   loading: () => <p>...</p>

@@ -35,6 +35,7 @@ const SettingMemberAccountsMemo: FC = () => {
   const queryClient = useQueryClient();
   const theme = useThemeStore((state) => state.theme);
   const selectedSettingAccountMenu = useDashboardStore((state) => state.selectedSettingAccountMenu);
+
   // 上画面の選択中の列データ会社
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   // 招待メールモーダル
@@ -47,6 +48,8 @@ const SettingMemberAccountsMemo: FC = () => {
   const [loading, setLoading] = useState(false);
   // リフェッチローディング
   const [refetchLoading, setRefetchLoading] = useState(false);
+  // グローバルローディング
+  const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   // 未設定アカウントを保持するグローバルState
   const notSetAccounts = useDashboardStore((state) => state.notSetAccounts);
   const setNotSetAccounts = useDashboardStore((state) => state.setNotSetAccounts);
@@ -117,6 +120,8 @@ const SettingMemberAccountsMemo: FC = () => {
       : []
   );
 
+  const [filteredMemberArray, setFilteredMemberArray] = useState<MemberAccounts[]>([]);
+
   // 並べ替え後の配列
   // const [sortedMemberAccountsState, setSortedMemberAccountsState] = useState<MemberAccounts[]>([]);
   useEffect(() => {
@@ -157,7 +162,8 @@ const SettingMemberAccountsMemo: FC = () => {
     // 招待済み: id有りだが、profile_name無し
     // 未設定: id有りだが、profile_name無し
 
-    // const sortedMemberAccountsArray = memberAccountsDataArray.sort(compareAccounts);
+    const sortedMemberAccountsArray = memberAccountsDataArray.sort(compareAccounts);
+    setFilteredMemberArray(sortedMemberAccountsArray);
     // setSortedMemberAccountsState(sortedMemberAccountsArray);
 
     console.log(
@@ -205,7 +211,7 @@ const SettingMemberAccountsMemo: FC = () => {
     office: null,
     employee_id: null,
   });
-  const [filteredMemberArray, setFilteredMemberArray] = useState<MemberAccounts[]>([]);
+
   const [isComposing, setIsComposing] = useState(false); // 日本語のように変換、確定が存在する言語入力の場合の日本語入力の変換中を保持するstate、日本語入力開始でtrue, エンターキーで変換確定した時にfalse
   const [isOpenDropdownMenuFilter, setIsOpenDropdownMenuFilter] = useState(false);
   const [isActiveFilter, setIsActiveFilter] = useState(false);
@@ -576,7 +582,7 @@ const SettingMemberAccountsMemo: FC = () => {
               {!!notSetAndDeleteRequestedAccounts.length && (
                 <span className="">削除リクエスト済みアカウント数：{notSetAndDeleteRequestedAccounts.length}</span>
               )}
-              <span className="">削除リクエスト済みアカウント数：6</span>
+              {/* <span className="">削除リクエスト済みアカウント数：6</span> */}
             </div>
           </div>
 

@@ -247,6 +247,35 @@
 .input_box:focus {
   box-shadow: var(--color-bg-under-input-active-box-shadow);
 }
+.input_box.error {
+  /* box-shadow: 0 0 0 2px hsl(0, 60%, 50%); */
+  /* box-shadow: 0 0 0 2px #f63e54; */
+  box-shadow: inset 0px 0px 0px 1px #f63e54;
+  margin-top: 18px;
+}
+.input_box ~ .msg {
+  display: none;
+  font-size: 12px;
+  position: relative;
+  margin-top: 2px;
+  margin-right: auto;
+  margin-left: 3px;
+}
+.input_box.success ~ .msg,
+.input_box.error ~ .msg {
+  display: block;
+}
+
+.input_box.success ~ .msg {
+  color: hsl(100, 60%, 50%);
+}
+.input_box.error ~ .msg {
+  /* color: hsl(0, 60%, 50%); */
+  color: #f63e54;
+}
+.row_area_email.error {
+  min-height: 113px;
+}
 .underline {
   min-height: 1px;
   width: 100%;

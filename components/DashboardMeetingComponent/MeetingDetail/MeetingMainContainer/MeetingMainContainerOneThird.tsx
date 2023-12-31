@@ -43,16 +43,31 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const searchMode = useDashboardStore((state) => state.searchMode);
   const setSearchMode = useDashboardStore((state) => state.setSearchMode);
+  const editSearchMode = useDashboardStore((state) => state.editSearchMode);
+  const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
+  const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   const setHoveredItemPosWrap = useStore((state) => state.setHoveredItemPosWrap);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
+  const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
+  const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
   // 上画面の選択中の列データ会社
   const selectedRowDataMeeting = useDashboardStore((state) => state.selectedRowDataMeeting);
   const setSelectedRowDataMeeting = useDashboardStore((state) => state.setSelectedRowDataMeeting);
   // 担当者編集モーダルオープン
   const setIsOpenUpdateMeetingModal = useDashboardStore((state) => state.setIsOpenUpdateMeetingModal);
+  // rpc()サーチ用パラメータ
+  const newSearchMeeting_Contact_CompanyParams = useDashboardStore(
+    (state) => state.newSearchMeeting_Contact_CompanyParams
+  );
+  const setNewSearchMeeting_Contact_CompanyParams = useDashboardStore(
+    (state) => state.setNewSearchMeeting_Contact_CompanyParams
+  );
+  // 各フィールドの編集モード => ダブルクリックで各フィールド名をstateに格納し、各フィールドをエディットモードへ
+  const isEditModeField = useDashboardStore((state) => state.isEditModeField);
+  const setIsEditModeField = useDashboardStore((state) => state.setIsEditModeField);
+  const [isComposing, setIsComposing] = useState(false); // 日本語のように変換、確定が存在する言語入力の場合の日本語入力の変換中を保持するstate、日本語入力開始でtrue, エンターキーで変換確定した時にfalse
 
-  const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
-  const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
+  const supabase = useSupabaseClient();
 
   // 🌟サブミット
   const [inputCompanyName, setInputCompanyName] = useState("");
@@ -137,17 +152,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const [inputMeetingDepartment, setInputMeetingDepartment] = useState("");
   const [inputMeetingMemberName, setInputMeetingMemberName] = useState("");
   const [inputMeetingYearMonth, setInputMeetingYearMonth] = useState<number | null>(null);
-
-  const supabase = useSupabaseClient();
-  const newSearchMeeting_Contact_CompanyParams = useDashboardStore(
-    (state) => state.newSearchMeeting_Contact_CompanyParams
-  );
-  const setNewSearchMeeting_Contact_CompanyParams = useDashboardStore(
-    (state) => state.setNewSearchMeeting_Contact_CompanyParams
-  );
-  const editSearchMode = useDashboardStore((state) => state.editSearchMode);
-  const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
-  const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
 
   // サーチ編集モードでリプレイス前の値に復元する関数
   function beforeAdjustFieldValue(value: string | null) {

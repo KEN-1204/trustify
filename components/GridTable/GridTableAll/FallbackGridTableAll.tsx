@@ -107,14 +107,16 @@ export const FallbackGridTableAll = () => {
               <SkeletonLoadingLineMedium />
               <SkeletonLoadingLineShort /> */}
 
+              {/* <div className="flex flex-col space-y-[12px]"> */}
               <div className="flex flex-col space-y-[12px]">
-                <SkeletonLoadingLineFull rounded="rounded-[6px]" />
-                <SkeletonLoadingLineFull rounded="rounded-[6px]" />
-                <SkeletonLoadingLineMedium rounded="rounded-[6px]" />
+                <SkeletonLoadingLineFull rounded="rounded-[6px]" h="h-[15px]" />
+                <SkeletonLoadingLineFull rounded="rounded-[6px]" h="h-[15px]" />
+                <SkeletonLoadingLineMedium rounded="rounded-[6px]" h="h-[15px]" />
               </div>
+              {/* <div className="flex flex-col space-y-[12px]"> */}
               <div className="flex flex-col space-y-[12px]">
-                <SkeletonLoadingLineLong rounded="rounded-[6px]" />
-                <SkeletonLoadingLineShort rounded="rounded-[6px]" />
+                <SkeletonLoadingLineLong rounded="rounded-[6px]" h="h-[15px]" />
+                <SkeletonLoadingLineShort rounded="rounded-[6px]" h="h-[15px]" />
               </div>
               {/* <div className="h-[5px] w-full"></div> */}
               <div className="min-h-[0px] w-full"></div>

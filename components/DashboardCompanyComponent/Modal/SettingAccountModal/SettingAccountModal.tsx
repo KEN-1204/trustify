@@ -20,6 +20,7 @@ import { SettingCompany } from "./SettingCompany/SettingCompany";
 import { FallbackSettingPaymentAndPlan } from "./SettingPaymentAndPlan/FallbackSettingPaymentAndPlan";
 import { FallbackSettingMemberAccounts } from "./SettingMemberAccounts/FallbackSettingMemberAccounts";
 import { SettingProfile } from "./SettingProfile/SettingProfile";
+import { FallbackSettingProfile } from "./SettingProfile/FallbackSettingProfile";
 
 export const SettingAccountModal = () => {
   const theme = useThemeStore((state) => state.theme);
@@ -219,11 +220,12 @@ export const SettingAccountModal = () => {
             {/* 右側メインエリア プロフィール */}
             {selectedSettingAccountMenu === "Profile" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
-                <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
+                <Suspense fallback={<FallbackSettingProfile title="プロフィール" />}>
                   <SettingProfile />
                 </Suspense>
               </ErrorBoundary>
             )}
+            {/* {selectedSettingAccountMenu === "Profile" && <FallbackSettingProfile title="プロフィール" />} */}
             {/* {selectedSettingAccountMenu === "Profile" && (
               <Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />
             )} */}
@@ -233,16 +235,18 @@ export const SettingAccountModal = () => {
             {/* {selectedSettingAccountMenu === "Products" && <SettingProducts />} */}
             {selectedSettingAccountMenu === "Products" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
+                {/* <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}> */}
                 <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
                   <SettingProducts />
                 </Suspense>
               </ErrorBoundary>
             )}
+
             {/* 右側メインエリア 会社・チーム */}
             {/* {selectedSettingAccountMenu === "Company" && <SettingCompany />} */}
             {selectedSettingAccountMenu === "Company" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
-                <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
+                <Suspense fallback={<FallbackSettingProfile title="会社・チーム" />}>
                   <SettingCompany />
                 </Suspense>
               </ErrorBoundary>

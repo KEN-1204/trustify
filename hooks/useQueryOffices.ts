@@ -7,7 +7,7 @@ export const useQueryOffices = (company_id: string | null | undefined) => {
 
   const getOurOffices = async () => {
     if (!company_id) return [];
-    console.log("useQueryOffices getOurOffices関数実行 company_id", company_id);
+    // console.log("useQueryOffices getOurOffices関数実行 company_id", company_id);
     const { data, error } = await supabase
       .from("offices")
       .select("*")
@@ -18,7 +18,10 @@ export const useQueryOffices = (company_id: string | null | undefined) => {
       console.log("❌useQueryOfficesエラー発生", error.message);
       throw error;
     }
-    console.log("useQueryOffices getOurOffices関数実行取得結果 data", data);
+    // console.log("useQueryOffices getOurOffices関数実行取得結果 data", data);
+
+    // 0.8秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     return data as Office[];
   };

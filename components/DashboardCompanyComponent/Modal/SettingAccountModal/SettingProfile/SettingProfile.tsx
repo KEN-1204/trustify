@@ -1,4 +1,4 @@
-import React, { useState, memo, useEffect } from "react";
+import React, { useState, memo, useEffect, ChangeEvent, useRef } from "react";
 import styles from "../SettingAccountModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -13,6 +13,7 @@ import { useQueryUnits } from "@/hooks/useQueryUnits";
 import { useQueryOffices } from "@/hooks/useQueryOffices";
 import useStore from "@/store";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
+import { useMutateAuth } from "@/hooks/useMutateAuth";
 
 const SettingProfileMemo = () => {
   const language = useStore((state) => state.language);
@@ -31,6 +32,11 @@ const SettingProfileMemo = () => {
   // Email
   const [editEmailMode, setEditEmailMode] = useState(false);
   const [editedEmail, setEditedEmail] = useState("");
+  const emailRef = useRef<HTMLInputElement | null>(null);
+  const rowAreaEmailRef = useRef<HTMLDivElement | null>(null);
+  const [checkedEmail, setCheckedEmail] = useState("");
+  const [checkedSameUserEmail, setCheckedSameUserEmail] = useState(false);
+  const [submittedErrorEmail, setSubmittedErrorEmail] = useState<string[]>([]);
   // 電話番号
   const [editTELMode, setEditTELMode] = useState(false);
   const [editedTEL, setEditedTEL] = useState("");
@@ -69,6 +75,7 @@ const SettingProfileMemo = () => {
   const [editedPurposeOfUse, setEditedPurposeOfUse] = useState("");
 
   const supabase = useSupabaseClient();
+  const { updateUserEmail } = useMutateAuth();
   // const { createActivityMutation } = useMutateActivity();
   const { useMutateUploadAvatarImg, useMutateDeleteAvatarImg } = useUploadAvatarImg();
   const { fullUrl: avatarUrl, isLoading } = useDownloadUrl(userProfileState?.avatar_url, "avatars");
@@ -176,53 +183,6 @@ const SettingProfileMemo = () => {
     return `${year}年${month}`;
   }
 
-  // 全角を半角に変換する関数
-  function zenkakuToHankaku(str: string) {
-    const zen = ["０", "１", "２", "３", "４", "５", "６", "７", "８", "９"];
-    const han = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
-
-    for (let i = 0; i < zen.length; i++) {
-      const regex = new RegExp(zen[i], "g");
-      str = str.replace(regex, han[i]);
-    }
-
-    return str;
-  }
-
-  // 資本金 100万円の場合は100、18億9,190万円は189190、12,500,000円は1250、のように変換する方法
-  function convertToNumber(inputString: string) {
-    // 全角数字を半角に変換
-    inputString = zenkakuToHankaku(inputString);
-
-    // 「億」「万」「円」がすべて含まれていなければ変換をスキップ
-    if (
-      !inputString.includes("億") &&
-      !inputString.includes("万") &&
-      !inputString.includes("円") &&
-      !inputString.includes(",")
-    ) {
-      return inputString;
-    }
-
-    // 億、万、円で分けてそれぞれの数値を取得
-    const billion = (inputString.includes("億") ? parseInt(inputString.split("億")[0].replace(/,/g, ""), 10) : 0) || 0;
-    const million =
-      (inputString.includes("万") && !inputString.includes("億")
-        ? parseInt(inputString.split("万")[0].replace(/,/g, ""), 10)
-        : inputString.includes("億") && inputString.includes("万")
-        ? parseInt(inputString.split("億")[1].split("万")[0].replace(/,/g, ""), 10)
-        : 0) || 0;
-    const thousand =
-      (!inputString.includes("万") && !inputString.includes("億")
-        ? Math.floor(parseInt(inputString.replace(/,/g, "").replace("円", ""), 10) / 10000)
-        : 0) || 0;
-
-    // 最終的な数値を計算
-    const total = billion * 10000 + million + thousand;
-
-    return total;
-  }
-
   // 頭文字のみ抽出
   const getInitial = (name: string) => name[0];
 
@@ -246,13 +206,133 @@ const SettingProfileMemo = () => {
         break;
     }
   };
+
+  // Emailチェック関数 引数eventバージョン
+  const handleCheckEmail = (e: ChangeEvent<HTMLInputElement>): boolean => {
+    if (!emailRef.current) return false;
+
+    const regex = /^[a-zA-Z0-9_+-]+(\.[a-zA-Z0-9_+-]+)*@([a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.)+[a-zA-Z]{2,}$/;
+
+    // Submit時にemailRefのクラスを初期化
+    emailRef.current.classList.remove(`${styles.success}`);
+    emailRef.current.classList.remove(`${styles.error}`);
+    rowAreaEmailRef.current?.classList.remove(`${styles.error}`);
+
+    const email = e.target.value;
+
+    // ====== メールアドレスチェック ======
+    if (email === "") {
+      console.log("Modal handleSubmitメールアドレスチェック メール空");
+      emailRef.current.classList.remove(`${styles.success}`);
+      emailRef.current.classList.remove(`${styles.error}`);
+      rowAreaEmailRef.current?.classList.remove(`${styles.error}`);
+      if (checkedEmail !== "") setCheckedEmail("");
+      // 自分のメールと同じでないのでSameCheckもfalseに
+      setCheckedSameUserEmail(false);
+      console.log("メール空のためリターン");
+      return false;
+    }
+    console.log("email", email);
+    console.log("regex.test(email)", regex.test(email));
+    // 有効なメールルート
+    if (regex.test(email)) {
+      // 自分のメールの場合はInvalidにしてcheckedSameUserEmailをtrueに
+      if (email === userProfileState?.email) {
+        emailRef.current.classList.add(`${styles.error}`);
+        rowAreaEmailRef.current?.classList.add(`${styles.error}`);
+        emailRef.current.classList.remove(`${styles.success}`);
+        if (checkedEmail !== "Invalid") setCheckedEmail("Invalid");
+        if (!checkedSameUserEmail) setCheckedSameUserEmail(true);
+        console.log("自分のメールアドレスと同じためInvalid、checkedSameUserEmailをtrueに変更");
+        return false;
+      }
+      emailRef.current.classList.add(`${styles.success}`);
+      emailRef.current.classList.remove(`${styles.error}`);
+      rowAreaEmailRef.current?.classList.remove(`${styles.error}`);
+      if (checkedEmail !== "Valid") setCheckedEmail("Valid");
+      // 自分のEmailと違う場合はfalseに
+      if (checkedSameUserEmail) setCheckedSameUserEmail(false);
+      return true;
+    }
+    // 無効なメールルート
+    else {
+      emailRef.current.classList.add(`${styles.error}`);
+      rowAreaEmailRef.current?.classList.add(`${styles.error}`);
+      emailRef.current.classList.remove(`${styles.success}`);
+      if (checkedEmail !== "Invalid") setCheckedEmail("Invalid");
+      // 自分のEmailと違う場合はfalseに
+      if (checkedSameUserEmail) setCheckedSameUserEmail(false);
+      console.log("メールが有効では無いためリターン");
+      return false;
+    }
+  };
+  // Emailチェック関数 引数stringバージョン
+  const checkEmail = (inputEmail: string): boolean => {
+    if (!emailRef.current) return false;
+
+    const regex = /^[a-zA-Z0-9_+-]+(\.[a-zA-Z0-9_+-]+)*@([a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]*\.)+[a-zA-Z]{2,}$/;
+
+    // Submit時にemailRefのクラスを初期化
+    emailRef.current.classList.remove(`${styles.success}`);
+    emailRef.current.classList.remove(`${styles.error}`);
+    rowAreaEmailRef.current?.classList.remove(`${styles.error}`);
+
+    const email = inputEmail;
+
+    // ====== メールアドレスチェック ======
+    if (email === "") {
+      console.log("Modal handleSubmitメールアドレスチェック メール空");
+      emailRef.current.classList.remove(`${styles.success}`);
+      emailRef.current.classList.remove(`${styles.error}`);
+      rowAreaEmailRef.current?.classList.remove(`${styles.error}`);
+      if (checkedEmail !== "") setCheckedEmail("");
+      // 自分のメールと同じでないのでSameCheckもfalseに
+      setCheckedSameUserEmail(false);
+      console.log("メール空のためリターン");
+      return false;
+    }
+    console.log("email", email);
+    console.log("regex.test(email)", regex.test(email));
+    // 有効なメールルート
+    if (regex.test(email)) {
+      // 自分のメールの場合はInvalidにしてcheckedSameUserEmailをtrueに
+      if (email === userProfileState?.email) {
+        emailRef.current.classList.add(`${styles.error}`);
+        rowAreaEmailRef.current?.classList.add(`${styles.error}`);
+        emailRef.current.classList.remove(`${styles.success}`);
+        if (checkedEmail !== "Invalid") setCheckedEmail("Invalid");
+        if (!checkedSameUserEmail) setCheckedSameUserEmail(true);
+        console.log("自分のメールアドレスと同じためInvalid、checkedSameUserEmailをtrueに変更");
+        return false;
+      }
+      emailRef.current.classList.add(`${styles.success}`);
+      emailRef.current.classList.remove(`${styles.error}`);
+      rowAreaEmailRef.current?.classList.remove(`${styles.error}`);
+      if (checkedEmail !== "Valid") setCheckedEmail("Valid");
+      // 自分のEmailと違う場合はfalseに
+      if (checkedSameUserEmail) setCheckedSameUserEmail(false);
+      return true;
+    }
+    // 無効なメールルート
+    else {
+      emailRef.current.classList.add(`${styles.error}`);
+      rowAreaEmailRef.current?.classList.add(`${styles.error}`);
+      emailRef.current.classList.remove(`${styles.success}`);
+      if (checkedEmail !== "Invalid") setCheckedEmail("Invalid");
+      // 自分のEmailと違う場合はfalseに
+      if (checkedSameUserEmail) setCheckedSameUserEmail(false);
+      console.log("メールが有効では無いためリターン");
+      return false;
+    }
+  };
+
   return (
     <>
       {loadingGlobalState && (
         <div className={`${styles.loading_overlay_modal_outside}`}>
           <div className={`${styles.loading_overlay_modal_inside}`}>
             {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
-            <SpinnerComet w="52px" h="52px" />
+            <SpinnerComet w="50px" h="50px" s="5px" />
           </div>
         </div>
       )}
@@ -454,7 +534,7 @@ const SettingProfileMemo = () => {
           <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
 
           {/* Email */}
-          <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
+          <div ref={rowAreaEmailRef} className={`mt-[20px] flex min-h-[95px] w-full flex-col ${styles.row_area_email}`}>
             <div className={`${styles.section_title}`}>Email</div>
             {!editEmailMode && (
               <div className={`flex h-full w-full items-center justify-between`}>
@@ -476,20 +556,46 @@ const SettingProfileMemo = () => {
             )}
             {editEmailMode && (
               <div className={`flex h-full w-full items-center justify-between`}>
-                <input
-                  type="text"
-                  placeholder="メールを入力してください"
-                  required
-                  autoFocus
-                  className={`${styles.input_box}`}
-                  value={editedEmail}
-                  onChange={(e) => setEditedEmail(e.target.value)}
-                  //   onBlur={() => setMainPhoneNumber(toHalfWidth(mainPhoneNumber.trim()))}
-                />
+                <div className="flex w-full flex-col">
+                  <input
+                    // ref={emailRef}
+                    ref={(ref) => (emailRef.current = ref)}
+                    type="text"
+                    placeholder="メールを入力してください"
+                    required
+                    autoFocus
+                    className={`${styles.input_box}`}
+                    value={editedEmail}
+                    onChange={(e) => {
+                      if (checkedEmail === "Invalid") {
+                        emailRef.current?.classList.remove(`${styles.success}`);
+                        emailRef.current?.classList.remove(`${styles.error}`);
+                        rowAreaEmailRef.current?.classList.remove(`${styles.error}`);
+                        setCheckedEmail("");
+                        if (checkedSameUserEmail) setCheckedSameUserEmail(false);
+                      }
+                      setEditedEmail(e.target.value);
+                    }}
+                    //   onBlur={() => setMainPhoneNumber(toHalfWidth(mainPhoneNumber.trim()))}
+                    onBlur={(e) => handleCheckEmail(e)}
+                  />
+                  {checkedEmail === "Invalid" && !checkedSameUserEmail && (
+                    <span className={styles.msg}>有効なメールアドレスを入力してください</span>
+                  )}
+                  {checkedEmail === "Invalid" && checkedSameUserEmail && (
+                    <span className={styles.msg}>現在のメールアドレスと同じです。</span>
+                  )}
+                </div>
                 <div className="flex">
                   <div
                     className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                     onClick={() => {
+                      if (checkedEmail === "Invalid") {
+                        emailRef.current?.classList.remove(`${styles.success}`);
+                        emailRef.current?.classList.remove(`${styles.error}`);
+                        rowAreaEmailRef.current?.classList.remove(`${styles.error}`);
+                        if (checkedSameUserEmail) setCheckedSameUserEmail(false);
+                      }
                       setEditedEmail("");
                       setEditEmailMode(false);
                     }}
@@ -499,61 +605,64 @@ const SettingProfileMemo = () => {
                   <div
                     className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                     onClick={async () => {
-                      if (editedEmail === "") {
-                        alert("有効なメールを入力してください");
-                        return;
-                      }
-                      if (userProfileState?.email === editedEmail) {
-                        setEditEmailMode(false);
-                        return;
-                      }
+                      // setLoadingGlobalState(true);
+                      // await updateUserEmail.mutate({ _email: editedEmail });
+                      // setEditEmailMode(false);
                       if (!userProfileState?.id) return alert("ユーザーIDが見つかりません");
-                      setLoadingGlobalState(true);
-                      const { data: profileData, error } = await supabase
-                        .from("profiles")
-                        .update({ email: editedEmail })
-                        .eq("id", userProfileState.id)
-                        .select("email")
-                        .single();
 
-                      if (error) {
-                        setTimeout(() => {
-                          setLoadingGlobalState(false);
-                          setEditEmailMode(false);
-                          alert(error.message);
-                          console.log("メールUPDATEエラー", error.message);
-                          toast.error("メールの更新に失敗しました!", {
-                            position: "top-right",
-                            autoClose: 3000,
-                            hideProgressBar: false,
-                            closeOnClick: true,
-                            pauseOnHover: true,
-                            draggable: true,
-                            progress: undefined,
-                            // theme: `${theme === "light" ? "light" : "dark"}`,
-                          });
-                        }, 500);
-                        return;
-                      }
-                      setTimeout(() => {
-                        console.log("メールUPDATE成功 profileData", profileData);
-                        setUserProfileState({
-                          ...(userProfileState as UserProfileCompanySubscription),
-                          email: profileData.email ? profileData.email : null,
-                        });
-                        setLoadingGlobalState(false);
+                      if (editedEmail === "") return setEditEmailMode(false);
+                      // if (userProfileState?.email === editedEmail) return
+
+                      if (checkedEmail === "Invalid" && checkedSameUserEmail)
+                        return console.log("Invalid 同じメールアドレス", editedEmail);
+
+                      if (checkedEmail === "Invalid" && !checkedSameUserEmail)
+                        return console.log("Invalid", editedEmail);
+
+                      if (checkedEmail === "Valid" && !checkedSameUserEmail) {
+                        console.log("valid", editedEmail);
+                        const result = checkEmail(editedEmail);
+                        console.log("result", result);
+                        if (!result) return;
+                        if (submittedErrorEmail.includes(editedEmail)) {
+                          return alert("一度送信済みのEmailです。別のEmailをお試しください。");
+                        }
+                        const sentEmailArray = [...submittedErrorEmail, editedEmail];
+                        setSubmittedErrorEmail(sentEmailArray);
+                        setLoadingGlobalState(true);
+                        await updateUserEmail.mutate({ _email: editedEmail });
                         setEditEmailMode(false);
-                        toast.success("メールの更新が完了しました!", {
-                          position: "top-right",
-                          autoClose: 3000,
-                          hideProgressBar: false,
-                          closeOnClick: true,
-                          pauseOnHover: true,
-                          draggable: true,
-                          progress: undefined,
-                          // theme: `${theme === "light" ? "light" : "dark"}`,
-                        });
-                      }, 500);
+                        // ============================🌟🌟🌟🌟
+                        // await updateUserEmail.mutate({ _email: editedEmail, dispatch: setEditEmailMode });
+                        // setLoadingGlobalState(false);
+                        // setLoadingGlobalState(true);
+                        // const { data: profileData, error } = await supabase
+                        //   .from("profiles")
+                        //   .update({ email: editedEmail })
+                        //   .eq("id", userProfileState.id)
+                        //   .select("email")
+                        //   .single();
+                        // if (error) {
+                        //   setTimeout(() => {
+                        //     setLoadingGlobalState(false);
+                        //     setEditEmailMode(false);
+                        //     alert(error.message);
+                        //     console.log("メールUPDATEエラー", error.message);
+                        //     toast.error("メールの更新に失敗しました!");
+                        //   }, 500);
+                        //   return;
+                        // }
+                        // setTimeout(() => {
+                        //   console.log("メールUPDATE成功 profileData", profileData);
+                        //   setUserProfileState({
+                        //     ...(userProfileState as UserProfileCompanySubscription),
+                        //     email: profileData.email ? profileData.email : null,
+                        //   });
+                        //   setLoadingGlobalState(false);
+                        //   setEditEmailMode(false);
+                        //   toast.success("メールの更新が完了しました!");
+                        // }, 500);
+                      }
                     }}
                   >
                     保存

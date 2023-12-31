@@ -665,6 +665,7 @@ export const SettingInvitationModal = () => {
                       // onBlur={() => setMainPhoneNumber(toHalfWidth(mainPhoneNumber.trim()))}
                       onBlur={(e) => handleCheckEmail(index, e)}
                       onFocus={() => {
+                        // 未設定アカウントが存在しない場合はフォーカスが当たった時にモーダルを表示
                         if (notSetAccounts.length === 0) return setOverState(true);
                       }}
                     />

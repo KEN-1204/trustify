@@ -630,7 +630,7 @@ const ResumeMembershipAfterCancelMemo = () => {
       )}
       {hoveredItemPosModal && <TooltipModal />}
       <button
-        className={`flex-center shadow-all-md transition-base03 fixed bottom-[2%] right-[6%] z-[3000] h-[35px] w-[35px] rounded-full bg-[#555] hover:bg-[#999]`}
+        className={`flex-center shadow-all-md transition-base03 fixed bottom-[2%] right-[calc(2%+60px)] z-[3000] h-[35px] w-[35px] rounded-full bg-[#555] hover:bg-[#999]`}
         // className={`flex-center z-100 group absolute right-[-45px] top-[5px] h-[35px] w-[35px] rounded-full bg-[#00000090] hover:bg-[#000000c0]`}
         data-text="ログアウトする"
         onMouseEnter={(e) => handleOpenTooltip(e, "top")}
@@ -734,13 +734,24 @@ const ResumeMembershipAfterCancelMemo = () => {
                   onMouseEnter={(e) => handleOpenTooltip(e, "top")}
                   onMouseLeave={handleCloseTooltip}
                   onClick={() => {
-                    if (stepContents === "resume_3") {
-                      setStepContents("resume_2");
-                    } else if (stepContents === "resume_2") {
-                      setStepContents("");
-                    } else if (stepContents === "") {
-                      setResumeStep("");
+                    if (requiredDeletionMemberAccounts) {
+                      if (stepContents === "resume_3") {
+                        setStepContents("resume_2");
+                      } else if (stepContents === "resume_2") {
+                        setStepContents("");
+                      } else if (stepContents === "") {
+                        setResumeStep("");
+                      }
+                    } else {
+                      if (stepContents === "resume_3") {
+                        setStepContents("");
+                      } else if (stepContents === "resume_2") {
+                        setStepContents("");
+                      } else if (stepContents === "") {
+                        setResumeStep("");
+                      }
                     }
+
                     handleCloseTooltip();
                   }}
                 >
@@ -791,10 +802,17 @@ const ResumeMembershipAfterCancelMemo = () => {
                 {/* ロゴからチェックエリアまで */}
 
                 {/* 左スライドスクロールコンテナ */}
-                <div
+                {/* <div
                   className={`relative h-full w-full min-w-[40vw] max-w-[40vw] ${
                     styles.left_slide_scroll_container
                   } transition-base03 ${stepContents === "resume_2" ? `ml-[-100%]` : ``} ${
+                    stepContents === "resume_3" ? `${requiredDeletionMemberAccounts ? `ml-[-200%]` : `ml-[-100%]`}` : ``
+                  }`}
+                > */}
+                <div
+                  className={`relative h-full w-full min-w-[calc(1150/2)px] max-w-[calc(1150/2)px] ${
+                    styles.left_slide_scroll_container
+                  } transition-base03 ${stepContents === "resume_2" ? `ml-[100%]` : ``} ${
                     stepContents === "resume_3" ? `${requiredDeletionMemberAccounts ? `ml-[-200%]` : `ml-[-100%]`}` : ``
                   }`}
                 >
@@ -971,7 +989,7 @@ const ResumeMembershipAfterCancelMemo = () => {
                     {/* 続けるボタン */}
                     <div className="w-full pt-[25px]">
                       <button
-                        className={`flex-center h-[40px] w-full cursor-pointer rounded-[6px] bg-[var(--color-bg-brand-f)] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                        className={`flex-center h-[40px] w-full max-w-[496px] cursor-pointer rounded-[6px] bg-[var(--color-bg-brand-f)] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                         // onClick={() => {
                         //   if (selectedRadioButton === "business_plan" && !!planBusiness)
                         //     handleResume(planBusiness.id, accountQuantity);

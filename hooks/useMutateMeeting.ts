@@ -1,6 +1,6 @@
 import useDashboardStore from "@/store/useDashboardStore";
 import useThemeStore from "@/store/useThemeStore";
-import { Meeting, Activity } from "@/types";
+import { Meeting, Activity, Meeting_row_data } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -263,12 +263,20 @@ export const useMutateMeeting = () => {
 
   // 【Meetingの個別フィールド毎に編集UPDATE用updateMeetingFieldMutation関数】
   // MainContainerからダブルクリックでフィールドエディットモードに移行し、個別にフィールド入力、更新した時に使用 受け取る引数は一つのプロパティのみ
+  type ExcludeKeys = "company_id" | "contact_id" | "meeting_id"; // 除外するキー idはUPDATEすることは無いため
+  type MeetingFieldNamesForSelectedRowData = Exclude<keyof Meeting_row_data, ExcludeKeys>;
   const updateMeetingFieldMutation = useMutation(
-    async (fieldData: { fieldName: string; value: any; id: string }) => {
-      const { fieldName, value, id } = fieldData;
+    async (fieldData: {
+      fieldName: string;
+      fieldNameForSelectedRowData: MeetingFieldNamesForSelectedRowData;
+      newValue: any;
+      id: string;
+    }) => {
+      console.log("updateActivityFieldMutation実行 引数", fieldData);
+      const { fieldName, fieldNameForSelectedRowData, newValue, id } = fieldData;
       const { data, error } = await supabase
         .from("meetings")
-        .update({ [fieldName]: value })
+        .update({ [fieldName]: newValue })
         .eq("id", id)
         .select();
 
@@ -276,33 +284,32 @@ export const useMutateMeeting = () => {
 
       console.log("updateMeetingFieldMutation実行完了 mutate data", data);
 
-      console.log("UPDATEに成功したdata", data[0]);
       // 活動履歴で面談タイプ 訪問・面談を作成
       const newMeetingData = {
-        created_by_company_id: data[0].created_by_company_id,
-        created_by_user_id: data[0].created_by_user_id,
-        created_by_department_of_user: data[0].created_by_department_of_user,
-        created_by_unit_of_user: data[0].created_by_unit_of_user,
-        client_contact_id: data[0].client_contact_id,
-        client_company_id: data[0].client_company_id,
-        summary: data[0].result_summary,
+        // created_by_company_id: data[0].created_by_company_id,//どの会社が作成したか
+        // created_by_user_id: data[0].created_by_user_id,//どのユーザーが作成したか
+        // created_by_department_of_user: data[0].created_by_department_of_user,//どの事業部が作成したか
+        // created_by_unit_of_user: data[0].created_by_unit_of_user,//どの係が作成したか
+        // client_contact_id: data[0].client_contact_id, //担当者id(相手)
+        // client_company_id: data[0].client_company_id, //会社id(相手)
+        summary: data[0].result_summary, //結果コメント
         // scheduled_follow_up_date: null,
         // follow_up_flag: false,
         // document_url: null,
         // activity_type: "面談・訪問",
         // claim_flag: false,
-        product_introduction1: data[0].result_presentation_product1,
-        product_introduction2: data[0].result_presentation_product2,
-        product_introduction3: data[0].result_presentation_product3,
-        product_introduction4: data[0].result_presentation_product4,
-        product_introduction5: data[0].result_presentation_product5,
-        department: data[0].meeting_department,
-        business_office: data[0].meeting_business_office,
-        member_name: data[0].meeting_member_name,
+        product_introduction1: data[0].result_presentation_product1, //実施1
+        product_introduction2: data[0].result_presentation_product2, //実施2
+        product_introduction3: data[0].result_presentation_product3, //実施3
+        product_introduction4: data[0].result_presentation_product4, //実施4
+        product_introduction5: data[0].result_presentation_product5, //実施5
+        department: data[0].meeting_department, //事業部(自社)
+        business_office: data[0].meeting_business_office, //事業所(自社)
+        member_name: data[0].meeting_member_name, //営業担当(自社)
         // priority: null,
-        activity_date: data[0].planned_date,
-        activity_year_month: data[0].meeting_year_month,
-        meeting_id: data[0].id,
+        activity_date: data[0].planned_date, //訪問予定日
+        activity_year_month: data[0].meeting_year_month, //面談年月度
+        // meeting_id: data[0].id,//面談
         // property_id: null,
         // quotation_id: null,
       };

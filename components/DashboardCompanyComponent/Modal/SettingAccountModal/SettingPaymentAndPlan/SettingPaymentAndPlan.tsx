@@ -116,7 +116,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
     premiumPlanFeePerAccountRef.current = getPrice("premium_plan"); // プレミアムプラン価格
 
     // 今日が終了日かどうか
-    const currentDateObj = new Date("2029-4-20"); // テストクロック
+    const currentDateObj = new Date("2024-1-1"); // テストクロック
     const year = currentDateObj.getFullYear();
     const month = currentDateObj.getMonth();
     const day = currentDateObj.getDate();
@@ -1139,8 +1139,8 @@ const SettingPaymentAndPlanMemo: FC = () => {
 
     // 🔹ビジネスプランからアップグレードルート (アップグレードは日割り計算が必要)
     // モーダル開いた日付を取得して今日が期間終了日と一致するかを確認する
-    // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2029-4-20で現在の日付を作成
-    const currentDateObj = new Date("2029-4-20"); // テストクロック
+    // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2024-1-1で現在の日付を作成
+    const currentDateObj = new Date("2024-1-1"); // テストクロック
     const year = currentDateObj.getFullYear();
     const month = currentDateObj.getMonth();
     const day = currentDateObj.getDate();
@@ -1248,8 +1248,8 @@ const SettingPaymentAndPlanMemo: FC = () => {
 
       try {
         // 既にプラン変更インボイスが存在するなら、次は現在とインボイスの比例配分の日付が同じかどうかを確認する
-        // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2029-4-20で現在の日付を作成
-        const currentDateObj = new Date("2029-4-20"); // テストクロック
+        // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2024-1-1で現在の日付を作成
+        const currentDateObj = new Date("2024-1-1"); // テストクロック
         const year = currentDateObj.getFullYear();
         const month = currentDateObj.getMonth();
         const day = currentDateObj.getDate();
@@ -2000,7 +2000,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
       const pMonth = prorationDateObj.getMonth();
       const pDay = prorationDateObj.getDate();
       const prorationDateOnly = new Date(pYear, pMonth, pDay);
-      const currentDateObj = new Date("2029-4-20"); // テストクロック
+      const currentDateObj = new Date("2024-1-1"); // テストクロック
       const cYear = currentDateObj.getFullYear();
       const cMonth = currentDateObj.getMonth();
       const cDay = currentDateObj.getDate();
@@ -2349,7 +2349,7 @@ const SettingPaymentAndPlanMemo: FC = () => {
               </span>
               {!!userProfileState?.current_period_end && (
                 <span className="text-[var(--color-text-title)]">
-                  （{format(new Date("2029-4-20"), "MM月dd日")}〜
+                  （{format(new Date("2024-1-1"), "MM月dd日")}〜
                   {format(new Date(userProfileState.current_period_end), "MM月dd日")}）
                 </span>
               )}
@@ -2884,8 +2884,8 @@ const SettingPaymentAndPlanMemo: FC = () => {
                       // }
                       // 🔹ビジネスプランからアップグレードルート (アップグレードは日割り計算が必要)
                       // モーダル開いた日付を取得して今日が期間終了日と一致するかを確認する
-                      // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2029-4-20で現在の日付を作成
-                      // const currentDateObj = new Date("2029-4-20"); // テストクロック
+                      // モーダル開いた日付を取得(時刻情報なし) 💡テストクロックモードのため2024-1-1で現在の日付を作成
+                      // const currentDateObj = new Date("2024-1-1"); // テストクロック
                       // const year = currentDateObj.getFullYear();
                       // const month = currentDateObj.getMonth();
                       // const day = currentDateObj.getDate();

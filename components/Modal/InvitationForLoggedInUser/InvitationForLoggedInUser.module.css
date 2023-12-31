@@ -8,6 +8,8 @@
   height: 82vh;
   /* width: 56vw;
   height: 63vh; */
+  max-width: 575px; /*1150 * 0.5 */
+  max-height: 665px; /* 730 * 0.911 */
   border-radius: 8px;
   background-color: var(--color-edit-bg-solid);
   box-shadow: var(--color-edit-border);

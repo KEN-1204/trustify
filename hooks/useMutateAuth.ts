@@ -3,10 +3,12 @@
 //新規登録とログインの役割を担う認証カスタムフックのuseMutationでは、supabaseAPIにログイン情報、新規登録情報を送るのみでsupabaseAPIからdataはレスポンスされないので、ここではレスポンスされたdataをキャッシュに保存する処理は必要無いためonSuccessは無し
 
 import useStore from "@/store";
+import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useMutation } from "@tanstack/react-query";
 import { features } from "process";
-import { useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
+import { toast } from "react-toastify";
 
 export const useMutateAuth = () => {
   const supabaseClient = useSupabaseClient();
@@ -18,6 +20,8 @@ export const useMutateAuth = () => {
   const setSessionState = useStore((state) => state.setSessionState);
   const setIsOpenModal = useStore((state) => state.setIsOpenModal);
   const setGetStartWithEmail = useStore((state) => state.setGetStartWithEmail);
+  const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
+  const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
 
   const googleLoginMutation = useMutation({
     mutationFn: async () => {
@@ -144,7 +148,7 @@ export const useMutateAuth = () => {
       setErrorMsg(""); // 前回のエラーメッセージを初期化
       // const { error } = await supabaseClient.auth.signUp({ email, password });
       // if (error) throw new Error(error.message);
-      localStorage.setItem("email", email);
+      // localStorage.setItem("email", email);
       setIsLoading(true);
       const { data, error } = await supabaseClient.auth.signInWithOtp({
         email: email,
@@ -166,7 +170,7 @@ export const useMutateAuth = () => {
       // alert(error.message);
       setErrorMsg(error.message);
       setEmail("");
-      localStorage.removeItem("email");
+      // localStorage.removeItem("email");
       setIsLoading(false);
     },
   });
@@ -212,6 +216,52 @@ export const useMutateAuth = () => {
     },
   });
 
+  // 【unitの複数フィールドを編集UPDATE用updateMultipleUnitFields関数】
+  // 製品分類(大分類)を変更した際に、同時に製品分類(中分類)をnullに更新する関数
+  const updateUserEmail = useMutation(
+    // async ({ _email, dispatch }: { _email: string; dispatch: Dispatch<SetStateAction<boolean>> }) => {
+    async ({ _email }: { _email: string }) => {
+      const { data, error } = await supabaseClient.auth.updateUser({ email: _email });
+
+      if (error) throw error;
+
+      console.log("updateMultipleUnitFields実行完了 mutate data", data);
+
+      // const response = { data, dispatch };
+      return data;
+    },
+    {
+      onSuccess: async (data, variables) => {
+        // const { data, dispatch } = response;
+        // const { _email, dispatch } = variables;
+        console.log(
+          "updateMultipleUnitFields実行完了 キャッシュを更新して選択中のセルを再度クリックして更新 onSuccess data[0]",
+          data[0]
+        );
+
+        // unitsに関わるキャッシュのデータを再取得 => これをしないと既に取得済みのキャッシュは古い状態で表示されてしまう
+        // await queryClient.invalidateQueries({ queryKey: ["units"] });
+        if (loadingGlobalState) setLoadingGlobalState(false);
+        toast.success("メールアドレス変更確認を新たなメールアドレス送信しました🌟", { autoClose: 5000 });
+        // メールアドレス編集モードを閉じる
+        // dispatch(false);
+      },
+      onError: (err: any, variables) => {
+        // const { _email, dispatch } = variables;
+        console.error("メール変更に失敗しました", err);
+        console.log("err.message", err.message);
+        if (err.message.includes("A user with this email address has already been registered")) {
+          toast.error("そのメールは既に使われています...🙇‍♀️", { autoClose: 5000 });
+        } else {
+          toast.error("メール変更に失敗しました...🙇‍♀️", { autoClose: 5000 });
+        }
+        if (loadingGlobalState) setLoadingGlobalState(false);
+        // メールアドレス編集モードを閉じる
+        // dispatch(false);
+      },
+    }
+  );
+
   return {
     email,
     setEmail,
@@ -224,5 +274,6 @@ export const useMutateAuth = () => {
     otpRegisterRequestMutation,
     otpRegisterMutation,
     isLoading,
+    updateUserEmail,
   };
 };

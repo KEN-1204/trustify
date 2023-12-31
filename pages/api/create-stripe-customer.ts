@@ -37,10 +37,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<any>) => {
   //   email: req.body.record.email,
   // });
   // =============== テストクロック顧客オブジェクトルート ===============
+  console.log("🌟🔥stripe.customers.create テストクロックで作成 ");
+  console.log("🌟🔥email", req.body.record.email);
   const customer = await stripe.customers.create({
     email: req.body.record.email,
-    test_clock: `clock_1OE9dOFTgtnGFAcpIftRCwtj`,
+    test_clock: `clock_1OTR93FTgtnGFAcpKUhxVRMF`,
   });
+  console.log("🌟🔥結果 customer", customer);
   // =============== テストクロック顧客オブジェクトルート ここまで ===============
 
   // 新たに顧客となったユーザーのprofileテーブルのstripe_customerカラムの値に

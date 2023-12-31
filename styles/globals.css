@@ -883,6 +883,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* オーバーレイ */
   --overlay-dark: #00000030;
   --overlay-light: #ffffff20;
+  --overlay-relight: #ffffff30;
   --overlay: #00000060;
   --overlay-modal-bg: #ffffff60;
   /* ツールチップ */
@@ -1450,6 +1451,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* オーバーレイ dark */
   --overlay-dark: #00000030;
   --overlay-light: #ffffff20;
+  --overlay-relight: #00000060;
   --overlay: #ffffff20;
   --overlay-modal-bg: #33333360;
 

@@ -63,12 +63,12 @@ export const DashboardContactComponent: FC = () => {
           >
             {activeMenuTab === "Contacts" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
-                {/* <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}> */}
                 <Suspense fallback={<FallbackGridTableAll />}>
                   <ContactGridTableAll title="担当者" />
                 </Suspense>
               </ErrorBoundary>
             )}
+            {/* <FallbackGridTableAll /> */}
           </section>
 
           {/* ２画面目 下画面 */}

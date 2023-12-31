@@ -11,7 +11,7 @@ export const useQueryProducts = (company_id: string | null | undefined, userId: 
 
   const getProducts = async () => {
     // setLoadingGlobalState(true);
-    console.log("useQueryProduct getProducts関数実行 company_id", company_id);
+    // console.log("useQueryProduct getProducts関数実行 company_id", company_id);
     const { data, error } = await supabase
       .from("products")
       .select("*")
@@ -20,12 +20,15 @@ export const useQueryProducts = (company_id: string | null | undefined, userId: 
 
     if (error) {
       // alert(error.message);
-      console.log("getProductsFreeエラー発生", error.message);
+      console.error("getProductsFreeエラー発生", error.message);
       // setLoadingGlobalState(false);
       throw new Error(error.message);
     }
 
     // setLoadingGlobalState(false);
+
+    // 0.8秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
+    await new Promise((resolve) => setTimeout(resolve, 800));
 
     return data as Product[];
   };
