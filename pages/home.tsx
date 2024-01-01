@@ -21,9 +21,11 @@ import { Profile, UserProfile, UserProfileCompanySubscription } from "@/types";
 import { Session, User, createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 import { GetServerSidePropsContext } from "next";
 import React, { Suspense, useEffect, useRef, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
+import { toast } from "react-toastify";
 import Stripe from "stripe";
 
 // type Plans = {
@@ -54,6 +56,8 @@ const DashboardHome = ({
   const setActiveMenuTab = useDashboardStore((state) => state.setActiveMenuTab);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const setUserProfileState = useDashboardStore((state) => state.setUserProfileState);
+  // セッション email変更時の最新user.email確認用
+  const sessionState = useStore((state) => state.sessionState);
   const setProductsState = useDashboardStore((state) => state.setProductsState);
 
   // // お知らせ notificationsテーブルから自分のidに一致するお知らせデータを全て取得
@@ -78,6 +82,8 @@ const DashboardHome = ({
     "activeMenuTab",
     activeMenuTab,
     "SSRで取得したセッション",
+    initialSession,
+    "SSRで取得したセッションのユーザー",
     user,
     // "profilesテーブルから取得したユーザーデータuserProfile",
     // userProfile1,
@@ -95,20 +101,97 @@ const DashboardHome = ({
 
   // SSRで取得したユーザーデータをZustandに格納 ユーザーデータが無ければ強制的にログアウトさせる
   useEffect(() => {
+    // サインアウト関数(非同期処理)
     const handleSignOut = async () => {
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error("ユーザーデータなしのためサインアウトするもエラー", error);
       }
     };
+
+    // profilesテーブルとstripe customerのメール変更関数(非同期処理)
+    const handleChangeEmail = async (_session: any) => {
+      try {
+        if (!_session?.access_token) return console.log("❌handleChangeEmail アクセストークンなし");
+        const updateEmailPayload = {
+          newEmail: _session?.user?.email,
+          profileId: userProfile.id,
+          stripeCustomerId: userProfile.stripe_customer_id,
+        };
+
+        console.log("🌟handleChangeEmailでメールアドレス変更ルートにリクエスト updateEmailPayload", updateEmailPayload);
+        const {
+          data: { new_email: newEmail, error: axiosError },
+        } = await axios.post(`/api/update-stripe-email`, updateEmailPayload, {
+          headers: {
+            Authorization: `Bearer ${_session.access_token}`,
+          },
+        });
+
+        if (axiosError) {
+          console.error(`🌟メール変更エラー axiosError`, axiosError);
+          throw axiosError;
+        }
+
+        console.log(`🌟profilesテーブル, stripeともにメール変更完了 newEmail`, newEmail);
+
+        const newProfileObj = { ...userProfile, email: newEmail };
+
+        if (!userProfileState) setUserProfileState(newProfileObj as UserProfileCompanySubscription);
+
+        toast.success(`メールアドレスが新たに更新されました🌟`);
+        console.log("✅メールアドレス変更完了", sessionState.user.email, newEmail);
+      } catch (error: any) {
+        console.error("メールアドレスの変更に失敗", error);
+        toast.error(`メールアドレスの更新に失敗しました🙇‍♀️`);
+        // Zustandにまだユーザーデータが存在しない場合にはセット
+        if (!userProfileState) setUserProfileState(userProfile as UserProfileCompanySubscription);
+      }
+    };
+
+    // SSEでユーザーデータが取得できなかった場合にはリターン(必ずサインアップ時にprofilesにidとemailが作成されるため)
     if (!userProfile) {
-      console.log("ユーザーデータが存在しないため強制的にサインアウトさせる");
+      console.log("SSRで取得したユーザーデータが存在しないため強制的にサインアウトさせる");
       handleSignOut();
       return;
     }
-    // setUserProfileState(userProfile as UserProfile);
-    if (userProfileState) return console.log("homeページ userProfileStateがすでに存在するためリターン");
-    setUserProfileState(userProfile as UserProfileCompanySubscription);
+
+    // SSRでユーザーデータを取得したルート
+    else {
+      console.log(
+        "🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 ",
+        "🌟initialSession?.user?.email",
+        initialSession?.user?.email,
+        "🌟userProfile.email",
+        userProfile.email,
+        "🌟sessionState?.user?.email",
+        sessionState?.user?.email,
+        "🌟userProfileState?.email",
+        userProfileState?.email
+      );
+      const isEmailUpdateNeeded =
+        !!userProfileState?.email && sessionState?.user?.email
+          ? sessionState?.user?.email !== userProfileState.email
+          : initialSession?.user?.email !== userProfile.email;
+
+      // セッションのemailとprofilesテーブルのemailが一致しているかチェック(メール変更がされていないかチェック)
+      // if (sessionState.user.email !== userProfile.email) {
+      // メールが変更されてるルート => profilesとstripeのemailを更新
+      if (isEmailUpdateNeeded) {
+        console.log(
+          "🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 メールアドレスの変更を検知しました isEmailUpdateNeeded",
+          isEmailUpdateNeeded
+        );
+
+        handleChangeEmail(sessionState ? sessionState : initialSession);
+      }
+      // メールが変更されていないルート
+      else {
+        console.log("✅メールアドレス変更無しそのままSSRのユーザーデータをZustandにセット");
+        // Zustandにまだユーザーデータが存在しない場合にはセット
+        if (!userProfileState) setUserProfileState(userProfile as UserProfileCompanySubscription);
+      }
+    }
   }, [userProfile, setUserProfileState]);
 
   // const setTheme = useStore((state) => state.setTheme);

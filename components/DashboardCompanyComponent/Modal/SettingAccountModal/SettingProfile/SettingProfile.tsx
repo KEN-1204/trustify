@@ -535,7 +535,18 @@ const SettingProfileMemo = () => {
 
           {/* Email */}
           <div ref={rowAreaEmailRef} className={`mt-[20px] flex min-h-[95px] w-full flex-col ${styles.row_area_email}`}>
-            <div className={`${styles.section_title}`}>Email</div>
+            {/* タイトルエリア */}
+            <div className="relative flex items-start">
+              <div className={`${styles.section_title}`}>Email</div>
+              {editEmailMode && (
+                <div className="absolute left-[60px] top-0 flex flex-col text-[11px] text-[var(--main-color-tk)]">
+                  <p>※メールアドレス変更を保存後に一度ログアウトします。</p>
+                  <p>
+                    　新たなメールアドレス宛に届く変更確認メールから「変更を確定」を押してログインすることで変更が完了となります。
+                  </p>
+                </div>
+              )}
+            </div>
             {!editEmailMode && (
               <div className={`flex h-full w-full items-center justify-between`}>
                 <div className={`${styles.section_value}`}>

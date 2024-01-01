@@ -242,7 +242,20 @@ export const useMutateAuth = () => {
         // unitsに関わるキャッシュのデータを再取得 => これをしないと既に取得済みのキャッシュは古い状態で表示されてしまう
         // await queryClient.invalidateQueries({ queryKey: ["units"] });
         if (loadingGlobalState) setLoadingGlobalState(false);
-        toast.success("メールアドレス変更確認を新たなメールアドレス送信しました🌟", { autoClose: 5000 });
+        toast.success(
+          "メールアドレス変更確認メールを送信しました！一度ログアウトし届いたメールから再度ログインしてください🙇‍♀️",
+          { autoClose: 7000 }
+        );
+
+        setTimeout(async () => {
+          const { error } = await supabaseClient.auth.signOut();
+          if (error) {
+            toast.error("サインアウトに失敗しました", {
+              autoClose: 7000,
+            });
+          }
+        }, 5000);
+
         // メールアドレス編集モードを閉じる
         // dispatch(false);
       },
