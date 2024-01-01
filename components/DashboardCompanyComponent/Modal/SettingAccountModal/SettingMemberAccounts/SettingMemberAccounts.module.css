@@ -184,3 +184,19 @@
 .fh_text_btn {
   user-select: none;
 }
+
+.confirm_modal {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5000;
+  height: auto;
+  width: 40vw;
+  max-height: 284px;
+  max-width: 576px;
+  border-radius: 8px;
+  background-color: var(--color-bg-notification-modal);
+  padding: 32px;
+  color: var(--color-text-title);
+}

@@ -129,6 +129,7 @@ export const TooltipModal: FC = () => {
         className={`${styles.tooltip_area}  ${hoveredItemPosModal ? `block ${styles.fade}` : "transition-base hidden"}`}
         style={{
           position: "absolute",
+          // position: "fixed",
           zIndex: 20000,
           // left: `${`${hoveredItemPositionX + hoveredItemHalfWidth}px`}`,
           top: `${`${hoveredItemPositionY - hoveredItemHeight - 8 - (hoveredItemPosModal?.marginTop ?? 0)}px`}`,

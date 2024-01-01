@@ -27,8 +27,10 @@ import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 // };
 type Props = {
   memberAccount: MemberAccounts;
-  checkedMembersArray: boolean[];
-  setCheckedMembersArray: Dispatch<SetStateAction<any[]>>;
+  // checkedMembersArray: boolean[];
+  // setCheckedMembersArray: Dispatch<SetStateAction<any[]>>;
+  checkedMembersArray: (string | null)[];
+  setCheckedMembersArray: Dispatch<SetStateAction<(string | null)[]>>;
   index: number;
 };
 
@@ -360,7 +362,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
       {/* メンバーデータ編集ドロップダウンメニュー オーバーレイ */}
       {isOpenDropdownMenuUpdateMember && (
         <div
-          className="fixed left-[-100vw] top-[-50%] z-[1000] h-[200vh] w-[300vw] bg-[#00000000]"
+          className="fixed left-[-100vw] top-[-50%] z-[10000] h-[200vh] w-[300vw] bg-[#00000000]"
           onClick={() => {
             setIsOpenDropdownMenuUpdateMember(false);
           }}
@@ -591,12 +593,14 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
               // if (memberAccount.is_subscriber || !memberAccount.account_company_role) return;
               // if (memberAccount.account_company_role === "company_owner" || !memberAccount.account_company_role)
               //   return;
-              setIsOpenRoleMenu(true);
+
               // クリック位置を取得
               // const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
               const { x, y } = e.currentTarget.getBoundingClientRect();
+              // const clickedPositionPlusItemHeight =
+              //   y + 220 + 40 - 10 + (memberAccount.profile_name === null ? 43.5 : 0); // 40はmargin分 -10pxは微調整
               const clickedPositionPlusItemHeight =
-                y + 220 + 40 - 10 + (memberAccount.profile_name === null ? 43.5 : 0); // 40はmargin分 -10pxは微調整
+                y + 220 + 20 + 40 + (memberAccount.profile_name === null ? 43.5 : 0); // 40はmargin分 -10pxは微調整
               // const modalHeight = window.innerHeight * 0.9;
               const modalHeight = settingModalProperties?.height ?? window.innerHeight * 0.9;
               const halfBlankSpaceWithoutModal = (window.innerHeight - modalHeight) / 2;
@@ -630,6 +634,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
                 );
                 setClickedItemPosition("down");
               }
+              setIsOpenRoleMenu(true);
             }}
           >
             <span className="mr-[10px]">
@@ -648,13 +653,13 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
             <>
               {/* オーバーレイ */}
               <div
-                className="fixed left-[-50%] top-[-50%] z-[50] h-[200vh] w-[200vw]"
+                className="fixed left-[-50%] top-[-50%] z-[10000] h-[200vh] w-[200vw] bg-[#00000000]"
                 onClick={() => setIsOpenRoleMenu(false)}
               ></div>
 
               {/* 通常時 h-[152px] 招待中時 */}
               <div
-                className={`shadow-all-md border-real absolute left-[0px]  z-[100] h-auto w-[180px] rounded-[8px] bg-[var(--color-bg-dropdown-menu)] p-[1px] ${
+                className={`shadow-all-md border-real absolute left-[0px]  z-[12000] h-auto w-[180px] rounded-[8px] bg-[var(--color-bg-dropdown-menu)] p-[1px] ${
                   clickedItemPosition === "down"
                     ? `top-[60px]`
                     : memberAccount.profile_name
@@ -794,10 +799,34 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
             <div className={`${styles.grid_select_cell_header}`}>
               <input
                 type="checkbox"
-                checked={checkedMembersArray[index]}
+                // checked={checkedMembersArray[index]}
+                // checked={checkedMembersArray.includes(memberAccount.id)}
+                checked={checkedMembersArray.includes(memberAccount.subscribed_account_id)}
                 onChange={() => {
-                  const newCheckedArray = [...checkedMembersArray];
-                  newCheckedArray[index] = !checkedMembersArray[index];
+                  let newCheckedArray = [...checkedMembersArray];
+                  // newCheckedArray[index] = !checkedMembersArray[index];
+                  // チェックを外す
+                  // if (checkedMembersArray.includes(memberAccount.id)) {
+                  if (checkedMembersArray.includes(memberAccount.subscribed_account_id)) {
+                    // newCheckedArray = newCheckedArray.filter((id) => id !== memberAccount.id);
+                    // const removedIdIndex = newCheckedArray.findIndex((id) => id === memberAccount.id);
+                    const removedIdIndex = newCheckedArray.findIndex(
+                      (id) => id === memberAccount.subscribed_account_id
+                    );
+                    if (removedIdIndex !== -1) {
+                      // newCheckedArray[removedIdIndex] = memberAccount.id;
+                      newCheckedArray[removedIdIndex] = null;
+                    }
+                  }
+                  // チェックを入れる
+                  else {
+                    const nullIndex = newCheckedArray.findIndex((id) => id === null);
+                    if (nullIndex !== -1) {
+                      // newCheckedArray[nullIndex] = memberAccount.id;
+                      newCheckedArray[nullIndex] = memberAccount.subscribed_account_id;
+                    }
+                  }
+                  // newCheckedArray[index] = !checkedMembersArray[index];
                   setCheckedMembersArray(newCheckedArray);
                 }}
                 // checked={checked}
@@ -838,7 +867,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
               setIsOpenRoleMenu(false);
             }}
           ></div>
-          <div className="fade02 fixed left-[50%] top-[50%] z-[5000] h-auto w-[40vw] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)]">
+          <div className={`fade02 fixed ${styles.confirm_modal}`}>
             {loading && (
               <div className={`flex-center fixed left-0 top-0 z-[3000] h-[100%] w-[100%] rounded-[8px] bg-[#00000090]`}>
                 <SpinnerIDS scale={"scale-[0.5]"} />
