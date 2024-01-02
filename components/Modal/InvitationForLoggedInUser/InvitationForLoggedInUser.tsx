@@ -85,7 +85,7 @@ const InvitationForLoggedInUserMemo: FC<Prop> = ({ invitationData, setInvitation
       // チーム参加完了
       toast.success(`${invitationData.from_company_name}への参加が完了しました!`, {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 6000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
@@ -100,7 +100,7 @@ const InvitationForLoggedInUserMemo: FC<Prop> = ({ invitationData, setInvitation
       console.error(error.message);
       toast.error(`${invitationData.from_company_name}への参加に失敗しました!`, {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 6000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
@@ -149,7 +149,7 @@ const InvitationForLoggedInUserMemo: FC<Prop> = ({ invitationData, setInvitation
       // チーム参加完了
       toast.success(`${invitationData.from_company_name}への参加を辞退しました!`, {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 6000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
@@ -160,7 +160,7 @@ const InvitationForLoggedInUserMemo: FC<Prop> = ({ invitationData, setInvitation
       console.error(error.message);
       toast.error(`${invitationData.from_company_name}への参加の辞退が失敗しました!`, {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 6000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,

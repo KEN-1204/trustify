@@ -29,8 +29,10 @@ type Props = {
   memberAccount: MemberAccounts;
   // checkedMembersArray: boolean[];
   // setCheckedMembersArray: Dispatch<SetStateAction<any[]>>;
-  checkedMembersArray: (string | null)[];
-  setCheckedMembersArray: Dispatch<SetStateAction<(string | null)[]>>;
+  // checkedMembersArray: (string | null)[];
+  // setCheckedMembersArray: Dispatch<SetStateAction<(string | null)[]>>;
+  checkedMembersArray: (MemberAccounts | null)[];
+  setCheckedMembersArray: Dispatch<SetStateAction<(MemberAccounts | null)[]>>;
   index: number;
 };
 
@@ -440,11 +442,13 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
               // className={`relative flex max-h-[73px] max-w-[140px] flex-col justify-center hover:underline ${
               //   isOpenDropdownMenuUpdateMember ? `cursor-default` : `cursor-pointer`
               // }`}
-              className={`relative flex max-h-[73px] max-w-[164px] flex-col justify-center hover:underline ${
-                isOpenDropdownMenuUpdateMember ? `cursor-default` : `cursor-pointer`
+              className={`relative flex max-h-[73px] max-w-[164px] flex-col justify-center ${
+                isOpenDropdownMenuUpdateMember || !memberAccount.profile_name
+                  ? `cursor-default`
+                  : `cursor-pointer hover:underline`
               }`}
               onClick={(e) => {
-                if (isOpenDropdownMenuUpdateMember) return;
+                if (isOpenDropdownMenuUpdateMember || !memberAccount.profile_name) return;
                 const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
                 // const clickedPositionPlusItemHeight =
                 //   y + 220 + 40 - 10 + (memberAccount.profile_name === null ? 43.5 : 0); // 40はmargin分 -10pxは微調整
@@ -541,9 +545,11 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
                 <span className={`${!memberAccount.profile_name ? `text-[var(--color-text-sub)]` : ``}`}>
                   {memberAccount.profile_name ? memberAccount.profile_name : "招待済み"}{" "}
                 </span>
-                <MdOutlineEdit
-                  className={`pointer-events-none ml-[6px] min-h-[16px] min-w-[16px] text-[16px] text-[var(--color-text-sub-light)] ${styles.edit_icon} mb-[2px]`}
-                />
+                {!!memberAccount.profile_name && (
+                  <MdOutlineEdit
+                    className={`pointer-events-none ml-[6px] min-h-[16px] min-w-[16px] text-[16px] text-[var(--color-text-sub-light)] ${styles.edit_icon} mb-[2px]`}
+                  />
+                )}
               </div>
               {memberAccount.profile_name && (
                 <span className="truncate text-[10px] text-[var(--color-text-sub)]">
@@ -795,49 +801,61 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
 
         {/* チェックボックスと招待ボタン */}
         <div role="gridcell" className={styles.grid_cell}>
-          {memberAccount.account_company_role && memberAccount.account_company_role !== "company_owner" && (
-            <div className={`${styles.grid_select_cell_header}`}>
-              <input
-                type="checkbox"
-                // checked={checkedMembersArray[index]}
-                // checked={checkedMembersArray.includes(memberAccount.id)}
-                checked={checkedMembersArray.includes(memberAccount.subscribed_account_id)}
-                onChange={() => {
-                  let newCheckedArray = [...checkedMembersArray];
-                  // newCheckedArray[index] = !checkedMembersArray[index];
-                  // チェックを外す
-                  // if (checkedMembersArray.includes(memberAccount.id)) {
-                  if (checkedMembersArray.includes(memberAccount.subscribed_account_id)) {
-                    // newCheckedArray = newCheckedArray.filter((id) => id !== memberAccount.id);
-                    // const removedIdIndex = newCheckedArray.findIndex((id) => id === memberAccount.id);
-                    const removedIdIndex = newCheckedArray.findIndex(
-                      (id) => id === memberAccount.subscribed_account_id
-                    );
-                    if (removedIdIndex !== -1) {
-                      // newCheckedArray[removedIdIndex] = memberAccount.id;
-                      newCheckedArray[removedIdIndex] = null;
+          {memberAccount.account_company_role &&
+            memberAccount.account_company_role !== "company_owner" &&
+            !!memberAccount.profile_name && (
+              <div className={`${styles.grid_select_cell_header}`}>
+                <input
+                  type="checkbox"
+                  // checked={checkedMembersArray[index]}
+                  // checked={checkedMembersArray.includes(memberAccount.id)}
+                  // checked={checkedMembersArray.includes(memberAccount.subscribed_account_id)}
+                  checked={checkedMembersArray
+                    .map((member) => member?.subscribed_account_id)
+                    .includes(memberAccount.subscribed_account_id)}
+                  onChange={() => {
+                    // let newCheckedArray = [...checkedMembersArray].map(member => member?.subscribed_account_id);
+                    let newCheckedArray = [...checkedMembersArray];
+                    // newCheckedArray[index] = !checkedMembersArray[index];
+                    // チェックを外す
+                    // if (checkedMembersArray.includes(memberAccount.id)) {
+                    // if (checkedMembersArray.includes(memberAccount.subscribed_account_id)) {
+                    if (
+                      checkedMembersArray
+                        .map((member) => member?.subscribed_account_id)
+                        .includes(memberAccount.subscribed_account_id)
+                    ) {
+                      // newCheckedArray = newCheckedArray.filter((id) => id !== memberAccount.id);
+                      // const removedIdIndex = newCheckedArray.findIndex((id) => id === memberAccount.id);
+                      const removedIdIndex = newCheckedArray.findIndex(
+                        (member) => member?.subscribed_account_id === memberAccount.subscribed_account_id
+                      );
+                      if (removedIdIndex !== -1) {
+                        // newCheckedArray[removedIdIndex] = memberAccount.id;
+                        newCheckedArray[removedIdIndex] = null;
+                      }
                     }
-                  }
-                  // チェックを入れる
-                  else {
-                    const nullIndex = newCheckedArray.findIndex((id) => id === null);
-                    if (nullIndex !== -1) {
-                      // newCheckedArray[nullIndex] = memberAccount.id;
-                      newCheckedArray[nullIndex] = memberAccount.subscribed_account_id;
+                    // チェックを入れる
+                    else {
+                      const nullIndex = newCheckedArray.findIndex((member) => member === null);
+                      if (nullIndex !== -1) {
+                        // newCheckedArray[nullIndex] = memberAccount.id;
+                        // newCheckedArray[nullIndex] = memberAccount.subscribed_account_id;
+                        newCheckedArray[nullIndex] = memberAccount;
+                      }
                     }
-                  }
-                  // newCheckedArray[index] = !checkedMembersArray[index];
-                  setCheckedMembersArray(newCheckedArray);
-                }}
-                // checked={checked}
-                // onChange={() => setChecked(!checked)}
-                className={`${styles.grid_select_cell_header_input}`}
-              />
-              <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
-              </svg>
-            </div>
-          )}
+                    // newCheckedArray[index] = !checkedMembersArray[index];
+                    setCheckedMembersArray(newCheckedArray);
+                  }}
+                  // checked={checked}
+                  // onChange={() => setChecked(!checked)}
+                  className={`${styles.grid_select_cell_header_input}`}
+                />
+                <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+                </svg>
+              </div>
+            )}
           {!memberAccount.account_company_role && memberAccount.account_state === "active" && (
             <div className="flex-center h-full w-full">
               <RippleButton

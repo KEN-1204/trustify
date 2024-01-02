@@ -31,7 +31,7 @@ import { validateAndFormatPhoneNumber } from "@/utils/Helpers/validateAndFormatP
 import { validateAndFormatPostalCode } from "@/utils/Helpers/validateAndFormatPostalCode";
 import { formatJapaneseAddress } from "@/utils/Helpers/formatJapaneseAddress";
 import { toHalfWidthAndSpace } from "@/utils/Helpers/toHalfWidthAndSpace";
-import { optionsIndustryType, optionsMonth, optionsProductL } from "./selectOptionsData";
+// import { optionsIndustryType, optionsMonth, optionsProductL } from "./selectOptionsData";
 import { CiEdit } from "react-icons/ci";
 
 // ====================== 擬似テストデータ用 ======================
@@ -40,6 +40,7 @@ import { CiEdit } from "react-icons/ci";
 // const DynamicComponent = dynamic(() => import('../components/hello'));
 // 通常
 import { UnderRightActivityLog } from "./UnderRightActivityLog/UnderRightActivityLog";
+import { optionsIndustryType, optionsMonth, optionsProductL } from "@/utils/selectOptions";
 // 名前付きエクスポートの場合のダイナミックインポート
 // const UnderRightActivityLog = dynamic(
 //   () => import("./UnderRightActivityLog/UnderRightActivityLog").then((mod) => mod.UnderRightActivityLog),

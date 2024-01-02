@@ -47,6 +47,8 @@ const SettingMemberAccountsMemo: FC = () => {
   const router = useRouter();
   // メンバー招待ボタンローディング
   const [loading, setLoading] = useState(false);
+  // メンバー一括で事業部・係・事業所を変更ローディング
+  const [isLoadingUpsertMember, setIsLoadingUpsertMember] = useState(false);
   // リフェッチローディング
   const [refetchLoading, setRefetchLoading] = useState(false);
   // グローバルローディング
@@ -124,9 +126,12 @@ const SettingMemberAccountsMemo: FC = () => {
 
   // フィルターかつ並び替え後のブラウザ表示用
   const [filteredMemberArray, setFilteredMemberArray] = useState<MemberAccounts[]>([]);
-  // 並び替え後のチェック配列 自分と未設定は除く idで保持
-  const [checkedMembersArray, setCheckedMembersArray] = useState<(string | null)[]>([]);
-  const [allCheckedMemberIdsArray, setAllCheckedMemberIdsArray] = useState<(string | null)[]>([]);
+  // // 並び替え後のチェック配列 自分と未設定は除く idで保持 idはsubscribed_account_id
+  // const [checkedMembersArray, setCheckedMembersArray] = useState<(string | null)[]>([]);
+  // const [allCheckedMemberIdsArray, setAllCheckedMemberIdsArray] = useState<(string | null)[]>([]);
+  // 並び替え後のチェック配列 自分と未設定は除く memberのobjectで保持
+  const [checkedMembersArray, setCheckedMembersArray] = useState<(MemberAccounts | null)[]>([]);
+  const [allCheckedMemberIdsArray, setAllCheckedMemberIdsArray] = useState<(MemberAccounts | null)[]>([]);
   // const [checkedMembersArray, setCheckedMembersArray] = useState(
   //   memberAccountsDataArray
   //     ? Array(!!memberAccountsDataArray.length ? memberAccountsDataArray.length : 1).fill(null)
@@ -181,6 +186,7 @@ const SettingMemberAccountsMemo: FC = () => {
       (account) =>
         account.id !== userProfileState?.id &&
         account.id !== null &&
+        account.profile_name !== null &&
         account.account_invited_email === null &&
         account.account_state !== "delete_requested" &&
         account.account_company_role !== "company_owner"
@@ -188,7 +194,8 @@ const SettingMemberAccountsMemo: FC = () => {
     const _checkedNullArray = Array(checkedArray.length).fill(null);
     setCheckedMembersArray(_checkedNullArray);
     // const _allCheckedIdArray = checkedArray.map((member) => member.id);
-    const _allCheckedIdArray = checkedArray.map((member) => member.subscribed_account_id);
+    // const _allCheckedIdArray = checkedArray.map((member) => member.subscribed_account_id);
+    const _allCheckedIdArray = checkedArray.map((member) => member);
     setAllCheckedMemberIdsArray(_allCheckedIdArray);
 
     console.log(
@@ -311,10 +318,28 @@ const SettingMemberAccountsMemo: FC = () => {
 
   // ================================ 一括で事業部・係・事業所のどれかを変更する関数 ================================
 
+  // 事業部・係・事業所クリック時の選択モーダル開閉state
+  const [isOpenConfirmUpsertModal, setIsOpenConfirmUpsertModal] = useState<"department" | "unit" | "office" | null>(
+    null
+  );
+
   // 一括役割変更関数
-  const handleChangeMemberDetailAllAtOnce = async (role: string) => {
-    if (!memberAccountsDataArray || memberAccountsDataArray.length === 0) return;
-    if (!checkedMembersArray || checkedMembersArray?.length === 0) return;
+  const handleChangeMemberDetailAllAtOnce = async ({
+    title,
+    departmentId,
+    unitId,
+    officeId,
+  }: {
+    title: string;
+    departmentId?: string;
+    unitId?: string;
+    officeId?: string;
+  }) => {
+    if (!memberAccountsDataArray || memberAccountsDataArray.length === 0)
+      return alert("エラー：メンバーデータが見つかりませんでした。");
+    if (!checkedMembersArray || checkedMembersArray?.length === 0)
+      return alert("エラー：選択したメンバーデータが見つかりませんでした。");
+    if (!userProfileState?.company_id) return alert("エラー：会社データが見つかりませんでした。");
 
     setLoading(true);
     try {
@@ -329,29 +354,63 @@ const SettingMemberAccountsMemo: FC = () => {
       // });
 
       // await Promise.all(promises);
-      const updateIdsArray = checkedMembersArray.filter((id) => id !== null);
+      // const updateIdsArray = checkedMembersArray.filter((id) => id !== null);
+      // member is MemberAccountsでfilterが返す配列内の各要素のデータ型を指定してtypescriptに伝える
+      const updateProfileIdsArray = checkedMembersArray
+        .filter((member): member is MemberAccounts => member !== null && member.id !== null)
+        .map((member) => member.id);
 
-      const updateAllPayload = {
-        _new_company_role: role,
-        _update_account_quantity: updateIdsArray.length,
-        _ids_to_update: updateIdsArray,
-      };
-      console.log("🌟チーム役割一括変更 updateAllPayload", updateAllPayload);
+      if (title === "department") {
+        const upsertDepartmentPayload = {
+          _company_id: userProfileState.company_id, // UPSERTの未割り当てのユーザーINSERT用
+          _new_department_id: departmentId, // 事業部id
+          _user_ids_to_update: updateProfileIdsArray, // 更新するuserのid
+        };
 
-      const { error } = await supabase.rpc("update_company_roll_all_at_once", updateAllPayload);
+        console.log("🌟チーム役割一括変更 upsertDepartmentPayload", upsertDepartmentPayload);
 
-      if (error) throw error;
+        const { error } = await supabase.rpc("upsert_department_assignments_all_at_once", upsertDepartmentPayload);
+
+        if (error) throw error;
+      }
+      if (title === "unit") {
+        const upsertUnitPayload = {
+          _company_id: userProfileState.company_id, // UPSERTの未割り当てのユーザーINSERT用
+          _new_department_id: departmentId, // 事業部id
+          _new_unit_id: unitId, // 係・チームid
+          _user_ids_to_update: updateProfileIdsArray, // 更新するuserのid
+        };
+
+        console.log("🌟チーム役割一括変更 upsertUnitPayload", upsertUnitPayload);
+
+        const { error } = await supabase.rpc("upsert_unit_assignments_all_at_once", upsertUnitPayload);
+
+        if (error) throw error;
+      }
+      if (title === "office") {
+        const upsertOfficePayload = {
+          _company_id: userProfileState.company_id, // UPSERTの未割り当てのユーザーINSERT用
+          _new_office_id: officeId, // 係・チームid
+          _user_ids_to_update: updateProfileIdsArray, // 更新するuserのid
+        };
+
+        console.log("🌟チーム役割一括変更 upsertOfficePayload", upsertOfficePayload);
+
+        const { error } = await supabase.rpc("upsert_office_assignments_all_at_once", upsertOfficePayload);
+
+        if (error) throw error;
+      }
 
       console.log("✅全ての非同期処理が完了 invalidateQueriesで再フェッチ");
       await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
 
       toast.success("すべての役割の変更が完了しました!🌟", { autoClose: 3000 });
     } catch (error: any) {
-      console.error("役割一括変更エラー", error);
-      toast.error("役割の変更に失敗しました...🙇‍♀️", { autoClose: 3000 });
+      console.error("一括変更エラー", error);
+      toast.error("変更に失敗しました...🙇‍♀️", { autoClose: 3000 });
     }
     setLoading(false);
-    setOpenChangeRoleTogetherMenu(false);
+    setOpenChangeMemberDetailMenu(false);
 
     const newCheckArray = checkedMembersArray.map((value) => null);
     setCheckedMembersArray(newCheckArray);
@@ -390,7 +449,11 @@ const SettingMemberAccountsMemo: FC = () => {
       // });
 
       // await Promise.all(promises);
-      const updateIdsArray = checkedMembersArray.filter((id) => id !== null);
+      // const updateIdsArray = checkedMembersArray.filter((id) => id !== null);
+      const updateMemberObj = checkedMembersArray.filter(
+        (member) => member !== null && !!member?.subscribed_account_id
+      );
+      const updateIdsArray = updateMemberObj.map((member) => member?.subscribed_account_id);
 
       const updateAllPayload = {
         _new_company_role: role,
@@ -458,7 +521,11 @@ const SettingMemberAccountsMemo: FC = () => {
       // await Promise.all(promises);
 
       // remove_from_team_all_at_once
-      const removeIdsArray = checkedMembersArray.filter((id) => id !== null);
+      // const removeIdsArray = checkedMembersArray.filter((id) => id !== null);
+      const removeMemberObj = checkedMembersArray.filter(
+        (member) => member !== null && !!member?.subscribed_account_id
+      );
+      const removeIdsArray = removeMemberObj.map((member) => member?.subscribed_account_id);
 
       const removeAllPayload = {
         _remove_account_quantity: removeIdsArray.length,
@@ -742,7 +809,7 @@ const SettingMemberAccountsMemo: FC = () => {
         //   checkedMembersArray.includes(true) ? `scale-y-100` : `mb-[-80px] scale-y-0`
         // } `}
         className={`shadow-top-md transition-base03 sticky bottom-0 left-0 z-[1000] flex h-[80px] w-full  origin-bottom items-center justify-between bg-[var(--color-edit-bg-solid)] px-[24px] py-[8px] text-[13px] ${
-          checkedMembersArray.some((id) => id !== null) ? `scale-y-100` : `mb-[-80px] scale-y-0`
+          checkedMembersArray.some((member) => member !== null) ? `scale-y-100` : `mb-[-80px] scale-y-0`
         } `}
         ref={modalContainerRef}
       >
@@ -759,7 +826,7 @@ const SettingMemberAccountsMemo: FC = () => {
         {hoveredItemPosModal && <TooltipModal />}
         <div className="flex items-center justify-start">
           {/* <p>（{checkedMembersArray.filter((value) => value === true).length}件）選択済み</p> */}
-          <p>（{checkedMembersArray.filter((value) => value !== null).length}件）選択済み</p>
+          <p>（{checkedMembersArray.filter((member) => member !== null).length}件）選択済み</p>
         </div>
         <div className="flex-center">
           <div className="flex-center space-x-3">
@@ -777,6 +844,7 @@ const SettingMemberAccountsMemo: FC = () => {
               onClick={() => setOpenChangeMemberDetailMenu(true)}
             >
               <RxUpdate className="stroke-[0.1] text-[18px]" />
+              {/* 一括で事業部・係・事業所を変更するドロップダウンメニュー */}
               {openChangeMemberDetailMenu && (
                 <>
                   {/* 通常時 h-[px] 招待中時 */}
@@ -785,7 +853,7 @@ const SettingMemberAccountsMemo: FC = () => {
                       <li
                         className={`flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
                         onClick={() => {
-                          // handleChangeRoleTogether("company_admin");
+                          // handleChangeMemberDetailAllAtOnce('department', );
                         }}
                       >
                         <span className="select-none text-[14px] font-bold">部署</span>
@@ -915,7 +983,9 @@ const SettingMemberAccountsMemo: FC = () => {
                 //   checkedMembersArray.includes(false) ? `全てのメンバーを選択` : `全てのメンバーのチェックを外す`
                 // }`}
                 data-text={`${
-                  !checkedMembersArray.some((id) => id !== null) ? `全メンバーを選択` : `全メンバーのチェックを外す`
+                  checkedMembersArray.some((member) => member === null)
+                    ? `全メンバーを選択`
+                    : `全メンバーのチェックを外す`
                 }`}
                 onMouseEnter={(e) => handleOpenTooltip(e, "top")}
                 onMouseLeave={handleCloseTooltip}
@@ -930,7 +1000,7 @@ const SettingMemberAccountsMemo: FC = () => {
                   // defaultChecked={true}
                   // checked={!checkedMembersArray.includes(false)}
                   // checked={checkedMembersArray.some((id) => id !== null)}
-                  checked={checkedMembersArray.every((id) => id !== null)}
+                  checked={checkedMembersArray.every((member) => member !== null)}
                   onChange={() => {
                     // if (checkedMembersArray.includes(false)) {
                     //   const newCheckArray = checkedMembersArray.map((value) => true);
@@ -943,7 +1013,7 @@ const SettingMemberAccountsMemo: FC = () => {
                     // }
                     // チェックが
                     // if (checkedMembersArray.some((id) => id !== null)) {
-                    if (!checkedMembersArray.every((id) => id !== null)) {
+                    if (!checkedMembersArray.every((member) => member !== null)) {
                       // const newCheckArray = checkedMembersArray.map((value, index) => true);
                       // console.log("全てをチェック", newCheckArray);
                       // setCheckedMembersArray(newCheckArray);
@@ -954,6 +1024,8 @@ const SettingMemberAccountsMemo: FC = () => {
                       const newCheckArray = checkedMembersArray.map((member) => null);
                       console.log("全てのチェックを外す", newCheckArray);
                       setCheckedMembersArray(newCheckArray);
+                      if (openChangeRoleTogetherMenu) setOpenChangeRoleTogetherMenu(false);
+                      if (openChangeMemberDetailMenu) setOpenChangeMemberDetailMenu(false);
                     }
                   }}
                   onClick={() => {}}
@@ -973,6 +1045,8 @@ const SettingMemberAccountsMemo: FC = () => {
                 const newCheckArray = checkedMembersArray.map((member) => null);
                 console.log("クローズクリック", newCheckArray);
                 setCheckedMembersArray(newCheckArray);
+                if (openChangeRoleTogetherMenu) setOpenChangeRoleTogetherMenu(false);
+                if (openChangeMemberDetailMenu) setOpenChangeMemberDetailMenu(false);
               }}
             >
               <MdClose className="" />
@@ -1035,6 +1109,75 @@ const SettingMemberAccountsMemo: FC = () => {
         </>
       )}
       {/* ============================== 一括でチームから削除モーダル ここまで ============================== */}
+      {/* ================ 一括でチームメンバーの事業部・係・事業所のどれかを変更するモーダル ================ */}
+      {!isOpenConfirmUpsertModal && (
+        <>
+          {/* オーバーレイ */}
+          <div
+            className="fixed left-[-100vw] top-[-100vh] z-[1000] h-[200vh] w-[200vw] bg-[var(--color-overlay)] backdrop-blur-sm"
+            // onClick={clickEventClose}
+          ></div>
+          <div className="fade02 fixed left-[50%] top-[50%] z-[2000] h-auto max-h-[321px] w-[40vw] max-w-[580px] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)] ">
+            {isLoadingUpsertMember && (
+              <div
+                className={`flex-center absolute left-0 top-0 z-[3000] h-[100%] w-[100%] rounded-[8px] bg-[#00000090]`}
+              >
+                <SpinnerIDS scale={"scale-[0.5]"} />
+              </div>
+            )}
+            {/* クローズボタン */}
+            <button
+              className={`flex-center z-100 group absolute right-[-40px] top-0 h-[32px] w-[32px] rounded-full bg-[#00000090] hover:bg-[#000000c0]`}
+              //   onClick={() => {
+              //     setShowConfirmCancelModal(null);
+              //   }}
+              // onClick={clickEventClose}
+            >
+              <MdClose className="text-[20px] text-[#fff]" />
+            </button>
+            <h3 className={`flex min-h-[32px] w-full items-center text-[22px] font-bold`}>
+              事業部を何に変更しますか？
+            </h3>
+            <section className={`mt-[20px] flex h-auto min-h-max w-full flex-col space-y-2 text-[14px]`}>
+              <h4 className={``}>変更先の事業部を選択してください。</h4>
+
+              <div className={`!my-[30px] flex items-center justify-between`}>
+                <div>
+                  <span className="text-[15px] font-bold">変更先の事業部</span>
+                </div>
+              </div>
+
+              {/* <p className="!mb-[30px] text-[13px] font-bold">
+                注：この操作は変更するメンバーの人数によって少し時間がかかります。画面を閉じずにお待ちください。
+              </p> */}
+            </section>
+            <section className="flex w-full flex-col items-start justify-end">
+              <div className={`flex w-[100%] items-center justify-around space-x-5 pt-[0px]`}>
+                <button
+                  className={`transition-bg01 w-[50%] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[15px] py-[10px] text-[14px] font-bold text-[var(--color-text-title)] hover:bg-[var(--setting-side-bg-select-hover)]`}
+                  //   onClick={() => {
+                  //     setShowConfirmCancelModal(null);
+                  //   }}
+                  // onClick={clickEventClose}
+                >
+                  戻る
+                </button>
+                <button
+                  className="transition-bg01 w-[50%] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-hover)]"
+                  // onClick={loadPortal}
+                  // onClick={clickEventSubmit}
+                >
+                  変更する
+                </button>
+              </div>
+              <p className="mt-[20px] text-[13px] font-bold">
+                注：この操作は変更するメンバーの人数によって少し時間がかかります。画面を閉じずにお待ちください。
+              </p>
+            </section>
+          </div>
+        </>
+      )}
+      {/* ================ 一括でチームメンバーの事業部・係・事業所のどれかを変更するモーダル ここまで ================ */}
     </>
   );
 };

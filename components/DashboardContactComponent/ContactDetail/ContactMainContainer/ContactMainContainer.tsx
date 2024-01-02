@@ -23,11 +23,16 @@ import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { InputSendAndCloseBtn } from "@/components/DashboardCompanyComponent/CompanyMainContainer/InputSendAndCloseBtn/InputSendAndCloseBtn";
 import { toHalfWidthAndSpace } from "@/utils/Helpers/toHalfWidthAndSpace";
 import { validateAndFormatPhoneNumber } from "@/utils/Helpers/validateAndFormatPhoneNumber";
-import { optionsOccupation, optionsPositionsClass } from "./selectOptionsData";
 import {
   optionsIndustryType,
+  optionsOccupation,
+  optionsPositionsClass,
   optionsProductL,
-} from "@/components/DashboardCompanyComponent/CompanyMainContainer/selectOptionsData";
+} from "../../../../utils/selectOptions";
+// import {
+//   optionsIndustryType,
+//   optionsProductL,
+// } from "@/components/DashboardCompanyComponent/CompanyMainContainer/selectOptionsData";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート

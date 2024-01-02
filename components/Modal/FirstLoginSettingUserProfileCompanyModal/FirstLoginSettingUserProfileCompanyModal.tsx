@@ -173,7 +173,7 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
       setIsLoadingSubmit(false);
       toast.error("セットアップに失敗しました...", {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 6000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
@@ -202,7 +202,7 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
       setIsLoadingSubmit(false);
       toast.success("セットアップ完了！TRUSTiFYへようこそ！🌟", {
         position: "top-right",
-        autoClose: 5000,
+        autoClose: 6000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
@@ -256,7 +256,7 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
     if (error) {
       toast.error("サインアウトに失敗しました", {
         position: "top-right",
-        autoClose: 2000,
+        autoClose: 6000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,

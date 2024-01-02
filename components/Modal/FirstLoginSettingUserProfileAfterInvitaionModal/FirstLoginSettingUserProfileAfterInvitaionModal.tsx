@@ -14,6 +14,7 @@ import useThemeStore from "@/store/useThemeStore";
 import { runFireworks } from "@/utils/confetti";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { toast } from "react-toastify";
+import { optionsPositionsClassForCustomer } from "@/utils/selectOptions";
 
 type Plans = {
   id: string;
@@ -134,7 +135,7 @@ export const FirstLoginSettingUserProfileAfterInvitationModal = () => {
       setIsLoadingSubmit(false);
       toast.success("セットアップ完了！TRUSTiFYへようこそ！", {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 6000,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
@@ -437,14 +438,19 @@ export const FirstLoginSettingUserProfileAfterInvitationModal = () => {
                         }}
                       >
                         <option value="">回答を選択してください</option>
-                        <option value="1 代表者">代表者</option>
+                        {/* <option value="1 代表者">代表者</option>
                         <option value="2 取締役/役員">取締役/役員</option>
                         <option value="3 部長">部長</option>
                         <option value="4 課長">課長</option>
                         <option value="5 チームメンバー">チームメンバー</option>
                         <option value="6 所長・工場長">所長・工場長</option>
-                        <option value="7 フリーランス・個人事業主">フリーランス・個人事業主</option>
+                        <option value="7 フリーランス・個人事業主">フリーランス・個人事業主</option> */}
                         {/* <option value="8 不明">不明</option> */}
+                        {optionsPositionsClassForCustomer.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
                       </select>
                       {/* 上下矢印アイコン */}
                       <div className={`${styles.close_btn_number}`}>

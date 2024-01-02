@@ -14,6 +14,7 @@ import { useQueryOffices } from "@/hooks/useQueryOffices";
 import useStore from "@/store";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { useMutateAuth } from "@/hooks/useMutateAuth";
+import { optionsPositionsClassForCustomer } from "@/utils/selectOptions";
 
 const SettingProfileMemo = () => {
   const language = useStore((state) => state.language);
@@ -801,7 +802,17 @@ const SettingProfileMemo = () => {
 
           {/* 事業部 */}
           <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
-            <div className={`${styles.section_title}`}>事業部</div>
+            {/* <div className={`${styles.section_title}`}>事業部</div> */}
+            {/* タイトルエリア */}
+            <div className="relative flex items-start">
+              <div className={`${styles.section_title}`}>事業部</div>
+              {(!departmentDataArray || departmentDataArray.length === 0) && (
+                <div className="absolute left-[60px] top-0 flex flex-col text-[11px] text-[var(--main-color-tk)]">
+                  <p>※事業部リストが作成されていません。</p>
+                  <p>　事業部ごとにデータをを統一、分析する場合は「会社・チーム」から事業部を作成してください。</p>
+                </div>
+              )}
+            </div>
             {!editDepartmentMode && (
               <div className={`flex h-full w-full items-center justify-between`}>
                 {!userProfileState?.assigned_department_name && (
@@ -818,6 +829,10 @@ const SettingProfileMemo = () => {
                   <div
                     className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                     onClick={() => {
+                      if (!officeDataArray || officeDataArray.length === 0) {
+                        alert("事業部リスト未設定です。先に「会社・チーム」から事業部を作成してください。");
+                        return;
+                      }
                       if (!!departmentDataArray && departmentDataArray.length >= 1) {
                         if (userProfileState?.assigned_department_id) {
                           const selectedDepartmentObj = departmentDataArray.find(
@@ -1066,7 +1081,19 @@ const SettingProfileMemo = () => {
 
           {/* 係・チーム */}
           <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
-            <div className={`${styles.section_title}`}>係・チーム</div>
+            {/* <div className={`${styles.section_title}`}>係・チーム</div> */}
+            {/* タイトルエリア */}
+            <div className="relative flex items-start">
+              <div className={`${styles.section_title}`}>係・チーム</div>
+              {(!unitDataArray || unitDataArray.length === 0) && (
+                <div className="absolute left-[80px] top-0 flex flex-col text-[11px] text-[var(--main-color-tk)]">
+                  <p>※係・チームリストが作成されていません。</p>
+                  <p>
+                    　係・チームごとにデータを統一、分析する場合は「会社・チーム」から係・チームを作成してください。
+                  </p>
+                </div>
+              )}
+            </div>
             {!editUnitMode && (
               <div className={`flex h-full w-full items-center justify-between`}>
                 {!userProfileState?.assigned_unit_name && (
@@ -1081,6 +1108,10 @@ const SettingProfileMemo = () => {
                   <div
                     className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                     onClick={() => {
+                      if (!unitDataArray || unitDataArray.length === 0) {
+                        alert("係・チームリスト未設定です。先に「会社・チーム」から係・チームを作成してください。");
+                        return;
+                      }
                       // setEditedUnit(userProfileState?.unit ? userProfileState.unit : "");
                       // setEditUnitMode(true);
                       if (!userProfileState?.assigned_department_id) return alert("先に事業部を設定してください。");
@@ -1488,13 +1519,18 @@ const SettingProfileMemo = () => {
                   onChange={(e) => setEditedPositionClass(e.target.value)}
                 >
                   <option value="">回答を選択してください</option>
-                  <option value="1 代表者">代表者</option>
+                  {/* <option value="1 代表者">代表者</option>
                   <option value="2 取締役/役員">取締役/役員</option>
                   <option value="3 部長">部長</option>
                   <option value="4 課長">課長</option>
                   <option value="5 チームメンバー">チームメンバー</option>
                   <option value="6 所長・工場長">所長・工場長</option>
-                  <option value="7 フリーランス・個人事業主">フリーランス・個人事業主</option>
+                  <option value="7 フリーランス・個人事業主">フリーランス・個人事業主</option> */}
+                  {optionsPositionsClassForCustomer.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
                 </select>
                 <div className="flex">
                   <div
@@ -1695,7 +1731,19 @@ const SettingProfileMemo = () => {
 
           {/* 所属事業所・営業所 */}
           <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
-            <div className={`${styles.section_title}`}>所属事業所・営業所</div>
+            {/* <div className={`${styles.section_title}`}>所属事業所・営業所</div> */}
+            {/* タイトルエリア */}
+            <div className="relative flex items-start">
+              <div className={`${styles.section_title}`}>所属事業所・営業所</div>
+              {(!officeDataArray || officeDataArray.length === 0) && (
+                <div className="absolute left-[140px] top-0 flex flex-col text-[11px] text-[var(--main-color-tk)]">
+                  <p>※事業所リストが作成されていません。</p>
+                  <p>
+                    　事業所・営業所ごとにデータを統一、分析する場合は「会社・チーム」から事業所・営業所を作成してください。
+                  </p>
+                </div>
+              )}
+            </div>
             {!editOfficeMode && (
               <div className={`flex h-full w-full items-center justify-between`}>
                 {!userProfileState?.assigned_office_name && (
@@ -1712,6 +1760,10 @@ const SettingProfileMemo = () => {
                   <div
                     className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                     onClick={() => {
+                      if (!officeDataArray || officeDataArray.length === 0) {
+                        alert("事業所リスト未設定です。先に「会社・チーム」から事業所・営業所を作成してください。");
+                        return;
+                      }
                       // setEditedOffice(userProfileState?.office ? userProfileState.office : "");
                       // setEditOfficeMode(true);
                       if (!!officeDataArray && officeDataArray.length >= 1) {
@@ -1771,7 +1823,7 @@ const SettingProfileMemo = () => {
                       const selectedOfficeObj = officeDataArray.find((obj) => obj.id === e.target.value);
                       console.log("e.target.value", e.target.value, "selectedOfficeObj", selectedOfficeObj);
                       if (selectedOfficeObj === undefined)
-                        return alert("エラー：事業部データの取得にエラーが発生しました。");
+                        return alert("エラー：事業所データの取得にエラーが発生しました。");
                       setSelectedOffice(selectedOfficeObj);
                     }}
                   >

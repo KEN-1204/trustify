@@ -16,7 +16,7 @@ import { toast } from "react-toastify";
 import { Zoom } from "@/utils/Helpers/toastHelpers";
 import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
-import { optionsOccupation } from "@/components/DashboardContactComponent/ContactDetail/ContactMainContainer/selectOptionsData";
+import { optionsOccupation } from "@/utils/selectOptions";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
