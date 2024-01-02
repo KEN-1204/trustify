@@ -36,6 +36,7 @@ const SpinnerIDS3: FC<Props> = ({
           left: left,
           transform: transform,
           "--spinner-color": `${color}`,
+          position: "absolute",
         } as CSSProperties
       }
     >

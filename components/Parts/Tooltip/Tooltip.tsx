@@ -120,7 +120,7 @@ export const Tooltip = () => {
         className={`${styles.tooltip_area} ${styles.fade} ${hoveredItemPos ? `block` : "hidden"}`}
         style={{
           position: "absolute",
-          zIndex: 100,
+          zIndex: 20000,
           // left: `${`${hoveredItemPositionX + hoveredItemHalfWidth}px`}`,
           // leftのスタイルはuseEffect内で動的に設定
           top: `${`${hoveredItemPositionY - hoveredItemHeight - 8 - (hoveredItemPos?.marginTop ?? 0)}px`}`,
@@ -177,7 +177,7 @@ export const Tooltip = () => {
         className={`${styles.tooltip_area} ${styles.fade} ${hoveredItemPos ? `block` : "hidden"}`}
         style={{
           position: "absolute",
-          zIndex: 100,
+          zIndex: 20000,
           left: `${`${hoveredItemPositionX}px`}`,
           top: `${`${hoveredItemPositionY + hoveredItemHeight + 10}px`}`,
         }}
@@ -226,7 +226,7 @@ export const Tooltip = () => {
         className={`${styles.tooltip_area} ${styles.fade} ${hoveredItemPos ? `block` : "hidden"}`}
         style={{
           position: "absolute",
-          zIndex: 100,
+          zIndex: 20000,
           left: `${`${hoveredItemPositionX - 12 * textLengthNum + 10 * 2}px`}`,
           top: `${`${hoveredItemPositionY + hoveredItemHeight + 10}px`}`,
         }}
@@ -254,7 +254,7 @@ export const Tooltip = () => {
         className={`${styles.tooltip_area} ${styles.fade} ${hoveredItemPos ? `block` : "hidden"}`}
         style={{
           position: "absolute",
-          zIndex: 100,
+          zIndex: 20000,
           left: `${`${hoveredItemPositionX - 12 * textLengthNum + 10 * 2 - 10}px`}`,
           top: `${`${hoveredItemPositionY - hoveredItemHeight - 10}px`}`,
         }}

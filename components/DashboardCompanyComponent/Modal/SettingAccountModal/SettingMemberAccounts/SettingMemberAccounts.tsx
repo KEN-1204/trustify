@@ -30,15 +30,17 @@ import { CiFilter } from "react-icons/ci";
 import { DropDownMenuFilter } from "./DropDownMenuFilter/DropDownMenuFilter";
 import { BsCheck2 } from "react-icons/bs";
 import { RxUpdate } from "react-icons/rx";
+import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 
 const SettingMemberAccountsMemo: FC = () => {
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
-  const theme = useThemeStore((state) => state.theme);
+  // const theme = useThemeStore((state) => state.theme);
   const selectedSettingAccountMenu = useDashboardStore((state) => state.selectedSettingAccountMenu);
 
   // 上画面の選択中の列データ会社
   const userProfileState = useDashboardStore((state) => state.userProfileState);
+  const language = useStore((state) => state.language);
   // 招待メールモーダル
   const setIsOpenSettingInvitationModal = useDashboardStore((state) => state.setIsOpenSettingInvitationModal);
   // セッション情報
@@ -67,6 +69,10 @@ const SettingMemberAccountsMemo: FC = () => {
   // 一括役割変更ドロップダウンメニュー開閉状態
   const [openChangeRoleTogetherMenu, setOpenChangeRoleTogetherMenu] = useState(false);
   const [openChangeMemberDetailMenu, setOpenChangeMemberDetailMenu] = useState(false);
+  // 一括で事業部、係、事業所変更用の洗濯中state
+  const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
+  const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
+  const [selectedOffice, setSelectedOffice] = useState<Office | null>(null);
   // // チームから削除を選択した場合に削除ターゲットを保持するState
   // const removeTeamMember = useDashboardStore((state) => state.removeTeamMember);
   // const setRemoveTeamMember = useDashboardStore((state) => state.setRemoveTeamMember);
@@ -81,6 +87,7 @@ const SettingMemberAccountsMemo: FC = () => {
     isLoading: useQueryIsLoading,
     refetch: refetchMemberAccounts,
   } = useQueryMemberAccounts();
+  // console.log("🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥memberAccountsDataArray", memberAccountsDataArray);
   // ================================ ✅メンバーアカウント取得useQuery✅ ================================
   // ================================ 🌟事業部リスト取得useQuery🌟 ================================
   const {
@@ -178,7 +185,15 @@ const SettingMemberAccountsMemo: FC = () => {
     // 招待済み: id有りだが、profile_name無し
     // 未設定: id有りだが、profile_name無し
 
-    const sortedMemberAccountsArray = memberAccountsDataArray.sort(compareAccounts);
+    console.log("ソート", "大空大地".localeCompare("佐藤礼司", "ja"));
+    console.log("ソート前 memberAccountsDataArray", memberAccountsDataArray);
+    const sortedMemberAccountsArray = [...memberAccountsDataArray].sort((a, b) => compareAccounts(a, b, language));
+    console.log(
+      "ソート後 memberAccountsDataArray",
+      memberAccountsDataArray,
+      "sortedMemberAccountsArray",
+      sortedMemberAccountsArray
+    );
     setFilteredMemberArray(sortedMemberAccountsArray);
     // setSortedMemberAccountsState(sortedMemberAccountsArray);
     // 自分と未設定を除いたチェック用の配列を作成してstateに格納
@@ -261,7 +276,8 @@ const SettingMemberAccountsMemo: FC = () => {
     // 検索条件が全てnullならそのまま取得したmemberAccountsDataArrayを全て表示
     if (Object.values(filterCondition).every((value) => value === null || value === "")) {
       console.log("🔥useEffect フィルター全てnull");
-      setFilteredMemberArray(memberAccountsDataArray);
+      const sortedMemberAccountsArray = [...memberAccountsDataArray].sort((a, b) => compareAccounts(a, b, language));
+      setFilteredMemberArray(sortedMemberAccountsArray);
       if (isActiveFilter) setIsActiveFilter(false);
     } else {
       // 検索条件が一つ以上選択されているパターン
@@ -280,7 +296,7 @@ const SettingMemberAccountsMemo: FC = () => {
         return matchesDepartment && matchesUnit && matchesOffice && matchesEmployeeId;
       });
       console.log("🔥useEffect フィルター結果", filteredData);
-      const sortedMemberAccountsArray = [...filteredData].sort(compareAccounts);
+      const sortedMemberAccountsArray = [...filteredData].sort((a, b) => compareAccounts(a, b, language));
       setFilteredMemberArray(sortedMemberAccountsArray);
       if (!isActiveFilter) setIsActiveFilter(true);
       // setFilteredMemberArray(filteredData);
@@ -290,6 +306,27 @@ const SettingMemberAccountsMemo: FC = () => {
   // console.log("フィルター前memberAccountsDataArray", memberAccountsDataArray);
   // console.log("フィルター後filteredMemberArray", filteredMemberArray);
   // console.log("filterCondition", filterCondition);
+  // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
+
+  // ======================= 🌟現在の選択した事業部で係・チームを絞り込むuseEffect🌟 =======================
+  const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
+  // useEffect(() => {
+  //   // unitが存在しない場合は空にする
+  //   if (!unitDataArray || unitDataArray.length === 0) {
+  //     setFilteredUnitBySelectedDepartment([]);
+  //     return;
+  //   }
+  //   // 選択中の事業部が空(全て)でunitDataArrayが存在しているならunitDataArrayをそのまま更新する
+  //   // if (!selectedDepartment && unitDataArray && unitDataArray.length >= 1) {
+  //   //   setFilteredUnitBySelectedDepartment(unitDataArray);
+  //   //   return;
+  //   // }
+  //   // 選択中の事業部が変化するか、unitDataArrayの内容に変更があったら新たに絞り込んで更新する
+  //   if (unitDataArray && unitDataArray.length >= 1 && selectedDepartment) {
+  //     const filteredUnitArray = unitDataArray.filter((unit) => unit.created_by_department_id === selectedDepartment.id);
+  //     setFilteredUnitBySelectedDepartment(filteredUnitArray);
+  //   }
+  // }, [unitDataArray, selectedDepartment]);
   // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
 
   // useQueryMemberAccountsで製品テーブルからデータ一覧を取得
@@ -341,7 +378,8 @@ const SettingMemberAccountsMemo: FC = () => {
       return alert("エラー：選択したメンバーデータが見つかりませんでした。");
     if (!userProfileState?.company_id) return alert("エラー：会社データが見つかりませんでした。");
 
-    setLoading(true);
+    // setLoading(true);
+    setIsLoadingUpsertMember(true);
     try {
       // const newMemberArray: MemberAccounts[] = [...memberAccountsDataArray];
       // const promises = newMemberArray.map((member: MemberAccounts, i) => {
@@ -361,6 +399,7 @@ const SettingMemberAccountsMemo: FC = () => {
         .map((member) => member.id);
 
       if (title === "department") {
+        if (!departmentId) return alert("エラー：事業部データが見つかりませんでした。");
         const upsertDepartmentPayload = {
           _company_id: userProfileState.company_id, // UPSERTの未割り当てのユーザーINSERT用
           _new_department_id: departmentId, // 事業部id
@@ -372,8 +411,12 @@ const SettingMemberAccountsMemo: FC = () => {
         const { error } = await supabase.rpc("upsert_department_assignments_all_at_once", upsertDepartmentPayload);
 
         if (error) throw error;
+
+        setSelectedDepartment(null); // 成功したらnullにリセット
       }
       if (title === "unit") {
+        if (!departmentId) return alert("エラー：事業部データが見つかりませんでした。");
+        if (!unitId) return alert("エラー：係・チームデータが見つかりませんでした。");
         const upsertUnitPayload = {
           _company_id: userProfileState.company_id, // UPSERTの未割り当てのユーザーINSERT用
           _new_department_id: departmentId, // 事業部id
@@ -388,6 +431,7 @@ const SettingMemberAccountsMemo: FC = () => {
         if (error) throw error;
       }
       if (title === "office") {
+        if (!officeId) return alert("エラー：事業所・営業所データが見つかりませんでした。");
         const upsertOfficePayload = {
           _company_id: userProfileState.company_id, // UPSERTの未割り当てのユーザーINSERT用
           _new_office_id: officeId, // 係・チームid
@@ -409,11 +453,17 @@ const SettingMemberAccountsMemo: FC = () => {
       console.error("一括変更エラー", error);
       toast.error("変更に失敗しました...🙇‍♀️", { autoClose: 3000 });
     }
-    setLoading(false);
+    // setLoading(false);
+    setIsLoadingUpsertMember(false);
     setOpenChangeMemberDetailMenu(false);
+    setIsOpenConfirmUpsertModal(null);
 
     const newCheckArray = checkedMembersArray.map((value) => null);
     setCheckedMembersArray(newCheckArray);
+
+    if (selectedDepartment) setSelectedDepartment(null); // 成功したらnullにリセット
+    if (selectedUnit) setSelectedUnit(null); // 成功したらnullにリセット
+    if (selectedOffice) setSelectedOffice(null); // 成功したらnullにリセット
   };
   // ========================= 一括で事業部・係・事業所のどれかを変更する関数 ここまで =========================
 
@@ -590,7 +640,18 @@ const SettingMemberAccountsMemo: FC = () => {
   };
   // ============================================================================================
 
-  console.log("チェック配列", checkedMembersArray);
+  console.log(
+    "チェック配列",
+    checkedMembersArray,
+    "チェック配列",
+    checkedMembersArray.map((m) => (m ? m.profile_name : null)),
+    "selectedDepartment",
+    selectedDepartment ? selectedDepartment["department_name"] : null,
+    "selectedUnit",
+    selectedUnit ? selectedUnit["unit_name"] : null,
+    "selectedOffice",
+    selectedOffice ? selectedOffice["office_name"] : null
+  );
 
   return (
     <>
@@ -645,6 +706,7 @@ const SettingMemberAccountsMemo: FC = () => {
             <button
               className={`flex-center transition-bg03 relative  h-[26px] min-w-[110px]  cursor-pointer space-x-1  rounded-[4px] border border-solid border-transparent px-[6px] text-[12px] text-[var(--color-text-sub)] hover:border-[var(--color-bg-brand-f)] hover:bg-[var(--setting-bg-sub)] hover:text-[var(--color-text)] ${styles.fh_text_btn}`}
               onClick={async () => {
+                if (refetchLoading) return;
                 console.log("リフレッシュ クリック");
                 setRefetchLoading(true);
                 //   await queryClient.invalidateQueries({ queryKey: ["companies"] });
@@ -851,32 +913,98 @@ const SettingMemberAccountsMemo: FC = () => {
                   <div className="shadow-all-md border-real-with-shadow  absolute left-[-calc(300px-50%)] top-[-253px] z-[2000] h-auto min-w-[300px] rounded-[8px] bg-[var(--color-bg-dropdown-menu)]">
                     <ul className={`flex flex-col py-[0px]`}>
                       <li
-                        className={`flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
+                        className={`${styles.dropdown_list_item} flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
                         onClick={() => {
                           // handleChangeMemberDetailAllAtOnce('department', );
+                          if (!departmentDataArray || departmentDataArray?.length === 0) {
+                            alert("事業部リストが未設定です。先に「会社・チーム」から事業部を作成してください。");
+                            return;
+                          }
+                          const firstDepartmentObj = [...departmentDataArray].sort((a, b) => {
+                            if (a.department_name === null) return 1; // null値をリストの最後に移動
+                            if (b.department_name === null) return -1;
+                            return a.department_name.localeCompare(b.department_name, language === "ja" ? "ja" : "en");
+                          })[0];
+                          setSelectedDepartment(firstDepartmentObj);
+                          setIsOpenConfirmUpsertModal("department");
                         }}
                       >
-                        <span className="select-none text-[14px] font-bold">部署</span>
-                        <p className="select-none text-[12px]">選択したチームメンバーの部署を一括で変更します。</p>
+                        <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
+                          事業部
+                        </span>
+                        <p className="select-none text-[12px]">選択したチームメンバーの事業部を一括で変更します。</p>
                       </li>
                       <li
-                        className={`flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
+                        className={`${styles.dropdown_list_item} flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
                         onClick={() => {
                           // handleChangeRoleTogether("company_manager");
+                          if (!departmentDataArray || departmentDataArray?.length === 0) {
+                            alert(
+                              "事業所・営業所リストがありません。先に「会社・チーム」から事業所・営業所を作成してください。"
+                            );
+                            return;
+                          }
+                          const firstDepartmentObj = [...departmentDataArray].sort((a, b) => {
+                            if (a.department_name === null) return 1; // null値をリストの最後に移動
+                            if (b.department_name === null) return -1;
+                            return a.department_name.localeCompare(b.department_name, language === "ja" ? "ja" : "en");
+                          })[0];
+                          setSelectedDepartment(firstDepartmentObj);
+
+                          if (!unitDataArray || unitDataArray?.length === 0) {
+                            alert(
+                              "係・チームリストがありません。先に「会社・チーム」から係・チームを作成してください。"
+                            );
+                            return;
+                          }
+                          const filteredUnitList = unitDataArray.filter(
+                            (unit) => unit.created_by_department_id === firstDepartmentObj.id
+                          );
+                          setFilteredUnitBySelectedDepartment(filteredUnitList);
+                          if (!filteredUnitList || filteredUnitList?.length === 0) {
+                            alert(
+                              "係・チームリストがありません。先に「会社・チーム」から係・チームを作成してください。"
+                            );
+                            return;
+                          }
+                          const firstUnitObj = [...filteredUnitList].sort((a, b) => {
+                            if (a.unit_name === null) return 1; // null値をリストの最後に移動
+                            if (b.unit_name === null) return -1;
+                            return a.unit_name.localeCompare(b.unit_name, language === "ja" ? "ja" : "en");
+                          })[0];
+                          setSelectedUnit(firstUnitObj);
+                          setIsOpenConfirmUpsertModal("unit");
                         }}
                       >
-                        <span className="select-none text-[14px] font-bold">係・チーム</span>
+                        <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
+                          係・チーム
+                        </span>
                         <p className="select-none text-[12px]">
                           選択したチームメンバーの係・チームを一括で変更します。
                         </p>
                       </li>
                       <li
-                        className={`flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
+                        className={`${styles.dropdown_list_item} flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
                         onClick={() => {
                           // handleChangeRoleTogether("company_member");
+                          if (!officeDataArray || officeDataArray?.length === 0) {
+                            alert(
+                              "事業所・営業所リストが未設定です。先に「会社・チーム」から事業所・営業所を作成してください。"
+                            );
+                            return;
+                          }
+                          const firstOfficeObj = [...officeDataArray].sort((a, b) => {
+                            if (a.office_name === null) return 1; // null値をリストの最後に移動
+                            if (b.office_name === null) return -1;
+                            return a.office_name.localeCompare(b.office_name, language === "ja" ? "ja" : "en");
+                          })[0];
+                          setSelectedOffice(firstOfficeObj);
+                          setIsOpenConfirmUpsertModal("office");
                         }}
                       >
-                        <span className="select-none text-[14px] font-bold">事業所・営業所</span>
+                        <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
+                          事業所・営業所
+                        </span>
                         <p className="select-none text-[12px]">
                           選択したチームメンバーの事業所・営業所を一括で変更します。
                         </p>
@@ -912,43 +1040,51 @@ const SettingMemberAccountsMemo: FC = () => {
                   <div className="shadow-all-md border-real-with-shadow  absolute left-[-calc(200px-50%)] top-[-331px] z-[2000] h-auto min-w-[400px] rounded-[8px] bg-[var(--color-bg-dropdown-menu)]">
                     <ul className={`flex flex-col py-[0px]`}>
                       <li
-                        className={`flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
+                        className={`${styles.dropdown_list_item} flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
                         onClick={() => {
                           handleChangeRoleTogether("company_admin");
                         }}
                       >
-                        <span className="select-none text-[14px] font-bold">管理者</span>
+                        <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
+                          管理者
+                        </span>
                         <p className="select-none text-[12px]">
                           会社・チームの編集、メンバーの管理、招待、製品の追加、編集ができます。
                         </p>
                       </li>
                       <li
-                        className={`flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
+                        className={`${styles.dropdown_list_item} flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
                         onClick={() => {
                           handleChangeRoleTogether("company_manager");
                         }}
                       >
-                        <span className="select-none text-[14px] font-bold">マネージャー</span>
+                        <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
+                          マネージャー
+                        </span>
                         <p className="select-none text-[12px]">
                           製品の追加、編集、チーム全体の成果の確認、他メンバーの活動の編集、削除が可能です。
                         </p>
                       </li>
                       <li
-                        className={`flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
+                        className={`${styles.dropdown_list_item} flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
                         onClick={() => {
                           handleChangeRoleTogether("company_member");
                         }}
                       >
-                        <span className="select-none text-[14px] font-bold">メンバー</span>
+                        <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
+                          メンバー
+                        </span>
                         <p className="select-none text-[12px]">係、ユニット、メンバー自身の成果の確認が可能です。</p>
                       </li>
                       <li
-                        className={`flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
+                        className={`${styles.dropdown_list_item} flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
                         onClick={() => {
                           handleChangeRoleTogether("guest");
                         }}
                       >
-                        <span className="select-none text-[14px] font-bold">ゲスト</span>
+                        <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
+                          ゲスト
+                        </span>
                         <p className="select-none text-[12px]">
                           通常の営業活動の記録、編集のみ行えます。一時的に営業活動に参画してもらう担当者に最適です。
                         </p>
@@ -1110,42 +1246,211 @@ const SettingMemberAccountsMemo: FC = () => {
       )}
       {/* ============================== 一括でチームから削除モーダル ここまで ============================== */}
       {/* ================ 一括でチームメンバーの事業部・係・事業所のどれかを変更するモーダル ================ */}
-      {!isOpenConfirmUpsertModal && (
+      {isOpenConfirmUpsertModal && (
         <>
           {/* オーバーレイ */}
           <div
             className="fixed left-[-100vw] top-[-100vh] z-[1000] h-[200vh] w-[200vw] bg-[var(--color-overlay)] backdrop-blur-sm"
-            // onClick={clickEventClose}
+            onClick={() => {
+              if (isLoadingUpsertMember) return;
+              setIsOpenConfirmUpsertModal(null);
+              setOpenChangeMemberDetailMenu(false);
+              if (selectedDepartment) setSelectedDepartment(null);
+              if (selectedUnit) setSelectedUnit(null);
+              if (selectedOffice) setSelectedOffice(null);
+            }}
           ></div>
-          <div className="fade02 fixed left-[50%] top-[50%] z-[2000] h-auto max-h-[321px] w-[40vw] max-w-[580px] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)] ">
+          {/* ローディングオーバーレイ */}
+          {/* {!isLoadingUpsertMember && (
+            <div className={`fixed left-[-100vw] top-[-100vh] z-[1000] h-[200vh] w-[200vw] bg-[#00000000]`}>
+              <SpinnerComet h="60px" w="60px" s="5px" />
+            </div>
+          )} */}
+          <div
+            className={`fade02 fixed left-[50%] top-[50%] z-[2000] h-auto w-[40vw] max-w-[580px] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)] ${
+              (isOpenConfirmUpsertModal === "department" || isOpenConfirmUpsertModal === "office") && `max-h-[321px]`
+            } ${isOpenConfirmUpsertModal === "unit" && `max-h-[371px]`}`}
+          >
             {isLoadingUpsertMember && (
               <div
                 className={`flex-center absolute left-0 top-0 z-[3000] h-[100%] w-[100%] rounded-[8px] bg-[#00000090]`}
               >
-                <SpinnerIDS scale={"scale-[0.5]"} />
+                {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
+                <SpinnerComet h="60px" w="60px" s="5px" />
               </div>
             )}
             {/* クローズボタン */}
             <button
-              className={`flex-center z-100 group absolute right-[-40px] top-0 h-[32px] w-[32px] rounded-full bg-[#00000090] hover:bg-[#000000c0]`}
-              //   onClick={() => {
-              //     setShowConfirmCancelModal(null);
-              //   }}
+              className={`flex-center group absolute right-[-40px] top-0 z-[100] h-[32px] w-[32px] rounded-full bg-[#00000090] hover:bg-[#000000c0] ${
+                isLoadingUpsertMember ? `cursor-not-allowed` : ``
+              }`}
+              onClick={() => {
+                if (isLoadingUpsertMember) return;
+                setIsOpenConfirmUpsertModal(null);
+                setOpenChangeMemberDetailMenu(false);
+                if (selectedDepartment) setSelectedDepartment(null);
+                if (selectedUnit) setSelectedUnit(null);
+                if (selectedOffice) setSelectedOffice(null);
+              }}
               // onClick={clickEventClose}
             >
               <MdClose className="text-[20px] text-[#fff]" />
             </button>
             <h3 className={`flex min-h-[32px] w-full items-center text-[22px] font-bold`}>
-              事業部を何に変更しますか？
+              {isOpenConfirmUpsertModal === "department" && "どの事業部に変更しますか？"}
+              {isOpenConfirmUpsertModal === "unit" && "どの係・チームに変更しますか？"}
+              {isOpenConfirmUpsertModal === "office" && "どの事業所・営業所に変更しますか？"}
             </h3>
             <section className={`mt-[20px] flex h-auto min-h-max w-full flex-col space-y-2 text-[14px]`}>
-              <h4 className={``}>変更先の事業部を選択してください。</h4>
+              <h1>
+                {isOpenConfirmUpsertModal === "department" && "変更先の事業部を選択してください。"}
+                {isOpenConfirmUpsertModal === "unit" && "変更先の係・チームを選択してください。"}
+                {isOpenConfirmUpsertModal === "office" && "変更先の事業所・営業所を選択してください。"}
+              </h1>
 
-              <div className={`!my-[30px] flex items-center justify-between`}>
-                <div>
-                  <span className="text-[15px] font-bold">変更先の事業部</span>
+              <div
+                className={`flex items-center justify-between space-x-[40px] ${
+                  (isOpenConfirmUpsertModal === "department" || isOpenConfirmUpsertModal === "office") && "!my-[30px]"
+                } ${isOpenConfirmUpsertModal === "unit" && "!mt-[30px]"}`}
+              >
+                <div className="min-w-max">
+                  <span className="text-[15px] font-bold">
+                    {(isOpenConfirmUpsertModal === "department" || isOpenConfirmUpsertModal === "unit") &&
+                      "変更先の事業部"}
+                    {isOpenConfirmUpsertModal === "office" && "変更先の事業所・営業所"}
+                  </span>
+                </div>
+                <div className="flex w-full justify-end">
+                  {(isOpenConfirmUpsertModal === "department" || isOpenConfirmUpsertModal === "unit") && (
+                    <select
+                      className={`${styles.select_box} ${styles.confirm}`}
+                      value={!!selectedDepartment ? selectedDepartment.id : ""}
+                      onChange={(e) => {
+                        if (!departmentDataArray) return;
+                        const selectedDepartmentObj = departmentDataArray.find((obj) => obj.id === e.target.value);
+                        console.log("e.target.value", e.target.value, "selectedDepartmentObj", selectedDepartmentObj);
+                        if (selectedDepartmentObj === undefined) {
+                          return alert("エラー：事業部データの取得にエラーが発生しました。");
+                        }
+                        setSelectedDepartment(selectedDepartmentObj);
+
+                        if (isOpenConfirmUpsertModal === "unit") {
+                          if (!unitDataArray || unitDataArray?.length === 0) {
+                            setFilteredUnitBySelectedDepartment([]);
+                            return;
+                          }
+                          const filteredUnitList = unitDataArray.filter(
+                            (unit) => unit.created_by_department_id === selectedDepartmentObj.id
+                          );
+
+                          const sortedUnitList = [...filteredUnitList].sort((a, b) => {
+                            if (a.unit_name === null) return 1; // null値をリストの最後に移動
+                            if (b.unit_name === null) return -1;
+                            return a.unit_name.localeCompare(b.unit_name, language === "ja" ? "ja" : "en");
+                          });
+
+                          const firstUnitObj = sortedUnitList?.length >= 1 ? sortedUnitList[0] : null;
+
+                          setFilteredUnitBySelectedDepartment(sortedUnitList);
+                          setSelectedUnit(firstUnitObj);
+                        }
+                      }}
+                    >
+                      {/* <option value="">すべての事業部</option> */}
+                      {!!departmentDataArray &&
+                        [...departmentDataArray]
+                          .sort((a, b) => {
+                            if (a.department_name === null) return -1; //null値をリストの最後に移動
+                            if (b.department_name === null) return 1;
+                            return a.department_name.localeCompare(b.department_name, language === "ja" ? "ja" : "en");
+                          })
+                          .map((department, index) => (
+                            <option key={department.id} value={department.id}>
+                              {department.department_name}
+                            </option>
+                          ))}
+                    </select>
+                  )}
+                  {isOpenConfirmUpsertModal === "office" && (
+                    <select
+                      className={`${styles.select_box} ${styles.confirm}`}
+                      value={!!selectedOffice ? selectedOffice.id : ""}
+                      onChange={(e) => {
+                        if (!officeDataArray) return;
+                        const selectedOfficeObj = officeDataArray.find((obj) => obj.id === e.target.value);
+                        console.log("e.target.value", e.target.value, "selectedOfficeObj", selectedOfficeObj);
+                        if (selectedOfficeObj === undefined) {
+                          return alert("エラー：事業部データの取得にエラーが発生しました。");
+                        }
+                        setSelectedOffice(selectedOfficeObj);
+                      }}
+                    >
+                      {/* <option value="">すべての事業部</option> */}
+                      {!!officeDataArray &&
+                        [...officeDataArray]
+                          .sort((a, b) => {
+                            if (a.office_name === null || b.office_name === null) return 0;
+                            return a.office_name.localeCompare(b.office_name, language === "ja" ? "ja" : "en") ?? 0;
+                          })
+                          .map((office, index) => (
+                            <option key={office.id} value={office.id}>
+                              {office.office_name}
+                            </option>
+                          ))}
+                    </select>
+                  )}
                 </div>
               </div>
+
+              {isOpenConfirmUpsertModal === "unit" && (
+                <div className={`!mb-[30px] !mt-[20px] flex items-center justify-between space-x-[40px]`}>
+                  <div className="min-w-max">
+                    <span className="text-[15px] font-bold">変更先の係・チーム</span>
+                  </div>
+
+                  <div className="flex w-full justify-end">
+                    {filteredUnitBySelectedDepartment && filteredUnitBySelectedDepartment.length >= 1 && (
+                      <select
+                        className={`${styles.select_box} ${styles.confirm}`}
+                        value={!!selectedUnit ? selectedUnit.id : ""}
+                        onChange={(e) => {
+                          if (!filteredUnitBySelectedDepartment) return;
+                          const selectedUnitObj = filteredUnitBySelectedDepartment.find(
+                            (obj) => obj.id === e.target.value
+                          );
+                          console.log("e.target.value", e.target.value, "selectedUnitObj", selectedUnitObj);
+                          if (selectedUnitObj === undefined) {
+                            return alert("エラー：事業部データの取得にエラーが発生しました。");
+                          }
+                          setSelectedUnit(selectedUnitObj);
+                        }}
+                      >
+                        {/* <option value="">すべての事業部</option> */}
+                        {/* {!!filteredUnitBySelectedDepartment &&
+                          [...filteredUnitBySelectedDepartment]
+                            .sort((a, b) => {
+                              if (a.unit_name === null || b.unit_name === null) return 0;
+                              return a.unit_name.localeCompare(b.unit_name, language === "ja" ? "ja" : "en") ?? 0;
+                            }) */}
+                        {!!filteredUnitBySelectedDepartment &&
+                          filteredUnitBySelectedDepartment.map((unit, index) => (
+                            <option key={unit.id} value={unit.id}>
+                              {unit.unit_name}
+                            </option>
+                          ))}
+                      </select>
+                    )}
+                    {(!filteredUnitBySelectedDepartment || filteredUnitBySelectedDepartment.length === 0) && (
+                      <div className="flex min-h-[30px] max-w-[307px] items-center text-[13px]">
+                        <p className="line-clamp-2">
+                          {selectedDepartment && <span>{selectedDepartment?.department_name ?? ""}には</span>}
+                          係・チームが存在しません。
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* <p className="!mb-[30px] text-[13px] font-bold">
                 注：この操作は変更するメンバーの人数によって少し時間がかかります。画面を閉じずにお待ちください。
@@ -1155,17 +1460,78 @@ const SettingMemberAccountsMemo: FC = () => {
               <div className={`flex w-[100%] items-center justify-around space-x-5 pt-[0px]`}>
                 <button
                   className={`transition-bg01 w-[50%] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[15px] py-[10px] text-[14px] font-bold text-[var(--color-text-title)] hover:bg-[var(--setting-side-bg-select-hover)]`}
-                  //   onClick={() => {
-                  //     setShowConfirmCancelModal(null);
-                  //   }}
+                  onClick={() => {
+                    if (isLoadingUpsertMember) return;
+                    setIsOpenConfirmUpsertModal(null);
+                    setOpenChangeMemberDetailMenu(false);
+                    if (selectedDepartment) setSelectedDepartment(null);
+                    if (selectedUnit) setSelectedUnit(null);
+                    if (selectedOffice) setSelectedOffice(null);
+                  }}
                   // onClick={clickEventClose}
                 >
                   戻る
                 </button>
                 <button
                   className="transition-bg01 w-[50%] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-hover)]"
-                  // onClick={loadPortal}
                   // onClick={clickEventSubmit}
+                  onClick={() => {
+                    if (isLoadingUpsertMember) return;
+                    if (isOpenConfirmUpsertModal === "department") {
+                      if (!selectedDepartment || !selectedDepartment?.id) {
+                        alert("エラー：事業部データが見つかりませんでした。");
+                        setIsOpenConfirmUpsertModal(null);
+                        setOpenChangeMemberDetailMenu(false);
+                        if (selectedDepartment) setSelectedDepartment(null);
+                        if (selectedUnit) setSelectedUnit(null);
+                        if (selectedOffice) setSelectedOffice(null);
+                        return;
+                      }
+                      const payload = {
+                        title: "department",
+                        departmentId: selectedDepartment.id,
+                      };
+                      handleChangeMemberDetailAllAtOnce(payload);
+                    }
+
+                    if (isOpenConfirmUpsertModal === "unit") {
+                      if (!selectedDepartment || !selectedDepartment?.id || !selectedUnit || !selectedUnit?.id) {
+                        if (!selectedDepartment || !selectedDepartment?.id)
+                          alert("エラー：事業部データが見つかりませんでした。");
+                        if (!selectedUnit || !selectedUnit?.id)
+                          alert("エラー：係・チームデータが見つかりませんでした。");
+                        setIsOpenConfirmUpsertModal(null);
+                        setOpenChangeMemberDetailMenu(false);
+                        if (selectedDepartment) setSelectedDepartment(null);
+                        if (selectedUnit) setSelectedUnit(null);
+                        if (selectedOffice) setSelectedOffice(null);
+                        return;
+                      }
+                      const payload = {
+                        title: "unit",
+                        departmentId: selectedDepartment.id,
+                        unitId: selectedUnit.id,
+                      };
+                      handleChangeMemberDetailAllAtOnce(payload);
+                    }
+
+                    if (isOpenConfirmUpsertModal === "office") {
+                      if (!selectedOffice || !selectedOffice?.id) {
+                        alert("エラー：事業所・営業所データが見つかりませんでした。");
+                        setIsOpenConfirmUpsertModal(null);
+                        setOpenChangeMemberDetailMenu(false);
+                        if (selectedDepartment) setSelectedDepartment(null);
+                        if (selectedUnit) setSelectedUnit(null);
+                        if (selectedOffice) setSelectedOffice(null);
+                        return;
+                      }
+                      const payload = {
+                        title: "office",
+                        officeId: selectedOffice.id,
+                      };
+                      handleChangeMemberDetailAllAtOnce(payload);
+                    }
+                  }}
                 >
                   変更する
                 </button>

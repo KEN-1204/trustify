@@ -15,6 +15,10 @@ import useStore from "@/store";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { useMutateAuth } from "@/hooks/useMutateAuth";
 import { optionsPositionsClassForCustomer } from "@/utils/selectOptions";
+import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
+import { FiRefreshCw } from "react-icons/fi";
+import SpinnerIDS3 from "@/components/Parts/SpinnerIDS/SpinnerIDS3";
+import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
 
 const SettingProfileMemo = () => {
   const language = useStore((state) => state.language);
@@ -115,7 +119,7 @@ const SettingProfileMemo = () => {
   // useMutation
   // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
   // ================================ ✅事業所・営業所リスト取得useQuery✅ ================================
-  // ======================= 🌟現在の選択した事業部でチームを絞り込むuseEffect🌟 =======================
+  // ======================= 🌟現在の選択した事業部で係・チームを絞り込むuseEffect🌟 =======================
   const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
   useEffect(() => {
     // unitが存在せず、stateに要素が1つ以上存在しているなら空にする
@@ -327,6 +331,49 @@ const SettingProfileMemo = () => {
     }
   };
 
+  // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
+  const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
+  type TooltipParams = {
+    e: React.MouseEvent<HTMLElement, MouseEvent>;
+    display: string;
+    content: string;
+    content2?: string | undefined | null;
+    marginTop?: number;
+    itemsPosition?: string;
+  };
+  const handleOpenTooltip = ({
+    e,
+    display,
+    content,
+    content2,
+    marginTop = 0,
+    // itemsPosition = "start",
+    itemsPosition = "center",
+  }: TooltipParams) => {
+    // ホバーしたアイテムにツールチップを表示
+    const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+    // console.log("ツールチップx, y width , height", x, y, width, height);
+
+    setHoveredItemPos({
+      x: x,
+      y: y,
+      itemWidth: width,
+      itemHeight: height,
+      content: content,
+      content2: content2,
+      display: display,
+      marginTop: marginTop,
+      itemsPosition: itemsPosition,
+    });
+  };
+  // ツールチップを非表示
+  const handleCloseTooltip = () => {
+    setHoveredItemPos(null);
+  };
+  // ==================================================================================
+
+  const [isLoadingRefresh, setIsLoadingRefresh] = useState(false);
+
   return (
     <>
       {loadingGlobalState && (
@@ -339,7 +386,67 @@ const SettingProfileMemo = () => {
       )}
       {selectedSettingAccountMenu === "Profile" && (
         <div className={`flex h-full w-full flex-col overflow-y-scroll px-[20px] py-[20px] pr-[80px]`}>
-          <div className={`text-[18px] font-bold`}>プロフィール</div>
+          {/* <div className={`text-[18px] font-bold`}>プロフィール</div> */}
+          <div className="flex max-h-[27px] items-center">
+            <h2 className={`mr-[10px] text-[18px] font-bold`}>プロフィール</h2>
+            <button
+              className={`flex-center transition-bg03 relative  h-[26px] min-w-[110px]  cursor-pointer space-x-1  rounded-[4px] border border-solid border-transparent px-[6px] text-[12px]  hover:border-[var(--color-bg-brand-f)] hover:bg-[var(--color-bg-brand-fc0)] hover:text-[#fff] ${
+                styles.fh_text_btn
+              } ${
+                isLoadingRefresh
+                  ? `border-[var(--color-bg-brand-f)] bg-[var(--color-bg-brand-fc0)] text-[#fff]`
+                  : `text-[var(--color-text-sub)]`
+              }`}
+              data-text={`最新の状態にリフレッシュ`}
+              onMouseEnter={(e) =>
+                handleOpenTooltip({
+                  e: e,
+                  display: "top",
+                  content: "最新の状態にリフレッシュ",
+                  marginTop: 8,
+                })
+              }
+              onMouseLeave={handleCloseTooltip}
+              onClick={async () => {
+                if (isLoadingRefresh) return;
+                if (!userProfileState) return alert("エラー：ユーザーデータが見つかりませんでした。");
+                console.log("リフレッシュ クリック");
+                setIsLoadingRefresh(true);
+                //   await queryClient.invalidateQueries({ queryKey: ["companies"] });
+                // await refetchMemberAccounts();
+                try {
+                  const { data: userProfileArray, error: error } = await supabase.rpc("get_user_data", {
+                    _user_id: userProfileState.id,
+                  });
+                  if (error) throw error;
+                  console.log("新たなuserProfile", userProfileArray[0]);
+                  setUserProfileState(userProfileArray[0] as UserProfileCompanySubscription);
+                } catch (e: any) {
+                  console.error("最新のユーザーデータの取得に失敗しました。");
+                  alert("最新のユーザーデータの取得に失敗しました...🙇‍♀️");
+                }
+                setTimeout(() => {
+                  setIsLoadingRefresh(false);
+                }, 1000);
+              }}
+            >
+              {/* <FiRefreshCw /> */}
+              {/* {!refetchLoading && <SpinnerIDS scale={"scale-[0.2]"} width={12} height={12} />} */}
+              {isLoadingRefresh && (
+                <div className="relative">
+                  <div className="mr-[2px] h-[12px] w-[12px]"></div>
+                  {/* <SpinnerIDS2 fontSize={16} width={16} height={16} color="#fff" /> */}
+                  <SpinnerIDS3 fontSize={16} width={16} height={16} color="#fff" left="40%" />
+                </div>
+              )}
+              {!isLoadingRefresh && (
+                <div className="flex-center mr-[2px]">
+                  <FiRefreshCw />
+                </div>
+              )}
+              <span className="whitespace-nowrap">リフレッシュ</span>
+            </button>
+          </div>
 
           <div className={`mt-[30px] flex min-h-[120px] w-full flex-col `}>
             <div className={`${styles.section_title}`}>プロフィール画像</div>
