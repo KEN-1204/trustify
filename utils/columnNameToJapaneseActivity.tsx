@@ -196,10 +196,19 @@ export const columnNameToJapaneseActivity = (columnName: string) => {
     case "activity_date":
       return "活動日";
       break;
-    case "department":
+    // case "department":
+    //   return "事業部名(自社)";
+    //   break;
+    case "assigned_department_name":
       return "事業部名(自社)";
       break;
-    case "business_office":
+    case "assigned_unit_name":
+      return "係・チーム(自社)";
+      break;
+    // case "business_office":
+    //   return "事業所・営業所(自社)";
+    //   break;
+    case "assigned_office_name":
       return "事業所・営業所(自社)";
       break;
     case "member_name":

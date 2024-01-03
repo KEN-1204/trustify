@@ -94,7 +94,7 @@ const SettingMemberAccountsMemo: FC = () => {
     data: departmentDataArray,
     isLoading: isLoadingQueryDepartment,
     refetch: refetchQUeryDepartments,
-  } = useQueryDepartments(userProfileState?.company_id);
+  } = useQueryDepartments(userProfileState?.company_id, true);
   // console.log("departmentDataArray", departmentDataArray);
 
   // useMutation
@@ -105,7 +105,7 @@ const SettingMemberAccountsMemo: FC = () => {
     data: unitDataArray,
     isLoading: isLoadingQueryUnit,
     refetch: refetchQUeryUnits,
-  } = useQueryUnits(userProfileState?.company_id);
+  } = useQueryUnits(userProfileState?.company_id, true);
   // console.log("unitDataArray", unitDataArray);
 
   // useMutation
@@ -117,7 +117,7 @@ const SettingMemberAccountsMemo: FC = () => {
     data: officeDataArray,
     isLoading: isLoadingQueryOffice,
     refetch: refetchQUeryOffices,
-  } = useQueryOffices(userProfileState?.company_id);
+  } = useQueryOffices(userProfileState?.company_id, true);
   // console.log("officeDataArray", officeDataArray);
 
   // useMutation
@@ -280,12 +280,13 @@ const SettingMemberAccountsMemo: FC = () => {
       setFilteredMemberArray(sortedMemberAccountsArray);
       if (isActiveFilter) setIsActiveFilter(false);
     } else {
-      // 検索条件が一つ以上選択されているパターン
+      // 検索条件が一つ以上選択されているパターン 条件なしの''の場合はtrueでそのセクションの全て抽出
       const filteredData = memberAccountsDataArray.filter((member) => {
         const matchesDepartment = filterCondition.department
           ? member.assigned_department_name?.includes(filterCondition.department)
           : true;
         const matchesUnit = filterCondition.unit ? member.assigned_unit_name?.includes(filterCondition.unit) : true;
+        // const matchesUnit = filterCondition.unit === member.assigned_unit_name;
         const matchesOffice = filterCondition.office
           ? member.assigned_office_name?.includes(filterCondition.office)
           : true;

@@ -11,6 +11,8 @@ import productCategoriesM from "@/utils/productCategoryM";
 import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { BsChevronLeft } from "react-icons/bs";
+import { useQueryClient } from "@tanstack/react-query";
+import { Department, Office, Unit } from "@/types";
 
 export const InsertNewActivityModal = () => {
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
@@ -44,25 +46,39 @@ export const InsertNewActivityModal = () => {
   const [productIntroduction3, setProductIntroduction3] = useState(null); //面談、案件、見積用
   const [productIntroduction4, setProductIntroduction4] = useState(null); //面談、案件、見積用
   const [productIntroduction5, setProductIntroduction5] = useState(null); //面談、案件、見積用
-  const [departmentName, setDepartmentName] = useState(
-    userProfileState?.department ? userProfileState?.department : ""
+  // const [departmentName, setDepartmentName] = useState(
+  //   userProfileState?.department ? userProfileState?.department : ""
+  // );
+  // const [businessOffice, setBusinessOffice] = useState("");
+  const [departmentId, setDepartmentId] = useState<Department["id"] | null>(
+    userProfileState?.assigned_department_id ? userProfileState?.assigned_department_id : null
   );
-  const [businessOffice, setBusinessOffice] = useState("");
-  const [memberName, setMemberName] = useState(
-    userProfileState?.last_name ? userProfileState?.last_name + userProfileState?.first_name : ""
+  const [unitId, setUnitId] = useState<Unit["id"] | null>(
+    userProfileState?.assigned_unit_id ? userProfileState?.assigned_unit_id : null
   );
+  const [officeId, setOfficeId] = useState<Office["id"] | null>(
+    userProfileState?.assigned_office_id ? userProfileState?.assigned_office_id : null
+  );
+  const [memberName, setMemberName] = useState(userProfileState?.profile_name ? userProfileState?.profile_name : "");
   const [priority, setPriority] = useState("");
   const [activityYearMonth, setActivityYearMonth] = useState<number | null>(Number(activityYearMonthInitialValue));
 
   const supabase = useSupabaseClient();
+  const queryClient = useQueryClient();
   const { createActivityMutation } = useMutateActivity();
 
-  useEffect(() => {
-    if (!userProfileState) return;
-    setMemberName(userProfileState.profile_name ? userProfileState.profile_name : "");
-    setBusinessOffice(userProfileState.office ? userProfileState.office : "");
-    setDepartmentName(userProfileState.department ? userProfileState.department : "");
-  }, []);
+  // ================================ 🌟事業部、係、事業所リスト取得useQuery🌟 ================================
+  const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
+  const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
+  const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
+  // ================================ ✅事業部、係、事業所リスト取得useQuery✅ ================================
+
+  // useEffect(() => {
+  //   if (!userProfileState) return;
+  //   setMemberName(userProfileState.profile_name ? userProfileState.profile_name : "");
+  //   setBusinessOffice(userProfileState.office ? userProfileState.office : "");
+  //   setDepartmentName(userProfileState.department ? userProfileState.department : "");
+  // }, []);
 
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
@@ -80,12 +96,21 @@ export const InsertNewActivityModal = () => {
 
     setLoadingGlobalState(true);
 
+    const departmentName =
+      departmentDataArray &&
+      departmentId &&
+      departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
+    const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
+
     // 新規作成するデータをオブジェクトにまとめる
     const newActivity = {
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
       created_by_user_id: userProfileState?.id ? userProfileState.id : null,
-      created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
-      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      // created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
+      // created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      created_by_department_of_user: departmentId ? departmentId : null,
+      created_by_unit_of_user: unitId ? unitId : null,
+      created_by_office_of_user: officeId ? officeId : null,
       client_contact_id: selectedRowDataContact.contact_id,
       client_company_id: selectedRowDataContact.company_id,
       summary: summary,
@@ -101,8 +126,10 @@ export const InsertNewActivityModal = () => {
       product_introduction3: productIntroduction3 ? productIntroduction3 : null,
       product_introduction4: productIntroduction4 ? productIntroduction4 : null,
       product_introduction5: productIntroduction5 ? productIntroduction5 : null,
+      // department: departmentName ? departmentName : null,
+      // business_office: businessOffice ? businessOffice : null,
       department: departmentName ? departmentName : null,
-      business_office: businessOffice ? businessOffice : null,
+      business_office: officeName ? officeName : null,
       member_name: memberName ? memberName : null,
       priority: priority ? priority : null,
       activity_date: activityDate ? activityDate.toISOString() : null,
@@ -131,12 +158,21 @@ export const InsertNewActivityModal = () => {
 
     setLoadingGlobalState(true);
 
+    const departmentName =
+      departmentDataArray &&
+      departmentId &&
+      departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
+    const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
+
     // 新規作成するデータをオブジェクトにまとめる
     const newActivity = {
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
       created_by_user_id: userProfileState?.id ? userProfileState.id : null,
-      created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
-      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      // created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
+      // created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      created_by_department_of_user: departmentId ? departmentId : null,
+      created_by_unit_of_user: unitId ? unitId : null,
+      created_by_office_of_user: officeId ? officeId : null,
       client_contact_id: selectedRowDataActivity.contact_id,
       client_company_id: selectedRowDataActivity.company_id,
       summary: summary ? summary : null,
@@ -153,7 +189,7 @@ export const InsertNewActivityModal = () => {
       product_introduction4: productIntroduction4 ? productIntroduction4 : null,
       product_introduction5: productIntroduction5 ? productIntroduction5 : null,
       department: departmentName ? departmentName : null,
-      business_office: businessOffice ? businessOffice : null,
+      business_office: officeName ? officeName : null,
       member_name: memberName ? memberName : null,
       priority: priority ? priority : null,
       activity_date: activityDate ? activityDate.toISOString() : null,
@@ -179,12 +215,21 @@ export const InsertNewActivityModal = () => {
 
     setLoadingGlobalState(true);
 
+    const departmentName =
+      departmentDataArray &&
+      departmentId &&
+      departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
+    const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
+
     // 新規作成するデータをオブジェクトにまとめる
     const newActivity = {
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
       created_by_user_id: userProfileState?.id ? userProfileState.id : null,
-      created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
-      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      // created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
+      // created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      created_by_department_of_user: departmentId ? departmentId : null,
+      created_by_unit_of_user: unitId ? unitId : null,
+      created_by_office_of_user: officeId ? officeId : null,
       client_contact_id: selectedRowDataMeeting.contact_id,
       client_company_id: selectedRowDataMeeting.company_id,
       summary: summary ? summary : null,
@@ -201,7 +246,7 @@ export const InsertNewActivityModal = () => {
       product_introduction4: productIntroduction4 ? productIntroduction4 : null,
       product_introduction5: productIntroduction5 ? productIntroduction5 : null,
       department: departmentName ? departmentName : null,
-      business_office: businessOffice ? businessOffice : null,
+      business_office: officeName ? officeName : null,
       member_name: memberName ? memberName : null,
       priority: priority ? priority : null,
       activity_date: activityDate ? activityDate.toISOString() : null,
@@ -227,12 +272,21 @@ export const InsertNewActivityModal = () => {
 
     setLoadingGlobalState(true);
 
+    const departmentName =
+      departmentDataArray &&
+      departmentId &&
+      departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
+    const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
+
     // 新規作成するデータをオブジェクトにまとめる
     const newActivity = {
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
       created_by_user_id: userProfileState?.id ? userProfileState.id : null,
-      created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
-      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      // created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
+      // created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      created_by_department_of_user: departmentId ? departmentId : null,
+      created_by_unit_of_user: unitId ? unitId : null,
+      created_by_office_of_user: officeId ? officeId : null,
       client_contact_id: selectedRowDataProperty.contact_id,
       client_company_id: selectedRowDataProperty.company_id,
       summary: summary ? summary : null,
@@ -249,7 +303,7 @@ export const InsertNewActivityModal = () => {
       product_introduction4: productIntroduction4 ? productIntroduction4 : null,
       product_introduction5: productIntroduction5 ? productIntroduction5 : null,
       department: departmentName ? departmentName : null,
-      business_office: businessOffice ? businessOffice : null,
+      business_office: officeName ? officeName : null,
       member_name: memberName ? memberName : null,
       priority: priority ? priority : null,
       activity_date: activityDate ? activityDate.toISOString() : null,
@@ -552,8 +606,6 @@ export const InsertNewActivityModal = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>優先度</span>
                     <select
-                      name="number_of_employees_class"
-                      id="number_of_employees_class"
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={priority}
                       onChange={(e) => setPriority(e.target.value)}
@@ -661,7 +713,7 @@ export const InsertNewActivityModal = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px]`}>事業部名</span>
-                    <input
+                    {/* <input
                       type="text"
                       placeholder=""
                       required
@@ -669,7 +721,21 @@ export const InsertNewActivityModal = () => {
                       value={departmentName}
                       onChange={(e) => setDepartmentName(e.target.value)}
                       // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
-                    />
+                    /> */}
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={departmentId ? departmentId : ""}
+                      onChange={(e) => setDepartmentId(e.target.value)}
+                    >
+                      <option value=""></option>
+                      {departmentDataArray &&
+                        departmentDataArray.length >= 1 &&
+                        departmentDataArray.map((department) => (
+                          <option key={department.id} value={department.id}>
+                            {department.department_name}
+                          </option>
+                        ))}
+                    </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -679,33 +745,25 @@ export const InsertNewActivityModal = () => {
             </div>
             {/* --------- 右ラッパー --------- */}
             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 活動年月度 */}
+              {/* 係・チーム */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>活動年月度</span>
-                    <input
-                      type="number"
-                      min="0"
-                      className={`${styles.input_box}`}
-                      placeholder='"202109" や "202312" などを入力'
-                      value={activityYearMonth === null ? "" : activityYearMonth}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === "") {
-                          setActivityYearMonth(null);
-                        } else {
-                          const numValue = Number(val);
-
-                          // 入力値がマイナスかチェック
-                          if (numValue < 0) {
-                            setActivityYearMonth(0);
-                          } else {
-                            setActivityYearMonth(numValue);
-                          }
-                        }
-                      }}
-                    />
+                    <span className={`${styles.title} `}>係・チーム</span>
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={unitId ? unitId : ""}
+                      onChange={(e) => setUnitId(e.target.value)}
+                    >
+                      <option value=""></option>
+                      {unitDataArray &&
+                        unitDataArray.length >= 1 &&
+                        unitDataArray.map((unit) => (
+                          <option key={unit.id} value={unit.id}>
+                            {unit.unit_name}
+                          </option>
+                        ))}
+                    </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -725,7 +783,7 @@ export const InsertNewActivityModal = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px]`}>所属事業所</span>
-                    <input
+                    {/* <input
                       type="text"
                       placeholder=""
                       required
@@ -733,23 +791,21 @@ export const InsertNewActivityModal = () => {
                       value={businessOffice}
                       onChange={(e) => setBusinessOffice(e.target.value)}
                       // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
-                    />
-                    {/* <select
-                      name="number_of_employees_class"
-                      id="number_of_employees_class"
-                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      //   value={numberOfEmployeesClass}
-                      //   onChange={(e) => setNumberOfEmployeesClass(e.target.value)}
+                    /> */}
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={officeId ? officeId : ""}
+                      onChange={(e) => setOfficeId(e.target.value)}
                     >
                       <option value=""></option>
-                      <option value="A 1000名以上">A 1000名以上</option>
-                      <option value="B 500-999名">B 500-999名</option>
-                      <option value="C 300-499名">C 300-499名</option>
-                      <option value="D 200-299名">D 200-299名</option>
-                      <option value="E 100-199名">E 100-199名</option>
-                      <option value="F 50-99名">F 50-99名</option>
-                      <option value="G 50名未満">G 50名未満</option>
-                    </select> */}
+                      {officeDataArray &&
+                        officeDataArray.length >= 1 &&
+                        officeDataArray.map((office) => (
+                          <option key={office.id} value={office.id}>
+                            {office.office_name}
+                          </option>
+                        ))}
+                    </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -781,6 +837,70 @@ export const InsertNewActivityModal = () => {
 
               {/* 右ラッパーここまで */}
             </div>
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* 活動年月度 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title} !min-w-[140px]`}>活動年月度</span>
+                    <input
+                      type="number"
+                      min="0"
+                      className={`${styles.input_box}`}
+                      placeholder='"202109" や "202312" などを入力'
+                      value={activityYearMonth === null ? "" : activityYearMonth}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "") {
+                          setActivityYearMonth(null);
+                        } else {
+                          const numValue = Number(val);
+
+                          // 入力値がマイナスかチェック
+                          if (numValue < 0) {
+                            setActivityYearMonth(0);
+                          } else {
+                            setActivityYearMonth(numValue);
+                          }
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 左ラッパーここまで */}
+            </div>
+
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* 自社担当 */}
+              {/* <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>自社担当</span>
+                    <input
+                      type="text"
+                      placeholder="*入力必須"
+                      required
+                      className={`${styles.input_box}`}
+                      value={memberName}
+                      onChange={(e) => setMemberName(e.target.value)}
+                      // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
+                    />
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div> */}
+            </div>
+            {/* 右ラッパーここまで */}
           </div>
           {/* --------- 横幅全体ラッパーここまで --------- */}
 

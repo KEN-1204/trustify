@@ -2,7 +2,7 @@ import { Office } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
 
-export const useQueryOffices = (company_id: string | null | undefined) => {
+export const useQueryOffices = (company_id: string | null | undefined, isReady: boolean = true) => {
   const supabase = useSupabaseClient();
 
   const getOurOffices = async () => {
@@ -33,6 +33,7 @@ export const useQueryOffices = (company_id: string | null | undefined) => {
     onError: (error) => {
       console.error("useQueryOffices error:", error);
     },
-    enabled: !!company_id,
+    // enabled: !!company_id,
+    enabled: !!company_id && isReady,
   });
 };

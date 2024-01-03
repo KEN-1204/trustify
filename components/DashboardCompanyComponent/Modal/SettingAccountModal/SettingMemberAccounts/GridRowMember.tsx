@@ -803,7 +803,8 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
         <div role="gridcell" className={styles.grid_cell}>
           {memberAccount.account_company_role &&
             memberAccount.account_company_role !== "company_owner" &&
-            !!memberAccount.profile_name && (
+            !!memberAccount.profile_name &&
+            memberAccount.id !== userProfileState?.id && (
               <div className={`${styles.grid_select_cell_header}`}>
                 <input
                   type="checkbox"

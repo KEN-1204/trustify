@@ -182,7 +182,7 @@ export const useMutateActivity = () => {
   // 【Activityの個別フィールド毎に編集UPDATE用updateActivityFieldMutation関数】
   // MainContainerからダブルクリックでフィールドエディットモードに移行し、個別にフィールド入力、更新した時に使用 受け取る引数は一つのプロパティのみ
   type ExcludeKeys = "company_id" | "contact_id" | "activity_id"; // 除外するキー idはUPDATEすることは無いため
-  type ActivityFieldNamesForSelectedRowData = Exclude<keyof Activity_row_data, ExcludeKeys>; // Contact_row_dataタイプのプロパティ名のみのデータ型を取得
+  type ActivityFieldNamesForSelectedRowData = Exclude<keyof Activity_row_data, ExcludeKeys>; // Activity_row_dataタイプのプロパティ名のみのデータ型を取得
   const updateActivityFieldMutation = useMutation(
     async (fieldData: {
       fieldName: string;

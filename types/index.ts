@@ -140,6 +140,7 @@ export type Client_company = {
   created_by_user_id?: string | null;
   created_by_department_of_user?: string | null;
   created_by_unit_of_user?: string | null;
+  created_by_office_of_user?: string | null;
   name?: string;
   department_name?: string;
   main_fax?: string | null;
@@ -210,9 +211,10 @@ export type Client_company_row_data = {
   clients?: string | null;
   created_at?: string | null;
   created_by_company_id?: string | null;
+  created_by_user_id?: string | null;
   created_by_department_of_user?: string | null;
   created_by_unit_of_user?: string | null;
-  created_by_user_id?: string | null;
+  created_by_office_of_user?: string | null;
   department_contacts?: string | null;
   department_name?: string;
   director?: string | null;
@@ -620,7 +622,9 @@ export type Contact = {
   created_by_user_id: string | null;
   created_by_department_of_user: string | null;
   created_by_unit_of_user: string | null;
+  created_by_office_of_user: string | null;
 };
+// 【Contact一括編集UPDATE用updateContactMutation関数】
 export type EditedContact = {
   id: string;
   // created_at: string;
@@ -649,7 +653,10 @@ export type EditedContact = {
   created_by_user_id: string | null;
   created_by_department_of_user: string | null;
   created_by_unit_of_user: string | null;
+  created_by_office_of_user: string | null;
 };
+// 上画面の列選択した時に下画面に担当者情報を映す用のState
+// 選択中の行データオブジェクト GridTableで取得した結合データ
 export type Contact_row_data = {
   company_id: string;
   company_name: string | null;
@@ -695,8 +702,9 @@ export type Contact_row_data = {
   approval_amount: number | null;
   created_by_company_id: string | null;
   created_by_user_id: string | null;
-  created_by_department_of_user: string | null;
+  created_by_department_of_user: string | null; // 🌠追加
   created_by_unit_of_user: string | null;
+  created_by_office_of_user: string | null;
   call_careful_flag: boolean | null;
   call_careful_reason: string | null;
   email_ban_flag: boolean | null;
@@ -704,7 +712,13 @@ export type Contact_row_data = {
   fax_dm_ban_flag: boolean | null;
   ban_reason: string | null;
   claim: string | null;
+  // 🌠追加 事業部、係、事業所
+  assigned_department_name: string | null;
+  assigned_unit_name: string | null;
+  assigned_office_name: string | null;
 };
+// 上画面の列選択した時に下画面に担当者情報を映す用のState
+// 選択中の行データオブジェクト GridTableで取得した結合データ
 export type Activity_row_data = {
   company_id: string;
   contact_id: string;
@@ -753,6 +767,7 @@ export type Activity_row_data = {
   contact_created_by_user_id: string | null;
   contact_created_by_department_of_user: string | null;
   contact_created_by_unit_of_user: string | null;
+  contact_created_by_office_of_user: string | null; //🌠追加
   call_careful_flag: boolean | null;
   call_careful_reason: string | null;
   email_ban_flag: boolean | null;
@@ -767,6 +782,7 @@ export type Activity_row_data = {
   activity_created_by_user_id: string | null;
   activity_created_by_department_of_user: string | null;
   activity_created_by_unit_of_user: string | null;
+  activity_created_by_office_of_user: string | null; //🌠追加
   summary: string | null;
   scheduled_follow_up_date: string | null;
   follow_up_flag: boolean | null;
@@ -787,7 +803,13 @@ export type Activity_row_data = {
   meeting_id: string | null;
   property_id: string | null;
   quotation_id: string | null;
+  //🌠追加 事業部、係、事業所
+  assigned_department_name: string | null;
+  assigned_unit_name: string | null;
+  assigned_office_name: string | null;
 };
+// 上画面の列選択した時に下画面に担当者情報を映す用のState
+// 選択中の行データオブジェクト GridTableで取得した結合データ
 export type Meeting_row_data = {
   company_id: string;
   contact_id: string;
@@ -836,6 +858,7 @@ export type Meeting_row_data = {
   contact_created_by_user_id: string | null;
   contact_created_by_department_of_user: string | null;
   contact_created_by_unit_of_user: string | null;
+  contact_created_by_office_of_user: string | null;
   call_careful_flag: boolean | null;
   call_careful_reason: string | null;
   email_ban_flag: boolean | null;
@@ -850,6 +873,7 @@ export type Meeting_row_data = {
   meeting_created_by_user_id: string | null;
   meeting_created_by_department_of_user: string | null;
   meeting_created_by_unit_of_user: string | null;
+  meeting_created_by_office_of_user: string | null;
   meeting_type: string | null;
   web_tool: string | null;
   planned_date: string | null;
@@ -879,7 +903,13 @@ export type Meeting_row_data = {
   meeting_department: string | null;
   meeting_member_name: string | null;
   meeting_year_month: number | null;
+  //🌠追加 事業部、係、事業所
+  assigned_department_name: string | null;
+  assigned_unit_name: string | null;
+  assigned_office_name: string | null;
 };
+// 上画面の列選択した時に下画面に担当者情報を映す用のState
+// 選択中の行データオブジェクト GridTableで取得した結合データ
 export type ValidMeeting = {
   company_id: string;
   contact_id: string;
@@ -928,6 +958,7 @@ export type ValidMeeting = {
   contact_created_by_user_id: string | null;
   contact_created_by_department_of_user: string | null;
   contact_created_by_unit_of_user: string | null;
+  contact_created_by_office_of_user: string | null;
   call_careful_flag: boolean | null;
   call_careful_reason: string | null;
   email_ban_flag: boolean | null;
@@ -942,6 +973,7 @@ export type ValidMeeting = {
   meeting_created_by_user_id: string | null;
   meeting_created_by_department_of_user: string | null;
   meeting_created_by_unit_of_user: string | null;
+  meeting_created_by_office_of_user: string | null;
   meeting_type: string | null;
   web_tool: string | null;
   planned_date: string;
@@ -971,7 +1003,13 @@ export type ValidMeeting = {
   meeting_department: string | null;
   meeting_member_name: string | null;
   meeting_year_month: number | null;
+  //🌠追加 事業部、係、事業所
+  assigned_department_name: string | null;
+  assigned_unit_name: string | null;
+  assigned_office_name: string | null;
 };
+// 上画面の列選択した時に下画面に担当者情報を映す用のState
+// 選択中の行データオブジェクト GridTableで取得した結合データ
 export type Property_row_data = {
   company_id: string;
   contact_id: string;
@@ -1020,6 +1058,7 @@ export type Property_row_data = {
   contact_created_by_user_id: string | null;
   contact_created_by_department_of_user: string | null;
   contact_created_by_unit_of_user: string | null;
+  contact_created_by_office_of_user: string | null; //🌠追加
   call_careful_flag: boolean | null;
   call_careful_reason: string | null;
   email_ban_flag: boolean | null;
@@ -1034,6 +1073,7 @@ export type Property_row_data = {
   property_created_by_user_id: string | null;
   property_created_by_department_of_user: string | null;
   property_created_by_unit_of_user: string | null;
+  property_created_by_office_of_user: string | null; //🌠追加
   client_contact_id: string | null;
   client_company_id: string | null;
   current_status: string | null;
@@ -1084,6 +1124,10 @@ export type Property_row_data = {
   property_business_office: string | null;
   property_member_name: string | null;
   property_date: string | null;
+  //🌠追加 事業部、係、事業所
+  assigned_department_name: string | null;
+  assigned_unit_name: string | null;
+  assigned_office_name: string | null;
 };
 // export type Contact_row_data = {
 //   // client_companyテーブル
@@ -1188,7 +1232,7 @@ export type NewSearchContact_CompanyParams = {
   "contacts.created_by_company_id": string | null;
   created_by_user_id: string | null;
 };
-
+// 検索時に下で条件入力した内容を上のrpc()のparamsに渡す用のstate
 export type NewSearchActivity_Contact_CompanyParams = {
   "client_companies.name": string | null;
   department_name: string | null;
@@ -1241,6 +1285,7 @@ export type NewSearchActivity_Contact_CompanyParams = {
   "activities.created_by_user_id": string | null;
   "activities.created_by_department_of_user": string | null;
   "activities.created_by_unit_of_user": string | null;
+  "activities.created_by_office_of_user": string | null; //🌠追加
   summary: string | null;
   scheduled_follow_up_date: string | null;
   follow_up_flag: boolean | null;
@@ -1312,6 +1357,7 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   "meetings.created_by_user_id": string | null;
   "meetings.created_by_department_of_user": string | null;
   "meetings.created_by_unit_of_user": string | null;
+  "meetings.created_by_office_of_user": string | null; //🌠追加
   meeting_type: string | null;
   web_tool: string | null;
   planned_date: string | null;
@@ -1395,6 +1441,7 @@ export type NewSearchProperty_Contact_CompanyParams = {
   "properties.created_by_user_id": string | null;
   "properties.created_by_department_of_user": string | null;
   "properties.created_by_unit_of_user": string | null;
+  "properties.created_by_office_of_user": string | null; //🌠追加
   current_status: string | null;
   property_name: string | null;
   property_summary: string | null;
@@ -1454,6 +1501,7 @@ export type Activity = {
   created_by_user_id: string | null;
   created_by_department_of_user: string | null;
   created_by_unit_of_user: string | null;
+  created_by_office_of_user: string | null; //🌠追加
   client_contact_id: string | null;
   client_company_id: string | null;
   summary: string | null;
@@ -1487,6 +1535,7 @@ export type Meeting = {
   created_by_user_id: string | null;
   created_by_department_of_user: string | null;
   created_by_unit_of_user: string | null;
+  created_by_office_of_user: string | null; //🌠追加
   client_contact_id: string | null;
   client_company_id: string | null;
   meeting_type: string | null;
@@ -1527,6 +1576,7 @@ export type Product = {
   created_by_user_id: string | null;
   created_by_department_of_user: string | null;
   created_by_unit_of_user: string | null;
+  created_by_office_of_user: string | null; //🌠追加
   product_name: string | null;
   inside_short_name: string | null;
   outside_short_name: string | null;
@@ -1539,6 +1589,7 @@ export type EditedProduct = {
   created_by_user_id: string;
   created_by_department_of_user: string;
   created_by_unit_of_user: string;
+  created_by_office_of_user: string; //🌠追加
   product_name: string;
   inside_short_name: string;
   outside_short_name: string;
@@ -1584,6 +1635,7 @@ export type Property = {
   created_by_user_id: string | null;
   created_by_department_of_user: string | null;
   created_by_unit_of_user: string | null;
+  created_by_office_of_user: string | null; //🌠追加
   client_contact_id: string | null;
   client_company_id: string | null;
   current_status: string | null;

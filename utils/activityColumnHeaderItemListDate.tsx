@@ -37,14 +37,35 @@ const activityColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
+  // 自社事業部
+  // {
+  //   columnName: "department",
+  //   columnWidth: "100px",
+  //   isFrozen: false,
+  //   isOverflow: false,
+  // },
   {
-    columnName: "department",
+    columnName: "assigned_department_name",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
   },
+  // 自社係
   {
-    columnName: "business_office",
+    columnName: "assigned_unit_name",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  // 自社事業所
+  // {
+  //   columnName: "business_office",
+  //   columnWidth: "100px",
+  //   isFrozen: false,
+  //   isOverflow: false,
+  // },
+  {
+    columnName: "assigned_office_name",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,

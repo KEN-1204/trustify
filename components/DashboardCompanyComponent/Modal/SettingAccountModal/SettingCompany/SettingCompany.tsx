@@ -108,7 +108,8 @@ const SettingCompanyMemo = () => {
     data: departmentDataArray,
     isLoading: isLoadingQueryDepartment,
     refetch: refetchQUeryDepartments,
-  } = useQueryDepartments(userProfileState?.company_id);
+  } = useQueryDepartments(userProfileState?.company_id, true);
+  // } = useQueryDepartments(userProfileState?.company_id);
   console.log("departmentDataArray", departmentDataArray);
 
   // useMutation
@@ -119,7 +120,8 @@ const SettingCompanyMemo = () => {
     data: unitDataArray,
     isLoading: isLoadingQueryUnit,
     refetch: refetchQUeryUnits,
-  } = useQueryUnits(userProfileState?.company_id);
+  } = useQueryUnits(userProfileState?.company_id, true);
+  // } = useQueryUnits(userProfileState?.company_id);
 
   // useMutation
   const { createUnitMutation, updateUnitFieldMutation, updateMultipleUnitFieldsMutation, deleteUnitMutation } =
@@ -130,7 +132,8 @@ const SettingCompanyMemo = () => {
     data: officeDataArray,
     isLoading: isLoadingQueryOffice,
     refetch: refetchQUeryOffices,
-  } = useQueryOffices(userProfileState?.company_id);
+  } = useQueryOffices(userProfileState?.company_id, true);
+  // } = useQueryOffices(userProfileState?.company_id);
 
   // useMutation
   const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
@@ -1201,9 +1204,11 @@ const SettingCompanyMemo = () => {
                       className={`${styles.row_group} scrollbar-hide flex items-center space-x-[12px] overflow-x-scroll`}
                     >
                       {[...departmentDataArray]
-                        .sort((a, b) =>
-                          a.department_name.localeCompare(b.department_name, language === "ja" ? "ja" : "en")
-                        )
+                        .sort((a, b) => {
+                          if (a.department_name === null) return 1; // null値をリストの最後に移動
+                          if (b.department_name === null) return -1;
+                          return a.department_name.localeCompare(b.department_name, language === "ja" ? "ja" : "en");
+                        })
                         .map((departmentData, index) => (
                           <div
                             key={index}
@@ -1445,6 +1450,7 @@ const SettingCompanyMemo = () => {
                   value={editedDepartment?.department_name ? editedDepartment.department_name : ""}
                   onChange={(e) => setEditedDepartment({ ...editedDepartment, department_name: e.target.value })}
                   onBlur={() => {
+                    if (!editedDepartment.department_name) return;
                     const newName = toHalfWidthAndSpace(editedDepartment.department_name.trim());
                     setEditedDepartment({ ...editedDepartment, department_name: newName });
                   }}
@@ -1547,11 +1553,13 @@ const SettingCompanyMemo = () => {
                   {/* <option value="1">すべての事業部すべての事業部すべての事業部すべての事業部</option> */}
                   <option value="">すべての事業部</option>
                   {!!departmentDataArray &&
-                    departmentDataArray >= 1 &&
+                    departmentDataArray.length >= 1 &&
                     [...departmentDataArray]
-                      .sort((a, b) =>
-                        a.department_name.localeCompare(b.department_name, language === "ja" ? "ja" : "en")
-                      )
+                      .sort((a, b) => {
+                        if (a.department_name === null) return 1; // null値をリストの最後に移動
+                        if (b.department_name === null) return -1;
+                        return a.department_name.localeCompare(b.department_name, language === "ja" ? "ja" : "en");
+                      })
                       .map((department, index) => (
                         <option key={department.id} value={department.id}>
                           {department.department_name}
@@ -1629,7 +1637,11 @@ const SettingCompanyMemo = () => {
                       {
                         // [...unitDataArray]
                         [...filteredUnitBySelectedDepartment]
-                          .sort((a, b) => a.unit_name.localeCompare(b.unit_name, language === "ja" ? "ja" : "en"))
+                          .sort((a, b) => {
+                            if (a.unit_name === null) return 1; // null値をリストの最後に移動
+                            if (b.unit_name === null) return -1;
+                            return a.unit_name.localeCompare(b.unit_name, language === "ja" ? "ja" : "en");
+                          })
                           .map((unitData, index) => (
                             <div
                               key={index}
@@ -1832,6 +1844,7 @@ const SettingCompanyMemo = () => {
                   value={editedUnit?.unit_name ? editedUnit.unit_name : ""}
                   onChange={(e) => setEditedUnit({ ...editedUnit, unit_name: e.target.value })}
                   onBlur={() => {
+                    if (!editedUnit.unit_name) return;
                     const newName = toHalfWidthAndSpace(editedUnit.unit_name.trim());
                     setEditedUnit({ ...editedUnit, unit_name: newName });
                   }}
@@ -1992,7 +2005,11 @@ const SettingCompanyMemo = () => {
                       className={`${styles.row_group} scrollbar-hide flex items-center space-x-[12px] overflow-x-scroll`}
                     >
                       {[...officeDataArray]
-                        .sort((a, b) => a.office_name.localeCompare(b.office_name, language === "ja" ? "ja" : "en"))
+                        .sort((a, b) => {
+                          if (a.office_name === null) return 1; // null値をリストの最後に移動
+                          if (b.office_name === null) return -1;
+                          return a.office_name.localeCompare(b.office_name, language === "ja" ? "ja" : "en");
+                        })
                         .map((officeData, index) => (
                           <div
                             key={index}
@@ -2227,6 +2244,7 @@ const SettingCompanyMemo = () => {
                   value={editedOffice?.office_name ? editedOffice.office_name : ""}
                   onChange={(e) => setEditedOffice({ ...editedOffice, office_name: e.target.value })}
                   onBlur={() => {
+                    if (!editedOffice.office_name) return;
                     const newName = toHalfWidthAndSpace(editedOffice.office_name.trim());
                     setEditedOffice({ ...editedOffice, office_name: newName });
                   }}

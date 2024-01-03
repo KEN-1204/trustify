@@ -420,11 +420,12 @@ const useDashboardStore = create<State>((set) => ({
     created_by_user_id: "",
     created_by_department_of_user: "",
     created_by_unit_of_user: "",
+    created_by_office_of_user: "",
     product_name: "",
     inside_short_name: "",
     outside_short_name: "",
     // unit_price: null,
-    unit_price: '',
+    unit_price: "",
   },
   setEditedProduct: (payload) => set({ editedProduct: payload }),
   // 現在の製品情報をStateに格納

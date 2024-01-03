@@ -28,7 +28,8 @@ export const optionsPositionsClassForCustomer = [
 <option value="8 不明">8 不明</option> */
 
 export const optionsOccupation = [
-  "社長・専務",
+  // "社長・専務",
+  "社長/CEO",
   "取締役・役員",
   "プロジェクト管理",
   "営業",
@@ -212,3 +213,27 @@ export const optionsActivityType = [
 ];
 
 export const optionsPriority = ["高", "中", "低"];
+
+export const optionsSearchEmployeesClass = [
+  <option key={`A 1000名以上`} value="A*">
+    A 1000名以上
+  </option>,
+  <option key={`B 500~999名`} value="B*">
+    B 500~999名
+  </option>,
+  <option key={`C 300~499名`} value="C*">
+    C 300~499名
+  </option>,
+  <option key={`D 200~299名`} value="D*">
+    D 200~299名
+  </option>,
+  <option key={`E 100~199名`} value="E*">
+    E 100~199名
+  </option>,
+  <option key={`F 50~99名`} value="F*">
+    F 50~99名
+  </option>,
+  <option key={`G 1~49名`} value="G*">
+    G 1~49名
+  </option>,
+];

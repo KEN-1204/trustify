@@ -2,7 +2,7 @@ import { Department } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
 
-export const useQueryDepartments = (company_id: string | null | undefined) => {
+export const useQueryDepartments = (company_id: string | null | undefined, isReady: boolean = true) => {
   const supabase = useSupabaseClient();
 
   const getOurDepartments = async () => {
@@ -33,6 +33,7 @@ export const useQueryDepartments = (company_id: string | null | undefined) => {
     onError: (error) => {
       console.error("useQueryDepartments error:", error);
     },
-    enabled: !!company_id,
+    // enabled: !!company_id,
+    enabled: !!company_id && isReady,
   });
 };

@@ -2,7 +2,7 @@ import { Unit } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
 
-export const useQueryUnits = (company_id: string | null | undefined) => {
+export const useQueryUnits = (company_id: string | null | undefined, isReady: boolean = true) => {
   const supabase = useSupabaseClient();
 
   const getOurUnits = async () => {
@@ -32,6 +32,7 @@ export const useQueryUnits = (company_id: string | null | undefined) => {
     onError: (error) => {
       console.error("useQueryUnits error:", error);
     },
-    enabled: !!company_id,
+    // enabled: !!company_id,
+    enabled: !!company_id && isReady,
   });
 };

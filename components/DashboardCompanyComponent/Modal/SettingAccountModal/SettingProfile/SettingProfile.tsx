@@ -14,7 +14,7 @@ import { useQueryOffices } from "@/hooks/useQueryOffices";
 import useStore from "@/store";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { useMutateAuth } from "@/hooks/useMutateAuth";
-import { optionsPositionsClassForCustomer } from "@/utils/selectOptions";
+import { optionsOccupation, optionsPositionsClassForCustomer } from "@/utils/selectOptions";
 import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 import { FiRefreshCw } from "react-icons/fi";
 import SpinnerIDS3 from "@/components/Parts/SpinnerIDS/SpinnerIDS3";
@@ -90,7 +90,7 @@ const SettingProfileMemo = () => {
     data: departmentDataArray,
     isLoading: isLoadingQueryDepartment,
     refetch: refetchQUeryDepartments,
-  } = useQueryDepartments(userProfileState?.company_id);
+  } = useQueryDepartments(userProfileState?.company_id, true);
   console.log("departmentDataArray", departmentDataArray, "selectedDepartment", selectedDepartment);
 
   // useMutation
@@ -101,7 +101,7 @@ const SettingProfileMemo = () => {
     data: unitDataArray,
     isLoading: isLoadingQueryUnit,
     refetch: refetchQUeryUnits,
-  } = useQueryUnits(userProfileState?.company_id);
+  } = useQueryUnits(userProfileState?.company_id, true);
   console.log("unitDataArray", unitDataArray);
 
   // useMutation
@@ -113,7 +113,7 @@ const SettingProfileMemo = () => {
     data: officeDataArray,
     isLoading: isLoadingQueryOffice,
     refetch: refetchQUeryOffices,
-  } = useQueryOffices(userProfileState?.company_id);
+  } = useQueryOffices(userProfileState?.company_id, true);
   console.log("officeDataArray", officeDataArray);
 
   // useMutation
@@ -1486,7 +1486,7 @@ const SettingProfileMemo = () => {
                   value={editedOccupation}
                   onChange={(e) => setEditedOccupation(e.target.value)}
                 >
-                  <option value="経営者/CEO">経営者/CEO</option>
+                  {/* <option value="経営者/CEO">経営者/CEO</option>
                   <option value="役員">役員</option>
                   <option value="営業">営業</option>
                   <option value="マーケティング">マーケティング</option>
@@ -1507,7 +1507,12 @@ const SettingProfileMemo = () => {
                   <option value="カスタマーサービス">カスタマーサービス</option>
                   <option value="学生">学生</option>
                   <option value="教育関係者">教育関係者</option>
-                  <option value="その他">その他</option>
+                  <option value="その他">その他</option> */}
+                  {optionsOccupation.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
                 </select>
                 <div className="flex">
                   <div

@@ -1167,10 +1167,12 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-table-row-hover: #14141490; */
   --color-table-row-hover: #333;
   --color-table-row-hover: #292929;
+  --color-table-row-hover: #2e2e2e;
   /* --color-table-row-hover: #282828; */
   --color-table-bg-selected: #232323;
   --color-table-bg-selected: #14141490;
   --color-table-bg-selected: #191919;
+  /* --color-table-bg-selected: #222; */
   /* --color-table-bg-selected: #292929; */
   /* --color-table-bg-selected: #333; */
   /* --color-table-bg-selected: #303030; */
