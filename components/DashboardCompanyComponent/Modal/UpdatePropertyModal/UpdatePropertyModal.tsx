@@ -20,6 +20,9 @@ import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
 import { format } from "date-fns";
 import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMonth";
 import { getFiscalQuarterTest } from "@/utils/Helpers/getFiscalQuarterTest";
+import { Department, Office, Unit } from "@/types";
+import { useQueryClient } from "@tanstack/react-query";
+import { convertToYen } from "@/utils/Helpers/convertToYen";
 
 export const UpdatePropertyModal = () => {
   const language = useStore((state) => state.language);
@@ -56,12 +59,14 @@ export const UpdatePropertyModal = () => {
   const [productName, setProductName] = useState("");
   const [productSales, setProductSales] = useState<number | null>(null);
   const [expectedOrderDate, setExpectedOrderDate] = useState<Date | null>(null);
-  const [expectedSalesPrice, setExpectedSalesPrice] = useState<number | null>(null);
+  // const [expectedSalesPrice, setExpectedSalesPrice] = useState<number | null>(null);
+  const [expectedSalesPrice, setExpectedSalesPrice] = useState<string>(""); //予定売上価格
   const [termDivision, setTermDivision] = useState("");
   const [soldProductName, setSoldProductName] = useState("");
   const [unitSales, setUnitSales] = useState<number | null>(null);
   const [salesContributionCategory, setSalesContributionCategory] = useState("");
-  const [salesPrice, setSalesPrice] = useState<number | null>(null);
+  // const [salesPrice, setSalesPrice] = useState<number | null>(null); // 売上価格
+  const [salesPrice, setSalesPrice] = useState<string>(""); // 売上価格
   const [discountedPrice, setDiscountedPrice] = useState<number | null>(null);
   const [discountedRate, setDiscountedRate] = useState<number | null>(null);
   const [salesClass, setSalesClass] = useState("");
@@ -94,11 +99,29 @@ export const UpdatePropertyModal = () => {
   const [PropertyYearMonth, setPropertyYearMonth] = useState<number | null>(Number(PropertyYearMonthInitialValue));
   const [subscriptionInterval, setSubscriptionInterval] = useState("");
   const [competitionState, setCompetitionState] = useState("");
-  const [PropertyDepartment, setPropertyDepartment] = useState(
-    userProfileState?.department ? userProfileState?.department : ""
+  // const [PropertyDepartment, setPropertyDepartment] = useState(
+  //   userProfileState?.department ? userProfileState?.department : ""
+  // );
+  // const [PropertyBusinessOffice, setPropertyBusinessOffice] = useState(
+  //   userProfileState?.office ? userProfileState.office : ""
+  // );
+  // 事業部
+  const [departmentId, setDepartmentId] = useState<Department["id"] | null>(
+    selectedRowDataProperty?.property_created_by_department_of_user
+      ? selectedRowDataProperty?.property_created_by_department_of_user
+      : null
   );
-  const [PropertyBusinessOffice, setPropertyBusinessOffice] = useState(
-    userProfileState?.office ? userProfileState.office : ""
+  // 係
+  const [unitId, setUnitId] = useState<Unit["id"] | null>(
+    selectedRowDataProperty?.property_created_by_unit_of_user
+      ? selectedRowDataProperty?.property_created_by_unit_of_user
+      : null
+  );
+  // 事業所
+  const [officeId, setOfficeId] = useState<Office["id"] | null>(
+    selectedRowDataProperty?.property_created_by_office_of_user
+      ? selectedRowDataProperty?.property_created_by_office_of_user
+      : null
   );
   const [PropertyMemberName, setPropertyMemberName] = useState(
     userProfileState?.profile_name ? userProfileState.profile_name : ""
@@ -109,7 +132,14 @@ export const UpdatePropertyModal = () => {
   const fiscalEndMonthObjRef = useRef<Date | null>(null);
   const closingDayRef = useRef<number | null>(null);
 
+  const queryClient = useQueryClient();
   const { updatePropertyMutation } = useMutateProperty();
+
+  // ============================ 🌟事業部、係、事業所リスト取得useQuery🌟 ============================
+  const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
+  const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
+  const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
+  // ============================ ✅事業部、係、事業所リスト取得useQuery✅ ============================
 
   // 四半期のselectタグの選択肢 20211, 20214
   const optionsYear = useMemo((): number[] => {
@@ -269,7 +299,7 @@ export const UpdatePropertyModal = () => {
       ? new Date(selectedRowDataProperty.expected_order_date)
       : null;
     let _expected_sales_price = selectedRowDataProperty.expected_sales_price
-      ? selectedRowDataProperty.expected_sales_price
+      ? selectedRowDataProperty.expected_sales_price.toLocaleString()
       : null;
     let _term_division = selectedRowDataProperty.term_division ? selectedRowDataProperty.term_division : "";
     let _sold_product_name = selectedRowDataProperty.sold_product_name ? selectedRowDataProperty.sold_product_name : "";
@@ -277,7 +307,9 @@ export const UpdatePropertyModal = () => {
     let _sales_contribution_category = selectedRowDataProperty.sales_contribution_category
       ? selectedRowDataProperty.sales_contribution_category
       : "";
-    let _sales_price = selectedRowDataProperty.sales_price ? selectedRowDataProperty.sales_price : null;
+    let _sales_price = selectedRowDataProperty.sales_price
+      ? selectedRowDataProperty.sales_price.toLocaleString()
+      : null;
     let _discounted_price = selectedRowDataProperty.discounted_price ? selectedRowDataProperty.discounted_price : null;
     let _discount_rate = selectedRowDataProperty.discount_rate ? selectedRowDataProperty.discount_rate : null;
     let _sales_class = selectedRowDataProperty.sales_class ? selectedRowDataProperty.sales_class : "";
@@ -332,11 +364,14 @@ export const UpdatePropertyModal = () => {
     let _property_year_month = selectedRowDataProperty.property_year_month
       ? selectedRowDataProperty.property_year_month
       : Number(selectedYearMonthInitialValue);
-    let _property_department = selectedRowDataProperty.property_department
-      ? selectedRowDataProperty.property_department
+    let _property_department = selectedRowDataProperty.property_created_by_department_of_user
+      ? selectedRowDataProperty.property_created_by_department_of_user
       : "";
-    let _property_business_office = selectedRowDataProperty.property_business_office
-      ? selectedRowDataProperty.property_business_office
+    let _unit = selectedRowDataProperty.property_created_by_unit_of_user
+      ? selectedRowDataProperty.property_created_by_unit_of_user
+      : "";
+    let _property_business_office = selectedRowDataProperty.property_created_by_office_of_user
+      ? selectedRowDataProperty.property_created_by_office_of_user
       : "";
     let _property_member_name = selectedRowDataProperty.property_member_name
       ? selectedRowDataProperty.property_member_name
@@ -385,8 +420,11 @@ export const UpdatePropertyModal = () => {
     setSubscriptionInterval(_subscription_interval);
     setCompetitionState(_competition_state);
     setPropertyYearMonth(_property_year_month);
-    setPropertyDepartment(_property_department);
-    setPropertyBusinessOffice(_property_business_office);
+    // setPropertyDepartment(_property_department);
+    // setPropertyBusinessOffice(_property_business_office);
+    setDepartmentId(_property_department);
+    setUnitId(_unit);
+    setOfficeId(_property_business_office);
     setPropertyMemberName(_property_member_name);
     setPropertyDate(_property_date);
   }, []);
@@ -417,13 +455,22 @@ export const UpdatePropertyModal = () => {
 
     setLoadingGlobalState(true);
 
+    const departmentName =
+      departmentDataArray &&
+      departmentId &&
+      departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
+    const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
+
     // 新規作成するデータをオブジェクトにまとめる
     const newProperty = {
       id: selectedRowDataProperty.property_id,
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
       created_by_user_id: userProfileState?.id ? userProfileState.id : null,
-      created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
-      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      // created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
+      // created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      created_by_department_of_user: departmentId ? departmentId : null,
+      created_by_unit_of_user: unitId ? unitId : null,
+      created_by_office_of_user: officeId ? officeId : null,
       client_contact_id: selectedRowDataProperty.contact_id,
       client_company_id: selectedRowDataProperty.company_id,
       current_status: currentStatus ? currentStatus : null,
@@ -434,12 +481,12 @@ export const UpdatePropertyModal = () => {
       product_name: productName ? productName : null,
       product_sales: productSales ? productSales : null,
       expected_order_date: expectedOrderDate ? expectedOrderDate.toISOString() : null,
-      expected_sales_price: expectedSalesPrice ? expectedSalesPrice : null,
+      expected_sales_price: expectedSalesPrice ? parseInt(expectedSalesPrice.replace(/,/g, ""), 10) : null,
       term_division: termDivision ? termDivision : null,
       sold_product_name: soldProductName ? soldProductName : null,
       unit_sales: unitSales ? unitSales : null,
       sales_contribution_category: salesContributionCategory ? salesContributionCategory : null,
-      sales_price: salesPrice ? salesPrice : null,
+      sales_price: salesPrice ? parseInt(salesPrice.replace(/,/g, ""), 10) : null,
       discounted_price: discountedPrice ? discountedPrice : null,
       discount_rate: discountedRate ? discountedRate : null,
       sales_class: salesClass ? salesClass : null,
@@ -468,8 +515,8 @@ export const UpdatePropertyModal = () => {
       subscription_interval: subscriptionInterval ? subscriptionInterval : null,
       competition_state: competitionState ? competitionState : null,
       property_year_month: PropertyYearMonth ? PropertyYearMonth : null,
-      property_department: PropertyDepartment ? PropertyDepartment : null,
-      property_business_office: PropertyBusinessOffice ? PropertyBusinessOffice : null,
+      property_department: departmentName ? departmentName : null,
+      property_business_office: officeName ? officeName : null,
       property_member_name: PropertyMemberName ? PropertyMemberName : null,
       property_date: propertyDate ? propertyDate.toISOString() : null,
     };
@@ -827,7 +874,7 @@ export const UpdatePropertyModal = () => {
                     type="text"
                     placeholder="案件名を入力してください"
                     required
-                    className={`${styles.input_box}`}
+                    className={`${styles.input_box} ${styles.full_width}`}
                     value={propertyName}
                     onChange={(e) => setPropertyName(e.target.value)}
                     onBlur={() => setPropertyName(toHalfWidth(propertyName.trim()))}
@@ -980,8 +1027,31 @@ export const UpdatePropertyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>予定売上価格</span>
-                    <input
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>予定売上価格</span> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "円単位でデータを管理します。",
+                          content2: "600万円と入力しても円単位に自動補完されます。",
+                          // marginTop: 57,
+                          // marginTop: 39,
+                          marginTop: 10,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <div className={`mr-[8px] flex flex-col text-[15px]`}>
+                        <span className={``}>予定</span>
+                        <span className={``}>売上価格(円)</span>
+                      </div>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+                    </div>
+                    {/* <input
                       type="number"
                       min="0"
                       className={`${styles.input_box}`}
@@ -1003,9 +1073,28 @@ export const UpdatePropertyModal = () => {
                         }
                       }}
                     />
-                    {/* バツボタン */}
                     {expectedSalesPrice !== null && expectedSalesPrice !== 0 && (
                       <div className={`${styles.close_btn_number}`} onClick={() => setExpectedSalesPrice(null)}>
+                        <MdClose className="text-[20px] " />
+                      </div>
+                    )} */}
+                    <input
+                      type="text"
+                      placeholder="例：600万円 → 6000000　※半角で入力"
+                      className={`${styles.input_box}`}
+                      value={!!expectedSalesPrice ? expectedSalesPrice : ""}
+                      onChange={(e) => setExpectedSalesPrice(e.target.value)}
+                      onBlur={() =>
+                        setExpectedSalesPrice(
+                          !!expectedSalesPrice && expectedSalesPrice !== ""
+                            ? (convertToYen(expectedSalesPrice.trim()) as number).toLocaleString()
+                            : ""
+                        )
+                      }
+                    />
+                    {/* バツボタン */}
+                    {expectedSalesPrice !== "" && (
+                      <div className={`${styles.close_btn_number}`} onClick={() => setExpectedSalesPrice("")}>
                         <MdClose className="text-[20px] " />
                       </div>
                     )}
@@ -1288,8 +1377,48 @@ export const UpdatePropertyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>売上価格</span>
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>売上価格</span> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "円単位でデータを管理します。",
+                          content2: "600万円と入力しても円単位に自動補完されます。",
+                          // marginTop: 57,
+                          marginTop: 39,
+                          // marginTop: 10,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <span className={`mr-[8px] `}>売上価格(円)</span>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+                    </div>
                     <input
+                      type="text"
+                      placeholder="例：600万円 → 6000000　※半角で入力"
+                      className={`${styles.input_box}`}
+                      value={!!salesPrice ? salesPrice : ""}
+                      onChange={(e) => setSalesPrice(e.target.value)}
+                      onBlur={() =>
+                        setSalesPrice(
+                          !!salesPrice && salesPrice !== ""
+                            ? (convertToYen(salesPrice.trim()) as number).toLocaleString()
+                            : ""
+                        )
+                      }
+                    />
+                    {/* バツボタン */}
+                    {salesPrice !== "" && (
+                      <div className={`${styles.close_btn_number}`} onClick={() => setSalesPrice("")}>
+                        <MdClose className="text-[20px] " />
+                      </div>
+                    )}
+                    {/* <input
                       type="number"
                       min="0"
                       className={`${styles.input_box}`}
@@ -1311,12 +1440,11 @@ export const UpdatePropertyModal = () => {
                         }
                       }}
                     />
-                    {/* バツボタン */}
                     {salesPrice !== null && salesPrice !== 0 && (
                       <div className={`${styles.close_btn_number}`} onClick={() => setSalesPrice(null)}>
                         <MdClose className="text-[20px] " />
                       </div>
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -2354,15 +2482,20 @@ export const UpdatePropertyModal = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px]`}>事業部名</span>
-                    <input
-                      type="text"
-                      placeholder=""
-                      required
-                      className={`${styles.input_box}`}
-                      value={PropertyDepartment}
-                      onChange={(e) => setPropertyDepartment(e.target.value)}
-                      // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
-                    />
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={departmentId ? departmentId : ""}
+                      onChange={(e) => setDepartmentId(e.target.value)}
+                    >
+                      <option value=""></option>
+                      {departmentDataArray &&
+                        departmentDataArray.length >= 1 &&
+                        departmentDataArray.map((department) => (
+                          <option key={department.id} value={department.id}>
+                            {department.department_name}
+                          </option>
+                        ))}
+                    </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -2372,37 +2505,29 @@ export const UpdatePropertyModal = () => {
             </div>
             {/* --------- 右ラッパー --------- */}
             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* ●活動年月度 */}
-              {/* <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              {/* 係・チーム */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>●活動年月度</span>
-                    <input
-                      type="number"
-                      min="0"
-                      className={`${styles.input_box}`}
-                      placeholder='"202109" や "202312" などを入力'
-                      value={PropertyYearMonth === null ? "" : PropertyYearMonth}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === "") {
-                          setPropertyYearMonth(null);
-                        } else {
-                          const numValue = Number(val);
-
-                          // 入力値がマイナスかチェック
-                          if (numValue < 0) {
-                            setPropertyYearMonth(0);
-                          } else {
-                            setPropertyYearMonth(numValue);
-                          }
-                        }
-                      }}
-                    />
+                    <span className={`${styles.title} `}>係・チーム</span>
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={unitId ? unitId : ""}
+                      onChange={(e) => setUnitId(e.target.value)}
+                    >
+                      <option value=""></option>
+                      {unitDataArray &&
+                        unitDataArray.length >= 1 &&
+                        unitDataArray.map((unit) => (
+                          <option key={unit.id} value={unit.id}>
+                            {unit.unit_name}
+                          </option>
+                        ))}
+                    </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
-              </div> */}
+              </div>
             </div>
 
             {/* 右ラッパーここまで */}
@@ -2418,15 +2543,20 @@ export const UpdatePropertyModal = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px]`}>所属事業所</span>
-                    <input
-                      type="text"
-                      placeholder=""
-                      required
-                      className={`${styles.input_box}`}
-                      value={PropertyBusinessOffice}
-                      onChange={(e) => setPropertyBusinessOffice(e.target.value)}
-                      // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
-                    />
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={officeId ? officeId : ""}
+                      onChange={(e) => setOfficeId(e.target.value)}
+                    >
+                      <option value=""></option>
+                      {officeDataArray &&
+                        officeDataArray.length >= 1 &&
+                        officeDataArray.map((office) => (
+                          <option key={office.id} value={office.id}>
+                            {office.office_name}
+                          </option>
+                        ))}
+                    </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>

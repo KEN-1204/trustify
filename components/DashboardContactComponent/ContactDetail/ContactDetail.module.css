@@ -269,6 +269,7 @@
 .title {
   color: var(--color-text-brand-f);
   color: var(--color-text-under-title);
+  color: var(--color-text-title);
   white-space: nowrap;
   /* 右側に20px余白 */
   /* padding-right: 20px; */

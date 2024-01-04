@@ -99,11 +99,11 @@ export const UpdateMeetingModal = () => {
   const queryClient = useQueryClient();
   const { updateMeetingMutation } = useMutateMeeting();
 
-  // ================================ 🌟事業部、係、事業所リスト取得useQuery🌟 ================================
+  // ============================ 🌟事業部、係、事業所リスト取得useQuery🌟 ============================
   const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
   const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
   const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
-  // ================================ ✅事業部、係、事業所リスト取得useQuery✅ ================================
+  // ============================ ✅事業部、係、事業所リスト取得useQuery✅ ============================
 
   function formatTime(timeStr: string) {
     const [hour, minute] = timeStr.split(":");

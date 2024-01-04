@@ -59,6 +59,8 @@
 
   color: #333;
   color: var(--color-edit-text);
+  /* font-family: sans-serif, "Hiragino Sans", Roboto, system-ui; */
+  /* font-family: Roboto, system-ui; */
   font-family: sans-serif;
 }
 .main_contents_container {
@@ -143,7 +145,7 @@
   padding-right: 25px;
   min-width: 95px;
   /* padding-top: 5px; */
-  font-weight: 700;
+  font-weight: 600;
   user-select: none;
 }
 .required_title {
@@ -195,6 +197,9 @@
 }
 .input_box:focus {
   box-shadow: var(--color-bg-under-input-active-box-shadow);
+}
+.input_box.full_width {
+  max-width: none;
 }
 .underline {
   min-height: 1px;

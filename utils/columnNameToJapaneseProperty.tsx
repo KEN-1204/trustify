@@ -320,11 +320,20 @@ export const columnNameToJapaneseProperty = (columnName: string) => {
     case "sales_year_month":
       return "売上年月度";
       break;
-    case "property_department":
-      return "担当事業部";
+    // case "property_department":
+    //   return "担当事業部";
+    //   break;
+    // case "property_business_office":
+    //   return "担当事業所";
+    //   break;
+    case "assigned_department_name":
+      return "事業部名(自社)";
       break;
-    case "property_business_office":
-      return "担当事業所";
+    case "assigned_unit_name":
+      return "係・チーム(自社)";
+      break;
+    case "assigned_office_name":
+      return "所属事業所(自社)";
       break;
     case "property_member_name":
       return "自社担当";

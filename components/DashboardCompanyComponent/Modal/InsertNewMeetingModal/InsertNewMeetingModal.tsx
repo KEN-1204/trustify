@@ -76,20 +76,21 @@ export const InsertNewMeetingModal = () => {
   const [departmentId, setDepartmentId] = useState<Department["id"] | null>(
     userProfileState?.assigned_department_id ? userProfileState?.assigned_department_id : null
   );
-  //所属事業所
+  // 係
   // const [meetingBusinessOffice, setMeetingBusinessOffice] = useState(
   //   userProfileState?.office ? userProfileState.office : ""
   // );
   const [unitId, setUnitId] = useState<Unit["id"] | null>(
     userProfileState?.assigned_unit_id ? userProfileState?.assigned_unit_id : null
   );
-  //自社担当名
   // const [meetingMemberName, setMeetingMemberName] = useState(
   //   userProfileState?.profile_name ? userProfileState.profile_name : ""
   // );
+  // 所属事業所
   const [officeId, setOfficeId] = useState<Office["id"] | null>(
     userProfileState?.assigned_office_id ? userProfileState?.assigned_office_id : null
   );
+  // 自社担当名
   const [meetingMemberName, setMeetingMemberName] = useState(
     userProfileState?.profile_name ? userProfileState?.profile_name : ""
   );
@@ -101,11 +102,11 @@ export const InsertNewMeetingModal = () => {
   const queryClient = useQueryClient();
   const { createMeetingMutation } = useMutateMeeting();
 
-  // ================================ 🌟事業部、係、事業所リスト取得useQuery🌟 ================================
+  // ============================= 🌟事業部、係、事業所リスト取得useQuery🌟 =============================
   const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
   const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
   const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
-  // ================================ ✅事業部、係、事業所リスト取得useQuery✅ ================================
+  // ============================= ✅事業部、係、事業所リスト取得useQuery✅ =============================
 
   //   useEffect(() => {
   //     if (!userProfileState) return;

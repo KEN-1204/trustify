@@ -191,9 +191,14 @@
   padding: 6px 8px;
   font-size: 15px;
   border-radius: 6px;
+  max-width: 375px;
+  margin-left: auto;
 }
 .input_box:focus {
   box-shadow: var(--color-bg-under-input-active-box-shadow);
+}
+.input_box.full_width {
+  max-width: none;
 }
 .underline {
   min-height: 1px;
@@ -322,6 +327,7 @@
   padding-left: 5px;
   font-size: 15px;
   border-radius: 6px;
+  max-width: 375px;
 }
 .close_btn_number {
   position: absolute;

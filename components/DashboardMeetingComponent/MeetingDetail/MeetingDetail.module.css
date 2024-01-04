@@ -280,8 +280,10 @@
 }
 
 .title {
-  color: var(--color-text-brand-f);
   color: var(--color-text-under-title);
+  color: var(--color-text-title);
+  /* color: var(--color-bg-brand-fd0); */
+  /* color: var(--color-main-table-title); */
   white-space: nowrap;
   /* 右側に20px余白 */
   /* padding-right: 20px; */
@@ -449,7 +451,9 @@
   padding: 4px 8px;
   padding: 6px 12px;
   font-size: 14px;
-  letter-spacing: 0.9px;
+  /* letter-spacing: 0.9px; */
+  /* letter-spacing: 0.6px; */
+  letter-spacing: 0.3px;
   /* line-height: 24px; */
   line-height: 22px;
   border-radius: 6px;
@@ -749,4 +753,20 @@
 }
 .row_area input[type="number"] {
   -moz-appearance: textfiled;
+}
+
+@media (max-width: 1600px) {
+  .textarea_box {
+    font-size: 13px;
+    /* letter-spacing: 0.6px; */
+  }
+  .title {
+    min-width: 88px;
+  }
+  .title.title_sm {
+    min-width: 75px;
+  }
+  .title.min {
+    min-width: 88px;
+  }
 }

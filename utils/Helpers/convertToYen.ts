@@ -21,7 +21,7 @@ export function convertToYen(inputString: string): number | null {
   }
 
   // 数値をクリーンアップ(カンマや非数値文字を取り除く) => 円単位の入力の場合に使用
-  //   let numericValue = inputString.replace(/,/g, "").replace(/[^\d]/g, "");
+  let numericValue = inputString.replace(/,/g, "").replace(/[^\d]/g, "");
 
   // 兆、億、万、円で分割して数値を計算
   let total = 0;
@@ -37,6 +37,14 @@ export function convertToYen(inputString: string): number | null {
   if (trillionMatch) total += parseInt(trillionMatch[1].replace(/,/g, ""), 10) * 1000000000000; // 兆の計算
   if (billionMatch) total += parseInt(billionMatch[1].replace(/,/g, ""), 10) * 100000000; // 億の計算
   if (millionMatch) total += parseInt(millionMatch[1].replace(/,/g, ""), 10) * 10000; // 万の計算
+
+  // 「円」が含まれる場合の処理を追加
+  if (inputString.includes("円")) {
+    // 「兆」「億」「万」がない場合は、円単位の数値をそのまま加算
+    if (!trillionMatch && !billionMatch && !millionMatch) {
+      total += parseInt(numericValue, 10);
+    }
+  }
 
   return total;
 }

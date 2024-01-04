@@ -43,14 +43,32 @@ const propertyColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   // 物件・案件エリア
+  // {
+  //   columnName: "property_department",
+  //   columnWidth: "100px",
+  //   isFrozen: false,
+  //   isOverflow: false,
+  // },
   {
-    columnName: "property_department",
+    columnName: "assigned_department_name",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
   },
   {
-    columnName: "property_business_office",
+    columnName: "assigned_unit_name",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  // {
+  //   columnName: "property_business_office",
+  //   columnWidth: "100px",
+  //   isFrozen: false,
+  //   isOverflow: false,
+  // },
+  {
+    columnName: "assigned_office_name",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,

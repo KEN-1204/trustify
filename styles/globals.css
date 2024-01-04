@@ -429,6 +429,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-: #394c6026; */
 
   --color-header-bg-active: rgba(64, 87, 109, 0.07);
+  /* メインテーブルタイトル */
+  --color-main-table-title: var(--color-bg-brandc0);
+  --color-main-table-title: var(--color-text-title);
   /* ブランドカラー light */
   --color-bg-brand: #0066ff;
   --color-bg-brande0: #0066ffe0;
@@ -463,6 +466,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-brand-fa0: #0d99ffa0;
   --color-bg-brand-fb0: #0d99ffb0;
   --color-bg-brand-fc0: #0d99ffc0;
+  --color-bg-brand-fd0: #0d99ffd0;
   --color-bg-brand-fe0: #0d99ffe0;
   --color-bg-brand-f-deep: #0c88e1;
   --color-bg-brand-middle: #80e9ff;
@@ -1077,6 +1081,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
 
   /* テーブルカラー dark */
   --color-bg-table-header: #252525;
+  /* メインテーブルタイトル */
+  --color-main-table-title: var(--color-bg-brand-fe0);
+  --color-main-table-title: var(--color-text-title);
   /* ブランドカラー　背景 */
   --color-bg-brand: #0066ff;
   --color-bg-brande0: #0066ffe0;
@@ -1111,6 +1118,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-brand-fa0: #0c8ce9a0;
   --color-bg-brand-fb0: #0c8ce9b0;
   --color-bg-brand-fc0: #0c8ce9c0;
+  --color-bg-brand-fd0: #0c8ce9d0;
   --color-bg-brand-fe0: #0c8ce9e0;
   --color-bg-brand-f-deep: #0b73bc;
   --color-bg-brand-middle: #80e9ff;

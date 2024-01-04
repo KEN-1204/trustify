@@ -21,6 +21,8 @@ import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMon
 import { format } from "date-fns";
 import { getFiscalQuarter } from "@/utils/Helpers/getFiscalQuarter";
 import { getFiscalQuarterTest } from "@/utils/Helpers/getFiscalQuarterTest";
+import { Department, Office, Unit } from "@/types";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const InsertNewPropertyModal = () => {
   const language = useStore((state) => state.language);
@@ -104,21 +106,35 @@ export const InsertNewPropertyModal = () => {
   // ============================== 日付。年月、四半期関連 ここまで
   const [subscriptionInterval, setSubscriptionInterval] = useState(""); //サブスク分類
   const [competitionState, setCompetitionState] = useState(""); //競合状況
-  const [PropertyDepartment, setPropertyDepartment] = useState(
-    userProfileState?.department ? userProfileState?.department : ""
-  ); //事業部名
-  const [PropertyBusinessOffice, setPropertyBusinessOffice] = useState(
-    userProfileState?.office ? userProfileState.office : ""
-  ); //所属事業所
+  //事業部名
+  const [departmentId, setDepartmentId] = useState<Department["id"] | null>(
+    userProfileState?.assigned_department_id ? userProfileState?.assigned_department_id : null
+  );
+  // 係
+  const [unitId, setUnitId] = useState<Unit["id"] | null>(
+    userProfileState?.assigned_unit_id ? userProfileState?.assigned_unit_id : null
+  );
+  //所属事業所
+  const [officeId, setOfficeId] = useState<Office["id"] | null>(
+    userProfileState?.assigned_office_id ? userProfileState?.assigned_office_id : null
+  );
+  //自社担当
   const [PropertyMemberName, setPropertyMemberName] = useState(
     userProfileState?.profile_name ? userProfileState.profile_name : ""
-  ); //自社担当
+  );
 
   // ユーザーの決算月と締め日を取得
   const fiscalEndMonthObjRef = useRef<Date | null>(null);
   const closingDayRef = useRef<number | null>(null);
 
+  const queryClient = useQueryClient();
   const { createPropertyMutation } = useMutateProperty();
+
+  // ============================= 🌟事業部、係、事業所リスト取得useQuery🌟 =============================
+  const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
+  const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
+  const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
+  // ============================= ✅事業部、係、事業所リスト取得useQuery✅ =============================
 
   // 四半期のselectタグの選択肢 20211, 20214
   const optionsYear = useMemo((): number[] => {
@@ -268,12 +284,21 @@ export const InsertNewPropertyModal = () => {
 
     setLoadingGlobalState(true);
 
+    const departmentName =
+      departmentDataArray &&
+      departmentId &&
+      departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
+    const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
+
     // 新規作成するデータをオブジェクトにまとめる
     const newProperty = {
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
       created_by_user_id: userProfileState?.id ? userProfileState.id : null,
-      created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
-      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      // created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
+      // created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      created_by_department_of_user: departmentId ? departmentId : null,
+      created_by_unit_of_user: unitId ? unitId : null,
+      created_by_office_of_user: officeId ? officeId : null,
       client_contact_id: selectedRowDataMeeting.contact_id,
       client_company_id: selectedRowDataMeeting.company_id,
       current_status: currentStatus ? currentStatus : null,
@@ -318,8 +343,10 @@ export const InsertNewPropertyModal = () => {
       subscription_interval: subscriptionInterval ? subscriptionInterval : null,
       competition_state: competitionState ? competitionState : null,
       property_year_month: PropertyYearMonth ? PropertyYearMonth : null,
-      property_department: PropertyDepartment ? PropertyDepartment : null,
-      property_business_office: PropertyBusinessOffice ? PropertyBusinessOffice : null,
+      // property_department: PropertyDepartment ? PropertyDepartment : null,
+      // property_business_office: PropertyBusinessOffice ? PropertyBusinessOffice : null,
+      property_department: departmentName ? departmentName : null,
+      property_business_office: officeName ? officeName : null,
       property_member_name: PropertyMemberName ? PropertyMemberName : null,
       property_date: propertyDate ? propertyDate.toISOString() : null,
     };
@@ -349,12 +376,21 @@ export const InsertNewPropertyModal = () => {
 
     setLoadingGlobalState(true);
 
+    const departmentName =
+      departmentDataArray &&
+      departmentId &&
+      departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
+    const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
+
     // 新規作成するデータをオブジェクトにまとめる
     const newProperty = {
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
       created_by_user_id: userProfileState?.id ? userProfileState.id : null,
-      created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
-      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      // created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
+      // created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      created_by_department_of_user: departmentId ? departmentId : null,
+      created_by_unit_of_user: unitId ? unitId : null,
+      created_by_office_of_user: officeId ? officeId : null,
       client_contact_id: selectedRowDataActivity.contact_id,
       client_company_id: selectedRowDataActivity.company_id,
       current_status: currentStatus,
@@ -399,8 +435,10 @@ export const InsertNewPropertyModal = () => {
       subscription_interval: subscriptionInterval,
       competition_state: competitionState,
       property_year_month: PropertyYearMonth,
-      property_department: PropertyDepartment ? PropertyDepartment : null,
-      property_business_office: PropertyBusinessOffice ? PropertyBusinessOffice : null,
+      // property_department: PropertyDepartment ? PropertyDepartment : null,
+      // property_business_office: PropertyBusinessOffice ? PropertyBusinessOffice : null,
+      property_department: departmentName ? departmentName : null,
+      property_business_office: officeName ? officeName : null,
       property_member_name: PropertyMemberName ? PropertyMemberName : null,
       property_date: propertyDate ? propertyDate.toISOString() : null,
     };
@@ -430,12 +468,21 @@ export const InsertNewPropertyModal = () => {
 
     setLoadingGlobalState(true);
 
+    const departmentName =
+      departmentDataArray &&
+      departmentId &&
+      departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
+    const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
+
     // 新規作成するデータをオブジェクトにまとめる
     const newProperty = {
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
       created_by_user_id: userProfileState?.id ? userProfileState.id : null,
-      created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
-      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      // created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
+      // created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      created_by_department_of_user: departmentId ? departmentId : null,
+      created_by_unit_of_user: unitId ? unitId : null,
+      created_by_office_of_user: officeId ? officeId : null,
       client_contact_id: selectedRowDataProperty.contact_id,
       client_company_id: selectedRowDataProperty.company_id,
       current_status: currentStatus,
@@ -480,8 +527,10 @@ export const InsertNewPropertyModal = () => {
       subscription_interval: subscriptionInterval,
       competition_state: competitionState,
       property_year_month: PropertyYearMonth,
-      property_department: PropertyDepartment ? PropertyDepartment : null,
-      property_business_office: PropertyBusinessOffice ? PropertyBusinessOffice : null,
+      // property_department: PropertyDepartment ? PropertyDepartment : null,
+      // property_business_office: PropertyBusinessOffice ? PropertyBusinessOffice : null,
+      property_department: departmentName ? departmentName : null,
+      property_business_office: officeName ? officeName : null,
       property_member_name: PropertyMemberName ? PropertyMemberName : null,
       property_date: propertyDate ? propertyDate.toISOString() : null,
     };
@@ -511,12 +560,21 @@ export const InsertNewPropertyModal = () => {
 
     setLoadingGlobalState(true);
 
+    const departmentName =
+      departmentDataArray &&
+      departmentId &&
+      departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
+    const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
+
     // 新規作成するデータをオブジェクトにまとめる
     const newProperty = {
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
       created_by_user_id: userProfileState?.id ? userProfileState.id : null,
-      created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
-      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      // created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
+      // created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      created_by_department_of_user: departmentId ? departmentId : null,
+      created_by_unit_of_user: unitId ? unitId : null,
+      created_by_office_of_user: officeId ? officeId : null,
       client_contact_id: selectedRowDataContact.contact_id,
       client_company_id: selectedRowDataContact.company_id,
       current_status: currentStatus,
@@ -561,8 +619,10 @@ export const InsertNewPropertyModal = () => {
       subscription_interval: subscriptionInterval,
       competition_state: competitionState,
       property_year_month: PropertyYearMonth,
-      property_department: PropertyDepartment ? PropertyDepartment : null,
-      property_business_office: PropertyBusinessOffice ? PropertyBusinessOffice : null,
+      // property_department: PropertyDepartment ? PropertyDepartment : null,
+      // property_business_office: PropertyBusinessOffice ? PropertyBusinessOffice : null,
+      property_department: departmentName ? departmentName : null,
+      property_business_office: officeName ? officeName : null,
       property_member_name: PropertyMemberName ? PropertyMemberName : null,
       property_date: propertyDate ? propertyDate.toISOString() : null,
     };
@@ -958,7 +1018,7 @@ export const InsertNewPropertyModal = () => {
                     // placeholder="※入力必須　案件名を入力してください"
                     placeholder="案件名を入力してください"
                     required
-                    className={`${styles.input_box}`}
+                    className={`${styles.input_box} ${styles.full_width}`}
                     value={propertyName}
                     onChange={(e) => setPropertyName(e.target.value)}
                     onBlur={() => setPropertyName(toHalfWidth(propertyName.trim()))}
@@ -2489,15 +2549,20 @@ export const InsertNewPropertyModal = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px]`}>事業部名</span>
-                    <input
-                      type="text"
-                      placeholder=""
-                      required
-                      className={`${styles.input_box}`}
-                      value={PropertyDepartment}
-                      onChange={(e) => setPropertyDepartment(e.target.value)}
-                      // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
-                    />
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={departmentId ? departmentId : ""}
+                      onChange={(e) => setDepartmentId(e.target.value)}
+                    >
+                      <option value=""></option>
+                      {departmentDataArray &&
+                        departmentDataArray.length >= 1 &&
+                        departmentDataArray.map((department) => (
+                          <option key={department.id} value={department.id}>
+                            {department.department_name}
+                          </option>
+                        ))}
+                    </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -2507,37 +2572,29 @@ export const InsertNewPropertyModal = () => {
             </div>
             {/* --------- 右ラッパー --------- */}
             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* ●活動年月度 */}
-              {/* <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              {/* 係・チーム */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>●活動年月度</span>
-                    <input
-                      type="number"
-                      min="0"
-                      className={`${styles.input_box}`}
-                      placeholder='"202109" や "202312" などを入力'
-                      value={PropertyYearMonth === null ? "" : PropertyYearMonth}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === "") {
-                          setPropertyYearMonth(null);
-                        } else {
-                          const numValue = Number(val);
-
-                          // 入力値がマイナスかチェック
-                          if (numValue < 0) {
-                            setPropertyYearMonth(0);
-                          } else {
-                            setPropertyYearMonth(numValue);
-                          }
-                        }
-                      }}
-                    />
+                    <span className={`${styles.title} `}>係・チーム</span>
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box} ${styles.min}`}
+                      value={unitId ? unitId : ""}
+                      onChange={(e) => setUnitId(e.target.value)}
+                    >
+                      <option value=""></option>
+                      {unitDataArray &&
+                        unitDataArray.length >= 1 &&
+                        unitDataArray.map((unit) => (
+                          <option key={unit.id} value={unit.id}>
+                            {unit.unit_name}
+                          </option>
+                        ))}
+                    </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
-              </div> */}
+              </div>
             </div>
 
             {/* 右ラッパーここまで */}
@@ -2553,15 +2610,20 @@ export const InsertNewPropertyModal = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px]`}>所属事業所</span>
-                    <input
-                      type="text"
-                      placeholder=""
-                      required
-                      className={`${styles.input_box}`}
-                      value={PropertyBusinessOffice}
-                      onChange={(e) => setPropertyBusinessOffice(e.target.value)}
-                      // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
-                    />
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={officeId ? officeId : ""}
+                      onChange={(e) => setOfficeId(e.target.value)}
+                    >
+                      <option value=""></option>
+                      {officeDataArray &&
+                        officeDataArray.length >= 1 &&
+                        officeDataArray.map((office) => (
+                          <option key={office.id} value={office.id}>
+                            {office.office_name}
+                          </option>
+                        ))}
+                    </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
