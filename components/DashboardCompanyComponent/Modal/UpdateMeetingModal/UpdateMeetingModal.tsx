@@ -16,6 +16,8 @@ import { ImInfo } from "react-icons/im";
 import useStore from "@/store";
 import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
 import { AiOutlineQuestionCircle } from "react-icons/ai";
+import { Department, Office, Unit } from "@/types";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const UpdateMeetingModal = () => {
   //   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
@@ -66,17 +68,27 @@ export const UpdateMeetingModal = () => {
   const [resultNegotiateDecisionMaker, setResultNegotiateDecisionMaker] = useState("");
   const [preMeetingParticipationRequest, setPreMeetingParticipationRequest] = useState("");
   const [meetingParticipationRequest, setMeetingParticipationRequest] = useState("");
-  // 所属事業所
-  const [meetingBusinessOffice, setMeetingBusinessOffice] = useState(
-    userProfileState?.office ? userProfileState.office : ""
+  // 事業部
+  const [departmentId, setDepartmentId] = useState<Department["id"] | null>(
+    selectedRowDataMeeting?.meeting_created_by_department_of_user
+      ? selectedRowDataMeeting?.meeting_created_by_department_of_user
+      : null
   );
-  // 事業部名
-  const [meetingDepartment, setMeetingDepartment] = useState(
-    userProfileState?.department ? userProfileState?.department : ""
+  // 係
+  const [unitId, setUnitId] = useState<Unit["id"] | null>(
+    selectedRowDataMeeting?.meeting_created_by_unit_of_user
+      ? selectedRowDataMeeting?.meeting_created_by_unit_of_user
+      : null
+  );
+  // 事業所
+  const [officeId, setOfficeId] = useState<Office["id"] | null>(
+    selectedRowDataMeeting?.meeting_created_by_office_of_user
+      ? selectedRowDataMeeting?.meeting_created_by_office_of_user
+      : null
   );
   // 自社担当名
   const [meetingMemberName, setMeetingMemberName] = useState(
-    userProfileState?.profile_name ? userProfileState.profile_name : ""
+    selectedRowDataMeeting?.meeting_member_name ? selectedRowDataMeeting?.meeting_member_name : ""
   );
   // 面談年月度
   const [meetingYearMonth, setMeetingYearMonth] = useState<number | null>(Number(meetingYearMonthInitialValue));
@@ -84,7 +96,14 @@ export const UpdateMeetingModal = () => {
   const fiscalEndMonthObjRef = useRef<Date | null>(null);
   const closingDayRef = useRef<number | null>(null);
 
+  const queryClient = useQueryClient();
   const { updateMeetingMutation } = useMutateMeeting();
+
+  // ================================ 🌟事業部、係、事業所リスト取得useQuery🌟 ================================
+  const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
+  const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
+  const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
+  // ================================ ✅事業部、係、事業所リスト取得useQuery✅ ================================
 
   function formatTime(timeStr: string) {
     const [hour, minute] = timeStr.split(":");
@@ -153,11 +172,14 @@ export const UpdateMeetingModal = () => {
     let _meeting_participation_request = selectedRowDataMeeting.meeting_participation_request
       ? selectedRowDataMeeting.meeting_participation_request
       : "";
-    let _meeting_business_office = selectedRowDataMeeting.meeting_business_office
-      ? selectedRowDataMeeting.meeting_business_office
+    let _meeting_department = selectedRowDataMeeting.meeting_created_by_department_of_user
+      ? selectedRowDataMeeting.meeting_created_by_department_of_user
       : "";
-    let _meeting_department = selectedRowDataMeeting.meeting_department
-      ? selectedRowDataMeeting.meeting_department
+    let _unit = selectedRowDataMeeting.meeting_created_by_unit_of_user
+      ? selectedRowDataMeeting.meeting_created_by_unit_of_user
+      : "";
+    let _meeting_business_office = selectedRowDataMeeting.meeting_created_by_office_of_user
+      ? selectedRowDataMeeting.meeting_created_by_office_of_user
       : "";
     let _meeting_member_name = selectedRowDataMeeting.meeting_member_name
       ? selectedRowDataMeeting.meeting_member_name
@@ -200,8 +222,9 @@ export const UpdateMeetingModal = () => {
     setResultNegotiateDecisionMaker(_result_negotiate_decision_maker);
     setPreMeetingParticipationRequest(_pre_meeting_participation_request);
     setMeetingParticipationRequest(_meeting_participation_request);
-    setMeetingBusinessOffice(_meeting_business_office);
-    setMeetingDepartment(_meeting_department);
+    setDepartmentId(_meeting_department);
+    setUnitId(_unit);
+    setOfficeId(_meeting_business_office);
     setMeetingMemberName(_meeting_member_name);
     setMeetingYearMonth(_meeting_year_month);
   }, []);
@@ -355,13 +378,24 @@ export const UpdateMeetingModal = () => {
 
     setLoadingGlobalState(true);
 
+    const departmentName =
+      departmentDataArray &&
+      departmentId &&
+      departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
+    const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
+
     // 新規作成するデータをオブジェクトにまとめる
     const newMeeting = {
       id: selectedRowDataMeeting.meeting_id,
-      created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
-      created_by_user_id: userProfileState?.id ? userProfileState.id : null,
-      created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
-      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      created_by_company_id: selectedRowDataMeeting?.meeting_created_by_company_id
+        ? selectedRowDataMeeting.meeting_created_by_company_id
+        : null,
+      created_by_user_id: selectedRowDataMeeting?.meeting_created_by_user_id
+        ? selectedRowDataMeeting?.meeting_created_by_user_id
+        : null,
+      created_by_department_of_user: departmentId ? departmentId : null,
+      created_by_unit_of_user: unitId ? unitId : null,
+      created_by_office_of_user: officeId ? officeId : null,
       client_contact_id: selectedRowDataMeeting.contact_id,
       client_company_id: selectedRowDataMeeting.company_id,
       meeting_type: meetingType ? meetingType : null,
@@ -394,8 +428,8 @@ export const UpdateMeetingModal = () => {
       result_negotiate_decision_maker: resultNegotiateDecisionMaker ? resultNegotiateDecisionMaker : null,
       pre_meeting_participation_request: preMeetingParticipationRequest ? preMeetingParticipationRequest : null,
       meeting_participation_request: meetingParticipationRequest ? meetingParticipationRequest : null,
-      meeting_business_office: meetingBusinessOffice ? meetingBusinessOffice : null,
-      meeting_department: meetingDepartment ? meetingDepartment : null,
+      meeting_department: departmentName ? departmentName : null,
+      meeting_business_office: officeName ? officeName : null,
       meeting_member_name: meetingMemberName ? meetingMemberName : null,
       meeting_year_month: meetingYearMonth ? meetingYearMonth : null,
     };
@@ -811,8 +845,9 @@ export const UpdateMeetingModal = () => {
                     >
                       <option value=""></option>
                       <option value="同席依頼無し">同席依頼無し</option>
-                      <option value="同席依頼済み 同席OK">同席依頼済み 同席OK</option>
-                      <option value="同席依頼済み 同席NG">同席依頼済み 同席NG</option>
+                      <option value="同席依頼済み">同席依頼済み</option>
+                      {/* <option value="同席依頼済み 同席OK">同席依頼済み 同席OK</option>
+                      <option value="同席依頼済み 同席NG">同席依頼済み 同席NG</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -1017,15 +1052,20 @@ export const UpdateMeetingModal = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px]`}>事業部名</span>
-                    <input
-                      type="text"
-                      placeholder=""
-                      required
-                      className={`${styles.input_box}`}
-                      value={meetingDepartment}
-                      onChange={(e) => setMeetingDepartment(e.target.value)}
-                      // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
-                    />
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={departmentId ? departmentId : ""}
+                      onChange={(e) => setDepartmentId(e.target.value)}
+                    >
+                      <option value=""></option>
+                      {departmentDataArray &&
+                        departmentDataArray.length >= 1 &&
+                        departmentDataArray.map((department) => (
+                          <option key={department.id} value={department.id}>
+                            {department.department_name}
+                          </option>
+                        ))}
+                    </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1035,39 +1075,29 @@ export const UpdateMeetingModal = () => {
             </div>
             {/* --------- 右ラッパー --------- */}
             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* ●面談年月度 */}
-              {/* <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              {/* 係・チーム */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}${styles.required_title}`}>
-                      ●面談年月度
-                    </span>
-                    <input
-                      type="number"
-                      min="0"
-                      className={`${styles.input_box}`}
-                      placeholder='"202109" や "202312" などを入力'
-                      value={meetingYearMonth === null ? "" : meetingYearMonth}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === "") {
-                          setMeetingYearMonth(null);
-                        } else {
-                          const numValue = Number(val);
-
-                          // 入力値がマイナスかチェック
-                          if (numValue < 0) {
-                            setMeetingYearMonth(0);
-                          } else {
-                            setMeetingYearMonth(numValue);
-                          }
-                        }
-                      }}
-                    />
+                    <span className={`${styles.title} `}>係・チーム</span>
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={unitId ? unitId : ""}
+                      onChange={(e) => setUnitId(e.target.value)}
+                    >
+                      <option value=""></option>
+                      {unitDataArray &&
+                        unitDataArray.length >= 1 &&
+                        unitDataArray.map((unit) => (
+                          <option key={unit.id} value={unit.id}>
+                            {unit.unit_name}
+                          </option>
+                        ))}
+                    </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
-              </div> */}
+              </div>
             </div>
 
             {/* 右ラッパーここまで */}
@@ -1083,15 +1113,20 @@ export const UpdateMeetingModal = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px]`}>所属事業所</span>
-                    <input
-                      type="text"
-                      placeholder=""
-                      required
-                      className={`${styles.input_box}`}
-                      value={meetingBusinessOffice}
-                      onChange={(e) => setMeetingBusinessOffice(e.target.value)}
-                      // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
-                    />
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={officeId ? officeId : ""}
+                      onChange={(e) => setOfficeId(e.target.value)}
+                    >
+                      <option value=""></option>
+                      {officeDataArray &&
+                        officeDataArray.length >= 1 &&
+                        officeDataArray.map((office) => (
+                          <option key={office.id} value={office.id}>
+                            {office.office_name}
+                          </option>
+                        ))}
+                    </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>

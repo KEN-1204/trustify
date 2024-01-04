@@ -23,7 +23,7 @@ import {
   optionsSearchEmployeesClass,
 } from "@/utils/selectOptions";
 import { useMutateActivity } from "@/hooks/useMutateActivity";
-import { Activity, Activity_row_data, Unit } from "@/types";
+import { Activity, Activity_row_data, Department, Office, Unit } from "@/types";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { isSameDateLocal } from "@/utils/Helpers/isSameDateLocal";
 // import { optionsActivityType, optionsPriority } from "./selectOptionsActivity";
@@ -35,6 +35,7 @@ import { DatePickerCustomInputForSearch } from "@/utils/DatePicker/DatePickerCus
 import { useQueryDepartments } from "@/hooks/useQueryDepartments";
 import { useQueryUnits } from "@/hooks/useQueryUnits";
 import { useQueryOffices } from "@/hooks/useQueryOffices";
+import { useQueryClient } from "@tanstack/react-query";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -89,6 +90,7 @@ const ActivityMainContainerOneThirdMemo = () => {
   const setIsEditModeField = useDashboardStore((state) => state.setIsEditModeField);
   const [isComposing, setIsComposing] = useState(false); // 日本語のように変換、確定が存在する言語入力の場合の日本語入力の変換中を保持するstate、日本語入力開始でtrue, エンターキーで変換確定した時にfalse
 
+  const queryClient = useQueryClient();
   // useMutation
   const { updateActivityFieldMutation } = useMutateActivity();
 
@@ -188,37 +190,42 @@ const ActivityMainContainerOneThirdMemo = () => {
   }, [selectedRowDataActivity?.follow_up_flag]);
 
   // ================================ 🌟useQuery初回マウント時のフェッチ遅延用🌟 ================================
-  const [isReady, setIsReady] = useState(false);
-  useEffect(() => {
-    setIsReady(true);
-  }, []);
+  // const [isReady, setIsReady] = useState(false);
+  // useEffect(() => {
+  //   setIsReady(true);
+  // }, []);
+  // ================================ 🌟事業部、係、事業所リスト取得useQuery🌟 ================================
+  const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
+  const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
+  const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
+  // ================================ ✅事業部、係、事業所リスト取得useQuery✅ ================================
   // ================================ 🌟事業部リスト取得useQuery🌟 ================================
-  const {
-    data: departmentDataArray,
-    isLoading: isLoadingQueryDepartment,
-    refetch: refetchQUeryDepartments,
-  } = useQueryDepartments(userProfileState?.company_id, isReady);
+  // const {
+  //   data: departmentDataArray,
+  //   isLoading: isLoadingQueryDepartment,
+  //   refetch: refetchQUeryDepartments,
+  // } = useQueryDepartments(userProfileState?.company_id, true);
 
   // useMutation
   // const { createDepartmentMutation, updateDepartmentFieldMutation, deleteDepartmentMutation } = useMutateDepartment();
   // ================================ ✅事業部リスト取得useQuery✅ ================================
   // ================================ 🌟係・チームリスト取得useQuery🌟 ================================
-  const {
-    data: unitDataArray,
-    isLoading: isLoadingQueryUnit,
-    refetch: refetchQUeryUnits,
-  } = useQueryUnits(userProfileState?.company_id, isReady);
+  // const {
+  //   data: unitDataArray,
+  //   isLoading: isLoadingQueryUnit,
+  //   refetch: refetchQUeryUnits,
+  // } = useQueryUnits(userProfileState?.company_id, true);
 
   // useMutation
   // const { createUnitMutation, updateUnitFieldMutation, updateMultipleUnitFieldsMutation, deleteUnitMutation } =
   // useMutateUnit();
   // ================================ ✅係・チームリスト取得useQuery✅ ================================
   // ================================ 🌟事業所・営業所リスト取得useQuery🌟 ================================
-  const {
-    data: officeDataArray,
-    isLoading: isLoadingQueryOffice,
-    refetch: refetchQUeryOffices,
-  } = useQueryOffices(userProfileState?.company_id, isReady);
+  // const {
+  //   data: officeDataArray,
+  //   isLoading: isLoadingQueryOffice,
+  //   refetch: refetchQUeryOffices,
+  // } = useQueryOffices(userProfileState?.company_id, true);
 
   // useMutation
   // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
@@ -1947,7 +1954,9 @@ const ActivityMainContainerOneThirdMemo = () => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                         }}
                       >
-                        {selectedRowDataActivity?.business_office ? selectedRowDataActivity?.business_office : ""}
+                        {selectedRowDataActivity?.assigned_office_name
+                          ? selectedRowDataActivity?.assigned_office_name
+                          : ""}
                       </span>
                     )}
                     {searchMode && <input type="text" className={`${styles.input_box}`} />}

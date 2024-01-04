@@ -39,6 +39,7 @@ export const useMutateProperty = () => {
         created_by_user_id: newProperty.created_by_user_id,
         created_by_department_of_user: newProperty.created_by_department_of_user,
         created_by_unit_of_user: newProperty.created_by_unit_of_user,
+        created_by_office_of_user: newProperty.created_by_office_of_user,
         client_contact_id: newProperty.client_contact_id,
         client_company_id: newProperty.client_company_id,
         summary: newProperty.property_summary,
@@ -158,6 +159,7 @@ export const useMutateProperty = () => {
         created_by_user_id: newProperty.created_by_user_id,
         created_by_department_of_user: newProperty.created_by_department_of_user,
         created_by_unit_of_user: newProperty.created_by_unit_of_user,
+        created_by_office_of_user: newProperty.created_by_office_of_user,
         client_contact_id: newProperty.client_contact_id,
         client_company_id: newProperty.client_company_id,
         summary: newProperty.property_summary,
@@ -280,12 +282,13 @@ export const useMutateProperty = () => {
       console.log("UPDATEに成功したdata", newPropertyArray[0]);
       // 活動履歴で面談タイプ 訪問・面談を作成
       const newPropertyData = {
-        created_by_company_id: newPropertyArray[0].created_by_company_id,
-        created_by_user_id: newPropertyArray[0].created_by_user_id,
-        created_by_department_of_user: newPropertyArray[0].created_by_department_of_user,
-        created_by_unit_of_user: newPropertyArray[0].created_by_unit_of_user,
-        client_contact_id: newPropertyArray[0].client_contact_id,
-        client_company_id: newPropertyArray[0].client_company_id,
+        // created_by_company_id: newPropertyArray[0].created_by_company_id,
+        // created_by_user_id: newPropertyArray[0].created_by_user_id,
+        // created_by_department_of_user: newPropertyArray[0].created_by_department_of_user,
+        // created_by_unit_of_user: newPropertyArray[0].created_by_unit_of_user,
+        // created_by_office_of_user: newPropertyArray[0].created_by_office_of_user,
+        // client_contact_id: newPropertyArray[0].client_contact_id,
+        // client_company_id: newPropertyArray[0].client_company_id,
         summary: newPropertyArray[0].property_summary,
         // scheduled_follow_up_date: null,
         // follow_up_flag: false,
@@ -304,7 +307,7 @@ export const useMutateProperty = () => {
         activity_date: newPropertyArray[0].property_date,
         activity_year_month: newPropertyArray[0].property_year_month,
         // meeting_id: null,
-        property_id: newPropertyArray[0].id,
+        // property_id: newPropertyArray[0].id,
         // quotation_id: null,
       };
 

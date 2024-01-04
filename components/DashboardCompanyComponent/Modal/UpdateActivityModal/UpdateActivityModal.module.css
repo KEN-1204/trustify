@@ -196,6 +196,8 @@
   padding: 6px 8px;
   font-size: 15px;
   border-radius: 6px;
+  max-width: 375px;
+  margin-left: auto;
 }
 .input_box:focus {
   box-shadow: var(--color-bg-under-input-active-box-shadow);
@@ -327,6 +329,7 @@
   min-height: 32px;
   font-size: 15px;
   border-radius: 6px;
+  max-width: 375px;
 }
 
 .row_area input[type="number"]::-webkit-inner-spin-button,

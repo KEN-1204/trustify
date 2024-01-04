@@ -206,6 +206,7 @@
   font-size: 14px;
   /* font-family: sans-serif, "Hiragino Sans", Roboto, system-ui; */
   font-family: "Hiragino Sans", sans-serif, Roboto, system-ui;
+  font-family: sans-serif, "Hiragino Sans", Roboto, system-ui;
 }
 /* --sidebar-open-width: 240px;
   --sidebar-mini-width: 72px; */
@@ -298,8 +299,8 @@
 .title.min {
   min-width: 90px;
 }
-.title_sm.title {
-  min-width: 65px;
+.title.title_sm {
+  min-width: 79px;
 }
 .title_min {
   color: var(--color-text-brand-f);

@@ -3447,7 +3447,8 @@ const ContactMainContainerMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             // if (!selectedRowDataContact?.call_careful_reason) return;
-                            handleOpenTooltip(e, "right");
+                            // handleOpenTooltip(e, "right");
+                            handleOpenTooltip(e);
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);

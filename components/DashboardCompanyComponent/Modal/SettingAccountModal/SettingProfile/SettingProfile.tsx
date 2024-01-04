@@ -19,6 +19,7 @@ import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 import { FiRefreshCw } from "react-icons/fi";
 import SpinnerIDS3 from "@/components/Parts/SpinnerIDS/SpinnerIDS3";
 import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
+import { useQueryClient } from "@tanstack/react-query";
 
 const SettingProfileMemo = () => {
   const language = useStore((state) => state.language);
@@ -80,28 +81,34 @@ const SettingProfileMemo = () => {
   const [editedPurposeOfUse, setEditedPurposeOfUse] = useState("");
 
   const supabase = useSupabaseClient();
+  const queryClient = useQueryClient();
   const { updateUserEmail } = useMutateAuth();
   // const { createActivityMutation } = useMutateActivity();
   const { useMutateUploadAvatarImg, useMutateDeleteAvatarImg } = useUploadAvatarImg();
   const { fullUrl: avatarUrl, isLoading } = useDownloadUrl(userProfileState?.avatar_url, "avatars");
 
+  // ================================ 🌟事業部、係、事業所リスト取得useQuery🌟 ================================
+  const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
+  const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
+  const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
+  // ================================ ✅事業部、係、事業所リスト取得useQuery✅ ================================
   // ================================ 🌟事業部リスト取得useQuery🌟 ================================
-  const {
-    data: departmentDataArray,
-    isLoading: isLoadingQueryDepartment,
-    refetch: refetchQUeryDepartments,
-  } = useQueryDepartments(userProfileState?.company_id, true);
+  // const {
+  //   data: departmentDataArray,
+  //   isLoading: isLoadingQueryDepartment,
+  //   refetch: refetchQUeryDepartments,
+  // } = useQueryDepartments(userProfileState?.company_id, true);
   console.log("departmentDataArray", departmentDataArray, "selectedDepartment", selectedDepartment);
 
   // useMutation
   // const { createDepartmentMutation, updateDepartmentFieldMutation, deleteDepartmentMutation } = useMutateDepartment();
   // ================================ ✅事業部リスト取得useQuery✅ ================================
   // ================================ 🌟係・チームリスト取得useQuery🌟 ================================
-  const {
-    data: unitDataArray,
-    isLoading: isLoadingQueryUnit,
-    refetch: refetchQUeryUnits,
-  } = useQueryUnits(userProfileState?.company_id, true);
+  // const {
+  //   data: unitDataArray,
+  //   isLoading: isLoadingQueryUnit,
+  //   refetch: refetchQUeryUnits,
+  // } = useQueryUnits(userProfileState?.company_id, true);
   console.log("unitDataArray", unitDataArray);
 
   // useMutation
@@ -109,11 +116,11 @@ const SettingProfileMemo = () => {
   // useMutateUnit();
   // ================================ ✅係・チームリスト取得useQuery✅ ================================
   // ================================ 🌟事業所・営業所リスト取得useQuery🌟 ================================
-  const {
-    data: officeDataArray,
-    isLoading: isLoadingQueryOffice,
-    refetch: refetchQUeryOffices,
-  } = useQueryOffices(userProfileState?.company_id, true);
+  // const {
+  //   data: officeDataArray,
+  //   isLoading: isLoadingQueryOffice,
+  //   refetch: refetchQUeryOffices,
+  // } = useQueryOffices(userProfileState?.company_id, true);
   console.log("officeDataArray", officeDataArray);
 
   // useMutation

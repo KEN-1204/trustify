@@ -258,8 +258,8 @@ export const InsertNewMeetingModal = () => {
       meeting_participation_request: meetingParticipationRequest ? meetingParticipationRequest : null,
       // meeting_business_office: meetingBusinessOffice ? meetingBusinessOffice : null,
       // meeting_department: meetingDepartment ? meetingDepartment : null,
-      meeting_business_office: departmentName ? departmentName : null,
-      meeting_department: officeName ? officeName : null,
+      meeting_department: departmentName ? departmentName : null,
+      meeting_business_office: officeName ? officeName : null,
       meeting_member_name: meetingMemberName ? meetingMemberName : null,
       meeting_year_month: meetingYearMonth ? meetingYearMonth : null,
     };
@@ -295,12 +295,21 @@ export const InsertNewMeetingModal = () => {
 
     setLoadingGlobalState(true);
 
+    const departmentName =
+      departmentDataArray &&
+      departmentId &&
+      departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
+    const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
+
     // 新規作成するデータをオブジェクトにまとめる
     const newMeeting = {
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
       created_by_user_id: userProfileState?.id ? userProfileState.id : null,
-      created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
-      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      // created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
+      // created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      created_by_department_of_user: departmentId ? departmentId : null,
+      created_by_unit_of_user: unitId ? unitId : null,
+      created_by_office_of_user: officeId ? officeId : null,
       client_contact_id: selectedRowDataMeeting.contact_id,
       client_company_id: selectedRowDataMeeting.company_id,
       meeting_type: meetingType ? meetingType : null,
@@ -333,8 +342,10 @@ export const InsertNewMeetingModal = () => {
       result_negotiate_decision_maker: resultNegotiateDecisionMaker ? resultNegotiateDecisionMaker : null,
       pre_meeting_participation_request: preMeetingParticipationRequest ? preMeetingParticipationRequest : null,
       meeting_participation_request: meetingParticipationRequest ? meetingParticipationRequest : null,
-      meeting_business_office: meetingBusinessOffice ? meetingBusinessOffice : null,
-      meeting_department: meetingDepartment ? meetingDepartment : null,
+      // meeting_business_office: meetingBusinessOffice ? meetingBusinessOffice : null,
+      // meeting_department: meetingDepartment ? meetingDepartment : null,
+      meeting_department: departmentName ? departmentName : null,
+      meeting_business_office: officeName ? officeName : null,
       meeting_member_name: meetingMemberName ? meetingMemberName : null,
       meeting_year_month: meetingYearMonth ? meetingYearMonth : null,
     };
@@ -370,12 +381,21 @@ export const InsertNewMeetingModal = () => {
 
     setLoadingGlobalState(true);
 
+    const departmentName =
+      departmentDataArray &&
+      departmentId &&
+      departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
+    const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
+
     // 新規作成するデータをオブジェクトにまとめる
     const newMeeting = {
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
       created_by_user_id: userProfileState?.id ? userProfileState.id : null,
-      created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
-      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      // created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
+      // created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      created_by_department_of_user: departmentId ? departmentId : null,
+      created_by_unit_of_user: unitId ? unitId : null,
+      created_by_office_of_user: officeId ? officeId : null,
       client_contact_id: selectedRowDataContact.contact_id,
       client_company_id: selectedRowDataContact.company_id,
       meeting_type: meetingType ? meetingType : null,
@@ -408,8 +428,10 @@ export const InsertNewMeetingModal = () => {
       result_negotiate_decision_maker: resultNegotiateDecisionMaker ? resultNegotiateDecisionMaker : null,
       pre_meeting_participation_request: preMeetingParticipationRequest ? preMeetingParticipationRequest : null,
       meeting_participation_request: meetingParticipationRequest ? meetingParticipationRequest : null,
-      meeting_business_office: meetingBusinessOffice ? meetingBusinessOffice : null,
-      meeting_department: meetingDepartment ? meetingDepartment : null,
+      // meeting_department: meetingDepartment ? meetingDepartment : null,
+      // meeting_business_office: meetingBusinessOffice ? meetingBusinessOffice : null,
+      meeting_department: departmentName ? departmentName : null,
+      meeting_business_office: officeName ? officeName : null,
       meeting_member_name: meetingMemberName ? meetingMemberName : null,
       meeting_year_month: meetingYearMonth ? meetingYearMonth : null,
     };
@@ -827,8 +849,9 @@ export const InsertNewMeetingModal = () => {
                     >
                       <option value=""></option>
                       <option value="同席依頼無し">同席依頼無し</option>
-                      <option value="同席依頼済み 承諾無し">同席依頼済み 承諾無し</option>
-                      <option value="同席依頼済み 承諾有り">同席依頼済み 承諾有り</option>
+                      <option value="同席依頼済み">同席依頼済み</option>
+                      {/* <option value="同席依頼済み 承諾無し">同席依頼済み 承諾無し</option> */}
+                      {/* <option value="同席依頼済み 承諾有り">同席依頼済み 承諾有り</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -1034,7 +1057,7 @@ export const InsertNewMeetingModal = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px]`}>事業部名</span>
-                    <input
+                    {/* <input
                       type="text"
                       placeholder=""
                       required
@@ -1042,7 +1065,21 @@ export const InsertNewMeetingModal = () => {
                       value={meetingDepartment}
                       onChange={(e) => setMeetingDepartment(e.target.value)}
                       // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
-                    />
+                    /> */}
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={departmentId ? departmentId : ""}
+                      onChange={(e) => setDepartmentId(e.target.value)}
+                    >
+                      <option value=""></option>
+                      {departmentDataArray &&
+                        departmentDataArray.length >= 1 &&
+                        departmentDataArray.map((department) => (
+                          <option key={department.id} value={department.id}>
+                            {department.department_name}
+                          </option>
+                        ))}
+                    </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1052,6 +1089,105 @@ export const InsertNewMeetingModal = () => {
             </div>
             {/* --------- 右ラッパー --------- */}
             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* 係・チーム */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title} `}>係・チーム</span>
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box} ${styles.min}`}
+                      value={unitId ? unitId : ""}
+                      onChange={(e) => setUnitId(e.target.value)}
+                    >
+                      <option value=""></option>
+                      {unitDataArray &&
+                        unitDataArray.length >= 1 &&
+                        unitDataArray.map((unit) => (
+                          <option key={unit.id} value={unit.id}>
+                            {unit.unit_name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+            </div>
+
+            {/* 右ラッパーここまで */}
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* 所属事業所 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title} !min-w-[140px]`}>所属事業所</span>
+                    {/* <input
+                      type="text"
+                      placeholder=""
+                      required
+                      className={`${styles.input_box}`}
+                      value={meetingBusinessOffice}
+                      onChange={(e) => setMeetingBusinessOffice(e.target.value)}
+                      // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
+                    /> */}
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={officeId ? officeId : ""}
+                      onChange={(e) => setOfficeId(e.target.value)}
+                    >
+                      <option value=""></option>
+                      {officeDataArray &&
+                        officeDataArray.length >= 1 &&
+                        officeDataArray.map((office) => (
+                          <option key={office.id} value={office.id}>
+                            {office.office_name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 左ラッパーここまで */}
+            </div>
+
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* ●自社担当 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●自社担当</span>
+                    <input
+                      type="text"
+                      placeholder="*入力必須"
+                      required
+                      className={`${styles.input_box}`}
+                      value={meetingMemberName}
+                      onChange={(e) => setMeetingMemberName(e.target.value)}
+                      onBlur={() => setMeetingMemberName(toHalfWidth(meetingMemberName.trim()))}
+                    />
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 右ラッパーここまで */}
+            </div>
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
               {/* ●面談年月度 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
@@ -1104,42 +1240,13 @@ export const InsertNewMeetingModal = () => {
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
-            </div>
-
-            {/* 右ラッパーここまで */}
-          </div>
-          {/* --------- 横幅全体ラッパーここまで --------- */}
-
-          {/* --------- 横幅全体ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full`}>
-            {/* --------- 左ラッパー --------- */}
-            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 所属事業所 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>所属事業所</span>
-                    <input
-                      type="text"
-                      placeholder=""
-                      required
-                      className={`${styles.input_box}`}
-                      value={meetingBusinessOffice}
-                      onChange={(e) => setMeetingBusinessOffice(e.target.value)}
-                      // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
               {/* 左ラッパーここまで */}
             </div>
 
             {/* --------- 右ラッパー --------- */}
             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
               {/* ●自社担当 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              {/* <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●自社担当</span>
@@ -1155,7 +1262,7 @@ export const InsertNewMeetingModal = () => {
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
-              </div>
+              </div> */}
 
               {/* 右ラッパーここまで */}
             </div>

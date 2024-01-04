@@ -7,6 +7,9 @@ import { ActivityFunctionHeader } from "./ActivityFunctionHeader/ActivityFunctio
 // import { ActivityMainContainer } from "./ActivityMainContainer/ActivityMainContainer";
 import useDashboardStore from "@/store/useDashboardStore";
 import { ActivityMainContainerOneThird } from "./ActivityMainContainer/ActivityMainContainerOneThird";
+import { ErrorBoundary } from "react-error-boundary";
+import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
+import { Fallback } from "@/components/Fallback/Fallback";
 
 const ActivityDetailMemo: FC = () => {
   console.log("🔥 ActivityDetail レンダリング");
@@ -35,8 +38,16 @@ const ActivityDetailMemo: FC = () => {
       {/* ファンクションヘッダー */}
       <ActivityFunctionHeader />
       {/* メインコンテナ 左と右 */}
-      {/* <ActivityMainContainer /> */}
       <ActivityMainContainerOneThird />
+      {/* <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <Suspense
+          fallback={
+            <Fallback className="h-full max-h-[calc(100vh-var(--header-height)-calc(100vh/3-var(--header-height)/3)-20px-20px-20px-22px-40px-2px)] min-h-[calc(100vh-var(--header-height)-calc(100vh/3-var(--header-height)/3)-20px-20px-20px-22px-40px-2px)]" />
+          }
+        >
+          <ActivityMainContainerOneThird />
+        </Suspense>
+      </ErrorBoundary> */}
     </div>
   );
 };

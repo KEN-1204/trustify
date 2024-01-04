@@ -189,6 +189,8 @@
   padding: 6px 8px;
   font-size: 15px;
   border-radius: 6px;
+  max-width: 375px;
+  margin-left: auto;
 }
 .input_box:focus {
   box-shadow: var(--color-bg-under-input-active-box-shadow);
@@ -320,6 +322,7 @@
   padding-left: 5px;
   font-size: 15px;
   border-radius: 6px;
+  max-width: 375px;
 }
 
 .row_area input[type="number"]::-webkit-inner-spin-button,
@@ -346,7 +349,8 @@
   min-height: 2px;
   width: 100%;
   background-color: var(--color-bg-brand-f);
-  background-color: var(--vivid-green);
+  background-color: var(--main-color-d);
+  background-color: var(--bright-green);
 }
 
 .close_btn_number {

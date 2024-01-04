@@ -6,6 +6,9 @@ import { MeetingTabHeader } from "./MeetingTabHeader/MeetingTabHeader";
 import { MeetingFunctionHeader } from "./MeetingFunctionHeader/MeetingFunctionHeader";
 import useDashboardStore from "@/store/useDashboardStore";
 import { MeetingMainContainerOneThird } from "./MeetingMainContainer/MeetingMainContainerOneThird";
+import { ErrorBoundary } from "react-error-boundary";
+import { Fallback } from "@/components/Fallback/Fallback";
+import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 
 const MeetingDetailMemo: FC = () => {
   console.log("🔥 MeetingDetail レンダリング");
@@ -34,8 +37,18 @@ const MeetingDetailMemo: FC = () => {
       {/* ファンクションヘッダー */}
       <MeetingFunctionHeader />
       {/* メインコンテナ 左と右 */}
-      {/* <MeetingMainContainer /> */}
       <MeetingMainContainerOneThird />
+
+      {/* <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <Suspense
+          fallback={
+            <Fallback className="h-full max-h-[calc(100vh-var(--header-height)-calc(100vh/3-var(--header-height)/3)-20px-20px-20px-22px-40px-2px)] min-h-[calc(100vh-var(--header-height)-calc(100vh/3-var(--header-height)/3)-20px-20px-20px-22px-40px-2px)]" />
+          }
+        >
+          <MeetingMainContainerOneThird />
+        </Suspense>
+      </ErrorBoundary> */}
+      {/* <Fallback className="h-full max-h-[calc(100vh-var(--header-height)-calc(100vh/3-var(--header-height)/3)-20px-20px-20px-22px-40px-2px)] min-h-[calc(100vh-var(--header-height)-calc(100vh/3-var(--header-height)/3)-20px-20px-20px-22px-40px-2px)]" /> */}
     </div>
   );
 };

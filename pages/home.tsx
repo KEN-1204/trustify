@@ -9,8 +9,11 @@ import { DashboardMeetingComponent } from "@/components/DashboardMeetingComponen
 import { DashboardPropertyComponent } from "@/components/DashboardPropertyComponent/DashboardPropertyComponent";
 import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import { Fallback } from "@/components/Fallback/Fallback";
+import { useQueryDepartments } from "@/hooks/useQueryDepartments";
 import { useQueryNotifications } from "@/hooks/useQueryNotifications";
+import { useQueryOffices } from "@/hooks/useQueryOffices";
 import { useQueryProducts } from "@/hooks/useQueryProducts";
+import { useQueryUnits } from "@/hooks/useQueryUnits";
 import { useSubscribeNotifications } from "@/hooks/useSubscribeNotifications";
 import { useSubscribeSubscribedAccount } from "@/hooks/useSubscribeSubscribedAccount";
 import { useSubscribeSubscription } from "@/hooks/useSubscribeSubscription";
@@ -76,6 +79,26 @@ const DashboardHome = ({
   useSubscribeSubscription(userProfile);
   // メンバーが自身のアカウントの紐付け、解除の変更やチームでの役割の変更を監視 うまくいかず
   useSubscribeSubscribedAccount(userProfile);
+
+  // ================================ 🌟事業部リスト取得useQuery🌟 ================================
+  const { data: departmentDataArray, isLoading: isLoadingQueryDepartment } = useQueryDepartments(
+    userProfileState?.company_id ? userProfileState?.company_id : userProfile?.company_id,
+    isReady
+  );
+  // ================================ ✅事業部リスト取得useQuery✅ ================================
+  // ================================ 🌟係・チームリスト取得useQuery🌟 ================================
+  const { data: unitDataArray, isLoading: isLoadingQueryUnit } = useQueryUnits(
+    userProfileState?.company_id ? userProfileState?.company_id : userProfile?.company_id,
+    isReady
+  );
+  // ================================ ✅係・チームリスト取得useQuery✅ ================================
+  // ================================ 🌟事業所・営業所リスト取得useQuery🌟 ================================
+  const { data: officeDataArray, isLoading: isLoadingQueryOffice } = useQueryOffices(
+    userProfileState?.company_id ? userProfileState?.company_id : userProfile?.company_id,
+    isReady
+  );
+  // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
+  // ================================ ✅事業所・営業所リスト取得useQuery✅ ================================
 
   console.log(
     "🔥Homeページ レンダリング",

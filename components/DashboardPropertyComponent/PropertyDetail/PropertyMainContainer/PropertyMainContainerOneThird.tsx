@@ -18,6 +18,9 @@ import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
 import { optionsOccupation } from "@/utils/selectOptions";
 import { generateYearQuarters } from "@/utils/Helpers/generateYearQuarters";
+import { Department, Office, Unit } from "@/types";
+import { useQueryClient } from "@tanstack/react-query";
+import { useMedia } from "react-use";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -47,6 +50,17 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
   console.log("🔥 PropertyMainContainerレンダリング searchMode", searchMode);
   const setHoveredItemPosWrap = useStore((state) => state.setHoveredItemPosWrap);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
+  const newSearchProperty_Contact_CompanyParams = useDashboardStore(
+    (state) => state.newSearchProperty_Contact_CompanyParams
+  );
+  const setNewSearchProperty_Contact_CompanyParams = useDashboardStore(
+    (state) => state.setNewSearchProperty_Contact_CompanyParams
+  );
+  const editSearchMode = useDashboardStore((state) => state.editSearchMode);
+  const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
+  const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
+  const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
+  const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
   // 上画面の選択中の列データ会社
   const selectedRowDataProperty = useDashboardStore((state) => state.selectedRowDataProperty);
   const setSelectedRowDataProperty = useDashboardStore((state) => state.setSelectedRowDataProperty);
@@ -83,27 +97,15 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
     setHoveredItemPosWrap(null);
   };
 
-  // セルダブルクリック モーダル表示
-  // const handleDoubleClick = useCallback((e: React.MouseEvent<HTMLDivElement>, index: number, columnName: string) => {
-  //   console.log("ダブルクリック index", index);
-  //   if (columnName === "id") return console.log("ダブルクリック idのためリターン");
-  //   // if (index === 0) return console.log("リターン");
-  //   if (setTimeoutRef.current) {
-  //     clearTimeout(setTimeoutRef.current);
+  const queryClient = useQueryClient();
 
-  //     // console.log(e.detail);
-  //     setTimeoutRef.current = null;
-  //     // ダブルクリック時に実行したい処理
-  //     console.log("ダブルクリック", e.currentTarget);
-  //     // クリックした要素のテキストを格納
-  //     const text = e.currentTarget.innerText;
-  //     setTextareaInput(text);
-  //     setIsOpenEditModal(true);
-  //   }
-  // }, []);
-
-  const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
-  const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
+  // メディアクエリState
+  // デスクトップモニター
+  const isDesktopGTE1600Media = useMedia("(min-width: 1600px)", false);
+  const [isDesktopGTE1600, setIsDesktopGTE1600] = useState(isDesktopGTE1600Media);
+  useEffect(() => {
+    setIsDesktopGTE1600(isDesktopGTE1600Media);
+  }, [isDesktopGTE1600Media]);
 
   // 🌟サブミット
   const [inputCompanyName, setInputCompanyName] = useState("");
@@ -151,6 +153,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
   const [inputPropertyCreatedByUserId, setInputPropertyCreatedByUserId] = useState("");
   const [inputPropertyCreatedByDepartmentOfUser, setInputPropertyCreatedByDepartmentOfUser] = useState("");
   const [inputPropertyCreatedByUnitOfUser, setInputPropertyCreatedByUnitOfUser] = useState("");
+  const [inputPropertyCreatedByOfficeOfUser, setInputPropertyCreatedByOfficeOfUser] = useState("");
   const [inputCurrentStatus, setInputCurrentStatus] = useState("");
   const [inputPropertyName, setInputPropertyName] = useState("");
   const [inputPropertySummary, setInputPropertySummary] = useState("");
@@ -200,16 +203,27 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
   const [inputPropertyMemberName, setInputPropertyMemberName] = useState("");
   const [inputPropertyDate, setInputPropertyDate] = useState<Date | null>(null);
 
-  const supabase = useSupabaseClient();
-  const newSearchProperty_Contact_CompanyParams = useDashboardStore(
-    (state) => state.newSearchProperty_Contact_CompanyParams
-  );
-  const setNewSearchProperty_Contact_CompanyParams = useDashboardStore(
-    (state) => state.setNewSearchProperty_Contact_CompanyParams
-  );
-  const editSearchMode = useDashboardStore((state) => state.editSearchMode);
-  const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
-  const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
+  // ================================ 🌟事業部、係、事業所リスト取得useQuery🌟 ================================
+  const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
+  const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
+  const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
+  // ================================ ✅事業部、係、事業所リスト取得useQuery✅ ================================
+  // ======================= 🌟現在の選択した事業部で係・チームを絞り込むuseEffect🌟 =======================
+  const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
+  useEffect(() => {
+    // unitが存在せず、stateに要素が1つ以上存在しているなら空にする
+    if (!unitDataArray || unitDataArray?.length === 0 || !inputPropertyCreatedByDepartmentOfUser)
+      return setFilteredUnitBySelectedDepartment([]);
+
+    // 選択中の事業部が変化するか、unitDataArrayの内容に変更があったら新たに絞り込んで更新する
+    if (unitDataArray && unitDataArray.length >= 1 && inputPropertyCreatedByDepartmentOfUser) {
+      const filteredUnitArray = unitDataArray.filter(
+        (unit) => unit.created_by_department_id === inputPropertyCreatedByDepartmentOfUser
+      );
+      setFilteredUnitBySelectedDepartment(filteredUnitArray);
+    }
+  }, [unitDataArray, inputPropertyCreatedByDepartmentOfUser]);
+  // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
 
   // サーチ編集モードでリプレイス前の値に復元する関数
   function beforeAdjustFieldValue(value: string | null) {
@@ -320,6 +334,9 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       );
       setInputPropertyCreatedByUnitOfUser(
         beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams["properties.created_by_unit_of_user"])
+      );
+      setInputPropertyCreatedByOfficeOfUser(
+        beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams["properties.created_by_office_of_user"])
       );
       setInputCurrentStatus(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.current_status));
       // setInputScheduledFollowUpDate(
@@ -470,6 +487,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       if (!!inputPropertyCreatedByUserId) setInputPropertyCreatedByUserId("");
       if (!!inputPropertyCreatedByDepartmentOfUser) setInputPropertyCreatedByDepartmentOfUser("");
       if (!!inputPropertyCreatedByUnitOfUser) setInputPropertyCreatedByUnitOfUser("");
+      if (!!inputPropertyCreatedByOfficeOfUser) setInputPropertyCreatedByOfficeOfUser("");
       if (!!inputCurrentStatus) setInputCurrentStatus("");
       if (!!inputPropertyName) setInputPropertyName("");
       if (!!inputPropertySummary) setInputPropertySummary("");
@@ -587,6 +605,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
     let _property_created_by_user_id = adjustFieldValue(inputPropertyCreatedByUserId);
     let _property_created_by_department_of_user = adjustFieldValue(inputPropertyCreatedByDepartmentOfUser);
     let _property_created_by_unit_of_user = adjustFieldValue(inputPropertyCreatedByUnitOfUser);
+    let _property_created_by_office_of_user = adjustFieldValue(inputPropertyCreatedByOfficeOfUser);
     let _current_status = adjustFieldValue(inputCurrentStatus);
     let _property_name = adjustFieldValue(inputPropertyName);
     let _property_summary = adjustFieldValue(inputPropertySummary);
@@ -689,6 +708,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       "properties.created_by_user_id": _property_created_by_user_id,
       "properties.created_by_department_of_user": _property_created_by_department_of_user,
       "properties.created_by_unit_of_user": _property_created_by_unit_of_user,
+      "properties.created_by_office_of_user": _property_created_by_office_of_user,
       current_status: _current_status,
       property_name: _property_name,
       property_summary: _property_summary,
@@ -787,6 +807,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
     setInputPropertyCreatedByUserId("");
     setInputPropertyCreatedByDepartmentOfUser("");
     setInputPropertyCreatedByUnitOfUser("");
+    setInputPropertyCreatedByOfficeOfUser("");
     setInputCurrentStatus("");
     setInputPropertyName("");
     setInputPropertySummary("");
@@ -1013,7 +1034,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
               <div className={`${styles.row_area_lg_box} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full `}>
-                    <span className={`${styles.title}`}>案件概要</span>
+                    <span className={`${styles.title} ${styles.title_sm}`}>案件概要</span>
                     {!searchMode && (
                       <div
                         className={`${styles.textarea_box} ${styles.textarea_box_bg}`}
@@ -1837,15 +1858,22 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                   </div>
                 </div>
 
-                {/* 事業部名 */}
+                {/* 事業部名 通常 */}
                 <div className={`${styles.row_area} flex w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>事業部名</span>
-                      {!searchMode && (
+                      {/* {!searchMode && (
                         <span className={`${styles.value}`}>
                           {selectedRowDataProperty?.property_department
                             ? selectedRowDataProperty?.property_department
+                            : ""}
+                        </span>
+                      )} */}
+                      {!searchMode && (
+                        <span className={`${styles.value}`}>
+                          {selectedRowDataProperty?.assigned_department_name
+                            ? selectedRowDataProperty?.assigned_department_name
                             : ""}
                         </span>
                       )}
@@ -1855,26 +1883,29 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                   </div>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
-                      {/* <span className={`${styles.title}`}>実施4</span>
+                      <span className={`${styles.title} ${styles.min}`}>係・ﾁｰﾑ</span>
                       {!searchMode && (
                         <span
-                          data-text={`${
-                            selectedRowDataProperty?.senior_managing_director
-                              ? selectedRowDataProperty?.senior_managing_director
-                              : ""
-                          }`}
                           className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
-                          onMouseLeave={handleCloseTooltip}
+                          // data-text={`${
+                          //   selectedRowDataProperty?.assigned_unit_name ? selectedRowDataProperty?.assigned_unit_name : ""
+                          // }`}
+                          // onMouseEnter={(e) => {
+                          //   e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          //   if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          // }}
+                          // onMouseLeave={(e) => {
+                          //   e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          //   if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          // }}
                         >
-                          {selectedRowDataProperty?.senior_managing_director
-                            ? selectedRowDataProperty?.senior_managing_director
+                          {selectedRowDataProperty?.assigned_unit_name
+                            ? selectedRowDataProperty?.assigned_unit_name
                             : ""}
                         </span>
                       )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
                     </div>
-                    {/* <div className={`${styles.underline}`}></div> */}
+                    <div className={`${styles.underline}`}></div>
                   </div>
                 </div>
 
@@ -1885,8 +1916,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       <span className={`${styles.title}`}>事業所</span>
                       {!searchMode && (
                         <span className={`${styles.value}`}>
-                          {selectedRowDataProperty?.property_business_office
-                            ? selectedRowDataProperty?.property_business_office
+                          {selectedRowDataProperty?.assigned_office_name
+                            ? selectedRowDataProperty?.assigned_office_name
                             : ""}
                         </span>
                       )}

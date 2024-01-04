@@ -20,7 +20,8 @@ import { optionsOccupation } from "@/utils/selectOptions";
 import { useQueryDepartments } from "@/hooks/useQueryDepartments";
 import { useQueryUnits } from "@/hooks/useQueryUnits";
 import { useQueryOffices } from "@/hooks/useQueryOffices";
-import { Unit } from "@/types";
+import { Department, Office, Unit } from "@/types";
+import { useQueryClient } from "@tanstack/react-query";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -71,7 +72,8 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const setIsEditModeField = useDashboardStore((state) => state.setIsEditModeField);
   const [isComposing, setIsComposing] = useState(false); // 日本語のように変換、確定が存在する言語入力の場合の日本語入力の変換中を保持するstate、日本語入力開始でtrue, エンターキーで変換確定した時にfalse
 
-  const supabase = useSupabaseClient();
+  // const supabase = useSupabaseClient();
+  const queryClient = useQueryClient();
 
   // 🌟サブミット
   const [inputCompanyName, setInputCompanyName] = useState("");
@@ -159,37 +161,42 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const [inputMeetingYearMonth, setInputMeetingYearMonth] = useState<number | null>(null);
 
   // ================================ 🌟useQuery初回マウント時のフェッチ遅延用🌟 ================================
-  const [isReady, setIsReady] = useState(false);
-  useEffect(() => {
-    setIsReady(true);
-  }, []);
+  // const [isReady, setIsReady] = useState(false);
+  // useEffect(() => {
+  //   setIsReady(true);
+  // }, []);
+  // ================================ 🌟事業部、係、事業所リスト取得useQuery🌟 ================================
+  const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
+  const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
+  const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
+  // ================================ ✅事業部、係、事業所リスト取得useQuery✅ ================================
   // ================================ 🌟事業部リスト取得useQuery🌟 ================================
-  const {
-    data: departmentDataArray,
-    isLoading: isLoadingQueryDepartment,
-    refetch: refetchQUeryDepartments,
-  } = useQueryDepartments(userProfileState?.company_id, isReady);
+  // const {
+  //   data: departmentDataArray,
+  //   isLoading: isLoadingQueryDepartment,
+  //   refetch: refetchQUeryDepartments,
+  // } = useQueryDepartments(userProfileState?.company_id, true);
 
   // useMutation
   // const { createDepartmentMutation, updateDepartmentFieldMutation, deleteDepartmentMutation } = useMutateDepartment();
   // ================================ ✅事業部リスト取得useQuery✅ ================================
   // ================================ 🌟係・チームリスト取得useQuery🌟 ================================
-  const {
-    data: unitDataArray,
-    isLoading: isLoadingQueryUnit,
-    refetch: refetchQUeryUnits,
-  } = useQueryUnits(userProfileState?.company_id, isReady);
+  // const {
+  //   data: unitDataArray,
+  //   isLoading: isLoadingQueryUnit,
+  //   refetch: refetchQUeryUnits,
+  // } = useQueryUnits(userProfileState?.company_id, true);
 
   // useMutation
   // const { createUnitMutation, updateUnitFieldMutation, updateMultipleUnitFieldsMutation, deleteUnitMutation } =
   // useMutateUnit();
   // ================================ ✅係・チームリスト取得useQuery✅ ================================
   // ================================ 🌟事業所・営業所リスト取得useQuery🌟 ================================
-  const {
-    data: officeDataArray,
-    isLoading: isLoadingQueryOffice,
-    refetch: refetchQUeryOffices,
-  } = useQueryOffices(userProfileState?.company_id, isReady);
+  // const {
+  //   data: officeDataArray,
+  //   isLoading: isLoadingQueryOffice,
+  //   refetch: refetchQUeryOffices,
+  // } = useQueryOffices(userProfileState?.company_id, true);
 
   // useMutation
   // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
@@ -1093,7 +1100,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               <div className={`${styles.row_area_lg_box} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full `}>
-                    <span className={`${styles.title}`}>事前ｺﾒﾝﾄ</span>
+                    <span className={`${styles.title} ${styles.title_sm}`}>事前ｺﾒﾝﾄ</span>
                     {!searchMode && (
                       <div
                         className={`${styles.textarea_box} ${styles.textarea_box_bg}`}
@@ -1183,9 +1190,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         // onMouseEnter={(e) => handleOpenTooltip(e)}
                         // onMouseLeave={handleCloseTooltip}
                       >
-                        {selectedRowDataMeeting?.assigned_office_name
-                          ? selectedRowDataMeeting?.assigned_office_name
-                          : ""}
+                        {selectedRowDataMeeting?.meeting_member_name ? selectedRowDataMeeting?.meeting_member_name : ""}
                       </span>
                     )}
                     {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
@@ -1468,12 +1473,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   </div>
                 </div>
 
-                {/* 結果ｺﾒﾝﾄ */}
+                {/* 結果コメント */}
                 {/* <div className={`${styles.row_area} flex h-[90px] w-full items-center`}> */}
                 <div className={`${styles.row_area_lg_box} flex w-full items-center`}>
                   <div className="flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full `}>
-                      <span className={`${styles.title}`}>結果ｺﾒﾝﾄ</span>
+                      <span className={`${styles.title} ${styles.title_sm}`}>結果ｺﾒﾝﾄ</span>
                       {!searchMode && (
                         <div
                           className={`${styles.textarea_box} ${styles.textarea_box_bg}`}

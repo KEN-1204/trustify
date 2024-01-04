@@ -751,7 +751,7 @@ export const InsertNewActivityModal = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} `}>係・チーム</span>
                     <select
-                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box} ${styles.min}`}
                       value={unitId ? unitId : ""}
                       onChange={(e) => setUnitId(e.target.value)}
                     >

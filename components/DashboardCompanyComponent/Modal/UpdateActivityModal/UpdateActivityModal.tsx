@@ -48,19 +48,27 @@ export const UpdateActivityModal = () => {
   // );
   // const [businessOffice, setBusinessOffice] = useState("");
   const [departmentId, setDepartmentId] = useState<Department["id"] | null>(
-    userProfileState?.assigned_department_id ? userProfileState?.assigned_department_id : null
+    selectedRowDataActivity?.activity_created_by_department_of_user
+      ? selectedRowDataActivity?.activity_created_by_department_of_user
+      : null
   );
   const [unitId, setUnitId] = useState<Unit["id"] | null>(
-    userProfileState?.assigned_unit_id ? userProfileState?.assigned_unit_id : null
+    selectedRowDataActivity?.activity_created_by_unit_of_user
+      ? selectedRowDataActivity?.activity_created_by_unit_of_user
+      : null
   );
   const [officeId, setOfficeId] = useState<Office["id"] | null>(
-    userProfileState?.assigned_office_id ? userProfileState?.assigned_office_id : null
+    selectedRowDataActivity?.activity_created_by_office_of_user
+      ? selectedRowDataActivity?.activity_created_by_office_of_user
+      : null
   );
-  const [memberName, setMemberName] = useState(userProfileState?.profile_name ? userProfileState?.profile_name : "");
+  const [memberName, setMemberName] = useState(
+    selectedRowDataActivity?.member_name ? selectedRowDataActivity?.member_name : ""
+  );
   const [priority, setPriority] = useState("");
   const [activityYearMonth, setActivityYearMonth] = useState<number | null>(Number(activityYearMonthInitialValue));
 
-  const supabase = useSupabaseClient();
+  // const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
   const { updateActivityMutation } = useMutateActivity();
 
