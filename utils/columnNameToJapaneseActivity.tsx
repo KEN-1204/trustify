@@ -209,7 +209,7 @@ export const columnNameToJapaneseActivity = (columnName: string) => {
     //   return "事業所・営業所(自社)";
     //   break;
     case "assigned_office_name":
-      return "事業所・営業所(自社)";
+      return "所属事業所(自社)";
       break;
     case "member_name":
       return "自社担当";

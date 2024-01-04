@@ -873,7 +873,7 @@ export type Meeting_row_data = {
   meeting_created_by_user_id: string | null;
   meeting_created_by_department_of_user: string | null;
   meeting_created_by_unit_of_user: string | null;
-  meeting_created_by_office_of_user: string | null;
+  meeting_created_by_office_of_user: string | null; //🌠追加
   meeting_type: string | null;
   web_tool: string | null;
   planned_date: string | null;
@@ -958,7 +958,7 @@ export type ValidMeeting = {
   contact_created_by_user_id: string | null;
   contact_created_by_department_of_user: string | null;
   contact_created_by_unit_of_user: string | null;
-  contact_created_by_office_of_user: string | null;
+  contact_created_by_office_of_user: string | null; //🌠追加
   call_careful_flag: boolean | null;
   call_careful_reason: string | null;
   email_ban_flag: boolean | null;
@@ -973,7 +973,7 @@ export type ValidMeeting = {
   meeting_created_by_user_id: string | null;
   meeting_created_by_department_of_user: string | null;
   meeting_created_by_unit_of_user: string | null;
-  meeting_created_by_office_of_user: string | null;
+  meeting_created_by_office_of_user: string | null; //🌠追加
   meeting_type: string | null;
   web_tool: string | null;
   planned_date: string;

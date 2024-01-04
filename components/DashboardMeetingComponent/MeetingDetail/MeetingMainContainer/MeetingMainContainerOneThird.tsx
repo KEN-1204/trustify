@@ -17,6 +17,10 @@ import { Zoom } from "@/utils/Helpers/toastHelpers";
 import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 import { optionsOccupation } from "@/utils/selectOptions";
+import { useQueryDepartments } from "@/hooks/useQueryDepartments";
+import { useQueryUnits } from "@/hooks/useQueryUnits";
+import { useQueryOffices } from "@/hooks/useQueryOffices";
+import { Unit } from "@/types";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -115,6 +119,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const [inputMeetingCreatedByUserId, setInputMeetingCreatedByUserId] = useState("");
   const [inputMeetingCreatedByDepartmentOfUser, setInputMeetingCreatedByDepartmentOfUser] = useState("");
   const [inputMeetingCreatedByUnitOfUser, setInputMeetingCreatedByUnitOfUser] = useState("");
+  const [inputMeetingCreatedByOfficeOfUser, setInputMeetingCreatedByOfficeOfUser] = useState("");
   const [inputMeetingType, setInputMeetingType] = useState("");
   const [inputWebTool, setInputWebTool] = useState("");
   const [inputPlannedDate, setInputPlannedDate] = useState<Date | null>(null);
@@ -152,6 +157,59 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const [inputMeetingDepartment, setInputMeetingDepartment] = useState("");
   const [inputMeetingMemberName, setInputMeetingMemberName] = useState("");
   const [inputMeetingYearMonth, setInputMeetingYearMonth] = useState<number | null>(null);
+
+  // ================================ 🌟useQuery初回マウント時のフェッチ遅延用🌟 ================================
+  const [isReady, setIsReady] = useState(false);
+  useEffect(() => {
+    setIsReady(true);
+  }, []);
+  // ================================ 🌟事業部リスト取得useQuery🌟 ================================
+  const {
+    data: departmentDataArray,
+    isLoading: isLoadingQueryDepartment,
+    refetch: refetchQUeryDepartments,
+  } = useQueryDepartments(userProfileState?.company_id, isReady);
+
+  // useMutation
+  // const { createDepartmentMutation, updateDepartmentFieldMutation, deleteDepartmentMutation } = useMutateDepartment();
+  // ================================ ✅事業部リスト取得useQuery✅ ================================
+  // ================================ 🌟係・チームリスト取得useQuery🌟 ================================
+  const {
+    data: unitDataArray,
+    isLoading: isLoadingQueryUnit,
+    refetch: refetchQUeryUnits,
+  } = useQueryUnits(userProfileState?.company_id, isReady);
+
+  // useMutation
+  // const { createUnitMutation, updateUnitFieldMutation, updateMultipleUnitFieldsMutation, deleteUnitMutation } =
+  // useMutateUnit();
+  // ================================ ✅係・チームリスト取得useQuery✅ ================================
+  // ================================ 🌟事業所・営業所リスト取得useQuery🌟 ================================
+  const {
+    data: officeDataArray,
+    isLoading: isLoadingQueryOffice,
+    refetch: refetchQUeryOffices,
+  } = useQueryOffices(userProfileState?.company_id, isReady);
+
+  // useMutation
+  // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
+  // ================================ ✅事業所・営業所リスト取得useQuery✅ ================================
+  // ======================= 🌟現在の選択した事業部で係・チームを絞り込むuseEffect🌟 =======================
+  const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
+  useEffect(() => {
+    // unitが存在せず、stateに要素が1つ以上存在しているなら空にする
+    if (!unitDataArray || unitDataArray?.length === 0 || !inputMeetingCreatedByDepartmentOfUser)
+      return setFilteredUnitBySelectedDepartment([]);
+
+    // 選択中の事業部が変化するか、unitDataArrayの内容に変更があったら新たに絞り込んで更新する
+    if (unitDataArray && unitDataArray.length >= 1 && inputMeetingCreatedByDepartmentOfUser) {
+      const filteredUnitArray = unitDataArray.filter(
+        (unit) => unit.created_by_department_id === inputMeetingCreatedByDepartmentOfUser
+      );
+      setFilteredUnitBySelectedDepartment(filteredUnitArray);
+    }
+  }, [unitDataArray, inputMeetingCreatedByDepartmentOfUser]);
+  // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
 
   // サーチ編集モードでリプレイス前の値に復元する関数
   function beforeAdjustFieldValue(value: string | null) {
@@ -256,6 +314,9 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       );
       setInputMeetingCreatedByUnitOfUser(
         beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams["meetings.created_by_unit_of_user"])
+      );
+      setInputMeetingCreatedByUnitOfUser(
+        beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams["meetings.created_by_office_of_user"])
       );
       setInputMeetingType(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.meeting_type));
       // setInputScheduledFollowUpDate(
@@ -384,6 +445,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       if (!!inputMeetingCreatedByUserId) setInputMeetingCreatedByUserId("");
       if (!!inputMeetingCreatedByDepartmentOfUser) setInputMeetingCreatedByDepartmentOfUser("");
       if (!!inputMeetingCreatedByUnitOfUser) setInputMeetingCreatedByUnitOfUser("");
+      if (!!inputMeetingCreatedByOfficeOfUser) setInputMeetingCreatedByOfficeOfUser("");
       if (!!inputMeetingType) setInputMeetingType("");
       if (!!inputWebTool) setInputWebTool("");
       if (!!inputPlannedDate) setInputPlannedDate(null);
@@ -529,6 +591,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     let _meeting_created_by_user_id = adjustFieldValue(inputMeetingCreatedByUserId);
     let _meeting_created_by_department_of_user = adjustFieldValue(inputMeetingCreatedByDepartmentOfUser);
     let _meeting_created_by_unit_of_user = adjustFieldValue(inputMeetingCreatedByUnitOfUser);
+    let _meeting_created_by_office_of_user = adjustFieldValue(inputMeetingCreatedByOfficeOfUser);
     let _meeting_type = adjustFieldValue(inputMeetingType);
     let _web_tool = adjustFieldValue(inputWebTool);
     let _planned_date = inputPlannedDate ? inputPlannedDate.toISOString() : null;
@@ -610,6 +673,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       "meetings.created_by_user_id": _meeting_created_by_user_id,
       "meetings.created_by_department_of_user": _meeting_created_by_department_of_user,
       "meetings.created_by_unit_of_user": _meeting_created_by_unit_of_user,
+      "meetings.created_by_office_of_user": _meeting_created_by_office_of_user,
       meeting_type: _meeting_type,
       web_tool: _web_tool,
       planned_date: _planned_date,
@@ -691,6 +755,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     setInputMeetingCreatedByUserId("");
     setInputMeetingCreatedByDepartmentOfUser("");
     setInputMeetingCreatedByUnitOfUser("");
+    setInputMeetingCreatedByOfficeOfUser("");
     setInputMeetingType("");
     setInputWebTool("");
     setInputPlannedDate(null);
@@ -1053,35 +1118,38 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     <span className={`${styles.title}`}>事業部名</span>
                     {!searchMode && (
                       <span className={`${styles.value}`}>
-                        {selectedRowDataMeeting?.meeting_department ? selectedRowDataMeeting?.meeting_department : ""}
+                        {selectedRowDataMeeting?.assigned_department_name
+                          ? selectedRowDataMeeting?.assigned_department_name
+                          : ""}
                       </span>
                     )}
-                    {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    {/* <span className={`${styles.title}`}>実施4</span>
-                      {!searchMode && (
-                        <span
-                          data-text={`${
-                            selectedRowDataMeeting?.senior_managing_director
-                              ? selectedRowDataMeeting?.senior_managing_director
-                              : ""
-                          }`}
-                          className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
-                          onMouseLeave={handleCloseTooltip}
-                        >
-                          {selectedRowDataMeeting?.senior_managing_director
-                            ? selectedRowDataMeeting?.senior_managing_director
-                            : ""}
-                        </span>
-                      )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
+                    <span className={`${styles.title} ${styles.min}`}>係・ﾁｰﾑ</span>
+                    {!searchMode && (
+                      <span
+                        className={`${styles.value}`}
+                        // data-text={`${
+                        //   selectedRowDataActivity?.assigned_unit_name ? selectedRowDataActivity?.assigned_unit_name : ""
+                        // }`}
+                        // onMouseEnter={(e) => {
+                        //   e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        //   if (!isDesktopGTE1600) handleOpenTooltip(e);
+                        // }}
+                        // onMouseLeave={(e) => {
+                        //   e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        //   if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                        // }}
+                      >
+                        {selectedRowDataMeeting?.assigned_unit_name ? selectedRowDataMeeting?.assigned_unit_name : ""}
+                      </span>
+                    )}
                   </div>
-                  {/* <div className={`${styles.underline}`}></div> */}
+                  <div className={`${styles.underline}`}></div>
                 </div>
               </div>
 
@@ -1115,10 +1183,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         // onMouseEnter={(e) => handleOpenTooltip(e)}
                         // onMouseLeave={handleCloseTooltip}
                       >
-                        {selectedRowDataMeeting?.meeting_member_name ? selectedRowDataMeeting?.meeting_member_name : ""}
+                        {selectedRowDataMeeting?.assigned_office_name
+                          ? selectedRowDataMeeting?.assigned_office_name
+                          : ""}
                       </span>
                     )}
-                    {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1173,7 +1243,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  {/* <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>面談年月度</span>
                       {!searchMode && (
@@ -1194,7 +1264,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
-                  </div>
+                  </div> */}
                 </div>
 
                 {/* 面談開始・面談終了 */}
@@ -1223,7 +1293,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           //     ? selectedRowDataMeeting?.priority
                           //     : ""
                           // }`}
-                          className={`${styles.value} !w-full text-center`}
+                          className={`${styles.value}`}
                           // onMouseEnter={(e) => handleOpenTooltip(e)}
                           // onMouseLeave={handleCloseTooltip}
                         >
@@ -1927,7 +1997,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <div className={`${styles.title} !mr-[15px] flex flex-col text-[12px]`}>
+                    <div className={`${styles.title} flex flex-col text-[12px]`}>
                       <span className={``}>決裁金額</span>
                       <span className={``}>(万円)</span>
                     </div>
@@ -2988,38 +3058,51 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>事業部名</span>
-                    <input
+                    {/* <input
                       type="text"
                       className={`${styles.input_box}`}
                       placeholder=""
                       value={inputMeetingDepartment}
                       onChange={(e) => setInputMeetingDepartment(e.target.value)}
-                    />
+                    /> */}
+                    {searchMode && (
+                      <select
+                        className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
+                        value={inputMeetingCreatedByDepartmentOfUser}
+                        onChange={(e) => setInputMeetingCreatedByDepartmentOfUser(e.target.value)}
+                      >
+                        <option value=""></option>
+                        {departmentDataArray &&
+                          departmentDataArray.map((department, index) => (
+                            <option key={department.id} value={department.id}>
+                              {department.department_name}
+                            </option>
+                          ))}
+                      </select>
+                    )}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    {/* <span className={`${styles.title_search_mode}`}>実施4</span>
-                      {!searchMode && (
-                        <span
-                          data-text={`${
-                            selectedRowDataMeeting?.senior_managing_director
-                              ? selectedRowDataMeeting?.senior_managing_director
-                              : ""
-                          }`}
-                          className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
-                          onMouseLeave={handleCloseTooltip}
-                        >
-                          {selectedRowDataMeeting?.senior_managing_director
-                            ? selectedRowDataMeeting?.senior_managing_director
-                            : ""}
-                        </span>
-                      )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
+                    <span className={`${styles.title}`}>係・ﾁｰﾑ</span>
+                    {searchMode && filteredUnitBySelectedDepartment && filteredUnitBySelectedDepartment.length >= 1 && (
+                      <select
+                        className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
+                        value={inputMeetingCreatedByUnitOfUser}
+                        onChange={(e) => setInputMeetingCreatedByUnitOfUser(e.target.value)}
+                      >
+                        <option value=""></option>
+                        {filteredUnitBySelectedDepartment &&
+                          filteredUnitBySelectedDepartment.map((unit, index) => (
+                            <option key={unit.id} value={unit.id}>
+                              {unit.unit_name}
+                            </option>
+                          ))}
+                      </select>
+                    )}
                   </div>
-                  {/* <div className={`${styles.underline}`}></div> */}
+                  <div className={`${styles.underline}`}></div>
                 </div>
               </div>
 
@@ -3028,13 +3111,28 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>事業所</span>
-                    <input
+                    {/* <input
                       type="text"
                       className={`${styles.input_box}`}
                       placeholder=""
                       value={inputMeetingBusinessOffice}
                       onChange={(e) => setInputMeetingBusinessOffice(e.target.value)}
-                    />
+                    /> */}
+                    {searchMode && (
+                      <select
+                        className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
+                        value={inputMeetingCreatedByOfficeOfUser}
+                        onChange={(e) => setInputMeetingCreatedByOfficeOfUser(e.target.value)}
+                      >
+                        <option value=""></option>
+                        {officeDataArray &&
+                          officeDataArray.map((office, index) => (
+                            <option key={office.id} value={office.id}>
+                              {office.office_name}
+                            </option>
+                          ))}
+                      </select>
+                    )}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>

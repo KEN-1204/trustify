@@ -25,8 +25,29 @@ const meetingColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
+  // {
+  //   columnName: "meeting_department",
+  //   columnWidth: "100px",
+  //   isFrozen: false,
+  //   isOverflow: false,
+  // },
+  // 自社事業部
   {
-    columnName: "meeting_department",
+    columnName: "assigned_department_name",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  // 自社係
+  {
+    columnName: "assigned_unit_name",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  // 事業所
+  {
+    columnName: "assigned_office_name",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,

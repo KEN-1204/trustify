@@ -16,6 +16,8 @@ import { ImInfo } from "react-icons/im";
 import useStore from "@/store";
 import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
 import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMonth";
+import { Department, Office, Unit } from "@/types";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const InsertNewMeetingModal = () => {
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
@@ -67,21 +69,43 @@ export const InsertNewMeetingModal = () => {
   const [resultNegotiateDecisionMaker, setResultNegotiateDecisionMaker] = useState("");
   const [preMeetingParticipationRequest, setPreMeetingParticipationRequest] = useState(""); //事前同席依頼
   const [meetingParticipationRequest, setMeetingParticipationRequest] = useState("");
-  const [meetingBusinessOffice, setMeetingBusinessOffice] = useState(
-    userProfileState?.office ? userProfileState.office : ""
-  ); //所属事業所
-  const [meetingDepartment, setMeetingDepartment] = useState(
-    userProfileState?.department ? userProfileState?.department : ""
-  ); //事業部名
+  //事業部名
+  // const [meetingDepartment, setMeetingDepartment] = useState(
+  //   userProfileState?.department ? userProfileState?.department : ""
+  // );
+  const [departmentId, setDepartmentId] = useState<Department["id"] | null>(
+    userProfileState?.assigned_department_id ? userProfileState?.assigned_department_id : null
+  );
+  //所属事業所
+  // const [meetingBusinessOffice, setMeetingBusinessOffice] = useState(
+  //   userProfileState?.office ? userProfileState.office : ""
+  // );
+  const [unitId, setUnitId] = useState<Unit["id"] | null>(
+    userProfileState?.assigned_unit_id ? userProfileState?.assigned_unit_id : null
+  );
+  //自社担当名
+  // const [meetingMemberName, setMeetingMemberName] = useState(
+  //   userProfileState?.profile_name ? userProfileState.profile_name : ""
+  // );
+  const [officeId, setOfficeId] = useState<Office["id"] | null>(
+    userProfileState?.assigned_office_id ? userProfileState?.assigned_office_id : null
+  );
   const [meetingMemberName, setMeetingMemberName] = useState(
-    userProfileState?.profile_name ? userProfileState.profile_name : ""
-  ); //自社担当名
+    userProfileState?.profile_name ? userProfileState?.profile_name : ""
+  );
   const [meetingYearMonth, setMeetingYearMonth] = useState<number | null>(Number(meetingYearMonthInitialValue)); //面談年月度
   // ユーザーの決算月と締め日を取得
   const fiscalEndMonthObjRef = useRef<Date | null>(null);
   const closingDayRef = useRef<number | null>(null);
 
+  const queryClient = useQueryClient();
   const { createMeetingMutation } = useMutateMeeting();
+
+  // ================================ 🌟事業部、係、事業所リスト取得useQuery🌟 ================================
+  const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
+  const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
+  const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
+  // ================================ ✅事業部、係、事業所リスト取得useQuery✅ ================================
 
   //   useEffect(() => {
   //     if (!userProfileState) return;
@@ -185,12 +209,21 @@ export const InsertNewMeetingModal = () => {
 
     setLoadingGlobalState(true);
 
+    const departmentName =
+      departmentDataArray &&
+      departmentId &&
+      departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
+    const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
+
     // 新規作成するデータをオブジェクトにまとめる
     const newMeeting = {
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
       created_by_user_id: userProfileState?.id ? userProfileState.id : null,
-      created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
-      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      // created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
+      // created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      created_by_department_of_user: departmentId ? departmentId : null,
+      created_by_unit_of_user: unitId ? unitId : null,
+      created_by_office_of_user: officeId ? officeId : null,
       client_contact_id: selectedRowDataActivity.contact_id,
       client_company_id: selectedRowDataActivity.company_id,
       meeting_type: meetingType ? meetingType : null,
@@ -223,8 +256,10 @@ export const InsertNewMeetingModal = () => {
       result_negotiate_decision_maker: resultNegotiateDecisionMaker ? resultNegotiateDecisionMaker : null,
       pre_meeting_participation_request: preMeetingParticipationRequest ? preMeetingParticipationRequest : null,
       meeting_participation_request: meetingParticipationRequest ? meetingParticipationRequest : null,
-      meeting_business_office: meetingBusinessOffice ? meetingBusinessOffice : null,
-      meeting_department: meetingDepartment ? meetingDepartment : null,
+      // meeting_business_office: meetingBusinessOffice ? meetingBusinessOffice : null,
+      // meeting_department: meetingDepartment ? meetingDepartment : null,
+      meeting_business_office: departmentName ? departmentName : null,
+      meeting_department: officeName ? officeName : null,
       meeting_member_name: meetingMemberName ? meetingMemberName : null,
       meeting_year_month: meetingYearMonth ? meetingYearMonth : null,
     };

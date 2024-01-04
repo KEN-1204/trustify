@@ -1233,7 +1233,7 @@ const ActivityMainContainerOneThirdMemo = () => {
               <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>活動日</span>
+                    <span className={`${styles.title} ${styles.min}`}>活動日</span>
                     {!searchMode && isEditModeField !== "activity_date" && (
                       <span
                         className={`${styles.value} ${isOurActivity ? styles.editable_field : styles.uneditable_field}`}
@@ -1407,7 +1407,7 @@ const ActivityMainContainerOneThirdMemo = () => {
               <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>活動ﾀｲﾌﾟ</span>
+                    <span className={`${styles.title} ${styles.min}`}>活動ﾀｲﾌﾟ</span>
                     {!searchMode && isEditModeField !== "activity_type" && (
                       <span
                         className={`${styles.value} ${
@@ -1576,7 +1576,7 @@ const ActivityMainContainerOneThirdMemo = () => {
               <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <div className={`${styles.title} flex flex-col`}>
+                    <div className={`${styles.title} ${styles.min} flex flex-col`}>
                       <span>次回ﾌｫﾛｰ</span>
                       <span>予定日</span>
                     </div>
@@ -1860,7 +1860,7 @@ const ActivityMainContainerOneThirdMemo = () => {
               <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>事業部名</span>
+                    <span className={`${styles.title} ${styles.min}`}>事業部名</span>
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
@@ -1890,14 +1890,12 @@ const ActivityMainContainerOneThirdMemo = () => {
                 {/* 係・チーム 通常 */}
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title}`}>係・ﾁｰﾑ</span>
+                    <span className={`${styles.title} ${styles.min}`}>係・ﾁｰﾑ</span>
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
                         data-text={`${
-                          selectedRowDataActivity?.assigned_unit_name
-                            ? selectedRowDataActivity?.assigned_unit_name
-                            : ""
+                          selectedRowDataActivity?.assigned_unit_name ? selectedRowDataActivity?.assigned_unit_name : ""
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
@@ -1913,7 +1911,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                     )}
                   </div>
                   {/* <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title}`}>活動年月度</span>
+                    <span className={`${styles.title} ${styles.min}`}>活動年月度</span>
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
@@ -1938,7 +1936,7 @@ const ActivityMainContainerOneThirdMemo = () => {
               <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>事業所</span>
+                    <span className={`${styles.title} ${styles.min}`}>事業所</span>
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
@@ -1958,7 +1956,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title}`}>自社担当</span>
+                    <span className={`${styles.title} ${styles.min}`}>自社担当</span>
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
@@ -1982,7 +1980,7 @@ const ActivityMainContainerOneThirdMemo = () => {
               <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>実施1</span>
+                    <span className={`${styles.title} ${styles.min}`}>実施1</span>
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
@@ -2004,7 +2002,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title}`}>実施2</span>
+                    <span className={`${styles.title} ${styles.min}`}>実施2</span>
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
@@ -2030,7 +2028,7 @@ const ActivityMainContainerOneThirdMemo = () => {
               <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>実施3</span>
+                    <span className={`${styles.title} ${styles.min}`}>実施3</span>
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
@@ -2052,7 +2050,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title}`}>実施4</span>
+                    <span className={`${styles.title} ${styles.min}`}>実施4</span>
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
@@ -2078,7 +2076,7 @@ const ActivityMainContainerOneThirdMemo = () => {
               <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>実施5</span>
+                    <span className={`${styles.title} ${styles.min}`}>実施5</span>
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
@@ -2161,7 +2159,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.right_under_title}`}>注意理由</span>
+                    <span className={`${styles.title} ${styles.min}`}>注意理由</span>
                     {!searchMode && (
                       <span
                         data-text={`${
@@ -2408,7 +2406,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                 >
                   <div className="flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
-                      <span className={`${styles.title}`}>●会社名</span>
+                      <span className={`${styles.title} ${styles.min}`}>●会社名</span>
                       {!searchMode && (
                         <span
                           className={`${styles.value} ${styles.value_highlight}`}
@@ -2445,7 +2443,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                 >
                   <div className="flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
-                      <span className={`${styles.title}`}>●部署名</span>
+                      <span className={`${styles.title} ${styles.min}`}>●部署名</span>
                       {!searchMode && (
                         <span
                           className={`${styles.value}`}
@@ -2481,7 +2479,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                 >
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
-                      <span className={`${styles.title}`}>担当者名</span>
+                      <span className={`${styles.title} ${styles.min}`}>担当者名</span>
                       {!searchMode && (
                         <span
                           className={`${styles.value}`}
@@ -2509,7 +2507,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                   </div>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
-                      <span className={`${styles.title}`}>直通TEL</span>
+                      <span className={`${styles.title} ${styles.min}`}>直通TEL</span>
                       {!searchMode && (
                         <span
                           className={`${styles.value}`}
@@ -2549,7 +2547,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                 >
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
-                      <span className={`${styles.title}`}>内線TEL</span>
+                      <span className={`${styles.title} ${styles.min}`}>内線TEL</span>
                       {!searchMode && (
                         <span
                           className={`${styles.value}`}
@@ -2580,7 +2578,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                   </div>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
-                      <span className={`${styles.title}`}>代表TEL</span>
+                      <span className={`${styles.title} ${styles.min}`}>代表TEL</span>
                       {!searchMode && (
                         <span
                           className={`${styles.value}`}
@@ -2620,7 +2618,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                 >
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
-                      <span className={`${styles.title}`}>直通FAX</span>
+                      <span className={`${styles.title} ${styles.min}`}>直通FAX</span>
                       {!searchMode && (
                         <span
                           className={`${styles.value}`}
@@ -2652,8 +2650,8 @@ const ActivityMainContainerOneThirdMemo = () => {
                   </div>
                   <div className={`flex h-full w-1/2 flex-col pr-[20px]`}>
                     <div className={`${styles.title_box} flex h-full items-center`}>
-                      <span className={`${styles.title}`}>代表FAX</span>
-                      {/* <span className={`${styles.title}`}>会員専用</span> */}
+                      <span className={`${styles.title} ${styles.min}`}>代表FAX</span>
+                      {/* <span className={`${styles.title} ${styles.min}`}>会員専用</span> */}
                       {!searchMode && (
                         <span
                           className={`${styles.value}`}
@@ -2697,7 +2695,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                 >
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
-                      <span className={`${styles.title}`}>社用携帯</span>
+                      <span className={`${styles.title} ${styles.min}`}>社用携帯</span>
                       {!searchMode && (
                         <span
                           className={`${styles.value}`}
@@ -2733,7 +2731,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                   </div>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
-                      <span className={`${styles.title}`}>私用携帯</span>
+                      <span className={`${styles.title} ${styles.min}`}>私用携帯</span>
                       {!searchMode && (
                         <span
                           className={`${styles.value}`}
@@ -2777,7 +2775,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                 >
                   <div className="flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
-                      <span className={`${styles.title}`}>E-mail</span>
+                      <span className={`${styles.title} ${styles.min}`}>E-mail</span>
                       {!searchMode && (
                         <span
                           className={`${styles.value}`}
@@ -2812,7 +2810,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                 >
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
-                      <span className={`${styles.title}`}>郵便番号</span>
+                      <span className={`${styles.title} ${styles.min}`}>郵便番号</span>
                       {!searchMode && (
                         <span
                           className={`${styles.value}`}
@@ -2839,7 +2837,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                   </div>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
-                      <span className={`${styles.title}`}></span>
+                      <span className={`${styles.title} ${styles.min}`}></span>
                       {/* {!searchMode && (
                     <span className={`${styles.value}`}>
                       {selectedRowDataActivity?.established_in ? selectedRowDataActivity?.established_in : ""}
@@ -2866,7 +2864,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                 >
                   <div className="flex h-full w-full flex-col pr-[20px] ">
                     <div className={`${styles.title_box} flex h-full `}>
-                      <span className={`${styles.title}`}>○住所</span>
+                      <span className={`${styles.title} ${styles.min}`}>○住所</span>
                       {!searchMode && (
                         <span
                           className={`${styles.textarea_value} h-[45px]`}

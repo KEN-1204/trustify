@@ -272,11 +272,20 @@ export const columnNameToJapaneseMeeting = (columnName: string) => {
     case "meeting_participation_request":
       return "面談時_同席依頼有無";
       break;
-    case "meeting_business_office":
-      return "所属事業所(自社)";
-      break;
-    case "meeting_department":
+    // case "meeting_business_office":
+    //   return "所属事業所(自社)";
+    //   break;
+    // case "meeting_department":
+    //   return "事業部名(自社)";
+    //   break;
+    case "assigned_department_name":
       return "事業部名(自社)";
+      break;
+    case "assigned_unit_name":
+      return "係・チーム(自社)";
+      break;
+    case "assigned_office_name":
+      return "所属事業所(自社)";
       break;
     case "meeting_member_name":
       return "自社担当";

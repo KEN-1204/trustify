@@ -289,9 +289,14 @@
   /* ２分割は95 */
   /* min-width: 78px; */
   min-width: 95px;
+  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   line-height: 17px;
   user-select: none;
+}
+.title.min {
+  min-width: 90px;
 }
 .title_sm.title {
   min-width: 65px;
@@ -325,9 +330,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 14px;
 }
 .double_text {
   font-size: 13px;
+  /* font-size: 14px; */
   line-height: 17px;
 }
 .uneditable_field {
@@ -441,7 +448,11 @@
   /* 2分割はこっち */
   /* padding: 9px 10px; */
   padding: 6px 10px;
+  padding: 6px 12px;
   font-size: 14px;
+  /* font-size: 13px; */
+  letter-spacing: 0.9px;
+  line-height: 22px;
   /* line-height: 24px; */
   /* line-height: 22px; */
   border-radius: 6px;
