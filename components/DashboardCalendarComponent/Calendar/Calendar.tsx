@@ -53,9 +53,10 @@ const CalendarMemo: FC = () => {
   useEffect(() => {
     async function fetchMeetings() {
       try {
-        const params = {
-          //   meeting_created_by_user_id: userProfileState?.id,
-        };
+        // const params = {
+        //     // meeting_created_by_user_id: userProfileState?.id,
+        // };
+        const params = { "meetings.created_by_user_id": userProfileState?.id };
         const { data, error } = await supabase
           .rpc("search_meetings_and_companies_and_contacts", { params })
           .eq("meeting_created_by_user_id", userProfileState?.id);

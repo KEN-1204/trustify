@@ -38,8 +38,8 @@ const ActivityDetailMemo: FC = () => {
       {/* ファンクションヘッダー */}
       <ActivityFunctionHeader />
       {/* メインコンテナ 左と右 */}
-      <ActivityMainContainerOneThird />
-      {/* <ErrorBoundary FallbackComponent={ErrorFallback}>
+      {/* <ActivityMainContainerOneThird /> */}
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
         <Suspense
           fallback={
             <Fallback className="h-full max-h-[calc(100vh-var(--header-height)-calc(100vh/3-var(--header-height)/3)-20px-20px-20px-22px-40px-2px)] min-h-[calc(100vh-var(--header-height)-calc(100vh/3-var(--header-height)/3)-20px-20px-20px-22px-40px-2px)]" />
@@ -47,7 +47,7 @@ const ActivityDetailMemo: FC = () => {
         >
           <ActivityMainContainerOneThird />
         </Suspense>
-      </ErrorBoundary> */}
+      </ErrorBoundary>
     </div>
   );
 };

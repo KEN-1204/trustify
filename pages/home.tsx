@@ -81,24 +81,34 @@ const DashboardHome = ({
   useSubscribeSubscribedAccount(userProfile);
 
   // ================================ 🌟事業部リスト取得useQuery🌟 ================================
-  const { data: departmentDataArray, isLoading: isLoadingQueryDepartment } = useQueryDepartments(
-    userProfileState?.company_id ? userProfileState?.company_id : userProfile?.company_id,
-    isReady
-  );
+  // const { data: departmentDataArray, isLoading: isLoadingQueryDepartment } = useQueryDepartments(
+  //   userProfileState?.company_id ? userProfileState?.company_id : userProfile?.company_id,
+  //   isReady
+  // );
   // ================================ ✅事業部リスト取得useQuery✅ ================================
   // ================================ 🌟係・チームリスト取得useQuery🌟 ================================
-  const { data: unitDataArray, isLoading: isLoadingQueryUnit } = useQueryUnits(
-    userProfileState?.company_id ? userProfileState?.company_id : userProfile?.company_id,
-    isReady
-  );
+  // const { data: unitDataArray, isLoading: isLoadingQueryUnit } = useQueryUnits(
+  //   userProfileState?.company_id ? userProfileState?.company_id : userProfile?.company_id,
+  //   isReady
+  // );
   // ================================ ✅係・チームリスト取得useQuery✅ ================================
   // ================================ 🌟事業所・営業所リスト取得useQuery🌟 ================================
-  const { data: officeDataArray, isLoading: isLoadingQueryOffice } = useQueryOffices(
-    userProfileState?.company_id ? userProfileState?.company_id : userProfile?.company_id,
-    isReady
-  );
+  // const { data: officeDataArray, isLoading: isLoadingQueryOffice } = useQueryOffices(
+  //   userProfileState?.company_id ? userProfileState?.company_id : userProfile?.company_id,
+  //   isReady
+  // );
   // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
   // ================================ ✅事業所・営業所リスト取得useQuery✅ ================================
+  // ================================ 🌟自事業部商品リスト取得useQuery🌟 ================================
+  // const { data: ProductDataArray, isLoading: isLoadingQueryProduct } = useQueryProducts({
+  //   company_id: userProfileState?.company_id ? userProfileState?.company_id : userProfile?.company_id,
+  //   departmentId: userProfileState?.assigned_department_id
+  //     ? userProfileState?.assigned_department_id
+  //     : userProfile?.assigned_department_id,
+  //   isReady: isReady,
+  // });
+  // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
+  // ================================ ✅自事業部商品リスト取得useQuery✅ ================================
 
   console.log(
     "🔥Homeページ レンダリング",

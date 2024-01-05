@@ -104,16 +104,16 @@ const SettingCompanyMemo = () => {
   // const [changeOwnerNotificationState, setChangeOwnerNotificationState] = useState<Notification | null>(null);
 
   // ================================ 🌟事業部、係、事業所リスト取得useQuery🌟 ================================
-  const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
-  const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
-  const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
+  // const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
+  // const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
+  // const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
   // ================================ ✅事業部、係、事業所リスト取得useQuery✅ ================================
   // ================================ 🌟事業部リスト取得useQuery🌟 ================================
-  // const {
-  //   data: departmentDataArray,
-  //   isLoading: isLoadingQueryDepartment,
-  //   refetch: refetchQUeryDepartments,
-  // } = useQueryDepartments(userProfileState?.company_id, true);
+  const {
+    data: departmentDataArray,
+    isLoading: isLoadingQueryDepartment,
+    refetch: refetchQUeryDepartments,
+  } = useQueryDepartments(userProfileState?.company_id, true);
   // } = useQueryDepartments(userProfileState?.company_id);
   console.log("departmentDataArray", departmentDataArray);
 
@@ -121,11 +121,11 @@ const SettingCompanyMemo = () => {
   const { createDepartmentMutation, updateDepartmentFieldMutation, deleteDepartmentMutation } = useMutateDepartment();
   // ================================ ✅事業部リスト取得useQuery✅ ================================
   // ================================ 🌟係・チームリスト取得useQuery🌟 ================================
-  // const {
-  //   data: unitDataArray,
-  //   isLoading: isLoadingQueryUnit,
-  //   refetch: refetchQUeryUnits,
-  // } = useQueryUnits(userProfileState?.company_id, true);
+  const {
+    data: unitDataArray,
+    isLoading: isLoadingQueryUnit,
+    refetch: refetchQUeryUnits,
+  } = useQueryUnits(userProfileState?.company_id, true);
   // } = useQueryUnits(userProfileState?.company_id);
 
   // useMutation
@@ -133,11 +133,11 @@ const SettingCompanyMemo = () => {
     useMutateUnit();
   // ================================ ✅係・チームリスト取得useQuery✅ ================================
   // ================================ 🌟事業所・営業所リスト取得useQuery🌟 ================================
-  // const {
-  //   data: officeDataArray,
-  //   isLoading: isLoadingQueryOffice,
-  //   refetch: refetchQUeryOffices,
-  // } = useQueryOffices(userProfileState?.company_id, true);
+  const {
+    data: officeDataArray,
+    isLoading: isLoadingQueryOffice,
+    refetch: refetchQUeryOffices,
+  } = useQueryOffices(userProfileState?.company_id, true);
   // } = useQueryOffices(userProfileState?.company_id);
 
   // useMutation

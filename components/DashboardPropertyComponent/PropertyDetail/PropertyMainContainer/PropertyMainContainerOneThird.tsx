@@ -27,6 +27,9 @@ import { Department, Office, Unit } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMedia } from "react-use";
 import { mappingOccupation } from "@/utils/mappings";
+import { useQueryDepartments } from "@/hooks/useQueryDepartments";
+import { useQueryUnits } from "@/hooks/useQueryUnits";
+import { useQueryOffices } from "@/hooks/useQueryOffices";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -211,10 +214,41 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
   const [inputPropertyDate, setInputPropertyDate] = useState<Date | null>(null);
 
   // ================================ 🌟事業部、係、事業所リスト取得useQuery🌟 ================================
-  const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
-  const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
-  const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
+  // const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
+  // const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
+  // const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
   // ================================ ✅事業部、係、事業所リスト取得useQuery✅ ================================
+  // ================================ 🌟事業部リスト取得useQuery🌟 ================================
+  const {
+    data: departmentDataArray,
+    isLoading: isLoadingQueryDepartment,
+    refetch: refetchQUeryDepartments,
+  } = useQueryDepartments(userProfileState?.company_id, true);
+
+  // useMutation
+  // const { createDepartmentMutation, updateDepartmentFieldMutation, deleteDepartmentMutation } = useMutateDepartment();
+  // ================================ ✅事業部リスト取得useQuery✅ ================================
+  // ================================ 🌟係・チームリスト取得useQuery🌟 ================================
+  const {
+    data: unitDataArray,
+    isLoading: isLoadingQueryUnit,
+    refetch: refetchQUeryUnits,
+  } = useQueryUnits(userProfileState?.company_id, true);
+
+  // useMutation
+  // const { createUnitMutation, updateUnitFieldMutation, updateMultipleUnitFieldsMutation, deleteUnitMutation } =
+  // useMutateUnit();
+  // ================================ ✅係・チームリスト取得useQuery✅ ================================
+  // ================================ 🌟事業所・営業所リスト取得useQuery🌟 ================================
+  const {
+    data: officeDataArray,
+    isLoading: isLoadingQueryOffice,
+    refetch: refetchQUeryOffices,
+  } = useQueryOffices(userProfileState?.company_id, true);
+
+  // useMutation
+  // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
+  // ================================ ✅事業所・営業所リスト取得useQuery✅ ================================
   // ======================= 🌟現在の選択した事業部で係・チームを絞り込むuseEffect🌟 =======================
   const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
   useEffect(() => {

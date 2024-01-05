@@ -53,6 +53,7 @@ import { ResumeMembershipAfterCancel } from "./Modal/ResumeMembershipAfterCancel
 import { FallbackResumeMembershipAfterCancel } from "./Modal/ResumeMembershipAfterCancel/FallbackResumeMembershipAfterCancel";
 import { BlockModal } from "./Modal/BlockModal/BlockModal";
 import { RestartAfterCancelForMember } from "./Modal/RestartAfterCancelForMember/RestartAfterCancelForMember";
+import { FallbackModal } from "./DashboardCompanyComponent/Modal/FallbackModal/FallbackModal";
 
 type Prop = {
   title?: string;
@@ -487,29 +488,60 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
       {isOpenUpdateContactModal && <UpdateContactModal />}
 
       {/* 活動_作成・編集モーダル */}
-      {isOpenInsertNewActivityModal && <InsertNewActivityModal />}
-      {isOpenUpdateActivityModal && <UpdateActivityModal />}
+      {/* {isOpenInsertNewActivityModal && <InsertNewActivityModal />}
+      {isOpenUpdateActivityModal && <UpdateActivityModal />} */}
+      {isOpenInsertNewActivityModal && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<FallbackModal />}>
+            <InsertNewActivityModal />
+          </Suspense>
+        </ErrorBoundary>
+      )}
+      {isOpenUpdateActivityModal && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<FallbackModal />}>
+            <UpdateActivityModal />
+          </Suspense>
+        </ErrorBoundary>
+      )}
 
       {/* 面談_作成・編集モーダル */}
-      {isOpenInsertNewMeetingModal && <InsertNewMeetingModal />}
-      {isOpenUpdateMeetingModal && <UpdateMeetingModal />}
+      {/* {isOpenInsertNewMeetingModal && <InsertNewMeetingModal />} */}
+      {/* {isOpenInsertNewMeetingModal && <FallbackModal />} */}
+      {isOpenInsertNewMeetingModal && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<FallbackModal />}>
+            <InsertNewMeetingModal />
+          </Suspense>
+        </ErrorBoundary>
+      )}
+      {isOpenUpdateMeetingModal && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<FallbackModal />}>
+            <UpdateMeetingModal />
+          </Suspense>
+        </ErrorBoundary>
+      )}
+      {/* {isOpenUpdateMeetingModal && <UpdateMeetingModal />} */}
+      {/* {isOpenInsertNewMeetingModal && <FallbackModal />} */}
       {/* 案件_作成・編集モーダル */}
       {/* {isOpenInsertNewPropertyModal && <InsertNewPropertyModal />} */}
 
       {isOpenInsertNewPropertyModal && (
         <ErrorBoundary FallbackComponent={ErrorFallback}>
-          <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
+          <Suspense fallback={<FallbackModal />}>
             <InsertNewPropertyModal />
           </Suspense>
         </ErrorBoundary>
       )}
       {isOpenUpdatePropertyModal && (
         <ErrorBoundary FallbackComponent={ErrorFallback}>
-          <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
+          <Suspense fallback={<FallbackModal />}>
             <UpdatePropertyModal />
           </Suspense>
         </ErrorBoundary>
       )}
+      {/* <Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" /> */}
 
       {/* ==================== お知らせ所有者変更モーダル ==================== */}
       {openNotificationChangeTeamOwnerModal && notificationDataState !== null && <ChangeTeamOwnerConfirmationModal />}

@@ -8,6 +8,8 @@ import useStore from "@/store";
 import { ImInfo } from "react-icons/im";
 import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
 import { convertToYen } from "@/utils/Helpers/convertToYen";
+import { useQueryClient } from "@tanstack/react-query";
+import { Department, Office, Unit } from "@/types";
 
 export const UpdateProductModal = () => {
   const setIsOpenUpdateProductModal = useDashboardStore((state) => state.setIsOpenUpdateProductModal);
@@ -24,8 +26,24 @@ export const UpdateProductModal = () => {
   const [unitPrice, setUnitPrice] = useState<string>(editedProduct.unit_price);
   const [insideShortName, setInsideShortName] = useState(editedProduct.inside_short_name);
   const [outsideShortName, setOutsideShortName] = useState(editedProduct.outside_short_name);
+  const [createdByDepartment, setCreatedByDepartment] = useState(
+    editedProduct.created_by_department_of_user ? editedProduct.created_by_department_of_user : ""
+  );
+  const [createdByUnit, setCreatedByUnit] = useState(
+    editedProduct.created_by_unit_of_user ? editedProduct.created_by_unit_of_user : ""
+  );
+  const [createdByOffice, setCreatedByOffice] = useState(
+    editedProduct.created_by_office_of_user ? editedProduct.created_by_office_of_user : ""
+  );
 
+  const queryClient = useQueryClient();
   const { updateProductMutation } = useMutateProduct();
+
+  // ================================ 🌟事業部、係、事業所リスト取得useQuery🌟 ================================
+  const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
+  const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
+  const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
+  // ================================ ✅事業部、係、事業所リスト取得useQuery✅ ================================
 
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
@@ -42,13 +60,14 @@ export const UpdateProductModal = () => {
 
     setLoadingGlobalState(true);
 
-    // 新規作成するデータをオブジェクトにまとめる
+    // 更新するデータをオブジェクトにまとめる
     const newProduct = {
       id: editedProduct.id,
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
       created_by_user_id: userProfileState?.id ? userProfileState.id : null,
-      created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
-      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      created_by_department_of_user: createdByDepartment ? createdByDepartment : null,
+      created_by_unit_of_user: createdByUnit ? createdByUnit : null,
+      created_by_office_of_user: createdByOffice ? createdByOffice : null,
       product_name: productName,
       // unit_price: unitPrice,
       unit_price:
@@ -395,6 +414,197 @@ export const UpdateProductModal = () => {
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 右ラッパーここまで */}
+            </div>
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* 型式・名称(顧客向け) */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    {/* <div className={`${styles.title} flex !min-w-[140px] flex-col !text-[15px]`}>
+                      <span>型式・名称</span>
+                      <span>(顧客向け)</span>
+                    </div> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "事業部別に商品を作成する場合に使用します。",
+                          // content2: "型式を入力した場合、顧客向けの見積書の品名の隣に型式が記載されます。",
+                          // marginTop: 57,
+                          // marginTop: 38,
+                          marginTop: 12,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <span className={`mr-[0px]`}>事業部</span>
+                      {/* <div className={`mr-[8px] flex flex-col text-[15px]`}>
+                        <span className={``}>型式・名称</span>
+                        <span className={``}>(顧客向け)</span>
+                      </div> */}
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+                    </div>
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={createdByDepartment ? createdByDepartment : ""}
+                      onChange={(e) => setCreatedByDepartment(e.target.value)}
+                    >
+                      <option value=""></option>
+                      {departmentDataArray &&
+                        departmentDataArray.length >= 1 &&
+                        departmentDataArray.map((department) => (
+                          <option key={department.id} value={department.id}>
+                            {department.department_name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 左ラッパーここまで */}
+            </div>
+
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* 略称(社内向け) */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    {/* <div className={`${styles.title} flex !min-w-[140px] flex-col !text-[15px]`}>
+                      <span>型式・略称</span>
+                      <span>(社内向け)</span>
+                    </div> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          // content: "社内向け商品を略称で使用している場合に使用します。",
+                          content: "係・チーム別に商品を作成する場合に使用します。",
+                          // content2: "こちらを入力することでデータベース上での表記に使用されます。",
+                          // marginTop: 57,
+                          // marginTop: 39,
+                          // marginTop: 33,
+                          marginTop: 12,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <span className={`mr-[8px]`}>係・チーム</span>
+                      {/* <div className={`mr-[8px] flex flex-col text-[15px]`}>
+                        <span className={``}>型式・略称</span>
+                        <span className={``}>(社内向け)</span>
+                      </div> */}
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+                    </div>
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box} ${styles.min}`}
+                      value={createdByUnit ? createdByUnit : ""}
+                      onChange={(e) => setCreatedByUnit(e.target.value)}
+                    >
+                      <option value=""></option>
+                      {unitDataArray &&
+                        unitDataArray.length >= 1 &&
+                        unitDataArray.map((unit) => (
+                          <option key={unit.id} value={unit.id}>
+                            {unit.unit_name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 右ラッパーここまで */}
+            </div>
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* 型式・名称(顧客向け) */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    {/* <div className={`${styles.title} flex !min-w-[140px] flex-col !text-[15px]`}>
+                      <span>型式・名称</span>
+                      <span>(顧客向け)</span>
+                    </div> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "事業所・営業所別に商品を作成する場合に使用します。",
+                          // content2: "型式を入力した場合、顧客向けの見積書の品名の隣に型式が記載されます。",
+                          // marginTop: 57,
+                          // marginTop: 38,
+                          marginTop: 12,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      {/* <span className={`mr-[8px]`}>事業所・営業所</span> */}
+                      <div className={`mr-[0px] flex flex-col text-[15px]`}>
+                        <span className={``}>事業所・</span>
+                        <span className={``}>営業所</span>
+                      </div>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+                    </div>
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={createdByOffice ? createdByOffice : ""}
+                      onChange={(e) => setCreatedByOffice(e.target.value)}
+                    >
+                      <option value=""></option>
+                      {officeDataArray &&
+                        officeDataArray.length >= 1 &&
+                        officeDataArray.map((office) => (
+                          <option key={office.id} value={office.id}>
+                            {office.office_name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 左ラッパーここまで */}
+            </div>
+
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* 略称(社内向け) */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}></div>
+                  {/* <div className={`${styles.underline}`}></div> */}
                 </div>
               </div>
 

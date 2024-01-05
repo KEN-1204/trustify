@@ -37,9 +37,9 @@ const MeetingDetailMemo: FC = () => {
       {/* ファンクションヘッダー */}
       <MeetingFunctionHeader />
       {/* メインコンテナ 左と右 */}
-      <MeetingMainContainerOneThird />
+      {/* <MeetingMainContainerOneThird /> */}
 
-      {/* <ErrorBoundary FallbackComponent={ErrorFallback}>
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
         <Suspense
           fallback={
             <Fallback className="h-full max-h-[calc(100vh-var(--header-height)-calc(100vh/3-var(--header-height)/3)-20px-20px-20px-22px-40px-2px)] min-h-[calc(100vh-var(--header-height)-calc(100vh/3-var(--header-height)/3)-20px-20px-20px-22px-40px-2px)]" />
@@ -47,7 +47,7 @@ const MeetingDetailMemo: FC = () => {
         >
           <MeetingMainContainerOneThird />
         </Suspense>
-      </ErrorBoundary> */}
+      </ErrorBoundary>
       {/* <Fallback className="h-full max-h-[calc(100vh-var(--header-height)-calc(100vh/3-var(--header-height)/3)-20px-20px-20px-22px-40px-2px)] min-h-[calc(100vh-var(--header-height)-calc(100vh/3-var(--header-height)/3)-20px-20px-20px-22px-40px-2px)]" /> */}
     </div>
   );

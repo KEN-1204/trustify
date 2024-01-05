@@ -38,8 +38,8 @@ const PropertyDetailMemo: FC = () => {
       {/* ファンクションヘッダー */}
       <PropertyFunctionHeader />
       {/* メインコンテナ 左と右 */}
-      <PropertyMainContainerOneThird />
-      {/* <ErrorBoundary FallbackComponent={ErrorFallback}>
+      {/* <PropertyMainContainerOneThird /> */}
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
         <Suspense
           fallback={
             <Fallback className="h-full max-h-[calc(100vh-var(--header-height)-calc(100vh/3-var(--header-height)/3)-20px-20px-20px-22px-40px-2px)] min-h-[calc(100vh-var(--header-height)-calc(100vh/3-var(--header-height)/3)-20px-20px-20px-22px-40px-2px)]" />
@@ -47,7 +47,7 @@ const PropertyDetailMemo: FC = () => {
         >
           <PropertyMainContainerOneThird />
         </Suspense>
-      </ErrorBoundary> */}
+      </ErrorBoundary>
     </div>
   );
 };

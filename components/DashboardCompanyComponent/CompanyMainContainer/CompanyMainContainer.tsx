@@ -91,6 +91,48 @@ const CompanyMainContainerMemo: FC = () => {
   // useMutation
   const { updateClientCompanyFieldMutation, updateMultipleClientCompanyFields } = useMutateClientCompany();
 
+  // ================================ 🌟useQuery初回マウント時のフェッチ遅延用🌟 ================================
+  // const [isReady, setIsReady] = useState(false);
+  // useEffect(() => {
+  //   setIsReady(true);
+  // }, []);
+  // ================================ 🌟事業部、係、事業所リスト取得useQuery🌟 ================================
+  // const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
+  // const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
+  // const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
+  // ================================ ✅事業部、係、事業所リスト取得useQuery✅ ================================
+  // ================================ 🌟事業部リスト取得useQuery🌟 ================================
+  // const {
+  //   data: departmentDataArray,
+  //   isLoading: isLoadingQueryDepartment,
+  //   refetch: refetchQUeryDepartments,
+  // } = useQueryDepartments(userProfileState?.company_id, true);
+
+  // useMutation
+  // const { createDepartmentMutation, updateDepartmentFieldMutation, deleteDepartmentMutation } = useMutateDepartment();
+  // ================================ ✅事業部リスト取得useQuery✅ ================================
+  // ================================ 🌟係・チームリスト取得useQuery🌟 ================================
+  // const {
+  //   data: unitDataArray,
+  //   isLoading: isLoadingQueryUnit,
+  //   refetch: refetchQUeryUnits,
+  // } = useQueryUnits(userProfileState?.company_id, true);
+
+  // useMutation
+  // const { createUnitMutation, updateUnitFieldMutation, updateMultipleUnitFieldsMutation, deleteUnitMutation } =
+  // useMutateUnit();
+  // ================================ ✅係・チームリスト取得useQuery✅ ================================
+  // ================================ 🌟事業所・営業所リスト取得useQuery🌟 ================================
+  // const {
+  //   data: officeDataArray,
+  //   isLoading: isLoadingQueryOffice,
+  //   refetch: refetchQUeryOffices,
+  // } = useQueryOffices(userProfileState?.company_id, true);
+
+  // useMutation
+  // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
+  // ================================ ✅事業所・営業所リスト取得useQuery✅ ================================
+
   // 🌟サブミット
   const [inputName, setInputName] = useState("");
   const [inputDepartment, setInputDepartment] = useState("");

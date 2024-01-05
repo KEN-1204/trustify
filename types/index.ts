@@ -834,6 +834,7 @@ type AttendeeInfo = {
 };
 // 同席者の配列
 type AttendeesInfo = AttendeeInfo[];
+
 export type Meeting_row_data = {
   company_id: string;
   contact_id: string;
@@ -1039,6 +1040,9 @@ export type ValidMeeting = {
   assigned_department_name: string | null;
   assigned_unit_name: string | null;
   assigned_office_name: string | null;
+  // 🌠面談時の商品グループと同席者グループ
+  introduced_products_names: IntroducedProductsNames;
+  attendees_info: AttendeesInfo;
 };
 // 上画面の列選択した時に下画面に担当者情報を映す用のState
 // 選択中の行データオブジェクト GridTableで取得した結合データ

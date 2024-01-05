@@ -18,6 +18,8 @@ import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
 import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMonth";
 import { Department, Office, Unit } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
+import { useQueryProducts } from "@/hooks/useQueryProducts";
+import NextImage from "next/image";
 
 export const InsertNewMeetingModal = () => {
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
@@ -107,6 +109,25 @@ export const InsertNewMeetingModal = () => {
   const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
   const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
   // ============================= ✅事業部、係、事業所リスト取得useQuery✅ =============================
+  // ================================ 🌟自事業部商品リスト取得useQuery🌟 ================================
+  const [isProductDepartment, setIsProductDepartment] = useState(
+    userProfileState?.assigned_department_id ? userProfileState?.assigned_department_id : null
+  );
+  const [isProductUnit, setIsProductUnit] = useState(
+    userProfileState?.assigned_unit_id ? userProfileState?.assigned_unit_id : null
+  );
+  const [isProductOffice, setIsProductOffice] = useState(
+    userProfileState?.assigned_office_id ? userProfileState?.assigned_office_id : null
+  );
+  const { data: ProductDataArray, isLoading: isLoadingQueryProduct } = useQueryProducts({
+    company_id: userProfileState?.company_id ? userProfileState?.company_id : null,
+    departmentId: isProductDepartment,
+    unitId: isProductUnit,
+    officeId: isProductOffice,
+    isReady: true,
+  });
+  // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
+  // ================================ ✅自事業部商品リスト取得useQuery✅ ================================
 
   //   useEffect(() => {
   //     if (!userProfileState) return;
@@ -984,8 +1005,60 @@ export const InsertNewMeetingModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title} !min-w-[140px]`}>紹介商品ﾒｲﾝ</span>
-                    <input
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>紹介商品ﾒｲﾝ</span> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title} cursor-pointer hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "選択する商品を全社、事業部、係・チームごとに",
+                          content2: "フィルターの切り替えが可能です。",
+                          // marginTop: 57,
+                          marginTop: 38,
+                          // marginTop: 12,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                      onClick={() => {
+                        if (isProductDepartment) {
+                          setIsProductDepartment(null);
+                        } else {
+                          setIsProductDepartment(userProfileState?.assigned_department_id);
+                        }
+                      }}
+                    >
+                      <span className={`mr-[9px]`}>紹介商品ﾒｲﾝ</span>
+                      {/* <div className={`mr-[8px] flex flex-col text-[15px]`}>
+                        <span className={``}>型式・名称</span>
+                        <span className={``}>(顧客向け)</span>
+                      </div> */}
+                      {/* <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} /> */}
+                      {/* <NextImage width={24} height={24} src={`/assets/images/icons/icons8-job-94.png`} alt="setting" /> */}
+                      <NextImage
+                        width={24}
+                        height={24}
+                        src={`/assets/images/icons/business/icons8-process-94.png`}
+                        alt="setting"
+                      />
+                    </div>
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={plannedProduct1 ? plannedProduct1 : ""}
+                      onChange={(e) => setPlannedProduct1(e.target.value)}
+                    >
+                      <option value=""></option>
+                      {ProductDataArray &&
+                        ProductDataArray.length >= 1 &&
+                        ProductDataArray.map((product) => (
+                          <option key={product.id} value={product.id}>
+                            {product.product_name}
+                          </option>
+                        ))}
+                    </select>
+                    {/* <input
                       type="text"
                       placeholder=""
                       required
@@ -993,7 +1066,7 @@ export const InsertNewMeetingModal = () => {
                       value={plannedProduct1}
                       onChange={(e) => setPlannedProduct1(e.target.value)}
                       onBlur={() => setPlannedProduct1(toHalfWidth(plannedProduct1.trim()))}
-                    />
+                    /> */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1211,7 +1284,7 @@ export const InsertNewMeetingModal = () => {
                       }
                       onMouseLeave={handleCloseTooltip}
                     >
-                      <span className={`mr-[6px]`}>●面談年月度</span>
+                      <span className={`mr-[9px]`}>●面談年月度</span>
                       <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
                     </div>
                     <input
