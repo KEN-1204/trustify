@@ -17,8 +17,11 @@ import { Zoom } from "@/utils/Helpers/toastHelpers";
 import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 import {
+  getOccupationName,
+  getPositionClassName,
   optionsActivityType,
   optionsOccupation,
+  optionsPositionsClass,
   optionsPriority,
   optionsSearchEmployeesClass,
 } from "@/utils/selectOptions";
@@ -36,6 +39,7 @@ import { useQueryDepartments } from "@/hooks/useQueryDepartments";
 import { useQueryUnits } from "@/hooks/useQueryUnits";
 import { useQueryOffices } from "@/hooks/useQueryOffices";
 import { useQueryClient } from "@tanstack/react-query";
+import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -59,6 +63,7 @@ import { useQueryClient } from "@tanstack/react-query";
 // 常にサーバー側にモジュールを含める必要はありません。たとえば、ブラウザのみで動作するライブラリがモジュールに含まれている場合です。
 
 const ActivityMainContainerOneThirdMemo = () => {
+  const language = useStore((state) => state.language);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   // サーチモード
   const searchMode = useDashboardStore((state) => state.searchMode);
@@ -330,8 +335,18 @@ const ActivityMainContainerOneThirdMemo = () => {
       //   setInputContactEmail(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.contact_email));
       setInputContactEmail(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams["contacts.email"]));
       setInputPositionName(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.position_name));
-      setInputPositionClass(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.position_class));
-      setInputOccupation(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.occupation));
+      // setInputPositionClass(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.position_class));
+      // setInputOccupation(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.occupation));
+      setInputPositionClass(
+        newSearchActivity_Contact_CompanyParams.position_class
+          ? newSearchActivity_Contact_CompanyParams.position_class.toString()
+          : ""
+      );
+      setInputOccupation(
+        newSearchActivity_Contact_CompanyParams.occupation
+          ? newSearchActivity_Contact_CompanyParams.occupation.toString()
+          : ""
+      );
       setInputApprovalAmount(
         beforeAdjustFieldValue(
           newSearchActivity_Contact_CompanyParams.approval_amount
@@ -535,8 +550,8 @@ const ActivityMainContainerOneThirdMemo = () => {
     let _personal_cell_phone = adjustFieldValue(inputPersonalCellPhone);
     let _contact_email = adjustFieldValue(inputContactEmail);
     let _position_name = adjustFieldValue(inputPositionName);
-    let _position_class = adjustFieldValue(inputPositionClass);
-    let _occupation = adjustFieldValue(inputOccupation);
+    let _position_class = adjustFieldValue(inputPositionClass) ? parseInt(inputPositionClass, 10) : null;
+    let _occupation = adjustFieldValue(inputOccupation) ? parseInt(inputOccupation, 10) : null;
     // let _approval_amount = adjustFieldValue(inputApprovalAmount);
     let _approval_amount = adjustFieldValue(inputApprovalAmount) ? parseInt(inputApprovalAmount, 10) : null;
     let _contact_created_by_company_id = adjustFieldValue(inputContactCreatedByCompanyId);
@@ -2973,7 +2988,12 @@ const ActivityMainContainerOneThirdMemo = () => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                         }}
                       >
-                        {selectedRowDataActivity?.position_class ? selectedRowDataActivity?.position_class : ""}
+                        {/* {selectedRowDataActivity?.position_class ? selectedRowDataActivity?.position_class : ""} */}
+                        {selectedRowDataActivity &&
+                        selectedRowDataActivity?.position_class &&
+                        mappingPositionClass[selectedRowDataActivity.position_class]?.[language]
+                          ? mappingPositionClass[selectedRowDataActivity.position_class]?.[language]
+                          : ""}
                       </span>
                     )}
                     {/* {searchMode && (
@@ -3018,7 +3038,12 @@ const ActivityMainContainerOneThirdMemo = () => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                         }}
                       >
-                        {selectedRowDataActivity?.occupation ? selectedRowDataActivity?.occupation : ""}
+                        {/* {selectedRowDataActivity?.occupation ? selectedRowDataActivity?.occupation : ""} */}
+                        {selectedRowDataActivity &&
+                        selectedRowDataActivity?.occupation &&
+                        mappingOccupation[selectedRowDataActivity.occupation]?.[language]
+                          ? mappingOccupation[selectedRowDataActivity.occupation]?.[language]
+                          : ""}
                       </span>
                     )}
                     {/* {searchMode && (
@@ -4403,11 +4428,11 @@ const ActivityMainContainerOneThirdMemo = () => {
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>役職名</span>
-                      {!searchMode && (
+                      {/* {!searchMode && (
                         <span className={`${styles.value}`}>
                           {selectedRowDataActivity?.position_name ? selectedRowDataActivity?.position_name : ""}
                         </span>
-                      )}
+                      )} */}
                       {searchMode && (
                         <input
                           type="text"
@@ -4422,11 +4447,11 @@ const ActivityMainContainerOneThirdMemo = () => {
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>職位</span>
-                      {!searchMode && (
+                      {/* {!searchMode && (
                         <span className={`${styles.value}`}>
                           {selectedRowDataActivity?.position_class ? selectedRowDataActivity?.position_class : ""}
                         </span>
-                      )}
+                      )} */}
                       {searchMode && (
                         // <input
                         //   type="text"
@@ -4442,13 +4467,18 @@ const ActivityMainContainerOneThirdMemo = () => {
                           onChange={(e) => setInputPositionClass(e.target.value)}
                         >
                           <option value=""></option>
-                          <option value="1 代表者">1 代表者</option>
+                          {optionsPositionsClass.map((classNum) => (
+                            <option key={classNum} value={`${classNum}`}>
+                              {getPositionClassName(classNum, language)}
+                            </option>
+                          ))}
+                          {/* <option value="1 代表者">1 代表者</option>
                           <option value="2 取締役/役員">2 取締役/役員</option>
                           <option value="3 部長">3 部長</option>
                           <option value="4 課長">4 課長</option>
                           <option value="5 課長未満">5 課長未満</option>
                           <option value="6 所長・工場長">6 所長・工場長</option>
-                          <option value="7 不明">7 不明</option>
+                          <option value="7 不明">7 不明</option> */}
                         </select>
                       )}
                     </div>
@@ -4465,11 +4495,11 @@ const ActivityMainContainerOneThirdMemo = () => {
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>担当職種</span>
-                      {!searchMode && (
+                      {/* {!searchMode && (
                         <span className={`${styles.value}`}>
                           {selectedRowDataActivity?.occupation ? selectedRowDataActivity?.occupation : ""}
                         </span>
-                      )}
+                      )} */}
                       {searchMode && (
                         <select
                           name="position_class"
@@ -4479,11 +4509,16 @@ const ActivityMainContainerOneThirdMemo = () => {
                           onChange={(e) => setInputEmployeesClass(e.target.value)}
                         >
                           <option value=""></option>
-                          {optionsOccupation.map((option) => (
+                          {optionsOccupation.map((num) => (
+                            <option key={num} value={`${num}`}>
+                              {getOccupationName(num, language)}
+                            </option>
+                          ))}
+                          {/* {optionsOccupation.map((option) => (
                             <option key={option} value={option}>
                               {option}
                             </option>
-                          ))}
+                          ))} */}
                         </select>
                       )}
                     </div>

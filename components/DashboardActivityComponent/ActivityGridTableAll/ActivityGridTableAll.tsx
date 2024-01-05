@@ -21,6 +21,7 @@ import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 import { GridTableFooter } from "@/components/GridTable/GridTableFooter/GridTableFooter";
 import { GridCellCheckboxTrue } from "@/components/DashboardActivityComponent/ActivityGridTableAll/GridCellCheckbox/GridCellCheckboxTrue";
 import { GridCellCheckboxFalse } from "@/components/DashboardActivityComponent/ActivityGridTableAll/GridCellCheckbox/GridCellCheckboxFalse";
+import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
 
 type TableDataType = {
   id: number;
@@ -2460,6 +2461,18 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
           return value;
         }
         break;
+
+      //職位
+      case "position_class":
+        if (!value) return null;
+        const positionTitle = mappingPositionClass[value as number]?.[language];
+        return positionTitle || value.toString();
+
+      // 担当職種
+      case "occupation":
+        if (!value) return null;
+        const occupationTitle = mappingOccupation[value as number]?.[language];
+        return occupationTitle || value.toString();
 
       default:
         return value;

@@ -16,12 +16,18 @@ import { toast } from "react-toastify";
 import { Zoom } from "@/utils/Helpers/toastHelpers";
 import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
-import { optionsOccupation } from "@/utils/selectOptions";
+import {
+  getOccupationName,
+  getPositionClassName,
+  optionsOccupation,
+  optionsPositionsClass,
+} from "@/utils/selectOptions";
 import { useQueryDepartments } from "@/hooks/useQueryDepartments";
 import { useQueryUnits } from "@/hooks/useQueryUnits";
 import { useQueryOffices } from "@/hooks/useQueryOffices";
 import { Department, Office, Unit } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
+import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -45,6 +51,7 @@ import { useQueryClient } from "@tanstack/react-query";
 // 常にサーバー側にモジュールを含める必要はありません。たとえば、ブラウザのみで動作するライブラリがモジュールに含まれている場合です。
 
 const MeetingMainContainerOneThirdMemo: FC = () => {
+  const language = useStore((state) => state.language);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const searchMode = useDashboardStore((state) => state.searchMode);
   const setSearchMode = useDashboardStore((state) => state.setSearchMode);
@@ -293,8 +300,18 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       //   setInputContactEmail(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.contact_email));
       setInputContactEmail(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams["contacts.email"]));
       setInputPositionName(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.position_name));
-      setInputPositionClass(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.position_class));
-      setInputOccupation(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.occupation));
+      // setInputPositionClass(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.position_class));
+      // setInputOccupation(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.occupation));
+      setInputPositionClass(
+        newSearchMeeting_Contact_CompanyParams.position_class
+          ? newSearchMeeting_Contact_CompanyParams.position_class.toString()
+          : ""
+      );
+      setInputOccupation(
+        newSearchMeeting_Contact_CompanyParams.occupation
+          ? newSearchMeeting_Contact_CompanyParams.occupation.toString()
+          : ""
+      );
       setInputApprovalAmount(
         beforeAdjustFieldValue(
           newSearchMeeting_Contact_CompanyParams.approval_amount
@@ -587,8 +604,8 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     let _personal_cell_phone = adjustFieldValue(inputPersonalCellPhone);
     let _contact_email = adjustFieldValue(inputContactEmail);
     let _position_name = adjustFieldValue(inputPositionName);
-    let _position_class = adjustFieldValue(inputPositionClass);
-    let _occupation = adjustFieldValue(inputOccupation);
+    let _position_class = adjustFieldValue(inputPositionClass) ? parseInt(inputPositionClass, 10) : null;
+    let _occupation = adjustFieldValue(inputOccupation) ? parseInt(inputOccupation, 10) : null;
     // let _approval_amount = adjustFieldValue(inputApprovalAmount);
     let _approval_amount = adjustFieldValue(inputApprovalAmount) ? parseInt(inputApprovalAmount, 10) : null;
     let _contact_created_by_company_id = adjustFieldValue(inputContactCreatedByCompanyId);
@@ -1939,7 +1956,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     <span className={`${styles.title}`}>職位</span>
                     {!searchMode && (
                       <span className={`${styles.value}`}>
-                        {selectedRowDataMeeting?.position_class ? selectedRowDataMeeting?.position_class : ""}
+                        {/* {selectedRowDataMeeting?.position_class ? selectedRowDataMeeting?.position_class : ""} */}
+                        {selectedRowDataMeeting &&
+                        selectedRowDataMeeting?.position_class &&
+                        mappingPositionClass[selectedRowDataMeeting.position_class]?.[language]
+                          ? mappingPositionClass[selectedRowDataMeeting.position_class]?.[language]
+                          : ""}
                       </span>
                     )}
                     {searchMode && (
@@ -1957,13 +1979,18 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         onChange={(e) => setInputPositionClass(e.target.value)}
                       >
                         <option value=""></option>
-                        <option value="1 代表者">1 代表者</option>
+                        {optionsPositionsClass.map((classNum) => (
+                          <option key={classNum} value={`${classNum}`}>
+                            {getPositionClassName(classNum, language)}
+                          </option>
+                        ))}
+                        {/* <option value="1 代表者">1 代表者</option>
                         <option value="2 取締役/役員">2 取締役/役員</option>
                         <option value="3 部長">3 部長</option>
                         <option value="4 課長">4 課長</option>
                         <option value="5 課長未満">5 課長未満</option>
                         <option value="6 所長・工場長">6 所長・工場長</option>
-                        <option value="7 不明">7 不明</option>
+                        <option value="7 不明">7 不明</option> */}
                       </select>
                     )}
                   </div>
@@ -1978,7 +2005,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     <span className={`${styles.title}`}>担当職種</span>
                     {!searchMode && (
                       <span className={`${styles.value}`}>
-                        {selectedRowDataMeeting?.occupation ? selectedRowDataMeeting?.occupation : ""}
+                        {/* {selectedRowDataMeeting?.occupation ? selectedRowDataMeeting?.occupation : ""} */}
+                        {selectedRowDataMeeting &&
+                        selectedRowDataMeeting?.occupation &&
+                        mappingOccupation[selectedRowDataMeeting.occupation]?.[language]
+                          ? mappingOccupation[selectedRowDataMeeting.occupation]?.[language]
+                          : ""}
                       </span>
                     )}
                     {searchMode && (
@@ -1986,15 +2018,20 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         name="position_class"
                         id="position_class"
                         className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
-                        value={inputEmployeesClass}
-                        onChange={(e) => setInputEmployeesClass(e.target.value)}
+                        value={inputOccupation}
+                        onChange={(e) => setInputOccupation(e.target.value)}
                       >
                         <option value=""></option>
-                        {optionsOccupation.map((option) => (
+                        {optionsOccupation.map((num) => (
+                          <option key={num} value={`${num}`}>
+                            {getOccupationName(num, language)}
+                          </option>
+                        ))}
+                        {/* {optionsOccupation.map((option) => (
                           <option key={option} value={option}>
                             {option}
                           </option>
-                        ))}
+                        ))} */}
                       </select>
                     )}
                   </div>

@@ -10,6 +10,12 @@ import { useMutateContact } from "@/hooks/useMutateContact";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { BsChevronLeft } from "react-icons/bs";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
+import {
+  getOccupationName,
+  getPositionClassName,
+  optionsOccupation,
+  optionsPositionsClass,
+} from "@/utils/selectOptions";
 
 export const InsertNewContactModal = () => {
   const setIsOpenInsertNewContactModal = useDashboardStore((state) => state.setIsOpenInsertNewContactModal);
@@ -68,8 +74,10 @@ export const InsertNewContactModal = () => {
       personal_cell_phone: personalCellPhone ? personalCellPhone : null,
       email: email ? email : null,
       position_name: position ? position : null,
-      position_class: selectedPositionClass ? selectedPositionClass : null,
-      occupation: selectedOccupation ? selectedOccupation : null,
+      // position_class: selectedPositionClass ? selectedPositionClass : null,
+      // occupation: selectedOccupation ? selectedOccupation : null,
+      position_class: selectedPositionClass ? parseInt(selectedPositionClass, 10) : null,
+      occupation: selectedOccupation ? parseInt(selectedOccupation, 10) : null,
       approval_amount: approvalAmount ? parseInt(approvalAmount, 10) : null,
       email_ban_flag: false,
       sending_materials_ban_flag: false,
@@ -81,8 +89,13 @@ export const InsertNewContactModal = () => {
       client_company_id: selectedRowDataCompany!.id,
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
       created_by_user_id: userProfileState?.id ? userProfileState.id : null,
-      created_by_department_of_user: userProfileState?.department ? userProfileState.department : null,
-      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      // created_by_department_of_user: userProfileState?.department ? userProfileState.department : null,
+      // created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      created_by_department_of_user: userProfileState?.assigned_department_id
+        ? userProfileState.assigned_department_id
+        : null,
+      created_by_unit_of_user: userProfileState?.assigned_unit_id ? userProfileState.assigned_unit_id : null,
+      created_by_office_of_user: userProfileState?.assigned_office_id ? userProfileState.assigned_office_id : null,
     };
 
     // supabaseにINSERT,ローディング終了, モーダルを閉じる
@@ -381,7 +394,12 @@ export const InsertNewContactModal = () => {
                       onChange={(e) => setSelectedOccupation(e.target.value)}
                     >
                       <option value="">選択してください</option>
-                      <option value="社長・専務">社長・専務</option>
+                      {optionsOccupation.map((num) => (
+                        <option key={num} value={`${num}`}>
+                          {getOccupationName(num)}
+                        </option>
+                      ))}
+                      {/* <option value="社長・専務">社長・専務</option>
                       <option value="取締役・役員">取締役・役員</option>
                       <option value="プロジェクト管理">プロジェクト管理</option>
                       <option value="営業">営業</option>
@@ -401,7 +419,7 @@ export const InsertNewContactModal = () => {
                       <option value="購買">購買</option>
                       <option value="情報システム/IT管理者">情報システム/IT管理者</option>
                       <option value="CS/カスタマーサービス">CS/カスタマーサービス</option>
-                      <option value="その他">その他</option>
+                      <option value="その他">その他</option> */}
                       {/* <option value="社長/CEO">社長/CEO</option>
                       <option value="取締役・役員">取締役・役員</option>
                       <option value="プロジェクト/プログラム管理">プロジェクト/プログラム管理</option>
@@ -448,14 +466,19 @@ export const InsertNewContactModal = () => {
                       onChange={(e) => setSelectedPositionClass(e.target.value)}
                     >
                       <option value="">選択してください</option>
-                      <option value="1 代表者">1 代表者</option>
+                      {optionsPositionsClass.map((classNum) => (
+                        <option key={classNum} value={`${classNum}`}>
+                          {getPositionClassName(classNum)}
+                        </option>
+                      ))}
+                      {/* <option value="1 代表者">1 代表者</option>
                       <option value="2 取締役/役員">2 取締役/役員</option>
                       <option value="3 部長">3 部長</option>
                       <option value="4 課長">4 課長</option>
                       <option value="5 課長未満">5 課長未満</option>
                       <option value="6 所長・工場長">6 所長・工場長</option>
                       <option value="7 フリーランス・個人事業主">7 フリーランス・個人事業主</option>
-                      <option value="8 不明">8 不明</option>
+                      <option value="8 不明">8 不明</option> */}
                       {/* <option value="executive">1 代表者</option>
                       <option value="Director">2 取締役/役員</option>
                       <option value="department_manager">3 部長</option>

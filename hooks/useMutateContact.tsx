@@ -44,13 +44,7 @@ export const useMutateContact = () => {
         setIsOpenInsertNewContactModal(false);
         toast.success("担当者の作成が完了しました🌟", {
           position: "top-right",
-          autoClose: 1500,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: `${theme === "light" ? "light" : "dark"}`,
+          autoClose: 3000,
         });
 
         // setTimeout(() => {
@@ -79,13 +73,7 @@ export const useMutateContact = () => {
         console.log("INSERTエラー", err.message);
         toast.error("担当者の作成に失敗しました!", {
           position: "top-right",
-          autoClose: 1500,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: `${theme === "light" ? "light" : "dark"}`,
+          autoClose: 3000,
         });
         // setTimeout(() => {
         //   // ローディングを終了する
@@ -133,12 +121,6 @@ export const useMutateContact = () => {
         toast.success("担当者の更新が完了しました🌟", {
           position: "top-right",
           autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: `${theme === "light" ? "light" : "dark"}`,
         });
         // setTimeout(() => {
         //   // ローディングを終了する
@@ -167,12 +149,6 @@ export const useMutateContact = () => {
         toast.error("担当者の更新に失敗しました!", {
           position: "top-right",
           autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: `${theme === "light" ? "light" : "dark"}`,
         });
         // setTimeout(() => {
         //   // ローディングを終了する

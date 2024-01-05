@@ -24,6 +24,8 @@ import { InputSendAndCloseBtn } from "@/components/DashboardCompanyComponent/Com
 import { toHalfWidthAndSpace } from "@/utils/Helpers/toHalfWidthAndSpace";
 import { validateAndFormatPhoneNumber } from "@/utils/Helpers/validateAndFormatPhoneNumber";
 import {
+  getOccupationName,
+  getPositionClassName,
   optionsIndustryType,
   optionsOccupation,
   optionsPositionsClass,
@@ -39,6 +41,7 @@ import {
 // const DynamicComponent = dynamic(() => import('../components/hello'));
 // 通常
 import { ContactUnderRightActivityLog } from "./ContactUnderRightActivityLog/ContactUnderRightActivityLog";
+import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
 // 名前付きエクスポートの場合のダイナミックインポート
 // const ContactUnderRightActivityLog = dynamic(
 //   () =>
@@ -58,6 +61,7 @@ import { ContactUnderRightActivityLog } from "./ContactUnderRightActivityLog/Con
 // 常にサーバー側にモジュールを含める必要はありません。たとえば、ブラウザのみで動作するライブラリがモジュールに含まれている場合です。
 
 const ContactMainContainerMemo: FC = () => {
+  const language = useStore((state) => state.language);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   // サーチモード
   const searchMode = useDashboardStore((state) => state.searchMode);
@@ -225,8 +229,16 @@ const ContactMainContainerMemo: FC = () => {
       //   setInputContactEmail(beforeAdjustFieldValue(newSearchContact_CompanyParams.contact_email));
       setInputContactEmail(beforeAdjustFieldValue(newSearchContact_CompanyParams["contacts.email"]));
       setInputPositionName(beforeAdjustFieldValue(newSearchContact_CompanyParams.position_name));
-      setInputPositionClass(beforeAdjustFieldValue(newSearchContact_CompanyParams.position_class));
-      setInputOccupation(beforeAdjustFieldValue(newSearchContact_CompanyParams.occupation));
+      setInputPositionClass(
+        beforeAdjustFieldValue(
+          newSearchContact_CompanyParams.position_class ? newSearchContact_CompanyParams.position_class.toString() : ""
+        )
+      );
+      setInputOccupation(
+        beforeAdjustFieldValue(
+          newSearchContact_CompanyParams.occupation ? newSearchContact_CompanyParams.occupation.toString() : ""
+        )
+      );
       setInputApprovalAmount(
         beforeAdjustFieldValue(
           newSearchContact_CompanyParams.approval_amount
@@ -344,8 +356,8 @@ const ContactMainContainerMemo: FC = () => {
     let _personal_cell_phone = adjustFieldValue(inputPersonalCellPhone);
     let _contact_email = adjustFieldValue(inputContactEmail);
     let _position_name = adjustFieldValue(inputPositionName);
-    let _position_class = adjustFieldValue(inputPositionClass);
-    let _occupation = adjustFieldValue(inputOccupation);
+    let _position_class = adjustFieldValue(inputPositionClass) ? parseInt(inputPositionClass, 10) : null;
+    let _occupation = adjustFieldValue(inputOccupation) ? parseInt(inputOccupation, 10) : null;
     let _approval_amount = adjustFieldValue(inputApprovalAmount) ? parseInt(inputApprovalAmount, 10) : null;
     let _created_by_company_id = adjustFieldValue(inputCreatedByCompanyId);
     let _created_by_user_id = adjustFieldValue(inputCreatedByUserId);
@@ -2047,7 +2059,12 @@ const ContactMainContainerMemo: FC = () => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                       }}
                     >
-                      {selectedRowDataContact?.position_class ? selectedRowDataContact?.position_class : ""}
+                      {/* {selectedRowDataContact?.position_class ? selectedRowDataContact?.position_class : ""} */}
+                      {selectedRowDataContact &&
+                      selectedRowDataContact?.position_class &&
+                      mappingPositionClass[selectedRowDataContact.position_class]?.[language]
+                        ? mappingPositionClass[selectedRowDataContact.position_class]?.[language]
+                        : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -2057,13 +2074,18 @@ const ContactMainContainerMemo: FC = () => {
                       onChange={(e) => setInputPositionClass(e.target.value)}
                     >
                       <option value=""></option>
-                      <option value="代表者">代表者</option>
+                      {optionsPositionsClass.map((classNum) => (
+                        <option key={classNum} value={`${classNum}`}>
+                          {getPositionClassName(classNum, language)}
+                        </option>
+                      ))}
+                      {/* <option value="代表者">代表者</option>
                       <option value="取締役/役員">取締役/役員</option>
                       <option value="部長">部長</option>
                       <option value="課長">課長</option>
                       <option value="課長未満">課長未満</option>
                       <option value="所長・工場長">所長・工場長</option>
-                      <option value="その他">その他</option>
+                      <option value="その他">その他</option> */}
                     </select>
                   )}
                   {/* ============= フィールドエディットモード関連 ============= */}
@@ -2137,7 +2159,12 @@ const ContactMainContainerMemo: FC = () => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                       }}
                     >
-                      {selectedRowDataContact?.occupation ? selectedRowDataContact?.occupation : ""}
+                      {/* {selectedRowDataContact?.occupation ? selectedRowDataContact?.occupation : ""} */}
+                      {selectedRowDataContact &&
+                      selectedRowDataContact?.occupation &&
+                      mappingOccupation[selectedRowDataContact.occupation]?.[language]
+                        ? mappingOccupation[selectedRowDataContact.occupation]?.[language]
+                        : ""}
                     </span>
                   )}
                   {searchMode && (
@@ -2149,11 +2176,16 @@ const ContactMainContainerMemo: FC = () => {
                       onChange={(e) => setInputOccupation(e.target.value)}
                     >
                       <option value=""></option>
-                      {optionsOccupation.map((option) => (
+                      {optionsOccupation.map((num) => (
+                        <option key={num} value={`${num}`}>
+                          {getOccupationName(num, language)}
+                        </option>
+                      ))}
+                      {/* {optionsOccupation.map((option) => (
                         <option key={option} value={option}>
                           {option}
                         </option>
-                      ))}
+                      ))} */}
                       {/* <option value="社長・専務">社長・専務</option>
                       <option value="取締役・役員">取締役・役員</option>
                       <option value="プロジェクト管理">プロジェクト管理</option>

@@ -1,14 +1,49 @@
-export const optionsPositionsClass = ["代表者", "取締役", "部長", "課長", "課長未満", "所長・支社長・工場長", "その他"];
-
 export const optionsPositionsClassForCustomer = [
   "代表者",
   "取締役/役員",
   "部長",
   "課長",
   "チームメンバー",
-  "所長・支社長・工場長",
+  "所長・支店長・工場長",
   "フリーランス・個人事業主",
 ];
+
+// export const optionsPositionsClass = ["代表者", "取締役", "部長", "課長", "課長未満", "所長・支社長・工場長", "その他"];
+// export const optionsPositionsClass = [
+//   "1 代表者",
+//   "2 取締役/役員",
+//   "3 部長",
+//   "4 課長",
+//   "5 課長未満",
+//   "6 所長・支社長・工場長",
+// ];
+export const optionsPositionsClass = [1, 2, 3, 4, 5, 6];
+
+export const getPositionClassName = (classNum: number, language: string = "ja") => {
+  switch (classNum) {
+    case 1:
+      return language === "ja" ? `1 代表者` : `1 President`;
+      break;
+    case 2:
+      return language === "ja" ? `2 取締役/役員` : `2 Director/Executive`;
+      break;
+    case 3:
+      return language === "ja" ? `3 部長` : `3 Manager`;
+      break;
+    case 4:
+      return language === "ja" ? `4 課長` : `4 Section Manager`;
+      break;
+    case 5:
+      return language === "ja" ? `5 課長未満` : `5 Team Leader/Associate`;
+      break;
+    case 6:
+      return language === "ja" ? `6 所長・支店長・工場長` : `6 Branch Manager`;
+      break;
+
+    default:
+      break;
+  }
+};
 
 //  <option value="1 代表者">1 代表者</option>
 //   <option value="2 取締役/役員">2 取締役/役員</option>
@@ -18,39 +53,105 @@ export const optionsPositionsClassForCustomer = [
 //   <option value="6 所長・工場長">6 所長・工場長</option>
 //   <option value="7 フリーランス・個人事業主">7 フリーランス・個人事業主</option>
 //   <option value="8 不明">8 不明</option>
-/* <option value="1 代表者">1 代表者</option>
-<option value="2 取締役/役員">2 取締役/役員</option>
-<option value="3 部長">3 部長</option>
-<option value="4 課長">4 課長</option>
-<option value="5 課長未満">5 課長未満</option>
-<option value="6 所長・工場長">6 所長・工場長</option>
-<option value="7 フリーランス・個人事業主">7 フリーランス・個人事業主</option>
-<option value="8 不明">8 不明</option> */
 
-export const optionsOccupation = [
-  // "社長・専務",
-  "社長/CEO",
-  "取締役・役員",
-  "プロジェクト管理",
-  "営業",
-  "マーケティング",
-  "クリエイティブ",
-  "ソフトウェア開発",
-  "開発・設計",
-  "製造",
-  "品質管理・品質保証",
-  "生産管理",
-  "生産技術",
-  "人事",
-  "経理",
-  "総務",
-  "法務",
-  "財務",
-  "購買",
-  "情報システム/IT管理者",
-  "CS/カスタマーサービス",
-  "その他",
-];
+// export const optionsOccupation = [
+//   // "社長・専務",
+//   "社長/CEO",
+//   "取締役・役員",
+//   "プロジェクト管理",
+//   "営業",
+//   "マーケティング",
+//   "クリエイティブ",
+//   "ソフトウェア開発",
+//   "開発・設計",
+//   "製造",
+//   "品質管理・品質保証",
+//   "生産管理",
+//   "生産技術",
+//   "人事",
+//   "経理",
+//   "総務",
+//   "法務",
+//   "財務",
+//   "購買",
+//   "情報システム/IT管理者",
+//   "CS/カスタマーサービス",
+//   "その他",
+// ];
+// export const optionsOccupation = [
+//   "1 社長/CEO",
+//   "2 取締役・役員",
+//   "3 プロジェクト管理",
+//   "4 営業",
+//   "5 マーケティング",
+//   "6 クリエイティブ",
+//   "7 ソフトウェア開発",
+//   "8 開発・設計",
+//   "9 製造",
+//   "10 品質管理・品質保証",
+//   "11 生産管理",
+//   "12 生産技術",
+//   "13 人事",
+//   "14 経理",
+//   "15 総務",
+//   "16 法務",
+//   "17 財務",
+//   "18 購買",
+//   "19 情報システム/IT管理者",
+//   "20 CS/カスタマーサービス",
+//   "21 その他",
+// ];
+export const optionsOccupation = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
+
+export const getOccupationName = (Num: number, language: string = "ja") => {
+  switch (Num) {
+    case 1:
+      return language === "ja" ? `1 社長/CEO` : `1 President`;
+    case 2:
+      return language === "ja" ? `2 取締役・役員` : `2 Director/Executive`;
+    case 3:
+      return language === "ja" ? `3 プロジェクトマネージャー` : `3 Project Manager`;
+    case 4:
+      return language === "ja" ? "4 営業" : `4 Sales`;
+    case 5:
+      return language === "ja" ? "5 マーケティング" : `5 Marketing`;
+    case 6:
+      return language === "ja" ? "6 クリエイティブ" : `6 Creative`;
+    case 7:
+      return language === "ja" ? "7 ソフトウェア開発" : `7 Software Development`;
+    case 8:
+      return language === "ja" ? "8 開発・設計" : `8 R&D`;
+    case 9:
+      return language === "ja" ? "9 製造" : `9 Manufacturing`;
+    case 10:
+      return language === "ja" ? "10 品質管理・品質保証" : `10 Quality Control`;
+    case 11:
+      return language === "ja" ? "11 生産管理" : `11 Production Management`;
+    case 12:
+      return language === "ja" ? "12 生産技術" : `12 Production Engineering`;
+    case 13:
+      return language === "ja" ? "13 人事" : `13 Human Resources`;
+    case 14:
+      return language === "ja" ? "14 経理" : `14 Accounting`;
+    case 15:
+      return language === "ja" ? "15 総務" : `15 General Affairs`;
+    case 16:
+      return language === "ja" ? "16 法務" : `16 Legal`;
+    case 17:
+      return language === "ja" ? "17 財務" : `17 Finance`;
+    case 18:
+      return language === "ja" ? "18 購買" : `18 Purchasing`;
+    case 19:
+      return language === "ja" ? "19 情報システム" : `19 Information Systems`;
+    case 20:
+      return language === "ja" ? "20 CS/カスタマーサービス" : `20 CS`;
+    case 21:
+      return language === "ja" ? "21 その他" : `21 Other`;
+
+    default:
+      break;
+  }
+};
 /**
  * 
 
@@ -106,7 +207,7 @@ export const optionsOccupation = [
 <option value="8">8 経理</option>
 <option value="9">9 総務</option>
 <option value="10">10 法務</option>
-<option value="11">11 財務</option>
+<option value="11">11 財務</option>6 
 <option value="12">12 情報システム</option>
 <option value="13">13 マーケティング</option>
 <option value="14">14 購買</option>

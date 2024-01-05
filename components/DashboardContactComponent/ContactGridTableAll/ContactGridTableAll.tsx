@@ -20,6 +20,8 @@ import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 import { GridTableFooter } from "@/components/GridTable/GridTableFooter/GridTableFooter";
 import { GridCellCheckboxTrue } from "@/components/DashboardActivityComponent/ActivityGridTableAll/GridCellCheckbox/GridCellCheckboxTrue";
 import { GridCellCheckboxFalse } from "@/components/DashboardActivityComponent/ActivityGridTableAll/GridCellCheckbox/GridCellCheckboxFalse";
+import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
+import { format } from "date-fns";
 
 type TableDataType = {
   id: number;
@@ -364,7 +366,8 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
         .eq("created_by_company_id", userProfileState.company_id)
         // .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
         .range(from, to)
-        .order("company_name", { ascending: true });
+        .order("company_name", { ascending: true })
+        .order("contact_created_at", { ascending: false }); // 担当者作成日 更新にすると更新の度に行が入れ替わるため
       // const { data, error, count } = await supabase
       //   .rpc("search_companies_and_contacts", { params }, { count: "exact" })
       //   .is("created_by_company_id", null)
@@ -433,7 +436,8 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
         .eq("created_by_company_id", userProfileState.company_id)
         // .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
         .range(from, to)
-        .order("company_name", { ascending: true });
+        .order("company_name", { ascending: true })
+        .order("contact_created_at", { ascending: false }); // 担当者作成日 更新にすると更新の度に行が入れ替わるため
       // const { data, error, count } = await supabase
       //   .rpc("search_companies_and_contacts", { params }, { count: "exact" })
       //   .eq("created_by_company_id", `${userProfileState?.company_id}`)
@@ -2355,6 +2359,15 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
   // 🌟カラム3点リーダー表示中はホバー時にツールチップを有効化
   // console.log("✅isOverflowColumnHeader", isOverflowColumnHeader);
 
+  const formatDateMapping: {
+    contact_created_at: string;
+    contact_updated_at: string;
+    [key: string]: string;
+  } = {
+    contact_created_at: "yyyy/MM/dd HH:mm:ss",
+    contact_updated_at: "yyyy/MM/dd HH:mm:ss",
+  };
+
   // クレーム有無フラグ claim_flagフィールド、follow_up_flag(フォロー完了フラグ)
   const flagMapping: { [key: string]: { [value: string]: React.JSX.Element } } = {
     call_careful_flag: {
@@ -2393,6 +2406,34 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
         // if (!value) return value;
         return flagMapping[columnName][String(value)];
         break;
+
+      // 担当者作成日時、担当者更新日時
+      case "contact_created_at":
+      case "contact_updated_at":
+        try {
+          if (!!value && !Number.isNaN(new Date(value).getTime())) {
+            return format(new Date(value), formatDateMapping[columnName]);
+          } else {
+            console.log("❎日付チェック 存在しない日付のためformatせず");
+            return value;
+          }
+        } catch (e: any) {
+          console.error(`日付チェック エラー発生 e`, e);
+          return value;
+        }
+        break;
+
+      //職位
+      case "position_class":
+        if (!value) return null;
+        const positionTitle = mappingPositionClass[value as number]?.[language];
+        return positionTitle || value.toString();
+
+      // 担当職種
+      case "occupation":
+        if (!value) return null;
+        const occupationTitle = mappingOccupation[value as number]?.[language];
+        return occupationTitle || value.toString();
 
       default:
         return value;

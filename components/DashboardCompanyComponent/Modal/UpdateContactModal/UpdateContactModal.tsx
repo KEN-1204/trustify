@@ -10,6 +10,12 @@ import { useMutateContact } from "@/hooks/useMutateContact";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { BsChevronLeft } from "react-icons/bs";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
+import {
+  getOccupationName,
+  getPositionClassName,
+  optionsOccupation,
+  optionsPositionsClass,
+} from "@/utils/selectOptions";
 
 export const UpdateContactModal = () => {
   //   const setIsOpenInsertNewContactModal = useDashboardStore((state) => state.setIsOpenInsertNewContactModal);
@@ -74,8 +80,10 @@ export const UpdateContactModal = () => {
     let _approval_amount = selectedRowDataContact.approval_amount
       ? selectedRowDataContact.approval_amount.toString()
       : "";
-    let _position_class = selectedRowDataContact.position_class ? selectedRowDataContact.position_class : "1 代表者";
-    let _occupation = selectedRowDataContact.occupation ? selectedRowDataContact.occupation : "1 社長・専務";
+    let _position_class = selectedRowDataContact.position_class
+      ? selectedRowDataContact.position_class.toString()
+      : "1";
+    let _occupation = selectedRowDataContact.occupation ? selectedRowDataContact.occupation.toString() : "1";
     let _call_careful_flag = selectedRowDataContact.call_careful_flag
       ? selectedRowDataContact.call_careful_flag
       : false;
@@ -129,8 +137,9 @@ export const UpdateContactModal = () => {
       personal_cell_phone: personalCellPhone ? personalCellPhone : null,
       email: email ? email : null,
       position_name: position ? position : null,
-      position_class: selectedPositionClass ? selectedPositionClass : null,
-      occupation: selectedOccupation ? selectedOccupation : null,
+      // position_class: selectedPositionClass ? selectedPositionClass : null,
+      position_class: selectedPositionClass ? parseInt(selectedPositionClass, 10) : null,
+      occupation: selectedOccupation ? parseInt(selectedOccupation, 10) : null,
       // approval_amount: approvalAmount,
       approval_amount: approvalAmount ? parseInt(approvalAmount, 10) : null,
       email_ban_flag: emailBanFlag,
@@ -148,12 +157,24 @@ export const UpdateContactModal = () => {
       call_careful_reason: callCarefulReason ? callCarefulReason : null,
       //   call_careful_reason: null,
       client_company_id: selectedRowDataContact!.company_id,
-      created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
-      created_by_user_id: userProfileState?.id ? userProfileState.id : null,
-      created_by_department_of_user: userProfileState?.department ? userProfileState.department : null,
-      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      created_by_company_id: selectedRowDataContact?.created_by_company_id
+        ? selectedRowDataContact.created_by_company_id
+        : null,
+      created_by_user_id: selectedRowDataContact?.created_by_user_id ? selectedRowDataContact.created_by_user_id : null,
+      // created_by_department_of_user: userProfileState?.department ? userProfileState.department : null,
+      // created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      created_by_department_of_user: selectedRowDataContact?.created_by_department_of_user
+        ? selectedRowDataContact.created_by_department_of_user
+        : null,
+      created_by_unit_of_user: selectedRowDataContact?.created_by_unit_of_user
+        ? selectedRowDataContact.created_by_unit_of_user
+        : null,
+      created_by_office_of_user: selectedRowDataContact?.created_by_office_of_user
+        ? selectedRowDataContact.created_by_office_of_user
+        : null,
     };
 
+    console.log("INSERT newContact", newContact);
     // supabaseにINSERT,ローディング終了, モーダルを閉じる
     updateContactMutation.mutate(newContact);
 
@@ -419,7 +440,12 @@ export const UpdateContactModal = () => {
                       value={selectedOccupation}
                       onChange={(e) => setSelectedOccupation(e.target.value)}
                     >
-                      <option value="社長・専務">社長・専務</option>
+                      {optionsOccupation.map((num) => (
+                        <option key={num} value={`${num}`}>
+                          {getOccupationName(num)}
+                        </option>
+                      ))}
+                      {/* <option value="社長・専務">社長・専務</option>
                       <option value="取締役・役員">取締役・役員</option>
                       <option value="プロジェクト管理">プロジェクト管理</option>
                       <option value="営業">営業</option>
@@ -439,7 +465,7 @@ export const UpdateContactModal = () => {
                       <option value="購買">購買</option>
                       <option value="情報システム/IT管理者">情報システム/IT管理者</option>
                       <option value="CS/カスタマーサービス">CS/カスタマーサービス</option>
-                      <option value="その他">その他</option>
+                      <option value="その他">その他</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -463,13 +489,19 @@ export const UpdateContactModal = () => {
                       value={selectedPositionClass}
                       onChange={(e) => setSelectedPositionClass(e.target.value)}
                     >
-                      <option value="1 代表者">1 代表者</option>
+                      {/* <option value="">選択してください</option> */}
+                      {optionsPositionsClass.map((classNum) => (
+                        <option key={classNum} value={`${classNum}`}>
+                          {getPositionClassName(classNum)}
+                        </option>
+                      ))}
+                      {/* <option value="1 代表者">1 代表者</option>
                       <option value="2 取締役/役員">2 取締役/役員</option>
                       <option value="3 部長">3 部長</option>
                       <option value="4 課長">4 課長</option>
                       <option value="5 課長未満">5 課長未満</option>
                       <option value="6 所長・工場長">6 所長・工場長</option>
-                      <option value="7 不明">7 不明</option>
+                      <option value="7 不明">7 不明</option> */}
                       {/* <option value="executive">1 代表者</option>
                       <option value="Director">2 取締役/役員</option>
                       <option value="department_manager">3 部長</option>

@@ -250,6 +250,19 @@ const contactColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
+  // 作成日時と更新日時
+  {
+    columnName: "contact_created_at",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "contact_updated_at",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
 ];
 
 export const contactColumnHeaderItemListData: ColumnHeaderItemList[] = contactColumnHeaderItemListArray.map(

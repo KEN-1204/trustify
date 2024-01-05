@@ -19,6 +19,7 @@ import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 import { format } from "date-fns";
 import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 import { GridTableFooter } from "@/components/GridTable/GridTableFooter/GridTableFooter";
+import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
 
 type TableDataType = {
   id: number;
@@ -2498,6 +2499,18 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
       case "step_in_flag":
       case "repeat_flag":
         return flagMapping[columnName][String(value)];
+
+      //職位
+      case "position_class":
+        if (!value) return null;
+        const positionTitle = mappingPositionClass[value as number]?.[language];
+        return positionTitle || value.toString();
+
+      // 担当職種
+      case "occupation":
+        if (!value) return null;
+        const occupationTitle = mappingOccupation[value as number]?.[language];
+        return occupationTitle || value.toString();
 
       default:
         return value;

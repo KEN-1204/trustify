@@ -607,8 +607,10 @@ export type Contact = {
   personal_cell_phone: string | null;
   email: string | null;
   position_name: string | null;
-  position_class: string | null;
-  occupation: string | null;
+  // position_class: string | null;
+  position_class: number | null; //🌠変更オブジェクトマッピング
+  // occupation: string | null;
+  occupation: number | null; //🌠変更オブジェクトマッピング
   // approval_amount: string | null;
   approval_amount: number | null;
   email_ban_flag: boolean;
@@ -627,8 +629,8 @@ export type Contact = {
 // 【Contact一括編集UPDATE用updateContactMutation関数】
 export type EditedContact = {
   id: string;
-  // created_at: string;
-  // updated_at: string | null;
+  created_at: string;
+  updated_at: string | null;
   name: string;
   direct_line: string | null;
   direct_fax: string | null;
@@ -637,8 +639,10 @@ export type EditedContact = {
   personal_cell_phone: string | null;
   email: string | null;
   position_name: string | null;
-  position_class: string | null;
-  occupation: string | null;
+  // position_class: string | null;
+  // occupation: string | null;
+  position_class: number | null; //🌠変更オブジェクトマッピング
+  occupation: number | null; //🌠変更オブジェクトマッピング
   // approval_amount: string | null;
   approval_amount: number | null;
   email_ban_flag: boolean;
@@ -662,6 +666,8 @@ export type Contact_row_data = {
   company_name: string | null;
   contact_id: string;
   contact_name: string | null;
+  contact_created_at: string;
+  contact_updated_at: string | null;
   department_name: string | null;
   main_phone_number: string | null;
   main_fax: string | null;
@@ -696,8 +702,10 @@ export type Contact_row_data = {
   personal_cell_phone: string | null;
   contact_email: string | null;
   position_name: string | null;
-  position_class: string | null;
-  occupation: string | null;
+  // position_class: string | null;
+  // occupation: string | null;
+  position_class: number | null; //🌠変更オブジェクトマッピング
+  occupation: number | null; //🌠変更オブジェクトマッピング
   // approval_amount: string | null;
   approval_amount: number | null;
   created_by_company_id: string | null;
@@ -759,8 +767,10 @@ export type Activity_row_data = {
   personal_cell_phone: string | null;
   contact_email: string | null;
   position_name: string | null;
-  position_class: string | null;
-  occupation: string | null;
+  // position_class: string | null;
+  // occupation: string | null;
+  position_class: number | null; //🌠変更オブジェクトマッピング
+  occupation: number | null; //🌠変更オブジェクトマッピング
   // approval_amount: string | null;
   approval_amount: number | null;
   contact_created_by_company_id: string | null;
@@ -810,6 +820,20 @@ export type Activity_row_data = {
 };
 // 上画面の列選択した時に下画面に担当者情報を映す用のState
 // 選択中の行データオブジェクト GridTableで取得した結合データ
+// 面談時の紹介した商品群の配列
+type IntroducedProductsNames = string[];
+// 同席者データ
+type AttendeeInfo = {
+  attendee_name: string | null;
+  attendee_position_class: number | null;
+  attendee_position_name: string | null;
+  attendee_direct_line: string | null;
+  attendee_email: string | null;
+  attendee_company: string | null;
+  attendee_department: string | null;
+};
+// 同席者の配列
+type AttendeesInfo = AttendeeInfo[];
 export type Meeting_row_data = {
   company_id: string;
   contact_id: string;
@@ -850,8 +874,10 @@ export type Meeting_row_data = {
   personal_cell_phone: string | null;
   contact_email: string | null;
   position_name: string | null;
-  position_class: string | null;
-  occupation: string | null;
+  // position_class: string | null;
+  // occupation: string | null;
+  position_class: number | null; //🌠変更オブジェクトマッピング
+  occupation: number | null; //🌠変更オブジェクトマッピング
   // approval_amount: string | null;
   approval_amount: number | null;
   contact_created_by_company_id: string | null;
@@ -907,9 +933,13 @@ export type Meeting_row_data = {
   assigned_department_name: string | null;
   assigned_unit_name: string | null;
   assigned_office_name: string | null;
+  // 🌠面談時の商品グループと同席者グループ
+  introduced_products_names: IntroducedProductsNames;
+  attendees_info: AttendeesInfo;
 };
 // 上画面の列選択した時に下画面に担当者情報を映す用のState
 // 選択中の行データオブジェクト GridTableで取得した結合データ
+// カレンダー用
 export type ValidMeeting = {
   company_id: string;
   contact_id: string;
@@ -950,8 +980,10 @@ export type ValidMeeting = {
   personal_cell_phone: string | null;
   contact_email: string | null;
   position_name: string | null;
-  position_class: string | null;
-  occupation: string | null;
+  // position_class: string | null;
+  // occupation: string | null;
+  position_class: number | null; //🌠変更オブジェクトマッピング
+  occupation: number | null; //🌠変更オブジェクトマッピング
   // approval_amount: string | null;
   approval_amount: number | null;
   contact_created_by_company_id: string | null;
@@ -1050,8 +1082,10 @@ export type Property_row_data = {
   personal_cell_phone: string | null;
   contact_email: string | null;
   position_name: string | null;
-  position_class: string | null;
-  occupation: string | null;
+  // position_class: string | null;
+  // occupation: string | null;
+  position_class: number | null; //🌠変更オブジェクトマッピング
+  occupation: number | null; //🌠変更オブジェクトマッピング
   // approval_amount: string | null;
   approval_amount: number | null;
   contact_created_by_company_id: string | null;
@@ -1224,8 +1258,10 @@ export type NewSearchContact_CompanyParams = {
   // contact_email: string | null;
   "contacts.email": string | null;
   position_name: string | null;
-  position_class: string | null;
-  occupation: string | null;
+  // position_class: string | null;
+  // occupation: string | null;
+  position_class: number | null; //🌠変更オブジェクトマッピング
+  occupation: number | null; //🌠変更オブジェクトマッピング
   // approval_amount: string | null;
   approval_amount: number | null;
   // created_by_company_id: string | null;
@@ -1272,8 +1308,10 @@ export type NewSearchActivity_Contact_CompanyParams = {
   // contact_email: string | null;
   "contacts.email": string | null;
   position_name: string | null;
-  position_class: string | null;
-  occupation: string | null;
+  // position_class: string | null;
+  // occupation: string | null;
+  position_class: number | null; //🌠変更オブジェクトマッピング
+  occupation: number | null; //🌠変更オブジェクトマッピング
   // approval_amount: string | null;
   approval_amount: number | null;
   "contacts.created_by_company_id": string | null;
@@ -1344,8 +1382,10 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   // contact_email: string | null;
   "contacts.email": string | null;
   position_name: string | null;
-  position_class: string | null;
-  occupation: string | null;
+  // position_class: string | null;
+  // occupation: string | null;
+  position_class: number | null; //🌠変更オブジェクトマッピング
+  occupation: number | null; //🌠変更オブジェクトマッピング
   // approval_amount: string | null;
   approval_amount: number | null;
   "contacts.created_by_company_id": string | null;
@@ -1428,8 +1468,10 @@ export type NewSearchProperty_Contact_CompanyParams = {
   // contact_email: string | null;
   "contacts.email": string | null;
   position_name: string | null;
-  position_class: string | null;
-  occupation: string | null;
+  // position_class: string | null;
+  // occupation: string | null;
+  position_class: number | null; //🌠変更オブジェクトマッピング
+  occupation: number | null; //🌠変更オブジェクトマッピング
   // approval_amount: string | null;
   approval_amount: number | null;
   "contacts.created_by_company_id": string | null;
@@ -1580,7 +1622,8 @@ export type Product = {
   product_name: string | null;
   inside_short_name: string | null;
   outside_short_name: string | null;
-  unit_price: number | null;
+  unit_price: number | null; //numericなので数値でOK Decimalおw使う場合はstringでもOK
+  // unit_price: string | null; //numericなのでstringでDecimalで扱う
 };
 export type EditedProduct = {
   id: string;
@@ -1595,6 +1638,7 @@ export type EditedProduct = {
   outside_short_name: string;
   // unit_price: number | null;
   unit_price: string; //編集時はテキストで編集して保存時にnumber型に変換する
+  // unit_price: string;
 };
 // 事業部リストテーブル
 export type Department = {
@@ -1644,7 +1688,7 @@ export type Property = {
   pending_flag: boolean | null;
   rejected_flag: boolean | null;
   product_name: string | null;
-  product_sales: number | null;
+  product_sales: number | null; //🌟変更
   expected_order_date: string | null;
   expected_sales_price: number | null;
   term_division: string | null;

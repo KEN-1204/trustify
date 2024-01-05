@@ -193,7 +193,12 @@ export const columnNameToJapaneseContacts = (columnName: string) => {
     case "budget_request_month2":
       return "予算申請月2";
       break;
-
+    case "contact_created_at":
+      return "作成日時";
+      break;
+    case "contact_updated_at":
+      return "更新日時";
+      break;
     default:
       return "";
       break;
