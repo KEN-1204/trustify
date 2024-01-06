@@ -14,6 +14,9 @@
 .input_box:focus {
   box-shadow: var(--color-bg-under-input-active-box-shadow);
 }
+.input_box:hover {
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+}
 
 .close_btn {
   position: absolute;

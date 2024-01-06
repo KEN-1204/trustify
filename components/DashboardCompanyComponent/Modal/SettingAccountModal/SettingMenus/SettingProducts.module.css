@@ -1,0 +1,12 @@
+.list_item_department {
+  margin-top: 30px;
+}
+.list_item_department:first-of-type {
+  margin-top: 0px;
+}
+.list_item_product {
+  margin-top: 20px;
+}
+.list_item_product:first-of-type {
+  margin-top: 0px;
+}

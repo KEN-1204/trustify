@@ -937,6 +937,14 @@ export type Meeting_row_data = {
   // 🌠面談時の商品グループと同席者グループ
   introduced_products_names: IntroducedProductsNames;
   attendees_info: AttendeesInfo;
+  // 🌟面談予定の紹介予定商品1と2をproductsテーブルから
+  // p1, p2のエイリアスを別に付けてそれぞれで商品名を取得
+  planned_product_name1: string | null;
+  planned_outside_short_name1: string | null;
+  planned_inside_short_name1: string | null;
+  planned_product_name2: string | null;
+  planned_outside_short_name2: string | null;
+  planned_inside_short_name2: string | null;
 };
 // 上画面の列選択した時に下画面に担当者情報を映す用のState
 // 選択中の行データオブジェクト GridTableで取得した結合データ

@@ -146,6 +146,9 @@
   min-width: 95px;
   user-select: none;
 }
+.title.double {
+  font-size: 15px;
+}
 .required_title {
   color: var(--main-color-tk);
 }
@@ -344,6 +347,7 @@
   min-width: 95px;
   font-weight: 600;
   font-size: 22px;
+  padding-left: 12px;
 }
 .section_underline {
   min-height: 2px;
@@ -372,4 +376,14 @@
 }
 .input_box:focus ~ .close_btn_number {
   display: none;
+}
+
+.input_box:hover {
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+}
+.select_box:hover {
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+}
+.textarea_box:hover {
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
 }

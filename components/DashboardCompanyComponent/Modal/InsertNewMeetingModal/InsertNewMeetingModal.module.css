@@ -148,6 +148,9 @@
   /* font-size: 18px; */
   user-select: none;
 }
+.title.double {
+  font-size: 14px;
+}
 .required_title {
   color: var(--main-color-tk);
 }
@@ -194,9 +197,7 @@
   font-size: 15px;
   border-radius: 6px;
 }
-.input_box:focus {
-  box-shadow: var(--color-bg-under-input-active-box-shadow);
-}
+
 .underline {
   min-height: 1px;
   width: 100%;
@@ -217,9 +218,6 @@
   border-radius: 6px;
   resize: none;
 }
-.textarea_box:focus {
-  box-shadow: var(--color-bg-under-input-active-box-shadow);
-}
 .select_box {
   box-shadow: var(--color-bg-under-input-box-shadow);
   background: var(--color-bg-under-input);
@@ -229,6 +227,22 @@
   border-radius: 6px;
   max-width: 375px;
 }
+.input_box:focus {
+  box-shadow: var(--color-bg-under-input-active-box-shadow);
+}
+.textarea_box:focus {
+  box-shadow: var(--color-bg-under-input-active-box-shadow);
+}
+.input_box:hover {
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+}
+.select_box:hover {
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+}
+.textarea_box:hover {
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+}
+
 .select_box.min {
   /* max-width: 375px; */
 }
@@ -355,4 +369,14 @@
 }
 .row_area input[type="number"] {
   -moz-appearance: textfiled;
+}
+
+.input_box:hover {
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+}
+.select_box:hover {
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+}
+.textarea_box:hover {
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
 }

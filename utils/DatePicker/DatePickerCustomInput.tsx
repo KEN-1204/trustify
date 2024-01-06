@@ -245,7 +245,7 @@ export const DatePickerCustomInput: FC<Props> = ({
 
       {language === "ja" ? (
         <DatePicker
-          className={`rounded border-gray-100 ${px} ${py} date_input_flag truncate text-base outline-0  ${placeholderText} ${minHeight} ${fontSize} ${styles.input_box}`}
+          className={`rounded border-gray-100 ${px} ${py} date_input_flag truncate text-base outline-0 ${placeholderText} ${minHeight} ${fontSize} ${styles.input_box}`}
           wrapperClassName="react-datepicker__input-container"
           placeholderText={"日付を選択"}
           // placeholderText={`${startDate === "is not null" ? "フォロー予定有りのみ" : `日付を選択`}`}

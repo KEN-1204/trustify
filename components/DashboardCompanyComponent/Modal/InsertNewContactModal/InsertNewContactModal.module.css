@@ -165,6 +165,16 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
+
+.underline {
+  min-height: 1px;
+  width: 100%;
+  background-color: var(--color-bg-underline);
+}
+.divider {
+  background-color: rgb(94 94 94 / 0.3);
+}
+
 .input_box {
   height: 100%;
   width: 100%;
@@ -176,17 +186,6 @@
   padding: 6px 8px;
   font-size: 15px;
   border-radius: 6px;
-}
-.input_box:focus {
-  box-shadow: var(--color-bg-under-input-active-box-shadow);
-}
-.underline {
-  min-height: 1px;
-  width: 100%;
-  background-color: var(--color-bg-underline);
-}
-.divider {
-  background-color: rgb(94 94 94 / 0.3);
 }
 .textarea_box {
   height: 100%;
@@ -200,9 +199,7 @@
   border-radius: 6px;
   resize: none;
 }
-.textarea_box:focus {
-  box-shadow: var(--color-bg-under-input-active-box-shadow);
-}
+
 .select_box {
   box-shadow: var(--color-bg-under-input-box-shadow);
   background: var(--color-bg-under-input);
@@ -210,4 +207,19 @@
   min-height: 32px;
   font-size: 15px;
   border-radius: 6px;
+}
+.input_box:focus {
+  box-shadow: var(--color-bg-under-input-active-box-shadow);
+}
+.textarea_box:focus {
+  box-shadow: var(--color-bg-under-input-active-box-shadow);
+}
+.input_box:hover {
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+}
+.select_box:hover {
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+}
+.textarea_box:hover {
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
 }

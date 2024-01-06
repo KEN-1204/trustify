@@ -36,6 +36,22 @@ export const InsertNewProductModal = () => {
   const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
   const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
   // ================================ ✅事業部、係、事業所リスト取得useQuery✅ ================================
+  // ======================= 🌟現在の選択した事業部で係・チームを絞り込むuseEffect🌟 =======================
+  const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
+  useEffect(() => {
+    // unitが存在せず、stateに要素が1つ以上存在しているなら空にする
+    if (!unitDataArray || unitDataArray?.length === 0 || !createdByDepartment)
+      return setFilteredUnitBySelectedDepartment([]);
+
+    // 選択中の事業部が変化するか、unitDataArrayの内容に変更があったら新たに絞り込んで更新する
+    if (unitDataArray && unitDataArray.length >= 1 && createdByDepartment) {
+      const filteredUnitArray = unitDataArray.filter((unit) => unit.created_by_department_id === createdByDepartment);
+      setFilteredUnitBySelectedDepartment(filteredUnitArray);
+      // 選択中の係が現在選択中の事業部と異なるなら係をリセットする
+      setCreatedByUnit("");
+    }
+  }, [unitDataArray, createdByDepartment]);
+  // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
 
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
@@ -373,12 +389,12 @@ export const InsertNewProductModal = () => {
                     </div>
                     <input
                       type="text"
-                      placeholder="事業部別の商品の場合は"
+                      placeholder="型式が存在する商品は入力"
                       required
                       className={`${styles.input_box} placeholder:text-[14px]`}
                       value={outsideShortName}
-                      onChange={(e) => setCreatedByDepartment(e.target.value)}
-                      onBlur={() => setCreatedByDepartment(toHalfWidth(outsideShortName.trim()))}
+                      onChange={(e) => setOutsideShortName(e.target.value)}
+                      onBlur={() => setOutsideShortName(toHalfWidth(outsideShortName.trim()))}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -537,14 +553,23 @@ export const InsertNewProductModal = () => {
                       <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
                     </div>
                     <select
-                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box} ${styles.min}`}
+                      className={`ml-auto h-full w-full rounded-[4px] ${styles.select_box} ${styles.min} ${
+                        !filteredUnitBySelectedDepartment || filteredUnitBySelectedDepartment?.length === 0
+                          ? `cursor-not-allowed`
+                          : `cursor-pointer`
+                      }`}
                       value={createdByUnit ? createdByUnit : ""}
                       onChange={(e) => setCreatedByUnit(e.target.value)}
                     >
-                      <option value=""></option>
-                      {unitDataArray &&
-                        unitDataArray.length >= 1 &&
-                        unitDataArray.map((unit) => (
+                      {/* {(!filteredUnitBySelectedDepartment || filteredUnitBySelectedDepartment?.length === 0) && (
+                        <option value="">先に事業部を選択してください</option>
+                      )} */}
+                      {filteredUnitBySelectedDepartment && filteredUnitBySelectedDepartment.length >= 1 && (
+                        <option value=""></option>
+                      )}
+                      {filteredUnitBySelectedDepartment &&
+                        filteredUnitBySelectedDepartment.length >= 1 &&
+                        filteredUnitBySelectedDepartment.map((unit) => (
                           <option key={unit.id} value={unit.id}>
                             {unit.unit_name}
                           </option>

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { ChangeEvent, useEffect, useRef, useState } from "react";
 import styles from "./UpdateMeetingModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -15,9 +15,21 @@ import { BsChevronLeft } from "react-icons/bs";
 import { ImInfo } from "react-icons/im";
 import useStore from "@/store";
 import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
-import { AiOutlineQuestionCircle } from "react-icons/ai";
-import { Department, Office, Unit } from "@/types";
+import { AiOutlinePlus, AiOutlineQuestionCircle } from "react-icons/ai";
+import { Department, Office, Product, Unit } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
+import { useQueryProducts } from "@/hooks/useQueryProducts";
+import { DropDownMenuFilterProducts } from "../SettingAccountModal/SettingMemberAccounts/DropdownMenuFilterProducts/DropdownMenuFilterProducts";
+import NextImage from "next/image";
+
+type ModalProperties = {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+  width: number;
+  height: number;
+};
 
 export const UpdateMeetingModal = () => {
   //   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
@@ -30,6 +42,37 @@ export const UpdateMeetingModal = () => {
   // 上画面の選択中の列データ会社
   // const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
+  // const settingModalProperties = useDashboardStore((state) => state.settingModalProperties);
+  const [modalProperties, setModalProperties] = useState<ModalProperties>();
+  // 事業部別製品編集ドロップダウンメニュー
+  const [isOpenDropdownMenuFilterProducts, setIsOpenDropdownMenuFilterProducts] = useState(false);
+  const [isOpenDropdownMenuFilterProductsArray, setIsOpenDropdownMenuFilterProductsArray] = useState(
+    Array(1).fill(false)
+  );
+  type ClickedItemPos = { displayPos: "up" | "center" | "down"; clickedItemWidth: number | null };
+  const [clickedItemPosition, setClickedItemPosition] = useState<ClickedItemPos>({
+    displayPos: "down",
+    clickedItemWidth: null,
+  });
+
+  // モーダルの動的に変化する画面からのx, yとモーダルのwidth, heightを取得
+  useEffect(() => {
+    if (modalContainerRef.current === null) return console.log("❌無し");
+    const rect = modalContainerRef.current.getBoundingClientRect();
+    // if (modalProperties !== null && modalProperties?.left === rect.left)
+    //   return console.log("✅モーダル位置サイズ格納済み", modalProperties);
+
+    const left = rect.left;
+    const top = rect.top;
+    const right = rect.right;
+    const bottom = rect.bottom;
+    const width = rect.width;
+    const height = rect.height;
+
+    const payload = { left: left, top: top, right: right, bottom: bottom, width: width, height: height };
+    console.log("🔥モーダル位置サイズ格納", payload);
+    setModalProperties(payload);
+  }, []);
 
   const initialDate = new Date();
   initialDate.setHours(0, 0, 0, 0);
@@ -58,11 +101,14 @@ export const UpdateMeetingModal = () => {
   const [resultEndTimeMinute, setResultEndTimeMinute] = useState<string>("");
   const [resultDuration, setResultDuration] = useState<number | null>(null);
   const [resultNumberOfMeetingParticipants, setResultNumberOfMeetingParticipants] = useState<number | null>(null);
-  const [resultPresentationProduct1, setResultPresentationProduct1] = useState("");
-  const [resultPresentationProduct2, setResultPresentationProduct2] = useState("");
-  const [resultPresentationProduct3, setResultPresentationProduct3] = useState("");
-  const [resultPresentationProduct4, setResultPresentationProduct4] = useState("");
-  const [resultPresentationProduct5, setResultPresentationProduct5] = useState("");
+  const [resultPresentationProductsArray, setResultPresentationProductsArray] = useState<(string | null)[]>(
+    Array(2).fill(null)
+  );
+  // const [resultPresentationProduct1, setResultPresentationProduct1] = useState("");
+  // const [resultPresentationProduct2, setResultPresentationProduct2] = useState("");
+  // const [resultPresentationProduct3, setResultPresentationProduct3] = useState("");
+  // const [resultPresentationProduct4, setResultPresentationProduct4] = useState("");
+  // const [resultPresentationProduct5, setResultPresentationProduct5] = useState("");
   const [resultCategory, setResultCategory] = useState("");
   const [resultSummary, setResultSummary] = useState("");
   const [resultNegotiateDecisionMaker, setResultNegotiateDecisionMaker] = useState("");
@@ -99,11 +145,115 @@ export const UpdateMeetingModal = () => {
   const queryClient = useQueryClient();
   const { updateMeetingMutation } = useMutateMeeting();
 
+  // 「実施商品を追加」ボタンを押下した場合の処理 selectボックスを2つ(１行)増やす
+  // 行はresultProductRowsのstateで管理し、これをmapで展開し、実際のidを保持はresultPresentationProductsArrayで行う
+  const [overstate, setOverState] = useState(false);
+  const [resultProductRows, setResultProductRows] = useState(Array(1).fill(null));
+  const addMoreResultProductRow = () => {
+    if (resultPresentationProductsArray.length >= 20) {
+      setOverState(true);
+      alert("実施商品を追加できるのは20個までです。");
+      return console.log(`上限オーバー`);
+    }
+    setResultPresentationProductsArray((prev) => [...prev, null, null]);
+    setResultProductRows((prev) => [...prev, null]);
+    // 実施商品用ドロップダウン開閉特定用
+    setIsOpenDropdownMenuFilterProductsArray((prev) => [...prev, false]);
+    // setCheckedEmail((prev) => [...prev, ""]);
+    // setCheckedSameUserEmailArray((prev) => [...prev, false]);
+  };
+
+  // 実施商品グループの各商品idが変更されたときに実行する関数
+  const handleChangeSelectProductId = (index: number, e: ChangeEvent<HTMLSelectElement>) => {
+    const newResultPresentationProducts = [...resultPresentationProductsArray];
+    newResultPresentationProducts[index] = e.target.value;
+    setResultPresentationProductsArray(newResultPresentationProducts);
+  };
+
   // ============================ 🌟事業部、係、事業所リスト取得useQuery🌟 ============================
   const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
   const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
   const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
   // ============================ ✅事業部、係、事業所リスト取得useQuery✅ ============================
+  // ================================ 🌟自事業部商品リスト取得useQuery🌟 ================================
+  type FilterCondition = {
+    department_id: Department["id"] | null;
+    unit_id: Unit["id"] | null;
+    office_id: Office["id"] | null;
+    //   employee_id_name: Employee_id["id"];
+  };
+  // useQueryで事業部・係・事業所を絞ったフェッチをするかどうか
+  const [filterCondition, setFilterCondition] = useState<FilterCondition>({
+    department_id: userProfileState?.assigned_department_id ? userProfileState?.assigned_department_id : null,
+    unit_id: null,
+    office_id: null,
+  });
+  const { data: productDataArray, isLoading: isLoadingQueryProduct } = useQueryProducts({
+    company_id: userProfileState?.company_id ? userProfileState?.company_id : null,
+    departmentId: filterCondition.department_id,
+    unitId: filterCondition.unit_id,
+    officeId: filterCondition.office_id,
+    isReady: true,
+  });
+  // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
+  // ================================ ✅自事業部商品リスト取得useQuery✅ ================================
+  // ============================ 🌟productのオブジェクトマップ(商品id: 商品名)🌟 ============================
+  type ProductNameObj = {
+    product_name: string | null;
+    outside_short_name: string | null;
+    inside_short_name: string | null;
+  };
+  type ProductMap = { [key: string]: ProductNameObj };
+  const [productIdToNameMap, setProductIdToNameMap] = useState<ProductMap>({});
+  const createProductMap = (productDataArray: Product[] | undefined) => {
+    if (!productDataArray || productDataArray?.length === 0) return {};
+    return productDataArray?.reduce((acc, product) => {
+      const key = !product.id ? "All" : product.id;
+      acc[key] = {
+        product_name: product.product_name,
+        outside_short_name: product.outside_short_name,
+        inside_short_name: product.inside_short_name,
+      };
+      return acc;
+    }, {} as { [key: string]: ProductNameObj });
+  };
+  const updateProductMap = (newProductDataArray: Product[] | undefined) => {
+    setProductIdToNameMap((prevProductMap) => {
+      // 新たな商品データ配列
+      const newProductMap = createProductMap(newProductDataArray);
+      // 元々保持していた商品データ配列
+      const updatedMap: ProductMap = { ...prevProductMap };
+      // 既に存在している商品idは追加せずに、新たな商品idのみオブジェクトに追加
+      Object.keys(newProductMap).forEach((key) => {
+        if (!updatedMap.hasOwnProperty(key)) {
+          updatedMap[key] = newProductMap[key];
+        }
+      });
+      return updatedMap;
+    });
+  };
+  useEffect(() => {
+    // {商品id: 商品名}のオブジェクトマップを生成 重複しないようにhasOwnPropertyでチェック
+    if (productDataArray && productDataArray?.length > 0) {
+      updateProductMap(productDataArray);
+    }
+  }, [productDataArray]);
+  // ============================ ✅productのオブジェクトマップ(商品id: 商品名)✅ ============================
+
+  console.log(
+    "resultPresentationProductsArray",
+    resultPresentationProductsArray,
+    "resultProductRows",
+    resultProductRows,
+    "overstate",
+    overstate,
+    "isOpenDropdownMenuFilterProductsArray",
+    isOpenDropdownMenuFilterProductsArray,
+    "productDataArray",
+    productDataArray,
+    "productIdToNameMap",
+    productIdToNameMap
+  );
 
   function formatTime(timeStr: string) {
     const [hour, minute] = timeStr.split(":");
@@ -212,11 +362,11 @@ export const UpdateMeetingModal = () => {
     setResultEndTimeMinute(resultEndMinute);
     setResultDuration(_result_duration);
     setResultNumberOfMeetingParticipants(_result_number_of_meeting_participants);
-    setResultPresentationProduct1(_result_presentation_product1);
-    setResultPresentationProduct2(_result_presentation_product2);
-    setResultPresentationProduct3(_result_presentation_product3);
-    setResultPresentationProduct4(_result_presentation_product4);
-    setResultPresentationProduct5(_result_presentation_product5);
+    // setResultPresentationProduct1(_result_presentation_product1);
+    // setResultPresentationProduct2(_result_presentation_product2);
+    // setResultPresentationProduct3(_result_presentation_product3);
+    // setResultPresentationProduct4(_result_presentation_product4);
+    // setResultPresentationProduct5(_result_presentation_product5);
     setResultCategory(_result_category);
     setResultSummary(_result_summary);
     setResultNegotiateDecisionMaker(_result_negotiate_decision_maker);
@@ -418,11 +568,16 @@ export const UpdateMeetingModal = () => {
       result_number_of_meeting_participants: resultNumberOfMeetingParticipants
         ? resultNumberOfMeetingParticipants
         : null,
-      result_presentation_product1: resultPresentationProduct1 ? resultPresentationProduct1 : null,
-      result_presentation_product2: resultPresentationProduct2 ? resultPresentationProduct2 : null,
-      result_presentation_product3: resultPresentationProduct3 ? resultPresentationProduct3 : null,
-      result_presentation_product4: resultPresentationProduct4 ? resultPresentationProduct4 : null,
-      result_presentation_product5: resultPresentationProduct5 ? resultPresentationProduct5 : null,
+      // result_presentation_product1: resultPresentationProduct1 ? resultPresentationProduct1 : null,
+      // result_presentation_product2: resultPresentationProduct2 ? resultPresentationProduct2 : null,
+      // result_presentation_product3: resultPresentationProduct3 ? resultPresentationProduct3 : null,
+      // result_presentation_product4: resultPresentationProduct4 ? resultPresentationProduct4 : null,
+      // result_presentation_product5: resultPresentationProduct5 ? resultPresentationProduct5 : null,
+      result_presentation_product1: null,
+      result_presentation_product2: null,
+      result_presentation_product3: null,
+      result_presentation_product4: null,
+      result_presentation_product5: null,
       result_category: !!resultCategory ? resultCategory : null,
       result_summary: resultSummary ? resultSummary : null,
       result_negotiate_decision_maker: resultNegotiateDecisionMaker ? resultNegotiateDecisionMaker : null,
@@ -643,6 +798,25 @@ export const UpdateMeetingModal = () => {
             <SpinnerComet w="48px" h="48px" />
             {/* <SpinnerX w="w-[42px]" h="h-[42px]" /> */}
           </div>
+        )}
+        {/* 製品リスト編集ドロップダウンメニュー オーバーレイ */}
+        {isOpenDropdownMenuFilterProducts && (
+          <div
+            className="fixed left-[-100vw] top-[-50%] z-[10] h-[200vh] w-[300vw] bg-[#00000000]"
+            onClick={() => {
+              setIsOpenDropdownMenuFilterProducts(false);
+            }}
+          ></div>
+        )}
+        {isOpenDropdownMenuFilterProductsArray.includes(true) && (
+          <div
+            className="fixed left-[-100vw] top-[-50%] z-[10] h-[200vh] w-[300vw] bg-[#00000000]"
+            onClick={() => {
+              // 配列のtrueを全てfalseにリセット
+              const resetArray = Array.from({ length: isOpenDropdownMenuFilterProductsArray.length }, () => false);
+              setIsOpenDropdownMenuFilterProductsArray(resetArray);
+            }}
+          ></div>
         )}
         {/* 保存・タイトル・キャンセルエリア */}
         <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[20px] text-center text-[18px]">
@@ -974,12 +1148,113 @@ export const UpdateMeetingModal = () => {
           <div className={`${styles.full_contents_wrapper} flex w-full`}>
             {/* --------- 左ラッパー --------- */}
             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 紹介商品ﾒｲﾝ */}
+              {/* 紹介予定商品メイン */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title} !min-w-[140px]`}>紹介商品ﾒｲﾝ</span>
-                    <input
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>紹介商品ﾒｲﾝ</span> */}
+                    <div
+                      className={`${
+                        styles.title
+                      } relative z-[100] !min-w-[140px] cursor-pointer items-center hover:text-[var(--color-text-brand-f)] ${
+                        isOpenDropdownMenuFilterProducts ? `!text-[var(--color-text-brand-f)]` : ``
+                      }`}
+                      onMouseEnter={(e) => {
+                        if (isOpenDropdownMenuFilterProducts) return;
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "選択する商品を全て、事業部、係・チーム、事業所ごとに",
+                          content2: "フィルターの切り替えが可能です。",
+                          // marginTop: 57,
+                          // marginTop: 38,
+                          marginTop: 12,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        });
+                      }}
+                      onMouseLeave={() => {
+                        if (!isOpenDropdownMenuFilterProducts || hoveredItemPosModal) handleCloseTooltip();
+                      }}
+                      onClick={(e) => {
+                        // 事業部、係、事業所をフィルターするか しない場合3つをnullにして全て取得する
+                        if (isOpenDropdownMenuFilterProducts) return;
+                        const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+                        const clickedPositionPlusItemHeight = y + 400 + 5; // 400はメニューの最低高さ 5はmargin
+                        const clickedPositionMinusItemHeight = y - 400 + height - 25; // 400はメニューの最低高さ
+                        const modalHeight = modalProperties?.height ?? window.innerHeight * 0.9;
+                        const halfBlankSpaceWithoutModal = (window.innerHeight - modalHeight) / 2;
+                        const modalBottomPosition =
+                          modalProperties?.bottom ?? window.innerHeight - halfBlankSpaceWithoutModal;
+                        const modalTopPosition = modalProperties?.top ?? halfBlankSpaceWithoutModal;
+                        if (
+                          modalBottomPosition < clickedPositionPlusItemHeight &&
+                          modalTopPosition < clickedPositionMinusItemHeight
+                        ) {
+                          console.log("アップ");
+                          setClickedItemPosition({ displayPos: "up", clickedItemWidth: width });
+                        } else if (
+                          modalTopPosition > clickedPositionMinusItemHeight &&
+                          modalBottomPosition < clickedPositionPlusItemHeight
+                        ) {
+                          console.log("センター");
+                          setClickedItemPosition({ displayPos: "center", clickedItemWidth: width });
+                        } else {
+                          console.log("ダウン");
+                          setClickedItemPosition({ displayPos: "down", clickedItemWidth: width });
+                        }
+
+                        setIsOpenDropdownMenuFilterProducts(true);
+                        handleCloseTooltip();
+                      }}
+                    >
+                      <div className={`mr-[15px] flex flex-col text-[15px]`}>
+                        <span>紹介予定</span>
+                        <span>商品メイン</span>
+                      </div>
+                      <NextImage
+                        width={24}
+                        height={24}
+                        src={`/assets/images/icons/business/icons8-process-94.png`}
+                        alt="setting"
+                      />
+                      {/* メンバーデータ編集ドロップダウンメニュー */}
+                      {isOpenDropdownMenuFilterProducts && (
+                        <DropDownMenuFilterProducts
+                          setIsOpenDropdownMenu={setIsOpenDropdownMenuFilterProducts}
+                          clickedItemPosition={clickedItemPosition}
+                          filterCondition={filterCondition}
+                          setFilterCondition={setFilterCondition}
+                          // setIsLoadingUpsertMember={setIsLoadingUpsertMember}
+                        />
+                      )}
+                      {/* メンバーデータ編集ドロップダウンメニューここまで */}
+                    </div>
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={plannedProduct1 ? plannedProduct1 : ""}
+                      onChange={(e) => setPlannedProduct1(e.target.value)}
+                    >
+                      {!plannedProduct1 && <option value=""></option>}
+                      {plannedProduct1 && (
+                        <option value={plannedProduct1}>
+                          {productIdToNameMap[plannedProduct1].inside_short_name
+                            ? productIdToNameMap[plannedProduct1].inside_short_name
+                            : productIdToNameMap[plannedProduct1].product_name +
+                              " " +
+                              productIdToNameMap[plannedProduct1].outside_short_name}
+                        </option>
+                      )}
+                      {productDataArray &&
+                        productDataArray.length >= 1 &&
+                        productDataArray.map((product) => (
+                          <option key={product.id} value={product.id}>
+                            {product.inside_short_name && product.inside_short_name}
+                            {!product.inside_short_name && product.product_name + " " + product.outside_short_name}
+                          </option>
+                        ))}
+                    </select>
+                    {/* <input
                       type="text"
                       placeholder=""
                       required
@@ -987,7 +1262,7 @@ export const UpdateMeetingModal = () => {
                       value={plannedProduct1}
                       onChange={(e) => setPlannedProduct1(e.target.value)}
                       onBlur={() => setPlannedProduct1(toHalfWidth(plannedProduct1.trim()))}
-                    />
+                    /> */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1002,8 +1277,40 @@ export const UpdateMeetingModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>紹介予定サブ</span>
-                    <input
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>紹介予定サブ</span> */}
+                    <div className={`${styles.title} !min-w-[140px]`}>
+                      <div className={`mr-[15px] flex flex-col text-[15px]`}>
+                        <span>紹介予定</span>
+                        <span>商品サブ</span>
+                      </div>
+                    </div>
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={plannedProduct2 ? plannedProduct2 : ""}
+                      onChange={(e) => setPlannedProduct2(e.target.value)}
+                    >
+                      {/* <option value=""></option> */}
+                      {!plannedProduct2 && <option value=""></option>}
+                      {plannedProduct2 && (
+                        <option value={plannedProduct2}>
+                          {productIdToNameMap[plannedProduct2].inside_short_name
+                            ? productIdToNameMap[plannedProduct2].inside_short_name
+                            : productIdToNameMap[plannedProduct2].product_name +
+                              " " +
+                              productIdToNameMap[plannedProduct2].outside_short_name}
+                        </option>
+                      )}
+
+                      {productDataArray &&
+                        productDataArray.length >= 1 &&
+                        productDataArray.map((product) => (
+                          <option key={product.id} value={product.id}>
+                            {product.inside_short_name && product.inside_short_name}
+                            {!product.inside_short_name && product.product_name + " " + product.outside_short_name}
+                          </option>
+                        ))}
+                    </select>
+                    {/* <input
                       type="text"
                       placeholder=""
                       required
@@ -1011,7 +1318,7 @@ export const UpdateMeetingModal = () => {
                       value={plannedProduct2}
                       onChange={(e) => setPlannedProduct2(e.target.value)}
                       onBlur={() => setPlannedProduct2(toHalfWidth(plannedProduct2.trim()))}
-                    />
+                    /> */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1452,11 +1759,268 @@ export const UpdateMeetingModal = () => {
           </div>
           {/* --------- 横幅全体ラッパーここまで --------- */}
 
-          {/* --------- 横幅全体ラッパー --------- */}
+          {/* ------------------ 実施商品Rowsエリア ------------------ */}
+          {/* 実施商品Rowsエリア 「実施商品を追加」クリックで行を１行増やし、selectタグを2つずつ増やす */}
+          {resultProductRows &&
+            resultProductRows.map((_, index) => (
+              <div key={index} className={`${styles.full_contents_wrapper} flex w-full`}>
+                {/* --------- 左ラッパー --------- */}
+                <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+                  {/* 実施商品1 */}
+                  <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                    <div className="flex h-full w-full flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center`}>
+                        {/* <span className={`${styles.title} !min-w-[140px]`}>実施商品1</span> */}
+                        <div
+                          className={`${styles.title} relative z-[100] !min-w-[140px] cursor-pointer items-center ${
+                            isOpenDropdownMenuFilterProducts ? `` : `hover:text-[var(--color-text-brand-f)]`
+                          }`}
+                          onMouseEnter={(e) => {
+                            if (isOpenDropdownMenuFilterProductsArray.includes(true)) return;
+                            handleOpenTooltip({
+                              e: e,
+                              display: "top",
+                              content: "選択する商品を全て、事業部、係・チーム、事業所ごとに",
+                              content2: "フィルターの切り替えが可能です。",
+                              // marginTop: 57,
+                              marginTop: 38,
+                              // marginTop: 12,
+                              itemsPosition: "center",
+                              whiteSpace: "nowrap",
+                            });
+                          }}
+                          onMouseLeave={() => {
+                            if (!isOpenDropdownMenuFilterProductsArray.includes(true) || hoveredItemPosModal)
+                              handleCloseTooltip();
+                          }}
+                          onClick={(e) => {
+                            // 事業部、係、事業所をフィルターするか しない場合3つをnullにして全て取得する
+                            if (isOpenDropdownMenuFilterProductsArray.includes(true)) return;
+                            const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+                            const clickedPositionPlusItemHeight = y + 400 + 5; // 400はメニューの最低高さ 5はmargin
+                            const clickedPositionMinusItemHeight = y - 400 + height - 25; // 400はメニューの最低高さ
+                            const modalHeight = modalProperties?.height ?? window.innerHeight * 0.9;
+                            const halfBlankSpaceWithoutModal = (window.innerHeight - modalHeight) / 2;
+                            const modalBottomPosition =
+                              modalProperties?.bottom ?? window.innerHeight - halfBlankSpaceWithoutModal;
+                            const modalTopPosition = modalProperties?.top ?? halfBlankSpaceWithoutModal;
+                            if (
+                              modalBottomPosition < clickedPositionPlusItemHeight &&
+                              modalTopPosition < clickedPositionMinusItemHeight
+                            ) {
+                              console.log("アップ");
+                              setClickedItemPosition({ displayPos: "up", clickedItemWidth: width });
+                            } else if (
+                              modalTopPosition > clickedPositionMinusItemHeight &&
+                              modalBottomPosition < clickedPositionPlusItemHeight
+                            ) {
+                              console.log("センター");
+                              setClickedItemPosition({ displayPos: "center", clickedItemWidth: width });
+                            } else {
+                              console.log("ダウン");
+                              setClickedItemPosition({ displayPos: "down", clickedItemWidth: width });
+                            }
+
+                            // setIsOpenDropdownMenuFilterProducts(true);
+                            // isOpenDropdownMenuFilterProductsArray[index >= 1 ? index * 2 : index]
+                            const newArray = [...isOpenDropdownMenuFilterProductsArray];
+                            newArray[index >= 1 ? index * 2 : index] = true;
+                            setIsOpenDropdownMenuFilterProductsArray(newArray);
+                            handleCloseTooltip();
+                          }}
+                        >
+                          <span className={`mr-[15px] flex flex-col`}>
+                            実施商品{index >= 1 ? index * 2 + 1 : index + 1}
+                          </span>
+                          <NextImage
+                            width={24}
+                            height={24}
+                            src={`/assets/images/icons/business/icons8-process-94.png`}
+                            alt="setting"
+                          />
+                          {/* メンバーデータ編集ドロップダウンメニュー */}
+                          {isOpenDropdownMenuFilterProductsArray[index >= 1 ? index * 2 : index] && (
+                            <DropDownMenuFilterProducts
+                              clickedItemPosition={clickedItemPosition}
+                              filterCondition={filterCondition}
+                              setFilterCondition={setFilterCondition}
+                              isMultiple={true}
+                              arrayIndex={index >= 1 ? index * 2 : index}
+                              isOpenDropdownMenuArray={isOpenDropdownMenuFilterProductsArray}
+                              setIsOpenDropdownMenuArray={setIsOpenDropdownMenuFilterProductsArray}
+                              // setIsLoadingUpsertMember={setIsLoadingUpsertMember}
+                            />
+                          )}
+                          {/* メンバーデータ編集ドロップダウンメニューここまで */}
+                        </div>
+                        <select
+                          className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                          // value={plannedProduct1 ? plannedProduct1 : ""}
+                          // onChange={(e) => setPlannedProduct1(e.target.value)}
+                          value={
+                            resultPresentationProductsArray &&
+                            !!resultPresentationProductsArray[index >= 1 ? index * 2 : index]
+                              ? (resultPresentationProductsArray[index >= 1 ? index * 2 : index] as string)
+                              : ""
+                          }
+                          // onChange={(e) => handleChangeSelectProductId(index, e)}
+                          onChange={(e) => handleChangeSelectProductId(index >= 1 ? index * 2 : index, e)}
+                        >
+                          {(!resultPresentationProductsArray ||
+                            !resultPresentationProductsArray[index >= 1 ? index * 2 : index]) && (
+                            <option value=""></option>
+                          )}
+                          {/* 商品選択後にuseQueryの条件を変更して商品リストが変更された場合も選択中の商品のidと名前が同じoptionタグに切り替える */}
+                          {resultPresentationProductsArray &&
+                            !!resultPresentationProductsArray[index >= 1 ? index * 2 : index] && (
+                              <option value={`${resultPresentationProductsArray[index >= 1 ? index * 2 : index]}`}>
+                                {productIdToNameMap[
+                                  resultPresentationProductsArray[(index >= 1 ? index * 2 : index) as number] as string
+                                ]?.inside_short_name
+                                  ? productIdToNameMap[
+                                      resultPresentationProductsArray[
+                                        (index >= 1 ? index * 2 : index) as number
+                                      ] as string
+                                    ]?.inside_short_name
+                                  : productIdToNameMap[
+                                      resultPresentationProductsArray[
+                                        (index >= 1 ? index * 2 : index) as number
+                                      ] as string
+                                    ]?.product_name +
+                                    " " +
+                                    productIdToNameMap[
+                                      resultPresentationProductsArray[
+                                        (index >= 1 ? index * 2 : index) as number
+                                      ] as string
+                                    ]?.outside_short_name}
+                              </option>
+                            )}
+                          {/* {plannedProduct2 && (
+                            <option value="">
+                              {productIdToNameMap[plannedProduct2].inside_short_name
+                                ? productIdToNameMap[plannedProduct2].inside_short_name
+                                : productIdToNameMap[plannedProduct2].product_name +
+                                  " " +
+                                  productIdToNameMap[plannedProduct2].outside_short_name}
+                            </option>
+                          )} */}
+                          {productDataArray &&
+                            productDataArray.length >= 1 &&
+                            productDataArray.map((product) => (
+                              <option key={product.id} value={product.id}>
+                                {product.inside_short_name && product.inside_short_name}
+                                {!product.inside_short_name && product.product_name + " " + product.outside_short_name}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                  </div>
+
+                  {/* 左ラッパーここまで  実施商品Rowsエリア*/}
+                </div>
+
+                {/* --------- 右ラッパー 実施商品Rowsエリア --------- */}
+                <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+                  {/* 実施商品2 */}
+                  <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                    <div className="flex h-full w-full flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center`}>
+                        {/* <span className={`${styles.title} !min-w-[140px]`}>実施商品2</span> */}
+                        <div className={`${styles.title} relative z-[0] !min-w-[140px] items-center`}>
+                          <span className={`mr-[15px] flex flex-col`}>
+                            実施商品{index >= 1 ? index * 2 + 2 : index + 2}
+                          </span>
+                        </div>
+                        <select
+                          className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                          // value={plannedProduct1 ? plannedProduct1 : ""}
+                          // onChange={(e) => setPlannedProduct1(e.target.value)}
+                          value={
+                            resultPresentationProductsArray &&
+                            !!resultPresentationProductsArray[index >= 1 ? index * 2 + 1 : index + 1]
+                              ? (resultPresentationProductsArray[index >= 1 ? index * 2 + 1 : index + 1] as string)
+                              : ""
+                          }
+                          // onChange={(e) => handleChangeSelectProductId(index + 1, e)}
+                          onChange={(e) => handleChangeSelectProductId(index >= 1 ? index * 2 + 1 : index + 1, e)}
+                        >
+                          {!resultPresentationProductsArray ||
+                            (!resultPresentationProductsArray[index >= 1 ? index * 2 + 1 : index + 1] && (
+                              <option value=""></option>
+                            ))}
+                          {/* 商品選択後にuseQueryの条件を変更して商品リストが変更された場合も選択中の商品のidと名前が同じoptionタグに切り替える */}
+                          {resultPresentationProductsArray &&
+                            !!resultPresentationProductsArray[index >= 1 ? index * 2 + 1 : index + 1] && (
+                              <option
+                                value={`${resultPresentationProductsArray[index >= 1 ? index * 2 + 1 : index + 1]}`}
+                              >
+                                {productIdToNameMap[
+                                  resultPresentationProductsArray[
+                                    (index >= 1 ? index * 2 + 1 : index + 1) as number
+                                  ] as string
+                                ]?.inside_short_name
+                                  ? productIdToNameMap[
+                                      resultPresentationProductsArray[
+                                        (index >= 1 ? index * 2 + 1 : index + 1) as number
+                                      ] as string
+                                    ]?.inside_short_name
+                                  : productIdToNameMap[
+                                      resultPresentationProductsArray[
+                                        (index >= 1 ? index * 2 + 1 : index + 1) as number
+                                      ] as string
+                                    ]?.product_name +
+                                    " " +
+                                    productIdToNameMap[
+                                      resultPresentationProductsArray[
+                                        (index >= 1 ? index * 2 + 1 : index + 1) as number
+                                      ] as string
+                                    ]?.outside_short_name}
+                              </option>
+                            )}
+                          {productDataArray &&
+                            productDataArray.length >= 1 &&
+                            productDataArray.map((product) => (
+                              <option key={product.id} value={product.id}>
+                                {product.inside_short_name && product.inside_short_name}
+                                {!product.inside_short_name && product.product_name + " " + product.outside_short_name}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                  </div>
+                </div>
+                {/* 右ラッパーここまで 実施商品Rowsエリア */}
+              </div>
+            ))}
+          {/* ------------------ 実施商品Rowsエリア ここまで ------------------ */}
+
+          {/* --------- 横幅全体ラッパー 「実施商品を追加」 --------- */}
           <div className={`${styles.full_contents_wrapper} flex w-full`}>
-            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className="flex h-full w-full flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full items-center justify-center`}>
+                  {/* <span className={``}>実施商品1</span> */}
+                  <div
+                    className="flex max-w-fit cursor-pointer items-center space-x-2 pb-[5px] text-[var(--color-text-sub)] hover:text-[var(--color-text-brand-f)] hover:underline"
+                    onClick={addMoreResultProductRow}
+                  >
+                    <AiOutlinePlus className="h-[14px] w-[14px] stroke-2 text-[14px]" />
+                    <span>実施した商品をさらに追加</span>
+                  </div>
+                </div>
+                <div className={`${styles.underline}`}></div>
+              </div>
+            </div>
+          </div>
+          {/* --------- 横幅全体ラッパー 「実施商品を追加」ここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          {/* <div className={`${styles.full_contents_wrapper} flex w-full`}>
             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 実施商品1 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
@@ -1474,13 +2038,9 @@ export const UpdateMeetingModal = () => {
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
-
-              {/* 左ラッパーここまで */}
             </div>
 
-            {/* --------- 右ラッパー --------- */}
             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 実施商品2 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
@@ -1499,15 +2059,12 @@ export const UpdateMeetingModal = () => {
                 </div>
               </div>
             </div>
-            {/* 右ラッパーここまで */}
-          </div>
+          </div> */}
           {/* --------- 横幅全体ラッパーここまで --------- */}
 
           {/* --------- 横幅全体ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full`}>
-            {/* --------- 左ラッパー --------- */}
+          {/* <div className={`${styles.full_contents_wrapper} flex w-full`}>
             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 実施商品3 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
@@ -1525,13 +2082,9 @@ export const UpdateMeetingModal = () => {
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
-
-              {/* 左ラッパーここまで */}
             </div>
 
-            {/* --------- 右ラッパー --------- */}
             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 実施商品4 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
@@ -1550,15 +2103,12 @@ export const UpdateMeetingModal = () => {
                 </div>
               </div>
             </div>
-            {/* 右ラッパーここまで */}
-          </div>
+          </div> */}
           {/* --------- 横幅全体ラッパーここまで --------- */}
 
           {/* --------- 横幅全体ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full`}>
-            {/* --------- 左ラッパー --------- */}
+          {/* <div className={`${styles.full_contents_wrapper} flex w-full`}>
             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 実施商品5 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
@@ -1576,10 +2126,8 @@ export const UpdateMeetingModal = () => {
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
-
-              {/* 左ラッパーここまで */}
             </div>
-          </div>
+          </div> */}
           {/* --------- 横幅全体ラッパーここまで --------- */}
 
           {/* --------- 横幅全部ラッパー --------- */}
@@ -1731,7 +2279,7 @@ export const UpdateMeetingModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <div className={`${styles.title} flex !min-w-[140px] flex-col !text-[16px]`}>
+                    <div className={`${styles.title} flex !min-w-[140px] flex-col ${styles.double}`}>
                       <span>面談時_</span>
                       <span>決裁者商談有無</span>
                     </div>

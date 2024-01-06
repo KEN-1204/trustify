@@ -1206,7 +1206,7 @@ const SettingCompanyMemo = () => {
                     {/* Rowグループ */}
                     <div
                       ref={rowRef}
-                      className={`${styles.row_group} scrollbar-hide flex items-center space-x-[12px] overflow-x-scroll`}
+                      className={`${styles.row_group} scrollbar-hide mr-[50px] flex items-center space-x-[12px] overflow-x-scroll`}
                     >
                       {[...departmentDataArray]
                         .sort((a, b) => {
@@ -1637,7 +1637,7 @@ const SettingCompanyMemo = () => {
                     {/* Rowグループ */}
                     <div
                       ref={rowUnitRef}
-                      className={`${styles.row_group} scrollbar-hide flex items-center space-x-[12px] overflow-x-scroll`}
+                      className={`${styles.row_group} scrollbar-hide mr-[50px] flex items-center space-x-[12px] overflow-x-scroll `}
                     >
                       {
                         // [...unitDataArray]
@@ -2007,7 +2007,7 @@ const SettingCompanyMemo = () => {
                     {/* Rowグループ */}
                     <div
                       ref={rowOfficeRef}
-                      className={`${styles.row_group} scrollbar-hide flex items-center space-x-[12px] overflow-x-scroll`}
+                      className={`${styles.row_group} scrollbar-hide mr-[50px] flex items-center space-x-[12px] overflow-x-scroll `}
                     >
                       {[...officeDataArray]
                         .sort((a, b) => {

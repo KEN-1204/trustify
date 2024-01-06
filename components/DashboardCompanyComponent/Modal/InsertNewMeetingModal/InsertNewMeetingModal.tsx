@@ -20,6 +20,7 @@ import { Department, Office, Unit } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useQueryProducts } from "@/hooks/useQueryProducts";
 import NextImage from "next/image";
+import { DropDownMenuFilterProducts } from "../SettingAccountModal/SettingMemberAccounts/DropdownMenuFilterProducts/DropdownMenuFilterProducts";
 
 export const InsertNewMeetingModal = () => {
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
@@ -33,6 +34,13 @@ export const InsertNewMeetingModal = () => {
   // 上画面の選択中の列データ会社
   // const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
+  // 事業部別製品編集ドロップダウンメニュー
+  const [isOpenDropdownMenuFilterProducts, setIsOpenDropdownMenuFilterProducts] = useState(false);
+  type ClickedItemPos = { displayPos: "up" | "center" | "down"; clickedItemWidth: number | null };
+  const [clickedItemPosition, setClickedItemPosition] = useState<ClickedItemPos>({
+    displayPos: "down",
+    clickedItemWidth: null,
+  });
 
   const initialDate = new Date();
   initialDate.setHours(0, 0, 0, 0);
@@ -110,20 +118,23 @@ export const InsertNewMeetingModal = () => {
   const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
   // ============================= ✅事業部、係、事業所リスト取得useQuery✅ =============================
   // ================================ 🌟自事業部商品リスト取得useQuery🌟 ================================
-  const [isProductDepartment, setIsProductDepartment] = useState(
-    userProfileState?.assigned_department_id ? userProfileState?.assigned_department_id : null
-  );
-  const [isProductUnit, setIsProductUnit] = useState(
-    userProfileState?.assigned_unit_id ? userProfileState?.assigned_unit_id : null
-  );
-  const [isProductOffice, setIsProductOffice] = useState(
-    userProfileState?.assigned_office_id ? userProfileState?.assigned_office_id : null
-  );
+  type FilterCondition = {
+    department_id: Department["id"] | null;
+    unit_id: Unit["id"] | null;
+    office_id: Office["id"] | null;
+    //   employee_id_name: Employee_id["id"];
+  };
+  // useQueryで事業部・係・事業所を絞ったフェッチをするかどうか
+  const [filterCondition, setFilterCondition] = useState<FilterCondition>({
+    department_id: userProfileState?.assigned_department_id ? userProfileState?.assigned_department_id : null,
+    unit_id: null,
+    office_id: null,
+  });
   const { data: ProductDataArray, isLoading: isLoadingQueryProduct } = useQueryProducts({
     company_id: userProfileState?.company_id ? userProfileState?.company_id : null,
-    departmentId: isProductDepartment,
-    unitId: isProductUnit,
-    officeId: isProductOffice,
+    departmentId: filterCondition.department_id,
+    unitId: filterCondition.unit_id,
+    officeId: filterCondition.office_id,
     isReady: true,
   });
   // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
@@ -656,6 +667,15 @@ export const InsertNewMeetingModal = () => {
           <SpinnerIDS scale={"scale-[0.5]"} />
         </div>
       )} */}
+      {/* 製品リスト編集ドロップダウンメニュー オーバーレイ */}
+      {/* {isOpenDropdownMenuFilterProducts && (
+        <div
+          className="fixed left-[-100vw] top-[-50%] z-[2000] h-[200vh] w-[300vw] bg-[#00000090]"
+          onClick={() => {
+            setIsOpenDropdownMenuFilterProducts(false);
+          }}
+        ></div>
+      )} */}
       <div className={`${styles.container} fade03`} ref={modalContainerRef}>
         {/* ツールチップ */}
         {hoveredItemPosModal && <TooltipModal />}
@@ -666,6 +686,15 @@ export const InsertNewMeetingModal = () => {
             <SpinnerComet w="48px" h="48px" />
             {/* <SpinnerX w="w-[42px]" h="h-[42px]" /> */}
           </div>
+        )}
+        {/* 製品リスト編集ドロップダウンメニュー オーバーレイ */}
+        {isOpenDropdownMenuFilterProducts && (
+          <div
+            className="fixed left-[-100vw] top-[-50%] z-[10] h-[200vh] w-[300vw] bg-[#00000000]"
+            onClick={() => {
+              setIsOpenDropdownMenuFilterProducts(false);
+            }}
+          ></div>
         )}
         {/* 保存・タイトル・キャンセルエリア */}
         <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[20px] text-center text-[18px]">
@@ -1001,36 +1030,55 @@ export const InsertNewMeetingModal = () => {
           <div className={`${styles.full_contents_wrapper} flex w-full`}>
             {/* --------- 左ラッパー --------- */}
             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 紹介商品ﾒｲﾝ */}
+              {/* 紹介予定商品メイン */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
                     {/* <span className={`${styles.title} !min-w-[140px]`}>紹介商品ﾒｲﾝ</span> */}
                     <div
-                      className={`relative flex !min-w-[140px] items-center ${styles.title} cursor-pointer hover:text-[var(--color-text-brand-f)]`}
-                      onMouseEnter={(e) =>
+                      className={`relative z-[100] flex !min-w-[140px] items-center ${
+                        styles.title
+                      } cursor-pointer hover:text-[var(--color-text-brand-f)] ${
+                        isOpenDropdownMenuFilterProducts ? `!text-[var(--color-text-brand-f)]` : ``
+                      }`}
+                      onMouseEnter={(e) => {
+                        if (isOpenDropdownMenuFilterProducts) return;
                         handleOpenTooltip({
                           e: e,
                           display: "top",
-                          content: "選択する商品を全社、事業部、係・チームごとに",
+                          content: "選択する商品を全て、事業部、係・チーム、事業所ごとに",
                           content2: "フィルターの切り替えが可能です。",
                           // marginTop: 57,
-                          marginTop: 38,
-                          // marginTop: 12,
+                          // marginTop: 38,
+                          marginTop: 12,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",
-                        })
-                      }
-                      onMouseLeave={handleCloseTooltip}
-                      onClick={() => {
-                        if (isProductDepartment) {
-                          setIsProductDepartment(null);
-                        } else {
-                          setIsProductDepartment(userProfileState?.assigned_department_id);
-                        }
+                        });
+                      }}
+                      onMouseLeave={() => {
+                        if (!isOpenDropdownMenuFilterProducts || hoveredItemPosModal) handleCloseTooltip();
+                      }}
+                      onClick={(e) => {
+                        // 事業部、係、事業所をフィルターするか しない場合3つをnullにして全て取得する
+                        if (isOpenDropdownMenuFilterProducts) return;
+                        const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+                        // const clickedPositionPlusItemHeight = y + 400 + 5; // 400はメニューの最低高さ 5はmargin
+                        // const clickedPositionMinusItemHeight = y - 400 + height - 25; // 400はメニューの最低高さ
+                        // const modalHeight = settingModalProperties?.height ?? window.innerHeight * 0.9;
+                        // const halfBlankSpaceWithoutModal = (window.innerHeight - modalHeight) / 2;
+                        // const modalBottomPosition =
+                        //   settingModalProperties?.bottom ?? window.innerHeight - halfBlankSpaceWithoutModal;
+                        // const modalTopPosition = settingModalProperties?.top ?? halfBlankSpaceWithoutModal;
+                        setClickedItemPosition({ displayPos: "down", clickedItemWidth: width });
+                        setIsOpenDropdownMenuFilterProducts(true);
+                        handleCloseTooltip();
                       }}
                     >
-                      <span className={`mr-[9px]`}>紹介商品ﾒｲﾝ</span>
+                      {/* <span className={`mr-[9px]`}>紹介商品ﾒｲﾝ</span> */}
+                      <div className={`mr-[15px] flex flex-col text-[15px]`}>
+                        <span>紹介予定</span>
+                        <span>商品メイン</span>
+                      </div>
                       {/* <div className={`mr-[8px] flex flex-col text-[15px]`}>
                         <span className={``}>型式・名称</span>
                         <span className={``}>(顧客向け)</span>
@@ -1043,6 +1091,17 @@ export const InsertNewMeetingModal = () => {
                         src={`/assets/images/icons/business/icons8-process-94.png`}
                         alt="setting"
                       />
+                      {/* メンバーデータ編集ドロップダウンメニュー */}
+                      {isOpenDropdownMenuFilterProducts && (
+                        <DropDownMenuFilterProducts
+                          setIsOpenDropdownMenu={setIsOpenDropdownMenuFilterProducts}
+                          clickedItemPosition={clickedItemPosition}
+                          filterCondition={filterCondition}
+                          setFilterCondition={setFilterCondition}
+                          // setIsLoadingUpsertMember={setIsLoadingUpsertMember}
+                        />
+                      )}
+                      {/* メンバーデータ編集ドロップダウンメニューここまで */}
                     </div>
                     <select
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
@@ -1054,7 +1113,8 @@ export const InsertNewMeetingModal = () => {
                         ProductDataArray.length >= 1 &&
                         ProductDataArray.map((product) => (
                           <option key={product.id} value={product.id}>
-                            {product.product_name}
+                            {product.inside_short_name && product.inside_short_name}
+                            {!product.inside_short_name && product.product_name + " " + product.outside_short_name}
                           </option>
                         ))}
                     </select>
@@ -1081,8 +1141,29 @@ export const InsertNewMeetingModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>紹介予定サブ</span>
-                    <input
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>紹介予定サブ</span> */}
+                    <div className={`${styles.title} !min-w-[140px]`}>
+                      <div className={`mr-[15px] flex flex-col text-[15px]`}>
+                        <span>紹介予定</span>
+                        <span>商品サブ</span>
+                      </div>
+                    </div>
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={plannedProduct2 ? plannedProduct2 : ""}
+                      onChange={(e) => setPlannedProduct2(e.target.value)}
+                    >
+                      <option value=""></option>
+                      {ProductDataArray &&
+                        ProductDataArray.length >= 1 &&
+                        ProductDataArray.map((product) => (
+                          <option key={product.id} value={product.id}>
+                            {product.inside_short_name && product.inside_short_name}
+                            {!product.inside_short_name && product.product_name + " " + product.outside_short_name}
+                          </option>
+                        ))}
+                    </select>
+                    {/* <input
                       type="text"
                       placeholder=""
                       required
@@ -1090,7 +1171,7 @@ export const InsertNewMeetingModal = () => {
                       value={plannedProduct2}
                       onChange={(e) => setPlannedProduct2(e.target.value)}
                       onBlur={() => setPlannedProduct2(toHalfWidth(plannedProduct2.trim()))}
-                    />
+                    /> */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>

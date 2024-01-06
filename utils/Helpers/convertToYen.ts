@@ -29,6 +29,13 @@ export function convertToYen(inputString: string): number | null {
   const billionMatch = inputString.match(/(\d+(,\d+)*)億/);
   const millionMatch = inputString.match(/(\d+(,\d+)*)万/);
 
+  // 「兆」の単位に続く数値を取得（「億」や「万」が続かない場合のみ） ex) 624兆5000円
+  // const choAndBelowMatch = inputString.match(/兆(\d+(,\d+)*)(?![\d億万])/);
+  // // 「億」の単位に続く数値を取得（「万」が続かない場合のみ） ex) 624億5000円
+  // const okuAndBelowMatch = inputString.match(/億(\d+(,\d+)*)(?![\d万])/);
+  // 「万」の単位に続く数値を取得 ex) 624万5000円
+  const manAndBelowMatch = inputString.match(/万(\d+(,\d+)*)円?/);
+
   // 1,000や1,000,000のように単位無しで区切り文字のみ存在する場合は区切り文字を取り除いてそのまま返す
   if (!trillionMatch && !billionMatch && !millionMatch && inputString.includes(","))
     return parseInt(inputString.replace(/,/g, "").replace(/[^\d]/g, ""), 10);
@@ -37,6 +44,14 @@ export function convertToYen(inputString: string): number | null {
   if (trillionMatch) total += parseInt(trillionMatch[1].replace(/,/g, ""), 10) * 1000000000000; // 兆の計算
   if (billionMatch) total += parseInt(billionMatch[1].replace(/,/g, ""), 10) * 100000000; // 億の計算
   if (millionMatch) total += parseInt(millionMatch[1].replace(/,/g, ""), 10) * 10000; // 万の計算
+  // 「兆」の後の数値を加算する処理を追加  ex) 624兆5000円
+  // if (choAndBelowMatch) total += parseInt(choAndBelowMatch[1].replace(/,/g, ""), 10);
+  // 「億」の後の数値を加算する処理を追加  ex) 624億5000円
+  // if (okuAndBelowMatch && !choAndBelowMatch) total += parseInt(okuAndBelowMatch[1].replace(/,/g, ""), 10);
+  // 「万」の後の数値を加算する処理を追加  ex) 624万5000円
+  // if (manAndBelowMatch && !choAndBelowMatch && !okuAndBelowMatch)
+  //   total += parseInt(manAndBelowMatch[1].replace(/,/g, ""), 10);
+  if (manAndBelowMatch) total += parseInt(manAndBelowMatch[1].replace(/,/g, ""), 10);
 
   // 「円」が含まれる場合の処理を追加
   if (inputString.includes("円")) {

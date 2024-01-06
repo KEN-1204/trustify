@@ -1082,7 +1082,16 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     <span className={`${styles.title} text-[12px]`}>紹介予定ﾒｲﾝ</span>
                     {!searchMode && (
                       <span className={`${styles.value}`}>
-                        {selectedRowDataMeeting?.planned_product1 ? selectedRowDataMeeting?.planned_product1 : ""}
+                        {/* {selectedRowDataMeeting?.planned_product1 ? selectedRowDataMeeting?.planned_product1 : ""} */}
+                        {!selectedRowDataMeeting?.planned_inside_short_name1 &&
+                        selectedRowDataMeeting?.planned_product_name1
+                          ? selectedRowDataMeeting?.planned_product_name1 +
+                            " " +
+                            selectedRowDataMeeting?.planned_outside_short_name1
+                          : ""}
+                        {selectedRowDataMeeting?.planned_inside_short_name1
+                          ? selectedRowDataMeeting?.planned_inside_short_name1
+                          : ""}
                       </span>
                     )}
                     {searchMode && <input type="text" className={`${styles.input_box}`} />}
@@ -1103,7 +1112,16 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         // onMouseEnter={(e) => handleOpenTooltip(e)}
                         // onMouseLeave={handleCloseTooltip}
                       >
-                        {selectedRowDataMeeting?.planned_product2 ? selectedRowDataMeeting?.planned_product2 : ""}
+                        {/* {selectedRowDataMeeting?.planned_product2 ? selectedRowDataMeeting?.planned_product2 : ""} */}
+                        {!selectedRowDataMeeting?.planned_inside_short_name2 &&
+                        selectedRowDataMeeting?.planned_product_name2
+                          ? selectedRowDataMeeting?.planned_product_name2 +
+                            " " +
+                            selectedRowDataMeeting?.planned_outside_short_name2
+                          : ""}
+                        {selectedRowDataMeeting?.planned_inside_short_name2
+                          ? selectedRowDataMeeting?.planned_inside_short_name2
+                          : ""}
                       </span>
                     )}
                     {searchMode && <input type="text" className={`${styles.input_box}`} />}

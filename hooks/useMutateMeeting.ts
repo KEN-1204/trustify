@@ -28,46 +28,115 @@ export const useMutateMeeting = () => {
     async (newMeeting: Omit<Meeting, "id" | "created_at" | "updated_at">) => {
       // setLoadingGlobalState(true);
       // console.log(newMeeting.planned_start_time);
-      const { data, error } = await supabase.from("meetings").insert(newMeeting).select().single();
-      if (error) throw new Error(error.message);
+      // const { data, error } = await supabase.from("meetings").insert(newMeeting).select().single();
+      // if (error) throw new Error(error.message);
 
-      console.log("INSERTに成功したdata", data);
+      // console.log("INSERTに成功したdata", data);
       // 活動履歴で面談タイプ 訪問・面談を作成
-      const newActivity = {
-        created_by_company_id: newMeeting.created_by_company_id,
-        created_by_user_id: newMeeting.created_by_user_id,
-        created_by_department_of_user: newMeeting.created_by_department_of_user,
-        created_by_unit_of_user: newMeeting.created_by_unit_of_user,
-        created_by_office_of_user: newMeeting.created_by_office_of_user,
-        client_contact_id: newMeeting.client_contact_id,
-        client_company_id: newMeeting.client_company_id,
-        summary: newMeeting.result_summary,
-        scheduled_follow_up_date: null,
-        // follow_up_flag: followUpFlag ? followUpFlag : null,
-        follow_up_flag: false,
-        document_url: null,
-        activity_type: "面談・訪問",
-        // claim_flag: claimFlag ? claimFlag : null,
-        claim_flag: false,
-        product_introduction1: newMeeting.result_presentation_product1,
-        product_introduction2: newMeeting.result_presentation_product2,
-        product_introduction3: newMeeting.result_presentation_product3,
-        product_introduction4: newMeeting.result_presentation_product4,
-        product_introduction5: newMeeting.result_presentation_product5,
-        department: newMeeting.meeting_department,
-        business_office: newMeeting.meeting_business_office,
-        member_name: newMeeting.meeting_member_name,
-        priority: null,
-        activity_date: newMeeting.planned_date,
-        activity_year_month: newMeeting.meeting_year_month,
-        meeting_id: (data as Activity).id ? (data as Activity).id : null,
-        property_id: null,
-        quotation_id: null,
-      };
+      // const newActivity = {
+      //   created_by_company_id: newMeeting.created_by_company_id,
+      //   created_by_user_id: newMeeting.created_by_user_id,
+      //   created_by_department_of_user: newMeeting.created_by_department_of_user,
+      //   created_by_unit_of_user: newMeeting.created_by_unit_of_user,
+      //   created_by_office_of_user: newMeeting.created_by_office_of_user,
+      //   client_contact_id: newMeeting.client_contact_id,
+      //   client_company_id: newMeeting.client_company_id,
+      //   summary: newMeeting.result_summary,
+      //   scheduled_follow_up_date: null,
+      //   // follow_up_flag: followUpFlag ? followUpFlag : null,
+      //   follow_up_flag: false,
+      //   document_url: null,
+      //   activity_type: "面談・訪問",
+      //   // claim_flag: claimFlag ? claimFlag : null,
+      //   claim_flag: false,
+      //   product_introduction1: newMeeting.result_presentation_product1,
+      //   product_introduction2: newMeeting.result_presentation_product2,
+      //   product_introduction3: newMeeting.result_presentation_product3,
+      //   product_introduction4: newMeeting.result_presentation_product4,
+      //   product_introduction5: newMeeting.result_presentation_product5,
+      //   department: newMeeting.meeting_department,
+      //   business_office: newMeeting.meeting_business_office,
+      //   member_name: newMeeting.meeting_member_name,
+      //   priority: null,
+      //   activity_date: newMeeting.planned_date,
+      //   activity_year_month: newMeeting.meeting_year_month,
+      //   meeting_id: (data as Activity).id ? (data as Activity).id : null,
+      //   property_id: null,
+      //   quotation_id: null,
+      // };
 
       // supabaseにINSERT
-      const { error: errorActivity } = await supabase.from("activities").insert(newActivity);
-      if (errorActivity) throw new Error(errorActivity.message);
+      // const { error: errorActivity } = await supabase.from("activities").insert(newActivity);
+      // if (errorActivity) throw new Error(errorActivity.message);
+
+      const newMeetingAndActivityPayload = {
+        // 面談テーブル
+        _created_by_company_id: newMeeting.created_by_company_id,
+        _created_by_user_id: newMeeting.created_by_user_id,
+        _created_by_department_of_user: newMeeting.created_by_department_of_user,
+        _created_by_unit_of_user: newMeeting.created_by_unit_of_user,
+        _created_by_office_of_user: newMeeting.created_by_office_of_user,
+        _client_contact_id: newMeeting.client_contact_id,
+        _client_company_id: newMeeting.client_company_id,
+        _meeting_type: newMeeting.meeting_type,
+        _web_tool: newMeeting.web_tool,
+        _planned_date: newMeeting.planned_date,
+        _planned_start_time: newMeeting.planned_start_time,
+        _planned_purpose: newMeeting.planned_purpose,
+        _planned_duration: newMeeting.planned_duration,
+        _planned_appoint_check_flag: newMeeting.planned_appoint_check_flag,
+        _planned_product1: newMeeting.planned_product1,
+        _planned_product2: newMeeting.planned_product2,
+        _planned_comment: newMeeting.planned_comment,
+        _result_date: newMeeting.result_date,
+        _result_start_time: newMeeting.result_start_time,
+        _result_end_time: newMeeting.result_end_time,
+        _result_duration: newMeeting.result_duration,
+        _result_number_of_meeting_participants: newMeeting.result_number_of_meeting_participants,
+        _result_presentation_product1: newMeeting.result_presentation_product1,
+        _result_presentation_product2: newMeeting.result_presentation_product2,
+        _result_presentation_product3: newMeeting.result_presentation_product3,
+        _result_presentation_product4: newMeeting.result_presentation_product4,
+        _result_presentation_product5: newMeeting.result_presentation_product5,
+        _result_category: newMeeting.result_category,
+        _result_summary: newMeeting.result_summary,
+        _result_negotiate_decision_maker: newMeeting.result_negotiate_decision_maker,
+        _pre_meeting_participation_request: newMeeting.pre_meeting_participation_request,
+        _meeting_participation_request: newMeeting.meeting_participation_request,
+        _meeting_department: newMeeting.meeting_department,
+        _meeting_business_office: newMeeting.meeting_business_office,
+        _meeting_member_name: newMeeting.meeting_member_name,
+        _meeting_year_month: newMeeting.meeting_year_month,
+        // -- 活動テーブル用
+        _summary: newMeeting.result_summary,
+        _scheduled_follow_up_date: null,
+        _follow_up_flag: false,
+        _document_url: null,
+        _activity_type: "面談・訪問",
+        _claim_flag: false,
+        _product_introduction1: newMeeting.result_presentation_product1,
+        _product_introduction2: newMeeting.result_presentation_product2,
+        _product_introduction3: newMeeting.result_presentation_product3,
+        _product_introduction4: newMeeting.result_presentation_product4,
+        _product_introduction5: newMeeting.result_presentation_product5,
+        _department: newMeeting.meeting_department,
+        _business_office: newMeeting.meeting_business_office,
+        _member_name: newMeeting.meeting_member_name,
+        _priority: null,
+        _activity_date: newMeeting.planned_date,
+        _activity_year_month: newMeeting.meeting_year_month,
+        // _meeting_id: ,
+        _property_id: null,
+        _quotation_id: null,
+      };
+
+      // insert_meeting_schedule_and_activity rpc
+
+      console.log("🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥rpc実行 newMeetingAndActivityPayload", newMeetingAndActivityPayload);
+
+      const { error } = await supabase.rpc("insert_meeting_schedule_and_activity", newMeetingAndActivityPayload);
+
+      if (error) throw error;
     },
     {
       onSuccess: async () => {
@@ -81,12 +150,6 @@ export const useMutateMeeting = () => {
         toast.success("面談予定の作成が完了しました🌟", {
           position: "top-right",
           autoClose: 1500,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: `${theme === "light" ? "light" : "dark"}`,
         });
 
         // setTimeout(() => {
@@ -107,17 +170,12 @@ export const useMutateMeeting = () => {
       onError: (err: any) => {
         if (loadingGlobalState) setLoadingGlobalState(false);
         // setIsOpenInsertNewMeetingModal(false);
-        alert(err.message);
-        console.log("INSERTエラー", err.message);
+        // alert(err.message);
+        console.log("INSERTエラー", err);
+        console.error("INSERTエラー", err.message);
         toast.error("面談予定の作成に失敗しました!", {
           position: "top-right",
           autoClose: 1500,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: `${theme === "light" ? "light" : "dark"}`,
         });
         // setTimeout(() => {
         //   if (loadingGlobalState) setLoadingGlobalState(false);
