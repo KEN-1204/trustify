@@ -1626,6 +1626,7 @@ export type Meeting = {
 export type Product = {
   id: string;
   created_at: string;
+  updated_at: string | null;
   created_by_company_id: string | null;
   created_by_user_id: string | null;
   created_by_department_of_user: string | null;

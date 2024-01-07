@@ -1874,7 +1874,9 @@ export const UpdateMeetingModal = () => {
                           {resultPresentationProductsArray &&
                             !!resultPresentationProductsArray[index >= 1 ? index * 2 : index] && (
                               <option value={`${resultPresentationProductsArray[index >= 1 ? index * 2 : index]}`}>
-                                {productIdToNameMap[
+                                {process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID !==
+                                  resultPresentationProductsArray[(index >= 1 ? index * 2 : index) as number] &&
+                                productIdToNameMap[
                                   resultPresentationProductsArray[(index >= 1 ? index * 2 : index) as number] as string
                                 ]?.inside_short_name
                                   ? productIdToNameMap[
@@ -1886,13 +1888,26 @@ export const UpdateMeetingModal = () => {
                                       resultPresentationProductsArray[
                                         (index >= 1 ? index * 2 : index) as number
                                       ] as string
+                                    ]?.product_name ||
+                                    productIdToNameMap[
+                                      resultPresentationProductsArray[
+                                        (index >= 1 ? index * 2 : index) as number
+                                      ] as string
+                                    ]?.outside_short_name
+                                  ? productIdToNameMap[
+                                      resultPresentationProductsArray[
+                                        (index >= 1 ? index * 2 : index) as number
+                                      ] as string
                                     ]?.product_name +
                                     " " +
                                     productIdToNameMap[
                                       resultPresentationProductsArray[
                                         (index >= 1 ? index * 2 : index) as number
                                       ] as string
-                                    ]?.outside_short_name}
+                                    ]?.outside_short_name
+                                  : ""}
+                                {process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID ===
+                                  resultPresentationProductsArray[(index >= 1 ? index * 2 : index) as number] && "他"}
                               </option>
                             )}
                           {/* {plannedProduct2 && (
@@ -1906,12 +1921,28 @@ export const UpdateMeetingModal = () => {
                           )} */}
                           {productDataArray &&
                             productDataArray.length >= 1 &&
-                            productDataArray.map((product) => (
-                              <option key={product.id} value={product.id}>
-                                {product.inside_short_name && product.inside_short_name}
-                                {!product.inside_short_name && product.product_name + " " + product.outside_short_name}
-                              </option>
-                            ))}
+                            productDataArray.map((product) => {
+                              if (product.id === resultPresentationProductsArray[index >= 1 ? index * 2 : index]) {
+                                return;
+                              }
+                              return (
+                                <option key={product.id} value={product.id}>
+                                  {product.inside_short_name && product.inside_short_name}
+                                  {!product.inside_short_name &&
+                                    product.product_name + " " + product.outside_short_name}
+                                </option>
+                              );
+                            })}
+                          {/* IM他 直接idを */}
+                          {resultPresentationProductsArray[index >= 1 ? index * 2 : index] !==
+                            process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID && (
+                            <option value={process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID}>他</option>
+                          )}
+                          {/* 選択時のリセット用 */}
+                          {resultPresentationProductsArray &&
+                            resultPresentationProductsArray[index >= 1 ? index * 2 : index] && (
+                              <option value=""></option>
+                            )}
                         </select>
                       </div>
                       <div className={`${styles.underline}`}></div>
@@ -1956,7 +1987,9 @@ export const UpdateMeetingModal = () => {
                               <option
                                 value={`${resultPresentationProductsArray[index >= 1 ? index * 2 + 1 : index + 1]}`}
                               >
-                                {productIdToNameMap[
+                                {process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID !==
+                                  resultPresentationProductsArray[(index >= 1 ? index * 2 + 1 : index + 1) as number] &&
+                                productIdToNameMap[
                                   resultPresentationProductsArray[
                                     (index >= 1 ? index * 2 + 1 : index + 1) as number
                                   ] as string
@@ -1970,23 +2003,55 @@ export const UpdateMeetingModal = () => {
                                       resultPresentationProductsArray[
                                         (index >= 1 ? index * 2 + 1 : index + 1) as number
                                       ] as string
+                                    ]?.product_name ||
+                                    productIdToNameMap[
+                                      resultPresentationProductsArray[
+                                        (index >= 1 ? index * 2 + 1 : index + 1) as number
+                                      ] as string
+                                    ]?.outside_short_name
+                                  ? productIdToNameMap[
+                                      resultPresentationProductsArray[
+                                        (index >= 1 ? index * 2 + 1 : index + 1) as number
+                                      ] as string
                                     ]?.product_name +
                                     " " +
                                     productIdToNameMap[
                                       resultPresentationProductsArray[
                                         (index >= 1 ? index * 2 + 1 : index + 1) as number
                                       ] as string
-                                    ]?.outside_short_name}
+                                    ]?.outside_short_name
+                                  : ""}
+                                {process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID ===
+                                  resultPresentationProductsArray[(index >= 1 ? index * 2 + 1 : index + 1) as number] &&
+                                  "他"}
                               </option>
                             )}
                           {productDataArray &&
                             productDataArray.length >= 1 &&
-                            productDataArray.map((product) => (
-                              <option key={product.id} value={product.id}>
-                                {product.inside_short_name && product.inside_short_name}
-                                {!product.inside_short_name && product.product_name + " " + product.outside_short_name}
-                              </option>
-                            ))}
+                            productDataArray.map((product) => {
+                              if (
+                                product.id === resultPresentationProductsArray[index >= 1 ? index * 2 + 1 : index + 1]
+                              ) {
+                                return;
+                              }
+                              return (
+                                <option key={product.id} value={product.id}>
+                                  {product.inside_short_name && product.inside_short_name}
+                                  {!product.inside_short_name &&
+                                    product.product_name + " " + product.outside_short_name}
+                                </option>
+                              );
+                            })}
+                          {/* IM他 直接idを */}
+                          {resultPresentationProductsArray[index >= 1 ? index * 2 + 1 : index + 1] !==
+                            process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID && (
+                            <option value={process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID}>他</option>
+                          )}
+                          {/* 選択時のリセット用 */}
+                          {resultPresentationProductsArray &&
+                            resultPresentationProductsArray[index >= 1 ? index * 2 + 1 : index + 1] && (
+                              <option value=""></option>
+                            )}
                         </select>
                       </div>
                       <div className={`${styles.underline}`}></div>
