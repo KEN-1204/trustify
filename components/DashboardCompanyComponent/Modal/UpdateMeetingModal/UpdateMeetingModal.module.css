@@ -91,6 +91,14 @@
   height: 100%;
   width: 50%;
 }
+.left_contents_wrapper_attendees {
+  height: 100%;
+  width: 80%;
+}
+.right_contents_wrapper_attendees {
+  height: 100%;
+  width: 20%;
+}
 
 .row_area {
   display: flex;
@@ -182,22 +190,7 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
-.input_box {
-  height: 100%;
-  width: 100%;
-  background: var(--color-bg-under-input);
-  color: var(--color-text-under-input);
-  box-shadow: var(--color-bg-under-input-box-shadow);
-  min-height: 32px;
-  padding: 6px 8px;
-  font-size: 15px;
-  border-radius: 6px;
-  max-width: 375px;
-  margin-left: auto;
-}
-.input_box:focus {
-  box-shadow: var(--color-bg-under-input-active-box-shadow);
-}
+
 .underline {
   min-height: 1px;
   width: 100%;
@@ -373,6 +366,71 @@
 }
 .close_btn_number:hover {
   background: var(--close-bg);
+}
+.save_section_title {
+  /* font-weight: 700; */
+  font-size: 14px;
+  color: #fff;
+}
+.cancel_section_title {
+  /* font-weight: 700; */
+  font-size: 14px;
+  color: var(--color-text-title);
+}
+.side_table {
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 1200;
+  width: 39vw;
+  /* width: 566px; */
+  height: 100%;
+  transform: translateX(100%);
+  backdrop-filter: blur(8px);
+  /* background: #00000099; */
+  /* background: #000000c0; */
+  background-color: var(--color-side-table-bg);
+  color: #fff;
+  /* background: #ffffffd0; */
+  /* color: var(--color-text-title); */
+  /* padding: 30px 30px 0px 30px; */
+  font-family: sans-serif;
+  border-left: 1px solid var(--color-side-table-border);
+}
+/* .side_table::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-left: 1px solid #ccc;
+} */
+.side_table.active {
+  transform: translateX(0%);
+}
+
+.input_box {
+  height: 100%;
+  width: 100%;
+  background: var(--color-bg-under-input);
+  color: var(--color-text-under-input);
+  box-shadow: var(--color-bg-under-input-box-shadow);
+  min-height: 32px;
+  padding: 6px 8px;
+  font-size: 15px;
+  border-radius: 6px;
+  max-width: 375px;
+  margin-left: auto;
+}
+.input_box.attendees {
+  max-width: none;
+}
+.input_box:hover.attendees {
+  box-shadow: var(--color-bg-under-input-box-shadow);
+}
+.input_box:focus {
+  box-shadow: var(--color-bg-under-input-active-box-shadow);
 }
 .input_box:focus ~ .close_btn_number {
   display: none;

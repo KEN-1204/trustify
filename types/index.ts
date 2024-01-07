@@ -1641,6 +1641,7 @@ export type Product = {
 export type EditedProduct = {
   id: string;
   created_at: string;
+  updated_at: string | null;
   created_by_company_id: string;
   created_by_user_id: string;
   created_by_department_of_user: string;

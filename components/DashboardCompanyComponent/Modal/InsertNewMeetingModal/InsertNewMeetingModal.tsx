@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { CSSProperties, FocusEventHandler, KeyboardEvent, useEffect, useRef, useState } from "react";
 import styles from "./InsertNewMeetingModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -21,6 +21,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useQueryProducts } from "@/hooks/useQueryProducts";
 import NextImage from "next/image";
 import { DropDownMenuFilterProducts } from "../SettingAccountModal/SettingMemberAccounts/DropdownMenuFilterProducts/DropdownMenuFilterProducts";
+import { GoChevronDown } from "react-icons/go";
+import { HiChevronDown } from "react-icons/hi2";
+import { useQueryDepartments } from "@/hooks/useQueryDepartments";
+import { useQueryUnits } from "@/hooks/useQueryUnits";
+import { useQueryOffices } from "@/hooks/useQueryOffices";
 
 export const InsertNewMeetingModal = () => {
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
@@ -58,7 +63,9 @@ export const InsertNewMeetingModal = () => {
   const [plannedDuration, setPlannedDuration] = useState<number | null>(null); //面談予定時間
   const [plannedAppointCheckFlag, setPlannedAppointCheckFlag] = useState(false); //アポ有無フラグ
   const [plannedProduct1, setPlannedProduct1] = useState(""); //実施予定１
+  const [plannedProduct1InputName, setPlannedProduct1InputName] = useState(""); //実施予定１の名前
   const [plannedProduct2, setPlannedProduct2] = useState(""); //実施予定２
+  const [plannedProduct2InputName, setPlannedProduct2InputName] = useState(""); //実施予定２
   const [plannedComment, setPlannedComment] = useState(""); //事前コメント
   const [resultDate, setResultDate] = useState<Date | null>(null);
   const [resultStartTime, setResultStartTime] = useState<string>("");
@@ -113,24 +120,55 @@ export const InsertNewMeetingModal = () => {
   const { createMeetingMutation } = useMutateMeeting();
 
   // ============================= 🌟事業部、係、事業所リスト取得useQuery🌟 =============================
-  const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
-  const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
-  const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
+  // const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
+  // const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
+  // const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
   // ============================= ✅事業部、係、事業所リスト取得useQuery✅ =============================
-  // ================================ 🌟自事業部商品リスト取得useQuery🌟 ================================
+  // ================================ 🌟事業部リスト取得useQuery🌟 ================================
+  const {
+    data: departmentDataArray,
+    isLoading: isLoadingQueryDepartment,
+    refetch: refetchQUeryDepartments,
+  } = useQueryDepartments(userProfileState?.company_id, true);
+
+  // useMutation
+  // const { createDepartmentMutation, updateDepartmentFieldMutation, deleteDepartmentMutation } = useMutateDepartment();
+  // ================================ ✅事業部リスト取得useQuery✅ ================================
+  // ================================ 🌟係・チームリスト取得useQuery🌟 ================================
+  const {
+    data: unitDataArray,
+    isLoading: isLoadingQueryUnit,
+    refetch: refetchQUeryUnits,
+  } = useQueryUnits(userProfileState?.company_id, true);
+
+  // useMutation
+  // const { createUnitMutation, updateUnitFieldMutation, updateMultipleUnitFieldsMutation, deleteUnitMutation } =
+  // useMutateUnit();
+  // ================================ ✅係・チームリスト取得useQuery✅ ================================
+  // ================================ 🌟事業所・営業所リスト取得useQuery🌟 ================================
+  const {
+    data: officeDataArray,
+    isLoading: isLoadingQueryOffice,
+    refetch: refetchQUeryOffices,
+  } = useQueryOffices(userProfileState?.company_id, true);
+
+  // useMutation
+  // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
+  // ================================ ✅事業所・営業所リスト取得useQuery✅ ================================
+  // ================================ 🌟商品リスト取得useQuery🌟 ================================
   type FilterCondition = {
     department_id: Department["id"] | null;
     unit_id: Unit["id"] | null;
     office_id: Office["id"] | null;
     //   employee_id_name: Employee_id["id"];
   };
-  // useQueryで事業部・係・事業所を絞ったフェッチをするかどうか
+  // useQueryで事業部・係・事業所を絞ったフェッチをするかどうか(初回マウント時は自事業部のみで取得)
   const [filterCondition, setFilterCondition] = useState<FilterCondition>({
     department_id: userProfileState?.assigned_department_id ? userProfileState?.assigned_department_id : null,
     unit_id: null,
     office_id: null,
   });
-  const { data: ProductDataArray, isLoading: isLoadingQueryProduct } = useQueryProducts({
+  const { data: productDataArray, isLoading: isLoadingQueryProduct } = useQueryProducts({
     company_id: userProfileState?.company_id ? userProfileState?.company_id : null,
     departmentId: filterCondition.department_id,
     unitId: filterCondition.unit_id,
@@ -138,7 +176,137 @@ export const InsertNewMeetingModal = () => {
     isReady: true,
   });
   // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
-  // ================================ ✅自事業部商品リスト取得useQuery✅ ================================
+  // ================================ ✅商品リスト取得useQuery✅ ================================
+  // ========= 🌟入力予測提案用に取得した商品リストの名前のみの配列を生成(name, inner, outerを/で繋げる)🌟 =========
+  // const [suggestedProductIdNameArray, setSuggestedProductIdNameArray] = useState<string[]>([]);
+  // const [suggestedProductIdNameArray, setSuggestedProductIdNameArray] = useState<{ [key: string]: string }[]>([]);
+  // 紹介予定inputタグからfocus、blurで予測メニューをhidden切り替え
+  const resultRefs = useRef<(HTMLDivElement | null)[]>(Array(2).fill(null));
+  const inputBoxProducts = useRef<(HTMLInputElement | null)[]>(Array(2).fill(null));
+  // const selectBoxProducts = useRef<(HTMLSelectElement | null)[]>(Array(2).fill(null));
+  type SuggestedProductObj = { id: string; fullName: string };
+  // {id: '376..', fullName: '画像寸法測定機 IM7500/7020 IM2'}を持つ配列
+  const [suggestedProductIdNameArray, setSuggestedProductIdNameArray] = useState<SuggestedProductObj[]>([]);
+  // 入力値を含む{id: '376..', fullName: '画像寸法測定機 IM7500/7020 IM2'}を持つ配列
+  // const [suggestedProductName, setSuggestedProductName] = useState<SuggestedProductObj[]>([]);
+  const [suggestedProductName, setSuggestedProductName] = useState<SuggestedProductObj[][]>(Array(2).fill([]));
+  useEffect(() => {
+    // 最初にオブジェクトマップを作成
+    // const productNameToIdMap = productDataArray.reduce((map, item) => {
+    //   map[item.name] = item.id;
+    //   return map;
+    // }, {});
+    // 初回マウント時、２回目以降で商品リストの変化に応じて新たに商品名リストに追加、Setで重複は排除
+
+    if (productDataArray && productDataArray.length > 0) {
+      const newProductArray = productDataArray.map((product) => ({
+        id: product.id,
+        fullName:
+          (product.inside_short_name ? product.inside_short_name + " " : "") +
+          product.product_name +
+          (product.outside_short_name ? " " + product.outside_short_name : ""),
+      }));
+
+      // 同じオブジェクトの重複を排除(同じidを排除)して配列を統合する方法
+      let combinedArray: SuggestedProductObj[] = [];
+      if (suggestedProductIdNameArray.length > 0) {
+        combinedArray = [...suggestedProductIdNameArray, ...newProductArray];
+      } else if (!!process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID) {
+        // IM他の選択肢
+        const otherOption = { id: process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID, fullName: "他" };
+        combinedArray = [...suggestedProductIdNameArray, ...newProductArray, otherOption];
+        // combinedArray = [...suggestedProductIdNameArray, ...newProductArray];
+      }
+      const uniqueArray = combinedArray.reduce((acc: SuggestedProductObj[], current: SuggestedProductObj) => {
+        const x = acc.find((obj) => obj.id === current.id);
+        // idが一致しているなら重複しているためスプレッドで統合しない
+        if (!x) {
+          return [...acc, current];
+        } else {
+          return acc;
+        }
+      }, []);
+
+      setSuggestedProductIdNameArray(uniqueArray);
+
+      // 文字列などのプリミティブ値で重複排除で配列を統合する方法
+      // setSuggestedProductIdNameArray((prevProductNames) => {
+      //   return [...new Set([...prevProductNames, ...newProductNames])];
+      // });
+    }
+  }, [productDataArray]);
+
+  // 紹介予定商品の入力値を商品リストから生成した予測変換リストから絞り込んで提案する
+  const handleSuggestedProduct = (e: KeyboardEvent<HTMLInputElement>, index: number) => {
+    let filteredResult = [];
+
+    // 入力されていない場合
+    if (!e.currentTarget.value.length) {
+      console.log("🌟入力されていない e.currentTarget.value", e.currentTarget.value);
+      const newSuggestions = [...suggestedProductName];
+      newSuggestions[index] = [];
+      return setSuggestedProductName(newSuggestions);
+      // return setSuggestedProductName([]);
+    }
+    // 入力値が存在する場合は、入力値に一致するavailableKeywordsをフィルター
+    if (e.currentTarget.value.length) {
+      filteredResult = suggestedProductIdNameArray.filter((obj) => {
+        return obj.fullName.toLowerCase().includes(e.currentTarget.value.toLowerCase());
+      });
+      console.log("🌟filteredResult", filteredResult, "🌟入力あり", e.currentTarget.value);
+      const newSuggestions = [...suggestedProductName];
+      newSuggestions[index] = filteredResult;
+      setSuggestedProductName(newSuggestions);
+      // setSuggestedProductName(filteredResult);
+    }
+  };
+  const handleFocusSuggestedProduct = (currentInputState: string | null, index: number) => {
+    if (!currentInputState) return;
+    let filteredResult = [];
+
+    // 入力されていない場合
+    if (!currentInputState.length) {
+      console.log("🌟入力されていない currentInputState", currentInputState);
+      const newSuggestions = [...suggestedProductName];
+      newSuggestions[index] = [];
+      return setSuggestedProductName(newSuggestions);
+      // return setSuggestedProductName([]);
+    }
+    // 入力値が存在する場合は、入力値に一致するavailableKeywordsをフィルター
+    if (currentInputState.length) {
+      filteredResult = suggestedProductIdNameArray.filter((obj) => {
+        return obj.fullName.toLowerCase().includes(currentInputState.toLowerCase());
+      });
+      console.log("🌟filteredResult", filteredResult, "🌟入力あり", currentInputState);
+      const newSuggestions = [...suggestedProductName];
+      newSuggestions[index] = filteredResult;
+      setSuggestedProductName(newSuggestions);
+      // setSuggestedProductName(filteredResult);
+    }
+  };
+
+  console.log("🌠🌠🌠🌠🌠🌠suggestedProductIdNameArray: ", suggestedProductIdNameArray);
+  console.log(
+    "🌠suggestedProductName[0]: ",
+    suggestedProductName[0],
+    "🌠plannedProduct1: ",
+    plannedProduct1,
+    "🌠plannedProduct1InputName: ",
+    plannedProduct1InputName
+    // "🌠isFocusInputProducts",
+    // isFocusInputProducts
+  );
+  console.log(
+    "🌠suggestedProductName[1]: ",
+    suggestedProductName[1],
+    "🌠plannedProduct2: ",
+    plannedProduct2,
+    "🌠plannedProduct2InputName: ",
+    plannedProduct2InputName
+    // "🌠isFocusInputProducts",
+    // isFocusInputProducts
+  );
+  // ========= ✅入力予測提案用に取得した商品リストの名前のみの配列を生成(name, inner, outerを/で繋げる)✅ =========
 
   //   useEffect(() => {
   //     if (!userProfileState) return;
@@ -240,6 +408,21 @@ export const InsertNewMeetingModal = () => {
     if (!meetingYearMonth) return alert("面談年月度を入力してください");
     if (meetingMemberName === "") return alert("自社担当を入力してください");
 
+    // 紹介予定商品メイン、サブの選択されているidが現在現在入力されてるnameのidと一致しているかを確認
+    const currentId1 = suggestedProductIdNameArray.find((obj) => obj.fullName === plannedProduct1InputName)?.id;
+    if (!currentId1) return alert("「紹介予定商品メイン」の商品が有効ではありません。正しい商品を選択してください。");
+    const checkResult1 = currentId1 === plannedProduct1;
+    if (!checkResult1) return alert("「紹介予定商品メイン」の商品が有効ではありません。正しい商品を選択してください。");
+    // 商品サブは任意でOK 入力されてる場合はチェック
+    if (plannedProduct2InputName) {
+      const currentId2 = suggestedProductIdNameArray.find((obj) => obj.fullName === plannedProduct2InputName)?.id;
+      if (!currentId2) return alert("「紹介予定商品サブ」の商品が有効ではありません。正しい商品を選択してください。");
+      const checkResult2 = currentId2 === plannedProduct2;
+      if (!checkResult2) return alert("「紹介予定商品サブ」の商品が有効ではありません。正しい商品を選択してください。");
+    }
+
+    // return alert("成功");
+
     setLoadingGlobalState(true);
 
     const departmentName =
@@ -326,6 +509,21 @@ export const InsertNewMeetingModal = () => {
     if (!meetingYearMonth) return alert("面談年月度を入力してください");
     if (meetingMemberName === "") return alert("自社担当を入力してください");
 
+    // 紹介予定商品メイン、サブの選択されているidが現在現在入力されてるnameのidと一致しているかを確認
+    const currentId1 = suggestedProductIdNameArray.find((obj) => obj.fullName === plannedProduct1InputName)?.id;
+    if (!currentId1) return alert("「紹介予定商品メイン」の商品が有効ではありません。正しい商品を選択してください。");
+    const checkResult1 = currentId1 === plannedProduct1;
+    if (!checkResult1) return alert("「紹介予定商品メイン」の商品が有効ではありません。正しい商品を選択してください。");
+    // 商品サブは任意でOK 入力されてる場合はチェック
+    if (plannedProduct2InputName) {
+      const currentId2 = suggestedProductIdNameArray.find((obj) => obj.fullName === plannedProduct2InputName)?.id;
+      if (!currentId2) return alert("「紹介予定商品サブ」の商品が有効ではありません。正しい商品を選択してください。");
+      const checkResult2 = currentId2 === plannedProduct2;
+      if (!checkResult2) return alert("「紹介予定商品サブ」の商品が有効ではありません。正しい商品を選択してください。");
+    }
+
+    // return alert("成功");
+
     setLoadingGlobalState(true);
 
     const departmentName =
@@ -411,6 +609,21 @@ export const InsertNewMeetingModal = () => {
     if (plannedStartTimeMinute === "") return alert("面談開始 分を選択してください");
     if (!meetingYearMonth) return alert("面談年月度を入力してください");
     if (meetingMemberName === "") return alert("自社担当を入力してください");
+
+    // 紹介予定商品メイン、サブの選択されているidが現在現在入力されてるnameのidと一致しているかを確認
+    const currentId1 = suggestedProductIdNameArray.find((obj) => obj.fullName === plannedProduct1InputName)?.id;
+    if (!currentId1) return alert("「紹介予定商品メイン」の商品が有効ではありません。正しい商品を選択してください。");
+    const checkResult1 = currentId1 === plannedProduct1;
+    if (!checkResult1) return alert("「紹介予定商品メイン」の商品が有効ではありません。正しい商品を選択してください。");
+    // 商品サブは任意でOK 入力されてる場合はチェック
+    if (plannedProduct2InputName) {
+      const currentId2 = suggestedProductIdNameArray.find((obj) => obj.fullName === plannedProduct2InputName)?.id;
+      if (!currentId2) return alert("「紹介予定商品サブ」の商品が有効ではありません。正しい商品を選択してください。");
+      const checkResult2 = currentId2 === plannedProduct2;
+      if (!checkResult2) return alert("「紹介予定商品サブ」の商品が有効ではありません。正しい商品を選択してください。");
+    }
+
+    // return alert("成功");
 
     setLoadingGlobalState(true);
 
@@ -690,9 +903,20 @@ export const InsertNewMeetingModal = () => {
         {/* 製品リスト編集ドロップダウンメニュー オーバーレイ */}
         {isOpenDropdownMenuFilterProducts && (
           <div
-            className="fixed left-[-100vw] top-[-50%] z-[10] h-[200vh] w-[300vw] bg-[#00000000]"
+            // className="fixed left-[-100vw] top-[-50%] z-[12] h-[200vh] w-[300vw] bg-[#4d080890]"
+            className="fixed left-[-100vw] top-[-50%] z-[12] h-[200vh] w-[300vw]"
             onClick={() => {
               setIsOpenDropdownMenuFilterProducts(false);
+            }}
+          ></div>
+        )}
+        {/* 検索予測リストメニュー オーバーレイ */}
+        {suggestedProductName && suggestedProductName.length > 0 && (
+          <div
+            // className="fixed left-[-100vw] top-[-50%] z-[10] h-[200vh] w-[300vw] bg-[#00000090]"
+            className="fixed left-[-100vw] top-[-50%] z-[10] h-[200vh] w-[300vw]"
+            onClick={() => {
+              setSuggestedProductName([]);
             }}
           ></div>
         )}
@@ -1036,7 +1260,7 @@ export const InsertNewMeetingModal = () => {
                   <div className={`${styles.title_box} flex h-full items-center`}>
                     {/* <span className={`${styles.title} !min-w-[140px]`}>紹介商品ﾒｲﾝ</span> */}
                     <div
-                      className={`relative z-[100] flex !min-w-[140px] items-center ${
+                      className={`relative z-[1000] flex !min-w-[140px] items-center ${
                         styles.title
                       } cursor-pointer hover:text-[var(--color-text-brand-f)] ${
                         isOpenDropdownMenuFilterProducts ? `!text-[var(--color-text-brand-f)]` : ``
@@ -1103,30 +1327,115 @@ export const InsertNewMeetingModal = () => {
                       )}
                       {/* メンバーデータ編集ドロップダウンメニューここまで */}
                     </div>
-                    <select
+                    {/* <select
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={plannedProduct1 ? plannedProduct1 : ""}
                       onChange={(e) => setPlannedProduct1(e.target.value)}
                     >
                       <option value=""></option>
-                      {ProductDataArray &&
-                        ProductDataArray.length >= 1 &&
-                        ProductDataArray.map((product) => (
+                      {productDataArray &&
+                        productDataArray.length >= 1 &&
+                        productDataArray.map((product) => (
                           <option key={product.id} value={product.id}>
                             {product.inside_short_name && product.inside_short_name}
                             {!product.inside_short_name && product.product_name + " " + product.outside_short_name}
                           </option>
                         ))}
-                    </select>
-                    {/* <input
-                      type="text"
-                      placeholder=""
-                      required
-                      className={`${styles.input_box}`}
-                      value={plannedProduct1}
-                      onChange={(e) => setPlannedProduct1(e.target.value)}
-                      onBlur={() => setPlannedProduct1(toHalfWidth(plannedProduct1.trim()))}
-                    /> */}
+                    </select> */}
+
+                    <div className={`input_container relative z-[100] flex h-[32px] w-full items-start`}>
+                      <input
+                        ref={(el) => (inputBoxProducts.current[0] = el)}
+                        type="text"
+                        placeholder=""
+                        required
+                        className={`${styles.input_box}`}
+                        value={plannedProduct1InputName}
+                        onChange={(e) => setPlannedProduct1InputName(e.target.value)}
+                        onKeyUp={(e) => handleSuggestedProduct(e, 0)}
+                        onFocus={(e) => {
+                          handleFocusSuggestedProduct(plannedProduct1InputName, 0);
+                          if (!!resultRefs.current[0]) resultRefs.current[0].style.opacity = "1";
+                          // handleFocusSuggestedProduct(plannedProduct1InputName);
+                          // if (!!resultRefs.current) resultRefs.current.style.opacity = "1";
+                        }}
+                        onBlur={() => {
+                          // setPlannedProduct1(toHalfWidth(plannedProduct1.trim()));
+                          if (!!resultRefs.current[0]) resultRefs.current[0].style.opacity = "0";
+                        }}
+                      />
+                      {/* 予測変換結果 */}
+                      {suggestedProductName && suggestedProductName[0] && suggestedProductName[0].length > 0 && (
+                        <div
+                          ref={(el) => (resultRefs.current[0] = el)}
+                          className={`${styles.result_box}`}
+                          style={
+                            {
+                              "--color-border-custom": "#ccc",
+                              // ...(!isFocusInputProducts[0] && { opacity: 0 }),
+                            } as CSSProperties
+                          }
+                        >
+                          {suggestedProductName && suggestedProductName[0] && suggestedProductName[0].length > 0 && (
+                            <div className="sticky top-0 flex min-h-[5px] w-full flex-col items-center justify-end">
+                              <hr className={`min-h-[4px] w-full bg-[var(--color-bg-under-input)]`} />
+                              <hr className={`min-h-[1px] w-[93%] bg-[#ccc]`} />
+                            </div>
+                          )}
+                          <ul>
+                            {suggestedProductName[0]?.map((productIdName, index) => (
+                              <li
+                                key={index}
+                                onClick={(e) => {
+                                  // console.log("🌟innerText", e.currentTarget.innerText);
+                                  const productName = productIdName.fullName;
+                                  const productId = productIdName.id;
+                                  // setPlannedProduct1(e.currentTarget.innerText);
+                                  setPlannedProduct1InputName(productName);
+                                  setPlannedProduct1(productId);
+                                  const newSuggestedProductName = [...suggestedProductName];
+                                  newSuggestedProductName[0] = [];
+                                  setSuggestedProductName(newSuggestedProductName);
+                                  // setSuggestedProductName([]);
+                                }}
+                              >
+                                {productIdName.fullName}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {/* 予測変換結果 */}
+                      <div
+                        className={`flex-center absolute right-[3px] top-[50%] min-h-[20px] min-w-[20px] translate-y-[-50%] cursor-pointer rounded-full hover:bg-[var(--color-bg-sub-icon)]`}
+                        onClick={() => {
+                          // if (selectBoxProducts.current[0]) {
+                          //   selectBoxProducts.current[0].click();
+                          //   selectBoxProducts.current[0].style.opacity = "1";
+                          //   selectBoxProducts.current[0].style.pointerEvents = "normal";
+                          // }
+                          if (inputBoxProducts.current[0]) {
+                            inputBoxProducts.current[0].focus();
+                            // 矢印クリック 全商品をリストで表示
+
+                            if (
+                              !suggestedProductName[0]?.length ||
+                              (suggestedProductName[0] &&
+                                suggestedProductName[0].length !== suggestedProductIdNameArray.length)
+                            ) {
+                              const newSuggestions = [...suggestedProductName];
+                              newSuggestions[0] = [...suggestedProductIdNameArray];
+                              setSuggestedProductName(newSuggestions);
+                              // if (suggestedProductName.length !== suggestedProductIdNameArray.length)
+                              //   setSuggestedProductName([...suggestedProductIdNameArray]);
+                            }
+                          }
+                        }}
+                      >
+                        <HiChevronDown className="stroke-[1] text-[13px] text-[var(--color-text-sub)]" />
+                      </div>
+                    </div>
+                    {/* 予測変換input セレクトと組み合わせ ここまで */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1148,30 +1457,114 @@ export const InsertNewMeetingModal = () => {
                         <span>商品サブ</span>
                       </div>
                     </div>
-                    <select
+                    {/* <select
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={plannedProduct2 ? plannedProduct2 : ""}
                       onChange={(e) => setPlannedProduct2(e.target.value)}
                     >
                       <option value=""></option>
-                      {ProductDataArray &&
-                        ProductDataArray.length >= 1 &&
-                        ProductDataArray.map((product) => (
+                      {productDataArray &&
+                        productDataArray.length >= 1 &&
+                        productDataArray.map((product) => (
                           <option key={product.id} value={product.id}>
                             {product.inside_short_name && product.inside_short_name}
                             {!product.inside_short_name && product.product_name + " " + product.outside_short_name}
                           </option>
                         ))}
-                    </select>
-                    {/* <input
-                      type="text"
-                      placeholder=""
-                      required
-                      className={`${styles.input_box}`}
-                      value={plannedProduct2}
-                      onChange={(e) => setPlannedProduct2(e.target.value)}
-                      onBlur={() => setPlannedProduct2(toHalfWidth(plannedProduct2.trim()))}
-                    /> */}
+                    </select> */}
+                    <div className={`input_container relative z-[100] flex h-[32px] w-full items-start`}>
+                      <input
+                        ref={(el) => (inputBoxProducts.current[1] = el)}
+                        type="text"
+                        placeholder=""
+                        required
+                        className={`${styles.input_box}`}
+                        value={plannedProduct2InputName}
+                        onChange={(e) => setPlannedProduct2InputName(e.target.value)}
+                        onKeyUp={(e) => handleSuggestedProduct(e, 1)}
+                        onFocus={(e) => {
+                          handleFocusSuggestedProduct(plannedProduct2InputName, 1);
+                          if (!!resultRefs.current[1]) resultRefs.current[1].style.opacity = "1";
+                          // handleFocusSuggestedProduct(plannedProduct2InputName);
+                          // if (!!resultRefs.current) resultRefs.current.style.opacity = "1";
+                        }}
+                        onBlur={() => {
+                          // setPlannedProduct2(toHalfWidth(plannedProduct1.trim()));
+                          if (!!resultRefs.current[1]) resultRefs.current[1].style.opacity = "0";
+                        }}
+                      />
+                      {/* 予測変換結果 */}
+                      {suggestedProductName && suggestedProductName[1] && suggestedProductName[1].length > 0 && (
+                        <div
+                          ref={(el) => (resultRefs.current[1] = el)}
+                          className={`${styles.result_box}`}
+                          style={
+                            {
+                              "--color-border-custom": "#ccc",
+                              // ...(!isFocusInputProducts[1] && { opacity: 0 }),
+                            } as CSSProperties
+                          }
+                        >
+                          {suggestedProductName && suggestedProductName[1] && suggestedProductName[1].length > 0 && (
+                            <div className="sticky top-0 flex min-h-[3px] w-full flex-col items-center justify-end">
+                              <hr className={`min-h-[1px] w-[93%] bg-[#ccc]`} />
+                            </div>
+                          )}
+                          <ul>
+                            {suggestedProductName[1]?.map((productIdName, index) => (
+                              <li
+                                key={index}
+                                onClick={(e) => {
+                                  // console.log("🌟innerText", e.currentTarget.innerText);
+                                  const productName = productIdName.fullName;
+                                  const productId = productIdName.id;
+                                  // setPlannedProduct2(e.currentTarget.innerText);
+                                  setPlannedProduct2InputName(productName);
+                                  setPlannedProduct2(productId);
+                                  const newSuggestions = [...suggestedProductName];
+                                  newSuggestions[1] = [];
+                                  setSuggestedProductName(newSuggestions);
+                                  // setSuggestedProductName([]);
+                                }}
+                              >
+                                {productIdName.fullName}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {/* 予測変換結果 */}
+                      <div
+                        className={`flex-center absolute right-[3px] top-[50%] min-h-[20px] min-w-[20px] translate-y-[-50%] cursor-pointer rounded-full hover:bg-[var(--color-bg-sub-icon)]`}
+                        onClick={() => {
+                          // if (selectBoxProducts.current[1]) {
+                          //   selectBoxProducts.current[1].click();
+                          //   selectBoxProducts.current[1].style.opacity = "1";
+                          //   selectBoxProducts.current[1].style.pointerEvents = "normal";
+                          // }
+                          if (inputBoxProducts.current[1]) {
+                            inputBoxProducts.current[1].focus();
+
+                            // if (suggestedProductName[1].length !== suggestedProductIdNameArray.length) {
+                            if (
+                              !suggestedProductName[1]?.length ||
+                              (suggestedProductName[1] &&
+                                suggestedProductName[1].length !== suggestedProductIdNameArray.length)
+                            ) {
+                              const newSuggestions = [...suggestedProductName];
+                              newSuggestions[1] = [...suggestedProductIdNameArray];
+                              setSuggestedProductName(newSuggestions);
+                            }
+
+                            // if (suggestedProductName.length !== suggestedProductIdNameArray.length)
+                            //   setSuggestedProductName([...suggestedProductIdNameArray]);
+                          }
+                        }}
+                      >
+                        <HiChevronDown className="stroke-[1] text-[13px] text-[var(--color-text-sub)]" />
+                      </div>
+                    </div>
+                    {/* 予測変換input セレクトと組み合わせ ここまで */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>

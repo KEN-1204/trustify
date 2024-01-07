@@ -23,12 +23,12 @@ export const useQueryProducts = ({ company_id, userId, departmentId, unitId, off
 
     const isAll = company_id && !departmentId && !unitId && !officeId;
     const isDepartment = company_id && departmentId && !unitId && !officeId;
-    const isDepartmentUnit = company_id && departmentId && unitId && !officeId;
-    const isDepartmentUnitOffice = company_id && departmentId && unitId && officeId;
-    const isDepartmentOffice = company_id && departmentId && !unitId && officeId;
-    const isUnitOffice = company_id && !departmentId && unitId && officeId;
     const isUnit = company_id && !departmentId && unitId && !officeId;
     const isOffice = company_id && !departmentId && !unitId && officeId;
+    const isDepartmentUnit = company_id && departmentId && unitId && !officeId;
+    const isDepartmentOffice = company_id && departmentId && !unitId && officeId;
+    const isUnitOffice = company_id && !departmentId && unitId && officeId;
+    const isDepartmentUnitOffice = company_id && departmentId && unitId && officeId;
 
     let response;
     if (isAll) {

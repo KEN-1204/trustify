@@ -957,6 +957,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --tile-border-hp-hover: conic-gradient(#0088ff, #7de2ebc0, #cffcfd20, #0088ff, #7de2ebc0, #cffcfd20, #0088ff);
   --tile-start-rgb: 2, 13, 46;
   --tile-end-rgb: 2, 5, 19;
+  /* サイドテーブル */
+  --color-side-table-border: #aaa;
+  --color-side-table-bg: #000000c0;
 }
 
 /* ============================================= 🌠 ============================================= */
@@ -1545,6 +1548,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --tile-start-rgb: 2, 13, 46;
   --tile-end-rgb: 2, 5, 19;
   /* rgb(25, 28, 31) */
+  /* サイドテーブル */
+  --color-side-table-border: #999;
+  --color-side-table-bg: #00000099;
 }
 
 /* html {
@@ -1711,6 +1717,19 @@ textarea {
 }
 .transition-bg05 {
   transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease;
+}
+/* 共通transition transform */
+.transition-transform01 {
+  transition: transform 0.1s ease;
+}
+.transition-transform02 {
+  transition: transform 0.2s ease;
+}
+.transition-transform03 {
+  transition: transform 0.3s ease;
+}
+.transition-transform05 {
+  transition: transform 0.5s ease;
 }
 /* 共通transition */
 
@@ -2133,6 +2152,7 @@ textarea {
   );
   filter: blur(100px);
 } */
+/* グラデーションアンダーライン */
 .brand-gradient-underline {
   background: linear-gradient(
     to right,
@@ -2142,6 +2162,9 @@ textarea {
     var(--color-bg-brand-f),
     var(--color-bg-brand-f)
   );
+}
+.brand-gradient-underline-light {
+  background: linear-gradient(to right, #ffffff 0%, #ffffff 6%, #80e9ff 22%, #80e9ff 33%, var(--color-bg-brand-f) 78%);
 }
 
 /* テキストグラデーション */

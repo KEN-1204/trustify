@@ -18,7 +18,7 @@ export const useMutateProduct = () => {
 
   // 【Product新規作成INSERT用createProductMutation関数】
   const createProductMutation = useMutation(
-    async (newProduct: Omit<Product, "id" | "created_at">) => {
+    async (newProduct: Omit<Product, "id" | "created_at" | "updated_at">) => {
       // setLoadingGlobalState(true);
       // console.log(newProduct.planned_start_time);
       const { error } = await supabase.from("products").insert(newProduct);
@@ -95,7 +95,7 @@ export const useMutateProduct = () => {
 
   // 【Product編集UPDATE用updateProductMutation関数】
   const updateProductMutation = useMutation(
-    async (newProduct: Omit<Product, "created_at">) => {
+    async (newProduct: Omit<Product, "created_at" | "updated_at">) => {
       // setLoadingGlobalState(true);
       const { error } = await supabase.from("products").update(newProduct).eq("id", newProduct.id);
       if (error) throw new Error(error.message);
