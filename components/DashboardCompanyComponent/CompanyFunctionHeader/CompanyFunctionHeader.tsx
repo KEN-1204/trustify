@@ -66,8 +66,6 @@ const CompanyFunctionHeaderMemo: FC = () => {
         <RippleButton
           title={`${searchMode ? `サーチ中止` : `新規サーチ`}`}
           // bgColor="var(--color-btn-brand-f-re)"
-          // border="var(--color-btn-brand-f-re-hover)"
-          borderRadius="2px"
           classText={`select-none`}
           clickEventHandler={() => {
             // console.log("CompanyFunctionHeader 新規サーチ クリック");
@@ -87,7 +85,6 @@ const CompanyFunctionHeaderMemo: FC = () => {
         <RippleButton
           title={`${searchMode ? `サーチ編集` : `サーチ編集`}`}
           classText={`select-none ${searchMode || !newSearchCompanyParams ? `cursor-not-allowed` : ``}`}
-          borderRadius="2px"
           clickEventHandler={() => {
             if (searchMode) return;
             if (!newSearchCompanyParams) return alert("新規サーチから検索を行なってください。");
@@ -102,7 +99,6 @@ const CompanyFunctionHeaderMemo: FC = () => {
           <RippleButton
             title={`会社_作成`}
             classText="select-none"
-            borderRadius="2px"
             clickEventHandler={() => {
               if (searchMode) return;
               console.log("会社作成 クリック");
@@ -113,7 +109,6 @@ const CompanyFunctionHeaderMemo: FC = () => {
           <RippleButton
             title={`会社_編集`}
             classText={`select-none ${searchMode || !selectedRowDataCompany ? `cursor-not-allowed` : ``}`}
-            borderRadius="2px"
             clickEventHandler={() => {
               if (searchMode) return;
               if (!selectedRowDataCompany) return alert("会社を選択してください");
@@ -131,7 +126,6 @@ const CompanyFunctionHeaderMemo: FC = () => {
           <RippleButton
             title={`担当者_作成`}
             classText={`select-none ${searchMode ? `cursor-not-allowed` : ``}`}
-            borderRadius="2px"
             clickEventHandler={() => {
               if (searchMode) return;
               if (!selectedRowDataCompany) return alert("会社を選択してください");
@@ -177,7 +171,6 @@ const CompanyFunctionHeaderMemo: FC = () => {
         </button>
         {/* <RippleButton
           title={`HP検索`}
-          borderRadius="2px"
           classText="select-none"
           clickEventHandler={() => console.log("ホバーモード クリック")}
         /> */}

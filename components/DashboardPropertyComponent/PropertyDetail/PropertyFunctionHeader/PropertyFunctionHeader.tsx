@@ -73,8 +73,7 @@ const PropertyFunctionHeaderMemo: FC = () => {
         <RippleButton
           title={`${searchMode ? `サーチ中止` : `新規サーチ`}`}
           // bgColor="var(--color-btn-brand-f-re)"
-          // border="var(--color-btn-brand-f-re-hover)"
-          borderRadius="2px"
+
           classText={`select-none`}
           clickEventHandler={() => {
             console.log("新規サーチ クリック");
@@ -97,7 +96,6 @@ const PropertyFunctionHeaderMemo: FC = () => {
           classText={`select-none ${
             searchMode && !newSearchProperty_Contact_CompanyParams ? `cursor-not-allowed` : ``
           }`}
-          borderRadius="2px"
           clickEventHandler={() => {
             if (searchMode) return;
             if (!newSearchProperty_Contact_CompanyParams) return alert("新規サーチから検索を行なってください。");
@@ -112,7 +110,6 @@ const PropertyFunctionHeaderMemo: FC = () => {
           <RippleButton
             title={`活動_作成`}
             classText={`select-none ${searchMode || !selectedRowDataProperty ? `cursor-not-allowed` : ``}`}
-            borderRadius="2px"
             clickEventHandler={() => {
               if (searchMode) return;
               if (!selectedRowDataProperty) return alert("担当者を選択してください");
@@ -129,7 +126,6 @@ const PropertyFunctionHeaderMemo: FC = () => {
           <RippleButton
             title={`面談_作成`}
             classText={`select-none ${searchMode || !selectedRowDataProperty ? `cursor-not-allowed` : ``}`}
-            borderRadius="2px"
             clickEventHandler={() => {
               if (searchMode) return;
               if (!selectedRowDataProperty) return alert("担当者を選択してください");
@@ -147,7 +143,6 @@ const PropertyFunctionHeaderMemo: FC = () => {
           <RippleButton
             title={`案件_作成`}
             classText={`select-none ${searchMode || !selectedRowDataProperty ? `cursor-not-allowed` : ``}`}
-            borderRadius="2px"
             clickEventHandler={() => {
               if (searchMode) return;
               if (!selectedRowDataProperty) return alert("担当者を選択してください");
@@ -164,7 +159,6 @@ const PropertyFunctionHeaderMemo: FC = () => {
           <RippleButton
             title={`案件_編集`}
             classText={`select-none ${searchMode || !selectedRowDataProperty ? `cursor-not-allowed` : ``}`}
-            borderRadius="2px"
             clickEventHandler={() => {
               if (searchMode) return;
               if (!selectedRowDataProperty) return alert("担当者を選択してください");
@@ -217,7 +211,7 @@ const PropertyFunctionHeaderMemo: FC = () => {
         </div>
         {/* <RippleButton
           title={`HP検索`}
-          borderRadius="2px"
+          
           classText="select-none"
           clickEventHandler={() => console.log("ホバーモード クリック")}
         /> */}

@@ -62,8 +62,6 @@ export const FallbackSettingMemberAccounts = () => {
           {/* <RippleButton
               title={`リフレッシュ`}
               // bgColor="var(--color-btn-brand-f-re)"
-              border="var(--color-btn-brand-f-re-hover)"
-              borderRadius="2px"
               classText={`select-none`}
               clickEventHandler={() => {
                 //   if (tableContainerSize === "all") return;

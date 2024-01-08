@@ -453,6 +453,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-brand-f-hover: #0d99ff90;
   --color-bg-brand-f-disabled: #0d99ff90;
   --color-bg-brand-f05: #e5f4ff;
+  --color-bg-brand-f00: #0d99ff00;
   --color-bg-brand-f10: #0d99ff10;
   --color-bg-brand-f20: #0d99ff20;
   --color-bg-brand-f30: #0d99ff30;
@@ -1109,6 +1110,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-brand-f-hover: #0c8ce990;
   --color-bg-brand-f-disabled: #0d99ff42;
   --color-bg-brand-f05: #0e5d95; /* Figma */
+  --color-bg-brand-f00: #0c8ce900;
   --color-bg-brand-f10: #0c8ce910;
   --color-bg-brand-f20: #0c8ce920;
   --color-bg-brand-f30: #0c8ce930;
@@ -1293,6 +1295,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-btn-brand-f-hover: var(--color-bg-brand-f);
   /* --color-btn-brand-f: #2b7fff50;
   --color-btn-brand-f-hover: #2b7fff; */
+  --color-btn-brand-f-re: var(--color-bg-brand-f);
+  --color-btn-brand-f-re-hover: var(--color-bg-brand-f90);
   --color-btn-text: #fff;
   --color-btn-brand-text-disabled: #ffffff90;
   --color-btn-brand: #2b7fff;
@@ -2047,6 +2051,9 @@ textarea {
     rgba(20, 20, 20, 0) 100%
   );
 }
+/* .shadow-gradient-tb-side-table-attendees-header {
+  background: linear-gradient(to bottom, #282828 0%, #282828 70%, #28282860 90%, #28282800 100%);
+} */
 /* 左右方向にアンダーラインが広がるアニメーション */
 .input-underline-transition {
   transition: all 0.4s ease;

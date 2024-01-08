@@ -1,4 +1,4 @@
-import React, { FC, memo, useRef } from "react";
+import React, { CSSProperties, FC, memo, useRef } from "react";
 import styles from "./RippleButton.module.css";
 import Link from "next/link";
 
@@ -8,6 +8,7 @@ type Props = {
   fontWeight?: number;
   textColor?: string;
   bgColor?: string;
+  bgColorHover?: string;
   padding?: string;
   borderRadius?: string;
   minWidth?: string;
@@ -15,6 +16,7 @@ type Props = {
   border?: string;
   classText?: string;
   clickEventHandler?: () => void;
+  buttonType?: "button" | "submit" | "reset";
 };
 
 const RippleButtonMemo: FC<Props> = ({
@@ -23,15 +25,16 @@ const RippleButtonMemo: FC<Props> = ({
   fontWeight = 500,
   textColor = "#fff",
   // bgColor = "var(--color-bg-brand-gradient)",
-  bgColor,
+  bgColor = "var(--color-btn-brand-f)",
+  bgColorHover = "var(--color-btn-brand-f-hover)",
   minWidth = "75px",
   minHeight = "26px",
-  border,
+  border = "var(--color-bg-brand-f)",
   borderRadius = "4px",
-
   classText,
   clickEventHandler,
   //   padding = "14px 40px",
+  buttonType = "button",
 }) => {
   //   linear-gradient(90deg, #6616d0, #ac34e7)
 
@@ -66,23 +69,39 @@ const RippleButtonMemo: FC<Props> = ({
     <>
       <button
         // href="#"
-        className={`${styles.button} transition-base03 max-h-[26px] truncate px-[10px] py-[2px] ${classText}`}
-        style={{
-          fontSize: fontSize,
-          fontWeight: fontWeight,
-          color: textColor,
-          background: bgColor,
-          // border: border,
-          minWidth: minWidth,
-          minHeight: minHeight,
-          borderRadius: borderRadius,
-        }}
+        type={buttonType}
+        className={`${styles.button} transition-base03 max-h-[26px] truncate px-[10px] py-[2px] ${styles.bg} ${classText}`}
+        style={
+          {
+            fontSize: fontSize,
+            fontWeight: fontWeight,
+            color: textColor,
+            // background: bgColor,
+            "--bg-color": bgColor,
+            "--bg-color-hover": bgColorHover,
+            // border: border,
+            "--border-color": border,
+            minWidth: minWidth,
+            minHeight: minHeight,
+            borderRadius: borderRadius,
+          } as CSSProperties
+        }
         data-text="Button"
         ref={buttonRef}
-        onClick={(e) => {
-          handleClick(e);
-          if (clickEventHandler) clickEventHandler();
-        }}
+        // イベントハンドラを渡していない時はonClickイベントが付与されないので、formタグ内で使用してもonSubmitイベントが発火される。
+        // onClickイベントが付与されているとformのonSubmitよりonClickがエンターキーに反応してしまうため
+        onClick={
+          clickEventHandler
+            ? (e) => {
+                handleClick(e);
+                if (clickEventHandler) clickEventHandler();
+              }
+            : undefined
+        }
+        // onClick={(e) => {
+        //   handleClick(e);
+        //   if (clickEventHandler) clickEventHandler();
+        // }}
       >
         {title}
       </button>

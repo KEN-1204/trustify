@@ -38,11 +38,9 @@ export const FallbackGridTableAll = () => {
             <RippleButton
               title={`新規サーチ`}
               // bgColor="var(--color-btn-brand-f-re)"
-              border="var(--color-btn-brand-f-re-hover)"
-              borderRadius="2px"
               classText={`select-none`}
             />
-            <RippleButton title={`サーチ編集`} classText="select-none" borderRadius="2px" />
+            <RippleButton title={`サーチ編集`} classText="select-none" />
             <button
               className={`flex-center transition-color03 relative  h-[26px] min-w-[118px]  cursor-pointer space-x-1  rounded-[4px] px-[15px] text-[12px] text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`}
             >
@@ -70,8 +68,8 @@ export const FallbackGridTableAll = () => {
               <FiSearch className="pointer-events-none text-[14px]" />
               <span>サーチモード</span>
             </button>
-            <RippleButton title={`カラム編集`} borderRadius="2px" classText="select-none" />
-            <ChangeSizeBtn borderRadius="2px" />
+            <RippleButton title={`カラム編集`} classText="select-none" />
+            <ChangeSizeBtn />
           </div>
         </div>
         {/* ================== Gridファンクションヘッダー ここまで ================== */}

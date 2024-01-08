@@ -862,8 +862,6 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
               <RippleButton
                 title={`招待`}
                 // bgColor="var(--color-btn-brand-f-re)"
-                border="var(--color-btn-brand-f-re-hover)"
-                borderRadius="2px"
                 classText={`select-none`}
                 clickEventHandler={() => {
                   setIsOpenSettingInvitationModal(true);

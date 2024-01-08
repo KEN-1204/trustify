@@ -73,8 +73,6 @@ const ContactFunctionHeaderMemo: FC = () => {
         <RippleButton
           title={`${searchMode ? `サーチ中止` : `新規サーチ`}`}
           // bgColor="var(--color-btn-brand-f-re)"
-          // border="var(--color-btn-brand-f-re-hover)"
-          borderRadius="2px"
           classText={`select-none`}
           clickEventHandler={() => {
             console.log("新規サーチ クリック");
@@ -94,7 +92,6 @@ const ContactFunctionHeaderMemo: FC = () => {
         <RippleButton
           title={`${searchMode ? `サーチ編集` : `サーチ編集`}`}
           classText={`select-none ${searchMode || !newSearchContact_CompanyParams ? `cursor-not-allowed` : ``}`}
-          borderRadius="2px"
           clickEventHandler={() => {
             if (searchMode) return;
             if (!newSearchContact_CompanyParams) return alert("新規サーチから検索を行なってください。");
@@ -109,7 +106,6 @@ const ContactFunctionHeaderMemo: FC = () => {
           <RippleButton
             title={`担当者_編集`}
             classText={`select-none ${searchMode || !selectedRowDataContact ? `cursor-not-allowed` : ``}`}
-            borderRadius="2px"
             clickEventHandler={() => {
               if (searchMode) return;
               if (!selectedRowDataContact) return alert("担当者を選択してください");
@@ -126,7 +122,6 @@ const ContactFunctionHeaderMemo: FC = () => {
           <RippleButton
             title={`活動_作成`}
             classText={`select-none ${searchMode || !selectedRowDataContact ? `cursor-not-allowed` : ``}`}
-            borderRadius="2px"
             clickEventHandler={() => {
               if (searchMode) return;
               if (!selectedRowDataContact) return alert("担当者を選択してください");
@@ -143,7 +138,6 @@ const ContactFunctionHeaderMemo: FC = () => {
           <RippleButton
             title={`面談_作成`}
             classText={`select-none ${searchMode || !selectedRowDataContact ? `cursor-not-allowed` : ``}`}
-            borderRadius="2px"
             clickEventHandler={() => {
               if (searchMode) return;
               if (!selectedRowDataContact) return alert("担当者を選択してください");
@@ -160,7 +154,6 @@ const ContactFunctionHeaderMemo: FC = () => {
           <RippleButton
             title={`案件_作成`}
             classText={`select-none ${searchMode || !selectedRowDataContact ? `cursor-not-allowed` : ``}`}
-            borderRadius="2px"
             clickEventHandler={() => {
               if (searchMode) return;
               if (!selectedRowDataContact) return alert("担当者を選択してください");
@@ -210,7 +203,6 @@ const ContactFunctionHeaderMemo: FC = () => {
         </button>
         {/* <RippleButton
           title={`HP検索`}
-          borderRadius="2px"
           classText="select-none"
           clickEventHandler={() => console.log("ホバーモード クリック")}
         /> */}

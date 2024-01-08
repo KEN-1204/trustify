@@ -479,3 +479,25 @@
 .side_table_search_list:hover .list_title {
   text-decoration: underline;
 }
+.side_table_attendees_header {
+  transition: background-color 0.2s ease;
+  transition-delay: 0s !important;
+}
+.side_table_attendees_header.active {
+  /* background-color: #242424; */
+  background-color: var(--color-bg-brand-f);
+}
+.attendees_list {
+  min-height: 90px;
+  max-height: 90px;
+  padding: 12px 0 12px 24px;
+}
+.attendees_list_item_Icon {
+  min-height: 48px;
+  min-width: 48px;
+}
+.attendees_list_item_lines_group {
+}
+.attendees_list_item_line {
+  /* max-width: 420px; */
+}

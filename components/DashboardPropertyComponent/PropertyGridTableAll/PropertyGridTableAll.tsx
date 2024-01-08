@@ -2542,8 +2542,6 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
               <RippleButton
                 title={`${searchMode ? `サーチ中止` : `新規サーチ`}`}
                 // bgColor="var(--color-btn-brand-f-re)"
-                border="var(--color-btn-brand-f-re-hover)"
-                borderRadius="2px"
                 classText={`select-none`}
                 clickEventHandler={() => {
                   console.log("新規サーチ クリック");
@@ -2566,7 +2564,6 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
                 classText={`select-none ${
                   searchMode && !newSearchProperty_Contact_CompanyParams ? `cursor-not-allowed` : ``
                 }`}
-                borderRadius="2px"
                 clickEventHandler={() => {
                   console.log("サーチ編集 クリック");
                   if (searchMode) return;
@@ -2676,7 +2673,6 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
               </button> */}
               <RippleButton
                 title={`カラム編集`}
-                borderRadius="2px"
                 classText="select-none"
                 clickEventHandler={() => {
                   const newColumnHeaderItemListReset = JSON.parse(JSON.stringify(propertyColumnHeaderItemList));
@@ -2688,10 +2684,10 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
                   setIsOpenEditColumns(true);
                 }}
               />
-              <ChangeSizeBtn borderRadius="2px" />
+              <ChangeSizeBtn />
               {/* <RippleButton
                 title={`ホバーモード`}
-                borderRadius="2px"
+                
                 classText="select-none"
                 clickEventHandler={() => {
                   //   if (tableContainerSize === "one_third") return;

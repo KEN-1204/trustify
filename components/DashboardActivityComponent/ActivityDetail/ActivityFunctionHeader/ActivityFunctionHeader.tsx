@@ -92,8 +92,6 @@ const ActivityFunctionHeaderMemo: FC = () => {
         <RippleButton
           title={`${searchMode ? `サーチ中止` : `新規サーチ`}`}
           // bgColor="var(--color-btn-brand-f-re)"
-          // border="var(--color-btn-brand-f-re-hover)"
-          borderRadius="2px"
           classText={`select-none`}
           clickEventHandler={() => {
             console.log("新規サーチ クリック");
@@ -115,7 +113,6 @@ const ActivityFunctionHeaderMemo: FC = () => {
           classText={`select-none ${
             searchMode || !newSearchActivity_Contact_CompanyParams ? `cursor-not-allowed` : ``
           }`}
-          borderRadius="2px"
           clickEventHandler={() => {
             if (searchMode) return;
             if (!newSearchActivity_Contact_CompanyParams) return alert("新規サーチから検索を行なってください。");
@@ -130,7 +127,6 @@ const ActivityFunctionHeaderMemo: FC = () => {
           <RippleButton
             title={`活動_作成`}
             classText={`select-none ${searchMode || !selectedRowDataActivity ? `cursor-not-allowed` : ``}`}
-            borderRadius="2px"
             clickEventHandler={() => {
               if (searchMode) return;
               if (!selectedRowDataActivity) return alert("担当者を選択してください");
@@ -147,7 +143,6 @@ const ActivityFunctionHeaderMemo: FC = () => {
           <RippleButton
             title={`活動_編集`}
             classText={`select-none ${searchMode || !selectedRowDataActivity ? `cursor-not-allowed` : ``}`}
-            borderRadius="2px"
             clickEventHandler={() => {
               if (searchMode) return;
               if (!selectedRowDataActivity) return alert("活動を選択してください");
@@ -175,7 +170,6 @@ const ActivityFunctionHeaderMemo: FC = () => {
           <RippleButton
             title={`面談_作成`}
             classText={`select-none ${searchMode || !selectedRowDataActivity ? `cursor-not-allowed` : ``}`}
-            borderRadius="2px"
             clickEventHandler={() => {
               if (searchMode) return;
               if (!selectedRowDataActivity) return alert("担当者を選択してください");
@@ -191,7 +185,6 @@ const ActivityFunctionHeaderMemo: FC = () => {
           <RippleButton
             title={`案件_作成`}
             classText={`select-none ${searchMode || !selectedRowDataActivity ? `cursor-not-allowed` : ``}`}
-            borderRadius="2px"
             clickEventHandler={() => {
               if (searchMode) return;
               if (!selectedRowDataActivity) return alert("担当者を選択してください");
@@ -208,7 +201,6 @@ const ActivityFunctionHeaderMemo: FC = () => {
         {/* <RippleButton
           title={`テスト`}
           classText={`select-none ${searchMode || !selectedRowDataActivity ? `cursor-not-allowed` : ``}`}
-          borderRadius="2px"
           clickEventHandler={() => {
             if (searchMode) return;
             insertData();
@@ -253,7 +245,6 @@ const ActivityFunctionHeaderMemo: FC = () => {
         </button>
         {/* <RippleButton
           title={`HP検索`}
-          borderRadius="2px"
           classText="select-none"
           clickEventHandler={() => console.log("ホバーモード クリック")}
         /> */}

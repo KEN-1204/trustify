@@ -22,23 +22,25 @@
   overflow: hidden;
   /* box-shadow: inset 0px 0px 0px 1px #ffffffa0, 0px 0px 0px 1px #aaa; */
   /* box-shadow: var(--color-btn-box-shadow); */
-  background: var(--color-btn-brand-f);
+  background: var(--bg-color, var(--color-btn-brand-f));
+  /* background: var(--bg-color, --color-bg-brand-f50); */
   /* background: var(--color-bg-brand-f); */
   /* background: var(--color-bg-brand-f90); */
   /* border: 1px solid var(--color-btn-brand-f-hover); */
-  border: 1px solid var(--color-bg-brand-f);
+  border: 1px solid var(--border-color, var(--color-bg-brand-f));
+  /* border: 1px solid var(--border-color, --color-bg-brand-f); */
   /* border: 1px solid transparent; */
   /* border: 1px solid #fff; */
   /* border: 1px solid #2b7fff; */
   /* box-shadow: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #33333390; */
   /* box-shadow: inset 0px 0px 0px 1px #ffffff90, 0px 0px 0px 1px #2b7fff; */
-  border-radius: 4px !important;
+  border-radius: 4px;
   /* background-color: #2b825b;
   border: 1px solid #40bf86; */
 }
 .button:hover {
   /* background-color: #40bf86; */
-  background-color: var(--color-btn-brand-f-hover);
+  background-color: var(--bg-color-hover, --color-btn-brand-f-hover);
 }
 .button_re {
   position: relative;
@@ -51,7 +53,7 @@
   box-shadow: 0 3px 5px -2px #21253840;
   overflow: hidden;
   background: var(--color-btn-brand-f-re);
-  border: 1px solid var(--color-btn-brand-f-re-hover);
+  border: 1px solid var(--border-color, var(--color-bg-brand-f));
   /* background-color: #2b825b;
   border: 1px solid #40bf86; */
 }
@@ -86,4 +88,17 @@
     width: 400px;
     opacity: 0;
   }
+}
+
+.on_brand_bg {
+  background-color: #33333390;
+  border: 1px solid #ccc;
+}
+.on_brand_bg.active {
+  background-color: #ffffff90;
+  border: 1px solid #fff;
+}
+.on_brand_bg.active:hover {
+  background-color: #ffffff;
+  color: var(--color-bg-brand-f);
 }
