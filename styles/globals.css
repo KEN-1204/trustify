@@ -960,6 +960,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* サイドテーブル */
   --color-side-table-border: #aaa;
   --color-side-table-bg: #000000c0;
+  --color-side-table-list-hover: #484848;
 }
 
 /* ============================================= 🌠 ============================================= */
@@ -1551,6 +1552,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* サイドテーブル */
   --color-side-table-border: #999;
   --color-side-table-bg: #00000099;
+  --color-side-table-list-hover: #333;
 }
 
 /* html {

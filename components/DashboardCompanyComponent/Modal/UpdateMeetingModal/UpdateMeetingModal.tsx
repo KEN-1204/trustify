@@ -9,7 +9,7 @@ import { isNaN } from "lodash";
 import { useMutateMeeting } from "@/hooks/useMutateMeeting";
 import productCategoriesM from "@/utils/productCategoryM";
 import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
-import { MdClose } from "react-icons/md";
+import { MdClose, MdOutlineDataSaverOff } from "react-icons/md";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { BsChevronLeft, BsChevronRight } from "react-icons/bs";
 import { ImInfo } from "react-icons/im";
@@ -22,6 +22,9 @@ import { useQueryProducts } from "@/hooks/useQueryProducts";
 import { DropDownMenuFilterProducts } from "../SettingAccountModal/SettingMemberAccounts/DropdownMenuFilterProducts/DropdownMenuFilterProducts";
 import NextImage from "next/image";
 import { useQueryProductSpecific } from "@/hooks/useQueryProductSpecific";
+import { toHalfWidthAndSpaceAndHyphen } from "@/utils/Helpers/toHalfWidthAndSpaceAndHyphen";
+import { toHalfWidth } from "@/utils/Helpers/toHalfWidth";
+import { neonSearchIcon } from "@/components/assets";
 
 type ModalProperties = {
   left: number;
@@ -50,13 +53,72 @@ export const UpdateMeetingModal = () => {
   const [isOpenDropdownMenuFilterProductsArray, setIsOpenDropdownMenuFilterProductsArray] = useState(
     Array(1).fill(false)
   );
-  // 同席者検索サイドテーブル
-  const [isOpenSearchAttendeesSideTable, setIsOpenSearchAttendeesSideTable] = useState(false);
+  // ドロップダウンメニューの表示位置
   type ClickedItemPos = { displayPos: "up" | "center" | "down"; clickedItemWidth: number | null };
   const [clickedItemPosition, setClickedItemPosition] = useState<ClickedItemPos>({
     displayPos: "down",
     clickedItemWidth: null,
   });
+  // 同席者検索サイドテーブル
+  const [isOpenSearchAttendeesSideTable, setIsOpenSearchAttendeesSideTable] = useState(false);
+  // 同席者検索フィールド用input
+  const [searchInputCompany, setSearchInputCompany] = useState(""); //会社名
+  const [searchInputDepartment, setSearchInputDepartment] = useState(""); //部署名
+  const [searchInputContact, setSearchInputContact] = useState(""); //担当者名
+  const [searchInputPositionName, setSearchInputPositionName] = useState(""); //役職名
+  const [searchInputTel, setSearchInputTel] = useState(""); //代表TEL
+  const [searchInputDirectLine, setSearchInputDirectLine] = useState(""); //直通TEL
+  const [searchInputCompanyCellPhone, setSearchInputCompanyCellPhone] = useState(""); //社用携帯
+  const [searchInputEmail, setSearchInputEmail] = useState(""); //Email
+  const [searchInputAddress, setSearchInputAddress] = useState(""); //住所
+
+  const searchAttendeeFields = [
+    {
+      title: "会社名",
+      inputValue: searchInputCompany,
+      setInputValue: setSearchInputCompany,
+    },
+    {
+      title: "部署名",
+      inputValue: searchInputDepartment,
+      setInputValue: setSearchInputDepartment,
+    },
+    {
+      title: "担当者名",
+      inputValue: searchInputContact,
+      setInputValue: setSearchInputContact,
+    },
+    {
+      title: "役職名",
+      inputValue: searchInputPositionName,
+      setInputValue: setSearchInputPositionName,
+    },
+    {
+      title: "代表TEL",
+      inputValue: searchInputTel,
+      setInputValue: setSearchInputTel,
+    },
+    {
+      title: "直通TEL",
+      inputValue: searchInputDirectLine,
+      setInputValue: setSearchInputDirectLine,
+    },
+    {
+      title: "社用携帯",
+      inputValue: searchInputCompanyCellPhone,
+      setInputValue: setSearchInputCompanyCellPhone,
+    },
+    {
+      title: "Email",
+      inputValue: searchInputEmail,
+      setInputValue: setSearchInputEmail,
+    },
+    {
+      title: "住所",
+      inputValue: searchInputAddress,
+      setInputValue: setSearchInputAddress,
+    },
+  ];
 
   // モーダルの動的に変化する画面からのx, yとモーダルのwidth, heightを取得
   useEffect(() => {
@@ -211,8 +273,6 @@ export const UpdateMeetingModal = () => {
     productId: selectedRowDataMeeting?.planned_product2 ? selectedRowDataMeeting?.planned_product2 : null,
     company_id: userProfileState?.company_id ? userProfileState?.company_id : null,
   });
-  console.log("plannedProduct1QueryObj", plannedProduct1QueryObj);
-  console.log("plannedProduct2QueryObj", plannedProduct2QueryObj);
 
   // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
   // ================================ ✅商品リスト取得useQuery✅ ================================
@@ -287,21 +347,6 @@ export const UpdateMeetingModal = () => {
     }
   }, [productDataArray]);
   // ============================ ✅productのオブジェクトマップ(商品id: 商品名)✅ ============================
-
-  console.log(
-    "resultPresentationProductsArray",
-    resultPresentationProductsArray,
-    "resultProductRows",
-    resultProductRows,
-    "overstate",
-    overstate,
-    "isOpenDropdownMenuFilterProductsArray",
-    isOpenDropdownMenuFilterProductsArray,
-    "productDataArray",
-    productDataArray,
-    "productIdToNameMap",
-    productIdToNameMap
-  );
 
   function formatTime(timeStr: string) {
     const [hour, minute] = timeStr.split(":");
@@ -654,21 +699,21 @@ export const UpdateMeetingModal = () => {
   };
 
   // 全角文字を半角に変換する関数
-  const toHalfWidth = (strVal: string) => {
-    // 全角文字コードの範囲は65281 - 65374、スペースの全角文字コードは12288
-    return strVal.replace(/[！-～]/g, (match) => {
-      return String.fromCharCode(match.charCodeAt(0) - 0xfee0);
-    });
-    // .replace(/　/g, " "); // 全角スペースを半角スペースに
-  };
-  const toHalfWidthAndSpace = (strVal: string) => {
-    // 全角文字コードの範囲は65281 - 65374、スペースの全角文字コードは12288
-    return strVal
-      .replace(/[！-～]/g, (match) => {
-        return String.fromCharCode(match.charCodeAt(0) - 0xfee0);
-      })
-      .replace(/　/g, " "); // 全角スペースを半角スペースに
-  };
+  // const toHalfWidth = (strVal: string) => {
+  //   // 全角文字コードの範囲は65281 - 65374、スペースの全角文字コードは12288
+  //   return strVal.replace(/[！-～]/g, (match) => {
+  //     return String.fromCharCode(match.charCodeAt(0) - 0xfee0);
+  //   });
+  //   // .replace(/　/g, " "); // 全角スペースを半角スペースに
+  // };
+  // const toHalfWidthAndSpace = (strVal: string) => {
+  //   // 全角文字コードの範囲は65281 - 65374、スペースの全角文字コードは12288
+  //   return strVal
+  //     .replace(/[！-～]/g, (match) => {
+  //       return String.fromCharCode(match.charCodeAt(0) - 0xfee0);
+  //     })
+  //     .replace(/　/g, " "); // 全角スペースを半角スペースに
+  // };
 
   // 昭和や平成、令和の元号を西暦に変換する
   // const convertJapaneseEraToWesternYear = (value: string) => {
@@ -829,7 +874,23 @@ export const UpdateMeetingModal = () => {
     "plannedProduct1",
     plannedProduct1,
     "plannedProduct2",
-    plannedProduct2
+    plannedProduct2,
+    "resultPresentationProductsArray",
+    resultPresentationProductsArray,
+    "resultProductRows",
+    resultProductRows,
+    "overstate",
+    overstate,
+    "isOpenDropdownMenuFilterProductsArray",
+    isOpenDropdownMenuFilterProductsArray,
+    "productDataArray",
+    productDataArray,
+    "productIdToNameMap",
+    productIdToNameMap,
+    "plannedProduct1QueryObj",
+    plannedProduct1QueryObj,
+    "plannedProduct2QueryObj",
+    plannedProduct2QueryObj
   );
 
   return (
@@ -2578,14 +2639,18 @@ export const UpdateMeetingModal = () => {
         >
           {/* タイトルエリア */}
           <div className="flex h-auto w-full flex-col px-[30px] 2xl:px-[30px]">
-            <div className={`flex h-full w-full items-center justify-between`}>
+            <div className={`relative flex h-full w-full items-center justify-between`}>
               <h3 className="space-y-[1px] text-[22px] font-bold">
-                <span>同席者を検索</span>
+                <div className={`flex items-center space-x-[9px]`}>
+                  <span>同席者を検索</span>
+                  <span>{neonSearchIcon("30px")}</span>
+                </div>
                 <div className="min-h-[1px] w-full bg-[var(--color-bg-brand-f)]"></div>
                 {/* <div className="brand-gradient-underline-light min-h-[1px] w-full"></div> */}
               </h3>
               <div
-                className={`flex-center h-[36px] w-[36px] cursor-pointer rounded-full hover:bg-[#666]`}
+                // className={`flex-center h-[36px] w-[36px] cursor-pointer rounded-full hover:bg-[#666]`}
+                className={`z-1 flex-center absolute right-[-10px] top-[50%]  h-[36px] w-[36px] translate-y-[-50%] cursor-pointer rounded-full hover:bg-[#666]`}
                 onClick={() => setIsOpenSearchAttendeesSideTable(false)}
               >
                 {/* <BsChevronRight className="z-1 absolute left-[-15px] top-[50%] translate-y-[-50%] text-[24px]" /> */}
@@ -2595,7 +2660,7 @@ export const UpdateMeetingModal = () => {
             {/* <div className="min-h-[1px] w-full bg-[var(--color-bg-brand-f)]"></div> */}
           </div>
           {/* 条件入力エリア */}
-          <div className="mt-[20px] h-full max-h-[40vh] w-full overflow-y-scroll bg-[#ffffff00] pb-[90px]">
+          <div className="mt-[20px] h-full max-h-[36vh] w-full overflow-y-scroll bg-[#ffffff00] pb-[90px]">
             <div className="flex h-auto w-full flex-col">
               {/* <div className={`sticky top-0 min-h-[60px] w-full`}></div> */}
               <h3 className="max-w-max space-y-[1px] px-[30px] text-[14px] font-bold">
@@ -2605,10 +2670,29 @@ export const UpdateMeetingModal = () => {
               {/* <ul className={`flex flex-col px-[1px] text-[13px] text-[var(--color-text-title)]`}>
                 <li className="px-[30px]"></li>
               </ul> */}
-              <ul className={`flex flex-col text-[13px] text-[var(--color-text-title)]`}>
-                <li
-                  className={`relative flex h-[40px] w-full min-w-max items-center justify-between space-x-[30px] px-[30px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
-                ></li>
+              <ul className={`mt-[20px] flex flex-col text-[13px] text-[var(--color-text-title)]`}>
+                {searchAttendeeFields.map((item, index) => (
+                  <li
+                    key={item.title + index.toString()}
+                    className={`relative flex h-[56px] w-full min-w-max items-center justify-between px-[30px] py-[6px] text-[#fff] ${styles.side_table_search_list}`}
+                  >
+                    <div className={`${styles.list_title_area} flex min-w-[120px] items-center`}>
+                      <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
+                      <div className="flex select-none items-center space-x-[2px]">
+                        <span className={`${styles.list_title}`}>{item.title}</span>
+                        <span className={``}>：</span>
+                      </div>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder=""
+                      className={`${styles.input_box}`}
+                      value={item.inputValue}
+                      onChange={(e) => item.setInputValue(e.target.value)}
+                      onBlur={() => item.setInputValue(item.inputValue.trim())}
+                    />
+                  </li>
+                ))}
               </ul>
               {/* {Array(20)
                 .fill(null)
@@ -2625,16 +2709,16 @@ export const UpdateMeetingModal = () => {
 
           {/* 担当者一覧エリア */}
           {/* <div className="h-[40vh] w-full bg-[#ffffff90] px-[30px] 2xl:px-[30px]"></div> */}
-          <div className="flex h-full max-h-[calc(100vh-(30px+36px+20px+40vh+1px+0px))] w-full flex-col overflow-y-scroll bg-[#ffffff90] px-[30px] pb-[90px] 2xl:px-[30px]">
+          <div className="flex h-full max-h-[calc(100vh-(30px+36px+20px+36vh+1px+0px))] w-full flex-col overflow-y-scroll bg-[#ffffff00] px-[30px] pb-[90px] 2xl:px-[30px]">
             <div className="flex h-auto w-full flex-col">
-              {Array(20)
+              {/* {Array(20)
                 .fill(null)
                 .map((_, index) => (
                   <div
                     key={index}
                     className={`${index % 2 === 1 ? `bg-red-100` : `bg-blue-100`} min-h-[60px] w-full`}
                   ></div>
-                ))}
+                ))} */}
             </div>
           </div>
         </div>
