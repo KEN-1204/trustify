@@ -1720,7 +1720,7 @@ export const InsertNewMeetingModal = () => {
                       className={`${styles.input_box}`}
                       value={meetingMemberName}
                       onChange={(e) => setMeetingMemberName(e.target.value)}
-                      onBlur={() => setMeetingMemberName(toHalfWidth(meetingMemberName.trim()))}
+                      onBlur={() => setMeetingMemberName(toHalfWidthAndSpace(meetingMemberName.trim()))}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -1805,7 +1805,6 @@ export const InsertNewMeetingModal = () => {
                       className={`${styles.input_box}`}
                       value={meetingMemberName}
                       onChange={(e) => setMeetingMemberName(e.target.value)}
-                      onBlur={() => setMeetingMemberName(toHalfWidth(meetingMemberName.trim()))}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>

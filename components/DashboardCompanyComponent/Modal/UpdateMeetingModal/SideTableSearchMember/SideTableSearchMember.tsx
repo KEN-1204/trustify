@@ -266,11 +266,12 @@ export const SideTableSearchAttendeesMemo = ({
   // ------------------- 🌟queryKeyの生成🌟 -------------------
   const queryKeySearchParamsStringRef = useRef<string | null>(null);
   console.log("キャッシュに割り当てるparamsキー searchAttendeesParams", searchAttendeesParams);
+
   if (searchAttendeesParams) {
-    // queryKeySearchParamsStringRef.current = Object.entries(searchAttendeesParams)
-    //   .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-    //   .map(([key, value]) => `${key}:${value === null ? `null` : `${value}`}`)
-    //   .join(", ");
+    queryKeySearchParamsStringRef.current = Object.entries(searchAttendeesParams)
+      .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+      .map(([key, value]) => `${key}:${value === null ? `null` : `${value}`}`)
+      .join(", ");
     queryKeySearchParamsStringRef.current = [
       ["client_companies.name", searchAttendeesParams["client_companies.name"]],
       ["department_name", searchAttendeesParams["department_name"]],

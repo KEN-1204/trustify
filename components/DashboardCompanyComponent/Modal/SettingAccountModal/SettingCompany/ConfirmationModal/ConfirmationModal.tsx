@@ -4,8 +4,8 @@ import { MdClose } from "react-icons/md";
 
 type Props = {
   clickEventClose: () => void;
-  isLoadingState: boolean;
-  titleText: string;
+  isLoadingState?: boolean;
+  titleText?: string;
   sectionP1?: string;
   sectionP2?: string;
   cancelText: string;

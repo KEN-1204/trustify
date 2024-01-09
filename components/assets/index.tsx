@@ -5916,3 +5916,103 @@ export const neonSearchIcon = (size: string = "500") => (
     </defs>
   </svg>
 );
+export const neonSearchIconFallback = (size: string = "500") => (
+  // <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g filter="url(#filter0_bii_211_771)">
+      <g clipPath="url(#clip0_211_771)">
+        <rect width="48" height="48" rx="20" fill="white" fillOpacity="0.02" />
+        <rect width="48" height="48" rx="20" fill="url(#paint0_radial_211_771)" fillOpacity="0.6" />
+        <path
+          d="M33 33L28.65 28.65M31 23C31 27.4183 27.4183 31 23 31C18.5817 31 15 27.4183 15 23C15 18.5817 18.5817 15 23 15C27.4183 15 31 18.5817 31 23Z"
+          stroke="url(#paint1_linear_211_771)"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <g filter="url(#filter1_f_211_771)">
+          <ellipse cx="24" cy="45" rx="15" ry="3" fill="url(#paint2_linear_211_771)" />
+        </g>
+      </g>
+      <rect x="0.5" y="0.5" width="47" height="47" rx="19.5" stroke="url(#paint3_linear_211_771)" />
+    </g>
+    <defs>
+      <filter
+        id="filter0_bii_211_771"
+        x="-7"
+        y="-7"
+        width="62"
+        height="62"
+        filterUnits="userSpaceOnUse"
+        colorInterpolationFilters="sRGB"
+      >
+        <feFlood floodOpacity="0" result="BackgroundImageFix" />
+        <feGaussianBlur in="BackgroundImageFix" stdDeviation="3.5" />
+        <feComposite in2="SourceAlpha" operator="in" result="effect1_backgroundBlur_211_771" />
+        <feBlend mode="normal" in="SourceGraphic" in2="effect1_backgroundBlur_211_771" result="shape" />
+        <feColorMatrix
+          in="SourceAlpha"
+          type="matrix"
+          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+          result="hardAlpha"
+        />
+        <feOffset dx="1" dy="1" />
+        <feGaussianBlur stdDeviation="1" />
+        <feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1" />
+        <feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.1 0" />
+        <feBlend mode="normal" in2="shape" result="effect2_innerShadow_211_771" />
+        <feColorMatrix
+          in="SourceAlpha"
+          type="matrix"
+          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"
+          result="hardAlpha"
+        />
+        <feOffset dy="-1" />
+        <feGaussianBlur stdDeviation="3" />
+        <feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1" />
+        <feColorMatrix type="matrix" values="0 0 0 0 0.117647 0 0 0 0 0.482353 0 0 0 0 0.952941 0 0 0 0.35 0" />
+        <feBlend mode="normal" in2="effect2_innerShadow_211_771" result="effect3_innerShadow_211_771" />
+      </filter>
+      <filter
+        id="filter1_f_211_771"
+        x="-2.51941"
+        y="30.4806"
+        width="53.0388"
+        height="29.0388"
+        filterUnits="userSpaceOnUse"
+        colorInterpolationFilters="sRGB"
+      >
+        <feFlood floodOpacity="0" result="BackgroundImageFix" />
+        <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape" />
+        <feGaussianBlur stdDeviation="5.7597" result="effect1_foregroundBlur_211_771" />
+      </filter>
+      <radialGradient
+        id="paint0_radial_211_771"
+        cx="0"
+        cy="0"
+        r="1"
+        gradientUnits="userSpaceOnUse"
+        gradientTransform="translate(24 24.5) rotate(90) scale(16.5)"
+      >
+        <stop stopColor="#1C78F2" stopOpacity="0.6" />
+        <stop offset="1" stopColor="#5FDEFE" stopOpacity="0" />
+      </radialGradient>
+      <linearGradient id="paint1_linear_211_771" x1="24" y1="15" x2="24" y2="33" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#1B77F2" />
+        <stop offset="1" stopColor="#62E3FF" />
+      </linearGradient>
+      <linearGradient id="paint2_linear_211_771" x1="24" y1="42" x2="24" y2="48" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#1B77F2" />
+        <stop offset="1" stopColor="#62E3FF" />
+      </linearGradient>
+      <linearGradient id="paint3_linear_211_771" x1="35" y1="8.5" x2="10" y2="36.5" gradientUnits="userSpaceOnUse">
+        <stop stopColor="white" stopOpacity="0.05" />
+        <stop offset="0.328699" stopColor="white" stopOpacity="0.25" />
+        <stop offset="1" stopColor="white" stopOpacity="0" />
+      </linearGradient>
+      <clipPath id="clip0_211_771">
+        <rect width="48" height="48" rx="20" fill="white" />
+      </clipPath>
+    </defs>
+  </svg>
+);

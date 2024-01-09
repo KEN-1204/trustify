@@ -1,5 +1,5 @@
 import { RippleButton } from "@/components/Parts/RippleButton/RippleButton";
-import { neonSearchIcon } from "@/components/assets";
+import { neonCycleIcon, neonSearchIcon, neonSearchIconFallback } from "@/components/assets";
 import { Dispatch, SetStateAction, memo, useCallback, useEffect, useRef, useState } from "react";
 import { BsChevronRight } from "react-icons/bs";
 import { MdOutlineDataSaverOff } from "react-icons/md";
@@ -67,7 +67,8 @@ export const FallbackSideTableSearchAttendees = ({ isOpenSearchAttendeesSideTabl
             <h3 className="space-y-[1px] text-[22px] font-bold">
               <div className={`flex items-start space-x-[9px]`}>
                 <span>同席者を検索</span>
-                <span>{neonSearchIcon("30px")}</span>
+                <span>{neonSearchIcon("30")}</span>
+                {/* <span>{neonCycleIcon("30")}</span> */}
               </div>
               <div className="min-h-[1px] w-full bg-[var(--color-bg-brand-f)]"></div>
             </h3>

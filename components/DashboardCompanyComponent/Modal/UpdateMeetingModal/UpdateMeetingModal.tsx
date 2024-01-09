@@ -34,6 +34,9 @@ import { Fallback } from "@/components/Fallback/Fallback";
 import { SideTableSearchAttendees } from "./SideTableSearchAttendees/SideTableSearchAttendees";
 import { FallbackSideTableSearchAttendees } from "./SideTableSearchAttendees/FallbackSideTableSearchAttendees";
 import { getCompanyInitial } from "@/utils/Helpers/getInitialCompany";
+import { invertFalsyExcludeZero } from "@/utils/Helpers/invertFalsyExcludeZero";
+import { toHalfWidthAndSpace } from "@/utils/Helpers/toHalfWidthAndSpace";
+import { ConfirmationModal } from "../SettingAccountModal/SettingCompany/ConfirmationModal/ConfirmationModal";
 
 type ModalProperties = {
   left: number;
@@ -56,6 +59,10 @@ export const UpdateMeetingModal = () => {
   // const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   // const settingModalProperties = useDashboardStore((state) => state.settingModalProperties);
+  // 確認モーダル(自社担当名、データ所有者変更確認)
+  const [isOpenConfirmationModal, setIsOpenConfirmationModal] = useState(null);
+  // 自社担当検索サイドテーブル開閉
+  const [isOpenSearchMemberSideTable, setIsOpenSearchMemberSideTable] = useState(false);
   const [modalProperties, setModalProperties] = useState<ModalProperties>();
   // 事業部別製品編集ドロップダウンメニュー
   const [isOpenDropdownMenuFilterProducts, setIsOpenDropdownMenuFilterProducts] = useState(false);
@@ -711,15 +718,30 @@ export const UpdateMeetingModal = () => {
     if (!meetingYearMonth) return alert("面談年月度を入力してください");
     if (meetingMemberName === "") return alert("自社担当を入力してください");
 
+    // 実施商品リストの配列からnullを除いたidの値のみの配列を生成 1つもなければ最低一つ選択するようにアラート
+    const resultProductsArrayExcludeNull = resultPresentationProductsArray.filter(
+      (productId) => productId !== null && productId !== "" && productId !== undefined
+    );
+
+    if (!resultProductsArrayExcludeNull || resultProductsArrayExcludeNull.length === 0) {
+      return alert("「実施商品を最低1つ入力してください。");
+    }
+
+    // 同席者のuuidの配列を生成
+    // const attendeeIdsArray = selectedAttendeesArray.map(attendee => attendee.contact_id)
+
+    return console.log("リターン", resultProductsArrayExcludeNull);
+
     setLoadingGlobalState(true);
 
+    // 部署名と事業所名を取得
     const departmentName =
       departmentDataArray &&
       departmentId &&
       departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
     const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
 
-    // 新規作成するデータをオブジェクトにまとめる
+    // 更新するデータをオブジェクトにまとめる
     const newMeeting = {
       id: selectedRowDataMeeting.meeting_id,
       created_by_company_id: selectedRowDataMeeting?.meeting_created_by_company_id
@@ -982,7 +1004,9 @@ export const UpdateMeetingModal = () => {
     "plannedProduct1QueryObj",
     plannedProduct1QueryObj,
     "plannedProduct2QueryObj",
-    plannedProduct2QueryObj
+    plannedProduct2QueryObj,
+    "selectedAttendeesArray",
+    selectedAttendeesArray
   );
 
   return (
@@ -1700,7 +1724,15 @@ export const UpdateMeetingModal = () => {
                       className={`${styles.input_box}`}
                       value={meetingMemberName}
                       onChange={(e) => setMeetingMemberName(e.target.value)}
-                      onBlur={() => setMeetingMemberName(toHalfWidth(meetingMemberName.trim()))}
+                      onBlur={() => {
+                        if (!selectedRowDataMeeting || !selectedRowDataMeeting?.meeting_member_name) return;
+                        if (selectedRowDataMeeting.meeting_member_name !== meetingMemberName) {
+                          alert("自社担当名が元のデータと異なります。データの所有者を変更しますか？");
+                          setMeetingMemberName(selectedRowDataMeeting.meeting_member_name);
+                          return;
+                        }
+                        setMeetingMemberName(toHalfWidthAndSpace(meetingMemberName.trim()));
+                      }}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -2372,16 +2404,50 @@ export const UpdateMeetingModal = () => {
                             <div
                               key={attendee.contact_id}
                               className={`box-shadow-inset-brand-f  flex min-h-[24px] min-w-max items-center justify-between rounded-[24px] bg-[var(--member-card)] px-[10px] py-[4px]`}
+                              onMouseEnter={(e) => {
+                                handleOpenTooltip({
+                                  e: e,
+                                  display: "top",
+                                  // content: "追加した同席者リストをリセットします。",
+                                  content: `${attendee.company_name ? `${attendee.company_name} / ` : ``}${
+                                    attendee.contact_name ? `${attendee.contact_name} / ` : ``
+                                  }${
+                                    attendee.department_name
+                                      ? `${attendee.department_name} ${attendee.position_name ? `/` : ``} `
+                                      : ``
+                                  }${attendee.position_name ? `${attendee.position_name}` : ``}`,
+                                  content2: `${
+                                    attendee.address
+                                      ? `住所: ${attendee.address} ${attendee.main_phone_number ? `/` : ``} `
+                                      : ``
+                                  }${
+                                    attendee.main_phone_number
+                                      ? `代表TEL: ${attendee.main_phone_number} ${attendee.contact_email ? `/` : ``} `
+                                      : ``
+                                  }${
+                                    attendee.direct_line
+                                      ? `直通TEL: ${attendee.direct_line} ${attendee.contact_email ? `/` : ``} `
+                                      : ``
+                                  }${attendee.contact_email ? `担当者Email: ${attendee.contact_email}` : ``}`,
+                                  // content2: "この商品名が見積書の品名に記載されます。",
+                                  // marginTop: 57,
+                                  // marginTop: 38,
+                                  marginTop: 24,
+                                  // marginTop: 9,
+                                  // marginTop: 3,
+                                  itemsPosition: "center",
+                                  whiteSpace: "nowrap",
+                                });
+                              }}
+                              onMouseLeave={handleCloseTooltip}
                             >
                               {/* 選択メンバー アバター画像 */}
                               <div
                                 // data-text="ユーザー名"
-                                className={`flex-center min-h-[24px] min-w-[24px] rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] ${styles.tooltip}`}
-                                // onMouseEnter={(e) => handleOpenTooltip(e, "center")}
-                                // onMouseLeave={handleCloseTooltip}
+                                className={`flex-center min-h-[24px] min-w-[24px] rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] ${styles.tooltip} pointer-events-none`}
                               >
                                 {/* <span>K</span> */}
-                                <span className={`text-[12px]`}>
+                                <span className={`pointer-events-none text-[12px]`}>
                                   {attendee?.company_name
                                     ? getCompanyInitial(attendee.company_name)
                                     : `${getCompanyInitial("NoName")}`}
@@ -2399,9 +2465,10 @@ export const UpdateMeetingModal = () => {
                                     (selectedAttendee) => selectedAttendee.contact_id !== attendee.contact_id
                                   );
                                   setSelectedAttendeesArray(filteredAttendees);
+                                  if (hoveredItemPosModal) handleCloseTooltip();
                                 }}
                               >
-                                <MdClose className="text-[16px] " />
+                                <MdClose className="pointer-events-none text-[16px]" />
                               </div>
                             </div>
                           ))}
@@ -2818,6 +2885,23 @@ export const UpdateMeetingModal = () => {
         </Suspense>
       </ErrorBoundary>
       {/* <FallbackSideTableSearchAttendees isOpenSearchAttendeesSideTable={isOpenSearchAttendeesSideTable} /> */}
+
+      {/* 「自社担当」変更確認モーダル */}
+      {isOpenConfirmationModal && (
+        <ConfirmationModal
+          clickEventClose={() => setIsOpenConfirmationModal(null)}
+          titleText="面談データの自社担当を変更してもよろしいですか？"
+          sectionP1="自社担当を変更すると面談データの所有者が変更されます。"
+          sectionP2="注：データの所有者を変更すると、この面談結果は変更先のメンバーの集計結果に移行され、分析結果が変更されます。"
+          cancelText="戻る"
+          submitText="変更する"
+          clickEventSubmit={() => {
+            setIsOpenConfirmationModal(null);
+            setIsOpenSearchMemberSideTable(true);
+          }}
+        />
+      )}
+
       {/* <>
         {isOpenSearchAttendeesSideTable && (
           <div

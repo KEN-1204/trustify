@@ -1,6 +1,6 @@
 import useDashboardStore from "@/store/useDashboardStore";
 import useThemeStore from "@/store/useThemeStore";
-import { Meeting, Activity, Meeting_row_data } from "@/types";
+import { Meeting, Activity, Meeting_row_data, ResultMeetingWithProductsAttendees } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -199,54 +199,123 @@ export const useMutateMeeting = () => {
 
   // 【Meeting一括編集UPDATE用updateMeetingMutation関数】
   const updateMeetingMutation = useMutation(
-    async (newMeeting: Omit<Meeting, "created_at" | "updated_at">) => {
+    // async (newMeeting: Omit<Meeting, "created_at" | "updated_at">) => {
+    async (newMeeting: Omit<ResultMeetingWithProductsAttendees, "created_at" | "updated_at">) => {
       // setLoadingGlobalState(true);
-      const { data: meetingData, error } = await supabase
-        .from("meetings")
-        .update(newMeeting)
-        .eq("id", newMeeting.id)
-        .select()
-        .single();
-      if (error) throw new Error(error.message);
+      // const { data: meetingData, error } = await supabase
+      //   .from("meetings")
+      //   .update(newMeeting)
+      //   .eq("id", newMeeting.id)
+      //   .select()
+      //   .single();
+      // if (error) throw new Error(error.message);
 
-      console.log("UPDATEに成功したdata", meetingData);
-      // 活動履歴で面談タイプ 訪問・面談を作成
-      const newMeetingData = {
-        created_by_company_id: newMeeting.created_by_company_id,
-        created_by_user_id: newMeeting.created_by_user_id,
-        created_by_department_of_user: newMeeting.created_by_department_of_user,
-        created_by_unit_of_user: newMeeting.created_by_unit_of_user,
-        created_by_office_of_user: newMeeting.created_by_office_of_user,
-        client_contact_id: newMeeting.client_contact_id,
-        client_company_id: newMeeting.client_company_id,
-        summary: newMeeting.result_summary,
+      // console.log("UPDATEに成功したdata", meetingData);
+      // // 活動履歴で面談タイプ 訪問・面談を作成
+      // const newMeetingData = {
+      //   created_by_company_id: newMeeting.created_by_company_id,
+      //   created_by_user_id: newMeeting.created_by_user_id,
+      //   created_by_department_of_user: newMeeting.created_by_department_of_user,
+      //   created_by_unit_of_user: newMeeting.created_by_unit_of_user,
+      //   created_by_office_of_user: newMeeting.created_by_office_of_user,
+      //   client_contact_id: newMeeting.client_contact_id,
+      //   client_company_id: newMeeting.client_company_id,
+      //   summary: newMeeting.result_summary,
+      //   // scheduled_follow_up_date: null,
+      //   // follow_up_flag: false,
+      //   // document_url: null,
+      //   // activity_type: "面談・訪問",
+      //   // claim_flag: false,
+      //   product_introduction1: newMeeting.result_presentation_product1,
+      //   product_introduction2: newMeeting.result_presentation_product2,
+      //   product_introduction3: newMeeting.result_presentation_product3,
+      //   product_introduction4: newMeeting.result_presentation_product4,
+      //   product_introduction5: newMeeting.result_presentation_product5,
+      //   department: newMeeting.meeting_department,
+      //   business_office: newMeeting.meeting_business_office,
+      //   member_name: newMeeting.meeting_member_name,
+      //   // priority: null,
+      //   activity_date: newMeeting.planned_date,
+      //   activity_year_month: newMeeting.meeting_year_month,
+      //   meeting_id: newMeeting.id,
+      //   // property_id: null,
+      //   // quotation_id: null,
+      // };
+
+      // // supabaseの活動に面談データをUPDATE
+      // const { error: errorActivity } = await supabase
+      //   .from("activities")
+      //   .update(newMeetingData)
+      //   .eq("meeting_id", newMeeting.id);
+      // if (errorActivity) throw new Error(errorActivity.message);
+
+      //
+
+      const updatedMeetingPayload = {
+        // _created_by_company_id: newMeeting.created_by_company_id,
+        // _created_by_user_id: newMeeting.created_by_user_id,
+        // _created_by_department_of_user: newMeeting.created_by_department_of_user,
+        // _created_by_unit_of_user: newMeeting.created_by_unit_of_user,
+        // _created_by_office_of_user: newMeeting.created_by_office_of_user,
+        // _client_contact_id: newMeeting.client_contact_id,
+        // _client_company_id: newMeeting.client_company_id,
+        // 🌠面談テーブル
+        _meeting_id: newMeeting.id,
+        _meeting_type: newMeeting.meeting_type,
+        _web_tool: newMeeting.web_tool,
+        _planned_date: newMeeting.planned_date,
+        _planned_start_time: newMeeting.planned_start_time,
+        _planned_purpose: newMeeting.planned_purpose,
+        _planned_duration: newMeeting.planned_duration,
+        _planned_appoint_check_flag: newMeeting.planned_appoint_check_flag,
+        _planned_product1: newMeeting.planned_product1,
+        _planned_product2: newMeeting.planned_product2,
+        _planned_comment: newMeeting.planned_comment,
+        // --🌠面談結果関連
+        _result_date: newMeeting.result_date,
+        _result_start_time: newMeeting.result_start_time,
+        _result_end_time: newMeeting.result_end_time,
+        _result_duration: newMeeting.result_duration,
+        _result_number_of_meeting_participants: newMeeting.result_number_of_meeting_participants,
+        _result_presentation_product1: newMeeting.result_presentation_product1,
+        _result_presentation_product2: newMeeting.result_presentation_product2,
+        _result_presentation_product3: newMeeting.result_presentation_product3,
+        _result_presentation_product4: newMeeting.result_presentation_product4,
+        _result_presentation_product5: newMeeting.result_presentation_product5,
+        _result_category: newMeeting.result_category,
+        _result_summary: newMeeting.result_summary,
+        _result_negotiate_decision_maker: newMeeting.result_negotiate_decision_maker,
+        _pre_meeting_participation_request: newMeeting.pre_meeting_participation_request,
+        _meeting_participation_request: newMeeting.meeting_participation_request,
+        _meeting_department: newMeeting.meeting_department,
+        _meeting_business_office: newMeeting.meeting_business_office,
+        _meeting_member_name: newMeeting.meeting_member_name,
+        _meeting_year_month: newMeeting.meeting_year_month,
+        // -- 🌠活動テーブル用
+        _summary: newMeeting.result_summary,
         // scheduled_follow_up_date: null,
         // follow_up_flag: false,
         // document_url: null,
         // activity_type: "面談・訪問",
         // claim_flag: false,
-        product_introduction1: newMeeting.result_presentation_product1,
-        product_introduction2: newMeeting.result_presentation_product2,
-        product_introduction3: newMeeting.result_presentation_product3,
-        product_introduction4: newMeeting.result_presentation_product4,
-        product_introduction5: newMeeting.result_presentation_product5,
-        department: newMeeting.meeting_department,
-        business_office: newMeeting.meeting_business_office,
-        member_name: newMeeting.meeting_member_name,
+        _product_introduction1: newMeeting.result_presentation_product1,
+        _product_introduction2: newMeeting.result_presentation_product2,
+        _product_introduction3: newMeeting.result_presentation_product3,
+        _product_introduction4: newMeeting.result_presentation_product4,
+        _product_introduction5: newMeeting.result_presentation_product5,
+        _department: newMeeting.meeting_department,
+        _business_office: newMeeting.meeting_business_office,
+        _member_name: newMeeting.meeting_member_name,
         // priority: null,
-        activity_date: newMeeting.planned_date,
-        activity_year_month: newMeeting.meeting_year_month,
-        meeting_id: newMeeting.id,
+        _activity_date: newMeeting.planned_date,
+        _activity_year_month: newMeeting.meeting_year_month,
+        // _meeting_id: newMeeting.id,
         // property_id: null,
         // quotation_id: null,
+        // --🌠実施商品テーブル
+        _product_ids: newMeeting.product_ids,
+        _attendee_ids: newMeeting.attendee_ids,
       };
-
-      // supabaseの活動に面談データをUPDATE
-      const { error: errorActivity } = await supabase
-        .from("activities")
-        .update(newMeetingData)
-        .eq("meeting_id", newMeeting.id);
-      if (errorActivity) throw new Error(errorActivity.message);
     },
     {
       onSuccess: async () => {

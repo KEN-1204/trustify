@@ -1622,6 +1622,7 @@ export type Meeting = {
   meeting_member_name: string | null;
   meeting_year_month: number | null;
 };
+
 // 製品 productsテーブル
 export type Product = {
   id: string;
@@ -1753,4 +1754,50 @@ export type SettingModalProperties = {
   bottom: number;
   width: number;
   height: number;
+};
+
+// 面談結果保存payload用 meeting, products, attendeesテーブル
+export type ResultMeetingWithProductsAttendees = {
+  id: string;
+  created_at: string | null;
+  updated_at: string | null;
+  created_by_company_id: string | null;
+  created_by_user_id: string | null;
+  created_by_department_of_user: string | null;
+  created_by_unit_of_user: string | null;
+  created_by_office_of_user: string | null; //🌠追加
+  client_contact_id: string | null;
+  client_company_id: string | null;
+  meeting_type: string | null;
+  web_tool: string | null;
+  planned_date: string | null;
+  planned_start_time: string | null;
+  planned_purpose: string | null;
+  planned_duration: number | null;
+  planned_appoint_check_flag: boolean | null;
+  planned_product1: string | null;
+  planned_product2: string | null;
+  planned_comment: string | null;
+  result_date: string | null;
+  result_start_time: string | null;
+  result_end_time: string | null;
+  result_duration: number | null;
+  result_number_of_meeting_participants: number | null;
+  result_presentation_product1: string | null;
+  result_presentation_product2: string | null;
+  result_presentation_product3: string | null;
+  result_presentation_product4: string | null;
+  result_presentation_product5: string | null;
+  result_category: string | null;
+  result_summary: string | null;
+  result_negotiate_decision_maker: string | null;
+  pre_meeting_participation_request: string | null;
+  meeting_participation_request: string | null;
+  meeting_business_office: string | null;
+  meeting_department: string | null;
+  meeting_member_name: string | null;
+  meeting_year_month: number | null;
+  // 実施商品テーブル用と、同席者テーブル用
+  product_ids: (string | null)[];
+  attendee_ids: (string | null)[];
 };
