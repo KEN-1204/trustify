@@ -7,6 +7,7 @@ import styles from "../UpdateMeetingModal.module.css";
 import { Contact_row_data } from "@/types";
 import { useMedia } from "react-use";
 import { SkeletonLoadingLineCustom } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineCustom";
+import { ImInfo } from "react-icons/im";
 
 type Props = {
   isOpenSearchAttendeesSideTable: boolean;
@@ -56,6 +57,9 @@ export const FallbackSideTableSearchAttendees = ({ isOpenSearchAttendeesSideTabl
         className={`${styles.side_table} z-[1200] pt-[30px] ${
           isOpenSearchAttendeesSideTable ? `${styles.active}` : ``
         }`}
+        // className={`${styles.side_table} z-[1200] pt-[30px] ${
+        //   !isOpenSearchAttendeesSideTable ? `${styles.active}` : ``
+        // }`}
       >
         {/* タイトルエリア */}
         <div className="flex h-auto w-full flex-col px-[30px] 2xl:px-[30px]">
@@ -80,7 +84,12 @@ export const FallbackSideTableSearchAttendees = ({ isOpenSearchAttendeesSideTabl
           <div className="flex h-auto w-full flex-col">
             <div className={`flex min-h-[30px] items-end justify-between px-[30px]`}>
               <h3 className="flex min-h-[30px] max-w-max items-end space-y-[1px] text-[14px] font-bold ">
-                <span>条件を入力して同席者を検索</span>
+                <div className="flex items-end space-x-[10px]">
+                  <span>条件を入力して同席者を検索</span>
+                  <div className="pointer-events-none flex min-h-[30px] items-end pb-[2px]">
+                    <ImInfo className={`min-h-[18px] min-w-[18px] text-[var(--color-bg-brand-f)]`} />
+                  </div>
+                </div>
               </h3>
               <div className="flex pr-[0px]">
                 <RippleButton
@@ -174,7 +183,7 @@ export const FallbackSideTableSearchAttendees = ({ isOpenSearchAttendeesSideTabl
             </div>
             {/* 担当者一覧エリア */}
             <ul className={`flex h-auto w-full flex-col`}>
-              {Array(12)
+              {Array(5)
                 .fill(null)
                 .map((_, index) => (
                   <li
@@ -190,19 +199,21 @@ export const FallbackSideTableSearchAttendees = ({ isOpenSearchAttendeesSideTabl
                       <SkeletonLoadingLineCustom rounded="50%" h="48px" w="48px" />
                     </div>
                     <div
-                      className={`${styles.attendees_list_item_lines_group} flex h-full flex-col justify-center space-y-[10px] pl-[5px] text-[12px]`}
+                      className={`${styles.attendees_list_item_lines_group} flex h-full w-full flex-col justify-center space-y-[10px] pl-[5px] pr-[30px] text-[12px]`}
                     >
                       {/* 会社・部署 */}
                       <div className={`${styles.attendees_list_item_line} flex space-x-[4px] text-[13px]`}>
                         {/* <span>株式会社トラスティファイ</span>
                         <span>代表取締役</span> */}
-                        <SkeletonLoadingLineCustom w="410px" h="14px" rounded="12px" />
+                        {/* <SkeletonLoadingLineCustom w="410px" h="14px" rounded="12px" /> */}
+                        <SkeletonLoadingLineCustom w="93%" h="14px" rounded="12px" />
                       </div>
                       {/* 役職・名前 */}
                       <div className={`${styles.attendees_list_item_line} flex space-x-[4px]`}>
                         {/* <span>CEO</span>
                         <span className="!ml-[10px]">伊藤 謙太</span> */}
-                        <SkeletonLoadingLineCustom w="320px" h="14px" rounded="12px" />
+                        {/* <SkeletonLoadingLineCustom w="320px" h="14px" rounded="12px" /> */}
+                        <SkeletonLoadingLineCustom w="68%" h="14px" rounded="12px" />
                       </div>
                       <div className={`${styles.attendees_list_item_line} flex space-x-[10px]`}>
                         {/* <div className="flex space-x-[4px] text-[#ccc]">
@@ -210,7 +221,8 @@ export const FallbackSideTableSearchAttendees = ({ isOpenSearchAttendeesSideTabl
                         </div>
                         <span>/</span>
                         <div className={`text-[#ccc]`}>cieletoile.1204@gmail.com</div> */}
-                        <SkeletonLoadingLineCustom w="180px" h="14px" rounded="12px" />
+                        {/* <SkeletonLoadingLineCustom w="180px" h="14px" rounded="12px" /> */}
+                        <SkeletonLoadingLineCustom w="40%" h="14px" rounded="12px" />
                       </div>
                     </div>
                   </li>

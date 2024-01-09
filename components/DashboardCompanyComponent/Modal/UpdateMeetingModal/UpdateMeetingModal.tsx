@@ -33,6 +33,7 @@ import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import { Fallback } from "@/components/Fallback/Fallback";
 import { SideTableSearchAttendees } from "./SideTableSearchAttendees/SideTableSearchAttendees";
 import { FallbackSideTableSearchAttendees } from "./SideTableSearchAttendees/FallbackSideTableSearchAttendees";
+import { getCompanyInitial } from "@/utils/Helpers/getInitialCompany";
 
 type ModalProperties = {
   left: number;
@@ -2331,7 +2332,7 @@ export const UpdateMeetingModal = () => {
             {/* --------- 左ラッパー 同席者タグ表示エリア --------- */}
             <div className={`${styles.left_contents_wrapper_attendees} flex h-full flex-col`}>
               {/* 面談人数 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className={`${styles.row_area} flex h-[55px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     {/* <span className={`${styles.title} !min-w-[140px]`}>同席者</span> */}
@@ -2356,7 +2357,58 @@ export const UpdateMeetingModal = () => {
                       <span className={`mr-[8px] `}>同席者</span>
                       <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
                     </div>
-                    <div className={`${styles.input_box} ${styles.attendees}`}></div>
+                    {/* 同席者リストカード一覧エリア Xスクロール */}
+                    <div className={`${styles.input_box} ${styles.attendees} relative`}>
+                      <div className={`relative flex h-full w-full items-center space-x-[15px] px-[15px]`}>
+                        {(!selectedAttendeesArray || selectedAttendeesArray.length === 0) && (
+                          <div className="flex h-full w-full items-center text-[var(--color-text-sub-light)]">
+                            <span>まだ同席者は追加されていません。</span>
+                          </div>
+                        )}
+                        {/* メンバーカード */}
+                        {selectedAttendeesArray &&
+                          selectedAttendeesArray.length > 0 &&
+                          selectedAttendeesArray.map((attendee, index) => (
+                            <div
+                              key={attendee.contact_id}
+                              className={`box-shadow-inset-brand-f  flex min-h-[24px] min-w-max items-center justify-between rounded-[24px] bg-[var(--member-card)] px-[10px] py-[4px]`}
+                            >
+                              {/* 選択メンバー アバター画像 */}
+                              <div
+                                // data-text="ユーザー名"
+                                className={`flex-center min-h-[24px] min-w-[24px] rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] ${styles.tooltip}`}
+                                // onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+                                // onMouseLeave={handleCloseTooltip}
+                              >
+                                {/* <span>K</span> */}
+                                <span className={`text-[12px]`}>
+                                  {attendee?.company_name
+                                    ? getCompanyInitial(attendee.company_name)
+                                    : `${getCompanyInitial("NoName")}`}
+                                </span>
+                              </div>
+                              {/* 選択メンバー 名前 */}
+                              <p className={`max-w-[80%] px-[8px] text-[13px]`}>
+                                {attendee?.contact_name ?? "No Name"}
+                              </p>
+                              {/* クローズボタン */}
+                              <div
+                                className={`cursor-pointer`}
+                                onClick={() => {
+                                  const filteredAttendees = selectedAttendeesArray.filter(
+                                    (selectedAttendee) => selectedAttendee.contact_id !== attendee.contact_id
+                                  );
+                                  setSelectedAttendeesArray(filteredAttendees);
+                                }}
+                              >
+                                <MdClose className="text-[16px] " />
+                              </div>
+                            </div>
+                          ))}
+                        {/* メンバーカード ここまで */}
+                      </div>
+                    </div>
+                    {/* 同席者リストカード一覧エリア ここまで */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -2368,17 +2420,56 @@ export const UpdateMeetingModal = () => {
             {/* --------- 右ラッパー 同席者検索ボタン --------- */}
             <div className={`${styles.right_contents_wrapper_attendees} flex h-full flex-col`}>
               {/* 同席者検索ボタン */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
+              <div className={`${styles.row_area} flex h-[55px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col justify-center pr-[20px]">
                   <div className="flex w-full items-start justify-end">
                     <div
                       className={`transition-base01 flex-center max-h-[36px] min-h-[36px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] ${styles.cancel_section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                      onMouseEnter={(e) => {
+                        // if (isOpenSearchAttendeesSideTable) return;
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "追加した同席者リストをリセットします。",
+                          // content2: "この商品名が見積書の品名に記載されます。",
+                          // marginTop: 57,
+                          // marginTop: 38,
+                          // marginTop: 9,
+                          marginTop: 3,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        });
+                      }}
+                      onMouseLeave={handleCloseTooltip}
+                      onClick={() => {
+                        setSelectedAttendeesArray([]);
+                        if (hoveredItemPosModal) handleCloseTooltip();
+                      }}
                     >
                       <span>リセット</span>
                     </div>
                     <div
                       className={`transition-base01 flex-center ml-[12px] min-h-[36px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
-                      onClick={() => setIsOpenSearchAttendeesSideTable(true)}
+                      onMouseEnter={(e) => {
+                        // if (isOpenSearchAttendeesSideTable) return;
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "データベースから同席者を検索して追加できます。",
+                          // content2: "この商品名が見積書の品名に記載されます。",
+                          // marginTop: 57,
+                          // marginTop: 38,
+                          // marginTop: 9,
+                          marginTop: 3,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        });
+                      }}
+                      onMouseLeave={handleCloseTooltip}
+                      onClick={() => {
+                        setIsOpenSearchAttendeesSideTable(true);
+                        handleCloseTooltip();
+                      }}
                     >
                       <span>追加</span>
                     </div>
@@ -2726,7 +2817,7 @@ export const UpdateMeetingModal = () => {
           />
         </Suspense>
       </ErrorBoundary>
-      {/* <FallbackSideTableSearchAttendees /> */}
+      {/* <FallbackSideTableSearchAttendees isOpenSearchAttendeesSideTable={isOpenSearchAttendeesSideTable} /> */}
       {/* <>
         {isOpenSearchAttendeesSideTable && (
           <div

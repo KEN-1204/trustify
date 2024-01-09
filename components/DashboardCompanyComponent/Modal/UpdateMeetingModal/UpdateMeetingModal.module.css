@@ -377,6 +377,52 @@
   font-size: 14px;
   color: var(--color-text-title);
 }
+.save_section_title span,
+.cancel_section_title span {
+  pointer-events: none;
+}
+
+.input_box {
+  height: 100%;
+  width: 100%;
+  background: var(--color-bg-under-input);
+  color: var(--color-text-under-input);
+  box-shadow: var(--color-bg-under-input-box-shadow);
+  min-height: 32px;
+  padding: 6px 8px;
+  font-size: 15px;
+  border-radius: 6px;
+  max-width: 375px;
+  margin-left: auto;
+}
+.input_box.attendees {
+  max-width: none;
+  padding: 0px;
+  min-height: 48px;
+  max-width: 696px;
+  overflow-x: scroll;
+}
+.input_box:hover.attendees {
+  box-shadow: var(--color-bg-under-input-box-shadow);
+}
+.input_box:focus {
+  box-shadow: var(--color-bg-under-input-active-box-shadow);
+}
+.input_box:focus ~ .close_btn_number {
+  display: none;
+}
+
+.input_box:hover {
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+}
+.select_box:hover {
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+}
+.textarea_box:hover {
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+}
+
+/* 同席者サイドテーブル */
 .side_table {
   position: absolute;
   right: 0;
@@ -409,44 +455,6 @@
 .side_table.active {
   transform: translateX(0%);
 }
-
-.input_box {
-  height: 100%;
-  width: 100%;
-  background: var(--color-bg-under-input);
-  color: var(--color-text-under-input);
-  box-shadow: var(--color-bg-under-input-box-shadow);
-  min-height: 32px;
-  padding: 6px 8px;
-  font-size: 15px;
-  border-radius: 6px;
-  max-width: 375px;
-  margin-left: auto;
-}
-.input_box.attendees {
-  max-width: none;
-}
-.input_box:hover.attendees {
-  box-shadow: var(--color-bg-under-input-box-shadow);
-}
-.input_box:focus {
-  box-shadow: var(--color-bg-under-input-active-box-shadow);
-}
-.input_box:focus ~ .close_btn_number {
-  display: none;
-}
-
-.input_box:hover {
-  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
-}
-.select_box:hover {
-  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
-}
-.textarea_box:hover {
-  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
-}
-
-/* 同席者サイドテーブル */
 .side_table_search_list {
 }
 .side_table_search_list .input_box {
@@ -522,10 +530,37 @@
 .icon_btn:hover {
   background-color: var(--color-bg-brand);
 }
+.search_icon_btn {
+  min-width: 22px;
+  min-height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  /* background-color: var(--color-bg-brand-f50); */
+  /* box-shadow: inset 0 0 0 1px var(--color-bg-brand-f); */
+}
+.search_icon_btn svg {
+  min-width: 10px;
+  min-height: 10px;
+  pointer-events: none;
+}
+.icon_path_stroke.search_icon_btn path {
+  stroke: var(--color-bg-brand-f);
+  pointer-events: none;
+}
+.icon_path_stroke.search_icon_btn:hover path {
+  stroke: #fff;
+}
+.search_icon_btn:hover {
+  background-color: var(--color-bg-brand-f);
+}
 .icon_path_stroke path {
   /* fill: #fff !important; */
   /* color: #fff !important; */
   stroke: #fff;
   /* stroke: var(--color-bg-brand-f); */
   /* stop-color: #fff; */
+}
+.icon_path_stroke path,
+.icon_path_stroke svg {
+  pointer-events: none;
 }

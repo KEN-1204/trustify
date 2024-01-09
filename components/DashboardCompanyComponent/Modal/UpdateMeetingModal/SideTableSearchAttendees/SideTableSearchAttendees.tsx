@@ -14,6 +14,7 @@ import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { GrPowerReset } from "react-icons/gr";
 import useStore from "@/store";
 import { TooltipSideTable } from "@/components/Parts/Tooltip/TooltipSideTable";
+import { ImInfo } from "react-icons/im";
 
 type Props = {
   isOpenSearchAttendeesSideTable: boolean;
@@ -358,6 +359,39 @@ export const SideTableSearchAttendeesMemo = ({
   );
   // -------------------------- ✅useInfiniteQuery無限スクロール✅ --------------------------
 
+  // -------------------------- 🌟追加ボタンをクリック 同席者リストに追加🌟 --------------------------
+  const handleAddAttendeesList = () => {
+    if (!selectedSearchAttendeesArray || selectedSearchAttendeesArray.length === 0) return;
+    // 既に同席者リストに選択中のリストが含まれているかチェックして含まれている場合はリターンする
+    // 配列同士の配列内のオブジェクトで一致するオブジェクトがあるかをチェックするために
+    // new Setオブジェクトとhasメソッドのハッシュテーブルでのチェック
+    // 1. 選択中担当者リストから担当者idのみを取り出した配列をnew SetでSetオブジェクトを生成
+    const selectedSearchAttendeesSetObj = new Set(selectedSearchAttendeesArray.map((attendee) => attendee.contact_id));
+    // 2. 同席者リストをsomeで一つずつ担当者オブジェクトを取り出し、obj.idがハッシュテーブルに含まれているかチェック
+    const foundAttendee = selectedAttendeesArray.find((attendee) =>
+      selectedSearchAttendeesSetObj.has(attendee.contact_id)
+    );
+    // 3. 既に選択してる担当者が一人でも同席者リストに存在する場合アラートを出してリターン(undefined以外ならリターン)
+    if (foundAttendee) {
+      alert(
+        `${
+          foundAttendee.company_name && foundAttendee.contact_name
+            ? `「${foundAttendee.company_name} ${foundAttendee.contact_name} 様」は既に同席者リストに含まれています。既に同席者リストに含まれている担当者は追加できません。`
+            : `既に同席者リストに含まれています。既に同席者リストに含まれている担当者は追加できません。`
+        }`
+      );
+      return;
+    } else {
+      // 同席者リストに一人も含まれていない場合はリストに追加
+      const newAttendeesList = [...selectedAttendeesArray, ...selectedSearchAttendeesArray];
+      setSelectedAttendeesArray(newAttendeesList);
+
+      // 追加が完了したら選択中のリスト配列をリセットする
+      setSelectedSearchAttendeesArray([]);
+    }
+  };
+  // -------------------------- 🌟追加ボタンをクリック 同席者リストに追加🌟 --------------------------
+
   // -------------------------- 🌟スクロールでヘッダー色変更🌟 --------------------------
   // サイドテーブルの同席者一覧エリアのスクロールアイテムRef
   const sideTableScrollHeaderRef = useRef<HTMLDivElement | null>(null);
@@ -406,9 +440,11 @@ export const SideTableSearchAttendeesMemo = ({
     content: string;
     content2?: string | undefined | null;
     content3?: string | undefined | null;
+    content4?: string | undefined | null;
     marginTop?: number;
     itemsPosition?: string;
     whiteSpace?: "normal" | "pre" | "nowrap" | "pre-wrap" | "pre-line" | "break-spaces" | undefined;
+    maxWidth?: number;
   };
   const modalContainerRef = useRef<HTMLDivElement | null>(null);
   const hoveredItemPosSideTable = useStore((state) => state.hoveredItemPosSideTable);
@@ -420,14 +456,18 @@ export const SideTableSearchAttendeesMemo = ({
     content,
     content2,
     content3,
+    content4,
     marginTop,
     itemsPosition = "center",
     whiteSpace,
+    maxWidth,
   }: TooltipParams) => {
     // モーダルコンテナのleftを取得する
     if (!modalContainerRef.current) return;
     const containerLeft = modalContainerRef.current?.getBoundingClientRect().left;
     const containerTop = modalContainerRef.current?.getBoundingClientRect().top;
+    const containerWidth = modalContainerRef.current?.getBoundingClientRect().width;
+    const containerHeight = modalContainerRef.current?.getBoundingClientRect().height;
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
     // const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
@@ -441,13 +481,19 @@ export const SideTableSearchAttendeesMemo = ({
       y: y - containerTop,
       itemWidth: width,
       itemHeight: height,
+      containerLeft: containerLeft,
+      containerTop: containerTop,
+      containerWidth: containerWidth,
+      containerHeight: containerHeight,
       content: content,
       content2: content2,
       content3: content3,
+      content4: content4,
       display: display,
       marginTop: marginTop,
       itemsPosition: itemsPosition,
       whiteSpace: whiteSpace,
+      maxWidth: maxWidth,
     });
   };
   // ================================ ツールチップを非表示 ================================
@@ -512,10 +558,28 @@ export const SideTableSearchAttendeesMemo = ({
           <div className="flex h-auto w-full flex-col">
             {/* <div className={`sticky top-0 min-h-[60px] w-full`}></div> */}
             <div className={`flex min-h-[30px] items-end justify-between px-[30px]`}>
-              <h3 className="flex min-h-[30px] max-w-max items-end space-y-[1px] text-[14px] font-bold ">
-                <span>条件を入力して同席者を検索</span>
-                {/* <div className="min-h-[1px] w-auto bg-[#999]"></div> */}
-                {/* <RippleButton
+              <h3 className="flex min-h-[30px] max-w-max items-end space-x-[10px] space-y-[1px] text-[14px] font-bold ">
+                <div
+                  className="flex items-end space-x-[10px]"
+                  onMouseEnter={(e) =>
+                    handleOpenTooltip({
+                      e: e,
+                      display: "",
+                      content: `○同席者が所属する会社名や部署名など条件を入力して検索してください。\n例えば、会社名で「株式会社データベース」で会社住所が「"東京都大田区"」の「"佐藤"」という担当者を検索する場合は、「会社名」に「株式会社データベース」をまたは「＊データベース＊」を入力し、「住所」に「東京都大田区※」と入力、担当者名に「＊佐藤＊」を入力してください。\n○「※ アスタリスク」は、「前方一致・後方一致・部分一致」を表します。\n例えば、会社名に「"工業"」と付く会社を検索したい場合に、「※工業※」、「"製作所"」と付く会社は「※製作所※」と検索することで、指定した文字が付くデータを検索可能です\n○「○項目を空欄のまま検索した場合は、その項目の「全てのデータ」を抽出します。\n○最低一つの項目は入力して検索してください。`,
+                      // content2: "600万円と入力しても円単位に自動補完されます。",
+                      // marginTop: 57,
+                      marginTop: 39,
+                      // marginTop: 10,
+                      itemsPosition: "start",
+                      // whiteSpace: "nowrap",
+                      maxWidth: 550,
+                    })
+                  }
+                  onMouseLeave={handleCloseTooltip}
+                >
+                  <span>条件を入力して同席者を検索</span>
+                  {/* <div className="min-h-[1px] w-auto bg-[#999]"></div> */}
+                  {/* <RippleButton
                     title={`検索`}
                     bgColor="var(--color-bg-brand-f50)"
                     bgColorHover="var(--color-btn-brand-f-hover)"
@@ -524,6 +588,68 @@ export const SideTableSearchAttendeesMemo = ({
                       // setIsOpenSettingInvitationModal(true);
                     }}
                   /> */}
+                  <div className="pointer-events-none flex min-h-[30px] items-end pb-[2px]">
+                    <ImInfo className={`min-h-[18px] min-w-[18px] text-[var(--color-bg-brand-f)]`} />
+                  </div>
+                </div>
+                {[
+                  searchInputCompany,
+                  searchInputDepartment,
+                  searchInputContact,
+                  searchInputPositionName,
+                  searchInputTel,
+                  searchInputDirectLine,
+                  searchInputCompanyCellPhone,
+                  searchInputEmail,
+                  searchInputAddress,
+                ].some((value) => value !== "") && (
+                  <div
+                    className={`${styles.icon_path_stroke} ${styles.search_icon_btn} flex-center transition-bg03`}
+                    onMouseEnter={(e) => {
+                      // if (isOpenDropdownMenuFilterProducts) return;
+                      handleOpenTooltip({
+                        e: e,
+                        display: "top",
+                        content: "入力中の条件をリセット",
+                        // content2: "フィルターの切り替えが可能です。",
+                        // marginTop: 57,
+                        // marginTop: 38,
+                        marginTop: 12,
+                        itemsPosition: "center",
+                        whiteSpace: "nowrap",
+                      });
+                    }}
+                    onMouseLeave={() => {
+                      if (hoveredItemPosSideTable) handleCloseTooltip();
+                    }}
+                    onClick={() => {
+                      // [
+                      //   [searchInputCompany, setSearchInputCompany],
+                      //   [searchInputDepartment, setSearchInputDepartment],
+                      //   [searchInputContact, setSearchInputContact],
+                      //   [searchInputPositionName, setSearchInputPositionName],
+                      //   [searchInputTel, setSearchInputTel],
+                      //   [searchInputDirectLine, setSearchInputDirectLine],
+                      //   [searchInputCompanyCellPhone, setSearchInputCompanyCellPhone],
+                      //   [searchInputEmail, setSearchInputEmail],
+                      //   [searchInputAddress, setSearchInputAddress],
+                      // ].forEach(([state, setDispatch]) => !!state && setDispatch(""));
+                      if (searchInputCompany) setSearchInputCompany("");
+                      if (searchInputDepartment) setSearchInputDepartment("");
+                      if (searchInputContact) setSearchInputContact("");
+                      if (searchInputPositionName) setSearchInputPositionName("");
+                      if (searchInputTel) setSearchInputTel("");
+                      if (searchInputDirectLine) setSearchInputDirectLine("");
+                      if (searchInputCompanyCellPhone) setSearchInputCompanyCellPhone("");
+                      if (searchInputEmail) setSearchInputEmail("");
+                      if (searchInputAddress) setSearchInputAddress("");
+
+                      if (hoveredItemPosSideTable) handleCloseTooltip();
+                    }}
+                  >
+                    <GrPowerReset />
+                  </div>
+                )}
               </h3>
               <div className="flex pr-[0px]">
                 <RippleButton
@@ -566,7 +692,7 @@ export const SideTableSearchAttendeesMemo = ({
                     className={`${styles.input_box}`}
                     value={item.inputValue}
                     onChange={(e) => item.setInputValue(e.target.value)}
-                    onBlur={() => item.setInputValue(item.inputValue.trim())}
+                    onBlur={() => !item.inputValue && item.setInputValue(item.inputValue.trim())}
                   />
                 </li>
               ))}
@@ -601,32 +727,37 @@ export const SideTableSearchAttendeesMemo = ({
                 <span>同席者を選択して追加</span>
                 {/* <div className="min-h-[1px] w-auto bg-[#999]"></div> */}
                 {selectedSearchAttendeesArray.length > 0 && (
-                  <div
-                    className={`${styles.icon_path_stroke} ${styles.icon_btn} flex-center transition-bg03`}
-                    onMouseEnter={(e) => {
-                      // if (isOpenDropdownMenuFilterProducts) return;
-                      handleOpenTooltip({
-                        e: e,
-                        display: "top",
-                        content: "選択中の同席者をリセット",
-                        // content2: "フィルターの切り替えが可能です。",
-                        // marginTop: 57,
-                        // marginTop: 38,
-                        marginTop: 12,
-                        itemsPosition: "center",
-                        whiteSpace: "nowrap",
-                      });
-                    }}
-                    onMouseLeave={() => {
-                      if (hoveredItemPosSideTable) handleCloseTooltip();
-                    }}
-                    onClick={() => {
-                      setSelectedSearchAttendeesArray([]);
-                      if (hoveredItemPosSideTable) handleCloseTooltip();
-                    }}
-                  >
-                    <GrPowerReset />
-                  </div>
+                  <>
+                    <span className={`text-[11px] font-normal text-[#fff]`}>
+                      {selectedSearchAttendeesArray.length}件選択中
+                    </span>
+                    <div
+                      className={`${styles.icon_path_stroke} ${styles.icon_btn} flex-center transition-bg03`}
+                      onMouseEnter={(e) => {
+                        // if (isOpenDropdownMenuFilterProducts) return;
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "選択中の同席者をリセット",
+                          // content2: "フィルターの切り替えが可能です。",
+                          // marginTop: 57,
+                          // marginTop: 38,
+                          marginTop: 12,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        });
+                      }}
+                      onMouseLeave={() => {
+                        if (hoveredItemPosSideTable) handleCloseTooltip();
+                      }}
+                      onClick={() => {
+                        setSelectedSearchAttendeesArray([]);
+                        if (hoveredItemPosSideTable) handleCloseTooltip();
+                      }}
+                    >
+                      <GrPowerReset />
+                    </div>
+                  </>
                 )}
               </h3>
               <div className="flex">
@@ -647,6 +778,25 @@ export const SideTableSearchAttendeesMemo = ({
                   }`}
                   clickEventHandler={() => {
                     // setIsOpenSettingInvitationModal(true);
+                    handleAddAttendeesList();
+                    handleCloseTooltip();
+                  }}
+                  onMouseEnterHandler={(e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+                    // if (isOpenDropdownMenuFilterProducts) return;
+                    handleOpenTooltip({
+                      e: e,
+                      display: "top",
+                      content: "担当者を選択して同席者リストに追加する",
+                      // content2: "フィルターの切り替えが可能です。",
+                      // marginTop: 57,
+                      // marginTop: 38,
+                      marginTop: 12,
+                      itemsPosition: "center",
+                      // whiteSpace: "nowrap",
+                    });
+                  }}
+                  onMouseLeaveHandler={() => {
+                    if (hoveredItemPosSideTable) handleCloseTooltip();
                   }}
                 />
               </div>
@@ -804,7 +954,7 @@ export const SideTableSearchAttendeesMemo = ({
               {/* <div className="flex-center relative min-h-[64.5px] w-full rounded-[8px] text-[14px]">
                 <SpinnerComet width="!w-[35px]" height="!h-[35px]" />
               </div> */}
-              {Array(12)
+              {/* {Array(12)
                 .fill(null)
                 .map((_, index) => (
                   <li
@@ -849,7 +999,7 @@ export const SideTableSearchAttendeesMemo = ({
                       </div>
                     </div>
                   </li>
-                ))}
+                ))} */}
             </ul>
           </div>
         </div>

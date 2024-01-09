@@ -952,7 +952,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
 
   /* canva 背景カラー */
   --color-bg-c-sub: #ebecf0;
-  /* 選択済みメンバーカード */
+  /* 選択済みメンバーカード light */
   --member-card: var(--color-bg-c-sub);
 
   /* ドロップダウンメニュー */
@@ -1556,8 +1556,10 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
 
   /* canva 背景カラー dark */
   --color-bg-c-sub: #6c6c6c;
-  /* 選択済みメンバーカード */
+  /* 選択済みメンバーカード dark */
+  /* --member-card: var(--color-bg-sub-deep); */
   --member-card: var(--color-bg-c-sub);
+  --member-card: #222;
 
   /* ドロップダウンメニュー */
   /* --color-dropdown-list-hover: var(--color-bg-sub); */
@@ -2331,6 +2333,11 @@ textarea {
 } */
 .border-real-with-shadow {
   box-shadow: var(--border-real-with-shadow);
+}
+
+/* ボーダー box-shadow inset ブランドカラー */
+.box-shadow-inset-brand-f {
+  box-shadow: inset 0 0 0 1px var(--color-bg-brand-f);
 }
 
 /* 会社概要 about */

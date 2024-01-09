@@ -17,6 +17,9 @@ type Props = {
   classText?: string;
   clickEventHandler?: () => void;
   buttonType?: "button" | "submit" | "reset";
+  // onMouseEnterHandler?: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
+  onMouseEnterHandler?: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void;
+  onMouseLeaveHandler?: () => void;
 };
 
 const RippleButtonMemo: FC<Props> = ({
@@ -35,6 +38,8 @@ const RippleButtonMemo: FC<Props> = ({
   clickEventHandler,
   //   padding = "14px 40px",
   buttonType = "button",
+  onMouseEnterHandler,
+  onMouseLeaveHandler,
 }) => {
   //   linear-gradient(90deg, #6616d0, #ac34e7)
 
@@ -98,6 +103,8 @@ const RippleButtonMemo: FC<Props> = ({
               }
             : undefined
         }
+        onMouseEnter={onMouseEnterHandler ? onMouseEnterHandler : undefined}
+        onMouseLeave={onMouseLeaveHandler ? onMouseLeaveHandler : undefined}
         // onClick={(e) => {
         //   handleClick(e);
         //   if (clickEventHandler) clickEventHandler();
