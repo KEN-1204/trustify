@@ -416,6 +416,7 @@ const useDashboardStore = create<State>((set) => ({
   editedProduct: {
     id: "",
     created_at: "",
+    updated_at: "",
     created_by_company_id: "",
     created_by_user_id: "",
     created_by_department_of_user: "",

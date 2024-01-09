@@ -27,6 +27,9 @@ type State = {
   // ツールチップ ホバー位置 カラム編集モーダル
   hoveredItemPosModal: hoveredItemPosModal;
   setHoveredItemPosModal: (payload: hoveredItemPosModal) => void;
+  // ツールチップ ホバー位置 カラム編集モーダル
+  hoveredItemPosSideTable: hoveredItemPosModal;
+  setHoveredItemPosSideTable: (payload: hoveredItemPosModal) => void;
   // 【ホバーしたアイテムのポジションを取得 折り返し有り MouseEnterした位置で動的に上下にツールチップを表示】
   hoveredItemPosWrap: hoveredItemPosWrap;
   setHoveredItemPosWrap: (payload: hoveredItemPosWrap) => void;
@@ -122,6 +125,9 @@ const useStore = create<State>((set) => ({
   // 【ツールチップ カラム編集モーダル内で使用】
   hoveredItemPosModal: null,
   setHoveredItemPosModal: (payload) => set({ hoveredItemPosModal: payload }),
+  // 【ツールチップ サイドテーブル内で使用】
+  hoveredItemPosSideTable: null,
+  setHoveredItemPosSideTable: (payload) => set({ hoveredItemPosSideTable: payload }),
   // 【ホバーしたアイテムのポジションを取得 折り返し有り MouseEnterした位置で動的に上下にツールチップを表示】
   hoveredItemPosWrap: null,
   setHoveredItemPosWrap: (payload) => set({ hoveredItemPosWrap: payload }),

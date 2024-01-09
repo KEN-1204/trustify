@@ -89,7 +89,7 @@ export const UpdateMeetingModal = () => {
   // const [searchInputEmail, setSearchInputEmail] = useState(""); //Email
   // const [searchInputAddress, setSearchInputAddress] = useState(""); //住所
   // 選択中の同席者オブジェクトを保持するstate
-  const [selectedSearchAttendeesArray, setSelectedSearchAttendeesArray] = useState<Contact_row_data[]>([]);
+  const [selectedAttendeesArray, setSelectedAttendeesArray] = useState<Contact_row_data[]>([]);
 
   // const searchAttendeeFields = [
   //   {
@@ -2337,7 +2337,8 @@ export const UpdateMeetingModal = () => {
                     {/* <span className={`${styles.title} !min-w-[140px]`}>同席者</span> */}
                     <div
                       className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
-                      onMouseEnter={(e) =>
+                      onMouseEnter={(e) => {
+                        // if (isOpenSearchAttendeesSideTable) return;
                         handleOpenTooltip({
                           e: e,
                           display: "top",
@@ -2348,8 +2349,8 @@ export const UpdateMeetingModal = () => {
                           // marginTop: 9,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",
-                        })
-                      }
+                        });
+                      }}
                       onMouseLeave={handleCloseTooltip}
                     >
                       <span className={`mr-[8px] `}>同席者</span>
@@ -2711,12 +2712,17 @@ export const UpdateMeetingModal = () => {
 
       {/* 同席者検索サイドテーブル */}
       <ErrorBoundary FallbackComponent={ErrorFallback}>
-        <Suspense fallback={<FallbackSideTableSearchAttendees />}>
+        <Suspense
+          fallback={
+            <FallbackSideTableSearchAttendees isOpenSearchAttendeesSideTable={isOpenSearchAttendeesSideTable} />
+          }
+        >
           <SideTableSearchAttendees
             isOpenSearchAttendeesSideTable={isOpenSearchAttendeesSideTable}
             setIsOpenSearchAttendeesSideTable={setIsOpenSearchAttendeesSideTable}
             // searchAttendeeFields={searchAttendeeFields}
-            selectedSearchAttendeesArray={selectedSearchAttendeesArray}
+            selectedAttendeesArray={selectedAttendeesArray}
+            setSelectedAttendeesArray={setSelectedAttendeesArray}
           />
         </Suspense>
       </ErrorBoundary>
@@ -2825,15 +2831,15 @@ export const UpdateMeetingModal = () => {
                     minHeight="30px"
                     minWidth="78px"
                     fontSize="13px"
-                    textColor={`${selectedSearchAttendeesArray?.length > 0 ? `#fff` : `#666`}`}
-                    bgColor={`${selectedSearchAttendeesArray?.length > 0 ? `var(--color-bg-brand50)` : `#33333390`}`}
-                    bgColorHover={`${selectedSearchAttendeesArray?.length > 0 ? `var(--color-bg-brand)` : `#33333390`}`}
+                    textColor={`${selectedAttendeesArray?.length > 0 ? `#fff` : `#666`}`}
+                    bgColor={`${selectedAttendeesArray?.length > 0 ? `var(--color-bg-brand50)` : `#33333390`}`}
+                    bgColorHover={`${selectedAttendeesArray?.length > 0 ? `var(--color-bg-brand)` : `#33333390`}`}
                     border={`${
-                      selectedSearchAttendeesArray?.length > 0 ? `var(--color-bg-brand)` : `var(--color-bg-brandc0)`
+                      selectedAttendeesArray?.length > 0 ? `var(--color-bg-brand)` : `var(--color-bg-brandc0)`
                     }`}
                     borderRadius="6px"
                     classText={`select-none ${
-                      selectedSearchAttendeesArray?.length > 0 ? `` : `hover:cursor-not-allowed`
+                      selectedAttendeesArray?.length > 0 ? `` : `hover:cursor-not-allowed`
                     }`}
                     clickEventHandler={() => {
                       // setIsOpenSettingInvitationModal(true);

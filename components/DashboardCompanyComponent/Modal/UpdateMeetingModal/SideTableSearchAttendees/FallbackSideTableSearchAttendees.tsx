@@ -8,7 +8,11 @@ import { Contact_row_data } from "@/types";
 import { useMedia } from "react-use";
 import { SkeletonLoadingLineCustom } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineCustom";
 
-export const FallbackSideTableSearchAttendees = ({}) => {
+type Props = {
+  isOpenSearchAttendeesSideTable: boolean;
+};
+
+export const FallbackSideTableSearchAttendees = ({ isOpenSearchAttendeesSideTable }: Props) => {
   const searchAttendeeFields = [
     {
       title: "会社名",
@@ -48,7 +52,11 @@ export const FallbackSideTableSearchAttendees = ({}) => {
         //   onClick={() => setIsOpenSearchAttendeesSideTable(false)}
       ></div>
       {/* サイドテーブル */}
-      <div className={`${styles.side_table} z-[1200] pt-[30px] ${styles.active}`}>
+      <div
+        className={`${styles.side_table} z-[1200] pt-[30px] ${
+          isOpenSearchAttendeesSideTable ? `${styles.active}` : ``
+        }`}
+      >
         {/* タイトルエリア */}
         <div className="flex h-auto w-full flex-col px-[30px] 2xl:px-[30px]">
           <div className={`relative flex h-full w-full items-center justify-between`}>

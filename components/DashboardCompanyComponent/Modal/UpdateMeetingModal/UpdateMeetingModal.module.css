@@ -491,6 +491,16 @@
   min-height: 90px;
   max-height: 90px;
   padding: 12px 0 12px 24px;
+  border-radius: 6px;
+}
+.attendees_list:hover {
+  background-color: var(--color-bg-brand-f30);
+}
+.attendees_list.active {
+  background-color: var(--color-bg-brand-fb0);
+}
+.attendees_list.active:hover {
+  background-color: var(--color-bg-brand-f90);
 }
 .attendees_list_item_Icon {
   min-height: 48px;
@@ -500,4 +510,22 @@
 }
 .attendees_list_item_line {
   /* max-width: 420px; */
+}
+.icon_btn {
+  min-width: 28px;
+  min-height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  background-color: var(--color-bg-brand50);
+  box-shadow: inset 0 0 0 1px var(--color-bg-brand);
+}
+.icon_btn:hover {
+  background-color: var(--color-bg-brand);
+}
+.icon_path_stroke path {
+  /* fill: #fff !important; */
+  /* color: #fff !important; */
+  stroke: #fff;
+  /* stroke: var(--color-bg-brand-f); */
+  /* stop-color: #fff; */
 }
