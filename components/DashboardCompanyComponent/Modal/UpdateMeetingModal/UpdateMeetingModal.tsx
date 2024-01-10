@@ -37,6 +37,8 @@ import { getCompanyInitial } from "@/utils/Helpers/getInitialCompany";
 import { invertFalsyExcludeZero } from "@/utils/Helpers/invertFalsyExcludeZero";
 import { toHalfWidthAndSpace } from "@/utils/Helpers/toHalfWidthAndSpace";
 import { ConfirmationModal } from "../SettingAccountModal/SettingCompany/ConfirmationModal/ConfirmationModal";
+import { SideTableSearchMember } from "./SideTableSearchMember/SideTableSearchMember";
+import { FallbackSideTableSearchMember } from "./SideTableSearchMember/FallbackSideTableSearchMember";
 
 type ModalProperties = {
   left: number;
@@ -300,6 +302,9 @@ export const UpdateMeetingModal = () => {
   const [meetingMemberName, setMeetingMemberName] = useState(
     selectedRowDataMeeting?.meeting_member_name ? selectedRowDataMeeting?.meeting_member_name : ""
   );
+  type NewMemberObj = { newMemberId: string; newMemberName: string } | null;
+  // 🌟自社担当が変更された場合の自社担当idと名前
+  const [changedMemberObj, setChangedMemberObj] = useState<NewMemberObj>(null);
   // 面談年月度
   const [meetingYearMonth, setMeetingYearMonth] = useState<number | null>(Number(meetingYearMonthInitialValue));
   // ユーザーの決算月と締め日を取得
@@ -730,7 +735,7 @@ export const UpdateMeetingModal = () => {
     // 同席者のuuidの配列を生成
     // const attendeeIdsArray = selectedAttendeesArray.map(attendee => attendee.contact_id)
 
-    return console.log("リターン", resultProductsArrayExcludeNull);
+    // return console.log("リターン", resultProductsArrayExcludeNull);
 
     setLoadingGlobalState(true);
 
@@ -747,7 +752,9 @@ export const UpdateMeetingModal = () => {
       created_by_company_id: selectedRowDataMeeting?.meeting_created_by_company_id
         ? selectedRowDataMeeting.meeting_created_by_company_id
         : null,
-      created_by_user_id: selectedRowDataMeeting?.meeting_created_by_user_id
+      created_by_user_id: changedMemberObj
+        ? changedMemberObj.newMemberId
+        : selectedRowDataMeeting?.meeting_created_by_user_id
         ? selectedRowDataMeeting?.meeting_created_by_user_id
         : null,
       created_by_department_of_user: departmentId ? departmentId : null,
@@ -792,7 +799,11 @@ export const UpdateMeetingModal = () => {
       meeting_participation_request: meetingParticipationRequest ? meetingParticipationRequest : null,
       meeting_department: departmentName ? departmentName : null,
       meeting_business_office: officeName ? officeName : null,
-      meeting_member_name: meetingMemberName ? meetingMemberName : null,
+      meeting_member_name: changedMemberObj
+        ? changedMemberObj.newMemberName
+        : meetingMemberName
+        ? meetingMemberName
+        : null,
       meeting_year_month: meetingYearMonth ? meetingYearMonth : null,
     };
 
@@ -1727,8 +1738,9 @@ export const UpdateMeetingModal = () => {
                       onBlur={() => {
                         if (!selectedRowDataMeeting || !selectedRowDataMeeting?.meeting_member_name) return;
                         if (selectedRowDataMeeting.meeting_member_name !== meetingMemberName) {
-                          alert("自社担当名が元のデータと異なります。データの所有者を変更しますか？");
-                          setMeetingMemberName(selectedRowDataMeeting.meeting_member_name);
+                          // alert("自社担当名が元のデータと異なります。データの所有者を変更しますか？");
+                          // setMeetingMemberName(selectedRowDataMeeting.meeting_member_name);
+                          setIsOpenConfirmationModal("change_member");
                           return;
                         }
                         setMeetingMemberName(toHalfWidthAndSpace(meetingMemberName.trim()));
@@ -2887,10 +2899,15 @@ export const UpdateMeetingModal = () => {
       {/* <FallbackSideTableSearchAttendees isOpenSearchAttendeesSideTable={isOpenSearchAttendeesSideTable} /> */}
 
       {/* 「自社担当」変更確認モーダル */}
-      {isOpenConfirmationModal && (
+      {isOpenConfirmationModal === "change_member" && (
         <ConfirmationModal
-          clickEventClose={() => setIsOpenConfirmationModal(null)}
-          titleText="面談データの自社担当を変更してもよろしいですか？"
+          clickEventClose={() => {
+            setMeetingMemberName(selectedRowDataMeeting.meeting_member_name);
+            setIsOpenConfirmationModal(null);
+          }}
+          // titleText="面談データの自社担当を変更してもよろしいですか？"
+          titleText={`自社担当名が元のデータと異なります。`}
+          titleText2={`データの所有者を変更しますか？`}
           sectionP1="自社担当を変更すると面談データの所有者が変更されます。"
           sectionP2="注：データの所有者を変更すると、この面談結果は変更先のメンバーの集計結果に移行され、分析結果が変更されます。"
           cancelText="戻る"
@@ -2901,6 +2918,23 @@ export const UpdateMeetingModal = () => {
           }}
         />
       )}
+
+      {/* 「自社担当」変更サイドテーブル */}
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <Suspense
+          fallback={<FallbackSideTableSearchMember isOpenSearchMemberSideTable={isOpenSearchMemberSideTable} />}
+        >
+          <SideTableSearchMember
+            isOpenSearchMemberSideTable={isOpenSearchMemberSideTable}
+            setIsOpenSearchMemberSideTable={setIsOpenSearchMemberSideTable}
+            currentMemberId={selectedRowDataMeeting?.meeting_created_by_user_id ?? ""}
+            currentMemberName={selectedRowDataMeeting?.meeting_member_name ?? ""}
+            currentMemberDepartmentId={selectedRowDataMeeting?.meeting_created_by_department_of_user ?? null}
+            setChangedMemberObj={setChangedMemberObj}
+            setMeetingMemberName={setMeetingMemberName}
+          />
+        </Suspense>
+      </ErrorBoundary>
 
       {/* <>
         {isOpenSearchAttendeesSideTable && (

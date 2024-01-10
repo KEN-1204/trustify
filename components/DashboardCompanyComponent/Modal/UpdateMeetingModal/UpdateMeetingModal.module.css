@@ -443,6 +443,9 @@
   font-family: sans-serif;
   border-left: 1px solid var(--color-side-table-border);
 }
+.side_table.change_member {
+  z-index: 1300;
+}
 /* .side_table::after {
   content: "";
   position: absolute;

@@ -514,6 +514,7 @@ export type MemberAccounts = {
   account_company_role: string | null;
   account_state: string | null;
   account_invited_email: string | null;
+  // 事業部、係、事業所、社員番号
   assigned_department_id: string | null;
   assigned_department_name: string | null;
   assigned_unit_id: string | null;

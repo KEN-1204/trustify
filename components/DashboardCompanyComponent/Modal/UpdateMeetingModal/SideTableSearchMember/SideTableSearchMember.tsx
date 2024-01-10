@@ -4,11 +4,11 @@ import { Dispatch, FormEvent, SetStateAction, memo, useCallback, useEffect, useR
 import { BsChevronRight } from "react-icons/bs";
 import { MdOutlineDataSaverOff } from "react-icons/md";
 import styles from "../UpdateMeetingModal.module.css";
-import { Contact_row_data } from "@/types";
+import { Contact_row_data, Department, MemberAccounts, Office, Unit } from "@/types";
 import { useMedia } from "react-use";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import useDashboardStore from "@/store/useDashboardStore";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { getInitial } from "@/utils/Helpers/getInitial";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { GrPowerReset } from "react-icons/gr";
@@ -17,37 +17,46 @@ import { TooltipSideTable } from "@/components/Parts/Tooltip/TooltipSideTable";
 import { ImInfo } from "react-icons/im";
 import { toast } from "react-toastify";
 
+type NewMemberObj = { newMemberId: string; newMemberName: string } | null;
+
 type Props = {
-  isOpenSearchAttendeesSideTable: boolean;
-  setIsOpenSearchAttendeesSideTable: Dispatch<SetStateAction<boolean>>;
-  // searchAttendeeFields: {
+  isOpenSearchMemberSideTable: boolean;
+  setIsOpenSearchMemberSideTable: Dispatch<SetStateAction<boolean>>;
+  currentMemberId: string;
+  currentMemberName: string;
+  currentMemberDepartmentId: string | null;
+  setChangedMemberObj: Dispatch<SetStateAction<NewMemberObj>>;
+  setMeetingMemberName: Dispatch<SetStateAction<string>>;
+  // searchMemberInputFields: {
   //   title: string;
   //   inputValue: string;
   //   setInputValue: React.Dispatch<React.SetStateAction<string>>;
   // }[];
-  selectedAttendeesArray: Contact_row_data[];
-  setSelectedAttendeesArray: Dispatch<SetStateAction<Contact_row_data[]>>;
+  // selectedAttendeesArray: Contact_row_data[];
+  // setSelectedAttendeesArray: Dispatch<SetStateAction<Contact_row_data[]>>;
 };
 
-type SearchAttendeesParams = {
-  "client_companies.name": string | null;
-  department_name: string | null;
-  "contacts.name": string | null;
-  position_name: string | null;
-  main_phone_number: string | null;
-  direct_line: string | null;
-  company_cell_phone: string | null;
-  "contacts.email": string | null;
-  address: string | null;
+type SearchMemberParams = {
+  _subscription_id: string | null;
+  _company_id: string | null;
+  _user_name: string | null;
+  _employee_id_name: string | null;
+  _department_id: string | null;
+  _unit_id: string | null;
+  _office_id: string | null;
 };
 
-export const SideTableSearchAttendeesMemo = ({
-  isOpenSearchAttendeesSideTable,
-  setIsOpenSearchAttendeesSideTable,
-  // searchAttendeeFields,
-  selectedAttendeesArray,
-  setSelectedAttendeesArray,
-}: Props) => {
+const SideTableSearchMemberMemo = ({
+  isOpenSearchMemberSideTable,
+  setIsOpenSearchMemberSideTable,
+  currentMemberId,
+  currentMemberName,
+  currentMemberDepartmentId,
+  setChangedMemberObj,
+  setMeetingMemberName,
+}: // selectedAttendeesArray,
+// setSelectedAttendeesArray,
+Props) => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   // メディアクエリState
   // デスクトップモニター
@@ -57,77 +66,69 @@ export const SideTableSearchAttendeesMemo = ({
     setIsDesktopGTE1600(isDesktopGTE1600Media);
   }, [isDesktopGTE1600Media]);
 
+  const queryClient = useQueryClient();
+
+  // ============================ 🌟事業部、係、事業所リスト取得useQuery🌟 ============================
+  const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
+  const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
+  const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
+  // ============================ ✅事業部、係、事業所リスト取得useQuery✅ ============================
+
+  // 初回マウント時フェッチを防ぐ 検索をクリックした時に初めてqueryFnを実行
+  const [isEnableFetch, setIsEnableFetch] = useState(false);
+  // 自社担当の変更先の担当者オブジェクト, profile_nameを自社担当に割り当て、idをcreated_by_user_idに割り当てる
+  const [selectedMemberObj, setSelectedMemberObj] = useState<MemberAccounts | null>(null);
+
   // 同席者検索時のparams
-  const [searchAttendeesParams, setSearchAttendeesParams] = useState<SearchAttendeesParams>({
-    "client_companies.name": null,
-    department_name: null,
-    "contacts.name": null,
-    position_name: null,
-    main_phone_number: null,
-    direct_line: null,
-    company_cell_phone: null,
-    "contacts.email": null,
-    address: null,
+  const [searchMemberParams, setSearchMemberParams] = useState<SearchMemberParams>({
+    _subscription_id: null,
+    _company_id: null,
+    _user_name: null,
+    _employee_id_name: null,
+    _department_id: null,
+    _unit_id: null,
+    _office_id: null,
   });
 
   // 同席者検索フィールド用input
-  const [searchInputCompany, setSearchInputCompany] = useState(""); //会社名
-  const [searchInputDepartment, setSearchInputDepartment] = useState(""); //部署名
-  const [searchInputContact, setSearchInputContact] = useState(""); //担当者名
-  const [searchInputPositionName, setSearchInputPositionName] = useState(""); //役職名
-  const [searchInputTel, setSearchInputTel] = useState(""); //代表TEL
-  const [searchInputDirectLine, setSearchInputDirectLine] = useState(""); //直通TEL
-  const [searchInputCompanyCellPhone, setSearchInputCompanyCellPhone] = useState(""); //社用携帯
-  const [searchInputEmail, setSearchInputEmail] = useState(""); //Email
-  const [searchInputAddress, setSearchInputAddress] = useState(""); //住所
-  // モーダルの同席者カードに追加前のテーブル内で選択中の同席者オブジェクトを保持するstate
-  const [selectedSearchAttendeesArray, setSelectedSearchAttendeesArray] = useState<Contact_row_data[]>([]);
+  const [searchInputMemberName, setSearchInputMemberName] = useState(""); //メンバーの名前
+  const [searchInputEmployeesIdName, setSearchInputEmployeesIdName] = useState(""); //社員番号
+  const [searchSelectedDepartmentId, setSearchSelectedDepartmentId] = useState<Department["id"] | null>(
+    currentMemberDepartmentId
+  ); //事業部id
+  const [searchSelectedUnitId, setSearchSelectedUnitId] = useState<Unit["id"] | null>(null); //係id
+  const [searchSelectedOfficeId, setSearchSelectedOfficeId] = useState<Office["id"] | null>(null); //事業所id
 
-  const searchAttendeeFields = [
+  const searchMemberInputFields = [
     {
-      title: "会社名",
-      inputValue: searchInputCompany,
-      setInputValue: setSearchInputCompany,
+      title: "社員名",
+      inputValue: searchInputMemberName,
+      setInputValue: setSearchInputMemberName,
     },
     {
-      title: "部署名",
-      inputValue: searchInputDepartment,
-      setInputValue: setSearchInputDepartment,
+      title: "社員番号・ID",
+      inputValue: searchInputEmployeesIdName,
+      setInputValue: setSearchInputEmployeesIdName,
+    },
+  ];
+  const searchMemberSelectFields = [
+    {
+      key: "department",
+      title: "事業部",
+      inputValue: searchSelectedDepartmentId,
+      setInputValue: setSearchSelectedDepartmentId,
     },
     {
-      title: "担当者名",
-      inputValue: searchInputContact,
-      setInputValue: setSearchInputContact,
+      key: "unit",
+      title: "係・チーム",
+      inputValue: searchSelectedUnitId,
+      setInputValue: setSearchSelectedUnitId,
     },
     {
-      title: "役職名",
-      inputValue: searchInputPositionName,
-      setInputValue: setSearchInputPositionName,
-    },
-    {
-      title: "代表TEL",
-      inputValue: searchInputTel,
-      setInputValue: setSearchInputTel,
-    },
-    {
-      title: "直通TEL",
-      inputValue: searchInputDirectLine,
-      setInputValue: setSearchInputDirectLine,
-    },
-    {
-      title: "社用携帯",
-      inputValue: searchInputCompanyCellPhone,
-      setInputValue: setSearchInputCompanyCellPhone,
-    },
-    {
-      title: "Email",
-      inputValue: searchInputEmail,
-      setInputValue: setSearchInputEmail,
-    },
-    {
-      title: "住所",
-      inputValue: searchInputAddress,
-      setInputValue: setSearchInputAddress,
+      key: "office",
+      title: "事業所・営業所",
+      inputValue: searchSelectedOfficeId,
+      setInputValue: setSearchSelectedOfficeId,
     },
   ];
 
@@ -147,57 +148,34 @@ export const SideTableSearchAttendeesMemo = ({
 
   // ------------- 🌟検索ボタンクリックかエンターでonSubmitイベント発火🌟 -------------
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    if (!userProfileState) return alert("エラー：ユーザー情報が見つかりませんでした。");
     console.log("🔥onnSubmit発火");
     e.preventDefault();
 
-    // 何も入力せず検索した場合はalertを出す
-    if (
-      [
-        searchInputCompany,
-        searchInputDepartment,
-        searchInputContact,
-        searchInputPositionName,
-        searchInputTel,
-        searchInputDirectLine,
-        searchInputCompanyCellPhone,
-        searchInputEmail,
-        searchInputAddress,
-      ].every((value) => value === "")
-    ) {
-      return alert(
-        "少なくとも一つの項目は条件を入力してください。条件を入力して検索することで効率的に目的の同席者を見つけ出すことができます。"
-      );
-    }
-
     let params = {
-      "client_companies.name": adjustFieldValue(searchInputCompany),
-      department_name: adjustFieldValue(searchInputDepartment),
-      "contacts.name": adjustFieldValue(searchInputContact),
-      position_name: adjustFieldValue(searchInputPositionName),
-      main_phone_number: adjustFieldValue(searchInputTel),
-      direct_line: adjustFieldValue(searchInputDirectLine),
-      company_cell_phone: adjustFieldValue(searchInputCompanyCellPhone),
-      "contacts.email": adjustFieldValue(searchInputEmail),
-      address: adjustFieldValue(searchInputAddress),
+      _subscription_id: userProfileState.subscription_id,
+      _company_id: userProfileState.company_id,
+      _user_name: adjustFieldValue(searchInputMemberName),
+      _employee_id_name: adjustFieldValue(searchInputEmployeesIdName),
+      _department_id: searchSelectedDepartmentId || null,
+      _unit_id: searchSelectedUnitId || null,
+      _office_id: searchSelectedOfficeId || null,
     };
     console.log("✅ 条件 params", params);
 
     // 現在の入力値と同じかチェック
     if (
-      params["client_companies.name"] === searchAttendeesParams["client_companies.name"] &&
-      params.department_name === searchAttendeesParams.department_name &&
-      params["contacts.name"] === searchAttendeesParams["contacts.name"] &&
-      params.position_name === searchAttendeesParams.position_name &&
-      params.main_phone_number === searchAttendeesParams.main_phone_number &&
-      params.direct_line === searchAttendeesParams.direct_line &&
-      params.company_cell_phone === searchAttendeesParams.company_cell_phone &&
-      params["contacts.email"] === searchAttendeesParams["contacts.email"] &&
-      params.address === searchAttendeesParams.address
+      params._user_name === searchMemberParams._user_name &&
+      params._employee_id_name === searchMemberParams._employee_id_name &&
+      params._department_id === searchMemberParams._department_id &&
+      params._unit_id === searchMemberParams._unit_id &&
+      params._office_id === searchMemberParams._office_id
     ) {
       return console.log("✅params同じためリターン");
     }
 
-    setSearchAttendeesParams(params);
+    // paramsの結合した文字列をqueryKeyに渡しているため、検索条件の入力値が変わると（paramsが変わると）useInfiniteQueryのqueryFnが再度実行される
+    setSearchMemberParams(params);
   };
   // ------------- ✅検索ボタンクリックかエンターでonSubmitイベント発火✅ -------------
 
@@ -206,7 +184,7 @@ export const SideTableSearchAttendeesMemo = ({
   fetchNewSearchServerPage = async (
     limit: number,
     offset: number = 0
-  ): Promise<{ rows: Contact_row_data[] | null; nextOffset: number; isLastPage: boolean; count: number | null }> => {
+  ): Promise<{ rows: MemberAccounts[] | null; nextOffset: number; isLastPage: boolean; count: number | null }> => {
     // ローディング開始
     // setIsLoadingQuery(true);
     if (!userProfileState?.company_id) {
@@ -219,11 +197,13 @@ export const SideTableSearchAttendeesMemo = ({
     }
 
     // 条件の値が全てnullなら、つまり何も入力せず検索されるか初回マウント時はnullを返す。
-    if (Object.values(searchAttendeesParams).every((value) => value === null)) {
+    // if (Object.values(searchMemberParams).every((value) => value === null)) {
+    // 社員名と社員番号どちらかは必ず入力 nullか空文字ならrowをnullで返す
+    if (!searchMemberParams._user_name || !searchMemberParams._employee_id_name) {
       let rows: null = null;
       const isLastPage = rows === null;
       let count: null = null;
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      // await new Promise((resolve) => setTimeout(resolve, 500));
 
       return { rows, nextOffset: offset + 1, isLastPage, count };
     }
@@ -231,19 +211,20 @@ export const SideTableSearchAttendeesMemo = ({
     const from = offset * limit;
     const to = from + limit - 1;
 
-    let params = searchAttendeesParams;
+    let params = searchMemberParams;
 
-    // 会社名、部署名で並び替え
+    // 名前、社員番号は入力値をワイルドカードとILIKEで、事業部、係、事業所はidに一致で条件検索
+    // 事業部、名前順に並び替え、activeのみに絞り込み
     const {
       data: rows,
       error,
       count,
     } = await supabase
-      .rpc("search_companies_and_contacts", { params }, { count: "exact" })
-      .eq("created_by_company_id", userProfileState.company_id)
+      // .rpc("get_members_searched_name_employee_id_name", { params }, { count: "exact" })
+      .rpc("get_members_searched_name_employee_id_name", params, { count: "exact" })
       .range(from, to)
-      .order("company_name", { ascending: true })
-      .order("department_name", { ascending: true });
+      .order("assigned_department_name", { ascending: true })
+      .order("profile_name", { ascending: true });
     // .order("contact_created_at", { ascending: false }); // 担当者作成日 更新にすると更新の度に行が入れ替わるため
 
     if (error) throw error;
@@ -265,23 +246,18 @@ export const SideTableSearchAttendeesMemo = ({
 
   // ------------------- 🌟queryKeyの生成🌟 -------------------
   const queryKeySearchParamsStringRef = useRef<string | null>(null);
-  console.log("キャッシュに割り当てるparamsキー searchAttendeesParams", searchAttendeesParams);
-
-  if (searchAttendeesParams) {
-    queryKeySearchParamsStringRef.current = Object.entries(searchAttendeesParams)
-      .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-      .map(([key, value]) => `${key}:${value === null ? `null` : `${value}`}`)
-      .join(", ");
+  console.log("キャッシュに割り当てるparamsキー searchMemberParams", searchMemberParams);
+  if (searchMemberParams) {
+    // queryKeySearchParamsStringRef.current = Object.entries(searchMemberParams)
+    //   .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+    //   .map(([key, value]) => `${key}:${value === null ? `null` : `${value}`}`)
+    //   .join(", ");
     queryKeySearchParamsStringRef.current = [
-      ["client_companies.name", searchAttendeesParams["client_companies.name"]],
-      ["department_name", searchAttendeesParams["department_name"]],
-      ["contacts.name", searchAttendeesParams["contacts.name"]],
-      ["position_name", searchAttendeesParams["position_name"]],
-      ["main_phone_number", searchAttendeesParams["main_phone_number"]],
-      ["direct_line", searchAttendeesParams["direct_line"]],
-      ["company_cell_phone", searchAttendeesParams["company_cell_phone"]],
-      ["contacts.email", searchAttendeesParams["contacts.email"]],
-      ["address", searchAttendeesParams["address"]],
+      ["_user_name", searchMemberParams._user_name],
+      ["_employee_id_name", searchMemberParams._employee_id_name],
+      ["_department_id", searchMemberParams._department_id],
+      ["_unit_id", searchMemberParams._unit_id],
+      ["_office_id", searchMemberParams._office_id],
     ]
       .map(([key, value]) => `${key}:${value === null ? `null` : `${value}`}`)
       .join(", ");
@@ -300,10 +276,10 @@ export const SideTableSearchAttendeesMemo = ({
     hasNextPage,
   } = useInfiniteQuery({
     // queryKey: ["companies"],
-    queryKey: ["attendees", queryKeySearchParamsStringRef.current],
+    queryKey: ["members", queryKeySearchParamsStringRef.current],
     // queryKey: ["contacts"],
     queryFn: async (ctx) => {
-      console.log("サーチフェッチ queryFn✅✅✅ searchAttendeesParams", searchAttendeesParams);
+      console.log("サーチフェッチ queryFn✅✅✅ searchMemberParams", searchMemberParams);
       return fetchNewSearchServerPage(20, ctx.pageParam); // 20個ずつ取得
     },
     getNextPageParam: (lastGroup, allGroups) => {
@@ -311,6 +287,11 @@ export const SideTableSearchAttendeesMemo = ({
       return lastGroup.isLastPage ? undefined : allGroups.length;
     },
     staleTime: Infinity,
+    enabled:
+      isOpenSearchMemberSideTable &&
+      isEnableFetch &&
+      !!userProfileState?.company_id &&
+      !!userProfileState?.subscription_id,
   });
 
   // ------------------- ✅useInfiniteQueryフック✅ -------------------
@@ -326,7 +307,7 @@ export const SideTableSearchAttendeesMemo = ({
     queryDataObj &&
     (
       queryDataObj?.pages[0] as {
-        rows: Contact_row_data[] | null;
+        rows: MemberAccounts[] | null;
         nextOffset: number;
         isLastPage: boolean;
         count: number | null;
@@ -334,7 +315,7 @@ export const SideTableSearchAttendeesMemo = ({
     )?.rows
       ? queryDataObj.pages.flatMap((d) => d?.rows)
       : [];
-  const attendeeRows = Rows.map((obj, index) => {
+  const memberRows = Rows.map((obj, index) => {
     return { index, ...obj };
   });
   const queryCount = queryDataObj?.pages[0].count; // 0: {rows: Array(9), nextOffset: 1, isLastPage: true, count: 9}
@@ -349,58 +330,53 @@ export const SideTableSearchAttendeesMemo = ({
     isLastPage,
     "hasNextPage",
     hasNextPage,
-    "attendeeRows",
-    attendeeRows,
-    "selectedSearchAttendeesArray",
-    selectedSearchAttendeesArray,
-    "searchAttendeesParams",
-    searchAttendeesParams,
-    "selectedAttendeesArray",
-    selectedAttendeesArray
+    "memberRows",
+    memberRows,
+    "searchMemberParams",
+    searchMemberParams
   );
   // -------------------------- ✅useInfiniteQuery無限スクロール✅ --------------------------
 
-  // -------------------------- 🌟追加ボタンをクリック 同席者リストに追加🌟 --------------------------
-  const handleAddAttendeesList = () => {
-    if (!selectedSearchAttendeesArray || selectedSearchAttendeesArray.length === 0) return;
-    // 既に同席者リストに選択中のリストが含まれているかチェックして含まれている場合はリターンする
-    // 配列同士の配列内のオブジェクトで一致するオブジェクトがあるかをチェックするために
-    // new Setオブジェクトとhasメソッドのハッシュテーブルでのチェック
-    // 1. 選択中担当者リストから担当者idのみを取り出した配列をnew SetでSetオブジェクトを生成
-    const selectedSearchAttendeesSetObj = new Set(selectedSearchAttendeesArray.map((attendee) => attendee.contact_id));
-    // 2. 同席者リストをsomeで一つずつ担当者オブジェクトを取り出し、obj.idがハッシュテーブルに含まれているかチェック
-    const foundAttendee = selectedAttendeesArray.find((attendee) =>
-      selectedSearchAttendeesSetObj.has(attendee.contact_id)
-    );
-    // 3. 既に選択してる担当者が一人でも同席者リストに存在する場合アラートを出してリターン(undefined以外ならリターン)
-    if (foundAttendee) {
-      alert(
-        `${
-          foundAttendee.company_name && foundAttendee.contact_name
-            ? `「${foundAttendee.company_name} ${foundAttendee.contact_name} 様」は既に同席者リストに含まれています。既に同席者リストに含まれている担当者は追加できません。`
-            : `既に同席者リストに含まれています。既に同席者リストに含まれている担当者は追加できません。`
-        }`
-      );
+  // -------------------------- 🌟変更ボタンをクリック🌟 --------------------------
+  const handleAddSelectedMember = () => {
+    if (!selectedMemberObj) return;
+    if (!selectedMemberObj.id) return alert("エラー：メンバーデータが見つかりませんでした。");
+    if (!selectedMemberObj.profile_name) return alert("エラー：メンバー名が見つかりませんでした。");
+    // 現在の自社担当と同じidの場合はリターンする idはprofiles.id
+    const isEqualMember = selectedMemberObj.id === currentMemberId;
+    if (isEqualMember) {
+      alert(`同じ担当者です。変更が不要な場合は戻ってください。`);
       return;
     } else {
       // 同席者リストに一人も含まれていない場合はリストに追加
-      const newAttendeesList = [...selectedAttendeesArray, ...selectedSearchAttendeesArray];
-      // 同席者リストの追加は20人までに一旦区切る
-      // if (newAttendeesList.length >= 20 && userProfileState?.subscription_plan !== 'premium_plan') {
-      //   return toast.error(`20人以上の同席者リストへの追加はプレミアムプラン未満では制限されています。`)
-      // }
-      if (newAttendeesList.length >= 20) {
-        return toast.error(
-          `20人以上の同席者リストへの追加は現在制限されています。制限の解除が必要な場合はサポートからご要望をお願い致します。`
-        );
-      }
-      setSelectedAttendeesArray(newAttendeesList);
+      const newMemberObj: NewMemberObj = {
+        newMemberId: selectedMemberObj.id,
+        newMemberName: selectedMemberObj.profile_name,
+      };
 
-      // 追加が完了したら選択中のリスト配列をリセットする
-      setSelectedSearchAttendeesArray([]);
+      // 初回変更ボタンクリックのみ isEnableFetchをtrueにして初めてフェッチを走らせる
+      if (!isEnableFetch) setIsEnableFetch(true);
+
+      // 変更後のメンバーstateに追加
+      setChangedMemberObj(newMemberObj);
+
+      // 変更確定確認モーダルを開く
+      // setIsChangeConfirmationModal(true)
+
+      // サイドテーブルを閉じる
+      setIsOpenSearchMemberSideTable(false);
+
+      // 変更が完了したら選択中のメンバーをリセット
+      setSelectedMemberObj(null);
     }
   };
-  // -------------------------- 🌟追加ボタンをクリック 同席者リストに追加🌟 --------------------------
+  // -------------------------- ✅変更ボタンをクリック✅ --------------------------
+
+  // -------------------------- 🌟変更確定ボタンをクリック🌟 --------------------------
+  // const handleConfirmChangeMember = () => {
+
+  // }
+  // -------------------------- ✅変更確定ボタンをクリック✅ --------------------------
 
   // -------------------------- 🌟スクロールでヘッダー色変更🌟 --------------------------
   // サイドテーブルの同席者一覧エリアのスクロールアイテムRef
@@ -515,18 +491,21 @@ export const SideTableSearchAttendeesMemo = ({
   return (
     <>
       {/* オーバーレイ */}
-      {isOpenSearchAttendeesSideTable && (
+      {isOpenSearchMemberSideTable && (
         <div
           // className={`absolute left-0 top-0 z-[1100] h-full w-full bg-[#00800030]`}
           className={`absolute left-0 top-0 z-[1100] h-full w-full bg-[#00000000]`}
-          onClick={() => setIsOpenSearchAttendeesSideTable(false)}
+          onClick={() => {
+            setMeetingMemberName(currentMemberName);
+            setIsOpenSearchMemberSideTable(false);
+          }}
         ></div>
       )}
       {/* サイドテーブル */}
       <div
         ref={modalContainerRef}
-        className={`${styles.side_table} z-[1200] pt-[30px] ${
-          isOpenSearchAttendeesSideTable
+        className={`${styles.side_table} ${styles.change_member} z-[1200] pt-[30px] ${
+          isOpenSearchMemberSideTable
             ? `${styles.active} transition-transform02 !delay-[0.1s]`
             : `transition-transform01`
         }`}
@@ -538,7 +517,7 @@ export const SideTableSearchAttendeesMemo = ({
           <div className={`relative flex h-full w-full items-center justify-between`}>
             <h3 className="space-y-[1px] text-[22px] font-bold">
               <div className={`flex items-start space-x-[9px]`}>
-                <span>同席者を検索</span>
+                <span>メンバー検索</span>
                 <span>{neonSearchIcon("30")}</span>
               </div>
               <div className="min-h-[1px] w-full bg-[var(--color-bg-brand-f)]"></div>
@@ -547,7 +526,10 @@ export const SideTableSearchAttendeesMemo = ({
             <div
               // className={`flex-center h-[36px] w-[36px] cursor-pointer rounded-full hover:bg-[#666]`}
               className={`z-1 flex-center absolute right-[-10px] top-[50%]  h-[36px] w-[36px] translate-y-[-50%] cursor-pointer rounded-full hover:bg-[#666]`}
-              onClick={() => setIsOpenSearchAttendeesSideTable(false)}
+              onClick={() => {
+                setMeetingMemberName(currentMemberName);
+                setIsOpenSearchMemberSideTable(false);
+              }}
             >
               {/* <BsChevronRight className="z-1 absolute left-[-15px] top-[50%] translate-y-[-50%] text-[24px]" /> */}
               <BsChevronRight className="text-[24px]" />
@@ -587,7 +569,7 @@ export const SideTableSearchAttendeesMemo = ({
                   }
                   onMouseLeave={handleCloseTooltip}
                 >
-                  <span>条件を入力して同席者を検索</span>
+                  <span>条件を入力してメンバーを検索</span>
                   {/* <div className="min-h-[1px] w-auto bg-[#999]"></div> */}
                   {/* <RippleButton
                     title={`検索`}
@@ -603,16 +585,12 @@ export const SideTableSearchAttendeesMemo = ({
                   </div>
                 </div>
                 {[
-                  searchInputCompany,
-                  searchInputDepartment,
-                  searchInputContact,
-                  searchInputPositionName,
-                  searchInputTel,
-                  searchInputDirectLine,
-                  searchInputCompanyCellPhone,
-                  searchInputEmail,
-                  searchInputAddress,
-                ].some((value) => value !== "") && (
+                  searchInputMemberName,
+                  searchInputEmployeesIdName,
+                  searchSelectedDepartmentId,
+                  searchSelectedUnitId,
+                  searchSelectedOfficeId,
+                ].some((value) => value !== "" || value !== null) && (
                   <div
                     className={`${styles.icon_path_stroke} ${styles.search_icon_btn} flex-center transition-bg03`}
                     onMouseEnter={(e) => {
@@ -644,15 +622,11 @@ export const SideTableSearchAttendeesMemo = ({
                       //   [searchInputEmail, setSearchInputEmail],
                       //   [searchInputAddress, setSearchInputAddress],
                       // ].forEach(([state, setDispatch]) => !!state && setDispatch(""));
-                      if (searchInputCompany) setSearchInputCompany("");
-                      if (searchInputDepartment) setSearchInputDepartment("");
-                      if (searchInputContact) setSearchInputContact("");
-                      if (searchInputPositionName) setSearchInputPositionName("");
-                      if (searchInputTel) setSearchInputTel("");
-                      if (searchInputDirectLine) setSearchInputDirectLine("");
-                      if (searchInputCompanyCellPhone) setSearchInputCompanyCellPhone("");
-                      if (searchInputEmail) setSearchInputEmail("");
-                      if (searchInputAddress) setSearchInputAddress("");
+                      if (searchInputMemberName) setSearchInputMemberName("");
+                      if (searchInputEmployeesIdName) setSearchInputEmployeesIdName("");
+                      if (searchSelectedDepartmentId) setSearchSelectedDepartmentId(null);
+                      if (searchSelectedUnitId) setSearchSelectedUnitId(null);
+                      if (searchSelectedOfficeId) setSearchSelectedOfficeId(null);
 
                       if (hoveredItemPosSideTable) handleCloseTooltip();
                     }}
@@ -684,7 +658,7 @@ export const SideTableSearchAttendeesMemo = ({
                 <li className="px-[30px]"></li>
               </ul> */}
             <ul className={`mt-[20px] flex flex-col text-[13px] text-[var(--color-text-title)]`}>
-              {searchAttendeeFields.map((item, index) => (
+              {searchMemberInputFields.map((item, index) => (
                 <li
                   key={item.title + index.toString()}
                   className={`relative flex h-[56px] w-full min-w-max items-center justify-between px-[30px] py-[6px] text-[#fff] ${styles.side_table_search_list}`}
@@ -704,6 +678,51 @@ export const SideTableSearchAttendeesMemo = ({
                     onChange={(e) => item.setInputValue(e.target.value)}
                     onBlur={() => !item.inputValue && item.setInputValue(item.inputValue.trim())}
                   />
+                </li>
+              ))}
+              {searchMemberSelectFields.map((item, index) => (
+                <li
+                  key={item.title + index.toString()}
+                  className={`relative flex h-[56px] w-full min-w-max items-center justify-between px-[30px] py-[6px] text-[#fff] ${styles.side_table_search_list}`}
+                >
+                  <div className={`${styles.list_title_area} flex min-w-[120px] items-center`}>
+                    <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
+                    <div className="flex select-none items-center space-x-[2px]">
+                      <span className={`${styles.list_title}`}>{item.title}</span>
+                      <span className={``}>：</span>
+                    </div>
+                  </div>
+                  <select
+                    className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                    value={item.inputValue ? item.inputValue : ""}
+                    onChange={(e) => item.setInputValue(e.target.value)}
+                  >
+                    <option value=""></option>
+                    {item.key === "department" &&
+                      departmentDataArray &&
+                      departmentDataArray.length >= 1 &&
+                      departmentDataArray.map((department) => (
+                        <option key={department.id} value={department.id}>
+                          {department.department_name}
+                        </option>
+                      ))}
+                    {item.key === "unit" &&
+                      unitDataArray &&
+                      unitDataArray.length >= 1 &&
+                      unitDataArray.map((unit) => (
+                        <option key={unit.id} value={unit.id}>
+                          {unit.unit_name}
+                        </option>
+                      ))}
+                    {item.key === "office" &&
+                      officeDataArray &&
+                      officeDataArray.length >= 1 &&
+                      officeDataArray.map((office) => (
+                        <option key={office.id} value={office.id}>
+                          {office.office_name}
+                        </option>
+                      ))}
+                  </select>
                 </li>
               ))}
             </ul>
@@ -734,13 +753,13 @@ export const SideTableSearchAttendeesMemo = ({
               // className={`sticky top-0 flex min-h-[30px] items-end justify-between bg-[var(--color-bg-brand-f-deep)] px-[30px] pb-[12px] pt-[12px]`}
             >
               <h3 className="flex min-h-[30px] max-w-max items-center space-x-[10px] space-y-[1px] text-[14px] font-bold">
-                <span>同席者を選択して追加</span>
+                <span>メンバーを選択してデータの所有者を変更</span>
                 {/* <div className="min-h-[1px] w-auto bg-[#999]"></div> */}
-                {selectedSearchAttendeesArray.length > 0 && (
+                {!!selectedMemberObj && (
                   <>
-                    <span className={`text-[11px] font-normal text-[#fff]`}>
+                    {/* <span className={`text-[11px] font-normal text-[#fff]`}>
                       {selectedSearchAttendeesArray.length}件選択中
-                    </span>
+                    </span> */}
                     <div
                       className={`${styles.icon_path_stroke} ${styles.icon_btn} flex-center transition-bg03`}
                       onMouseEnter={(e) => {
@@ -748,7 +767,7 @@ export const SideTableSearchAttendeesMemo = ({
                         handleOpenTooltip({
                           e: e,
                           display: "top",
-                          content: "選択中の同席者をリセット",
+                          content: "選択中のメンバーをリセット",
                           // content2: "フィルターの切り替えが可能です。",
                           // marginTop: 57,
                           // marginTop: 38,
@@ -761,7 +780,7 @@ export const SideTableSearchAttendeesMemo = ({
                         if (hoveredItemPosSideTable) handleCloseTooltip();
                       }}
                       onClick={() => {
-                        setSelectedSearchAttendeesArray([]);
+                        setSelectedMemberObj(null);
                         if (hoveredItemPosSideTable) handleCloseTooltip();
                       }}
                     >
@@ -772,23 +791,19 @@ export const SideTableSearchAttendeesMemo = ({
               </h3>
               <div className="flex">
                 <RippleButton
-                  title={`追加`}
+                  title={`変更`}
                   minHeight="30px"
                   minWidth="78px"
                   fontSize="13px"
-                  textColor={`${selectedSearchAttendeesArray?.length > 0 ? `#fff` : `#666`}`}
-                  bgColor={`${selectedSearchAttendeesArray?.length > 0 ? `var(--color-bg-brand50)` : `#33333390`}`}
-                  bgColorHover={`${selectedSearchAttendeesArray?.length > 0 ? `var(--color-bg-brand)` : `#33333390`}`}
-                  border={`${
-                    selectedSearchAttendeesArray?.length > 0 ? `var(--color-bg-brand)` : `var(--color-bg-brandc0)`
-                  }`}
+                  textColor={`${!!selectedMemberObj ? `#fff` : `#666`}`}
+                  bgColor={`${!!selectedMemberObj ? `var(--color-bg-brand50)` : `#33333390`}`}
+                  bgColorHover={`${!!selectedMemberObj ? `var(--color-bg-brand)` : `#33333390`}`}
+                  border={`${!!selectedMemberObj ? `var(--color-bg-brand)` : `var(--color-bg-brandc0)`}`}
                   borderRadius="6px"
-                  classText={`select-none ${
-                    selectedSearchAttendeesArray?.length > 0 ? `` : `hover:cursor-not-allowed`
-                  }`}
+                  classText={`select-none ${!!selectedMemberObj ? `` : `hover:cursor-not-allowed`}`}
                   clickEventHandler={() => {
                     // setIsOpenSettingInvitationModal(true);
-                    handleAddAttendeesList();
+                    handleAddSelectedMember();
                     handleCloseTooltip();
                   }}
                   onMouseEnterHandler={(e: React.MouseEvent<HTMLElement, MouseEvent>) => {
@@ -796,7 +811,7 @@ export const SideTableSearchAttendeesMemo = ({
                     handleOpenTooltip({
                       e: e,
                       display: "top",
-                      content: "担当者を選択して同席者リストに追加する",
+                      content: "担当者を選択してメンバーを変更する",
                       // content2: "フィルターの切り替えが可能です。",
                       // marginTop: 57,
                       // marginTop: 38,
@@ -814,24 +829,24 @@ export const SideTableSearchAttendeesMemo = ({
             {/* 担当者一覧エリア */}
             <ul className={`flex h-auto w-full flex-col space-y-[12px]`}>
               {/* Rowsが存在する場合 */}
-              {attendeeRows &&
-                attendeeRows.length > 0 &&
-                attendeeRows.map((attendee: Contact_row_data, index) => (
+              {memberRows &&
+                memberRows.length > 0 &&
+                memberRows.map((member: MemberAccounts, index) => (
                   <li
-                    key={attendee.contact_id}
+                    key={member.id}
                     // onMouseEnter={(e) => {
                     //   handleOpenTooltip({
                     //     e: e,
                     //     display: "top",
-                    //     content: `${attendee.company_name ? `${attendee.company_name} / ` : ``}${
-                    //       attendee.contact_name ? `${attendee.contact_name} / ` : ``
-                    //     }${attendee.department_name ? `${attendee.department_name} / ` : ``}${
-                    //       attendee.position_name ? `${attendee.position_name}` : ``
+                    //     content: `${member.company_name ? `${member.company_name} / ` : ``}${
+                    //       member.contact_name ? `${member.contact_name} / ` : ``
+                    //     }${member.department_name ? `${member.department_name} / ` : ``}${
+                    //       member.position_name ? `${member.position_name}` : ``
                     //     }`,
-                    //     content2: `${attendee.address ? `住所: ${attendee.address} / ` : ``}${
-                    //       attendee.main_phone_number ? `代表TEL: ${attendee.main_phone_number} / ` : ``
-                    //     }${attendee.direct_line ? `直通TEL: ${attendee.direct_line} / ` : ``}${
-                    //       attendee.contact_email ? `担当者Email: ${attendee.contact_email}` : ``
+                    //     content2: `${member.address ? `住所: ${member.address} / ` : ``}${
+                    //       member.main_phone_number ? `代表TEL: ${member.main_phone_number} / ` : ``
+                    //     }${member.direct_line ? `直通TEL: ${member.direct_line} / ` : ``}${
+                    //       member.contact_email ? `担当者Email: ${member.contact_email}` : ``
                     //     }`,
                     //     // marginTop: 57,
                     //     // marginTop: 38,
@@ -844,26 +859,18 @@ export const SideTableSearchAttendeesMemo = ({
                     // onMouseLeave={() => {
                     //   if (hoveredItemPosSideTable) handleCloseTooltip();
                     // }}
-                    className={`${
-                      styles.attendees_list
-                    } flex min-h-[44px] w-full cursor-pointer items-center truncate ${
-                      selectedSearchAttendeesArray.some((obj) => obj.contact_id === attendee.contact_id)
-                        ? styles.active
-                        : ``
+                    className={`${styles.members_list} flex min-h-[44px] w-full cursor-pointer items-center truncate ${
+                      selectedMemberObj && selectedMemberObj.id === member.id ? styles.active : ``
                     }`}
                     onClick={() => {
                       // 存在の確認のみなので、findではなくsome
-                      if (selectedSearchAttendeesArray.some((obj) => obj.contact_id === attendee.contact_id)) {
-                        // 既に配列に存在している場合は取り除く
-                        const filteredAttendees = selectedSearchAttendeesArray.filter(
-                          (obj) => obj.contact_id !== attendee.contact_id
-                        );
-                        setSelectedSearchAttendeesArray(filteredAttendees);
+                      if (selectedMemberObj && selectedMemberObj.id === member.id) {
+                        // 既に選択している場合はリセット
+                        setSelectedMemberObj(null);
                         return;
                       } else {
-                        // 存在しない場合は配列に入れる スプレッドで不変性を保つ
-                        const newAttendees = [...selectedSearchAttendeesArray, attendee];
-                        setSelectedSearchAttendeesArray(newAttendees);
+                        // 存在しない場合は新たに選択中に追加する
+                        setSelectedMemberObj(member);
                       }
                     }}
                   >
@@ -877,7 +884,7 @@ export const SideTableSearchAttendeesMemo = ({
                           {getInitial(member.profile_name ? member.profile_name : "")}
                         </span> */}
                       <span className={`text-[20px]`}>
-                        {getInitial(attendee.contact_name ? attendee.contact_name : "N")}
+                        {getInitial(member.profile_name ? member.profile_name : "N")}
                       </span>
                     </div>
                     <div
@@ -885,43 +892,44 @@ export const SideTableSearchAttendeesMemo = ({
                     >
                       {/* 会社・部署 */}
                       <div className={`${styles.attendees_list_item_line} flex text-[13px]`}>
-                        {attendee.company_name && <span className="mr-[4px]">{attendee.company_name}</span>}
+                        {member.profile_name && <span className="mr-[4px]">{member.profile_name}</span>}
                         {/* <span>{attendee.department_name ?? ""}</span> */}
                       </div>
                       {/* <div className={`text-[var(--color-text-sub)]`}>{member.email ? member.email : ""}</div> */}
                       {/* 役職・名前 */}
                       <div className={`${styles.attendees_list_item_line} flex`}>
-                        {attendee.contact_name && (
+                        {/* {member.profile_name && (
                           <>
-                            <span className="mr-[12px]">{attendee.contact_name}</span>
-                            {/* {attendee.department_name && <span className="mr-[10px]">/</span>} */}
+                            <span className="mr-[12px]">{member.profile_name}</span>
+                          </>
+                        )} */}
+                        {member.assigned_department_name && (
+                          <>
+                            <span className="mr-[12px]">{member.assigned_department_name}</span>
+                            {/* {member.position_name && <span className="mr-[10px]">/</span>} */}
                           </>
                         )}
-                        {attendee.department_name && (
-                          <>
-                            <span className="mr-[12px]">{attendee.department_name}</span>
-                            {/* {attendee.position_name && <span className="mr-[10px]">/</span>} */}
-                          </>
-                        )}
-                        {attendee.position_name && <span className="mr-[10px]">{attendee.position_name}</span>}
+                        {member.assigned_unit_name && <span className="mr-[10px]">{member.assigned_unit_name}</span>}
                       </div>
                       {/* 住所・Email・1600以上で直通TEL */}
                       <div className={`${styles.attendees_list_item_line} flex`}>
-                        {attendee.address && (
+                        {/* {attendee.address && (
                           <>
                             <span className="mr-[10px] text-[#ccc]">{attendee.address}</span>
                             {((isDesktopGTE1600 && attendee.direct_line) || attendee.contact_email) && (
                               <span className="mr-[10px]">/</span>
                             )}
                           </>
-                        )}
-                        {isDesktopGTE1600 && attendee.direct_line && (
+                        )} */}
+                        {isDesktopGTE1600 && member.assigned_office_name && (
                           <>
-                            <span className="mr-[10px] text-[#ccc]">{attendee.direct_line}</span>
-                            {attendee.contact_email && <span className="mr-[10px]">/</span>}
+                            <span className="mr-[10px] text-[#ccc]">{member.assigned_office_name}</span>
+                            {member.assigned_employee_id_name && <span className="mr-[10px]">/</span>}
                           </>
                         )}
-                        {attendee.contact_email && <div className={`text-[#ccc]`}>{attendee.contact_email}</div>}
+                        {member.assigned_employee_id_name && (
+                          <div className={`text-[#ccc]`}>{member.assigned_employee_id_name}</div>
+                        )}
                       </div>
                     </div>
                   </li>
@@ -930,7 +938,7 @@ export const SideTableSearchAttendeesMemo = ({
               {/* 初回マウント時ではなく検索結果で行が0の場合 countがnullではなく0の場合 data.pages[0].row  */}
               {queryCount === 0 && (
                 <div className={`flex-center h-full min-h-[100px] w-full bg-[#ffffff00] text-[13px] text-[#fff]`}>
-                  <span>該当する担当者は見つかりませんでした。</span>
+                  <span>該当するメンバーは見つかりませんでした。</span>
                 </div>
               )}
               {/* 条件検索結果が1件も無い場合 */}
@@ -1019,4 +1027,4 @@ export const SideTableSearchAttendeesMemo = ({
   );
 };
 
-export const SideTableSearchAttendees = memo(SideTableSearchAttendeesMemo);
+export const SideTableSearchMember = memo(SideTableSearchMemberMemo);

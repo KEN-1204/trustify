@@ -6,22 +6,26 @@ type Props = {
   clickEventClose: () => void;
   isLoadingState?: boolean;
   titleText?: string;
+  titleText2?: string;
   sectionP1?: string;
   sectionP2?: string;
   cancelText: string;
   submitText: string;
   clickEventSubmit: () => void;
+  buttonColor?: "brand" | "red" | "green";
 };
 
 export const ConfirmationModal: FC<Props> = ({
   clickEventClose,
   isLoadingState,
   titleText,
+  titleText2,
   sectionP1,
   sectionP2,
   cancelText = "戻る",
   submitText = "削除する",
   clickEventSubmit,
+  buttonColor = "red",
 }) => {
   return (
     <>
@@ -33,7 +37,10 @@ export const ConfirmationModal: FC<Props> = ({
         // }}
         onClick={clickEventClose}
       ></div>
-      <div className="fade02 fixed left-[50%] top-[50%] z-[2000] h-auto max-h-[300px] w-[40vw] max-w-[580px] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)] ">
+      <div
+        // className="fade02 fixed left-[50%] top-[50%] z-[2000] h-auto max-h-[300px] w-[40vw] max-w-[580px] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)] "
+        className="fade02 fixed left-[50%] top-[50%] z-[2000] h-auto max-h-max w-[40vw] max-w-[580px] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)] "
+      >
         {isLoadingState && (
           <div className={`flex-center absolute left-0 top-0 z-[3000] h-[100%] w-[100%] rounded-[8px] bg-[#00000090]`}>
             <SpinnerIDS scale={"scale-[0.5]"} />
@@ -50,6 +57,7 @@ export const ConfirmationModal: FC<Props> = ({
           <MdClose className="text-[20px] text-[#fff]" />
         </button>
         <h3 className={`flex min-h-[32px] w-full items-center text-[22px] font-bold`}>{titleText}</h3>
+        {titleText2 && <h3 className={`flex min-h-[32px] w-full items-center text-[22px] font-bold`}>{titleText2}</h3>}
         {sectionP1 && (
           <section className={`mt-[20px] flex h-auto w-full flex-col space-y-2 text-[14px]`}>
             {/* <p>この操作を実行した後にキャンセルすることはできません。</p> */}
@@ -72,7 +80,9 @@ export const ConfirmationModal: FC<Props> = ({
               {cancelText}
             </button>
             <button
-              className="transition-bg02 w-[50%] cursor-pointer rounded-[8px] bg-[var(--color-red-tk)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff] hover:bg-[var(--color-red-tk-hover)]"
+              className={`transition-bg02 w-[50%] cursor-pointer rounded-[8px] px-[15px] py-[10px] text-[14px] font-bold text-[#fff]  ${
+                buttonColor === "red" && `bg-[var(--color-red-tk)] hover:bg-[var(--color-red-tk-hover)]`
+              } ${buttonColor === "brand" && `bg-[var(--color-bg-brand-f)] hover:bg-[var(--color-bg-brand-f-hover)]`}`}
               // onClick={loadPortal}
               onClick={clickEventSubmit}
             >
