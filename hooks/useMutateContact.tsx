@@ -99,7 +99,7 @@ export const useMutateContact = () => {
 
   // 【Contact一括編集UPDATE用updateContactMutation関数】
   const updateContactMutation = useMutation(
-    async (newContact: EditedContact) => {
+    async (newContact: Omit<EditedContact, "created_at" | "updated_at">) => {
       // setLoadingGlobalState(true);
       const { error } = await supabase.from("contacts").update(newContact).eq("id", newContact.id);
       if (error) throw new Error(error.message);

@@ -16,7 +16,7 @@ import { ImInfo } from "react-icons/im";
 import useStore from "@/store";
 import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
 import { AiOutlinePlus, AiOutlineQuestionCircle } from "react-icons/ai";
-import { Contact_row_data, Department, Office, Product, Unit } from "@/types";
+import { AttendeeInfo, Contact_row_data, Department, IntroducedProductsName, Office, Product, Unit } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useQueryProducts } from "@/hooks/useQueryProducts";
 import { DropDownMenuFilterProducts } from "../SettingAccountModal/SettingMemberAccounts/DropdownMenuFilterProducts/DropdownMenuFilterProducts";
@@ -39,6 +39,7 @@ import { toHalfWidthAndSpace } from "@/utils/Helpers/toHalfWidthAndSpace";
 import { ConfirmationModal } from "../SettingAccountModal/SettingCompany/ConfirmationModal/ConfirmationModal";
 import { SideTableSearchMember } from "./SideTableSearchMember/SideTableSearchMember";
 import { FallbackSideTableSearchMember } from "./SideTableSearchMember/FallbackSideTableSearchMember";
+import { getPositionClassName, optionsPositionsClass } from "@/utils/selectOptions";
 
 type ModalProperties = {
   left: number;
@@ -266,6 +267,7 @@ export const UpdateMeetingModal = () => {
   const [resultCategory, setResultCategory] = useState("");
   const [resultSummary, setResultSummary] = useState("");
   const [resultNegotiateDecisionMaker, setResultNegotiateDecisionMaker] = useState("");
+  const [resultTopPositionClass, setResultTopPositionClass] = useState("1 代表者");
   const [preMeetingParticipationRequest, setPreMeetingParticipationRequest] = useState("");
   const [meetingParticipationRequest, setMeetingParticipationRequest] = useState("");
   // 事業部
@@ -319,11 +321,24 @@ export const UpdateMeetingModal = () => {
   // 面談年月度
   const [meetingYearMonth, setMeetingYearMonth] = useState<number | null>(Number(meetingYearMonthInitialValue));
   // 実施商品リスト配列
-  const [resultPresentationProductsArray, setResultPresentationProductsArray] = useState<(string | null)[]>(
-    Array(2).fill(null)
+  const [resultPresentationProductsArray, setResultPresentationProductsArray] = useState<
+    (IntroducedProductsName | null)[]
+  >(
+    !!selectedRowDataMeeting?.introduced_products_names?.length
+      ? selectedRowDataMeeting.introduced_products_names
+      : Array(2).fill(null)
   );
+  // const [resultPresentationProductsArray, setResultPresentationProductsArray] = useState<(string | null)[]>(
+  //   !!selectedRowDataMeeting?.introduced_products_names?.length
+  //     ? selectedRowDataMeeting.introduced_products_names.map((product) => product.introduced_product_id)
+  //     : Array(2).fill(null)
+  // );
   // 選択中の同席者オブジェクトを保持する配列
-  const [selectedAttendeesArray, setSelectedAttendeesArray] = useState<Contact_row_data[]>([]);
+  // const [selectedAttendeesArray, setSelectedAttendeesArray] = useState<Contact_row_data[]>([]);
+  // const [selectedAttendeesArray, setSelectedAttendeesArray] = useState<AttendeeInfo[]>([]);
+  const [selectedAttendeesArray, setSelectedAttendeesArray] = useState<AttendeeInfo[]>(
+    selectedRowDataMeeting?.attendees_info ? selectedRowDataMeeting?.attendees_info : []
+  );
 
   // ユーザーの決算月と締め日を取得
   const fiscalEndMonthObjRef = useRef<Date | null>(null);
@@ -335,7 +350,13 @@ export const UpdateMeetingModal = () => {
   // 「実施商品を追加」ボタンを押下した場合の処理 selectボックスを2つ(１行)増やす
   // 行はresultProductRowsのstateで管理し、これをmapで展開し、実際のidを保持はresultPresentationProductsArrayで行う
   const [overstate, setOverState] = useState(false);
-  const [resultProductRows, setResultProductRows] = useState(Array(1).fill(null));
+  // const [resultProductRows, setResultProductRows] = useState(Array(1).fill(null));
+  const [resultProductRows, setResultProductRows] = useState(
+    !!selectedRowDataMeeting?.introduced_products_names?.length
+      ? Array(Math.ceil(selectedRowDataMeeting.introduced_products_names.length / 2)).fill(null)
+      : Array(1).fill(null)
+  );
+
   const addMoreResultProductRow = () => {
     if (resultPresentationProductsArray.length >= 20) {
       setOverState(true);
@@ -351,11 +372,11 @@ export const UpdateMeetingModal = () => {
   };
 
   // 実施商品グループの各商品idが変更されたときに実行する関数
-  const handleChangeSelectProductId = (index: number, e: ChangeEvent<HTMLSelectElement>) => {
-    const newResultPresentationProducts = [...resultPresentationProductsArray];
-    newResultPresentationProducts[index] = e.target.value;
-    setResultPresentationProductsArray(newResultPresentationProducts);
-  };
+  // const handleChangeSelectProductId = (index: number, e: ChangeEvent<HTMLSelectElement>) => {
+  //   const newResultPresentationProducts = [...resultPresentationProductsArray];
+  //   newResultPresentationProducts[index] = e.target.value;
+  //   setResultPresentationProductsArray(newResultPresentationProducts);
+  // };
 
   // ============================ 🌟事業部、係、事業所リスト取得useQuery🌟 ============================
   const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
@@ -543,6 +564,9 @@ export const UpdateMeetingModal = () => {
     let _result_negotiate_decision_maker = selectedRowDataMeeting.result_negotiate_decision_maker
       ? selectedRowDataMeeting.result_negotiate_decision_maker
       : "";
+    let _result_top_position_class = selectedRowDataMeeting.result_top_position_class
+      ? selectedRowDataMeeting.result_top_position_class.toString()
+      : "1";
     let _pre_meeting_participation_request = selectedRowDataMeeting.pre_meeting_participation_request
       ? selectedRowDataMeeting.pre_meeting_participation_request
       : "";
@@ -564,6 +588,13 @@ export const UpdateMeetingModal = () => {
     let _meeting_year_month = selectedRowDataMeeting.meeting_year_month
       ? selectedRowDataMeeting.meeting_year_month
       : Number(selectedYearMonthInitialValue);
+    // let _introduced_products_names = !!selectedRowDataMeeting?.introduced_products_names?.length
+    //   ? selectedRowDataMeeting.introduced_products_names.map((product) => product.introduced_product_id)
+    //   : Array(2).fill(null);
+    let _introduced_products_names = !!selectedRowDataMeeting?.introduced_products_names?.length
+      ? selectedRowDataMeeting.introduced_products_names
+      : Array(2).fill(null);
+    let _attendees_info = selectedRowDataMeeting?.attendees_info ? selectedRowDataMeeting?.attendees_info : [];
 
     setMeetingType(_meeting_type);
     setWebTool(_web_tool);
@@ -597,6 +628,7 @@ export const UpdateMeetingModal = () => {
     setResultCategory(_result_category);
     setResultSummary(_result_summary);
     setResultNegotiateDecisionMaker(_result_negotiate_decision_maker);
+    setResultTopPositionClass(_result_top_position_class);
     setPreMeetingParticipationRequest(_pre_meeting_participation_request);
     setMeetingParticipationRequest(_meeting_participation_request);
     // setDepartmentId(_meeting_department);
@@ -613,6 +645,11 @@ export const UpdateMeetingModal = () => {
     setMemberObj(memberDetail);
     setPrevMemberObj(memberDetail);
     setMeetingYearMonth(_meeting_year_month);
+
+    // 同席者リスト
+    setSelectedAttendeesArray(_attendees_info);
+    // 実施商品リスト
+    setResultPresentationProductsArray(_introduced_products_names);
   }, []);
 
   //   useEffect(() => {
@@ -768,7 +805,14 @@ export const UpdateMeetingModal = () => {
     // return alert("OK");
 
     // 実施商品リストの配列からnullを除いたidの値のみの配列を生成 1つもなければ最低一つ選択するようにアラート
-    const resultProductsArrayExcludeNull: string[] = resultPresentationProductsArray.filter(
+    // const resultProductsArrayExcludeNull: string[] = resultPresentationProductsArray.filter(
+    //   (productId): productId is string =>
+    //     productId !== null && productId !== "" && productId !== undefined && typeof productId === "string"
+    // );
+    const productIdArray = resultPresentationProductsArray.map(
+      (productObj) => productObj?.introduced_product_id ?? null
+    );
+    const resultProductsArrayExcludeNull: string[] = productIdArray.filter(
       (productId): productId is string =>
         productId !== null && productId !== "" && productId !== undefined && typeof productId === "string"
     );
@@ -778,8 +822,11 @@ export const UpdateMeetingModal = () => {
     }
 
     // 同席者のcontact_idのみのuuidの配列を生成
+    // const attendeeIdsArray = selectedAttendeesArray
+    //   .map((attendee) => attendee.contact_id)
+    //   .filter((id) => id !== null && id !== "" && id !== undefined && typeof id === "string");
     const attendeeIdsArray = selectedAttendeesArray
-      .map((attendee) => attendee.contact_id)
+      .map((attendee) => attendee.attendee_id)
       .filter((id) => id !== null && id !== "" && id !== undefined && typeof id === "string");
 
     // return console.log("リターン", resultProductsArrayExcludeNull);
@@ -918,6 +965,7 @@ export const UpdateMeetingModal = () => {
         result_category: !!resultCategory ? resultCategory : null,
         result_summary: resultSummary ? resultSummary : null,
         result_negotiate_decision_maker: resultNegotiateDecisionMaker ? resultNegotiateDecisionMaker : null,
+        result_top_position_class: resultNegotiateDecisionMaker ? parseInt(resultNegotiateDecisionMaker, 10) : null,
         pre_meeting_participation_request: preMeetingParticipationRequest ? preMeetingParticipationRequest : null,
         meeting_participation_request: meetingParticipationRequest ? meetingParticipationRequest : null,
         meeting_department: departmentName ? departmentName : null,
@@ -1131,7 +1179,7 @@ export const UpdateMeetingModal = () => {
 
   console.log(
     "面談予定作成モーダル ",
-    "selectedRowDataMeeting",
+    "✅selectedRowDataMeeting",
     selectedRowDataMeeting,
     "plannedStartTime",
     plannedStartTime,
@@ -2315,21 +2363,88 @@ export const UpdateMeetingModal = () => {
                           className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
                           // value={plannedProduct1 ? plannedProduct1 : ""}
                           // onChange={(e) => setPlannedProduct1(e.target.value)}
+                          // value={
+                          //   resultPresentationProductsArray &&
+                          //   !!resultPresentationProductsArray[index >= 1 ? index * 2 : index]
+                          //     ? (resultPresentationProductsArray[index >= 1 ? index * 2 : index] as string)
+                          //     : ""
+                          // }
                           value={
                             resultPresentationProductsArray &&
-                            !!resultPresentationProductsArray[index >= 1 ? index * 2 : index]
-                              ? (resultPresentationProductsArray[index >= 1 ? index * 2 : index] as string)
+                            !!resultPresentationProductsArray[index >= 1 ? index * 2 : index]?.introduced_product_id
+                              ? resultPresentationProductsArray[index >= 1 ? index * 2 : index]?.introduced_product_id
                               : ""
                           }
                           // onChange={(e) => handleChangeSelectProductId(index, e)}
-                          onChange={(e) => handleChangeSelectProductId(index >= 1 ? index * 2 : index, e)}
+                          // onChange={(e) => handleChangeSelectProductId(index >= 1 ? index * 2 : index, e)}
+                          onChange={(e) => {
+                            const newResultPresentationProducts = [...resultPresentationProductsArray];
+                            // 他を格納
+                            if (e.target.value === process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID) {
+                              const newOtherObj = {
+                                introduced_product_id: e.target.value,
+                                introduced_product_name: "他",
+                                introduced_outside_short_name: null,
+                                introduced_inside_short_name: null,
+                                introduced_unit_price: null,
+                              };
+                              newResultPresentationProducts[index >= 1 ? index * 2 : index] = newOtherObj;
+                            }
+                            // nullを格納
+                            else if (e.target.value === "") {
+                              newResultPresentationProducts[index >= 1 ? index * 2 : index] = null;
+                            }
+                            // 該当の商品オブジェクトを格納
+                            else {
+                              const findProductObj = productDataArray?.find((obj) => obj.id === e.target.value);
+                              if (!findProductObj) return;
+                              const newProductObj = {
+                                introduced_product_id: findProductObj.id,
+                                introduced_product_name: findProductObj.product_name,
+                                introduced_outside_short_name: findProductObj.outside_short_name,
+                                introduced_inside_short_name: findProductObj.inside_short_name,
+                                introduced_unit_price: findProductObj.unit_price,
+                              };
+                              newResultPresentationProducts[index >= 1 ? index * 2 : index] = newProductObj;
+                            }
+                            setResultPresentationProductsArray(newResultPresentationProducts);
+                          }}
                         >
-                          {(!resultPresentationProductsArray ||
+                          {/* {(!resultPresentationProductsArray ||
                             !resultPresentationProductsArray[index >= 1 ? index * 2 : index]) && (
                             <option value=""></option>
-                          )}
+                          )} */}
+                          {(!resultPresentationProductsArray ||
+                            !resultPresentationProductsArray[index >= 1 ? index * 2 : index]
+                              ?.introduced_product_id) && <option value=""></option>}
                           {/* 商品選択後にuseQueryの条件を変更して商品リストが変更された場合も選択中の商品のidと名前が同じoptionタグに切り替える */}
                           {resultPresentationProductsArray &&
+                            !!resultPresentationProductsArray[index >= 1 ? index * 2 : index]
+                              ?.introduced_product_id && (
+                              <option value={`${resultPresentationProductsArray[index >= 1 ? index * 2 : index]}`}>
+                                {process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID !==
+                                  resultPresentationProductsArray[(index >= 1 ? index * 2 : index) as number]
+                                    ?.introduced_product_id &&
+                                resultPresentationProductsArray[(index >= 1 ? index * 2 : index) as number]
+                                  ?.introduced_inside_short_name
+                                  ? resultPresentationProductsArray[(index >= 1 ? index * 2 : index) as number]
+                                      ?.introduced_inside_short_name
+                                  : resultPresentationProductsArray[(index >= 1 ? index * 2 : index) as number]
+                                      ?.introduced_product_name ||
+                                    resultPresentationProductsArray[(index >= 1 ? index * 2 : index) as number]
+                                      ?.introduced_outside_short_name
+                                  ? resultPresentationProductsArray[(index >= 1 ? index * 2 : index) as number]
+                                      ?.introduced_product_name +
+                                    " " +
+                                    resultPresentationProductsArray[(index >= 1 ? index * 2 : index) as number]
+                                      ?.introduced_outside_short_name
+                                  : ""}
+                                {process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID ===
+                                  resultPresentationProductsArray[(index >= 1 ? index * 2 : index) as number]
+                                    ?.introduced_product_id && "他"}
+                              </option>
+                            )}
+                          {/* {resultPresentationProductsArray &&
                             !!resultPresentationProductsArray[index >= 1 ? index * 2 : index] && (
                               <option value={`${resultPresentationProductsArray[index >= 1 ? index * 2 : index]}`}>
                                 {process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID !==
@@ -2367,7 +2482,7 @@ export const UpdateMeetingModal = () => {
                                 {process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID ===
                                   resultPresentationProductsArray[(index >= 1 ? index * 2 : index) as number] && "他"}
                               </option>
-                            )}
+                            )} */}
                           {/* {plannedProduct2 && (
                             <option value="">
                               {productIdToNameMap[plannedProduct2].inside_short_name
@@ -2380,7 +2495,10 @@ export const UpdateMeetingModal = () => {
                           {productDataArray &&
                             productDataArray.length >= 1 &&
                             productDataArray.map((product) => {
-                              if (product.id === resultPresentationProductsArray[index >= 1 ? index * 2 : index]) {
+                              if (
+                                product.id ===
+                                resultPresentationProductsArray[index >= 1 ? index * 2 : index]?.introduced_product_id
+                              ) {
                                 return;
                               }
                               return (
@@ -2391,14 +2509,36 @@ export const UpdateMeetingModal = () => {
                                 </option>
                               );
                             })}
+                          {/* {productDataArray &&
+                            productDataArray.length >= 1 &&
+                            productDataArray.map((product) => {
+                              if (product.id === resultPresentationProductsArray[index >= 1 ? index * 2 : index]) {
+                                return;
+                              }
+                              return (
+                                <option key={product.id} value={product.id}>
+                                  {product.inside_short_name && product.inside_short_name}
+                                  {!product.inside_short_name &&
+                                    product.product_name + " " + product.outside_short_name}
+                                </option>
+                              );
+                            })} */}
                           {/* IM他 直接idを */}
-                          {resultPresentationProductsArray[index >= 1 ? index * 2 : index] !==
+                          {/* {resultPresentationProductsArray[index >= 1 ? index * 2 : index] !==
+                            process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID && (
+                            <option value={process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID}>他</option>
+                          )} */}
+                          {resultPresentationProductsArray[index >= 1 ? index * 2 : index]?.introduced_product_id !==
                             process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID && (
                             <option value={process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID}>他</option>
                           )}
                           {/* 選択時のリセット用 */}
-                          {resultPresentationProductsArray &&
+                          {/* {resultPresentationProductsArray &&
                             resultPresentationProductsArray[index >= 1 ? index * 2 : index] && (
+                              <option value=""></option>
+                            )} */}
+                          {resultPresentationProductsArray &&
+                            resultPresentationProductsArray[index >= 1 ? index * 2 : index]?.introduced_product_id && (
                               <option value=""></option>
                             )}
                         </select>
@@ -2426,21 +2566,91 @@ export const UpdateMeetingModal = () => {
                           className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
                           // value={plannedProduct1 ? plannedProduct1 : ""}
                           // onChange={(e) => setPlannedProduct1(e.target.value)}
+                          // value={
+                          //   resultPresentationProductsArray &&
+                          //   !!resultPresentationProductsArray[index >= 1 ? index * 2 + 1 : index + 1]
+                          //     ? (resultPresentationProductsArray[index >= 1 ? index * 2 + 1 : index + 1] as string)
+                          //     : ""
+                          // }
                           value={
                             resultPresentationProductsArray &&
-                            !!resultPresentationProductsArray[index >= 1 ? index * 2 + 1 : index + 1]
-                              ? (resultPresentationProductsArray[index >= 1 ? index * 2 + 1 : index + 1] as string)
+                            resultPresentationProductsArray[index >= 1 ? index * 2 + 1 : index + 1]
+                              ? resultPresentationProductsArray[index >= 1 ? index * 2 + 1 : index + 1]
+                                  ?.introduced_product_id
                               : ""
                           }
                           // onChange={(e) => handleChangeSelectProductId(index + 1, e)}
-                          onChange={(e) => handleChangeSelectProductId(index >= 1 ? index * 2 + 1 : index + 1, e)}
+                          // onChange={(e) => handleChangeSelectProductId(index >= 1 ? index * 2 + 1 : index + 1, e)}
+                          onChange={(e) => {
+                            const newResultPresentationProducts = [...resultPresentationProductsArray];
+                            // 他を格納
+                            if (e.target.value === process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID) {
+                              const newOtherObj = {
+                                introduced_product_id: e.target.value,
+                                introduced_product_name: "他",
+                                introduced_outside_short_name: null,
+                                introduced_inside_short_name: null,
+                                introduced_unit_price: null,
+                              };
+                              newResultPresentationProducts[index >= 1 ? index * 2 + 1 : index + 1] = newOtherObj;
+                            }
+                            // nullを格納
+                            else if (e.target.value === "") {
+                              newResultPresentationProducts[index >= 1 ? index * 2 + 1 : index + 1] = null;
+                            }
+                            // 該当の商品オブジェクトを格納
+                            else {
+                              const findProductObj = productDataArray?.find((obj) => obj.id === e.target.value);
+                              if (!findProductObj) return;
+                              const newProductObj = {
+                                introduced_product_id: findProductObj.id,
+                                introduced_product_name: findProductObj.product_name,
+                                introduced_outside_short_name: findProductObj.outside_short_name,
+                                introduced_inside_short_name: findProductObj.inside_short_name,
+                                introduced_unit_price: findProductObj.unit_price,
+                              };
+                              newResultPresentationProducts[index >= 1 ? index * 2 + 1 : index + 1] = newProductObj;
+                            }
+                            setResultPresentationProductsArray(newResultPresentationProducts);
+                          }}
                         >
-                          {!resultPresentationProductsArray ||
+                          {/* {!resultPresentationProductsArray ||
                             (!resultPresentationProductsArray[index >= 1 ? index * 2 + 1 : index + 1] && (
                               <option value=""></option>
-                            ))}
+                            ))} */}
+                          {!resultPresentationProductsArray ||
+                            (!resultPresentationProductsArray[index >= 1 ? index * 2 + 1 : index + 1]
+                              ?.introduced_product_id && <option value=""></option>)}
                           {/* 商品選択後にuseQueryの条件を変更して商品リストが変更された場合も選択中の商品のidと名前が同じoptionタグに切り替える */}
                           {resultPresentationProductsArray &&
+                            !!resultPresentationProductsArray[index >= 1 ? index * 2 + 1 : index + 1]
+                              ?.introduced_product_id && (
+                              <option
+                                value={`${resultPresentationProductsArray[index >= 1 ? index * 2 + 1 : index + 1]}`}
+                              >
+                                {process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID !==
+                                  resultPresentationProductsArray[(index >= 1 ? index * 2 + 1 : index + 1) as number]
+                                    ?.introduced_product_id &&
+                                resultPresentationProductsArray[(index >= 1 ? index * 2 + 1 : index + 1) as number]
+                                  ?.introduced_inside_short_name
+                                  ? resultPresentationProductsArray[(index >= 1 ? index * 2 + 1 : index + 1) as number]
+                                      ?.introduced_inside_short_name
+                                  : resultPresentationProductsArray[(index >= 1 ? index * 2 + 1 : index + 1) as number]
+                                      ?.introduced_product_name ||
+                                    resultPresentationProductsArray[(index >= 1 ? index * 2 + 1 : index + 1) as number]
+                                      ?.introduced_outside_short_name
+                                  ? resultPresentationProductsArray[(index >= 1 ? index * 2 + 1 : index + 1) as number]
+                                      ?.introduced_product_name +
+                                    " " +
+                                    resultPresentationProductsArray[(index >= 1 ? index * 2 + 1 : index + 1) as number]
+                                      ?.introduced_outside_short_name
+                                  : ""}
+                                {process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID ===
+                                  resultPresentationProductsArray[(index >= 1 ? index * 2 + 1 : index + 1) as number]
+                                    ?.introduced_product_id && "他"}
+                              </option>
+                            )}
+                          {/* {resultPresentationProductsArray &&
                             !!resultPresentationProductsArray[index >= 1 ? index * 2 + 1 : index + 1] && (
                               <option
                                 value={`${resultPresentationProductsArray[index >= 1 ? index * 2 + 1 : index + 1]}`}
@@ -2483,8 +2693,26 @@ export const UpdateMeetingModal = () => {
                                   resultPresentationProductsArray[(index >= 1 ? index * 2 + 1 : index + 1) as number] &&
                                   "他"}
                               </option>
-                            )}
+                            )} */}
                           {productDataArray &&
+                            productDataArray.length >= 1 &&
+                            productDataArray.map((product) => {
+                              if (
+                                product.id ===
+                                resultPresentationProductsArray[index >= 1 ? index * 2 + 1 : index + 1]
+                                  ?.introduced_product_id
+                              ) {
+                                return;
+                              }
+                              return (
+                                <option key={product.id} value={product.id}>
+                                  {product.inside_short_name && product.inside_short_name}
+                                  {!product.inside_short_name &&
+                                    product.product_name + " " + product.outside_short_name}
+                                </option>
+                              );
+                            })}
+                          {/* {productDataArray &&
                             productDataArray.length >= 1 &&
                             productDataArray.map((product) => {
                               if (
@@ -2499,17 +2727,24 @@ export const UpdateMeetingModal = () => {
                                     product.product_name + " " + product.outside_short_name}
                                 </option>
                               );
-                            })}
+                            })} */}
                           {/* IM他 直接idを */}
-                          {resultPresentationProductsArray[index >= 1 ? index * 2 + 1 : index + 1] !==
-                            process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID && (
+                          {resultPresentationProductsArray[index >= 1 ? index * 2 + 1 : index + 1]
+                            ?.introduced_product_id !== process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID && (
                             <option value={process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID}>他</option>
                           )}
+                          {/* {resultPresentationProductsArray[index >= 1 ? index * 2 + 1 : index + 1] !==
+                            process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID && (
+                            <option value={process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID}>他</option>
+                          )} */}
                           {/* 選択時のリセット用 */}
                           {resultPresentationProductsArray &&
+                            resultPresentationProductsArray[index >= 1 ? index * 2 + 1 : index + 1]
+                              ?.introduced_product_id && <option value=""></option>}
+                          {/* {resultPresentationProductsArray &&
                             resultPresentationProductsArray[index >= 1 ? index * 2 + 1 : index + 1] && (
                               <option value=""></option>
-                            )}
+                            )} */}
                         </select>
                       </div>
                       <div className={`${styles.underline}`}></div>
@@ -2584,33 +2819,77 @@ export const UpdateMeetingModal = () => {
                           selectedAttendeesArray.length > 0 &&
                           selectedAttendeesArray.map((attendee, index) => (
                             <div
-                              key={attendee.contact_id}
+                              // key={attendee.contact_id}
+                              key={attendee.attendee_id}
                               className={`box-shadow-inset-brand-f  flex min-h-[24px] min-w-max items-center justify-between rounded-[24px] bg-[var(--member-card)] px-[10px] py-[4px]`}
+                              // onMouseEnter={(e) => {
+                              //   handleOpenTooltip({
+                              //     e: e,
+                              //     display: "top",
+                              //     // content: "追加した同席者リストをリセットします。",
+                              //     content: `${attendee.company_name ? `${attendee.company_name} / ` : ``}${
+                              //       attendee.contact_name ? `${attendee.contact_name} / ` : ``
+                              //     }${
+                              //       attendee.department_name
+                              //         ? `${attendee.department_name} ${attendee.position_name ? `/` : ``} `
+                              //         : ``
+                              //     }${attendee.position_name ? `${attendee.position_name}` : ``}`,
+                              //     content2: `${
+                              //       attendee.address
+                              //         ? `住所: ${attendee.address} ${attendee.main_phone_number ? `/` : ``} `
+                              //         : ``
+                              //     }${
+                              //       attendee.main_phone_number
+                              //         ? `代表TEL: ${attendee.main_phone_number} ${attendee.contact_email ? `/` : ``} `
+                              //         : ``
+                              //     }${
+                              //       attendee.direct_line
+                              //         ? `直通TEL: ${attendee.direct_line} ${attendee.contact_email ? `/` : ``} `
+                              //         : ``
+                              //     }${attendee.contact_email ? `担当者Email: ${attendee.contact_email}` : ``}`,
+                              //     // content2: "この商品名が見積書の品名に記載されます。",
+                              //     // marginTop: 57,
+                              //     // marginTop: 38,
+                              //     marginTop: 24,
+                              //     // marginTop: 9,
+                              //     // marginTop: 3,
+                              //     itemsPosition: "center",
+                              //     whiteSpace: "nowrap",
+                              //   });
+                              // }}
                               onMouseEnter={(e) => {
                                 handleOpenTooltip({
                                   e: e,
                                   display: "top",
                                   // content: "追加した同席者リストをリセットします。",
-                                  content: `${attendee.company_name ? `${attendee.company_name} / ` : ``}${
-                                    attendee.contact_name ? `${attendee.contact_name} / ` : ``
+                                  content: `${attendee.attendee_company ? `${attendee.attendee_company} / ` : ``}${
+                                    attendee.attendee_name ? `${attendee.attendee_name} / ` : ``
                                   }${
-                                    attendee.department_name
-                                      ? `${attendee.department_name} ${attendee.position_name ? `/` : ``} `
+                                    attendee.attendee_department_name
+                                      ? `${attendee.attendee_department_name} ${
+                                          attendee.attendee_position_name ? `/` : ``
+                                        } `
                                       : ``
-                                  }${attendee.position_name ? `${attendee.position_name}` : ``}`,
+                                  }${attendee.attendee_position_name ? `${attendee.attendee_position_name}` : ``}`,
                                   content2: `${
-                                    attendee.address
-                                      ? `住所: ${attendee.address} ${attendee.main_phone_number ? `/` : ``} `
+                                    attendee.attendee_address
+                                      ? `住所: ${attendee.attendee_address} ${
+                                          attendee.attendee_direct_line ? `/` : ``
+                                        } `
                                       : ``
                                   }${
-                                    attendee.main_phone_number
-                                      ? `代表TEL: ${attendee.main_phone_number} ${attendee.contact_email ? `/` : ``} `
+                                    attendee.attendee_main_phone_number
+                                      ? `代表TEL: ${attendee.attendee_main_phone_number} ${
+                                          attendee.attendee_direct_line ? `/` : ``
+                                        } `
                                       : ``
                                   }${
-                                    attendee.direct_line
-                                      ? `直通TEL: ${attendee.direct_line} ${attendee.contact_email ? `/` : ``} `
+                                    attendee.attendee_direct_line
+                                      ? `直通TEL: ${attendee.attendee_direct_line} ${
+                                          attendee.attendee_email ? `/` : ``
+                                        } `
                                       : ``
-                                  }${attendee.contact_email ? `担当者Email: ${attendee.contact_email}` : ``}`,
+                                  }${attendee.attendee_email ? `担当者Email: ${attendee.attendee_email}` : ``}`,
                                   // content2: "この商品名が見積書の品名に記載されます。",
                                   // marginTop: 57,
                                   // marginTop: 38,
@@ -2630,25 +2909,36 @@ export const UpdateMeetingModal = () => {
                               >
                                 {/* <span>K</span> */}
                                 <span className={`pointer-events-none text-[12px]`}>
-                                  {attendee?.company_name
+                                  {/* {attendee?.company_name
                                     ? getCompanyInitial(attendee.company_name)
+                                    : `${getCompanyInitial("NoName")}`} */}
+                                  {attendee?.attendee_company
+                                    ? getCompanyInitial(attendee.attendee_company)
                                     : `${getCompanyInitial("NoName")}`}
                                 </span>
                               </div>
                               {/* 選択メンバー 名前 */}
                               <p className={`max-w-[80%] px-[8px] text-[13px]`}>
-                                {attendee?.contact_name ?? "No Name"}
+                                {/* {attendee?.contact_name ?? "No Name"} */}
+                                {attendee?.attendee_name ?? "No Name"}
                               </p>
                               {/* クローズボタン */}
                               <div
                                 className={`cursor-pointer`}
                                 onClick={() => {
                                   const filteredAttendees = selectedAttendeesArray.filter(
-                                    (selectedAttendee) => selectedAttendee.contact_id !== attendee.contact_id
+                                    (selectedAttendee) => selectedAttendee.attendee_id !== attendee.attendee_id
                                   );
                                   setSelectedAttendeesArray(filteredAttendees);
                                   if (hoveredItemPosModal) handleCloseTooltip();
                                 }}
+                                // onClick={() => {
+                                //   const filteredAttendees = selectedAttendeesArray.filter(
+                                //     (selectedAttendee) => selectedAttendee.contact_id !== attendee.contact_id
+                                //   );
+                                //   setSelectedAttendeesArray(filteredAttendees);
+                                //   if (hoveredItemPosModal) handleCloseTooltip();
+                                // }}
                               >
                                 <MdClose className="pointer-events-none text-[16px]" />
                               </div>
@@ -2990,6 +3280,69 @@ export const UpdateMeetingModal = () => {
               </div>
             </div>
             {/* --------- 右ラッパー ---------ここまで */}
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* 面談時_決裁者商談有無 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <div
+                      className={`${styles.title} flex !min-w-[140px] items-center ${styles.double}`}
+                      onMouseEnter={(e) => {
+                        // if (isOpenSearchAttendeesSideTable) return;
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "面談した担当者の中で最上位の職位を選択します。",
+                          content2: "受注率と面談時の最上位職位には相関があるため現状把握や分析に役立ちます。",
+                          // marginTop: 57,
+                          // marginTop: 38,
+                          marginTop: 9,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        });
+                      }}
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <div className={`mr-[8px] flex flex-col ${styles.double}`}>
+                        <span>面談時_</span>
+                        <span>最上位職位</span>
+                      </div>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+                    </div>
+                    <select
+                      className={`mr-auto h-full w-[100%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={resultTopPositionClass}
+                      onChange={(e) => {
+                        // if (e.target.value === "") return alert("訪問目的を選択してください");
+                        setResultTopPositionClass(e.target.value);
+                      }}
+                    >
+                      {optionsPositionsClass.map((classNum) => (
+                        <option key={classNum} value={`${classNum}`}>
+                          {getPositionClassName(classNum)}
+                        </option>
+                      ))}
+                      {/* <option value="">選択してください</option>
+                      <option value="決裁者と未商談">決裁者と未商談</option>
+                      <option value="決裁者と商談済み">決裁者と商談済み</option> */}
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 左ラッパーここまで */}
+            </div>
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}></div>
+            {/* --------- 右ラッパーここまで --------- */}
+            {/* 右ラッパーここまで */}
           </div>
           {/* --------- 横幅全体ラッパーここまで --------- */}
 

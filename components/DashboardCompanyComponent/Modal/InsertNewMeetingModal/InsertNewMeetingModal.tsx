@@ -93,6 +93,7 @@ export const InsertNewMeetingModal = () => {
   const [resultCategory, setResultCategory] = useState("");
   const [resultSummary, setResultSummary] = useState("");
   const [resultNegotiateDecisionMaker, setResultNegotiateDecisionMaker] = useState("");
+  const [resultTopPositionClass, setResultTopPositionClass] = useState("");
   const [preMeetingParticipationRequest, setPreMeetingParticipationRequest] = useState(""); //事前同席依頼
   const [meetingParticipationRequest, setMeetingParticipationRequest] = useState("");
   // //事業部名
@@ -501,6 +502,7 @@ export const InsertNewMeetingModal = () => {
       result_category: resultCategory ? resultCategory : null,
       result_summary: resultSummary ? resultSummary : null,
       result_negotiate_decision_maker: resultNegotiateDecisionMaker ? resultNegotiateDecisionMaker : null,
+      result_top_position_class: resultTopPositionClass ? parseInt(resultTopPositionClass, 10) : null,
       pre_meeting_participation_request: preMeetingParticipationRequest ? preMeetingParticipationRequest : null,
       meeting_participation_request: meetingParticipationRequest ? meetingParticipationRequest : null,
       // meeting_business_office: meetingBusinessOffice ? meetingBusinessOffice : null,
@@ -613,6 +615,7 @@ export const InsertNewMeetingModal = () => {
       result_category: resultCategory ? resultCategory : null,
       result_summary: resultSummary ? resultSummary : null,
       result_negotiate_decision_maker: resultNegotiateDecisionMaker ? resultNegotiateDecisionMaker : null,
+      result_top_position_class: resultTopPositionClass ? parseInt(resultTopPositionClass, 10) : null,
       pre_meeting_participation_request: preMeetingParticipationRequest ? preMeetingParticipationRequest : null,
       meeting_participation_request: meetingParticipationRequest ? meetingParticipationRequest : null,
       // meeting_business_office: meetingBusinessOffice ? meetingBusinessOffice : null,
@@ -725,6 +728,7 @@ export const InsertNewMeetingModal = () => {
       result_category: resultCategory ? resultCategory : null,
       result_summary: resultSummary ? resultSummary : null,
       result_negotiate_decision_maker: resultNegotiateDecisionMaker ? resultNegotiateDecisionMaker : null,
+      result_top_position_class: resultTopPositionClass ? parseInt(resultTopPositionClass, 10) : null,
       pre_meeting_participation_request: preMeetingParticipationRequest ? preMeetingParticipationRequest : null,
       meeting_participation_request: meetingParticipationRequest ? meetingParticipationRequest : null,
       // meeting_department: meetingDepartment ? meetingDepartment : null,

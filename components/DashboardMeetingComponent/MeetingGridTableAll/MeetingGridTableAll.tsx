@@ -11,7 +11,7 @@ import { RippleButton } from "@/components/Parts/RippleButton/RippleButton";
 import { ChangeSizeBtn } from "@/components/Parts/ChangeSizeBtn/ChangeSizeBtn";
 import { FiLock, FiRefreshCw, FiSearch } from "react-icons/fi";
 import { columnNameToJapaneseMeeting } from "@/utils/columnNameToJapaneseMeeting";
-import { Client_company, Client_company_row_data } from "@/types";
+import { AttendeeInfo, Client_company, Client_company_row_data } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { EditColumnsModalDisplayOnly } from "../../GridTable/EditColumns/EditColumnsModalDisplayOnly";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
@@ -2431,6 +2431,50 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
   // トップレベルの定義に追加
   const timeColumns = ["planned_start_time", "result_start_time", "result_end_time"];
 
+  // 同席者リストから各同席者を「 / \n」で区切った一つの文字列に変換する関数
+  // 形式は「佐藤(株式会社X・営業部・部長) / \n ...」
+  const formatAttendees = (attendees: AttendeeInfo[] | undefined | null) => {
+    if (!attendees || attendees?.length === 0) return "";
+    const _formatAttendees = attendees
+      .map((attendee) => {
+        return `${attendee.attendee_name ?? ""}（${
+          attendee.attendee_company ? attendee.attendee_company + (attendee.attendee_department_name ? `・` : "") : ""
+        }${
+          attendee.attendee_department_name
+            ? attendee.attendee_department_name + (attendee.attendee_position_name ? `・` : "")
+            : ""
+        }${attendee.attendee_position_name ?? ""}）`;
+      })
+      .join(` / \n`);
+
+    return _formatAttendees;
+  };
+  // const formatAttendeesElements = (attendees: AttendeeInfo[] | undefined | null): React.JSX.Element | string => {
+  //   if (!attendees || attendees?.length === 0) return "";
+
+  //   const attendeesElements = (
+  //     <div className={`relative flex h-full w-full items-center space-x-[15px]`}>
+  //       {attendees.map((attendee, index) => (
+  //         <div
+  //           key={attendee.attendee_id + index}
+  //           className={`box-shadow-inset-brand-f flex min-h-[22px] max-w-[120px] items-center justify-between rounded-[24px] bg-[var(--member-card)] py-[4px] pl-[12px] pr-[8px]`}
+  //         >
+  //           <p className={`truncate text-[11px]`}>{`${attendee.attendee_name ?? ""}（${
+  //             attendee.attendee_company
+  //               ? attendee.attendee_company + (attendee.attendee_department_name ? `・` : "")
+  //               : ""
+  //           }${
+  //             attendee.attendee_department_name
+  //               ? attendee.attendee_department_name + (attendee.attendee_position_name ? `・` : "")
+  //               : ""
+  //           }${attendee.attendee_position_name ?? ""}）`}</p>
+  //         </div>
+  //       ))}
+  //     </div>
+  //   );
+  //   return attendeesElements;
+  // };
+
   const formatDisplayValue = (columnName: string, value: any) => {
     switch (columnName) {
       // 決算月 日本語は月を追加する
@@ -2491,6 +2535,20 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
         if (!value) return null;
         const occupationTitle = mappingOccupation[value as number]?.[language];
         return occupationTitle || value.toString();
+
+      // 同席者
+      case "attendees_info":
+        if (!value || !Array.isArray(value)) return null;
+        const _formatAttendees = formatAttendees(value);
+        // console.log("✅✅✅✅✅✅✅✅✅✅✅同席者リスト", _formatAttendees);
+        return _formatAttendees;
+      // const _formatAttendees = formatAttendeesElements(value);
+      // return _formatAttendees;
+
+      // 実施商品1
+      // case "result_presentation_product1":
+      //   if (!value || !Array.isArray(value)) return null;
+      //   return ;
 
       default:
         return value;

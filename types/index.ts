@@ -822,16 +822,27 @@ export type Activity_row_data = {
 // 上画面の列選択した時に下画面に担当者情報を映す用のState
 // 選択中の行データオブジェクト GridTableで取得した結合データ
 // 面談時の紹介した商品群の配列
-type IntroducedProductsNames = string[];
+export type IntroducedProductsName = {
+  introduced_product_id: string;
+  introduced_product_name: string | null;
+  introduced_outside_short_name: string | null;
+  introduced_inside_short_name: string | null;
+  introduced_unit_price: number | null;
+};
+export type IntroducedProductsNames = IntroducedProductsName[];
+// type IntroducedProductsNames = string[];
 // 同席者データ
-type AttendeeInfo = {
+export type AttendeeInfo = {
+  attendee_id: string;
   attendee_name: string | null;
   attendee_position_class: number | null;
   attendee_position_name: string | null;
   attendee_direct_line: string | null;
   attendee_email: string | null;
   attendee_company: string | null;
-  attendee_department: string | null;
+  attendee_main_phone_number: string | null;
+  attendee_address: string | null;
+  attendee_department_name: string | null;
 };
 // 同席者の配列
 type AttendeesInfo = AttendeeInfo[];
@@ -925,6 +936,7 @@ export type Meeting_row_data = {
   result_category: string | null;
   result_summary: string | null;
   result_negotiate_decision_maker: string | null;
+  result_top_position_class: number | null;
   pre_meeting_participation_request: string | null;
   meeting_participation_request: string | null;
   meeting_business_office: string | null;
@@ -1039,6 +1051,7 @@ export type ValidMeeting = {
   result_category: string | null;
   result_summary: string | null;
   result_negotiate_decision_maker: string | null;
+  result_top_position_class: number | null;
   pre_meeting_participation_request: string | null;
   meeting_participation_request: string | null;
   meeting_business_office: string | null;
@@ -1355,7 +1368,7 @@ export type NewSearchActivity_Contact_CompanyParams = {
   department: string | null;
   activity_year_month: number | null;
 };
-
+// 面談サーチパラメータ用
 export type NewSearchMeeting_Contact_CompanyParams = {
   "client_companies.name": string | null;
   department_name: string | null;
@@ -1434,6 +1447,7 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   result_category: string | null;
   result_summary: string | null;
   result_negotiate_decision_maker: string | null;
+  result_top_position_class: number | null;
   pre_meeting_participation_request: string | null;
   meeting_participation_request: string | null;
   meeting_business_office: string | null;
@@ -1616,6 +1630,7 @@ export type Meeting = {
   result_category: string | null;
   result_summary: string | null;
   result_negotiate_decision_maker: string | null;
+  result_top_position_class: number | null;
   pre_meeting_participation_request: string | null;
   meeting_participation_request: string | null;
   meeting_business_office: string | null;
@@ -1792,6 +1807,7 @@ export type ResultMeetingWithProductsAttendees = {
   result_category: string | null;
   result_summary: string | null;
   result_negotiate_decision_maker: string | null;
+  result_top_position_class: number | null;
   pre_meeting_participation_request: string | null;
   meeting_participation_request: string | null;
   meeting_business_office: string | null;

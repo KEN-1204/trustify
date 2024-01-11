@@ -45,5 +45,5 @@ export const mappingOccupation: OccupationTitles = {
   18: { en: "18 Purchasing", ja: "18 購買" },
   19: { en: "19 Information Systems", ja: "19 情報システム" },
   20: { en: "20 CS", ja: "20 CS/カスタマーサポート" },
-  21: { en: "21 Others", ja: "21 その他" },
+  21: { en: "21 Other", ja: "21 その他" },
 };

@@ -1261,6 +1261,10 @@ const ActivityMainContainerOneThirdMemo = () => {
                         className={`${styles.value} ${isOurActivity ? styles.editable_field : styles.uneditable_field}`}
                         onClick={handleSingleClickField}
                         onDoubleClick={(e) => {
+                          if (!selectedRowDataActivity?.activity_type) return;
+                          if (isNotActivityTypeArray.includes(selectedRowDataActivity.activity_type)) {
+                            return alert(returnMessageNotActivity(selectedRowDataActivity.activity_type));
+                          }
                           handleDoubleClickField({
                             e,
                             field: "activity_date",
@@ -1445,6 +1449,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                             field: "activity_type",
                             dispatch: setInputActivityType,
                           });
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                         data-text={`${
                           selectedRowDataActivity?.activity_type ? selectedRowDataActivity?.activity_type : ""

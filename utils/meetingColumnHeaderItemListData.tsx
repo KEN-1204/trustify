@@ -120,6 +120,14 @@ const meetingColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
+  // 同席者カラム
+  {
+    columnName: "attendees_info",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  // 同席者カラム
   {
     columnName: "result_negotiate_decision_maker",
     columnWidth: "100px",

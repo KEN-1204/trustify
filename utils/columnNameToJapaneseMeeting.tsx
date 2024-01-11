@@ -299,6 +299,9 @@ export const columnNameToJapaneseMeeting = (columnName: string) => {
     case "meeting_year_month":
       return "面談年月度";
       break;
+    case "attendees_info":
+      return "同席者";
+      break;
 
     default:
       return "";

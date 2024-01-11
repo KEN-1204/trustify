@@ -25,9 +25,11 @@ import {
 import { useQueryDepartments } from "@/hooks/useQueryDepartments";
 import { useQueryUnits } from "@/hooks/useQueryUnits";
 import { useQueryOffices } from "@/hooks/useQueryOffices";
-import { Department, Office, Unit } from "@/types";
+import { AttendeeInfo, Department, IntroducedProductsNames, Office, Unit } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
+import { getProductName } from "@/utils/Helpers/getProductName";
+import { AttendeesListTable } from "./AttendeesListTable/AttendeesListTable";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -527,7 +529,21 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       const formattedTime = `${inputPlannedStartTimeHour}:${inputPlannedStartTimeMinute}`;
       setInputPlannedStartTime(formattedTime);
     } else {
-      setInputPlannedStartTime(""); // or setResultStartTime("");
+      // 時間のみなら前方一致、
+      if (inputPlannedStartTimeHour && !inputPlannedStartTimeMinute) {
+        const formattedTime = `${inputPlannedStartTimeHour}:*`;
+        setInputPlannedStartTime(formattedTime);
+      }
+      // 分のみなら後方一致、
+      else if (!inputPlannedStartTimeHour && inputPlannedStartTimeMinute) {
+        const formattedTime = `*:${inputPlannedStartTimeMinute}`;
+        setInputPlannedStartTime(formattedTime);
+      }
+      // 時間、分がなければ空文字
+      else {
+        setInputPlannedStartTime(""); // or setResultStartTime("");
+      }
+      // setInputPlannedStartTime(""); // or setResultStartTime("");
     }
   }, [inputPlannedStartTimeHour, inputPlannedStartTimeMinute]);
   // 結果面談開始時間、時間、分、結合用useEffect
@@ -536,7 +552,21 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       const formattedTime = `${inputResultStartTimeHour}:${inputResultStartTimeMinute}`;
       setInputResultStartTime(formattedTime);
     } else {
-      setInputResultStartTime(""); // or setResultStartTime("");
+      // 時間のみなら前方一致、
+      if (inputResultStartTimeHour && !inputResultStartTimeMinute) {
+        const formattedTime = `${inputResultStartTimeHour}:*`;
+        setInputResultStartTime(formattedTime);
+      }
+      // 分のみなら後方一致、
+      else if (!inputResultStartTimeHour && inputResultStartTimeMinute) {
+        const formattedTime = `*:${inputResultStartTimeMinute}`;
+        setInputResultStartTime(formattedTime);
+      }
+      // 時間、分がなければ空文字
+      else {
+        setInputResultStartTime(""); // or setResultStartTime("");
+      }
+      // setInputResultStartTime(""); // or setResultStartTime("");
     }
   }, [inputResultStartTimeHour, inputResultStartTimeMinute]);
   // 結果面談終了時間、時間、分、結合用useEffect
@@ -545,7 +575,21 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       const formattedTime = `${inputResultEndTimeHour}:${inputResultEndTimeMinute}`;
       setInputResultEndTime(formattedTime);
     } else {
-      setInputResultEndTime(""); // or setResultStartTime("");
+      // 時間のみなら前方一致、
+      if (inputResultEndTimeHour && !inputResultEndTimeMinute) {
+        const formattedTime = `${inputResultEndTimeHour}:*`;
+        setInputResultEndTime(formattedTime);
+      }
+      // 分のみなら後方一致、
+      else if (!inputResultEndTimeHour && inputResultEndTimeMinute) {
+        const formattedTime = `*:${inputResultEndTimeMinute}`;
+        setInputResultEndTime(formattedTime);
+      }
+      // 時間、分がなければ空文字
+      else {
+        setInputResultEndTime(""); // or setResultStartTime("");
+      }
+      // setInputResultEndTime(""); // or setResultStartTime("");
     }
   }, [inputResultEndTimeHour, inputResultEndTimeMinute]);
 
@@ -867,7 +911,59 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const handleCloseTooltip = () => {
     setHoveredItemPosWrap(null);
   };
-  // ==================================== 🌟ツールチップ🌟 ====================================
+  // ==================================== ✅ツールチップ✅ ====================================
+
+  // 商品名を取得する関数
+  const getCustomProductName = (
+    productNamesArray: IntroducedProductsNames | null,
+    index: number,
+    alternativeName: string | null
+  ) => {
+    if (!productNamesArray) {
+      return "";
+    } else {
+      if (
+        productNamesArray.length > index + 1 &&
+        !!getProductName(
+          productNamesArray[index].introduced_product_name,
+          productNamesArray[index].introduced_inside_short_name,
+          productNamesArray[index].introduced_outside_short_name
+        )
+      ) {
+        return getProductName(
+          productNamesArray[index].introduced_product_name,
+          productNamesArray[index].introduced_inside_short_name,
+          productNamesArray[index].introduced_outside_short_name
+        );
+      } else {
+        return alternativeName ? alternativeName : "";
+      }
+    }
+  };
+  // 実施商品ALLを構築する関数
+  const getProductNamesAll = (productNamesArray: IntroducedProductsNames | null) => {
+    if (!productNamesArray || productNamesArray?.length === 0) return "";
+    const productNames = productNamesArray.map((product, index) => {
+      if (
+        !!getProductName(
+          product.introduced_product_name,
+          product.introduced_inside_short_name,
+          product.introduced_outside_short_name
+        )
+      ) {
+        return getProductName(
+          product.introduced_product_name,
+          product.introduced_inside_short_name,
+          product.introduced_outside_short_name
+        );
+      } else {
+        return;
+      }
+    });
+    // const productNamesObj = { ...productNames };
+    console.log("productNames", productNames, productNamesArray);
+    return productNames.join(" / ");
+  };
 
   const handleAppointCheckChangeSelectTagValue = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
@@ -894,12 +990,39 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     return `${hour}:${minute}`;
   }
 
+  // 同席者リストから各同席者を「 / \n」で区切った一つの文字列に変換する関数
+  // 形式は「佐藤(株式会社X・営業部・部長) / \n ...」
+  const formatAttendees = (attendees: AttendeeInfo[] | undefined | null) => {
+    if (!attendees || attendees?.length === 0) return "";
+    const _formatAttendees = attendees
+      .map((attendee) => {
+        return `${attendee.attendee_name ?? ""}(${
+          attendee.attendee_company ? attendee.attendee_company + (attendee.attendee_department_name && `・`) : ""
+        }${
+          attendee.attendee_department_name
+            ? attendee.attendee_department_name + (attendee.attendee_position_name && `・`)
+            : ""
+        }${attendee.attendee_position_name ?? ""})`;
+      })
+      .join(` / \n`);
+
+    return _formatAttendees;
+  };
+
   console.log(
     "🔥MeetingMainContainerレンダリング",
     "selectedRowDataMeeting",
     selectedRowDataMeeting,
     "newSearchMeeting_Contact_CompanyParams",
-    newSearchMeeting_Contact_CompanyParams
+    newSearchMeeting_Contact_CompanyParams,
+    "inputPlannedStartTime",
+    inputPlannedStartTime,
+    "inputPlannedStartTimeHour",
+    inputPlannedStartTimeHour,
+    "inputPlannedStartTimeMinute",
+    inputPlannedStartTimeMinute
+    // "✅✅✅✅✅✅✅✅✅✅✅同席者リスト",
+    // formatAttendees(selectedRowDataMeeting?.attendees_info)
   );
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
   return (
@@ -1412,12 +1535,33 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <span className={`${styles.title}`}>実施商品1</span>
                       {!searchMode && (
                         <span className={`${styles.value}`}>
-                          {selectedRowDataMeeting?.result_presentation_product1
+                          {/* {selectedRowDataMeeting?.result_presentation_product1
                             ? selectedRowDataMeeting?.result_presentation_product1
-                            : ""}
+                            : ""} */}
+                          {selectedRowDataMeeting &&
+                            getCustomProductName(
+                              selectedRowDataMeeting.introduced_products_names,
+                              0,
+                              selectedRowDataMeeting?.result_presentation_product1
+                            )}
+                          {/* {selectedRowDataMeeting &&
+                          selectedRowDataMeeting.introduced_products_names?.length > 1 &&
+                          getProductName(
+                            selectedRowDataMeeting.introduced_products_names[0].introduced_product_name,
+                            selectedRowDataMeeting.introduced_products_names[0].introduced_inside_short_name,
+                            selectedRowDataMeeting.introduced_products_names[0].introduced_outside_short_name
+                          )
+                            ? getProductName(
+                                selectedRowDataMeeting.introduced_products_names[0].introduced_product_name,
+                                selectedRowDataMeeting.introduced_products_names[0].introduced_inside_short_name,
+                                selectedRowDataMeeting.introduced_products_names[0].introduced_outside_short_name
+                              )
+                            : selectedRowDataMeeting?.result_presentation_product1
+                            ? selectedRowDataMeeting?.result_presentation_product1
+                            : ""} */}
                         </span>
                       )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                      {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -1435,12 +1579,18 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           // onMouseEnter={(e) => handleOpenTooltip(e)}
                           // onMouseLeave={handleCloseTooltip}
                         >
-                          {selectedRowDataMeeting?.result_presentation_product2
+                          {/* {selectedRowDataMeeting?.result_presentation_product2
                             ? selectedRowDataMeeting?.result_presentation_product2
-                            : ""}
+                            : ""} */}
+                          {selectedRowDataMeeting &&
+                            getCustomProductName(
+                              selectedRowDataMeeting.introduced_products_names,
+                              1,
+                              selectedRowDataMeeting?.result_presentation_product2
+                            )}
                         </span>
                       )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                      {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -1453,12 +1603,18 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <span className={`${styles.title}`}>実施商品3</span>
                       {!searchMode && (
                         <span className={`${styles.value}`}>
-                          {selectedRowDataMeeting?.result_presentation_product3
+                          {/* {selectedRowDataMeeting?.result_presentation_product3
                             ? selectedRowDataMeeting?.result_presentation_product3
-                            : ""}
+                            : ""} */}
+                          {selectedRowDataMeeting &&
+                            getCustomProductName(
+                              selectedRowDataMeeting.introduced_products_names,
+                              2,
+                              selectedRowDataMeeting?.result_presentation_product3
+                            )}
                         </span>
                       )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                      {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -1476,12 +1632,18 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           // onMouseEnter={(e) => handleOpenTooltip(e)}
                           // onMouseLeave={handleCloseTooltip}
                         >
-                          {selectedRowDataMeeting?.result_presentation_product4
+                          {/* {selectedRowDataMeeting?.result_presentation_product4
                             ? selectedRowDataMeeting?.result_presentation_product4
-                            : ""}
+                            : ""} */}
+                          {selectedRowDataMeeting &&
+                            getCustomProductName(
+                              selectedRowDataMeeting.introduced_products_names,
+                              3,
+                              selectedRowDataMeeting?.result_presentation_product4
+                            )}
                         </span>
                       )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                      {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -1494,17 +1656,37 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <span className={`${styles.title}`}>実施商品5</span>
                       {!searchMode && (
                         <span className={`${styles.value}`}>
-                          {selectedRowDataMeeting?.result_presentation_product5
+                          {/* {selectedRowDataMeeting?.result_presentation_product5
                             ? selectedRowDataMeeting?.result_presentation_product5
-                            : ""}
+                            : ""} */}
+                          {selectedRowDataMeeting &&
+                            getCustomProductName(
+                              selectedRowDataMeeting.introduced_products_names,
+                              4,
+                              selectedRowDataMeeting?.result_presentation_product5
+                            )}
                         </span>
                       )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                      {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                    <div className={`${styles.title_box} flex h-full items-center`}></div>
+                    {/* <div className={`${styles.title_box} flex h-full items-center`}></div> */}
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title}`}>実施ALL</span>
+                      {!searchMode && (
+                        <span className={`${styles.value}`}>
+                          {/* {selectedRowDataMeeting?.result_presentation_product5
+                            ? selectedRowDataMeeting?.result_presentation_product5
+                            : ""} */}
+                          {selectedRowDataMeeting &&
+                            getProductNamesAll(selectedRowDataMeeting.introduced_products_names)}
+                        </span>
+                      )}
+                      {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
                   </div>
                 </div>
 
@@ -1584,11 +1766,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
           >
             {/* --------- ラッパー --------- */}
             <div className={`${styles.left_contents_wrapper} flex h-full w-full flex-col`}>
-              {/* 会社情報 */}
+              {/* 面談先詳細 */}
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.section_title}`}>会社情報</span>
+                    <span className={`${styles.section_title}`}>面談先詳細</span>
 
                     {/* <span className={`${styles.value} ${styles.value_highlight}`}>
                         {selectedRowDataMeeting?.company_name ? selectedRowDataMeeting?.company_name : ""}
@@ -1699,6 +1881,162 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
+
+              {/* 役職名・職位 */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>役職名</span>
+                    {!searchMode && (
+                      <span className={`${styles.value}`}>
+                        {selectedRowDataMeeting?.position_name ? selectedRowDataMeeting?.position_name : ""}
+                      </span>
+                    )}
+                    {searchMode && (
+                      <input
+                        type="text"
+                        className={`${styles.input_box}`}
+                        value={inputPositionName}
+                        onChange={(e) => setInputPositionName(e.target.value)}
+                      />
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title}`}>職位</span>
+                    {!searchMode && (
+                      <span className={`${styles.value}`}>
+                        {/* {selectedRowDataMeeting?.position_class ? selectedRowDataMeeting?.position_class : ""} */}
+                        {selectedRowDataMeeting &&
+                        selectedRowDataMeeting?.position_class &&
+                        mappingPositionClass[selectedRowDataMeeting.position_class]?.[language]
+                          ? mappingPositionClass[selectedRowDataMeeting.position_class]?.[language]
+                          : ""}
+                      </span>
+                    )}
+                    {searchMode && (
+                      // <input
+                      //   type="text"
+                      //   className={`${styles.input_box} ml-[20px]`}
+                      //   value={inputProductL}
+                      //   onChange={(e) => setInputProductL(e.target.value)}
+                      // />
+                      <select
+                        name="position_class"
+                        id="position_class"
+                        className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
+                        value={inputPositionClass}
+                        onChange={(e) => setInputPositionClass(e.target.value)}
+                      >
+                        <option value=""></option>
+                        {optionsPositionsClass.map((classNum) => (
+                          <option key={classNum} value={`${classNum}`}>
+                            {getPositionClassName(classNum, language)}
+                          </option>
+                        ))}
+                        {/* <option value="1 代表者">1 代表者</option>
+                        <option value="2 取締役/役員">2 取締役/役員</option>
+                        <option value="3 部長">3 部長</option>
+                        <option value="4 課長">4 課長</option>
+                        <option value="5 課長未満">5 課長未満</option>
+                        <option value="6 所長・工場長">6 所長・工場長</option>
+                        <option value="7 不明">7 不明</option> */}
+                      </select>
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 担当職種・決裁金額 通常 */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>担当職種</span>
+                    {!searchMode && (
+                      <span className={`${styles.value}`}>
+                        {/* {selectedRowDataMeeting?.occupation ? selectedRowDataMeeting?.occupation : ""} */}
+                        {selectedRowDataMeeting &&
+                        selectedRowDataMeeting?.occupation &&
+                        mappingOccupation[selectedRowDataMeeting.occupation]?.[language]
+                          ? mappingOccupation[selectedRowDataMeeting.occupation]?.[language]
+                          : ""}
+                      </span>
+                    )}
+                    {searchMode && (
+                      <select
+                        name="position_class"
+                        id="position_class"
+                        className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
+                        value={inputOccupation}
+                        onChange={(e) => setInputOccupation(e.target.value)}
+                      >
+                        <option value=""></option>
+                        {optionsOccupation.map((num) => (
+                          <option key={num} value={`${num}`}>
+                            {getOccupationName(num, language)}
+                          </option>
+                        ))}
+                        {/* {optionsOccupation.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))} */}
+                      </select>
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <div className={`${styles.title} flex flex-col text-[12px]`}>
+                      <span className={``}>決裁金額</span>
+                      <span className={``}>(万円)</span>
+                    </div>
+                    {!searchMode && (
+                      <span className={`${styles.value}`}>
+                        {selectedRowDataMeeting?.approval_amount ? selectedRowDataMeeting?.approval_amount : ""}
+                      </span>
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* Email */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>E-mail</span>
+                    {!searchMode && (
+                      <span className={`${styles.value}`}>
+                        {selectedRowDataMeeting?.contact_email ? selectedRowDataMeeting?.contact_email : ""}
+                      </span>
+                    )}
+                    {searchMode && (
+                      <input
+                        type="text"
+                        className={`${styles.input_box}`}
+                        value={inputContactEmail}
+                        onChange={(e) => setInputContactEmail(e.target.value)}
+                      />
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 同席者エリア */}
+              {selectedRowDataMeeting &&
+                selectedRowDataMeeting.attendees_info &&
+                selectedRowDataMeeting.attendees_info.length > 0 && (
+                  <div className={`mt-[10px]`}>
+                    <AttendeesListTable attendeesArray={selectedRowDataMeeting.attendees_info} />
+                  </div>
+                )}
+              {/* 同席者エリアここまで */}
 
               {/* 内線TEL・代表TEL */}
               <div className={`${styles.row_area} flex w-full items-center`}>
@@ -1858,29 +2196,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
               </div>
 
-              {/* Email */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>E-mail</span>
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
-                        {selectedRowDataMeeting?.contact_email ? selectedRowDataMeeting?.contact_email : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      <input
-                        type="text"
-                        className={`${styles.input_box}`}
-                        value={inputContactEmail}
-                        onChange={(e) => setInputContactEmail(e.target.value)}
-                      />
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
               {/* 郵便番号・ */}
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
@@ -1945,129 +2260,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     )}
                   </div>
                   <div className={`${styles.underline} `}></div>
-                </div>
-              </div>
-
-              {/* 役職名・職位 */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
-                <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>役職名</span>
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
-                        {selectedRowDataMeeting?.position_name ? selectedRowDataMeeting?.position_name : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      <input
-                        type="text"
-                        className={`${styles.input_box}`}
-                        value={inputPositionName}
-                        onChange={(e) => setInputPositionName(e.target.value)}
-                      />
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-                <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title}`}>職位</span>
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
-                        {/* {selectedRowDataMeeting?.position_class ? selectedRowDataMeeting?.position_class : ""} */}
-                        {selectedRowDataMeeting &&
-                        selectedRowDataMeeting?.position_class &&
-                        mappingPositionClass[selectedRowDataMeeting.position_class]?.[language]
-                          ? mappingPositionClass[selectedRowDataMeeting.position_class]?.[language]
-                          : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      // <input
-                      //   type="text"
-                      //   className={`${styles.input_box} ml-[20px]`}
-                      //   value={inputProductL}
-                      //   onChange={(e) => setInputProductL(e.target.value)}
-                      // />
-                      <select
-                        name="position_class"
-                        id="position_class"
-                        className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
-                        value={inputPositionClass}
-                        onChange={(e) => setInputPositionClass(e.target.value)}
-                      >
-                        <option value=""></option>
-                        {optionsPositionsClass.map((classNum) => (
-                          <option key={classNum} value={`${classNum}`}>
-                            {getPositionClassName(classNum, language)}
-                          </option>
-                        ))}
-                        {/* <option value="1 代表者">1 代表者</option>
-                        <option value="2 取締役/役員">2 取締役/役員</option>
-                        <option value="3 部長">3 部長</option>
-                        <option value="4 課長">4 課長</option>
-                        <option value="5 課長未満">5 課長未満</option>
-                        <option value="6 所長・工場長">6 所長・工場長</option>
-                        <option value="7 不明">7 不明</option> */}
-                      </select>
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 担当職種・決裁金額 通常 */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
-                <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>担当職種</span>
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
-                        {/* {selectedRowDataMeeting?.occupation ? selectedRowDataMeeting?.occupation : ""} */}
-                        {selectedRowDataMeeting &&
-                        selectedRowDataMeeting?.occupation &&
-                        mappingOccupation[selectedRowDataMeeting.occupation]?.[language]
-                          ? mappingOccupation[selectedRowDataMeeting.occupation]?.[language]
-                          : ""}
-                      </span>
-                    )}
-                    {searchMode && (
-                      <select
-                        name="position_class"
-                        id="position_class"
-                        className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
-                        value={inputOccupation}
-                        onChange={(e) => setInputOccupation(e.target.value)}
-                      >
-                        <option value=""></option>
-                        {optionsOccupation.map((num) => (
-                          <option key={num} value={`${num}`}>
-                            {getOccupationName(num, language)}
-                          </option>
-                        ))}
-                        {/* {optionsOccupation.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))} */}
-                      </select>
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-                <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center`}>
-                    <div className={`${styles.title} flex flex-col text-[12px]`}>
-                      <span className={``}>決裁金額</span>
-                      <span className={``}>(万円)</span>
-                    </div>
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
-                        {selectedRowDataMeeting?.approval_amount ? selectedRowDataMeeting?.approval_amount : ""}
-                      </span>
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
                 </div>
               </div>
 
@@ -2900,7 +3092,21 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title_search_mode}`}>面談開始</span>
+                    <span
+                      className={`${styles.title_search_mode}`}
+                      data-text={`〜時台のデータを検索する場合は時間のみ、`}
+                      data-text2={`〜分のデータを検索する場合は分のみを指定してください。`}
+                      onMouseEnter={(e) => {
+                        // e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        handleOpenTooltip(e, "top");
+                      }}
+                      onMouseLeave={(e) => {
+                        // e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        handleCloseTooltip();
+                      }}
+                    >
+                      面談開始
+                    </span>
                     <select
                       className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
                       placeholder="時"
@@ -3276,11 +3482,25 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
               </div>
 
-              {/* 面談開始・面談終了 サーチ */}
+              {/* 結果 面談開始・面談終了 サーチ */}
               <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title_search_mode}`}>面談開始</span>
+                    <span
+                      className={`${styles.title_search_mode}`}
+                      data-text={`〜時台のデータを検索する場合は時間のみ、`}
+                      data-text2={`〜分のデータを検索する場合は分のみを指定してください。`}
+                      onMouseEnter={(e) => {
+                        // e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        handleOpenTooltip(e, "top");
+                      }}
+                      onMouseLeave={(e) => {
+                        // e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        handleCloseTooltip();
+                      }}
+                    >
+                      面談開始
+                    </span>
                     <select
                       className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
                       placeholder="時"
@@ -3316,7 +3536,21 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title_search_mode}`}>面談終了</span>
+                    <span
+                      className={`${styles.title_search_mode}`}
+                      data-text={`〜時台のデータを検索する場合は時間のみ、`}
+                      data-text2={`〜分のデータを検索する場合は分のみを指定してください。`}
+                      onMouseEnter={(e) => {
+                        // e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        handleOpenTooltip(e, "top");
+                      }}
+                      onMouseLeave={(e) => {
+                        // e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        handleCloseTooltip();
+                      }}
+                    >
+                      面談終了
+                    </span>
                     <select
                       className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
                       placeholder="時"
@@ -3569,12 +3803,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
               {/* ============= 結果エリアここまで ============= */}
 
-              {/* ============= 会社情報エリアここから ============= */}
-              {/* 会社情報 サーチ */}
+              {/* ============= 面談先詳細エリアここから ============= */}
+              {/* 面談先詳細 サーチ */}
               <div className={`${styles.row_area} ${styles.row_area_search_mode} !mt-[20px] flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.section_title}`}>会社情報</span>
+                    <span className={`${styles.section_title}`}>面談先詳細</span>
 
                     {/* <span className={`${styles.value} ${styles.value_highlight}`}>
                         {selectedRowDataMeeting?.company_name ? selectedRowDataMeeting?.company_name : ""}

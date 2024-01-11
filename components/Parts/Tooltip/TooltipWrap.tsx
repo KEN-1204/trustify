@@ -43,6 +43,7 @@ export const TooltipWrap = () => {
       if (leftPosition + tooltipHalfWidth > viewportWidth - 10) {
         adjustedLeft = viewportWidth - tooltipHalfWidth - 10 - 10; // 20pxの余白を残す
         const addWidth = viewportWidth - 10 - adjustedLeft - tooltipHalfWidth;
+
         menuRef.current.style.width = `${tooltipWidth + addWidth}px`;
         menuRef.current.style.overflowWrap = "normal";
       } else {
@@ -65,13 +66,29 @@ export const TooltipWrap = () => {
       }
 
       // 画面左端を超えている場合、位置を右に調整
-      if (leftPosition < 0) {
+      // if (leftPosition < 0) {
+      //   adjustedLeft = 10; // 10pxの余白を残す
+      // }
+      if (hoveredItemPositionX + hoveredItemHalfWidth - tooltipHalfWidth < 0) {
         adjustedLeft = 10; // 10pxの余白を残す
+        // スタイルを更新
+        menuRef.current.style.left = `${adjustedLeft}px`;
+      } else {
+        // スタイルを更新
+        adjustedLeft = adjustedLeft - tooltipHalfWidth;
+        menuRef.current.style.left = `${adjustedLeft}px`;
       }
 
-      // スタイルを更新
-      adjustedLeft = adjustedLeft - tooltipHalfWidth;
-      menuRef.current.style.left = `${adjustedLeft}px`;
+      // console.log("✅leftPosition", leftPosition);
+      // console.log("✅adjustedLeft", adjustedLeft);
+      // console.log("✅tooltipWidth", tooltipWidth);
+      // console.log("✅tooltipHalfWidth", tooltipHalfWidth);
+      // console.log("✅hoveredItemPositionX", hoveredItemPositionX);
+      // console.log("✅hoveredItemHalfWidth", hoveredItemHalfWidth);
+      // console.log(
+      //   "✅hoveredItemPositionX + hoveredItemHalfWidth - tooltipHalfWidth",
+      //   hoveredItemPositionX + hoveredItemHalfWidth - tooltipHalfWidth
+      // );
     }
   }, [hoveredItemPositionX, hoveredItemPositionY, hoveredItemHalfWidth]);
 
@@ -175,6 +192,7 @@ export const TooltipWrap = () => {
         style={{
           position: "absolute",
           zIndex: 20000,
+          // backgroundColor: "red",
           // left: `${`${hoveredItemPositionX + hoveredItemHalfWidth}px`}`,
           // leftのスタイルはuseEffect内で動的に設定
           bottom: `${`${hoveredItemPositionYOver + 10}px`}`,

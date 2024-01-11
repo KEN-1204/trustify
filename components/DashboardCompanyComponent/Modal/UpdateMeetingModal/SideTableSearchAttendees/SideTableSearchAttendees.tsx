@@ -4,7 +4,7 @@ import { Dispatch, FormEvent, SetStateAction, memo, useCallback, useEffect, useR
 import { BsChevronRight } from "react-icons/bs";
 import { MdOutlineDataSaverOff } from "react-icons/md";
 import styles from "../UpdateMeetingModal.module.css";
-import { Contact_row_data } from "@/types";
+import { AttendeeInfo, Contact_row_data } from "@/types";
 import { useMedia } from "react-use";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import useDashboardStore from "@/store/useDashboardStore";
@@ -25,8 +25,10 @@ type Props = {
   //   inputValue: string;
   //   setInputValue: React.Dispatch<React.SetStateAction<string>>;
   // }[];
-  selectedAttendeesArray: Contact_row_data[];
-  setSelectedAttendeesArray: Dispatch<SetStateAction<Contact_row_data[]>>;
+  // selectedAttendeesArray: Contact_row_data[];
+  // setSelectedAttendeesArray: Dispatch<SetStateAction<Contact_row_data[]>>;
+  selectedAttendeesArray: AttendeeInfo[];
+  setSelectedAttendeesArray: Dispatch<SetStateAction<AttendeeInfo[]>>;
 };
 
 type SearchAttendeesParams = {
@@ -81,7 +83,8 @@ export const SideTableSearchAttendeesMemo = ({
   const [searchInputEmail, setSearchInputEmail] = useState(""); //Email
   const [searchInputAddress, setSearchInputAddress] = useState(""); //住所
   // モーダルの同席者カードに追加前のテーブル内で選択中の同席者オブジェクトを保持するstate
-  const [selectedSearchAttendeesArray, setSelectedSearchAttendeesArray] = useState<Contact_row_data[]>([]);
+  // const [selectedSearchAttendeesArray, setSelectedSearchAttendeesArray] = useState<Contact_row_data[]>([]);
+  const [selectedSearchAttendeesArray, setSelectedSearchAttendeesArray] = useState<AttendeeInfo[]>([]);
 
   const searchAttendeeFields = [
     {
@@ -366,17 +369,26 @@ export const SideTableSearchAttendeesMemo = ({
     // 配列同士の配列内のオブジェクトで一致するオブジェクトがあるかをチェックするために
     // new Setオブジェクトとhasメソッドのハッシュテーブルでのチェック
     // 1. 選択中担当者リストから担当者idのみを取り出した配列をnew SetでSetオブジェクトを生成
-    const selectedSearchAttendeesSetObj = new Set(selectedSearchAttendeesArray.map((attendee) => attendee.contact_id));
+    // const selectedSearchAttendeesSetObj = new Set(selectedSearchAttendeesArray.map((attendee) => attendee.contact_id));
+    const selectedSearchAttendeesSetObj = new Set(selectedSearchAttendeesArray.map((attendee) => attendee.attendee_id));
     // 2. 同席者リストをsomeで一つずつ担当者オブジェクトを取り出し、obj.idがハッシュテーブルに含まれているかチェック
     const foundAttendee = selectedAttendeesArray.find((attendee) =>
-      selectedSearchAttendeesSetObj.has(attendee.contact_id)
+      // selectedSearchAttendeesSetObj.has(attendee.contact_id)
+      selectedSearchAttendeesSetObj.has(attendee.attendee_id)
     );
     // 3. 既に選択してる担当者が一人でも同席者リストに存在する場合アラートを出してリターン(undefined以外ならリターン)
     if (foundAttendee) {
+      // alert(
+      //   `${
+      //     foundAttendee.company_name && foundAttendee.contact_name
+      //       ? `「${foundAttendee.company_name} ${foundAttendee.contact_name} 様」は既に同席者リストに含まれています。既に同席者リストに含まれている担当者は追加できません。`
+      //       : `既に同席者リストに含まれています。既に同席者リストに含まれている担当者は追加できません。`
+      //   }`
+      // );
       alert(
         `${
-          foundAttendee.company_name && foundAttendee.contact_name
-            ? `「${foundAttendee.company_name} ${foundAttendee.contact_name} 様」は既に同席者リストに含まれています。既に同席者リストに含まれている担当者は追加できません。`
+          foundAttendee.attendee_company && foundAttendee.attendee_name
+            ? `「${foundAttendee.attendee_company} ${foundAttendee.attendee_name} 様」は既に同席者リストに含まれています。既に同席者リストに含まれている担当者は追加できません。`
             : `既に同席者リストに含まれています。既に同席者リストに含まれている担当者は追加できません。`
         }`
       );
@@ -852,25 +864,49 @@ export const SideTableSearchAttendeesMemo = ({
                     // onMouseLeave={() => {
                     //   if (hoveredItemPosSideTable) handleCloseTooltip();
                     // }}
+                    // className={`${
+                    //   styles.attendees_list
+                    // } flex min-h-[44px] w-full cursor-pointer items-center truncate ${
+                    //   selectedSearchAttendeesArray.some((obj) => obj.contact_id === attendee.contact_id)
+                    //     ? styles.active
+                    //     : ``
+                    // }`}
                     className={`${
                       styles.attendees_list
                     } flex min-h-[44px] w-full cursor-pointer items-center truncate ${
-                      selectedSearchAttendeesArray.some((obj) => obj.contact_id === attendee.contact_id)
+                      selectedSearchAttendeesArray.some((obj) => obj.attendee_id === attendee.contact_id)
                         ? styles.active
                         : ``
                     }`}
                     onClick={() => {
                       // 存在の確認のみなので、findではなくsome
-                      if (selectedSearchAttendeesArray.some((obj) => obj.contact_id === attendee.contact_id)) {
+                      // if (selectedSearchAttendeesArray.some((obj) => obj.contact_id === attendee.contact_id)) {
+                      if (selectedSearchAttendeesArray.some((obj) => obj.attendee_id === attendee.contact_id)) {
                         // 既に配列に存在している場合は取り除く
+                        // const filteredAttendees = selectedSearchAttendeesArray.filter(
+                        //   (obj) => obj.contact_id !== attendee.contact_id
+                        // );
                         const filteredAttendees = selectedSearchAttendeesArray.filter(
-                          (obj) => obj.contact_id !== attendee.contact_id
+                          (obj) => obj.attendee_id !== attendee.contact_id
                         );
                         setSelectedSearchAttendeesArray(filteredAttendees);
                         return;
                       } else {
                         // 存在しない場合は配列に入れる スプレッドで不変性を保つ
-                        const newAttendees = [...selectedSearchAttendeesArray, attendee];
+                        // const newAttendees = [...selectedSearchAttendeesArray, attendee];
+                        const newAttendee: AttendeeInfo = {
+                          attendee_id: attendee.contact_id,
+                          attendee_name: attendee.contact_name ?? null,
+                          attendee_position_class: attendee.position_class ?? null,
+                          attendee_position_name: attendee.position_name ?? null,
+                          attendee_direct_line: attendee.direct_line ?? null,
+                          attendee_email: attendee.contact_email ?? null,
+                          attendee_company: attendee.company_name ?? null,
+                          attendee_main_phone_number: attendee.main_phone_number ?? null,
+                          attendee_address: attendee.address ?? null,
+                          attendee_department_name: attendee.department_name ?? null,
+                        };
+                        const newAttendees = [...selectedSearchAttendeesArray, newAttendee];
                         setSelectedSearchAttendeesArray(newAttendees);
                       }
                     }}
