@@ -183,19 +183,19 @@ export const SideTableSearchAttendeesMemo = ({
     console.log("✅ 条件 params", params);
 
     // 現在の入力値と同じかチェック
-    if (
-      params["client_companies.name"] === searchAttendeesParams["client_companies.name"] &&
-      params.department_name === searchAttendeesParams.department_name &&
-      params["contacts.name"] === searchAttendeesParams["contacts.name"] &&
-      params.position_name === searchAttendeesParams.position_name &&
-      params.main_phone_number === searchAttendeesParams.main_phone_number &&
-      params.direct_line === searchAttendeesParams.direct_line &&
-      params.company_cell_phone === searchAttendeesParams.company_cell_phone &&
-      params["contacts.email"] === searchAttendeesParams["contacts.email"] &&
-      params.address === searchAttendeesParams.address
-    ) {
-      return console.log("✅params同じためリターン");
-    }
+    // if (
+    //   params["client_companies.name"] === searchAttendeesParams["client_companies.name"] &&
+    //   params.department_name === searchAttendeesParams.department_name &&
+    //   params["contacts.name"] === searchAttendeesParams["contacts.name"] &&
+    //   params.position_name === searchAttendeesParams.position_name &&
+    //   params.main_phone_number === searchAttendeesParams.main_phone_number &&
+    //   params.direct_line === searchAttendeesParams.direct_line &&
+    //   params.company_cell_phone === searchAttendeesParams.company_cell_phone &&
+    //   params["contacts.email"] === searchAttendeesParams["contacts.email"] &&
+    //   params.address === searchAttendeesParams.address
+    // ) {
+    //   return console.log("✅params同じためリターン");
+    // }
 
     setSearchAttendeesParams(params);
   };
@@ -302,7 +302,7 @@ export const SideTableSearchAttendeesMemo = ({
     queryKey: ["attendees", queryKeySearchParamsStringRef.current],
     // queryKey: ["contacts"],
     queryFn: async (ctx) => {
-      console.log("サーチフェッチ queryFn✅✅✅ searchAttendeesParams", searchAttendeesParams);
+      console.log("サーチフェッチ同席者 queryFn✅✅✅ searchAttendeesParams", searchAttendeesParams);
       return fetchNewSearchServerPage(20, ctx.pageParam); // 20個ずつ取得
     },
     getNextPageParam: (lastGroup, allGroups) => {
@@ -511,6 +511,15 @@ export const SideTableSearchAttendeesMemo = ({
   };
   // -------------------------- ✅ツールチップ✅ --------------------------
 
+  // -------------------------- 🌟サイドテーブルを閉じる🌟 --------------------------
+  const handleClose = () => {
+    // 選択中のリスト配列をリセットする
+    setSelectedSearchAttendeesArray([]);
+    // サイドテーブルを閉じる
+    setIsOpenSearchAttendeesSideTable(false);
+  };
+  // -------------------------- ✅サイドテーブルを閉じる✅ --------------------------
+
   return (
     <>
       {/* オーバーレイ */}
@@ -518,7 +527,7 @@ export const SideTableSearchAttendeesMemo = ({
         <div
           // className={`absolute left-0 top-0 z-[1100] h-full w-full bg-[#00800030]`}
           className={`absolute left-0 top-0 z-[1100] h-full w-full bg-[#00000000]`}
-          onClick={() => setIsOpenSearchAttendeesSideTable(false)}
+          onClick={handleClose}
         ></div>
       )}
       {/* サイドテーブル */}
@@ -546,7 +555,7 @@ export const SideTableSearchAttendeesMemo = ({
             <div
               // className={`flex-center h-[36px] w-[36px] cursor-pointer rounded-full hover:bg-[#666]`}
               className={`z-1 flex-center absolute right-[-10px] top-[50%]  h-[36px] w-[36px] translate-y-[-50%] cursor-pointer rounded-full hover:bg-[#666]`}
-              onClick={() => setIsOpenSearchAttendeesSideTable(false)}
+              onClick={handleClose}
             >
               {/* <BsChevronRight className="z-1 absolute left-[-15px] top-[50%] translate-y-[-50%] text-[24px]" /> */}
               <BsChevronRight className="text-[24px]" />

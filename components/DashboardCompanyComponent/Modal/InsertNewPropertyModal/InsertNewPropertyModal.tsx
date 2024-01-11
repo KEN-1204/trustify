@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./InsertNewPropertyModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -23,6 +23,23 @@ import { getFiscalQuarter } from "@/utils/Helpers/getFiscalQuarter";
 import { getFiscalQuarterTest } from "@/utils/Helpers/getFiscalQuarterTest";
 import { Department, Office, Unit } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
+import { useQueryDepartments } from "@/hooks/useQueryDepartments";
+import { useQueryUnits } from "@/hooks/useQueryUnits";
+import { useQueryOffices } from "@/hooks/useQueryOffices";
+import { ConfirmationModal } from "../SettingAccountModal/SettingCompany/ConfirmationModal/ConfirmationModal";
+import { ErrorBoundary } from "react-error-boundary";
+import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
+import { FallbackSideTableSearchMember } from "../UpdateMeetingModal/SideTableSearchMember/FallbackSideTableSearchMember";
+import { SideTableSearchMember } from "../UpdateMeetingModal/SideTableSearchMember/SideTableSearchMember";
+
+type ModalProperties = {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+  width: number;
+  height: number;
+};
 
 export const InsertNewPropertyModal = () => {
   const language = useStore((state) => state.language);
@@ -42,14 +59,42 @@ export const InsertNewPropertyModal = () => {
   // 上画面の選択中の列データ会社
   // const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
+  // 確認モーダル(自社担当名、データ所有者変更確認)
+  const [isOpenConfirmationModal, setIsOpenConfirmationModal] = useState<string | null>(null);
+  // 自社担当検索サイドテーブル開閉
+  const [isOpenSearchMemberSideTable, setIsOpenSearchMemberSideTable] = useState(false);
+  // 紹介予定商品、実施商品選択時のドロップダウンメニュー用
+  const [modalProperties, setModalProperties] = useState<ModalProperties>();
+  // 事業部別製品編集ドロップダウンメニュー
+  const [isOpenDropdownMenuFilterProducts, setIsOpenDropdownMenuFilterProducts] = useState(false);
+  const [isOpenDropdownMenuFilterProductsArray, setIsOpenDropdownMenuFilterProductsArray] = useState(
+    Array(1).fill(false)
+  );
+  // ドロップダウンメニューの表示位置
+  type ClickedItemPos = { displayPos: "up" | "center" | "down"; clickedItemWidth: number | null };
+  const [clickedItemPosition, setClickedItemPosition] = useState<ClickedItemPos>({
+    displayPos: "down",
+    clickedItemWidth: null,
+  });
 
-  // 製品情報を取得
-  // const {
-  //   data: products,
-  //   error,
-  //   isError,
-  //   isLoading,
-  // } = useQueryProducts(userProfileState?.company_id, userProfileState?.id);
+  // モーダルの動的に変化する画面からのx, yとモーダルのwidth, heightを取得
+  useEffect(() => {
+    if (modalContainerRef.current === null) return console.log("❌無し");
+    const rect = modalContainerRef.current.getBoundingClientRect();
+    // if (modalProperties !== null && modalProperties?.left === rect.left)
+    //   return console.log("✅モーダル位置サイズ格納済み", modalProperties);
+
+    const left = rect.left;
+    const top = rect.top;
+    const right = rect.right;
+    const bottom = rect.bottom;
+    const width = rect.width;
+    const height = rect.height;
+
+    const payload = { left: left, top: top, right: right, bottom: bottom, width: width, height: height };
+    console.log("🔥モーダル位置サイズ格納", payload);
+    setModalProperties(payload);
+  }, []);
 
   const [currentStatus, setCurrentStatus] = useState(""); //現ステータス
   const [propertyName, setPropertyName] = useState(""); //案件名
@@ -106,22 +151,41 @@ export const InsertNewPropertyModal = () => {
   // ============================== 日付。年月、四半期関連 ここまで
   const [subscriptionInterval, setSubscriptionInterval] = useState(""); //サブスク分類
   const [competitionState, setCompetitionState] = useState(""); //競合状況
-  //事業部名
-  const [departmentId, setDepartmentId] = useState<Department["id"] | null>(
-    userProfileState?.assigned_department_id ? userProfileState?.assigned_department_id : null
-  );
-  // 係
-  const [unitId, setUnitId] = useState<Unit["id"] | null>(
-    userProfileState?.assigned_unit_id ? userProfileState?.assigned_unit_id : null
-  );
-  //所属事業所
-  const [officeId, setOfficeId] = useState<Office["id"] | null>(
-    userProfileState?.assigned_office_id ? userProfileState?.assigned_office_id : null
-  );
-  //自社担当
-  const [PropertyMemberName, setPropertyMemberName] = useState(
-    userProfileState?.profile_name ? userProfileState.profile_name : ""
-  );
+  // //事業部名
+  // const [departmentId, setDepartmentId] = useState<Department["id"] | null>(
+  //   userProfileState?.assigned_department_id ? userProfileState?.assigned_department_id : null
+  // );
+  // // 係
+  // const [unitId, setUnitId] = useState<Unit["id"] | null>(
+  //   userProfileState?.assigned_unit_id ? userProfileState?.assigned_unit_id : null
+  // );
+  // //所属事業所
+  // const [officeId, setOfficeId] = useState<Office["id"] | null>(
+  //   userProfileState?.assigned_office_id ? userProfileState?.assigned_office_id : null
+  // );
+  // //自社担当
+  // const [PropertyMemberName, setPropertyMemberName] = useState(
+  //   userProfileState?.profile_name ? userProfileState.profile_name : ""
+  // );
+  // =========営業担当データ
+  type MemberDetail = {
+    memberId: string | null;
+    memberName: string | null;
+    departmentId: string | null;
+    unitId: string | null;
+    officeId: string | null;
+  };
+  // 作成したユーザーのidと名前が初期値
+  const initialMemberObj = {
+    memberId: userProfileState?.id ? userProfileState?.id : null,
+    memberName: userProfileState?.profile_name ? userProfileState?.profile_name : null,
+    departmentId: userProfileState?.assigned_department_id ? userProfileState?.assigned_department_id : null,
+    unitId: userProfileState?.assigned_unit_id ? userProfileState?.assigned_unit_id : null,
+    officeId: userProfileState?.assigned_office_id ? userProfileState?.assigned_office_id : null,
+  };
+  const [prevMemberObj, setPrevMemberObj] = useState<MemberDetail>(initialMemberObj);
+  const [memberObj, setMemberObj] = useState<MemberDetail>(initialMemberObj);
+  // =========営業担当データここまで
 
   // ユーザーの決算月と締め日を取得
   const fiscalEndMonthObjRef = useRef<Date | null>(null);
@@ -131,10 +195,41 @@ export const InsertNewPropertyModal = () => {
   const { createPropertyMutation } = useMutateProperty();
 
   // ============================= 🌟事業部、係、事業所リスト取得useQuery🌟 =============================
-  const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
-  const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
-  const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
+  // const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
+  // const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
+  // const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
   // ============================= ✅事業部、係、事業所リスト取得useQuery✅ =============================
+  // ================================ 🌟事業部リスト取得useQuery🌟 ================================
+  const {
+    data: departmentDataArray,
+    isLoading: isLoadingQueryDepartment,
+    refetch: refetchQUeryDepartments,
+  } = useQueryDepartments(userProfileState?.company_id, true);
+
+  // useMutation
+  // const { createDepartmentMutation, updateDepartmentFieldMutation, deleteDepartmentMutation } = useMutateDepartment();
+  // ================================ ✅事業部リスト取得useQuery✅ ================================
+  // ================================ 🌟係・チームリスト取得useQuery🌟 ================================
+  const {
+    data: unitDataArray,
+    isLoading: isLoadingQueryUnit,
+    refetch: refetchQUeryUnits,
+  } = useQueryUnits(userProfileState?.company_id, true);
+
+  // useMutation
+  // const { createUnitMutation, updateUnitFieldMutation, updateMultipleUnitFieldsMutation, deleteUnitMutation } =
+  // useMutateUnit();
+  // ================================ ✅係・チームリスト取得useQuery✅ ================================
+  // ================================ 🌟事業所・営業所リスト取得useQuery🌟 ================================
+  const {
+    data: officeDataArray,
+    isLoading: isLoadingQueryOffice,
+    refetch: refetchQUeryOffices,
+  } = useQueryOffices(userProfileState?.company_id, true);
+
+  // useMutation
+  // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
+  // ================================ ✅事業所・営業所リスト取得useQuery✅ ================================
 
   // 四半期のselectタグの選択肢 20211, 20214
   const optionsYear = useMemo((): number[] => {
@@ -280,25 +375,40 @@ export const InsertNewPropertyModal = () => {
     // if (!expectedOrderDate) return alert("獲得予定時期を入力してください");
     if (!propertyDate) return alert("案件発生日付を入力してください");
     if (!PropertyYearMonth) return alert("案件年月度を入力してください");
-    if (PropertyMemberName === "") return alert("自社担当を入力してください");
+    // if (PropertyMemberName === "") return alert("自社担当を入力してください");
+    if (memberObj.memberName === "") return alert("自社担当を入力してください");
 
     setLoadingGlobalState(true);
 
+    // const departmentName =
+    //   departmentDataArray &&
+    //   departmentId &&
+    //   departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
+    // const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
     const departmentName =
       departmentDataArray &&
-      departmentId &&
-      departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
-    const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
+      memberObj.departmentId &&
+      departmentDataArray.find((obj) => obj.id === memberObj.departmentId)?.department_name;
+    const officeName =
+      officeDataArray &&
+      memberObj.officeId &&
+      officeDataArray.find((obj) => obj.id === memberObj.officeId)?.office_name;
 
     // 新規作成するデータをオブジェクトにまとめる
     const newProperty = {
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
-      created_by_user_id: userProfileState?.id ? userProfileState.id : null,
       // created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
       // created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
-      created_by_department_of_user: departmentId ? departmentId : null,
-      created_by_unit_of_user: unitId ? unitId : null,
-      created_by_office_of_user: officeId ? officeId : null,
+      // 営業担当データ
+      created_by_user_id: memberObj.memberId ? memberObj.memberId : null,
+      created_by_department_of_user: memberObj.departmentId ? memberObj.departmentId : null,
+      created_by_unit_of_user: memberObj.unitId ? memberObj.unitId : null,
+      created_by_office_of_user: memberObj.officeId ? memberObj.officeId : null,
+      // 営業担当データここまで
+      // created_by_user_id: userProfileState?.id ? userProfileState.id : null,
+      // created_by_department_of_user: departmentId ? departmentId : null,
+      // created_by_unit_of_user: unitId ? unitId : null,
+      // created_by_office_of_user: officeId ? officeId : null,
       client_contact_id: selectedRowDataMeeting.contact_id,
       client_company_id: selectedRowDataMeeting.company_id,
       current_status: currentStatus ? currentStatus : null,
@@ -347,7 +457,8 @@ export const InsertNewPropertyModal = () => {
       // property_business_office: PropertyBusinessOffice ? PropertyBusinessOffice : null,
       property_department: departmentName ? departmentName : null,
       property_business_office: officeName ? officeName : null,
-      property_member_name: PropertyMemberName ? PropertyMemberName : null,
+      // property_member_name: PropertyMemberName ? PropertyMemberName : null,
+      property_member_name: memberObj.memberName ? memberObj.memberName : null,
       property_date: propertyDate ? propertyDate.toISOString() : null,
     };
 
@@ -372,25 +483,40 @@ export const InsertNewPropertyModal = () => {
     // if (!expectedOrderDate) return alert("獲得予定時期を入力してください");
     if (!propertyDate) return alert("案件発生日付を入力してください");
     if (!PropertyYearMonth) return alert("案件年月度を入力してください");
-    if (PropertyMemberName === "") return alert("自社担当を入力してください");
+    // if (PropertyMemberName === "") return alert("自社担当を入力してください");
+    if (memberObj.memberName === "") return alert("自社担当を入力してください");
 
     setLoadingGlobalState(true);
 
+    // const departmentName =
+    //   departmentDataArray &&
+    //   departmentId &&
+    //   departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
+    // const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
     const departmentName =
       departmentDataArray &&
-      departmentId &&
-      departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
-    const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
+      memberObj.departmentId &&
+      departmentDataArray.find((obj) => obj.id === memberObj.departmentId)?.department_name;
+    const officeName =
+      officeDataArray &&
+      memberObj.officeId &&
+      officeDataArray.find((obj) => obj.id === memberObj.officeId)?.office_name;
 
     // 新規作成するデータをオブジェクトにまとめる
     const newProperty = {
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
-      created_by_user_id: userProfileState?.id ? userProfileState.id : null,
       // created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
       // created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
-      created_by_department_of_user: departmentId ? departmentId : null,
-      created_by_unit_of_user: unitId ? unitId : null,
-      created_by_office_of_user: officeId ? officeId : null,
+      // 営業担当データ
+      created_by_user_id: memberObj.memberId ? memberObj.memberId : null,
+      created_by_department_of_user: memberObj.departmentId ? memberObj.departmentId : null,
+      created_by_unit_of_user: memberObj.unitId ? memberObj.unitId : null,
+      created_by_office_of_user: memberObj.officeId ? memberObj.officeId : null,
+      // 営業担当データここまで
+      // created_by_user_id: userProfileState?.id ? userProfileState.id : null,
+      // created_by_department_of_user: departmentId ? departmentId : null,
+      // created_by_unit_of_user: unitId ? unitId : null,
+      // created_by_office_of_user: officeId ? officeId : null,
       client_contact_id: selectedRowDataActivity.contact_id,
       client_company_id: selectedRowDataActivity.company_id,
       current_status: currentStatus,
@@ -439,7 +565,8 @@ export const InsertNewPropertyModal = () => {
       // property_business_office: PropertyBusinessOffice ? PropertyBusinessOffice : null,
       property_department: departmentName ? departmentName : null,
       property_business_office: officeName ? officeName : null,
-      property_member_name: PropertyMemberName ? PropertyMemberName : null,
+      // property_member_name: PropertyMemberName ? PropertyMemberName : null,
+      property_member_name: memberObj.memberName ? memberObj.memberName : null,
       property_date: propertyDate ? propertyDate.toISOString() : null,
     };
 
@@ -464,25 +591,35 @@ export const InsertNewPropertyModal = () => {
     // if (!expectedOrderDate) return alert("獲得予定時期を入力してください");
     if (!propertyDate) return alert("案件発生日付を入力してください");
     if (!PropertyYearMonth) return alert("案件年月度を入力してください");
-    if (PropertyMemberName === "") return alert("自社担当を入力してください");
+    // if (PropertyMemberName === "") return alert("自社担当を入力してください");
+    if (memberObj.memberName === "") return alert("自社担当を入力してください");
 
     setLoadingGlobalState(true);
 
     const departmentName =
       departmentDataArray &&
-      departmentId &&
-      departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
-    const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
+      memberObj.departmentId &&
+      departmentDataArray.find((obj) => obj.id === memberObj.departmentId)?.department_name;
+    const officeName =
+      officeDataArray &&
+      memberObj.officeId &&
+      officeDataArray.find((obj) => obj.id === memberObj.officeId)?.office_name;
 
     // 新規作成するデータをオブジェクトにまとめる
     const newProperty = {
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
-      created_by_user_id: userProfileState?.id ? userProfileState.id : null,
       // created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
       // created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
-      created_by_department_of_user: departmentId ? departmentId : null,
-      created_by_unit_of_user: unitId ? unitId : null,
-      created_by_office_of_user: officeId ? officeId : null,
+      // 営業担当データ
+      created_by_user_id: memberObj.memberId ? memberObj.memberId : null,
+      created_by_department_of_user: memberObj.departmentId ? memberObj.departmentId : null,
+      created_by_unit_of_user: memberObj.unitId ? memberObj.unitId : null,
+      created_by_office_of_user: memberObj.officeId ? memberObj.officeId : null,
+      // 営業担当データここまで
+      // created_by_user_id: userProfileState?.id ? userProfileState.id : null,
+      // created_by_department_of_user: departmentId ? departmentId : null,
+      // created_by_unit_of_user: unitId ? unitId : null,
+      // created_by_office_of_user: officeId ? officeId : null,
       client_contact_id: selectedRowDataProperty.contact_id,
       client_company_id: selectedRowDataProperty.company_id,
       current_status: currentStatus,
@@ -531,7 +668,8 @@ export const InsertNewPropertyModal = () => {
       // property_business_office: PropertyBusinessOffice ? PropertyBusinessOffice : null,
       property_department: departmentName ? departmentName : null,
       property_business_office: officeName ? officeName : null,
-      property_member_name: PropertyMemberName ? PropertyMemberName : null,
+      // property_member_name: PropertyMemberName ? PropertyMemberName : null,
+      property_member_name: memberObj.memberName ? memberObj.memberName : null,
       property_date: propertyDate ? propertyDate.toISOString() : null,
     };
 
@@ -556,25 +694,35 @@ export const InsertNewPropertyModal = () => {
     // if (!expectedOrderDate) return alert("獲得予定時期を入力してください");
     if (!propertyDate) return alert("案件発生日付を入力してください");
     if (!PropertyYearMonth) return alert("案件年月度を入力してください");
-    if (PropertyMemberName === "") return alert("自社担当を入力してください");
+    // if (PropertyMemberName === "") return alert("自社担当を入力してください");
+    if (memberObj.memberName === "") return alert("自社担当を入力してください");
 
     setLoadingGlobalState(true);
 
     const departmentName =
       departmentDataArray &&
-      departmentId &&
-      departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
-    const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
+      memberObj.departmentId &&
+      departmentDataArray.find((obj) => obj.id === memberObj.departmentId)?.department_name;
+    const officeName =
+      officeDataArray &&
+      memberObj.officeId &&
+      officeDataArray.find((obj) => obj.id === memberObj.officeId)?.office_name;
 
     // 新規作成するデータをオブジェクトにまとめる
     const newProperty = {
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
-      created_by_user_id: userProfileState?.id ? userProfileState.id : null,
       // created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
       // created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
-      created_by_department_of_user: departmentId ? departmentId : null,
-      created_by_unit_of_user: unitId ? unitId : null,
-      created_by_office_of_user: officeId ? officeId : null,
+      // 営業担当データ
+      created_by_user_id: memberObj.memberId ? memberObj.memberId : null,
+      created_by_department_of_user: memberObj.departmentId ? memberObj.departmentId : null,
+      created_by_unit_of_user: memberObj.unitId ? memberObj.unitId : null,
+      created_by_office_of_user: memberObj.officeId ? memberObj.officeId : null,
+      // 営業担当データここまで
+      // created_by_user_id: userProfileState?.id ? userProfileState.id : null,
+      // created_by_department_of_user: departmentId ? departmentId : null,
+      // created_by_unit_of_user: unitId ? unitId : null,
+      // created_by_office_of_user: officeId ? officeId : null,
       client_contact_id: selectedRowDataContact.contact_id,
       client_company_id: selectedRowDataContact.company_id,
       current_status: currentStatus,
@@ -623,7 +771,8 @@ export const InsertNewPropertyModal = () => {
       // property_business_office: PropertyBusinessOffice ? PropertyBusinessOffice : null,
       property_department: departmentName ? departmentName : null,
       property_business_office: officeName ? officeName : null,
-      property_member_name: PropertyMemberName ? PropertyMemberName : null,
+      // property_member_name: PropertyMemberName ? PropertyMemberName : null,
+      property_member_name: memberObj.memberName ? memberObj.memberName : null,
       property_date: propertyDate ? propertyDate.toISOString() : null,
     };
 
@@ -2551,8 +2700,13 @@ export const InsertNewPropertyModal = () => {
                     <span className={`${styles.title} !min-w-[140px]`}>事業部名</span>
                     <select
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      value={departmentId ? departmentId : ""}
-                      onChange={(e) => setDepartmentId(e.target.value)}
+                      // value={departmentId ? departmentId : ""}
+                      // onChange={(e) => setDepartmentId(e.target.value)}
+                      value={memberObj.departmentId ? memberObj.departmentId : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, departmentId: e.target.value });
+                        setIsOpenConfirmationModal("change_member");
+                      }}
                     >
                       <option value=""></option>
                       {departmentDataArray &&
@@ -2579,8 +2733,13 @@ export const InsertNewPropertyModal = () => {
                     <span className={`${styles.title} `}>係・チーム</span>
                     <select
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box} ${styles.min}`}
-                      value={unitId ? unitId : ""}
-                      onChange={(e) => setUnitId(e.target.value)}
+                      // value={unitId ? unitId : ""}
+                      // onChange={(e) => setUnitId(e.target.value)}
+                      value={memberObj.unitId ? memberObj.unitId : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, unitId: e.target.value });
+                        setIsOpenConfirmationModal("change_member");
+                      }}
                     >
                       <option value=""></option>
                       {unitDataArray &&
@@ -2612,8 +2771,13 @@ export const InsertNewPropertyModal = () => {
                     <span className={`${styles.title} !min-w-[140px]`}>所属事業所</span>
                     <select
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      value={officeId ? officeId : ""}
-                      onChange={(e) => setOfficeId(e.target.value)}
+                      // value={officeId ? officeId : ""}
+                      // onChange={(e) => setOfficeId(e.target.value)}
+                      value={memberObj.officeId ? memberObj.officeId : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, officeId: e.target.value });
+                        setIsOpenConfirmationModal("change_member");
+                      }}
                     >
                       <option value=""></option>
                       {officeDataArray &&
@@ -2644,9 +2808,23 @@ export const InsertNewPropertyModal = () => {
                       placeholder="*入力必須"
                       required
                       className={`${styles.input_box}`}
-                      value={PropertyMemberName}
-                      onChange={(e) => setPropertyMemberName(e.target.value)}
-                      onBlur={() => setPropertyMemberName(toHalfWidth(PropertyMemberName.trim()))}
+                      // value={PropertyMemberName}
+                      // onChange={(e) => setPropertyMemberName(e.target.value)}
+                      // onBlur={() => setPropertyMemberName(toHalfWidth(PropertyMemberName.trim()))}
+                      value={memberObj.memberName ? memberObj.memberName : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, memberName: e.target.value });
+                      }}
+                      onKeyUp={() => {
+                        if (prevMemberObj.memberName !== memberObj.memberName) {
+                          setIsOpenConfirmationModal("change_member");
+                          return;
+                        }
+                      }}
+                      onBlur={() => {
+                        if (!memberObj.memberName) return;
+                        setMemberObj({ ...memberObj, memberName: toHalfWidthAndSpace(memberObj.memberName.trim()) });
+                      }}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -2661,6 +2839,53 @@ export const InsertNewPropertyModal = () => {
           {/* メインコンテンツ コンテナ ここまで */}
         </div>
       </div>
+
+      {/* 「自社担当」変更確認モーダル */}
+      {isOpenConfirmationModal === "change_member" && (
+        <ConfirmationModal
+          clickEventClose={() => {
+            // setMeetingMemberName(selectedRowDataMeeting?.meeting_member_name ?? "");
+            setMemberObj(prevMemberObj);
+            setIsOpenConfirmationModal(null);
+          }}
+          // titleText="面談データの自社担当を変更してもよろしいですか？"
+          titleText={`データの所有者を変更してもよろしいですか？`}
+          // titleText2={`データの所有者を変更しますか？`}
+          sectionP1="「自社担当」「事業部」「係・チーム」「事業所」を変更すると案件データの所有者が変更されます。"
+          sectionP2="注：データの所有者を変更すると、この案件結果は変更先のメンバーの集計結果に移行され、分析結果が変更されます。"
+          cancelText="戻る"
+          submitText="変更する"
+          clickEventSubmit={() => {
+            // setMemberObj(prevMemberObj);
+            setIsOpenConfirmationModal(null);
+            setIsOpenSearchMemberSideTable(true);
+          }}
+        />
+      )}
+
+      {/* 「自社担当」変更サイドテーブル */}
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <Suspense
+          fallback={<FallbackSideTableSearchMember isOpenSearchMemberSideTable={isOpenSearchMemberSideTable} />}
+        >
+          <SideTableSearchMember
+            isOpenSearchMemberSideTable={isOpenSearchMemberSideTable}
+            setIsOpenSearchMemberSideTable={setIsOpenSearchMemberSideTable}
+            // currentMemberId={selectedRowDataMeeting?.meeting_created_by_user_id ?? ""}
+            // currentMemberName={selectedRowDataMeeting?.meeting_member_name ?? ""}
+            // currentMemberDepartmentId={selectedRowDataMeeting?.meeting_created_by_department_of_user ?? null}
+            // setChangedMemberObj={setChangedMemberObj}
+            // currentMemberId={memberObj.memberId ?? ""}
+            // currentMemberName={memberObj.memberName ?? ""}
+            // currentMemberDepartmentId={memberObj.departmentId ?? null}
+            prevMemberObj={prevMemberObj}
+            setPrevMemberObj={setPrevMemberObj}
+            memberObj={memberObj}
+            setMemberObj={setMemberObj}
+            // setMeetingMemberName={setMeetingMemberName}
+          />
+        </Suspense>
+      </ErrorBoundary>
     </>
   );
 };

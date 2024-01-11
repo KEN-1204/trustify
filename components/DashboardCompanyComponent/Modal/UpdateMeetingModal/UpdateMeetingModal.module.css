@@ -310,16 +310,6 @@
   /* border-color: #30a46c; */
   border-color: var(--border-theme-dark);
 }
-.select_box {
-  background: var(--color-bg-under-input);
-  box-shadow: var(--color-bg-under-input-box-shadow);
-  /* height: 30px; */
-  min-height: 32px;
-  padding-left: 5px;
-  font-size: 15px;
-  border-radius: 6px;
-  max-width: 375px;
-}
 
 .row_area input[type="number"]::-webkit-inner-spin-button,
 .row_area input[type="number"]::-webkit-outer-spin-button {
@@ -380,6 +370,17 @@
 .save_section_title span,
 .cancel_section_title span {
   pointer-events: none;
+}
+
+.select_box {
+  background: var(--color-bg-under-input);
+  box-shadow: var(--color-bg-under-input-box-shadow);
+  /* height: 30px; */
+  min-height: 32px;
+  padding-left: 5px;
+  font-size: 15px;
+  border-radius: 6px;
+  max-width: 375px;
 }
 
 .input_box {
@@ -463,8 +464,19 @@
 .side_table_search_list .input_box {
   max-width: none;
   width: 100%;
-  min-height: 30px;
-  max-height: 30px;
+  min-height: 32px;
+  max-height: 32px;
+  margin-left: 0px;
+  font-size: 14px;
+  background: #3c3c3c;
+  color: #fff;
+  box-shadow: inset 0px 0px 0px 1px #ffffff90, 0px 0px 0px 1px #000;
+}
+.side_table_search_list .select_box.change_member {
+  max-width: none;
+  width: 100%;
+  min-height: 32px;
+  max-height: 32px;
   margin-left: 0px;
   font-size: 14px;
   background: #3c3c3c;
@@ -484,12 +496,22 @@
 .side_table_search_list .input_box:focus {
   box-shadow: inset 0 0 0 1px var(--color-bg-brand-f);
 }
+.side_table_search_list .input_box::placeholder {
+  color: #ccccccd0;
+}
 .side_table_search_list:hover .list_title_area {
   /* color: var(--color-bg-brand-f); */
 }
 .side_table_search_list:hover .list_title {
   text-decoration: underline;
 }
+.list_title_area {
+  min-width: 140px;
+}
+.list_title.change_member {
+  min-width: 70px;
+}
+
 .side_table_attendees_header {
   transition: background-color 0.2s ease;
   transition-delay: 0s !important;

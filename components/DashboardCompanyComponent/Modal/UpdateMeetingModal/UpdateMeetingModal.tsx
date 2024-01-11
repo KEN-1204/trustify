@@ -62,9 +62,10 @@ export const UpdateMeetingModal = () => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   // const settingModalProperties = useDashboardStore((state) => state.settingModalProperties);
   // 確認モーダル(自社担当名、データ所有者変更確認)
-  const [isOpenConfirmationModal, setIsOpenConfirmationModal] = useState(null);
+  const [isOpenConfirmationModal, setIsOpenConfirmationModal] = useState<string | null>(null);
   // 自社担当検索サイドテーブル開閉
   const [isOpenSearchMemberSideTable, setIsOpenSearchMemberSideTable] = useState(false);
+  // 紹介予定商品、実施商品選択時のドロップダウンメニュー用
   const [modalProperties, setModalProperties] = useState<ModalProperties>();
   // 事業部別製品編集ドロップダウンメニュー
   const [isOpenDropdownMenuFilterProducts, setIsOpenDropdownMenuFilterProducts] = useState(false);
@@ -77,6 +78,8 @@ export const UpdateMeetingModal = () => {
     displayPos: "down",
     clickedItemWidth: null,
   });
+  // 同席者検索サイドテーブル
+  const [isOpenSearchAttendeesSideTable, setIsOpenSearchAttendeesSideTable] = useState(false);
 
   // // メディアクエリState
   // // デスクトップモニター
@@ -85,21 +88,6 @@ export const UpdateMeetingModal = () => {
   // useEffect(() => {
   //   setIsDesktopGTE1600(isDesktopGTE1600Media);
   // }, [isDesktopGTE1600Media]);
-
-  // 同席者検索サイドテーブル
-  const [isOpenSearchAttendeesSideTable, setIsOpenSearchAttendeesSideTable] = useState(false);
-  // 同席者検索フィールド用input
-  // const [searchInputCompany, setSearchInputCompany] = useState(""); //会社名
-  // const [searchInputDepartment, setSearchInputDepartment] = useState(""); //部署名
-  // const [searchInputContact, setSearchInputContact] = useState(""); //担当者名
-  // const [searchInputPositionName, setSearchInputPositionName] = useState(""); //役職名
-  // const [searchInputTel, setSearchInputTel] = useState(""); //代表TEL
-  // const [searchInputDirectLine, setSearchInputDirectLine] = useState(""); //直通TEL
-  // const [searchInputCompanyCellPhone, setSearchInputCompanyCellPhone] = useState(""); //社用携帯
-  // const [searchInputEmail, setSearchInputEmail] = useState(""); //Email
-  // const [searchInputAddress, setSearchInputAddress] = useState(""); //住所
-  // 選択中の同席者オブジェクトを保持するstate
-  const [selectedAttendeesArray, setSelectedAttendeesArray] = useState<Contact_row_data[]>([]);
 
   // const searchAttendeeFields = [
   //   {
@@ -248,7 +236,10 @@ export const UpdateMeetingModal = () => {
   // const [MeetingDate, setMeetingDate] = useState<Date | null>(new Date());
   const [meetingType, setMeetingType] = useState("訪問");
   const [webTool, setWebTool] = useState("");
-  const [plannedDate, setPlannedDate] = useState<Date | null>(initialDate);
+  // const [plannedDate, setPlannedDate] = useState<Date | null>(initialDate);
+  const [plannedDate, setPlannedDate] = useState<Date | null>(
+    selectedRowDataMeeting && selectedRowDataMeeting.planned_date ? new Date(selectedRowDataMeeting.planned_date) : null
+  );
   const [plannedStartTime, setPlannedStartTime] = useState<string>("");
   const [plannedStartTimeHour, setPlannedStartTimeHour] = useState<string>("");
   const [plannedStartTimeMinute, setPlannedStartTimeMinute] = useState<string>("");
@@ -267,9 +258,6 @@ export const UpdateMeetingModal = () => {
   const [resultEndTimeMinute, setResultEndTimeMinute] = useState<string>("");
   const [resultDuration, setResultDuration] = useState<number | null>(null);
   const [resultNumberOfMeetingParticipants, setResultNumberOfMeetingParticipants] = useState<number | null>(null);
-  const [resultPresentationProductsArray, setResultPresentationProductsArray] = useState<(string | null)[]>(
-    Array(2).fill(null)
-  );
   // const [resultPresentationProduct1, setResultPresentationProduct1] = useState("");
   // const [resultPresentationProduct2, setResultPresentationProduct2] = useState("");
   // const [resultPresentationProduct3, setResultPresentationProduct3] = useState("");
@@ -281,32 +269,62 @@ export const UpdateMeetingModal = () => {
   const [preMeetingParticipationRequest, setPreMeetingParticipationRequest] = useState("");
   const [meetingParticipationRequest, setMeetingParticipationRequest] = useState("");
   // 事業部
-  const [departmentId, setDepartmentId] = useState<Department["id"] | null>(
-    selectedRowDataMeeting?.meeting_created_by_department_of_user
+  // const [departmentId, setDepartmentId] = useState<Department["id"] | null>(
+  //   selectedRowDataMeeting?.meeting_created_by_department_of_user
+  //     ? selectedRowDataMeeting?.meeting_created_by_department_of_user
+  //     : null
+  // );
+  // // 係
+  // const [unitId, setUnitId] = useState<Unit["id"] | null>(
+  //   selectedRowDataMeeting?.meeting_created_by_unit_of_user
+  //     ? selectedRowDataMeeting?.meeting_created_by_unit_of_user
+  //     : null
+  // );
+  // // 事業所
+  // const [officeId, setOfficeId] = useState<Office["id"] | null>(
+  //   selectedRowDataMeeting?.meeting_created_by_office_of_user
+  //     ? selectedRowDataMeeting?.meeting_created_by_office_of_user
+  //     : null
+  // );
+  // =======営業担当データ
+  type MemberDetail = {
+    memberId: string | null;
+    memberName: string | null;
+    departmentId: string | null;
+    unitId: string | null;
+    officeId: string | null;
+  };
+  // 作成したユーザーのidと名前が初期値
+  const initialMemberObj = {
+    memberName: selectedRowDataMeeting?.meeting_member_name ? selectedRowDataMeeting?.meeting_member_name : null,
+    memberId: selectedRowDataMeeting?.meeting_created_by_user_id
+      ? selectedRowDataMeeting?.meeting_created_by_user_id
+      : null,
+    departmentId: selectedRowDataMeeting?.meeting_created_by_department_of_user
       ? selectedRowDataMeeting?.meeting_created_by_department_of_user
-      : null
-  );
-  // 係
-  const [unitId, setUnitId] = useState<Unit["id"] | null>(
-    selectedRowDataMeeting?.meeting_created_by_unit_of_user
+      : null,
+    unitId: selectedRowDataMeeting?.meeting_created_by_unit_of_user
       ? selectedRowDataMeeting?.meeting_created_by_unit_of_user
-      : null
-  );
-  // 事業所
-  const [officeId, setOfficeId] = useState<Office["id"] | null>(
-    selectedRowDataMeeting?.meeting_created_by_office_of_user
+      : null,
+    officeId: selectedRowDataMeeting?.meeting_created_by_office_of_user
       ? selectedRowDataMeeting?.meeting_created_by_office_of_user
-      : null
-  );
-  // 自社担当名
-  const [meetingMemberName, setMeetingMemberName] = useState(
-    selectedRowDataMeeting?.meeting_member_name ? selectedRowDataMeeting?.meeting_member_name : ""
-  );
-  type NewMemberObj = { newMemberId: string; newMemberName: string } | null;
-  // 🌟自社担当が変更された場合の自社担当idと名前
-  const [changedMemberObj, setChangedMemberObj] = useState<NewMemberObj>(null);
+      : null,
+  };
+  const [prevMemberObj, setPrevMemberObj] = useState<MemberDetail>(initialMemberObj);
+  const [memberObj, setMemberObj] = useState<MemberDetail>(initialMemberObj);
+  // =======営業担当データここまで
+  // const [meetingMemberName, setMeetingMemberName] = useState(
+  //   selectedRowDataMeeting?.meeting_member_name ? selectedRowDataMeeting?.meeting_member_name : ""
+  // );
   // 面談年月度
   const [meetingYearMonth, setMeetingYearMonth] = useState<number | null>(Number(meetingYearMonthInitialValue));
+  // 実施商品リスト配列
+  const [resultPresentationProductsArray, setResultPresentationProductsArray] = useState<(string | null)[]>(
+    Array(2).fill(null)
+  );
+  // 選択中の同席者オブジェクトを保持する配列
+  const [selectedAttendeesArray, setSelectedAttendeesArray] = useState<Contact_row_data[]>([]);
+
   // ユーザーの決算月と締め日を取得
   const fiscalEndMonthObjRef = useRef<Date | null>(null);
   const closingDayRef = useRef<number | null>(null);
@@ -468,6 +486,18 @@ export const UpdateMeetingModal = () => {
     const selectedYearMonthInitialValue = `${year}${month < 10 ? "0" + month : month}`; // 月が1桁の場合は先頭に0を追加
 
     // let _activity_date = selectedRowDataActivity.activity_date ? new Date(selectedRowDataActivity.activity_date) : null;
+    let _meeting_created_by_user_id = selectedRowDataMeeting.meeting_created_by_user_id
+      ? selectedRowDataMeeting.meeting_created_by_user_id
+      : null;
+    let _meeting_created_by_department_of_user = selectedRowDataMeeting.meeting_created_by_department_of_user
+      ? selectedRowDataMeeting.meeting_created_by_department_of_user
+      : null;
+    let _meeting_created_by_unit_of_user = selectedRowDataMeeting.meeting_created_by_unit_of_user
+      ? selectedRowDataMeeting.meeting_created_by_unit_of_user
+      : null;
+    let _meeting_created_by_office_of_user = selectedRowDataMeeting.meeting_created_by_office_of_user
+      ? selectedRowDataMeeting.meeting_created_by_office_of_user
+      : null;
     let _meeting_type = selectedRowDataMeeting.meeting_type ? selectedRowDataMeeting.meeting_type : "";
     let _web_tool = selectedRowDataMeeting.web_tool ? selectedRowDataMeeting.web_tool : "";
     let _planned_date = selectedInitialMeetingDate;
@@ -569,10 +599,19 @@ export const UpdateMeetingModal = () => {
     setResultNegotiateDecisionMaker(_result_negotiate_decision_maker);
     setPreMeetingParticipationRequest(_pre_meeting_participation_request);
     setMeetingParticipationRequest(_meeting_participation_request);
-    setDepartmentId(_meeting_department);
-    setUnitId(_unit);
-    setOfficeId(_meeting_business_office);
-    setMeetingMemberName(_meeting_member_name);
+    // setDepartmentId(_meeting_department);
+    // setUnitId(_unit);
+    // setOfficeId(_meeting_business_office);
+    // setMeetingMemberName(_meeting_member_name);
+    const memberDetail = {
+      memberId: _meeting_created_by_user_id,
+      memberName: _meeting_member_name,
+      departmentId: _meeting_created_by_department_of_user,
+      unitId: _meeting_created_by_unit_of_user,
+      officeId: _meeting_created_by_office_of_user,
+    };
+    setMemberObj(memberDetail);
+    setPrevMemberObj(memberDetail);
     setMeetingYearMonth(_meeting_year_month);
   }, []);
 
@@ -721,19 +760,27 @@ export const UpdateMeetingModal = () => {
     // if (resultEndTimeHour === "") return alert("結果面談終了 時間を選択してください");
     // if (resultEndTimeMinute === "") return alert("結果面談終了 分を選択してください");
     if (!meetingYearMonth) return alert("面談年月度を入力してください");
-    if (meetingMemberName === "") return alert("自社担当を入力してください");
+    // if (meetingMemberName === "") return alert("自社担当を入力してください");
+    if (memberObj.memberName === "") return alert("自社担当を入力してください");
+
+    // 自社担当変更確認モーダルが開いている場合はリターン
+    // if (!!isOpenConfirmationModal) return toast.info("自社担当が変更されるかも");
+    // return alert("OK");
 
     // 実施商品リストの配列からnullを除いたidの値のみの配列を生成 1つもなければ最低一つ選択するようにアラート
-    const resultProductsArrayExcludeNull = resultPresentationProductsArray.filter(
-      (productId) => productId !== null && productId !== "" && productId !== undefined
+    const resultProductsArrayExcludeNull: string[] = resultPresentationProductsArray.filter(
+      (productId): productId is string =>
+        productId !== null && productId !== "" && productId !== undefined && typeof productId === "string"
     );
 
     if (!resultProductsArrayExcludeNull || resultProductsArrayExcludeNull.length === 0) {
       return alert("「実施商品を最低1つ入力してください。");
     }
 
-    // 同席者のuuidの配列を生成
-    // const attendeeIdsArray = selectedAttendeesArray.map(attendee => attendee.contact_id)
+    // 同席者のcontact_idのみのuuidの配列を生成
+    const attendeeIdsArray = selectedAttendeesArray
+      .map((attendee) => attendee.contact_id)
+      .filter((id) => id !== null && id !== "" && id !== undefined && typeof id === "string");
 
     // return console.log("リターン", resultProductsArrayExcludeNull);
 
@@ -742,78 +789,172 @@ export const UpdateMeetingModal = () => {
     // 部署名と事業所名を取得
     const departmentName =
       departmentDataArray &&
-      departmentId &&
-      departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
-    const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
+      memberObj.departmentId &&
+      departmentDataArray.find((obj) => obj.id === memberObj.departmentId)?.department_name;
+    const officeName =
+      officeDataArray &&
+      memberObj.officeId &&
+      officeDataArray.find((obj) => obj.id === memberObj.officeId)?.office_name;
+    // const departmentName =
+    //   departmentDataArray &&
+    //   departmentId &&
+    //   departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
+    // const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
 
-    // 更新するデータをオブジェクトにまとめる
-    const newMeeting = {
-      id: selectedRowDataMeeting.meeting_id,
-      created_by_company_id: selectedRowDataMeeting?.meeting_created_by_company_id
-        ? selectedRowDataMeeting.meeting_created_by_company_id
-        : null,
-      created_by_user_id: changedMemberObj
-        ? changedMemberObj.newMemberId
-        : selectedRowDataMeeting?.meeting_created_by_user_id
-        ? selectedRowDataMeeting?.meeting_created_by_user_id
-        : null,
-      created_by_department_of_user: departmentId ? departmentId : null,
-      created_by_unit_of_user: unitId ? unitId : null,
-      created_by_office_of_user: officeId ? officeId : null,
-      client_contact_id: selectedRowDataMeeting.contact_id,
-      client_company_id: selectedRowDataMeeting.company_id,
-      meeting_type: meetingType ? meetingType : null,
-      web_tool: webTool ? webTool : null,
-      planned_date: plannedDate ? plannedDate.toISOString() : null,
-      // planned_start_time: plannedStartTime === ":" ? null : plannedStartTime,
-      planned_start_time: plannedStartTime === "" ? null : plannedStartTime,
-      planned_purpose: plannedPurpose ? plannedPurpose : null,
-      planned_duration: plannedDuration ? plannedDuration : null,
-      planned_appoint_check_flag: plannedAppointCheckFlag,
-      planned_product1: plannedProduct1 ? plannedProduct1 : null,
-      planned_product2: plannedProduct2 ? plannedProduct2 : null,
-      planned_comment: plannedComment ? plannedComment : null,
-      result_date: resultDate ? resultDate.toISOString() : null,
-      result_start_time: resultStartTime === "" ? null : resultStartTime,
-      result_end_time: resultEndTime === "" ? null : resultEndTime,
-      // result_start_time: resultStartTime === ":" ? null : resultStartTime,
-      // result_end_time: resultEndTime === ":" ? null : resultEndTime,
-      result_duration: resultDuration ? resultDuration : null,
-      result_number_of_meeting_participants: resultNumberOfMeetingParticipants
-        ? resultNumberOfMeetingParticipants
-        : null,
-      // result_presentation_product1: resultPresentationProduct1 ? resultPresentationProduct1 : null,
-      // result_presentation_product2: resultPresentationProduct2 ? resultPresentationProduct2 : null,
-      // result_presentation_product3: resultPresentationProduct3 ? resultPresentationProduct3 : null,
-      // result_presentation_product4: resultPresentationProduct4 ? resultPresentationProduct4 : null,
-      // result_presentation_product5: resultPresentationProduct5 ? resultPresentationProduct5 : null,
-      result_presentation_product1: null,
-      result_presentation_product2: null,
-      result_presentation_product3: null,
-      result_presentation_product4: null,
-      result_presentation_product5: null,
-      result_category: !!resultCategory ? resultCategory : null,
-      result_summary: resultSummary ? resultSummary : null,
-      result_negotiate_decision_maker: resultNegotiateDecisionMaker ? resultNegotiateDecisionMaker : null,
-      pre_meeting_participation_request: preMeetingParticipationRequest ? preMeetingParticipationRequest : null,
-      meeting_participation_request: meetingParticipationRequest ? meetingParticipationRequest : null,
-      meeting_department: departmentName ? departmentName : null,
-      meeting_business_office: officeName ? officeName : null,
-      meeting_member_name: changedMemberObj
-        ? changedMemberObj.newMemberName
-        : meetingMemberName
-        ? meetingMemberName
-        : null,
-      meeting_year_month: meetingYearMonth ? meetingYearMonth : null,
-    };
+    console.log("memberObj", memberObj);
+    console.log("departmentName", departmentName);
+    console.log("officeName", officeName);
+
+    let newMeeting;
+    try {
+      // 更新するデータをオブジェクトにまとめる
+      newMeeting = {
+        id: selectedRowDataMeeting.meeting_id,
+        created_by_company_id: selectedRowDataMeeting?.meeting_created_by_company_id
+          ? selectedRowDataMeeting.meeting_created_by_company_id
+          : null,
+        // created_by_user_id: selectedRowDataMeeting?.meeting_created_by_user_id
+        //   ? selectedRowDataMeeting?.meeting_created_by_user_id
+        //   : null,
+        // created_by_department_of_user: departmentId ? departmentId : null,
+        // created_by_unit_of_user: unitId ? unitId : null,
+        // created_by_office_of_user: officeId ? officeId : null,
+        created_by_user_id: memberObj.memberId ? memberObj.memberId : null,
+        created_by_department_of_user: memberObj.departmentId ? memberObj.departmentId : null,
+        created_by_unit_of_user: memberObj.unitId ? memberObj.unitId : null,
+        created_by_office_of_user: memberObj.officeId ? memberObj.officeId : null,
+        client_contact_id: selectedRowDataMeeting.contact_id,
+        client_company_id: selectedRowDataMeeting.company_id,
+        meeting_type: meetingType ? meetingType : null,
+        web_tool: webTool ? webTool : null,
+        planned_date: plannedDate ? plannedDate.toISOString() : null,
+        // planned_start_time: plannedStartTime === ":" ? null : plannedStartTime,
+        planned_start_time: plannedStartTime === "" ? null : plannedStartTime,
+        planned_purpose: plannedPurpose ? plannedPurpose : null,
+        planned_duration: plannedDuration ? plannedDuration : null,
+        planned_appoint_check_flag: plannedAppointCheckFlag,
+        planned_product1: plannedProduct1 ? plannedProduct1 : null,
+        planned_product2: plannedProduct2 ? plannedProduct2 : null,
+        planned_comment: plannedComment ? plannedComment : null,
+        result_date: resultDate ? resultDate.toISOString() : null,
+        result_start_time: resultStartTime === "" ? null : resultStartTime,
+        result_end_time: resultEndTime === "" ? null : resultEndTime,
+        // result_start_time: resultStartTime === ":" ? null : resultStartTime,
+        // result_end_time: resultEndTime === ":" ? null : resultEndTime,
+        result_duration: resultDuration ? resultDuration : null,
+        result_number_of_meeting_participants: resultNumberOfMeetingParticipants
+          ? resultNumberOfMeetingParticipants
+          : null,
+        // result_presentation_product1: resultPresentationProduct1 ? resultPresentationProduct1 : null,
+        // result_presentation_product2: resultPresentationProduct2 ? resultPresentationProduct2 : null,
+        // result_presentation_product3: resultPresentationProduct3 ? resultPresentationProduct3 : null,
+        // result_presentation_product4: resultPresentationProduct4 ? resultPresentationProduct4 : null,
+        // result_presentation_product5: resultPresentationProduct5 ? resultPresentationProduct5 : null,
+        result_presentation_product1:
+          resultProductsArrayExcludeNull.length >= 1 &&
+          productIdToNameMap[resultProductsArrayExcludeNull[0]]?.inside_short_name
+            ? productIdToNameMap[resultProductsArrayExcludeNull[0]]?.inside_short_name
+            : (productIdToNameMap[resultProductsArrayExcludeNull[0]]?.product_name ?? "") +
+              (productIdToNameMap[resultProductsArrayExcludeNull[0]]?.outside_short_name
+                ? productIdToNameMap[resultProductsArrayExcludeNull[0]]?.outside_short_name
+                : "")
+            ? (productIdToNameMap[resultProductsArrayExcludeNull[0]]?.product_name ?? "") +
+              (productIdToNameMap[resultProductsArrayExcludeNull[0]]?.outside_short_name
+                ? productIdToNameMap[resultProductsArrayExcludeNull[0]]?.outside_short_name
+                : "")
+            : null,
+        result_presentation_product2:
+          resultProductsArrayExcludeNull.length >= 2 &&
+          productIdToNameMap[resultProductsArrayExcludeNull[1]]?.inside_short_name
+            ? productIdToNameMap[resultProductsArrayExcludeNull[1]]?.inside_short_name
+            : (productIdToNameMap[resultProductsArrayExcludeNull[1]]?.product_name ?? "") +
+              (productIdToNameMap[resultProductsArrayExcludeNull[1]]?.outside_short_name
+                ? productIdToNameMap[resultProductsArrayExcludeNull[1]]?.outside_short_name
+                : "")
+            ? (productIdToNameMap[resultProductsArrayExcludeNull[1]]?.product_name ?? "") +
+              (productIdToNameMap[resultProductsArrayExcludeNull[1]]?.outside_short_name
+                ? productIdToNameMap[resultProductsArrayExcludeNull[1]]?.outside_short_name
+                : "")
+            : null,
+        result_presentation_product3:
+          resultProductsArrayExcludeNull.length >= 3 &&
+          productIdToNameMap[resultProductsArrayExcludeNull[2]]?.inside_short_name
+            ? productIdToNameMap[resultProductsArrayExcludeNull[2]]?.inside_short_name
+            : (productIdToNameMap[resultProductsArrayExcludeNull[2]]?.product_name ?? "") +
+              (productIdToNameMap[resultProductsArrayExcludeNull[2]]?.outside_short_name
+                ? productIdToNameMap[resultProductsArrayExcludeNull[2]]?.outside_short_name
+                : "")
+            ? (productIdToNameMap[resultProductsArrayExcludeNull[2]]?.product_name ?? "") +
+              (productIdToNameMap[resultProductsArrayExcludeNull[2]]?.outside_short_name
+                ? productIdToNameMap[resultProductsArrayExcludeNull[2]]?.outside_short_name
+                : "")
+            : null,
+        result_presentation_product4:
+          resultProductsArrayExcludeNull.length >= 4 &&
+          productIdToNameMap[resultProductsArrayExcludeNull[3]]?.inside_short_name
+            ? productIdToNameMap[resultProductsArrayExcludeNull[3]]?.inside_short_name
+            : (productIdToNameMap[resultProductsArrayExcludeNull[3]]?.product_name ?? "") +
+              (productIdToNameMap[resultProductsArrayExcludeNull[3]]?.outside_short_name
+                ? productIdToNameMap[resultProductsArrayExcludeNull[3]]?.outside_short_name
+                : "")
+            ? (productIdToNameMap[resultProductsArrayExcludeNull[3]]?.product_name ?? "") +
+              (productIdToNameMap[resultProductsArrayExcludeNull[3]]?.outside_short_name
+                ? productIdToNameMap[resultProductsArrayExcludeNull[3]]?.outside_short_name
+                : "")
+            : null,
+        result_presentation_product5:
+          resultProductsArrayExcludeNull.length >= 5 &&
+          productIdToNameMap[resultProductsArrayExcludeNull[4]]?.inside_short_name
+            ? productIdToNameMap[resultProductsArrayExcludeNull[4]]?.inside_short_name
+            : (productIdToNameMap[resultProductsArrayExcludeNull[4]]?.product_name ?? "") +
+              (productIdToNameMap[resultProductsArrayExcludeNull[4]]?.outside_short_name
+                ? productIdToNameMap[resultProductsArrayExcludeNull[4]]?.outside_short_name
+                : "")
+            ? (productIdToNameMap[resultProductsArrayExcludeNull[4]]?.product_name ?? "") +
+              (productIdToNameMap[resultProductsArrayExcludeNull[4]]?.outside_short_name
+                ? productIdToNameMap[resultProductsArrayExcludeNull[4]]?.outside_short_name
+                : "")
+            : null,
+        result_category: !!resultCategory ? resultCategory : null,
+        result_summary: resultSummary ? resultSummary : null,
+        result_negotiate_decision_maker: resultNegotiateDecisionMaker ? resultNegotiateDecisionMaker : null,
+        pre_meeting_participation_request: preMeetingParticipationRequest ? preMeetingParticipationRequest : null,
+        meeting_participation_request: meetingParticipationRequest ? meetingParticipationRequest : null,
+        meeting_department: departmentName ? departmentName : null,
+        meeting_business_office: officeName ? officeName : null,
+        // meeting_member_name:  meetingMemberName
+        //   ? meetingMemberName
+        //   : null,
+        meeting_member_name: memberObj?.memberName ? memberObj?.memberName : null,
+        meeting_year_month: meetingYearMonth ? meetingYearMonth : null,
+        product_ids: resultProductsArrayExcludeNull,
+        attendee_ids: attendeeIdsArray,
+      };
+    } catch (e: any) {
+      console.error("エラー", e);
+      setLoadingGlobalState(false);
+      toast.error("エラーが発生しました🙇‍♀️ サポートにご報告の上しばらく経ってからやり直してください。");
+    }
+
+    if (!newMeeting)
+      return toast.error("エラーが発生しました🙇‍♀️ サポートにご報告の上しばらく経ってからやり直してください。");
 
     console.log("面談予定 新規作成 newMeeting", newMeeting);
-    console.log("面談予定 新規作成 newMeeting.planned_start_time", newMeeting.planned_start_time);
+    console.log("productIdToNameMap", productIdToNameMap);
+    console.log("attendeeIdsArray", attendeeIdsArray);
+    console.log("attendeeIdsArray", resultPresentationProductsArray);
+    console.log(
+      "productIdToNameMap[resultProductsArrayExcludeNull[0]]",
+      productIdToNameMap[resultProductsArrayExcludeNull[0]]
+    );
+    // console.log("面談予定 新規作成 newMeeting.planned_start_time", newMeeting.planned_start_time);
     console.log(
       "面談予定 新規作成 newMeeting.planned_start_time 一致するか",
       newMeeting.planned_start_time === "08:30"
     );
 
+    // setLoadingGlobalState(false);
+    // return;
     // supabaseにINSERT,ローディング終了, モーダルを閉じる
     updateMeetingMutation.mutate(newMeeting);
 
@@ -1017,6 +1158,10 @@ export const UpdateMeetingModal = () => {
     "plannedProduct2QueryObj",
     plannedProduct2QueryObj,
     "selectedAttendeesArray",
+    selectedAttendeesArray,
+    "✅実施商品リストresultPresentationProductsArray",
+    resultPresentationProductsArray,
+    "✅同席者リストselectedAttendeesArray",
     selectedAttendeesArray
   );
 
@@ -1640,8 +1785,14 @@ export const UpdateMeetingModal = () => {
                     <span className={`${styles.title} !min-w-[140px]`}>事業部名</span>
                     <select
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      value={departmentId ? departmentId : ""}
-                      onChange={(e) => setDepartmentId(e.target.value)}
+                      // value={departmentId ? departmentId : ""}
+                      // onChange={(e) => setDepartmentId(e.target.value)}
+                      // onChange={(e) => setMemberObj({ ...memberObj, departmentId: e.target.value })}
+                      value={memberObj.departmentId ? memberObj.departmentId : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, departmentId: e.target.value });
+                        setIsOpenConfirmationModal("change_member");
+                      }}
                     >
                       <option value=""></option>
                       {departmentDataArray &&
@@ -1668,8 +1819,14 @@ export const UpdateMeetingModal = () => {
                     <span className={`${styles.title} `}>係・チーム</span>
                     <select
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      value={unitId ? unitId : ""}
-                      onChange={(e) => setUnitId(e.target.value)}
+                      // value={unitId ? unitId : ""}
+                      // onChange={(e) => setUnitId(e.target.value)}
+                      // onChange={(e) => setMemberObj({ ...memberObj, unitId: e.target.value })}
+                      value={memberObj.unitId ? memberObj.unitId : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, unitId: e.target.value });
+                        setIsOpenConfirmationModal("change_member");
+                      }}
                     >
                       <option value=""></option>
                       {unitDataArray &&
@@ -1701,8 +1858,14 @@ export const UpdateMeetingModal = () => {
                     <span className={`${styles.title} !min-w-[140px]`}>所属事業所</span>
                     <select
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      value={officeId ? officeId : ""}
-                      onChange={(e) => setOfficeId(e.target.value)}
+                      // value={officeId ? officeId : ""}
+                      // onChange={(e) => setOfficeId(e.target.value)}
+                      // onChange={(e) => setMemberObj({ ...memberObj, officeId: e.target.value })}
+                      value={memberObj.officeId ? memberObj.officeId : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, officeId: e.target.value });
+                        setIsOpenConfirmationModal("change_member");
+                      }}
                     >
                       <option value=""></option>
                       {officeDataArray &&
@@ -1733,17 +1896,24 @@ export const UpdateMeetingModal = () => {
                       placeholder="*入力必須"
                       required
                       className={`${styles.input_box}`}
-                      value={meetingMemberName}
-                      onChange={(e) => setMeetingMemberName(e.target.value)}
-                      onBlur={() => {
-                        if (!selectedRowDataMeeting || !selectedRowDataMeeting?.meeting_member_name) return;
-                        if (selectedRowDataMeeting.meeting_member_name !== meetingMemberName) {
+                      // value={meetingMemberName}
+                      // setMeetingMemberName(e.target.value);
+                      value={memberObj.memberName ? memberObj.memberName : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, memberName: e.target.value });
+                      }}
+                      onKeyUp={() => {
+                        if (prevMemberObj.memberName !== memberObj.memberName) {
                           // alert("自社担当名が元のデータと異なります。データの所有者を変更しますか？");
                           // setMeetingMemberName(selectedRowDataMeeting.meeting_member_name);
                           setIsOpenConfirmationModal("change_member");
                           return;
                         }
-                        setMeetingMemberName(toHalfWidthAndSpace(meetingMemberName.trim()));
+                      }}
+                      onBlur={() => {
+                        if (!memberObj.memberName) return;
+                        // setMeetingMemberName(toHalfWidthAndSpace(meetingMemberName.trim()));
+                        setMemberObj({ ...memberObj, memberName: toHalfWidthAndSpace(memberObj.memberName.trim()) });
                       }}
                     />
                   </div>
@@ -1754,8 +1924,8 @@ export const UpdateMeetingModal = () => {
               {/* 右ラッパーここまで */}
             </div>
           </div>
-          {/* --------- 横幅全体ラッパーここまで --------- */}
 
+          {/* --------- 横幅全体ラッパーここまで --------- */}
           {/* --------- 横幅全体ラッパー --------- */}
           <div className={`${styles.full_contents_wrapper} flex w-full`}>
             {/* ==================================== 結果エリア ==================================== */}
@@ -2503,7 +2673,13 @@ export const UpdateMeetingModal = () => {
                 <div className="flex h-full w-full flex-col justify-center pr-[20px]">
                   <div className="flex w-full items-start justify-end">
                     <div
-                      className={`transition-base01 flex-center max-h-[36px] min-h-[36px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] ${styles.cancel_section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                      className={`transition-base01 flex-center max-h-[36px] min-h-[36px] min-w-[78px] whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] ${
+                        styles.cancel_section_title
+                      } hover:bg-[var(--setting-side-bg-select-hover)] ${
+                        !selectedAttendeesArray || selectedAttendeesArray.length === 0
+                          ? `cursor-not-allowed`
+                          : `cursor-pointer`
+                      }`}
                       onMouseEnter={(e) => {
                         // if (isOpenSearchAttendeesSideTable) return;
                         handleOpenTooltip({
@@ -2521,6 +2697,7 @@ export const UpdateMeetingModal = () => {
                       }}
                       onMouseLeave={handleCloseTooltip}
                       onClick={() => {
+                        if (!selectedAttendeesArray || selectedAttendeesArray.length === 0) return;
                         setSelectedAttendeesArray([]);
                         if (hoveredItemPosModal) handleCloseTooltip();
                       }}
@@ -2757,8 +2934,9 @@ export const UpdateMeetingModal = () => {
                       handleOpenTooltip({
                         e: e,
                         display: "top",
-                        content: "面談した結果、「当期中」に導入の可能性がある案件へと展開した際に使用します。",
+                        content: "面談した結果、「当期中」に導入の可能性がある案件や受注へと展開した際に使用します。",
                         content2: "展開した場合は「案件_作成」から案件を作成しましょう。",
+                        // content2: "",
                         // marginTop: 57,
                         marginTop: 39,
                         itemsPosition: "center",
@@ -2902,17 +3080,19 @@ export const UpdateMeetingModal = () => {
       {isOpenConfirmationModal === "change_member" && (
         <ConfirmationModal
           clickEventClose={() => {
-            setMeetingMemberName(selectedRowDataMeeting.meeting_member_name);
+            // setMeetingMemberName(selectedRowDataMeeting?.meeting_member_name ?? "");
+            setMemberObj(prevMemberObj);
             setIsOpenConfirmationModal(null);
           }}
           // titleText="面談データの自社担当を変更してもよろしいですか？"
-          titleText={`自社担当名が元のデータと異なります。`}
-          titleText2={`データの所有者を変更しますか？`}
-          sectionP1="自社担当を変更すると面談データの所有者が変更されます。"
+          titleText={`データの所有者を変更してもよろしいですか？`}
+          // titleText2={`データの所有者を変更しますか？`}
+          sectionP1="「自社担当」「事業部」「係・チーム」「事業所」を変更すると面談データの所有者が変更されます。"
           sectionP2="注：データの所有者を変更すると、この面談結果は変更先のメンバーの集計結果に移行され、分析結果が変更されます。"
           cancelText="戻る"
           submitText="変更する"
           clickEventSubmit={() => {
+            // setMemberObj(prevMemberObj);
             setIsOpenConfirmationModal(null);
             setIsOpenSearchMemberSideTable(true);
           }}
@@ -2927,11 +3107,18 @@ export const UpdateMeetingModal = () => {
           <SideTableSearchMember
             isOpenSearchMemberSideTable={isOpenSearchMemberSideTable}
             setIsOpenSearchMemberSideTable={setIsOpenSearchMemberSideTable}
-            currentMemberId={selectedRowDataMeeting?.meeting_created_by_user_id ?? ""}
-            currentMemberName={selectedRowDataMeeting?.meeting_member_name ?? ""}
-            currentMemberDepartmentId={selectedRowDataMeeting?.meeting_created_by_department_of_user ?? null}
-            setChangedMemberObj={setChangedMemberObj}
-            setMeetingMemberName={setMeetingMemberName}
+            // currentMemberId={selectedRowDataMeeting?.meeting_created_by_user_id ?? ""}
+            // currentMemberName={selectedRowDataMeeting?.meeting_member_name ?? ""}
+            // currentMemberDepartmentId={selectedRowDataMeeting?.meeting_created_by_department_of_user ?? null}
+            // setChangedMemberObj={setChangedMemberObj}
+            // currentMemberId={memberObj.memberId ?? ""}
+            // currentMemberName={memberObj.memberName ?? ""}
+            // currentMemberDepartmentId={memberObj.departmentId ?? null}
+            prevMemberObj={prevMemberObj}
+            setPrevMemberObj={setPrevMemberObj}
+            memberObj={memberObj}
+            setMemberObj={setMemberObj}
+            // setMeetingMemberName={setMeetingMemberName}
           />
         </Suspense>
       </ErrorBoundary>

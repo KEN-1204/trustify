@@ -17,16 +17,25 @@ import { TooltipSideTable } from "@/components/Parts/Tooltip/TooltipSideTable";
 import { ImInfo } from "react-icons/im";
 import { toast } from "react-toastify";
 
-type NewMemberObj = { newMemberId: string; newMemberName: string } | null;
+type MemberObj = {
+  memberId: string | null;
+  memberName: string | null;
+  departmentId: string | null;
+  unitId: string | null;
+  officeId: string | null;
+};
 
 type Props = {
   isOpenSearchMemberSideTable: boolean;
   setIsOpenSearchMemberSideTable: Dispatch<SetStateAction<boolean>>;
-  currentMemberId: string;
-  currentMemberName: string;
-  currentMemberDepartmentId: string | null;
-  setChangedMemberObj: Dispatch<SetStateAction<NewMemberObj>>;
-  setMeetingMemberName: Dispatch<SetStateAction<string>>;
+  // currentMemberId: string;
+  // currentMemberName: string;
+  // currentMemberDepartmentId: string | null;
+  prevMemberObj: MemberObj;
+  setPrevMemberObj: Dispatch<SetStateAction<MemberObj>>;
+  memberObj: MemberObj;
+  setMemberObj: Dispatch<SetStateAction<MemberObj>>;
+  // setMeetingMemberName: Dispatch<SetStateAction<string>>;
   // searchMemberInputFields: {
   //   title: string;
   //   inputValue: string;
@@ -49,11 +58,15 @@ type SearchMemberParams = {
 const SideTableSearchMemberMemo = ({
   isOpenSearchMemberSideTable,
   setIsOpenSearchMemberSideTable,
-  currentMemberId,
-  currentMemberName,
-  currentMemberDepartmentId,
-  setChangedMemberObj,
-  setMeetingMemberName,
+  // currentMemberId,
+  // currentMemberName,
+  // currentMemberDepartmentId,
+  prevMemberObj,
+  setPrevMemberObj,
+  // setChangedMemberObj,
+  // setMeetingMemberName,
+  memberObj,
+  setMemberObj,
 }: // selectedAttendeesArray,
 // setSelectedAttendeesArray,
 Props) => {
@@ -68,44 +81,41 @@ Props) => {
 
   const queryClient = useQueryClient();
 
-  // ============================ 🌟事業部、係、事業所リスト取得useQuery🌟 ============================
-  const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
-  const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
-  const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
-  // ============================ ✅事業部、係、事業所リスト取得useQuery✅ ============================
-
   // 初回マウント時フェッチを防ぐ 検索をクリックした時に初めてqueryFnを実行
   const [isEnableFetch, setIsEnableFetch] = useState(false);
   // 自社担当の変更先の担当者オブジェクト, profile_nameを自社担当に割り当て、idをcreated_by_user_idに割り当てる
   const [selectedMemberObj, setSelectedMemberObj] = useState<MemberAccounts | null>(null);
 
   // 同席者検索時のparams
-  const [searchMemberParams, setSearchMemberParams] = useState<SearchMemberParams>({
-    _subscription_id: null,
-    _company_id: null,
+  const initialSearchMemberParams = {
+    _subscription_id: userProfileState?.subscription_id ?? null,
+    _company_id: userProfileState?.company_id ?? null,
     _user_name: null,
     _employee_id_name: null,
     _department_id: null,
     _unit_id: null,
     _office_id: null,
-  });
+  };
+  const [searchMemberParams, setSearchMemberParams] = useState<SearchMemberParams>(initialSearchMemberParams);
 
   // 同席者検索フィールド用input
   const [searchInputMemberName, setSearchInputMemberName] = useState(""); //メンバーの名前
   const [searchInputEmployeesIdName, setSearchInputEmployeesIdName] = useState(""); //社員番号
   const [searchSelectedDepartmentId, setSearchSelectedDepartmentId] = useState<Department["id"] | null>(
-    currentMemberDepartmentId
+    memberObj.departmentId ?? null
   ); //事業部id
   const [searchSelectedUnitId, setSearchSelectedUnitId] = useState<Unit["id"] | null>(null); //係id
   const [searchSelectedOfficeId, setSearchSelectedOfficeId] = useState<Office["id"] | null>(null); //事業所id
 
   const searchMemberInputFields = [
     {
+      key: "name",
       title: "社員名",
       inputValue: searchInputMemberName,
       setInputValue: setSearchInputMemberName,
     },
     {
+      key: "employee_id_name",
       title: "社員番号・ID",
       inputValue: searchInputEmployeesIdName,
       setInputValue: setSearchInputEmployeesIdName,
@@ -131,6 +141,35 @@ Props) => {
       setInputValue: setSearchSelectedOfficeId,
     },
   ];
+  // ============== 🌟サイドテーブルの開閉ごとにメンバーの部署が変更されたらstateを更新🌟 ==============
+  useEffect(() => {
+    if (searchSelectedDepartmentId !== memberObj.departmentId) {
+      setSearchSelectedDepartmentId(memberObj.departmentId);
+    }
+  }, [isOpenSearchMemberSideTable]);
+  // ============== ✅サイドテーブルの開閉ごとにメンバーの部署が変更されたらstateを更新✅ ==============
+
+  // ============================ 🌟事業部、係、事業所リスト取得useQuery🌟 ============================
+  const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
+  const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
+  const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
+  // ============================ ✅事業部、係、事業所リスト取得useQuery✅ ============================
+  // ======================= 🌟現在の選択した事業部で係・チームを絞り込むuseEffect🌟 =======================
+  const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
+  useEffect(() => {
+    // unitが存在せず、stateに要素が1つ以上存在しているなら空にする
+    if (!unitDataArray || unitDataArray?.length === 0 || !searchSelectedDepartmentId)
+      return setFilteredUnitBySelectedDepartment([]);
+
+    // 選択中の事業部が変化するか、unitDataArrayの内容に変更があったら新たに絞り込んで更新する
+    if (unitDataArray && unitDataArray.length >= 1 && searchSelectedDepartmentId) {
+      const filteredUnitArray = unitDataArray.filter(
+        (unit) => unit.created_by_department_id === searchSelectedDepartmentId
+      );
+      setFilteredUnitBySelectedDepartment(filteredUnitArray);
+    }
+  }, [unitDataArray, searchSelectedDepartmentId]);
+  // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
 
   // -------------------------- 🌟useInfiniteQuery無限スクロール🌟 --------------------------
   const supabase = useSupabaseClient();
@@ -164,18 +203,25 @@ Props) => {
     console.log("✅ 条件 params", params);
 
     // 現在の入力値と同じかチェック
-    if (
-      params._user_name === searchMemberParams._user_name &&
-      params._employee_id_name === searchMemberParams._employee_id_name &&
-      params._department_id === searchMemberParams._department_id &&
-      params._unit_id === searchMemberParams._unit_id &&
-      params._office_id === searchMemberParams._office_id
-    ) {
-      return console.log("✅params同じためリターン");
-    }
+    // if (
+    //   params._user_name === searchMemberParams._user_name &&
+    //   params._employee_id_name === searchMemberParams._employee_id_name &&
+    //   params._department_id === searchMemberParams._department_id &&
+    //   params._unit_id === searchMemberParams._unit_id &&
+    //   params._office_id === searchMemberParams._office_id
+    // ) {
+    //   return console.log("✅params同じためリターン");
+    // }
 
     // paramsの結合した文字列をqueryKeyに渡しているため、検索条件の入力値が変わると（paramsが変わると）useInfiniteQueryのqueryFnが再度実行される
+    console.log("🔥フェッチ");
     setSearchMemberParams(params);
+
+    // 初回変更ボタンクリックのみ isEnableFetchをtrueにして初めてフェッチを走らせる
+    if (!isEnableFetch) {
+      console.log("🔥初回フェッチ");
+      setIsEnableFetch(true);
+    }
   };
   // ------------- ✅検索ボタンクリックかエンターでonSubmitイベント発火✅ -------------
 
@@ -191,22 +237,30 @@ Props) => {
       let rows: null = null;
       const isLastPage = rows === null;
       let count: null = null;
-      // await new Promise((resolve) => setTimeout(resolve, 500));
-
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      console.log("❌会社データなしリターン");
+      return { rows, nextOffset: offset + 1, isLastPage, count };
+    }
+    if (!searchMemberParams._subscription_id || !searchMemberParams._company_id) {
+      let rows: null = null;
+      const isLastPage = rows === null;
+      let count: null = null;
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      console.log("❌サブスクidまたは会社idなしリターン", searchMemberParams);
       return { rows, nextOffset: offset + 1, isLastPage, count };
     }
 
     // 条件の値が全てnullなら、つまり何も入力せず検索されるか初回マウント時はnullを返す。
     // if (Object.values(searchMemberParams).every((value) => value === null)) {
     // 社員名と社員番号どちらかは必ず入力 nullか空文字ならrowをnullで返す
-    if (!searchMemberParams._user_name || !searchMemberParams._employee_id_name) {
-      let rows: null = null;
-      const isLastPage = rows === null;
-      let count: null = null;
-      // await new Promise((resolve) => setTimeout(resolve, 500));
-
-      return { rows, nextOffset: offset + 1, isLastPage, count };
-    }
+    // if (!searchMemberParams._user_name && !searchMemberParams._employee_id_name) {
+    //   let rows: null = null;
+    //   const isLastPage = rows === null;
+    //   let count: null = null;
+    //   await new Promise((resolve) => setTimeout(resolve, 500));
+    //   console.log("❌社員名と社員番号どちらかは必ず入力 nullか空文字ならrowをnullで返す");
+    //   return { rows, nextOffset: offset + 1, isLastPage, count };
+    // }
 
     const from = offset * limit;
     const to = from + limit - 1;
@@ -215,20 +269,46 @@ Props) => {
 
     // 名前、社員番号は入力値をワイルドカードとILIKEで、事業部、係、事業所はidに一致で条件検索
     // 事業部、名前順に並び替え、activeのみに絞り込み
+    console.log("🔥rpc()実行", params);
+    // const {
+    //   data: rows,
+    //   error,
+    //   count,
+    // } = await supabase
+    //   .rpc(
+    //     "get_members_searched_name_employee_id_name",
+    //     {
+    //       _subscription_id: searchMemberParams._subscription_id,
+    //       _company_id: searchMemberParams._company_id,
+    //       _user_name: searchMemberParams._user_name || null,
+    //       _employee_id_name: searchMemberParams._employee_id_name || null,
+    //       _department_id: searchMemberParams._department_id || null,
+    //       _unit_id: searchMemberParams._unit_id || null,
+    //       _office_id: searchMemberParams._office_id || null,
+    //     },
+    //     { count: "exact" }
+    //   )
+    //   // .rpc("get_members_searched_name_employee_id_name", params, { count: "exact" })
+    //   .range(from, to)
+    //   .order("assigned_department_name", { ascending: true })
+    //   .order("profile_name", { ascending: true });
     const {
       data: rows,
       error,
       count,
     } = await supabase
-      // .rpc("get_members_searched_name_employee_id_name", { params }, { count: "exact" })
       .rpc("get_members_searched_name_employee_id_name", params, { count: "exact" })
       .range(from, to)
       .order("assigned_department_name", { ascending: true })
       .order("profile_name", { ascending: true });
     // .order("contact_created_at", { ascending: false }); // 担当者作成日 更新にすると更新の度に行が入れ替わるため
 
-    if (error) throw error;
+    if (error) {
+      console.error("❌rpcエラー", error);
+      throw error;
+    }
 
+    console.log("✅rpc()成功 data", rows);
     // const rows = ensureClientCompanies(data);
 
     // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
@@ -279,7 +359,7 @@ Props) => {
     queryKey: ["members", queryKeySearchParamsStringRef.current],
     // queryKey: ["contacts"],
     queryFn: async (ctx) => {
-      console.log("サーチフェッチ queryFn✅✅✅ searchMemberParams", searchMemberParams);
+      console.log("サーチフェッチメンバー queryFn✅✅✅ searchMemberParams", searchMemberParams);
       return fetchNewSearchServerPage(20, ctx.pageParam); // 20個ずつ取得
     },
     getNextPageParam: (lastGroup, allGroups) => {
@@ -322,7 +402,7 @@ Props) => {
   const isLastPage = queryDataObj?.pages[queryDataObj.pages.length - 1].isLastPage;
 
   console.log(
-    "=============================================queryDataObj",
+    "=============================================メンバーqueryDataObj",
     queryDataObj,
     "queryCount",
     queryCount,
@@ -333,7 +413,11 @@ Props) => {
     "memberRows",
     memberRows,
     "searchMemberParams",
-    searchMemberParams
+    searchMemberParams,
+    "status",
+    status,
+    "isLoadingQuery",
+    isLoadingQuery
   );
   // -------------------------- ✅useInfiniteQuery無限スクロール✅ --------------------------
 
@@ -343,22 +427,23 @@ Props) => {
     if (!selectedMemberObj.id) return alert("エラー：メンバーデータが見つかりませんでした。");
     if (!selectedMemberObj.profile_name) return alert("エラー：メンバー名が見つかりませんでした。");
     // 現在の自社担当と同じidの場合はリターンする idはprofiles.id
-    const isEqualMember = selectedMemberObj.id === currentMemberId;
+    const isEqualMember = selectedMemberObj.id === memberObj.memberId;
     if (isEqualMember) {
-      alert(`同じ担当者です。変更が不要な場合は戻ってください。`);
+      alert(`同じ担当者です。変更が不要な場合は右上の矢印ボタンかテーブル以外をクリックして戻ってください。`);
       return;
     } else {
-      // 同席者リストに一人も含まれていない場合はリストに追加
-      const newMemberObj: NewMemberObj = {
-        newMemberId: selectedMemberObj.id,
-        newMemberName: selectedMemberObj.profile_name,
+      // 現在の自社担当と異なる担当者の場合は自社担当を変更
+      const newMemberObj: MemberObj = {
+        memberId: selectedMemberObj.id,
+        memberName: selectedMemberObj.profile_name,
+        departmentId: selectedMemberObj.assigned_department_id ?? null,
+        unitId: selectedMemberObj.assigned_unit_id ?? null,
+        officeId: selectedMemberObj.assigned_office_id ?? null,
       };
 
-      // 初回変更ボタンクリックのみ isEnableFetchをtrueにして初めてフェッチを走らせる
-      if (!isEnableFetch) setIsEnableFetch(true);
-
       // 変更後のメンバーstateに追加
-      setChangedMemberObj(newMemberObj);
+      // setChangedMemberObj(newMemberObj);
+      setMemberObj(newMemberObj);
 
       // 変更確定確認モーダルを開く
       // setIsChangeConfirmationModal(true)
@@ -368,6 +453,16 @@ Props) => {
 
       // 変更が完了したら選択中のメンバーをリセット
       setSelectedMemberObj(null);
+
+      // paramsをリセット
+      setSearchMemberParams(initialSearchMemberParams);
+
+      // 各検索条件もリセット
+      if (searchInputMemberName) setSearchInputMemberName("");
+      if (searchInputEmployeesIdName) setSearchInputEmployeesIdName("");
+      if (searchSelectedDepartmentId) setSearchSelectedDepartmentId(null);
+      if (searchSelectedUnitId) setSearchSelectedUnitId(null);
+      if (searchSelectedOfficeId) setSearchSelectedOfficeId(null);
     }
   };
   // -------------------------- ✅変更ボタンをクリック✅ --------------------------
@@ -488,6 +583,29 @@ Props) => {
   };
   // -------------------------- ✅ツールチップ✅ --------------------------
 
+  // -------------------------- 🌟サイドテーブルを閉じる🌟 --------------------------
+  const handleClose = () => {
+    // setMeetingMemberName(currentMemberName);
+
+    // 元のメンバーデータに戻す
+    setMemberObj(prevMemberObj);
+    // paramsをリセット
+    setSearchMemberParams(initialSearchMemberParams);
+    // 入力値を初期化
+    if (searchInputMemberName) setSearchInputMemberName("");
+    if (searchInputEmployeesIdName) setSearchInputEmployeesIdName("");
+    if (searchSelectedDepartmentId) setSearchSelectedDepartmentId(null);
+    if (searchSelectedUnitId) setSearchSelectedUnitId(null);
+    if (searchSelectedOfficeId) setSearchSelectedOfficeId(null);
+    // 閉じたら再度初回フェッチをブロックする
+    setIsEnableFetch(false);
+    // 変更が完了したら選択中のメンバーをリセット
+    setSelectedMemberObj(null);
+    // テーブルを閉じる
+    setIsOpenSearchMemberSideTable(false);
+  };
+  // -------------------------- ✅サイドテーブルを閉じる✅ --------------------------
+
   return (
     <>
       {/* オーバーレイ */}
@@ -495,10 +613,7 @@ Props) => {
         <div
           // className={`absolute left-0 top-0 z-[1100] h-full w-full bg-[#00800030]`}
           className={`absolute left-0 top-0 z-[1100] h-full w-full bg-[#00000000]`}
-          onClick={() => {
-            setMeetingMemberName(currentMemberName);
-            setIsOpenSearchMemberSideTable(false);
-          }}
+          onClick={handleClose}
         ></div>
       )}
       {/* サイドテーブル */}
@@ -527,8 +642,7 @@ Props) => {
               // className={`flex-center h-[36px] w-[36px] cursor-pointer rounded-full hover:bg-[#666]`}
               className={`z-1 flex-center absolute right-[-10px] top-[50%]  h-[36px] w-[36px] translate-y-[-50%] cursor-pointer rounded-full hover:bg-[#666]`}
               onClick={() => {
-                setMeetingMemberName(currentMemberName);
-                setIsOpenSearchMemberSideTable(false);
+                // setMeetingMemberName(currentMemberName);
               }}
             >
               {/* <BsChevronRight className="z-1 absolute left-[-15px] top-[50%] translate-y-[-50%] text-[24px]" /> */}
@@ -557,7 +671,7 @@ Props) => {
                     handleOpenTooltip({
                       e: e,
                       display: "",
-                      content: `○同席者が所属する会社名や部署名など条件を入力して検索してください。\n例えば、会社名で「株式会社データベース」で会社住所が「"東京都大田区"」の「"佐藤"」という担当者を検索する場合は、「会社名」に「株式会社データベース」または「＊データベース＊」を入力し、「住所」に「東京都大田区※」と入力、担当者名に「＊佐藤＊」を入力してください。\n○「※ アスタリスク」は、「前方一致・後方一致・部分一致」を表します。\n例えば、会社名に「"工業"」と付く会社を検索したい場合に、「※工業※」、「"製作所"」と付く会社は「※製作所※」と検索することで、指定した文字が付くデータを検索可能です\n○「○項目を空欄のまま検索した場合は、その項目の「全てのデータ」を抽出します。\n○最低一つの項目は入力して検索してください。`,
+                      content: `○メンバーの名前、社員番号・ID名、事業部、係・チーム、事業所を条件に入力して検索してください。\n例えば、担当者名が「佐藤 礼司」で「マイクロスコープ事業部」という事業部の担当者を検索する場合は、「社員名」に「佐藤 礼司」または「佐藤＊」を入力し、「事業部」は「マイクロスコープ事業部」を選択して検索します。\n○「※ アスタリスク」は、「前方一致・後方一致・部分一致」を表します。\n○「○項目を空欄のまま検索した場合は、その項目の「全てのデータ」を抽出します。\n○「社員名」「社員番号・ID」の最低どちらか一つの項目は入力して検索してください。`,
                       // content2: "600万円と入力しても円単位に自動補完されます。",
                       // marginTop: 57,
                       marginTop: 39,
@@ -590,7 +704,7 @@ Props) => {
                   searchSelectedDepartmentId,
                   searchSelectedUnitId,
                   searchSelectedOfficeId,
-                ].some((value) => value !== "" || value !== null) && (
+                ].some((value) => value !== "" && value !== null) && (
                   <div
                     className={`${styles.icon_path_stroke} ${styles.search_icon_btn} flex-center transition-bg03`}
                     onMouseEnter={(e) => {
@@ -666,13 +780,17 @@ Props) => {
                   <div className={`${styles.list_title_area} flex min-w-[120px] items-center`}>
                     <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
                     <div className="flex select-none items-center space-x-[2px]">
-                      <span className={`${styles.list_title}`}>{item.title}</span>
-                      <span className={``}>：</span>
+                      <span className={`${styles.list_title} ${styles.change_member}`}>{item.title}</span>
+                      {/* <span className={``}>：</span> */}
                     </div>
                   </div>
                   <input
                     type="text"
-                    placeholder=""
+                    placeholder={
+                      item.key === "name"
+                        ? "佐藤 礼司 → 「佐藤＊」と入力して検索"
+                        : `名前か社員番号・IDを最低どちらか1つ入力して検索`
+                    }
                     className={`${styles.input_box}`}
                     value={item.inputValue}
                     onChange={(e) => item.setInputValue(e.target.value)}
@@ -688,12 +806,12 @@ Props) => {
                   <div className={`${styles.list_title_area} flex min-w-[120px] items-center`}>
                     <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
                     <div className="flex select-none items-center space-x-[2px]">
-                      <span className={`${styles.list_title}`}>{item.title}</span>
-                      <span className={``}>：</span>
+                      <span className={`${styles.list_title} ${styles.change_member}`}>{item.title}</span>
+                      {/* <span className={``}>：</span> */}
                     </div>
                   </div>
                   <select
-                    className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                    className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box} ${styles.change_member}`}
                     value={item.inputValue ? item.inputValue : ""}
                     onChange={(e) => item.setInputValue(e.target.value)}
                   >
@@ -707,9 +825,9 @@ Props) => {
                         </option>
                       ))}
                     {item.key === "unit" &&
-                      unitDataArray &&
-                      unitDataArray.length >= 1 &&
-                      unitDataArray.map((unit) => (
+                      filteredUnitBySelectedDepartment &&
+                      filteredUnitBySelectedDepartment.length >= 1 &&
+                      filteredUnitBySelectedDepartment.map((unit) => (
                         <option key={unit.id} value={unit.id}>
                           {unit.unit_name}
                         </option>
@@ -811,7 +929,7 @@ Props) => {
                     handleOpenTooltip({
                       e: e,
                       display: "top",
-                      content: "担当者を選択してメンバーを変更する",
+                      content: "担当者を選択してデータの所有者を変更する",
                       // content2: "フィルターの切り替えが可能です。",
                       // marginTop: 57,
                       // marginTop: 38,
@@ -831,89 +949,94 @@ Props) => {
               {/* Rowsが存在する場合 */}
               {memberRows &&
                 memberRows.length > 0 &&
-                memberRows.map((member: MemberAccounts, index) => (
-                  <li
-                    key={member.id}
-                    // onMouseEnter={(e) => {
-                    //   handleOpenTooltip({
-                    //     e: e,
-                    //     display: "top",
-                    //     content: `${member.company_name ? `${member.company_name} / ` : ``}${
-                    //       member.contact_name ? `${member.contact_name} / ` : ``
-                    //     }${member.department_name ? `${member.department_name} / ` : ``}${
-                    //       member.position_name ? `${member.position_name}` : ``
-                    //     }`,
-                    //     content2: `${member.address ? `住所: ${member.address} / ` : ``}${
-                    //       member.main_phone_number ? `代表TEL: ${member.main_phone_number} / ` : ``
-                    //     }${member.direct_line ? `直通TEL: ${member.direct_line} / ` : ``}${
-                    //       member.contact_email ? `担当者Email: ${member.contact_email}` : ``
-                    //     }`,
-                    //     // marginTop: 57,
-                    //     // marginTop: 38,
-                    //     // marginTop: 12,
-                    //     marginTop: -32,
-                    //     itemsPosition: "start",
-                    //     whiteSpace: "nowrap",
-                    //   });
-                    // }}
-                    // onMouseLeave={() => {
-                    //   if (hoveredItemPosSideTable) handleCloseTooltip();
-                    // }}
-                    className={`${styles.members_list} flex min-h-[44px] w-full cursor-pointer items-center truncate ${
-                      selectedMemberObj && selectedMemberObj.id === member.id ? styles.active : ``
-                    }`}
-                    onClick={() => {
-                      // 存在の確認のみなので、findではなくsome
-                      if (selectedMemberObj && selectedMemberObj.id === member.id) {
-                        // 既に選択している場合はリセット
-                        setSelectedMemberObj(null);
-                        return;
-                      } else {
-                        // 存在しない場合は新たに選択中に追加する
-                        setSelectedMemberObj(member);
-                      }
-                    }}
-                  >
-                    <div
-                      // data-text="ユーザー名"
-                      className={`${styles.attendees_list_item_Icon} flex-center h-[40px] w-[40px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip} mr-[15px]`}
-                      // onMouseEnter={(e) => handleOpenTooltip(e, "center")}
-                      // onMouseLeave={handleCloseTooltip}
+                memberRows.map((member: MemberAccounts, index) => {
+                  // if (member.id === currentMemberId) return;
+                  if (member.id === memberObj.memberId) return;
+                  return (
+                    <li
+                      key={member.id}
+                      // onMouseEnter={(e) => {
+                      //   handleOpenTooltip({
+                      //     e: e,
+                      //     display: "top",
+                      //     content: `${member.company_name ? `${member.company_name} / ` : ``}${
+                      //       member.contact_name ? `${member.contact_name} / ` : ``
+                      //     }${member.department_name ? `${member.department_name} / ` : ``}${
+                      //       member.position_name ? `${member.position_name}` : ``
+                      //     }`,
+                      //     content2: `${member.address ? `住所: ${member.address} / ` : ``}${
+                      //       member.main_phone_number ? `代表TEL: ${member.main_phone_number} / ` : ``
+                      //     }${member.direct_line ? `直通TEL: ${member.direct_line} / ` : ``}${
+                      //       member.contact_email ? `担当者Email: ${member.contact_email}` : ``
+                      //     }`,
+                      //     // marginTop: 57,
+                      //     // marginTop: 38,
+                      //     // marginTop: 12,
+                      //     marginTop: -32,
+                      //     itemsPosition: "start",
+                      //     whiteSpace: "nowrap",
+                      //   });
+                      // }}
+                      // onMouseLeave={() => {
+                      //   if (hoveredItemPosSideTable) handleCloseTooltip();
+                      // }}
+                      className={`${
+                        styles.attendees_list
+                      } flex min-h-[44px] w-full cursor-pointer items-center truncate ${
+                        selectedMemberObj && selectedMemberObj.id === member.id ? styles.active : ``
+                      }`}
+                      onClick={() => {
+                        // 存在の確認のみなので、findではなくsome
+                        if (selectedMemberObj && selectedMemberObj.id === member.id) {
+                          // 既に選択している場合はリセット
+                          setSelectedMemberObj(null);
+                          return;
+                        } else {
+                          // 存在しない場合は新たに選択中に追加する
+                          setSelectedMemberObj(member);
+                        }
+                      }}
                     >
-                      {/* <span className={`text-[20px]`}>
+                      <div
+                        // data-text="ユーザー名"
+                        className={`${styles.attendees_list_item_Icon} flex-center h-[40px] w-[40px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip} mr-[15px]`}
+                        // onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+                        // onMouseLeave={handleCloseTooltip}
+                      >
+                        {/* <span className={`text-[20px]`}>
                           {getInitial(member.profile_name ? member.profile_name : "")}
                         </span> */}
-                      <span className={`text-[20px]`}>
-                        {getInitial(member.profile_name ? member.profile_name : "N")}
-                      </span>
-                    </div>
-                    <div
-                      className={`${styles.attendees_list_item_lines_group} flex h-full flex-col space-y-[3px] pl-[5px] text-[12px]`}
-                    >
-                      {/* 会社・部署 */}
-                      <div className={`${styles.attendees_list_item_line} flex text-[13px]`}>
-                        {member.profile_name && <span className="mr-[4px]">{member.profile_name}</span>}
-                        {/* <span>{attendee.department_name ?? ""}</span> */}
+                        <span className={`text-[20px]`}>
+                          {getInitial(member.profile_name ? member.profile_name : "N")}
+                        </span>
                       </div>
-                      {/* <div className={`text-[var(--color-text-sub)]`}>{member.email ? member.email : ""}</div> */}
-                      {/* 役職・名前 */}
-                      <div className={`${styles.attendees_list_item_line} flex`}>
-                        {/* {member.profile_name && (
+                      <div
+                        className={`${styles.attendees_list_item_lines_group} flex h-full flex-col space-y-[3px] pl-[5px] text-[12px]`}
+                      >
+                        {/* 会社・部署 */}
+                        <div className={`${styles.attendees_list_item_line} flex text-[13px]`}>
+                          {member.profile_name && <span className="mr-[4px]">{member.profile_name}</span>}
+                          {/* <span>{attendee.department_name ?? ""}</span> */}
+                        </div>
+                        {/* <div className={`text-[var(--color-text-sub)]`}>{member.email ? member.email : ""}</div> */}
+                        {/* 役職・名前 */}
+                        <div className={`${styles.attendees_list_item_line} flex`}>
+                          {/* {member.profile_name && (
                           <>
                             <span className="mr-[12px]">{member.profile_name}</span>
                           </>
                         )} */}
-                        {member.assigned_department_name && (
-                          <>
-                            <span className="mr-[12px]">{member.assigned_department_name}</span>
-                            {/* {member.position_name && <span className="mr-[10px]">/</span>} */}
-                          </>
-                        )}
-                        {member.assigned_unit_name && <span className="mr-[10px]">{member.assigned_unit_name}</span>}
-                      </div>
-                      {/* 住所・Email・1600以上で直通TEL */}
-                      <div className={`${styles.attendees_list_item_line} flex`}>
-                        {/* {attendee.address && (
+                          {member.assigned_department_name && (
+                            <>
+                              <span className="mr-[12px]">{member.assigned_department_name}</span>
+                              {/* {member.position_name && <span className="mr-[10px]">/</span>} */}
+                            </>
+                          )}
+                          {member.assigned_unit_name && <span className="mr-[10px]">{member.assigned_unit_name}</span>}
+                        </div>
+                        {/* 住所・Email・1600以上で直通TEL */}
+                        <div className={`${styles.attendees_list_item_line} flex`}>
+                          {/* {attendee.address && (
                           <>
                             <span className="mr-[10px] text-[#ccc]">{attendee.address}</span>
                             {((isDesktopGTE1600 && attendee.direct_line) || attendee.contact_email) && (
@@ -921,19 +1044,23 @@ Props) => {
                             )}
                           </>
                         )} */}
-                        {isDesktopGTE1600 && member.assigned_office_name && (
-                          <>
+                          {/* {isDesktopGTE1600 && member.assigned_office_name && (
+                            <>
+                              <span className="mr-[10px] text-[#ccc]">{member.assigned_office_name}</span>
+                              {member.assigned_employee_id_name && <span className="mr-[10px]">/</span>}
+                            </>
+                          )} */}
+                          {member.assigned_office_name && (
                             <span className="mr-[10px] text-[#ccc]">{member.assigned_office_name}</span>
-                            {member.assigned_employee_id_name && <span className="mr-[10px]">/</span>}
-                          </>
-                        )}
-                        {member.assigned_employee_id_name && (
-                          <div className={`text-[#ccc]`}>{member.assigned_employee_id_name}</div>
-                        )}
+                          )}
+                          {member.assigned_employee_id_name && (
+                            <div className={`text-[#ccc]`}>{member.assigned_employee_id_name}</div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </li>
-                ))}
+                    </li>
+                  );
+                })}
               {/* 条件検索結果が1件も無い場合 */}
               {/* 初回マウント時ではなく検索結果で行が0の場合 countがnullではなく0の場合 data.pages[0].row  */}
               {queryCount === 0 && (

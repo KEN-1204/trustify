@@ -1,4 +1,4 @@
-import React, { CSSProperties, FocusEventHandler, KeyboardEvent, useEffect, useRef, useState } from "react";
+import React, { CSSProperties, FocusEventHandler, KeyboardEvent, Suspense, useEffect, useRef, useState } from "react";
 import styles from "./InsertNewMeetingModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -26,6 +26,11 @@ import { HiChevronDown } from "react-icons/hi2";
 import { useQueryDepartments } from "@/hooks/useQueryDepartments";
 import { useQueryUnits } from "@/hooks/useQueryUnits";
 import { useQueryOffices } from "@/hooks/useQueryOffices";
+import { ConfirmationModal } from "../SettingAccountModal/SettingCompany/ConfirmationModal/ConfirmationModal";
+import { ErrorBoundary } from "react-error-boundary";
+import { FallbackSideTableSearchMember } from "../UpdateMeetingModal/SideTableSearchMember/FallbackSideTableSearchMember";
+import { SideTableSearchMember } from "../UpdateMeetingModal/SideTableSearchMember/SideTableSearchMember";
+import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 
 export const InsertNewMeetingModal = () => {
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
@@ -35,6 +40,10 @@ export const InsertNewMeetingModal = () => {
   // const [isLoading, setIsLoading] = useState(false);
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
+  // 確認モーダル(自社担当名、データ所有者変更確認)
+  const [isOpenConfirmationModal, setIsOpenConfirmationModal] = useState<string | null>(null);
+  // 自社担当検索サイドテーブル開閉
+  const [isOpenSearchMemberSideTable, setIsOpenSearchMemberSideTable] = useState(false);
   // const theme = useThemeStore((state) => state.theme);
   // 上画面の選択中の列データ会社
   // const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
@@ -86,31 +95,41 @@ export const InsertNewMeetingModal = () => {
   const [resultNegotiateDecisionMaker, setResultNegotiateDecisionMaker] = useState("");
   const [preMeetingParticipationRequest, setPreMeetingParticipationRequest] = useState(""); //事前同席依頼
   const [meetingParticipationRequest, setMeetingParticipationRequest] = useState("");
-  //事業部名
-  // const [meetingDepartment, setMeetingDepartment] = useState(
-  //   userProfileState?.department ? userProfileState?.department : ""
+  // //事業部名
+  // const [departmentId, setDepartmentId] = useState<Department["id"] | null>(
+  //   userProfileState?.assigned_department_id ? userProfileState?.assigned_department_id : null
   // );
-  const [departmentId, setDepartmentId] = useState<Department["id"] | null>(
-    userProfileState?.assigned_department_id ? userProfileState?.assigned_department_id : null
-  );
-  // 係
-  // const [meetingBusinessOffice, setMeetingBusinessOffice] = useState(
-  //   userProfileState?.office ? userProfileState.office : ""
+  // // 係
+  // const [unitId, setUnitId] = useState<Unit["id"] | null>(
+  //   userProfileState?.assigned_unit_id ? userProfileState?.assigned_unit_id : null
   // );
-  const [unitId, setUnitId] = useState<Unit["id"] | null>(
-    userProfileState?.assigned_unit_id ? userProfileState?.assigned_unit_id : null
-  );
+  // // 所属事業所
+  // const [officeId, setOfficeId] = useState<Office["id"] | null>(
+  //   userProfileState?.assigned_office_id ? userProfileState?.assigned_office_id : null
+  // );
+  // // 自社担当名
   // const [meetingMemberName, setMeetingMemberName] = useState(
-  //   userProfileState?.profile_name ? userProfileState.profile_name : ""
+  //   userProfileState?.profile_name ? userProfileState?.profile_name : ""
   // );
-  // 所属事業所
-  const [officeId, setOfficeId] = useState<Office["id"] | null>(
-    userProfileState?.assigned_office_id ? userProfileState?.assigned_office_id : null
-  );
-  // 自社担当名
-  const [meetingMemberName, setMeetingMemberName] = useState(
-    userProfileState?.profile_name ? userProfileState?.profile_name : ""
-  );
+  // =========営業担当データ
+  type MemberDetail = {
+    memberId: string | null;
+    memberName: string | null;
+    departmentId: string | null;
+    unitId: string | null;
+    officeId: string | null;
+  };
+  // 作成したユーザーのidと名前が初期値
+  const initialMemberObj = {
+    memberId: userProfileState?.id ? userProfileState?.id : null,
+    memberName: userProfileState?.profile_name ? userProfileState?.profile_name : null,
+    departmentId: userProfileState?.assigned_department_id ? userProfileState?.assigned_department_id : null,
+    unitId: userProfileState?.assigned_unit_id ? userProfileState?.assigned_unit_id : null,
+    officeId: userProfileState?.assigned_office_id ? userProfileState?.assigned_office_id : null,
+  };
+  const [prevMemberObj, setPrevMemberObj] = useState<MemberDetail>(initialMemberObj);
+  const [memberObj, setMemberObj] = useState<MemberDetail>(initialMemberObj);
+  // =========営業担当データここまで
   const [meetingYearMonth, setMeetingYearMonth] = useState<number | null>(Number(meetingYearMonthInitialValue)); //面談年月度
   // ユーザーの決算月と締め日を取得
   const fiscalEndMonthObjRef = useRef<Date | null>(null);
@@ -406,7 +425,8 @@ export const InsertNewMeetingModal = () => {
     if (plannedStartTimeHour === "") return alert("面談開始 時間を選択してください");
     if (plannedStartTimeMinute === "") return alert("面談開始 分を選択してください");
     if (!meetingYearMonth) return alert("面談年月度を入力してください");
-    if (meetingMemberName === "") return alert("自社担当を入力してください");
+    // if (meetingMemberName === "") return alert("自社担当を入力してください");
+    if (memberObj.memberName === "") return alert("自社担当を入力してください");
 
     // 紹介予定商品メイン、サブの選択されているidが現在現在入力されてるnameのidと一致しているかを確認
     const currentId1 = suggestedProductIdNameArray.find((obj) => obj.fullName === plannedProduct1InputName)?.id;
@@ -421,25 +441,36 @@ export const InsertNewMeetingModal = () => {
       if (!checkResult2) return alert("「紹介予定商品サブ」の商品が有効ではありません。正しい商品を選択してください。");
     }
 
+    // 作成したユーザーと自社担当の入力値が異なる場合は「
+
     // return alert("成功");
 
     setLoadingGlobalState(true);
 
     const departmentName =
       departmentDataArray &&
-      departmentId &&
-      departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
-    const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
+      memberObj.departmentId &&
+      departmentDataArray.find((obj) => obj.id === memberObj.departmentId)?.department_name;
+    const officeName =
+      officeDataArray &&
+      memberObj.officeId &&
+      officeDataArray.find((obj) => obj.id === memberObj.officeId)?.office_name;
 
     // 新規作成するデータをオブジェクトにまとめる
     const newMeeting = {
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
-      created_by_user_id: userProfileState?.id ? userProfileState.id : null,
       // created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
       // created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
-      created_by_department_of_user: departmentId ? departmentId : null,
-      created_by_unit_of_user: unitId ? unitId : null,
-      created_by_office_of_user: officeId ? officeId : null,
+      // 営業担当データ
+      created_by_user_id: memberObj.memberId ? memberObj.memberId : null,
+      created_by_department_of_user: memberObj.departmentId ? memberObj.departmentId : null,
+      created_by_unit_of_user: memberObj.unitId ? memberObj.unitId : null,
+      created_by_office_of_user: memberObj.officeId ? memberObj.officeId : null,
+      // 営業担当データここまで
+      // created_by_user_id: userProfileState?.id ? userProfileState.id : null,
+      // created_by_department_of_user: departmentId ? departmentId : null,
+      // created_by_unit_of_user: unitId ? unitId : null,
+      // created_by_office_of_user: officeId ? officeId : null,
       client_contact_id: selectedRowDataActivity.contact_id,
       client_company_id: selectedRowDataActivity.company_id,
       meeting_type: meetingType ? meetingType : null,
@@ -476,7 +507,8 @@ export const InsertNewMeetingModal = () => {
       // meeting_department: meetingDepartment ? meetingDepartment : null,
       meeting_department: departmentName ? departmentName : null,
       meeting_business_office: officeName ? officeName : null,
-      meeting_member_name: meetingMemberName ? meetingMemberName : null,
+      // meeting_member_name: meetingMemberName ? meetingMemberName : null,
+      meeting_member_name: memberObj.memberName ? memberObj.memberName : null,
       meeting_year_month: meetingYearMonth ? meetingYearMonth : null,
     };
 
@@ -507,7 +539,8 @@ export const InsertNewMeetingModal = () => {
     if (plannedStartTimeHour === "") return alert("面談開始 時間を選択してください");
     if (plannedStartTimeMinute === "") return alert("面談開始 分を選択してください");
     if (!meetingYearMonth) return alert("面談年月度を入力してください");
-    if (meetingMemberName === "") return alert("自社担当を入力してください");
+    // if (meetingMemberName === "") return alert("自社担当を入力してください");
+    if (memberObj.memberName === "") return alert("自社担当を入力してください");
 
     // 紹介予定商品メイン、サブの選択されているidが現在現在入力されてるnameのidと一致しているかを確認
     const currentId1 = suggestedProductIdNameArray.find((obj) => obj.fullName === plannedProduct1InputName)?.id;
@@ -528,19 +561,28 @@ export const InsertNewMeetingModal = () => {
 
     const departmentName =
       departmentDataArray &&
-      departmentId &&
-      departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
-    const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
+      memberObj.departmentId &&
+      departmentDataArray.find((obj) => obj.id === memberObj.departmentId)?.department_name;
+    const officeName =
+      officeDataArray &&
+      memberObj.officeId &&
+      officeDataArray.find((obj) => obj.id === memberObj.officeId)?.office_name;
 
     // 新規作成するデータをオブジェクトにまとめる
     const newMeeting = {
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
-      created_by_user_id: userProfileState?.id ? userProfileState.id : null,
       // created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
       // created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
-      created_by_department_of_user: departmentId ? departmentId : null,
-      created_by_unit_of_user: unitId ? unitId : null,
-      created_by_office_of_user: officeId ? officeId : null,
+      // 営業担当データ
+      created_by_user_id: memberObj.memberId ? memberObj.memberId : null,
+      created_by_department_of_user: memberObj.departmentId ? memberObj.departmentId : null,
+      created_by_unit_of_user: memberObj.unitId ? memberObj.unitId : null,
+      created_by_office_of_user: memberObj.officeId ? memberObj.officeId : null,
+      // 営業担当データここまで
+      // created_by_user_id: userProfileState?.id ? userProfileState.id : null,
+      // created_by_department_of_user: departmentId ? departmentId : null,
+      // created_by_unit_of_user: unitId ? unitId : null,
+      // created_by_office_of_user: officeId ? officeId : null,
       client_contact_id: selectedRowDataMeeting.contact_id,
       client_company_id: selectedRowDataMeeting.company_id,
       meeting_type: meetingType ? meetingType : null,
@@ -577,7 +619,8 @@ export const InsertNewMeetingModal = () => {
       // meeting_department: meetingDepartment ? meetingDepartment : null,
       meeting_department: departmentName ? departmentName : null,
       meeting_business_office: officeName ? officeName : null,
-      meeting_member_name: meetingMemberName ? meetingMemberName : null,
+      // meeting_member_name: meetingMemberName ? meetingMemberName : null,
+      meeting_member_name: memberObj.memberName ? memberObj.memberName : null,
       meeting_year_month: meetingYearMonth ? meetingYearMonth : null,
     };
 
@@ -608,7 +651,8 @@ export const InsertNewMeetingModal = () => {
     if (plannedStartTimeHour === "") return alert("面談開始 時間を選択してください");
     if (plannedStartTimeMinute === "") return alert("面談開始 分を選択してください");
     if (!meetingYearMonth) return alert("面談年月度を入力してください");
-    if (meetingMemberName === "") return alert("自社担当を入力してください");
+    // if (meetingMemberName === "") return alert("自社担当を入力してください");
+    if (memberObj.memberName === "") return alert("自社担当を入力してください");
 
     // 紹介予定商品メイン、サブの選択されているidが現在現在入力されてるnameのidと一致しているかを確認
     const currentId1 = suggestedProductIdNameArray.find((obj) => obj.fullName === plannedProduct1InputName)?.id;
@@ -629,19 +673,28 @@ export const InsertNewMeetingModal = () => {
 
     const departmentName =
       departmentDataArray &&
-      departmentId &&
-      departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
-    const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
+      memberObj.departmentId &&
+      departmentDataArray.find((obj) => obj.id === memberObj.departmentId)?.department_name;
+    const officeName =
+      officeDataArray &&
+      memberObj.officeId &&
+      officeDataArray.find((obj) => obj.id === memberObj.officeId)?.office_name;
 
     // 新規作成するデータをオブジェクトにまとめる
     const newMeeting = {
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
-      created_by_user_id: userProfileState?.id ? userProfileState.id : null,
       // created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
       // created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
-      created_by_department_of_user: departmentId ? departmentId : null,
-      created_by_unit_of_user: unitId ? unitId : null,
-      created_by_office_of_user: officeId ? officeId : null,
+      // 営業担当データ
+      created_by_user_id: memberObj.memberId ? memberObj.memberId : null,
+      created_by_department_of_user: memberObj.departmentId ? memberObj.departmentId : null,
+      created_by_unit_of_user: memberObj.unitId ? memberObj.unitId : null,
+      created_by_office_of_user: memberObj.officeId ? memberObj.officeId : null,
+      // 営業担当データここまで
+      // created_by_user_id: userProfileState?.id ? userProfileState.id : null,
+      // created_by_department_of_user: departmentId ? departmentId : null,
+      // created_by_unit_of_user: unitId ? unitId : null,
+      // created_by_office_of_user: officeId ? officeId : null,
       client_contact_id: selectedRowDataContact.contact_id,
       client_company_id: selectedRowDataContact.company_id,
       meeting_type: meetingType ? meetingType : null,
@@ -678,7 +731,8 @@ export const InsertNewMeetingModal = () => {
       // meeting_business_office: meetingBusinessOffice ? meetingBusinessOffice : null,
       meeting_department: departmentName ? departmentName : null,
       meeting_business_office: officeName ? officeName : null,
-      meeting_member_name: meetingMemberName ? meetingMemberName : null,
+      // meeting_member_name: meetingMemberName ? meetingMemberName : null,
+      meeting_member_name: memberObj.memberName ? memberObj.memberName : null,
       meeting_year_month: meetingYearMonth ? meetingYearMonth : null,
     };
 
@@ -1616,8 +1670,13 @@ export const InsertNewMeetingModal = () => {
                     /> */}
                     <select
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      value={departmentId ? departmentId : ""}
-                      onChange={(e) => setDepartmentId(e.target.value)}
+                      // value={departmentId ? departmentId : ""}
+                      // onChange={(e) => setDepartmentId(e.target.value)}
+                      value={memberObj.departmentId ? memberObj.departmentId : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, departmentId: e.target.value });
+                        setIsOpenConfirmationModal("change_member");
+                      }}
                     >
                       <option value=""></option>
                       {departmentDataArray &&
@@ -1644,8 +1703,13 @@ export const InsertNewMeetingModal = () => {
                     <span className={`${styles.title} `}>係・チーム</span>
                     <select
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box} ${styles.min}`}
-                      value={unitId ? unitId : ""}
-                      onChange={(e) => setUnitId(e.target.value)}
+                      // value={unitId ? unitId : ""}
+                      // onChange={(e) => setUnitId(e.target.value)}
+                      value={memberObj.unitId ? memberObj.unitId : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, unitId: e.target.value });
+                        setIsOpenConfirmationModal("change_member");
+                      }}
                     >
                       <option value=""></option>
                       {unitDataArray &&
@@ -1686,8 +1750,13 @@ export const InsertNewMeetingModal = () => {
                     /> */}
                     <select
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      value={officeId ? officeId : ""}
-                      onChange={(e) => setOfficeId(e.target.value)}
+                      // value={officeId ? officeId : ""}
+                      // onChange={(e) => setOfficeId(e.target.value)}
+                      value={memberObj.officeId ? memberObj.officeId : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, officeId: e.target.value });
+                        setIsOpenConfirmationModal("change_member");
+                      }}
                     >
                       <option value=""></option>
                       {officeDataArray &&
@@ -1718,9 +1787,23 @@ export const InsertNewMeetingModal = () => {
                       placeholder="*入力必須"
                       required
                       className={`${styles.input_box}`}
-                      value={meetingMemberName}
-                      onChange={(e) => setMeetingMemberName(e.target.value)}
-                      onBlur={() => setMeetingMemberName(toHalfWidthAndSpace(meetingMemberName.trim()))}
+                      // value={meetingMemberName}
+                      // onChange={(e) => setMeetingMemberName(e.target.value)}
+                      // onBlur={() => setMeetingMemberName(toHalfWidthAndSpace(meetingMemberName.trim()))}
+                      value={memberObj.memberName ? memberObj.memberName : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, memberName: e.target.value });
+                      }}
+                      onKeyUp={() => {
+                        if (prevMemberObj.memberName !== memberObj.memberName) {
+                          setIsOpenConfirmationModal("change_member");
+                          return;
+                        }
+                      }}
+                      onBlur={() => {
+                        if (!memberObj.memberName) return;
+                        setMemberObj({ ...memberObj, memberName: toHalfWidthAndSpace(memberObj.memberName.trim()) });
+                      }}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -1819,6 +1902,53 @@ export const InsertNewMeetingModal = () => {
           {/* メインコンテンツ コンテナ ここまで */}
         </div>
       </div>
+
+      {/* 「自社担当」変更確認モーダル */}
+      {isOpenConfirmationModal === "change_member" && (
+        <ConfirmationModal
+          clickEventClose={() => {
+            // setMeetingMemberName(selectedRowDataMeeting?.meeting_member_name ?? "");
+            setMemberObj(prevMemberObj);
+            setIsOpenConfirmationModal(null);
+          }}
+          // titleText="面談データの自社担当を変更してもよろしいですか？"
+          titleText={`データの所有者を変更してもよろしいですか？`}
+          // titleText2={`データの所有者を変更しますか？`}
+          sectionP1="「自社担当」「事業部」「係・チーム」「事業所」を変更すると面談データの所有者が変更されます。"
+          sectionP2="注：データの所有者を変更すると、この面談結果は変更先のメンバーの集計結果に移行され、分析結果が変更されます。"
+          cancelText="戻る"
+          submitText="変更する"
+          clickEventSubmit={() => {
+            // setMemberObj(prevMemberObj);
+            setIsOpenConfirmationModal(null);
+            setIsOpenSearchMemberSideTable(true);
+          }}
+        />
+      )}
+
+      {/* 「自社担当」変更サイドテーブル */}
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <Suspense
+          fallback={<FallbackSideTableSearchMember isOpenSearchMemberSideTable={isOpenSearchMemberSideTable} />}
+        >
+          <SideTableSearchMember
+            isOpenSearchMemberSideTable={isOpenSearchMemberSideTable}
+            setIsOpenSearchMemberSideTable={setIsOpenSearchMemberSideTable}
+            // currentMemberId={selectedRowDataMeeting?.meeting_created_by_user_id ?? ""}
+            // currentMemberName={selectedRowDataMeeting?.meeting_member_name ?? ""}
+            // currentMemberDepartmentId={selectedRowDataMeeting?.meeting_created_by_department_of_user ?? null}
+            // setChangedMemberObj={setChangedMemberObj}
+            // currentMemberId={memberObj.memberId ?? ""}
+            // currentMemberName={memberObj.memberName ?? ""}
+            // currentMemberDepartmentId={memberObj.departmentId ?? null}
+            prevMemberObj={prevMemberObj}
+            setPrevMemberObj={setPrevMemberObj}
+            memberObj={memberObj}
+            setMemberObj={setMemberObj}
+            // setMeetingMemberName={setMeetingMemberName}
+          />
+        </Suspense>
+      </ErrorBoundary>
     </>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import styles from "./InsertNewActivityModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -13,6 +13,23 @@ import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { BsChevronLeft } from "react-icons/bs";
 import { useQueryClient } from "@tanstack/react-query";
 import { Department, Office, Unit } from "@/types";
+import { ConfirmationModal } from "../SettingAccountModal/SettingCompany/ConfirmationModal/ConfirmationModal";
+import { ErrorBoundary } from "react-error-boundary";
+import { FallbackSideTableSearchMember } from "../UpdateMeetingModal/SideTableSearchMember/FallbackSideTableSearchMember";
+import { SideTableSearchMember } from "../UpdateMeetingModal/SideTableSearchMember/SideTableSearchMember";
+import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
+import { useQueryDepartments } from "@/hooks/useQueryDepartments";
+import { useQueryUnits } from "@/hooks/useQueryUnits";
+import { useQueryOffices } from "@/hooks/useQueryOffices";
+
+// type ModalProperties = {
+//   left: number;
+//   top: number;
+//   right: number;
+//   bottom: number;
+//   width: number;
+//   height: number;
+// };
 
 export const InsertNewActivityModal = () => {
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
@@ -23,6 +40,12 @@ export const InsertNewActivityModal = () => {
   // const [isLoading, setIsLoading] = useState(false);
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
+  // 確認モーダル(自社担当名、データ所有者変更確認)
+  const [isOpenConfirmationModal, setIsOpenConfirmationModal] = useState<string | null>(null);
+  // 自社担当検索サイドテーブル開閉
+  const [isOpenSearchMemberSideTable, setIsOpenSearchMemberSideTable] = useState(false);
+  // 紹介予定商品、実施商品選択時のドロップダウンメニュー用
+  // const [modalProperties, setModalProperties] = useState<ModalProperties>();
   // const theme = useThemeStore((state) => state.theme);
   // 上画面の選択中の列データ会社
   // const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
@@ -50,16 +73,35 @@ export const InsertNewActivityModal = () => {
   //   userProfileState?.department ? userProfileState?.department : ""
   // );
   // const [businessOffice, setBusinessOffice] = useState("");
-  const [departmentId, setDepartmentId] = useState<Department["id"] | null>(
-    userProfileState?.assigned_department_id ? userProfileState?.assigned_department_id : null
-  );
-  const [unitId, setUnitId] = useState<Unit["id"] | null>(
-    userProfileState?.assigned_unit_id ? userProfileState?.assigned_unit_id : null
-  );
-  const [officeId, setOfficeId] = useState<Office["id"] | null>(
-    userProfileState?.assigned_office_id ? userProfileState?.assigned_office_id : null
-  );
-  const [memberName, setMemberName] = useState(userProfileState?.profile_name ? userProfileState?.profile_name : "");
+  // const [departmentId, setDepartmentId] = useState<Department["id"] | null>(
+  //   userProfileState?.assigned_department_id ? userProfileState?.assigned_department_id : null
+  // );
+  // const [unitId, setUnitId] = useState<Unit["id"] | null>(
+  //   userProfileState?.assigned_unit_id ? userProfileState?.assigned_unit_id : null
+  // );
+  // const [officeId, setOfficeId] = useState<Office["id"] | null>(
+  //   userProfileState?.assigned_office_id ? userProfileState?.assigned_office_id : null
+  // );
+  // const [memberName, setMemberName] = useState(userProfileState?.profile_name ? userProfileState?.profile_name : "");
+  // 営業担当データ
+  type MemberDetail = {
+    memberId: string | null;
+    memberName: string | null;
+    departmentId: string | null;
+    unitId: string | null;
+    officeId: string | null;
+  };
+  // 作成したユーザーのidと名前が初期値
+  const initialMemberObj = {
+    memberId: userProfileState?.id ? userProfileState?.id : null,
+    memberName: userProfileState?.profile_name ? userProfileState?.profile_name : null,
+    departmentId: userProfileState?.assigned_department_id ? userProfileState?.assigned_department_id : null,
+    unitId: userProfileState?.assigned_unit_id ? userProfileState?.assigned_unit_id : null,
+    officeId: userProfileState?.assigned_office_id ? userProfileState?.assigned_office_id : null,
+  };
+  const [prevMemberObj, setPrevMemberObj] = useState<MemberDetail>(initialMemberObj);
+  const [memberObj, setMemberObj] = useState<MemberDetail>(initialMemberObj);
+  // 営業担当データここまで
   const [priority, setPriority] = useState("");
   const [activityYearMonth, setActivityYearMonth] = useState<number | null>(Number(activityYearMonthInitialValue));
 
@@ -68,10 +110,41 @@ export const InsertNewActivityModal = () => {
   const { createActivityMutation } = useMutateActivity();
 
   // ================================ 🌟事業部、係、事業所リスト取得useQuery🌟 ================================
-  const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
-  const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
-  const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
+  // const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
+  // const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
+  // const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
   // ================================ ✅事業部、係、事業所リスト取得useQuery✅ ================================
+  // ================================ 🌟事業部リスト取得useQuery🌟 ================================
+  const {
+    data: departmentDataArray,
+    isLoading: isLoadingQueryDepartment,
+    refetch: refetchQUeryDepartments,
+  } = useQueryDepartments(userProfileState?.company_id, true);
+
+  // useMutation
+  // const { createDepartmentMutation, updateDepartmentFieldMutation, deleteDepartmentMutation } = useMutateDepartment();
+  // ================================ ✅事業部リスト取得useQuery✅ ================================
+  // ================================ 🌟係・チームリスト取得useQuery🌟 ================================
+  const {
+    data: unitDataArray,
+    isLoading: isLoadingQueryUnit,
+    refetch: refetchQUeryUnits,
+  } = useQueryUnits(userProfileState?.company_id, true);
+
+  // useMutation
+  // const { createUnitMutation, updateUnitFieldMutation, updateMultipleUnitFieldsMutation, deleteUnitMutation } =
+  // useMutateUnit();
+  // ================================ ✅係・チームリスト取得useQuery✅ ================================
+  // ================================ 🌟事業所・営業所リスト取得useQuery🌟 ================================
+  const {
+    data: officeDataArray,
+    isLoading: isLoadingQueryOffice,
+    refetch: refetchQUeryOffices,
+  } = useQueryOffices(userProfileState?.company_id, true);
+
+  // useMutation
+  // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
+  // ================================ ✅事業所・営業所リスト取得useQuery✅ ================================
 
   // useEffect(() => {
   //   if (!userProfileState) return;
@@ -96,21 +169,33 @@ export const InsertNewActivityModal = () => {
 
     setLoadingGlobalState(true);
 
+    // const departmentName =
+    //   departmentDataArray &&
+    //   departmentId &&
+    //   departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
+    // const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
     const departmentName =
       departmentDataArray &&
-      departmentId &&
-      departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
-    const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
+      memberObj.departmentId &&
+      departmentDataArray.find((obj) => obj.id === memberObj.departmentId)?.department_name;
+    const officeName =
+      officeDataArray &&
+      memberObj.officeId &&
+      officeDataArray.find((obj) => obj.id === memberObj.officeId)?.office_name;
 
     // 新規作成するデータをオブジェクトにまとめる
     const newActivity = {
-      created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
-      created_by_user_id: userProfileState?.id ? userProfileState.id : null,
+      // created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
+      // created_by_user_id: userProfileState?.id ? userProfileState.id : null,
       // created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
       // created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
-      created_by_department_of_user: departmentId ? departmentId : null,
-      created_by_unit_of_user: unitId ? unitId : null,
-      created_by_office_of_user: officeId ? officeId : null,
+      created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
+      // 営業担当データ
+      created_by_user_id: memberObj.memberId ? memberObj.memberId : null,
+      created_by_department_of_user: memberObj.departmentId ? memberObj.departmentId : null,
+      created_by_unit_of_user: memberObj.unitId ? memberObj.unitId : null,
+      created_by_office_of_user: memberObj.officeId ? memberObj.officeId : null,
+      // 営業担当データここまで
       client_contact_id: selectedRowDataContact.contact_id,
       client_company_id: selectedRowDataContact.company_id,
       summary: summary,
@@ -130,7 +215,8 @@ export const InsertNewActivityModal = () => {
       // business_office: businessOffice ? businessOffice : null,
       department: departmentName ? departmentName : null,
       business_office: officeName ? officeName : null,
-      member_name: memberName ? memberName : null,
+      // member_name: memberName ? memberName : null,
+      member_name: memberObj.memberName ? memberObj.memberName : null,
       priority: priority ? priority : null,
       activity_date: activityDate ? activityDate.toISOString() : null,
       activity_year_month: activityYearMonth ? activityYearMonth : null,
@@ -160,19 +246,28 @@ export const InsertNewActivityModal = () => {
 
     const departmentName =
       departmentDataArray &&
-      departmentId &&
-      departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
-    const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
+      memberObj.departmentId &&
+      departmentDataArray.find((obj) => obj.id === memberObj.departmentId)?.department_name;
+    const officeName =
+      officeDataArray &&
+      memberObj.officeId &&
+      officeDataArray.find((obj) => obj.id === memberObj.officeId)?.office_name;
 
     // 新規作成するデータをオブジェクトにまとめる
     const newActivity = {
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
-      created_by_user_id: userProfileState?.id ? userProfileState.id : null,
       // created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
       // created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
-      created_by_department_of_user: departmentId ? departmentId : null,
-      created_by_unit_of_user: unitId ? unitId : null,
-      created_by_office_of_user: officeId ? officeId : null,
+      // created_by_user_id: userProfileState?.id ? userProfileState.id : null,
+      // created_by_department_of_user: departmentId ? departmentId : null,
+      // created_by_unit_of_user: unitId ? unitId : null,
+      // created_by_office_of_user: officeId ? officeId : null,
+      // 営業担当データ
+      created_by_user_id: memberObj.memberId ? memberObj.memberId : null,
+      created_by_department_of_user: memberObj.departmentId ? memberObj.departmentId : null,
+      created_by_unit_of_user: memberObj.unitId ? memberObj.unitId : null,
+      created_by_office_of_user: memberObj.officeId ? memberObj.officeId : null,
+      // 営業担当データここまで
       client_contact_id: selectedRowDataActivity.contact_id,
       client_company_id: selectedRowDataActivity.company_id,
       summary: summary ? summary : null,
@@ -190,7 +285,7 @@ export const InsertNewActivityModal = () => {
       product_introduction5: productIntroduction5 ? productIntroduction5 : null,
       department: departmentName ? departmentName : null,
       business_office: officeName ? officeName : null,
-      member_name: memberName ? memberName : null,
+      member_name: memberObj.memberName ? memberObj.memberName : null,
       priority: priority ? priority : null,
       activity_date: activityDate ? activityDate.toISOString() : null,
       activity_year_month: activityYearMonth ? activityYearMonth : null,
@@ -217,19 +312,28 @@ export const InsertNewActivityModal = () => {
 
     const departmentName =
       departmentDataArray &&
-      departmentId &&
-      departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
-    const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
+      memberObj.departmentId &&
+      departmentDataArray.find((obj) => obj.id === memberObj.departmentId)?.department_name;
+    const officeName =
+      officeDataArray &&
+      memberObj.officeId &&
+      officeDataArray.find((obj) => obj.id === memberObj.officeId)?.office_name;
 
     // 新規作成するデータをオブジェクトにまとめる
     const newActivity = {
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
-      created_by_user_id: userProfileState?.id ? userProfileState.id : null,
       // created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
       // created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
-      created_by_department_of_user: departmentId ? departmentId : null,
-      created_by_unit_of_user: unitId ? unitId : null,
-      created_by_office_of_user: officeId ? officeId : null,
+      // created_by_user_id: userProfileState?.id ? userProfileState.id : null,
+      // created_by_department_of_user: departmentId ? departmentId : null,
+      // created_by_unit_of_user: unitId ? unitId : null,
+      // created_by_office_of_user: officeId ? officeId : null,
+      // 営業担当データ
+      created_by_user_id: memberObj.memberId ? memberObj.memberId : null,
+      created_by_department_of_user: memberObj.departmentId ? memberObj.departmentId : null,
+      created_by_unit_of_user: memberObj.unitId ? memberObj.unitId : null,
+      created_by_office_of_user: memberObj.officeId ? memberObj.officeId : null,
+      // 営業担当データここまで
       client_contact_id: selectedRowDataMeeting.contact_id,
       client_company_id: selectedRowDataMeeting.company_id,
       summary: summary ? summary : null,
@@ -247,7 +351,7 @@ export const InsertNewActivityModal = () => {
       product_introduction5: productIntroduction5 ? productIntroduction5 : null,
       department: departmentName ? departmentName : null,
       business_office: officeName ? officeName : null,
-      member_name: memberName ? memberName : null,
+      member_name: memberObj.memberName ? memberObj.memberName : null,
       priority: priority ? priority : null,
       activity_date: activityDate ? activityDate.toISOString() : null,
       activity_year_month: activityYearMonth ? activityYearMonth : null,
@@ -274,19 +378,28 @@ export const InsertNewActivityModal = () => {
 
     const departmentName =
       departmentDataArray &&
-      departmentId &&
-      departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
-    const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
+      memberObj.departmentId &&
+      departmentDataArray.find((obj) => obj.id === memberObj.departmentId)?.department_name;
+    const officeName =
+      officeDataArray &&
+      memberObj.officeId &&
+      officeDataArray.find((obj) => obj.id === memberObj.officeId)?.office_name;
 
     // 新規作成するデータをオブジェクトにまとめる
     const newActivity = {
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
-      created_by_user_id: userProfileState?.id ? userProfileState.id : null,
       // created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
       // created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
-      created_by_department_of_user: departmentId ? departmentId : null,
-      created_by_unit_of_user: unitId ? unitId : null,
-      created_by_office_of_user: officeId ? officeId : null,
+      // created_by_user_id: userProfileState?.id ? userProfileState.id : null,
+      // created_by_department_of_user: departmentId ? departmentId : null,
+      // created_by_unit_of_user: unitId ? unitId : null,
+      // created_by_office_of_user: officeId ? officeId : null,
+      // 営業担当データ
+      created_by_user_id: memberObj.memberId ? memberObj.memberId : null,
+      created_by_department_of_user: memberObj.departmentId ? memberObj.departmentId : null,
+      created_by_unit_of_user: memberObj.unitId ? memberObj.unitId : null,
+      created_by_office_of_user: memberObj.officeId ? memberObj.officeId : null,
+      // 営業担当データここまで
       client_contact_id: selectedRowDataProperty.contact_id,
       client_company_id: selectedRowDataProperty.company_id,
       summary: summary ? summary : null,
@@ -304,7 +417,7 @@ export const InsertNewActivityModal = () => {
       product_introduction5: productIntroduction5 ? productIntroduction5 : null,
       department: departmentName ? departmentName : null,
       business_office: officeName ? officeName : null,
-      member_name: memberName ? memberName : null,
+      member_name: memberObj.memberName ? memberObj.memberName : null,
       priority: priority ? priority : null,
       activity_date: activityDate ? activityDate.toISOString() : null,
       activity_year_month: activityYearMonth ? activityYearMonth : null,
@@ -724,8 +837,15 @@ export const InsertNewActivityModal = () => {
                     /> */}
                     <select
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      value={departmentId ? departmentId : ""}
-                      onChange={(e) => setDepartmentId(e.target.value)}
+                      // value={departmentId ? departmentId : ""}
+                      // onChange={(e) => setDepartmentId(e.target.value)}
+                      // value={departmentId ? departmentId : ""}
+                      // onChange={(e) => setDepartmentId(e.target.value)}
+                      value={memberObj.departmentId ? memberObj.departmentId : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, departmentId: e.target.value });
+                        setIsOpenConfirmationModal("change_member");
+                      }}
                     >
                       <option value=""></option>
                       {departmentDataArray &&
@@ -752,8 +872,13 @@ export const InsertNewActivityModal = () => {
                     <span className={`${styles.title} `}>係・チーム</span>
                     <select
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box} ${styles.min}`}
-                      value={unitId ? unitId : ""}
-                      onChange={(e) => setUnitId(e.target.value)}
+                      // value={unitId ? unitId : ""}
+                      // onChange={(e) => setUnitId(e.target.value)}
+                      value={memberObj.unitId ? memberObj.unitId : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, unitId: e.target.value });
+                        setIsOpenConfirmationModal("change_member");
+                      }}
                     >
                       <option value=""></option>
                       {unitDataArray &&
@@ -794,8 +919,13 @@ export const InsertNewActivityModal = () => {
                     /> */}
                     <select
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      value={officeId ? officeId : ""}
-                      onChange={(e) => setOfficeId(e.target.value)}
+                      // value={officeId ? officeId : ""}
+                      // onChange={(e) => setOfficeId(e.target.value)}
+                      value={memberObj.officeId ? memberObj.officeId : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, officeId: e.target.value });
+                        setIsOpenConfirmationModal("change_member");
+                      }}
                     >
                       <option value=""></option>
                       {officeDataArray &&
@@ -826,9 +956,23 @@ export const InsertNewActivityModal = () => {
                       placeholder="*入力必須"
                       required
                       className={`${styles.input_box}`}
-                      value={memberName}
-                      onChange={(e) => setMemberName(e.target.value)}
+                      // value={memberName}
+                      // onChange={(e) => setMemberName(e.target.value)}
                       // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
+                      value={memberObj.memberName ? memberObj.memberName : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, memberName: e.target.value });
+                      }}
+                      onKeyUp={() => {
+                        if (prevMemberObj.memberName !== memberObj.memberName) {
+                          setIsOpenConfirmationModal("change_member");
+                          return;
+                        }
+                      }}
+                      onBlur={() => {
+                        if (!memberObj.memberName) return;
+                        setMemberObj({ ...memberObj, memberName: toHalfWidthAndSpace(memberObj.memberName.trim()) });
+                      }}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -907,6 +1051,53 @@ export const InsertNewActivityModal = () => {
           {/* メインコンテンツ コンテナ ここまで */}
         </div>
       </div>
+
+      {/* 「自社担当」変更確認モーダル */}
+      {isOpenConfirmationModal === "change_member" && (
+        <ConfirmationModal
+          clickEventClose={() => {
+            // setMeetingMemberName(selectedRowDataMeeting?.meeting_member_name ?? "");
+            setMemberObj(prevMemberObj);
+            setIsOpenConfirmationModal(null);
+          }}
+          // titleText="面談データの自社担当を変更してもよろしいですか？"
+          titleText={`データの所有者を変更してもよろしいですか？`}
+          // titleText2={`データの所有者を変更しますか？`}
+          sectionP1="「自社担当」「事業部」「係・チーム」「事業所」を変更すると活動データの所有者が変更されます。"
+          sectionP2="注：データの所有者を変更すると、この活動結果は変更先のメンバーの集計結果に移行され、分析結果が変更されます。"
+          cancelText="戻る"
+          submitText="変更する"
+          clickEventSubmit={() => {
+            // setMemberObj(prevMemberObj);
+            setIsOpenConfirmationModal(null);
+            setIsOpenSearchMemberSideTable(true);
+          }}
+        />
+      )}
+
+      {/* 「自社担当」変更サイドテーブル */}
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <Suspense
+          fallback={<FallbackSideTableSearchMember isOpenSearchMemberSideTable={isOpenSearchMemberSideTable} />}
+        >
+          <SideTableSearchMember
+            isOpenSearchMemberSideTable={isOpenSearchMemberSideTable}
+            setIsOpenSearchMemberSideTable={setIsOpenSearchMemberSideTable}
+            // currentMemberId={selectedRowDataMeeting?.meeting_created_by_user_id ?? ""}
+            // currentMemberName={selectedRowDataMeeting?.meeting_member_name ?? ""}
+            // currentMemberDepartmentId={selectedRowDataMeeting?.meeting_created_by_department_of_user ?? null}
+            // setChangedMemberObj={setChangedMemberObj}
+            // currentMemberId={memberObj.memberId ?? ""}
+            // currentMemberName={memberObj.memberName ?? ""}
+            // currentMemberDepartmentId={memberObj.departmentId ?? null}
+            prevMemberObj={prevMemberObj}
+            setPrevMemberObj={setPrevMemberObj}
+            memberObj={memberObj}
+            setMemberObj={setMemberObj}
+            // setMeetingMemberName={setMeetingMemberName}
+          />
+        </Suspense>
+      </ErrorBoundary>
     </>
   );
 };

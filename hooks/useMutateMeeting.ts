@@ -251,16 +251,16 @@ export const useMutateMeeting = () => {
 
       //
 
-      const updatedMeetingPayload = {
-        // _created_by_company_id: newMeeting.created_by_company_id,
-        // _created_by_user_id: newMeeting.created_by_user_id,
-        // _created_by_department_of_user: newMeeting.created_by_department_of_user,
-        // _created_by_unit_of_user: newMeeting.created_by_unit_of_user,
-        // _created_by_office_of_user: newMeeting.created_by_office_of_user,
-        // _client_contact_id: newMeeting.client_contact_id,
-        // _client_company_id: newMeeting.client_company_id,
+      const updateMeetingPayload = {
         // 🌠面談テーブル
         _meeting_id: newMeeting.id,
+        // _created_by_company_id: newMeeting.created_by_company_id,
+        _created_by_user_id: newMeeting.created_by_user_id,
+        _created_by_department_of_user: newMeeting.created_by_department_of_user,
+        _created_by_unit_of_user: newMeeting.created_by_unit_of_user,
+        _created_by_office_of_user: newMeeting.created_by_office_of_user,
+        // _client_contact_id: newMeeting.client_contact_id,
+        // _client_company_id: newMeeting.client_company_id,
         _meeting_type: newMeeting.meeting_type,
         _web_tool: newMeeting.web_tool,
         _planned_date: newMeeting.planned_date,
@@ -292,6 +292,11 @@ export const useMutateMeeting = () => {
         _meeting_member_name: newMeeting.meeting_member_name,
         _meeting_year_month: newMeeting.meeting_year_month,
         // -- 🌠活動テーブル用
+        // created_by_company_id: newMeeting.created_by_company_id,
+        // _created_by_user_id: newMeeting.created_by_user_id,
+        // _created_by_department_of_user: newMeeting.created_by_department_of_user,
+        // _created_by_unit_of_user: newMeeting.created_by_unit_of_user,
+        // _created_by_office_of_user: newMeeting.created_by_office_of_user,
         _summary: newMeeting.result_summary,
         // scheduled_follow_up_date: null,
         // follow_up_flag: false,
@@ -316,6 +321,14 @@ export const useMutateMeeting = () => {
         _product_ids: newMeeting.product_ids,
         _attendee_ids: newMeeting.attendee_ids,
       };
+
+      console.log("🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠rpc実行 updateMeetingPayload", updateMeetingPayload);
+
+      const { error } = await supabase.rpc("update_meeting_with_products_and_attendees", updateMeetingPayload);
+
+      if (error) throw error;
+
+      console.log("🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥rpc成功");
     },
     {
       onSuccess: async () => {
@@ -325,20 +338,14 @@ export const useMutateMeeting = () => {
         // TanStack Queryでデータの変更に合わせて別のデータを再取得する
         // https://zenn.dev/masatakaitoh/articles/3c2f8602d2bb9d
 
-        // 再度テーブルの選択セルのDOMをクリックしてselectedRowDataMeetingを最新状態にする
+        // 再度テーブルの選択セルのDOMをクリックしてselectedRowDataMeetingを最新状態にする(一括更新の場合UPDATEされた行データを現在選択中のZustandのstateにスプレッドで割り当てようとしても結合してエイリアスを複数使っているのと、実施済み商品と同席者の複数テーブルへのクエリなのでinvalidateQueryのよってstaleにして新たに再フェッチしたデータをクリックしてメインテーブルにデータを反映させる)
         setIsUpdateRequiredForLatestSelectedRowDataMeeting(true);
 
         if (loadingGlobalState) setLoadingGlobalState(false);
         setIsOpenUpdateMeetingModal(false);
         toast.success("面談の更新が完了しました🌟", {
           position: "top-right",
-          autoClose: 1500,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: `${theme === "light" ? "light" : "dark"}`,
+          // autoClose: 1500,
         });
         // setTimeout(() => {
         //   if (loadingGlobalState) setLoadingGlobalState(false);
@@ -360,15 +367,9 @@ export const useMutateMeeting = () => {
         // setIsOpenUpdateMeetingModal(false);
         alert(err.message);
         console.log("INSERTエラー", err.message);
-        toast.error("面談の更新に失敗しました!", {
+        toast.error("面談の更新に失敗しました...🙇‍♀️", {
           position: "top-right",
-          autoClose: 1500,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: `${theme === "light" ? "light" : "dark"}`,
+          // autoClose: 1500,
         });
         // setTimeout(() => {
         //   if (loadingGlobalState) setLoadingGlobalState(false);

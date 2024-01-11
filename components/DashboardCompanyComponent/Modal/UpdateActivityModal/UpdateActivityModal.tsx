@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import styles from "./UpdateActivityModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -13,6 +13,11 @@ import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { BsChevronLeft } from "react-icons/bs";
 import { Department, Office, Unit } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
+import { ConfirmationModal } from "../SettingAccountModal/SettingCompany/ConfirmationModal/ConfirmationModal";
+import { ErrorBoundary } from "react-error-boundary";
+import { FallbackSideTableSearchMember } from "../UpdateMeetingModal/SideTableSearchMember/FallbackSideTableSearchMember";
+import { SideTableSearchMember } from "../UpdateMeetingModal/SideTableSearchMember/SideTableSearchMember";
+import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 
 export const UpdateActivityModal = () => {
   const selectedRowDataActivity = useDashboardStore((state) => state.selectedRowDataActivity);
@@ -20,6 +25,10 @@ export const UpdateActivityModal = () => {
   // const [isLoading, setIsLoading] = useState(false);
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
+  // 確認モーダル(自社担当名、データ所有者変更確認)
+  const [isOpenConfirmationModal, setIsOpenConfirmationModal] = useState<string | null>(null);
+  // 自社担当検索サイドテーブル開閉
+  const [isOpenSearchMemberSideTable, setIsOpenSearchMemberSideTable] = useState(false);
   // const theme = useThemeStore((state) => state.theme);
   // 上画面の選択中の列データ会社
   // const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
@@ -31,7 +40,12 @@ export const UpdateActivityModal = () => {
   const month = initialDate.getMonth() + 1; // getMonth()は0から11で返されるため、+1して1から12に調整
   const activityYearMonthInitialValue = `${year}${month < 10 ? "0" + month : month}`; // 月が1桁の場合は先頭に0を追加
   // const [activityDate, setActivityDate] = useState<Date | null>(new Date());
-  const [activityDate, setActivityDate] = useState<Date | null>(initialDate);
+  // const [activityDate, setActivityDate] = useState<Date | null>(initialDate);
+  const [activityDate, setActivityDate] = useState<Date | null>(
+    selectedRowDataActivity && selectedRowDataActivity.activity_date
+      ? new Date(selectedRowDataActivity.activity_date)
+      : null
+  );
   const [summary, setSummary] = useState("");
   const [scheduledFollowUpDate, setScheduledFollowUpDate] = useState<Date | null>(null);
   const [followUpFlag, setFollowUpFlag] = useState(false);
@@ -47,24 +61,51 @@ export const UpdateActivityModal = () => {
   //   userProfileState?.department ? userProfileState?.department : ""
   // );
   // const [businessOffice, setBusinessOffice] = useState("");
-  const [departmentId, setDepartmentId] = useState<Department["id"] | null>(
-    selectedRowDataActivity?.activity_created_by_department_of_user
+  // const [departmentId, setDepartmentId] = useState<Department["id"] | null>(
+  //   selectedRowDataActivity?.activity_created_by_department_of_user
+  //     ? selectedRowDataActivity?.activity_created_by_department_of_user
+  //     : null
+  // );
+  // const [unitId, setUnitId] = useState<Unit["id"] | null>(
+  //   selectedRowDataActivity?.activity_created_by_unit_of_user
+  //     ? selectedRowDataActivity?.activity_created_by_unit_of_user
+  //     : null
+  // );
+  // const [officeId, setOfficeId] = useState<Office["id"] | null>(
+  //   selectedRowDataActivity?.activity_created_by_office_of_user
+  //     ? selectedRowDataActivity?.activity_created_by_office_of_user
+  //     : null
+  // );
+  // const [memberName, setMemberName] = useState(
+  //   selectedRowDataActivity?.member_name ? selectedRowDataActivity?.member_name : ""
+  // );
+  // =======営業担当データ
+  type MemberDetail = {
+    memberId: string | null;
+    memberName: string | null;
+    departmentId: string | null;
+    unitId: string | null;
+    officeId: string | null;
+  };
+  // 作成したユーザーのidと名前が初期値
+  const initialMemberObj = {
+    memberName: selectedRowDataActivity?.member_name ? selectedRowDataActivity?.member_name : null,
+    memberId: selectedRowDataActivity?.activity_created_by_user_id
+      ? selectedRowDataActivity?.activity_created_by_user_id
+      : null,
+    departmentId: selectedRowDataActivity?.activity_created_by_department_of_user
       ? selectedRowDataActivity?.activity_created_by_department_of_user
-      : null
-  );
-  const [unitId, setUnitId] = useState<Unit["id"] | null>(
-    selectedRowDataActivity?.activity_created_by_unit_of_user
+      : null,
+    unitId: selectedRowDataActivity?.activity_created_by_unit_of_user
       ? selectedRowDataActivity?.activity_created_by_unit_of_user
-      : null
-  );
-  const [officeId, setOfficeId] = useState<Office["id"] | null>(
-    selectedRowDataActivity?.activity_created_by_office_of_user
+      : null,
+    officeId: selectedRowDataActivity?.activity_created_by_office_of_user
       ? selectedRowDataActivity?.activity_created_by_office_of_user
-      : null
-  );
-  const [memberName, setMemberName] = useState(
-    selectedRowDataActivity?.member_name ? selectedRowDataActivity?.member_name : ""
-  );
+      : null,
+  };
+  const [prevMemberObj, setPrevMemberObj] = useState<MemberDetail>(initialMemberObj);
+  const [memberObj, setMemberObj] = useState<MemberDetail>(initialMemberObj);
+  // =======営業担当データここまで
   const [priority, setPriority] = useState("");
   const [activityYearMonth, setActivityYearMonth] = useState<number | null>(Number(activityYearMonthInitialValue));
 
@@ -81,6 +122,19 @@ export const UpdateActivityModal = () => {
   // 初回マウント時に選択中の担当者&会社の列データの情報をStateに格納
   useEffect(() => {
     if (!selectedRowDataActivity) return;
+
+    let _activity_created_by_user_id = selectedRowDataActivity.activity_created_by_user_id
+      ? selectedRowDataActivity.activity_created_by_user_id
+      : null;
+    let _activity_created_by_department_of_user = selectedRowDataActivity.activity_created_by_department_of_user
+      ? selectedRowDataActivity.activity_created_by_department_of_user
+      : null;
+    let _activity_created_by_unit_of_user = selectedRowDataActivity.activity_created_by_unit_of_user
+      ? selectedRowDataActivity.activity_created_by_unit_of_user
+      : null;
+    let _activity_created_by_office_of_user = selectedRowDataActivity.activity_created_by_office_of_user
+      ? selectedRowDataActivity.activity_created_by_office_of_user
+      : null;
     const selectedInitialActivityDate = selectedRowDataActivity.activity_date
       ? new Date(selectedRowDataActivity.activity_date)
       : null;
@@ -140,10 +194,19 @@ export const UpdateActivityModal = () => {
     setProductIntroduction3(_product_introduction3);
     setProductIntroduction4(_product_introduction4);
     setProductIntroduction5(_product_introduction5);
-    setDepartmentId(_department);
-    setUnitId(_unit);
-    setOfficeId(_business_office);
-    setMemberName(_member_name);
+    // setDepartmentId(_department);
+    // setUnitId(_unit);
+    // setOfficeId(_business_office);
+    // setMemberName(_member_name);
+    const memberDetail = {
+      memberId: _activity_created_by_user_id,
+      memberName: _member_name,
+      departmentId: _activity_created_by_department_of_user,
+      unitId: _activity_created_by_unit_of_user,
+      officeId: _activity_created_by_office_of_user,
+    };
+    setMemberObj(memberDetail);
+    setPrevMemberObj(memberDetail);
     setPriority(_priority);
     setActivityYearMonth(_activity_year_month);
   }, []);
@@ -153,6 +216,7 @@ export const UpdateActivityModal = () => {
     if (loadingGlobalState) return;
     setIsOpenUpdateActivityModal(false);
   };
+  // ------------------------ 🌟更新実行🌟 ------------------------
   const handleSaveAndClose = async () => {
     if (!summary) return alert("活動概要を入力してください");
     if (!activityType) return alert("活動タイプを選択してください");
@@ -162,11 +226,13 @@ export const UpdateActivityModal = () => {
 
     setLoadingGlobalState(true);
 
+    // 部署名と事業所名を取得
     const departmentName =
       departmentDataArray &&
-      departmentId &&
-      departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
-    const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
+      memberObj.memberId &&
+      departmentDataArray.find((obj) => obj.id === memberObj.memberId)?.department_name;
+    const officeName =
+      officeDataArray && memberObj.unitId && officeDataArray.find((obj) => obj.id === memberObj.unitId)?.office_name;
 
     // 新規作成するデータをオブジェクトにまとめる
     const newActivity = {
@@ -174,18 +240,23 @@ export const UpdateActivityModal = () => {
       created_by_company_id: selectedRowDataActivity?.activity_created_by_company_id
         ? selectedRowDataActivity.activity_created_by_company_id
         : null,
-      created_by_user_id: selectedRowDataActivity?.activity_created_by_user_id
-        ? selectedRowDataActivity.activity_created_by_user_id
-        : null,
       // created_by_department_of_user: selectedRowDataActivity.activity_created_by_department_of_user
       //   ? selectedRowDataActivity.activity_created_by_department_of_user
       //   : null,
       // created_by_unit_of_user: selectedRowDataActivity?.activity_created_by_unit_of_user
       //   ? selectedRowDataActivity.activity_created_by_unit_of_user
       //   : null,
-      created_by_department_of_user: departmentId ? departmentId : null,
-      created_by_unit_of_user: unitId ? unitId : null,
-      created_by_office_of_user: officeId ? officeId : null,
+
+      created_by_user_id: memberObj.memberId ? memberObj.memberId : null,
+      created_by_department_of_user: memberObj.departmentId ? memberObj.departmentId : null,
+      created_by_unit_of_user: memberObj.unitId ? memberObj.unitId : null,
+      created_by_office_of_user: memberObj.officeId ? memberObj.officeId : null,
+      //   created_by_user_id: selectedRowDataActivity?.activity_created_by_user_id
+      //     ? selectedRowDataActivity.activity_created_by_user_id
+      //     : null,
+      // created_by_department_of_user: departmentId ? departmentId : null,
+      // created_by_unit_of_user: unitId ? unitId : null,
+      // created_by_office_of_user: officeId ? officeId : null,
       client_contact_id: selectedRowDataActivity.contact_id,
       client_company_id: selectedRowDataActivity.company_id,
       summary: summary ? summary : null,
@@ -205,7 +276,8 @@ export const UpdateActivityModal = () => {
       // business_office: businessOffice ? businessOffice : null,
       department: departmentName ? departmentName : null,
       business_office: officeName ? officeName : null,
-      member_name: memberName ? memberName : null,
+      // member_name: memberName ? memberName : null,
+      member_name: memberObj?.memberName ? memberObj?.memberName : null,
       priority: priority ? priority : null,
       activity_date: activityDate ? activityDate.toISOString() : null,
       activity_year_month: activityYearMonth ? activityYearMonth : null,
@@ -222,6 +294,7 @@ export const UpdateActivityModal = () => {
     // モーダルを閉じる
     // setIsOpenUpdateActivityModal(false);
   };
+  // ------------------------ ✅更新実行✅ ------------------------
 
   // 全角文字を半角に変換する関数
   const toHalfWidth = (strVal: string) => {
@@ -602,8 +675,13 @@ export const UpdateActivityModal = () => {
                     /> */}
                     <select
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      value={departmentId ? departmentId : ""}
-                      onChange={(e) => setDepartmentId(e.target.value)}
+                      // value={departmentId ? departmentId : ""}
+                      // onChange={(e) => setDepartmentId(e.target.value)}
+                      value={memberObj.departmentId ? memberObj.departmentId : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, departmentId: e.target.value });
+                        setIsOpenConfirmationModal("change_member");
+                      }}
                     >
                       <option value=""></option>
                       {departmentDataArray &&
@@ -630,8 +708,13 @@ export const UpdateActivityModal = () => {
                     <span className={`${styles.title} `}>係・チーム</span>
                     <select
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      value={unitId ? unitId : ""}
-                      onChange={(e) => setUnitId(e.target.value)}
+                      // value={unitId ? unitId : ""}
+                      // onChange={(e) => setUnitId(e.target.value)}
+                      value={memberObj.unitId ? memberObj.unitId : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, unitId: e.target.value });
+                        setIsOpenConfirmationModal("change_member");
+                      }}
                     >
                       <option value=""></option>
                       {unitDataArray &&
@@ -672,8 +755,13 @@ export const UpdateActivityModal = () => {
                     /> */}
                     <select
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      value={officeId ? officeId : ""}
-                      onChange={(e) => setOfficeId(e.target.value)}
+                      // value={officeId ? officeId : ""}
+                      // onChange={(e) => setOfficeId(e.target.value)}
+                      value={memberObj.officeId ? memberObj.officeId : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, officeId: e.target.value });
+                        setIsOpenConfirmationModal("change_member");
+                      }}
                     >
                       <option value=""></option>
                       {officeDataArray &&
@@ -704,9 +792,26 @@ export const UpdateActivityModal = () => {
                       placeholder="*入力必須"
                       required
                       className={`${styles.input_box}`}
-                      value={memberName}
-                      onChange={(e) => setMemberName(e.target.value)}
+                      // value={memberName}
+                      // onChange={(e) => setMemberName(e.target.value)}
                       // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
+                      value={memberObj.memberName ? memberObj.memberName : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, memberName: e.target.value });
+                      }}
+                      onKeyUp={() => {
+                        if (prevMemberObj.memberName !== memberObj.memberName) {
+                          // alert("自社担当名が元のデータと異なります。データの所有者を変更しますか？");
+                          // setMeetingMemberName(selectedRowDataMeeting.meeting_member_name);
+                          setIsOpenConfirmationModal("change_member");
+                          return;
+                        }
+                      }}
+                      onBlur={() => {
+                        if (!memberObj.memberName) return;
+                        // setMeetingMemberName(toHalfWidthAndSpace(meetingMemberName.trim()));
+                        setMemberObj({ ...memberObj, memberName: toHalfWidthAndSpace(memberObj.memberName.trim()) });
+                      }}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -785,6 +890,45 @@ export const UpdateActivityModal = () => {
           {/* メインコンテンツ コンテナ ここまで */}
         </div>
       </div>
+
+      {/* 「自社担当」変更確認モーダル */}
+      {isOpenConfirmationModal === "change_member" && (
+        <ConfirmationModal
+          clickEventClose={() => {
+            // setMeetingMemberName(selectedRowDataMeeting?.meeting_member_name ?? "");
+            setMemberObj(prevMemberObj);
+            setIsOpenConfirmationModal(null);
+          }}
+          // titleText="面談データの自社担当を変更してもよろしいですか？"
+          titleText={`データの所有者を変更してもよろしいですか？`}
+          // titleText2={`データの所有者を変更しますか？`}
+          sectionP1="「自社担当」「事業部」「係・チーム」「事業所」を変更すると活動データの所有者が変更されます。"
+          sectionP2="注：データの所有者を変更すると、この活動結果は変更先のメンバーの集計結果に移行され、分析結果が変更されます。"
+          cancelText="戻る"
+          submitText="変更する"
+          clickEventSubmit={() => {
+            // setMemberObj(prevMemberObj);
+            setIsOpenConfirmationModal(null);
+            setIsOpenSearchMemberSideTable(true);
+          }}
+        />
+      )}
+
+      {/* 「自社担当」変更サイドテーブル */}
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <Suspense
+          fallback={<FallbackSideTableSearchMember isOpenSearchMemberSideTable={isOpenSearchMemberSideTable} />}
+        >
+          <SideTableSearchMember
+            isOpenSearchMemberSideTable={isOpenSearchMemberSideTable}
+            setIsOpenSearchMemberSideTable={setIsOpenSearchMemberSideTable}
+            prevMemberObj={prevMemberObj}
+            setPrevMemberObj={setPrevMemberObj}
+            memberObj={memberObj}
+            setMemberObj={setMemberObj}
+          />
+        </Suspense>
+      </ErrorBoundary>
     </>
   );
 };

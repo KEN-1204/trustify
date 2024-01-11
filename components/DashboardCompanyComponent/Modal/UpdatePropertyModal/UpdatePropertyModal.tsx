@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./UpdatePropertyModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -23,6 +23,21 @@ import { getFiscalQuarterTest } from "@/utils/Helpers/getFiscalQuarterTest";
 import { Department, Office, Unit } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { convertToYen } from "@/utils/Helpers/convertToYen";
+import Decimal from "decimal.js";
+import { ConfirmationModal } from "../SettingAccountModal/SettingCompany/ConfirmationModal/ConfirmationModal";
+import { ErrorBoundary } from "react-error-boundary";
+import { FallbackSideTableSearchMember } from "../UpdateMeetingModal/SideTableSearchMember/FallbackSideTableSearchMember";
+import { SideTableSearchMember } from "../UpdateMeetingModal/SideTableSearchMember/SideTableSearchMember";
+import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
+
+type ModalProperties = {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+  width: number;
+  height: number;
+};
 
 export const UpdatePropertyModal = () => {
   const language = useStore((state) => state.language);
@@ -37,14 +52,42 @@ export const UpdatePropertyModal = () => {
   // 上画面の選択中の列データ会社
   // const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
+  // 確認モーダル(自社担当名、データ所有者変更確認)
+  const [isOpenConfirmationModal, setIsOpenConfirmationModal] = useState<string | null>(null);
+  // 自社担当検索サイドテーブル開閉
+  const [isOpenSearchMemberSideTable, setIsOpenSearchMemberSideTable] = useState(false);
+  // 紹介予定商品、実施商品選択時のドロップダウンメニュー用
+  const [modalProperties, setModalProperties] = useState<ModalProperties>();
+  // 事業部別製品編集ドロップダウンメニュー
+  const [isOpenDropdownMenuFilterProducts, setIsOpenDropdownMenuFilterProducts] = useState(false);
+  const [isOpenDropdownMenuFilterProductsArray, setIsOpenDropdownMenuFilterProductsArray] = useState(
+    Array(1).fill(false)
+  );
+  // ドロップダウンメニューの表示位置
+  type ClickedItemPos = { displayPos: "up" | "center" | "down"; clickedItemWidth: number | null };
+  const [clickedItemPosition, setClickedItemPosition] = useState<ClickedItemPos>({
+    displayPos: "down",
+    clickedItemWidth: null,
+  });
 
-  // 製品情報を取得
-  // const {
-  //   data: products,
-  //   error,
-  //   isError,
-  //   isLoading,
-  // } = useQueryProducts(userProfileState?.company_id, userProfileState?.id);
+  // モーダルの動的に変化する画面からのx, yとモーダルのwidth, heightを取得
+  useEffect(() => {
+    if (modalContainerRef.current === null) return console.log("❌無し");
+    const rect = modalContainerRef.current.getBoundingClientRect();
+    // if (modalProperties !== null && modalProperties?.left === rect.left)
+    //   return console.log("✅モーダル位置サイズ格納済み", modalProperties);
+
+    const left = rect.left;
+    const top = rect.top;
+    const right = rect.right;
+    const bottom = rect.bottom;
+    const width = rect.width;
+    const height = rect.height;
+
+    const payload = { left: left, top: top, right: right, bottom: bottom, width: width, height: height };
+    console.log("🔥モーダル位置サイズ格納", payload);
+    setModalProperties(payload);
+  }, []);
 
   const initialDate = new Date();
   initialDate.setHours(0, 0, 0, 0);
@@ -68,7 +111,8 @@ export const UpdatePropertyModal = () => {
   // const [salesPrice, setSalesPrice] = useState<number | null>(null); // 売上価格
   const [salesPrice, setSalesPrice] = useState<string>(""); // 売上価格
   const [discountedPrice, setDiscountedPrice] = useState<number | null>(null);
-  const [discountedRate, setDiscountedRate] = useState<number | null>(null);
+  // const [discountedRate, setDiscountedRate] = useState<number | null>(null);
+  const [discountedRate, setDiscountedRate] = useState<Decimal | null>(null);
   const [salesClass, setSalesClass] = useState("");
   const [expansionDate, setExpansionDate] = useState<Date | null>(null);
   const [expansionQuarterSelectedYear, setExpansionQuarterSelectedYear] = useState<number | null>(null);
@@ -105,28 +149,60 @@ export const UpdatePropertyModal = () => {
   // const [PropertyBusinessOffice, setPropertyBusinessOffice] = useState(
   //   userProfileState?.office ? userProfileState.office : ""
   // );
-  // 事業部
-  const [departmentId, setDepartmentId] = useState<Department["id"] | null>(
-    selectedRowDataProperty?.property_created_by_department_of_user
+  // // 事業部
+  // const [departmentId, setDepartmentId] = useState<Department["id"] | null>(
+  //   selectedRowDataProperty?.property_created_by_department_of_user
+  //     ? selectedRowDataProperty?.property_created_by_department_of_user
+  //     : null
+  // );
+  // // 係
+  // const [unitId, setUnitId] = useState<Unit["id"] | null>(
+  //   selectedRowDataProperty?.property_created_by_unit_of_user
+  //     ? selectedRowDataProperty?.property_created_by_unit_of_user
+  //     : null
+  // );
+  // // 事業所
+  // const [officeId, setOfficeId] = useState<Office["id"] | null>(
+  //   selectedRowDataProperty?.property_created_by_office_of_user
+  //     ? selectedRowDataProperty?.property_created_by_office_of_user
+  //     : null
+  // );
+  // const [PropertyMemberName, setPropertyMemberName] = useState(
+  //   userProfileState?.profile_name ? userProfileState.profile_name : ""
+  // );
+  // =======営業担当データ
+  type MemberDetail = {
+    memberId: string | null;
+    memberName: string | null;
+    departmentId: string | null;
+    unitId: string | null;
+    officeId: string | null;
+  };
+  // 作成したユーザーのidと名前が初期値
+  const initialMemberObj = {
+    memberName: selectedRowDataProperty?.property_member_name ? selectedRowDataProperty?.property_member_name : null,
+    memberId: selectedRowDataProperty?.property_created_by_user_id
+      ? selectedRowDataProperty?.property_created_by_user_id
+      : null,
+    departmentId: selectedRowDataProperty?.property_created_by_department_of_user
       ? selectedRowDataProperty?.property_created_by_department_of_user
-      : null
-  );
-  // 係
-  const [unitId, setUnitId] = useState<Unit["id"] | null>(
-    selectedRowDataProperty?.property_created_by_unit_of_user
+      : null,
+    unitId: selectedRowDataProperty?.property_created_by_unit_of_user
       ? selectedRowDataProperty?.property_created_by_unit_of_user
-      : null
-  );
-  // 事業所
-  const [officeId, setOfficeId] = useState<Office["id"] | null>(
-    selectedRowDataProperty?.property_created_by_office_of_user
+      : null,
+    officeId: selectedRowDataProperty?.property_created_by_office_of_user
       ? selectedRowDataProperty?.property_created_by_office_of_user
+      : null,
+  };
+  const [prevMemberObj, setPrevMemberObj] = useState<MemberDetail>(initialMemberObj);
+  const [memberObj, setMemberObj] = useState<MemberDetail>(initialMemberObj);
+  // =======営業担当データここまで
+  // const [propertyDate, setPropertyDate] = useState<Date | null>(initialDate);
+  const [propertyDate, setPropertyDate] = useState<Date | null>(
+    selectedRowDataProperty && selectedRowDataProperty.property_date
+      ? new Date(selectedRowDataProperty.property_date)
       : null
   );
-  const [PropertyMemberName, setPropertyMemberName] = useState(
-    userProfileState?.profile_name ? userProfileState.profile_name : ""
-  );
-  const [propertyDate, setPropertyDate] = useState<Date | null>(initialDate);
 
   // ユーザーの決算月と締め日を取得
   const fiscalEndMonthObjRef = useRef<Date | null>(null);
@@ -280,6 +356,7 @@ export const UpdatePropertyModal = () => {
   // 初回マウント時に選択中の担当者&会社の列データの情報をStateに格納
   useEffect(() => {
     if (!selectedRowDataProperty) return;
+
     const selectedInitialPropertyDate = selectedRowDataProperty.property_date
       ? new Date(selectedRowDataProperty.property_date)
       : initialDate;
@@ -287,6 +364,18 @@ export const UpdatePropertyModal = () => {
     const selectedMonth = selectedInitialPropertyDate.getMonth() + 1; // getMonth()は0から11で返されるため、+1して1から12に調整
     const selectedYearMonthInitialValue = `${selectedYear}${selectedMonth < 10 ? "0" + selectedMonth : selectedMonth}`; // 月が1桁の場合は先頭に0を追加
 
+    let _property_created_by_user_id = selectedRowDataProperty.property_created_by_user_id
+      ? selectedRowDataProperty.property_created_by_user_id
+      : null;
+    let _property_created_by_department_of_user = selectedRowDataProperty.property_created_by_department_of_user
+      ? selectedRowDataProperty.property_created_by_department_of_user
+      : null;
+    let _property_created_by_unit_of_user = selectedRowDataProperty.property_created_by_unit_of_user
+      ? selectedRowDataProperty.property_created_by_unit_of_user
+      : null;
+    let _property_created_by_office_of_user = selectedRowDataProperty.property_created_by_office_of_user
+      ? selectedRowDataProperty.property_created_by_office_of_user
+      : null;
     // let _activity_date = selectedRowDataActivity.activity_date ? new Date(selectedRowDataActivity.activity_date) : null;
     let _current_status = selectedRowDataProperty.current_status ? selectedRowDataProperty.current_status : "";
     let _property_name = selectedRowDataProperty.property_name ? selectedRowDataProperty.property_name : "";
@@ -311,7 +400,9 @@ export const UpdatePropertyModal = () => {
       ? selectedRowDataProperty.sales_price.toLocaleString()
       : null;
     let _discounted_price = selectedRowDataProperty.discounted_price ? selectedRowDataProperty.discounted_price : null;
-    let _discount_rate = selectedRowDataProperty.discount_rate ? selectedRowDataProperty.discount_rate : null;
+    let _discount_rate = selectedRowDataProperty.discount_rate
+      ? new Decimal(selectedRowDataProperty.discount_rate)
+      : null;
     let _sales_class = selectedRowDataProperty.sales_class ? selectedRowDataProperty.sales_class : "";
     let _expansion_date = selectedRowDataProperty.expansion_date
       ? new Date(selectedRowDataProperty.expansion_date)
@@ -422,10 +513,19 @@ export const UpdatePropertyModal = () => {
     setPropertyYearMonth(_property_year_month);
     // setPropertyDepartment(_property_department);
     // setPropertyBusinessOffice(_property_business_office);
-    setDepartmentId(_property_department);
-    setUnitId(_unit);
-    setOfficeId(_property_business_office);
-    setPropertyMemberName(_property_member_name);
+    // setDepartmentId(_property_department);
+    // setUnitId(_unit);
+    // setOfficeId(_property_business_office);
+    // setPropertyMemberName(_property_member_name);
+    const memberDetail = {
+      memberId: _property_created_by_user_id,
+      memberName: _property_member_name,
+      departmentId: _property_created_by_department_of_user,
+      unitId: _property_created_by_unit_of_user,
+      officeId: _property_created_by_office_of_user,
+    };
+    setMemberObj(memberDetail);
+    setPrevMemberObj(memberDetail);
     setPropertyDate(_property_date);
   }, []);
 
@@ -451,26 +551,33 @@ export const UpdatePropertyModal = () => {
     // if (!expectedOrderDate) return alert("獲得予定時期を入力してください");
     if (!propertyDate) return alert("案件発生日付を入力してください");
     if (!PropertyYearMonth) return alert("案件年月度を入力してください");
-    if (PropertyMemberName === "") return alert("自社担当を入力してください");
+    // if (PropertyMemberName === "") return alert("自社担当を入力してください");
+    if (memberObj.memberName === "") return alert("自社担当を入力してください");
 
     setLoadingGlobalState(true);
 
+    // 部署名と事業所名を取得
     const departmentName =
       departmentDataArray &&
-      departmentId &&
-      departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
-    const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
+      memberObj.memberId &&
+      departmentDataArray.find((obj) => obj.id === memberObj.memberId)?.department_name;
+    const officeName =
+      officeDataArray && memberObj.unitId && officeDataArray.find((obj) => obj.id === memberObj.unitId)?.office_name;
 
     // 新規作成するデータをオブジェクトにまとめる
     const newProperty = {
       id: selectedRowDataProperty.property_id,
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
-      created_by_user_id: userProfileState?.id ? userProfileState.id : null,
       // created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
       // created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
-      created_by_department_of_user: departmentId ? departmentId : null,
-      created_by_unit_of_user: unitId ? unitId : null,
-      created_by_office_of_user: officeId ? officeId : null,
+      created_by_user_id: memberObj.memberId ? memberObj.memberId : null,
+      created_by_department_of_user: memberObj.departmentId ? memberObj.departmentId : null,
+      created_by_unit_of_user: memberObj.unitId ? memberObj.unitId : null,
+      created_by_office_of_user: memberObj.officeId ? memberObj.officeId : null,
+      // created_by_user_id: userProfileState?.id ? userProfileState.id : null,
+      // created_by_department_of_user: departmentId ? departmentId : null,
+      // created_by_unit_of_user: unitId ? unitId : null,
+      // created_by_office_of_user: officeId ? officeId : null,
       client_contact_id: selectedRowDataProperty.contact_id,
       client_company_id: selectedRowDataProperty.company_id,
       current_status: currentStatus ? currentStatus : null,
@@ -517,7 +624,7 @@ export const UpdatePropertyModal = () => {
       property_year_month: PropertyYearMonth ? PropertyYearMonth : null,
       property_department: departmentName ? departmentName : null,
       property_business_office: officeName ? officeName : null,
-      property_member_name: PropertyMemberName ? PropertyMemberName : null,
+      property_member_name: memberObj?.memberName ? memberObj?.memberName : null,
       property_date: propertyDate ? propertyDate.toISOString() : null,
     };
 
@@ -2484,8 +2591,13 @@ export const UpdatePropertyModal = () => {
                     <span className={`${styles.title} !min-w-[140px]`}>事業部名</span>
                     <select
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      value={departmentId ? departmentId : ""}
-                      onChange={(e) => setDepartmentId(e.target.value)}
+                      // value={departmentId ? departmentId : ""}
+                      // onChange={(e) => setDepartmentId(e.target.value)}
+                      value={memberObj.departmentId ? memberObj.departmentId : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, departmentId: e.target.value });
+                        setIsOpenConfirmationModal("change_member");
+                      }}
                     >
                       <option value=""></option>
                       {departmentDataArray &&
@@ -2512,8 +2624,13 @@ export const UpdatePropertyModal = () => {
                     <span className={`${styles.title} `}>係・チーム</span>
                     <select
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      value={unitId ? unitId : ""}
-                      onChange={(e) => setUnitId(e.target.value)}
+                      // value={unitId ? unitId : ""}
+                      // onChange={(e) => setUnitId(e.target.value)}
+                      value={memberObj.unitId ? memberObj.unitId : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, unitId: e.target.value });
+                        setIsOpenConfirmationModal("change_member");
+                      }}
                     >
                       <option value=""></option>
                       {unitDataArray &&
@@ -2545,8 +2662,13 @@ export const UpdatePropertyModal = () => {
                     <span className={`${styles.title} !min-w-[140px]`}>所属事業所</span>
                     <select
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      value={officeId ? officeId : ""}
-                      onChange={(e) => setOfficeId(e.target.value)}
+                      // value={officeId ? officeId : ""}
+                      // onChange={(e) => setOfficeId(e.target.value)}
+                      value={memberObj.officeId ? memberObj.officeId : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, officeId: e.target.value });
+                        setIsOpenConfirmationModal("change_member");
+                      }}
                     >
                       <option value=""></option>
                       {officeDataArray &&
@@ -2577,9 +2699,26 @@ export const UpdatePropertyModal = () => {
                       placeholder="*入力必須"
                       required
                       className={`${styles.input_box}`}
-                      value={PropertyMemberName}
-                      onChange={(e) => setPropertyMemberName(e.target.value)}
-                      onBlur={() => setPropertyMemberName(toHalfWidth(PropertyMemberName.trim()))}
+                      // value={PropertyMemberName}
+                      // onChange={(e) => setPropertyMemberName(e.target.value)}
+                      // onBlur={() => setPropertyMemberName(toHalfWidth(PropertyMemberName.trim()))}
+                      value={memberObj.memberName ? memberObj.memberName : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, memberName: e.target.value });
+                      }}
+                      onKeyUp={() => {
+                        if (prevMemberObj.memberName !== memberObj.memberName) {
+                          // alert("自社担当名が元のデータと異なります。データの所有者を変更しますか？");
+                          // setMeetingMemberName(selectedRowDataMeeting.meeting_member_name);
+                          setIsOpenConfirmationModal("change_member");
+                          return;
+                        }
+                      }}
+                      onBlur={() => {
+                        if (!memberObj.memberName) return;
+                        // setMeetingMemberName(toHalfWidthAndSpace(meetingMemberName.trim()));
+                        setMemberObj({ ...memberObj, memberName: toHalfWidthAndSpace(memberObj.memberName.trim()) });
+                      }}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -2594,6 +2733,53 @@ export const UpdatePropertyModal = () => {
           {/* メインコンテンツ コンテナ ここまで */}
         </div>
       </div>
+
+      {/* 「自社担当」変更確認モーダル */}
+      {isOpenConfirmationModal === "change_member" && (
+        <ConfirmationModal
+          clickEventClose={() => {
+            // setMeetingMemberName(selectedRowDataMeeting?.meeting_member_name ?? "");
+            setMemberObj(prevMemberObj);
+            setIsOpenConfirmationModal(null);
+          }}
+          // titleText="面談データの自社担当を変更してもよろしいですか？"
+          titleText={`データの所有者を変更してもよろしいですか？`}
+          // titleText2={`データの所有者を変更しますか？`}
+          sectionP1="「自社担当」「事業部」「係・チーム」「事業所」を変更すると案件データの所有者が変更されます。"
+          sectionP2="注：データの所有者を変更すると、この案件結果は変更先のメンバーの集計結果に移行され、分析結果が変更されます。"
+          cancelText="戻る"
+          submitText="変更する"
+          clickEventSubmit={() => {
+            // setMemberObj(prevMemberObj);
+            setIsOpenConfirmationModal(null);
+            setIsOpenSearchMemberSideTable(true);
+          }}
+        />
+      )}
+
+      {/* 「自社担当」変更サイドテーブル */}
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <Suspense
+          fallback={<FallbackSideTableSearchMember isOpenSearchMemberSideTable={isOpenSearchMemberSideTable} />}
+        >
+          <SideTableSearchMember
+            isOpenSearchMemberSideTable={isOpenSearchMemberSideTable}
+            setIsOpenSearchMemberSideTable={setIsOpenSearchMemberSideTable}
+            // currentMemberId={selectedRowDataMeeting?.meeting_created_by_user_id ?? ""}
+            // currentMemberName={selectedRowDataMeeting?.meeting_member_name ?? ""}
+            // currentMemberDepartmentId={selectedRowDataMeeting?.meeting_created_by_department_of_user ?? null}
+            // setChangedMemberObj={setChangedMemberObj}
+            // currentMemberId={memberObj.memberId ?? ""}
+            // currentMemberName={memberObj.memberName ?? ""}
+            // currentMemberDepartmentId={memberObj.departmentId ?? null}
+            prevMemberObj={prevMemberObj}
+            setPrevMemberObj={setPrevMemberObj}
+            memberObj={memberObj}
+            setMemberObj={setMemberObj}
+            // setMeetingMemberName={setMeetingMemberName}
+          />
+        </Suspense>
+      </ErrorBoundary>
     </>
   );
 };

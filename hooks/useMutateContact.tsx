@@ -184,6 +184,7 @@ export const useMutateContact = () => {
       id: string;
     }) => {
       console.log("updateContactFieldMutation実行 引数", fieldData);
+      // 実際に更新するフィールド名と、結合しているエイリアスのフィールド名が異なるため別で引数として受け取る
       const { fieldName, fieldNameForSelectedRowData, newValue, id } = fieldData;
       const { data, error } = await supabase
         .from("contacts")
