@@ -1,4 +1,4 @@
-import React, { FC, FormEvent, Suspense, memo, useCallback, useEffect, useRef, useState } from "react";
+import React, { ChangeEvent, FC, FormEvent, Suspense, memo, useCallback, useEffect, useRef, useState } from "react";
 import styles from "../MeetingDetail.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import useStore from "@/store";
@@ -19,18 +19,26 @@ import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 import {
   getOccupationName,
   getPositionClassName,
+  optionsMeetingType,
   optionsOccupation,
   optionsPositionsClass,
 } from "@/utils/selectOptions";
 import { useQueryDepartments } from "@/hooks/useQueryDepartments";
 import { useQueryUnits } from "@/hooks/useQueryUnits";
 import { useQueryOffices } from "@/hooks/useQueryOffices";
-import { AttendeeInfo, Department, IntroducedProductsNames, Office, Unit } from "@/types";
+import { AttendeeInfo, Department, IntroducedProductsNames, Meeting, Meeting_row_data, Office, Unit } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
 import { getProductName } from "@/utils/Helpers/getProductName";
 import { AttendeesListTable } from "./AttendeesListTable/AttendeesListTable";
 import { useMedia } from "react-use";
+import { useMutateMeeting } from "@/hooks/useMutateMeeting";
+import { isSameDateLocal } from "@/utils/Helpers/isSameDateLocal";
+import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMonth";
+import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
+import { formatTime } from "@/utils/Helpers/formatTime";
+import { splitTime } from "@/utils/Helpers/splitTime";
+import { IoIosSend } from "react-icons/io";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -85,6 +93,8 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
 
   // const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
+
+  const { updateMeetingFieldMutation } = useMutateMeeting();
 
   // メディアクエリState デスクトップモニター
   const isDesktopGTE1600Media = useMedia("(min-width: 1600px)", false);
@@ -935,6 +945,20 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   };
   // ==================================== ✅ツールチップ✅ ====================================
 
+  // ================== 🌟ユーザーの決算月の締め日を初回マウント時に取得🌟 ==================
+  const fiscalEndMonthObjRef = useRef<Date | null>(null);
+  const closingDayRef = useRef<number | null>(null);
+  useEffect(() => {
+    // ユーザーの決算月から締め日を取得、決算つきが未設定の場合は現在の年と3月31日を設定
+    const fiscalEndMonth = userProfileState?.customer_fiscal_end_month
+      ? new Date(userProfileState.customer_fiscal_end_month)
+      : new Date(new Date().getFullYear(), 2, 31); // 決算日が未設定なら3月31日に自動設定
+    const closingDay = fiscalEndMonth.getDate(); //ユーザーの締め日
+    fiscalEndMonthObjRef.current = fiscalEndMonth; //refに格納
+    closingDayRef.current = closingDay; //refに格納
+  }, []);
+  // ================== ✅ユーザーの決算月の締め日を初回マウント時に取得✅ ==================
+
   // ================== 🌟シングルクリック、ダブルクリックイベント🌟 ==================
   // ダブルクリックで各フィールドごとに個別で編集
   const setTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -999,11 +1023,23 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
         if (!!selectedRowDataValue) {
           text = selectedRowDataValue;
         }
+
+        if (field === "planned_start_time") {
+          const formattedTime = formatTime(text);
+          originalValueFieldEdit.current = formattedTime;
+          const timeParts = splitTime(text);
+          console.log("formattedTime", formattedTime);
+          setInputPlannedStartTimeHour(timeParts?.hours ?? "");
+          setInputPlannedStartTimeMinute(timeParts?.minutes ?? "");
+          dispatch(formattedTime); // 編集モードでinputStateをクリックした要素のテキストを初期値に設定
+          setIsEditModeField(field); // クリックされたフィールドの編集モードを開く
+          return;
+        }
         if (field === "fiscal_end_month") {
           text = text.replace(/月/g, ""); // 決算月の場合は、1月の月を削除してstateに格納 optionタグのvalueと一致させるため
         }
         // // 「活動日付」「次回フォロー予定日」はinnerHTMLではなく元々の値を格納
-        if (["activity_date", "scheduled_follow_up_date"].includes(field)) {
+        if (["planned_date", "result_date"].includes(field)) {
           const originalDate = dateValue ? new Date(dateValue) : null;
           console.log("ダブルクリック 日付格納", dateValue);
           // originalValueFieldEdit.current = originalDate;
@@ -1021,6 +1057,273 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     // [isOurActivity, setIsEditModeField]
   );
   // ================== ✅シングルクリック、ダブルクリックイベント✅ ==================
+
+  // プロパティ名のユニオン型の作成
+  // Meeting_row_data型の全てのプロパティ名をリテラル型のユニオンとして展開
+  // type ActivityFieldNames = keyof Meeting_row_data;
+  type MeetingFieldNames = keyof Meeting;
+  type ExcludeKeys = "company_id" | "contact_id" | "meeting_id"; // 除外するキー
+  type MeetingFieldNamesForSelectedRowData = Exclude<keyof Meeting_row_data, ExcludeKeys>; // Meeting_row_dataタイプのプロパティ名のみのデータ型を取得
+  // ================== 🌟エンターキーで個別フィールドをアップデート inputタグ ==================
+  const handleKeyDownUpdateField = async ({
+    e,
+    fieldName,
+    fieldNameForSelectedRowData,
+    originalValue,
+    newValue,
+    id,
+    required,
+  }: {
+    e: React.KeyboardEvent<HTMLInputElement>;
+    // fieldName: string;
+    fieldName: MeetingFieldNames;
+    fieldNameForSelectedRowData: MeetingFieldNamesForSelectedRowData;
+    originalValue: any;
+    newValue: any;
+    id: string | undefined;
+    required: boolean;
+  }) => {
+    // 日本語入力変換中はtrueで変換確定のエンターキーではUPDATEクエリが実行されないようにする
+    // 英語などの入力変換が存在しない言語ではisCompositionStartは発火しないため常にfalse
+    if (e.key === "Enter" && !isComposing) {
+      if (required && (newValue === "" || newValue === null)) return toast.info(`この項目は入力が必須です。`);
+
+      // 先にアンダーラインが残らないようにremoveしておく
+      e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+
+      if (!id || !selectedRowDataMeeting) {
+        toast.error(`エラー：データが見つかりませんでした。`);
+        return;
+      }
+      console.log(
+        "フィールドアップデート エンターキー",
+        " ・フィールド名:",
+        fieldName,
+        " ・結合フィールド名:",
+        fieldNameForSelectedRowData,
+        " ・元の値:",
+        originalValue,
+        " ・新たな値:",
+        newValue
+      );
+      // 入力値が現在のvalueと同じであれば更新は不要なため閉じてリターン
+      if (originalValue === newValue) {
+        console.log("同じためリターン");
+        setIsEditModeField(null); // エディットモードを終了
+        return;
+      }
+
+      const updatePayload = {
+        fieldName: fieldName,
+        fieldNameForSelectedRowData: fieldNameForSelectedRowData,
+        newValue: newValue,
+        id: id,
+      };
+      // 入力変換確定状態でエンターキーが押された場合の処理
+      console.log("onKeyDownイベント エンターキーが入力確定状態でクリック UPDATE実行 updatePayload", updatePayload);
+      await updateMeetingFieldMutation.mutateAsync(updatePayload);
+      originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
+      setIsEditModeField(null); // エディットモードを終了
+    }
+  };
+  // ================== ✅エンターキーで個別フィールドをアップデート inputタグ✅ ==================
+  // ================== 🌟Sendキーで個別フィールドをアップデート ==================
+  const handleClickSendUpdateField = async ({
+    e,
+    fieldName,
+    fieldNameForSelectedRowData,
+    originalValue,
+    newValue,
+    id,
+    required,
+  }: {
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>;
+    // fieldName: string;
+    fieldName: MeetingFieldNames;
+    fieldNameForSelectedRowData: MeetingFieldNamesForSelectedRowData;
+    originalValue: any;
+    newValue: any;
+    id: string | undefined;
+    required: boolean;
+  }) => {
+    if (required && (newValue === "" || newValue === null)) return toast.info(`この項目は入力が必須です。`);
+
+    if (["planned_start_time", "result_start_time", "result_end_time"].includes(fieldName)) {
+      e.currentTarget.parentElement?.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+      // console.log("originalValue === newValue", originalValue === newValue);
+      // return;
+    } else {
+      e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+    }
+
+    if (!id || !selectedRowDataMeeting) {
+      toast.error(`エラー：データが見つかりませんでした。`);
+      return;
+    }
+
+    console.log(
+      "フィールドアップデート Sendキー",
+      "フィールド名: ",
+      fieldName,
+      "結合フィールド名: ",
+      fieldNameForSelectedRowData,
+      "元の値: ",
+      originalValue,
+      "新たな値: ",
+      newValue
+    );
+
+    if (["planned_date", "result_date"].includes(fieldName)) {
+      console.log("フィールドアップデート 日付チェック オリジナル", originalValue, "変換前 新たな値", newValue);
+      // 前回と今回も両方nullの場合はアップデート無しなので、リターンする
+      if (originalValue === null && newValue === null) {
+        console.log("日付チェック 前回も今回もnullのためリターン");
+        setIsEditModeField(null); // エディットモードを終了
+        return;
+      }
+      // 年月日のみで同じ日付か比較
+      const result = isSameDateLocal(originalValue, newValue);
+      if (result) {
+        console.log("日付チェック 同じためリターン");
+        setIsEditModeField(null); // エディットモードを終了
+        return;
+      } else {
+        console.log("日付チェック 新たな日付のためこのまま更新 newValue", newValue);
+        // フィールドがactivity_date（活動日）の場合は活動年月度も同時に更新
+        if (fieldName === "planned_date" || fieldName === "result_date") {
+          if (!closingDayRef.current)
+            return toast.error("決算日データが確認できないため、活動を更新できませんでした...🙇‍♀️");
+          // if (!(newValue instanceof Date)) return toast.error("エラー：無効な日付です。");
+          type ExcludeKeys = "company_id" | "contact_id" | "meeting_id"; // 除外するキー idはUPDATEすることは無いため
+          type MeetingFieldNamesForSelectedRowData = Exclude<keyof Meeting_row_data, ExcludeKeys>;
+          type UpdateObject = {
+            fieldName: string;
+            fieldNameForSelectedRowData: MeetingFieldNamesForSelectedRowData;
+            newValue: any;
+            id: string;
+            meetingYearMonth?: number | null;
+          };
+
+          const fiscalYearMonth = calculateDateToYearMonth(new Date(newValue), closingDayRef.current);
+          console.log("新たに生成された年月度", fiscalYearMonth);
+
+          if (!fiscalYearMonth) return toast.error("日付の更新に失敗しました。");
+
+          if (selectedRowDataMeeting.planned_date && !selectedRowDataMeeting.result_date) {
+            const updatePayload: UpdateObject = {
+              fieldName: fieldName,
+              fieldNameForSelectedRowData: fieldNameForSelectedRowData,
+              newValue: !!newValue ? newValue : null,
+              id: id,
+            };
+
+            // 入力変換確定状態でエンターキーが押された場合の処理
+            console.log("selectタグでUPDATE実行 updatePayload", updatePayload);
+            await updateMeetingFieldMutation.mutateAsync(updatePayload);
+          } else if (selectedRowDataMeeting.planned_date && selectedRowDataMeeting.result_date) {
+            const updatePayload: UpdateObject = {
+              fieldName: fieldName,
+              fieldNameForSelectedRowData: fieldNameForSelectedRowData,
+              newValue: !!newValue ? newValue : null,
+              id: id,
+              meetingYearMonth: fiscalYearMonth,
+            };
+            // 入力変換確定状態でエンターキーが押された場合の処理
+            console.log("selectタグでUPDATE実行 updatePayload", updatePayload);
+            await updateMeetingFieldMutation.mutateAsync(updatePayload);
+          }
+
+          originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
+          setIsEditModeField(null); // エディットモードを終了
+          return;
+        }
+      }
+    }
+    // 入力値が現在のvalueと同じであれば更新は不要なため閉じてリターン null = null ''とnullもリターン textareaはnullの場合表示は空文字でされているため
+    else if ((!required && originalValue === newValue) || (!originalValue && !newValue)) {
+      console.log(
+        "決裁金額、日付以外でチェック 同じためリターン",
+        "originalValue",
+        originalValue,
+        "newValue",
+        newValue
+      );
+      setIsEditModeField(null); // エディットモードを終了
+      return;
+    }
+
+    // requiredがfalseで入力必須ではないので、newValueがnullや空文字、0は許容(空文字や0をnullにするかどうかは各フィールドごとに個別で管理する)
+
+    const updatePayload = {
+      fieldName: fieldName,
+      fieldNameForSelectedRowData: fieldNameForSelectedRowData,
+      newValue: newValue,
+      id: id,
+    };
+    // 入力変換確定状態でエンターキーが押された場合の処理
+    console.log("sendアイコンクリックでUPDATE実行 updatePayload", updatePayload);
+    await updateMeetingFieldMutation.mutateAsync(updatePayload);
+    originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
+    setIsEditModeField(null); // エディットモードを終了
+  };
+  // ================== ✅Sendキーで個別フィールドをアップデート ==================
+
+  // ================== 🌟セレクトボックスで個別フィールドをアップデート ==================
+
+  const handleChangeSelectUpdateField = async ({
+    e,
+    fieldName,
+    fieldNameForSelectedRowData,
+    originalValue,
+    newValue,
+    id,
+  }: {
+    e: ChangeEvent<HTMLSelectElement>;
+    // fieldName: string;
+    fieldName: MeetingFieldNames;
+    fieldNameForSelectedRowData: MeetingFieldNamesForSelectedRowData;
+    originalValue: any;
+    newValue: any;
+    id: string | undefined;
+  }) => {
+    e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+
+    if (!id || !selectedRowDataMeeting) {
+      toast.error(`エラー：データが見つかりませんでした。`, { autoClose: 3000 });
+      return;
+    }
+    // 入力値が現在のvalueと同じであれば更新は不要なため閉じてリターン
+    if (originalValue === newValue) {
+      console.log("同じためリターン");
+      setIsEditModeField(null); // エディットモードを終了
+      return;
+    }
+
+    console.log(
+      "フィールドアップデート セレクトボックス",
+      " ・フィールド名:",
+      fieldName,
+      " ・結合フィールド名:",
+      fieldNameForSelectedRowData,
+      " ・元の値:",
+      originalValue,
+      " ・新たな値:",
+      newValue
+    );
+
+    const updatePayload = {
+      fieldName: fieldName,
+      fieldNameForSelectedRowData: fieldNameForSelectedRowData,
+      newValue: newValue !== "" ? newValue : null,
+      id: id,
+    };
+    // 入力変換確定状態でエンターキーが押された場合の処理
+    console.log("selectタグでUPDATE実行 updatePayload", updatePayload);
+    await updateMeetingFieldMutation.mutateAsync(updatePayload);
+    originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
+    setIsEditModeField(null); // エディットモードを終了
+  };
+  // ================== ✅セレクトボックスで個別フィールドをアップデート ==================
 
   // 商品名を取得する関数
   const getCustomProductName = (
@@ -1092,12 +1395,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const hours = Array.from({ length: 24 }, (_, index) => (index < 10 ? "0" + index : "" + index));
   const minutes5 = Array.from({ length: 12 }, (_, index) => (index * 5 < 10 ? "0" + index * 5 : "" + index * 5));
   const minutes = Array.from({ length: 60 }, (_, i) => (i < 10 ? "0" + i : "" + i));
-
-  // time型のplanned_start_time、result_start_time、result_end_timeを時間と分のみに変換する関数
-  function formatTime(timeStr: string) {
-    const [hour, minute] = timeStr.split(":");
-    return `${hour}:${minute}`;
-  }
 
   // 同席者リストから各同席者を「 / \n」で区切った一つの文字列に変換する関数
   // 形式は「佐藤(株式会社X・営業部・部長) / \n ...」
@@ -1172,7 +1469,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>●面談日</span>
-                    {!searchMode && (
+                    {!searchMode && isEditModeField !== "planned_date" && (
                       <span
                         className={`${styles.value} ${styles.editable_field}`}
                         onClick={handleSingleClickField}
@@ -1209,19 +1506,155 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           : ""}
                       </span>
                     )}
-                    {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
+                    {/* ============= フィールドエディットモード関連 ============= */}
+                    {/* フィールドエディットモード Date-picker  */}
+                    {!searchMode && isEditModeField === "planned_date" && (
+                      <>
+                        <div className="z-[2000] w-full">
+                          <DatePickerCustomInput
+                            startDate={inputPlannedDateForFieldEditMode}
+                            setStartDate={setInputPlannedDateForFieldEditMode}
+                            required={true}
+                            isFieldEditMode={true}
+                            fieldEditModeBtnAreaPosition="right"
+                            isLoadingSendEvent={updateMeetingFieldMutation.isLoading}
+                            onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                              if (!inputPlannedDateForFieldEditMode) return alert("このデータは入力が必須です。");
+                              const originalDateUTCString = selectedRowDataMeeting?.planned_date
+                                ? selectedRowDataMeeting.planned_date
+                                : null; // ISOString UTC時間 2023-12-26T15:00:00+00:00
+                              const newDateUTCString = inputPlannedDateForFieldEditMode
+                                ? inputPlannedDateForFieldEditMode.toISOString()
+                                : null; // Dateオブジェクト ローカルタイムゾーンに自動で変換済み Thu Dec 28 2023 00:00:00 GMT+0900 (日本標準時)
+                              // const result = isSameDateLocal(originalDateString, newDateString);
+                              console.log(
+                                "日付送信クリック",
+                                "オリジナル(UTC)",
+                                originalDateUTCString,
+                                "新たな値(Dateオブジェクト)",
+                                inputPlannedDateForFieldEditMode,
+                                "新たな値.toISO(UTC)",
+                                newDateUTCString
+                                // "同じかチェック結果",
+                                // result
+                              );
+                              if (e.currentTarget.parentElement?.parentElement?.parentElement)
+                                e.currentTarget.parentElement.parentElement.parentElement.classList.remove(
+                                  `${styles.active}`
+                                );
+                              // オリジナルはUTC、新たな値はDateオブジェクト(ローカルタイムゾーン)なのでISOString()でUTCに変換
+                              handleClickSendUpdateField({
+                                e,
+                                fieldName: "planned_date",
+                                fieldNameForSelectedRowData: "planned_date",
+                                // originalValue: originalValueFieldEdit.current,
+                                originalValue: originalDateUTCString,
+                                newValue: newDateUTCString,
+                                id: selectedRowDataMeeting?.meeting_id,
+                                required: true,
+                              });
+                            }}
+                          />
+                        </div>
+                      </>
+                    )}
+                    {/* フィールドエディットモードオーバーレイ */}
+                    {!searchMode && isEditModeField === "planned_date" && (
+                      <div
+                        className={`${styles.edit_mode_overlay}`}
+                        onClick={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                          setIsEditModeField(null); // エディットモードを終了
+                        }}
+                      />
+                    )}
+                    {/* ============= フィールドエディットモード関連ここまで ============= */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
+                {/* 面談タイプ */}
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
                     <span className={`${styles.title}`}>●面談ﾀｲﾌﾟ</span>
-                    {!searchMode && (
-                      <span className={`${styles.value} text-center`}>
+                    {!searchMode && isEditModeField !== "meeting_type" && (
+                      <span
+                        className={`${styles.value} ${styles.editable_field}`}
+                        onClick={handleSingleClickField}
+                        onDoubleClick={(e) => {
+                          if (!selectedRowDataMeeting?.meeting_type) return;
+                          // if (isNotActivityTypeArray.includes(selectedRowDataMeeting.meeting_type))
+                          //   return alert(returnMessageNotActivity(selectedRowDataMeeting.meeting_type));
+                          handleDoubleClickField({
+                            e,
+                            field: "meeting_type",
+                            dispatch: setInputMeetingType,
+                          });
+                          if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                        data-text={`${
+                          selectedRowDataMeeting?.meeting_type ? selectedRowDataMeeting?.meeting_type : ""
+                        }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
                         {selectedRowDataMeeting?.meeting_type ? selectedRowDataMeeting?.meeting_type : ""}
                       </span>
                     )}
-                    {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
+                    {/* ============= フィールドエディットモード関連 ============= */}
+                    {/* フィールドエディットモード selectタグ  */}
+                    {!searchMode && isEditModeField === "meeting_type" && (
+                      <>
+                        <select
+                          className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                          value={inputMeetingType}
+                          onChange={(e) => {
+                            handleChangeSelectUpdateField({
+                              e,
+                              fieldName: "meeting_type",
+                              fieldNameForSelectedRowData: "meeting_type",
+                              newValue: e.target.value,
+                              originalValue: originalValueFieldEdit.current,
+                              id: selectedRowDataMeeting?.meeting_id,
+                            });
+                          }}
+                          // onChange={(e) => {
+                          //   setInputActivityType(e.target.value);
+                          // }}
+                        >
+                          {/* <option value=""></option> */}
+                          {optionsMeetingType.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                        {/* エディットフィールド送信中ローディングスピナー */}
+                        {updateMeetingFieldMutation.isLoading && (
+                          <div
+                            className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                          >
+                            <SpinnerComet w="22px" h="22px" s="3px" />
+                          </div>
+                        )}
+                      </>
+                    )}
+                    {/* フィールドエディットモードオーバーレイ */}
+                    {!searchMode && isEditModeField === "meeting_type" && (
+                      <div
+                        className={`${styles.edit_mode_overlay}`}
+                        onClick={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                          setIsEditModeField(null); // エディットモードを終了
+                        }}
+                      />
+                    )}
+                    {/* ============= フィールドエディットモード関連ここまで ============= */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1232,13 +1665,185 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>面談開始</span>
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
+                    {!searchMode && isEditModeField !== "planned_start_time" && (
+                      <span
+                        className={`${styles.value} ${styles.editable_field}`}
+                        onClick={handleSingleClickField}
+                        onDoubleClick={(e) => {
+                          if (!selectedRowDataMeeting?.planned_start_time) return;
+                          // if (isNotActivityTypeArray.includes(selectedRowDataMeeting.meeting_type))
+                          //   return alert(returnMessageNotActivity(selectedRowDataMeeting.meeting_type));
+                          handleDoubleClickField({
+                            e,
+                            field: "planned_start_time",
+                            dispatch: setInputPlannedStartTime,
+                            selectedRowDataValue: selectedRowDataMeeting.planned_start_time,
+                          });
+                          if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                        data-text={`${
+                          selectedRowDataMeeting?.planned_start_time ? selectedRowDataMeeting?.planned_start_time : ""
+                        }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
                         {selectedRowDataMeeting?.planned_start_time
                           ? formatTime(selectedRowDataMeeting?.planned_start_time)
                           : ""}
                       </span>
                     )}
+                    {/* ============= フィールドエディットモード関連 ============= */}
+                    {/* フィールドエディットモード selectタグ  */}
+                    {!searchMode && isEditModeField === "planned_start_time" && (
+                      <>
+                        {/* <select
+                          className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                          value={inputPlannedStartTime}
+                          onChange={(e) => {
+                            handleChangeSelectUpdateField({
+                              e,
+                              fieldName: "planned_start_time",
+                              fieldNameForSelectedRowData: "planned_start_time",
+                              newValue: e.target.value,
+                              originalValue: originalValueFieldEdit.current,
+                              id: selectedRowDataMeeting?.meeting_id,
+                            });
+                          }}
+                        >
+                          {optionsMeetingType.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select> */}
+                        <select
+                          className={`ml-auto h-full w-[80%] cursor-pointer ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                          placeholder="時"
+                          value={inputPlannedStartTimeHour}
+                          onChange={(e) => setInputPlannedStartTimeHour(e.target.value === "" ? "" : e.target.value)}
+                        >
+                          <option value=""></option>
+                          {hours.map((hour) => (
+                            <option key={hour} value={hour}>
+                              {hour}
+                            </option>
+                          ))}
+                        </select>
+
+                        <span className="pointer-events-none mx-[5px]">:</span>
+
+                        <select
+                          className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                          placeholder="分"
+                          value={inputPlannedStartTimeMinute}
+                          onChange={(e) => setInputPlannedStartTimeMinute(e.target.value === "" ? "" : e.target.value)}
+                        >
+                          <option value=""></option>
+                          {minutes5.map((minute) => (
+                            <option key={minute} value={minute}>
+                              {minute}
+                            </option>
+                          ))}
+                        </select>
+                        {/* 送信、バツボタンエリア */}
+                        {!updateMeetingFieldMutation.isLoading && (
+                          <div
+                            className={`${styles.field_edit_mode_btn_area} ${
+                              !updateMeetingFieldMutation.isLoading
+                                ? styles.right_position
+                                : styles.right_position_loading
+                            }  space-x-[6px]`}
+                          >
+                            {/* 送信ボタン フィールドエディットモード専用 */}
+                            {!updateMeetingFieldMutation.isLoading && (
+                              <div
+                                className={`flex-center transition-bg03 group min-h-[26px] min-w-[26px] rounded-full border border-solid border-transparent ${
+                                  !inputPlannedStartTimeHour ||
+                                  !inputPlannedStartTimeMinute ||
+                                  `${inputPlannedStartTimeHour}:${inputPlannedStartTimeMinute}` ===
+                                    originalValueFieldEdit.current
+                                    ? `cursor-not-allowed text-[#999]`
+                                    : `border-[var(--color-bg-brand-f) cursor-pointer hover:bg-[var(--color-bg-brand-f)] hover:shadow-lg`
+                                }`}
+                                onClick={(e) => {
+                                  if (!inputPlannedStartTimeHour || !inputPlannedStartTimeMinute) return;
+                                  handleClickSendUpdateField({
+                                    e,
+                                    fieldName: "planned_start_time",
+                                    fieldNameForSelectedRowData: "planned_start_time",
+                                    newValue: `${inputPlannedStartTimeHour}:${inputPlannedStartTimeMinute}`,
+                                    originalValue: originalValueFieldEdit.current,
+                                    id: selectedRowDataMeeting?.meeting_id,
+                                    required: true,
+                                  });
+                                }}
+                              >
+                                <IoIosSend
+                                  className={`text-[20px] ${
+                                    !inputPlannedStartTimeHour ||
+                                    !inputPlannedStartTimeMinute ||
+                                    `${inputPlannedStartTimeHour}:${inputPlannedStartTimeMinute}` ===
+                                      originalValueFieldEdit.current
+                                      ? `text-[#999] group-hover:text-[#999]`
+                                      : `text-[var(--color-bg-brand-f)] group-hover:text-[#fff]`
+                                  }`}
+                                />
+                              </div>
+                            )}
+                            {/* バツボタン フィールドエディットモード専用 */}
+                            {!updateMeetingFieldMutation.isLoading && (
+                              <div
+                                className={`${
+                                  inputPlannedStartTimeHour && inputPlannedStartTimeMinute
+                                    ? `${styles.close_btn_field_edit_mode} hover:shadow-lg`
+                                    : `${styles.close_btn_field_edit_mode_empty}`
+                                }`}
+                                onClick={() => {
+                                  if (inputPlannedStartTimeHour === "08" && inputPlannedStartTimeMinute === "30")
+                                    return;
+                                  setInputPlannedStartTimeHour("08");
+                                  setInputPlannedStartTimeMinute("30");
+                                }}
+                              >
+                                <MdClose className="text-[20px] " />
+                              </div>
+                            )}
+                            {/* ローディング フィールドエディットモード専用 */}
+                            {/* {!updateMeetingFieldMutation.isLoading && (
+                            <div className={`${styles.field_edit_mode_loading_area}`}>
+                              <SpinnerComet w="22px" h="22px" s="3px" />
+                            </div>
+                          )} */}
+                          </div>
+                        )}
+                        {/* <span className="ml-[5px]">分</span> */}
+                        {/* エディットフィールド送信中ローディングスピナー */}
+                        {updateMeetingFieldMutation.isLoading && (
+                          <div
+                            className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                          >
+                            <SpinnerComet w="22px" h="22px" s="3px" />
+                          </div>
+                        )}
+                      </>
+                    )}
+                    {/* フィールドエディットモードオーバーレイ */}
+                    {!searchMode && isEditModeField === "planned_start_time" && (
+                      <div
+                        className={`${styles.edit_mode_overlay}`}
+                        onClick={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                          setIsEditModeField(null); // エディットモードを終了
+                        }}
+                      />
+                    )}
+                    {/* ============= フィールドエディットモード関連ここまで ============= */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1438,7 +2043,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <span
                         className={`${styles.value}`}
                         // data-text={`${
-                        //   selectedRowDataActivity?.assigned_unit_name ? selectedRowDataActivity?.assigned_unit_name : ""
+                        //   selectedRowDataMeeting?.assigned_unit_name ? selectedRowDataMeeting?.assigned_unit_name : ""
                         // }`}
                         // onMouseEnter={(e) => {
                         //   e.currentTarget.parentElement?.classList.add(`${styles.active}`);

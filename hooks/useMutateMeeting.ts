@@ -17,7 +17,7 @@ export const useMutateMeeting = () => {
   );
 
   // 選択中の行データと更新関数
-  const selectedRowDataActivity = useDashboardStore((state) => state.selectedRowDataActivity);
+  const selectedRowDataMeeting = useDashboardStore((state) => state.selectedRowDataMeeting);
   const setSelectedRowDataMeeting = useDashboardStore((state) => state.setSelectedRowDataMeeting);
 
   const supabase = useSupabaseClient();
@@ -405,57 +405,114 @@ export const useMutateMeeting = () => {
       fieldNameForSelectedRowData: MeetingFieldNamesForSelectedRowData;
       newValue: any;
       id: string;
+      meetingYearMonth?: number | null;
     }) => {
-      console.log("updateActivityFieldMutation実行 引数", fieldData);
-      const { fieldName, fieldNameForSelectedRowData, newValue, id } = fieldData;
-      const { data, error } = await supabase
-        .from("meetings")
-        .update({ [fieldName]: newValue })
-        .eq("id", id)
-        .select();
+      console.log("updateActivityFieldMutation 引数取得", fieldData);
+      const { fieldName, fieldNameForSelectedRowData, newValue, id, meetingYearMonth } = fieldData;
 
-      if (error) throw error;
+      const isRequireUpdateActivityFieldArray = ["result_summary", "result_date", "planned_date"];
 
-      console.log("updateMeetingFieldMutation実行完了 mutate data", data);
+      // 🔹rpcでmeetingsとactivitiesテーブルを同時に更新
+      if (isRequireUpdateActivityFieldArray.includes(fieldName)) {
+        // result_dateの場合は面談年月度も同時にmeetingsテーブルに更新
+        if (fieldName === "result_date" && !!meetingYearMonth) {
+          const jsonValue = { value: newValue };
+          const updatePayload = {
+            _meeting_id: id,
+            _column_name: fieldName,
+            _json_value: jsonValue,
+            _meeting_year_month: meetingYearMonth,
+          };
 
-      const isRequireUpdateActivityFieldArray = ["result_summary"];
+          console.log("updateActivityFieldMutation rpc実行 ", "カラム名", fieldName, "updatePayload", updatePayload);
 
+          const { error } = await supabase.rpc("update_meetings_field", updatePayload);
+
+          if (error) throw error;
+        }
+        // 🔹result_summaryとplanned_dateカラムの更新 同時にactivitiesも更新
+        else {
+          const jsonValue = { value: newValue };
+          const updatePayload = {
+            _meeting_id: id,
+            _column_name: fieldName,
+            _json_value: jsonValue,
+          };
+
+          console.log("updateActivityFieldMutation rpc実行 ", "カラム名", fieldName, "updatePayload", updatePayload);
+
+          const { error } = await supabase.rpc("update_meetings_field", updatePayload);
+
+          if (error) throw error;
+        }
+      }
+      // 🔹meetingsテーブルのみ更新
+      else {
+        const { data, error } = await supabase
+          .from("meetings")
+          .update({ [fieldName]: newValue })
+          .eq("id", id)
+          .select();
+
+        if (error) throw error;
+
+        console.log("updateMeetingFieldMutation実行完了 mutate data", data);
+        // return data;
+      }
+
+      return { fieldNameForSelectedRowData, newValue, meetingYearMonth };
       // 活動履歴で面談タイプ 訪問・面談を更新 実施商品は一旦一括編集のみにする
-      const newMeetingData = {
-        summary: data[0].result_summary, //結果コメント
-        // product_introduction1: data[0].result_presentation_product1, //実施1
-        // product_introduction2: data[0].result_presentation_product2, //実施2
-        // product_introduction3: data[0].result_presentation_product3, //実施3
-        // product_introduction4: data[0].result_presentation_product4, //実施4
-        // product_introduction5: data[0].result_presentation_product5, //実施5
-        // department: data[0].meeting_department, //事業部(自社)
-        // business_office: data[0].meeting_business_office, //事業所(自社)
-        // member_name: data[0].meeting_member_name, //営業担当(自社)
-        activity_date: data[0].planned_date, //訪問予定日
-        activity_year_month: data[0].meeting_year_month, //面談年月度
-      };
+      // activity_dateは面談結果の面談日が存在する場合には、result_dateで更新し、面談予定の面談日しか存在しなければplanned_dateで更新する
+      // const newMeetingData = {
+      //   summary: data[0].result_summary, //結果コメント
+      //   // product_introduction1: data[0].result_presentation_product1, //実施1
+      //   // product_introduction2: data[0].result_presentation_product2, //実施2
+      //   // product_introduction3: data[0].result_presentation_product3, //実施3
+      //   // product_introduction4: data[0].result_presentation_product4, //実施4
+      //   // product_introduction5: data[0].result_presentation_product5, //実施5
+      //   // department: data[0].meeting_department, //事業部(自社)
+      //   // business_office: data[0].meeting_business_office, //事業所(自社)
+      //   // member_name: data[0].meeting_member_name, //営業担当(自社)
+      //   activity_date: data[0].planned_date, //訪問予定日
+      //   activity_year_month: data[0].meeting_year_month, //面談年月度
+      // };
 
-      // supabaseの活動にUPDATE
-      const { error: errorActivity } = await supabase
-        .from("activities")
-        .update(newMeetingData)
-        .eq("meeting_id", data[0].id);
-      if (errorActivity) throw new Error(errorActivity.message);
-
-      return data;
+      // // supabaseの活動にUPDATE
+      // const { error: errorActivity } = await supabase
+      //   .from("activities")
+      //   .update(newMeetingData)
+      //   .eq("meeting_id", data[0].id);
+      // if (errorActivity) throw new Error(errorActivity.message);
     },
     {
       onSuccess: async (data) => {
+        const { fieldNameForSelectedRowData, newValue, meetingYearMonth } = data;
         console.log(
-          "updateMeetingFieldMutation実行完了 キャッシュを更新して選択中のセルを再度クリックして更新 onSuccess data[0]",
-          data[0]
+          "✅✅✅✅✅✅✅updateMeetingFieldMutation実行完了 キャッシュを更新して選択中のセルを再度クリックして更新 onSuccess ",
+          "fieldNameForSelectedRowData",
+          fieldNameForSelectedRowData,
+          "newValue",
+          newValue
         );
-        // キャッシュ更新より先にZustandのSelectedRowDataCompanyをupdateで取得したデータで更新する
-        setSelectedRowDataMeeting(data[0]);
 
         // activitiesに関わるキャッシュのデータを再取得 => これをしないと既に取得済みのキャッシュは古い状態で表示されてしまう
         await queryClient.invalidateQueries({ queryKey: ["meetings"] });
         await queryClient.invalidateQueries({ queryKey: ["activities"] });
+
+        if (!selectedRowDataMeeting) return;
+        // キャッシュ更新より先にZustandのSelectedRowDataCompanyをupdateで取得したデータで更新する
+        // setSelectedRowDataMeeting(data[0]);
+        if (fieldNameForSelectedRowData === "result_date" && !!meetingYearMonth) {
+          const newRowDataMeeting = {
+            ...selectedRowDataMeeting,
+            [fieldNameForSelectedRowData]: newValue,
+            meeting_year_month: meetingYearMonth,
+          };
+          setSelectedRowDataMeeting(newRowDataMeeting);
+        } else {
+          const newRowDataMeeting = { ...selectedRowDataMeeting, [fieldNameForSelectedRowData]: newValue };
+          setSelectedRowDataMeeting(newRowDataMeeting);
+        }
 
         // 再度テーブルの選択セルのDOMをクリックしてselectedRowDataCompanyを最新状態にする
         // setIsUpdateRequiredForLatestSelectedRowDataCompany(true);

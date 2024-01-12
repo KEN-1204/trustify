@@ -1394,7 +1394,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                                 originalValue: originalDateUTCString,
                                 newValue: newDateUTCString,
                                 id: selectedRowDataActivity?.activity_id,
-                                required: false,
+                                required: true,
                               });
                             }}
                           />

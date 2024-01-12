@@ -756,12 +756,152 @@
 .btn:hover {
   background-color: var(--color-btn-brand-f-hover);
 }
-.select_box {
-  box-shadow: var(--color-bg-under-input-box-shadow);
-  padding-left: 5px;
-  background: var(--color-bg-under-input);
-  border-radius: 6px;
+
+.edit_mode_overlay {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+  width: 100%;
+  height: 100%;
+  /* background: #00000090; */
 }
+.close_btn {
+  position: absolute;
+  /* right: 36px; */
+  /* top: calc(50% - 2.5px); */
+  z-index: 2100;
+  /* transform: translateY(-50%); */
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+.field_edit_mode_loading_area {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: calc(50% - 2.5px);
+  right: 10px;
+  transform: translateY(-50%);
+  z-index: 2100;
+  min-height: 26px;
+  min-width: 26px;
+}
+.field_edit_mode_loading_area_for_select_box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  z-index: 2100;
+  min-height: 26px;
+  min-width: 26px;
+  background-color: var(--color-bg-based0);
+  box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f30), 0px 0px 0px 1px var(--color-bg-brand-f);
+  backdrop-filter: blur(4px);
+  padding: 0px 5px;
+  height: 30px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  /* justify-content: flex-start; */
+  align-items: center;
+  pointer-events: none;
+}
+.field_edit_mode_loading_area_for_select_box.right_position {
+  right: -40px;
+  top: 50%;
+  transform: translateY(-56%);
+}
+.field_edit_mode_input_box {
+  padding-right: 38px;
+  z-index: 2000;
+}
+.field_edit_mode_input_box_with_close {
+  padding-right: 65px;
+  z-index: 2000;
+}
+.field_edit_mode_select_box {
+  z-index: 2000;
+}
+.field_edit_mode_textarea {
+  z-index: 2000;
+  /* padding-right: 65px; */
+  /* min-height: 75px; */
+  min-height: 120px;
+  /* white-space: pre-line; */
+  /* background: #00000030; */
+}
+.field_edit_mode_textarea.xl {
+  min-height: 180px;
+}
+
+.field_edit_mode_btn_area {
+  position: absolute;
+  z-index: 2000;
+  background-color: var(--color-bg-based0);
+  /* background-color: var(--color-modal-bg); */
+  /* background: var(--color-tooltip-light); */
+  /* box-shadow: inset 0 0 0 1px var(--color-modal-border); */
+  box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f30), 0px 0px 0px 1px var(--color-bg-brand-f);
+  /* background: #000000; */
+  backdrop-filter: blur(4px);
+  /* width: 75px; */
+  padding: 0px 5px;
+  height: 30px;
+  border-radius: 4px;
+  display: flex;
+  /* justify-content: center; */
+  justify-content: flex-start;
+  align-items: center;
+}
+.field_edit_mode_btn_area.right_position {
+  right: -70px;
+  top: 50%;
+  transform: translateY(-56%);
+}
+.field_edit_mode_btn_area.right_position_loading {
+  right: -38px;
+  top: 50%;
+  transform: translateY(-56%);
+}
+.field_edit_mode_btn_area.under_right_position {
+  right: 0;
+  bottom: -33px;
+}
+.close_btn_field_edit_mode {
+  z-index: 1;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.close_btn_field_edit_mode:hover {
+  /* background: var(--close-bg); */
+  background: var(--close-bg-deep);
+  color: #fff;
+}
+.close_btn_field_edit_mode_empty {
+  z-index: 1;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: not-allowed;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  color: #999;
+}
+
 .close_btn_number {
   position: absolute;
   right: 5px;
@@ -790,6 +930,13 @@
 }
 .row_area input[type="number"] {
   -moz-appearance: textfiled;
+}
+
+.select_box {
+  box-shadow: var(--color-bg-under-input-box-shadow);
+  padding-left: 5px;
+  background: var(--color-bg-under-input);
+  border-radius: 6px;
 }
 
 @media (max-width: 1600px) {

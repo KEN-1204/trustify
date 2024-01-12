@@ -313,6 +313,9 @@ export const optionsActivityType = [
   "引継ぎ",
 ];
 
+// 面談タイプ
+export const optionsMeetingType = ["訪問", "WEB"];
+
 export const optionsPriority = ["高", "中", "低"];
 
 export const optionsSearchEmployeesClass = [
