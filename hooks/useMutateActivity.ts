@@ -244,5 +244,85 @@ export const useMutateActivity = () => {
     }
   );
 
-  return { createActivityMutation, updateActivityMutation, updateActivityFieldMutation };
+  // 【Activityの複数フィールドを編集UPDATE用updateActivityFieldMutation関数】
+  // 活動日を編集の際に同時に活動年月度も編集する
+
+  // type UpdateObject = { [key: string]: any };
+  type UpdateObject = {
+    fieldName: string;
+    fieldNameForSelectedRowData: ActivityFieldNamesForSelectedRowData;
+    newValue: any;
+  };
+  const updateActivityMultipleFieldMutation = useMutation(
+    async (fieldData: { updateArray: UpdateObject[]; id: string }) => {
+      console.log("updateActivityMultipleFieldMutation実行 引数", fieldData);
+      const { updateArray, id } = fieldData;
+      // テーブルの正式なフィールド名でのオブジェクトのみの配列にしてからreduceで全てのkey, valueを一つのオブジェクトにまとめる
+      const newActualKeyValueArray = updateArray.map((obj) => ({ [obj.fieldName]: obj.newValue }));
+      const updatePayload = newActualKeyValueArray.reduce((acc, obj) => ({ ...acc, ...obj }), {});
+
+      console.log(
+        "updateActivityFieldMutation実行 更新実行 updatePayload",
+        updatePayload,
+        "変換前配列",
+        newActualKeyValueArray,
+        "引数 updateArray",
+        updateArray
+      );
+      const { data, error } = await supabase.from("activities").update(updatePayload).eq("id", id).select();
+
+      if (error) throw error;
+
+      // SelectedRowData用のkey, valueのオブジェクトを一つのオブジェクトにまとめる「[{id: 1}, {name: ken}…]」の配列から「{id: 1, name: ken}」のオブジェクトに変換
+      const newDisplayKeyValueArray = updateArray.map((obj) => ({ [obj.fieldNameForSelectedRowData]: obj.newValue }));
+      const updateKeyValueArrayForSelectedRowData = newDisplayKeyValueArray.reduce(
+        (acc, obj) => ({ ...acc, ...obj }),
+        {}
+      );
+
+      console.log("updateActivityFieldMutation実行完了");
+
+      return { data, updateKeyValueArrayForSelectedRowData };
+    },
+    {
+      onSuccess: async (response) => {
+        const { updateKeyValueArrayForSelectedRowData } = response;
+
+        console.log(
+          "updateActivityFieldMutation実行完了 キャッシュを更新して選択中のState用の更新オブジェクト onSuccess updateKeyValueArrayForSelectedRowData",
+          updateKeyValueArrayForSelectedRowData
+        );
+
+        // companiesに関わるキャッシュのデータを再取得 => これをしないと既に取得済みのキャッシュは古い状態で表示されてしまう
+        await queryClient.invalidateQueries({ queryKey: ["activities"] });
+
+        if (!selectedRowDataActivity) return;
+        if ("activity_date" in updateKeyValueArrayForSelectedRowData) {
+          // 活動日を更新すると順番が入れ替わり、選択中の行がメインテーブルの内容と異なるためリセット
+          console.log("プロパティにactivity_dateが含まれているため選択中の行をリセット");
+          setSelectedRowDataActivity(null);
+        } else {
+          // キャッシュ更新後ににZustandのsetSelectedRowDataActivityをupdateで取得したデータで更新する
+          const newRowDataActivity = { ...selectedRowDataActivity, ...updateKeyValueArrayForSelectedRowData };
+          setSelectedRowDataActivity(newRowDataActivity);
+        }
+      },
+      onError: (err: any) => {
+        // if (loadingGlobalState) setLoadingGlobalState(false);
+        console.error("フィールドエディットモード updateエラー", err);
+        console.error(`Update failed activities field` + err.message);
+        toast.error("アップデートに失敗しました...", {
+          position: "top-right",
+          autoClose: 1500,
+        });
+      },
+    }
+  );
+
+  return {
+    createActivityMutation,
+    updateActivityMutation,
+    updateActivityFieldMutation,
+    updateActivityMultipleFieldMutation,
+  };
 };

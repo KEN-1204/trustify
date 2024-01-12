@@ -322,6 +322,8 @@ export const useMutateMeeting = () => {
         // --🌠実施商品テーブル
         _product_ids: newMeeting.product_ids,
         _attendee_ids: newMeeting.attendee_ids,
+        _delete_product_count: newMeeting.delete_product_count,
+        _delete_attendee_count: newMeeting.delete_attendee_count,
       };
 
       console.log("🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠rpc実行 updateMeetingPayload", updateMeetingPayload);
@@ -368,7 +370,7 @@ export const useMutateMeeting = () => {
         if (loadingGlobalState) setLoadingGlobalState(false);
         // setIsOpenUpdateMeetingModal(false);
         alert(err.message);
-        console.log("INSERTエラー", err.message);
+        console.error("UPDATEエラー", err);
         toast.error("面談の更新に失敗しました...🙇‍♀️", {
           position: "top-right",
           // autoClose: 1500,
@@ -416,34 +418,21 @@ export const useMutateMeeting = () => {
 
       console.log("updateMeetingFieldMutation実行完了 mutate data", data);
 
-      // 活動履歴で面談タイプ 訪問・面談を作成
+      const isRequireUpdateActivityFieldArray = ["result_summary"];
+
+      // 活動履歴で面談タイプ 訪問・面談を更新 実施商品は一旦一括編集のみにする
       const newMeetingData = {
-        // created_by_company_id: data[0].created_by_company_id,//どの会社が作成したか
-        // created_by_user_id: data[0].created_by_user_id,//どのユーザーが作成したか
-        // created_by_department_of_user: data[0].created_by_department_of_user,//どの事業部が作成したか
-        // created_by_unit_of_user: data[0].created_by_unit_of_user,//どの係が作成したか
-        // client_contact_id: data[0].client_contact_id, //担当者id(相手)
-        // client_company_id: data[0].client_company_id, //会社id(相手)
         summary: data[0].result_summary, //結果コメント
-        // scheduled_follow_up_date: null,
-        // follow_up_flag: false,
-        // document_url: null,
-        // activity_type: "面談・訪問",
-        // claim_flag: false,
-        product_introduction1: data[0].result_presentation_product1, //実施1
-        product_introduction2: data[0].result_presentation_product2, //実施2
-        product_introduction3: data[0].result_presentation_product3, //実施3
-        product_introduction4: data[0].result_presentation_product4, //実施4
-        product_introduction5: data[0].result_presentation_product5, //実施5
-        department: data[0].meeting_department, //事業部(自社)
-        business_office: data[0].meeting_business_office, //事業所(自社)
-        member_name: data[0].meeting_member_name, //営業担当(自社)
-        // priority: null,
+        // product_introduction1: data[0].result_presentation_product1, //実施1
+        // product_introduction2: data[0].result_presentation_product2, //実施2
+        // product_introduction3: data[0].result_presentation_product3, //実施3
+        // product_introduction4: data[0].result_presentation_product4, //実施4
+        // product_introduction5: data[0].result_presentation_product5, //実施5
+        // department: data[0].meeting_department, //事業部(自社)
+        // business_office: data[0].meeting_business_office, //事業所(自社)
+        // member_name: data[0].meeting_member_name, //営業担当(自社)
         activity_date: data[0].planned_date, //訪問予定日
         activity_year_month: data[0].meeting_year_month, //面談年月度
-        // meeting_id: data[0].id,//面談
-        // property_id: null,
-        // quotation_id: null,
       };
 
       // supabaseの活動にUPDATE

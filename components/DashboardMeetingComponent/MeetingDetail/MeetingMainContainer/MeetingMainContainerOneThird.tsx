@@ -1,4 +1,4 @@
-import React, { FC, FormEvent, Suspense, memo, useEffect, useState } from "react";
+import React, { FC, FormEvent, Suspense, memo, useCallback, useEffect, useRef, useState } from "react";
 import styles from "../MeetingDetail.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import useStore from "@/store";
@@ -30,6 +30,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
 import { getProductName } from "@/utils/Helpers/getProductName";
 import { AttendeesListTable } from "./AttendeesListTable/AttendeesListTable";
+import { useMedia } from "react-use";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -60,6 +61,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const editSearchMode = useDashboardStore((state) => state.editSearchMode);
   const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
+  const hoveredItemPosWrap = useStore((state) => state.hoveredItemPosWrap);
   const setHoveredItemPosWrap = useStore((state) => state.setHoveredItemPosWrap);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
@@ -83,6 +85,13 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
 
   // const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
+
+  // メディアクエリState デスクトップモニター
+  const isDesktopGTE1600Media = useMedia("(min-width: 1600px)", false);
+  const [isDesktopGTE1600, setIsDesktopGTE1600] = useState(isDesktopGTE1600Media);
+  useEffect(() => {
+    setIsDesktopGTE1600(isDesktopGTE1600Media);
+  }, [isDesktopGTE1600Media]);
 
   // 🌟サブミット
   const [inputCompanyName, setInputCompanyName] = useState("");
@@ -134,6 +143,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const [inputMeetingType, setInputMeetingType] = useState("");
   const [inputWebTool, setInputWebTool] = useState("");
   const [inputPlannedDate, setInputPlannedDate] = useState<Date | null>(null);
+  const [inputPlannedDateForFieldEditMode, setInputPlannedDateForFieldEditMode] = useState<Date | null>(null);
   const [inputPlannedStartTime, setInputPlannedStartTime] = useState<string>("");
   const [inputPlannedStartTimeHour, setInputPlannedStartTimeHour] = useState<string>("");
   const [inputPlannedStartTimeMinute, setInputPlannedStartTimeMinute] = useState<string>("");
@@ -162,6 +172,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const [inputResultCategory, setInputResultCategory] = useState("");
   const [inputResultSummary, setInputResultSummary] = useState("");
   const [inputResultNegotiateDecisionMaker, setInputResultNegotiateDecisionMaker] = useState("");
+  const [inputResultTopPositionClass, setInputResultTopPositionClass] = useState("");
   const [inputPreMeetingParticipationRequest, setInputPreMeetingParticipationRequest] = useState("");
   const [inputMeetingParticipationRequest, setInputMeetingParticipationRequest] = useState("");
   const [inputMeetingBusinessOffice, setInputMeetingBusinessOffice] = useState("");
@@ -406,6 +417,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       setInputResultNegotiateDecisionMaker(
         beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.result_negotiate_decision_maker)
       );
+      setInputResultTopPositionClass(
+        newSearchMeeting_Contact_CompanyParams.result_top_position_class
+          ? newSearchMeeting_Contact_CompanyParams.result_top_position_class.toString()
+          : ""
+      );
       setInputPreMeetingParticipationRequest(
         beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.pre_meeting_participation_request)
       );
@@ -498,6 +514,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       if (!!inputResultCategory) setInputResultCategory("");
       if (!!inputResultSummary) setInputResultSummary("");
       if (!!inputResultNegotiateDecisionMaker) setInputResultNegotiateDecisionMaker("");
+      if (!!inputResultTopPositionClass) setInputResultTopPositionClass("");
       if (!!inputPreMeetingParticipationRequest) setInputPreMeetingParticipationRequest("");
       if (!!inputMeetingParticipationRequest) setInputMeetingParticipationRequest("");
       if (!!inputMeetingBusinessOffice) setInputMeetingBusinessOffice("");
@@ -683,6 +700,9 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     let _result_category = adjustFieldValue(inputResultCategory);
     let _result_summary = adjustFieldValue(inputResultSummary);
     let _result_negotiate_decision_maker = adjustFieldValue(inputResultNegotiateDecisionMaker);
+    let _result_top_position_class = adjustFieldValue(inputResultTopPositionClass)
+      ? parseInt(inputResultTopPositionClass, 10)
+      : null;
     let _pre_meeting_participation_request = adjustFieldValue(inputPreMeetingParticipationRequest);
     let _meeting_participation_request = adjustFieldValue(inputMeetingParticipationRequest);
     let _meeting_business_office = adjustFieldValue(inputMeetingBusinessOffice);
@@ -765,6 +785,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       result_category: _result_category,
       result_summary: _result_summary,
       result_negotiate_decision_maker: _result_negotiate_decision_maker,
+      result_top_position_class: _result_top_position_class,
       pre_meeting_participation_request: _pre_meeting_participation_request,
       meeting_participation_request: _meeting_participation_request,
       meeting_business_office: _meeting_business_office,
@@ -844,6 +865,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     setInputResultCategory("");
     setInputResultSummary("");
     setInputResultNegotiateDecisionMaker("");
+    setInputResultTopPositionClass("");
     setInputPreMeetingParticipationRequest("");
     setInputMeetingParticipationRequest("");
     setInputMeetingBusinessOffice("");
@@ -912,6 +934,93 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     setHoveredItemPosWrap(null);
   };
   // ==================================== ✅ツールチップ✅ ====================================
+
+  // ================== 🌟シングルクリック、ダブルクリックイベント🌟 ==================
+  // ダブルクリックで各フィールドごとに個別で編集
+  const setTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // 選択行データが自社専用の会社データかどうか
+  const isMatchDepartment =
+    !!userProfileState?.assigned_department_id &&
+    !!selectedRowDataMeeting?.meeting_created_by_department_of_user &&
+    selectedRowDataMeeting.meeting_created_by_department_of_user === userProfileState?.assigned_department_id;
+
+  // シングルクリック => 何もアクションなし
+  const handleSingleClickField = useCallback((e: React.MouseEvent<HTMLSpanElement>) => {
+    // 自社で作成した会社でない場合はそのままリターン
+    // if (!isMatchDepartment) return;
+    if (setTimeoutRef.current !== null) return;
+
+    setTimeoutRef.current = setTimeout(() => {
+      setTimeoutRef.current = null;
+      // シングルクリック時に実行したい処理
+      // 0.2秒後に実行されてしまうためここには書かない
+    }, 200);
+    console.log("シングルクリック");
+  }, []);
+
+  // const originalOptionRef = useRef(""); // 同じ選択肢選択時にエディットモード終了用
+  // 編集前のダブルクリック時の値を保持 => 変更されたかどうかを確認
+  const originalValueFieldEdit = useRef<string | null>("");
+  type DoubleClickProps = {
+    e: React.MouseEvent<HTMLSpanElement>;
+    field: string;
+    dispatch: React.Dispatch<React.SetStateAction<any>>;
+    // isSelectChangeEvent?: boolean;
+    dateValue?: string | null;
+    selectedRowDataValue?: any;
+  };
+  // ダブルクリック => ダブルクリックしたフィールドを編集モードに変更
+  const handleDoubleClickField = useCallback(
+    ({ e, field, dispatch, dateValue, selectedRowDataValue }: DoubleClickProps) => {
+      // 自社で作成した会社でない場合はそのままリターン
+      // if (!isOurActivity) return;
+
+      console.log(
+        "ダブルクリック",
+        "field",
+        field,
+        "e.currentTarget.innerText",
+        e.currentTarget.innerText,
+        "e.currentTarget.innerHTML",
+        e.currentTarget.innerHTML,
+        "selectedRowDataValue",
+        selectedRowDataValue && selectedRowDataValue
+      );
+      if (setTimeoutRef.current) {
+        clearTimeout(setTimeoutRef.current);
+
+        // console.log(e.detail);
+        setTimeoutRef.current = null;
+        // ダブルクリック時に実行したい処理
+        // クリックした要素のテキストを格納
+        // const text = e.currentTarget.innerText;
+        let text;
+        text = e.currentTarget.innerHTML;
+        if (!!selectedRowDataValue) {
+          text = selectedRowDataValue;
+        }
+        if (field === "fiscal_end_month") {
+          text = text.replace(/月/g, ""); // 決算月の場合は、1月の月を削除してstateに格納 optionタグのvalueと一致させるため
+        }
+        // // 「活動日付」「次回フォロー予定日」はinnerHTMLではなく元々の値を格納
+        if (["activity_date", "scheduled_follow_up_date"].includes(field)) {
+          const originalDate = dateValue ? new Date(dateValue) : null;
+          console.log("ダブルクリック 日付格納", dateValue);
+          // originalValueFieldEdit.current = originalDate;
+          dispatch(originalDate); // 編集モードでinputStateをクリックした要素のテキストを初期値に設定
+          setIsEditModeField(field); // クリックされたフィールドの編集モードを開く
+          return;
+        }
+        originalValueFieldEdit.current = text;
+        dispatch(text); // 編集モードでinputStateをクリックした要素のテキストを初期値に設定
+        setIsEditModeField(field); // クリックされたフィールドの編集モードを開く
+        // if (isSelectChangeEvent) originalOptionRef.current = e.currentTarget.innerText; // selectタグ同じ選択肢選択時の編集モード終了用
+      }
+    },
+    [setIsEditModeField]
+    // [isOurActivity, setIsEditModeField]
+  );
+  // ================== ✅シングルクリック、ダブルクリックイベント✅ ==================
 
   // 商品名を取得する関数
   const getCustomProductName = (
@@ -1064,7 +1173,37 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>●面談日</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value} ${styles.editable_field}`}
+                        onClick={handleSingleClickField}
+                        onDoubleClick={(e) => {
+                          // if (!selectedRowDataMeeting?.activity_type) return;
+                          // if (isNotActivityTypeArray.includes(selectedRowDataMeeting.activity_type)) {
+                          //   return alert(returnMessageNotActivity(selectedRowDataMeeting.activity_type));
+                          // }
+                          handleDoubleClickField({
+                            e,
+                            field: "planned_date",
+                            dispatch: setInputPlannedDateForFieldEditMode,
+                            dateValue: selectedRowDataMeeting?.planned_date
+                              ? selectedRowDataMeeting.planned_date
+                              : null,
+                          });
+                        }}
+                        data-text={`${
+                          selectedRowDataMeeting?.planned_date
+                            ? format(new Date(selectedRowDataMeeting.planned_date), "yyyy/MM/dd")
+                            : ""
+                        }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          if (!isDesktopGTE1600 && isOpenSidebar) handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
                         {selectedRowDataMeeting?.planned_date
                           ? format(new Date(selectedRowDataMeeting.planned_date), "yyyy/MM/dd")
                           : ""}
@@ -1649,7 +1788,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   </div>
                 </div>
 
-                {/* 実施5 */}
+                {/* 実施5・実施ALL */}
                 <div className={`${styles.row_area} flex w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
@@ -1726,11 +1865,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   </div>
                 </div>
 
-                {/* 訪問結果 */}
+                {/* 面談結果 */}
                 <div className={`${styles.row_area} flex h-[70px] w-full items-center`}>
                   <div className="flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full `}>
-                      <span className={`${styles.title}`}>訪問結果</span>
+                      <span className={`${styles.title}`}>面談結果</span>
                       {!searchMode && (
                         <div
                           // data-text={`${selectedRowDataMeeting?.ban_reason ? selectedRowDataMeeting?.ban_reason : ""}`}
@@ -1745,6 +1884,71 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         ></div>
                       )}
                       {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
+
+                {/* 面談時_最上位職位 */}
+                <div className={`${styles.row_area} flex w-full items-center`}>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      {/* <span className={`${styles.title}`}>面談時_最上位職位</span> */}
+                      <div className={`${styles.title} flex flex-col ${styles.double_text}`}>
+                        <span className={``}>面談時_</span>
+                        <span className={``}>最上位職位</span>
+                      </div>
+                      {!searchMode && (
+                        <span className={`${styles.value}`}>
+                          {selectedRowDataMeeting &&
+                          selectedRowDataMeeting?.result_top_position_class &&
+                          mappingPositionClass[selectedRowDataMeeting.result_top_position_class]?.[language]
+                            ? mappingPositionClass[selectedRowDataMeeting.result_top_position_class]?.[language]
+                            : ""}
+                        </span>
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]"></div>
+                </div>
+
+                {/* 面談時_決裁者商談有無・面談時_同席依頼 */}
+                <div className={`${styles.row_area} flex w-full items-center`}>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      {/* <span className={`${styles.title}`}>面談時_決裁者商談有無</span> */}
+                      <div className={`${styles.title} flex flex-col ${styles.double_text}`}>
+                        <span className={``}>面談時_</span>
+                        <span className={``}>決裁者商談有無</span>
+                      </div>
+                      {!searchMode && (
+                        <span className={`${styles.value}`}>
+                          {selectedRowDataMeeting?.result_negotiate_decision_maker
+                            ? selectedRowDataMeeting?.result_negotiate_decision_maker
+                            : ""}
+                        </span>
+                      )}
+                      {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    {/* <div className={`${styles.title_box} flex h-full items-center`}></div> */}
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      {/* <span className={`${styles.title}`}>面談時_同席依頼</span> */}
+                      <div className={`${styles.title} flex flex-col ${styles.double_text}`}>
+                        <span className={``}>面談時_</span>
+                        <span className={``}>同席依頼</span>
+                      </div>
+                      {!searchMode && (
+                        <span className={`${styles.value}`}>
+                          {selectedRowDataMeeting?.meeting_participation_request
+                            ? selectedRowDataMeeting?.meeting_participation_request
+                            : ""}
+                        </span>
+                      )}
+                      {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -2832,7 +3036,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <div className={`${styles.title} flex flex-col text-[12px]`}>
+                    <div className={`${styles.title} flex flex-col text-[12px] ${styles.double_text}`}>
                       <span className={``}>製品分類</span>
                       <span className={``}>(大分類)</span>
                     </div>
@@ -2892,7 +3096,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <div className={`${styles.title} flex flex-col text-[12px]`}>
+                    <div className={`${styles.title} flex flex-col text-[12px] ${styles.double_text}`}>
                       <span className={``}>製品分類</span>
                       <span className={``}>(中分類)</span>
                     </div>
@@ -3056,11 +3260,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
               </div>
 
-              {/* ●訪問日・●訪問ﾀｲﾌﾟ サーチ */}
+              {/* ●面談日・●面談ﾀｲﾌﾟ サーチ */}
               <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title_search_mode}`}>●訪問日</span>
+                    <span className={`${styles.title_search_mode}`}>●面談日</span>
                     <DatePickerCustomInput
                       startDate={inputPlannedDate}
                       setStartDate={setInputPlannedDate}
@@ -3071,7 +3275,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title_search_mode}`}>●訪問ﾀｲﾌﾟ</span>
+                    <span className={`${styles.title_search_mode}`}>●面談ﾀｲﾌﾟ</span>
                     <select
                       className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
                       value={inputMeetingType}
@@ -3700,7 +3904,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 実施3・実施4 サーチ */}
-              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
+              {/* <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>実施商品3</span>
@@ -3727,10 +3931,10 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
-              </div>
+              </div> */}
 
               {/* 実施5 サーチ */}
-              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
+              {/* <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>実施商品5</span>
@@ -3747,7 +3951,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}></div>
                 </div>
-              </div>
+              </div> */}
 
               {/* 結果ｺﾒﾝﾄ サーチ */}
               {/* <div className={`${styles.row_area} ${styles.row_area_search_mode} flex h-[90px] w-full items-center`}> */}
@@ -3796,6 +4000,94 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <option value="用途・ニーズなし">用途・ニーズなし</option>
                       <option value="他(立ち上げ、サポート)">他(立ち上げ、サポート)</option>
                       <option value="その他">その他</option>
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 面談時_最上位職位 サーチ */}
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex h-[70px] w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full `}>
+                    {/* <span className={`${styles.title_search_mode}`}>面談時</span> */}
+                    <div className={`${styles.title_search_mode} flex flex-col ${styles.double_text}`}>
+                      <span className={``}>面談時_</span>
+                      <span className={``}>最上位職位</span>
+                    </div>
+                    <select
+                      className={`mr-auto h-full w-[100%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={inputResultTopPositionClass}
+                      onChange={(e) => {
+                        // if (e.target.value === "") return alert("訪問目的を選択してください");
+                        setInputResultTopPositionClass(e.target.value);
+                      }}
+                    >
+                      <option value=""></option>
+                      {optionsPositionsClass.map((classNum) => (
+                        <option key={classNum} value={`${classNum}`}>
+                          {getPositionClassName(classNum)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  {/* <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title_search_mode}`}>実施商品2</span>
+                    <input
+                      type="text"
+                      className={`${styles.input_box}`}
+                      placeholder=""
+                      value={inputResultPresentationProduct2}
+                      onChange={(e) => setInputResultPresentationProduct2(e.target.value)}
+                    />
+                  </div>
+                  <div className={`${styles.underline}`}></div> */}
+                </div>
+              </div>
+              {/* 面談時_決裁者商談有無・面談時_同席依頼 サーチ */}
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex h-[70px] w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full `}>
+                    <div className={`${styles.title_search_mode} flex flex-col ${styles.double_text}`}>
+                      <span className={``}>面談時_</span>
+                      <span className={``}>決裁者商談有無</span>
+                    </div>
+                    <select
+                      className={`mr-auto h-full w-[100%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={inputResultNegotiateDecisionMaker}
+                      onChange={(e) => {
+                        setInputResultNegotiateDecisionMaker(e.target.value);
+                      }}
+                    >
+                      {/* <option value="">選択してください</option> */}
+                      <option value=""></option>
+                      <option value="決裁者と未商談">決裁者と未商談</option>
+                      <option value="決裁者と商談済み">決裁者と商談済み</option>
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <div className={`${styles.title_search_mode} flex flex-col ${styles.double_text}`}>
+                      <span className={``}>面談時_</span>
+                      <span className={``}>同席依頼</span>
+                    </div>
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={inputMeetingParticipationRequest}
+                      onChange={(e) => {
+                        // if (e.target.value === "") return alert("活動タイプを選択してください");
+                        setInputMeetingParticipationRequest(e.target.value);
+                      }}
+                    >
+                      <option value=""></option>
+                      <option value="同席依頼無し">同席依頼無し</option>
+                      <option value="同席依頼済み 同席OK">同席依頼済み 同席OK</option>
+                      <option value="同席依頼済み 同席NG">同席依頼済み 同席NG</option>
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>

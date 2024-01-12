@@ -374,7 +374,7 @@ export const InsertNewMeetingModal = () => {
     // ユーザーの決算月から締め日を取得、決算つきが未設定の場合は現在の年と3月31日を設定
     const fiscalEndMonth = userProfileState?.customer_fiscal_end_month
       ? new Date(userProfileState.customer_fiscal_end_month)
-      : new Date(new Date().getFullYear(), 2, 31);
+      : new Date(new Date().getFullYear(), 2, 31); // 決算日が未設定なら3月31日に自動設定
     const closingDay = fiscalEndMonth.getDate(); //ユーザーの締め日
     fiscalEndMonthObjRef.current = fiscalEndMonth; //refに格納
     closingDayRef.current = closingDay; //refに格納
@@ -1834,10 +1834,12 @@ export const InsertNewMeetingModal = () => {
                         handleOpenTooltip({
                           e: e,
                           display: "top",
-                          content:
-                            "面談年月度は決算月の期末日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
-                          content2: "決算月が未設定の場合は、デフォルトで3月31日が決算月日として設定されます。",
-                          content3: "変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
+                          content: "面談年月度は決算日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
+                          content2: !!fiscalEndMonthObjRef.current
+                            ? `面談日を選択することで面談年月度は自動計算されるため入力は不要です。`
+                            : `決算日が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
+                          content3:
+                            "決算日の変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
                           marginTop: 57,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",

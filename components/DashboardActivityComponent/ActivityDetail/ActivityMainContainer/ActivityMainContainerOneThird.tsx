@@ -40,6 +40,7 @@ import { useQueryUnits } from "@/hooks/useQueryUnits";
 import { useQueryOffices } from "@/hooks/useQueryOffices";
 import { useQueryClient } from "@tanstack/react-query";
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
+import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMonth";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -97,7 +98,7 @@ const ActivityMainContainerOneThirdMemo = () => {
 
   const queryClient = useQueryClient();
   // useMutation
-  const { updateActivityFieldMutation } = useMutateActivity();
+  const { updateActivityFieldMutation, updateActivityMultipleFieldMutation } = useMutateActivity();
 
   // メディアクエリState
   // デスクトップモニター
@@ -797,6 +798,20 @@ const ActivityMainContainerOneThirdMemo = () => {
   };
   // ==================================== ✅ツールチップ✅ ====================================
 
+  // ================== 🌟ユーザーの決算月の締め日を初回マウント時に取得🌟 ==================
+  const fiscalEndMonthObjRef = useRef<Date | null>(null);
+  const closingDayRef = useRef<number | null>(null);
+  useEffect(() => {
+    // ユーザーの決算月から締め日を取得、決算つきが未設定の場合は現在の年と3月31日を設定
+    const fiscalEndMonth = userProfileState?.customer_fiscal_end_month
+      ? new Date(userProfileState.customer_fiscal_end_month)
+      : new Date(new Date().getFullYear(), 2, 31); // 決算日が未設定なら3月31日に自動設定
+    const closingDay = fiscalEndMonth.getDate(); //ユーザーの締め日
+    fiscalEndMonthObjRef.current = fiscalEndMonth; //refに格納
+    closingDayRef.current = closingDay; //refに格納
+  }, []);
+  // ================== ✅ユーザーの決算月の締め日を初回マウント時に取得✅ ==================
+
   // ================== 🌟シングルクリック、ダブルクリックイベント🌟 ==================
   // ダブルクリックで各フィールドごとに個別で編集
   const setTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -1093,6 +1108,47 @@ const ActivityMainContainerOneThirdMemo = () => {
         return;
       } else {
         console.log("日付チェック 新たな日付のためこのまま更新 newValue", newValue);
+        // フィールドがactivity_date（活動日）の場合は活動年月度も同時に更新
+        if (fieldName === "activity_date") {
+          if (!closingDayRef.current)
+            return toast.error("決算日データが確認できないため、活動を更新できませんでした...🙇‍♀️");
+          // if (!(newValue instanceof Date)) return toast.error("エラー：無効な日付です。");
+          type ExcludeKeys = "company_id" | "contact_id" | "activity_id"; // 除外するキー idはUPDATEすることは無いため
+          type ActivityFieldNamesForSelectedRowData = Exclude<keyof Activity_row_data, ExcludeKeys>;
+          type UpdateObject = {
+            fieldName: string;
+            fieldNameForSelectedRowData: ActivityFieldNamesForSelectedRowData;
+            newValue: any;
+          };
+
+          const fiscalYearMonth = calculateDateToYearMonth(new Date(newValue), closingDayRef.current);
+          console.log("新たに生成された年月度", fiscalYearMonth);
+
+          if (!fiscalYearMonth) return toast.error("日付の更新に失敗しました。");
+
+          const updatePayload = {
+            updateArray: [
+              {
+                fieldName: fieldName,
+                fieldNameForSelectedRowData: fieldNameForSelectedRowData,
+                newValue: !!newValue ? newValue : null,
+              },
+              {
+                fieldName: "activity_year_month",
+                fieldNameForSelectedRowData: "activity_year_month",
+                newValue: !!fiscalYearMonth ? fiscalYearMonth : null,
+              },
+            ] as UpdateObject[],
+            id: id,
+          };
+
+          // 入力変換確定状態でエンターキーが押された場合の処理
+          console.log("selectタグでUPDATE実行 updatePayload", updatePayload);
+          await updateActivityMultipleFieldMutation.mutateAsync(updatePayload);
+          originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
+          setIsEditModeField(null); // エディットモードを終了
+          return;
+        }
       }
     }
     // 入力値が現在のvalueと同じであれば更新は不要なため閉じてリターン null = null ''とnullもリターン textareaはnullの場合表示は空文字でされているため
@@ -1304,7 +1360,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                             required={true}
                             isFieldEditMode={true}
                             fieldEditModeBtnAreaPosition="right"
-                            isLoadingSendEvent={updateActivityFieldMutation.isLoading}
+                            isLoadingSendEvent={updateActivityMultipleFieldMutation.isLoading}
                             onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
                               if (!inputActivityDateForFieldEditMode) return alert("このデータは入力が必須です。");
                               const originalDateUTCString = selectedRowDataActivity?.activity_date
@@ -1319,8 +1375,8 @@ const ActivityMainContainerOneThirdMemo = () => {
                                 "オリジナル(UTC)",
                                 originalDateUTCString,
                                 "新たな値(Dateオブジェクト)",
-                                inputActivityDate,
-                                "新たな値.toISO(UTC)",
+                                inputActivityDateForFieldEditMode,
+                                "新たな値(Dateオブジェクト).toISOString()",
                                 newDateUTCString
                                 // "同じかチェック結果",
                                 // result
@@ -2196,7 +2252,9 @@ const ActivityMainContainerOneThirdMemo = () => {
                             ? selectedRowDataActivity?.call_careful_reason
                             : ""
                         }`}
-                        className={`${styles.value}`}
+                        className={`${styles.value} ${
+                          selectedRowDataActivity?.call_careful_reason ? `${styles.uneditable_field}` : ``
+                        }`}
                         // onMouseEnter={(e) => handleOpenTooltip(e, "right")}
                         // onMouseLeave={handleCloseTooltip}
                         onMouseEnter={(e) => {
@@ -2206,6 +2264,11 @@ const ActivityMainContainerOneThirdMemo = () => {
                         onMouseLeave={(e) => {
                           handleCloseTooltip();
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                        onClick={handleSingleClickField}
+                        onDoubleClick={(e) => {
+                          if (!selectedRowDataActivity) return;
+                          alert("「注意理由」は担当者画面から編集可能です。");
                         }}
                       >
                         {selectedRowDataActivity?.call_careful_reason

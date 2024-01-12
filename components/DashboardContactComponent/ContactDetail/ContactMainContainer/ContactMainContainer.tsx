@@ -3948,11 +3948,11 @@ const ContactMainContainerMemo: FC = () => {
                               />
                             )}
                             {/* エディットフィールド送信中ローディングスピナー */}
-                            {updateContactFieldMutation.isLoading && (
+                            {/* {updateContactFieldMutation.isLoading && (
                               <div className={`${styles.field_edit_mode_loading_area} ${styles.under_right}`}>
                                 <SpinnerComet w="22px" h="22px" s="3px" />
                               </div>
-                            )}
+                            )} */}
                             {/* エディットフィールド送信中ローディングスピナー */}
                             {updateContactFieldMutation.isLoading && (
                               <div className={`${styles.field_edit_mode_loading_area} ${styles.under_right}`}>

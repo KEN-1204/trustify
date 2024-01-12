@@ -30,9 +30,12 @@ export const columnNameToJapaneseMeeting = (columnName: string) => {
     case "personal_cell_phone":
       return "私用携帯";
       break;
-    case "email":
+    case "contact_email":
       return "Email";
       break;
+    // case "company_email":
+    //   return "Email(会社)";
+    //   break;
     case "position_name":
       return "役職名";
       break;
@@ -301,6 +304,9 @@ export const columnNameToJapaneseMeeting = (columnName: string) => {
       break;
     case "attendees_info":
       return "同席者";
+      break;
+    case "result_top_position_class":
+      return "最上位職位";
       break;
 
     default:

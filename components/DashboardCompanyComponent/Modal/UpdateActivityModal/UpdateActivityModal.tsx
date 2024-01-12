@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect, useState } from "react";
+import React, { Suspense, useEffect, useRef, useState } from "react";
 import styles from "./UpdateActivityModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -18,6 +18,10 @@ import { ErrorBoundary } from "react-error-boundary";
 import { FallbackSideTableSearchMember } from "../UpdateMeetingModal/SideTableSearchMember/FallbackSideTableSearchMember";
 import { SideTableSearchMember } from "../UpdateMeetingModal/SideTableSearchMember/SideTableSearchMember";
 import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
+import useStore from "@/store";
+import { ImInfo } from "react-icons/im";
+import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
+import { toHalfWidthAndSpace } from "@/utils/Helpers/toHalfWidthAndSpace";
 
 export const UpdateActivityModal = () => {
   const selectedRowDataActivity = useDashboardStore((state) => state.selectedRowDataActivity);
@@ -108,6 +112,9 @@ export const UpdateActivityModal = () => {
   // =======営業担当データここまで
   const [priority, setPriority] = useState("");
   const [activityYearMonth, setActivityYearMonth] = useState<number | null>(Number(activityYearMonthInitialValue));
+  // ユーザーの決算月と締め日を取得
+  const fiscalEndMonthObjRef = useRef<Date | null>(null);
+  const closingDayRef = useRef<number | null>(null);
 
   // const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
@@ -211,6 +218,54 @@ export const UpdateActivityModal = () => {
     setActivityYearMonth(_activity_year_month);
   }, []);
 
+  // 🌟ユーザーの決算月の締め日を初回マウント時に取得
+  useEffect(() => {
+    // ユーザーの決算月から締め日を取得、決算つきが未設定の場合は現在の年と3月31日を設定
+    const fiscalEndMonth = userProfileState?.customer_fiscal_end_month
+      ? new Date(userProfileState.customer_fiscal_end_month)
+      : new Date(new Date().getFullYear(), 2, 31);
+    const closingDay = fiscalEndMonth.getDate(); //ユーザーの締め日
+    fiscalEndMonthObjRef.current = fiscalEndMonth; //refに格納
+    closingDayRef.current = closingDay; //refに格納
+  }, []);
+
+  // ----------------------------- 🌟年月度自動計算🌟 -----------------------------
+  // 🌟結果面談日を更新したら面談年月度をユーザーの締め日に応じて更新するuseEffect
+  // ユーザーの財務サイクルに合わせて面談年月度を自動的に取得する関数(決算月の締め日の翌日を新たな月度の開始日とする)
+  useEffect(() => {
+    // 更新はresultDateの面談日(結果)で計算を行う
+    if (!activityDate || !closingDayRef.current) {
+      // setMeetingYearMonth(null);
+      setActivityYearMonth(
+        selectedRowDataActivity?.activity_year_month ? selectedRowDataActivity?.activity_year_month : null
+      );
+      return;
+    }
+    // 面談予定日の年と日を取得
+    let year = activityDate.getFullYear(); // 例: 2023
+    let month = activityDate.getMonth() + 1; // getMonth()は0から11で返されるため、+1して1から12に調整
+
+    console.log("決算月", fiscalEndMonthObjRef.current);
+    console.log("締め日", closingDayRef.current);
+    console.log("activityDate", activityDate);
+    console.log("year", year);
+    console.log("month", month);
+
+    // 面談日の締め日の翌日以降の場合、次の月度とみなす
+    if (activityDate.getDate() > closingDayRef.current) {
+      month += 1;
+      if (month > 12) {
+        month = 1;
+        year += 1;
+      }
+    }
+    // 年月度を6桁の数値で表現
+    const fiscalYearMonth = year * 100 + month;
+    console.log("fiscalYearMonth", fiscalYearMonth);
+    setActivityYearMonth(fiscalYearMonth);
+  }, [activityDate]);
+  // ----------------------------- ✅年月度自動計算✅ -----------------------------
+
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
     if (loadingGlobalState) return;
@@ -296,108 +351,166 @@ export const UpdateActivityModal = () => {
   };
   // ------------------------ ✅更新実行✅ ------------------------
 
-  // 全角文字を半角に変換する関数
-  const toHalfWidth = (strVal: string) => {
-    // 全角文字コードの範囲は65281 - 65374、スペースの全角文字コードは12288
-    return strVal.replace(/[！-～]/g, (match) => {
-      return String.fromCharCode(match.charCodeAt(0) - 0xfee0);
-    });
-    // .replace(/　/g, " "); // 全角スペースを半角スペースに
-  };
-  const toHalfWidthAndSpace = (strVal: string) => {
-    // 全角文字コードの範囲は65281 - 65374、スペースの全角文字コードは12288
-    return strVal
-      .replace(/[！-～]/g, (match) => {
-        return String.fromCharCode(match.charCodeAt(0) - 0xfee0);
-      })
-      .replace(/　/g, " "); // 全角スペースを半角スペースに
-  };
-
-  // 昭和や平成、令和の元号を西暦に変換する
-  // const convertJapaneseEraToWesternYear = (value: string) => {
-  //   const eraPatterns = [
-  //     { era: "昭和", startYear: 1925 },
-  //     { era: "平成", startYear: 1988 },
-  //     { era: "令和", startYear: 2018 },
-  //   ];
-
-  //   for (let pattern of eraPatterns) {
-  //     if (value.includes(pattern.era)) {
-  //       const year = parseInt(value.replace(pattern.era, ""), 10);
-  //       if (!isNaN(year)) {
-  //         return pattern.startYear + year;
-  //       }
-  //     }
-  //   }
-  //   return value;
+  // // 全角文字を半角に変換する関数
+  // const toHalfWidth = (strVal: string) => {
+  //   // 全角文字コードの範囲は65281 - 65374、スペースの全角文字コードは12288
+  //   return strVal.replace(/[！-～]/g, (match) => {
+  //     return String.fromCharCode(match.charCodeAt(0) - 0xfee0);
+  //   });
+  //   // .replace(/　/g, " "); // 全角スペースを半角スペースに
+  // };
+  // const toHalfWidthAndSpace = (strVal: string) => {
+  //   // 全角文字コードの範囲は65281 - 65374、スペースの全角文字コードは12288
+  //   return strVal
+  //     .replace(/[！-～]/g, (match) => {
+  //       return String.fromCharCode(match.charCodeAt(0) - 0xfee0);
+  //     })
+  //     .replace(/　/g, " "); // 全角スペースを半角スペースに
   // };
 
-  type Era = "昭和" | "平成" | "令和";
-  const eras = {
-    昭和: 1925, // 昭和の開始年 - 1
-    平成: 1988, // 平成の開始年 - 1
-    令和: 2018, // 令和の開始年 - 1
+  // // 昭和や平成、令和の元号を西暦に変換する
+  // // const convertJapaneseEraToWesternYear = (value: string) => {
+  // //   const eraPatterns = [
+  // //     { era: "昭和", startYear: 1925 },
+  // //     { era: "平成", startYear: 1988 },
+  // //     { era: "令和", startYear: 2018 },
+  // //   ];
+
+  // //   for (let pattern of eraPatterns) {
+  // //     if (value.includes(pattern.era)) {
+  // //       const year = parseInt(value.replace(pattern.era, ""), 10);
+  // //       if (!isNaN(year)) {
+  // //         return pattern.startYear + year;
+  // //       }
+  // //     }
+  // //   }
+  // //   return value;
+  // // };
+
+  // type Era = "昭和" | "平成" | "令和";
+  // const eras = {
+  //   昭和: 1925, // 昭和の開始年 - 1
+  //   平成: 1988, // 平成の開始年 - 1
+  //   令和: 2018, // 令和の開始年 - 1
+  // };
+  // // 昭和や平成、令和の元号を西暦に変換する 例："平成4年12月" を "1992年12月" に変換
+  // function matchEraToYear(value: string): string {
+  //   const pattern = /(?<era>昭和|平成|令和)(?<year>\d+)(?:年)?(?<month>\d+)?/;
+  //   const match = pattern.exec(value);
+
+  //   if (!match) return value; // 元号の形式でなければ元の文字列をそのまま返す
+
+  //   const era: Era = match.groups?.era as Era;
+  //   const year = eras[era] + parseInt(match.groups?.year || "0", 10);
+  //   const month = match.groups?.month ? `${match.groups?.month}月` : "";
+
+  //   return `${year}年${month}`;
+  // }
+
+  // // 全角を半角に変換する関数
+  // function zenkakuToHankaku(str: string) {
+  //   const zen = ["０", "１", "２", "３", "４", "５", "６", "７", "８", "９"];
+  //   const han = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+
+  //   for (let i = 0; i < zen.length; i++) {
+  //     const regex = new RegExp(zen[i], "g");
+  //     str = str.replace(regex, han[i]);
+  //   }
+
+  //   return str;
+  // }
+
+  // // 資本金 100万円の場合は100、18億9,190万円は189190、12,500,000円は1250、のように変換する方法
+  // function convertToNumber(inputString: string) {
+  //   // 全角数字を半角に変換
+  //   inputString = zenkakuToHankaku(inputString);
+
+  //   // 「億」「万」「円」がすべて含まれていなければ変換をスキップ
+  //   if (
+  //     !inputString.includes("億") &&
+  //     !inputString.includes("万") &&
+  //     !inputString.includes("円") &&
+  //     !inputString.includes(",")
+  //   ) {
+  //     return inputString;
+  //   }
+
+  //   // 億、万、円で分けてそれぞれの数値を取得
+  //   const billion = (inputString.includes("億") ? parseInt(inputString.split("億")[0].replace(/,/g, ""), 10) : 0) || 0;
+  //   const million =
+  //     (inputString.includes("万") && !inputString.includes("億")
+  //       ? parseInt(inputString.split("万")[0].replace(/,/g, ""), 10)
+  //       : inputString.includes("億") && inputString.includes("万")
+  //       ? parseInt(inputString.split("億")[1].split("万")[0].replace(/,/g, ""), 10)
+  //       : 0) || 0;
+  //   const thousand =
+  //     (!inputString.includes("万") && !inputString.includes("億")
+  //       ? Math.floor(parseInt(inputString.replace(/,/g, "").replace("円", ""), 10) / 10000)
+  //       : 0) || 0;
+
+  //   // 最終的な数値を計算
+  //   const total = billion * 10000 + million + thousand;
+
+  //   return total;
+  // }
+
+  // ================================ ツールチップ ================================
+  type TooltipParams = {
+    e: React.MouseEvent<HTMLElement, MouseEvent>;
+    display: string;
+    content: string;
+    content2?: string | undefined | null;
+    content3?: string | undefined | null;
+    marginTop?: number;
+    itemsPosition?: string;
+    whiteSpace?: "normal" | "pre" | "nowrap" | "pre-wrap" | "pre-line" | "break-spaces" | undefined;
   };
-  // 昭和や平成、令和の元号を西暦に変換する 例："平成4年12月" を "1992年12月" に変換
-  function matchEraToYear(value: string): string {
-    const pattern = /(?<era>昭和|平成|令和)(?<year>\d+)(?:年)?(?<month>\d+)?/;
-    const match = pattern.exec(value);
-
-    if (!match) return value; // 元号の形式でなければ元の文字列をそのまま返す
-
-    const era: Era = match.groups?.era as Era;
-    const year = eras[era] + parseInt(match.groups?.year || "0", 10);
-    const month = match.groups?.month ? `${match.groups?.month}月` : "";
-
-    return `${year}年${month}`;
-  }
-
-  // 全角を半角に変換する関数
-  function zenkakuToHankaku(str: string) {
-    const zen = ["０", "１", "２", "３", "４", "５", "６", "７", "８", "９"];
-    const han = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
-
-    for (let i = 0; i < zen.length; i++) {
-      const regex = new RegExp(zen[i], "g");
-      str = str.replace(regex, han[i]);
-    }
-
-    return str;
-  }
-
-  // 資本金 100万円の場合は100、18億9,190万円は189190、12,500,000円は1250、のように変換する方法
-  function convertToNumber(inputString: string) {
-    // 全角数字を半角に変換
-    inputString = zenkakuToHankaku(inputString);
-
-    // 「億」「万」「円」がすべて含まれていなければ変換をスキップ
-    if (
-      !inputString.includes("億") &&
-      !inputString.includes("万") &&
-      !inputString.includes("円") &&
-      !inputString.includes(",")
-    ) {
-      return inputString;
-    }
-
-    // 億、万、円で分けてそれぞれの数値を取得
-    const billion = (inputString.includes("億") ? parseInt(inputString.split("億")[0].replace(/,/g, ""), 10) : 0) || 0;
-    const million =
-      (inputString.includes("万") && !inputString.includes("億")
-        ? parseInt(inputString.split("万")[0].replace(/,/g, ""), 10)
-        : inputString.includes("億") && inputString.includes("万")
-        ? parseInt(inputString.split("億")[1].split("万")[0].replace(/,/g, ""), 10)
-        : 0) || 0;
-    const thousand =
-      (!inputString.includes("万") && !inputString.includes("億")
-        ? Math.floor(parseInt(inputString.replace(/,/g, "").replace("円", ""), 10) / 10000)
-        : 0) || 0;
-
-    // 最終的な数値を計算
-    const total = billion * 10000 + million + thousand;
-
-    return total;
-  }
+  const modalContainerRef = useRef<HTMLDivElement | null>(null);
+  const hoveredItemPosModal = useStore((state) => state.hoveredItemPosModal);
+  const setHoveredItemPosModal = useStore((state) => state.setHoveredItemPosModal);
+  // const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
+  const handleOpenTooltip = ({
+    e,
+    display,
+    content,
+    content2,
+    content3,
+    marginTop,
+    itemsPosition = "center",
+    whiteSpace,
+  }: TooltipParams) => {
+    // モーダルコンテナのleftを取得する
+    if (!modalContainerRef.current) return;
+    const containerLeft = modalContainerRef.current?.getBoundingClientRect().left;
+    const containerTop = modalContainerRef.current?.getBoundingClientRect().top;
+    // ホバーしたアイテムにツールチップを表示
+    const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+    // const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
+    //   ? ((e.target as HTMLDivElement).dataset.text2 as string)
+    //   : "";
+    // const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
+    //   ? ((e.target as HTMLDivElement).dataset.text3 as string)
+    //   : "";
+    setHoveredItemPosModal({
+      x: x - containerLeft,
+      y: y - containerTop,
+      itemWidth: width,
+      itemHeight: height,
+      content: content,
+      content2: content2,
+      content3: content3,
+      display: display,
+      marginTop: marginTop,
+      itemsPosition: itemsPosition,
+      whiteSpace: whiteSpace,
+    });
+  };
+  // ============================================================================================
+  // ================================ ツールチップを非表示 ================================
+  const handleCloseTooltip = () => {
+    setHoveredItemPosModal(null);
+  };
+  // ============================================================================================
 
   console.log("活動作成モーダル selectedRowDataActivity", selectedRowDataActivity);
 
@@ -409,7 +522,10 @@ export const UpdateActivityModal = () => {
           <SpinnerIDS scale={"scale-[0.5]"} />
         </div>
       )} */}
-      <div className={`${styles.container} fade03`}>
+      <div className={`${styles.container} fade03`} ref={modalContainerRef}>
+        {/* ツールチップ */}
+        {hoveredItemPosModal && <TooltipModal />}
+        {/* ローディングオーバーレイ */}
         {loadingGlobalState && (
           <div className={`${styles.loading_overlay_modal} `}>
             {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
@@ -831,11 +947,35 @@ export const UpdateActivityModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>活動年月度</span>
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>活動年月度</span> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title}  ${styles.required_title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          // content: "面談日(結果)を選択することで自動的に面談年月度は計算されます。",
+                          content: "活動年月度は決算日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
+                          content2: !!fiscalEndMonthObjRef.current
+                            ? `活動日を選択することで活動年月度は自動計算されるため入力は不要です。`
+                            : `決算日が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
+                          // content3: "決算月が未設定の場合は、デフォルトで3月31日が決算月日として設定されます。",
+                          content3:
+                            "決算日の変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
+                          marginTop: 57,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <span className={`mr-[6px]`}>活動年月度</span>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+                    </div>
                     <input
                       type="number"
                       min="0"
-                      className={`${styles.input_box}`}
+                      className={`${styles.input_box} pointer-events-none`}
                       placeholder='"202109" や "202312" などを入力'
                       value={activityYearMonth === null ? "" : activityYearMonth}
                       onChange={(e) => {

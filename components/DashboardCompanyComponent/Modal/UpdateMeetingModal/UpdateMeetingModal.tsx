@@ -727,6 +727,7 @@ export const UpdateMeetingModal = () => {
     }
   }, [resultStartTime, resultEndTime]);
 
+  // ----------------------------- 🌟年月度自動計算🌟 -----------------------------
   // 🌟ユーザーの決算月の締め日を初回マウント時に取得
   useEffect(() => {
     // ユーザーの決算月から締め日を取得、決算つきが未設定の場合は現在の年と3月31日を設定
@@ -774,6 +775,7 @@ export const UpdateMeetingModal = () => {
     // const meetingYearMonthUpdatedValue = `${year}${month < 10 ? "0" + month : month}`; // 月が1桁の場合は先頭に0を追加
     // setMeetingYearMonth(Number(meetingYearMonthUpdatedValue));
   }, [resultDate]);
+  // ----------------------------- ✅年月度自動計算✅ -----------------------------
 
   // 🌟キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
@@ -821,6 +823,19 @@ export const UpdateMeetingModal = () => {
       return alert("「実施商品を最低1つ入力してください。");
     }
 
+    // 新たな紹介ずみ商品id配列に、元々の紹介ずみ商品配列の中で含まれていない商品idの数を取得し、削除が必要な数値をパラメータに渡す
+    const resultProducts = new Set(resultProductsArrayExcludeNull);
+    const _deleteProductCount = !!selectedRowDataMeeting.introduced_products_names?.length
+      ? selectedRowDataMeeting.introduced_products_names.filter(
+          (product) => !resultProducts.has(product.introduced_product_id)
+        ).length
+      : 0;
+
+    // 実施1~5までを割り当てる用のnullを除いたproductオブジェクトの配列
+    const resultProductObjArrayExcludeNull: IntroducedProductsName[] = resultPresentationProductsArray.filter(
+      (obj): obj is IntroducedProductsName => obj !== null
+    );
+
     // 同席者のcontact_idのみのuuidの配列を生成
     // const attendeeIdsArray = selectedAttendeesArray
     //   .map((attendee) => attendee.contact_id)
@@ -828,6 +843,12 @@ export const UpdateMeetingModal = () => {
     const attendeeIdsArray = selectedAttendeesArray
       .map((attendee) => attendee.attendee_id)
       .filter((id) => id !== null && id !== "" && id !== undefined && typeof id === "string");
+
+    // 新たな紹介ずみ商品id配列に、元々の紹介ずみ商品配列の中で含まれていない商品idの数を取得し、削除が必要な数値をパラメータに渡す
+    const attendees = new Set(attendeeIdsArray);
+    const _deleteAttendeeCount = !!selectedRowDataMeeting.attendees_info?.length
+      ? selectedRowDataMeeting.attendees_info.filter((attendee) => !attendees.has(attendee.attendee_id)).length
+      : 0;
 
     // return console.log("リターン", resultProductsArrayExcludeNull);
 
@@ -847,10 +868,6 @@ export const UpdateMeetingModal = () => {
     //   departmentId &&
     //   departmentDataArray.find((obj) => obj.id === departmentId)?.department_name;
     // const officeName = officeDataArray && officeId && officeDataArray.find((obj) => obj.id === officeId)?.office_name;
-
-    console.log("memberObj", memberObj);
-    console.log("departmentName", departmentName);
-    console.log("officeName", officeName);
 
     let newMeeting;
     try {
@@ -897,75 +914,88 @@ export const UpdateMeetingModal = () => {
         // result_presentation_product3: resultPresentationProduct3 ? resultPresentationProduct3 : null,
         // result_presentation_product4: resultPresentationProduct4 ? resultPresentationProduct4 : null,
         // result_presentation_product5: resultPresentationProduct5 ? resultPresentationProduct5 : null,
+        // result_presentation_product1:
+        //   resultProductsArrayExcludeNull.length >= 1 &&
+        //   productIdToNameMap[resultProductsArrayExcludeNull[0]]?.inside_short_name
+        //     ? productIdToNameMap[resultProductsArrayExcludeNull[0]]?.inside_short_name
+        //     : (productIdToNameMap[resultProductsArrayExcludeNull[0]]?.product_name ?? "") +
+        //       (productIdToNameMap[resultProductsArrayExcludeNull[0]]?.outside_short_name
+        //         ? productIdToNameMap[resultProductsArrayExcludeNull[0]]?.outside_short_name
+        //         : "")
+        //     ? (productIdToNameMap[resultProductsArrayExcludeNull[0]]?.product_name ?? "") +
+        //       (productIdToNameMap[resultProductsArrayExcludeNull[0]]?.outside_short_name
+        //         ? productIdToNameMap[resultProductsArrayExcludeNull[0]]?.outside_short_name
+        //         : "")
+        //     : null,
         result_presentation_product1:
-          resultProductsArrayExcludeNull.length >= 1 &&
-          productIdToNameMap[resultProductsArrayExcludeNull[0]]?.inside_short_name
-            ? productIdToNameMap[resultProductsArrayExcludeNull[0]]?.inside_short_name
-            : (productIdToNameMap[resultProductsArrayExcludeNull[0]]?.product_name ?? "") +
-              (productIdToNameMap[resultProductsArrayExcludeNull[0]]?.outside_short_name
-                ? productIdToNameMap[resultProductsArrayExcludeNull[0]]?.outside_short_name
+          resultProductObjArrayExcludeNull.length >= 1 &&
+          resultProductObjArrayExcludeNull[0]?.introduced_inside_short_name
+            ? resultProductObjArrayExcludeNull[0]?.introduced_inside_short_name
+            : (resultProductObjArrayExcludeNull[0]?.introduced_product_name ?? "") +
+              (resultProductObjArrayExcludeNull[0]?.introduced_outside_short_name
+                ? resultProductObjArrayExcludeNull[0]?.introduced_outside_short_name
                 : "")
-            ? (productIdToNameMap[resultProductsArrayExcludeNull[0]]?.product_name ?? "") +
-              (productIdToNameMap[resultProductsArrayExcludeNull[0]]?.outside_short_name
-                ? productIdToNameMap[resultProductsArrayExcludeNull[0]]?.outside_short_name
+            ? (resultProductObjArrayExcludeNull[0]?.introduced_product_name ?? "") +
+              (resultProductObjArrayExcludeNull[0]?.introduced_outside_short_name
+                ? resultProductObjArrayExcludeNull[0]?.introduced_outside_short_name
                 : "")
             : null,
         result_presentation_product2:
-          resultProductsArrayExcludeNull.length >= 2 &&
-          productIdToNameMap[resultProductsArrayExcludeNull[1]]?.inside_short_name
-            ? productIdToNameMap[resultProductsArrayExcludeNull[1]]?.inside_short_name
-            : (productIdToNameMap[resultProductsArrayExcludeNull[1]]?.product_name ?? "") +
-              (productIdToNameMap[resultProductsArrayExcludeNull[1]]?.outside_short_name
-                ? productIdToNameMap[resultProductsArrayExcludeNull[1]]?.outside_short_name
+          resultProductObjArrayExcludeNull.length >= 2 &&
+          resultProductObjArrayExcludeNull[1]?.introduced_inside_short_name
+            ? resultProductObjArrayExcludeNull[1]?.introduced_inside_short_name
+            : (resultProductObjArrayExcludeNull[1]?.introduced_product_name ?? "") +
+              (resultProductObjArrayExcludeNull[1]?.introduced_outside_short_name
+                ? resultProductObjArrayExcludeNull[1]?.introduced_outside_short_name
                 : "")
-            ? (productIdToNameMap[resultProductsArrayExcludeNull[1]]?.product_name ?? "") +
-              (productIdToNameMap[resultProductsArrayExcludeNull[1]]?.outside_short_name
-                ? productIdToNameMap[resultProductsArrayExcludeNull[1]]?.outside_short_name
+            ? (resultProductObjArrayExcludeNull[1]?.introduced_product_name ?? "") +
+              (resultProductObjArrayExcludeNull[1]?.introduced_outside_short_name
+                ? resultProductObjArrayExcludeNull[1]?.introduced_outside_short_name
                 : "")
             : null,
         result_presentation_product3:
-          resultProductsArrayExcludeNull.length >= 3 &&
-          productIdToNameMap[resultProductsArrayExcludeNull[2]]?.inside_short_name
-            ? productIdToNameMap[resultProductsArrayExcludeNull[2]]?.inside_short_name
-            : (productIdToNameMap[resultProductsArrayExcludeNull[2]]?.product_name ?? "") +
-              (productIdToNameMap[resultProductsArrayExcludeNull[2]]?.outside_short_name
-                ? productIdToNameMap[resultProductsArrayExcludeNull[2]]?.outside_short_name
+          resultProductObjArrayExcludeNull.length >= 3 &&
+          resultProductObjArrayExcludeNull[2]?.introduced_inside_short_name
+            ? resultProductObjArrayExcludeNull[2]?.introduced_inside_short_name
+            : (resultProductObjArrayExcludeNull[2]?.introduced_product_name ?? "") +
+              (resultProductObjArrayExcludeNull[2]?.introduced_outside_short_name
+                ? resultProductObjArrayExcludeNull[2]?.introduced_outside_short_name
                 : "")
-            ? (productIdToNameMap[resultProductsArrayExcludeNull[2]]?.product_name ?? "") +
-              (productIdToNameMap[resultProductsArrayExcludeNull[2]]?.outside_short_name
-                ? productIdToNameMap[resultProductsArrayExcludeNull[2]]?.outside_short_name
+            ? (resultProductObjArrayExcludeNull[2]?.introduced_product_name ?? "") +
+              (resultProductObjArrayExcludeNull[2]?.introduced_outside_short_name
+                ? resultProductObjArrayExcludeNull[2]?.introduced_outside_short_name
                 : "")
             : null,
         result_presentation_product4:
-          resultProductsArrayExcludeNull.length >= 4 &&
-          productIdToNameMap[resultProductsArrayExcludeNull[3]]?.inside_short_name
-            ? productIdToNameMap[resultProductsArrayExcludeNull[3]]?.inside_short_name
-            : (productIdToNameMap[resultProductsArrayExcludeNull[3]]?.product_name ?? "") +
-              (productIdToNameMap[resultProductsArrayExcludeNull[3]]?.outside_short_name
-                ? productIdToNameMap[resultProductsArrayExcludeNull[3]]?.outside_short_name
+          resultProductObjArrayExcludeNull.length >= 4 &&
+          resultProductObjArrayExcludeNull[3]?.introduced_inside_short_name
+            ? resultProductObjArrayExcludeNull[3]?.introduced_inside_short_name
+            : (resultProductObjArrayExcludeNull[3]?.introduced_product_name ?? "") +
+              (resultProductObjArrayExcludeNull[3]?.introduced_outside_short_name
+                ? resultProductObjArrayExcludeNull[3]?.introduced_outside_short_name
                 : "")
-            ? (productIdToNameMap[resultProductsArrayExcludeNull[3]]?.product_name ?? "") +
-              (productIdToNameMap[resultProductsArrayExcludeNull[3]]?.outside_short_name
-                ? productIdToNameMap[resultProductsArrayExcludeNull[3]]?.outside_short_name
+            ? (resultProductObjArrayExcludeNull[3]?.introduced_product_name ?? "") +
+              (resultProductObjArrayExcludeNull[3]?.introduced_outside_short_name
+                ? resultProductObjArrayExcludeNull[3]?.introduced_outside_short_name
                 : "")
             : null,
         result_presentation_product5:
-          resultProductsArrayExcludeNull.length >= 5 &&
-          productIdToNameMap[resultProductsArrayExcludeNull[4]]?.inside_short_name
-            ? productIdToNameMap[resultProductsArrayExcludeNull[4]]?.inside_short_name
-            : (productIdToNameMap[resultProductsArrayExcludeNull[4]]?.product_name ?? "") +
-              (productIdToNameMap[resultProductsArrayExcludeNull[4]]?.outside_short_name
-                ? productIdToNameMap[resultProductsArrayExcludeNull[4]]?.outside_short_name
+          resultProductObjArrayExcludeNull.length >= 5 &&
+          resultProductObjArrayExcludeNull[4]?.introduced_inside_short_name
+            ? resultProductObjArrayExcludeNull[4]?.introduced_inside_short_name
+            : (resultProductObjArrayExcludeNull[4]?.introduced_product_name ?? "") +
+              (resultProductObjArrayExcludeNull[4]?.introduced_outside_short_name
+                ? resultProductObjArrayExcludeNull[4]?.introduced_outside_short_name
                 : "")
-            ? (productIdToNameMap[resultProductsArrayExcludeNull[4]]?.product_name ?? "") +
-              (productIdToNameMap[resultProductsArrayExcludeNull[4]]?.outside_short_name
-                ? productIdToNameMap[resultProductsArrayExcludeNull[4]]?.outside_short_name
+            ? (resultProductObjArrayExcludeNull[4]?.introduced_product_name ?? "") +
+              (resultProductObjArrayExcludeNull[4]?.introduced_outside_short_name
+                ? resultProductObjArrayExcludeNull[4]?.introduced_outside_short_name
                 : "")
             : null,
         result_category: !!resultCategory ? resultCategory : null,
         result_summary: resultSummary ? resultSummary : null,
         result_negotiate_decision_maker: resultNegotiateDecisionMaker ? resultNegotiateDecisionMaker : null,
-        result_top_position_class: resultNegotiateDecisionMaker ? parseInt(resultNegotiateDecisionMaker, 10) : null,
+        result_top_position_class: resultTopPositionClass ? parseInt(resultTopPositionClass, 10) : null,
         pre_meeting_participation_request: preMeetingParticipationRequest ? preMeetingParticipationRequest : null,
         meeting_participation_request: meetingParticipationRequest ? meetingParticipationRequest : null,
         meeting_department: departmentName ? departmentName : null,
@@ -977,6 +1007,8 @@ export const UpdateMeetingModal = () => {
         meeting_year_month: meetingYearMonth ? meetingYearMonth : null,
         product_ids: resultProductsArrayExcludeNull,
         attendee_ids: attendeeIdsArray,
+        delete_product_count: _deleteProductCount,
+        delete_attendee_count: _deleteAttendeeCount,
       };
     } catch (e: any) {
       console.error("エラー", e);
@@ -2032,10 +2064,14 @@ export const UpdateMeetingModal = () => {
                         handleOpenTooltip({
                           e: e,
                           display: "top",
-                          content: "面談日(結果)を選択することで自動的に面談年月度は計算されます。",
-                          content2:
-                            "面談年月度は決算月の期末日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
-                          content3: "決算月が未設定の場合は、デフォルトで3月31日が決算月日として設定されます。",
+                          // content: "面談日(結果)を選択することで自動的に面談年月度は計算されます。",
+                          content: "面談年月度は決算日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
+                          content2: !!fiscalEndMonthObjRef.current
+                            ? `面談日を選択することで面談年月度は自動計算されるため入力は不要です。`
+                            : `決算日が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
+                          // content3: "決算月が未設定の場合は、デフォルトで3月31日が決算月日として設定されます。",
+                          content3:
+                            "決算日の変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
                           marginTop: 57,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",
@@ -2387,6 +2423,7 @@ export const UpdateMeetingModal = () => {
                                 introduced_outside_short_name: null,
                                 introduced_inside_short_name: null,
                                 introduced_unit_price: null,
+                                introduced_product_priority: null,
                               };
                               newResultPresentationProducts[index >= 1 ? index * 2 : index] = newOtherObj;
                             }
@@ -2404,6 +2441,7 @@ export const UpdateMeetingModal = () => {
                                 introduced_outside_short_name: findProductObj.outside_short_name,
                                 introduced_inside_short_name: findProductObj.inside_short_name,
                                 introduced_unit_price: findProductObj.unit_price,
+                                introduced_product_priority: null,
                               };
                               newResultPresentationProducts[index >= 1 ? index * 2 : index] = newProductObj;
                             }
@@ -2591,6 +2629,7 @@ export const UpdateMeetingModal = () => {
                                 introduced_outside_short_name: null,
                                 introduced_inside_short_name: null,
                                 introduced_unit_price: null,
+                                introduced_product_priority: null,
                               };
                               newResultPresentationProducts[index >= 1 ? index * 2 + 1 : index + 1] = newOtherObj;
                             }
@@ -2608,6 +2647,7 @@ export const UpdateMeetingModal = () => {
                                 introduced_outside_short_name: findProductObj.outside_short_name,
                                 introduced_inside_short_name: findProductObj.inside_short_name,
                                 introduced_unit_price: findProductObj.unit_price,
+                                introduced_product_priority: null,
                               };
                               newResultPresentationProducts[index >= 1 ? index * 2 + 1 : index + 1] = newProductObj;
                             }

@@ -127,7 +127,13 @@ const meetingColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
-  // 同席者カラム
+  // 最上位職位
+  {
+    columnName: "result_top_position_class",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
   {
     columnName: "result_negotiate_decision_maker",
     columnWidth: "100px",
@@ -267,12 +273,24 @@ const meetingColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
+  // {
+  //   columnName: "email",
+  //   columnWidth: "100px",
+  //   isFrozen: false,
+  //   isOverflow: false,
+  // },
   {
-    columnName: "email",
+    columnName: "contact_email",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
   },
+  // {
+  //   columnName: "company_email",
+  //   columnWidth: "100px",
+  //   isFrozen: false,
+  //   isOverflow: false,
+  // },
   {
     columnName: "extension",
     columnWidth: "100px",

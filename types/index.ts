@@ -828,6 +828,7 @@ export type IntroducedProductsName = {
   introduced_outside_short_name: string | null;
   introduced_inside_short_name: string | null;
   introduced_unit_price: number | null;
+  introduced_product_priority: number | null;
 };
 export type IntroducedProductsNames = IntroducedProductsName[];
 // type IntroducedProductsNames = string[];
@@ -1817,4 +1818,7 @@ export type ResultMeetingWithProductsAttendees = {
   // 実施商品テーブル用と、同席者テーブル用
   product_ids: (string | null)[];
   attendee_ids: (string | null)[];
+  // 紹介済み商品配列と同席者配列で削除が必要な個数
+  delete_product_count: number | null;
+  delete_attendee_count: number | null;
 };

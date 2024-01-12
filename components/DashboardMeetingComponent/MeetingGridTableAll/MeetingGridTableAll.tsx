@@ -2484,6 +2484,7 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
         if (!value) return value;
         break;
 
+      // 時間関連
       case "planned_start_time":
       case "result_start_time":
       case "result_end_time":
@@ -2498,11 +2499,13 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
         }
         break;
 
+      // フラグ関連
       case "planned_appoint_check_flag":
         // if (!value) return value;
         return flagMapping[columnName][String(value)];
         break;
 
+      // 日付関連
       case "planned_date":
       case "result_date":
       case "meeting_created_at":
@@ -2526,6 +2529,7 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
 
       //職位
       case "position_class":
+      case "result_top_position_class":
         if (!value) return null;
         const positionTitle = mappingPositionClass[value as number]?.[language];
         return positionTitle || value.toString();
