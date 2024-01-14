@@ -1,41 +1,50 @@
 // 値引率の半角変換とパーセント記号の除去
 
-export function normalizeDiscountRate(input: string) {
+import { zenkakuToHankaku } from "./zenkakuToHankaku";
+
+export function normalizeDiscountRate(inputString: string) {
+  console.log("inputString", inputString);
   // 全角数字を半角数字に変換
   const fullWidthToHalfWidth = (str: string) =>
     str.replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0));
 
+  inputString = fullWidthToHalfWidth(inputString);
+  // let inputString = fullWidthToHalfWidth(input);
+  console.log("inputString", inputString);
+
   // 数字、小数点、パーセント記号以外を除去 *1
-  let sanitizedInput = input.replace(/[^\d.%％]/g, "");
+  inputString = inputString.replace(/[^\d.%％]/g, "");
+  console.log("inputString", inputString);
 
   // 小数点が2つ以上含まれている場合は無効な値として扱う
-  if ((sanitizedInput.match(/\./g) || []).length > 1) {
+  if ((inputString.match(/\./g) || []).length > 1) {
     return "";
   }
 
-  sanitizedInput = fullWidthToHalfWidth(sanitizedInput);
+  // inputString = fullWidthToHalfWidth(inputString);
 
   // 小数点が先頭にある場合、0を追加
-  if (sanitizedInput.startsWith(".")) {
-    sanitizedInput = "0" + sanitizedInput;
+  if (inputString.startsWith(".")) {
+    inputString = "0" + inputString;
   }
 
   // // 全角数字を半角に変換し、パーセント記号を取り除く
-  //     return sanitizedInput.replace(/[%％]/g, "");
+  //     return inputString.replace(/[%％]/g, "");
 
   // パーセント記号の処理
-  const hasPercent = /[%％]/.test(sanitizedInput);
+  const hasPercent = /[%％]/.test(inputString);
   if (hasPercent) {
-    sanitizedInput = sanitizedInput.replace(/[%％]/g, "");
+    inputString = inputString.replace(/[%％]/g, "");
   }
 
   // パーセント記号がない場合は、半角パーセントを追加
   //   if (!hasPercent) {
-  //     sanitizedInput += "%";
+  //     inputString += "%";
   //   }
-  sanitizedInput += "%";
+  console.log("inputString", inputString);
+  inputString += "%";
 
-  return sanitizedInput;
+  return inputString;
 }
 
 // 使用例
@@ -46,11 +55,11 @@ export function normalizeDiscountRate(input: string) {
 // replace メソッドは、指定された正規表現に一致する文字列を探して置換する機能を持ちますが、一致するものが見つからない場合は単に何も置換せずに元の文字列をそのまま返します。
 
 /**
-if ((sanitizedInput.match(/\./g) || []).length > 1) について
+if ((inputString.match(/\./g) || []).length > 1) について
 
-指定された行 if ((sanitizedInput.match(/\./g) || []).length > 1) は、文字列 sanitizedInput 内の小数点（.）の数を確認し、それが1つより多いかどうかをチェックしています。この処理は、以下の手順で行われます：
+指定された行 if ((inputString.match(/\./g) || []).length > 1) は、文字列 inputString 内の小数点（.）の数を確認し、それが1つより多いかどうかをチェックしています。この処理は、以下の手順で行われます：
 
-sanitizedInput.match(/\./g): この部分は、sanitizedInput 内で正規表現 /\./g に一致するすべてのインスタンスを探します。正規表現 /\./g は、文字列内のすべての小数点（.）を意味します。g フラグはグローバル検索を表し、文字列内のすべての一致を見つけるようにします。
+inputString.match(/\./g): この部分は、inputString 内で正規表現 /\./g に一致するすべてのインスタンスを探します。正規表現 /\./g は、文字列内のすべての小数点（.）を意味します。g フラグはグローバル検索を表し、文字列内のすべての一致を見つけるようにします。
 
 || []: JavaScriptでは、match メソッドが一致するものを見つけられなかった場合、null を返します。この || [] は、match から null が返された場合に空の配列 [] を使用するためのフォールバックです。これにより、一致するものがない場合にエラーが発生するのを防ぎます。
 

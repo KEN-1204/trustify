@@ -396,7 +396,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       setInputPropertySummary(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.property_summary));
       setInputPendingFlag(newSearchProperty_Contact_CompanyParams.pending_flag);
       setInputRejectedFlag(newSearchProperty_Contact_CompanyParams.rejected_flag);
-      setInputProductName(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.product_name));
+      // setInputProductName(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.product_name));
+      setInputProductName(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.expected_product));
       setInputProductSales(newSearchProperty_Contact_CompanyParams.product_sales);
       setInputExpectedOrderDate(
         newSearchProperty_Contact_CompanyParams.expected_order_date
@@ -405,7 +406,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       );
       setInputExpectedSalesPrice(newSearchProperty_Contact_CompanyParams.expected_sales_price);
       setInputTermDivision(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.term_division));
-      setInputSoldProductName(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.sold_product_name));
+      // setInputSoldProductName(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.sold_product_name));
+      setInputSoldProductName(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.sold_product));
       setInputUnitSales(newSearchProperty_Contact_CompanyParams.unit_sales);
       setInputSalesContributionCategory(
         beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.sales_contribution_category)
@@ -663,12 +665,14 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
     let _property_summary = adjustFieldValue(inputPropertySummary);
     let _pending_flag = inputPendingFlag;
     let _rejected_flag = inputRejectedFlag;
-    let _product_name = adjustFieldValue(inputProductName);
+    // let _product_name = adjustFieldValue(inputProductName);
+    let _expected_product = adjustFieldValue(inputProductName);
     let _product_sales = adjustFieldValueNumber(inputProductSales);
     let _expected_order_date = inputExpectedOrderDate ? inputExpectedOrderDate.toISOString() : null;
     let _expected_sales_price = adjustFieldValueNumber(inputExpectedSalesPrice);
     let _term_division = adjustFieldValue(inputTermDivision);
-    let _sold_product_name = adjustFieldValue(inputSoldProductName);
+    // let _sold_product_name = adjustFieldValue(inputSoldProductName);
+    let _sold_product = adjustFieldValue(inputSoldProductName);
     let _unit_sales = adjustFieldValueNumber(inputUnitSales);
     let _sales_contribution_category = adjustFieldValue(inputSalesContributionCategory);
     let _sales_price = adjustFieldValueNumber(inputSalesPrice);
@@ -766,12 +770,15 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       property_summary: _property_summary,
       pending_flag: _pending_flag,
       rejected_flag: _rejected_flag,
-      product_name: _product_name,
+      // product_name: _product_name,
+      // expected_product_id: _expected_product_id,
+      expected_product: _expected_product,
       product_sales: _product_sales,
       expected_order_date: _expected_order_date,
       expected_sales_price: _expected_sales_price,
       term_division: _term_division,
-      sold_product_name: _sold_product_name,
+      // sold_product_name: _sold_product_name,
+      sold_product: _sold_product,
       unit_sales: _unit_sales,
       sales_contribution_category: _sales_contribution_category,
       sales_price: _sales_price,
@@ -1789,7 +1796,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     <span className={`${styles.title} text-[12px]`}>商品</span>
                     {!searchMode && (
                       <span className={`${styles.value}`}>
-                        {selectedRowDataProperty?.product_name ? selectedRowDataProperty?.product_name : ""}
+                        {/* {selectedRowDataProperty?.product_name ? selectedRowDataProperty?.product_name : ""} */}
+                        {selectedRowDataProperty?.expected_product ? selectedRowDataProperty?.expected_product : ""}
                       </span>
                     )}
                   </div>
@@ -1884,7 +1892,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     <span className={`${styles.title} text-[12px]`}>売上商品</span>
                     {!searchMode && (
                       <span className={`${styles.value}`}>
-                        {selectedRowDataProperty?.sold_product_name ? selectedRowDataProperty?.sold_product_name : ""}
+                        {/* {selectedRowDataProperty?.sold_product_name ? selectedRowDataProperty?.sold_product_name : ""} */}
+                        {selectedRowDataProperty?.sold_product ? selectedRowDataProperty?.sold_product : ""}
                       </span>
                     )}
                   </div>

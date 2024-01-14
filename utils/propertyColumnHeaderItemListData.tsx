@@ -121,8 +121,20 @@ const propertyColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
+  // {
+  //   columnName: "product_name",
+  //   columnWidth: "100px",
+  //   isFrozen: false,
+  //   isOverflow: false,
+  // },
+  // {
+  //   columnName: "expected_product_id",
+  //   columnWidth: "100px",
+  //   isFrozen: false,
+  //   isOverflow: false,
+  // },
   {
-    columnName: "product_name",
+    columnName: "expected_product",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
@@ -151,8 +163,14 @@ const propertyColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
+  // {
+  //   columnName: "sold_product_name",
+  //   columnWidth: "100px",
+  //   isFrozen: false,
+  //   isOverflow: false,
+  // },
   {
-    columnName: "sold_product_name",
+    columnName: "sold_product",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,

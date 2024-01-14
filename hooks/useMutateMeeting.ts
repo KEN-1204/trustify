@@ -1,6 +1,6 @@
 import useDashboardStore from "@/store/useDashboardStore";
 import useThemeStore from "@/store/useThemeStore";
-import { Meeting, Activity, Meeting_row_data, ResultMeetingWithProductsAttendees } from "@/types";
+import { Meeting, Meeting_row_data, ResultMeetingWithProductsAttendees } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -147,6 +147,10 @@ export const useMutateMeeting = () => {
         // TanStack Queryでデータの変更に合わせて別のデータを再取得する
         // https://zenn.dev/masatakaitoh/articles/3c2f8602d2bb9d
         if (loadingGlobalState) setLoadingGlobalState(false);
+
+        // console.log("選択中の行をリセット");
+        // setSelectedRowDataMeeting(null);
+
         setIsOpenInsertNewMeetingModal(false);
         toast.success("面談予定の作成が完了しました🌟", {
           position: "top-right",

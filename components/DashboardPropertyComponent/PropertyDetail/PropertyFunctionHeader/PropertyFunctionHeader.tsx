@@ -136,7 +136,7 @@ const PropertyFunctionHeaderMemo: FC = () => {
               setSelectedRowDataMeeting(null);
               // setSelectedRowDataProperty(null);
               if (loadingGlobalState) setLoadingGlobalState(false);
-              setIsOpenInsertNewPropertyModal(true);
+              setIsOpenInsertNewMeetingModal(true);
             }}
           />
 

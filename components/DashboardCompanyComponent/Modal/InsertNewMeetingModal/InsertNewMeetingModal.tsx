@@ -37,6 +37,7 @@ export const InsertNewMeetingModal = () => {
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
   const selectedRowDataActivity = useDashboardStore((state) => state.selectedRowDataActivity);
   const selectedRowDataMeeting = useDashboardStore((state) => state.selectedRowDataMeeting);
+  const selectedRowDataProperty = useDashboardStore((state) => state.selectedRowDataProperty);
   const setIsOpenInsertNewMeetingModal = useDashboardStore((state) => state.setIsOpenInsertNewMeetingModal);
   // const [isLoading, setIsLoading] = useState(false);
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
@@ -757,6 +758,119 @@ export const InsertNewMeetingModal = () => {
     // setIsOpenInsertNewMeetingModal(false);
   };
 
+  // 🌟案件画面から面談を作成 案件画面で選択したRowデータを使用する
+  const handleSaveAndCloseFromProperty = async () => {
+    // if (!summary) return alert("活動概要を入力してください");
+    // if (!MeetingType) return alert("活動タイプを選択してください");
+    if (!userProfileState?.id) return alert("ユーザー情報が存在しません");
+    if (!selectedRowDataProperty?.company_id) return alert("相手先の会社情報が存在しません");
+    if (!selectedRowDataProperty?.contact_id) return alert("担当者情報が存在しません");
+    if (plannedPurpose === "") return alert("面談目的を選択してください");
+    if (plannedStartTimeHour === "") return alert("面談開始 時間を選択してください");
+    if (plannedStartTimeMinute === "") return alert("面談開始 分を選択してください");
+    if (!meetingYearMonth) return alert("面談年月度を入力してください");
+    // if (meetingMemberName === "") return alert("自社担当を入力してください");
+    if (memberObj.memberName === "") return alert("自社担当を入力してください");
+
+    // 紹介予定商品メイン、サブの選択されているidが現在現在入力されてるnameのidと一致しているかを確認
+    const currentId1 = suggestedProductIdNameArray.find((obj) => obj.fullName === plannedProduct1InputName)?.id;
+    if (!currentId1) return alert("「紹介予定商品メイン」の商品が有効ではありません。正しい商品を選択してください。");
+    const checkResult1 = currentId1 === plannedProduct1;
+    if (!checkResult1) return alert("「紹介予定商品メイン」の商品が有効ではありません。正しい商品を選択してください。");
+    // 商品サブは任意でOK 入力されてる場合はチェック
+    if (plannedProduct2InputName) {
+      const currentId2 = suggestedProductIdNameArray.find((obj) => obj.fullName === plannedProduct2InputName)?.id;
+      if (!currentId2) return alert("「紹介予定商品サブ」の商品が有効ではありません。正しい商品を選択してください。");
+      const checkResult2 = currentId2 === plannedProduct2;
+      if (!checkResult2) return alert("「紹介予定商品サブ」の商品が有効ではありません。正しい商品を選択してください。");
+    }
+
+    // return alert("成功");
+
+    setLoadingGlobalState(true);
+
+    const departmentName =
+      departmentDataArray &&
+      memberObj.departmentId &&
+      departmentDataArray.find((obj) => obj.id === memberObj.departmentId)?.department_name;
+    const officeName =
+      officeDataArray &&
+      memberObj.officeId &&
+      officeDataArray.find((obj) => obj.id === memberObj.officeId)?.office_name;
+
+    // 新規作成するデータをオブジェクトにまとめる
+    const newMeeting = {
+      created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
+      // created_by_department_of_user: userProfileState.department ? userProfileState.department : null,
+      // created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      // 営業担当データ
+      created_by_user_id: memberObj.memberId ? memberObj.memberId : null,
+      created_by_department_of_user: memberObj.departmentId ? memberObj.departmentId : null,
+      created_by_unit_of_user: memberObj.unitId ? memberObj.unitId : null,
+      created_by_office_of_user: memberObj.officeId ? memberObj.officeId : null,
+      // 営業担当データここまで
+      // created_by_user_id: userProfileState?.id ? userProfileState.id : null,
+      // created_by_department_of_user: departmentId ? departmentId : null,
+      // created_by_unit_of_user: unitId ? unitId : null,
+      // created_by_office_of_user: officeId ? officeId : null,
+      client_contact_id: selectedRowDataProperty.contact_id,
+      client_company_id: selectedRowDataProperty.company_id,
+      meeting_type: meetingType ? meetingType : null,
+      web_tool: webTool ? webTool : null,
+      planned_date: plannedDate ? plannedDate.toISOString() : null,
+      // planned_start_time: plannedStartTime === ":" ? null : plannedStartTime,
+      planned_start_time: plannedStartTime === "" ? null : plannedStartTime,
+      planned_purpose: plannedPurpose ? plannedPurpose : null,
+      planned_duration: plannedDuration ? plannedDuration : null,
+      planned_appoint_check_flag: plannedAppointCheckFlag,
+      planned_product1: plannedProduct1 ? plannedProduct1 : null,
+      planned_product2: plannedProduct2 ? plannedProduct2 : null,
+      planned_comment: plannedComment ? plannedComment : null,
+      result_date: resultDate ? resultDate.toISOString() : null,
+      result_start_time: resultStartTime === "" ? null : resultStartTime,
+      result_end_time: resultEndTime === "" ? null : resultEndTime,
+      // result_start_time: resultStartTime === ":" ? null : resultStartTime,
+      // result_end_time: resultEndTime === ":" ? null : resultEndTime,
+      result_duration: resultDuration ? resultDuration : null,
+      result_number_of_meeting_participants: resultNumberOfMeetingParticipants
+        ? resultNumberOfMeetingParticipants
+        : null,
+      result_presentation_product1: resultPresentationProduct1 ? resultPresentationProduct1 : null,
+      result_presentation_product2: resultPresentationProduct2 ? resultPresentationProduct2 : null,
+      result_presentation_product3: resultPresentationProduct3 ? resultPresentationProduct3 : null,
+      result_presentation_product4: resultPresentationProduct4 ? resultPresentationProduct4 : null,
+      result_presentation_product5: resultPresentationProduct5 ? resultPresentationProduct5 : null,
+      result_category: resultCategory ? resultCategory : null,
+      result_summary: resultSummary ? resultSummary : null,
+      result_negotiate_decision_maker: resultNegotiateDecisionMaker ? resultNegotiateDecisionMaker : null,
+      result_top_position_class: resultTopPositionClass ? parseInt(resultTopPositionClass, 10) : null,
+      pre_meeting_participation_request: preMeetingParticipationRequest ? preMeetingParticipationRequest : null,
+      meeting_participation_request: meetingParticipationRequest ? meetingParticipationRequest : null,
+      // meeting_department: meetingDepartment ? meetingDepartment : null,
+      // meeting_business_office: meetingBusinessOffice ? meetingBusinessOffice : null,
+      meeting_department: departmentName ? departmentName : null,
+      meeting_business_office: officeName ? officeName : null,
+      // meeting_member_name: meetingMemberName ? meetingMemberName : null,
+      meeting_member_name: memberObj.memberName ? memberObj.memberName : null,
+      meeting_year_month: meetingYearMonth ? meetingYearMonth : null,
+    };
+
+    console.log("面談予定 新規作成 newMeeting", newMeeting);
+    console.log("面談予定 新規作成 newMeeting.planned_start_time", newMeeting.planned_start_time);
+    console.log(
+      "面談予定 新規作成 newMeeting.planned_start_time 一致するか",
+      newMeeting.planned_start_time === "08:30"
+    );
+
+    // supabaseにINSERT,ローディング終了, モーダルを閉じる
+    createMeetingMutation.mutate(newMeeting);
+
+    // setLoadingGlobalState(false);
+
+    // モーダルを閉じる
+    // setIsOpenInsertNewMeetingModal(false);
+  };
+
   // 全角文字を半角に変換する関数
   const toHalfWidth = (strVal: string) => {
     // 全角文字コードの範囲は65281 - 65374、スペースの全角文字コードは12288
@@ -930,9 +1044,9 @@ export const InsertNewMeetingModal = () => {
     "plannedStartTime",
     plannedStartTime,
     "suggestedProductName[0].length",
-    suggestedProductName[0].length,
+    suggestedProductName[0]?.length,
     "suggestedProductName[1].length",
-    suggestedProductName[1].length
+    suggestedProductName[1]?.length
     // suggestedProductName &&
     //   suggestedProductName.length > 1 &&
     //   (suggestedProductName[0].length > 0 || suggestedProductName[1].length > 0)
@@ -978,8 +1092,9 @@ export const InsertNewMeetingModal = () => {
         )}
         {/* 検索予測リストメニュー オーバーレイ */}
         {suggestedProductName &&
-          suggestedProductName.length > 1 &&
-          (suggestedProductName[0].length > 0 || suggestedProductName[1].length > 0) && (
+          suggestedProductName.length > 0 &&
+          ((suggestedProductName[0] && suggestedProductName[0]?.length > 0) ||
+            (suggestedProductName[1] && suggestedProductName[1]?.length > 0)) && (
             <div
               // className="fixed left-[-100vw] top-[-50%] z-[10] h-[200vh] w-[300vw] bg-[#00000090]"
               className="fixed left-[-100vw] top-[-50%] z-[10] h-[200vh] w-[300vw]"
@@ -1008,6 +1123,14 @@ export const InsertNewMeetingModal = () => {
           </div>
           <div className="min-w-[150px] select-none font-bold">面談予定 新規作成</div>
 
+          {selectedRowDataContact && (
+            <div
+              className={`min-w-[150px] cursor-pointer text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text} select-none`}
+              onClick={handleSaveAndCloseFromContacts}
+            >
+              保存
+            </div>
+          )}
           {selectedRowDataActivity && (
             <div
               className={`min-w-[150px] cursor-pointer text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text} select-none`}
@@ -1024,10 +1147,10 @@ export const InsertNewMeetingModal = () => {
               保存
             </div>
           )}
-          {selectedRowDataContact && (
+          {selectedRowDataProperty && (
             <div
               className={`min-w-[150px] cursor-pointer text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text} select-none`}
-              onClick={handleSaveAndCloseFromContacts}
+              onClick={handleSaveAndCloseFromProperty}
             >
               保存
             </div>
@@ -1438,7 +1561,7 @@ export const InsertNewMeetingModal = () => {
                         }}
                       />
                       {/* 予測変換結果 */}
-                      {suggestedProductName && suggestedProductName[0] && suggestedProductName[0].length > 0 && (
+                      {suggestedProductName && suggestedProductName[0] && suggestedProductName[0]?.length > 0 && (
                         <div
                           ref={(el) => (resultRefs.current[0] = el)}
                           className={`${styles.result_box}`}
@@ -1449,7 +1572,7 @@ export const InsertNewMeetingModal = () => {
                             } as CSSProperties
                           }
                         >
-                          {suggestedProductName && suggestedProductName[0] && suggestedProductName[0].length > 0 && (
+                          {suggestedProductName && suggestedProductName[0] && suggestedProductName[0]?.length > 0 && (
                             <div className="sticky top-0 flex min-h-[5px] w-full flex-col items-center justify-end">
                               <hr className={`min-h-[4px] w-full bg-[var(--color-bg-under-input)]`} />
                               <hr className={`min-h-[1px] w-[93%] bg-[#ccc]`} />
@@ -1486,10 +1609,11 @@ export const InsertNewMeetingModal = () => {
                           handleOpenTooltip({
                             e: e,
                             display: "top",
-                            content: "フィルターで選択した商品リストを表示します。",
+                            content: "フィルターされた商品リストを表示します。",
                             content2: "アイコンをクリックしてフィルターの切り替えが可能です。",
-                            // marginTop: 57,
-                            marginTop: 38,
+                            content3: "商品紹介が無い面談の場合は「他」を選択してください。",
+                            marginTop: 57,
+                            // marginTop: 38,
                             // marginTop: 12,
                             itemsPosition: "center",
                             whiteSpace: "nowrap",
@@ -1511,7 +1635,7 @@ export const InsertNewMeetingModal = () => {
                             if (
                               !suggestedProductName[0]?.length ||
                               (suggestedProductName[0] &&
-                                suggestedProductName[0].length !== suggestedProductIdNameArray.length)
+                                suggestedProductName[0]?.length !== suggestedProductIdNameArray.length)
                             ) {
                               const newSuggestions = [...suggestedProductName];
                               newSuggestions[0] = [...suggestedProductIdNameArray];
@@ -1523,7 +1647,8 @@ export const InsertNewMeetingModal = () => {
                           if (!isOpenDropdownMenuFilterProducts || hoveredItemPosModal) handleCloseTooltip();
                         }}
                       >
-                        <HiChevronDown className="stroke-[1] text-[13px] text-[var(--color-text-sub)]" />
+                        {/* <HiChevronDown className="stroke-[1] text-[13px] text-[var(--color-text-sub)]" /> */}
+                        <HiChevronDown className="stroke-[1] text-[13px] text-[var(--color-text-brand-f)]" />
                       </div>
                     </div>
                     {/* 予測変換input セレクトと組み合わせ ここまで */}
@@ -1585,7 +1710,7 @@ export const InsertNewMeetingModal = () => {
                         }}
                       />
                       {/* 予測変換結果 */}
-                      {suggestedProductName && suggestedProductName[1] && suggestedProductName[1].length > 0 && (
+                      {suggestedProductName && suggestedProductName[1] && suggestedProductName[1]?.length > 0 && (
                         <div
                           ref={(el) => (resultRefs.current[1] = el)}
                           className={`${styles.result_box}`}
@@ -1596,7 +1721,7 @@ export const InsertNewMeetingModal = () => {
                             } as CSSProperties
                           }
                         >
-                          {suggestedProductName && suggestedProductName[1] && suggestedProductName[1].length > 0 && (
+                          {suggestedProductName && suggestedProductName[1] && suggestedProductName[1]?.length > 0 && (
                             <div className="sticky top-0 flex min-h-[3px] w-full flex-col items-center justify-end">
                               <hr className={`min-h-[1px] w-[93%] bg-[#ccc]`} />
                             </div>
@@ -1632,10 +1757,11 @@ export const InsertNewMeetingModal = () => {
                           handleOpenTooltip({
                             e: e,
                             display: "top",
-                            content: "フィルターで選択した商品リストを表示します。",
+                            content: "フィルターされた商品リストを表示します。",
                             content2: "アイコンをクリックしてフィルターの切り替えが可能です。",
-                            // marginTop: 57,
-                            marginTop: 38,
+                            content3: "商品紹介が無い面談の場合は「他」を選択してください。",
+                            marginTop: 57,
+                            // marginTop: 38,
                             // marginTop: 12,
                             itemsPosition: "center",
                             whiteSpace: "nowrap",
@@ -1657,7 +1783,7 @@ export const InsertNewMeetingModal = () => {
                             if (
                               !suggestedProductName[1]?.length ||
                               (suggestedProductName[1] &&
-                                suggestedProductName[1].length !== suggestedProductIdNameArray.length)
+                                suggestedProductName[1]?.length !== suggestedProductIdNameArray.length)
                             ) {
                               const newSuggestions = [...suggestedProductName];
                               newSuggestions[1] = [...suggestedProductIdNameArray];
@@ -1669,7 +1795,8 @@ export const InsertNewMeetingModal = () => {
                           }
                         }}
                       >
-                        <HiChevronDown className="stroke-[1] text-[13px] text-[var(--color-text-sub)]" />
+                        {/* <HiChevronDown className="stroke-[1] text-[13px] text-[var(--color-text-sub)]" /> */}
+                        <HiChevronDown className="stroke-[1] text-[13px] text-[var(--color-text-brand-f)]" />
                       </div>
                     </div>
                     {/* 予測変換input セレクトと組み合わせ ここまで */}

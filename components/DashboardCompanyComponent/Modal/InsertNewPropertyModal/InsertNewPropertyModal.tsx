@@ -36,6 +36,10 @@ import NextImage from "next/image";
 import { DropDownMenuFilterProducts } from "../SettingAccountModal/SettingMemberAccounts/DropdownMenuFilterProducts/DropdownMenuFilterProducts";
 import { HiChevronDown } from "react-icons/hi2";
 import { normalizeDiscountRate } from "@/utils/Helpers/normalizeDiscountRate";
+import { checkNotFalsyExcludeZero } from "@/utils/Helpers/checkNotFalsyExcludeZero";
+import { calculateDiscountRate } from "@/utils/Helpers/calculateDiscountRate";
+import { optionsReasonClass, optionsSalesClass, optionsSalesContributionCategory } from "@/utils/selectOptions";
+import { convertHalfWidthNumOnly } from "@/utils/Helpers/convertHalfWidthNumOnly";
 
 type ModalProperties = {
   left: number;
@@ -60,6 +64,7 @@ export const InsertNewPropertyModal = () => {
   // const [isLoading, setIsLoading] = useState(false);
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
+  const [isComposing, setIsComposing] = useState(false); // 日本語のように変換、確定が存在する言語入力の場合の日本語入力の変換中を保持するstate、日本語入力開始でtrue, エンターキーで変換確定した時にfalse
   // const theme = useThemeStore((state) => state.theme);
   // 上画面の選択中の列データ会社
   // const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
@@ -107,16 +112,22 @@ export const InsertNewPropertyModal = () => {
   const [propertySummary, setPropertySummary] = useState(""); //案件概要
   const [pendingFlag, setPendingFlag] = useState(false); //ペンディングフラグ
   const [rejectedFlag, setRejectedFlag] = useState(false); //物件没フラグ
-  const [productName, setProductName] = useState(""); //商品(予定)(ID)
-  const [productNameInput, setProductNameInput] = useState(""); //商品(予定)(名前)
-  const [productSales, setProductSales] = useState<number | null>(null); //予定売上台数
+  // const [productName, setProductName] = useState(""); //商品(予定)(ID)
+  const [expectedProductId, setExpectedProductId] = useState(""); //商品(予定)(ID)
+  const [expectedProductName, setExpectedProductName] = useState(""); //商品(予定)(名前)
+  const [expectedProductFullNameInput, setExpectedProductFullNameInput] = useState(""); //商品(予定)(フルネーム)
+  // const [productSales, setProductSales] = useState<number | null>(null); //予定売上台数
+  const [productSales, setProductSales] = useState<string>(""); //予定売上台数
   const [expectedOrderDate, setExpectedOrderDate] = useState<Date | null>(null); //予定売上台数
   // const [expectedSalesPrice, setExpectedSalesPrice] = useState<number | null>(null); //予定売上価格
   const [expectedSalesPrice, setExpectedSalesPrice] = useState<string>(""); //予定売上価格
   const [termDivision, setTermDivision] = useState(""); //今期・来期
-  const [soldProductName, setSoldProductName] = useState(""); //売上商品(ID)
-  const [soldProductNameInput, setSoldProductNameInput] = useState(""); //売上商品(名前)
-  const [unitSales, setUnitSales] = useState<number | null>(null); //売上台数
+  // const [soldProductName, setSoldProductName] = useState(""); //売上商品(ID)
+  const [soldProductId, setSoldProductId] = useState(""); //売上商品(ID)
+  const [soldProductName, setSoldProductName] = useState(""); //売上商品(名前)
+  const [soldProductFullNameInput, setSoldProductFullNameInput] = useState(""); //売上商品(フルネーム)
+  // const [unitSales, setUnitSales] = useState<number | null>(null); //売上台数
+  const [unitSales, setUnitSales] = useState<string>(""); //売上台数
   const [salesContributionCategory, setSalesContributionCategory] = useState(""); //売上貢献区分
   // const [salesPrice, setSalesPrice] = useState<number | null>(null); //売上価格
   const [salesPrice, setSalesPrice] = useState<string>(""); //売上価格
@@ -139,7 +150,8 @@ export const InsertNewPropertyModal = () => {
   const [competitorProduct, setCompetitorProduct] = useState(""); //競合商品
   const [reasonClass, setReasonClass] = useState(""); //案件発生動機
   const [reasonDetail, setReasonDetail] = useState(""); //動機詳細
-  const [customerBudget, setCustomerBudget] = useState<number | null>(null); //客先予算
+  // const [customerBudget, setCustomerBudget] = useState<number | null>(null); //客先予算
+  const [customerBudget, setCustomerBudget] = useState<string>(""); //客先予算
   const [decisionMakerNegotiation, setDecisionMakerNegotiation] = useState(""); //決裁者商談有無
   // ============================== 日付。年月、四半期関連
   const initialDate = new Date();
@@ -272,7 +284,14 @@ export const InsertNewPropertyModal = () => {
   const resultRefs = useRef<(HTMLDivElement | null)[]>(Array(2).fill(null));
   const inputBoxProducts = useRef<(HTMLInputElement | null)[]>(Array(2).fill(null));
   // const selectBoxProducts = useRef<(HTMLSelectElement | null)[]>(Array(2).fill(null));
-  type SuggestedProductObj = { id: string; fullName: string };
+  // type SuggestedProductObj = { id: string; fullName: string };
+  type SuggestedProductObj = {
+    id: string;
+    fullName: string;
+    product_name: string;
+    inside_short_name: string;
+    outside_short_name: string;
+  };
   // {id: '376..', fullName: '画像寸法測定機 IM7500/7020 IM2'}を持つ配列
   const [suggestedProductIdNameArray, setSuggestedProductIdNameArray] = useState<SuggestedProductObj[]>([]);
   // 入力値を含む{id: '376..', fullName: '画像寸法測定機 IM7500/7020 IM2'}を持つ配列
@@ -293,6 +312,9 @@ export const InsertNewPropertyModal = () => {
           (product.inside_short_name ? product.inside_short_name + " " : "") +
           product.product_name +
           (product.outside_short_name ? " " + product.outside_short_name : ""),
+        product_name: product.product_name ?? "",
+        inside_short_name: product.inside_short_name ?? "",
+        outside_short_name: product.outside_short_name ?? "",
       }));
 
       // 同じオブジェクトの重複を排除(同じidを排除)して配列を統合する方法
@@ -301,7 +323,14 @@ export const InsertNewPropertyModal = () => {
         combinedArray = [...suggestedProductIdNameArray, ...newProductArray];
       } else if (!!process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID) {
         // IM他の選択肢
-        const otherOption = { id: process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID, fullName: "他" };
+        // const otherOption = { id: process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID, fullName: "他" };
+        const otherOption = {
+          id: process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID,
+          fullName: "他",
+          product_name: "他",
+          inside_short_name: "他",
+          outside_short_name: "",
+        };
         combinedArray = [...suggestedProductIdNameArray, ...newProductArray, otherOption];
         // combinedArray = [...suggestedProductIdNameArray, ...newProductArray];
       }
@@ -470,6 +499,7 @@ export const InsertNewPropertyModal = () => {
     const newExpansionQuarter = newExpansionQuarterSelectedYear * 10 + _expansionFiscalQuarter;
     setExpansionQuarter(newExpansionQuarter);
   }, [expansionDate]);
+  // ---------------------------- ✅展開年月度, 展開四半期✅ ----------------------------
 
   // ---------------------------- 🌟売上年月度, 売上四半期🌟 ----------------------------
   // 🌟売上日付から売上年月度、売上四半期を自動で計算、入力するuseEffect
@@ -497,18 +527,18 @@ export const InsertNewPropertyModal = () => {
 
     // 四半期を自動で入力
     let newSalesQuarterSelectedYear: number | null;
-    if (!expansionDate) return;
+    if (!salesDate) return;
     if (language === "ja") {
       // newSalesQuarterSelectedYear = initialDate.getFullYear() ?? null;
       const fiscalEnd = fiscalEndMonthObjRef.current;
       newSalesQuarterSelectedYear =
-        getFiscalYear(expansionDate, fiscalEnd.getMonth() + 1, fiscalEnd.getDate(), language) ?? null;
+        getFiscalYear(salesDate, fiscalEnd.getMonth() + 1, fiscalEnd.getDate(), language) ?? null;
       setSalesQuarterSelectedYear(newSalesQuarterSelectedYear);
     } else {
       // newSalesQuarterSelectedYear = salesDate.getFullYear() ?? null;
       const fiscalEnd = fiscalEndMonthObjRef.current;
       newSalesQuarterSelectedYear =
-        getFiscalYear(expansionDate, fiscalEnd.getMonth() + 1, fiscalEnd.getDate(), language) ?? null;
+        getFiscalYear(salesDate, fiscalEnd.getMonth() + 1, fiscalEnd.getDate(), language) ?? null;
       setSalesQuarterSelectedYear(newSalesQuarterSelectedYear);
     }
     const _salesFiscalQuarter = getFiscalQuarterTest(fiscalEndMonthObjRef.current, salesDate);
@@ -525,6 +555,28 @@ export const InsertNewPropertyModal = () => {
   // console.log("売上四半期 年度", salesQuarterSelectedYear);
   // console.log("売上四半期 Q", salesQuarterSelectedQuarter);
   // console.log("売上四半期 ", salesQuarter);
+
+  // ---------------------------- 🌟値引率の自動計算🌟 ----------------------------
+  useEffect(() => {
+    if (!!salesPrice && !!discountedPrice && !!unitSales && !isComposing) {
+      const payload = {
+        salesPriceStr: salesPrice.replace(/,/g, ""),
+        discountPriceStr: discountedPrice.replace(/,/g, ""),
+        // salesQuantityStr: unitSales.toString(),
+        salesQuantityStr: unitSales,
+      };
+      const result = calculateDiscountRate(payload);
+
+      const _discountRate = result.discountRate;
+      if (!_discountRate || result.error) return console.log("値引率取得エラー リターン：", result.error);
+
+      console.log("値引率", _discountRate, "payload", payload);
+      setDiscountedRate(_discountRate);
+    } else {
+      // if (!!discountedRate) setDiscountedRate("");
+    }
+  }, [salesPrice, discountedPrice, unitSales]);
+  // ---------------------------- ✅値引率の自動計算✅ ----------------------------
 
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
@@ -547,15 +599,17 @@ export const InsertNewPropertyModal = () => {
 
     // -------------------------- 商品idと入力されてる商品名が同じかチェック --------------------------
     // 紹介予定商品メイン、サブの選択されているidが現在現在入力されてるnameのidと一致しているかを確認
-    const currentId1 = suggestedProductIdNameArray.find((obj) => obj.fullName === productNameInput)?.id;
+    const currentObj1 = suggestedProductIdNameArray.find((obj) => obj.fullName === expectedProductFullNameInput);
+    const currentId1 = currentObj1?.id;
     if (!currentId1) return alert("「紹介予定商品メイン」の商品が有効ではありません。正しい商品を選択してください。");
-    const checkResult1 = currentId1 === productName;
+    const checkResult1 = currentId1 === expectedProductId;
     if (!checkResult1) return alert("「紹介予定商品メイン」の商品が有効ではありません。正しい商品を選択してください。");
     // 商品サブは任意でOK 入力されてる場合はチェック
-    if (soldProductNameInput) {
-      const currentId2 = suggestedProductIdNameArray.find((obj) => obj.fullName === soldProductNameInput)?.id;
+    if (soldProductFullNameInput) {
+      const currentObj2 = suggestedProductIdNameArray.find((obj) => obj.fullName === soldProductFullNameInput);
+      const currentId2 = currentObj2?.id;
       if (!currentId2) return alert("「紹介予定商品サブ」の商品が有効ではありません。正しい商品を選択してください。");
-      const checkResult2 = currentId2 === soldProductName;
+      const checkResult2 = currentId2 === soldProductId;
       if (!checkResult2) return alert("「紹介予定商品サブ」の商品が有効ではありません。正しい商品を選択してください。");
     }
     // -------------------------- 商品idと入力されてる商品名が同じかチェックここまで --------------------------
@@ -598,30 +652,36 @@ export const InsertNewPropertyModal = () => {
       property_summary: propertySummary ? propertySummary : null,
       pending_flag: pendingFlag,
       rejected_flag: rejectedFlag,
-      product_name: productName ? productName : null,
-      product_sales: productSales ? productSales : null,
+      // product_name: productName ? productName : null,
+      // expected_product: expectedProduct ? expectedProduct : null,
+      expected_product_id: expectedProductId ? expectedProductId : null,
+      expected_product: expectedProductName ? expectedProductName : null,
+      // product_sales: productSales ? productSales : null,
+      product_sales: !isNaN(parseInt(productSales, 10)) ? parseInt(productSales, 10) : null,
       expected_order_date: expectedOrderDate ? expectedOrderDate.toISOString() : null,
       // expected_sales_price: expectedSalesPrice ? expectedSalesPrice : null,
-      expected_sales_price:
-        expectedSalesPrice !== null && expectedSalesPrice !== undefined && expectedSalesPrice !== ""
-          ? parseInt(expectedSalesPrice.replace(/,/g, ""), 10)
-          : null, // 0以外のfalsyならnullをセット 0円は許容
+      // expected_sales_price:
+      //   expectedSalesPrice !== null && expectedSalesPrice !== undefined && expectedSalesPrice !== ""
+      //     ? parseInt(expectedSalesPrice.replace(/,/g, ""), 10)
+      //     : null, // 0以外のfalsyならnullをセット 0円は許容
+      /**
+      numeric型のフィールドに整数を保存する際にも、数値が文字列形式で保持されている場合は、parseIntで明示的に数値型に変換せずにそのまま文字列として保存するのが一般的です。これは、PostgreSQL（および多くのデータベースシステム）が文字列形式で提供された数値を自動的に適切な数値型に変換できるためです。
+       */
+      expected_sales_price: checkNotFalsyExcludeZero(expectedSalesPrice) ? expectedSalesPrice.replace(/,/g, "") : null, // 0以外のfalsyならnullをセット 0円は許容
       term_division: termDivision ? termDivision : null,
-      sold_product_name: soldProductName ? soldProductName : null,
-      unit_sales: unitSales ? unitSales : null,
+      // sold_product: soldProductName ? soldProductName : null,
+      // sold_product: soldProduct ? soldProduct : null,
+      sold_product_id: soldProductId ? soldProductId : null,
+      sold_product: soldProductName ? soldProductName : null,
+      // unit_sales: unitSales ? unitSales : null,
+      unit_sales: !isNaN(parseInt(unitSales, 10)) ? parseInt(unitSales, 10) : null,
       sales_contribution_category: salesContributionCategory ? salesContributionCategory : null,
       // sales_price: salesPrice ? salesPrice : null,
-      sales_price:
-        salesPrice !== null && salesPrice !== undefined && salesPrice !== ""
-          ? parseInt(salesPrice.replace(/,/g, ""), 10)
-          : null, // 0以外のfalsyならnullをセット 0円は許容
+      sales_price: checkNotFalsyExcludeZero(salesPrice) ? salesPrice.replace(/,/g, "") : null, // 0以外のfalsyならnullをセット 0円は許容
       // discounted_price: discountedPrice ? discountedPrice : null,
-      discounted_price:
-        discountedPrice !== null && discountedPrice !== undefined && discountedPrice !== ""
-          ? parseInt(discountedPrice.replace(/,/g, ""), 10)
-          : null, // 0以外のfalsyならnullをセット 0円は許容
+      discounted_price: checkNotFalsyExcludeZero(discountedPrice) ? discountedPrice.replace(/,/g, "") : null, // 0以外のfalsyならnullをセット 0円は許容
       // discount_rate: discountedRate ? discountedRate : null,
-      discount_rate: discountedRate ? discountedRate.replace(/[%％]/g, "") : null,
+      discount_rate: checkNotFalsyExcludeZero(discountedRate) ? discountedRate.replace(/[%％]/g, "") : null,
       sales_class: salesClass ? salesClass : null,
       expansion_date: expansionDate ? expansionDate.toISOString() : null,
       sales_date: salesDate ? salesDate.toISOString() : null,
@@ -641,7 +701,8 @@ export const InsertNewPropertyModal = () => {
       competitor_product: competitorProduct ? competitorProduct : null,
       reason_class: reasonClass ? reasonClass : null,
       reason_detail: reasonDetail ? reasonDetail : null,
-      customer_budget: customerBudget ? customerBudget : null,
+      // customer_budget: customerBudget ? customerBudget : null,
+      customer_budget: !isNaN(parseInt(customerBudget, 10)) ? parseInt(customerBudget, 10) : null,
       decision_maker_negotiation: decisionMakerNegotiation ? decisionMakerNegotiation : null,
       expansion_year_month: expansionYearMonth ? expansionYearMonth : null,
       sales_year_month: salesYearMonth ? salesYearMonth : null,
@@ -683,15 +744,17 @@ export const InsertNewPropertyModal = () => {
 
     // -------------------------- 商品idと入力されてる商品名が同じかチェック --------------------------
     // 紹介予定商品メイン、サブの選択されているidが現在現在入力されてるnameのidと一致しているかを確認
-    const currentId1 = suggestedProductIdNameArray.find((obj) => obj.fullName === productNameInput)?.id;
+    const currentObj1 = suggestedProductIdNameArray.find((obj) => obj.fullName === expectedProductFullNameInput);
+    const currentId1 = currentObj1?.id;
     if (!currentId1) return alert("「紹介予定商品メイン」の商品が有効ではありません。正しい商品を選択してください。");
-    const checkResult1 = currentId1 === productName;
+    const checkResult1 = currentId1 === expectedProductId;
     if (!checkResult1) return alert("「紹介予定商品メイン」の商品が有効ではありません。正しい商品を選択してください。");
     // 商品サブは任意でOK 入力されてる場合はチェック
-    if (soldProductNameInput) {
-      const currentId2 = suggestedProductIdNameArray.find((obj) => obj.fullName === soldProductNameInput)?.id;
+    if (soldProductFullNameInput) {
+      const currentObj2 = suggestedProductIdNameArray.find((obj) => obj.fullName === soldProductFullNameInput);
+      const currentId2 = currentObj2?.id;
       if (!currentId2) return alert("「紹介予定商品サブ」の商品が有効ではありません。正しい商品を選択してください。");
-      const checkResult2 = currentId2 === soldProductName;
+      const checkResult2 = currentId2 === soldProductId;
       if (!checkResult2) return alert("「紹介予定商品サブ」の商品が有効ではありません。正しい商品を選択してください。");
     }
     // -------------------------- 商品idと入力されてる商品名が同じかチェックここまで --------------------------
@@ -734,56 +797,56 @@ export const InsertNewPropertyModal = () => {
       property_summary: propertySummary,
       pending_flag: pendingFlag,
       rejected_flag: rejectedFlag,
-      product_name: productName ? productName : null,
-      product_sales: productSales,
+      // product_name: productName ? productName : null,
+      // expected_product: expectedProduct ? expectedProduct : null,
+      expected_product_id: expectedProductId ? expectedProductId : null,
+      expected_product: expectedProductName ? expectedProductName : null,
+      // product_sales: productSales,
+      product_sales: !isNaN(parseInt(productSales, 10)) ? parseInt(productSales, 10) : null,
       expected_order_date: expectedOrderDate ? expectedOrderDate.toISOString() : null,
       // expected_sales_price: expectedSalesPrice,
-      expected_sales_price:
-        expectedSalesPrice !== null && expectedSalesPrice !== undefined && expectedSalesPrice !== ""
-          ? parseInt(expectedSalesPrice.replace(/,/g, ""), 10)
-          : null, // 0以外のfalsyならnullをセット 0円は許容
+      expected_sales_price: checkNotFalsyExcludeZero(expectedSalesPrice) ? expectedSalesPrice.replace(/,/g, "") : null, // 0以外のfalsyならnullをセット 0円は許容
       term_division: termDivision,
-      sold_product_name: soldProductName ? soldProductName : null,
-      unit_sales: unitSales,
-      sales_contribution_category: salesContributionCategory,
+      // sold_product: soldProductName ? soldProductName : null,
+      // sold_product: soldProduct ? soldProduct : null,
+      sold_product_id: soldProductId ? soldProductId : null,
+      sold_product: soldProductName ? soldProductName : null,
+      // unit_sales: unitSales ? unitSales : null,
+      unit_sales: !isNaN(parseInt(unitSales, 10)) ? parseInt(unitSales, 10) : null,
+      sales_contribution_category: salesContributionCategory ? salesContributionCategory : null,
       // sales_price: salesPrice,
-      sales_price:
-        salesPrice !== null && salesPrice !== undefined && salesPrice !== ""
-          ? parseInt(salesPrice.replace(/,/g, ""), 10)
-          : null, // 0以外のfalsyならnullをセット 0円は許容
+      sales_price: checkNotFalsyExcludeZero(salesPrice) ? salesPrice.replace(/,/g, "") : null, // 0以外のfalsyならnullをセット 0円は許容
       // discounted_price: discountedPrice,
-      discounted_price:
-        discountedPrice !== null && discountedPrice !== undefined && discountedPrice !== ""
-          ? parseInt(discountedPrice.replace(/,/g, ""), 10)
-          : null, // 0以外のfalsyならnullをセット 0円は許容
+      discounted_price: checkNotFalsyExcludeZero(discountedPrice) ? discountedPrice.replace(/,/g, "") : null, // 0以外のfalsyならnullをセット 0円は許容
       // discount_rate: discountedRate ? discountedRate : null,
-      discount_rate: discountedRate ? discountedRate.replace(/[%％]/g, "") : null,
+      discount_rate: checkNotFalsyExcludeZero(discountedRate) ? discountedRate.replace(/[%％]/g, "") : null,
       sales_class: salesClass,
       expansion_date: expansionDate ? expansionDate.toISOString() : null,
       sales_date: salesDate ? salesDate.toISOString() : null,
-      expansion_quarter: expansionQuarter,
-      sales_quarter: salesQuarter,
+      expansion_quarter: expansionQuarter ? expansionQuarter : null,
+      sales_quarter: salesQuarter ? salesQuarter : null,
       subscription_start_date: subscriptionStartDate ? subscriptionStartDate.toISOString() : null,
       subscription_canceled_at: subscriptionCanceledAt ? subscriptionCanceledAt.toISOString() : null,
-      leasing_company: leasingCompany,
-      lease_division: leaseDivision,
+      leasing_company: leasingCompany ? leasingCompany : null,
+      lease_division: leaseDivision ? leaseDivision : null,
       lease_expiration_date: leaseExpirationDate ? leaseExpirationDate.toISOString() : null,
       step_in_flag: stepInFlag,
       repeat_flag: repeatFlag,
-      order_certainty_start_of_month: orderCertaintyStartOfMonth,
-      review_order_certainty: reviewOrderCertainty,
+      order_certainty_start_of_month: orderCertaintyStartOfMonth ? orderCertaintyStartOfMonth : null,
+      review_order_certainty: reviewOrderCertainty ? reviewOrderCertainty : null,
       competitor_appearance_date: competitorAppearanceDate ? competitorAppearanceDate.toISOString() : null,
-      competitor: competitor,
-      competitor_product: competitorProduct,
-      reason_class: reasonClass,
-      reason_detail: reasonDetail,
-      customer_budget: customerBudget,
-      decision_maker_negotiation: decisionMakerNegotiation,
-      expansion_year_month: expansionYearMonth,
-      sales_year_month: salesYearMonth,
-      subscription_interval: subscriptionInterval,
-      competition_state: competitionState,
-      property_year_month: PropertyYearMonth,
+      competitor: competitor ? competitor : null,
+      competitor_product: competitorProduct ? competitorProduct : null,
+      reason_class: reasonClass ? reasonClass : null,
+      reason_detail: reasonDetail ? reasonDetail : null,
+      // customer_budget: customerBudget,
+      customer_budget: !isNaN(parseInt(customerBudget, 10)) ? parseInt(customerBudget, 10) : null,
+      decision_maker_negotiation: decisionMakerNegotiation ? decisionMakerNegotiation : null,
+      expansion_year_month: expansionYearMonth ? expansionYearMonth : null,
+      sales_year_month: salesYearMonth ? salesYearMonth : null,
+      subscription_interval: subscriptionInterval ? subscriptionInterval : null,
+      competition_state: competitionState ? competitionState : null,
+      property_year_month: PropertyYearMonth ? PropertyYearMonth : null,
       // property_department: PropertyDepartment ? PropertyDepartment : null,
       // property_business_office: PropertyBusinessOffice ? PropertyBusinessOffice : null,
       property_department: departmentName ? departmentName : null,
@@ -819,15 +882,17 @@ export const InsertNewPropertyModal = () => {
 
     // -------------------------- 商品idと入力されてる商品名が同じかチェック --------------------------
     // 紹介予定商品メイン、サブの選択されているidが現在現在入力されてるnameのidと一致しているかを確認
-    const currentId1 = suggestedProductIdNameArray.find((obj) => obj.fullName === productNameInput)?.id;
+    const currentObj1 = suggestedProductIdNameArray.find((obj) => obj.fullName === expectedProductFullNameInput);
+    const currentId1 = currentObj1?.id;
     if (!currentId1) return alert("「紹介予定商品メイン」の商品が有効ではありません。正しい商品を選択してください。");
-    const checkResult1 = currentId1 === productName;
+    const checkResult1 = currentId1 === expectedProductId;
     if (!checkResult1) return alert("「紹介予定商品メイン」の商品が有効ではありません。正しい商品を選択してください。");
     // 商品サブは任意でOK 入力されてる場合はチェック
-    if (soldProductNameInput) {
-      const currentId2 = suggestedProductIdNameArray.find((obj) => obj.fullName === soldProductNameInput)?.id;
+    if (soldProductFullNameInput) {
+      const currentObj2 = suggestedProductIdNameArray.find((obj) => obj.fullName === soldProductFullNameInput);
+      const currentId2 = currentObj2?.id;
       if (!currentId2) return alert("「紹介予定商品サブ」の商品が有効ではありません。正しい商品を選択してください。");
-      const checkResult2 = currentId2 === soldProductName;
+      const checkResult2 = currentId2 === soldProductId;
       if (!checkResult2) return alert("「紹介予定商品サブ」の商品が有効ではありません。正しい商品を選択してください。");
     }
     // -------------------------- 商品idと入力されてる商品名が同じかチェックここまで --------------------------
@@ -865,56 +930,56 @@ export const InsertNewPropertyModal = () => {
       property_summary: propertySummary,
       pending_flag: pendingFlag,
       rejected_flag: rejectedFlag,
-      product_name: productName ? productName : null,
-      product_sales: productSales,
+      // product_name: productName ? productName : null,
+      // expected_product: expectedProduct ? expectedProduct : null,
+      expected_product_id: expectedProductId ? expectedProductId : null,
+      expected_product: expectedProductName ? expectedProductName : null,
+      // product_sales: productSales,
+      product_sales: !isNaN(parseInt(productSales, 10)) ? parseInt(productSales, 10) : null,
       expected_order_date: expectedOrderDate ? expectedOrderDate.toISOString() : null,
       // expected_sales_price: expectedSalesPrice,
-      expected_sales_price:
-        expectedSalesPrice !== null && expectedSalesPrice !== undefined && expectedSalesPrice !== ""
-          ? parseInt(expectedSalesPrice.replace(/,/g, ""), 10)
-          : null, // 0以外のfalsyならnullをセット 0円は許容
+      expected_sales_price: checkNotFalsyExcludeZero(expectedSalesPrice) ? expectedSalesPrice.replace(/,/g, "") : null, // 0以外のfalsyならnullをセット 0円は許容
       term_division: termDivision,
-      sold_product_name: soldProductName ? soldProductName : null,
-      unit_sales: unitSales,
-      sales_contribution_category: salesContributionCategory,
+      // sold_product: soldProductName ? soldProductName : null,
+      // sold_product: soldProduct ? soldProduct : null,
+      sold_product_id: soldProductId ? soldProductId : null,
+      sold_product: soldProductName ? soldProductName : null,
+      // unit_sales: unitSales ? unitSales : null,
+      unit_sales: !isNaN(parseInt(unitSales, 10)) ? parseInt(unitSales, 10) : null,
+      sales_contribution_category: salesContributionCategory ? salesContributionCategory : null,
       // sales_price: salesPrice,
-      sales_price:
-        salesPrice !== null && salesPrice !== undefined && salesPrice !== ""
-          ? parseInt(salesPrice.replace(/,/g, ""), 10)
-          : null, // 0以外のfalsyならnullをセット 0円は許容
+      sales_price: checkNotFalsyExcludeZero(salesPrice) ? salesPrice.replace(/,/g, "") : null, // 0以外のfalsyならnullをセット 0円は許容
       // discounted_price: discountedPrice,
-      discounted_price:
-        discountedPrice !== null && discountedPrice !== undefined && discountedPrice !== ""
-          ? parseInt(discountedPrice.replace(/,/g, ""), 10)
-          : null, // 0以外のfalsyならnullをセット 0円は許容
+      discounted_price: checkNotFalsyExcludeZero(discountedPrice) ? discountedPrice.replace(/,/g, "") : null, // 0以外のfalsyならnullをセット 0円は許容
       // discount_rate: discountedRate ? discountedRate : null,
-      discount_rate: discountedRate ? discountedRate.replace(/[%％]/g, "") : null,
-      sales_class: salesClass,
+      discount_rate: checkNotFalsyExcludeZero(discountedRate) ? discountedRate.replace(/[%％]/g, "") : null,
+      sales_class: salesClass ? salesClass : null,
       expansion_date: expansionDate ? expansionDate.toISOString() : null,
       sales_date: salesDate ? salesDate.toISOString() : null,
-      expansion_quarter: expansionQuarter,
-      sales_quarter: salesQuarter,
+      expansion_quarter: expansionQuarter ? expansionQuarter : null,
+      sales_quarter: salesQuarter ? salesQuarter : null,
       subscription_start_date: subscriptionStartDate ? subscriptionStartDate.toISOString() : null,
       subscription_canceled_at: subscriptionCanceledAt ? subscriptionCanceledAt.toISOString() : null,
-      leasing_company: leasingCompany,
-      lease_division: leaseDivision,
+      leasing_company: leasingCompany ? leasingCompany : null,
+      lease_division: leaseDivision ? leaseDivision : null,
       lease_expiration_date: leaseExpirationDate ? leaseExpirationDate.toISOString() : null,
       step_in_flag: stepInFlag,
       repeat_flag: repeatFlag,
-      order_certainty_start_of_month: orderCertaintyStartOfMonth,
-      review_order_certainty: reviewOrderCertainty,
+      order_certainty_start_of_month: orderCertaintyStartOfMonth ? orderCertaintyStartOfMonth : null,
+      review_order_certainty: reviewOrderCertainty ? reviewOrderCertainty : null,
       competitor_appearance_date: competitorAppearanceDate ? competitorAppearanceDate.toISOString() : null,
-      competitor: competitor,
-      competitor_product: competitorProduct,
-      reason_class: reasonClass,
-      reason_detail: reasonDetail,
-      customer_budget: customerBudget,
-      decision_maker_negotiation: decisionMakerNegotiation,
-      expansion_year_month: expansionYearMonth,
-      sales_year_month: salesYearMonth,
-      subscription_interval: subscriptionInterval,
-      competition_state: competitionState,
-      property_year_month: PropertyYearMonth,
+      competitor: competitor ? competitor : null,
+      competitor_product: competitorProduct ? competitorProduct : null,
+      reason_class: reasonClass ? reasonClass : null,
+      reason_detail: reasonDetail ? reasonDetail : null,
+      // customer_budget: customerBudget,
+      customer_budget: !isNaN(parseInt(customerBudget, 10)) ? parseInt(customerBudget, 10) : null,
+      decision_maker_negotiation: decisionMakerNegotiation ? decisionMakerNegotiation : null,
+      expansion_year_month: expansionYearMonth ? expansionYearMonth : null,
+      sales_year_month: salesYearMonth ? salesYearMonth : null,
+      subscription_interval: subscriptionInterval ? subscriptionInterval : null,
+      competition_state: competitionState ? competitionState : null,
+      property_year_month: PropertyYearMonth ? PropertyYearMonth : null,
       // property_department: PropertyDepartment ? PropertyDepartment : null,
       // property_business_office: PropertyBusinessOffice ? PropertyBusinessOffice : null,
       property_department: departmentName ? departmentName : null,
@@ -950,15 +1015,17 @@ export const InsertNewPropertyModal = () => {
 
     // -------------------------- 商品idと入力されてる商品名が同じかチェック --------------------------
     // 紹介予定商品メイン、サブの選択されているidが現在現在入力されてるnameのidと一致しているかを確認
-    const currentId1 = suggestedProductIdNameArray.find((obj) => obj.fullName === productNameInput)?.id;
+    const currentObj1 = suggestedProductIdNameArray.find((obj) => obj.fullName === expectedProductFullNameInput);
+    const currentId1 = currentObj1?.id;
     if (!currentId1) return alert("「紹介予定商品メイン」の商品が有効ではありません。正しい商品を選択してください。");
-    const checkResult1 = currentId1 === productName;
+    const checkResult1 = currentId1 === expectedProductId;
     if (!checkResult1) return alert("「紹介予定商品メイン」の商品が有効ではありません。正しい商品を選択してください。");
     // 商品サブは任意でOK 入力されてる場合はチェック
-    if (soldProductNameInput) {
-      const currentId2 = suggestedProductIdNameArray.find((obj) => obj.fullName === soldProductNameInput)?.id;
+    if (soldProductFullNameInput) {
+      const currentObj2 = suggestedProductIdNameArray.find((obj) => obj.fullName === soldProductFullNameInput);
+      const currentId2 = currentObj2?.id;
       if (!currentId2) return alert("「紹介予定商品サブ」の商品が有効ではありません。正しい商品を選択してください。");
-      const checkResult2 = currentId2 === soldProductName;
+      const checkResult2 = currentId2 === soldProductId;
       if (!checkResult2) return alert("「紹介予定商品サブ」の商品が有効ではありません。正しい商品を選択してください。");
     }
     // -------------------------- 商品idと入力されてる商品名が同じかチェックここまで --------------------------
@@ -996,57 +1063,57 @@ export const InsertNewPropertyModal = () => {
       property_summary: propertySummary,
       pending_flag: pendingFlag,
       rejected_flag: rejectedFlag,
-      product_name: productName ? productName : null,
-      product_sales: productSales,
+      // product_name: productName ? productName : null,
+      // expected_product: expectedProduct ? expectedProduct : null,
+      expected_product_id: expectedProductId ? expectedProductId : null,
+      expected_product: expectedProductName ? expectedProductName : null,
+      // product_sales: productSales,
+      product_sales: !isNaN(parseInt(productSales, 10)) ? parseInt(productSales, 10) : null,
       expected_order_date: expectedOrderDate ? expectedOrderDate.toISOString() : null,
       // expected_sales_price: expectedSalesPrice,
-      expected_sales_price:
-        expectedSalesPrice !== null && expectedSalesPrice !== undefined && expectedSalesPrice !== ""
-          ? parseInt(expectedSalesPrice.replace(/,/g, ""), 10)
-          : null, // 0以外のfalsyならnullをセット 0円は許容
+      expected_sales_price: checkNotFalsyExcludeZero(expectedSalesPrice) ? expectedSalesPrice.replace(/,/g, "") : null, // 0以外のfalsyならnullをセット 0円は許容
       term_division: termDivision,
-      sold_product_name: soldProductName ? soldProductName : null,
-      unit_sales: unitSales,
-      sales_contribution_category: salesContributionCategory,
+      // sold_product: soldProductName ? soldProductName : null,
+      // sold_product: soldProduct ? soldProduct : null,
+      sold_product_id: soldProductId ? soldProductId : null,
+      sold_product: soldProductName ? soldProductName : null,
+      // unit_sales: checkNotFalsyExcludeZero(unitSales) ? unitSales : null,
+      unit_sales: !isNaN(parseInt(unitSales, 10)) ? parseInt(unitSales, 10) : null,
+      sales_contribution_category: salesContributionCategory ? salesContributionCategory : null,
       // sales_price: salesPrice,
-      sales_price:
-        salesPrice !== null && salesPrice !== undefined && salesPrice !== ""
-          ? parseInt(salesPrice.replace(/,/g, ""), 10)
-          : null, // 0以外のfalsyならnullをセット 0円は許容
+      sales_price: checkNotFalsyExcludeZero(salesPrice) ? salesPrice.replace(/,/g, "") : null, // 0以外のfalsyならnullをセット 0円は許容
       // discounted_price: discountedPrice,
-      discounted_price:
-        discountedPrice !== null && discountedPrice !== undefined && discountedPrice !== ""
-          ? parseInt(discountedPrice.replace(/,/g, ""), 10)
-          : null, // 0以外のfalsyならnullをセット 0円は許容
+      discounted_price: checkNotFalsyExcludeZero(discountedPrice) ? discountedPrice.replace(/,/g, "") : null, // 0以外のfalsyならnullをセット 0円は許容
       // discount_rate: discountedRate ? discountedRate : null,
       // 小数点を含む値（例："0.5"）をSupabase/PostgreSQLのnumeric型フィールドに保存する場合は、文字列形式のまま保存するのが一般的
       discount_rate: discountedRate ? discountedRate.replace(/[%％]/g, "") : null,
       sales_class: salesClass,
       expansion_date: expansionDate ? expansionDate.toISOString() : null,
       sales_date: salesDate ? salesDate.toISOString() : null,
-      expansion_quarter: expansionQuarter,
-      sales_quarter: salesQuarter,
+      expansion_quarter: expansionQuarter ? expansionQuarter : null,
+      sales_quarter: salesQuarter ? salesQuarter : null,
       subscription_start_date: subscriptionStartDate ? subscriptionStartDate.toISOString() : null,
       subscription_canceled_at: subscriptionCanceledAt ? subscriptionCanceledAt.toISOString() : null,
-      leasing_company: leasingCompany,
-      lease_division: leaseDivision,
+      leasing_company: leasingCompany ? leasingCompany : null,
+      lease_division: leaseDivision ? leaseDivision : null,
       lease_expiration_date: leaseExpirationDate ? leaseExpirationDate.toISOString() : null,
       step_in_flag: stepInFlag,
       repeat_flag: repeatFlag,
       order_certainty_start_of_month: orderCertaintyStartOfMonth,
-      review_order_certainty: reviewOrderCertainty,
+      review_order_certainty: reviewOrderCertainty ? reviewOrderCertainty : null,
       competitor_appearance_date: competitorAppearanceDate ? competitorAppearanceDate.toISOString() : null,
-      competitor: competitor,
-      competitor_product: competitorProduct,
-      reason_class: reasonClass,
-      reason_detail: reasonDetail,
-      customer_budget: customerBudget,
-      decision_maker_negotiation: decisionMakerNegotiation,
-      expansion_year_month: expansionYearMonth,
-      sales_year_month: salesYearMonth,
-      subscription_interval: subscriptionInterval,
-      competition_state: competitionState,
-      property_year_month: PropertyYearMonth,
+      competitor: competitor ? competitor : null,
+      competitor_product: competitorProduct ? competitorProduct : null,
+      reason_class: reasonClass ? reasonClass : null,
+      reason_detail: reasonDetail ? reasonDetail : null,
+      // customer_budget: customerBudget,
+      customer_budget: !isNaN(parseInt(customerBudget, 10)) ? parseInt(customerBudget, 10) : null,
+      decision_maker_negotiation: decisionMakerNegotiation ? decisionMakerNegotiation : null,
+      expansion_year_month: expansionYearMonth ? expansionYearMonth : null,
+      sales_year_month: salesYearMonth ? salesYearMonth : null,
+      subscription_interval: subscriptionInterval ? subscriptionInterval : null,
+      competition_state: competitionState ? competitionState : null,
+      property_year_month: PropertyYearMonth ? PropertyYearMonth : null,
       // property_department: PropertyDepartment ? PropertyDepartment : null,
       // property_business_office: PropertyBusinessOffice ? PropertyBusinessOffice : null,
       property_department: departmentName ? departmentName : null,
@@ -1210,7 +1277,9 @@ export const InsertNewPropertyModal = () => {
     "selectedRowDataActivity",
     selectedRowDataActivity,
     "selectedRowDataMeeting",
-    selectedRowDataMeeting
+    selectedRowDataMeeting,
+    "!isNaN(parseInt(unitSales, 10)) ? parseInt(unitSales, 10) : null",
+    !isNaN(parseInt(unitSales, 10)) ? parseInt(unitSales, 10) : null
   );
 
   return (
@@ -1254,7 +1323,8 @@ export const InsertNewPropertyModal = () => {
         {/* 検索予測リストメニュー オーバーレイ */}
         {suggestedProductName &&
           suggestedProductName.length > 0 &&
-          (suggestedProductName[0].length > 0 || suggestedProductName[1].length > 0) && (
+          ((suggestedProductName[0] && suggestedProductName[0]?.length > 0) ||
+            (suggestedProductName[1] && suggestedProductName[1]?.length > 0)) && (
             <div
               // className="fixed left-[-100vw] top-[-50%] z-[10] h-[200vh] w-[300vw] bg-[#00000090]"
               className="fixed left-[-100vw] top-[-50%] z-[10] h-[200vh] w-[300vw]"
@@ -1597,11 +1667,11 @@ export const InsertNewPropertyModal = () => {
                         placeholder="キーワード入力後、商品を選択してください"
                         required
                         className={`${styles.input_box}`}
-                        value={productNameInput}
-                        onChange={(e) => setProductNameInput(e.target.value)}
+                        value={expectedProductFullNameInput}
+                        onChange={(e) => setExpectedProductFullNameInput(e.target.value)}
                         onKeyUp={(e) => handleSuggestedProduct(e, 0)}
                         onFocus={(e) => {
-                          handleFocusSuggestedProduct(productNameInput, 0);
+                          handleFocusSuggestedProduct(expectedProductFullNameInput, 0);
                           if (!!resultRefs.current[0]) resultRefs.current[0].style.opacity = "1";
                           // handleFocusSuggestedProduct(plannedProduct1InputName);
                           // if (!!resultRefs.current) resultRefs.current.style.opacity = "1";
@@ -1612,7 +1682,7 @@ export const InsertNewPropertyModal = () => {
                         }}
                       />
                       {/* 予測変換結果 */}
-                      {suggestedProductName && suggestedProductName[0] && suggestedProductName[0].length > 0 && (
+                      {suggestedProductName && suggestedProductName[0] && suggestedProductName[0]?.length > 0 && (
                         <div
                           ref={(el) => (resultRefs.current[0] = el)}
                           className={`${styles.result_box}`}
@@ -1623,7 +1693,7 @@ export const InsertNewPropertyModal = () => {
                             } as CSSProperties
                           }
                         >
-                          {suggestedProductName && suggestedProductName[0] && suggestedProductName[0].length > 0 && (
+                          {suggestedProductName && suggestedProductName[0] && suggestedProductName[0]?.length > 0 && (
                             <div className="sticky top-0 flex min-h-[5px] w-full flex-col items-center justify-end">
                               <hr className={`min-h-[4px] w-full bg-[var(--color-bg-under-input)]`} />
                               <hr className={`min-h-[1px] w-[93%] bg-[#ccc]`} />
@@ -1635,11 +1705,20 @@ export const InsertNewPropertyModal = () => {
                                 key={index}
                                 onClick={(e) => {
                                   // console.log("🌟innerText", e.currentTarget.innerText);
-                                  const productName = productIdName.fullName;
+                                  // const productName = productIdName.fullName;
+                                  // const productId = productIdName.id;
+                                  const _productName = productIdName.product_name;
+                                  const _productInsideName = productIdName.inside_short_name;
+                                  const _productOutsideName = productIdName.outside_short_name;
+                                  const productFullName = productIdName.fullName;
+                                  const productName = _productInsideName
+                                    ? _productInsideName
+                                    : (_productName ?? "") + " " + (_productOutsideName ?? "");
                                   const productId = productIdName.id;
                                   // setPlannedProduct1(e.currentTarget.innerText);
-                                  setProductNameInput(productName);
-                                  setProductName(productId);
+                                  setExpectedProductFullNameInput(productFullName);
+                                  setExpectedProductName(productName);
+                                  setExpectedProductId(productId);
                                   const newSuggestedProductName = [...suggestedProductName];
                                   newSuggestedProductName[0] = [];
                                   setSuggestedProductName(newSuggestedProductName);
@@ -1685,7 +1764,7 @@ export const InsertNewPropertyModal = () => {
                             if (
                               !suggestedProductName[0]?.length ||
                               (suggestedProductName[0] &&
-                                suggestedProductName[0].length !== suggestedProductIdNameArray.length)
+                                suggestedProductName[0]?.length !== suggestedProductIdNameArray.length)
                             ) {
                               const newSuggestions = [...suggestedProductName];
                               newSuggestions[0] = [...suggestedProductIdNameArray];
@@ -1697,7 +1776,8 @@ export const InsertNewPropertyModal = () => {
                           if (!isOpenDropdownMenuFilterProducts || hoveredItemPosModal) handleCloseTooltip();
                         }}
                       >
-                        <HiChevronDown className="stroke-[1] text-[13px] text-[var(--color-text-sub)]" />
+                        {/* <HiChevronDown className="stroke-[1] text-[13px] text-[var(--color-text-sub)]" /> */}
+                        <HiChevronDown className="stroke-[1] text-[13px] text-[var(--color-text-brand-f)]" />
                       </div>
                     </div>
                     {/* 予測変換input セレクトと組み合わせ ここまで */}
@@ -1717,10 +1797,36 @@ export const InsertNewPropertyModal = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px]`}>台数(予定)</span>
                     <input
+                      type="text"
+                      placeholder=""
+                      className={`${styles.input_box}`}
+                      onCompositionStart={() => setIsComposing(true)}
+                      onCompositionEnd={() => setIsComposing(false)}
+                      value={!!productSales ? productSales : ""}
+                      onChange={(e) => setProductSales(e.target.value)}
+                      onBlur={() => {
+                        if (!productSales || productSales === "") return setProductSales("");
+                        const converted = convertHalfWidthNumOnly(productSales.trim());
+                        if (converted === null) return setProductSales("");
+                        setProductSales(converted);
+                        // setProductSales(
+                        //   !!productSales && productSales !== "" && convertToYen(productSales.trim()) !== null
+                        //     ? (convertToYen(productSales.trim()) as number).toLocaleString()
+                        //     : ""
+                        // );
+                      }}
+                    />
+                    {/* バツボタン */}
+                    {productSales !== "" && (
+                      <div className={`${styles.close_btn_number}`} onClick={() => setProductSales("")}>
+                        <MdClose className="text-[20px] " />
+                      </div>
+                    )}
+                    {/* <input
                       type="number"
                       min="0"
                       className={`${styles.input_box}`}
-                      placeholder="台数を入力してください"
+                      placeholder="獲得予定台数を入力してください"
                       value={productSales === null ? "" : productSales}
                       onChange={(e) => {
                         const val = e.target.value;
@@ -1738,12 +1844,11 @@ export const InsertNewPropertyModal = () => {
                         }
                       }}
                     />
-                    {/* バツボタン */}
                     {productSales !== null && productSales !== 0 && (
                       <div className={`${styles.close_btn_number}`} onClick={() => setProductSales(null)}>
                         <MdClose className="text-[20px] " />
                       </div>
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1832,17 +1937,23 @@ export const InsertNewPropertyModal = () => {
                       type="text"
                       placeholder="例：600万円 → 6000000　※半角で入力"
                       className={`${styles.input_box}`}
+                      onCompositionStart={() => setIsComposing(true)}
+                      onCompositionEnd={() => setIsComposing(false)}
                       value={!!expectedSalesPrice ? expectedSalesPrice : ""}
                       onChange={(e) => setExpectedSalesPrice(e.target.value)}
-                      onBlur={() =>
-                        setExpectedSalesPrice(
-                          !!expectedSalesPrice &&
-                            expectedSalesPrice !== "" &&
-                            convertToYen(expectedSalesPrice.trim()) !== null
-                            ? (convertToYen(expectedSalesPrice.trim()) as number).toLocaleString()
-                            : ""
-                        )
-                      }
+                      onBlur={() => {
+                        if (!expectedSalesPrice || expectedSalesPrice === "") return setExpectedSalesPrice("");
+                        const converted = convertToYen(expectedSalesPrice.trim());
+                        if (converted === null) return setExpectedSalesPrice("");
+                        setExpectedSalesPrice(converted.toLocaleString());
+                        // setExpectedSalesPrice(
+                        //   !!expectedSalesPrice &&
+                        //     expectedSalesPrice !== "" &&
+                        //     convertToYen(expectedSalesPrice.trim()) !== null
+                        //     ? (convertToYen(expectedSalesPrice.trim()) as number).toLocaleString()
+                        //     :
+                        // )
+                      }}
                     />
                     {/* バツボタン */}
                     {expectedSalesPrice !== "" && (
@@ -2095,11 +2206,11 @@ export const InsertNewPropertyModal = () => {
                         placeholder="キーワード入力後、商品を選択してください"
                         required
                         className={`${styles.input_box}`}
-                        value={soldProductNameInput}
-                        onChange={(e) => setSoldProductNameInput(e.target.value)}
+                        value={soldProductFullNameInput}
+                        onChange={(e) => setSoldProductFullNameInput(e.target.value)}
                         onKeyUp={(e) => handleSuggestedProduct(e, 1)}
                         onFocus={(e) => {
-                          handleFocusSuggestedProduct(soldProductNameInput, 1);
+                          handleFocusSuggestedProduct(soldProductFullNameInput, 1);
                           if (!!resultRefs.current[1]) resultRefs.current[1].style.opacity = "1";
                           // handleFocusSuggestedProduct(plannedProduct1InputName);
                           // if (!!resultRefs.current) resultRefs.current.style.opacity = "1";
@@ -2110,7 +2221,7 @@ export const InsertNewPropertyModal = () => {
                         }}
                       />
                       {/* 予測変換結果 */}
-                      {suggestedProductName && suggestedProductName[1] && suggestedProductName[1].length > 0 && (
+                      {suggestedProductName && suggestedProductName[1] && suggestedProductName[1]?.length > 0 && (
                         <div
                           ref={(el) => (resultRefs.current[1] = el)}
                           className={`${styles.result_box}`}
@@ -2121,7 +2232,7 @@ export const InsertNewPropertyModal = () => {
                             } as CSSProperties
                           }
                         >
-                          {suggestedProductName && suggestedProductName[1] && suggestedProductName[1].length > 0 && (
+                          {suggestedProductName && suggestedProductName[1] && suggestedProductName[1]?.length > 0 && (
                             <div className="sticky top-0 flex min-h-[5px] w-full flex-col items-center justify-end">
                               <hr className={`min-h-[4px] w-full bg-[var(--color-bg-under-input)]`} />
                               <hr className={`min-h-[1px] w-[93%] bg-[#ccc]`} />
@@ -2133,11 +2244,20 @@ export const InsertNewPropertyModal = () => {
                                 key={index}
                                 onClick={(e) => {
                                   // console.log("🌟innerText", e.currentTarget.innerText);
-                                  const productName = productIdName.fullName;
+                                  // const productName = productIdName.fullName;
+                                  // const productId = productIdName.id;
+                                  const _productName = productIdName.product_name;
+                                  const _productInsideName = productIdName.inside_short_name;
+                                  const _productOutsideName = productIdName.outside_short_name;
+                                  const productFullName = productIdName.fullName;
+                                  const productName = _productInsideName
+                                    ? _productInsideName
+                                    : (_productName ?? "") + " " + (_productOutsideName ?? "");
                                   const productId = productIdName.id;
                                   // setPlannedProduct1(e.currentTarget.innerText);
-                                  setSoldProductNameInput(productName);
-                                  setSoldProductNameInput(productId);
+                                  setSoldProductFullNameInput(productFullName);
+                                  setSoldProductName(productName);
+                                  setSoldProductId(productId);
                                   const newSuggestedProductName = [...suggestedProductName];
                                   newSuggestedProductName[1] = [];
                                   setSuggestedProductName(newSuggestedProductName);
@@ -2183,7 +2303,7 @@ export const InsertNewPropertyModal = () => {
                             if (
                               !suggestedProductName[1]?.length ||
                               (suggestedProductName[1] &&
-                                suggestedProductName[1].length !== suggestedProductIdNameArray.length)
+                                suggestedProductName[1]?.length !== suggestedProductIdNameArray?.length)
                             ) {
                               const newSuggestions = [...suggestedProductName];
                               newSuggestions[1] = [...suggestedProductIdNameArray];
@@ -2195,7 +2315,8 @@ export const InsertNewPropertyModal = () => {
                           if (!isOpenDropdownMenuFilterProductsSold || hoveredItemPosModal) handleCloseTooltip();
                         }}
                       >
-                        <HiChevronDown className="stroke-[1] text-[13px] text-[var(--color-text-sub)]" />
+                        {/* <HiChevronDown className="stroke-[1] text-[13px] text-[var(--color-text-sub)]" /> */}
+                        <HiChevronDown className="stroke-[1] text-[13px] text-[var(--color-text-brand-f)]" />
                       </div>
                     </div>
                     {/* 予測変換input セレクトと組み合わせ ここまで */}
@@ -2212,38 +2333,8 @@ export const InsertNewPropertyModal = () => {
               {/* 売上台数 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>売上台数</span>
-                    <input
-                      type="number"
-                      min="0"
-                      className={`${styles.input_box}`}
-                      placeholder=""
-                      value={unitSales === null ? "" : unitSales}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === "") {
-                          setUnitSales(null);
-                        } else {
-                          const numValue = Number(val);
-
-                          // 入力値がマイナスかチェック
-                          if (numValue < 0) {
-                            setUnitSales(0); // ここで0に設定しているが、必要に応じて他の正の値に変更することもできる
-                          } else {
-                            setUnitSales(numValue);
-                          }
-                        }
-                      }}
-                    />
-                    {/* バツボタン */}
-                    {unitSales !== null && unitSales !== 0 && (
-                      <div className={`${styles.close_btn_number}`} onClick={() => setUnitSales(null)}>
-                        <MdClose className="text-[20px] " />
-                      </div>
-                    )}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
+                  <div className={`${styles.title_box} flex h-full items-center `}></div>
+                  {/* <div className={`${styles.underline}`}></div> */}
                 </div>
               </div>
 
@@ -2269,11 +2360,16 @@ export const InsertNewPropertyModal = () => {
                       }}
                     >
                       <option value=""></option>
-                      <option value="自己売上(自身で発生、自身で売上)">自己売上(自身で発生、自身で売上)</option>
+                      {optionsSalesContributionCategory.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                      {/* <option value="自己売上(自身で発生、自身で売上)">自己売上(自身で発生、自身で売上)</option>
                       <option value="引継ぎ売上(他担当が発生、引継ぎで売上)">
                         引継ぎ売上(他担当が発生、引継ぎで売上)
                       </option>
-                      <option value="リピート売上">リピート売上</option>
+                      <option value="リピート売上">リピート売上</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -2285,6 +2381,42 @@ export const InsertNewPropertyModal = () => {
 
             {/* --------- 右ラッパー --------- */}
             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* 売上価格 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title} !min-w-[140px]`}>導入分類</span>
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={salesClass}
+                      onChange={(e) => {
+                        setSalesClass(e.target.value);
+                      }}
+                    >
+                      <option value=""></option>
+                      {optionsSalesClass.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                      {/* <option value="新規">新規</option>
+                      <option value="増設">増設</option>
+                      <option value="更新">更新</option> */}
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 右ラッパーここまで */}
+            </div>
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
               {/* 売上価格 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
@@ -2307,9 +2439,36 @@ export const InsertNewPropertyModal = () => {
                       }
                       onMouseLeave={handleCloseTooltip}
                     >
-                      <span className={`mr-[9px]`}>売上価格</span>
+                      {/* <span className={`mr-[8px] `}>売上価格(円)</span> */}
+                      <span className={`mr-[9px] `}>売上価格</span>
                       <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
                     </div>
+                    <input
+                      type="text"
+                      placeholder="例：600万円 → 6000000　※半角で入力"
+                      className={`${styles.input_box}`}
+                      onCompositionStart={() => setIsComposing(true)}
+                      onCompositionEnd={() => setIsComposing(false)}
+                      value={!!salesPrice ? salesPrice : ""}
+                      onChange={(e) => setSalesPrice(e.target.value)}
+                      onBlur={() => {
+                        if (!salesPrice || salesPrice === "") return setSalesPrice("");
+                        const converted = convertToYen(salesPrice.trim());
+                        if (converted === null) return setSalesPrice("");
+                        setSalesPrice(converted.toLocaleString());
+                        // setSalesPrice(
+                        //   !!salesPrice && salesPrice !== "" && convertToYen(salesPrice.trim()) !== null
+                        //     ? (convertToYen(salesPrice.trim()) as number).toLocaleString()
+                        //     : ""
+                        // );
+                      }}
+                    />
+                    {/* バツボタン */}
+                    {salesPrice !== "" && (
+                      <div className={`${styles.close_btn_number}`} onClick={() => setSalesPrice("")}>
+                        <MdClose className="text-[20px] " />
+                      </div>
+                    )}
                     {/* <input
                       type="number"
                       min="0"
@@ -2331,28 +2490,8 @@ export const InsertNewPropertyModal = () => {
                           }
                         }
                       }}
-                    /> */}
-                    <input
-                      type="text"
-                      placeholder="例：600万円 → 6000000　※半角で入力"
-                      className={`${styles.input_box}`}
-                      value={!!salesPrice ? salesPrice : ""}
-                      onChange={(e) => setSalesPrice(e.target.value)}
-                      onBlur={() =>
-                        setSalesPrice(
-                          !!salesPrice && salesPrice !== "" && convertToYen(salesPrice.trim()) !== null
-                            ? (convertToYen(salesPrice.trim()) as number).toLocaleString()
-                            : ""
-                        )
-                      }
                     />
-                    {/* バツボタン */}
-                    {salesPrice !== "" && (
-                      <div className={`${styles.close_btn_number}`} onClick={() => setSalesPrice("")}>
-                        <MdClose className="text-[20px] " />
-                      </div>
-                    )}
-                    {/* {salesPrice !== null && salesPrice !== 0 && (
+                    {salesPrice !== null && salesPrice !== 0 && (
                       <div className={`${styles.close_btn_number}`} onClick={() => setSalesPrice(null)}>
                         <MdClose className="text-[20px] " />
                       </div>
@@ -2362,38 +2501,75 @@ export const InsertNewPropertyModal = () => {
                 </div>
               </div>
 
-              {/* 右ラッパーここまで */}
+              {/* 左ラッパーここまで */}
             </div>
-          </div>
-          {/* --------- 横幅全体ラッパーここまで --------- */}
 
-          {/* --------- 横幅全体ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full`}>
-            {/* --------- 左ラッパー --------- */}
-            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 導入分類 */}
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* 売上台数 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>導入分類</span>
-                    <select
-                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      value={salesClass}
-                      onChange={(e) => {
-                        setSalesClass(e.target.value);
+                    <span className={`${styles.title} !min-w-[140px]`}>売上台数</span>
+                    <input
+                      type="text"
+                      placeholder=""
+                      className={`${styles.input_box}`}
+                      onCompositionStart={() => setIsComposing(true)}
+                      onCompositionEnd={() => setIsComposing(false)}
+                      value={!!unitSales ? unitSales : ""}
+                      onChange={(e) => setUnitSales(e.target.value)}
+                      onBlur={() => {
+                        if (!unitSales || unitSales === "") return setUnitSales("");
+                        const converted = convertHalfWidthNumOnly(unitSales.trim());
+                        if (converted === null) return setUnitSales("");
+                        setUnitSales(converted);
+                        // setUnitSales(
+                        //   !!unitSales && unitSales !== "" && convertToYen(unitSales.trim()) !== null
+                        //     ? (convertToYen(unitSales.trim()) as number).toLocaleString()
+                        //     : ""
+                        // );
                       }}
-                    >
-                      <option value=""></option>
-                      <option value="新規">新規</option>
-                      <option value="増設">増設</option>
-                      <option value="更新">更新</option>
-                    </select>
+                    />
+                    {/* バツボタン */}
+                    {unitSales !== "" && (
+                      <div className={`${styles.close_btn_number}`} onClick={() => setUnitSales("")}>
+                        <MdClose className="text-[20px] " />
+                      </div>
+                    )}
+                    {/* <input
+                      type="number"
+                      min="0"
+                      className={`${styles.input_box}`}
+                      placeholder=""
+                      value={unitSales === null ? "" : unitSales}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "") {
+                          setUnitSales(null);
+                        } else {
+                          const numValue = Number(val);
+
+                          // 入力値がマイナスかチェック
+                          if (numValue < 0) {
+                            setUnitSales(0); // ここで0に設定しているが、必要に応じて他の正の値に変更することもできる
+                          } else {
+                            setUnitSales(numValue);
+                          }
+                        }
+                      }}
+                    />
+                    {unitSales !== null && unitSales !== 0 && (
+                      <div className={`${styles.close_btn_number}`} onClick={() => setUnitSales(null)}>
+                        <MdClose className="text-[20px] " />
+                      </div>
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
 
-              {/* 左ラッパーここまで */}
+              {/* 右ラッパーここまで */}
             </div>
           </div>
           {/* --------- 横幅全体ラッパーここまで --------- */}
@@ -2453,17 +2629,21 @@ export const InsertNewPropertyModal = () => {
                       type="text"
                       placeholder="例：20万円 → 200000　※半角で入力"
                       className={`${styles.input_box}`}
-                      value={!!expectedSalesPrice ? expectedSalesPrice : ""}
-                      onChange={(e) => setExpectedSalesPrice(e.target.value)}
-                      onBlur={() =>
-                        setExpectedSalesPrice(
-                          !!expectedSalesPrice &&
-                            expectedSalesPrice !== "" &&
-                            convertToYen(expectedSalesPrice.trim()) !== null
-                            ? (convertToYen(expectedSalesPrice.trim()) as number).toLocaleString()
-                            : ""
-                        )
-                      }
+                      onCompositionStart={() => setIsComposing(true)}
+                      onCompositionEnd={() => setIsComposing(false)}
+                      value={!!discountedPrice ? discountedPrice : ""}
+                      onChange={(e) => setDiscountedPrice(e.target.value)}
+                      onBlur={() => {
+                        if (!discountedPrice || discountedPrice === "") return setDiscountedPrice("");
+                        const converted = convertToYen(discountedPrice.trim());
+                        if (converted === null) return setDiscountedPrice("");
+                        setDiscountedPrice(converted.toLocaleString());
+                        //   setDiscountedPrice(
+                        //     !!discountedPrice && discountedPrice !== "" && convertToYen(discountedPrice.trim()) !== null
+                        //       ? (convertToYen(discountedPrice.trim()) as number).toLocaleString()
+                        //       : ""
+                        //   );
+                      }}
                     />
                     {/* バツボタン */}
                     {discountedPrice !== "" && (
@@ -2492,11 +2672,11 @@ export const InsertNewPropertyModal = () => {
                         handleOpenTooltip({
                           e: e,
                           display: "top",
-                          content: "売上価格と値引価格を入力することで値引率は自動計算されます。",
-                          // content2: "600万円と入力しても円単位に自動補完されます。",
+                          content: "売上価格と売上台数、値引価格を入力することで",
+                          content2: "値引率は自動計算されます。",
                           // marginTop: 57,
-                          // marginTop: 39,
-                          marginTop: 10,
+                          marginTop: 39,
+                          // marginTop: 10,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",
                         })
@@ -2536,7 +2716,8 @@ export const InsertNewPropertyModal = () => {
                       onChange={(e) => setDiscountedRate(e.target.value)}
                       onBlur={() => {
                         if (!discountedRate || discountedRate === "") return;
-                        const newRate = normalizeDiscountRate(discountedRate.trim());
+                        const tempDiscountedRate = discountedRate.trim();
+                        const newRate = normalizeDiscountRate(tempDiscountedRate);
                         setDiscountedRate(!!newRate ? newRate : "");
                       }}
                     />
@@ -3275,7 +3456,12 @@ export const InsertNewPropertyModal = () => {
                       }}
                     >
                       <option value=""></option>
-                      <option value="新規会社(過去面談無し)/能動">新規会社(過去面談無し)/能動</option>
+                      {optionsReasonClass.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                      {/* <option value="新規会社(過去面談無し)/能動">新規会社(過去面談無し)/能動</option>
                       <option value="被り会社(過去面談有り)/能動">被り会社(過去面談有り)/能動</option>
                       <option value="社内ID/能動">社内ID/能動</option>
                       <option value="社外･客先ID/能動">社外･客先ID/能動</option>
@@ -3286,7 +3472,7 @@ export const InsertNewPropertyModal = () => {
                       <option value="ホームページ/受動">ホームページ/受動</option>
                       <option value="ウェビナー/受動">ウェビナー/受動</option>
                       <option value="展示会/受動">展示会/受動</option>
-                      <option value="その他">その他</option>
+                      <option value="その他">その他</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -3310,7 +3496,7 @@ export const InsertNewPropertyModal = () => {
                       className={`${styles.input_box}`}
                       value={reasonDetail}
                       onChange={(e) => setReasonDetail(e.target.value)}
-                      onBlur={() => setReasonDetail(toHalfWidth(reasonDetail.trim()))}
+                      onBlur={() => setReasonDetail(reasonDetail.trim())}
                     />
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -3330,8 +3516,54 @@ export const InsertNewPropertyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>客先予算</span>
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>客先予算</span> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "円単位でデータを管理します。",
+                          content2: "600万円と入力しても円単位に自動補完されます。",
+                          // marginTop: 57,
+                          marginTop: 39,
+                          // marginTop: 10,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      {/* <div className={`mr-[8px] flex flex-col text-[15px]`}>
+                        <span className={``}>予定</span>
+                        <span className={``}>売上価格(円)</span>
+                      </div> */}
+                      <span className={`mr-[9px]`}>客先予算</span>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+                    </div>
                     <input
+                      type="text"
+                      placeholder="例：600万円 → 6000000　※半角で入力"
+                      className={`${styles.input_box}`}
+                      onCompositionStart={() => setIsComposing(true)}
+                      onCompositionEnd={() => setIsComposing(false)}
+                      value={!!customerBudget ? customerBudget : ""}
+                      onChange={(e) => setCustomerBudget(e.target.value)}
+                      onBlur={() => {
+                        setCustomerBudget(
+                          !!customerBudget && customerBudget !== "" && convertToYen(customerBudget.trim()) !== null
+                            ? (convertToYen(customerBudget.trim()) as number).toLocaleString()
+                            : ""
+                        );
+                      }}
+                    />
+                    {/* バツボタン */}
+                    {customerBudget !== "" && (
+                      <div className={`${styles.close_btn_number}`} onClick={() => setCustomerBudget("")}>
+                        <MdClose className="text-[20px] " />
+                      </div>
+                    )}
+                    {/* <input
                       type="number"
                       min="0"
                       className={`${styles.input_box}`}
@@ -3353,12 +3585,11 @@ export const InsertNewPropertyModal = () => {
                         }
                       }}
                     />
-                    {/* バツボタン */}
                     {customerBudget !== null && customerBudget !== 0 && (
                       <div className={`${styles.close_btn_number}`} onClick={() => setCustomerBudget(null)}>
                         <MdClose className="text-[20px] " />
                       </div>
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>

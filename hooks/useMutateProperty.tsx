@@ -1,11 +1,9 @@
 import useDashboardStore from "@/store/useDashboardStore";
 import useThemeStore from "@/store/useThemeStore";
-import { Property, Client_company, Property_row_data } from "@/types";
+import { Property, Property_row_data } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import React from "react";
 import { toast } from "react-toastify";
-import { ContainerInstance } from "react-toastify/dist/hooks";
 
 export const useMutateProperty = () => {
   const theme = useThemeStore((state) => state.theme);
@@ -28,48 +26,134 @@ export const useMutateProperty = () => {
   // 【Property新規作成INSERT用createPropertyMutation関数】
   const createPropertyMutation = useMutation(
     async (newProperty: Omit<Property, "id" | "created_at" | "updated_at">) => {
-      if (!loadingGlobalState) setLoadingGlobalState(true);
-      // console.log(newProperty.planned_start_time);
-      const { data, error } = await supabase.from("properties").insert(newProperty).select().single();
-      if (error) throw new Error(error.message);
+      // if (!loadingGlobalState) setLoadingGlobalState(true);
 
-      console.log("INSERTに成功したdata", data);
-      // 活動履歴で面談タイプ 訪問・面談を作成
-      const newActivity = {
-        created_by_company_id: newProperty.created_by_company_id,
-        created_by_user_id: newProperty.created_by_user_id,
-        created_by_department_of_user: newProperty.created_by_department_of_user,
-        created_by_unit_of_user: newProperty.created_by_unit_of_user,
-        created_by_office_of_user: newProperty.created_by_office_of_user,
-        client_contact_id: newProperty.client_contact_id,
-        client_company_id: newProperty.client_company_id,
-        summary: newProperty.property_summary,
-        scheduled_follow_up_date: null,
-        // follow_up_flag: followUpFlag ? followUpFlag : null,
-        follow_up_flag: false,
-        document_url: null,
-        activity_type: "案件発生",
-        // claim_flag: claimFlag ? claimFlag : null,
-        claim_flag: false,
-        product_introduction1: null,
-        product_introduction2: null,
-        product_introduction3: null,
-        product_introduction4: null,
-        product_introduction5: null,
-        department: newProperty.property_department,
-        business_office: newProperty.property_business_office,
-        member_name: newProperty.property_member_name,
-        priority: null,
-        activity_date: newProperty.property_date,
-        activity_year_month: newProperty.property_year_month,
-        meeting_id: null,
-        property_id: (data as Property).id ? (data as Property).id : null,
-        quotation_id: null,
+      const newPropertyAndActivityPayload = {
+        _created_by_company_id: newProperty.created_by_company_id,
+        _created_by_user_id: newProperty.created_by_user_id,
+        _created_by_department_of_user: newProperty.created_by_department_of_user,
+        _created_by_unit_of_user: newProperty.created_by_unit_of_user,
+        _created_by_office_of_user: newProperty.created_by_office_of_user,
+        _client_contact_id: newProperty.client_contact_id,
+        _client_company_id: newProperty.client_company_id,
+        _current_status: newProperty.current_status,
+        _property_name: newProperty.property_name,
+        _property_summary: newProperty.property_summary,
+        _pending_flag: newProperty.pending_flag,
+        _rejected_flag: newProperty.rejected_flag,
+        _expected_product_id: newProperty.expected_product_id,
+        _expected_product: newProperty.expected_product,
+        _product_sales: newProperty.product_sales,
+        _expected_order_date: newProperty.expected_order_date,
+        _expected_sales_price: newProperty.expected_sales_price,
+        _term_division: newProperty.term_division,
+        _sold_product_id: newProperty.sold_product_id,
+        _sold_product: newProperty.sold_product,
+        _unit_sales: newProperty.unit_sales,
+        _sales_contribution_category: newProperty.sales_contribution_category,
+        _sales_price: newProperty.sales_price,
+        _discounted_price: newProperty.discounted_price,
+        _discount_rate: newProperty.discount_rate,
+        _sales_class: newProperty.sales_class,
+        _expansion_date: newProperty.expansion_date,
+        _sales_date: newProperty.sales_date,
+        _expansion_quarter: newProperty.expansion_quarter,
+        _sales_quarter: newProperty.sales_quarter,
+        _subscription_start_date: newProperty.subscription_start_date,
+        _subscription_canceled_at: newProperty.subscription_canceled_at,
+        _leasing_company: newProperty.leasing_company,
+        _lease_division: newProperty.lease_division,
+        _lease_expiration_date: newProperty.lease_expiration_date,
+        _step_in_flag: newProperty.step_in_flag,
+        _repeat_flag: newProperty.repeat_flag,
+        _order_certainty_start_of_month: newProperty.order_certainty_start_of_month,
+        _review_order_certainty: newProperty.review_order_certainty,
+        _competitor_appearance_date: newProperty.competitor_appearance_date,
+        _competitor: newProperty.competitor,
+        _competitor_product: newProperty.competitor_product,
+        _reason_class: newProperty.reason_class,
+        _reason_detail: newProperty.reason_detail,
+        _customer_budget: newProperty.customer_budget,
+        _decision_maker_negotiation: newProperty.decision_maker_negotiation,
+        _expansion_year_month: newProperty.expansion_year_month,
+        _sales_year_month: newProperty.sales_year_month,
+        _subscription_interval: newProperty.subscription_interval,
+        _competition_state: newProperty.competition_state,
+        _property_year_month: newProperty.property_year_month,
+        _property_department: newProperty.property_department,
+        _property_business_office: newProperty.property_business_office,
+        _property_member_name: newProperty.property_member_name,
+        _property_date: newProperty.property_date,
+        // -- 🔹activities関連
+        _summary: newProperty.property_summary,
+        _scheduled_follow_up_date: null,
+        _follow_up_flag: false,
+        _document_url: null,
+        _activity_type: "案件発生",
+        _claim_flag: false,
+        _product_introduction1: null,
+        _product_introduction2: null,
+        _product_introduction3: null,
+        _product_introduction4: null,
+        _product_introduction5: null,
+        _department: newProperty.property_department,
+        _business_office: newProperty.property_business_office,
+        _member_name: newProperty.property_member_name,
+        _priority: null,
+        _activity_date: newProperty.property_date,
+        _activity_year_month: newProperty.property_year_month,
+        _meeting_id: null,
+        // -- _property_id: newProperty.-,
+        _quotation_id: null,
       };
 
-      // supabaseにINSERT
-      const { error: errorActivity } = await supabase.from("activities").insert(newActivity);
-      if (errorActivity) throw new Error(errorActivity.message);
+      // rpc insert_properties_with_activities関数実行
+      console.log("🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥rpc実行 newPropertyAndActivityPayload", newPropertyAndActivityPayload);
+
+      const { error } = await supabase.rpc("insert_properties_with_activities", newPropertyAndActivityPayload);
+
+      if (error) throw error;
+
+      // const { data, error } = await supabase.from("properties").insert(newProperty).select().single();
+      // if (error) throw new Error(error.message);
+
+      // console.log("INSERTに成功したdata", data);
+      // // 活動履歴で面談タイプ 訪問・面談を作成
+      // const newActivity = {
+      //   created_by_company_id: newProperty.created_by_company_id,
+      //   created_by_user_id: newProperty.created_by_user_id,
+      //   created_by_department_of_user: newProperty.created_by_department_of_user,
+      //   created_by_unit_of_user: newProperty.created_by_unit_of_user,
+      //   created_by_office_of_user: newProperty.created_by_office_of_user,
+      //   client_contact_id: newProperty.client_contact_id,
+      //   client_company_id: newProperty.client_company_id,
+      //   summary: newProperty.property_summary,
+      //   scheduled_follow_up_date: null,
+      //   // follow_up_flag: followUpFlag ? followUpFlag : null,
+      //   follow_up_flag: false,
+      //   document_url: null,
+      //   activity_type: "案件発生",
+      //   // claim_flag: claimFlag ? claimFlag : null,
+      //   claim_flag: false,
+      //   product_introduction1: null,
+      //   product_introduction2: null,
+      //   product_introduction3: null,
+      //   product_introduction4: null,
+      //   product_introduction5: null,
+      //   department: newProperty.property_department,
+      //   business_office: newProperty.property_business_office,
+      //   member_name: newProperty.property_member_name,
+      //   priority: null,
+      //   activity_date: newProperty.property_date,
+      //   activity_year_month: newProperty.property_year_month,
+      //   meeting_id: null,
+      //   property_id: (data as Property).id ? (data as Property).id : null,
+      //   quotation_id: null,
+      // };
+
+      // // supabaseにINSERT
+      // const { error: errorActivity } = await supabase.from("activities").insert(newActivity);
+      // if (errorActivity) throw new Error(errorActivity.message);
     },
     {
       onSuccess: async () => {
@@ -80,16 +164,14 @@ export const useMutateProperty = () => {
         // https://zenn.dev/masatakaitoh/articles/3c2f8602d2bb9d
 
         if (loadingGlobalState) setLoadingGlobalState(false);
+
+        // console.log("選択中の行をリセット");
+        // setSelectedRowDataProperty(null);
+
         setIsOpenInsertNewPropertyModal(false);
         toast.success("案件の作成が完了しました🌟", {
           position: "top-right",
           autoClose: 1500,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: `${theme === "light" ? "light" : "dark"}`,
         });
         // setTimeout(() => {
         //   if (loadingGlobalState) setLoadingGlobalState(false);
@@ -109,17 +191,12 @@ export const useMutateProperty = () => {
       onError: (err: any) => {
         if (loadingGlobalState) setLoadingGlobalState(false);
         // setIsOpenInsertNewPropertyModal(false);
-        alert(err.message);
+        // alert(err.message);
         console.log("INSERTエラー", err.message);
+        console.error("INSERTエラー", err.message);
         toast.error("案件の作成に失敗しました!", {
           position: "top-right",
           autoClose: 1500,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: `${theme === "light" ? "light" : "dark"}`,
         });
         // setTimeout(() => {
         //   if (loadingGlobalState) setLoadingGlobalState(false);
@@ -144,53 +221,141 @@ export const useMutateProperty = () => {
   // 【Property一括編集UPDATE用updatePropertyMutation関数】
   const updatePropertyMutation = useMutation(
     async (newProperty: Omit<Property, "created_at" | "updated_at">) => {
-      if (!loadingGlobalState) setLoadingGlobalState(true);
-      const { data: propertyData, error } = await supabase
-        .from("properties")
-        .update(newProperty)
-        .eq("id", newProperty.id)
-        .select()
-        .single();
-      if (error) throw new Error(error.message);
+      // if (!loadingGlobalState) setLoadingGlobalState(true);
 
-      console.log("UPDATEに成功したdata", propertyData);
-      // 活動履歴で面談タイプ 訪問・面談を作成
-      const newPropertyData = {
-        created_by_company_id: newProperty.created_by_company_id,
-        created_by_user_id: newProperty.created_by_user_id,
-        created_by_department_of_user: newProperty.created_by_department_of_user,
-        created_by_unit_of_user: newProperty.created_by_unit_of_user,
-        created_by_office_of_user: newProperty.created_by_office_of_user,
-        client_contact_id: newProperty.client_contact_id,
-        client_company_id: newProperty.client_company_id,
-        summary: newProperty.property_summary,
-        // scheduled_follow_up_date: null,
-        // follow_up_flag: false,
-        // document_url: null,
-        // activity_type: "面談・訪問",
-        // claim_flag: false,
-        // product_introduction1: newProperty.result_presentation_product1,
-        // product_introduction2: newProperty.result_presentation_product2,
-        // product_introduction3: newProperty.result_presentation_product3,
-        // product_introduction4: newProperty.result_presentation_product4,
-        // product_introduction5: newProperty.result_presentation_product5,
-        department: newProperty.property_department,
-        business_office: newProperty.property_business_office,
-        member_name: newProperty.property_member_name,
-        // priority: null,
-        activity_date: newProperty.property_date,
-        activity_year_month: newProperty.property_year_month,
-        // meeting_id: null,
-        property_id: newProperty.id,
-        // quotation_id: null,
+      const updatedPropertyAndActivityPayload = {
+        _property_id: newProperty.id,
+        // _created_by_company_id: newProperty.created_by_company_id,
+        _created_by_user_id: newProperty.created_by_user_id,
+        _created_by_department_of_user: newProperty.created_by_department_of_user,
+        _created_by_unit_of_user: newProperty.created_by_unit_of_user,
+        _created_by_office_of_user: newProperty.created_by_office_of_user,
+        // _client_contact_id: newProperty.client_contact_id,
+        // _client_company_id: newProperty.client_company_id,
+        _current_status: newProperty.current_status,
+        _property_name: newProperty.property_name,
+        _property_summary: newProperty.property_summary,
+        _pending_flag: newProperty.pending_flag,
+        _rejected_flag: newProperty.rejected_flag,
+        _expected_product_id: newProperty.expected_product_id,
+        _expected_product: newProperty.expected_product,
+        _product_sales: newProperty.product_sales,
+        _expected_order_date: newProperty.expected_order_date,
+        _expected_sales_price: newProperty.expected_sales_price,
+        _term_division: newProperty.term_division,
+        _sold_product_id: newProperty.sold_product_id,
+        _sold_product: newProperty.sold_product,
+        _unit_sales: newProperty.unit_sales,
+        _sales_contribution_category: newProperty.sales_contribution_category,
+        _sales_price: newProperty.sales_price,
+        _discounted_price: newProperty.discounted_price,
+        _discount_rate: newProperty.discount_rate,
+        _sales_class: newProperty.sales_class,
+        _expansion_date: newProperty.expansion_date,
+        _sales_date: newProperty.sales_date,
+        _expansion_quarter: newProperty.expansion_quarter,
+        _sales_quarter: newProperty.sales_quarter,
+        _subscription_start_date: newProperty.subscription_start_date,
+        _subscription_canceled_at: newProperty.subscription_canceled_at,
+        _leasing_company: newProperty.leasing_company,
+        _lease_division: newProperty.lease_division,
+        _lease_expiration_date: newProperty.lease_expiration_date,
+        _step_in_flag: newProperty.step_in_flag,
+        _repeat_flag: newProperty.repeat_flag,
+        _order_certainty_start_of_month: newProperty.order_certainty_start_of_month,
+        _review_order_certainty: newProperty.review_order_certainty,
+        _competitor_appearance_date: newProperty.competitor_appearance_date,
+        _competitor: newProperty.competitor,
+        _competitor_product: newProperty.competitor_product,
+        _reason_class: newProperty.reason_class,
+        _reason_detail: newProperty.reason_detail,
+        _customer_budget: newProperty.customer_budget,
+        _decision_maker_negotiation: newProperty.decision_maker_negotiation,
+        _expansion_year_month: newProperty.expansion_year_month,
+        _sales_year_month: newProperty.sales_year_month,
+        _subscription_interval: newProperty.subscription_interval,
+        _competition_state: newProperty.competition_state,
+        _property_year_month: newProperty.property_year_month,
+        _property_department: newProperty.property_department,
+        _property_business_office: newProperty.property_business_office,
+        _property_member_name: newProperty.property_member_name,
+        _property_date: newProperty.property_date,
+        // -- 🔹activities関連
+        _summary: newProperty.property_summary,
+        // _scheduled_follow_up_date: null,
+        // _follow_up_flag: false,
+        // _document_url: null,
+        // _activity_type: "案件発生",
+        // _claim_flag: false,
+        // _product_introduction1: null,
+        // _product_introduction2: null,
+        // _product_introduction3: null,
+        // _product_introduction4: null,
+        // _product_introduction5: null,
+        _department: newProperty.property_department,
+        _business_office: newProperty.property_business_office,
+        _member_name: newProperty.property_member_name,
+        // _priority: null,
+        _activity_date: newProperty.property_date,
+        _activity_year_month: newProperty.property_year_month,
+        // _meeting_id: null,
+        // -- _property_id: newProperty.-,
+        // _quotation_id: null,
       };
 
-      // 更新されたPropertyデータをactivitiesテーブルにも反映UPDATE
-      const { error: errorProperty } = await supabase
-        .from("activities")
-        .update(newPropertyData)
-        .eq("property_id", newProperty.id);
-      if (errorProperty) throw new Error(errorProperty.message);
+      // rpc insert_properties_with_activities関数実行
+      console.log("🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥rpc実行 updatedPropertyAndActivityPayload", updatedPropertyAndActivityPayload);
+
+      const { error } = await supabase.rpc("update_properties_with_activities", updatedPropertyAndActivityPayload);
+
+      if (error) throw error;
+
+      // const { data: propertyData, error } = await supabase
+      //   .from("properties")
+      //   .update(newProperty)
+      //   .eq("id", newProperty.id)
+      //   .select()
+      //   .single();
+      // if (error) throw new Error(error.message);
+
+      // console.log("UPDATEに成功したdata", propertyData);
+      // // 活動履歴で面談タイプ 訪問・面談を作成
+      // const newPropertyData = {
+      //   created_by_company_id: newProperty.created_by_company_id,
+      //   created_by_user_id: newProperty.created_by_user_id,
+      //   created_by_department_of_user: newProperty.created_by_department_of_user,
+      //   created_by_unit_of_user: newProperty.created_by_unit_of_user,
+      //   created_by_office_of_user: newProperty.created_by_office_of_user,
+      //   client_contact_id: newProperty.client_contact_id,
+      //   client_company_id: newProperty.client_company_id,
+      //   summary: newProperty.property_summary,
+      //   // scheduled_follow_up_date: null,
+      //   // follow_up_flag: false,
+      //   // document_url: null,
+      //   // activity_type: "面談・訪問",
+      //   // claim_flag: false,
+      //   // product_introduction1: newProperty.result_presentation_product1,
+      //   // product_introduction2: newProperty.result_presentation_product2,
+      //   // product_introduction3: newProperty.result_presentation_product3,
+      //   // product_introduction4: newProperty.result_presentation_product4,
+      //   // product_introduction5: newProperty.result_presentation_product5,
+      //   department: newProperty.property_department,
+      //   business_office: newProperty.property_business_office,
+      //   member_name: newProperty.property_member_name,
+      //   // priority: null,
+      //   activity_date: newProperty.property_date,
+      //   activity_year_month: newProperty.property_year_month,
+      //   // meeting_id: null,
+      //   property_id: newProperty.id,
+      //   // quotation_id: null,
+      // };
+
+      // // 更新されたPropertyデータをactivitiesテーブルにも反映UPDATE
+      // const { error: errorProperty } = await supabase
+      //   .from("activities")
+      //   .update(newPropertyData)
+      //   .eq("property_id", newProperty.id);
+      // if (errorProperty) throw new Error(errorProperty.message);
     },
     {
       onSuccess: async () => {

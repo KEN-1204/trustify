@@ -209,7 +209,10 @@ export const columnNameToJapaneseProperty = (columnName: string) => {
     case "rejected_flag":
       return "案件没";
       break;
-    case "product_name":
+    // case "product_name":
+    //   return "商品名";
+    //   break;
+    case "expected_product":
       return "商品名";
       break;
     case "product_sales":
@@ -224,7 +227,10 @@ export const columnNameToJapaneseProperty = (columnName: string) => {
     case "term_division":
       return "今・来期区分";
       break;
-    case "sold_product_name":
+    // case "sold_product_name":
+    //   return "売上商品";
+    //   break;
+    case "sold_product":
       return "売上商品";
       break;
     case "unit_sales":

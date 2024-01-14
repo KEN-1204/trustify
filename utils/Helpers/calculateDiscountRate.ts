@@ -27,9 +27,11 @@ function isValidNumber(inputStr: string) {
 export const calculateDiscountRate = ({
   salesPriceStr,
   discountPriceStr,
+  salesQuantityStr = "1",
 }: {
   salesPriceStr: string;
   discountPriceStr: string;
+  salesQuantityStr: string;
 }) => {
   //   // 文字列から数値に変換
   //   const salesPrice = parseInt(salesPriceStr.replace(/,/g, ""), 10);
@@ -41,7 +43,7 @@ export const calculateDiscountRate = ({
   //   return discountRate.toFixed(2); // 小数点以下2桁で四捨五入
 
   // 入力値の検証
-  if (!isValidNumber(salesPriceStr) || !isValidNumber(discountPriceStr)) {
+  if (!isValidNumber(salesPriceStr) || !isValidNumber(discountPriceStr) || !isValidNumber(salesQuantityStr)) {
     // 無効な入力の場合はエラーメッセージを返す
     return { discountRate: null, error: "無効な入力値です。" };
   }
@@ -49,6 +51,10 @@ export const calculateDiscountRate = ({
   // 文字列から数値に変換
   const salesPrice = new Decimal(salesPriceStr.replace(/,/g, ""));
   const discountPrice = new Decimal(discountPriceStr.replace(/,/g, ""));
+  const salesQuantity = new Decimal(salesQuantityStr.replace(/,/g, ""));
+
+  // 売上合計額の計算
+  const totalSalesAmount = salesPrice.times(salesQuantity);
 
   // 売上価格が0の場合はエラーを返す
   if (salesPrice.isZero()) {
@@ -56,8 +62,9 @@ export const calculateDiscountRate = ({
   }
 
   // 値引率の計算
-  const discountRate = discountPrice.dividedBy(salesPrice).times(100);
+  const discountRate = discountPrice.dividedBy(totalSalesAmount).times(100);
 
-  return { discountRate: discountRate.toFixed(2) };
+  console.log("結果　discountRate", discountRate.toFixed(2) + "%");
+  return { discountRate: discountRate.toFixed(2) + `%`, error: null };
   // return { discountRate: discountRate, error: null };
 };

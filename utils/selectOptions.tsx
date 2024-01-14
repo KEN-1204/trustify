@@ -407,3 +407,29 @@ export const getCurrentStatus = (title: string) => {
       break;
   }
 };
+
+// 案件発生動機
+export const optionsReasonClass = [
+  "新規会社(過去面談無し)/能動",
+  "被り会社(過去面談有り)/能動",
+  "社内ID/能動",
+  "社外･客先ID/能動",
+  "営業メール/受動",
+  "見･聞引合/受動",
+  "DM/受動",
+  "メール/受動",
+  "ホームページ/受動",
+  "ウェビナー/受動",
+  "展示会/受動",
+  "その他",
+];
+
+// 売上貢献区分
+export const optionsSalesContributionCategory = [
+  "自己売上(自身で発生、自身で売上)",
+  "引継ぎ売上(他担当が発生、引継ぎで売上)",
+  "リピート売上",
+];
+
+// 導入分類
+export const optionsSalesClass = ["新規", "増設", "更新"];

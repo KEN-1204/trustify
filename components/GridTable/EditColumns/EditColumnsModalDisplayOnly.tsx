@@ -12,6 +12,7 @@ import { columnNameToJapaneseContacts } from "@/utils/columnNameToJapaneseContac
 import { columnNameToJapaneseActivity } from "@/utils/columnNameToJapaneseActivity";
 import { columnNameToJapaneseMeeting } from "@/utils/columnNameToJapaneseMeeting";
 import { BsChevronLeft } from "react-icons/bs";
+import { columnNameToJapaneseProperty } from "@/utils/columnNameToJapaneseProperty";
 
 // const data: Array<{ id: number; name: string; img: StaticImageData }> = [
 
@@ -377,6 +378,9 @@ const EditColumnsModalDisplayOnlyMemo: FC<Props> = ({ columnHeaderItemList }) =>
                     )}
                     {activeMenuTab === "Meeting" && (
                       <span className="truncate">{columnNameToJapaneseMeeting(item.columnName)}</span>
+                    )}
+                    {activeMenuTab === "Property" && (
+                      <span className="truncate">{columnNameToJapaneseProperty(item.columnName)}</span>
                     )}
                     {/* {item.isFrozen && <span className="absolute -right-3">固定されています</span>} */}
                   </div>
