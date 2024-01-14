@@ -211,6 +211,22 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
   const [inputPropertyMemberName, setInputPropertyMemberName] = useState("");
   const [inputPropertyDate, setInputPropertyDate] = useState<Date | null>(null);
 
+  // ================================ 🌟フィールドエディットモード関連state🌟 ================================
+  const [inputExpectedOrderDateForFieldEditMode, setInputExpectedOrderDateForFieldEditMode] = useState<Date | null>(
+    null
+  );
+  // const [inputResultDateForFieldEditMode, setInputResultDateForFieldEditMode] = useState<Date | null>(null);
+  // フラグ関連 フィールドエディット用 初期はfalseにしておき、useEffectでselectedRowDataのフラグを反映する
+  // const [checkboxPlannedAppointCheckFlagForFieldEdit, setCheckboxPlannedAppointCheckFlagForFieldEdit] = useState(false); // アポ有りフラグ フィールドエディット用
+
+  // フラグの初期値を更新
+  // useEffect(() => {
+  //   setCheckboxPlannedAppointCheckFlagForFieldEdit(
+  //     selectedRowDataMeeting?.planned_appoint_check_flag ? selectedRowDataMeeting?.planned_appoint_check_flag : false
+  //   );
+  // }, [selectedRowDataMeeting?.planned_appoint_check_flag]);
+  // ================================ ✅フィールドエディットモード関連state✅ ================================
+
   // ================================ 🌟事業部、係、事業所リスト取得useQuery🌟 ================================
   // const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
   // const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
@@ -1795,7 +1811,15 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} text-[12px]`}>商品</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         {/* {selectedRowDataProperty?.product_name ? selectedRowDataProperty?.product_name : ""} */}
                         {selectedRowDataProperty?.expected_product ? selectedRowDataProperty?.expected_product : ""}
                       </span>
@@ -1806,20 +1830,116 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
                     <span className={`${styles.title} text-[12px]`}>予定台数</span>
-                    {!searchMode && (
+                    {!searchMode && isEditModeField !== "product_sales" && (
                       <span
-                        // data-text={`${
-                        //   selectedRowDataProperty?.member_name
-                        //     ? selectedRowDataProperty?.member_name
-                        //     : ""
-                        // }`}
-                        className={`${styles.value}`}
-                        // onMouseEnter={(e) => handleOpenTooltip(e)}
-                        // onMouseLeave={handleCloseTooltip}
+                        className={`${styles.value} ${styles.editable_field}`}
+                        onClick={handleSingleClickField}
+                        onDoubleClick={(e) => {
+                          if (!selectedRowDataProperty?.product_sales) return;
+                          // if (isNotActivityTypeArray.includes(selectedRowDataProperty.product_sales))
+                          //   return alert(returnMessageNotActivity(selectedRowDataProperty.product_sales));
+                          handleDoubleClickField({
+                            e,
+                            field: "product_sales",
+                            dispatch: setInputProductSales,
+                          });
+                          if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                        data-text={`${
+                          selectedRowDataProperty?.product_sales ? selectedRowDataProperty?.product_sales : ""
+                        }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                        }}
                       >
                         {selectedRowDataProperty?.product_sales ? selectedRowDataProperty?.product_sales : ""}
                       </span>
                     )}
+                    {/* ============= フィールドエディットモード関連 ============= */}
+                    {/* フィールドエディットモード selectタグ  */}
+                    {!searchMode && isEditModeField === "product_sales" && (
+                      <>
+                        <input
+                          type="number"
+                          min="0"
+                          className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                          placeholder=""
+                          value={inputProductSales === null ? "" : inputProductSales}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (val === "") {
+                              setInputProductSales(null);
+                            } else {
+                              const numValue = Number(val);
+
+                              // 入力値がマイナスかチェック
+                              if (numValue < 0) {
+                                setInputProductSales(0); // ここで0に設定しているが、必要に応じて他の正の値に変更することもできる
+                              } else {
+                                setInputProductSales(numValue);
+                              }
+                            }
+                          }}
+                          onCompositionStart={() => setIsComposing(true)}
+                          onCompositionEnd={() => setIsComposing(false)}
+                          onKeyDown={(e) =>
+                            handleKeyDownUpdateField({
+                              e,
+                              fieldName: "product_sales",
+                              fieldNameForSelectedRowData: "product_sales",
+                              originalValue: originalValueFieldEdit.current,
+                              newValue: inputProductSales,
+                              id: selectedRowDataProperty?.property_id,
+                              required: false,
+                            })
+                          }
+                        />
+                        {/* 送信ボタンとクローズボタン */}
+                        {!updatePropertyFieldMutation.isLoading && (
+                          <InputSendAndCloseBtn<number | null>
+                            inputState={inputProductSales}
+                            setInputState={setInputProductSales}
+                            onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                              handleClickSendUpdateField({
+                                e,
+                                fieldName: "product_sales",
+                                fieldNameForSelectedRowData: "product_sales",
+                                originalValue: originalValueFieldEdit.current,
+                                newValue: inputProductSales,
+                                id: selectedRowDataProperty?.property_id,
+                                required: false,
+                              })
+                            }
+                            required={true}
+                            isDisplayClose={false}
+                          />
+                        )}
+                        {/* エディットフィールド送信中ローディングスピナー */}
+                        {updatePropertyFieldMutation.isLoading && (
+                          <div
+                            className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                          >
+                            <SpinnerComet w="22px" h="22px" s="3px" />
+                          </div>
+                        )}
+                      </>
+                    )}
+                    {/* フィールドエディットモードオーバーレイ */}
+                    {!searchMode && isEditModeField === "product_sales" && (
+                      <div
+                        className={`${styles.edit_mode_overlay}`}
+                        onClick={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                          setIsEditModeField(null); // エディットモードを終了
+                        }}
+                      />
+                    )}
+                    {/* ============= フィールドエディットモード関連ここまで ============= */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1830,14 +1950,106 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>予定時期</span>
-                    {!searchMode && (
-                      <span className={`${styles.value}`}>
+                    {!searchMode && isEditModeField !== "expected_order_date" && (
+                      <span
+                        className={`${styles.value} ${styles.editable_field}`}
+                        onClick={handleSingleClickField}
+                        onDoubleClick={(e) => {
+                          // if (!selectedRowDataProperty?.activity_type) return;
+                          // if (isNotActivityTypeArray.includes(selectedRowDataProperty.activity_type)) {
+                          //   return alert(returnMessageNotActivity(selectedRowDataProperty.activity_type));
+                          // }
+                          handleDoubleClickField({
+                            e,
+                            field: "expected_order_date",
+                            dispatch: setInputExpectedOrderDateForFieldEditMode,
+                            dateValue: selectedRowDataProperty?.expected_order_date
+                              ? selectedRowDataProperty.expected_order_date
+                              : null,
+                          });
+                        }}
+                        data-text={`${
+                          selectedRowDataProperty?.expected_order_date
+                            ? format(new Date(selectedRowDataProperty.expected_order_date), "yyyy/MM/dd")
+                            : ""
+                        }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          if (!isDesktopGTE1600 && isOpenSidebar) handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
                         {selectedRowDataProperty?.expected_order_date
                           ? format(new Date(selectedRowDataProperty.expected_order_date), "yyyy/MM/dd")
                           : ""}
                       </span>
                     )}
-                    {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
+                    {/* ============= フィールドエディットモード関連 ============= */}
+                    {/* フィールドエディットモード Date-picker  */}
+                    {!searchMode && isEditModeField === "expected_order_date" && (
+                      <>
+                        <div className="z-[2000] w-full">
+                          <DatePickerCustomInput
+                            startDate={inputExpectedOrderDateForFieldEditMode}
+                            setStartDate={setInputExpectedOrderDateForFieldEditMode}
+                            required={true}
+                            isFieldEditMode={true}
+                            fieldEditModeBtnAreaPosition="right"
+                            isLoadingSendEvent={updatePropertyFieldMutation.isLoading}
+                            onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                              if (!inputExpectedOrderDateForFieldEditMode) return alert("このデータは入力が必須です。");
+                              const originalDateUTCString = selectedRowDataProperty?.expected_order_date
+                                ? selectedRowDataProperty.expected_order_date
+                                : null; // ISOString UTC時間 2023-12-26T15:00:00+00:00
+                              const newDateUTCString = inputExpectedOrderDateForFieldEditMode
+                                ? inputExpectedOrderDateForFieldEditMode.toISOString()
+                                : null; // Dateオブジェクト ローカルタイムゾーンに自動で変換済み Thu Dec 28 2023 00:00:00 GMT+0900 (日本標準時)
+                              // const result = isSameDateLocal(originalDateString, newDateString);
+                              console.log(
+                                "日付送信クリック",
+                                "オリジナル(UTC)",
+                                originalDateUTCString,
+                                "新たな値(Dateオブジェクト)",
+                                inputExpectedOrderDateForFieldEditMode,
+                                "新たな値.toISO(UTC)",
+                                newDateUTCString
+                                // "同じかチェック結果",
+                                // result
+                              );
+                              if (e.currentTarget.parentElement?.parentElement?.parentElement)
+                                e.currentTarget.parentElement.parentElement.parentElement.classList.remove(
+                                  `${styles.active}`
+                                );
+                              // オリジナルはUTC、新たな値はDateオブジェクト(ローカルタイムゾーン)なのでISOString()でUTCに変換
+                              handleClickSendUpdateField({
+                                e,
+                                fieldName: "expected_order_date",
+                                fieldNameForSelectedRowData: "expected_order_date",
+                                // originalValue: originalValueFieldEdit.current,
+                                originalValue: originalDateUTCString,
+                                newValue: newDateUTCString,
+                                id: selectedRowDataProperty?.property_id,
+                                required: true,
+                              });
+                            }}
+                          />
+                        </div>
+                      </>
+                    )}
+                    {/* フィールドエディットモードオーバーレイ */}
+                    {!searchMode && isEditModeField === "expected_order_date" && (
+                      <div
+                        className={`${styles.edit_mode_overlay}`}
+                        onClick={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                          setIsEditModeField(null); // エディットモードを終了
+                        }}
+                      />
+                    )}
+                    {/* ============= フィールドエディットモード関連ここまで ============= */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1847,7 +2059,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     {!searchMode && (
                       <span className={`${styles.value}`}>
                         {selectedRowDataProperty?.expected_sales_price
-                          ? selectedRowDataProperty?.expected_sales_price
+                          ? selectedRowDataProperty?.expected_sales_price.toLocaleString() + "円"
                           : ""}
                       </span>
                     )}
