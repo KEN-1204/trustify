@@ -19,9 +19,16 @@ import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 import {
   getOccupationName,
   getPositionClassName,
+  optionsIndustryType,
+  optionsMeetingParticipationRequest,
   optionsMeetingType,
   optionsOccupation,
+  optionsPlannedPurpose,
   optionsPositionsClass,
+  optionsProductL,
+  optionsResultCategory,
+  optionsResultNegotiateDecisionMaker,
+  optionsWebTool,
 } from "@/utils/selectOptions";
 import { useQueryDepartments } from "@/hooks/useQueryDepartments";
 import { useQueryUnits } from "@/hooks/useQueryUnits";
@@ -39,6 +46,7 @@ import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { formatTime } from "@/utils/Helpers/formatTime";
 import { splitTime } from "@/utils/Helpers/splitTime";
 import { IoIosSend } from "react-icons/io";
+import { InputSendAndCloseBtn } from "@/components/DashboardCompanyComponent/CompanyMainContainer/InputSendAndCloseBtn/InputSendAndCloseBtn";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -153,7 +161,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const [inputMeetingType, setInputMeetingType] = useState("");
   const [inputWebTool, setInputWebTool] = useState("");
   const [inputPlannedDate, setInputPlannedDate] = useState<Date | null>(null);
-  const [inputPlannedDateForFieldEditMode, setInputPlannedDateForFieldEditMode] = useState<Date | null>(null);
   const [inputPlannedStartTime, setInputPlannedStartTime] = useState<string>("");
   const [inputPlannedStartTimeHour, setInputPlannedStartTimeHour] = useState<string>("");
   const [inputPlannedStartTimeMinute, setInputPlannedStartTimeMinute] = useState<string>("");
@@ -189,6 +196,20 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const [inputMeetingDepartment, setInputMeetingDepartment] = useState("");
   const [inputMeetingMemberName, setInputMeetingMemberName] = useState("");
   const [inputMeetingYearMonth, setInputMeetingYearMonth] = useState<number | null>(null);
+
+  // ================================ 🌟フィールドエディットモード関連state🌟 ================================
+  const [inputPlannedDateForFieldEditMode, setInputPlannedDateForFieldEditMode] = useState<Date | null>(null);
+  const [inputResultDateForFieldEditMode, setInputResultDateForFieldEditMode] = useState<Date | null>(null);
+  // フラグ関連 フィールドエディット用 初期はfalseにしておき、useEffectでselectedRowDataのフラグを反映する
+  const [checkboxPlannedAppointCheckFlagForFieldEdit, setCheckboxPlannedAppointCheckFlagForFieldEdit] = useState(false); // アポ有りフラグ フィールドエディット用
+
+  // フラグの初期値を更新
+  useEffect(() => {
+    setCheckboxPlannedAppointCheckFlagForFieldEdit(
+      selectedRowDataMeeting?.planned_appoint_check_flag ? selectedRowDataMeeting?.planned_appoint_check_flag : false
+    );
+  }, [selectedRowDataMeeting?.planned_appoint_check_flag]);
+  // ================================ ✅フィールドエディットモード関連state✅ ================================
 
   // ================================ 🌟useQuery初回マウント時のフェッチ遅延用🌟 ================================
   // const [isReady, setIsReady] = useState(false);
@@ -269,6 +290,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   useEffect(() => {
     // if (newSearchMeeting_Contact_CompanyParams === null) return;
 
+    // 編集モード
     if (editSearchMode && searchMode) {
       if (newSearchMeeting_Contact_CompanyParams === null) return;
       console.log(
@@ -505,6 +527,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       if (!!inputPlannedStartTimeHour) setInputPlannedStartTimeHour("");
       if (!!inputPlannedStartTimeMinute) setInputPlannedStartTimeMinute("");
       if (!!inputPlannedPurpose) setInputPlannedPurpose("");
+      if (!!inputPlannedDuration) setInputPlannedDuration(null);
       if (!!inputPlannedAppointCheckFlag) setInputPlannedAppointCheckFlag(null);
       if (!!inputPlannedProduct1) setInputPlannedProduct1("");
       if (!!inputPlannedProduct2) setInputPlannedProduct2("");
@@ -623,6 +646,9 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   // サーチ関数実行
   const handleSearchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    // フィールド編集モードがtrueならサブミットせずにリターン
+    if (isEditModeField) return console.log("サブミット フィールドエディットモードのためリターン");
 
     if (!userProfileState || !userProfileState.company_id) return alert("エラー：ユーザー情報が見つかりませんでした。");
 
@@ -1024,13 +1050,21 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
           text = selectedRowDataValue;
         }
 
-        if (field === "planned_start_time") {
+        if (["planned_start_time", "result_start_time", "result_end_time"].includes(field)) {
           const formattedTime = formatTime(text);
           originalValueFieldEdit.current = formattedTime;
           const timeParts = splitTime(text);
           console.log("formattedTime", formattedTime);
-          setInputPlannedStartTimeHour(timeParts?.hours ?? "");
-          setInputPlannedStartTimeMinute(timeParts?.minutes ?? "");
+          if (field === "planned_start_time") {
+            setInputPlannedStartTimeHour(timeParts?.hours ?? "");
+            setInputPlannedStartTimeMinute(timeParts?.minutes ?? "");
+          } else if (field === "result_start_time") {
+            setInputResultStartTimeHour(timeParts?.hours ?? "");
+            setInputResultStartTimeMinute(timeParts?.minutes ?? "");
+          } else if (field === "result_end_time") {
+            setInputResultEndTimeHour(timeParts?.hours ?? "");
+            setInputResultEndTimeMinute(timeParts?.minutes ?? "");
+          }
           dispatch(formattedTime); // 編集モードでinputStateをクリックした要素のテキストを初期値に設定
           setIsEditModeField(field); // クリックされたフィールドの編集モードを開く
           return;
@@ -1044,6 +1078,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
           console.log("ダブルクリック 日付格納", dateValue);
           // originalValueFieldEdit.current = originalDate;
           dispatch(originalDate); // 編集モードでinputStateをクリックした要素のテキストを初期値に設定
+          setIsEditModeField(field); // クリックされたフィールドの編集モードを開く
+          return;
+        }
+        if (field === "result_top_position_class") {
+          dispatch(selectedRowDataValue); // 編集モードでinputStateをクリックした要素のテキストを初期値に設定
           setIsEditModeField(field); // クリックされたフィールドの編集モードを開く
           return;
         }
@@ -1148,7 +1187,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   }) => {
     if (required && (newValue === "" || newValue === null)) return toast.info(`この項目は入力が必須です。`);
 
-    if (["planned_start_time", "result_start_time", "result_end_time"].includes(fieldName)) {
+    // if (["planned_comment"].includes(fieldName)) {
+    //   console.log("e.currentTarget.parentElement", e.currentTarget.parentElement);
+    //   console.log("e.currentTarget.parentElement?.parentElement", e.currentTarget.parentElement?.parentElement);
+    //   return;
+    // }
+    if (["planned_start_time", "result_start_time", "result_end_time", "planned_comment"].includes(fieldName)) {
       e.currentTarget.parentElement?.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
       // console.log("originalValue === newValue", originalValue === newValue);
       // return;
@@ -1209,6 +1253,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
 
           if (!fiscalYearMonth) return toast.error("日付の更新に失敗しました。");
 
+          // 面談予定日付のみ存在している場合
           if (selectedRowDataMeeting.planned_date && !selectedRowDataMeeting.result_date) {
             const updatePayload: UpdateObject = {
               fieldName: fieldName,
@@ -1232,7 +1277,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
             console.log("selectタグでUPDATE実行 updatePayload", updatePayload);
             await updateMeetingFieldMutation.mutateAsync(updatePayload);
           }
-
           originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
           setIsEditModeField(null); // エディットモードを終了
           return;
@@ -1850,22 +1894,85 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
                     <span className={`${styles.title}`}>WEBﾂｰﾙ</span>
-                    {!searchMode && (
+                    {!searchMode && isEditModeField !== "web_tool" && (
                       <span
-                        // data-text={`${
-                        //   selectedRowDataMeeting?.priority
-                        //     ? selectedRowDataMeeting?.priority
-                        //     : ""
-                        // }`}
-                        // className={`${styles.value} !w-full text-center`}
-                        className={`${styles.value} `}
-                        // onMouseEnter={(e) => handleOpenTooltip(e)}
-                        // onMouseLeave={handleCloseTooltip}
+                        className={`${styles.value} ${styles.editable_field}`}
+                        onClick={handleSingleClickField}
+                        onDoubleClick={(e) => {
+                          if (!selectedRowDataMeeting?.web_tool) return;
+                          // if (isNotActivityTypeArray.includes(selectedRowDataMeeting.meeting_type))
+                          //   return alert(returnMessageNotActivity(selectedRowDataMeeting.meeting_type));
+                          handleDoubleClickField({
+                            e,
+                            field: "web_tool",
+                            dispatch: setInputWebTool,
+                          });
+                          if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                        data-text={`${
+                          selectedRowDataMeeting?.meeting_type ? selectedRowDataMeeting?.meeting_type : ""
+                        }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                        }}
                       >
                         {selectedRowDataMeeting?.web_tool ? selectedRowDataMeeting?.web_tool : ""}
                       </span>
                     )}
-                    {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    {/* ============= フィールドエディットモード関連 ============= */}
+                    {/* フィールドエディットモード selectタグ  */}
+                    {!searchMode && isEditModeField === "web_tool" && (
+                      <>
+                        <select
+                          className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                          value={inputWebTool}
+                          onChange={(e) => {
+                            handleChangeSelectUpdateField({
+                              e,
+                              fieldName: "web_tool",
+                              fieldNameForSelectedRowData: "web_tool",
+                              newValue: e.target.value,
+                              originalValue: originalValueFieldEdit.current,
+                              id: selectedRowDataMeeting?.meeting_id,
+                            });
+                          }}
+                          // onChange={(e) => {
+                          //   setInputActivityType(e.target.value);
+                          // }}
+                        >
+                          {/* <option value=""></option> */}
+                          {optionsWebTool.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                        {/* エディットフィールド送信中ローディングスピナー */}
+                        {updateMeetingFieldMutation.isLoading && (
+                          <div
+                            className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                          >
+                            <SpinnerComet w="22px" h="22px" s="3px" />
+                          </div>
+                        )}
+                      </>
+                    )}
+                    {/* フィールドエディットモードオーバーレイ */}
+                    {!searchMode && isEditModeField === "web_tool" && (
+                      <div
+                        className={`${styles.edit_mode_overlay}`}
+                        onClick={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                          setIsEditModeField(null); // エディットモードを終了
+                        }}
+                      />
+                    )}
+                    {/* ============= フィールドエディットモード関連ここまで ============= */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1880,11 +1987,116 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <span className={``}>面談時間</span>
                       <span className={``}>(分)</span>
                     </div>
-                    {!searchMode && (
-                      <span className={`${styles.value} `}>
+                    {!searchMode && isEditModeField !== "planned_duration" && (
+                      <span
+                        className={`${styles.value} ${styles.editable_field}`}
+                        onClick={handleSingleClickField}
+                        onDoubleClick={(e) => {
+                          if (!selectedRowDataMeeting?.meeting_type) return;
+                          // if (isNotActivityTypeArray.includes(selectedRowDataMeeting.meeting_type))
+                          //   return alert(returnMessageNotActivity(selectedRowDataMeeting.meeting_type));
+                          handleDoubleClickField({
+                            e,
+                            field: "planned_duration",
+                            dispatch: setInputPlannedDuration,
+                          });
+                          if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                        data-text={`${
+                          selectedRowDataMeeting?.meeting_type ? selectedRowDataMeeting?.meeting_type : ""
+                        }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
                         {selectedRowDataMeeting?.planned_duration ? selectedRowDataMeeting?.planned_duration : ""}
                       </span>
                     )}
+                    {/* ============= フィールドエディットモード関連 ============= */}
+                    {/* フィールドエディットモード selectタグ  */}
+                    {!searchMode && isEditModeField === "planned_duration" && (
+                      <>
+                        <input
+                          type="number"
+                          min="0"
+                          className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                          placeholder=""
+                          value={inputPlannedDuration === null ? "" : inputPlannedDuration}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (val === "") {
+                              setInputPlannedDuration(null);
+                            } else {
+                              const numValue = Number(val);
+
+                              // 入力値がマイナスかチェック
+                              if (numValue < 0) {
+                                setInputPlannedDuration(0); // ここで0に設定しているが、必要に応じて他の正の値に変更することもできる
+                              } else {
+                                setInputPlannedDuration(numValue);
+                              }
+                            }
+                          }}
+                          onCompositionStart={() => setIsComposing(true)}
+                          onCompositionEnd={() => setIsComposing(false)}
+                          onKeyDown={(e) =>
+                            handleKeyDownUpdateField({
+                              e,
+                              fieldName: "planned_duration",
+                              fieldNameForSelectedRowData: "planned_duration",
+                              originalValue: originalValueFieldEdit.current,
+                              newValue: inputPlannedDuration,
+                              id: selectedRowDataMeeting?.meeting_id,
+                              required: false,
+                            })
+                          }
+                        />
+                        {/* 送信ボタンとクローズボタン */}
+                        {!updateMeetingFieldMutation.isLoading && (
+                          <InputSendAndCloseBtn<number | null>
+                            inputState={inputPlannedDuration}
+                            setInputState={setInputPlannedDuration}
+                            onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                              handleClickSendUpdateField({
+                                e,
+                                fieldName: "planned_duration",
+                                fieldNameForSelectedRowData: "planned_duration",
+                                originalValue: originalValueFieldEdit.current,
+                                newValue: inputPlannedDuration,
+                                id: selectedRowDataMeeting?.meeting_id,
+                                required: false,
+                              })
+                            }
+                            required={true}
+                            isDisplayClose={false}
+                          />
+                        )}
+                        {/* エディットフィールド送信中ローディングスピナー */}
+                        {updateMeetingFieldMutation.isLoading && (
+                          <div
+                            className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                          >
+                            <SpinnerComet w="22px" h="22px" s="3px" />
+                          </div>
+                        )}
+                      </>
+                    )}
+                    {/* フィールドエディットモードオーバーレイ */}
+                    {!searchMode && isEditModeField === "planned_duration" && (
+                      <div
+                        className={`${styles.edit_mode_overlay}`}
+                        onClick={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                          setIsEditModeField(null); // エディットモードを終了
+                        }}
+                      />
+                    )}
+                    {/* ============= フィールドエディットモード関連ここまで ============= */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1897,24 +2109,90 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <div className={`${styles.title} !mr-[15px] flex flex-col`}>
+                    <div className={`${styles.title} flex flex-col`}>
                       <span className={``}>面談目的</span>
                     </div>
-                    {!searchMode && (
+                    {!searchMode && isEditModeField !== "planned_purpose" && (
                       <span
-                        // data-text={`${
-                        //   selectedRowDataMeeting?.managing_director ? selectedRowDataMeeting?.managing_director : ""
-                        // }`}
-                        className={`${styles.value}`}
-                        // onMouseEnter={(e) => handleOpenTooltip(e)}
-                        // onMouseLeave={handleCloseTooltip}
+                        className={`${styles.value} ${styles.editable_field}`}
+                        onClick={handleSingleClickField}
+                        onDoubleClick={(e) => {
+                          if (!selectedRowDataMeeting?.planned_purpose) return;
+                          // if (isNotActivityTypeArray.includes(selectedRowDataMeeting.planned_purpose))
+                          //   return alert(returnMessageNotActivity(selectedRowDataMeeting.planned_purpose));
+                          handleDoubleClickField({
+                            e,
+                            field: "planned_purpose",
+                            dispatch: setInputPlannedPurpose,
+                          });
+                          if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                        data-text={`${
+                          selectedRowDataMeeting?.planned_purpose ? selectedRowDataMeeting?.planned_purpose : ""
+                        }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
                       >
-                        {/* {selectedRowDataMeeting?.scheduled_follow_up_date
-                          ? format(new Date(selectedRowDataMeeting.scheduled_follow_up_date), "yyyy-MM-dd")
-                          : ""} */}
+                        {selectedRowDataMeeting?.planned_purpose ? selectedRowDataMeeting.planned_purpose : ""}
                       </span>
                     )}
-                    {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                    {/* ============= フィールドエディットモード関連 ============= */}
+                    {/* フィールドエディットモード selectタグ  */}
+                    {!searchMode && isEditModeField === "planned_purpose" && (
+                      <>
+                        <select
+                          className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                          value={inputPlannedPurpose}
+                          onChange={(e) => {
+                            handleChangeSelectUpdateField({
+                              e,
+                              fieldName: "planned_purpose",
+                              fieldNameForSelectedRowData: "planned_purpose",
+                              newValue: e.target.value,
+                              originalValue: originalValueFieldEdit.current,
+                              id: selectedRowDataMeeting?.meeting_id,
+                            });
+                          }}
+                          // onChange={(e) => {
+                          //   setInputActivityType(e.target.value);
+                          // }}
+                        >
+                          {/* <option value=""></option> */}
+                          {optionsPlannedPurpose.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                        {/* エディットフィールド送信中ローディングスピナー */}
+                        {updateMeetingFieldMutation.isLoading && (
+                          <div
+                            className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                          >
+                            <SpinnerComet w="22px" h="22px" s="3px" />
+                          </div>
+                        )}
+                      </>
+                    )}
+                    {/* フィールドエディットモードオーバーレイ */}
+                    {!searchMode && isEditModeField === "planned_purpose" && (
+                      <div
+                        className={`${styles.edit_mode_overlay}`}
+                        onClick={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                          setIsEditModeField(null); // エディットモードを終了
+                        }}
+                      />
+                    )}
+                    {/* ============= フィールドエディットモード関連ここまで ============= */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1923,15 +2201,56 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} transition-base03 flex h-full items-center `}>
                     <span className={`${styles.check_title}`}>アポ有</span>
 
-                    <div className={`${styles.grid_select_cell_header} `}>
+                    <div
+                      className={`${styles.grid_select_cell_header} `}
+                      onMouseEnter={(e) => {
+                        if (!selectedRowDataMeeting) return;
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!selectedRowDataMeeting) return;
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
                       <input
                         type="checkbox"
-                        checked={!!selectedRowDataMeeting?.planned_appoint_check_flag}
-                        onChange={() => {
-                          setLoadingGlobalState(false);
-                          setIsOpenUpdateMeetingModal(true);
+                        // checked={!!selectedRowDataMeeting?.planned_appoint_check_flag}
+                        // onChange={() => {
+                        //   setLoadingGlobalState(false);
+                        //   setIsOpenUpdateMeetingModal(true);
+                        // }}
+                        className={`${styles.grid_select_cell_header_input} ${
+                          !selectedRowDataMeeting ? `pointer-events-none cursor-not-allowed` : ``
+                        }`}
+                        checked={checkboxPlannedAppointCheckFlagForFieldEdit}
+                        onChange={async (e) => {
+                          if (!selectedRowDataMeeting) return;
+                          // 個別にチェックボックスを更新するルート
+                          if (!selectedRowDataMeeting?.meeting_id) return toast.error(`データが見つかりませんでした🙇‍♀️`);
+
+                          console.log(
+                            "チェック 新しい値",
+                            !checkboxPlannedAppointCheckFlagForFieldEdit,
+                            "オリジナル",
+                            selectedRowDataMeeting?.planned_appoint_check_flag
+                          );
+                          if (
+                            !checkboxPlannedAppointCheckFlagForFieldEdit ===
+                            selectedRowDataMeeting?.planned_appoint_check_flag
+                          ) {
+                            toast.error(`アップデートに失敗しました🤦‍♀️`);
+                            return;
+                          }
+                          const updatePayload = {
+                            fieldName: "planned_appoint_check_flag",
+                            fieldNameForSelectedRowData: "planned_appoint_check_flag" as "planned_appoint_check_flag",
+                            newValue: !checkboxPlannedAppointCheckFlagForFieldEdit,
+                            id: selectedRowDataMeeting.meeting_id,
+                          };
+                          // 直感的にするためにmutateにして非同期処理のまま後続のローカルのチェックボックスを更新する
+                          updateMeetingFieldMutation.mutate(updatePayload);
+                          setCheckboxPlannedAppointCheckFlagForFieldEdit(!checkboxPlannedAppointCheckFlagForFieldEdit);
                         }}
-                        className={`${styles.grid_select_cell_header_input}`}
                       />
                       <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
@@ -1948,7 +2267,15 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} text-[12px]`}>紹介予定ﾒｲﾝ</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         {/* {selectedRowDataMeeting?.planned_product1 ? selectedRowDataMeeting?.planned_product1 : ""} */}
                         {!selectedRowDataMeeting?.planned_inside_short_name1 &&
                         selectedRowDataMeeting?.planned_product_name1
@@ -1961,7 +2288,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           : ""}
                       </span>
                     )}
-                    {searchMode && <input type="text" className={`${styles.input_box}`} />}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1970,14 +2296,13 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     <span className={`${styles.title} text-[12px]`}>紹介予定ｻﾌﾞ</span>
                     {!searchMode && (
                       <span
-                        // data-text={`${
-                        //   selectedRowDataMeeting?.member_name
-                        //     ? selectedRowDataMeeting?.member_name
-                        //     : ""
-                        // }`}
                         className={`${styles.value}`}
-                        // onMouseEnter={(e) => handleOpenTooltip(e)}
-                        // onMouseLeave={handleCloseTooltip}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
                       >
                         {/* {selectedRowDataMeeting?.planned_product2 ? selectedRowDataMeeting?.planned_product2 : ""} */}
                         {!selectedRowDataMeeting?.planned_inside_short_name2 &&
@@ -1991,7 +2316,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           : ""}
                       </span>
                     )}
-                    {searchMode && <input type="text" className={`${styles.input_box}`} />}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -2003,11 +2327,30 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full `}>
                     <span className={`${styles.title} ${styles.title_sm}`}>事前ｺﾒﾝﾄ</span>
-                    {!searchMode && (
+                    {!searchMode && isEditModeField !== "planned_comment" && (
                       <div
-                        className={`${styles.textarea_box} ${styles.textarea_box_bg}`}
-                        // className={`${styles.full_value} ${styles.textarea_box} ${styles.textarea_box_bg}`}
-                        // className={`${styles.value} h-[85px] ${styles.textarea_box} ${styles.textarea_box_bg}`}
+                        className={`${styles.textarea_box} ${styles.editable_field}`}
+                        onClick={handleSingleClickField}
+                        onDoubleClick={(e) => {
+                          // if (!selectedRowDataMeeting?.activity_type) return;
+                          // if (isNotActivityTypeArray.includes(selectedRowDataMeeting.activity_type))
+                          //   return alert(returnMessageNotActivity(selectedRowDataMeeting.activity_type));
+                          handleCloseTooltip();
+                          handleDoubleClickField({
+                            e,
+                            field: "planned_comment",
+                            dispatch: setInputPlannedComment,
+                            selectedRowDataValue: selectedRowDataMeeting?.planned_comment
+                              ? selectedRowDataMeeting?.planned_comment
+                              : null,
+                          });
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
                         dangerouslySetInnerHTML={{
                           __html: selectedRowDataMeeting?.planned_comment
                             ? selectedRowDataMeeting?.planned_comment.replace(/\n/g, "<br>")
@@ -2015,6 +2358,54 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         }}
                       ></div>
                     )}
+                    {/* ============= フィールドエディットモード関連 ============= */}
+                    {/* フィールドエディットモード inputタグ */}
+                    {!searchMode && isEditModeField === "planned_comment" && (
+                      <>
+                        <textarea
+                          cols={30}
+                          // rows={10}
+                          placeholder=""
+                          style={{ whiteSpace: "pre-wrap" }}
+                          className={`${styles.textarea_box} ${styles.textarea_box_search_mode} ${styles.field_edit_mode_textarea} ${styles.xl}`}
+                          value={inputPlannedComment}
+                          onChange={(e) => setInputPlannedComment(e.target.value)}
+                        ></textarea>
+                        {/* 送信ボタンとクローズボタン */}
+                        <InputSendAndCloseBtn
+                          inputState={inputPlannedComment}
+                          setInputState={setInputPlannedComment}
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                            handleClickSendUpdateField({
+                              e,
+                              fieldName: "planned_comment",
+                              fieldNameForSelectedRowData: "planned_comment",
+                              originalValue: originalValueFieldEdit.current,
+                              newValue: inputPlannedComment ? inputPlannedComment.trim() : null,
+                              id: selectedRowDataMeeting?.meeting_id,
+                              required: false,
+                            })
+                          }
+                          required={false}
+                          // isDisplayClose={true}
+                          // btnPositionY="bottom-[8px]"
+                          isOutside={true}
+                          outsidePosition="under_right"
+                          isLoadingSendEvent={updateMeetingFieldMutation.isLoading}
+                        />
+                      </>
+                    )}
+                    {/* フィールドエディットモードオーバーレイ */}
+                    {!searchMode && isEditModeField === "planned_comment" && (
+                      <div
+                        className={`${styles.edit_mode_overlay}`}
+                        onClick={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                          setIsEditModeField(null); // エディットモードを終了
+                        }}
+                      />
+                    )}
+                    {/* ============= フィールドエディットモード関連ここまで ============= */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -2026,7 +2417,15 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>事業部名</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         {selectedRowDataMeeting?.assigned_department_name
                           ? selectedRowDataMeeting?.assigned_department_name
                           : ""}
@@ -2042,17 +2441,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
-                        // data-text={`${
-                        //   selectedRowDataMeeting?.assigned_unit_name ? selectedRowDataMeeting?.assigned_unit_name : ""
-                        // }`}
-                        // onMouseEnter={(e) => {
-                        //   e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                        //   if (!isDesktopGTE1600) handleOpenTooltip(e);
-                        // }}
-                        // onMouseLeave={(e) => {
-                        //   e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                        //   if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
-                        // }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
                       >
                         {selectedRowDataMeeting?.assigned_unit_name ? selectedRowDataMeeting?.assigned_unit_name : ""}
                       </span>
@@ -2068,7 +2462,15 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>事業所</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         {selectedRowDataMeeting?.meeting_business_office
                           ? selectedRowDataMeeting?.meeting_business_office
                           : ""}
@@ -2083,14 +2485,13 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     <span className={`${styles.title}`}>自社担当</span>
                     {!searchMode && (
                       <span
-                        // data-text={`${
-                        //   selectedRowDataMeeting?.member_name
-                        //     ? selectedRowDataMeeting?.member_name
-                        //     : ""
-                        // }`}
                         className={`${styles.value}`}
-                        // onMouseEnter={(e) => handleOpenTooltip(e)}
-                        // onMouseLeave={handleCloseTooltip}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
                       >
                         {selectedRowDataMeeting?.meeting_member_name ? selectedRowDataMeeting?.meeting_member_name : ""}
                       </span>
@@ -2134,19 +2535,111 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     <div className={`${styles.section_underline}`}></div>
                   </div>
                 </div>
-                {/* 面談日・面談年月度 */}
+                {/* 面談日(結果)・面談年月度 */}
                 <div className={`${styles.row_area} flex w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>面談日</span>
-                      {!searchMode && (
-                        <span className={`${styles.value}`}>
+                      {!searchMode && isEditModeField !== "result_date" && (
+                        <span
+                          className={`${styles.value} ${styles.editable_field}`}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            // if (!selectedRowDataMeeting?.activity_type) return;
+                            // if (isNotActivityTypeArray.includes(selectedRowDataMeeting.activity_type)) {
+                            //   return alert(returnMessageNotActivity(selectedRowDataMeeting.activity_type));
+                            // }
+                            handleDoubleClickField({
+                              e,
+                              field: "result_date",
+                              dispatch: setInputResultDateForFieldEditMode,
+                              dateValue: selectedRowDataMeeting?.result_date
+                                ? selectedRowDataMeeting.result_date
+                                : null,
+                            });
+                          }}
+                          data-text={`${
+                            selectedRowDataMeeting?.result_date
+                              ? format(new Date(selectedRowDataMeeting.result_date), "yyyy/MM/dd")
+                              : ""
+                          }`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            if (!isDesktopGTE1600 && isOpenSidebar) handleOpenTooltip(e);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) handleCloseTooltip();
+                          }}
+                        >
                           {selectedRowDataMeeting?.result_date
                             ? format(new Date(selectedRowDataMeeting.result_date), "yyyy/MM/dd")
                             : ""}
                         </span>
                       )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                      {/* ============= フィールドエディットモード関連 ============= */}
+                      {/* フィールドエディットモード Date-picker  */}
+                      {!searchMode && isEditModeField === "result_date" && (
+                        <>
+                          <div className="z-[2000] w-full">
+                            <DatePickerCustomInput
+                              startDate={inputResultDateForFieldEditMode}
+                              setStartDate={setInputResultDateForFieldEditMode}
+                              required={true}
+                              isFieldEditMode={true}
+                              fieldEditModeBtnAreaPosition="right"
+                              isLoadingSendEvent={updateMeetingFieldMutation.isLoading}
+                              onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                                if (!inputResultDateForFieldEditMode) return alert("このデータは入力が必須です。");
+                                const originalDateUTCString = selectedRowDataMeeting?.result_date
+                                  ? selectedRowDataMeeting.result_date
+                                  : null; // ISOString UTC時間 2023-12-26T15:00:00+00:00
+                                const newDateUTCString = inputResultDateForFieldEditMode
+                                  ? inputResultDateForFieldEditMode.toISOString()
+                                  : null; // Dateオブジェクト ローカルタイムゾーンに自動で変換済み Thu Dec 28 2023 00:00:00 GMT+0900 (日本標準時)
+                                // const result = isSameDateLocal(originalDateString, newDateString);
+                                console.log(
+                                  "日付送信クリック",
+                                  "オリジナル(UTC)",
+                                  originalDateUTCString,
+                                  "新たな値(Dateオブジェクト)",
+                                  inputResultDateForFieldEditMode,
+                                  "新たな値.toISO(UTC)",
+                                  newDateUTCString
+                                  // "同じかチェック結果",
+                                  // result
+                                );
+                                if (e.currentTarget.parentElement?.parentElement?.parentElement)
+                                  e.currentTarget.parentElement.parentElement.parentElement.classList.remove(
+                                    `${styles.active}`
+                                  );
+                                // オリジナルはUTC、新たな値はDateオブジェクト(ローカルタイムゾーン)なのでISOString()でUTCに変換
+                                handleClickSendUpdateField({
+                                  e,
+                                  fieldName: "result_date",
+                                  fieldNameForSelectedRowData: "result_date",
+                                  // originalValue: originalValueFieldEdit.current,
+                                  originalValue: originalDateUTCString,
+                                  newValue: newDateUTCString,
+                                  id: selectedRowDataMeeting?.meeting_id,
+                                  required: true,
+                                });
+                              }}
+                            />
+                          </div>
+                        </>
+                      )}
+                      {/* フィールドエディットモードオーバーレイ */}
+                      {!searchMode && isEditModeField === "result_date" && (
+                        <div
+                          className={`${styles.edit_mode_overlay}`}
+                          onClick={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                            setIsEditModeField(null); // エディットモードを終了
+                          }}
+                        />
+                      )}
+                      {/* ============= フィールドエディットモード関連ここまで ============= */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -2179,37 +2672,329 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title} `}>面談開始</span>
-                      {!searchMode && (
-                        <span className={`${styles.value}`}>
+                      {!searchMode && isEditModeField !== "result_start_time" && (
+                        <span
+                          className={`${styles.value} ${styles.editable_field}`}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            if (!selectedRowDataMeeting?.result_start_time) return;
+                            // if (isNotActivityTypeArray.includes(selectedRowDataMeeting.meeting_type))
+                            //   return alert(returnMessageNotActivity(selectedRowDataMeeting.meeting_type));
+                            handleDoubleClickField({
+                              e,
+                              field: "result_start_time",
+                              dispatch: setInputResultStartTime,
+                              selectedRowDataValue: selectedRowDataMeeting.result_start_time,
+                            });
+                            if (hoveredItemPosWrap) handleCloseTooltip();
+                          }}
+                          data-text={`${
+                            selectedRowDataMeeting?.result_start_time ? selectedRowDataMeeting?.result_start_time : ""
+                          }`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          }}
+                        >
                           {selectedRowDataMeeting?.result_start_time
                             ? formatTime(selectedRowDataMeeting?.result_start_time)
                             : ""}
                         </span>
                       )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                      {/* ============= フィールドエディットモード関連 ============= */}
+                      {/* フィールドエディットモード selectタグ  */}
+                      {!searchMode && isEditModeField === "result_start_time" && (
+                        <>
+                          <select
+                            className={`ml-auto h-full w-[80%] cursor-pointer ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                            placeholder="時"
+                            value={inputResultStartTimeHour}
+                            onChange={(e) => setInputResultStartTimeHour(e.target.value === "" ? "" : e.target.value)}
+                          >
+                            <option value=""></option>
+                            {hours.map((hour) => (
+                              <option key={hour} value={hour}>
+                                {hour}
+                              </option>
+                            ))}
+                          </select>
+
+                          <span className="pointer-events-none mx-[5px]">:</span>
+
+                          <select
+                            className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                            placeholder="分"
+                            value={inputResultStartTimeMinute}
+                            onChange={(e) => setInputResultStartTimeMinute(e.target.value === "" ? "" : e.target.value)}
+                          >
+                            <option value=""></option>
+                            {minutes5.map((minute) => (
+                              <option key={minute} value={minute}>
+                                {minute}
+                              </option>
+                            ))}
+                          </select>
+                          {/* 送信、バツボタンエリア */}
+                          {!updateMeetingFieldMutation.isLoading && (
+                            <div
+                              className={`${styles.field_edit_mode_btn_area} ${
+                                !updateMeetingFieldMutation.isLoading
+                                  ? styles.right_position
+                                  : styles.right_position_loading
+                              }  space-x-[6px]`}
+                            >
+                              {/* 送信ボタン フィールドエディットモード専用 */}
+                              {!updateMeetingFieldMutation.isLoading && (
+                                <div
+                                  className={`flex-center transition-bg03 group min-h-[26px] min-w-[26px] rounded-full border border-solid border-transparent ${
+                                    !inputResultStartTimeHour ||
+                                    !inputResultStartTimeMinute ||
+                                    `${inputResultStartTimeHour}:${inputResultStartTimeMinute}` ===
+                                      originalValueFieldEdit.current
+                                      ? `cursor-not-allowed text-[#999]`
+                                      : `border-[var(--color-bg-brand-f) cursor-pointer hover:bg-[var(--color-bg-brand-f)] hover:shadow-lg`
+                                  }`}
+                                  onClick={(e) => {
+                                    if (!inputResultStartTimeHour || !inputResultStartTimeMinute) return;
+                                    handleClickSendUpdateField({
+                                      e,
+                                      fieldName: "result_start_time",
+                                      fieldNameForSelectedRowData: "result_start_time",
+                                      newValue: `${inputResultStartTimeHour}:${inputResultStartTimeMinute}`,
+                                      originalValue: originalValueFieldEdit.current,
+                                      id: selectedRowDataMeeting?.meeting_id,
+                                      required: true,
+                                    });
+                                  }}
+                                >
+                                  <IoIosSend
+                                    className={`text-[20px] ${
+                                      !inputResultStartTimeHour ||
+                                      !inputResultStartTimeMinute ||
+                                      `${inputResultStartTimeHour}:${inputResultStartTimeMinute}` ===
+                                        originalValueFieldEdit.current
+                                        ? `text-[#999] group-hover:text-[#999]`
+                                        : `text-[var(--color-bg-brand-f)] group-hover:text-[#fff]`
+                                    }`}
+                                  />
+                                </div>
+                              )}
+                              {/* バツボタン フィールドエディットモード専用 */}
+                              {!updateMeetingFieldMutation.isLoading && (
+                                <div
+                                  className={`${
+                                    inputResultStartTimeHour && inputResultStartTimeMinute
+                                      ? `${styles.close_btn_field_edit_mode} hover:shadow-lg`
+                                      : `${styles.close_btn_field_edit_mode_empty}`
+                                  }`}
+                                  onClick={() => {
+                                    if (inputResultStartTimeHour === "08" && inputResultStartTimeMinute === "30")
+                                      return;
+                                    setInputResultStartTimeHour("08");
+                                    setInputResultStartTimeMinute("30");
+                                  }}
+                                >
+                                  <MdClose className="text-[20px] " />
+                                </div>
+                              )}
+                              {/* ローディング フィールドエディットモード専用 */}
+                              {/* {!updateMeetingFieldMutation.isLoading && (
+                            <div className={`${styles.field_edit_mode_loading_area}`}>
+                              <SpinnerComet w="22px" h="22px" s="3px" />
+                            </div>
+                          )} */}
+                            </div>
+                          )}
+                          {/* <span className="ml-[5px]">分</span> */}
+                          {/* エディットフィールド送信中ローディングスピナー */}
+                          {updateMeetingFieldMutation.isLoading && (
+                            <div
+                              className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                            >
+                              <SpinnerComet w="22px" h="22px" s="3px" />
+                            </div>
+                          )}
+                        </>
+                      )}
+                      {/* フィールドエディットモードオーバーレイ */}
+                      {!searchMode && isEditModeField === "result_start_time" && (
+                        <div
+                          className={`${styles.edit_mode_overlay}`}
+                          onClick={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                            setIsEditModeField(null); // エディットモードを終了
+                          }}
+                        />
+                      )}
+                      {/* ============= フィールドエディットモード関連ここまで ============= */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>面談終了</span>
-                      {!searchMode && (
+                      {!searchMode && isEditModeField !== "result_end_time" && (
                         <span
-                          // data-text={`${
-                          //   selectedRowDataMeeting?.priority
-                          //     ? selectedRowDataMeeting?.priority
-                          //     : ""
-                          // }`}
-                          className={`${styles.value}`}
-                          // onMouseEnter={(e) => handleOpenTooltip(e)}
-                          // onMouseLeave={handleCloseTooltip}
+                          className={`${styles.value} ${styles.editable_field}`}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            if (!selectedRowDataMeeting?.result_end_time) return;
+                            // if (isNotActivityTypeArray.includes(selectedRowDataMeeting.meeting_type))
+                            //   return alert(returnMessageNotActivity(selectedRowDataMeeting.meeting_type));
+                            handleDoubleClickField({
+                              e,
+                              field: "result_end_time",
+                              dispatch: setInputResultEndTime,
+                              selectedRowDataValue: selectedRowDataMeeting.result_end_time,
+                            });
+                            if (hoveredItemPosWrap) handleCloseTooltip();
+                          }}
+                          data-text={`${
+                            selectedRowDataMeeting?.result_end_time ? selectedRowDataMeeting?.result_end_time : ""
+                          }`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          }}
                         >
                           {selectedRowDataMeeting?.result_end_time
                             ? formatTime(selectedRowDataMeeting.result_end_time)
                             : ""}
                         </span>
                       )}
-                      {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
+                      {/* ============= フィールドエディットモード関連 ============= */}
+                      {/* フィールドエディットモード selectタグ  */}
+                      {!searchMode && isEditModeField === "result_end_time" && (
+                        <>
+                          <select
+                            className={`ml-auto h-full w-[80%] cursor-pointer ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                            placeholder="時"
+                            value={inputResultEndTimeHour}
+                            onChange={(e) => setInputResultEndTimeHour(e.target.value === "" ? "" : e.target.value)}
+                          >
+                            <option value=""></option>
+                            {hours.map((hour) => (
+                              <option key={hour} value={hour}>
+                                {hour}
+                              </option>
+                            ))}
+                          </select>
+
+                          <span className="pointer-events-none mx-[5px]">:</span>
+
+                          <select
+                            className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                            placeholder="分"
+                            value={inputResultEndTimeMinute}
+                            onChange={(e) => setInputResultEndTimeMinute(e.target.value === "" ? "" : e.target.value)}
+                          >
+                            <option value=""></option>
+                            {minutes5.map((minute) => (
+                              <option key={minute} value={minute}>
+                                {minute}
+                              </option>
+                            ))}
+                          </select>
+                          {/* 送信、バツボタンエリア */}
+                          {!updateMeetingFieldMutation.isLoading && (
+                            <div
+                              className={`${styles.field_edit_mode_btn_area} ${
+                                !updateMeetingFieldMutation.isLoading
+                                  ? styles.right_position
+                                  : styles.right_position_loading
+                              }  space-x-[6px]`}
+                            >
+                              {/* 送信ボタン フィールドエディットモード専用 */}
+                              {!updateMeetingFieldMutation.isLoading && (
+                                <div
+                                  className={`flex-center transition-bg03 group min-h-[26px] min-w-[26px] rounded-full border border-solid border-transparent ${
+                                    !inputResultEndTimeHour ||
+                                    !inputResultEndTimeMinute ||
+                                    `${inputResultEndTimeHour}:${inputResultEndTimeMinute}` ===
+                                      originalValueFieldEdit.current
+                                      ? `cursor-not-allowed text-[#999]`
+                                      : `border-[var(--color-bg-brand-f) cursor-pointer hover:bg-[var(--color-bg-brand-f)] hover:shadow-lg`
+                                  }`}
+                                  onClick={(e) => {
+                                    if (!inputResultEndTimeHour || !inputResultEndTimeMinute) return;
+                                    handleClickSendUpdateField({
+                                      e,
+                                      fieldName: "result_end_time",
+                                      fieldNameForSelectedRowData: "result_end_time",
+                                      newValue: `${inputResultEndTimeHour}:${inputResultEndTimeMinute}`,
+                                      originalValue: originalValueFieldEdit.current,
+                                      id: selectedRowDataMeeting?.meeting_id,
+                                      required: true,
+                                    });
+                                  }}
+                                >
+                                  <IoIosSend
+                                    className={`text-[20px] ${
+                                      !inputResultEndTimeHour ||
+                                      !inputResultEndTimeMinute ||
+                                      `${inputResultEndTimeHour}:${inputResultEndTimeMinute}` ===
+                                        originalValueFieldEdit.current
+                                        ? `text-[#999] group-hover:text-[#999]`
+                                        : `text-[var(--color-bg-brand-f)] group-hover:text-[#fff]`
+                                    }`}
+                                  />
+                                </div>
+                              )}
+                              {/* バツボタン フィールドエディットモード専用 */}
+                              {!updateMeetingFieldMutation.isLoading && (
+                                <div
+                                  className={`${
+                                    inputResultEndTimeHour && inputResultEndTimeMinute
+                                      ? `${styles.close_btn_field_edit_mode} hover:shadow-lg`
+                                      : `${styles.close_btn_field_edit_mode_empty}`
+                                  }`}
+                                  onClick={() => {
+                                    if (inputResultEndTimeHour === "08" && inputResultEndTimeMinute === "30") return;
+                                    setInputResultEndTimeHour("08");
+                                    setInputResultEndTimeMinute("30");
+                                  }}
+                                >
+                                  <MdClose className="text-[20px] " />
+                                </div>
+                              )}
+                              {/* ローディング フィールドエディットモード専用 */}
+                              {/* {!updateMeetingFieldMutation.isLoading && (
+                            <div className={`${styles.field_edit_mode_loading_area}`}>
+                              <SpinnerComet w="22px" h="22px" s="3px" />
+                            </div>
+                          )} */}
+                            </div>
+                          )}
+                          {/* <span className="ml-[5px]">分</span> */}
+                          {/* エディットフィールド送信中ローディングスピナー */}
+                          {updateMeetingFieldMutation.isLoading && (
+                            <div
+                              className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                            >
+                              <SpinnerComet w="22px" h="22px" s="3px" />
+                            </div>
+                          )}
+                        </>
+                      )}
+                      {/* フィールドエディットモードオーバーレイ */}
+                      {!searchMode && isEditModeField === "result_end_time" && (
+                        <div
+                          className={`${styles.edit_mode_overlay}`}
+                          onClick={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                            setIsEditModeField(null); // エディットモードを終了
+                          }}
+                        />
+                      )}
+                      {/* ============= フィールドエディットモード関連ここまで ============= */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -2226,22 +3011,116 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         <span className={``}>面談時間</span>
                         <span className={``}>(分)</span>
                       </div>
-                      {!searchMode && (
+                      {!searchMode && isEditModeField !== "result_duration" && (
                         <span
-                          // data-text={`${
-                          //   selectedRowDataMeeting?.managing_director ? selectedRowDataMeeting?.managing_director : ""
-                          // }`}
-                          className={`${styles.value}`}
-                          // onMouseEnter={(e) => handleOpenTooltip(e)}
-                          // onMouseLeave={handleCloseTooltip}
+                          className={`${styles.value} ${styles.editable_field}`}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            if (!selectedRowDataMeeting?.result_duration) return;
+                            // if (isNotActivityTypeArray.includes(selectedRowDataMeeting.result_duration))
+                            //   return alert(returnMessageNotActivity(selectedRowDataMeeting.result_duration));
+                            handleDoubleClickField({
+                              e,
+                              field: "result_duration",
+                              dispatch: setInputResultDuration,
+                            });
+                            if (hoveredItemPosWrap) handleCloseTooltip();
+                          }}
+                          data-text={`${
+                            selectedRowDataMeeting?.result_duration ? selectedRowDataMeeting?.result_duration : ""
+                          }`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          }}
                         >
                           {selectedRowDataMeeting?.result_duration ? selectedRowDataMeeting?.result_duration : null}
-                          {/* {selectedRowDataMeeting?.result_duration
-                            ? format(new Date(selectedRowDataMeeting.result_duration), "yyyy-MM-dd")
-                            : ""} */}
                         </span>
                       )}
-                      {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
+                      {/* ============= フィールドエディットモード関連 ============= */}
+                      {/* フィールドエディットモード selectタグ  */}
+                      {!searchMode && isEditModeField === "result_duration" && (
+                        <>
+                          <input
+                            type="number"
+                            min="0"
+                            className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                            placeholder=""
+                            value={inputResultDuration === null ? "" : inputResultDuration}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === "") {
+                                setInputResultDuration(null);
+                              } else {
+                                const numValue = Number(val);
+
+                                // 入力値がマイナスかチェック
+                                if (numValue < 0) {
+                                  setInputResultDuration(0); // ここで0に設定しているが、必要に応じて他の正の値に変更することもできる
+                                } else {
+                                  setInputResultDuration(numValue);
+                                }
+                              }
+                            }}
+                            onCompositionStart={() => setIsComposing(true)}
+                            onCompositionEnd={() => setIsComposing(false)}
+                            onKeyDown={(e) =>
+                              handleKeyDownUpdateField({
+                                e,
+                                fieldName: "result_duration",
+                                fieldNameForSelectedRowData: "result_duration",
+                                originalValue: originalValueFieldEdit.current,
+                                newValue: inputResultDuration,
+                                id: selectedRowDataMeeting?.meeting_id,
+                                required: false,
+                              })
+                            }
+                          />
+                          {/* 送信ボタンとクローズボタン */}
+                          {!updateMeetingFieldMutation.isLoading && (
+                            <InputSendAndCloseBtn<number | null>
+                              inputState={inputResultDuration}
+                              setInputState={setInputResultDuration}
+                              onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                                handleClickSendUpdateField({
+                                  e,
+                                  fieldName: "result_duration",
+                                  fieldNameForSelectedRowData: "result_duration",
+                                  originalValue: originalValueFieldEdit.current,
+                                  newValue: inputResultDuration,
+                                  id: selectedRowDataMeeting?.meeting_id,
+                                  required: false,
+                                })
+                              }
+                              required={true}
+                              isDisplayClose={false}
+                            />
+                          )}
+                          {/* エディットフィールド送信中ローディングスピナー */}
+                          {updateMeetingFieldMutation.isLoading && (
+                            <div
+                              className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                            >
+                              <SpinnerComet w="22px" h="22px" s="3px" />
+                            </div>
+                          )}
+                        </>
+                      )}
+                      {/* フィールドエディットモードオーバーレイ */}
+                      {!searchMode && isEditModeField === "result_duration" && (
+                        <div
+                          className={`${styles.edit_mode_overlay}`}
+                          onClick={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                            setIsEditModeField(null); // エディットモードを終了
+                          }}
+                        />
+                      )}
+                      {/* ============= フィールドエディットモード関連ここまで ============= */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -2249,24 +3128,124 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} transition-base03 flex h-full items-center `}>
                       <span className={`${styles.title}`}>面談人数</span>
-
-                      {!searchMode && (
+                      {!searchMode && isEditModeField !== "result_number_of_meeting_participants" && (
                         <span
-                          // data-text={`${
-                          //   selectedRowDataMeeting?.managing_director ? selectedRowDataMeeting?.managing_director : ""
-                          // }`}
-                          className={`${styles.value}`}
-                          // onMouseEnter={(e) => handleOpenTooltip(e)}
-                          // onMouseLeave={handleCloseTooltip}
+                          className={`${styles.value} ${styles.editable_field}`}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            if (!selectedRowDataMeeting?.result_number_of_meeting_participants) return;
+                            // if (isNotActivityTypeArray.includes(selectedRowDataMeeting.result_number_of_meeting_participants))
+                            //   return alert(returnMessageNotActivity(selectedRowDataMeeting.result_number_of_meeting_participants));
+                            handleDoubleClickField({
+                              e,
+                              field: "result_number_of_meeting_participants",
+                              dispatch: setInputResultNumberOfMeetingParticipants,
+                            });
+                            if (hoveredItemPosWrap) handleCloseTooltip();
+                          }}
+                          data-text={`${
+                            selectedRowDataMeeting?.result_number_of_meeting_participants
+                              ? selectedRowDataMeeting?.result_number_of_meeting_participants
+                              : ""
+                          }`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          }}
                         >
                           {selectedRowDataMeeting?.result_number_of_meeting_participants
                             ? selectedRowDataMeeting?.result_number_of_meeting_participants
                             : null}
-                          {/* {selectedRowDataMeeting?.result_duration
-                            ? format(new Date(selectedRowDataMeeting.result_duration), "yyyy-MM-dd")
-                            : ""} */}
                         </span>
                       )}
+                      {/* ============= フィールドエディットモード関連 ============= */}
+                      {/* フィールドエディットモード selectタグ  */}
+                      {!searchMode && isEditModeField === "result_number_of_meeting_participants" && (
+                        <>
+                          <input
+                            type="number"
+                            min="0"
+                            className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                            placeholder=""
+                            value={
+                              inputResultNumberOfMeetingParticipants === null
+                                ? ""
+                                : inputResultNumberOfMeetingParticipants
+                            }
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === "") {
+                                setInputResultNumberOfMeetingParticipants(null);
+                              } else {
+                                const numValue = Number(val);
+
+                                // 入力値がマイナスかチェック
+                                if (numValue < 0) {
+                                  setInputResultNumberOfMeetingParticipants(0); // ここで0に設定しているが、必要に応じて他の正の値に変更することもできる
+                                } else {
+                                  setInputResultNumberOfMeetingParticipants(numValue);
+                                }
+                              }
+                            }}
+                            onCompositionStart={() => setIsComposing(true)}
+                            onCompositionEnd={() => setIsComposing(false)}
+                            onKeyDown={(e) =>
+                              handleKeyDownUpdateField({
+                                e,
+                                fieldName: "result_number_of_meeting_participants",
+                                fieldNameForSelectedRowData: "result_number_of_meeting_participants",
+                                originalValue: originalValueFieldEdit.current,
+                                newValue: inputResultNumberOfMeetingParticipants,
+                                id: selectedRowDataMeeting?.meeting_id,
+                                required: false,
+                              })
+                            }
+                          />
+                          {/* 送信ボタンとクローズボタン */}
+                          {!updateMeetingFieldMutation.isLoading && (
+                            <InputSendAndCloseBtn<number | null>
+                              inputState={inputResultNumberOfMeetingParticipants}
+                              setInputState={setInputResultNumberOfMeetingParticipants}
+                              onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                                handleClickSendUpdateField({
+                                  e,
+                                  fieldName: "result_number_of_meeting_participants",
+                                  fieldNameForSelectedRowData: "result_number_of_meeting_participants",
+                                  originalValue: originalValueFieldEdit.current,
+                                  newValue: inputResultNumberOfMeetingParticipants,
+                                  id: selectedRowDataMeeting?.meeting_id,
+                                  required: false,
+                                })
+                              }
+                              required={true}
+                              isDisplayClose={false}
+                            />
+                          )}
+                          {/* エディットフィールド送信中ローディングスピナー */}
+                          {updateMeetingFieldMutation.isLoading && (
+                            <div
+                              className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                            >
+                              <SpinnerComet w="22px" h="22px" s="3px" />
+                            </div>
+                          )}
+                        </>
+                      )}
+                      {/* フィールドエディットモードオーバーレイ */}
+                      {!searchMode && isEditModeField === "result_number_of_meeting_participants" && (
+                        <div
+                          className={`${styles.edit_mode_overlay}`}
+                          onClick={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                            setIsEditModeField(null); // エディットモードを終了
+                          }}
+                        />
+                      )}
+                      {/* ============= フィールドエディットモード関連ここまで ============= */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -2278,7 +3257,15 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>実施商品1</span>
                       {!searchMode && (
-                        <span className={`${styles.value}`}>
+                        <span
+                          className={`${styles.value}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
                           {/* {selectedRowDataMeeting?.result_presentation_product1
                             ? selectedRowDataMeeting?.result_presentation_product1
                             : ""} */}
@@ -2314,14 +3301,13 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <span className={`${styles.title}`}>実施商品2</span>
                       {!searchMode && (
                         <span
-                          // data-text={`${
-                          //   selectedRowDataMeeting?.senior_managing_director
-                          //     ? selectedRowDataMeeting?.senior_managing_director
-                          //     : ""
-                          // }`}
                           className={`${styles.value}`}
-                          // onMouseEnter={(e) => handleOpenTooltip(e)}
-                          // onMouseLeave={handleCloseTooltip}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
                         >
                           {/* {selectedRowDataMeeting?.result_presentation_product2
                             ? selectedRowDataMeeting?.result_presentation_product2
@@ -2346,7 +3332,15 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>実施商品3</span>
                       {!searchMode && (
-                        <span className={`${styles.value}`}>
+                        <span
+                          className={`${styles.value}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
                           {/* {selectedRowDataMeeting?.result_presentation_product3
                             ? selectedRowDataMeeting?.result_presentation_product3
                             : ""} */}
@@ -2367,14 +3361,13 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <span className={`${styles.title}`}>実施商品4</span>
                       {!searchMode && (
                         <span
-                          // data-text={`${
-                          //   selectedRowDataMeeting?.senior_managing_director
-                          //     ? selectedRowDataMeeting?.senior_managing_director
-                          //     : ""
-                          // }`}
                           className={`${styles.value}`}
-                          // onMouseEnter={(e) => handleOpenTooltip(e)}
-                          // onMouseLeave={handleCloseTooltip}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
                         >
                           {/* {selectedRowDataMeeting?.result_presentation_product4
                             ? selectedRowDataMeeting?.result_presentation_product4
@@ -2399,7 +3392,15 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>実施商品5</span>
                       {!searchMode && (
-                        <span className={`${styles.value}`}>
+                        <span
+                          className={`${styles.value}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
                           {/* {selectedRowDataMeeting?.result_presentation_product5
                             ? selectedRowDataMeeting?.result_presentation_product5
                             : ""} */}
@@ -2420,7 +3421,15 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>実施ALL</span>
                       {!searchMode && (
-                        <span className={`${styles.value}`}>
+                        <span
+                          className={`${styles.value}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
                           {/* {selectedRowDataMeeting?.result_presentation_product5
                             ? selectedRowDataMeeting?.result_presentation_product5
                             : ""} */}
@@ -2440,13 +3449,30 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className="flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full `}>
                       <span className={`${styles.title} ${styles.title_sm}`}>結果ｺﾒﾝﾄ</span>
-                      {!searchMode && (
+                      {!searchMode && isEditModeField !== "result_summary" && (
                         <div
-                          className={`${styles.textarea_box} ${styles.textarea_box_bg}`}
-                          // className={`${styles.full_value}  ${styles.textarea_box} ${styles.textarea_box_bg}`}
-                          // className={`${styles.value} h-[85px] ${styles.textarea_box} ${styles.textarea_box_bg}`}
-                          // onMouseEnter={(e) => handleOpenTooltip(e)}
-                          // onMouseLeave={handleCloseTooltip}
+                          className={`${styles.textarea_box} ${styles.editable_field}`}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            // if (!selectedRowDataMeeting?.activity_type) return;
+                            // if (isNotActivityTypeArray.includes(selectedRowDataMeeting.activity_type))
+                            //   return alert(returnMessageNotActivity(selectedRowDataMeeting.activity_type));
+                            handleCloseTooltip();
+                            handleDoubleClickField({
+                              e,
+                              field: "result_summary",
+                              dispatch: setInputResultSummary,
+                              selectedRowDataValue: selectedRowDataMeeting?.result_summary
+                                ? selectedRowDataMeeting?.result_summary
+                                : null,
+                            });
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
                           dangerouslySetInnerHTML={{
                             __html: selectedRowDataMeeting?.result_summary
                               ? selectedRowDataMeeting?.result_summary.replace(/\n/g, "<br>")
@@ -2454,33 +3480,92 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           }}
                         ></div>
                       )}
-                      {/* {searchMode && (
-                        <textarea
-                          name="Meeting_summary"
-                          id="Meeting_summary"
-                          cols={30}
-                          rows={10}
-                          className={`${styles.textarea_box} `}
-                          value={inputSummary}
-                          onChange={(e) => setInputSummary(e.target.value)}
-                        ></textarea>
-                      )} */}
+                      {/* ============= フィールドエディットモード関連 ============= */}
+                      {/* フィールドエディットモード inputタグ */}
+                      {!searchMode && isEditModeField === "result_summary" && (
+                        <>
+                          <textarea
+                            cols={30}
+                            // rows={10}
+                            placeholder=""
+                            style={{ whiteSpace: "pre-wrap" }}
+                            className={`${styles.textarea_box} ${styles.textarea_box_search_mode} ${styles.field_edit_mode_textarea} ${styles.xl}`}
+                            value={inputResultSummary}
+                            onChange={(e) => setInputResultSummary(e.target.value)}
+                          ></textarea>
+                          {/* 送信ボタンとクローズボタン */}
+                          <InputSendAndCloseBtn
+                            inputState={inputResultSummary}
+                            setInputState={setInputResultSummary}
+                            onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                              handleClickSendUpdateField({
+                                e,
+                                fieldName: "result_summary",
+                                fieldNameForSelectedRowData: "result_summary",
+                                originalValue: originalValueFieldEdit.current,
+                                newValue: inputResultSummary ? inputResultSummary.trim() : null,
+                                id: selectedRowDataMeeting?.meeting_id,
+                                required: false,
+                              })
+                            }
+                            required={false}
+                            // isDisplayClose={true}
+                            // btnPositionY="bottom-[8px]"
+                            isOutside={true}
+                            outsidePosition="under_right"
+                            isLoadingSendEvent={updateMeetingFieldMutation.isLoading}
+                          />
+                        </>
+                      )}
+                      {/* フィールドエディットモードオーバーレイ */}
+                      {!searchMode && isEditModeField === "result_summary" && (
+                        <div
+                          className={`${styles.edit_mode_overlay}`}
+                          onClick={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                            setIsEditModeField(null); // エディットモードを終了
+                          }}
+                        />
+                      )}
+                      {/* ============= フィールドエディットモード関連ここまで ============= */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
                 </div>
 
                 {/* 面談結果 */}
-                <div className={`${styles.row_area} flex h-[70px] w-full items-center`}>
+                <div className={`${styles.row_area} flex w-full items-center`}>
                   <div className="flex h-full w-full flex-col pr-[20px]">
-                    <div className={`${styles.title_box} flex h-full `}>
+                    <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>面談結果</span>
-                      {!searchMode && (
+                      {!searchMode && isEditModeField !== "result_category" && (
                         <div
-                          // data-text={`${selectedRowDataMeeting?.ban_reason ? selectedRowDataMeeting?.ban_reason : ""}`}
-                          className={`${styles.value} h-[65px]`}
-                          // onMouseEnter={(e) => handleOpenTooltip(e)}
-                          // onMouseLeave={handleCloseTooltip}
+                          className={`${styles.value} ${styles.editable_field}`}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            if (!selectedRowDataMeeting?.result_category) return;
+                            // if (isNotActivityTypeArray.includes(selectedRowDataMeeting.result_category))
+                            //   return alert(returnMessageNotActivity(selectedRowDataMeeting.result_category));
+                            handleDoubleClickField({
+                              e,
+                              field: "result_category",
+                              dispatch: setInputResultCategory,
+                            });
+                            if (hoveredItemPosWrap) handleCloseTooltip();
+                          }}
+                          data-text={`${
+                            selectedRowDataMeeting?.result_category ? selectedRowDataMeeting?.result_category : ""
+                          }`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                            handleOpenTooltip(e);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                            if (hoveredItemPosWrap) handleCloseTooltip();
+                          }}
                           dangerouslySetInnerHTML={{
                             __html: selectedRowDataMeeting?.result_category
                               ? selectedRowDataMeeting?.result_category.replace(/\n/g, "<br>")
@@ -2488,7 +3573,55 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           }}
                         ></div>
                       )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                      {/* ============= フィールドエディットモード関連 ============= */}
+                      {/* フィールドエディットモード selectタグ  */}
+                      {!searchMode && isEditModeField === "result_category" && (
+                        <>
+                          <select
+                            className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                            value={inputResultCategory}
+                            onChange={(e) => {
+                              handleChangeSelectUpdateField({
+                                e,
+                                fieldName: "result_category",
+                                fieldNameForSelectedRowData: "result_category",
+                                newValue: e.target.value,
+                                originalValue: originalValueFieldEdit.current,
+                                id: selectedRowDataMeeting?.meeting_id,
+                              });
+                            }}
+                            // onChange={(e) => {
+                            //   setInputActivityType(e.target.value);
+                            // }}
+                          >
+                            {/* <option value=""></option> */}
+                            {optionsResultCategory.map((option) => (
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
+                            ))}
+                          </select>
+                          {/* エディットフィールド送信中ローディングスピナー */}
+                          {updateMeetingFieldMutation.isLoading && (
+                            <div
+                              className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                            >
+                              <SpinnerComet w="22px" h="22px" s="3px" />
+                            </div>
+                          )}
+                        </>
+                      )}
+                      {/* フィールドエディットモードオーバーレイ */}
+                      {!searchMode && isEditModeField === "result_category" && (
+                        <div
+                          className={`${styles.edit_mode_overlay}`}
+                          onClick={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                            setIsEditModeField(null); // エディットモードを終了
+                          }}
+                        />
+                      )}
+                      {/* ============= フィールドエディットモード関連ここまで ============= */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -2503,8 +3636,38 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         <span className={``}>面談時_</span>
                         <span className={``}>最上位職位</span>
                       </div>
-                      {!searchMode && (
-                        <span className={`${styles.value}`}>
+                      {!searchMode && isEditModeField !== "result_top_position_class" && (
+                        <span
+                          className={`${styles.value} ${styles.editable_field}`}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            if (!selectedRowDataMeeting?.result_top_position_class) return;
+                            // if (isNotActivityTypeArray.includes(selectedRowDataMeeting.result_top_position_class))
+                            //   return alert(returnMessageNotActivity(selectedRowDataMeeting.result_top_position_class));
+                            handleDoubleClickField({
+                              e,
+                              field: "result_top_position_class",
+                              dispatch: setInputResultTopPositionClass,
+                              selectedRowDataValue: selectedRowDataMeeting.result_top_position_class,
+                            });
+                            if (hoveredItemPosWrap) handleCloseTooltip();
+                          }}
+                          // data-text={`${
+                          //   selectedRowDataMeeting?.result_top_position_class
+                          //     ? getPositionClassName(selectedRowDataMeeting?.result_top_position_class)
+                          //     : ""
+                          // }`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                            // handleOpenTooltip(e);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                            // if (hoveredItemPosWrap) handleCloseTooltip();
+                          }}
+                        >
                           {selectedRowDataMeeting &&
                           selectedRowDataMeeting?.result_top_position_class &&
                           mappingPositionClass[selectedRowDataMeeting.result_top_position_class]?.[language]
@@ -2512,6 +3675,55 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             : ""}
                         </span>
                       )}
+                      {/* ============= フィールドエディットモード関連 ============= */}
+                      {/* フィールドエディットモード selectタグ  */}
+                      {!searchMode && isEditModeField === "result_top_position_class" && (
+                        <>
+                          <select
+                            className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                            value={inputResultTopPositionClass}
+                            onChange={(e) => {
+                              handleChangeSelectUpdateField({
+                                e,
+                                fieldName: "result_top_position_class",
+                                fieldNameForSelectedRowData: "result_top_position_class",
+                                newValue: e.target.value,
+                                originalValue: originalValueFieldEdit.current,
+                                id: selectedRowDataMeeting?.meeting_id,
+                              });
+                            }}
+                            // onChange={(e) => {
+                            //   setInputActivityType(e.target.value);
+                            // }}
+                          >
+                            {/* <option value=""></option> */}
+                            {optionsPositionsClass.map((classNum) => (
+                              <option key={classNum} value={`${classNum}`}>
+                                {getPositionClassName(classNum)}
+                              </option>
+                            ))}
+                          </select>
+                          {/* エディットフィールド送信中ローディングスピナー */}
+                          {updateMeetingFieldMutation.isLoading && (
+                            <div
+                              className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                            >
+                              <SpinnerComet w="22px" h="22px" s="3px" />
+                            </div>
+                          )}
+                        </>
+                      )}
+                      {/* フィールドエディットモードオーバーレイ */}
+                      {!searchMode && isEditModeField === "result_top_position_class" && (
+                        <div
+                          className={`${styles.edit_mode_overlay}`}
+                          onClick={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                            setIsEditModeField(null); // エディットモードを終了
+                          }}
+                        />
+                      )}
+                      {/* ============= フィールドエディットモード関連ここまで ============= */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -2527,14 +3739,92 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         <span className={``}>面談時_</span>
                         <span className={``}>決裁者商談有無</span>
                       </div>
-                      {!searchMode && (
-                        <span className={`${styles.value}`}>
+                      {!searchMode && isEditModeField !== "result_negotiate_decision_maker" && (
+                        <span
+                          className={`${styles.value} ${styles.editable_field}`}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            if (!selectedRowDataMeeting?.result_negotiate_decision_maker) return;
+                            // if (isNotActivityTypeArray.includes(selectedRowDataMeeting.result_negotiate_decision_maker))
+                            //   return alert(returnMessageNotActivity(selectedRowDataMeeting.result_negotiate_decision_maker));
+                            handleDoubleClickField({
+                              e,
+                              field: "result_negotiate_decision_maker",
+                              dispatch: setInputResultNegotiateDecisionMaker,
+                              selectedRowDataValue: selectedRowDataMeeting.result_negotiate_decision_maker,
+                            });
+                            if (hoveredItemPosWrap) handleCloseTooltip();
+                          }}
+                          data-text={`${
+                            selectedRowDataMeeting?.result_negotiate_decision_maker
+                              ? selectedRowDataMeeting?.result_negotiate_decision_maker
+                              : ""
+                          }`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            if (!isDesktopGTE1600) handleOpenTooltip(e);
+                            // handleOpenTooltip(e);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                            // if (hoveredItemPosWrap) handleCloseTooltip();
+                          }}
+                        >
                           {selectedRowDataMeeting?.result_negotiate_decision_maker
                             ? selectedRowDataMeeting?.result_negotiate_decision_maker
                             : ""}
                         </span>
                       )}
-                      {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
+                      {/* ============= フィールドエディットモード関連 ============= */}
+                      {/* フィールドエディットモード selectタグ  */}
+                      {!searchMode && isEditModeField === "result_negotiate_decision_maker" && (
+                        <>
+                          <select
+                            className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                            value={inputResultNegotiateDecisionMaker}
+                            onChange={(e) => {
+                              handleChangeSelectUpdateField({
+                                e,
+                                fieldName: "result_negotiate_decision_maker",
+                                fieldNameForSelectedRowData: "result_negotiate_decision_maker",
+                                newValue: e.target.value,
+                                originalValue: originalValueFieldEdit.current,
+                                id: selectedRowDataMeeting?.meeting_id,
+                              });
+                            }}
+                            // onChange={(e) => {
+                            //   setInputActivityType(e.target.value);
+                            // }}
+                          >
+                            {/* <option value=""></option> */}
+                            {optionsResultNegotiateDecisionMaker.map((option) => (
+                              <option key={option} value={`${option}`}>
+                                {option}
+                              </option>
+                            ))}
+                          </select>
+                          {/* エディットフィールド送信中ローディングスピナー */}
+                          {updateMeetingFieldMutation.isLoading && (
+                            <div
+                              className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                            >
+                              <SpinnerComet w="22px" h="22px" s="3px" />
+                            </div>
+                          )}
+                        </>
+                      )}
+                      {/* フィールドエディットモードオーバーレイ */}
+                      {!searchMode && isEditModeField === "result_negotiate_decision_maker" && (
+                        <div
+                          className={`${styles.edit_mode_overlay}`}
+                          onClick={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                            setIsEditModeField(null); // エディットモードを終了
+                          }}
+                        />
+                      )}
+                      {/* ============= フィールドエディットモード関連ここまで ============= */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -2546,14 +3836,92 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         <span className={``}>面談時_</span>
                         <span className={``}>同席依頼</span>
                       </div>
-                      {!searchMode && (
-                        <span className={`${styles.value}`}>
+                      {!searchMode && isEditModeField !== "meeting_participation_request" && (
+                        <span
+                          className={`${styles.value} ${styles.editable_field}`}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            if (!selectedRowDataMeeting?.meeting_participation_request) return;
+                            // if (isNotActivityTypeArray.includes(selectedRowDataMeeting.meeting_participation_request))
+                            //   return alert(returnMessageNotActivity(selectedRowDataMeeting.meeting_participation_request));
+                            handleDoubleClickField({
+                              e,
+                              field: "meeting_participation_request",
+                              dispatch: setInputMeetingParticipationRequest,
+                              selectedRowDataValue: selectedRowDataMeeting.meeting_participation_request,
+                            });
+                            if (hoveredItemPosWrap) handleCloseTooltip();
+                          }}
+                          data-text={`${
+                            selectedRowDataMeeting?.meeting_participation_request
+                              ? selectedRowDataMeeting?.meeting_participation_request
+                              : ""
+                          }`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            if (!isDesktopGTE1600) handleOpenTooltip(e);
+                            // handleOpenTooltip(e);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                            // if (hoveredItemPosWrap) handleCloseTooltip();
+                          }}
+                        >
                           {selectedRowDataMeeting?.meeting_participation_request
                             ? selectedRowDataMeeting?.meeting_participation_request
                             : ""}
                         </span>
                       )}
-                      {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
+                      {/* ============= フィールドエディットモード関連 ============= */}
+                      {/* フィールドエディットモード selectタグ  */}
+                      {!searchMode && isEditModeField === "meeting_participation_request" && (
+                        <>
+                          <select
+                            className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                            value={inputMeetingParticipationRequest}
+                            onChange={(e) => {
+                              handleChangeSelectUpdateField({
+                                e,
+                                fieldName: "meeting_participation_request",
+                                fieldNameForSelectedRowData: "meeting_participation_request",
+                                newValue: e.target.value,
+                                originalValue: originalValueFieldEdit.current,
+                                id: selectedRowDataMeeting?.meeting_id,
+                              });
+                            }}
+                            // onChange={(e) => {
+                            //   setInputActivityType(e.target.value);
+                            // }}
+                          >
+                            {/* <option value=""></option> */}
+                            {optionsMeetingParticipationRequest.map((option) => (
+                              <option key={option} value={`${option}`}>
+                                {option}
+                              </option>
+                            ))}
+                          </select>
+                          {/* エディットフィールド送信中ローディングスピナー */}
+                          {updateMeetingFieldMutation.isLoading && (
+                            <div
+                              className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                            >
+                              <SpinnerComet w="22px" h="22px" s="3px" />
+                            </div>
+                          )}
+                        </>
+                      )}
+                      {/* フィールドエディットモードオーバーレイ */}
+                      {!searchMode && isEditModeField === "meeting_participation_request" && (
+                        <div
+                          className={`${styles.edit_mode_overlay}`}
+                          onClick={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                            setIsEditModeField(null); // エディットモードを終了
+                          }}
+                        />
+                      )}
+                      {/* ============= フィールドエディットモード関連ここまで ============= */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -2594,7 +3962,15 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>●会社名</span>
                     {!searchMode && (
-                      <span className={`${styles.value} ${styles.value_highlight} ${styles.text_start}`}>
+                      <span
+                        className={`${styles.value} ${styles.value_highlight} ${styles.text_start}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         {selectedRowDataMeeting?.company_name ? selectedRowDataMeeting?.company_name : ""}
                       </span>
                     )}
@@ -2619,7 +3995,15 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>●部署名</span>
                     {!searchMode && (
-                      <span className={`${styles.value} ${styles.text_start}`}>
+                      <span
+                        className={`${styles.value} ${styles.text_start}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         {selectedRowDataMeeting?.department_name ? selectedRowDataMeeting?.department_name : ""}
                       </span>
                     )}
@@ -2643,7 +4027,15 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>担当者名</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         {selectedRowDataMeeting?.contact_name ? selectedRowDataMeeting?.contact_name : ""}
                       </span>
                     )}
@@ -2667,12 +4059,14 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         className={`${styles.value}`}
                         data-text={`${selectedRowDataMeeting?.direct_line ? selectedRowDataMeeting?.direct_line : ""}`}
                         onMouseEnter={(e) => {
-                          if (!isOpenSidebar) return;
-                          handleOpenTooltip(e);
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          // handleOpenTooltip(e);
                         }}
-                        onMouseLeave={() => {
-                          if (!isOpenSidebar) return;
-                          handleCloseTooltip();
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataMeeting?.direct_line ? selectedRowDataMeeting?.direct_line : ""}
@@ -2697,7 +4091,24 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>役職名</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataMeeting?.position_name ? selectedRowDataMeeting?.position_name : ""
+                        }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          if (!isDesktopGTE1600 && isOpenSidebar) {
+                            handleOpenTooltip(e);
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) {
+                            handleCloseTooltip();
+                          }
+                        }}
+                      >
                         {selectedRowDataMeeting?.position_name ? selectedRowDataMeeting?.position_name : ""}
                       </span>
                     )}
@@ -2716,7 +4127,24 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center`}>
                     <span className={`${styles.title}`}>職位</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        // data-text={`${
+                        //   selectedRowDataMeeting?.position_name ? selectedRowDataMeeting?.position_name : ""
+                        // }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          // if (!isDesktopGTE1600 && isOpenSidebar) {
+                          //   handleOpenTooltip(e);
+                          // }
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          // if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) {
+                          //   handleCloseTooltip();
+                          // }
+                        }}
+                      >
                         {/* {selectedRowDataMeeting?.position_class ? selectedRowDataMeeting?.position_class : ""} */}
                         {selectedRowDataMeeting &&
                         selectedRowDataMeeting?.position_class &&
@@ -2733,8 +4161,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       //   onChange={(e) => setInputProductL(e.target.value)}
                       // />
                       <select
-                        name="position_class"
-                        id="position_class"
                         className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputPositionClass}
                         onChange={(e) => setInputPositionClass(e.target.value)}
@@ -2765,7 +4191,28 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>担当職種</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataMeeting?.occupation
+                            ? getOccupationName(selectedRowDataMeeting?.occupation)
+                            : ""
+                        }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          // if (!isDesktopGTE1600 && isOpenSidebar) {
+                          //   handleOpenTooltip(e);
+                          // }
+                          handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          // if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) {
+                          //   handleCloseTooltip();
+                          // }
+                          if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
                         {/* {selectedRowDataMeeting?.occupation ? selectedRowDataMeeting?.occupation : ""} */}
                         {selectedRowDataMeeting &&
                         selectedRowDataMeeting?.occupation &&
@@ -2776,8 +4223,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     )}
                     {searchMode && (
                       <select
-                        name="position_class"
-                        id="position_class"
                         className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputOccupation}
                         onChange={(e) => setInputOccupation(e.target.value)}
@@ -2805,7 +4250,24 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <span className={``}>(万円)</span>
                     </div>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        // data-text={`${selectedRowDataMeeting?.occupation ? selectedRowDataMeeting?.occupation : ""}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          // if (!isDesktopGTE1600 && isOpenSidebar) {
+                          //   handleOpenTooltip(e);
+                          // }
+                          // handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          // if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) {
+                          //   handleCloseTooltip();
+                          // }
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
                         {selectedRowDataMeeting?.approval_amount ? selectedRowDataMeeting?.approval_amount : ""}
                       </span>
                     )}
@@ -2818,7 +4280,25 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>E-mail</span>
+                    <span
+                      className={`${styles.title}`} // data-text={`${selectedRowDataMeeting?.occupation ? selectedRowDataMeeting?.occupation : ""}`}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        // if (!isDesktopGTE1600 && isOpenSidebar) {
+                        //   handleOpenTooltip(e);
+                        // }
+                        // handleOpenTooltip(e);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        // if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) {
+                        //   handleCloseTooltip();
+                        // }
+                        // if (hoveredItemPosWrap) handleCloseTooltip();
+                      }}
+                    >
+                      E-mail
+                    </span>
                     {!searchMode && (
                       <span className={`${styles.value}`}>
                         {selectedRowDataMeeting?.contact_email ? selectedRowDataMeeting?.contact_email : ""}
@@ -2853,7 +4333,20 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>内線TEL</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        data-text={`${selectedRowDataMeeting?.extension ? selectedRowDataMeeting?.extension : ""}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          // handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
                         {selectedRowDataMeeting?.extension ? selectedRowDataMeeting?.extension : ""}
                       </span>
                     )}
@@ -2879,12 +4372,14 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           selectedRowDataMeeting?.main_phone_number ? selectedRowDataMeeting?.main_phone_number : ""
                         }`}
                         onMouseEnter={(e) => {
-                          if (!isOpenSidebar) return;
-                          handleOpenTooltip(e);
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          // handleOpenTooltip(e);
                         }}
-                        onMouseLeave={() => {
-                          if (!isOpenSidebar) return;
-                          handleCloseTooltip();
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataMeeting?.main_phone_number ? selectedRowDataMeeting?.main_phone_number : ""}
@@ -2909,7 +4404,20 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>直通FAX</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        data-text={`${selectedRowDataMeeting?.direct_fax ? selectedRowDataMeeting?.direct_fax : ""}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          // handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
                         {selectedRowDataMeeting?.direct_fax ? selectedRowDataMeeting?.direct_fax : ""}
                       </span>
                     )}
@@ -2933,12 +4441,14 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         className={`${styles.value}`}
                         data-text={`${selectedRowDataMeeting?.main_fax ? selectedRowDataMeeting?.main_fax : ""}`}
                         onMouseEnter={(e) => {
-                          if (!isOpenSidebar) return;
-                          handleOpenTooltip(e);
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          // handleOpenTooltip(e);
                         }}
-                        onMouseLeave={() => {
-                          if (!isOpenSidebar) return;
-                          handleCloseTooltip();
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataMeeting?.main_fax ? selectedRowDataMeeting?.main_fax : ""}
@@ -2969,7 +4479,22 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>社用携帯</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataMeeting?.company_cell_phone ? selectedRowDataMeeting?.company_cell_phone : ""
+                        }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          // handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
                         {selectedRowDataMeeting?.company_cell_phone ? selectedRowDataMeeting?.company_cell_phone : ""}
                       </span>
                     )}
@@ -2988,7 +4513,22 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center`}>
                     <span className={`${styles.title}`}>私用携帯</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataMeeting?.personal_cell_phone ? selectedRowDataMeeting?.personal_cell_phone : ""
+                        }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          // handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
                         {selectedRowDataMeeting?.personal_cell_phone ? selectedRowDataMeeting?.personal_cell_phone : ""}
                       </span>
                     )}
@@ -3011,7 +4551,26 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>郵便番号</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        // data-text={`${
+                        //   selectedRowDataMeeting?.personal_cell_phone ? selectedRowDataMeeting?.personal_cell_phone : ""
+                        // }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          // if (!isDesktopGTE1600 && isOpenSidebar) {
+                          //   handleOpenTooltip(e);
+                          // }
+                          // handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          // if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) {
+                          //   handleCloseTooltip();
+                          // }
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
                         {selectedRowDataMeeting?.zipcode ? selectedRowDataMeeting?.zipcode : ""}
                       </span>
                     )}
@@ -3053,7 +4612,15 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full`}>
                     <span className={`${styles.title}`}>○住所</span>
                     {!searchMode && (
-                      <span className={`${styles.full_value} h-[45px] !overflow-visible !whitespace-normal`}>
+                      <span
+                        className={`${styles.full_value} h-[45px] !overflow-visible !whitespace-normal`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
                         {selectedRowDataMeeting?.address ? selectedRowDataMeeting?.address : ""}
                       </span>
                     )}
@@ -3078,7 +4645,28 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>規模(ﾗﾝｸ)</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataMeeting?.number_of_employees_class
+                            ? selectedRowDataMeeting?.number_of_employees_class
+                            : ""
+                        }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          if (!isDesktopGTE1600 && isOpenSidebar) {
+                            handleOpenTooltip(e);
+                          }
+                          // handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) {
+                            handleCloseTooltip();
+                          }
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
                         {selectedRowDataMeeting?.number_of_employees_class
                           ? selectedRowDataMeeting?.number_of_employees_class
                           : ""}
@@ -3115,7 +4703,28 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center`}>
                     <span className={`${styles.title}`}>決算月</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        // data-text={`${
+                        //     selectedRowDataMeeting?.number_of_employees_class
+                        //       ? selectedRowDataMeeting?.number_of_employees_class
+                        //       : ""
+                        //   }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          // if (!isDesktopGTE1600 && isOpenSidebar) {
+                          //   handleOpenTooltip(e);
+                          // }
+                          // handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          // if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) {
+                          //   handleCloseTooltip();
+                          // }
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
                         {selectedRowDataMeeting?.fiscal_end_month ? selectedRowDataMeeting?.fiscal_end_month : ""}
                       </span>
                     )}
@@ -3138,7 +4747,28 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} text-[12px]`}>予算申請月1</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        // data-text={`${
+                        //     selectedRowDataMeeting?.number_of_employees_class
+                        //       ? selectedRowDataMeeting?.number_of_employees_class
+                        //       : ""
+                        //   }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          // if (!isDesktopGTE1600 && isOpenSidebar) {
+                          //   handleOpenTooltip(e);
+                          // }
+                          // handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          // if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) {
+                          //   handleCloseTooltip();
+                          // }
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
                         {selectedRowDataMeeting?.budget_request_month1
                           ? selectedRowDataMeeting?.budget_request_month1
                           : ""}
@@ -3159,7 +4789,28 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center`}>
                     <span className={`${styles.title} text-[12px]`}>予算申請月2</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        // data-text={`${
+                        //     selectedRowDataMeeting?.number_of_employees_class
+                        //       ? selectedRowDataMeeting?.number_of_employees_class
+                        //       : ""
+                        //   }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          // if (!isDesktopGTE1600 && isOpenSidebar) {
+                          //   handleOpenTooltip(e);
+                          // }
+                          // handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          // if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) {
+                          //   handleCloseTooltip();
+                          // }
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
                         {selectedRowDataMeeting?.budget_request_month2
                           ? selectedRowDataMeeting?.budget_request_month2
                           : ""}
@@ -3188,7 +4839,28 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <span>(万円)</span>
                     </div>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        // data-text={`${
+                        //     selectedRowDataMeeting?.number_of_employees_class
+                        //       ? selectedRowDataMeeting?.number_of_employees_class
+                        //       : ""
+                        //   }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          // if (!isDesktopGTE1600 && isOpenSidebar) {
+                          //   handleOpenTooltip(e);
+                          // }
+                          // handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          // if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) {
+                          //   handleCloseTooltip();
+                          // }
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
                         {/* {selectedRowDataCompany?.capital ? selectedRowDataCompany?.capital : ""} */}
                         {selectedRowDataMeeting?.capital
                           ? convertToJapaneseCurrencyFormat(selectedRowDataMeeting.capital)
@@ -3217,7 +4889,28 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center`}>
                     <span className={`${styles.title}`}>設立</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        // data-text={`${
+                        //     selectedRowDataMeeting?.number_of_employees_class
+                        //       ? selectedRowDataMeeting?.number_of_employees_class
+                        //       : ""
+                        //   }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          // if (!isDesktopGTE1600 && isOpenSidebar) {
+                          //   handleOpenTooltip(e);
+                          // }
+                          // handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          // if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) {
+                          //   handleCloseTooltip();
+                          // }
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
                         {selectedRowDataMeeting?.established_in ? selectedRowDataMeeting?.established_in : ""}
                       </span>
                     )}
@@ -3245,10 +4938,16 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           data-text={`${
                             selectedRowDataMeeting?.business_content ? selectedRowDataMeeting?.business_content : ""
                           }`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            handleOpenTooltip(e);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            if (hoveredItemPosWrap) handleCloseTooltip();
+                          }}
                           // onMouseEnter={(e) => handleOpenTooltip(e)}
                           // onMouseLeave={handleCloseTooltip}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
-                          onMouseLeave={handleCloseTooltip}
                           className={`${styles.textarea_value} `}
                           dangerouslySetInnerHTML={{
                             __html: selectedRowDataMeeting?.business_content
@@ -3271,8 +4970,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     )}
                     {searchMode && (
                       <textarea
-                        name="address"
-                        id="address"
                         cols={30}
                         // rows={10}
                         className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
@@ -3294,8 +4991,14 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <span
                         data-text={`${selectedRowDataMeeting?.clients ? selectedRowDataMeeting?.clients : ""}`}
                         className={`${styles.value}`}
-                        onMouseEnter={(e) => handleOpenTooltip(e)}
-                        onMouseLeave={handleCloseTooltip}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
                       >
                         {selectedRowDataMeeting?.clients ? selectedRowDataMeeting?.clients : ""}
                       </span>
@@ -3322,8 +5025,14 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <span
                         data-text={`${selectedRowDataMeeting?.supplier ? selectedRowDataMeeting?.supplier : ""}`}
                         className={`${styles.value}`}
-                        onMouseEnter={(e) => handleOpenTooltip(e)}
-                        onMouseLeave={handleCloseTooltip}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
                       >
                         {selectedRowDataMeeting?.supplier ? selectedRowDataMeeting?.supplier : ""}
                       </span>
@@ -3351,8 +5060,14 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         <span
                           data-text={`${selectedRowDataMeeting?.facility ? selectedRowDataMeeting?.facility : ""}`}
                           className={`${styles.textarea_value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
-                          onMouseLeave={handleCloseTooltip}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            handleOpenTooltip(e);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            if (hoveredItemPosWrap) handleCloseTooltip();
+                          }}
                           dangerouslySetInnerHTML={{
                             __html: selectedRowDataMeeting?.facility
                               ? selectedRowDataMeeting?.facility.replace(/\n/g, "<br>")
@@ -3390,8 +5105,14 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           selectedRowDataMeeting?.business_sites ? selectedRowDataMeeting?.business_sites : ""
                         }`}
                         className={`${styles.value}`}
-                        onMouseEnter={(e) => handleOpenTooltip(e)}
-                        onMouseLeave={handleCloseTooltip}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
                       >
                         {selectedRowDataMeeting?.business_sites ? selectedRowDataMeeting?.business_sites : ""}
                       </span>
@@ -3416,8 +5137,14 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           selectedRowDataMeeting?.overseas_bases ? selectedRowDataMeeting?.overseas_bases : ""
                         }`}
                         className={`${styles.value}`}
-                        onMouseEnter={(e) => handleOpenTooltip(e)}
-                        onMouseLeave={handleCloseTooltip}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
                       >
                         {selectedRowDataMeeting?.overseas_bases ? selectedRowDataMeeting?.overseas_bases : ""}
                       </span>
@@ -3446,8 +5173,14 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         data-text={`${
                           selectedRowDataMeeting?.group_company ? selectedRowDataMeeting?.group_company : ""
                         }`}
-                        onMouseEnter={(e) => handleOpenTooltip(e)}
-                        onMouseLeave={handleCloseTooltip}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
                       >
                         {selectedRowDataMeeting?.group_company ? selectedRowDataMeeting?.group_company : ""}
                       </span>
@@ -3481,6 +5214,14 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         target="_blank"
                         rel="noopener noreferrer"
                         className={`${styles.value} ${styles.anchor}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          // handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
                       >
                         {selectedRowDataMeeting.website_url}
                       </a>
@@ -3509,6 +5250,14 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value} ${styles.email_value}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          // handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
                         onClick={async () => {
                           if (!selectedRowDataMeeting?.company_email) return;
                           try {
@@ -3560,7 +5309,17 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>○業種</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          // handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
                         {selectedRowDataMeeting?.industry_type ? selectedRowDataMeeting?.industry_type : ""}
                       </span>
                     )}
@@ -3572,14 +5331,17 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       //   onChange={(e) => setInputIndustryType(e.target.value)}
                       // />
                       <select
-                        name="position_class"
-                        id="position_class"
                         className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputIndustryType}
                         onChange={(e) => setInputIndustryType(e.target.value)}
                       >
                         <option value=""></option>
-                        <option value="機械要素・部品">機械要素・部品</option>
+                        {optionsIndustryType.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                        {/* <option value="機械要素・部品">機械要素・部品</option>
                         <option value="自動車・輸送機器">自動車・輸送機器</option>
                         <option value="電子部品・半導体">電子部品・半導体</option>
                         <option value="製造・加工受託">製造・加工受託</option>
@@ -3630,7 +5392,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         <option value="商社・卸売">商社・卸売</option>
                         <option value="官公庁">官公庁</option>
                         <option value="個人">個人</option>
-                        <option value="不明">不明</option>
+                        <option value="不明">不明</option> */}
                       </select>
                     )}
                   </div>
@@ -3653,8 +5415,14 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             ? selectedRowDataMeeting?.product_category_large
                             : ""
                         }`}
-                        onMouseEnter={(e) => handleOpenTooltip(e)}
-                        onMouseLeave={handleCloseTooltip}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          // handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
                       >
                         {selectedRowDataMeeting?.product_category_large
                           ? selectedRowDataMeeting?.product_category_large
@@ -3669,14 +5437,17 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       //   onChange={(e) => setInputProductL(e.target.value)}
                       // />
                       <select
-                        name="position_class"
-                        id="position_class"
                         className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
                         value={inputProductL}
                         onChange={(e) => setInputProductL(e.target.value)}
                       >
                         <option value=""></option>
-                        <option value="電子部品・モジュール">電子部品・モジュール</option>
+                        {optionsProductL.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                        {/* <option value="電子部品・モジュール">電子部品・モジュール</option>
                         <option value="機械部品">機械部品</option>
                         <option value="製造・加工機械">製造・加工機械</option>
                         <option value="科学・理化学機器">科学・理化学機器</option>
@@ -3690,7 +5461,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         <option value="オフィス">オフィス</option>
                         <option value="業務支援サービス">業務支援サービス</option>
                         <option value="セミナー・スキルアップ">セミナー・スキルアップ</option>
-                        <option value="その他">その他</option>
+                        <option value="その他">その他</option> */}
                       </select>
                     )}
                   </div>
@@ -3713,8 +5484,14 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             ? selectedRowDataMeeting?.product_category_medium
                             : ""
                         }`}
-                        onMouseEnter={(e) => handleOpenTooltip(e)}
-                        onMouseLeave={handleCloseTooltip}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          // handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
                       >
                         {selectedRowDataMeeting?.product_category_medium
                           ? selectedRowDataMeeting?.product_category_medium
@@ -3729,8 +5506,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       //   onChange={(e) => setInputProductM(e.target.value)}
                       // />
                       <select
-                        name="position_class"
-                        id="position_class"
                         value={inputProductM}
                         onChange={(e) => setInputProductM(e.target.value)}
                         className={`${inputProductL ? "" : "hidden"} ml-auto h-full w-[80%] cursor-pointer  ${
@@ -3808,7 +5583,22 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>○法人番号</span>
                     {!searchMode && (
-                      <span className={`${styles.value}`}>
+                      <span
+                        className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataMeeting?.corporate_number ? selectedRowDataMeeting?.corporate_number : ""
+                        }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          // handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
                         {selectedRowDataMeeting?.corporate_number ? selectedRowDataMeeting?.corporate_number : ""}
                       </span>
                     )}
@@ -3960,13 +5750,18 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       }}
                     >
                       <option value=""></option>
-                      <option value="Zoom">Zoom</option>
+                      {optionsWebTool.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                      {/* <option value="Zoom">Zoom</option>
                       <option value="Teams">Teams</option>
                       <option value="Google Meet">Google Meet</option>
                       <option value="Webex">Webex</option>
                       <option value="Skype">Skype</option>
                       <option value="bellFace">bellFace</option>
-                      <option value="その他">その他</option>
+                      <option value="その他">その他</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -4014,12 +5809,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
               </div>
 
-              {/* 訪問目的・アポ有 サーチ */}
+              {/* 面談目的・アポ有 サーチ */}
               <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <div className={`${styles.title_search_mode} flex flex-col`}>
-                      <span className={``}>訪問目的</span>
+                      <span className={``}>面談目的</span>
                     </div>
                     <select
                       className={`ml-auto h-full w-[100%] cursor-pointer  ${styles.select_box}`}
@@ -4029,7 +5824,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       }}
                     >
                       <option value=""></option>
-                      <option value="新規会社/能動">新規会社/能動</option>
+                      {optionsPlannedPurpose.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                      {/* <option value="新規会社/能動">新規会社/能動</option>
                       <option value="被り会社/能動">被り会社/能動</option>
                       <option value="社内ID/能動">社内ID/能動</option>
                       <option value="社外･客先ID/能動">社外･客先ID/能動</option>
@@ -4042,7 +5842,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <option value="他(売前ﾌｫﾛｰ)">他(売前ﾌｫﾛｰ)</option>
                       <option value="他(納品説明)">他(納品説明)</option>
                       <option value="他(客先要望サポート)">他(客先要望サポート)</option>
-                      <option value="その他">その他</option>
+                      <option value="その他">その他</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>

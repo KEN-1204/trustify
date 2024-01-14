@@ -221,6 +221,7 @@ export const getOccupationName = (Num: number, language: string = "ja") => {
 <option value="クリエイティブ">クリエイティブ</option>
  */
 
+// 業種
 export const optionsIndustryType = [
   //   "",
   "機械要素・部品",
@@ -313,9 +314,7 @@ export const optionsActivityType = [
   "引継ぎ",
 ];
 
-// 面談タイプ
-export const optionsMeetingType = ["訪問", "WEB"];
-
+// 優先度
 export const optionsPriority = ["高", "中", "低"];
 
 export const optionsSearchEmployeesClass = [
@@ -341,3 +340,70 @@ export const optionsSearchEmployeesClass = [
     G 1~49名
   </option>,
 ];
+
+// 面談関連
+
+// 面談タイプ
+export const optionsMeetingType = ["訪問", "WEB"];
+
+// WEBツール
+export const optionsWebTool = ["Zoom", "Teams", "Google Meet", "Webex", "Skype", "bellFace", "その他"];
+
+// 面談目的
+export const optionsPlannedPurpose = [
+  "新規会社(過去面談無し)/能動",
+  "被り会社(過去面談有り)/能動",
+  "社内ID/能動",
+  "社外･客先ID/能動",
+  "営業メール/受動",
+  "見･聞引合/受動",
+  "DM/受動",
+  "メール/受動",
+  "ホームページ/受動",
+  "ウェビナー/受動",
+  "展示会/受動",
+  "他(売前ﾌｫﾛｰ)",
+  "他(納品説明)",
+  "他(客先要望サポート)",
+  "その他",
+];
+
+// 面談結果
+export const optionsResultCategory = [
+  "展開F(当期中に導入の可能性あり)",
+  "展開N(来期導入の可能性あり)",
+  "展開継続",
+  "時期尚早",
+  "頻度低い(ニーズあるが頻度低く導入には及ばず)",
+  "結果出ず(再度面談や検証が必要)",
+  "担当者の推進力無し(ニーズあり、上長・キーマンにあたる必要有り)",
+  "用途・ニーズなし",
+  "他(立ち上げ、サポート)",
+  "その他",
+];
+
+// 面談時_決裁者商談有無
+export const optionsResultNegotiateDecisionMaker = ["決裁者と未商談", "決裁者と商談済み"];
+
+// 面談時同席依頼
+export const optionsMeetingParticipationRequest = ["同席依頼無し", "同席依頼済み 同席OK", "同席依頼済み 同席NG"];
+
+// 現ステータス
+export const optionsCurrentStatus = ["展開", "申請", "受注"];
+
+export const getCurrentStatus = (title: string) => {
+  switch (title) {
+    case "展開":
+      return "展開(案件発生)";
+      break;
+    case "申請":
+      return "申請(予算申請案件)";
+      break;
+    case "受注":
+      return "受注";
+      break;
+    default:
+      return "";
+      break;
+  }
+};

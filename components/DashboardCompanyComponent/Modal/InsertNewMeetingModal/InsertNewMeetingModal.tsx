@@ -31,6 +31,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { FallbackSideTableSearchMember } from "../UpdateMeetingModal/SideTableSearchMember/FallbackSideTableSearchMember";
 import { SideTableSearchMember } from "../UpdateMeetingModal/SideTableSearchMember/SideTableSearchMember";
 import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
+import { optionsPlannedPurpose } from "@/utils/selectOptions";
 
 export const InsertNewMeetingModal = () => {
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
@@ -422,7 +423,7 @@ export const InsertNewMeetingModal = () => {
     if (!userProfileState?.id) return alert("ユーザー情報が存在しません");
     if (!selectedRowDataActivity?.company_id) return alert("相手先の会社情報が存在しません");
     if (!selectedRowDataActivity?.contact_id) return alert("担当者情報が存在しません");
-    if (plannedPurpose === "") return alert("訪問目的を選択してください");
+    if (plannedPurpose === "") return alert("面談目的を選択してください");
     if (plannedStartTimeHour === "") return alert("面談開始 時間を選択してください");
     if (plannedStartTimeMinute === "") return alert("面談開始 分を選択してください");
     if (!meetingYearMonth) return alert("面談年月度を入力してください");
@@ -537,7 +538,7 @@ export const InsertNewMeetingModal = () => {
     if (!userProfileState?.id) return alert("ユーザー情報が存在しません");
     if (!selectedRowDataMeeting?.company_id) return alert("相手先の会社情報が存在しません");
     if (!selectedRowDataMeeting?.contact_id) return alert("担当者情報が存在しません");
-    if (plannedPurpose === "") return alert("訪問目的を選択してください");
+    if (plannedPurpose === "") return alert("面談目的を選択してください");
     if (plannedStartTimeHour === "") return alert("面談開始 時間を選択してください");
     if (plannedStartTimeMinute === "") return alert("面談開始 分を選択してください");
     if (!meetingYearMonth) return alert("面談年月度を入力してください");
@@ -650,7 +651,7 @@ export const InsertNewMeetingModal = () => {
     if (!userProfileState?.id) return alert("ユーザー情報が存在しません");
     if (!selectedRowDataContact?.company_id) return alert("相手先の会社情報が存在しません");
     if (!selectedRowDataContact?.contact_id) return alert("担当者情報が存在しません");
-    if (plannedPurpose === "") return alert("訪問目的を選択してください");
+    if (plannedPurpose === "") return alert("面談目的を選択してください");
     if (plannedStartTimeHour === "") return alert("面談開始 時間を選択してください");
     if (plannedStartTimeMinute === "") return alert("面談開始 分を選択してください");
     if (!meetingYearMonth) return alert("面談年月度を入力してください");
@@ -927,7 +928,14 @@ export const InsertNewMeetingModal = () => {
     "selectedRowDataMeeting",
     selectedRowDataMeeting,
     "plannedStartTime",
-    plannedStartTime
+    plannedStartTime,
+    "suggestedProductName[0].length",
+    suggestedProductName[0].length,
+    "suggestedProductName[1].length",
+    suggestedProductName[1].length
+    // suggestedProductName &&
+    //   suggestedProductName.length > 1 &&
+    //   (suggestedProductName[0].length > 0 || suggestedProductName[1].length > 0)
   );
 
   return (
@@ -969,15 +977,17 @@ export const InsertNewMeetingModal = () => {
           ></div>
         )}
         {/* 検索予測リストメニュー オーバーレイ */}
-        {suggestedProductName && suggestedProductName.length > 0 && (
-          <div
-            // className="fixed left-[-100vw] top-[-50%] z-[10] h-[200vh] w-[300vw] bg-[#00000090]"
-            className="fixed left-[-100vw] top-[-50%] z-[10] h-[200vh] w-[300vw]"
-            onClick={() => {
-              setSuggestedProductName([]);
-            }}
-          ></div>
-        )}
+        {suggestedProductName &&
+          suggestedProductName.length > 1 &&
+          (suggestedProductName[0].length > 0 || suggestedProductName[1].length > 0) && (
+            <div
+              // className="fixed left-[-100vw] top-[-50%] z-[10] h-[200vh] w-[300vw] bg-[#00000090]"
+              className="fixed left-[-100vw] top-[-50%] z-[10] h-[200vh] w-[300vw]"
+              onClick={() => {
+                setSuggestedProductName([]);
+              }}
+            ></div>
+          )}
         {/* 保存・タイトル・キャンセルエリア */}
         <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[20px] text-center text-[18px]">
           {/* <div
@@ -1243,21 +1253,26 @@ export const InsertNewMeetingModal = () => {
           <div className={`${styles.full_contents_wrapper} flex w-full`}>
             {/* --------- 左ラッパー --------- */}
             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* ●訪問目的 */}
+              {/* ●面談目的 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●訪問目的</span>
+                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●面談目的</span>
                     <select
                       className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={plannedPurpose}
                       onChange={(e) => {
-                        // if (e.target.value === "") return alert("訪問目的を選択してください");
+                        // if (e.target.value === "") return alert("面談目的を選択してください");
                         setPlannedPurpose(e.target.value);
                       }}
                     >
                       <option value=""></option>
-                      <option value="新規会社(過去面談無し)/能動">新規会社(過去面談無し)/能動</option>
+                      {optionsPlannedPurpose.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                      {/* <option value="新規会社(過去面談無し)/能動">新規会社(過去面談無し)/能動</option>
                       <option value="被り会社(過去面談有り)/能動">被り会社(過去面談有り)/能動</option>
                       <option value="社内ID/能動">社内ID/能動</option>
                       <option value="社外･客先ID/能動">社外･客先ID/能動</option>
@@ -1271,7 +1286,7 @@ export const InsertNewMeetingModal = () => {
                       <option value="他(売前ﾌｫﾛｰ)">他(売前ﾌｫﾛｰ)</option>
                       <option value="他(納品説明)">他(納品説明)</option>
                       <option value="他(客先要望サポート)">他(客先要望サポート)</option>
-                      <option value="その他">その他</option>
+                      <option value="その他">その他</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -1405,7 +1420,7 @@ export const InsertNewMeetingModal = () => {
                       <input
                         ref={(el) => (inputBoxProducts.current[0] = el)}
                         type="text"
-                        placeholder=""
+                        placeholder="キーワード入力後、商品を選択してください。"
                         required
                         className={`${styles.input_box}`}
                         value={plannedProduct1InputName}
@@ -1466,6 +1481,23 @@ export const InsertNewMeetingModal = () => {
                       {/* 予測変換結果 */}
                       <div
                         className={`flex-center absolute right-[3px] top-[50%] min-h-[20px] min-w-[20px] translate-y-[-50%] cursor-pointer rounded-full hover:bg-[var(--color-bg-sub-icon)]`}
+                        onMouseEnter={(e) => {
+                          if (isOpenDropdownMenuFilterProducts) return;
+                          handleOpenTooltip({
+                            e: e,
+                            display: "top",
+                            content: "フィルターで選択した商品リストを表示します。",
+                            content2: "アイコンをクリックしてフィルターの切り替えが可能です。",
+                            // marginTop: 57,
+                            marginTop: 38,
+                            // marginTop: 12,
+                            itemsPosition: "center",
+                            whiteSpace: "nowrap",
+                          });
+                        }}
+                        onMouseLeave={() => {
+                          if (!isOpenDropdownMenuFilterProducts || hoveredItemPosModal) handleCloseTooltip();
+                        }}
                         onClick={() => {
                           // if (selectBoxProducts.current[0]) {
                           //   selectBoxProducts.current[0].click();
@@ -1488,6 +1520,7 @@ export const InsertNewMeetingModal = () => {
                               //   setSuggestedProductName([...suggestedProductIdNameArray]);
                             }
                           }
+                          if (!isOpenDropdownMenuFilterProducts || hoveredItemPosModal) handleCloseTooltip();
                         }}
                       >
                         <HiChevronDown className="stroke-[1] text-[13px] text-[var(--color-text-sub)]" />
@@ -1534,7 +1567,7 @@ export const InsertNewMeetingModal = () => {
                       <input
                         ref={(el) => (inputBoxProducts.current[1] = el)}
                         type="text"
-                        placeholder=""
+                        placeholder="キーワード入力後、商品を選択してください。"
                         required
                         className={`${styles.input_box}`}
                         value={plannedProduct2InputName}
@@ -1594,6 +1627,23 @@ export const InsertNewMeetingModal = () => {
                       {/* 予測変換結果 */}
                       <div
                         className={`flex-center absolute right-[3px] top-[50%] min-h-[20px] min-w-[20px] translate-y-[-50%] cursor-pointer rounded-full hover:bg-[var(--color-bg-sub-icon)]`}
+                        onMouseEnter={(e) => {
+                          if (isOpenDropdownMenuFilterProducts) return;
+                          handleOpenTooltip({
+                            e: e,
+                            display: "top",
+                            content: "フィルターで選択した商品リストを表示します。",
+                            content2: "アイコンをクリックしてフィルターの切り替えが可能です。",
+                            // marginTop: 57,
+                            marginTop: 38,
+                            // marginTop: 12,
+                            itemsPosition: "center",
+                            whiteSpace: "nowrap",
+                          });
+                        }}
+                        onMouseLeave={() => {
+                          if (!isOpenDropdownMenuFilterProducts || hoveredItemPosModal) handleCloseTooltip();
+                        }}
                         onClick={() => {
                           // if (selectBoxProducts.current[1]) {
                           //   selectBoxProducts.current[1].click();

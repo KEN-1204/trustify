@@ -154,6 +154,7 @@ export const InsertNewActivityModal = () => {
   // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
   // ================================ ✅事業所・営業所リスト取得useQuery✅ ================================
 
+  // ---------------------------- 🌟決算日と年月度取得🌟 ----------------------------
   // 🌟ユーザーの決算月の締め日を初回マウント時に取得
   useEffect(() => {
     // ユーザーの決算月から締め日を取得、決算つきが未設定の場合は現在の年と3月31日を設定
@@ -192,6 +193,7 @@ export const InsertNewActivityModal = () => {
     // const meetingYearMonthUpdatedValue = `${year}${month < 10 ? "0" + month : month}`; // 月が1桁の場合は先頭に0を追加
     // setMeetingYearMonth(Number(meetingYearMonthUpdatedValue));
   }, [activityDate]);
+  // ---------------------------- ✅決算日と年月度取得✅ ----------------------------
 
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {

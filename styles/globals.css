@@ -598,6 +598,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-text-under-title: #121212;
   --color-text-under-title: #282828;
   --color-text-under-value: #424242;
+  --color-textarea-value: #424242;
   /* セレクトボックス 会社設定画面事業部選択 */
   --color-bg-select-box-setting: #fff;
   /* インプットボックス */
@@ -1240,6 +1241,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* タイトル */
   --color-text-under-title: #eee;
   --color-text-under-value: #ececec;
+  --color-textarea-value: #fff;
   /* セレクトボックス 会社設定画面事業部選択 */
   --color-bg-select-box-setting: #00000078;
   /* インプットボックス */

@@ -330,7 +330,7 @@ export const InsertNewProductModal = () => {
                       onChange={(e) => setUnitPrice(e.target.value)}
                       onBlur={() =>
                         setUnitPrice(
-                          !!unitPrice && unitPrice !== ""
+                          !!unitPrice && unitPrice !== "" && convertToYen(unitPrice.trim()) !== null
                             ? (convertToYen(unitPrice.trim()) as number).toLocaleString()
                             : ""
                         )

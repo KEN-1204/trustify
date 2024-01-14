@@ -369,7 +369,8 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
         .range(from, to)
         // .order("company_name", { ascending: true });
         // .order("property_created_at", { ascending: false })
-        .order("expected_order_date", { ascending: false }) //面談・訪問日(予定)
+        // .order("expected_order_date", { ascending: false }) //面談・訪問日(予定)
+        .order("property_date", { ascending: false }) //面談・訪問日(予定)
         .order("property_created_at", { ascending: false }); //面談作成日時
       // .order("company_name", { ascending: true });//会社名
       // 成功バージョン
@@ -444,7 +445,8 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
         .range(from, to)
         // .order("company_name", { ascending: true });
         // .order("property_created_at", { ascending: false });
-        .order("expected_order_date", { ascending: false }) //面談・訪問日(予定)
+        // .order("expected_order_date", { ascending: false }) //面談・訪問日(予定)
+        .order("property_date", { ascending: false }) //面談・訪問日(予定)
         .order("property_created_at", { ascending: false }); //面談作成日時
       // 成功バージョン
       // const { data, error, count } = await supabase

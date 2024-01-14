@@ -39,7 +39,14 @@ import { toHalfWidthAndSpace } from "@/utils/Helpers/toHalfWidthAndSpace";
 import { ConfirmationModal } from "../SettingAccountModal/SettingCompany/ConfirmationModal/ConfirmationModal";
 import { SideTableSearchMember } from "./SideTableSearchMember/SideTableSearchMember";
 import { FallbackSideTableSearchMember } from "./SideTableSearchMember/FallbackSideTableSearchMember";
-import { getPositionClassName, optionsPositionsClass } from "@/utils/selectOptions";
+import {
+  getPositionClassName,
+  optionsMeetingParticipationRequest,
+  optionsPlannedPurpose,
+  optionsPositionsClass,
+  optionsResultCategory,
+  optionsResultNegotiateDecisionMaker,
+} from "@/utils/selectOptions";
 
 type ModalProperties = {
   left: number;
@@ -790,7 +797,7 @@ export const UpdateMeetingModal = () => {
     if (!userProfileState?.id) return alert("ユーザー情報が存在しません");
     if (!selectedRowDataMeeting?.company_id) return alert("相手先の会社情報が存在しません");
     if (!selectedRowDataMeeting?.contact_id) return alert("担当者情報が存在しません");
-    if (plannedPurpose === "") return alert("訪問目的を選択してください");
+    if (plannedPurpose === "") return alert("面談目的を選択してください");
     if (plannedStartTimeHour === "") return alert("予定面談開始 時間を選択してください");
     if (plannedStartTimeMinute === "") return alert("予定面談開始 分を選択してください");
     if (!plannedDate) return alert("予定面談日の入力は必須です");
@@ -1545,21 +1552,26 @@ export const UpdateMeetingModal = () => {
           <div className={`${styles.full_contents_wrapper} flex w-full`}>
             {/* --------- 左ラッパー --------- */}
             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* ●訪問目的 */}
+              {/* ●面談目的 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●訪問目的</span>
+                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●面談目的</span>
                     <select
                       className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={plannedPurpose}
                       onChange={(e) => {
-                        // if (e.target.value === "") return alert("訪問目的を選択してください");
+                        // if (e.target.value === "") return alert("面談目的を選択してください");
                         setPlannedPurpose(e.target.value);
                       }}
                     >
                       <option value=""></option>
-                      <option value="新規会社(過去面談無し)/能動">新規会社(過去面談無し)/能動</option>
+                      {optionsPlannedPurpose.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                      {/* <option value="新規会社(過去面談無し)/能動">新規会社(過去面談無し)/能動</option>
                       <option value="被り会社(過去面談有り)/能動">被り会社(過去面談有り)/能動</option>
                       <option value="社内ID/能動">社内ID/能動</option>
                       <option value="社外･客先ID/能動">社外･客先ID/能動</option>
@@ -1572,7 +1584,7 @@ export const UpdateMeetingModal = () => {
                       <option value="他(売前ﾌｫﾛｰ)">他(売前ﾌｫﾛｰ)</option>
                       <option value="他(納品説明)">他(納品説明)</option>
                       <option value="他(客先要望サポート)">他(客先要望サポート)</option>
-                      <option value="その他">その他</option>
+                      <option value="その他">その他</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -3218,12 +3230,17 @@ export const UpdateMeetingModal = () => {
                       className={`mr-auto h-full w-[100%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={resultCategory}
                       onChange={(e) => {
-                        // if (e.target.value === "") return alert("訪問目的を選択してください");
+                        // if (e.target.value === "") return alert("面談目的を選択してください");
                         setResultCategory(e.target.value);
                       }}
                     >
                       <option value="">面談結果を選択してください</option>
-                      <option value="展開F(当期中に導入の可能性あり)">展開F(当期中に導入の可能性あり)</option>
+                      {optionsResultCategory.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                      {/* <option value="展開F(当期中に導入の可能性あり)">展開F(当期中に導入の可能性あり)</option>
                       <option value="展開N(来期導入の可能性あり)">展開N(来期導入の可能性あり)</option>
                       <option value="展開継続">展開継続</option>
                       <option value="時期尚早">時期尚早</option>
@@ -3236,7 +3253,7 @@ export const UpdateMeetingModal = () => {
                       </option>
                       <option value="用途・ニーズなし">用途・ニーズなし</option>
                       <option value="他(立ち上げ、サポート)">他(立ち上げ、サポート)</option>
-                      <option value="その他">その他</option>
+                      <option value="その他">その他</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -3327,7 +3344,7 @@ export const UpdateMeetingModal = () => {
           <div className={`${styles.full_contents_wrapper} flex w-full`}>
             {/* --------- 左ラッパー --------- */}
             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 面談時_決裁者商談有無 */}
+              {/* 面談時_最上位職位 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
@@ -3359,7 +3376,7 @@ export const UpdateMeetingModal = () => {
                       className={`mr-auto h-full w-[100%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={resultTopPositionClass}
                       onChange={(e) => {
-                        // if (e.target.value === "") return alert("訪問目的を選択してください");
+                        // if (e.target.value === "") return alert("面談目的を選択してください");
                         setResultTopPositionClass(e.target.value);
                       }}
                     >
@@ -3402,13 +3419,18 @@ export const UpdateMeetingModal = () => {
                       className={`mr-auto h-full w-[100%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={resultNegotiateDecisionMaker}
                       onChange={(e) => {
-                        // if (e.target.value === "") return alert("訪問目的を選択してください");
+                        // if (e.target.value === "") return alert("面談目的を選択してください");
                         setResultNegotiateDecisionMaker(e.target.value);
                       }}
                     >
                       <option value="">選択してください</option>
-                      <option value="決裁者と未商談">決裁者と未商談</option>
-                      <option value="決裁者と商談済み">決裁者と商談済み</option>
+                      {optionsResultNegotiateDecisionMaker.map((classNum) => (
+                        <option key={classNum} value={`${classNum}`}>
+                          {classNum}
+                        </option>
+                      ))}
+                      {/* <option value="決裁者と未商談">決裁者と未商談</option>
+                      <option value="決裁者と商談済み">決裁者と商談済み</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -3433,9 +3455,14 @@ export const UpdateMeetingModal = () => {
                       }}
                     >
                       <option value=""></option>
-                      <option value="同席依頼無し">同席依頼無し</option>
+                      {optionsMeetingParticipationRequest.map((option) => (
+                        <option key={option} value={`${option}`}>
+                          {option}
+                        </option>
+                      ))}
+                      {/* <option value="同席依頼無し">同席依頼無し</option>
                       <option value="同席依頼済み 同席OK">同席依頼済み 同席OK</option>
-                      <option value="同席依頼済み 同席NG">同席依頼済み 同席NG</option>
+                      <option value="同席依頼済み 同席NG">同席依頼済み 同席NG</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>

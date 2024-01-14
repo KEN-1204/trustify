@@ -425,6 +425,12 @@
   font-size: 12px;
   font-size: 13px;
 }
+.uneditable_field {
+  cursor: not-allowed;
+}
+.editable_field {
+  cursor: pointer;
+}
 .value.text_start {
   text-align: start;
   /* padding-left: 8px; */
@@ -468,9 +474,35 @@
   box-shadow: var(--color-bg-under-input-active-box-shadow);
 }
 .underline {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
   min-height: 1px;
   width: 100%;
   background-color: var(--color-bg-underline);
+}
+.underline::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  min-height: 1px;
+  width: 100%;
+  background: linear-gradient(to right, #ffffff 0%, #ffffff 6%, #80e9ff 22%, #80e9ff 33%, var(--color-bg-brand-f) 78%);
+  transform: scaleX(0);
+  transform-origin: right; /* 初期状態では左側を原点とする */
+  /* transition: transform 0.25s ease; */
+  transition: transform 0.22s ease;
+}
+.title_box.active ~ .underline::after {
+  transform: scaleX(1);
+}
+.underline::after {
+  /* transition: transform 0.25s ease, transform-origin 0s 0.3s;  */
+  transition: transform 0.22s ease, transform-origin 0s 0.22s; /* transform-originの変更を遅延 */
+}
+.title_box:not(.active) ~ .underline::after {
+  transform-origin: left; /* ホバーを外した時に右側を原点とする */
 }
 .section_underline {
   min-height: 2px;
@@ -733,12 +765,7 @@
 .btn:hover {
   background-color: var(--color-btn-brand-f-hover);
 }
-.select_box {
-  box-shadow: var(--color-bg-under-input-box-shadow);
-  padding-left: 5px;
-  background: var(--color-bg-under-input);
-  border-radius: 6px;
-}
+
 .close_btn_number {
   position: absolute;
   right: 5px;
@@ -767,6 +794,164 @@
 }
 .row_area input[type="number"] {
   -moz-appearance: textfield;
+}
+.select_box {
+  box-shadow: var(--color-bg-under-input-box-shadow);
+  padding-left: 5px;
+  background: var(--color-bg-under-input);
+  border-radius: 6px;
+}
+.edit_mode_overlay {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+  width: 100%;
+  height: 100%;
+  /* background: #00000090; */
+}
+.close_btn {
+  position: absolute;
+  /* right: 36px; */
+  /* top: calc(50% - 2.5px); */
+  z-index: 2100;
+  /* transform: translateY(-50%); */
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+.field_edit_mode_loading_area {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: calc(50% - 2.5px);
+  right: 10px;
+  transform: translateY(-50%);
+  z-index: 2100;
+  min-height: 26px;
+  min-width: 26px;
+}
+.field_edit_mode_loading_area_for_select_box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  z-index: 2100;
+  min-height: 26px;
+  min-width: 26px;
+  background-color: var(--color-bg-based0);
+  box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f30), 0px 0px 0px 1px var(--color-bg-brand-f);
+  backdrop-filter: blur(4px);
+  padding: 0px 5px;
+  height: 30px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  /* justify-content: flex-start; */
+  align-items: center;
+  pointer-events: none;
+}
+.field_edit_mode_loading_area_for_select_box.right_position {
+  right: -40px;
+  top: 50%;
+  transform: translateY(-56%);
+}
+.field_edit_mode_input_box {
+  min-height: 28px;
+  padding-right: 38px;
+  z-index: 2000;
+}
+.field_edit_mode_input_box_with_close {
+  min-height: 28px;
+  min-height: 30px;
+  padding-right: 65px;
+  z-index: 2000;
+}
+.field_edit_mode_select_box {
+  min-height: 28px;
+  user-select: none;
+  z-index: 2000;
+}
+.field_edit_mode_textarea {
+  padding: 6px 12px;
+  letter-spacing: 0.3px;
+  line-height: 22px;
+  z-index: 2000;
+  /* padding-right: 65px; */
+  /* min-height: 75px; */
+  min-height: 120px;
+  /* white-space: pre-line; */
+  /* background: #00000030; */
+}
+.field_edit_mode_textarea.xl {
+  min-height: 180px;
+}
+
+.field_edit_mode_btn_area {
+  position: absolute;
+  z-index: 2000;
+  background-color: var(--color-bg-based0);
+  /* background-color: var(--color-modal-bg); */
+  /* background: var(--color-tooltip-light); */
+  /* box-shadow: inset 0 0 0 1px var(--color-modal-border); */
+  box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f30), 0px 0px 0px 1px var(--color-bg-brand-f);
+  /* background: #000000; */
+  backdrop-filter: blur(4px);
+  /* width: 75px; */
+  padding: 0px 5px;
+  height: 30px;
+  border-radius: 4px;
+  display: flex;
+  /* justify-content: center; */
+  justify-content: flex-start;
+  align-items: center;
+}
+.field_edit_mode_btn_area.right_position {
+  right: -70px;
+  top: 50%;
+  transform: translateY(-56%);
+}
+.field_edit_mode_btn_area.right_position_loading {
+  right: -38px;
+  top: 50%;
+  transform: translateY(-56%);
+}
+.field_edit_mode_btn_area.under_right_position {
+  right: 0;
+  bottom: -33px;
+}
+.close_btn_field_edit_mode {
+  z-index: 1;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.close_btn_field_edit_mode:hover {
+  /* background: var(--close-bg); */
+  background: var(--close-bg-deep);
+  color: #fff;
+}
+.close_btn_field_edit_mode_empty {
+  z-index: 1;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: not-allowed;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  color: #999;
 }
 
 @media (max-width: 1600px) {

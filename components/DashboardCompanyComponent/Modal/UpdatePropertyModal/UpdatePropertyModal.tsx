@@ -1922,13 +1922,11 @@ export const UpdatePropertyModal = () => {
                           e: e,
                           display: "top",
                           content: "展開年月度は決算日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
-                          content2: fiscalEndMonthObjRef.current
-                            ? `お客様の決算日は、現在${format(
-                                fiscalEndMonthObjRef.current,
-                                "M月d日"
-                              )}に設定されています。`
-                            : `決算月が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
-                          content3: "変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
+                          content2: !!fiscalEndMonthObjRef.current
+                            ? `展開日を選択することで展開年月度は自動計算されるため入力は不要です。`
+                            : `決算日が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
+                          content3:
+                            "決算日の変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
                           marginTop: 57,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",
@@ -1942,7 +1940,7 @@ export const UpdatePropertyModal = () => {
                     <input
                       type="number"
                       min="0"
-                      className={`${styles.input_box}`}
+                      className={`${styles.input_box} pointer-events-none`}
                       placeholder="展開日付を選択してください。"
                       value={expansionYearMonth === null ? "" : expansionYearMonth}
                       onChange={(e) => {
@@ -1962,11 +1960,11 @@ export const UpdatePropertyModal = () => {
                       }}
                     />
                     {/* バツボタン */}
-                    {expansionYearMonth !== null && expansionYearMonth !== 0 && (
+                    {/* {expansionYearMonth !== null && expansionYearMonth !== 0 && (
                       <div className={`${styles.close_btn_number}`} onClick={() => setExpansionYearMonth(null)}>
                         <MdClose className="text-[20px] " />
                       </div>
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1988,14 +1986,12 @@ export const UpdatePropertyModal = () => {
                         handleOpenTooltip({
                           e: e,
                           display: "top",
-                          content: "売上年月度は決算日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
-                          content2: fiscalEndMonthObjRef.current
-                            ? `お客様の決算日は、現在${format(
-                                fiscalEndMonthObjRef.current,
-                                "M月d日"
-                              )}に設定されています。`
-                            : `決算月が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
-                          content3: "変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
+                          content: "展開年月度は決算日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
+                          content2: !!fiscalEndMonthObjRef.current
+                            ? `展開日を選択することで展開年月度は自動計算されるため入力は不要です。`
+                            : `決算日が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
+                          content3:
+                            "決算日の変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
                           marginTop: 57,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",
@@ -2009,7 +2005,7 @@ export const UpdatePropertyModal = () => {
                     <input
                       type="number"
                       min="0"
-                      className={`${styles.input_box}`}
+                      className={`${styles.input_box} pointer-events-none`}
                       placeholder="売上日付を選択してください。"
                       value={salesYearMonth === null ? "" : salesYearMonth}
                       onChange={(e) => {
@@ -2029,11 +2025,11 @@ export const UpdatePropertyModal = () => {
                       }}
                     />
                     {/* バツボタン */}
-                    {salesYearMonth !== null && salesYearMonth !== 0 && (
+                    {/* {salesYearMonth !== null && salesYearMonth !== 0 && (
                       <div className={`${styles.close_btn_number}`} onClick={() => setSalesYearMonth(null)}>
                         <MdClose className="text-[20px] " />
                       </div>
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -2541,11 +2537,33 @@ export const UpdatePropertyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●案件年月度</span>
+                    {/* <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●案件年月度</span> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title}  ${styles.required_title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "案件年月度は決算日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
+                          content2: !!fiscalEndMonthObjRef.current
+                            ? `案件日を選択することで案件年月度は自動計算されるため入力は不要です。`
+                            : `決算日が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
+                          content3:
+                            "決算日の変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
+                          marginTop: 57,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <span className={`mr-[9px]`}>●案件年月度</span>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+                    </div>
                     <input
                       type="number"
                       min="0"
-                      className={`${styles.input_box}`}
+                      className={`${styles.input_box} pointer-events-none`}
                       placeholder=""
                       value={PropertyYearMonth === null ? "" : PropertyYearMonth}
                       onChange={(e) => {
@@ -2565,11 +2583,11 @@ export const UpdatePropertyModal = () => {
                       }}
                     />
                     {/* バツボタン */}
-                    {PropertyYearMonth !== null && PropertyYearMonth !== 0 && (
+                    {/* {PropertyYearMonth !== null && PropertyYearMonth !== 0 && (
                       <div className={`${styles.close_btn_number}`} onClick={() => setPropertyYearMonth(null)}>
                         <MdClose className="text-[20px] " />
                       </div>
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>

@@ -1,4 +1,15 @@
-import React, { FC, FormEvent, Suspense, memo, useEffect, useMemo, useState } from "react";
+import React, {
+  ChangeEvent,
+  FC,
+  FormEvent,
+  Suspense,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import styles from "../PropertyDetail.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import useStore from "@/store";
@@ -17,19 +28,28 @@ import { Zoom } from "@/utils/Helpers/toastHelpers";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
 import {
+  getCurrentStatus,
   getOccupationName,
   getPositionClassName,
+  optionsCurrentStatus,
   optionsOccupation,
   optionsPositionsClass,
 } from "@/utils/selectOptions";
 import { generateYearQuarters } from "@/utils/Helpers/generateYearQuarters";
-import { Department, Office, Unit } from "@/types";
+import { Department, Office, Property, Property_row_data, Unit } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMedia } from "react-use";
-import { mappingOccupation } from "@/utils/mappings";
+import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
 import { useQueryDepartments } from "@/hooks/useQueryDepartments";
 import { useQueryUnits } from "@/hooks/useQueryUnits";
 import { useQueryOffices } from "@/hooks/useQueryOffices";
+import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
+import { useMutateProperty } from "@/hooks/useMutateProperty";
+import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMonth";
+import { isSameDateLocal } from "@/utils/Helpers/isSameDateLocal";
+import { getFiscalYear } from "@/utils/Helpers/getFiscalYear";
+import { getFiscalQuarterTest } from "@/utils/Helpers/getFiscalQuarterTest";
+import { InputSendAndCloseBtn } from "@/components/DashboardCompanyComponent/CompanyMainContainer/InputSendAndCloseBtn/InputSendAndCloseBtn";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -58,6 +78,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
   const searchMode = useDashboardStore((state) => state.searchMode);
   const setSearchMode = useDashboardStore((state) => state.setSearchMode);
   console.log("🔥 PropertyMainContainerレンダリング searchMode", searchMode);
+  const hoveredItemPosWrap = useStore((state) => state.hoveredItemPosWrap);
   const setHoveredItemPosWrap = useStore((state) => state.setHoveredItemPosWrap);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   const newSearchProperty_Contact_CompanyParams = useDashboardStore(
@@ -77,37 +98,14 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
   // チェックボックスクリックで案件編集モーダルオープン
   const setIsOpenUpdatePropertyModal = useDashboardStore((state) => state.setIsOpenUpdatePropertyModal);
 
-  type TooltipParams = {
-    e: React.MouseEvent<HTMLElement, MouseEvent>;
-    display?: "top" | "right" | "bottom" | "left" | "";
-  };
-  const handleOpenTooltip = ({ e, display = "" }: TooltipParams) => {
-    // ホバーしたアイテムにツールチップを表示
-    const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
-    // console.log("ツールチップx, y width , height", x, y, width, height);
-    const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
-      ? ((e.target as HTMLDivElement).dataset.text2 as string)
-      : "";
-    const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
-      ? ((e.target as HTMLDivElement).dataset.text3 as string)
-      : "";
-    setHoveredItemPosWrap({
-      x: x,
-      y: y,
-      itemWidth: width,
-      itemHeight: height,
-      content: (e.target as HTMLDivElement).dataset.text as string,
-      content2: content2,
-      content3: content3,
-      display: display,
-    });
-  };
-  // ツールチップを非表示
-  const handleCloseTooltip = () => {
-    setHoveredItemPosWrap(null);
-  };
+  // 各フィールドの編集モード => ダブルクリックで各フィールド名をstateに格納し、各フィールドをエディットモードへ
+  const isEditModeField = useDashboardStore((state) => state.isEditModeField);
+  const setIsEditModeField = useDashboardStore((state) => state.setIsEditModeField);
+  const [isComposing, setIsComposing] = useState(false); // 日本語のように変換、確定が存在する言語入力の場合の日本語入力の変換中を保持するstate、日本語入力開始でtrue, エンターキーで変換確定した時にfalse
 
   const queryClient = useQueryClient();
+
+  const { updatePropertyFieldMutation } = useMutateProperty();
 
   // メディアクエリState
   // デスクトップモニター
@@ -594,6 +592,9 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
   const handleSearchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    // フィールド編集モードがtrueならサブミットせずにリターン
+    if (isEditModeField) return console.log("サブミット フィールドエディットモードのためリターン");
+
     if (!userProfileState || !userProfileState.company_id) return alert("エラー：ユーザー情報が見つかりませんでした。");
 
     // // Asterisks to percent signs for PostgreSQL's LIKE operator
@@ -942,6 +943,459 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
     // setLoadingGlobalState(false);
   };
 
+  // ================== 🌟ユーザーの決算月の締め日を初回マウント時に取得🌟 ==================
+  const fiscalEndMonthObjRef = useRef<Date | null>(null);
+  const closingDayRef = useRef<number | null>(null);
+  useEffect(() => {
+    // ユーザーの決算月から締め日を取得、決算つきが未設定の場合は現在の年と3月31日を設定
+    const fiscalEndMonth = userProfileState?.customer_fiscal_end_month
+      ? new Date(userProfileState.customer_fiscal_end_month)
+      : new Date(new Date().getFullYear(), 2, 31); // 決算日が未設定なら3月31日に自動設定
+    const closingDay = fiscalEndMonth.getDate(); //ユーザーの締め日
+    fiscalEndMonthObjRef.current = fiscalEndMonth; //refに格納
+    closingDayRef.current = closingDay; //refに格納
+  }, []);
+  // ================== ✅ユーザーの決算月の締め日を初回マウント時に取得✅ ==================
+
+  // ==================================== 🌟ツールチップ🌟 ====================================
+  type TooltipParams = {
+    e: React.MouseEvent<HTMLElement, MouseEvent>;
+    display?: "top" | "right" | "bottom" | "left" | "";
+  };
+  const handleOpenTooltip = ({ e, display = "" }: TooltipParams) => {
+    // ホバーしたアイテムにツールチップを表示
+    const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+    // console.log("ツールチップx, y width , height", x, y, width, height);
+    const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
+      ? ((e.target as HTMLDivElement).dataset.text2 as string)
+      : "";
+    const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
+      ? ((e.target as HTMLDivElement).dataset.text3 as string)
+      : "";
+    setHoveredItemPosWrap({
+      x: x,
+      y: y,
+      itemWidth: width,
+      itemHeight: height,
+      content: (e.target as HTMLDivElement).dataset.text as string,
+      content2: content2,
+      content3: content3,
+      display: display,
+    });
+  };
+  // ツールチップを非表示
+  const handleCloseTooltip = () => {
+    setHoveredItemPosWrap(null);
+  };
+  // ==================================== ✅ツールチップ✅ ====================================
+
+  // ================== 🌟シングルクリック、ダブルクリックイベント🌟 ==================
+  // ダブルクリックで各フィールドごとに個別で編集
+  const setTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // 選択行データが自社専用の会社データかどうか
+  const isMatchDepartment =
+    !!userProfileState?.assigned_department_id &&
+    !!selectedRowDataProperty?.property_created_by_department_of_user &&
+    selectedRowDataProperty.property_created_by_department_of_user === userProfileState?.assigned_department_id;
+
+  // シングルクリック => 何もアクションなし
+  const handleSingleClickField = useCallback((e: React.MouseEvent<HTMLSpanElement>) => {
+    // 自社で作成した会社でない場合はそのままリターン
+    // if (!isMatchDepartment) return;
+    if (setTimeoutRef.current !== null) return;
+
+    setTimeoutRef.current = setTimeout(() => {
+      setTimeoutRef.current = null;
+      // シングルクリック時に実行したい処理
+      // 0.2秒後に実行されてしまうためここには書かない
+    }, 200);
+    console.log("シングルクリック");
+  }, []);
+
+  // const originalOptionRef = useRef(""); // 同じ選択肢選択時にエディットモード終了用
+  // 編集前のダブルクリック時の値を保持 => 変更されたかどうかを確認
+  const originalValueFieldEdit = useRef<string | null>("");
+  type DoubleClickProps = {
+    e: React.MouseEvent<HTMLSpanElement>;
+    field: string;
+    dispatch: React.Dispatch<React.SetStateAction<any>>;
+    // isSelectChangeEvent?: boolean;
+    dateValue?: string | null;
+    selectedRowDataValue?: any;
+  };
+  // ダブルクリック => ダブルクリックしたフィールドを編集モードに変更
+  const handleDoubleClickField = useCallback(
+    ({ e, field, dispatch, dateValue, selectedRowDataValue }: DoubleClickProps) => {
+      // 自社で作成した会社でない場合はそのままリターン
+      // if (!isOurActivity) return;
+
+      console.log(
+        "ダブルクリック",
+        "field",
+        field,
+        "e.currentTarget.innerText",
+        e.currentTarget.innerText,
+        "e.currentTarget.innerHTML",
+        e.currentTarget.innerHTML,
+        "selectedRowDataValue",
+        selectedRowDataValue && selectedRowDataValue
+      );
+      if (setTimeoutRef.current) {
+        clearTimeout(setTimeoutRef.current);
+
+        // console.log(e.detail);
+        setTimeoutRef.current = null;
+        // ダブルクリック時に実行したい処理
+        // クリックした要素のテキストを格納
+        // const text = e.currentTarget.innerText;
+        let text;
+        text = e.currentTarget.innerHTML;
+        if (!!selectedRowDataValue) {
+          text = selectedRowDataValue;
+        }
+
+        // if (["planned_start_time", "result_start_time", "result_end_time"].includes(field)) {
+        //   const formattedTime = formatTime(text);
+        //   originalValueFieldEdit.current = formattedTime;
+        //   const timeParts = splitTime(text);
+        //   console.log("formattedTime", formattedTime);
+        //   if (field === "planned_start_time") {
+        //     setInputPlannedStartTimeHour(timeParts?.hours ?? "");
+        //     setInputPlannedStartTimeMinute(timeParts?.minutes ?? "");
+        //   } else if (field === "result_start_time") {
+        //     setInputResultStartTimeHour(timeParts?.hours ?? "");
+        //     setInputResultStartTimeMinute(timeParts?.minutes ?? "");
+        //   } else if (field === "result_end_time") {
+        //     setInputResultEndTimeHour(timeParts?.hours ?? "");
+        //     setInputResultEndTimeMinute(timeParts?.minutes ?? "");
+        //   }
+        //   dispatch(formattedTime); // 編集モードでinputStateをクリックした要素のテキストを初期値に設定
+        //   setIsEditModeField(field); // クリックされたフィールドの編集モードを開く
+        //   return;
+        // }
+        if (field === "fiscal_end_month") {
+          text = text.replace(/月/g, ""); // 決算月の場合は、1月の月を削除してstateに格納 optionタグのvalueと一致させるため
+        }
+        // // 「活動日付」「次回フォロー予定日」はinnerHTMLではなく元々の値を格納
+        if (["planned_date", "result_date"].includes(field)) {
+          const originalDate = dateValue ? new Date(dateValue) : null;
+          console.log("ダブルクリック 日付格納", dateValue);
+          // originalValueFieldEdit.current = originalDate;
+          dispatch(originalDate); // 編集モードでinputStateをクリックした要素のテキストを初期値に設定
+          setIsEditModeField(field); // クリックされたフィールドの編集モードを開く
+          return;
+        }
+        if (field === "result_top_position_class") {
+          dispatch(selectedRowDataValue); // 編集モードでinputStateをクリックした要素のテキストを初期値に設定
+          setIsEditModeField(field); // クリックされたフィールドの編集モードを開く
+          return;
+        }
+        originalValueFieldEdit.current = text;
+        dispatch(text); // 編集モードでinputStateをクリックした要素のテキストを初期値に設定
+        setIsEditModeField(field); // クリックされたフィールドの編集モードを開く
+        // if (isSelectChangeEvent) originalOptionRef.current = e.currentTarget.innerText; // selectタグ同じ選択肢選択時の編集モード終了用
+      }
+    },
+    [setIsEditModeField]
+    // [isOurActivity, setIsEditModeField]
+  );
+  // ================== ✅シングルクリック、ダブルクリックイベント✅ ==================
+
+  // プロパティ名のユニオン型の作成
+  // Property_row_data型の全てのプロパティ名をリテラル型のユニオンとして展開
+  // type ActivityFieldNames = keyof Property_row_data;
+  type PropertyFieldNames = keyof Property;
+  type ExcludeKeys = "company_id" | "contact_id" | "property_id"; // 除外するキー
+  type PropertyFieldNamesForSelectedRowData = Exclude<keyof Property_row_data, ExcludeKeys>; // Property_row_dataタイプのプロパティ名のみのデータ型を取得
+  // ================== 🌟エンターキーで個別フィールドをアップデート inputタグ ==================
+  const handleKeyDownUpdateField = async ({
+    e,
+    fieldName,
+    fieldNameForSelectedRowData,
+    originalValue,
+    newValue,
+    id,
+    required,
+  }: {
+    e: React.KeyboardEvent<HTMLInputElement>;
+    // fieldName: string;
+    fieldName: PropertyFieldNames;
+    fieldNameForSelectedRowData: PropertyFieldNamesForSelectedRowData;
+    originalValue: any;
+    newValue: any;
+    id: string | undefined;
+    required: boolean;
+  }) => {
+    // 日本語入力変換中はtrueで変換確定のエンターキーではUPDATEクエリが実行されないようにする
+    // 英語などの入力変換が存在しない言語ではisCompositionStartは発火しないため常にfalse
+    if (e.key === "Enter" && !isComposing) {
+      if (required && (newValue === "" || newValue === null)) return toast.info(`この項目は入力が必須です。`);
+
+      // 先にアンダーラインが残らないようにremoveしておく
+      e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+
+      if (!id || !selectedRowDataProperty) {
+        toast.error(`エラー：データが見つかりませんでした。`);
+        return;
+      }
+      console.log(
+        "フィールドアップデート エンターキー",
+        " ・フィールド名:",
+        fieldName,
+        " ・結合フィールド名:",
+        fieldNameForSelectedRowData,
+        " ・元の値:",
+        originalValue,
+        " ・新たな値:",
+        newValue
+      );
+      // 入力値が現在のvalueと同じであれば更新は不要なため閉じてリターン
+      if (originalValue === newValue) {
+        console.log("同じためリターン");
+        setIsEditModeField(null); // エディットモードを終了
+        return;
+      }
+
+      const updatePayload = {
+        fieldName: fieldName,
+        fieldNameForSelectedRowData: fieldNameForSelectedRowData,
+        newValue: newValue,
+        id: id,
+      };
+      // 入力変換確定状態でエンターキーが押された場合の処理
+      console.log("onKeyDownイベント エンターキーが入力確定状態でクリック UPDATE実行 updatePayload", updatePayload);
+      await updatePropertyFieldMutation.mutateAsync(updatePayload);
+      originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
+      setIsEditModeField(null); // エディットモードを終了
+    }
+  };
+  // ================== ✅エンターキーで個別フィールドをアップデート inputタグ✅ ==================
+  // ================== 🌟Sendキーで個別フィールドをアップデート ==================
+  const handleClickSendUpdateField = async ({
+    e,
+    fieldName,
+    fieldNameForSelectedRowData,
+    originalValue,
+    newValue,
+    id,
+    required,
+  }: {
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>;
+    // fieldName: string;
+    fieldName: PropertyFieldNames;
+    fieldNameForSelectedRowData: PropertyFieldNamesForSelectedRowData;
+    originalValue: any;
+    newValue: any;
+    id: string | undefined;
+    required: boolean;
+  }) => {
+    if (required && (newValue === "" || newValue === null)) return toast.info(`この項目は入力が必須です。`);
+
+    // if (["planned_comment"].includes(fieldName)) {
+    //   console.log("e.currentTarget.parentElement", e.currentTarget.parentElement);
+    //   console.log("e.currentTarget.parentElement?.parentElement", e.currentTarget.parentElement?.parentElement);
+    //   return;
+    // }
+    if (["planned_start_time", "result_start_time", "result_end_time", "planned_comment"].includes(fieldName)) {
+      e.currentTarget.parentElement?.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+      // console.log("originalValue === newValue", originalValue === newValue);
+      // return;
+    } else {
+      e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+    }
+
+    if (!id || !selectedRowDataProperty) {
+      toast.error(`エラー：データが見つかりませんでした。`);
+      return;
+    }
+
+    console.log(
+      "フィールドアップデート Sendキー",
+      "フィールド名: ",
+      fieldName,
+      "結合フィールド名: ",
+      fieldNameForSelectedRowData,
+      "元の値: ",
+      originalValue,
+      "新たな値: ",
+      newValue
+    );
+
+    if (["planned_date", "result_date"].includes(fieldName)) {
+      console.log("フィールドアップデート 日付チェック オリジナル", originalValue, "変換前 新たな値", newValue);
+      // 前回と今回も両方nullの場合はアップデート無しなので、リターンする
+      if (originalValue === null && newValue === null) {
+        console.log("日付チェック 前回も今回もnullのためリターン");
+        setIsEditModeField(null); // エディットモードを終了
+        return;
+      }
+      // 年月日のみで同じ日付か比較
+      const result = isSameDateLocal(originalValue, newValue);
+      if (result) {
+        console.log("日付チェック 同じためリターン");
+        setIsEditModeField(null); // エディットモードを終了
+        return;
+      }
+      // 日付変化しているかチェックOK 異なる日付のためUPDATE
+      else {
+        console.log("日付チェック 新たな日付のためこのまま更新 newValue", newValue);
+        // フィールドがproperty_date（案件日）は年月度も, expansion_date, sales_dateの場合は四半期と年月度も同時に更新
+        if (fieldName === "property_date" || fieldName === "expansion_date" || fieldName === "sales_date") {
+          if (!closingDayRef.current)
+            return toast.error("決算日データが確認できないため、活動を更新できませんでした...🙇‍♀️");
+          // if (!(newValue instanceof Date)) return toast.error("エラー：無効な日付です。");
+          type ExcludeKeys = "company_id" | "contact_id" | "property_id"; // 除外するキー idはUPDATEすることは無いため
+          type PropertyFieldNamesForSelectedRowData = Exclude<keyof Property_row_data, ExcludeKeys>;
+          type UpdateObject = {
+            fieldName: string;
+            fieldNameForSelectedRowData: PropertyFieldNamesForSelectedRowData;
+            newValue: any;
+            id: string;
+            yearMonth?: number | null;
+            yearQuarter?: number | null;
+          };
+
+          const fiscalYearMonth = calculateDateToYearMonth(new Date(newValue), closingDayRef.current);
+          console.log("新たに生成された年月度", fiscalYearMonth);
+
+          if (!fiscalYearMonth) return toast.error("日付の更新に失敗しました。");
+
+          if (fieldName === "property_date") {
+            const updatePayload: UpdateObject = {
+              fieldName: fieldName,
+              fieldNameForSelectedRowData: fieldNameForSelectedRowData,
+              newValue: !!newValue ? newValue : null,
+              id: id,
+              yearMonth: fiscalYearMonth,
+            };
+            // 入力変換確定状態でエンターキーが押された場合の処理
+            console.log("selectタグでUPDATE実行 updatePayload", updatePayload);
+            await updatePropertyFieldMutation.mutateAsync(updatePayload);
+          }
+          // 展開日付と売上日付は四半期と年月度も同時にUPDATEする
+          else if (fieldName === "expansion_date" || fieldName === "sales_date") {
+            if (!(newValue instanceof Date)) return;
+            const fiscalEndDateObj = fiscalEndMonthObjRef.current;
+            if (!fiscalEndDateObj) return alert("エラー：決算日データが見つかりませんでした。");
+            const fiscalYear = getFiscalYear(
+              newValue,
+              fiscalEndDateObj.getMonth() + 1,
+              fiscalEndDateObj.getDate(),
+              language
+            );
+            const fiscalQuarter = getFiscalQuarterTest(fiscalEndDateObj, newValue);
+            const fiscalYearQuarter = fiscalYear * 10 + fiscalQuarter;
+            const updatePayload: UpdateObject = {
+              fieldName: fieldName,
+              fieldNameForSelectedRowData: fieldNameForSelectedRowData,
+              newValue: !!newValue ? newValue : null,
+              id: id,
+              yearMonth: fiscalYearMonth,
+              yearQuarter: fiscalYearQuarter,
+            };
+            // 入力変換確定状態でエンターキーが押された場合の処理
+            console.log(
+              "selectタグでUPDATE実行 updatePayload",
+              updatePayload,
+              "fiscalQuarter",
+              fiscalQuarter,
+              "fiscalYear",
+              fiscalYear
+            );
+            await updatePropertyFieldMutation.mutateAsync(updatePayload);
+          }
+          originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
+          setIsEditModeField(null); // エディットモードを終了
+          return;
+        }
+      }
+    }
+    // 入力値が現在のvalueと同じであれば更新は不要なため閉じてリターン null = null ''とnullもリターン textareaはnullの場合表示は空文字でされているため
+    else if ((!required && originalValue === newValue) || (!originalValue && !newValue)) {
+      console.log(
+        "決裁金額、日付以外でチェック 同じためリターン",
+        "originalValue",
+        originalValue,
+        "newValue",
+        newValue
+      );
+      setIsEditModeField(null); // エディットモードを終了
+      return;
+    }
+
+    // requiredがfalseで入力必須ではないので、newValueがnullや空文字、0は許容(空文字や0をnullにするかどうかは各フィールドごとに個別で管理する)
+
+    const updatePayload = {
+      fieldName: fieldName,
+      fieldNameForSelectedRowData: fieldNameForSelectedRowData,
+      newValue: newValue,
+      id: id,
+    };
+    // 入力変換確定状態でエンターキーが押された場合の処理
+    console.log("sendアイコンクリックでUPDATE実行 updatePayload", updatePayload);
+    await updatePropertyFieldMutation.mutateAsync(updatePayload);
+    originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
+    setIsEditModeField(null); // エディットモードを終了
+  };
+  // ================== ✅Sendキーで個別フィールドをアップデート ==================
+
+  // ================== 🌟セレクトボックスで個別フィールドをアップデート ==================
+
+  const handleChangeSelectUpdateField = async ({
+    e,
+    fieldName,
+    fieldNameForSelectedRowData,
+    originalValue,
+    newValue,
+    id,
+  }: {
+    e: ChangeEvent<HTMLSelectElement>;
+    // fieldName: string;
+    fieldName: PropertyFieldNames;
+    fieldNameForSelectedRowData: PropertyFieldNamesForSelectedRowData;
+    originalValue: any;
+    newValue: any;
+    id: string | undefined;
+  }) => {
+    e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+
+    if (!id || !selectedRowDataProperty) {
+      toast.error(`エラー：データが見つかりませんでした。`, { autoClose: 3000 });
+      return;
+    }
+    // 入力値が現在のvalueと同じであれば更新は不要なため閉じてリターン
+    if (originalValue === newValue) {
+      console.log("同じためリターン");
+      setIsEditModeField(null); // エディットモードを終了
+      return;
+    }
+
+    console.log(
+      "フィールドアップデート セレクトボックス",
+      " ・フィールド名:",
+      fieldName,
+      " ・結合フィールド名:",
+      fieldNameForSelectedRowData,
+      " ・元の値:",
+      originalValue,
+      " ・新たな値:",
+      newValue
+    );
+
+    const updatePayload = {
+      fieldName: fieldName,
+      fieldNameForSelectedRowData: fieldNameForSelectedRowData,
+      newValue: newValue !== "" ? newValue : null,
+      id: id,
+    };
+    // 入力変換確定状態でエンターキーが押された場合の処理
+    console.log("selectタグでUPDATE実行 updatePayload", updatePayload);
+    await updatePropertyFieldMutation.mutateAsync(updatePayload);
+    originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
+    setIsEditModeField(null); // エディットモードを終了
+  };
+  // ================== ✅セレクトボックスで個別フィールドをアップデート ==================
+
   const handlePendingCheckChangeSelectTagValue = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
 
@@ -1047,15 +1501,86 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
             {/* --------- ラッパー --------- */}
             <div className={`${styles.left_contents_wrapper} flex h-full w-full flex-col`}>
               {/* 予定 通常 */}
-              {/* 現ｽﾃｰﾀｽ */}
+              {/* 現ステータス */}
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.section_title}`}>現ｽﾃｰﾀｽ</span>
-
-                    <span className={`${styles.value} ${styles.value_highlight} ${styles.text_start} !pl-[0px]`}>
+                    {!searchMode && isEditModeField !== "current_status" && (
+                      <span
+                        className={`${styles.value} ${styles.editable_field} ${styles.value_highlight} ${styles.text_start} !pl-[0px]`}
+                        onClick={handleSingleClickField}
+                        onDoubleClick={(e) => {
+                          // if (!selectedRowDataMeeting?.activity_type) return;
+                          // if (isNotActivityTypeArray.includes(selectedRowDataMeeting.activity_type)) {
+                          //   return alert(returnMessageNotActivity(selectedRowDataMeeting.activity_type));
+                          // }
+                          handleDoubleClickField({
+                            e,
+                            field: "current_status",
+                            dispatch: setInputCurrentStatus,
+                            dateValue: selectedRowDataProperty?.current_status
+                              ? selectedRowDataProperty.current_status
+                              : null,
+                          });
+                        }}
+                      >
+                        {selectedRowDataProperty?.current_status ? selectedRowDataProperty?.current_status : ""}
+                      </span>
+                    )}
+                    {/* <span className={`${styles.value} ${styles.value_highlight} ${styles.text_start} !pl-[0px]`}>
                       {selectedRowDataProperty?.current_status ? selectedRowDataProperty?.current_status : ""}
-                    </span>
+                    </span> */}
+
+                    {/* ============= フィールドエディットモード関連 ============= */}
+                    {/* フィールドエディットモード selectタグ  */}
+                    {!searchMode && isEditModeField === "current_status" && (
+                      <>
+                        <select
+                          className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                          value={inputCurrentStatus}
+                          onChange={(e) => {
+                            handleChangeSelectUpdateField({
+                              e,
+                              fieldName: "current_status",
+                              fieldNameForSelectedRowData: "current_status",
+                              newValue: e.target.value,
+                              originalValue: originalValueFieldEdit.current,
+                              id: selectedRowDataProperty?.property_id,
+                            });
+                          }}
+                          // onChange={(e) => {
+                          //   setInputActivityType(e.target.value);
+                          // }}
+                        >
+                          {/* <option value=""></option> */}
+                          {optionsCurrentStatus.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                        {/* エディットフィールド送信中ローディングスピナー */}
+                        {updatePropertyFieldMutation.isLoading && (
+                          <div
+                            className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                          >
+                            <SpinnerComet w="22px" h="22px" s="3px" />
+                          </div>
+                        )}
+                      </>
+                    )}
+                    {/* フィールドエディットモードオーバーレイ */}
+                    {!searchMode && isEditModeField === "current_status" && (
+                      <div
+                        className={`${styles.edit_mode_overlay}`}
+                        onClick={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                          setIsEditModeField(null); // エディットモードを終了
+                        }}
+                      />
+                    )}
+                    {/* ============= フィールドエディットモード関連ここまで ============= */}
                   </div>
                   <div className={`${styles.section_underline}`}></div>
                 </div>
@@ -1066,16 +1591,103 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>●案件名</span>
-                    {!searchMode && (
+                    {!searchMode && isEditModeField !== "property_name" && (
                       <span
-                        className={`${styles.value} ${styles.value_highlight} ${styles.text_start}`}
-                        data-text={selectedRowDataProperty?.property_name ? selectedRowDataProperty?.property_name : ""}
-                        onMouseEnter={(e) => handleOpenTooltip({ e, display: "top" })}
-                        onMouseLeave={handleCloseTooltip}
+                        className={`${styles.value} ${styles.value_highlight} ${styles.text_start} ${styles.editable_field}`}
+                        onClick={handleSingleClickField}
+                        onDoubleClick={(e) => {
+                          if (!selectedRowDataProperty?.property_name) return;
+                          // if (isNotActivityTypeArray.includes(selectedRowDataProperty.property_name))
+                          //   return alert(returnMessageNotActivity(selectedRowDataProperty.property_name));
+                          handleDoubleClickField({
+                            e,
+                            field: "property_name",
+                            dispatch: setInputPropertyName,
+                          });
+                          if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                        data-text={`${
+                          selectedRowDataProperty?.property_name ? selectedRowDataProperty?.property_name : ""
+                        }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          handleOpenTooltip({ e, display: "top" });
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
                       >
                         {selectedRowDataProperty?.property_name ? selectedRowDataProperty?.property_name : ""}
                       </span>
                     )}
+                    {/* ============= フィールドエディットモード関連 ============= */}
+                    {/* フィールドエディットモード selectタグ  */}
+                    {!searchMode && isEditModeField === "property_name" && (
+                      <>
+                        <input
+                          type="text"
+                          placeholder=""
+                          autoFocus
+                          className={`${styles.input_box} ${styles.field_edit_mode_input_box_with_close}`}
+                          value={inputPropertyName}
+                          // value={selectedRowDataCompany?.name ? selectedRowDataCompany?.name : ""}
+                          onChange={(e) => setInputPropertyName(e.target.value)}
+                          // onBlur={() => setInputName(toHalfWidthAndSpace(inputName.trim()))}
+                          onCompositionStart={() => setIsComposing(true)}
+                          onCompositionEnd={() => setIsComposing(false)}
+                          onKeyDown={async (e) => {
+                            handleKeyDownUpdateField({
+                              e,
+                              fieldName: "property_name",
+                              fieldNameForSelectedRowData: "property_name",
+                              newValue: inputPropertyName.trim(),
+                              originalValue: originalValueFieldEdit.current,
+                              id: selectedRowDataProperty?.property_id,
+                              required: true,
+                            });
+                          }}
+                        />
+                        {/* 送信ボタンとクローズボタン */}
+                        {!updatePropertyFieldMutation.isLoading && (
+                          <InputSendAndCloseBtn
+                            inputState={inputPropertyName}
+                            setInputState={setInputPropertyName}
+                            onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                              handleClickSendUpdateField({
+                                e,
+                                fieldName: "property_name",
+                                fieldNameForSelectedRowData: "property_name",
+                                newValue: inputPropertyName.trim(),
+                                originalValue: originalValueFieldEdit.current,
+                                id: selectedRowDataProperty?.property_id,
+                                required: true,
+                              })
+                            }
+                            required={true}
+                          />
+                        )}
+                        {/* エディットフィールド送信中ローディングスピナー */}
+                        {updatePropertyFieldMutation.isLoading && (
+                          <div className={`${styles.field_edit_mode_loading_area}`}>
+                            <SpinnerComet w="22px" h="22px" s="3px" />
+                          </div>
+                        )}
+                      </>
+                    )}
+                    {/* フィールドエディットモードオーバーレイ */}
+                    {!searchMode && isEditModeField === "property_name" && (
+                      <div
+                        className={`${styles.edit_mode_overlay}`}
+                        onClick={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                          setIsEditModeField(null); // エディットモードを終了
+                        }}
+                      />
+                    )}
+                    {/* ============= フィールドエディットモード関連ここまで ============= */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1086,11 +1698,30 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full `}>
                     <span className={`${styles.title} ${styles.title_sm}`}>案件概要</span>
-                    {!searchMode && (
+                    {!searchMode && isEditModeField !== "property_summary" && (
                       <div
-                        className={`${styles.textarea_box} ${styles.textarea_box_bg}`}
-                        // className={`${styles.full_value} ${styles.textarea_box} ${styles.textarea_box_bg}`}
-                        // className={`${styles.value} h-[85px] ${styles.textarea_box} ${styles.textarea_box_bg}`}
+                        className={`${styles.textarea_box} ${styles.editable_field}`}
+                        onClick={handleSingleClickField}
+                        onDoubleClick={(e) => {
+                          // if (!selectedRowDataProperty?.activity_type) return;
+                          // if (isNotActivityTypeArray.includes(selectedRowDataProperty.activity_type))
+                          //   return alert(returnMessageNotActivity(selectedRowDataProperty.activity_type));
+                          handleCloseTooltip();
+                          handleDoubleClickField({
+                            e,
+                            field: "property_summary",
+                            dispatch: setInputPropertySummary,
+                            selectedRowDataValue: selectedRowDataProperty?.property_summary
+                              ? selectedRowDataProperty?.property_summary
+                              : null,
+                          });
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
                         dangerouslySetInnerHTML={{
                           __html: selectedRowDataProperty?.property_summary
                             ? selectedRowDataProperty?.property_summary.replace(/\n/g, "<br>")
@@ -1098,6 +1729,54 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                       ></div>
                     )}
+                    {/* ============= フィールドエディットモード関連 ============= */}
+                    {/* フィールドエディットモード inputタグ */}
+                    {!searchMode && isEditModeField === "property_summary" && (
+                      <>
+                        <textarea
+                          cols={30}
+                          // rows={10}
+                          placeholder=""
+                          style={{ whiteSpace: "pre-wrap" }}
+                          className={`${styles.textarea_box} ${styles.textarea_box_search_mode} ${styles.field_edit_mode_textarea} ${styles.xl}`}
+                          value={inputPropertySummary}
+                          onChange={(e) => setInputPropertySummary(e.target.value)}
+                        ></textarea>
+                        {/* 送信ボタンとクローズボタン */}
+                        <InputSendAndCloseBtn
+                          inputState={inputPropertySummary}
+                          setInputState={setInputPropertySummary}
+                          onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                            handleClickSendUpdateField({
+                              e,
+                              fieldName: "property_summary",
+                              fieldNameForSelectedRowData: "property_summary",
+                              originalValue: originalValueFieldEdit.current,
+                              newValue: inputPropertySummary ? inputPropertySummary.trim() : null,
+                              id: selectedRowDataProperty?.property_id,
+                              required: false,
+                            })
+                          }
+                          required={false}
+                          // isDisplayClose={true}
+                          // btnPositionY="bottom-[8px]"
+                          isOutside={true}
+                          outsidePosition="under_right"
+                          isLoadingSendEvent={updatePropertyFieldMutation.isLoading}
+                        />
+                      </>
+                    )}
+                    {/* フィールドエディットモードオーバーレイ */}
+                    {!searchMode && isEditModeField === "property_summary" && (
+                      <div
+                        className={`${styles.edit_mode_overlay}`}
+                        onClick={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                          setIsEditModeField(null); // エディットモードを終了
+                        }}
+                      />
+                    )}
+                    {/* ============= フィールドエディットモード関連ここまで ============= */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -3309,7 +3988,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
             <div className={`${styles.left_contents_wrapper} flex h-full w-full flex-col`}>
               {/* ============= 予定エリアここから============= */}
               {/* 予定 サーチ */}
-              {/* 現ｽﾃｰﾀｽ サーチ */}
+              {/* 現ステータス サーチ */}
               <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box}  flex h-full items-center `}>
@@ -3322,9 +4001,14 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       }}
                     >
                       <option value=""></option>
-                      <option value="展開">展開 (案件発生)</option>
+                      {optionsCurrentStatus.map((option) => (
+                        <option key={option} value={option}>
+                          {getCurrentStatus(option)}
+                        </option>
+                      ))}
+                      {/* <option value="展開">展開 (案件発生)</option>
                       <option value="申請">申請 (予算申請案件)</option>
-                      <option value="受注">受注</option>
+                      <option value="受注">受注</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>

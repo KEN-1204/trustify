@@ -1043,7 +1043,11 @@ const ActivityMainContainerOneThirdMemo = () => {
   }) => {
     if (required && (newValue === "" || newValue === null)) return toast.info(`この項目は入力が必須です。`);
 
-    e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+    if (["summary"].includes(fieldName)) {
+      e.currentTarget.parentElement?.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+    } else {
+      e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+    }
 
     if (!id || !selectedRowDataActivity) {
       toast.error(`エラー：データが見つかりませんでした。`);
@@ -1433,7 +1437,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                         <input
                           type="checkbox"
                           className={`${styles.grid_select_cell_header_input} ${
-                            !selectedRowDataActivity ? `pointer-events-none` : ``
+                            !selectedRowDataActivity ? `pointer-events-none cursor-not-allowed` : ``
                           }`}
                           // checked={!!selectedRowDataActivity?.claim_flag}
                           // onChange={() => {
@@ -1838,8 +1842,12 @@ const ActivityMainContainerOneThirdMemo = () => {
                     {!searchMode && isEditModeField !== "summary" && (
                       <div
                         // data-text={`${selectedRowDataActivity?.summary ? selectedRowDataActivity?.summary : ""}`}
-                        className={`${styles.textarea_box} ${styles.textarea_box_bg} ${
+                        className={`${styles.textarea_box} ${
                           isOurActivityAndIsTypeActivity ? styles.editable_field : styles.uneditable_field
+                        } ${
+                          !isNotActivityTypeArray.includes(selectedRowDataActivity?.activity_type)
+                            ? `${styles.active}`
+                            : ``
                         }`}
                         // style={{ whiteSpace: "pre-wrap" }}
                         onClick={handleSingleClickField}

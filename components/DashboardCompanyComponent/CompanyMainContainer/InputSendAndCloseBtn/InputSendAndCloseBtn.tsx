@@ -1,12 +1,13 @@
-import { Dispatch, MouseEvent, MouseEventHandler, SetStateAction } from "react";
+import { Dispatch, FC, MouseEvent, MouseEventHandler, SetStateAction } from "react";
 import { IoIosSend } from "react-icons/io";
 import { MdClose } from "react-icons/md";
 import styles from "../../CompanyDetail/CompanyDetail.module.css";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 
-type Props = {
-  inputState: string;
-  setInputState: Dispatch<SetStateAction<string>>;
+// デフォルトのデータ型はstring
+type Props<T = string> = {
+  inputState: T; // string or (number | null)
+  setInputState: Dispatch<SetStateAction<T>>;
   onClickSendEvent: MouseEventHandler<HTMLDivElement>;
   required: boolean;
   isDisplayClose?: boolean;
@@ -15,8 +16,35 @@ type Props = {
   outsidePosition?: string;
   isLoadingSendEvent?: boolean;
 };
+// type StringProps = {
+//   inputState: string; // string or (number | null)
+//   setInputState: Dispatch<SetStateAction<string>>;
+//   onClickSendEvent: MouseEventHandler<HTMLDivElement>;
+//   required: boolean;
+//   isDisplayClose?: boolean;
+//   btnPositionY?: string;
+//   isOutside?: boolean;
+//   outsidePosition?: string;
+//   isLoadingSendEvent?: boolean;
+// };
+// type NumberOrNullProps = {
+//   inputState: number | null; // number | null or (number | null)
+//   setInputState: Dispatch<SetStateAction<number | null>>;
+//   onClickSendEvent: MouseEventHandler<HTMLDivElement>;
+//   required: boolean;
+//   isDisplayClose?: boolean;
+//   btnPositionY?: string;
+//   isOutside?: boolean;
+//   outsidePosition?: string;
+//   isLoadingSendEvent?: boolean;
+// };
 
-export const InputSendAndCloseBtn = ({
+// type Props = StringProps | NumberOrNullProps;
+
+// <T,>の,はジェネリック型パラメータのリストの終了を明示する
+// export const InputSendAndCloseBtn = <T,>({
+// export const InputSendAndCloseBtn = <T,>({
+export const InputSendAndCloseBtn = <T extends string | (number | null) = string>({
   inputState,
   setInputState,
   onClickSendEvent,
@@ -26,7 +54,8 @@ export const InputSendAndCloseBtn = ({
   isOutside = false,
   outsidePosition = "under_right",
   isLoadingSendEvent = false,
-}: Props) => {
+}: Props<T>) => {
+  console.log("inputState", inputState);
   return (
     <>
       {!isOutside && (
@@ -40,8 +69,13 @@ export const InputSendAndCloseBtn = ({
                   : `!cursor-not-allowed text-[#999]`
               }`}
               onClick={() => {
+                if (typeof inputState === "number" || inputState === null) {
+                  if (isDisplayClose && inputState === null) return;
+                  setInputState(null as T);
+                  return;
+                }
                 if (isDisplayClose && inputState === "") return;
-                setInputState("");
+                setInputState("" as T);
               }}
             >
               <MdClose className="z-[2100] text-[20px]" />
@@ -52,7 +86,7 @@ export const InputSendAndCloseBtn = ({
             className={`flex-center transition-bg03 group absolute ${
               isDisplayClose ? `right-[36px]` : `right-[10px]`
             } z-[2100] min-h-[26px] min-w-[26px] ${btnPositionY} rounded-full border border-solid border-transparent ${
-              required && inputState === ""
+              required && (inputState === "" || inputState === null)
                 ? `cursor-not-allowed text-[#999]`
                 : `border-[var(--color-bg-brand-f) cursor-pointer hover:bg-[var(--color-bg-brand-f)] hover:shadow-lg`
             }`}
@@ -60,7 +94,7 @@ export const InputSendAndCloseBtn = ({
           >
             <IoIosSend
               className={`text-[20px] ${
-                required && inputState === ""
+                required && (inputState === "" || inputState === null)
                   ? `text-[#999] group-hover:text-[#999]`
                   : `text-[var(--color-bg-brand-f)] group-hover:text-[#fff]`
               } `}
@@ -84,7 +118,7 @@ export const InputSendAndCloseBtn = ({
           {!isLoadingSendEvent && (
             <div
               className={`flex-center transition-bg03 group min-h-[26px] min-w-[26px] rounded-full border border-solid border-transparent ${
-                required && inputState === null
+                required && (inputState === "" || inputState === null)
                   ? `cursor-not-allowed text-[#999]`
                   : `border-[var(--color-bg-brand-f) cursor-pointer hover:bg-[var(--color-bg-brand-f)] hover:shadow-lg`
               }`}
@@ -92,7 +126,7 @@ export const InputSendAndCloseBtn = ({
             >
               <IoIosSend
                 className={`text-[20px] ${
-                  required && inputState === null
+                  required && (inputState === "" || inputState === null)
                     ? `text-[#999] group-hover:text-[#999]`
                     : `text-[var(--color-bg-brand-f)] group-hover:text-[#fff]`
                 }`}
@@ -108,8 +142,13 @@ export const InputSendAndCloseBtn = ({
                   : `${styles.close_btn_field_edit_mode_empty}`
               }`}
               onClick={() => {
+                if (typeof inputState === "number" || inputState === null) {
+                  if (inputState === null && inputState === undefined) return;
+                  setInputState(null as T);
+                  return;
+                }
                 if (!inputState) return;
-                setInputState("");
+                setInputState("" as T);
               }}
             >
               <MdClose className="text-[20px] " />

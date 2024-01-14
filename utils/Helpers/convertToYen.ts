@@ -17,7 +17,10 @@ export function convertToYen(inputString: string): number | null {
     !inputString.includes("円") &&
     !inputString.includes(",")
   ) {
-    return parseInt(inputString, 10);
+    const result = parseInt(inputString, 10);
+    console.log("1isNan", Number.isNaN(result));
+    if (Number.isNaN(result)) return null;
+    return result;
   }
 
   // 数値をクリーンアップ(カンマや非数値文字を取り除く) => 円単位の入力の場合に使用
@@ -37,8 +40,12 @@ export function convertToYen(inputString: string): number | null {
   const manAndBelowMatch = inputString.match(/万(\d+(,\d+)*)円?/);
 
   // 1,000や1,000,000のように単位無しで区切り文字のみ存在する場合は区切り文字を取り除いてそのまま返す
-  if (!trillionMatch && !billionMatch && !millionMatch && inputString.includes(","))
-    return parseInt(inputString.replace(/,/g, "").replace(/[^\d]/g, ""), 10);
+  if (!trillionMatch && !billionMatch && !millionMatch && inputString.includes(",")) {
+    const result = parseInt(inputString.replace(/,/g, "").replace(/[^\d]/g, ""), 10);
+    console.log("2isNan", Number.isNaN(result));
+    if (Number.isNaN(result)) return null;
+    return result;
+  }
 
   // trillionMatch[1]はキャプチャグループによって抽出された値 => 今回は\dで任意の数値、+で\dが一回以上の連続した数字
   if (trillionMatch) total += parseInt(trillionMatch[1].replace(/,/g, ""), 10) * 1000000000000; // 兆の計算
@@ -61,6 +68,8 @@ export function convertToYen(inputString: string): number | null {
     }
   }
 
+  console.log("3isNan", Number.isNaN(total), total);
+  if (Number.isNaN(total)) return null;
   return total;
 }
 

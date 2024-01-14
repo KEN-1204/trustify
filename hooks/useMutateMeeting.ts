@@ -509,6 +509,10 @@ export const useMutateMeeting = () => {
             meeting_year_month: meetingYearMonth,
           };
           setSelectedRowDataMeeting(newRowDataMeeting);
+        } else if (fieldNameForSelectedRowData === "planned_date") {
+          // 活動日を更新すると順番が入れ替わり、選択中の行がメインテーブルの内容と異なるためリセット
+          console.log("プロパティにplanned_dateが含まれているため選択中の行をリセット");
+          setSelectedRowDataMeeting(null);
         } else {
           const newRowDataMeeting = { ...selectedRowDataMeeting, [fieldNameForSelectedRowData]: newValue };
           setSelectedRowDataMeeting(newRowDataMeeting);

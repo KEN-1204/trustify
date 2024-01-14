@@ -24,7 +24,7 @@ function isValidNumber(inputStr: string) {
   return true;
 }
 
-const calculateDiscountRate = ({
+export const calculateDiscountRate = ({
   salesPriceStr,
   discountPriceStr,
 }: {
@@ -58,6 +58,6 @@ const calculateDiscountRate = ({
   // 値引率の計算
   const discountRate = discountPrice.dividedBy(salesPrice).times(100);
 
-  //   return { discountRate: discountRate.toFixed(2) };
-  return { discountRate: discountRate, error: null };
+  return { discountRate: discountRate.toFixed(2) };
+  // return { discountRate: discountRate, error: null };
 };

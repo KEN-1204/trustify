@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import React, { CSSProperties, KeyboardEvent, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./InsertNewPropertyModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -19,7 +19,6 @@ import useStore from "@/store";
 import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
 import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMonth";
 import { format } from "date-fns";
-import { getFiscalQuarter } from "@/utils/Helpers/getFiscalQuarter";
 import { getFiscalQuarterTest } from "@/utils/Helpers/getFiscalQuarterTest";
 import { Department, Office, Unit } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
@@ -31,6 +30,12 @@ import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import { FallbackSideTableSearchMember } from "../UpdateMeetingModal/SideTableSearchMember/FallbackSideTableSearchMember";
 import { SideTableSearchMember } from "../UpdateMeetingModal/SideTableSearchMember/SideTableSearchMember";
+import { convertToYen } from "@/utils/Helpers/convertToYen";
+import { getFiscalYear } from "@/utils/Helpers/getFiscalYear";
+import NextImage from "next/image";
+import { DropDownMenuFilterProducts } from "../SettingAccountModal/SettingMemberAccounts/DropdownMenuFilterProducts/DropdownMenuFilterProducts";
+import { HiChevronDown } from "react-icons/hi2";
+import { normalizeDiscountRate } from "@/utils/Helpers/normalizeDiscountRate";
 
 type ModalProperties = {
   left: number;
@@ -67,9 +72,10 @@ export const InsertNewPropertyModal = () => {
   const [modalProperties, setModalProperties] = useState<ModalProperties>();
   // 事業部別製品編集ドロップダウンメニュー
   const [isOpenDropdownMenuFilterProducts, setIsOpenDropdownMenuFilterProducts] = useState(false);
-  const [isOpenDropdownMenuFilterProductsArray, setIsOpenDropdownMenuFilterProductsArray] = useState(
-    Array(1).fill(false)
-  );
+  const [isOpenDropdownMenuFilterProductsSold, setIsOpenDropdownMenuFilterProductsSold] = useState(false);
+  // const [isOpenDropdownMenuFilterProductsArray, setIsOpenDropdownMenuFilterProductsArray] = useState(
+  //   Array(1).fill(false)
+  // );
   // ドロップダウンメニューの表示位置
   type ClickedItemPos = { displayPos: "up" | "center" | "down"; clickedItemWidth: number | null };
   const [clickedItemPosition, setClickedItemPosition] = useState<ClickedItemPos>({
@@ -101,17 +107,23 @@ export const InsertNewPropertyModal = () => {
   const [propertySummary, setPropertySummary] = useState(""); //案件概要
   const [pendingFlag, setPendingFlag] = useState(false); //ペンディングフラグ
   const [rejectedFlag, setRejectedFlag] = useState(false); //物件没フラグ
-  const [productName, setProductName] = useState(""); //商品(予定)
+  const [productName, setProductName] = useState(""); //商品(予定)(ID)
+  const [productNameInput, setProductNameInput] = useState(""); //商品(予定)(名前)
   const [productSales, setProductSales] = useState<number | null>(null); //予定売上台数
   const [expectedOrderDate, setExpectedOrderDate] = useState<Date | null>(null); //予定売上台数
-  const [expectedSalesPrice, setExpectedSalesPrice] = useState<number | null>(null); //予定売上価格
+  // const [expectedSalesPrice, setExpectedSalesPrice] = useState<number | null>(null); //予定売上価格
+  const [expectedSalesPrice, setExpectedSalesPrice] = useState<string>(""); //予定売上価格
   const [termDivision, setTermDivision] = useState(""); //今期・来期
-  const [soldProductName, setSoldProductName] = useState(""); //売上商品
+  const [soldProductName, setSoldProductName] = useState(""); //売上商品(ID)
+  const [soldProductNameInput, setSoldProductNameInput] = useState(""); //売上商品(名前)
   const [unitSales, setUnitSales] = useState<number | null>(null); //売上台数
   const [salesContributionCategory, setSalesContributionCategory] = useState(""); //売上貢献区分
-  const [salesPrice, setSalesPrice] = useState<number | null>(null); //売上価格
-  const [discountedPrice, setDiscountedPrice] = useState<number | null>(null); //値引き価格
-  const [discountedRate, setDiscountedRate] = useState<number | null>(null); //値引率
+  // const [salesPrice, setSalesPrice] = useState<number | null>(null); //売上価格
+  const [salesPrice, setSalesPrice] = useState<string>(""); //売上価格
+  // const [discountedPrice, setDiscountedPrice] = useState<number | null>(null); //値引き価格
+  const [discountedPrice, setDiscountedPrice] = useState<string>(""); //値引き価格
+  // const [discountedRate, setDiscountedRate] = useState<number | null>(null); //値引率
+  const [discountedRate, setDiscountedRate] = useState<string>(""); //値引率
   const [salesClass, setSalesClass] = useState(""); //導入分類
   const [subscriptionStartDate, setSubscriptionStartDate] = useState<Date | null>(null); //サブスク開始日
   const [subscriptionCanceledAt, setSubscriptionCanceledAt] = useState<Date | null>(null); //サブスク解約日
@@ -231,6 +243,141 @@ export const InsertNewPropertyModal = () => {
   // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
   // ================================ ✅事業所・営業所リスト取得useQuery✅ ================================
 
+  // ================================ 🌟商品リスト取得useQuery🌟 ================================
+  type FilterCondition = {
+    department_id: Department["id"] | null;
+    unit_id: Unit["id"] | null;
+    office_id: Office["id"] | null;
+    //   employee_id_name: Employee_id["id"];
+  };
+  // useQueryで事業部・係・事業所を絞ったフェッチをするかどうか(初回マウント時は自事業部のみで取得)
+  const [filterCondition, setFilterCondition] = useState<FilterCondition>({
+    department_id: userProfileState?.assigned_department_id ? userProfileState?.assigned_department_id : null,
+    unit_id: null,
+    office_id: null,
+  });
+  const { data: productDataArray, isLoading: isLoadingQueryProduct } = useQueryProducts({
+    company_id: userProfileState?.company_id ? userProfileState?.company_id : null,
+    departmentId: filterCondition.department_id,
+    unitId: filterCondition.unit_id,
+    officeId: filterCondition.office_id,
+    isReady: true,
+  });
+  // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
+  // ================================ ✅商品リスト取得useQuery✅ ================================
+  // ========= 🌟入力予測提案用に取得した商品リストの名前のみの配列を生成(name, inner, outerを/で繋げる)🌟 =========
+  // const [suggestedProductIdNameArray, setSuggestedProductIdNameArray] = useState<string[]>([]);
+  // const [suggestedProductIdNameArray, setSuggestedProductIdNameArray] = useState<{ [key: string]: string }[]>([]);
+  // 紹介予定inputタグからfocus、blurで予測メニューをhidden切り替え
+  const resultRefs = useRef<(HTMLDivElement | null)[]>(Array(2).fill(null));
+  const inputBoxProducts = useRef<(HTMLInputElement | null)[]>(Array(2).fill(null));
+  // const selectBoxProducts = useRef<(HTMLSelectElement | null)[]>(Array(2).fill(null));
+  type SuggestedProductObj = { id: string; fullName: string };
+  // {id: '376..', fullName: '画像寸法測定機 IM7500/7020 IM2'}を持つ配列
+  const [suggestedProductIdNameArray, setSuggestedProductIdNameArray] = useState<SuggestedProductObj[]>([]);
+  // 入力値を含む{id: '376..', fullName: '画像寸法測定機 IM7500/7020 IM2'}を持つ配列
+  // const [suggestedProductName, setSuggestedProductName] = useState<SuggestedProductObj[]>([]);
+  const [suggestedProductName, setSuggestedProductName] = useState<SuggestedProductObj[][]>(Array(2).fill([]));
+  useEffect(() => {
+    // 最初にオブジェクトマップを作成
+    // const productNameToIdMap = productDataArray.reduce((map, item) => {
+    //   map[item.name] = item.id;
+    //   return map;
+    // }, {});
+    // 初回マウント時、２回目以降で商品リストの変化に応じて新たに商品名リストに追加、Setで重複は排除
+
+    if (productDataArray && productDataArray.length > 0) {
+      const newProductArray = productDataArray.map((product) => ({
+        id: product.id,
+        fullName:
+          (product.inside_short_name ? product.inside_short_name + " " : "") +
+          product.product_name +
+          (product.outside_short_name ? " " + product.outside_short_name : ""),
+      }));
+
+      // 同じオブジェクトの重複を排除(同じidを排除)して配列を統合する方法
+      let combinedArray: SuggestedProductObj[] = [];
+      if (suggestedProductIdNameArray.length > 0) {
+        combinedArray = [...suggestedProductIdNameArray, ...newProductArray];
+      } else if (!!process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID) {
+        // IM他の選択肢
+        const otherOption = { id: process.env.NEXT_PUBLIC_MEETING_RESULT_OTHER_ID, fullName: "他" };
+        combinedArray = [...suggestedProductIdNameArray, ...newProductArray, otherOption];
+        // combinedArray = [...suggestedProductIdNameArray, ...newProductArray];
+      }
+      const uniqueArray = combinedArray.reduce((acc: SuggestedProductObj[], current: SuggestedProductObj) => {
+        const x = acc.find((obj) => obj.id === current.id);
+        // idが一致しているなら重複しているためスプレッドで統合しない
+        if (!x) {
+          return [...acc, current];
+        } else {
+          return acc;
+        }
+      }, []);
+
+      setSuggestedProductIdNameArray(uniqueArray);
+
+      // 文字列などのプリミティブ値で重複排除で配列を統合する方法
+      // setSuggestedProductIdNameArray((prevProductNames) => {
+      //   return [...new Set([...prevProductNames, ...newProductNames])];
+      // });
+    }
+  }, [productDataArray]);
+
+  // 紹介予定商品の入力値を商品リストから生成した予測変換リストから絞り込んで提案する
+  const handleSuggestedProduct = (e: KeyboardEvent<HTMLInputElement>, index: number) => {
+    let filteredResult = [];
+
+    // 入力されていない場合
+    if (!e.currentTarget.value.length) {
+      console.log("🌟入力されていない e.currentTarget.value", e.currentTarget.value);
+      const newSuggestions = [...suggestedProductName];
+      newSuggestions[index] = [];
+      return setSuggestedProductName(newSuggestions);
+      // return setSuggestedProductName([]);
+    }
+    // 入力値が存在する場合は、入力値に一致するavailableKeywordsをフィルター
+    if (e.currentTarget.value.length) {
+      filteredResult = suggestedProductIdNameArray.filter((obj) => {
+        return obj.fullName.toLowerCase().includes(e.currentTarget.value.toLowerCase());
+      });
+      console.log("🌟filteredResult", filteredResult, "🌟入力あり", e.currentTarget.value);
+      const newSuggestions = [...suggestedProductName];
+      newSuggestions[index] = filteredResult;
+      setSuggestedProductName(newSuggestions);
+      // setSuggestedProductName(filteredResult);
+    }
+  };
+  const handleFocusSuggestedProduct = (currentInputState: string | null, index: number) => {
+    if (!currentInputState) return;
+    let filteredResult = [];
+
+    // 入力されていない場合
+    if (!currentInputState.length) {
+      console.log("🌟入力されていない currentInputState", currentInputState);
+      const newSuggestions = [...suggestedProductName];
+      newSuggestions[index] = [];
+      return setSuggestedProductName(newSuggestions);
+      // return setSuggestedProductName([]);
+    }
+    // 入力値が存在する場合は、入力値に一致するavailableKeywordsをフィルター
+    if (currentInputState.length) {
+      filteredResult = suggestedProductIdNameArray.filter((obj) => {
+        return obj.fullName.toLowerCase().includes(currentInputState.toLowerCase());
+      });
+      console.log("🌟filteredResult", filteredResult, "🌟入力あり", currentInputState);
+      const newSuggestions = [...suggestedProductName];
+      newSuggestions[index] = filteredResult;
+      setSuggestedProductName(newSuggestions);
+      // setSuggestedProductName(filteredResult);
+    }
+  };
+
+  console.log("🌠🌠🌠🌠🌠🌠suggestedProductIdNameArray: ", suggestedProductIdNameArray);
+  console.log("🌠suggestedProductName[0]: ", suggestedProductName[0]);
+  console.log("🌠suggestedProductName[1]: ", suggestedProductName[1]);
+  // ========= ✅入力予測提案用に取得した商品リストの名前のみの配列を生成(name, inner, outerを/で繋げる)✅ =========
+
   // 四半期のselectタグの選択肢 20211, 20214
   const optionsYear = useMemo((): number[] => {
     const startYear = 2010;
@@ -251,6 +398,7 @@ export const InsertNewPropertyModal = () => {
     return sortedYearQuarters;
   }, []);
 
+  // ---------------------------- 🌟決算日取得🌟 ----------------------------
   // 🌟ユーザーの決算月の締め日を初回マウント時に取得
   useEffect(() => {
     // ユーザーの決算月から締め日を取得、決算つきが未設定の場合は現在の年と3月31日を設定
@@ -265,7 +413,9 @@ export const InsertNewPropertyModal = () => {
     console.log("ユーザー決算月", fiscalEndMonthObjRef.current);
     console.log("ユーザー決算月", format(fiscalEndMonthObjRef.current, "yyyy年MM月dd日 HH:mm:ss"));
   }, []);
+  // ---------------------------- ✅決算日取得✅ ----------------------------
 
+  // ---------------------------- 🌟案件年月度🌟 ----------------------------
   // 🌟案件発生日付から案件年月度を自動で計算、入力するuseEffect
   useEffect(() => {
     if (!propertyDate || !closingDayRef.current || !fiscalEndMonthObjRef.current) {
@@ -276,7 +426,9 @@ export const InsertNewPropertyModal = () => {
     const fiscalYearMonth = calculateDateToYearMonth(propertyDate, closingDayRef.current);
     setPropertyYearMonth(fiscalYearMonth);
   }, [propertyDate]);
+  // ---------------------------- ✅案件年月度✅ ----------------------------
 
+  // ---------------------------- 🌟展開年月度, 展開四半期🌟 ----------------------------
   // 🌟展開日付から展開年月度、展開四半期を自動で計算、入力するuseEffect
   useEffect(() => {
     // initialDate.setHours(0, 0, 0, 0);
@@ -296,10 +448,16 @@ export const InsertNewPropertyModal = () => {
     // アメリカ：［2021年4月～2022年3月］の期間であれば "FY 2022"
     let newExpansionQuarterSelectedYear: number | null;
     if (language === "ja") {
-      newExpansionQuarterSelectedYear = initialDate.getFullYear() ?? null;
+      // newExpansionQuarterSelectedYear = initialDate.getFullYear() ?? null;
+      const fiscalEnd = fiscalEndMonthObjRef.current;
+      newExpansionQuarterSelectedYear =
+        getFiscalYear(expansionDate, fiscalEnd.getMonth() + 1, fiscalEnd.getDate(), language) ?? null;
       setExpansionQuarterSelectedYear(newExpansionQuarterSelectedYear);
     } else {
-      newExpansionQuarterSelectedYear = expansionDate.getFullYear() ?? null;
+      // newExpansionQuarterSelectedYear = expansionDate.getFullYear() ?? null;
+      const fiscalEnd = fiscalEndMonthObjRef.current;
+      newExpansionQuarterSelectedYear =
+        getFiscalYear(expansionDate, fiscalEnd.getMonth() + 1, fiscalEnd.getDate(), language) ?? null;
       setExpansionQuarterSelectedYear(newExpansionQuarterSelectedYear);
     }
     // 四半期のQ部分をセット
@@ -313,6 +471,7 @@ export const InsertNewPropertyModal = () => {
     setExpansionQuarter(newExpansionQuarter);
   }, [expansionDate]);
 
+  // ---------------------------- 🌟売上年月度, 売上四半期🌟 ----------------------------
   // 🌟売上日付から売上年月度、売上四半期を自動で計算、入力するuseEffect
   useEffect(() => {
     // initialDate.setHours(0, 0, 0, 0);
@@ -338,11 +497,18 @@ export const InsertNewPropertyModal = () => {
 
     // 四半期を自動で入力
     let newSalesQuarterSelectedYear: number | null;
+    if (!expansionDate) return;
     if (language === "ja") {
-      newSalesQuarterSelectedYear = initialDate.getFullYear() ?? null;
+      // newSalesQuarterSelectedYear = initialDate.getFullYear() ?? null;
+      const fiscalEnd = fiscalEndMonthObjRef.current;
+      newSalesQuarterSelectedYear =
+        getFiscalYear(expansionDate, fiscalEnd.getMonth() + 1, fiscalEnd.getDate(), language) ?? null;
       setSalesQuarterSelectedYear(newSalesQuarterSelectedYear);
     } else {
-      newSalesQuarterSelectedYear = salesDate.getFullYear() ?? null;
+      // newSalesQuarterSelectedYear = salesDate.getFullYear() ?? null;
+      const fiscalEnd = fiscalEndMonthObjRef.current;
+      newSalesQuarterSelectedYear =
+        getFiscalYear(expansionDate, fiscalEnd.getMonth() + 1, fiscalEnd.getDate(), language) ?? null;
       setSalesQuarterSelectedYear(newSalesQuarterSelectedYear);
     }
     const _salesFiscalQuarter = getFiscalQuarterTest(fiscalEndMonthObjRef.current, salesDate);
@@ -352,12 +518,13 @@ export const InsertNewPropertyModal = () => {
     const newSalesQuarter = newSalesQuarterSelectedYear * 10 + _salesFiscalQuarter;
     setSalesQuarter(newSalesQuarter);
   }, [salesDate]);
-  console.log("展開四半期 年度", expansionQuarterSelectedYear);
-  console.log("展開四半期 Q", expansionQuarterSelectedQuarter);
-  console.log("展開四半期 ", expansionQuarter);
-  console.log("売上四半期 年度", salesQuarterSelectedYear);
-  console.log("売上四半期 Q", salesQuarterSelectedQuarter);
-  console.log("売上四半期 ", salesQuarter);
+  // ---------------------------- ✅売上年月度, 売上四半期✅ ----------------------------
+  // console.log("展開四半期 年度", expansionQuarterSelectedYear);
+  // console.log("展開四半期 Q", expansionQuarterSelectedQuarter);
+  // console.log("展開四半期 ", expansionQuarter);
+  // console.log("売上四半期 年度", salesQuarterSelectedYear);
+  // console.log("売上四半期 Q", salesQuarterSelectedQuarter);
+  // console.log("売上四半期 ", salesQuarter);
 
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
@@ -377,6 +544,21 @@ export const InsertNewPropertyModal = () => {
     if (!PropertyYearMonth) return alert("案件年月度を入力してください");
     // if (PropertyMemberName === "") return alert("自社担当を入力してください");
     if (memberObj.memberName === "") return alert("自社担当を入力してください");
+
+    // -------------------------- 商品idと入力されてる商品名が同じかチェック --------------------------
+    // 紹介予定商品メイン、サブの選択されているidが現在現在入力されてるnameのidと一致しているかを確認
+    const currentId1 = suggestedProductIdNameArray.find((obj) => obj.fullName === productNameInput)?.id;
+    if (!currentId1) return alert("「紹介予定商品メイン」の商品が有効ではありません。正しい商品を選択してください。");
+    const checkResult1 = currentId1 === productName;
+    if (!checkResult1) return alert("「紹介予定商品メイン」の商品が有効ではありません。正しい商品を選択してください。");
+    // 商品サブは任意でOK 入力されてる場合はチェック
+    if (soldProductNameInput) {
+      const currentId2 = suggestedProductIdNameArray.find((obj) => obj.fullName === soldProductNameInput)?.id;
+      if (!currentId2) return alert("「紹介予定商品サブ」の商品が有効ではありません。正しい商品を選択してください。");
+      const checkResult2 = currentId2 === soldProductName;
+      if (!checkResult2) return alert("「紹介予定商品サブ」の商品が有効ではありません。正しい商品を選択してください。");
+    }
+    // -------------------------- 商品idと入力されてる商品名が同じかチェックここまで --------------------------
 
     setLoadingGlobalState(true);
 
@@ -419,14 +601,27 @@ export const InsertNewPropertyModal = () => {
       product_name: productName ? productName : null,
       product_sales: productSales ? productSales : null,
       expected_order_date: expectedOrderDate ? expectedOrderDate.toISOString() : null,
-      expected_sales_price: expectedSalesPrice ? expectedSalesPrice : null,
+      // expected_sales_price: expectedSalesPrice ? expectedSalesPrice : null,
+      expected_sales_price:
+        expectedSalesPrice !== null && expectedSalesPrice !== undefined && expectedSalesPrice !== ""
+          ? parseInt(expectedSalesPrice.replace(/,/g, ""), 10)
+          : null, // 0以外のfalsyならnullをセット 0円は許容
       term_division: termDivision ? termDivision : null,
       sold_product_name: soldProductName ? soldProductName : null,
       unit_sales: unitSales ? unitSales : null,
       sales_contribution_category: salesContributionCategory ? salesContributionCategory : null,
-      sales_price: salesPrice ? salesPrice : null,
-      discounted_price: discountedPrice ? discountedPrice : null,
-      discount_rate: discountedRate ? discountedRate : null,
+      // sales_price: salesPrice ? salesPrice : null,
+      sales_price:
+        salesPrice !== null && salesPrice !== undefined && salesPrice !== ""
+          ? parseInt(salesPrice.replace(/,/g, ""), 10)
+          : null, // 0以外のfalsyならnullをセット 0円は許容
+      // discounted_price: discountedPrice ? discountedPrice : null,
+      discounted_price:
+        discountedPrice !== null && discountedPrice !== undefined && discountedPrice !== ""
+          ? parseInt(discountedPrice.replace(/,/g, ""), 10)
+          : null, // 0以外のfalsyならnullをセット 0円は許容
+      // discount_rate: discountedRate ? discountedRate : null,
+      discount_rate: discountedRate ? discountedRate.replace(/[%％]/g, "") : null,
       sales_class: salesClass ? salesClass : null,
       expansion_date: expansionDate ? expansionDate.toISOString() : null,
       sales_date: salesDate ? salesDate.toISOString() : null,
@@ -486,6 +681,21 @@ export const InsertNewPropertyModal = () => {
     // if (PropertyMemberName === "") return alert("自社担当を入力してください");
     if (memberObj.memberName === "") return alert("自社担当を入力してください");
 
+    // -------------------------- 商品idと入力されてる商品名が同じかチェック --------------------------
+    // 紹介予定商品メイン、サブの選択されているidが現在現在入力されてるnameのidと一致しているかを確認
+    const currentId1 = suggestedProductIdNameArray.find((obj) => obj.fullName === productNameInput)?.id;
+    if (!currentId1) return alert("「紹介予定商品メイン」の商品が有効ではありません。正しい商品を選択してください。");
+    const checkResult1 = currentId1 === productName;
+    if (!checkResult1) return alert("「紹介予定商品メイン」の商品が有効ではありません。正しい商品を選択してください。");
+    // 商品サブは任意でOK 入力されてる場合はチェック
+    if (soldProductNameInput) {
+      const currentId2 = suggestedProductIdNameArray.find((obj) => obj.fullName === soldProductNameInput)?.id;
+      if (!currentId2) return alert("「紹介予定商品サブ」の商品が有効ではありません。正しい商品を選択してください。");
+      const checkResult2 = currentId2 === soldProductName;
+      if (!checkResult2) return alert("「紹介予定商品サブ」の商品が有効ではありません。正しい商品を選択してください。");
+    }
+    // -------------------------- 商品idと入力されてる商品名が同じかチェックここまで --------------------------
+
     setLoadingGlobalState(true);
 
     // const departmentName =
@@ -524,17 +734,30 @@ export const InsertNewPropertyModal = () => {
       property_summary: propertySummary,
       pending_flag: pendingFlag,
       rejected_flag: rejectedFlag,
-      product_name: productName,
+      product_name: productName ? productName : null,
       product_sales: productSales,
       expected_order_date: expectedOrderDate ? expectedOrderDate.toISOString() : null,
-      expected_sales_price: expectedSalesPrice,
+      // expected_sales_price: expectedSalesPrice,
+      expected_sales_price:
+        expectedSalesPrice !== null && expectedSalesPrice !== undefined && expectedSalesPrice !== ""
+          ? parseInt(expectedSalesPrice.replace(/,/g, ""), 10)
+          : null, // 0以外のfalsyならnullをセット 0円は許容
       term_division: termDivision,
-      sold_product_name: soldProductName,
+      sold_product_name: soldProductName ? soldProductName : null,
       unit_sales: unitSales,
       sales_contribution_category: salesContributionCategory,
-      sales_price: salesPrice,
-      discounted_price: discountedPrice,
-      discount_rate: discountedRate,
+      // sales_price: salesPrice,
+      sales_price:
+        salesPrice !== null && salesPrice !== undefined && salesPrice !== ""
+          ? parseInt(salesPrice.replace(/,/g, ""), 10)
+          : null, // 0以外のfalsyならnullをセット 0円は許容
+      // discounted_price: discountedPrice,
+      discounted_price:
+        discountedPrice !== null && discountedPrice !== undefined && discountedPrice !== ""
+          ? parseInt(discountedPrice.replace(/,/g, ""), 10)
+          : null, // 0以外のfalsyならnullをセット 0円は許容
+      // discount_rate: discountedRate ? discountedRate : null,
+      discount_rate: discountedRate ? discountedRate.replace(/[%％]/g, "") : null,
       sales_class: salesClass,
       expansion_date: expansionDate ? expansionDate.toISOString() : null,
       sales_date: salesDate ? salesDate.toISOString() : null,
@@ -594,6 +817,21 @@ export const InsertNewPropertyModal = () => {
     // if (PropertyMemberName === "") return alert("自社担当を入力してください");
     if (memberObj.memberName === "") return alert("自社担当を入力してください");
 
+    // -------------------------- 商品idと入力されてる商品名が同じかチェック --------------------------
+    // 紹介予定商品メイン、サブの選択されているidが現在現在入力されてるnameのidと一致しているかを確認
+    const currentId1 = suggestedProductIdNameArray.find((obj) => obj.fullName === productNameInput)?.id;
+    if (!currentId1) return alert("「紹介予定商品メイン」の商品が有効ではありません。正しい商品を選択してください。");
+    const checkResult1 = currentId1 === productName;
+    if (!checkResult1) return alert("「紹介予定商品メイン」の商品が有効ではありません。正しい商品を選択してください。");
+    // 商品サブは任意でOK 入力されてる場合はチェック
+    if (soldProductNameInput) {
+      const currentId2 = suggestedProductIdNameArray.find((obj) => obj.fullName === soldProductNameInput)?.id;
+      if (!currentId2) return alert("「紹介予定商品サブ」の商品が有効ではありません。正しい商品を選択してください。");
+      const checkResult2 = currentId2 === soldProductName;
+      if (!checkResult2) return alert("「紹介予定商品サブ」の商品が有効ではありません。正しい商品を選択してください。");
+    }
+    // -------------------------- 商品idと入力されてる商品名が同じかチェックここまで --------------------------
+
     setLoadingGlobalState(true);
 
     const departmentName =
@@ -627,17 +865,30 @@ export const InsertNewPropertyModal = () => {
       property_summary: propertySummary,
       pending_flag: pendingFlag,
       rejected_flag: rejectedFlag,
-      product_name: productName,
+      product_name: productName ? productName : null,
       product_sales: productSales,
       expected_order_date: expectedOrderDate ? expectedOrderDate.toISOString() : null,
-      expected_sales_price: expectedSalesPrice,
+      // expected_sales_price: expectedSalesPrice,
+      expected_sales_price:
+        expectedSalesPrice !== null && expectedSalesPrice !== undefined && expectedSalesPrice !== ""
+          ? parseInt(expectedSalesPrice.replace(/,/g, ""), 10)
+          : null, // 0以外のfalsyならnullをセット 0円は許容
       term_division: termDivision,
-      sold_product_name: soldProductName,
+      sold_product_name: soldProductName ? soldProductName : null,
       unit_sales: unitSales,
       sales_contribution_category: salesContributionCategory,
-      sales_price: salesPrice,
-      discounted_price: discountedPrice,
-      discount_rate: discountedRate,
+      // sales_price: salesPrice,
+      sales_price:
+        salesPrice !== null && salesPrice !== undefined && salesPrice !== ""
+          ? parseInt(salesPrice.replace(/,/g, ""), 10)
+          : null, // 0以外のfalsyならnullをセット 0円は許容
+      // discounted_price: discountedPrice,
+      discounted_price:
+        discountedPrice !== null && discountedPrice !== undefined && discountedPrice !== ""
+          ? parseInt(discountedPrice.replace(/,/g, ""), 10)
+          : null, // 0以外のfalsyならnullをセット 0円は許容
+      // discount_rate: discountedRate ? discountedRate : null,
+      discount_rate: discountedRate ? discountedRate.replace(/[%％]/g, "") : null,
       sales_class: salesClass,
       expansion_date: expansionDate ? expansionDate.toISOString() : null,
       sales_date: salesDate ? salesDate.toISOString() : null,
@@ -697,6 +948,21 @@ export const InsertNewPropertyModal = () => {
     // if (PropertyMemberName === "") return alert("自社担当を入力してください");
     if (memberObj.memberName === "") return alert("自社担当を入力してください");
 
+    // -------------------------- 商品idと入力されてる商品名が同じかチェック --------------------------
+    // 紹介予定商品メイン、サブの選択されているidが現在現在入力されてるnameのidと一致しているかを確認
+    const currentId1 = suggestedProductIdNameArray.find((obj) => obj.fullName === productNameInput)?.id;
+    if (!currentId1) return alert("「紹介予定商品メイン」の商品が有効ではありません。正しい商品を選択してください。");
+    const checkResult1 = currentId1 === productName;
+    if (!checkResult1) return alert("「紹介予定商品メイン」の商品が有効ではありません。正しい商品を選択してください。");
+    // 商品サブは任意でOK 入力されてる場合はチェック
+    if (soldProductNameInput) {
+      const currentId2 = suggestedProductIdNameArray.find((obj) => obj.fullName === soldProductNameInput)?.id;
+      if (!currentId2) return alert("「紹介予定商品サブ」の商品が有効ではありません。正しい商品を選択してください。");
+      const checkResult2 = currentId2 === soldProductName;
+      if (!checkResult2) return alert("「紹介予定商品サブ」の商品が有効ではありません。正しい商品を選択してください。");
+    }
+    // -------------------------- 商品idと入力されてる商品名が同じかチェックここまで --------------------------
+
     setLoadingGlobalState(true);
 
     const departmentName =
@@ -730,17 +996,31 @@ export const InsertNewPropertyModal = () => {
       property_summary: propertySummary,
       pending_flag: pendingFlag,
       rejected_flag: rejectedFlag,
-      product_name: productName,
+      product_name: productName ? productName : null,
       product_sales: productSales,
       expected_order_date: expectedOrderDate ? expectedOrderDate.toISOString() : null,
-      expected_sales_price: expectedSalesPrice,
+      // expected_sales_price: expectedSalesPrice,
+      expected_sales_price:
+        expectedSalesPrice !== null && expectedSalesPrice !== undefined && expectedSalesPrice !== ""
+          ? parseInt(expectedSalesPrice.replace(/,/g, ""), 10)
+          : null, // 0以外のfalsyならnullをセット 0円は許容
       term_division: termDivision,
-      sold_product_name: soldProductName,
+      sold_product_name: soldProductName ? soldProductName : null,
       unit_sales: unitSales,
       sales_contribution_category: salesContributionCategory,
-      sales_price: salesPrice,
-      discounted_price: discountedPrice,
-      discount_rate: discountedRate,
+      // sales_price: salesPrice,
+      sales_price:
+        salesPrice !== null && salesPrice !== undefined && salesPrice !== ""
+          ? parseInt(salesPrice.replace(/,/g, ""), 10)
+          : null, // 0以外のfalsyならnullをセット 0円は許容
+      // discounted_price: discountedPrice,
+      discounted_price:
+        discountedPrice !== null && discountedPrice !== undefined && discountedPrice !== ""
+          ? parseInt(discountedPrice.replace(/,/g, ""), 10)
+          : null, // 0以外のfalsyならnullをセット 0円は許容
+      // discount_rate: discountedRate ? discountedRate : null,
+      // 小数点を含む値（例："0.5"）をSupabase/PostgreSQLのnumeric型フィールドに保存する場合は、文字列形式のまま保存するのが一般的
+      discount_rate: discountedRate ? discountedRate.replace(/[%％]/g, "") : null,
       sales_class: salesClass,
       expansion_date: expansionDate ? expansionDate.toISOString() : null,
       sales_date: salesDate ? salesDate.toISOString() : null,
@@ -952,6 +1232,37 @@ export const InsertNewPropertyModal = () => {
             {/* <SpinnerX w="w-[42px]" h="h-[42px]" /> */}
           </div>
         )}
+        {/* 製品リスト編集ドロップダウンメニュー オーバーレイ */}
+        {isOpenDropdownMenuFilterProducts && (
+          <div
+            // className="fixed left-[-100vw] top-[-50%] z-[12] h-[200vh] w-[300vw] bg-[#4d080890]"
+            className="fixed left-[-100vw] top-[-50%] z-[12] h-[200vh] w-[300vw]"
+            onClick={() => {
+              setIsOpenDropdownMenuFilterProducts(false);
+            }}
+          ></div>
+        )}
+        {isOpenDropdownMenuFilterProductsSold && (
+          <div
+            // className="fixed left-[-100vw] top-[-50%] z-[12] h-[200vh] w-[300vw] bg-[#4d080890]"
+            className="fixed left-[-100vw] top-[-50%] z-[12] h-[200vh] w-[300vw]"
+            onClick={() => {
+              setIsOpenDropdownMenuFilterProductsSold(false);
+            }}
+          ></div>
+        )}
+        {/* 検索予測リストメニュー オーバーレイ */}
+        {suggestedProductName &&
+          suggestedProductName.length > 0 &&
+          (suggestedProductName[0].length > 0 || suggestedProductName[1].length > 0) && (
+            <div
+              // className="fixed left-[-100vw] top-[-50%] z-[10] h-[200vh] w-[300vw] bg-[#00000090]"
+              className="fixed left-[-100vw] top-[-50%] z-[10] h-[200vh] w-[300vw]"
+              onClick={() => {
+                setSuggestedProductName([]);
+              }}
+            ></div>
+          )}
         {/* 保存・タイトル・キャンセルエリア */}
         <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[20px] text-center text-[18px]">
           {/* <div
@@ -1209,33 +1520,187 @@ export const InsertNewPropertyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>商品</span>
-                    <input
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>商品</span> */}
+                    <div
+                      className={`relative z-[1000] flex !min-w-[140px] items-center ${
+                        styles.title
+                      } cursor-pointer hover:text-[var(--color-text-brand-f)] ${
+                        isOpenDropdownMenuFilterProducts ? `!text-[var(--color-text-brand-f)]` : ``
+                      }`}
+                      onMouseEnter={(e) => {
+                        if (isOpenDropdownMenuFilterProducts) return;
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "選択する商品を全て、事業部、係・チーム、事業所ごとに",
+                          content2: "フィルターの切り替えが可能です。",
+                          // marginTop: 57,
+                          marginTop: 38,
+                          // marginTop: 12,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        });
+                      }}
+                      onMouseLeave={() => {
+                        if (!isOpenDropdownMenuFilterProducts || hoveredItemPosModal) handleCloseTooltip();
+                      }}
+                      onClick={(e) => {
+                        // 事業部、係、事業所をフィルターするか しない場合3つをnullにして全て取得する
+                        if (isOpenDropdownMenuFilterProducts) return;
+                        const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+                        // const clickedPositionPlusItemHeight = y + 400 + 5; // 400はメニューの最低高さ 5はmargin
+                        // const clickedPositionMinusItemHeight = y - 400 + height - 25; // 400はメニューの最低高さ
+                        // const modalHeight = settingModalProperties?.height ?? window.innerHeight * 0.9;
+                        // const halfBlankSpaceWithoutModal = (window.innerHeight - modalHeight) / 2;
+                        // const modalBottomPosition =
+                        //   settingModalProperties?.bottom ?? window.innerHeight - halfBlankSpaceWithoutModal;
+                        // const modalTopPosition = settingModalProperties?.top ?? halfBlankSpaceWithoutModal;
+                        setClickedItemPosition({ displayPos: "down", clickedItemWidth: width });
+                        setIsOpenDropdownMenuFilterProducts(true);
+                        handleCloseTooltip();
+                      }}
+                    >
+                      <div className={`mr-[15px] flex flex-col`}>
+                        <span>商品</span>
+                      </div>
+                      <NextImage
+                        width={24}
+                        height={24}
+                        src={`/assets/images/icons/business/icons8-process-94.png`}
+                        alt="setting"
+                      />
+                      {/* 商品データ編集ドロップダウンメニュー */}
+                      {isOpenDropdownMenuFilterProducts && (
+                        <DropDownMenuFilterProducts
+                          setIsOpenDropdownMenu={setIsOpenDropdownMenuFilterProducts}
+                          clickedItemPosition={clickedItemPosition}
+                          filterCondition={filterCondition}
+                          setFilterCondition={setFilterCondition}
+                          // setIsLoadingUpsertMember={setIsLoadingUpsertMember}
+                        />
+                      )}
+                      {/* 商品データ編集ドロップダウンメニューここまで */}
+                    </div>
+                    {/* <input
                       type="text"
                       placeholder=""
                       required
                       className={`${styles.input_box}`}
                       value={productName}
                       onChange={(e) => setProductName(e.target.value)}
-                      // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
-                    />
-                    {/* <select
-                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      value={productName}
-                      onChange={(e) => {
-                        // if (e.target.value === "") return alert("訪問目的を選択してください");
-                        setProductName(e.target.value);
-                      }}
-                    >
-                      <>
-                        <option value="">商品を選択してください</option>
-                        {products?.map((item, index) => (
-                          <option key={item.id} value={`${item.inside_short_name}`}>
-                            {item.inside_short_name}
-                          </option>
-                        ))}
-                      </>
-                    </select> */}
+                    /> */}
+
+                    <div className={`input_container relative z-[100] flex h-[32px] w-full items-start`}>
+                      <input
+                        ref={(el) => (inputBoxProducts.current[0] = el)}
+                        type="text"
+                        placeholder="キーワード入力後、商品を選択してください"
+                        required
+                        className={`${styles.input_box}`}
+                        value={productNameInput}
+                        onChange={(e) => setProductNameInput(e.target.value)}
+                        onKeyUp={(e) => handleSuggestedProduct(e, 0)}
+                        onFocus={(e) => {
+                          handleFocusSuggestedProduct(productNameInput, 0);
+                          if (!!resultRefs.current[0]) resultRefs.current[0].style.opacity = "1";
+                          // handleFocusSuggestedProduct(plannedProduct1InputName);
+                          // if (!!resultRefs.current) resultRefs.current.style.opacity = "1";
+                        }}
+                        onBlur={() => {
+                          // setPlannedProduct1(toHalfWidth(plannedProduct1.trim()));
+                          if (!!resultRefs.current[0]) resultRefs.current[0].style.opacity = "0";
+                        }}
+                      />
+                      {/* 予測変換結果 */}
+                      {suggestedProductName && suggestedProductName[0] && suggestedProductName[0].length > 0 && (
+                        <div
+                          ref={(el) => (resultRefs.current[0] = el)}
+                          className={`${styles.result_box}`}
+                          style={
+                            {
+                              "--color-border-custom": "#ccc",
+                              // ...(!isFocusInputProducts[0] && { opacity: 0 }),
+                            } as CSSProperties
+                          }
+                        >
+                          {suggestedProductName && suggestedProductName[0] && suggestedProductName[0].length > 0 && (
+                            <div className="sticky top-0 flex min-h-[5px] w-full flex-col items-center justify-end">
+                              <hr className={`min-h-[4px] w-full bg-[var(--color-bg-under-input)]`} />
+                              <hr className={`min-h-[1px] w-[93%] bg-[#ccc]`} />
+                            </div>
+                          )}
+                          <ul>
+                            {suggestedProductName[0]?.map((productIdName, index) => (
+                              <li
+                                key={index}
+                                onClick={(e) => {
+                                  // console.log("🌟innerText", e.currentTarget.innerText);
+                                  const productName = productIdName.fullName;
+                                  const productId = productIdName.id;
+                                  // setPlannedProduct1(e.currentTarget.innerText);
+                                  setProductNameInput(productName);
+                                  setProductName(productId);
+                                  const newSuggestedProductName = [...suggestedProductName];
+                                  newSuggestedProductName[0] = [];
+                                  setSuggestedProductName(newSuggestedProductName);
+                                  // setSuggestedProductName([]);
+                                }}
+                              >
+                                {productIdName.fullName}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {/* 予測変換結果 */}
+                      <div
+                        className={`flex-center absolute right-[3px] top-[50%] min-h-[20px] min-w-[20px] translate-y-[-50%] cursor-pointer rounded-full hover:bg-[var(--color-bg-sub-icon)]`}
+                        onMouseEnter={(e) => {
+                          if (isOpenDropdownMenuFilterProducts) return;
+                          handleOpenTooltip({
+                            e: e,
+                            display: "top",
+                            content: "フィルターで選択した商品リストを表示します。",
+                            content2: "アイコンをクリックしてフィルターの切り替えが可能です。",
+                            // marginTop: 57,
+                            marginTop: 38,
+                            // marginTop: 12,
+                            itemsPosition: "center",
+                            whiteSpace: "nowrap",
+                          });
+                        }}
+                        onMouseLeave={() => {
+                          if (!isOpenDropdownMenuFilterProducts || hoveredItemPosModal) handleCloseTooltip();
+                        }}
+                        onClick={() => {
+                          // if (selectBoxProducts.current[0]) {
+                          //   selectBoxProducts.current[0].click();
+                          //   selectBoxProducts.current[0].style.opacity = "1";
+                          //   selectBoxProducts.current[0].style.pointerEvents = "normal";
+                          // }
+                          if (inputBoxProducts.current[0]) {
+                            inputBoxProducts.current[0].focus();
+                            // 矢印クリック 全商品をリストで表示
+
+                            if (
+                              !suggestedProductName[0]?.length ||
+                              (suggestedProductName[0] &&
+                                suggestedProductName[0].length !== suggestedProductIdNameArray.length)
+                            ) {
+                              const newSuggestions = [...suggestedProductName];
+                              newSuggestions[0] = [...suggestedProductIdNameArray];
+                              setSuggestedProductName(newSuggestions);
+                              // if (suggestedProductName.length !== suggestedProductIdNameArray.length)
+                              //   setSuggestedProductName([...suggestedProductIdNameArray]);
+                            }
+                          }
+                          if (!isOpenDropdownMenuFilterProducts || hoveredItemPosModal) handleCloseTooltip();
+                        }}
+                      >
+                        <HiChevronDown className="stroke-[1] text-[13px] text-[var(--color-text-sub)]" />
+                      </div>
+                    </div>
+                    {/* 予測変換input セレクトと組み合わせ ここまで */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1255,7 +1720,7 @@ export const InsertNewPropertyModal = () => {
                       type="number"
                       min="0"
                       className={`${styles.input_box}`}
-                      placeholder=""
+                      placeholder="台数を入力してください"
                       value={productSales === null ? "" : productSales}
                       onChange={(e) => {
                         const val = e.target.value;
@@ -1320,8 +1785,28 @@ export const InsertNewPropertyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>売上価格(予定)</span>
-                    <input
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>売上価格(予定)</span> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "円単位でデータを管理します。",
+                          content2: "600万円と入力しても円単位に自動補完されます。",
+                          // marginTop: 57,
+                          marginTop: 39,
+                          // marginTop: 10,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <span className={`mr-[6px]`}>売上価格(予定)</span>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+                    </div>
+                    {/* <input
                       type="number"
                       min="0"
                       className={`${styles.input_box}`}
@@ -1342,13 +1827,34 @@ export const InsertNewPropertyModal = () => {
                           }
                         }
                       }}
+                    /> */}
+                    <input
+                      type="text"
+                      placeholder="例：600万円 → 6000000　※半角で入力"
+                      className={`${styles.input_box}`}
+                      value={!!expectedSalesPrice ? expectedSalesPrice : ""}
+                      onChange={(e) => setExpectedSalesPrice(e.target.value)}
+                      onBlur={() =>
+                        setExpectedSalesPrice(
+                          !!expectedSalesPrice &&
+                            expectedSalesPrice !== "" &&
+                            convertToYen(expectedSalesPrice.trim()) !== null
+                            ? (convertToYen(expectedSalesPrice.trim()) as number).toLocaleString()
+                            : ""
+                        )
+                      }
                     />
                     {/* バツボタン */}
-                    {expectedSalesPrice !== null && expectedSalesPrice !== 0 && (
-                      <div className={`${styles.close_btn_number}`} onClick={() => setExpectedSalesPrice(null)}>
+                    {expectedSalesPrice !== "" && (
+                      <div className={`${styles.close_btn_number}`} onClick={() => setExpectedSalesPrice("")}>
                         <MdClose className="text-[20px] " />
                       </div>
                     )}
+                    {/* {expectedSalesPrice !== null && expectedSalesPrice !== 0 && (
+                      <div className={`${styles.close_btn_number}`} onClick={() => setExpectedSalesPrice(null)}>
+                        <MdClose className="text-[20px] " />
+                      </div>
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1511,33 +2017,188 @@ export const InsertNewPropertyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>売上商品</span>
-                    <input
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>売上商品</span> */}
+
+                    <div
+                      className={`relative z-[1000] flex !min-w-[140px] items-center ${
+                        styles.title
+                      } cursor-pointer hover:text-[var(--color-text-brand-f)] ${
+                        isOpenDropdownMenuFilterProductsSold ? `!text-[var(--color-text-brand-f)]` : ``
+                      }`}
+                      onMouseEnter={(e) => {
+                        if (isOpenDropdownMenuFilterProductsSold) return;
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "選択する商品を全て、事業部、係・チーム、事業所ごとに",
+                          content2: "フィルターの切り替えが可能です。",
+                          // marginTop: 57,
+                          marginTop: 38,
+                          // marginTop: 12,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        });
+                      }}
+                      onMouseLeave={() => {
+                        if (!isOpenDropdownMenuFilterProductsSold || hoveredItemPosModal) handleCloseTooltip();
+                      }}
+                      onClick={(e) => {
+                        // 事業部、係、事業所をフィルターするか しない場合3つをnullにして全て取得する
+                        if (isOpenDropdownMenuFilterProductsSold) return;
+                        const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+                        // const clickedPositionPlusItemHeight = y + 400 + 5; // 400はメニューの最低高さ 5はmargin
+                        // const clickedPositionMinusItemHeight = y - 400 + height - 25; // 400はメニューの最低高さ
+                        // const modalHeight = settingModalProperties?.height ?? window.innerHeight * 0.9;
+                        // const halfBlankSpaceWithoutModal = (window.innerHeight - modalHeight) / 2;
+                        // const modalBottomPosition =
+                        //   settingModalProperties?.bottom ?? window.innerHeight - halfBlankSpaceWithoutModal;
+                        // const modalTopPosition = settingModalProperties?.top ?? halfBlankSpaceWithoutModal;
+                        setClickedItemPosition({ displayPos: "down", clickedItemWidth: width });
+                        setIsOpenDropdownMenuFilterProductsSold(true);
+                        handleCloseTooltip();
+                      }}
+                    >
+                      <div className={`mr-[15px] flex flex-col`}>
+                        <span>売上商品</span>
+                      </div>
+                      <NextImage
+                        width={24}
+                        height={24}
+                        src={`/assets/images/icons/business/icons8-process-94.png`}
+                        alt="setting"
+                      />
+                      {/* メンバーデータ編集ドロップダウンメニュー */}
+                      {isOpenDropdownMenuFilterProductsSold && (
+                        <DropDownMenuFilterProducts
+                          setIsOpenDropdownMenu={setIsOpenDropdownMenuFilterProductsSold}
+                          clickedItemPosition={clickedItemPosition}
+                          filterCondition={filterCondition}
+                          setFilterCondition={setFilterCondition}
+                          // setIsLoadingUpsertMember={setIsLoadingUpsertMember}
+                        />
+                      )}
+                      {/* メンバーデータ編集ドロップダウンメニューここまで */}
+                    </div>
+                    {/* <input
                       type="text"
                       placeholder=""
                       required
                       className={`${styles.input_box}`}
                       value={soldProductName}
                       onChange={(e) => setSoldProductName(e.target.value)}
-                      // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
-                    />
-                    {/* <select
-                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      value={productName}
-                      onChange={(e) => {
-                        // if (e.target.value === "") return alert("訪問目的を選択してください");
-                        setProductName(e.target.value);
-                      }}
-                    >
-                      <>
-                        <option value="">商品を選択してください</option>
-                        {products?.map((item, index) => (
-                          <option key={item.id} value={`${item.inside_short_name}`}>
-                            {item.inside_short_name}
-                          </option>
-                        ))}
-                      </>
-                    </select> */}
+                    /> */}
+
+                    <div className={`input_container relative z-[100] flex h-[32px] w-full items-start`}>
+                      <input
+                        ref={(el) => (inputBoxProducts.current[1] = el)}
+                        type="text"
+                        placeholder="キーワード入力後、商品を選択してください"
+                        required
+                        className={`${styles.input_box}`}
+                        value={soldProductNameInput}
+                        onChange={(e) => setSoldProductNameInput(e.target.value)}
+                        onKeyUp={(e) => handleSuggestedProduct(e, 1)}
+                        onFocus={(e) => {
+                          handleFocusSuggestedProduct(soldProductNameInput, 1);
+                          if (!!resultRefs.current[1]) resultRefs.current[1].style.opacity = "1";
+                          // handleFocusSuggestedProduct(plannedProduct1InputName);
+                          // if (!!resultRefs.current) resultRefs.current.style.opacity = "1";
+                        }}
+                        onBlur={() => {
+                          // setPlannedProduct1(toHalfWidth(plannedProduct1.trim()));
+                          if (!!resultRefs.current[1]) resultRefs.current[1].style.opacity = "0";
+                        }}
+                      />
+                      {/* 予測変換結果 */}
+                      {suggestedProductName && suggestedProductName[1] && suggestedProductName[1].length > 0 && (
+                        <div
+                          ref={(el) => (resultRefs.current[1] = el)}
+                          className={`${styles.result_box}`}
+                          style={
+                            {
+                              "--color-border-custom": "#ccc",
+                              // ...(!isFocusInputProducts[1] && { opacity: 0 }),
+                            } as CSSProperties
+                          }
+                        >
+                          {suggestedProductName && suggestedProductName[1] && suggestedProductName[1].length > 0 && (
+                            <div className="sticky top-0 flex min-h-[5px] w-full flex-col items-center justify-end">
+                              <hr className={`min-h-[4px] w-full bg-[var(--color-bg-under-input)]`} />
+                              <hr className={`min-h-[1px] w-[93%] bg-[#ccc]`} />
+                            </div>
+                          )}
+                          <ul>
+                            {suggestedProductName[1]?.map((productIdName, index) => (
+                              <li
+                                key={index}
+                                onClick={(e) => {
+                                  // console.log("🌟innerText", e.currentTarget.innerText);
+                                  const productName = productIdName.fullName;
+                                  const productId = productIdName.id;
+                                  // setPlannedProduct1(e.currentTarget.innerText);
+                                  setSoldProductNameInput(productName);
+                                  setSoldProductNameInput(productId);
+                                  const newSuggestedProductName = [...suggestedProductName];
+                                  newSuggestedProductName[1] = [];
+                                  setSuggestedProductName(newSuggestedProductName);
+                                  // setSuggestedProductName([]);
+                                }}
+                              >
+                                {productIdName.fullName}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {/* 予測変換結果 */}
+                      <div
+                        className={`flex-center absolute right-[3px] top-[50%] min-h-[20px] min-w-[20px] translate-y-[-50%] cursor-pointer rounded-full hover:bg-[var(--color-bg-sub-icon)]`}
+                        onMouseEnter={(e) => {
+                          if (isOpenDropdownMenuFilterProductsSold) return;
+                          handleOpenTooltip({
+                            e: e,
+                            display: "top",
+                            content: "フィルターで選択した商品リストを表示します。",
+                            content2: "アイコンをクリックしてフィルターの切り替えが可能です。",
+                            // marginTop: 57,
+                            marginTop: 38,
+                            // marginTop: 12,
+                            itemsPosition: "center",
+                            whiteSpace: "nowrap",
+                          });
+                        }}
+                        onMouseLeave={() => {
+                          if (!isOpenDropdownMenuFilterProductsSold || hoveredItemPosModal) handleCloseTooltip();
+                        }}
+                        onClick={() => {
+                          // if (selectBoxProducts.current[1]) {
+                          //   selectBoxProducts.current[1].click();
+                          //   selectBoxProducts.current[1].style.opacity = "1";
+                          //   selectBoxProducts.current[1].style.pointerEvents = "normal";
+                          // }
+                          if (inputBoxProducts.current[1]) {
+                            inputBoxProducts.current[1].focus();
+                            // 矢印クリック 全商品をリストで表示
+
+                            if (
+                              !suggestedProductName[1]?.length ||
+                              (suggestedProductName[1] &&
+                                suggestedProductName[1].length !== suggestedProductIdNameArray.length)
+                            ) {
+                              const newSuggestions = [...suggestedProductName];
+                              newSuggestions[1] = [...suggestedProductIdNameArray];
+                              setSuggestedProductName(newSuggestions);
+                              // if (suggestedProductName.length !== suggestedProductIdNameArray.length)
+                              //   setSuggestedProductName([...suggestedProductIdNameArray]);
+                            }
+                          }
+                          if (!isOpenDropdownMenuFilterProductsSold || hoveredItemPosModal) handleCloseTooltip();
+                        }}
+                      >
+                        <HiChevronDown className="stroke-[1] text-[13px] text-[var(--color-text-sub)]" />
+                      </div>
+                    </div>
+                    {/* 予測変換input セレクトと組み合わせ ここまで */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1628,8 +2289,28 @@ export const InsertNewPropertyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>売上価格</span>
-                    <input
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>売上価格</span> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "円単位でデータを管理します。",
+                          content2: "600万円と入力しても円単位に自動補完されます。",
+                          // marginTop: 57,
+                          marginTop: 39,
+                          // marginTop: 10,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <span className={`mr-[9px]`}>売上価格</span>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+                    </div>
+                    {/* <input
                       type="number"
                       min="0"
                       className={`${styles.input_box}`}
@@ -1650,13 +2331,32 @@ export const InsertNewPropertyModal = () => {
                           }
                         }
                       }}
+                    /> */}
+                    <input
+                      type="text"
+                      placeholder="例：600万円 → 6000000　※半角で入力"
+                      className={`${styles.input_box}`}
+                      value={!!salesPrice ? salesPrice : ""}
+                      onChange={(e) => setSalesPrice(e.target.value)}
+                      onBlur={() =>
+                        setSalesPrice(
+                          !!salesPrice && salesPrice !== "" && convertToYen(salesPrice.trim()) !== null
+                            ? (convertToYen(salesPrice.trim()) as number).toLocaleString()
+                            : ""
+                        )
+                      }
                     />
                     {/* バツボタン */}
-                    {salesPrice !== null && salesPrice !== 0 && (
-                      <div className={`${styles.close_btn_number}`} onClick={() => setSalesPrice(null)}>
+                    {salesPrice !== "" && (
+                      <div className={`${styles.close_btn_number}`} onClick={() => setSalesPrice("")}>
                         <MdClose className="text-[20px] " />
                       </div>
                     )}
+                    {/* {salesPrice !== null && salesPrice !== 0 && (
+                      <div className={`${styles.close_btn_number}`} onClick={() => setSalesPrice(null)}>
+                        <MdClose className="text-[20px] " />
+                      </div>
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1706,8 +2406,28 @@ export const InsertNewPropertyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>値引価格</span>
-                    <input
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>値引価格</span> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "円単位でデータを管理します。",
+                          content2: "600万円と入力しても円単位に自動補完されます。",
+                          // marginTop: 57,
+                          marginTop: 39,
+                          // marginTop: 10,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <span className={`mr-[9px]`}>値引価格</span>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+                    </div>
+                    {/* <input
                       type="number"
                       min="0"
                       className={`${styles.input_box}`}
@@ -1728,10 +2448,26 @@ export const InsertNewPropertyModal = () => {
                           }
                         }
                       }}
+                    /> */}
+                    <input
+                      type="text"
+                      placeholder="例：20万円 → 200000　※半角で入力"
+                      className={`${styles.input_box}`}
+                      value={!!expectedSalesPrice ? expectedSalesPrice : ""}
+                      onChange={(e) => setExpectedSalesPrice(e.target.value)}
+                      onBlur={() =>
+                        setExpectedSalesPrice(
+                          !!expectedSalesPrice &&
+                            expectedSalesPrice !== "" &&
+                            convertToYen(expectedSalesPrice.trim()) !== null
+                            ? (convertToYen(expectedSalesPrice.trim()) as number).toLocaleString()
+                            : ""
+                        )
+                      }
                     />
                     {/* バツボタン */}
-                    {discountedPrice !== null && discountedPrice !== 0 && (
-                      <div className={`${styles.close_btn_number}`} onClick={() => setDiscountedPrice(null)}>
+                    {discountedPrice !== "" && (
+                      <div className={`${styles.close_btn_number}`} onClick={() => setDiscountedPrice("")}>
                         <MdClose className="text-[20px] " />
                       </div>
                     )}
@@ -1749,8 +2485,28 @@ export const InsertNewPropertyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>値引率</span>
-                    <input
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>値引率</span> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "売上価格と値引価格を入力することで値引率は自動計算されます。",
+                          // content2: "600万円と入力しても円単位に自動補完されます。",
+                          // marginTop: 57,
+                          // marginTop: 39,
+                          marginTop: 10,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <span className={`mr-[9px]`}>値引率</span>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+                    </div>
+                    {/* <input
                       type="number"
                       min="0"
                       className={`${styles.input_box}`}
@@ -1771,10 +2527,22 @@ export const InsertNewPropertyModal = () => {
                           }
                         }
                       }}
+                    /> */}
+                    <input
+                      type="text"
+                      placeholder="例：3.9%の値引き → 3.9 or 3.9%　※半角で入力"
+                      className={`${styles.input_box}`}
+                      value={!!discountedRate ? `${discountedRate}` : ""}
+                      onChange={(e) => setDiscountedRate(e.target.value)}
+                      onBlur={() => {
+                        if (!discountedRate || discountedRate === "") return;
+                        const newRate = normalizeDiscountRate(discountedRate.trim());
+                        setDiscountedRate(!!newRate ? newRate : "");
+                      }}
                     />
                     {/* バツボタン */}
-                    {discountedRate !== null && discountedRate !== 0 && (
-                      <div className={`${styles.close_btn_number}`} onClick={() => setDiscountedRate(null)}>
+                    {discountedRate !== "" && (
+                      <div className={`${styles.close_btn_number}`} onClick={() => setDiscountedRate("")}>
                         <MdClose className="text-[20px] " />
                       </div>
                     )}
@@ -1868,7 +2636,7 @@ export const InsertNewPropertyModal = () => {
                       }
                       onMouseLeave={handleCloseTooltip}
                     >
-                      <span className={`mr-[6px]`}>展開四半期</span>
+                      <span className={`mr-[9px]`}>展開四半期</span>
                       <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
                     </div>
                     {/* <input
@@ -1954,7 +2722,7 @@ export const InsertNewPropertyModal = () => {
                       }
                       onMouseLeave={handleCloseTooltip}
                     >
-                      <span className={`mr-[6px]`}>売上四半期</span>
+                      <span className={`mr-[9px]`}>売上四半期</span>
                       <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
                     </div>
                     <select
@@ -2016,14 +2784,20 @@ export const InsertNewPropertyModal = () => {
                         handleOpenTooltip({
                           e: e,
                           display: "top",
+                          // content: "展開年月度は決算日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
+                          // content2: fiscalEndMonthObjRef.current
+                          //   ? `お客様の決算日は、現在${format(
+                          //       fiscalEndMonthObjRef.current,
+                          //       "M月d日"
+                          //     )}に設定されています。`
+                          //   : `決算月が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
+                          // content3: "変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
                           content: "展開年月度は決算日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
-                          content2: fiscalEndMonthObjRef.current
-                            ? `お客様の決算日は、現在${format(
-                                fiscalEndMonthObjRef.current,
-                                "M月d日"
-                              )}に設定されています。`
-                            : `決算月が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
-                          content3: "変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
+                          content2: !!fiscalEndMonthObjRef.current
+                            ? `展開日を選択することで展開年月度は自動計算されるため入力は不要です。`
+                            : `決算日が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
+                          content3:
+                            "決算日の変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
                           marginTop: 57,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",
@@ -2031,13 +2805,13 @@ export const InsertNewPropertyModal = () => {
                       }
                       onMouseLeave={handleCloseTooltip}
                     >
-                      <span className={`mr-[6px]`}>展開年月度</span>
+                      <span className={`mr-[9px]`}>展開年月度</span>
                       <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
                     </div>
                     <input
                       type="number"
                       min="0"
-                      className={`${styles.input_box}`}
+                      className={`${styles.input_box} pointer-events-none`}
                       placeholder="展開日付を選択してください。"
                       value={expansionYearMonth === null ? "" : expansionYearMonth}
                       onChange={(e) => {
@@ -2057,11 +2831,11 @@ export const InsertNewPropertyModal = () => {
                       }}
                     />
                     {/* バツボタン */}
-                    {expansionYearMonth !== null && expansionYearMonth !== 0 && (
+                    {/* {expansionYearMonth !== null && expansionYearMonth !== 0 && (
                       <div className={`${styles.close_btn_number}`} onClick={() => setExpansionYearMonth(null)}>
                         <MdClose className="text-[20px] " />
                       </div>
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -2083,14 +2857,20 @@ export const InsertNewPropertyModal = () => {
                         handleOpenTooltip({
                           e: e,
                           display: "top",
+                          // content: "売上年月度は決算日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
+                          // content2: fiscalEndMonthObjRef.current
+                          //   ? `お客様の決算日は、現在${format(
+                          //       fiscalEndMonthObjRef.current,
+                          //       "M月d日"
+                          //     )}に設定されています。`
+                          //   : `決算月が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
+                          // content3: "変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
                           content: "売上年月度は決算日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
-                          content2: fiscalEndMonthObjRef.current
-                            ? `お客様の決算日は、現在${format(
-                                fiscalEndMonthObjRef.current,
-                                "M月d日"
-                              )}に設定されています。`
-                            : `決算月が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
-                          content3: "変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
+                          content2: !!fiscalEndMonthObjRef.current
+                            ? `売上日を選択することで売上年月度は自動計算されるため入力は不要です。`
+                            : `決算日が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
+                          content3:
+                            "決算日の変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
                           marginTop: 57,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",
@@ -2098,13 +2878,13 @@ export const InsertNewPropertyModal = () => {
                       }
                       onMouseLeave={handleCloseTooltip}
                     >
-                      <span className={`mr-[6px]`}>売上年月度</span>
+                      <span className={`mr-[9px]`}>売上年月度</span>
                       <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
                     </div>
                     <input
                       type="number"
                       min="0"
-                      className={`${styles.input_box}`}
+                      className={`${styles.input_box} pointer-events-none`}
                       placeholder="売上日付を選択してください。"
                       value={salesYearMonth === null ? "" : salesYearMonth}
                       onChange={(e) => {
@@ -2124,11 +2904,11 @@ export const InsertNewPropertyModal = () => {
                       }}
                     />
                     {/* バツボタン */}
-                    {salesYearMonth !== null && salesYearMonth !== 0 && (
+                    {/* {salesYearMonth !== null && salesYearMonth !== 0 && (
                       <div className={`${styles.close_btn_number}`} onClick={() => setSalesYearMonth(null)}>
                         <MdClose className="text-[20px] " />
                       </div>
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -2650,11 +3430,33 @@ export const InsertNewPropertyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●案件年月度</span>
+                    {/* <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●案件年月度</span> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title}  ${styles.required_title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "案件年月度は決算日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
+                          content2: !!fiscalEndMonthObjRef.current
+                            ? `案件日を選択することで案件年月度は自動計算されるため入力は不要です。`
+                            : `決算日が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
+                          content3:
+                            "決算日の変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
+                          marginTop: 57,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <span className={`mr-[9px]`}>●案件年月度</span>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+                    </div>
                     <input
                       type="number"
                       min="0"
-                      className={`${styles.input_box}`}
+                      className={`${styles.input_box} pointer-events-none`}
                       placeholder=""
                       value={PropertyYearMonth === null ? "" : PropertyYearMonth}
                       onChange={(e) => {
@@ -2673,12 +3475,11 @@ export const InsertNewPropertyModal = () => {
                         }
                       }}
                     />
-                    {/* バツボタン */}
-                    {PropertyYearMonth !== null && PropertyYearMonth !== 0 && (
+                    {/* {PropertyYearMonth !== null && PropertyYearMonth !== 0 && (
                       <div className={`${styles.close_btn_number}`} onClick={() => setPropertyYearMonth(null)}>
                         <MdClose className="text-[20px] " />
                       </div>
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
