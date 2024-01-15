@@ -3,18 +3,18 @@
 import { zenkakuToHankaku } from "./zenkakuToHankaku";
 
 export function normalizeDiscountRate(inputString: string) {
-  console.log("inputString", inputString);
+  // console.log("inputString", inputString);
   // 全角数字を半角数字に変換
   const fullWidthToHalfWidth = (str: string) =>
     str.replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0));
 
   inputString = fullWidthToHalfWidth(inputString);
   // let inputString = fullWidthToHalfWidth(input);
-  console.log("inputString", inputString);
+  // console.log("inputString", inputString);
 
   // 数字、小数点、パーセント記号以外を除去 *1
   inputString = inputString.replace(/[^\d.%％]/g, "");
-  console.log("inputString", inputString);
+  // console.log("inputString", inputString);
 
   // 小数点が2つ以上含まれている場合は無効な値として扱う
   if ((inputString.match(/\./g) || []).length > 1) {
@@ -41,7 +41,7 @@ export function normalizeDiscountRate(inputString: string) {
   //   if (!hasPercent) {
   //     inputString += "%";
   //   }
-  console.log("inputString", inputString);
+  // console.log("inputString", inputString);
   inputString += "%";
 
   return inputString;

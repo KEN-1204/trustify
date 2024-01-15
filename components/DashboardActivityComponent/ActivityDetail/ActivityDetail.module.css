@@ -347,6 +347,12 @@
 .editable_field {
   cursor: pointer;
 }
+.editable_field:hover {
+  text-decoration: underline;
+}
+.textarea_box.editable_field:hover {
+  text-decoration: none;
+}
 .value.text_start {
   text-align: start;
   padding-left: 8px;

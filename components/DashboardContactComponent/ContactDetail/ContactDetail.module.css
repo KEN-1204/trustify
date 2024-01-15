@@ -309,7 +309,12 @@
 .editable_field {
   cursor: pointer;
 }
-
+.editable_field:hover {
+  text-decoration: underline;
+}
+.textarea_box.editable_field:hover {
+  text-decoration: none;
+}
 .anchor {
   color: var(--color-text-brand-f);
   text-decoration: underline;

@@ -40,6 +40,8 @@ import { convertHalfWidthNumOnly } from "@/utils/Helpers/convertHalfWidthNumOnly
 import { normalizeDiscountRate } from "@/utils/Helpers/normalizeDiscountRate";
 import {
   getOrderCertaintyStartOfMonth,
+  optionsCompetitionState,
+  optionsDecisionMakerNegotiation,
   optionsLeaseDivision,
   optionsOrderCertaintyStartOfMonth,
   optionsSalesClass,
@@ -705,8 +707,8 @@ export const UpdatePropertyModal = () => {
       : "";
     let _reason_class = selectedRowDataProperty.reason_class ? selectedRowDataProperty.reason_class : "";
     let _reason_detail = selectedRowDataProperty.reason_detail ? selectedRowDataProperty.reason_detail : "";
-    let _customer_budget = selectedRowDataProperty.customer_budget
-      ? selectedRowDataProperty.customer_budget.toString()
+    let _customer_budget = checkNotFalsyExcludeZero(selectedRowDataProperty.customer_budget)
+      ? selectedRowDataProperty.customer_budget!.toLocaleString()
       : "";
     let _decision_maker_negotiation = selectedRowDataProperty.decision_maker_negotiation
       ? selectedRowDataProperty.decision_maker_negotiation
@@ -985,7 +987,8 @@ export const UpdatePropertyModal = () => {
       reason_class: reasonClass ? reasonClass : null,
       reason_detail: reasonDetail ? reasonDetail : null,
       // customer_budget: customerBudget ? customerBudget : null,
-      customer_budget: !isNaN(parseInt(customerBudget, 10)) ? parseInt(customerBudget, 10) : null,
+      // customer_budget: !isNaN(parseInt(customerBudget, 10)) ? parseInt(customerBudget, 10) : null,
+      customer_budget: checkNotFalsyExcludeZero(customerBudget) ? customerBudget.replace(/,/g, "") : null, // 0以外のfalsyならnullをセット 0円は許容
       decision_maker_negotiation: decisionMakerNegotiation ? decisionMakerNegotiation : null,
       expansion_year_month: expansionYearMonth ? expansionYearMonth : null,
       sales_year_month: salesYearMonth ? salesYearMonth : null,
@@ -3249,10 +3252,15 @@ export const UpdatePropertyModal = () => {
                       }}
                     >
                       <option value=""></option>
-                      <option value="競合無し">競合無し</option>
+                      {optionsCompetitionState.map((option) => (
+                        <option key={option} value={`${option}`}>
+                          {option}
+                        </option>
+                      ))}
+                      {/* <option value="競合無し">競合無し</option>
                       <option value="競合有り ○優勢">競合有り ○優勢</option>
                       <option value="競合有り △">競合有り △</option>
-                      <option value="競合有り ▲劣勢">競合有り ▲劣勢</option>
+                      <option value="競合有り ▲劣勢">競合有り ▲劣勢</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -3489,9 +3497,14 @@ export const UpdatePropertyModal = () => {
                       }}
                     >
                       <option value=""></option>
-                      <option value="決裁者と会えず">決裁者と会えず</option>
+                      {optionsDecisionMakerNegotiation.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                      {/* <option value="決裁者と会えず">決裁者と会えず</option>
                       <option value="決裁者と会うも、商談できず">決裁者と会うも、商談できず</option>
-                      <option value="決裁者と商談済み">決裁者と商談済み</option>
+                      <option value="決裁者と商談済み">決裁者と商談済み</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>

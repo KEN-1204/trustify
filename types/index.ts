@@ -1189,7 +1189,8 @@ export type Property_row_data = {
   competitor_product: string | null;
   reason_class: string | null;
   reason_detail: string | null;
-  customer_budget: number | null;
+  // customer_budget: number | null;
+  customer_budget: string | null;
   decision_maker_negotiation: string | null;
   expansion_year_month: number | null;
   sales_year_month: number | null;
@@ -1575,7 +1576,8 @@ export type NewSearchProperty_Contact_CompanyParams = {
   competitor_product: string | null;
   reason_class: string | null;
   reason_detail: string | null;
-  customer_budget: number | null;
+  // customer_budget: number | null;
+  customer_budget: string | null;
   decision_maker_negotiation: string | null;
   expansion_year_month: number | null;
   sales_year_month: number | null;
@@ -1787,7 +1789,8 @@ export type Property = {
   competitor_product: string | null;
   reason_class: string | null;
   reason_detail: string | null;
-  customer_budget: number | null;
+  // customer_budget: number | null;
+  customer_budget: string | null;
   decision_maker_negotiation: string | null;
   expansion_year_month: number | null;
   sales_year_month: number | null;

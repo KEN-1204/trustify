@@ -2532,6 +2532,7 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
       case "expected_sales_price":
       case "sales_price":
       case "discounted_price":
+      case "customer_budget":
         if (!checkNotFalsyExcludeZero(value)) return null;
         return (value as number).toLocaleString();
         break;
@@ -2560,7 +2561,7 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
       <div
         className={`${styles.main_container} ${
           tableContainerSize === "one_third" ? `${styles.main_container_one_third}` : ``
-        } ${tableContainerSize === "half" ? `${styles.main_container_half}` : ``} ${
+        } ${tableContainerSize === "half" ? `${styles.main_container_half} ${styles.medium}` : ``} ${
           theme === "light" ? `${styles.theme_f_light}` : `${styles.theme_f_dark}`
         }`}
       >
@@ -2741,9 +2742,9 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
             aria-multiselectable="true"
             style={{ width: "100%" }}
             // style={{ height: "100%", "--header-row-height": "35px" } as any}
-            className={`${styles.grid_scroll_container} ${
+            className={`${styles.grid_scroll_container} ${tableContainerSize === "all" ? `${styles.all}` : ``} ${
               tableContainerSize === "one_third" ? `${styles.grid_scroll_container_one_third}` : ``
-            } ${tableContainerSize === "half" ? `${styles.grid_scroll_container_half}` : ``}`}
+            } ${tableContainerSize === "half" ? `${styles.grid_scroll_container_half} ${styles.medium}` : ``}`}
             onKeyDown={(e) => {
               if (e.key === "ArrowUp" || e.key === "ArrowDown") {
                 e.preventDefault(); // セル移動時に上下矢印キーで移動しないようにする

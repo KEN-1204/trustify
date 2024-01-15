@@ -484,3 +484,9 @@ export const getOrderCertaintyStartOfMonth = (classNum: number, language: string
 //       break;
 //   }
 // };
+
+// 競合状況
+export const optionsCompetitionState = ["競合無し", "競合有り ○優勢", "競合有り △", "競合有り ▲劣勢"];
+
+// 決裁者商談有無
+export const optionsDecisionMakerNegotiation = ["決裁者と会えず", "決裁者と会うも、商談できず", "決裁者と商談済み"];
