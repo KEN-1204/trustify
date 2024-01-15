@@ -18,8 +18,8 @@ export function convertToYen(inputString: string): number | null {
     !inputString.includes(",")
   ) {
     const result = parseInt(inputString, 10);
-    console.log("1isNan", Number.isNaN(result));
-    if (Number.isNaN(result)) return null;
+    console.log("1isNan", isNaN(result));
+    if (isNaN(result)) return null;
     return result;
   }
 
@@ -42,8 +42,8 @@ export function convertToYen(inputString: string): number | null {
   // 1,000や1,000,000のように単位無しで区切り文字のみ存在する場合は区切り文字を取り除いてそのまま返す
   if (!trillionMatch && !billionMatch && !millionMatch && inputString.includes(",")) {
     const result = parseInt(inputString.replace(/,/g, "").replace(/[^\d]/g, ""), 10);
-    console.log("2isNan", Number.isNaN(result));
-    if (Number.isNaN(result)) return null;
+    console.log("2isNan", isNaN(result));
+    if (isNaN(result)) return null;
     return result;
   }
 
@@ -68,8 +68,8 @@ export function convertToYen(inputString: string): number | null {
     }
   }
 
-  console.log("3isNan", Number.isNaN(total), total);
-  if (Number.isNaN(total)) return null;
+  console.log("3isNan", isNaN(total), total);
+  if (isNaN(total)) return null;
   return total;
 }
 

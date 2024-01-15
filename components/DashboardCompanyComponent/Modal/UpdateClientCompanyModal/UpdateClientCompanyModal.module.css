@@ -140,6 +140,7 @@
   /* padding-left: 25px; */
   padding-right: 25px;
   /* padding-top: 5px; */
+  font-size: 15px;
   font-weight: 700;
   /* font-size: 18px; */
   user-select: none;
@@ -194,7 +195,8 @@
   /* padding: 4px 8px; */
   min-height: 32px;
   padding: 6px 8px;
-  font-size: 15px;
+  /* font-size: 15px; */
+  font-size: 14px;
   border-radius: 6px;
 }
 
@@ -206,7 +208,8 @@
   box-shadow: var(--color-bg-under-input-box-shadow);
   /* padding: 3px 6px; */
   padding: 8px 10px;
-  font-size: 15px;
+  /* font-size: 15px; */
+  font-size: 14px;
   border-radius: 6px;
   resize: none;
 }
@@ -217,7 +220,8 @@
   padding-left: 5px;
   /* height: 30px; */
   min-height: 32px;
-  font-size: 15px;
+  /* font-size: 15px; */
+  font-size: 14px;
   border-radius: 6px;
 }
 
@@ -228,11 +232,11 @@
   box-shadow: var(--color-bg-under-input-active-box-shadow);
 }
 .input_box:hover {
-  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+  box-shadow: inset 0 0 0 1px var(--color-bg-brand-f);
 }
 .select_box:hover {
-  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+  box-shadow: inset 0 0 0 1px var(--color-bg-brand-f);
 }
 .textarea_box:hover {
-  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+  box-shadow: inset 0 0 0 1px var(--color-bg-brand-f);
 }

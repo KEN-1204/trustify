@@ -1351,7 +1351,7 @@ export const UpdateMeetingModal = () => {
                     <DatePickerCustomInput
                       startDate={plannedDate}
                       setStartDate={setPlannedDate}
-                      fontSize="text-[15px]"
+                      fontSize="text-[14px]"
                       placeholderText="placeholder:text-[15px]"
                       py="py-[6px]"
                       minHeight="min-h-[32px]"
@@ -2048,7 +2048,7 @@ export const UpdateMeetingModal = () => {
                     <DatePickerCustomInput
                       startDate={resultDate}
                       setStartDate={setResultDate}
-                      fontSize="text-[15px]"
+                      fontSize="text-[14px]"
                       placeholderText="placeholder:text-[15px]"
                       py="py-[6px]"
                       minHeight="min-h-[32px]"

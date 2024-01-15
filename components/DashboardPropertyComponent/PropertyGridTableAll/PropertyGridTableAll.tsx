@@ -20,6 +20,8 @@ import { format } from "date-fns";
 import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 import { GridTableFooter } from "@/components/GridTable/GridTableFooter/GridTableFooter";
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
+import { checkNotFalsyExcludeZero } from "@/utils/Helpers/checkNotFalsyExcludeZero";
+import { getOrderCertaintyStartOfMonth } from "@/utils/selectOptions";
 
 type TableDataType = {
   id: number;
@@ -369,8 +371,8 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
         .range(from, to)
         // .order("company_name", { ascending: true });
         // .order("property_created_at", { ascending: false })
-        // .order("expected_order_date", { ascending: false }) //面談・訪問日(予定)
-        .order("property_date", { ascending: false }) //面談・訪問日(予定)
+        .order("expected_order_date", { ascending: false }) //面談・訪問日(予定)
+        // .order("property_date", { ascending: false }) //面談・訪問日(予定)
         .order("property_created_at", { ascending: false }); //面談作成日時
       // .order("company_name", { ascending: true });//会社名
       // 成功バージョン
@@ -445,8 +447,8 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
         .range(from, to)
         // .order("company_name", { ascending: true });
         // .order("property_created_at", { ascending: false });
-        // .order("expected_order_date", { ascending: false }) //面談・訪問日(予定)
-        .order("property_date", { ascending: false }) //面談・訪問日(予定)
+        .order("expected_order_date", { ascending: false }) //面談・訪問日(予定)
+        // .order("property_date", { ascending: false }) //面談・訪問日(予定)
         .order("property_created_at", { ascending: false }); //面談作成日時
       // 成功バージョン
       // const { data, error, count } = await supabase
@@ -2470,7 +2472,7 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
       case "property_created_at":
       case "property_updated_at":
         try {
-          if (!!value && !Number.isNaN(new Date(value).getTime())) {
+          if (!!value && !isNaN(new Date(value).getTime())) {
             return format(new Date(value), formatDateMapping[columnName]);
           } else {
             console.log("❎日付チェック 存在しない日付のためformatせず");
@@ -2480,6 +2482,14 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
           console.error(`日付チェック エラー発生 e`, e);
           return value;
         }
+        break;
+
+      // 展開四半期、売上四半期
+      case "expansion_quarter":
+      case "sales_quarter":
+        if (!value) return null;
+        return value + "Q";
+        break;
 
       // 面談開始(予定)、面談開始(結果)、面談終了(結果)
       case "planned_start_time":
@@ -2494,6 +2504,7 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
         } else {
           return value;
         }
+        break;
 
       // ペンディング、物件没、責任者物件介入、リピートフラグ
       case "pending_flag":
@@ -2501,18 +2512,41 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
       case "step_in_flag":
       case "repeat_flag":
         return flagMapping[columnName][String(value)];
+        break;
 
       //職位
       case "position_class":
         if (!value) return null;
         const positionTitle = mappingPositionClass[value as number]?.[language];
         return positionTitle || value.toString();
+        break;
 
       // 担当職種
       case "occupation":
         if (!value) return null;
         const occupationTitle = mappingOccupation[value as number]?.[language];
         return occupationTitle || value.toString();
+        break;
+
+      // 予定売上価格・売上価格・値引価格
+      case "expected_sales_price":
+      case "sales_price":
+      case "discounted_price":
+        if (!checkNotFalsyExcludeZero(value)) return null;
+        return (value as number).toLocaleString();
+        break;
+
+      // 値引率
+      case "discount_rate":
+        if (!checkNotFalsyExcludeZero(value)) return null;
+        return value.toString() + "%";
+        break;
+
+      // 月初確度・中間見直確度
+      case "review_order_certainty":
+      case "order_certainty_start_of_month":
+        if (!value) return null;
+        return typeof value === "number" ? getOrderCertaintyStartOfMonth(value) : null;
 
       default:
         return value;

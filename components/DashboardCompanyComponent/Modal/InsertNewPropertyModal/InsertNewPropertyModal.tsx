@@ -38,7 +38,16 @@ import { HiChevronDown } from "react-icons/hi2";
 import { normalizeDiscountRate } from "@/utils/Helpers/normalizeDiscountRate";
 import { checkNotFalsyExcludeZero } from "@/utils/Helpers/checkNotFalsyExcludeZero";
 import { calculateDiscountRate } from "@/utils/Helpers/calculateDiscountRate";
-import { optionsReasonClass, optionsSalesClass, optionsSalesContributionCategory } from "@/utils/selectOptions";
+import {
+  getOrderCertaintyStartOfMonth,
+  optionsLeaseDivision,
+  optionsOrderCertaintyStartOfMonth,
+  optionsReasonClass,
+  optionsSalesClass,
+  optionsSalesContributionCategory,
+  optionsSubscriptionInterval,
+  optionsTermDivision,
+} from "@/utils/selectOptions";
 import { convertHalfWidthNumOnly } from "@/utils/Helpers/convertHalfWidthNumOnly";
 
 type ModalProperties = {
@@ -558,7 +567,18 @@ export const InsertNewPropertyModal = () => {
 
   // ---------------------------- 🌟値引率の自動計算🌟 ----------------------------
   useEffect(() => {
+    if (unitSales === "0" || unitSales === "０") {
+      setUnitSales("");
+      if (discountedPrice !== "") setDiscountedPrice("");
+      if (discountedRate !== "") setDiscountedRate("");
+    }
     if (!!salesPrice && !!discountedPrice && !!unitSales && !isComposing) {
+      // 売上価格が0円の場合は、値引価格と値引率を0にする
+      if (salesPrice === "0") {
+        if (discountedPrice !== "0") setDiscountedPrice("0");
+        if (discountedRate !== "0") setDiscountedRate("0");
+        return;
+      }
       const payload = {
         salesPriceStr: salesPrice.replace(/,/g, ""),
         discountPriceStr: discountedPrice.replace(/,/g, ""),
@@ -694,8 +714,12 @@ export const InsertNewPropertyModal = () => {
       lease_expiration_date: leaseExpirationDate ? leaseExpirationDate.toISOString() : null,
       step_in_flag: stepInFlag,
       repeat_flag: repeatFlag,
-      order_certainty_start_of_month: orderCertaintyStartOfMonth ? orderCertaintyStartOfMonth : null,
-      review_order_certainty: reviewOrderCertainty ? reviewOrderCertainty : null,
+      // order_certainty_start_of_month: orderCertaintyStartOfMonth ? orderCertaintyStartOfMonth : null,
+      // review_order_certainty: reviewOrderCertainty ? reviewOrderCertainty : null,
+      order_certainty_start_of_month: !isNaN(parseInt(orderCertaintyStartOfMonth, 10))
+        ? parseInt(orderCertaintyStartOfMonth, 10)
+        : null,
+      review_order_certainty: !isNaN(parseInt(reviewOrderCertainty, 10)) ? parseInt(reviewOrderCertainty, 10) : null,
       competitor_appearance_date: competitorAppearanceDate ? competitorAppearanceDate.toISOString() : null,
       competitor: competitor ? competitor : null,
       competitor_product: competitorProduct ? competitorProduct : null,
@@ -792,9 +816,9 @@ export const InsertNewPropertyModal = () => {
       // created_by_office_of_user: officeId ? officeId : null,
       client_contact_id: selectedRowDataActivity.contact_id,
       client_company_id: selectedRowDataActivity.company_id,
-      current_status: currentStatus,
-      property_name: propertyName,
-      property_summary: propertySummary,
+      current_status: currentStatus ? currentStatus : null,
+      property_name: propertyName ? propertyName : null,
+      property_summary: propertySummary ? propertySummary : null,
       pending_flag: pendingFlag,
       rejected_flag: rejectedFlag,
       // product_name: productName ? productName : null,
@@ -806,7 +830,7 @@ export const InsertNewPropertyModal = () => {
       expected_order_date: expectedOrderDate ? expectedOrderDate.toISOString() : null,
       // expected_sales_price: expectedSalesPrice,
       expected_sales_price: checkNotFalsyExcludeZero(expectedSalesPrice) ? expectedSalesPrice.replace(/,/g, "") : null, // 0以外のfalsyならnullをセット 0円は許容
-      term_division: termDivision,
+      term_division: termDivision ? termDivision : null,
       // sold_product: soldProductName ? soldProductName : null,
       // sold_product: soldProduct ? soldProduct : null,
       sold_product_id: soldProductId ? soldProductId : null,
@@ -832,8 +856,12 @@ export const InsertNewPropertyModal = () => {
       lease_expiration_date: leaseExpirationDate ? leaseExpirationDate.toISOString() : null,
       step_in_flag: stepInFlag,
       repeat_flag: repeatFlag,
-      order_certainty_start_of_month: orderCertaintyStartOfMonth ? orderCertaintyStartOfMonth : null,
-      review_order_certainty: reviewOrderCertainty ? reviewOrderCertainty : null,
+      // order_certainty_start_of_month: orderCertaintyStartOfMonth ? orderCertaintyStartOfMonth : null,
+      // review_order_certainty: reviewOrderCertainty ? reviewOrderCertainty : null,
+      order_certainty_start_of_month: !isNaN(parseInt(orderCertaintyStartOfMonth, 10))
+        ? parseInt(orderCertaintyStartOfMonth, 10)
+        : null,
+      review_order_certainty: !isNaN(parseInt(reviewOrderCertainty, 10)) ? parseInt(reviewOrderCertainty, 10) : null,
       competitor_appearance_date: competitorAppearanceDate ? competitorAppearanceDate.toISOString() : null,
       competitor: competitor ? competitor : null,
       competitor_product: competitorProduct ? competitorProduct : null,
@@ -925,9 +953,9 @@ export const InsertNewPropertyModal = () => {
       // created_by_office_of_user: officeId ? officeId : null,
       client_contact_id: selectedRowDataProperty.contact_id,
       client_company_id: selectedRowDataProperty.company_id,
-      current_status: currentStatus,
-      property_name: propertyName,
-      property_summary: propertySummary,
+      current_status: currentStatus ? currentStatus : null,
+      property_name: propertyName ? propertyName : null,
+      property_summary: propertySummary ? propertySummary : null,
       pending_flag: pendingFlag,
       rejected_flag: rejectedFlag,
       // product_name: productName ? productName : null,
@@ -939,7 +967,7 @@ export const InsertNewPropertyModal = () => {
       expected_order_date: expectedOrderDate ? expectedOrderDate.toISOString() : null,
       // expected_sales_price: expectedSalesPrice,
       expected_sales_price: checkNotFalsyExcludeZero(expectedSalesPrice) ? expectedSalesPrice.replace(/,/g, "") : null, // 0以外のfalsyならnullをセット 0円は許容
-      term_division: termDivision,
+      term_division: termDivision ? termDivision : null,
       // sold_product: soldProductName ? soldProductName : null,
       // sold_product: soldProduct ? soldProduct : null,
       sold_product_id: soldProductId ? soldProductId : null,
@@ -965,8 +993,10 @@ export const InsertNewPropertyModal = () => {
       lease_expiration_date: leaseExpirationDate ? leaseExpirationDate.toISOString() : null,
       step_in_flag: stepInFlag,
       repeat_flag: repeatFlag,
-      order_certainty_start_of_month: orderCertaintyStartOfMonth ? orderCertaintyStartOfMonth : null,
-      review_order_certainty: reviewOrderCertainty ? reviewOrderCertainty : null,
+      order_certainty_start_of_month: !isNaN(parseInt(orderCertaintyStartOfMonth, 10))
+        ? parseInt(orderCertaintyStartOfMonth, 10)
+        : null,
+      review_order_certainty: !isNaN(parseInt(reviewOrderCertainty, 10)) ? parseInt(reviewOrderCertainty, 10) : null,
       competitor_appearance_date: competitorAppearanceDate ? competitorAppearanceDate.toISOString() : null,
       competitor: competitor ? competitor : null,
       competitor_product: competitorProduct ? competitorProduct : null,
@@ -1058,9 +1088,9 @@ export const InsertNewPropertyModal = () => {
       // created_by_office_of_user: officeId ? officeId : null,
       client_contact_id: selectedRowDataContact.contact_id,
       client_company_id: selectedRowDataContact.company_id,
-      current_status: currentStatus,
-      property_name: propertyName,
-      property_summary: propertySummary,
+      current_status: currentStatus ? currentStatus : null,
+      property_name: propertyName ? propertyName : null,
+      property_summary: propertySummary ? propertySummary : null,
       pending_flag: pendingFlag,
       rejected_flag: rejectedFlag,
       // product_name: productName ? productName : null,
@@ -1072,7 +1102,7 @@ export const InsertNewPropertyModal = () => {
       expected_order_date: expectedOrderDate ? expectedOrderDate.toISOString() : null,
       // expected_sales_price: expectedSalesPrice,
       expected_sales_price: checkNotFalsyExcludeZero(expectedSalesPrice) ? expectedSalesPrice.replace(/,/g, "") : null, // 0以外のfalsyならnullをセット 0円は許容
-      term_division: termDivision,
+      term_division: termDivision ? termDivision : null,
       // sold_product: soldProductName ? soldProductName : null,
       // sold_product: soldProduct ? soldProduct : null,
       sold_product_id: soldProductId ? soldProductId : null,
@@ -1087,7 +1117,7 @@ export const InsertNewPropertyModal = () => {
       // discount_rate: discountedRate ? discountedRate : null,
       // 小数点を含む値（例："0.5"）をSupabase/PostgreSQLのnumeric型フィールドに保存する場合は、文字列形式のまま保存するのが一般的
       discount_rate: discountedRate ? discountedRate.replace(/[%％]/g, "") : null,
-      sales_class: salesClass,
+      sales_class: salesClass ? salesClass : null,
       expansion_date: expansionDate ? expansionDate.toISOString() : null,
       sales_date: salesDate ? salesDate.toISOString() : null,
       expansion_quarter: expansionQuarter ? expansionQuarter : null,
@@ -1099,8 +1129,10 @@ export const InsertNewPropertyModal = () => {
       lease_expiration_date: leaseExpirationDate ? leaseExpirationDate.toISOString() : null,
       step_in_flag: stepInFlag,
       repeat_flag: repeatFlag,
-      order_certainty_start_of_month: orderCertaintyStartOfMonth,
-      review_order_certainty: reviewOrderCertainty ? reviewOrderCertainty : null,
+      order_certainty_start_of_month: !isNaN(parseInt(orderCertaintyStartOfMonth, 10))
+        ? parseInt(orderCertaintyStartOfMonth, 10)
+        : null,
+      review_order_certainty: !isNaN(parseInt(reviewOrderCertainty, 10)) ? parseInt(reviewOrderCertainty, 10) : null,
       competitor_appearance_date: competitorAppearanceDate ? competitorAppearanceDate.toISOString() : null,
       competitor: competitor ? competitor : null,
       competitor_product: competitorProduct ? competitorProduct : null,
@@ -1871,7 +1903,7 @@ export const InsertNewPropertyModal = () => {
                     <DatePickerCustomInput
                       startDate={expectedOrderDate}
                       setStartDate={setExpectedOrderDate}
-                      fontSize="text-[15px]"
+                      fontSize="text-[14px]"
                       placeholderText="placeholder:text-[15px]"
                       py="py-[6px]"
                       minHeight="min-h-[32px]"
@@ -1993,8 +2025,14 @@ export const InsertNewPropertyModal = () => {
                       }}
                     >
                       <option value=""></option>
-                      <option value="今期">今期 (今期に獲得予定)</option>
-                      <option value="来期">来期 (来期に獲得予定)</option>
+                      {optionsTermDivision.map((option) => (
+                        <option key={option} value={option}>
+                          {option === "今期" && `今期 (今期に獲得予定)`}
+                          {option === "来期" && `来期 (来期に獲得予定)`}
+                        </option>
+                      ))}
+                      {/* <option value="今期">今期 (今期に獲得予定)</option>
+                      <option value="来期">来期 (来期に獲得予定)</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -2023,9 +2061,14 @@ export const InsertNewPropertyModal = () => {
                       }}
                     >
                       <option value=""></option>
-                      <option value="○ (80%以上の確率で受注)">○ (80%以上の確率で受注)</option>
+                      {optionsOrderCertaintyStartOfMonth.map((option) => (
+                        <option key={option} value={`${option}`}>
+                          {getOrderCertaintyStartOfMonth(option)}
+                        </option>
+                      ))}
+                      {/* <option value="○ (80%以上の確率で受注)">○ (80%以上の確率で受注)</option>
                       <option value="△ (50%以上の確率で受注)">△ (50%以上の確率で受注)</option>
-                      <option value="▲ (30%以上の確率で受注)">▲ (30%以上の確率で受注)</option>
+                      <option value="▲ (30%以上の確率で受注)">▲ (30%以上の確率で受注)</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -2050,9 +2093,14 @@ export const InsertNewPropertyModal = () => {
                       }}
                     >
                       <option value=""></option>
-                      <option value="○ (80%以上の確率で受注)">○ (80%以上の確率で受注)</option>
+                      {optionsOrderCertaintyStartOfMonth.map((option) => (
+                        <option key={option} value={`${option}`}>
+                          {getOrderCertaintyStartOfMonth(option)}
+                        </option>
+                      ))}
+                      {/* <option value="○ (80%以上の確率で受注)">○ (80%以上の確率で受注)</option>
                       <option value="△ (50%以上の確率で受注)">△ (50%以上の確率で受注)</option>
-                      <option value="▲ (30%以上の確率で受注)">▲ (30%以上の確率で受注)</option>
+                      <option value="▲ (30%以上の確率で受注)">▲ (30%以上の確率で受注)</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -2110,6 +2158,378 @@ export const InsertNewPropertyModal = () => {
                         <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
                       </svg>
                     </div>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 右ラッパーここまで */}
+            </div>
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* 展開日付 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title} !min-w-[140px]`}>展開日付</span>
+                    <DatePickerCustomInput
+                      startDate={expansionDate}
+                      setStartDate={setExpansionDate}
+                      fontSize="text-[14px]"
+                      placeholderText="placeholder:text-[15px]"
+                      py="py-[6px]"
+                      minHeight="min-h-[32px]"
+                    />
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 左ラッパーここまで */}
+            </div>
+
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/*  */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}></div>
+                  {/* <div className={`${styles.underline}`}></div> */}
+                </div>
+              </div>
+
+              {/* 右ラッパーここまで */}
+            </div>
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* 展開年月度 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>展開四半期</span> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "展開四半期は決算日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
+                          content2: fiscalEndMonthObjRef.current
+                            ? `お客様の決算日は、現在${format(
+                                fiscalEndMonthObjRef.current,
+                                "M月d日"
+                              )}に設定されています。`
+                            : `決算月が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
+                          content3: "変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
+                          marginTop: 57,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <span className={`mr-[9px]`}>展開四半期</span>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+                    </div>
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      placeholder="時"
+                      value={expansionQuarterSelectedYear ? expansionQuarterSelectedYear : ""}
+                      onChange={(e) =>
+                        setExpansionQuarterSelectedYear(e.target.value === "" ? null : Number(e.target.value))
+                      }
+                    >
+                      <option value=""></option>
+                      {optionsYear.map((year) => (
+                        <option key={year} value={year}>
+                          {year}
+                        </option>
+                      ))}
+                    </select>
+
+                    <span className="mx-[10px] min-w-max">年度</span>
+
+                    <select
+                      className={`ml-auto h-full w-[60%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      placeholder="分"
+                      value={expansionQuarterSelectedQuarter ? expansionQuarterSelectedQuarter : ""}
+                      onChange={(e) =>
+                        setExpansionQuarterSelectedQuarter(e.target.value === "" ? null : Number(e.target.value))
+                      }
+                    >
+                      <option value=""></option>
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                      <option value="4">4</option>
+                    </select>
+
+                    <span className="mx-[10px]">Q</span>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 左ラッパーここまで */}
+            </div>
+
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/*  */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>展開年月度</span> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "展開年月度は決算日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
+                          content2: !!fiscalEndMonthObjRef.current
+                            ? `展開日を選択することで展開年月度は自動計算されるため入力は不要です。`
+                            : `決算日が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
+                          content3:
+                            "決算日の変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
+                          marginTop: 57,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <span className={`mr-[9px]`}>展開年月度</span>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+                    </div>
+                    <input
+                      type="number"
+                      min="0"
+                      className={`${styles.input_box} pointer-events-none`}
+                      placeholder="展開日付を選択してください。"
+                      value={expansionYearMonth === null ? "" : expansionYearMonth}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "") {
+                          setExpansionYearMonth(null);
+                        } else {
+                          const numValue = Number(val);
+
+                          // 入力値がマイナスかチェック
+                          if (numValue < 0) {
+                            setExpansionYearMonth(0); // ここで0に設定しているが、必要に応じて他の正の値に変更することもできる
+                          } else {
+                            setExpansionYearMonth(numValue);
+                          }
+                        }
+                      }}
+                    />
+                    {/* バツボタン */}
+                    {/* {expansionYearMonth !== null && expansionYearMonth !== 0 && (
+                      <div className={`${styles.close_btn_number}`} onClick={() => setExpansionYearMonth(null)}>
+                        <MdClose className="text-[20px] " />
+                      </div>
+                    )} */}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 右ラッパーここまで */}
+            </div>
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* 売上日付 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title} !min-w-[140px]`}>売上日付</span>
+                    <DatePickerCustomInput
+                      startDate={salesDate}
+                      setStartDate={setSalesDate}
+                      fontSize="text-[14px]"
+                      placeholderText="placeholder:text-[15px]"
+                      py="py-[6px]"
+                      minHeight="min-h-[32px]"
+                    />
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 左ラッパーここまで */}
+            </div>
+
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* 売上四半期 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}></div>
+                  {/* <div className={`${styles.underline}`}></div> */}
+                </div>
+              </div>
+
+              {/* 右ラッパーここまで */}
+            </div>
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* 売上年月度 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>売上四半期</span> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "売上四半期は決算日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
+                          content2: fiscalEndMonthObjRef.current
+                            ? `お客様の決算日は、現在${format(
+                                fiscalEndMonthObjRef.current,
+                                "M月d日"
+                              )}に設定されています。`
+                            : `決算月が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
+                          content3: "変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
+                          marginTop: 57,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <span className={`mr-[9px]`}>売上四半期</span>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+                    </div>
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      placeholder="時"
+                      value={salesQuarterSelectedYear ? salesQuarterSelectedYear : ""}
+                      onChange={(e) =>
+                        setSalesQuarterSelectedYear(e.target.value === "" ? null : Number(e.target.value))
+                      }
+                    >
+                      <option value=""></option>
+                      {optionsYear.map((year) => (
+                        <option key={year} value={year}>
+                          {year}
+                        </option>
+                      ))}
+                    </select>
+
+                    <span className="mx-[10px] min-w-max">年度</span>
+
+                    <select
+                      className={`ml-auto h-full w-[60%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      placeholder="分"
+                      value={salesQuarterSelectedQuarter ? salesQuarterSelectedQuarter : ""}
+                      onChange={(e) =>
+                        setSalesQuarterSelectedQuarter(e.target.value === "" ? null : Number(e.target.value))
+                      }
+                    >
+                      <option value=""></option>
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                      <option value="4">4</option>
+                    </select>
+
+                    <span className="mx-[10px]">Q</span>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 左ラッパーここまで */}
+            </div>
+
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/*  */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>売上年月度</span> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          // content: "売上年月度は決算日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
+                          // content2: fiscalEndMonthObjRef.current
+                          //   ? `お客様の決算日は、現在${format(
+                          //       fiscalEndMonthObjRef.current,
+                          //       "M月d日"
+                          //     )}に設定されています。`
+                          //   : `決算月が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
+                          // content3: "変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
+                          content: "売上年月度は決算日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
+                          content2: !!fiscalEndMonthObjRef.current
+                            ? `売上日を選択することで売上年月度は自動計算されるため入力は不要です。`
+                            : `決算日が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
+                          content3:
+                            "決算日の変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
+                          marginTop: 57,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <span className={`mr-[9px]`}>売上年月度</span>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+                    </div>
+                    <input
+                      type="number"
+                      min="0"
+                      className={`${styles.input_box} pointer-events-none`}
+                      placeholder="売上日付を選択してください。"
+                      value={salesYearMonth === null ? "" : salesYearMonth}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "") {
+                          setSalesYearMonth(null);
+                        } else {
+                          const numValue = Number(val);
+
+                          // 入力値がマイナスかチェック
+                          if (numValue < 0) {
+                            setSalesYearMonth(0); // ここで0に設定しているが、必要に応じて他の正の値に変更することもできる
+                          } else {
+                            setSalesYearMonth(numValue);
+                          }
+                        }
+                      }}
+                    />
+                    {/* バツボタン */}
+                    {/* {salesYearMonth !== null && salesYearMonth !== 0 && (
+                      <div className={`${styles.close_btn_number}`} onClick={() => setSalesYearMonth(null)}>
+                        <MdClose className="text-[20px] " />
+                      </div>
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -2450,7 +2870,15 @@ export const InsertNewPropertyModal = () => {
                       onCompositionStart={() => setIsComposing(true)}
                       onCompositionEnd={() => setIsComposing(false)}
                       value={!!salesPrice ? salesPrice : ""}
-                      onChange={(e) => setSalesPrice(e.target.value)}
+                      onChange={(e) => {
+                        if (e.target.value === "0" || e.target.value === "０") {
+                          setSalesPrice("0");
+                          setDiscountedPrice("0");
+                          setDiscountedRate("0");
+                          return;
+                        }
+                        setSalesPrice(e.target.value);
+                      }}
                       onBlur={() => {
                         if (!salesPrice || salesPrice === "") return setSalesPrice("");
                         const converted = convertToYen(salesPrice.trim());
@@ -2518,9 +2946,16 @@ export const InsertNewPropertyModal = () => {
                       onCompositionStart={() => setIsComposing(true)}
                       onCompositionEnd={() => setIsComposing(false)}
                       value={!!unitSales ? unitSales : ""}
-                      onChange={(e) => setUnitSales(e.target.value)}
-                      onBlur={() => {
-                        if (!unitSales || unitSales === "") return setUnitSales("");
+                      onChange={(e) => {
+                        if (e.target.value === "0" || e.target.value === "０") {
+                          if (unitSales === "0" || unitSales === "０") setUnitSales("");
+                          return;
+                        }
+                        setUnitSales(e.target.value);
+                      }}
+                      onBlur={(e) => {
+                        if (!unitSales || unitSales === "" || unitSales === "0" || e.target.value === "０")
+                          return setUnitSales("");
                         const converted = convertHalfWidthNumOnly(unitSales.trim());
                         if (converted === null) return setUnitSales("");
                         setUnitSales(converted);
@@ -2741,369 +3176,6 @@ export const InsertNewPropertyModal = () => {
           <div className={`${styles.full_contents_wrapper} flex w-full`}>
             {/* --------- 左ラッパー --------- */}
             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 展開日付 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>展開日付</span>
-                    <DatePickerCustomInput
-                      startDate={expansionDate}
-                      setStartDate={setExpansionDate}
-                      fontSize="text-[15px]"
-                      placeholderText="placeholder:text-[15px]"
-                      py="py-[6px]"
-                      minHeight="min-h-[32px]"
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 左ラッパーここまで */}
-            </div>
-
-            {/* --------- 右ラッパー --------- */}
-            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 売上日付 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>売上日付</span>
-                    <DatePickerCustomInput
-                      startDate={salesDate}
-                      setStartDate={setSalesDate}
-                      fontSize="text-[15px]"
-                      placeholderText="placeholder:text-[15px]"
-                      py="py-[6px]"
-                      minHeight="min-h-[32px]"
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 右ラッパーここまで */}
-            </div>
-          </div>
-          {/* --------- 横幅全体ラッパーここまで --------- */}
-
-          {/* --------- 横幅全体ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full`}>
-            {/* --------- 左ラッパー --------- */}
-            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 展開四半期 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    {/* <span className={`${styles.title} !min-w-[140px]`}>展開四半期</span> */}
-                    <div
-                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
-                      onMouseEnter={(e) =>
-                        handleOpenTooltip({
-                          e: e,
-                          display: "top",
-                          content: "展開四半期は決算日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
-                          content2: fiscalEndMonthObjRef.current
-                            ? `お客様の決算日は、現在${format(
-                                fiscalEndMonthObjRef.current,
-                                "M月d日"
-                              )}に設定されています。`
-                            : `決算月が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
-                          content3: "変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
-                          marginTop: 57,
-                          itemsPosition: "center",
-                          whiteSpace: "nowrap",
-                        })
-                      }
-                      onMouseLeave={handleCloseTooltip}
-                    >
-                      <span className={`mr-[9px]`}>展開四半期</span>
-                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
-                    </div>
-                    {/* <input
-                      type="text"
-                      placeholder="20201Q、20202Q、20203Q、20204Qなど"
-                      required
-                      className={`${styles.input_box}`}
-                      value={expansionQuarter}
-                      onChange={(e) => setExpansionQuarter(e.target.value)}
-                    /> */}
-                    <select
-                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      placeholder="時"
-                      value={expansionQuarterSelectedYear ? expansionQuarterSelectedYear : ""}
-                      onChange={(e) =>
-                        setExpansionQuarterSelectedYear(e.target.value === "" ? null : Number(e.target.value))
-                      }
-                    >
-                      <option value=""></option>
-                      {optionsYear.map((year) => (
-                        <option key={year} value={year}>
-                          {year}
-                        </option>
-                      ))}
-                      {/* {selectOptionsYear.map((year) => (
-                        <option key={year} value={year}>
-                          {year}
-                        </option>
-                      ))} */}
-                    </select>
-
-                    <span className="mx-[10px] min-w-max">年度</span>
-
-                    <select
-                      className={`ml-auto h-full w-[60%] cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      placeholder="分"
-                      value={expansionQuarterSelectedQuarter ? expansionQuarterSelectedQuarter : ""}
-                      onChange={(e) =>
-                        setExpansionQuarterSelectedQuarter(e.target.value === "" ? null : Number(e.target.value))
-                      }
-                    >
-                      <option value=""></option>
-                      <option value="1">1</option>
-                      <option value="2">2</option>
-                      <option value="3">3</option>
-                      <option value="4">4</option>
-                    </select>
-
-                    <span className="mx-[10px]">Q</span>
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 左ラッパーここまで */}
-            </div>
-
-            {/* --------- 右ラッパー --------- */}
-            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 売上四半期 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    {/* <span className={`${styles.title} !min-w-[140px]`}>売上四半期</span> */}
-                    <div
-                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
-                      onMouseEnter={(e) =>
-                        handleOpenTooltip({
-                          e: e,
-                          display: "top",
-                          content: "売上四半期は決算日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
-                          content2: fiscalEndMonthObjRef.current
-                            ? `お客様の決算日は、現在${format(
-                                fiscalEndMonthObjRef.current,
-                                "M月d日"
-                              )}に設定されています。`
-                            : `決算月が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
-                          content3: "変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
-                          marginTop: 57,
-                          itemsPosition: "center",
-                          whiteSpace: "nowrap",
-                        })
-                      }
-                      onMouseLeave={handleCloseTooltip}
-                    >
-                      <span className={`mr-[9px]`}>売上四半期</span>
-                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
-                    </div>
-                    <select
-                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      placeholder="時"
-                      value={salesQuarterSelectedYear ? salesQuarterSelectedYear : ""}
-                      onChange={(e) =>
-                        setSalesQuarterSelectedYear(e.target.value === "" ? null : Number(e.target.value))
-                      }
-                    >
-                      <option value=""></option>
-                      {optionsYear.map((year) => (
-                        <option key={year} value={year}>
-                          {year}
-                        </option>
-                      ))}
-                    </select>
-
-                    <span className="mx-[10px] min-w-max">年度</span>
-
-                    <select
-                      className={`ml-auto h-full w-[60%] cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      placeholder="分"
-                      value={salesQuarterSelectedQuarter ? salesQuarterSelectedQuarter : ""}
-                      onChange={(e) =>
-                        setSalesQuarterSelectedQuarter(e.target.value === "" ? null : Number(e.target.value))
-                      }
-                    >
-                      <option value=""></option>
-                      <option value="1">1</option>
-                      <option value="2">2</option>
-                      <option value="3">3</option>
-                      <option value="4">4</option>
-                    </select>
-
-                    <span className="mx-[10px]">Q</span>
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 右ラッパーここまで */}
-            </div>
-          </div>
-          {/* --------- 横幅全体ラッパーここまで --------- */}
-
-          {/* --------- 横幅全体ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full`}>
-            {/* --------- 左ラッパー --------- */}
-            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 展開年月度 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    {/* <span className={`${styles.title} !min-w-[140px]`}>展開年月度</span> */}
-                    <div
-                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
-                      onMouseEnter={(e) =>
-                        handleOpenTooltip({
-                          e: e,
-                          display: "top",
-                          // content: "展開年月度は決算日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
-                          // content2: fiscalEndMonthObjRef.current
-                          //   ? `お客様の決算日は、現在${format(
-                          //       fiscalEndMonthObjRef.current,
-                          //       "M月d日"
-                          //     )}に設定されています。`
-                          //   : `決算月が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
-                          // content3: "変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
-                          content: "展開年月度は決算日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
-                          content2: !!fiscalEndMonthObjRef.current
-                            ? `展開日を選択することで展開年月度は自動計算されるため入力は不要です。`
-                            : `決算日が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
-                          content3:
-                            "決算日の変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
-                          marginTop: 57,
-                          itemsPosition: "center",
-                          whiteSpace: "nowrap",
-                        })
-                      }
-                      onMouseLeave={handleCloseTooltip}
-                    >
-                      <span className={`mr-[9px]`}>展開年月度</span>
-                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
-                    </div>
-                    <input
-                      type="number"
-                      min="0"
-                      className={`${styles.input_box} pointer-events-none`}
-                      placeholder="展開日付を選択してください。"
-                      value={expansionYearMonth === null ? "" : expansionYearMonth}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === "") {
-                          setExpansionYearMonth(null);
-                        } else {
-                          const numValue = Number(val);
-
-                          // 入力値がマイナスかチェック
-                          if (numValue < 0) {
-                            setExpansionYearMonth(0); // ここで0に設定しているが、必要に応じて他の正の値に変更することもできる
-                          } else {
-                            setExpansionYearMonth(numValue);
-                          }
-                        }
-                      }}
-                    />
-                    {/* バツボタン */}
-                    {/* {expansionYearMonth !== null && expansionYearMonth !== 0 && (
-                      <div className={`${styles.close_btn_number}`} onClick={() => setExpansionYearMonth(null)}>
-                        <MdClose className="text-[20px] " />
-                      </div>
-                    )} */}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 左ラッパーここまで */}
-            </div>
-
-            {/* --------- 右ラッパー --------- */}
-            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 売上年月度 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    {/* <span className={`${styles.title} !min-w-[140px]`}>売上年月度</span> */}
-                    <div
-                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
-                      onMouseEnter={(e) =>
-                        handleOpenTooltip({
-                          e: e,
-                          display: "top",
-                          // content: "売上年月度は決算日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
-                          // content2: fiscalEndMonthObjRef.current
-                          //   ? `お客様の決算日は、現在${format(
-                          //       fiscalEndMonthObjRef.current,
-                          //       "M月d日"
-                          //     )}に設定されています。`
-                          //   : `決算月が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
-                          // content3: "変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
-                          content: "売上年月度は決算日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
-                          content2: !!fiscalEndMonthObjRef.current
-                            ? `売上日を選択することで売上年月度は自動計算されるため入力は不要です。`
-                            : `決算日が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
-                          content3:
-                            "決算日の変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
-                          marginTop: 57,
-                          itemsPosition: "center",
-                          whiteSpace: "nowrap",
-                        })
-                      }
-                      onMouseLeave={handleCloseTooltip}
-                    >
-                      <span className={`mr-[9px]`}>売上年月度</span>
-                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
-                    </div>
-                    <input
-                      type="number"
-                      min="0"
-                      className={`${styles.input_box} pointer-events-none`}
-                      placeholder="売上日付を選択してください。"
-                      value={salesYearMonth === null ? "" : salesYearMonth}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === "") {
-                          setSalesYearMonth(null);
-                        } else {
-                          const numValue = Number(val);
-
-                          // 入力値がマイナスかチェック
-                          if (numValue < 0) {
-                            setSalesYearMonth(0); // ここで0に設定しているが、必要に応じて他の正の値に変更することもできる
-                          } else {
-                            setSalesYearMonth(numValue);
-                          }
-                        }
-                      }}
-                    />
-                    {/* バツボタン */}
-                    {/* {salesYearMonth !== null && salesYearMonth !== 0 && (
-                      <div className={`${styles.close_btn_number}`} onClick={() => setSalesYearMonth(null)}>
-                        <MdClose className="text-[20px] " />
-                      </div>
-                    )} */}
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 右ラッパーここまで */}
-            </div>
-          </div>
-          {/* --------- 横幅全体ラッパーここまで --------- */}
-
-          {/* --------- 横幅全体ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full`}>
-            {/* --------- 左ラッパー --------- */}
-            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
               {/* サブスク分類 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
@@ -3117,8 +3189,13 @@ export const InsertNewPropertyModal = () => {
                       }}
                     >
                       <option value=""></option>
-                      <option value="月額">月額</option>
-                      <option value="年額">年額</option>
+                      {optionsSubscriptionInterval.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                      {/* <option value="月額">月額</option>
+                      <option value="年額">年額</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -3142,7 +3219,7 @@ export const InsertNewPropertyModal = () => {
                     <DatePickerCustomInput
                       startDate={subscriptionStartDate}
                       setStartDate={setSubscriptionStartDate}
-                      fontSize="text-[15px]"
+                      fontSize="text-[14px]"
                       placeholderText="placeholder:text-[15px]"
                       py="py-[6px]"
                       minHeight="min-h-[32px]"
@@ -3165,7 +3242,7 @@ export const InsertNewPropertyModal = () => {
                     <DatePickerCustomInput
                       startDate={subscriptionCanceledAt}
                       setStartDate={setSubscriptionCanceledAt}
-                      fontSize="text-[15px]"
+                      fontSize="text-[14px]"
                       placeholderText="placeholder:text-[15px]"
                       py="py-[6px]"
                       minHeight="min-h-[32px]"
@@ -3221,8 +3298,13 @@ export const InsertNewPropertyModal = () => {
                       }}
                     >
                       <option value=""></option>
-                      <option value="ファイナンスリース">ファイナンスリース</option>
-                      <option value="オペレーティングリース">オペレーティングリース</option>
+                      {optionsLeaseDivision.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                      {/* <option value="ファイナンスリース">ファイナンスリース</option>
+                      <option value="オペレーティングリース">オペレーティングリース</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -3246,7 +3328,7 @@ export const InsertNewPropertyModal = () => {
                     <DatePickerCustomInput
                       startDate={leaseExpirationDate}
                       setStartDate={setLeaseExpirationDate}
-                      fontSize="text-[15px]"
+                      fontSize="text-[14px]"
                       placeholderText="placeholder:text-[15px]"
                       py="py-[6px]"
                       minHeight="min-h-[32px]"
@@ -3343,7 +3425,7 @@ export const InsertNewPropertyModal = () => {
                     <DatePickerCustomInput
                       startDate={competitorAppearanceDate}
                       setStartDate={setCompetitorAppearanceDate}
-                      fontSize="text-[15px]"
+                      fontSize="text-[14px]"
                       placeholderText="placeholder:text-[15px]"
                       py="py-[6px]"
                       minHeight="min-h-[32px]"
@@ -3642,7 +3724,7 @@ export const InsertNewPropertyModal = () => {
                     <DatePickerCustomInput
                       startDate={propertyDate}
                       setStartDate={setPropertyDate}
-                      fontSize="text-[15px]"
+                      fontSize="text-[14px]"
                       placeholderText="placeholder:text-[15px]"
                       py="py-[6px]"
                       minHeight="min-h-[32px]"

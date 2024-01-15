@@ -40,7 +40,7 @@ export type hoveredItemPosModal = {
   content2?: string | null;
   content3?: string | null;
   content4?: string | null;
-  display: string;
+  display: string | undefined;
   textLength?: number;
   marginTop?: number;
   marginBottom?: number;
@@ -69,6 +69,11 @@ export type hoveredItemPosWrap = {
   content3?: string | null;
   display?: string | null;
   textLength?: number;
+  marginTop?: number;
+  marginBottom?: number;
+  itemsPosition?: string;
+  maxWidth?: number;
+  whiteSpace?: "normal" | "pre" | "nowrap" | "pre-wrap" | "pre-line" | "break-spaces";
 } | null;
 
 // =================== アクティブタブ ===================
@@ -1175,8 +1180,10 @@ export type Property_row_data = {
   lease_expiration_date: string | null;
   step_in_flag: boolean | null;
   repeat_flag: boolean | null;
-  order_certainty_start_of_month: string | null;
-  review_order_certainty: string | null;
+  // order_certainty_start_of_month: string | null;
+  // review_order_certainty: string | null;
+  order_certainty_start_of_month: number | null;
+  review_order_certainty: number | null;
   competitor_appearance_date: string | null;
   competitor: string | null;
   competitor_product: string | null;
@@ -1531,16 +1538,20 @@ export type NewSearchProperty_Contact_CompanyParams = {
   expected_product: string | null;
   product_sales: number | null;
   expected_order_date: string | null;
-  expected_sales_price: number | null;
+  // expected_sales_price: number | null;
+  expected_sales_price: string | null;
   term_division: string | null;
   // sold_product_name: string | null;
   // sold_product_id: string | null;
   sold_product: string | null;
   unit_sales: number | null;
   sales_contribution_category: string | null;
-  sales_price: number | null;
-  discounted_price: number | null;
-  discount_rate: number | null;
+  // sales_price: number | null;
+  // discounted_price: number | null;
+  // discount_rate: number | null;
+  sales_price: string | null;
+  discounted_price: string | null;
+  discount_rate: string | null;
   sales_class: string | null;
   expansion_date: string | null;
   sales_date: string | null;
@@ -1555,8 +1566,10 @@ export type NewSearchProperty_Contact_CompanyParams = {
   lease_expiration_date: string | null;
   step_in_flag: boolean | null;
   repeat_flag: boolean | null;
-  order_certainty_start_of_month: string | null;
-  review_order_certainty: string | null;
+  // order_certainty_start_of_month: string | null;
+  // review_order_certainty: string | null;
+  order_certainty_start_of_month: number | null;
+  review_order_certainty: number | null;
   competitor_appearance_date: string | null;
   competitor: string | null;
   competitor_product: string | null;
@@ -1765,8 +1778,10 @@ export type Property = {
   lease_expiration_date: string | null;
   step_in_flag: boolean | null;
   repeat_flag: boolean | null;
-  order_certainty_start_of_month: string | null;
-  review_order_certainty: string | null;
+  // order_certainty_start_of_month: string | null;
+  // review_order_certainty: string | null;
+  order_certainty_start_of_month: number | null;
+  review_order_certainty: number | null;
   competitor_appearance_date: string | null;
   competitor: string | null;
   competitor_product: string | null;

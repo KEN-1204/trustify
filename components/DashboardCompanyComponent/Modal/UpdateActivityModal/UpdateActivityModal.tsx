@@ -576,7 +576,7 @@ export const UpdateActivityModal = () => {
                     <DatePickerCustomInput
                       startDate={activityDate}
                       setStartDate={setActivityDate}
-                      fontSize="text-[15px]"
+                      fontSize="text-[14px]"
                       placeholderText="placeholder:text-[15px]"
                       py="py-[6px]"
                       minHeight="min-h-[32px]"
@@ -704,7 +704,7 @@ export const UpdateActivityModal = () => {
                     <DatePickerCustomInput
                       startDate={scheduledFollowUpDate}
                       setStartDate={setScheduledFollowUpDate}
-                      fontSize="text-[15px]"
+                      fontSize="text-[14px]"
                       placeholderText="placeholder:text-[15px]"
                       py="py-[6px]"
                       minHeight="min-h-[32px]"

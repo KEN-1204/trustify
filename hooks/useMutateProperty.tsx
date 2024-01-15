@@ -443,14 +443,15 @@ export const useMutateProperty = () => {
       id: string;
       yearMonth?: number | null;
       yearQuarter?: number | null;
+      discountRate?: string | null;
     }) => {
       // const { fieldName, value, id } = fieldData;
-      const { fieldName, fieldNameForSelectedRowData, newValue, id, yearMonth, yearQuarter } = fieldData;
+      const { fieldName, fieldNameForSelectedRowData, newValue, id, yearMonth, yearQuarter, discountRate } = fieldData;
 
-      const isRequireUpdateActivityFieldArray = ["property_summary", "property_date"];
+      console.log("updatePropertyFieldMutation受信 fieldData", fieldData);
 
       // 🔹rpcでpropertiesとactivitiesテーブルを同時に更新
-      if (isRequireUpdateActivityFieldArray.includes(fieldName)) {
+      if (["property_summary", "property_date"].includes(fieldName)) {
         // 🔹property_date meetingsテーブル案件年月度、activitiesのactivity_dateとactivity_year_monthも更新
         if (fieldName === "property_date" && !!yearMonth) {
           const jsonValue = { value: newValue };
@@ -459,10 +460,16 @@ export const useMutateProperty = () => {
             _column_name: fieldName,
             _json_value: jsonValue,
             _property_year_month: yearMonth,
-            _property_quarter: yearQuarter,
+            // _property_quarter: null,
           };
 
-          console.log("updatePropertyFieldMutation rpc実行 ", "カラム名", fieldName, "updatePayload", updatePayload);
+          console.log(
+            "updatePropertyFieldMutation rpc実行 meetingsテーブル案件年月度、activitiesのactivity_dateとactivity_year_monthも更新",
+            "カラム名",
+            fieldName,
+            "updatePayload",
+            updatePayload
+          );
 
           const { error } = await supabase.rpc("update_properties_field", updatePayload);
 
@@ -491,7 +498,13 @@ export const useMutateProperty = () => {
           expansion_quarter: yearQuarter,
           expansion_year_month: yearMonth,
         };
-        console.log("updatePropertyFieldMutation rpc実行 ", "カラム名", fieldName, "updatePayload", updatePayload);
+        console.log(
+          "updatePropertyFieldMutation rpc実行 expansion_date四半期と年月度も同時に更新",
+          "カラム名",
+          fieldName,
+          "updatePayload",
+          updatePayload
+        );
         const { data: newPropertyArray, error } = await supabase
           .from("properties")
           .update(updatePayload)
@@ -507,7 +520,13 @@ export const useMutateProperty = () => {
           sales_quarter: yearQuarter,
           sales_year_month: yearMonth,
         };
-        console.log("updatePropertyFieldMutation rpc実行 ", "カラム名", fieldName, "updatePayload", updatePayload);
+        console.log(
+          "updatePropertyFieldMutation rpc実行 🔹sales_date四半期と年月度も同時に更新",
+          "カラム名",
+          fieldName,
+          "updatePayload",
+          updatePayload
+        );
         const { data: newPropertyArray, error } = await supabase
           .from("properties")
           .update(updatePayload)
@@ -516,20 +535,68 @@ export const useMutateProperty = () => {
 
         if (error) throw error;
       }
-      // 🔹それ以外 meetingsテーブルのみ、１フィールドのみ更新
+      // 🔹それ以外 meetingsテーブルのみ
       else {
-        console.log("updatePropertyFieldMutation rpc実行 ", "カラム名", fieldName, "newValue", newValue);
-        const { data: newPropertyArray, error } = await supabase
-          .from("properties")
-          .update({ [fieldName]: newValue })
-          .eq("id", id)
-          .select();
+        console.log(
+          "updatePropertyFieldMutation rpc実行 meetingsテーブルのみ、１フィールドのみ更新",
+          "カラム名",
+          fieldName,
+          "newValue",
+          newValue,
+          "discountRate",
+          discountRate
+        );
 
-        if (error) throw error;
-        console.log("UPDATEに成功したdata", newPropertyArray[0]);
+        // 売上金額 or 売上台数 or 値引価格 と 値引率を同時に更新
+        if (["sales_price", "unit_sales", "discounted_price"].includes(fieldName)) {
+          // 売上価格0の場合、リセット
+          if (fieldName === "sales_price" && ["0", "０"].includes(newValue)) {
+            const { data: newPropertyArray, error } = await supabase
+              .from("properties")
+              .update({ sales_price: 0, discounted_price: 0, discount_rate: 0 })
+              .eq("id", id)
+              .select();
+
+            if (error) throw error;
+            console.log("UPDATEに成功したdata", newPropertyArray[0]);
+          }
+          // 台数0の場合、リセット
+          else if (fieldName === "unit_sales" && ["0", "０", 0].includes(newValue)) {
+            const { data: newPropertyArray, error } = await supabase
+              .from("properties")
+              .update({ unit_sales: null, discount_rate: null })
+              .eq("id", id)
+              .select();
+
+            if (error) throw error;
+            console.log("UPDATEに成功したdata", newPropertyArray[0]);
+          }
+          // それ以外は値引率と合わせて更新
+          else {
+            const { data: newPropertyArray, error } = await supabase
+              .from("properties")
+              .update({ [fieldName]: newValue, discount_rate: discountRate })
+              .eq("id", id)
+              .select();
+
+            if (error) throw error;
+            console.log("UPDATEに成功したdata", newPropertyArray[0]);
+          }
+        }
+        // それ以外 meetingsテーブルのみ、１フィールドのみ更新
+        else {
+          const { data: newPropertyArray, error } = await supabase
+            .from("properties")
+            .update({ [fieldName]: newValue })
+            .eq("id", id)
+            .select();
+
+          if (error) throw error;
+          console.log("UPDATEに成功したdata", newPropertyArray[0]);
+        }
       }
 
-      return { fieldName, fieldNameForSelectedRowData, newValue, yearMonth, yearQuarter };
+      return { fieldName, fieldNameForSelectedRowData, newValue, yearMonth, yearQuarter, discountRate };
 
       // 活動履歴で面談タイプ 訪問・面談を作成
       // const newPropertyData = {
@@ -552,7 +619,7 @@ export const useMutateProperty = () => {
     },
     {
       onSuccess: async (data) => {
-        const { fieldName, fieldNameForSelectedRowData, newValue, yearMonth, yearQuarter } = data;
+        const { fieldName, fieldNameForSelectedRowData, newValue, yearMonth, yearQuarter, discountRate } = data;
         console.log(
           "✅✅✅✅✅✅✅updateMeetingFieldMutation実行完了 キャッシュを更新して選択中のセルを再度クリックして更新 onSuccess ",
           "data",
@@ -591,9 +658,8 @@ export const useMutateProperty = () => {
         };
 
         // 年月度も同時にZustandを更新する
-        const updateWithYearMonth = ["property_date", "expansion_date", "sales_date"];
         if (!selectedRowDataProperty) return;
-        if (updateWithYearMonth.includes(fieldName) && !!yearMonth) {
+        if (["property_date", "expansion_date", "sales_date"].includes(fieldName) && !!yearMonth) {
           if (fieldName === "expansion_date" || fieldName === "sales_date") {
             const newRowDataProperty = {
               ...selectedRowDataProperty,
@@ -601,18 +667,66 @@ export const useMutateProperty = () => {
               [fieldNameYearMonth(fieldName)]: yearMonth,
               [fieldNameQuarter(fieldName)]: yearQuarter,
             };
+
+            setSelectedRowDataProperty(newRowDataProperty);
           }
-          // property_dateは順番が入れ替わるためnullにリセット
-          if (fieldName === "property_date") {
+          // // property_dateは順番が入れ替わるためnullにリセット
+          else if (fieldName === "property_date") {
+            const newRowDataProperty = {
+              ...selectedRowDataProperty,
+              [fieldNameForSelectedRowData]: newValue,
+              [fieldNameYearMonth(fieldName)]: yearMonth,
+            };
+
+            setSelectedRowDataProperty(newRowDataProperty);
+
             // 活動日を更新すると順番が入れ替わり、選択中の行がメインテーブルの内容と異なるためリセット
-            console.log("プロパティにproperty_dateが含まれているため選択中の行をリセット");
-            setSelectedRowDataProperty(null);
+            // console.log("プロパティにproperty_dateが含まれているため選択中の行をリセット");
+            // setSelectedRowDataProperty(null);
           }
         }
         // それ以外は普通にZustandを更新
         else {
-          const newRowDataProperty = { ...selectedRowDataProperty, [fieldNameForSelectedRowData]: newValue };
-          setSelectedRowDataProperty(newRowDataProperty);
+          // 値引率も同時更新
+          if (["sales_price", "unit_sales", "discounted_price"].includes(fieldName)) {
+            // 売上価格0の場合、リセット
+            if (fieldName === "sales_price" && ["0", "０"].includes(newValue)) {
+              const newRowDataProperty = {
+                ...selectedRowDataProperty,
+                sales_price: "0",
+                discounted_price: "0",
+                discount_rate: "0",
+              };
+              setSelectedRowDataProperty(newRowDataProperty);
+            }
+            // 台数0の場合、リセット
+            else if (fieldName === "unit_sales" && ["0", "０", 0, null].includes(newValue)) {
+              const newRowDataProperty = {
+                ...selectedRowDataProperty,
+                unit_sales: null,
+                discount_rate: null,
+              };
+              setSelectedRowDataProperty(newRowDataProperty);
+            }
+            // それ以外は値引率と合わせて更新
+            else if (discountRate) {
+              const newRowDataProperty = {
+                ...selectedRowDataProperty,
+                [fieldNameForSelectedRowData]: newValue,
+                discount_rate: discountRate,
+              };
+              setSelectedRowDataProperty(newRowDataProperty);
+            }
+          } else if (fieldName === "expected_order_date") {
+            // 獲得予定日を更新すると順番が入れ替わり、選択中の行がメインテーブルの内容と異なるためリセット
+            console.log("プロパティにexpected_order_dateが含まれているため選択中の行をリセット");
+            setSelectedRowDataProperty(null);
+          }
+          // それ以外は単一のカラムを更新
+          else {
+            const newRowDataProperty = { ...selectedRowDataProperty, [fieldNameForSelectedRowData]: newValue };
+            setSelectedRowDataProperty(newRowDataProperty);
+          }
         }
 
         // 再度テーブルの選択セルのDOMをクリックしてselectedRowDataCompanyを最新状態にする

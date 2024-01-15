@@ -44,8 +44,16 @@ export const calculateDiscountRate = ({
 
   // 入力値の検証
   if (!isValidNumber(salesPriceStr) || !isValidNumber(discountPriceStr) || !isValidNumber(salesQuantityStr)) {
+    console.log(
+      "salesPriceStr",
+      salesPriceStr,
+      "discountPriceStr",
+      discountPriceStr,
+      "salesQuantityStr",
+      salesQuantityStr
+    );
     // 無効な入力の場合はエラーメッセージを返す
-    return { discountRate: null, error: "無効な入力値です。" };
+    return { discountRate: null, error: `無効な入力値です。` };
   }
 
   // 文字列から数値に変換
@@ -64,7 +72,18 @@ export const calculateDiscountRate = ({
   // 値引率の計算
   const discountRate = discountPrice.dividedBy(totalSalesAmount).times(100);
 
-  console.log("結果　discountRate", discountRate.toFixed(2) + "%");
+  console.log(
+    "結果　discountRate",
+    discountRate.toFixed(2) + "%",
+    "discountPrice",
+    discountPrice.toString(),
+    "totalSalesAmount",
+    totalSalesAmount.toString(),
+    "salesPrice",
+    salesPrice.toString(),
+    "salesQuantity",
+    salesQuantity.toString()
+  );
   return { discountRate: discountRate.toFixed(2) + `%`, error: null };
   // return { discountRate: discountRate, error: null };
 };

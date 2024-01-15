@@ -433,3 +433,54 @@ export const optionsSalesContributionCategory = [
 
 // 導入分類
 export const optionsSalesClass = ["新規", "増設", "更新"];
+
+// 今期・来期
+export const optionsTermDivision = ["今期", "来期"];
+
+// サブスク分類
+export const optionsSubscriptionInterval = ["月額", "年額"];
+
+// リース分類
+export const optionsLeaseDivision = ["ファイナンスリース", "オペレーティングリース"];
+
+// 月初確度
+export const optionsOrderCertaintyStartOfMonth = [1, 2, 3, 4];
+
+export const getOrderCertaintyStartOfMonth = (classNum: number, language: string = "ja") => {
+  switch (classNum) {
+    case 1:
+      return language === "ja" ? `A (受注済み)` : `A (受注済み)`;
+      break;
+    case 2:
+      return language === "ja" ? `○ (80%以上の確率で受注)` : `○ (80%以上の確率で受注)`;
+      break;
+    case 3:
+      return language === "ja" ? `△ (50%以上の確率で受注)` : `△ (50%以上の確率で受注)`;
+      break;
+    case 4:
+      return language === "ja" ? `▲ (30%以上の確率で受注)` : `▲ (30%以上の確率で受注)`;
+      break;
+
+    default:
+      break;
+  }
+};
+// export const getInvertOrderCertaintyStartOfMonth = (classNum: string, language: string = "ja") => {
+//   switch (classNum) {
+//     case "A (受注済み)":
+//       return 1;
+//       break;
+//     case "○ (80%以上の確率で受注)":
+//       return 2;
+//       break;
+//     case "△ (50%以上の確率で受注)":
+//       return 3;
+//       break;
+//     case "▲ (30%以上の確率で受注)":
+//       return 4;
+//       break;
+
+//     default:
+//       break;
+//   }
+// };
