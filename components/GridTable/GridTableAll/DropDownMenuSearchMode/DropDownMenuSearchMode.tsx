@@ -69,6 +69,7 @@ export const DropDownMenuSearchMode = ({ setIsOpenDropdownMenuSearchMode }: Prop
                   value={isFetchAllCompanies ? `All` : `Own`}
                   onChange={(e) => {
                     setIsOpenDropdownMenuSearchMode(false);
+                    // Allならtrue、Ownならfalseをクエリキーに渡す
                     setIsFetchAllCompanies(e.target.value === "All");
                   }}
                 >

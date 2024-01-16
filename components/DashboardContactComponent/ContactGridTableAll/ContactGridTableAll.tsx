@@ -2417,7 +2417,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
           if (!!value && !Number.isNaN(new Date(value).getTime())) {
             return format(new Date(value), formatDateMapping[columnName]);
           } else {
-            console.log("❎日付チェック 存在しない日付のためformatせず");
+            // console.log("❎日付チェック 存在しない日付のためformatせず");
             return value;
           }
         } catch (e: any) {
@@ -2506,7 +2506,11 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                 }}
               />
               <button
-                className={`flex-center transition-base03 relative  h-[26px] min-w-[118px]  cursor-pointer space-x-1  rounded-[4px] px-[15px] text-[12px] text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`}
+                className={`flex-center transition-base03 relative  h-[26px] min-w-[118px] space-x-1  rounded-[4px] px-[15px] text-[12px] ${
+                  data?.pages[0]?.rows
+                    ? `cursor-pointer text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`
+                    : "cursor-not-allowed text-[#999]"
+                }`}
                 onClick={async () => {
                   console.log("リフレッシュ クリック");
                   setRefetchLoading(true);
@@ -2565,7 +2569,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                     content: `${
                       activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) !== 1
                         ? `カラムを固定`
-                        : `カラムを選択することで、`
+                        : `カラムヘッダーを選択することで、`
                     }`,
                     content2: `${
                       activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex)
@@ -2582,7 +2586,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                 <span className="pointer-events-none">固定</span>
               </button>
               <button
-                className={`flex-center transition-base03 space-x-[6px] rounded-[4px] px-[12px] text-[12px]  text-[var(--color-bg-brand-f)]  ${styles.fh_text_btn} relative cursor-default`}
+                className={`flex-center transition-base03 space-x-[6px] rounded-[4px] px-[12px] text-[12px]  text-[var(--color-bg-brand-f)]  ${styles.fh_text_btn} relative cursor-not-allowed`}
               >
                 <FiSearch className="pointer-events-none text-[14px]" />
                 <span>サーチモード</span>

@@ -23,6 +23,8 @@ import { GridCellCheckboxTrue } from "@/components/DashboardActivityComponent/Ac
 import { GridCellCheckboxFalse } from "@/components/DashboardActivityComponent/ActivityGridTableAll/GridCellCheckbox/GridCellCheckboxFalse";
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
 import { getNumberOfEmployeesClass } from "@/utils/selectOptions";
+import { DropDownMenuSearchModeDetail } from "@/components/Parts/DropDownMenu/DropDownMenuSearchModeDetail/DropDownMenuSearchModeDetail";
+import { BsCheck2 } from "react-icons/bs";
 
 type TableDataType = {
   id: number;
@@ -63,6 +65,14 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
   );
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const [refetchLoading, setRefetchLoading] = useState(false);
+  // 上テーブル検索条件変更用サーチモード用Zustand =================
+  // 「自事業部・全事業部」「自係・全係」「自営業所・全営業所」の抽出条件を保持
+  const isFetchAllDepartments = useDashboardStore((state) => state.isFetchAllDepartments);
+  const isFetchAllUnits = useDashboardStore((state) => state.isFetchAllUnits);
+  const isFetchAllOffices = useDashboardStore((state) => state.isFetchAllOffices);
+  const isFetchAllMembers = useDashboardStore((state) => state.isFetchAllMembers);
+  const [isOpenDropdownMenuSearchMode, setIsOpenDropdownMenuSearchMode] = useState(false);
+  // 上テーブル検索条件変更用サーチモード用Zustand =================
 
   // UPDATEクエリ後にinvalidateQueryでキャッシュ更新された選択中の行データをselectedRowDataPropertyに反映するために発火通知するか否かのstate(発火通知してDOMクリックで更新する)
   const isUpdateRequiredForLatestSelectedRowDataActivity = useDashboardStore(
@@ -74,6 +84,7 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
   // 下メインコンテナサーチモード用Zustand =================
   const searchMode = useDashboardStore((state) => state.searchMode);
   const setSearchMode = useDashboardStore((state) => state.setSearchMode);
+  const editSearchMode = useDashboardStore((state) => state.editSearchMode);
   const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
   // 下メインコンテナサーチモード用Zustand ここまで =================
 
@@ -264,6 +275,19 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
     (state) => state.newSearchActivity_Contact_CompanyParams
   );
 
+  const isFetchAll = isFetchAllDepartments && isFetchAllUnits && isFetchAllOffices && isFetchAllMembers;
+
+  console.log(
+    "isFetchAllDepartments",
+    isFetchAllDepartments,
+    "isFetchAllUnits",
+    isFetchAllUnits,
+    "isFetchAllOffices",
+    isFetchAllOffices,
+    "isFetchAllMembers",
+    isFetchAllMembers
+  );
+
   // ================== 🌟条件なしサーバーデータフェッチ用の関数🌟 ==================
   // 取得カウント保持用state
   const [getTotalCount, setGetTotalCount] = useState<number | null>(null);
@@ -436,33 +460,193 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
       const from = offset * limit;
       const to = from + limit - 1;
       console.log("🔥🔥テスト🔥🔥 from, to", from, to);
-      //   let params = newSearchCompanyParams;
-      let params = newSearchActivity_Contact_CompanyParams;
-      // created_by_company_idが一致するデータのみ
-      const { data, error, count } = await supabase
-        // .rpc("search_activities_and_companies_and_contacts", { params }, { count: "exact" })
-        .rpc("search_activities_and_companies_and_contacts_v2", { params }, { count: "exact" })
-        // .or(`activity_created_by_company_id.eq.${userProfileState.company_id},activity_created_by_company_id.is.null`)
-        // .or(`activity_created_by_user_id.eq.${userProfileState.id},activity_created_by_user_id.is.null`)
-        .eq("activity_created_by_company_id", userProfileState.company_id)
-        // .or(`activity_created_by_user_id.eq.${userProfileState.id},activity_created_by_user_id.is.null`)
-        .range(from, to)
-        // .order("company_name", { ascending: true });
-        .order("activity_date", { ascending: false }) // 活動日
-        .order("activity_created_at", { ascending: false }); //活動作成日時
-      // .order("company_name", { ascending: true }); //会社名
-      // .order("activity_updated_at", { ascending: false }); //活動更新日時
-      // 成功バージョン
-      // const { data, error, count } = await supabase
-      //   .rpc("search_activities_and_companies_and_contacts", { params }, { count: "exact" })
-      //   .eq("created_by_company_id", `${userProfileState?.company_id}`)
-      //   .range(from, to);
 
-      // ユーザーIDが自身のIDと一致するデータのみ 成功
-      // const { data, error } = await supabase
-      //   .rpc("search_companies_and_contacts", { params })
-      //   .eq("created_by_user_id", `${userProfileState?.id}`)
-      //   .range(0, 20);
+      // ------------------------------- 🌟成功 切り替え有り🌟 -------------------------------
+      // サーチモード「事業部」「係」「営業所」の全、自の切り替え(自係は自事業部が選択されている時のみ)
+      // const isFetchAll = isFetchAllDepartments && isFetchAllUnits && isFetchAllOffices && isFetchAllMembers;
+      const isFetchOwnD_AllUO = !isFetchAllDepartments && isFetchAllUnits && isFetchAllOffices;
+      const isFetchOwnDU_AllO = !isFetchAllDepartments && !isFetchAllUnits && isFetchAllOffices;
+      const isFetchOwnDO_AllU = !isFetchAllDepartments && isFetchAllUnits && !isFetchAllOffices;
+      const isFetchOwnO_AllDU = isFetchAllDepartments && isFetchAllUnits && !isFetchAllOffices;
+      const isFetchOwnDUO = !isFetchAllDepartments && !isFetchAllUnits && !isFetchAllOffices && isFetchAllMembers;
+      const isFetchMine = !isFetchAllDepartments && !isFetchAllUnits && !isFetchAllOffices && !isFetchAllMembers;
+
+      let data;
+      let error;
+      let count;
+
+      const departmentId = userProfileState.assigned_department_id;
+      const unitId = userProfileState.assigned_unit_id;
+      const officeId = userProfileState.assigned_office_id;
+      const userId = userProfileState.id;
+
+      // 自：事業部、 全：係、営業所
+      if (isFetchOwnD_AllUO && departmentId) {
+        let params = newSearchActivity_Contact_CompanyParams;
+        const {
+          data: fetchData,
+          error: fetchError,
+          count: fetchCount,
+        } = await supabase
+          .rpc("search_activities_and_companies_and_contacts_v2", { params }, { count: "exact" })
+          .eq("activity_created_by_company_id", userProfileState.company_id)
+          .eq("activity_created_by_department_of_user", departmentId)
+          .range(from, to)
+          .order("activity_date", { ascending: false }) // 活動日
+          .order("activity_created_at", { ascending: false }); //活動作成日時
+
+        data = fetchData;
+        error = fetchError;
+        count = fetchCount;
+      }
+      // 自：事業部、係、 全：営業所
+      else if (isFetchOwnDU_AllO && departmentId && unitId) {
+        let params = newSearchActivity_Contact_CompanyParams;
+        const {
+          data: fetchData,
+          error: fetchError,
+          count: fetchCount,
+        } = await supabase
+          .rpc("search_activities_and_companies_and_contacts_v2", { params }, { count: "exact" })
+          .eq("activity_created_by_company_id", userProfileState.company_id)
+          .eq("activity_created_by_department_of_user", departmentId)
+          .eq("activity_created_by_unit_of_user", unitId)
+          .range(from, to)
+          .order("activity_date", { ascending: false }) // 活動日
+          .order("activity_created_at", { ascending: false }); //活動作成日時
+
+        data = fetchData;
+        error = fetchError;
+        count = fetchCount;
+      }
+      // 自：事業部、事業所、 全：係
+      else if (isFetchOwnDO_AllU && departmentId && officeId) {
+        let params = newSearchActivity_Contact_CompanyParams;
+        const {
+          data: fetchData,
+          error: fetchError,
+          count: fetchCount,
+        } = await supabase
+          .rpc("search_activities_and_companies_and_contacts_v2", { params }, { count: "exact" })
+          .eq("activity_created_by_company_id", userProfileState.company_id)
+          .eq("activity_created_by_department_of_user", departmentId)
+          .eq("activity_created_by_office_of_user", officeId)
+          .range(from, to)
+          .order("activity_date", { ascending: false }) // 活動日
+          .order("activity_created_at", { ascending: false }); //活動作成日時
+
+        data = fetchData;
+        error = fetchError;
+        count = fetchCount;
+      }
+      // 自：事業所、 全：事業部、係
+      else if (isFetchOwnO_AllDU && officeId) {
+        let params = newSearchActivity_Contact_CompanyParams;
+        const {
+          data: fetchData,
+          error: fetchError,
+          count: fetchCount,
+        } = await supabase
+          .rpc("search_activities_and_companies_and_contacts_v2", { params }, { count: "exact" })
+          .eq("activity_created_by_company_id", userProfileState.company_id)
+          .eq("activity_created_by_office_of_user", officeId)
+          .range(from, to)
+          .order("activity_date", { ascending: false }) // 活動日
+          .order("activity_created_at", { ascending: false }); //活動作成日時
+
+        data = fetchData;
+        error = fetchError;
+        count = fetchCount;
+      }
+      // 自：事業所、係、 全：事業部、係
+      else if (isFetchOwnDUO && departmentId && unitId && officeId) {
+        let params = newSearchActivity_Contact_CompanyParams;
+        const {
+          data: fetchData,
+          error: fetchError,
+          count: fetchCount,
+        } = await supabase
+          .rpc("search_activities_and_companies_and_contacts_v2", { params }, { count: "exact" })
+          .eq("activity_created_by_company_id", userProfileState.company_id)
+          .eq("activity_created_by_department_of_user", departmentId)
+          .eq("activity_created_by_unit_of_user", unitId)
+          .eq("activity_created_by_office_of_user", officeId)
+          .range(from, to)
+          .order("activity_date", { ascending: false }) // 活動日
+          .order("activity_created_at", { ascending: false }); //活動作成日時
+
+        data = fetchData;
+        error = fetchError;
+        count = fetchCount;
+      }
+      // 自分のデータのみ
+      else if (isFetchMine && userId) {
+        let params = newSearchActivity_Contact_CompanyParams;
+        const {
+          data: fetchData,
+          error: fetchError,
+          count: fetchCount,
+        } = await supabase
+          .rpc("search_activities_and_companies_and_contacts_v2", { params }, { count: "exact" })
+          .eq("activity_created_by_company_id", userProfileState.company_id)
+          .eq("activity_created_by_user_id", userId)
+          .range(from, to)
+          .order("activity_date", { ascending: false }) // 活動日
+          .order("activity_created_at", { ascending: false }); //活動作成日時
+
+        data = fetchData;
+        error = fetchError;
+        count = fetchCount;
+      }
+      // 全て もしくは該当のidが存在しない場合
+      // else if (isFetchAll || !departmentId || !unitId || !officeId || !userId) {
+      else {
+        let params = newSearchActivity_Contact_CompanyParams;
+        const {
+          data: fetchData,
+          error: fetchError,
+          count: fetchCount,
+        } = await supabase
+          .rpc("search_activities_and_companies_and_contacts_v2", { params }, { count: "exact" })
+          .eq("activity_created_by_company_id", userProfileState.company_id)
+          .range(from, to)
+          .order("activity_date", { ascending: false }) // 活動日
+          .order("activity_created_at", { ascending: false }); //活動作成日時
+
+        data = fetchData;
+        error = fetchError;
+        count = fetchCount;
+      }
+      // ------------------------------- ✅成功 切り替え有り✅ -------------------------------
+
+      // ------------------------------- 🌟成功 切り替え無し🌟 -------------------------------
+      // let params = newSearchActivity_Contact_CompanyParams;
+      // // created_by_company_idが一致するデータのみ
+      // const { data, error, count } = await supabase
+      //   // .rpc("search_activities_and_companies_and_contacts", { params }, { count: "exact" })
+      //   .rpc("search_activities_and_companies_and_contacts_v2", { params }, { count: "exact" })
+      //   // .or(`activity_created_by_company_id.eq.${userProfileState.company_id},activity_created_by_company_id.is.null`)
+      //   // .or(`activity_created_by_user_id.eq.${userProfileState.id},activity_created_by_user_id.is.null`)
+      //   .eq("activity_created_by_company_id", userProfileState.company_id)
+      //   // .or(`activity_created_by_user_id.eq.${userProfileState.id},activity_created_by_user_id.is.null`)
+      //   .range(from, to)
+      //   // .order("company_name", { ascending: true });
+      //   .order("activity_date", { ascending: false }) // 活動日
+      //   .order("activity_created_at", { ascending: false }); //活動作成日時
+      // // .order("company_name", { ascending: true }); //会社名
+      // // .order("activity_updated_at", { ascending: false }); //活動更新日時
+      // // 成功バージョン
+      // // const { data, error, count } = await supabase
+      // //   .rpc("search_activities_and_companies_and_contacts", { params }, { count: "exact" })
+      // //   .eq("created_by_company_id", `${userProfileState?.company_id}`)
+      // //   .range(from, to);
+
+      // // ユーザーIDが自身のIDと一致するデータのみ 成功
+      // // const { data, error } = await supabase
+      // //   .rpc("search_companies_and_contacts", { params })
+      // //   .eq("created_by_user_id", `${userProfileState?.id}`)
+      // //   .range(0, 20);
+      // ------------------------------- ✅成功 切り替え無し✅ -------------------------------
 
       console.log("🔥🔥テスト🔥🔥フェッチ後 count data", count, data);
 
@@ -472,7 +656,8 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
 
       console.log("🔥🔥テスト🔥🔥 rows", rows);
       // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
-      const isLastPage = rows === null || rows.length < limit;
+      // const isLastPage = rows === null || rows.length < limit;
+      const isLastPage = rows === null || rows?.length < limit;
 
       // 0.5秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
       // await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -517,7 +702,15 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
   const { status, data, error, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } = useInfiniteQuery(
     {
       // queryKey: ["companies"],
-      queryKey: ["activities", newSearchParamsStringRef.current],
+      // queryKey: ["activities", newSearchParamsStringRef.current],
+      queryKey: [
+        "activities",
+        newSearchParamsStringRef.current,
+        isFetchAllDepartments,
+        isFetchAllUnits,
+        isFetchAllOffices,
+        isFetchAllMembers,
+      ],
       // queryKey: ["contacts"],
       queryFn: async (ctx) => {
         console.log("useInfiniteQuery queryFn関数内 引数ctx", ctx);
@@ -2265,6 +2458,7 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
   // ============== 🌟フローズンイベント ドラッグ可能なターゲット上で発生するイベント🌟 ここまで ==============
 
   // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
+  const hoveredItemPos = useStore((state) => state.hoveredItemPos);
   const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
   type TooltipParams = {
     e: React.MouseEvent<HTMLElement, MouseEvent>;
@@ -2456,7 +2650,7 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
           if (!!value && !Number.isNaN(new Date(value).getTime())) {
             return format(new Date(value), formatDateMapping[columnName]);
           } else {
-            console.log("❎日付チェック 存在しない日付のためformatせず");
+            // console.log("❎日付チェック 存在しない日付のためformatせず");
             return value;
           }
         } catch (e: any) {
@@ -2555,7 +2749,12 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
                 <span>リフレッシュ</span>
               </button> */}
               <button
-                className={`flex-center transition-base03 relative  h-[26px] min-w-[118px]  cursor-pointer space-x-1  rounded-[4px] px-[15px] text-[12px] text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`}
+                className={`flex-center transition-base03 relative  h-[26px] min-w-[118px] space-x-1  rounded-[4px] px-[15px] text-[12px] ${
+                  data?.pages[0]?.rows
+                    ? `cursor-pointer text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`
+                    : "cursor-not-allowed text-[#999]"
+                }`}
+                // className={`flex-center transition-base03 relative  h-[26px] min-w-[118px]  cursor-pointer space-x-1  rounded-[4px] px-[15px] text-[12px] text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`}
                 onClick={async () => {
                   console.log("リフレッシュ クリック");
                   setRefetchLoading(true);
@@ -2614,7 +2813,7 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
                     content: `${
                       activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) !== 1
                         ? `カラムを固定`
-                        : `カラムを選択することで、`
+                        : `カラムヘッダーを選択することで、`
                     }`,
                     content2: `${
                       activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex)
@@ -2630,17 +2829,50 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
                 <FiLock className="pointer-events-none" />
                 <span className="pointer-events-none">固定</span>
               </button>
-              <button
+              {/* <button
                 className={`flex-center transition-base03 space-x-[6px] rounded-[4px] px-[12px] text-[12px]  text-[var(--color-bg-brand-f)]  ${styles.fh_text_btn} relative cursor-default`}
               >
                 <FiSearch className="pointer-events-none text-[14px]" />
                 <span>サーチモード</span>
-              </button>
-              {/* <button
-                className={`flex-center transition-base03 h-[26px]  cursor-pointer space-x-2  rounded-[4px] px-[15px] text-[12px]  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn} `}
-              >
-                <span>モード</span>
               </button> */}
+              <button
+                className={`flex-center transition-base03 group space-x-[6px] rounded-[4px] px-[12px]  text-[12px] text-[var(--color-bg-brand-f)] ${
+                  styles.fh_text_btn
+                } relative ${
+                  isOpenDropdownMenuSearchMode
+                    ? `cursor-default active:!bg-[var(--color-btn-brand-f)]`
+                    : `cursor-pointer active:bg-[var(--color-function-header-text-btn-active)]`
+                }`}
+                onClick={() => {
+                  if (searchMode) setSearchMode(false); // サーチモード中止
+                  if (editSearchMode) setEditSearchMode(false); // 編集モード中止
+                  if (!isOpenDropdownMenuSearchMode) setIsOpenDropdownMenuSearchMode(true);
+                  if (hoveredItemPos) handleCloseTooltip();
+                }}
+                onMouseEnter={(e) => {
+                  if (isOpenDropdownMenuSearchMode) return;
+                  handleOpenTooltip({
+                    e: e,
+                    display: "top",
+                    content: `検索結果を「事業部」「係・チーム」「事業所・営業所」ごとに`,
+                    content2: `全てのデータか、自身の所属のデータのみかの切り替えが可能です。`,
+                    marginTop: 28,
+                    itemsPosition: "center",
+                  });
+                }}
+                onMouseLeave={handleCloseTooltip}
+              >
+                {isFetchAll && <FiSearch className="pointer-events-none text-[14px]" />}
+                {!isFetchAll && (
+                  <BsCheck2 className="pointer-events-none stroke-[2] text-[14px] text-[#00d436] group-hover:text-[#fff]" />
+                )}
+                <span className={`pointer-events-none ${!isFetchAll ? `text-[#00d436] group-hover:text-[#fff]` : ``}`}>
+                  サーチモード
+                </span>
+                {isOpenDropdownMenuSearchMode && (
+                  <DropDownMenuSearchModeDetail setIsOpenDropdownMenuSearchMode={setIsOpenDropdownMenuSearchMode} />
+                )}
+              </button>
               <RippleButton
                 title={`カラム編集`}
                 classText="select-none"

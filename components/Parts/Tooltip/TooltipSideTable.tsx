@@ -1,8 +1,8 @@
 import useStore from "@/store";
-import React, { FC, useEffect, useRef } from "react";
+import React, { FC, memo, useEffect, useRef } from "react";
 import styles from "./TooltipSideTable.module.css";
 
-export const TooltipSideTable: FC = () => {
+const TooltipSideTableMemo = () => {
   const menuRef = useRef<HTMLDivElement | null>(null);
   const arrowRef = useRef<HTMLDivElement | null>(null);
   const tooltipItemRef = useRef<HTMLDivElement | null>(null);
@@ -279,3 +279,5 @@ export const TooltipSideTable: FC = () => {
     </div>
   );
 };
+
+export const TooltipSideTable = memo(TooltipSideTableMemo);

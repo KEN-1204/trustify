@@ -1,8 +1,8 @@
 import useStore from "@/store";
-import React, { useEffect, useRef } from "react";
+import React, { memo, useEffect, useRef } from "react";
 import styles from "./TooltipWrap.module.css";
 
-export const TooltipWrap = () => {
+const TooltipWrapMemo = () => {
   const menuRef = useRef<HTMLDivElement | null>(null);
   const hoveredItemPosWrap = useStore((state) => state.hoveredItemPosWrap);
   const setHoveredItemPosWrap = useStore((state) => state.setHoveredItemPosWrap);
@@ -256,3 +256,5 @@ export const TooltipWrap = () => {
     </div>
   );
 };
+
+export const TooltipWrap = memo(TooltipWrapMemo);

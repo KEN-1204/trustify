@@ -22,6 +22,8 @@ import { GridTableFooter } from "@/components/GridTable/GridTableFooter/GridTabl
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
 import { checkNotFalsyExcludeZero } from "@/utils/Helpers/checkNotFalsyExcludeZero";
 import { getNumberOfEmployeesClass, getOrderCertaintyStartOfMonth } from "@/utils/selectOptions";
+import { BsCheck2 } from "react-icons/bs";
+import { DropDownMenuSearchModeDetail } from "@/components/Parts/DropDownMenu/DropDownMenuSearchModeDetail/DropDownMenuSearchModeDetail";
 
 type TableDataType = {
   id: number;
@@ -62,6 +64,14 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
   );
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const [refetchLoading, setRefetchLoading] = useState(false);
+  // 上テーブル検索条件変更用サーチモード用Zustand =================
+  // 「自事業部・全事業部」「自係・全係」「自営業所・全営業所」の抽出条件を保持
+  const isFetchAllDepartments = useDashboardStore((state) => state.isFetchAllDepartments);
+  const isFetchAllUnits = useDashboardStore((state) => state.isFetchAllUnits);
+  const isFetchAllOffices = useDashboardStore((state) => state.isFetchAllOffices);
+  const isFetchAllMembers = useDashboardStore((state) => state.isFetchAllMembers);
+  const [isOpenDropdownMenuSearchMode, setIsOpenDropdownMenuSearchMode] = useState(false);
+  // 上テーブル検索条件変更用サーチモード用Zustand =================
 
   // UPDATEクエリ後にinvalidateQueryでキャッシュ更新された選択中の行データをselectedRowDataPropertyに反映するために発火通知するか否かのstate(発火通知してDOMクリックで更新する)
   const isUpdateRequiredForLatestSelectedRowDataProperty = useDashboardStore(
@@ -73,6 +83,7 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
   // 下メインコンテナサーチモード用Zustand =================
   const searchMode = useDashboardStore((state) => state.searchMode);
   const setSearchMode = useDashboardStore((state) => state.setSearchMode);
+  const editSearchMode = useDashboardStore((state) => state.editSearchMode);
   const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
   // 下メインコンテナサーチモード用Zustand ここまで =================
 
@@ -263,6 +274,8 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
     (state) => state.newSearchProperty_Contact_CompanyParams
   );
 
+  const isFetchAll = isFetchAllDepartments && isFetchAllUnits && isFetchAllOffices && isFetchAllMembers;
+
   // ================== 🌟条件なしサーバーデータフェッチ用の関数🌟 ==================
   // 取得カウント保持用state
   const [getTotalCount, setGetTotalCount] = useState<number | null>(null);
@@ -395,7 +408,7 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
       const rows = ensureClientCompanies(data);
 
       // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
-      const isLastPage = rows === null || rows.length < limit;
+      const isLastPage = rows === null || rows?.length < limit;
 
       console.log(
         "🔥🔥テスト🔥🔥フェッチ後 count",
@@ -436,31 +449,192 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
       const to = from + limit - 1;
       console.log("🔥🔥テスト🔥🔥 from, to", from, to);
       //   let params = newSearchCompanyParams;
-      let params = newSearchProperty_Contact_CompanyParams;
-      // created_by_company_idが一致するデータのみ
-      const { data, error, count } = await supabase
-        .rpc("search_properties_and_companies_and_contacts", { params }, { count: "exact" })
-        // .or(`property_created_by_company_id.eq.${userProfileState.company_id},property_created_by_company_id.is.null`)
-        // .or(`property_created_by_user_id.eq.${userProfileState.id},property_created_by_user_id.is.null`)
-        .eq("property_created_by_company_id", userProfileState.company_id)
-        // .or(`property_created_by_user_id.eq.${userProfileState.id},property_created_by_user_id.is.null`)
-        .range(from, to)
-        // .order("company_name", { ascending: true });
-        // .order("property_created_at", { ascending: false });
-        .order("expected_order_date", { ascending: false }) //面談・訪問日(予定)
-        // .order("property_date", { ascending: false }) //面談・訪問日(予定)
-        .order("property_created_at", { ascending: false }); //面談作成日時
-      // 成功バージョン
+
+      // ------------------------------- 🌟成功 切り替え有り🌟 -------------------------------
+      // サーチモード「事業部」「係」「営業所」の全、自の切り替え(自係は自事業部が選択されている時のみ)
+      // const isFetchAll = isFetchAllDepartments && isFetchAllUnits && isFetchAllOffices && isFetchAllMembers;
+      const isFetchOwnD_AllUO = !isFetchAllDepartments && isFetchAllUnits && isFetchAllOffices;
+      const isFetchOwnDU_AllO = !isFetchAllDepartments && !isFetchAllUnits && isFetchAllOffices;
+      const isFetchOwnDO_AllU = !isFetchAllDepartments && isFetchAllUnits && !isFetchAllOffices;
+      const isFetchOwnO_AllDU = isFetchAllDepartments && isFetchAllUnits && !isFetchAllOffices;
+      const isFetchOwnDUO = !isFetchAllDepartments && !isFetchAllUnits && !isFetchAllOffices && isFetchAllMembers;
+      const isFetchMine = !isFetchAllDepartments && !isFetchAllUnits && !isFetchAllOffices && !isFetchAllMembers;
+
+      let data;
+      let error;
+      let count;
+
+      const departmentId = userProfileState.assigned_department_id;
+      const unitId = userProfileState.assigned_unit_id;
+      const officeId = userProfileState.assigned_office_id;
+      const userId = userProfileState.id;
+
+      // 自：事業部、 全：係、営業所
+      if (isFetchOwnD_AllUO && departmentId) {
+        let params = newSearchProperty_Contact_CompanyParams;
+        const {
+          data: fetchData,
+          error: fetchError,
+          count: fetchCount,
+        } = await supabase
+          .rpc("search_properties_and_companies_and_contacts", { params }, { count: "exact" })
+          .eq("property_created_by_company_id", userProfileState.company_id)
+          .eq("property_created_by_department_of_user", departmentId)
+          .range(from, to)
+          .order("expected_order_date", { ascending: false }) //獲得予定時期
+          .order("property_created_at", { ascending: false }); //案件作成日時
+
+        data = fetchData;
+        error = fetchError;
+        count = fetchCount;
+      }
+      // 自：事業部、係、 全：営業所
+      else if (isFetchOwnDU_AllO && departmentId && unitId) {
+        let params = newSearchProperty_Contact_CompanyParams;
+        const {
+          data: fetchData,
+          error: fetchError,
+          count: fetchCount,
+        } = await supabase
+          .rpc("search_properties_and_companies_and_contacts", { params }, { count: "exact" })
+          .eq("property_created_by_company_id", userProfileState.company_id)
+          .eq("property_created_by_department_of_user", departmentId)
+          .eq("property_created_by_unit_of_user", unitId)
+          .range(from, to)
+          .order("expected_order_date", { ascending: false }) //獲得予定時期
+          .order("property_created_at", { ascending: false }); //案件作成日時
+
+        data = fetchData;
+        error = fetchError;
+        count = fetchCount;
+      }
+      // 自：事業部、事業所、 全：係
+      else if (isFetchOwnDO_AllU && departmentId && officeId) {
+        let params = newSearchProperty_Contact_CompanyParams;
+        const {
+          data: fetchData,
+          error: fetchError,
+          count: fetchCount,
+        } = await supabase
+          .rpc("search_properties_and_companies_and_contacts", { params }, { count: "exact" })
+          .eq("property_created_by_company_id", userProfileState.company_id)
+          .eq("property_created_by_department_of_user", departmentId)
+          .eq("property_created_by_office_of_user", officeId)
+          .range(from, to)
+          .order("expected_order_date", { ascending: false }) //獲得予定時期
+          .order("property_created_at", { ascending: false }); //案件作成日時
+
+        data = fetchData;
+        error = fetchError;
+        count = fetchCount;
+      }
+      // 自：事業所、 全：事業部、係
+      else if (isFetchOwnO_AllDU && officeId) {
+        let params = newSearchProperty_Contact_CompanyParams;
+        const {
+          data: fetchData,
+          error: fetchError,
+          count: fetchCount,
+        } = await supabase
+          .rpc("search_properties_and_companies_and_contacts", { params }, { count: "exact" })
+          .eq("property_created_by_company_id", userProfileState.company_id)
+          .eq("property_created_by_office_of_user", officeId)
+          .range(from, to)
+          .order("expected_order_date", { ascending: false }) //獲得予定時期
+          .order("property_created_at", { ascending: false }); //案件作成日時
+
+        data = fetchData;
+        error = fetchError;
+        count = fetchCount;
+      }
+      // 自：事業所、係、 全：事業部、係
+      else if (isFetchOwnDUO && departmentId && unitId && officeId) {
+        let params = newSearchProperty_Contact_CompanyParams;
+        const {
+          data: fetchData,
+          error: fetchError,
+          count: fetchCount,
+        } = await supabase
+          .rpc("search_properties_and_companies_and_contacts", { params }, { count: "exact" })
+          .eq("property_created_by_company_id", userProfileState.company_id)
+          .eq("property_created_by_department_of_user", departmentId)
+          .eq("property_created_by_unit_of_user", unitId)
+          .eq("property_created_by_office_of_user", officeId)
+          .range(from, to)
+          .order("expected_order_date", { ascending: false }) //獲得予定時期
+          .order("property_created_at", { ascending: false }); //案件作成日時
+
+        data = fetchData;
+        error = fetchError;
+        count = fetchCount;
+      }
+      // 自分のデータのみ
+      else if (isFetchMine && userId) {
+        let params = newSearchProperty_Contact_CompanyParams;
+        const {
+          data: fetchData,
+          error: fetchError,
+          count: fetchCount,
+        } = await supabase
+          .rpc("search_properties_and_companies_and_contacts", { params }, { count: "exact" })
+          .eq("property_created_by_company_id", userProfileState.company_id)
+          .eq("property_created_by_user_id", userId)
+          .range(from, to)
+          .order("expected_order_date", { ascending: false }) //獲得予定時期
+          .order("property_created_at", { ascending: false }); //案件作成日時
+
+        data = fetchData;
+        error = fetchError;
+        count = fetchCount;
+      }
+      // 全て もしくは該当のidが存在しない場合
+      // else if (isFetchAll || !departmentId || !unitId || !officeId || !userId) {
+      else {
+        let params = newSearchProperty_Contact_CompanyParams;
+        const {
+          data: fetchData,
+          error: fetchError,
+          count: fetchCount,
+        } = await supabase
+          .rpc("search_properties_and_companies_and_contacts", { params }, { count: "exact" })
+          .eq("property_created_by_company_id", userProfileState.company_id)
+          .range(from, to)
+          .order("expected_order_date", { ascending: false }) //面談・訪問日(予定)
+          .order("property_created_at", { ascending: false }); //案件作成日時
+
+        data = fetchData;
+        error = fetchError;
+        count = fetchCount;
+      }
+      // ------------------------------- ✅成功 切り替え有り✅ -------------------------------
+
+      // ------------------------------- 🌟成功 切り替え無し🌟 -------------------------------
+      // let params = newSearchProperty_Contact_CompanyParams;
+      // // created_by_company_idが一致するデータのみ
       // const { data, error, count } = await supabase
       //   .rpc("search_properties_and_companies_and_contacts", { params }, { count: "exact" })
-      //   .eq("created_by_company_id", `${userProfileState?.company_id}`)
-      //   .range(from, to);
+      //   // .or(`property_created_by_company_id.eq.${userProfileState.company_id},property_created_by_company_id.is.null`)
+      //   // .or(`property_created_by_user_id.eq.${userProfileState.id},property_created_by_user_id.is.null`)
+      //   .eq("property_created_by_company_id", userProfileState.company_id)
+      //   // .or(`property_created_by_user_id.eq.${userProfileState.id},property_created_by_user_id.is.null`)
+      //   .range(from, to)
+      //   // .order("company_name", { ascending: true });
+      //   // .order("property_created_at", { ascending: false });
+      //   .order("expected_order_date", { ascending: false }) //面談・訪問日(予定)
+      //   // .order("property_date", { ascending: false }) //面談・訪問日(予定)
+      //   .order("property_created_at", { ascending: false }); //面談作成日時
+      // // 成功バージョン
+      // // const { data, error, count } = await supabase
+      // //   .rpc("search_properties_and_companies_and_contacts", { params }, { count: "exact" })
+      // //   .eq("created_by_company_id", `${userProfileState?.company_id}`)
+      // //   .range(from, to);
 
-      // ユーザーIDが自身のIDと一致するデータのみ 成功
-      // const { data, error } = await supabase
-      //   .rpc("search_companies_and_contacts", { params })
-      //   .eq("created_by_user_id", `${userProfileState?.id}`)
-      //   .range(0, 20);
+      // // ユーザーIDが自身のIDと一致するデータのみ 成功
+      // // const { data, error } = await supabase
+      // //   .rpc("search_companies_and_contacts", { params })
+      // //   .eq("created_by_user_id", `${userProfileState?.id}`)
+      // //   .range(0, 20);
+      // ------------------------------- ✅成功 切り替え無し✅ -------------------------------
 
       console.log("🔥🔥テスト🔥🔥フェッチ後 count data", count, data);
 
@@ -470,7 +644,7 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
 
       console.log("🔥🔥テスト🔥🔥 rows", rows);
       // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
-      const isLastPage = rows === null || rows.length < limit;
+      const isLastPage = rows === null || rows?.length < limit;
 
       // 0.5秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
       // await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -2264,6 +2438,7 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
   // ============== 🌟フローズンイベント ドラッグ可能なターゲット上で発生するイベント🌟 ここまで ==============
 
   // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
+  const hoveredItemPos = useStore((state) => state.hoveredItemPos);
   const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
   type TooltipParams = {
     e: React.MouseEvent<HTMLElement, MouseEvent>;
@@ -2477,7 +2652,7 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
           if (!!value && !isNaN(new Date(value).getTime())) {
             return format(new Date(value), formatDateMapping[columnName]);
           } else {
-            console.log("❎日付チェック 存在しない日付のためformatせず");
+            // console.log("❎日付チェック 存在しない日付のためformatせず");
             return value;
           }
         } catch (e: any) {
@@ -2629,7 +2804,12 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
                 <span>リフレッシュ</span>
               </button> */}
               <button
-                className={`flex-center transition-base03 relative  h-[26px] min-w-[118px]  cursor-pointer space-x-1  rounded-[4px] px-[15px] text-[12px] text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`}
+                className={`flex-center transition-base03 relative  h-[26px] min-w-[118px] space-x-1  rounded-[4px] px-[15px] text-[12px] ${
+                  data?.pages[0]?.rows
+                    ? `cursor-pointer text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`
+                    : "cursor-not-allowed text-[#999]"
+                }`}
+                // className={`flex-center transition-base03 relative  h-[26px] min-w-[118px]  cursor-pointer space-x-1  rounded-[4px] px-[15px] text-[12px] text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`}
                 onClick={async () => {
                   console.log("リフレッシュ クリック");
                   setRefetchLoading(true);
@@ -2688,7 +2868,7 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
                     content: `${
                       activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) !== 1
                         ? `カラムを固定`
-                        : `カラムを選択することで、`
+                        : `カラムヘッダーを選択することで、`
                     }`,
                     content2: `${
                       activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex)
@@ -2705,10 +2885,32 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
                 <span className="pointer-events-none">固定</span>
               </button>
               <button
-                className={`flex-center transition-base03 space-x-[6px] rounded-[4px] px-[12px] text-[12px]  text-[var(--color-bg-brand-f)]  ${styles.fh_text_btn} relative cursor-default`}
+                className={`flex-center transition-base03 group space-x-[6px] rounded-[4px] px-[12px]  text-[12px] text-[var(--color-bg-brand-f)] ${
+                  styles.fh_text_btn
+                } relative ${
+                  isOpenDropdownMenuSearchMode
+                    ? `cursor-default active:!bg-[var(--color-btn-brand-f)]`
+                    : `cursor-pointer active:bg-[var(--color-function-header-text-btn-active)]`
+                }`}
+                onClick={() => {
+                  if (searchMode) setSearchMode(false); // サーチモード中止
+                  if (editSearchMode) setEditSearchMode(false); // 編集モード中止
+                  if (!isOpenDropdownMenuSearchMode) setIsOpenDropdownMenuSearchMode(true);
+                  if (hoveredItemPos) handleCloseTooltip();
+                }}
               >
-                <FiSearch className="pointer-events-none text-[14px]" />
-                <span>サーチモード</span>
+                {/* <FiSearch className="pointer-events-none text-[14px]" />
+                <span>サーチモード</span> */}
+                {isFetchAll && <FiSearch className="pointer-events-none text-[14px]" />}
+                {!isFetchAll && (
+                  <BsCheck2 className="pointer-events-none stroke-[2] text-[14px] text-[#00d436] group-hover:text-[#fff]" />
+                )}
+                <span className={`pointer-events-none ${!isFetchAll ? `text-[#00d436] group-hover:text-[#fff]` : ``}`}>
+                  サーチモード
+                </span>
+                {isOpenDropdownMenuSearchMode && (
+                  <DropDownMenuSearchModeDetail setIsOpenDropdownMenuSearchMode={setIsOpenDropdownMenuSearchMode} />
+                )}
               </button>
               {/* <button
                 className={`flex-center transition-base03 h-[26px]  cursor-pointer space-x-2  rounded-[4px] px-[15px] text-[12px]  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn} `}

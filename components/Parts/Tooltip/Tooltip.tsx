@@ -1,8 +1,8 @@
 import useStore from "@/store";
-import React, { useEffect, useRef } from "react";
+import React, { memo, useEffect, useRef } from "react";
 import styles from "./Tooltip.module.css";
 
-export const Tooltip = () => {
+const TooltipMemo = () => {
   const menuRef = useRef<HTMLDivElement | null>(null);
   const arrowRef = useRef<HTMLDivElement | null>(null);
   const hoveredItemPos = useStore((state) => state.hoveredItemPos);
@@ -323,3 +323,5 @@ export const Tooltip = () => {
     </div>
   );
 };
+
+export const Tooltip = memo(TooltipMemo);
