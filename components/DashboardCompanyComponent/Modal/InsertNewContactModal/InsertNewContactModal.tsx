@@ -457,8 +457,6 @@ export const InsertNewContactModal = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>職位</span>
                     <select
-                      name="position_class"
-                      id="position_class"
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box} ${
                         !selectedPositionClass ? `text-[#9ca3af]` : ``
                       }`}

@@ -628,8 +628,6 @@ export const UpdateActivityModal = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●活動タイプ</span>
                     <select
-                      name="number_of_employees_class"
-                      id="number_of_employees_class"
                       className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={activityType}
                       onChange={(e) => {
@@ -671,8 +669,6 @@ export const UpdateActivityModal = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>優先度</span>
                     <select
-                      name="number_of_employees_class"
-                      id="number_of_employees_class"
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={priority}
                       onChange={(e) => setPriority(e.target.value)}
@@ -755,8 +751,6 @@ export const UpdateActivityModal = () => {
                 <div className={`${styles.title_box} flex h-full `}>
                   <span className={`${styles.title} !min-w-[140px]`}>活動概要</span>
                   <textarea
-                    name="summary"
-                    id="summary"
                     cols={30}
                     rows={10}
                     placeholder=""

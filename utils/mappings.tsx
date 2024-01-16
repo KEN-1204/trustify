@@ -47,3 +47,10 @@ export const mappingOccupation: OccupationTitles = {
   20: { en: "20 CS", ja: "20 CS/カスタマーサポート" },
   21: { en: "21 Other", ja: "21 その他" },
 };
+
+interface NumberOfEmployeesClassTitles {
+  [key: string]: LanguageTitles;
+}
+
+// 規模(ランク)
+// export mappingNumberOfEmployeesClass

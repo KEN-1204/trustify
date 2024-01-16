@@ -434,8 +434,6 @@ export const UpdateContactModal = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>担当職種</span>
                     <select
-                      name="position_class"
-                      id="position_class"
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={selectedOccupation}
                       onChange={(e) => setSelectedOccupation(e.target.value)}
@@ -483,8 +481,6 @@ export const UpdateContactModal = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>職位</span>
                     <select
-                      name="position_class"
-                      id="position_class"
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={selectedPositionClass}
                       onChange={(e) => setSelectedPositionClass(e.target.value)}
@@ -598,8 +594,6 @@ export const UpdateContactModal = () => {
                 <div className={`${styles.title_box} flex h-full `}>
                   <span className={`${styles.title}`}>TEL注意理由</span>
                   <textarea
-                    name="call_careful_reason"
-                    id="call_careful_reason"
                     cols={30}
                     rows={10}
                     placeholder="架電時の注意事項を記入し、チームに共有しましょう"
@@ -712,8 +706,6 @@ export const UpdateContactModal = () => {
                 <div className={`${styles.title_box} flex h-full  `}>
                   <span className={`${styles.title}`}>禁止理由</span>
                   <textarea
-                    name="address"
-                    id="address"
                     cols={30}
                     rows={10}
                     placeholder="メール・資料送付・FAX・DMの禁止理由を記載してください"
@@ -738,8 +730,6 @@ export const UpdateContactModal = () => {
                 <div className={`${styles.title_box} flex h-full `}>
                   <span className={`${styles.title}`}>クレーム</span>
                   <textarea
-                    name="address"
-                    id="address"
                     cols={30}
                     rows={10}
                     placeholder="クレームを受けた場合はチーム全体に共有しましょう"

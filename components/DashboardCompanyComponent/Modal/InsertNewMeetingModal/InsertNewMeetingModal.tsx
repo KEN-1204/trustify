@@ -1304,8 +1304,6 @@ export const InsertNewMeetingModal = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px]`}>事前同席依頼</span>
                     <select
-                      name="number_of_employees_class"
-                      id="number_of_employees_class"
                       className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={preMeetingParticipationRequest}
                       onChange={(e) => {

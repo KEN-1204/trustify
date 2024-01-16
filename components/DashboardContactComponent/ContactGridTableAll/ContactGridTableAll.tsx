@@ -22,6 +22,7 @@ import { GridCellCheckboxTrue } from "@/components/DashboardActivityComponent/Ac
 import { GridCellCheckboxFalse } from "@/components/DashboardActivityComponent/ActivityGridTableAll/GridCellCheckbox/GridCellCheckboxFalse";
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
 import { format } from "date-fns";
+import { getNumberOfEmployeesClass } from "@/utils/selectOptions";
 
 type TableDataType = {
   id: number;
@@ -2393,6 +2394,8 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
     switch (columnName) {
       // 決算月 日本語は月を追加する
       case "fiscal_end_month":
+      case "budget_request_month1":
+      case "budget_request_month2":
         if (!!value && language === "ja") return `${value}月`;
         if (!!value && language === "en") return value;
         if (!value) return value;
@@ -2434,6 +2437,11 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
         if (!value) return null;
         const occupationTitle = mappingOccupation[value as number]?.[language];
         return occupationTitle || value.toString();
+
+      // 規模(ランク)
+      case "number_of_employees_class":
+        if (!value) return null;
+        return getNumberOfEmployeesClass(value);
 
       default:
         return value;

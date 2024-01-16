@@ -40,7 +40,13 @@ import { CiEdit } from "react-icons/ci";
 // const DynamicComponent = dynamic(() => import('../components/hello'));
 // 通常
 import { UnderRightActivityLog } from "./UnderRightActivityLog/UnderRightActivityLog";
-import { optionsIndustryType, optionsMonth, optionsProductL } from "@/utils/selectOptions";
+import {
+  getNumberOfEmployeesClass,
+  optionsIndustryType,
+  optionsMonth,
+  optionsNumberOfEmployeesClass,
+  optionsProductL,
+} from "@/utils/selectOptions";
 // 名前付きエクスポートの場合のダイナミックインポート
 // const UnderRightActivityLog = dynamic(
 //   () => import("./UnderRightActivityLog/UnderRightActivityLog").then((mod) => mod.UnderRightActivityLog),
@@ -531,6 +537,10 @@ const CompanyMainContainerMemo: FC = () => {
         }
         if (field === "fiscal_end_month") {
           text = text.replace(/月/g, ""); // 決算月の場合は、1月の月を削除してstateに格納 optionタグのvalueと一致させるため
+        }
+        if (field === "number_of_employees_class") {
+          text = selectedRowDataValue;
+          console.log("number_of_employees_class", text, selectedRowDataValue);
         }
         dispatch(text); // 編集モードでinputStateをクリックした要素のテキストを初期値に設定
         setIsEditModeField(field); // クリックされたフィールドの編集モードを開く
@@ -1483,6 +1493,7 @@ const CompanyMainContainerMemo: FC = () => {
                           e,
                           field: "number_of_employees_class",
                           dispatch: setInputEmployeesClass,
+                          selectedRowDataValue: selectedRowDataCompany?.number_of_employees_class,
                         });
                       }}
                       onMouseEnter={(e) => {
@@ -1493,27 +1504,30 @@ const CompanyMainContainerMemo: FC = () => {
                       }}
                     >
                       {selectedRowDataCompany?.number_of_employees_class
-                        ? selectedRowDataCompany?.number_of_employees_class
+                        ? getNumberOfEmployeesClass(selectedRowDataCompany?.number_of_employees_class)
                         : ""}
                     </span>
                   )}
                   {/* サーチ */}
                   {searchMode && (
                     <select
-                      name="position_class"
-                      id="position_class"
                       className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
                       value={inputEmployeesClass}
                       onChange={(e) => setInputEmployeesClass(e.target.value)}
                     >
                       <option value="">全て選択</option>
-                      <option value="A*">A 1000名以上</option>
+                      {optionsNumberOfEmployeesClass.map((option) => (
+                        <option key={option} value={option + "*"}>
+                          {getNumberOfEmployeesClass(option)}
+                        </option>
+                      ))}
+                      {/* <option value="A*">A 1000名以上</option>
                       <option value="B*">B 500~999名</option>
                       <option value="C*">C 300~499名</option>
                       <option value="D*">D 200~299名</option>
                       <option value="E*">E 100~199名</option>
                       <option value="F*">F 50~99名</option>
-                      <option value="G*">G 1~49名</option>
+                      <option value="G*">G 1~49名</option> */}
                       {/* <option value="">回答を選択してください</option> */}
                       {/* <option value="A 1000名以上">A 1000名以上</option>
                       <option value="B 500~999名">B 500~999名</option>
@@ -1542,13 +1556,18 @@ const CompanyMainContainerMemo: FC = () => {
                         }}
                       >
                         {/* <option value="">全て選択</option> */}
-                        <option value="A 1000名以上">A 1000名以上</option>
+                        {optionsNumberOfEmployeesClass.map((option) => (
+                          <option key={option} value={option}>
+                            {getNumberOfEmployeesClass(option)}
+                          </option>
+                        ))}
+                        {/* <option value="A 1000名以上">A 1000名以上</option>
                         <option value="B 500-999名">B 500-999名</option>
                         <option value="C 300-499名">C 300-499名</option>
                         <option value="D 200-299名">D 200-299名</option>
                         <option value="E 100-199名">E 100-199名</option>
                         <option value="F 50-99名">F 50-99名</option>
-                        <option value="G 1-49名">G 1-49名</option>
+                        <option value="G 1-49名">G 1-49名</option> */}
                       </select>
                       {/* エディットフィールド送信中ローディングスピナー */}
                       {updateClientCompanyFieldMutation.isLoading && (
@@ -1606,8 +1625,6 @@ const CompanyMainContainerMemo: FC = () => {
                   {/* サーチ */}
                   {searchMode && (
                     <textarea
-                      name="address"
-                      id="address"
                       cols={30}
                       // rows={10}
                       placeholder="「神奈川県＊」や「＊大田区＊」など"
@@ -1621,8 +1638,6 @@ const CompanyMainContainerMemo: FC = () => {
                   {!searchMode && isEditModeField === "address" && (
                     <>
                       <textarea
-                        name="address"
-                        id="address"
                         cols={30}
                         // rows={10}
                         placeholder=""
@@ -1962,8 +1977,6 @@ const CompanyMainContainerMemo: FC = () => {
                   {/* サーチ */}
                   {searchMode && (
                     <textarea
-                      // name="address"
-                      // id="address"
                       cols={30}
                       // rows={10}
                       className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
@@ -2169,8 +2182,6 @@ const CompanyMainContainerMemo: FC = () => {
                   {/* サーチ */}
                   {searchMode && !inputProductL && (
                     <select
-                      name="position_class"
-                      id="position_class"
                       className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
                       value={inputIndustryType}
                       onChange={(e) => setInputIndustryType(e.target.value)}
@@ -2309,8 +2320,6 @@ const CompanyMainContainerMemo: FC = () => {
                   {/* サーチ 業種が選択されている場合には製品分類は非表示にする 同時に検索はかけられないように設定 */}
                   {searchMode && !inputIndustryType && (
                     <select
-                      name="position_class"
-                      id="position_class"
                       className={`ml-auto h-full w-[80%] cursor-pointer ${styles.select_box}`}
                       value={inputProductL}
                       onChange={(e) => setInputProductL(e.target.value)}
@@ -2682,12 +2691,14 @@ const CompanyMainContainerMemo: FC = () => {
                       value={inputFiscal}
                       onChange={(e) => setInputFiscal(e.target.value)}
                     >
-                      <option value="">全て選択</option>
+                      <option value=""></option>
                       {optionsMonth.map((option) => (
-                        <option key={option} value={`${option}*`}>
+                        <option key={option} value={option}>
                           {option}月
                         </option>
                       ))}
+                      <option value="is not null">入力有りのデータのみ</option>
+                      <option value="is null">入力無しのデータのみ</option>
                     </select>
                   )}
                   {/* ============= フィールドエディットモード関連 ============= */}

@@ -908,8 +908,6 @@ export const InsertNewActivityModal = () => {
                 <div className={`${styles.title_box} flex h-full `}>
                   <span className={`${styles.title} !min-w-[140px]`}>活動概要</span>
                   <textarea
-                    name="summary"
-                    id="summary"
                     cols={30}
                     rows={10}
                     placeholder=""

@@ -20,6 +20,7 @@ import { format } from "date-fns";
 import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 import { GridTableFooter } from "@/components/GridTable/GridTableFooter/GridTableFooter";
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
+import { getNumberOfEmployeesClass } from "@/utils/selectOptions";
 
 type TableDataType = {
   id: number;
@@ -2479,6 +2480,8 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
     switch (columnName) {
       // 決算月 日本語は月を追加する
       case "fiscal_end_month":
+      case "budget_request_month1":
+      case "budget_request_month2":
         if (!!value && language === "ja") return `${value}月`;
         if (!!value && language === "en") return value;
         if (!value) return value;
@@ -2553,6 +2556,11 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
       // case "result_presentation_product1":
       //   if (!value || !Array.isArray(value)) return null;
       //   return ;
+
+      // 規模(ランク)
+      case "number_of_employees_class":
+        if (!value) return null;
+        return getNumberOfEmployeesClass(value);
 
       default:
         return value;

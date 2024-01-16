@@ -24,9 +24,12 @@ import { InputSendAndCloseBtn } from "@/components/DashboardCompanyComponent/Com
 import { toHalfWidthAndSpace } from "@/utils/Helpers/toHalfWidthAndSpace";
 import { validateAndFormatPhoneNumber } from "@/utils/Helpers/validateAndFormatPhoneNumber";
 import {
+  getNumberOfEmployeesClass,
   getOccupationName,
   getPositionClassName,
   optionsIndustryType,
+  optionsMonth,
+  optionsNumberOfEmployeesClass,
   optionsOccupation,
   optionsPositionsClass,
   optionsProductL,
@@ -1922,8 +1925,6 @@ const ContactMainContainerMemo: FC = () => {
                   )}
                   {searchMode && (
                     <textarea
-                      name="address"
-                      id="address"
                       cols={30}
                       // rows={10}
                       placeholder="「神奈川県＊」や「＊大田区＊」など"
@@ -2169,8 +2170,6 @@ const ContactMainContainerMemo: FC = () => {
                   )}
                   {searchMode && (
                     <select
-                      name="occupation"
-                      id="occupation"
                       className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
                       value={inputOccupation}
                       onChange={(e) => setInputOccupation(e.target.value)}
@@ -2406,20 +2405,23 @@ const ContactMainContainerMemo: FC = () => {
                   )}
                   {searchMode && (
                     <select
-                      name="position_class"
-                      id="position_class"
                       className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
                       value={inputEmployeesClass}
                       onChange={(e) => setInputEmployeesClass(e.target.value)}
                     >
                       <option value=""></option>
-                      <option value="A*">A 1000名以上</option>
+                      {optionsNumberOfEmployeesClass.map((option) => (
+                        <option key={option} value={option + "*"}>
+                          {getNumberOfEmployeesClass(option)}
+                        </option>
+                      ))}
+                      {/* <option value="A*">A 1000名以上</option>
                       <option value="B*">B 500~999名</option>
                       <option value="C*">C 300~499名</option>
                       <option value="D*">D 200~299名</option>
                       <option value="E*">E 100~199名</option>
                       <option value="F*">F 50~99名</option>
-                      <option value="G*">G 1~49名</option>
+                      <option value="G*">G 1~49名</option> */}
                     </select>
                   )}
                 </div>
@@ -2441,13 +2443,29 @@ const ContactMainContainerMemo: FC = () => {
                       {selectedRowDataContact?.fiscal_end_month ? selectedRowDataContact?.fiscal_end_month : ""}
                     </span>
                   )}
-                  {searchMode && (
+                  {/* {searchMode && (
                     <input
                       type="text"
                       className={`${styles.input_box}`}
                       value={inputFiscal}
                       onChange={(e) => setInputFiscal(e.target.value)}
                     />
+                  )} */}
+                  {searchMode && (
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
+                      value={inputFiscal}
+                      onChange={(e) => setInputFiscal(e.target.value)}
+                    >
+                      <option value=""></option>
+                      {optionsMonth.map((option) => (
+                        <option key={option} value={option}>
+                          {option}月
+                        </option>
+                      ))}
+                      <option value="is not null">入力有りのデータのみ</option>
+                      <option value="is null">入力無しのデータのみ</option>
+                    </select>
                   )}
                 </div>
                 <div className={`${styles.underline}`}></div>
@@ -2470,17 +2488,31 @@ const ContactMainContainerMemo: FC = () => {
                       }}
                     >
                       {selectedRowDataContact?.budget_request_month1
-                        ? selectedRowDataContact?.budget_request_month1
+                        ? selectedRowDataContact?.budget_request_month1 + `月`
                         : ""}
                     </span>
                   )}
-                  {searchMode && (
+                  {/* {searchMode && (
                     <input
                       type="text"
                       className={`${styles.input_box}`}
                       value={inputBudgetRequestMonth1}
                       onChange={(e) => setInputBudgetRequestMonth1(e.target.value)}
                     />
+                  )} */}
+                  {searchMode && (
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
+                      value={inputBudgetRequestMonth1}
+                      onChange={(e) => setInputBudgetRequestMonth1(e.target.value)}
+                    >
+                      <option value=""></option>
+                      {optionsMonth.map((option) => (
+                        <option key={option} value={option + `*`}>
+                          {`${option}月`}
+                        </option>
+                      ))}
+                    </select>
                   )}
                 </div>
                 <div className={`${styles.underline}`}></div>
@@ -2499,17 +2531,31 @@ const ContactMainContainerMemo: FC = () => {
                       }}
                     >
                       {selectedRowDataContact?.budget_request_month2
-                        ? selectedRowDataContact?.budget_request_month2
+                        ? selectedRowDataContact?.budget_request_month2 + "月"
                         : ""}
                     </span>
                   )}
-                  {searchMode && (
+                  {/* {searchMode && (
                     <input
                       type="text"
                       className={`${styles.input_box}`}
                       value={inputBudgetRequestMonth2}
                       onChange={(e) => setInputBudgetRequestMonth2(e.target.value)}
                     />
+                  )} */}
+                  {searchMode && (
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
+                      value={inputBudgetRequestMonth2}
+                      onChange={(e) => setInputBudgetRequestMonth2(e.target.value)}
+                    >
+                      <option value=""></option>
+                      {optionsMonth.map((option) => (
+                        <option key={option} value={option + `*`}>
+                          {`${option}月`}
+                        </option>
+                      ))}
+                    </select>
                   )}
                 </div>
                 <div className={`${styles.underline}`}></div>
@@ -2618,8 +2664,6 @@ const ContactMainContainerMemo: FC = () => {
                   )}
                   {searchMode && (
                     <textarea
-                      name="address"
-                      id="address"
                       cols={30}
                       // rows={10}
                       className={`${styles.textarea_box} ${styles.textarea_box_bg} ${styles.textarea_box_search_mode}`}
@@ -2736,8 +2780,6 @@ const ContactMainContainerMemo: FC = () => {
                   )}
                   {searchMode && (
                     <textarea
-                      name="address"
-                      id="address"
                       cols={30}
                       // rows={10}
                       className={`${styles.textarea_box} ${styles.textarea_box_bg} ${styles.textarea_box_search_mode}`}
@@ -2976,8 +3018,6 @@ const ContactMainContainerMemo: FC = () => {
                   )}
                   {searchMode && !inputProductL && (
                     <select
-                      name="position_class"
-                      id="position_class"
                       className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
                       value={inputIndustryType}
                       onChange={(e) => setInputIndustryType(e.target.value)}
@@ -3027,8 +3067,6 @@ const ContactMainContainerMemo: FC = () => {
                   )}
                   {searchMode && !inputIndustryType && (
                     <select
-                      name="position_class"
-                      id="position_class"
                       // className={`ml-auto h-full w-[80%] cursor-pointer ${styles.select_box}`}
                       className={`ml-auto h-full w-[100%] cursor-pointer ${styles.select_box}`}
                       value={inputProductL}

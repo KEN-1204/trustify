@@ -12,6 +12,7 @@ import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 import { BsChevronLeft } from "react-icons/bs";
+import { getNumberOfEmployeesClass, optionsMonth, optionsNumberOfEmployeesClass } from "@/utils/selectOptions";
 
 export const UpdateClientCompanyModal = () => {
   const setIsOpenUpdateClientCompanyModal = useDashboardStore((state) => state.setIsOpenUpdateClientCompanyModal);
@@ -198,10 +199,19 @@ export const UpdateClientCompanyModal = () => {
     // 新規作成するデータをオブジェクトにまとめる
     const newClientCompany = {
       id: selectedRowDataCompany.id,
-      created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
-      created_by_user_id: userProfileState?.id ? userProfileState.id : null,
-      created_by_department_of_user: userProfileState?.department ? userProfileState.department : null,
-      created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      // created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
+      // created_by_user_id: userProfileState?.id ? userProfileState.id : null,
+      created_by_company_id: selectedRowDataCompany?.created_by_company_id
+        ? selectedRowDataCompany.created_by_company_id
+        : null,
+      created_by_user_id: selectedRowDataCompany?.created_by_user_id ? selectedRowDataCompany.created_by_user_id : null,
+      // created_by_department_of_user: userProfileState?.department ? userProfileState.department : null,
+      created_by_department_of_user: userProfileState?.assigned_department_id
+        ? userProfileState?.assigned_department_id
+        : null,
+      // created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      created_by_unit_of_user: userProfileState?.assigned_unit_id ? userProfileState.assigned_unit_id : null,
+      created_by_office_of_user: userProfileState?.assigned_office_id ? userProfileState.assigned_office_id : null,
       name: name,
       department_name: departmentName,
       main_fax: mainFax ? mainFax : null,
@@ -524,8 +534,6 @@ export const UpdateClientCompanyModal = () => {
                 <div className={`${styles.title_box} flex h-full `}>
                   <span className={`${styles.title} ${styles.required_title}`}>●住所</span>
                   <textarea
-                    name="call_careful_reason"
-                    id="call_careful_reason"
                     cols={30}
                     rows={10}
                     placeholder="住所を入力してください *入力必須"
@@ -552,21 +560,24 @@ export const UpdateClientCompanyModal = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>規模(ﾗﾝｸ)</span>
                     <select
-                      name="number_of_employees_class"
-                      id="number_of_employees_class"
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={numberOfEmployeesClass}
                       onChange={(e) => setNumberOfEmployeesClass(e.target.value)}
                     >
                       <option value=""></option>
                       {/* <option value="">回答を選択してください</option> */}
-                      <option value="A 1000名以上">A 1000名以上</option>
+                      {optionsNumberOfEmployeesClass.map((option) => (
+                        <option key={option} value={option}>
+                          {getNumberOfEmployeesClass(option)}
+                        </option>
+                      ))}
+                      {/* <option value="A 1000名以上">A 1000名以上</option>
                       <option value="B 500〜999名">B 500〜999名</option>
                       <option value="C 300〜499名">C 300〜499名</option>
                       <option value="D 200〜299名">D 200〜299名</option>
                       <option value="E 100〜199名">E 100〜199名</option>
                       <option value="F 50〜99名">F 50〜99名</option>
-                      <option value="G 1〜49名">G 1〜49名</option>
+                      <option value="G 1〜49名">G 1〜49名</option> */}
                       {/* <option value=""></option>
                       <option value="A 1000名以上">A 1000名以上</option>
                       <option value="B 500-999名">B 500-999名</option>
@@ -926,8 +937,6 @@ export const UpdateClientCompanyModal = () => {
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>業種</span>
                   <select
-                    name="position_class"
-                    id="position_class"
                     className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
                     value={industryType}
                     onChange={(e) => setIndustryType(e.target.value)}
@@ -1003,8 +1012,6 @@ export const UpdateClientCompanyModal = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>製品分類(大分類)</span>
                     <select
-                      name="position_class"
-                      id="position_class"
                       className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={productCategoryL}
                       onChange={(e) => setProductCategoryL(e.target.value)}
@@ -1043,8 +1050,6 @@ export const UpdateClientCompanyModal = () => {
                     <span className={`${styles.title}`}>製品分類(中分類)</span>
                     {!!productCategoryL && (
                       <select
-                        name="position_class"
-                        id="position_class"
                         value={productCategoryM}
                         onChange={(e) => setProductCategoryM(e.target.value)}
                         className={`${
@@ -1099,8 +1104,6 @@ export const UpdateClientCompanyModal = () => {
                 <div className={`${styles.title_box} flex h-full `}>
                   <span className={`${styles.title}`}>事業概要</span>
                   <textarea
-                    name="call_careful_reason"
-                    id="call_careful_reason"
                     cols={30}
                     rows={10}
                     placeholder=""
@@ -1167,8 +1170,6 @@ export const UpdateClientCompanyModal = () => {
                 <div className={`${styles.title_box} flex h-full `}>
                   <span className={`${styles.title}`}>主要取引先</span>
                   <textarea
-                    name="clients"
-                    id="clients"
                     cols={30}
                     rows={10}
                     placeholder=""
@@ -1191,8 +1192,6 @@ export const UpdateClientCompanyModal = () => {
                 <div className={`${styles.title_box} flex h-full `}>
                   <span className={`${styles.title}`}>主要仕入先</span>
                   <textarea
-                    name="supplier"
-                    id="supplier"
                     cols={30}
                     rows={10}
                     placeholder=""
@@ -1215,8 +1214,6 @@ export const UpdateClientCompanyModal = () => {
                 <div className={`${styles.title_box} flex h-full `}>
                   <span className={`${styles.title}`}>設備</span>
                   <textarea
-                    name="call_careful_reason"
-                    id="call_careful_reason"
                     cols={30}
                     rows={10}
                     placeholder=""
@@ -1239,8 +1236,6 @@ export const UpdateClientCompanyModal = () => {
                 <div className={`${styles.title_box} flex h-full `}>
                   <span className={`${styles.title}`}>事業拠点</span>
                   <textarea
-                    name="business_sites"
-                    id="business_sites"
                     cols={30}
                     rows={10}
                     placeholder=""
@@ -1263,8 +1258,6 @@ export const UpdateClientCompanyModal = () => {
                 <div className={`${styles.title_box} flex h-full `}>
                   <span className={`${styles.title}`}>海外拠点</span>
                   <textarea
-                    name="business_sites"
-                    id="business_sites"
                     cols={30}
                     rows={10}
                     placeholder=""
@@ -1287,8 +1280,6 @@ export const UpdateClientCompanyModal = () => {
                 <div className={`${styles.title_box} flex h-full `}>
                   <span className={`${styles.title}`}>グループ会社</span>
                   <textarea
-                    name="business_sites"
-                    id="business_sites"
                     cols={30}
                     rows={10}
                     placeholder=""
@@ -1313,14 +1304,17 @@ export const UpdateClientCompanyModal = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>予算申請月1</span>
                     <select
-                      name="budget_request_month1"
-                      id="budget_request_month1"
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={budgetRequestMonth1}
                       onChange={(e) => setBudgetRequestMonth1(e.target.value)}
                     >
                       <option value=""></option>
-                      <option value="1月">1月</option>
+                      {optionsMonth.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                      {/* <option value="1月">1月</option>
                       <option value="2月">2月</option>
                       <option value="3月">3月</option>
                       <option value="4月">4月</option>
@@ -1331,7 +1325,7 @@ export const UpdateClientCompanyModal = () => {
                       <option value="9月">9月</option>
                       <option value="10月">10月</option>
                       <option value="11月">11月</option>
-                      <option value="12月">12月</option>
+                      <option value="12月">12月</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -1349,25 +1343,16 @@ export const UpdateClientCompanyModal = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>予算申請月2</span>
                     <select
-                      name="budget_request_month2"
-                      id="budget_request_month2"
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={budgetRequestMonth2}
                       onChange={(e) => setBudgetRequestMonth2(e.target.value)}
                     >
                       <option value=""></option>
-                      <option value="1月">1月</option>
-                      <option value="2月">2月</option>
-                      <option value="3月">3月</option>
-                      <option value="4月">4月</option>
-                      <option value="5月">5月</option>
-                      <option value="6月">6月</option>
-                      <option value="7月">7月</option>
-                      <option value="8月">8月</option>
-                      <option value="9月">9月</option>
-                      <option value="10月">10月</option>
-                      <option value="11月">11月</option>
-                      <option value="12月">12月</option>
+                      {optionsMonth.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>

@@ -317,6 +317,38 @@ export const optionsActivityType = [
 // 優先度
 export const optionsPriority = ["高", "中", "低"];
 
+// 規模（ランク）
+export const optionsNumberOfEmployeesClass = ["A", "B", "C", "D", "E", "F", "G"];
+
+export const getNumberOfEmployeesClass = (title: string, language: string = "ja") => {
+  switch (title) {
+    case "A":
+      return "A 1000名以上";
+      break;
+    case "B":
+      return "B 500〜999名";
+      break;
+    case "C":
+      return "C 300〜499名";
+      break;
+    case "D":
+      return "D 200〜299名";
+      break;
+    case "E":
+      return "E 100〜199名";
+      break;
+    case "F":
+      return "F 50〜99名";
+      break;
+    case "G":
+      return "G 1〜49名";
+      break;
+    default:
+      return title;
+      break;
+  }
+};
+
 export const optionsSearchEmployeesClass = [
   <option key={`A 1000名以上`} value="A*">
     A 1000名以上

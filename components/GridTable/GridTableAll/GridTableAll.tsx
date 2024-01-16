@@ -19,6 +19,7 @@ import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 import { BsCheck2 } from "react-icons/bs";
 import { DropDownMenuSearchMode } from "./DropDownMenuSearchMode/DropDownMenuSearchMode";
+import { getNumberOfEmployeesClass } from "@/utils/selectOptions";
 
 type TableDataType = {
   id: number;
@@ -2560,6 +2561,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     switch (columnName) {
       // 決算月 日本語は月を追加する
       case "fiscal_end_month":
+      case "budget_request_month1":
+      case "budget_request_month2":
         if (!!value && language === "ja") return `${value}月`;
         if (!!value && language === "en") return value;
         if (!value) return value;
@@ -2572,6 +2575,12 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
             </div>
           );
         }
+
+      // 規模(ランク)
+      case "number_of_employees_class":
+        if (!value) return null;
+        return getNumberOfEmployeesClass(value);
+
       default:
         return value;
         break;
@@ -2580,11 +2589,11 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
 
   /**
    * {columnHeaderItemList[index].columnName === "created_by_company_id" &&
-                                    rowData.created_by_company_id === userProfileState?.company_id && (
-                                      <div className="flex-center h-full w-full">
-                                        <BsCheck2 className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
-                                      </div>
-                                    )}
+      rowData.created_by_company_id === userProfileState?.company_id && (
+        <div className="flex-center h-full w-full">
+          <BsCheck2 className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
+        </div>
+      )}
    */
 
   return (

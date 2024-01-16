@@ -29,6 +29,7 @@ import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
 import {
   getCurrentStatus,
+  getNumberOfEmployeesClass,
   getOccupationName,
   getOrderCertaintyStartOfMonth,
   getPositionClassName,
@@ -37,6 +38,7 @@ import {
   optionsDecisionMakerNegotiation,
   optionsIndustryType,
   optionsLeaseDivision,
+  optionsNumberOfEmployeesClass,
   optionsOccupation,
   optionsOrderCertaintyStartOfMonth,
   optionsPositionsClass,
@@ -6395,8 +6397,6 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     )}
                     {/* {searchMode && (
                       <select
-                        name="position_class"
-                        id="position_class"
                         className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
                         value={inputPositionClass}
                         onChange={(e) => setInputPositionClass(e.target.value)}
@@ -6443,8 +6443,6 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     )}
                     {/* {searchMode && (
                       <select
-                        name="position_class"
-                        id="position_class"
                         className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputEmployeesClass}
                         onChange={(e) => setInputEmployeesClass(e.target.value)}
@@ -6504,7 +6502,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                       >
                         {selectedRowDataProperty?.number_of_employees_class
-                          ? selectedRowDataProperty?.number_of_employees_class
+                          ? getNumberOfEmployeesClass(selectedRowDataProperty?.number_of_employees_class)
                           : ""}
                       </span>
                     )}
@@ -8851,8 +8849,6 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     <span className={`${styles.title_search_mode}`}>○住所</span>
                     {searchMode && (
                       <textarea
-                        name="address"
-                        id="address"
                         cols={30}
                         // rows={10}
                         placeholder="「神奈川県＊」や「＊大田区＊」など"
@@ -8887,8 +8883,6 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     <span className={`${styles.title_search_mode}`}>職位</span>
                     {searchMode && (
                       <select
-                        name="position_class"
-                        id="position_class"
                         className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputPositionClass}
                         onChange={(e) => setInputPositionClass(e.target.value)}
@@ -8920,8 +8914,6 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     <span className={`${styles.title_search_mode}`}>担当職種</span>
                     {searchMode && (
                       <select
-                        name="position_class"
-                        id="position_class"
                         className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputEmployeesClass}
                         onChange={(e) => setInputEmployeesClass(e.target.value)}
@@ -8983,20 +8975,23 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       //   onChange={(e) => setInputProductL(e.target.value)}
                       // />
                       <select
-                        name="position_class"
-                        id="position_class"
                         className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputEmployeesClass}
                         onChange={(e) => setInputEmployeesClass(e.target.value)}
                       >
                         <option value=""></option>
-                        <option value="A*">A 1000名以上</option>
+                        {optionsNumberOfEmployeesClass.map((option) => (
+                          <option key={option} value={option + "*"}>
+                            {getNumberOfEmployeesClass(option)}
+                          </option>
+                        ))}
+                        {/* <option value="A*">A 1000名以上</option>
                         <option value="B*">B 500~999名</option>
                         <option value="C*">C 300~499名</option>
                         <option value="D*">D 200~299名</option>
                         <option value="E*">E 100~199名</option>
                         <option value="F*">F 50~99名</option>
-                        <option value="G*">G 1~49名</option>
+                        <option value="G*">G 1~49名</option> */}
                       </select>
                     )}
                   </div>
@@ -9100,8 +9095,6 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     <span className={`${styles.title_search_mode}`}>事業内容</span>
                     {searchMode && (
                       <textarea
-                        name="address"
-                        id="address"
                         cols={30}
                         // rows={10}
                         className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
@@ -9157,8 +9150,6 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     <span className={`${styles.title_search_mode}`}>設備</span>
                     {searchMode && (
                       <textarea
-                        name="address"
-                        id="address"
                         cols={30}
                         // rows={10}
                         className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
@@ -9272,8 +9263,6 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       //   onChange={(e) => setInputIndustryType(e.target.value)}
                       // />
                       <select
-                        name="position_class"
-                        id="position_class"
                         className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputIndustryType}
                         onChange={(e) => setInputIndustryType(e.target.value)}

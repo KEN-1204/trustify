@@ -17,11 +17,14 @@ import { Zoom } from "@/utils/Helpers/toastHelpers";
 import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 import {
+  getNumberOfEmployeesClass,
   getOccupationName,
   getPositionClassName,
   optionsIndustryType,
   optionsMeetingParticipationRequest,
   optionsMeetingType,
+  optionsMonth,
+  optionsNumberOfEmployeesClass,
   optionsOccupation,
   optionsPlannedPurpose,
   optionsPositionsClass,
@@ -4649,7 +4652,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         className={`${styles.value}`}
                         data-text={`${
                           selectedRowDataMeeting?.number_of_employees_class
-                            ? selectedRowDataMeeting?.number_of_employees_class
+                            ? getNumberOfEmployeesClass(selectedRowDataMeeting?.number_of_employees_class)
                             : ""
                         }`}
                         onMouseEnter={(e) => {
@@ -4668,7 +4671,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         }}
                       >
                         {selectedRowDataMeeting?.number_of_employees_class
-                          ? selectedRowDataMeeting?.number_of_employees_class
+                          ? getNumberOfEmployeesClass(selectedRowDataMeeting?.number_of_employees_class)
                           : ""}
                       </span>
                     )}
@@ -4680,8 +4683,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       //   onChange={(e) => setInputProductL(e.target.value)}
                       // />
                       <select
-                        name="position_class"
-                        id="position_class"
                         className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputEmployeesClass}
                         onChange={(e) => setInputEmployeesClass(e.target.value)}
@@ -4729,12 +4730,20 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       </span>
                     )}
                     {searchMode && (
-                      <input
-                        type="text"
-                        className={`${styles.input_box}`}
+                      <select
+                        className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
                         value={inputFiscal}
                         onChange={(e) => setInputFiscal(e.target.value)}
-                      />
+                      >
+                        <option value=""></option>
+                        {optionsMonth.map((option) => (
+                          <option key={option} value={option}>
+                            {option}月
+                          </option>
+                        ))}
+                        <option value="is not null">入力有りのデータのみ</option>
+                        <option value="is null">入力無しのデータのみ</option>
+                      </select>
                     )}
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -5080,8 +5089,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     )}
                     {searchMode && (
                       <textarea
-                        name="address"
-                        id="address"
                         cols={30}
                         // rows={10}
                         className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
@@ -6365,8 +6372,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full `}>
                     <span className={`${styles.title_search_mode}`}>結果ｺﾒﾝﾄ</span>
                     <textarea
-                      name="Meeting_summary"
-                      id="Meeting_summary"
                       cols={30}
                       // rows={10}
                       className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
@@ -6751,8 +6756,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     <span className={`${styles.title_search_mode}`}>○住所</span>
                     {searchMode && (
                       <textarea
-                        name="address"
-                        id="address"
                         cols={30}
                         // rows={10}
                         placeholder="「神奈川県＊」や「＊大田区＊」など"
@@ -6793,8 +6796,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       //   onChange={(e) => setInputProductL(e.target.value)}
                       // />
                       <select
-                        name="position_class"
-                        id="position_class"
                         className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputPositionClass}
                         onChange={(e) => setInputPositionClass(e.target.value)}
@@ -6827,8 +6828,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       //   onChange={(e) => setInputProductL(e.target.value)}
                       // />
                       <select
-                        name="position_class"
-                        id="position_class"
                         className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputEmployeesClass}
                         onChange={(e) => setInputEmployeesClass(e.target.value)}
@@ -6885,20 +6884,23 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       //   onChange={(e) => setInputProductL(e.target.value)}
                       // />
                       <select
-                        name="position_class"
-                        id="position_class"
                         className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputEmployeesClass}
                         onChange={(e) => setInputEmployeesClass(e.target.value)}
                       >
                         <option value=""></option>
-                        <option value="A*">A 1000名以上</option>
+                        {optionsNumberOfEmployeesClass.map((option) => (
+                          <option key={option} value={option + "*"}>
+                            {getNumberOfEmployeesClass(option)}
+                          </option>
+                        ))}
+                        {/* <option value="A*">A 1000名以上</option>
                         <option value="B*">B 500~999名</option>
                         <option value="C*">C 300~499名</option>
                         <option value="D*">D 200~299名</option>
                         <option value="E*">E 100~199名</option>
                         <option value="F*">F 50~99名</option>
-                        <option value="G*">G 1~49名</option>
+                        <option value="G*">G 1~49名</option> */}
                       </select>
                     )}
                   </div>
@@ -6908,12 +6910,20 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center`}>
                     <span className={`${styles.title_search_mode}`}>決算月</span>
                     {searchMode && (
-                      <input
-                        type="text"
-                        className={`${styles.input_box}`}
+                      <select
+                        className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
                         value={inputFiscal}
                         onChange={(e) => setInputFiscal(e.target.value)}
-                      />
+                      >
+                        <option value=""></option>
+                        {optionsMonth.map((option) => (
+                          <option key={option} value={option}>
+                            {option}月
+                          </option>
+                        ))}
+                        <option value="is not null">入力有りのデータのみ</option>
+                        <option value="is null">入力無しのデータのみ</option>
+                      </select>
                     )}
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -7011,8 +7021,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     <span className={`${styles.title_search_mode}`}>事業内容</span>
                     {searchMode && (
                       <textarea
-                        name="address"
-                        id="address"
                         cols={30}
                         // rows={10}
                         className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
@@ -7068,8 +7076,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     <span className={`${styles.title_search_mode}`}>設備</span>
                     {searchMode && (
                       <textarea
-                        name="address"
-                        id="address"
                         cols={30}
                         // rows={10}
                         className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
@@ -7183,8 +7189,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       //   onChange={(e) => setInputIndustryType(e.target.value)}
                       // />
                       <select
-                        name="position_class"
-                        id="position_class"
                         className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputIndustryType}
                         onChange={(e) => setInputIndustryType(e.target.value)}

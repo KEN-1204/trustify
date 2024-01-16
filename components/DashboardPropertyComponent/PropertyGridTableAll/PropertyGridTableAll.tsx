@@ -21,7 +21,7 @@ import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 import { GridTableFooter } from "@/components/GridTable/GridTableFooter/GridTableFooter";
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
 import { checkNotFalsyExcludeZero } from "@/utils/Helpers/checkNotFalsyExcludeZero";
-import { getOrderCertaintyStartOfMonth } from "@/utils/selectOptions";
+import { getNumberOfEmployeesClass, getOrderCertaintyStartOfMonth } from "@/utils/selectOptions";
 
 type TableDataType = {
   id: number;
@@ -2455,6 +2455,8 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
     switch (columnName) {
       // 決算月 日本語は月を追加する
       case "fiscal_end_month":
+      case "budget_request_month1":
+      case "budget_request_month2":
         if (!!value && language === "ja") return `${value}月`;
         if (!!value && language === "en") return value;
         if (!value) return value;
@@ -2548,6 +2550,11 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
       case "order_certainty_start_of_month":
         if (!value) return null;
         return typeof value === "number" ? getOrderCertaintyStartOfMonth(value) : null;
+
+      // 規模(ランク)
+      case "number_of_employees_class":
+        if (!value) return null;
+        return getNumberOfEmployeesClass(value);
 
       default:
         return value;

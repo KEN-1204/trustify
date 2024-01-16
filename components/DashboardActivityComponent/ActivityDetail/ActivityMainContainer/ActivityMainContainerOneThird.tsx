@@ -17,9 +17,12 @@ import { Zoom } from "@/utils/Helpers/toastHelpers";
 import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 import {
+  getNumberOfEmployeesClass,
   getOccupationName,
   getPositionClassName,
   optionsActivityType,
+  optionsMonth,
+  optionsNumberOfEmployeesClass,
   optionsOccupation,
   optionsPositionsClass,
   optionsPriority,
@@ -2980,8 +2983,6 @@ const ActivityMainContainerOneThirdMemo = () => {
                       )}
                       {/* {searchMode && (
                         <textarea
-                          name="address"
-                          id="address"
                           cols={30}
                           // rows={10}
                           placeholder="「神奈川県＊」や「＊大田区＊」など"
@@ -3074,8 +3075,6 @@ const ActivityMainContainerOneThirdMemo = () => {
                     )}
                     {/* {searchMode && (
                       <select
-                        name="position_class"
-                        id="position_class"
                         className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputPositionClass}
                         onChange={(e) => setInputPositionClass(e.target.value)}
@@ -3124,8 +3123,6 @@ const ActivityMainContainerOneThirdMemo = () => {
                     )}
                     {/* {searchMode && (
                       <select
-                        name="position_class"
-                        id="position_class"
                         className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputEmployeesClass}
                         onChange={(e) => setInputEmployeesClass(e.target.value)}
@@ -3180,7 +3177,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                         className={`${styles.value}`}
                         data-text={`${
                           selectedRowDataActivity?.number_of_employees_class
-                            ? selectedRowDataActivity?.number_of_employees_class
+                            ? getNumberOfEmployeesClass(selectedRowDataActivity?.number_of_employees_class)
                             : ""
                         }`}
                         onMouseEnter={(e) => {
@@ -3193,14 +3190,12 @@ const ActivityMainContainerOneThirdMemo = () => {
                         }}
                       >
                         {selectedRowDataActivity?.number_of_employees_class
-                          ? selectedRowDataActivity?.number_of_employees_class
+                          ? getNumberOfEmployeesClass(selectedRowDataActivity?.number_of_employees_class)
                           : ""}
                       </span>
                     )}
                     {/* {searchMode && (
                       <select
-                        name="position_class"
-                        id="position_class"
                         className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputEmployeesClass}
                         onChange={(e) => setInputEmployeesClass(e.target.value)}
@@ -3427,8 +3422,6 @@ const ActivityMainContainerOneThirdMemo = () => {
                     )}
                     {/* {searchMode && (
                       <textarea
-                        name="address"
-                        id="address"
                         cols={30}
                         // rows={10}
                         className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
@@ -3557,8 +3550,6 @@ const ActivityMainContainerOneThirdMemo = () => {
                     )}
                     {/* {searchMode && (
                       <textarea
-                        name="address"
-                        id="address"
                         cols={30}
                         // rows={10}
                         className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
@@ -3817,8 +3808,6 @@ const ActivityMainContainerOneThirdMemo = () => {
                     )}
                     {/* {searchMode && !inputProductL && (
                       <select
-                        name="position_class"
-                        id="position_class"
                         className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputIndustryType}
                         onChange={(e) => setInputIndustryType(e.target.value)}
@@ -3919,8 +3908,6 @@ const ActivityMainContainerOneThirdMemo = () => {
                     )}
                     {/* {searchMode && !inputIndustryType && (
                       <select
-                        name="position_class"
-                        id="position_class"
                         className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputProductL}
                         onChange={(e) => setInputProductL(e.target.value)}
@@ -3984,8 +3971,6 @@ const ActivityMainContainerOneThirdMemo = () => {
                     )}
                     {/* {searchMode && !!inputProductL && (
                       <select
-                        name="position_class"
-                        id="position_class"
                         value={inputProductM}
                         onChange={(e) => setInputProductM(e.target.value)}
                         className={`${inputProductL ? "" : "hidden"} ml-auto h-full w-full cursor-pointer  ${
@@ -4480,8 +4465,6 @@ const ActivityMainContainerOneThirdMemo = () => {
                       )}
                       {searchMode && (
                         <textarea
-                          name="address"
-                          id="address"
                           cols={30}
                           // rows={10}
                           placeholder="「神奈川県＊」や「＊大田区＊」など"
@@ -4536,8 +4519,6 @@ const ActivityMainContainerOneThirdMemo = () => {
                         //   onChange={(e) => setInputProductL(e.target.value)}
                         // />
                         <select
-                          name="position_class"
-                          id="position_class"
                           className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                           value={inputPositionClass}
                           onChange={(e) => setInputPositionClass(e.target.value)}
@@ -4578,8 +4559,6 @@ const ActivityMainContainerOneThirdMemo = () => {
                       )} */}
                       {searchMode && (
                         <select
-                          name="position_class"
-                          id="position_class"
                           className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                           value={inputEmployeesClass}
                           onChange={(e) => setInputEmployeesClass(e.target.value)}
@@ -4646,7 +4625,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                       {!searchMode && (
                         <span className={`${styles.value}`}>
                           {selectedRowDataActivity?.number_of_employees_class
-                            ? selectedRowDataActivity?.number_of_employees_class
+                            ? getNumberOfEmployeesClass(selectedRowDataActivity?.number_of_employees_class)
                             : ""}
                         </span>
                       )}
@@ -4658,14 +4637,17 @@ const ActivityMainContainerOneThirdMemo = () => {
                         //   onChange={(e) => setInputProductL(e.target.value)}
                         // />
                         <select
-                          name="position_class"
-                          id="position_class"
                           className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                           value={inputEmployeesClass}
                           onChange={(e) => setInputEmployeesClass(e.target.value)}
                         >
                           <option value=""></option>
-                          {optionsSearchEmployeesClass.map((option) => option)}
+                          {optionsNumberOfEmployeesClass.map((option) => (
+                            <option key={option} value={option + "*"}>
+                              {getNumberOfEmployeesClass(option)}
+                            </option>
+                          ))}
+                          {/* {optionsSearchEmployeesClass.map((option) => option)} */}
                           {/* <option value="A*">A 1000名以上</option>
                           <option value="B*">B 500~999名</option>
                           <option value="C*">C 300~499名</option>
@@ -4687,12 +4669,20 @@ const ActivityMainContainerOneThirdMemo = () => {
                         </span>
                       )}
                       {searchMode && (
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
+                        <select
+                          className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
                           value={inputFiscal}
                           onChange={(e) => setInputFiscal(e.target.value)}
-                        />
+                        >
+                          <option value=""></option>
+                          {optionsMonth.map((option) => (
+                            <option key={option} value={option}>
+                              {option}月
+                            </option>
+                          ))}
+                          <option value="is not null">入力有りのデータのみ</option>
+                          <option value="is null">入力無しのデータのみ</option>
+                        </select>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
@@ -4839,8 +4829,6 @@ const ActivityMainContainerOneThirdMemo = () => {
                       )}
                       {searchMode && (
                         <textarea
-                          name="address"
-                          id="address"
                           cols={30}
                           // rows={10}
                           className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
@@ -4945,8 +4933,6 @@ const ActivityMainContainerOneThirdMemo = () => {
                       )}
                       {searchMode && (
                         <textarea
-                          name="address"
-                          id="address"
                           cols={30}
                           // rows={10}
                           className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
@@ -5167,8 +5153,6 @@ const ActivityMainContainerOneThirdMemo = () => {
                         //   onChange={(e) => setInputIndustryType(e.target.value)}
                         // />
                         <select
-                          name="position_class"
-                          id="position_class"
                           className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                           value={inputIndustryType}
                           onChange={(e) => setInputIndustryType(e.target.value)}
@@ -5269,8 +5253,6 @@ const ActivityMainContainerOneThirdMemo = () => {
                         //   onChange={(e) => setInputProductL(e.target.value)}
                         // />
                         <select
-                          name="position_class"
-                          id="position_class"
                           className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                           value={inputProductL}
                           onChange={(e) => setInputProductL(e.target.value)}
@@ -5334,8 +5316,6 @@ const ActivityMainContainerOneThirdMemo = () => {
                         //   onChange={(e) => setInputProductM(e.target.value)}
                         // />
                         <select
-                          name="position_class"
-                          id="position_class"
                           value={inputProductM}
                           onChange={(e) => setInputProductM(e.target.value)}
                           className={`${inputProductL ? "" : "hidden"} ml-auto h-full w-full cursor-pointer  ${
@@ -5476,8 +5456,6 @@ const ActivityMainContainerOneThirdMemo = () => {
                         </svg>
                       </div> */}
                       <select
-                        name="claim_flag"
-                        id="claim_flag"
                         className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         // value={inputClaimFlag}
                         // onChange={(e) => setInputClaimFlag(e.target.value)}
@@ -5504,8 +5482,6 @@ const ActivityMainContainerOneThirdMemo = () => {
                       <span className={`${styles.title}`}>活動ﾀｲﾌﾟ</span>
                       {searchMode && (
                         <select
-                          name="activity_type"
-                          id="activity_type"
                           className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
                           value={inputActivityType}
                           onChange={(e) => {
@@ -5534,8 +5510,6 @@ const ActivityMainContainerOneThirdMemo = () => {
                       <span className={`${styles.title}`}>優先度</span>
                       {searchMode && (
                         <select
-                          name="priority"
-                          id="priority"
                           className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                           value={inputPriority}
                           onChange={(e) => setInputPriority(e.target.value)}
@@ -5596,8 +5570,6 @@ const ActivityMainContainerOneThirdMemo = () => {
                           </svg>
                         </div> */}
                       <select
-                        name="follow_up_flag"
-                        id="follow_up_flag"
                         className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         // value={inputClaimFlag}
                         // onChange={(e) => setInputClaimFlag(e.target.value)}
@@ -5623,8 +5595,6 @@ const ActivityMainContainerOneThirdMemo = () => {
                       <span className={`${styles.title}`}>概要</span>
                       {searchMode && (
                         <textarea
-                          name="activity_summary"
-                          id="activity_summary"
                           cols={30}
                           // rows={10}
                           className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}

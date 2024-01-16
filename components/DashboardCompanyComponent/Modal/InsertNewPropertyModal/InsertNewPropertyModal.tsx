@@ -3699,8 +3699,6 @@ export const InsertNewPropertyModal = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !mr-[15px]`}>決裁者商談有無</span>
                     <select
-                      name="number_of_employees_class"
-                      id="number_of_employees_class"
                       className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={decisionMakerNegotiation}
                       onChange={(e) => {
