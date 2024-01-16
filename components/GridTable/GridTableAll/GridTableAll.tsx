@@ -259,9 +259,19 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // 初回表示(条件なし)でフェッチするフィールド テスト 先頭にidのカラム名を入れる これで、columnHeaderItemListにidを含めずに初回表示時でもidフィールドをフェッチできる。=> これをしないと、selectedRowDataCompanyにidが無くなるので、右下の活動履歴が表示されなくなる
   // idを加えないとDBフェッチ時にidフィールドが含まれない
   // const columnNamesObj = [...columnHeaderItemList]
+  // const columnNamesObj = [
+  //   "id",
+  //   [...columnHeaderItemList].map((item, index) => item.columnName as keyof Client_company),
+  // ].join(", "); // columnNameのみの配列をオブジェクトに変換して取得 { column1, column2, ... }
   const columnNamesObj = [
     "id",
     [...columnHeaderItemList].map((item, index) => item.columnName as keyof Client_company),
+    "created_by_user_id",
+    "created_by_department_of_user",
+    "created_by_unit_of_user",
+    "created_by_office_of_user",
+    "budget_request_month1",
+    "budget_request_month2",
   ].join(", "); // columnNameのみの配列をオブジェクトに変換して取得 { column1, column2, ... }
 
   // ユーザーState
@@ -960,7 +970,17 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       Object.keys(data?.pages[0].rows[0] as object)
     );
     // 初回カラム生成時には必ずidフィールドもフェッチするためidカラムが含まれてしまうが、idフィールドはフェッチしてselectedRowDataにはidフィールドを保持しつつ、テーブルにはidカラムは表示しないようにするためにfilterメソッドでカラム生成時にidをとり除く
-    const filteredArrayOmitId = Object.keys(data?.pages[0].rows[0] as object).filter((field) => field !== "id");
+    // const filteredArrayOmitId = Object.keys(data?.pages[0].rows[0] as object).filter((field) => field !== "id");
+    const excludeKeys = new Set([
+      "id",
+      "created_by_user_id",
+      "created_by_department_of_user",
+      "created_by_unit_of_user",
+      "created_by_office_of_user",
+      "budget_request_month1",
+      "budget_request_month2",
+    ]);
+    const filteredArrayOmitId = Object.keys(data?.pages[0].rows[0] as object).filter((key) => !excludeKeys.has(key));
     const newColsWidths = new Array(filteredArrayOmitId.length + 1).fill("120px");
     // const newColsWidths = new Array(Object.keys(data?.pages[0].rows[0] as object).length + 1).fill("120px");
     // newColsWidths.fill("65px", 0, 1); // 1列目を65pxに変更 チェックボックス
@@ -2441,12 +2461,14 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   //   columnName: string,
   //   marginTop: number = 0
   // ) => {
+  const hoveredItemPos = useStore((state) => state.hoveredItemPos);
   const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
   type TooltipParams = {
     e: React.MouseEvent<HTMLElement, MouseEvent>;
     display: string;
     content: string;
     content2?: string | undefined | null;
+    content3?: string | undefined | null;
     marginTop?: number;
     itemsPosition?: string;
   };
@@ -2455,6 +2477,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     display,
     content,
     content2,
+    content3,
     marginTop = 0,
     // itemsPosition = "start",
     itemsPosition = "center",
@@ -2470,6 +2493,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       itemHeight: height,
       content: content,
       content2: content2,
+      content3: content3,
       display: display,
       marginTop: marginTop,
       itemsPosition: itemsPosition,
@@ -2707,6 +2731,22 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                     setSearchMode(true);
                     // setLoadingGlobalState(true);
                   }
+                  if (hoveredItemPos) handleCloseTooltip();
+                }}
+                onMouseEnterHandler={(e) =>
+                  handleOpenTooltip({
+                    e: e,
+                    display: "top",
+                    content: `現在の好調業界や決算が近い会社で税制優遇や余り予算を狙える会社、`,
+                    content2: `直近売れ先の仕入れ先や、売れ先と同じ取引先を持つ同業他社で導入実績が響く会社など`,
+                    content3: `会社名、住所、規模、業種、決算月、取引先など複数の項目を組み合わせて売れる会社の検索が可能です。`,
+                    marginTop: 48,
+                    // marginTop: 28,
+                    // marginTop: 9,
+                  })
+                }
+                onMouseLeaveHandler={() => {
+                  if (hoveredItemPos) handleCloseTooltip();
                 }}
               />
               <RippleButton
@@ -2793,7 +2833,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                     content: `${
                       activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) !== 1
                         ? `選択中のカラムを左端に固定`
-                        : `カラムを選択することで、`
+                        : `カラムヘッダーを選択することで、`
                     }`,
                     content2: `${
                       activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex)
@@ -2836,7 +2876,19 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                   if (searchMode) setSearchMode(false); // サーチモード中止
                   if (editSearchMode) setEditSearchMode(false); // 編集モード中止
                   if (!isOpenDropdownMenuSearchMode) setIsOpenDropdownMenuSearchMode(true);
+                  if (hoveredItemPos) handleCloseTooltip();
                 }}
+                onMouseEnter={(e) =>
+                  handleOpenTooltip({
+                    e: e,
+                    display: "top",
+                    content: `検索結果を「自社専用会社のみ」`,
+                    content2: `「全ての会社」に切り替えが可能です`,
+                    marginTop: 28,
+                    itemsPosition: "center",
+                  })
+                }
+                onMouseLeave={handleCloseTooltip}
               >
                 <FiSearch className="pointer-events-none text-[14px]" />
                 <span>サーチモード</span>
@@ -2856,6 +2908,18 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                   setResetColumnHeaderItemList(newResetColumnHeaderItemList);
                   setIsOpenEditColumns(true);
                 }}
+                onMouseEnterHandler={(e) =>
+                  handleOpenTooltip({
+                    e: e,
+                    display: "top",
+                    content: `カラムをまとめて並び替えが可能です`,
+                    // content2: `直近売れ先の仕入れ先や、売れ先と同じ取引先を持つ同業他社で導入実績が響く会社など`,
+                    // marginTop: 48,
+                    // marginTop: 28,
+                    marginTop: 9,
+                  })
+                }
+                onMouseLeaveHandler={handleCloseTooltip}
               />
               <ChangeSizeBtn />
               {/* <RippleButton

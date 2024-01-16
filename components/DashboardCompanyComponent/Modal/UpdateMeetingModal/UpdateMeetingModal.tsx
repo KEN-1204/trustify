@@ -3647,7 +3647,7 @@ export const UpdateMeetingModal = () => {
                     minHeight="30px"
                     minWidth="78px"
                     fontSize="13px"
-                    textColor={`${selectedAttendeesArray?.length > 0 ? `#fff` : `#666`}`}
+                    textColor={`${selectedAttendeesArray?.length > 0 ? `#fff` : `#612`}`}
                     bgColor={`${selectedAttendeesArray?.length > 0 ? `var(--color-bg-brand50)` : `#33333390`}`}
                     bgColorHover={`${selectedAttendeesArray?.length > 0 ? `var(--color-bg-brand)` : `#33333390`}`}
                     border={`${

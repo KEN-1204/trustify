@@ -1,13 +1,13 @@
 import useStore from "@/store";
 import React, { FC, memo, useEffect, useRef, useState } from "react";
 import styles from "./DashboardHeader.module.css";
-import { HiOutlineBars3, HiOutlineCamera } from "react-icons/hi2";
+import { HiOutlineBars3 } from "react-icons/hi2";
 import { IoLogOutOutline, IoSettingsOutline } from "react-icons/io5";
 
-import { AiOutlineBell, AiOutlinePicture } from "react-icons/ai";
+import { AiOutlineBell, AiOutlineMoneyCollect, AiOutlinePicture } from "react-icons/ai";
 import { CgDarkMode } from "react-icons/cg";
 import { GiSettingsKnobs } from "react-icons/gi";
-import { BsCheck2, BsChevronLeft, BsChevronRight, BsFillGearFill } from "react-icons/bs";
+import { BsCheck2, BsChevronLeft, BsChevronRight } from "react-icons/bs";
 import Image from "next/image";
 import Link from "next/link";
 import useDashboardStore from "@/store/useDashboardStore";
@@ -18,7 +18,7 @@ import { useQueryNotifications } from "@/hooks/useQueryNotifications";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { TooltipModal } from "../Parts/Tooltip/TooltipModal";
-import { MdClose, MdOutlineModeEditOutline } from "react-icons/md";
+import { MdClose, MdOutlineAdminPanelSettings, MdOutlineLeaderboard, MdOutlineModeEditOutline } from "react-icons/md";
 import { VscSettings } from "react-icons/vsc";
 import { toast } from "react-toastify";
 import { Notification } from "@/types";
@@ -29,6 +29,10 @@ import { runFireworks } from "@/utils/confetti";
 import SpinnerIDS2 from "../Parts/SpinnerIDS/SpinnerIDS2";
 import { FiRefreshCw } from "react-icons/fi";
 import { coffeeWithFriendsIllustration, completedTasks, neonIconsSettingsGear, reminderIllustration } from "../assets";
+import { useMedia } from "react-use";
+import { GrDocumentVerified, GrHomeRounded, GrUserManager } from "react-icons/gr";
+import { BiMoneyWithdraw } from "react-icons/bi";
+import { FaLink, FaTelegramPlane } from "react-icons/fa";
 
 export const DashboardHeaderMemo: FC = () => {
   const supabase = useSupabaseClient();
@@ -545,6 +549,13 @@ export const DashboardHeaderMemo: FC = () => {
     setActiveMenuTab(tabName);
   };
 
+  // メディアクエリState Macbook 13インチ 1440px未満はtrue
+  const isLT1440Media = useMedia("(max-width: 1439px)", false);
+  const [isLT1440, setIsLT1440] = useState(isLT1440Media);
+  useEffect(() => {
+    setIsLT1440(isLT1440Media);
+  }, [isLT1440Media]);
+
   return (
     <header className={`${styles.app_header} ${activeMenuTab !== "HOME" ? `transition-bg01` : `transition-bg05`}`}>
       {/* 左コンテンツ */}
@@ -619,6 +630,9 @@ export const DashboardHeaderMemo: FC = () => {
           // className={`${
           //   tabPage === 2 ? "-ml-[calc(100%+39px)]" : ""
           // } transition-base flex-center w-full max-w-[calc(100vw-185px-35px-165px-48px-39px)]`}
+          // className={`${
+          //   tabPage === 2 ? "-ml-[calc(100%+39px)]" : ""
+          // } transition-base flex-center w-full min-w-[calc(100vw-16px-185px-39px-165px-32px)]`}
           className={`${
             tabPage === 2 ? "-ml-[calc(100%+39px)]" : ""
           } transition-base flex-center min-w-[calc(100vw-185px-35px-165px-48px-39px)]`}
@@ -626,7 +640,7 @@ export const DashboardHeaderMemo: FC = () => {
           <ul
             className={`hidden h-full w-full items-center justify-around text-[14px] font-[500] text-[--navColor] md:flex`}
           >
-            <li className={`${styles.navList}`}>
+            <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
               <div
                 // href="/home"
                 className={`${styles.navbarItem} ${activeMenuTab === "HOME" ? styles.active : ""} `}
@@ -643,11 +657,22 @@ export const DashboardHeaderMemo: FC = () => {
                     {language === "ja" && "ホーム"}
                     {language === "en" && "HOME"}
                   </span>
+                  {/* {!isLT1440 && (
+                    <span>
+                      {language === "ja" && "ホーム"}
+                      {language === "en" && "HOME"}
+                    </span>
+                  )}
+                  {isLT1440 && (
+                    <span>
+                      <GrHomeRounded className={`text-[16px]`} />
+                    </span>
+                  )} */}
                 </div>
                 <div className={`${styles.active_underline}`} />
               </div>
             </li>
-            <li className={`${styles.navList}`}>
+            <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
               <div
                 // href="/company"
                 className={`${styles.navbarItem} ${activeMenuTab === "Company" ? styles.active : ""} `}
@@ -664,11 +689,22 @@ export const DashboardHeaderMemo: FC = () => {
                     {language === "ja" && "会社"}
                     {language === "en" && "Company"}
                   </span>
+                  {/* {!isLT1440 && (
+                    <span>
+                      {language === "ja" && "会社"}
+                      {language === "en" && "Company"}
+                    </span>
+                  )}
+                  {isLT1440 && (
+                    <span>
+                      <HiOutlineBuildingOffice2 className={`text-[20px]`} />
+                    </span>
+                  )} */}
                 </div>
                 <div className={`${styles.active_underline}`} />
               </div>
             </li>
-            <li className={`${styles.navList}`}>
+            <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
               <div
                 // href="/home"
                 // prefetch={false}
@@ -688,11 +724,22 @@ export const DashboardHeaderMemo: FC = () => {
                     {language === "ja" && "担当者"}
                     {language === "en" && "Contacts"}
                   </span>
+                  {/* {!isLT1440 && (
+                    <span>
+                      {language === "ja" && "担当者"}
+                      {language === "en" && "Contacts"}
+                    </span>
+                  )}
+                  {isLT1440 && (
+                    <span>
+                      <GrUserManager className={`text-[18px]`} />
+                    </span>
+                  )} */}
                 </div>
                 <div className={`${styles.active_underline}`} />
               </div>
             </li>
-            <li className={`${styles.navList}`}>
+            <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
               <div
                 // href="/home"
                 // prefetch={false}
@@ -713,11 +760,22 @@ export const DashboardHeaderMemo: FC = () => {
                     {language === "ja" && "活動"}
                     {language === "en" && "Activity"}
                   </span>
+                  {/* {!isLT1440 && (
+                    <span>
+                      {language === "ja" && "活動"}
+                      {language === "en" && "Activity"}
+                    </span>
+                  )}
+                  {isLT1440 && (
+                    <span>
+                      <BsTelephonePlus className={`text-[18px]`} />
+                    </span>
+                  )} */}
                 </div>
                 <div className={`${styles.active_underline}`} />
               </div>
             </li>
-            <li className={`${styles.navList}`}>
+            <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
               <div
                 // href="/home"
                 // prefetch={false}
@@ -737,11 +795,22 @@ export const DashboardHeaderMemo: FC = () => {
                     {language === "ja" && "面談・訪問"}
                     {language === "en" && "Meeting"}
                   </span>
+                  {/* {!isLT1440 && (
+                    <span>
+                      {language === "ja" && "面談・訪問"}
+                      {language === "en" && "Meeting"}
+                    </span>
+                  )}
+                  {isLT1440 && (
+                    <span>
+                      <HiOutlineChatBubbleLeftRight className={`text-[20px]`} />
+                    </span>
+                  )} */}
                 </div>
                 <div className={`${styles.active_underline}`} />
               </div>
             </li>
-            <li className={`${styles.navList}`}>
+            <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
               <div
                 // href="/home"
                 // prefetch={false}
@@ -760,11 +829,27 @@ export const DashboardHeaderMemo: FC = () => {
                     {language === "ja" && "案件"}
                     {language === "en" && "Property"}
                   </span>
+                  {/* {!isLT1440 && (
+                    <span>
+                      {language === "ja" && "案件"}
+                      {language === "en" && "Property"}
+                    </span>
+                  )}
+                  {isLT1440 && language === "ja" && (
+                    <span>
+                      <AiOutlineMoneyCollect className={`text-[22px]`} />
+                    </span>
+                  )} */}
+                  {isLT1440 && language === "en" && (
+                    <span>
+                      <BiMoneyWithdraw className={`text-[22px]`} />
+                    </span>
+                  )}
                 </div>
                 <div className={`${styles.active_underline}`} />
               </div>
             </li>
-            <li className={`${styles.navList}`}>
+            <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
               <div
                 // href="/home"
                 // prefetch={false}
@@ -783,12 +868,23 @@ export const DashboardHeaderMemo: FC = () => {
                     {language === "ja" && "カレンダー"}
                     {language === "en" && "Calendar"}
                   </span>
+                  {/* {!isLT1440 && (
+                    <span>
+                      {language === "ja" && "カレンダー"}
+                      {language === "en" && "Calendar"}
+                    </span>
+                  )}
+                  {isLT1440 && (
+                    <span>
+                      <BsCalendarDate className={`text-[18px]`} />
+                    </span>
+                  )} */}
                 </div>
                 <div className={`${styles.active_underline}`} />
               </div>
             </li>
 
-            <li className={`${styles.navList}`}>
+            <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
               <div
                 // href="/home"
                 // prefetch={false}
@@ -807,11 +903,22 @@ export const DashboardHeaderMemo: FC = () => {
                     {language === "ja" && "見積"}
                     {language === "en" && "Quotation"}
                   </span>
+                  {/* {!isLT1440 && (
+                    <span>
+                      {language === "ja" && "見積"}
+                      {language === "en" && "Quotation"}
+                    </span>
+                  )}
+                  {isLT1440 && (
+                    <span>
+                      <GrDocumentVerified className={`text-[18px]`} />
+                    </span>
+                  )} */}
                 </div>
                 <div className={`${styles.active_underline}`} />
               </div>
             </li>
-            <li className={`${styles.navList}`}>
+            <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
               <div
                 // href="/home"
                 // prefetch={false}
@@ -828,11 +935,22 @@ export const DashboardHeaderMemo: FC = () => {
                     {language === "ja" && "引合・リード"}
                     {language === "en" && "Lead"}
                   </span>
+                  {/* {!isLT1440 && (
+                    <span>
+                      {language === "ja" && "引合・リード"}
+                      {language === "en" && "Lead"}
+                    </span>
+                  )}
+                  {isLT1440 && (
+                    <span>
+                      <BsTelephoneInbound className={`text-[18px]`} />
+                    </span>
+                  )} */}
                 </div>
                 <div className={`${styles.active_underline}`} />
               </div>
             </li>
-            <li className={`${styles.navList}`}>
+            <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
               <div
                 // href="/home"
                 // prefetch={false}
@@ -849,11 +967,22 @@ export const DashboardHeaderMemo: FC = () => {
                     {language === "ja" && "連携"}
                     {language === "en" && "Alignment"}
                   </span>
+                  {/* {!isLT1440 && (
+                    <span>
+                      {language === "ja" && "連携"}
+                      {language === "en" && "Alignment"}
+                    </span>
+                  )}
+                  {isLT1440 && (
+                    <span>
+                      <FaLink className={`text-[18px]`} />
+                    </span>
+                  )} */}
                 </div>
                 <div className={`${styles.active_underline}`} />
               </div>
             </li>
-            <li className={`${styles.navList}`}>
+            <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
               <div
                 // href="/home"
                 // prefetch={false}
@@ -872,11 +1001,22 @@ export const DashboardHeaderMemo: FC = () => {
                     {language === "ja" && "メッセージ"}
                     {language === "en" && "Message"}
                   </span>
+                  {/* {!isLT1440 && (
+                    <span>
+                      {language === "ja" && "メッセージ"}
+                      {language === "en" && "Message"}
+                    </span>
+                  )}
+                  {isLT1440 && (
+                    <span>
+                      <FaTelegramPlane className={`text-[18px]`} />
+                    </span>
+                  )} */}
                 </div>
                 <div className={`${styles.active_underline}`} />
               </div>
             </li>
-            <li className={`${styles.navList}`}>
+            <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
               <div
                 // href="/home"
                 // prefetch={false}
@@ -893,11 +1033,22 @@ export const DashboardHeaderMemo: FC = () => {
                     {language === "ja" && "SDB"}
                     {language === "en" && "SDB"}
                   </span>
+                  {/* {!isLT1440 && (
+                    <span>
+                      {language === "ja" && "SDB"}
+                      {language === "en" && "SDB"}
+                    </span>
+                  )}
+                  {isLT1440 && (
+                    <span>
+                      <MdOutlineLeaderboard className={`text-[18px]`} />
+                    </span>
+                  )} */}
                 </div>
                 <div className={`${styles.active_underline}`} />
               </div>
             </li>
-            <li className={`${styles.navList}`}>
+            <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
               <div
                 // href="/home"
                 // prefetch={false}
@@ -914,6 +1065,17 @@ export const DashboardHeaderMemo: FC = () => {
                     {language === "ja" && "管理者"}
                     {language === "en" && "Admin"}
                   </span>
+                  {/* {!isLT1440 && (
+                    <span>
+                      {language === "ja" && "管理者"}
+                      {language === "en" && "Admin"}
+                    </span>
+                  )}
+                  {isLT1440 && (
+                    <span>
+                      <MdOutlineAdminPanelSettings className={`text-[20px]`} />
+                    </span>
+                  )} */}
                 </div>
                 <div className={`${styles.active_underline}`} />
               </div>
@@ -944,6 +1106,17 @@ export const DashboardHeaderMemo: FC = () => {
                     {language === "ja" && "事前承認"}
                     {language === "en" && "Pre-approval"}
                   </span>
+                  {/* {!isLT1440 && (
+                    <span>
+                      {language === "ja" && "事前承認"}
+                      {language === "en" && "Pre-approval"}
+                    </span>
+                  )}
+                  {isLT1440 && (
+                    <span>
+                      <BsCheck2Circle className={`text-[18px]`} />
+                    </span>
+                  )} */}
                 </div>
                 <div className={`${styles.active_underline}`} />
               </div>
@@ -957,14 +1130,25 @@ export const DashboardHeaderMemo: FC = () => {
               >
                 <div
                   className={`${styles.navbarItemInner} cursor-not-allowed`}
-                  data-text="サポーター専用スペースです"
+                  data-text="プレミアム専用スペースです"
                   onMouseEnter={(e) => handleOpenTooltip(e, "center")}
                   onMouseLeave={handleCloseTooltip}
                 >
                   <span>
-                    {language === "ja" && "サポーター"}
-                    {language === "en" && "サポーター"}
+                    {language === "ja" && "プレミアム"}
+                    {language === "en" && "Premium"}
                   </span>
+                  {/* {!isLT1440 && (
+                    <span>
+                      {language === "ja" && "プレミアム"}
+                      {language === "en" && "Premium"}
+                    </span>
+                  )}
+                  {isLT1440 && (
+                    <span>
+                      <GrHomeRounded className={`text-[16px]`} />
+                    </span>
+                  )} */}
                 </div>
                 <div className={`${styles.active_underline}`} />
               </div>

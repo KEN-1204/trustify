@@ -55,7 +55,8 @@
   height: 90vh;
   max-width: 1150px;
   max-height: 730px;
-  background: #ffffff42;
+  background: var(--overlay-loading-modal-inside);
+  /* background: #ffffff48; */
   /* background: #00000090; */
   display: flex;
   justify-content: center;

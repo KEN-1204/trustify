@@ -84,6 +84,9 @@ type State = {
   // 編集モーダル
   isOpenUpdateClientCompanyModal: boolean;
   setIsOpenUpdateClientCompanyModal: (payload: boolean) => void;
+  // 会社複製可否state
+  isDuplicateCompany: boolean;
+  setIsDuplicateCompany: (payload: boolean) => void;
 
   // =================== 担当者作成モーダル ===================
   // 新規作成モーダル
@@ -361,6 +364,9 @@ const useDashboardStore = create<State>((set) => ({
   // 編集モーダル
   isOpenUpdateClientCompanyModal: false,
   setIsOpenUpdateClientCompanyModal: (payload) => set({ isOpenUpdateClientCompanyModal: payload }),
+  // 会社複製可否state
+  isDuplicateCompany: false,
+  setIsDuplicateCompany: (payload) => set({ isDuplicateCompany: payload }),
 
   // =================== 担当者作成モーダル ===================
   // 新規作成モーダル

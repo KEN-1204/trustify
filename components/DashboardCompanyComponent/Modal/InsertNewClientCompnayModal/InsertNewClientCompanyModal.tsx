@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./InsertNewClientCompanyModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -23,6 +23,10 @@ export const InsertNewClientCompanyModal = () => {
   // 上画面の選択中の列データ会社
   // const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
+  // 「会社_複製」クリックかどうかを判定するstate
+  const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
+  const isDuplicateCompany = useDashboardStore((state) => state.isDuplicateCompany);
+  const setIsDuplicateCompany = useDashboardStore((state) => state.setIsDuplicateCompany);
 
   const [name, setName] = useState("");
   const [departmentName, setDepartmentName] = useState("");
@@ -69,12 +73,123 @@ export const InsertNewClientCompanyModal = () => {
   const supabase = useSupabaseClient();
   const { createClientCompanyMutation } = useMutateClientCompany();
 
+  // ======================= 🌟「会社_複製」の場合はデータを複製🌟 =======================
+  // 初回マウント時に選択中の担当者&会社の列データの情報をStateに格納
+  useEffect(() => {
+    if (!selectedRowDataCompany) return;
+    if (!isDuplicateCompany) return;
+    let _name = selectedRowDataCompany.name ? selectedRowDataCompany.name : "";
+    let _department_name = selectedRowDataCompany.department_name ? selectedRowDataCompany.department_name : "";
+    let _main_fax = selectedRowDataCompany.main_fax ? selectedRowDataCompany.main_fax : "";
+    let _zipcode = selectedRowDataCompany.zipcode ? selectedRowDataCompany.zipcode : "";
+    let _address = selectedRowDataCompany.address ? selectedRowDataCompany.address : "";
+    let _department_contacts = selectedRowDataCompany.department_contacts
+      ? selectedRowDataCompany.department_contacts
+      : "";
+    let _industry_large = selectedRowDataCompany.industry_large ? selectedRowDataCompany.industry_large : "";
+    let _industry_small = selectedRowDataCompany.industry_small ? selectedRowDataCompany.industry_small : "";
+    let _industry_type = selectedRowDataCompany.industry_type ? selectedRowDataCompany.industry_type : "";
+    let _product_category_large = selectedRowDataCompany.product_category_large
+      ? selectedRowDataCompany.product_category_large
+      : "";
+    let _product_category_medium = selectedRowDataCompany.product_category_medium
+      ? selectedRowDataCompany.product_category_medium
+      : "";
+    let _product_category_small = selectedRowDataCompany.product_category_small
+      ? selectedRowDataCompany.product_category_small
+      : "";
+    let _number_of_employees_class = selectedRowDataCompany.number_of_employees_class
+      ? selectedRowDataCompany.number_of_employees_class
+      : "";
+    let _fiscal_end_month = selectedRowDataCompany.fiscal_end_month ? selectedRowDataCompany.fiscal_end_month : "";
+    let _capital = selectedRowDataCompany.capital ? selectedRowDataCompany.capital.toString() : "";
+    let _budget_request_month1 = selectedRowDataCompany.budget_request_month1
+      ? selectedRowDataCompany.budget_request_month1
+      : "";
+    let _budget_request_month2 = selectedRowDataCompany.budget_request_month2
+      ? selectedRowDataCompany.budget_request_month2
+      : "";
+    let _website_url = selectedRowDataCompany.website_url ? selectedRowDataCompany.website_url : "";
+    let _clients = selectedRowDataCompany.clients ? selectedRowDataCompany.clients : "";
+    let _supplier = selectedRowDataCompany.supplier ? selectedRowDataCompany.supplier : "";
+    let _business_content = selectedRowDataCompany.business_content ? selectedRowDataCompany.business_content : "";
+    let _established_in = selectedRowDataCompany.established_in ? selectedRowDataCompany.established_in : "";
+    let _representative_name = selectedRowDataCompany.representative_name
+      ? selectedRowDataCompany.representative_name
+      : "";
+    let _chairperson = selectedRowDataCompany.chairperson ? selectedRowDataCompany.chairperson : "";
+    let _senior_vice_president = selectedRowDataCompany.senior_vice_president
+      ? selectedRowDataCompany.senior_vice_president
+      : "";
+    let _senior_managing_director = selectedRowDataCompany.senior_managing_director
+      ? selectedRowDataCompany.senior_managing_director
+      : "";
+    let _managing_director = selectedRowDataCompany.managing_director ? selectedRowDataCompany.managing_director : "";
+    let _director = selectedRowDataCompany.director ? selectedRowDataCompany.director : "";
+    let _auditor = selectedRowDataCompany.auditor ? selectedRowDataCompany.auditor : "";
+    let _manager = selectedRowDataCompany.manager ? selectedRowDataCompany.manager : "";
+    let _member = selectedRowDataCompany.member ? selectedRowDataCompany.member : "";
+    let _facility = selectedRowDataCompany.facility ? selectedRowDataCompany.facility : "";
+    let _business_sites = selectedRowDataCompany.business_sites ? selectedRowDataCompany.business_sites : "";
+    let _overseas_bases = selectedRowDataCompany.overseas_bases ? selectedRowDataCompany.overseas_bases : "";
+    let _group_company = selectedRowDataCompany.group_company ? selectedRowDataCompany.group_company : "";
+    let _email = selectedRowDataCompany.email ? selectedRowDataCompany.email : "";
+    let _main_phone_number = selectedRowDataCompany.main_phone_number ? selectedRowDataCompany.main_phone_number : "";
+    let _corporate_number = selectedRowDataCompany.corporate_number ? selectedRowDataCompany.corporate_number : "";
+    let _board_member = selectedRowDataCompany.board_member ? selectedRowDataCompany.board_member : "";
+    let _number_of_employees = selectedRowDataCompany.number_of_employees
+      ? selectedRowDataCompany.number_of_employees
+      : "";
+    setName(_name);
+    setDepartmentName(_department_name);
+    setMainFax(_main_fax);
+    setZipcode(_zipcode);
+    setAddress(_address);
+    setDepartmentContacts(_department_contacts);
+    setIndustryL(_industry_large);
+    setIndustryS(_industry_small);
+    setIndustryType(_industry_type);
+    setProductCategoryL(_product_category_large);
+    setProductCategoryM(_product_category_medium);
+    setProductCategoryS(_product_category_small);
+    setNumberOfEmployeesClass(_number_of_employees_class);
+    setFiscalEndMonth(_fiscal_end_month);
+    setCapital(_capital);
+    setBudgetRequestMonth1(_budget_request_month1);
+    setBudgetRequestMonth2(_budget_request_month2);
+    setWebsiteURL(_website_url);
+    setClients(_clients);
+    setSupplier(_supplier);
+    setBusinessContent(_business_content);
+    setEstablishedIn(_established_in);
+    setRepresentativeName(_representative_name);
+    setChairperson(_chairperson);
+    setSeniorVicePresident(_senior_vice_president);
+    setSeniorManagingDirector(_senior_managing_director);
+    setManagingDirector(_managing_director);
+    setDirector(_director);
+    setAuditor(_auditor);
+    setManager(_manager);
+    setMember(_member);
+    setFacility(_facility);
+    setBusinessSites(_business_sites);
+    setOverseasBases(_overseas_bases);
+    setGroupCompany(_group_company);
+    setEmail(_email);
+    setMainPhoneNumber(_main_phone_number);
+    setCorporateNumber(_corporate_number);
+    setBoardMember(_board_member);
+    setNumberOfEmployees(_number_of_employees);
+  }, []);
+  // ======================= ✅「会社_複製」の場合はデータを複製✅ =======================
+
   // console.log("InsertNewClientCompanyModalコンポーネント レンダリング selectedRowDataCompany", selectedRowDataCompany);
 
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
     if (loadingGlobalState) return;
     setIsOpenInsertNewClientCompanyModal(false);
+    if (isDuplicateCompany) setIsDuplicateCompany(false);
   };
   const handleSaveAndClose = async () => {
     if (!name) return alert("会社名を入力してください");

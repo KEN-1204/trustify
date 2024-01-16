@@ -13,10 +13,12 @@ const CompanyFunctionHeaderMemo: FC = () => {
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
   const setUnderDisplayFullScreen = useDashboardStore((state) => state.setUnderDisplayFullScreen);
+  const hoveredItemPos = useStore((state) => state.hoveredItemPos);
   const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
   const setIsOpenInsertNewContactModal = useDashboardStore((state) => state.setIsOpenInsertNewContactModal);
   const setIsOpenInsertNewClientCompanyModal = useDashboardStore((state) => state.setIsOpenInsertNewClientCompanyModal);
+  const setIsDuplicateCompany = useDashboardStore((state) => state.setIsDuplicateCompany);
   const setIsOpenUpdateClientCompanyModal = useDashboardStore((state) => state.setIsOpenUpdateClientCompanyModal);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   // 新規サーチで使用した条件params
@@ -25,26 +27,50 @@ const CompanyFunctionHeaderMemo: FC = () => {
   // 上画面の選択中の列データ会社
   const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
 
-  const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
+  type TooltipParams = {
+    e: React.MouseEvent<HTMLElement, MouseEvent>;
+    display: string;
+    content: string;
+    content2?: string | undefined | null;
+    content3?: string | undefined | null;
+    textLength?: string | undefined | null;
+    marginTop?: number;
+    itemsPosition?: string;
+  };
+
+  const handleOpenTooltip = ({
+    e,
+    display,
+    content,
+    content2,
+    content3,
+    textLength,
+    marginTop = 0,
+    // itemsPosition = "start",
+    itemsPosition = "center",
+  }: TooltipParams) => {
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
     // console.log("ツールチップx, y width , height", x, y, width, height);
-    const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
-      ? ((e.target as HTMLDivElement).dataset.text2 as string)
-      : "";
-    const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
-      ? ((e.target as HTMLDivElement).dataset.text3 as string)
-      : "";
+    // const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
+    //   ? ((e.target as HTMLDivElement).dataset.text2 as string)
+    //   : "";
+    // const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
+    //   ? ((e.target as HTMLDivElement).dataset.text3 as string)
+    //   : "";
     setHoveredItemPos({
       x: x,
       y: y,
       itemWidth: width,
       itemHeight: height,
-      content: (e.target as HTMLDivElement).dataset.text as string,
+      // content: (e.target as HTMLDivElement).dataset.text as string,
+      content: content,
       content2: content2,
       content3: content3,
       display: display,
-      textLength: ((e.target as HTMLDivElement).dataset.text as string).length,
+      // textLength: ((e.target as HTMLDivElement).dataset.text as string).length,
+      textLength: textLength ? textLength.length : 0,
+      marginTop: marginTop,
       itemsPosition: "center",
     });
   };
@@ -80,6 +106,22 @@ const CompanyFunctionHeaderMemo: FC = () => {
               if (loadingGlobalState) setLoadingGlobalState(false);
               setSearchMode(true);
             }
+            if (hoveredItemPos) handleCloseTooltip();
+          }}
+          onMouseEnterHandler={(e) =>
+            handleOpenTooltip({
+              e: e,
+              display: "top",
+              content: `現在の好調業界や決算が近い会社で税制優遇や余り予算を狙える会社、`,
+              content2: `直近売れ先の仕入れ先や、売れ先と同じ取引先を持つ同業他社で導入実績が響く会社など`,
+              content3: `会社名、住所、規模、業種、決算月、取引先など複数の項目を組み合わせて売れる会社の検索が可能です。`,
+              marginTop: 48,
+              // marginTop: 28,
+              // marginTop: 9,
+            })
+          }
+          onMouseLeaveHandler={() => {
+            if (hoveredItemPos) handleCloseTooltip();
           }}
         />
         <RippleButton
@@ -104,6 +146,21 @@ const CompanyFunctionHeaderMemo: FC = () => {
               console.log("会社作成 クリック");
               if (loadingGlobalState) setLoadingGlobalState(false);
               setIsOpenInsertNewClientCompanyModal(true);
+              if (hoveredItemPos) handleCloseTooltip();
+            }}
+            onMouseEnterHandler={(e) =>
+              handleOpenTooltip({
+                e: e,
+                display: "top",
+                content: `新たに自社専用会社として`,
+                content2: `会社・部署の作成を行います`,
+                // marginTop: 48,
+                marginTop: 28,
+                // marginTop: 9,
+              })
+            }
+            onMouseLeaveHandler={() => {
+              if (hoveredItemPos) handleCloseTooltip();
             }}
           />
           <RippleButton
@@ -124,6 +181,39 @@ const CompanyFunctionHeaderMemo: FC = () => {
             }}
           />
           <RippleButton
+            title={`会社_複製`}
+            classText={`select-none ${searchMode || !selectedRowDataCompany ? `cursor-not-allowed` : ``}`}
+            clickEventHandler={() => {
+              if (searchMode) return;
+              if (!selectedRowDataCompany) return alert("会社を選択してください");
+              // if (
+              //   (selectedRowDataCompany.created_by_company_id === null &&
+              //     selectedRowDataCompany.created_by_user_id !== userProfileState?.id) ||
+              //   selectedRowDataCompany.created_by_company_id !== userProfileState?.company_id
+              // )
+              //   return alert("自社で作成した会社のみ編集可能です");
+              // console.log("会社編集 クリック");
+              if (loadingGlobalState) setLoadingGlobalState(false);
+              setIsDuplicateCompany(true);
+              setIsOpenInsertNewClientCompanyModal(true);
+              if (hoveredItemPos) handleCloseTooltip();
+            }}
+            // dataText={`既存の会社を複製して、部署や予算申請月など編集可能な自社専用会社として新たに作成します。`}
+            onMouseEnterHandler={(e) =>
+              handleOpenTooltip({
+                e: e,
+                display: "top",
+                content: `既存の会社を複製して、部署や予算申請月など`,
+                content2: `編集可能な自社専用会社として新たに作成します`,
+                marginTop: 28,
+                // marginTop: 9,
+              })
+            }
+            onMouseLeaveHandler={() => {
+              if (hoveredItemPos) handleCloseTooltip();
+            }}
+          />
+          <RippleButton
             title={`担当者_作成`}
             classText={`select-none ${searchMode ? `cursor-not-allowed` : ``}`}
             clickEventHandler={() => {
@@ -132,6 +222,20 @@ const CompanyFunctionHeaderMemo: FC = () => {
               // console.log("担当者作成 クリック");
               if (loadingGlobalState) setLoadingGlobalState(false);
               setIsOpenInsertNewContactModal(true);
+              if (hoveredItemPos) handleCloseTooltip();
+            }}
+            onMouseEnterHandler={(e) =>
+              handleOpenTooltip({
+                e: e,
+                display: "top",
+                content: `選択した会社・部署に紐づく担当者を作成します`,
+                // marginTop: 48,
+                // marginTop: 28,
+                marginTop: 9,
+              })
+            }
+            onMouseLeaveHandler={() => {
+              if (hoveredItemPos) handleCloseTooltip();
             }}
           />
         </div>
@@ -149,7 +253,6 @@ const CompanyFunctionHeaderMemo: FC = () => {
           <span>MAP</span>
         </button> */}
         <button
-          data-text={`${underDisplayFullScreen ? "デフォルト表示" : "全画面表示"}`}
           className={`flex-center transition-base03   !mr-[10px] h-[26px] min-w-[26px]  space-x-2 rounded-[4px] text-[16px]   ${
             tableContainerSize === "one_third"
               ? `cursor-not-allowed  text-[#b9b9b9]`
@@ -159,8 +262,17 @@ const CompanyFunctionHeaderMemo: FC = () => {
             if (tableContainerSize === "one_third") return;
             setUnderDisplayFullScreen(!underDisplayFullScreen);
           }}
+          // data-text={`${underDisplayFullScreen ? "デフォルト表示" : "全画面表示"}`}
           // onMouseEnter={(e) => handleOpenTooltip(e, "right")}
-          onMouseEnter={(e) => handleOpenTooltip(e, "right-top")}
+          onMouseEnter={(e) =>
+            handleOpenTooltip({
+              e: e,
+              display: "right-top",
+              // display: "top",
+              content: `${underDisplayFullScreen ? "デフォルト表示" : "全画面表示"}`,
+              textLength: `${underDisplayFullScreen ? "デフォルト表示" : "全画面表示"}`,
+            })
+          }
           onMouseLeave={handleCloseTooltip}
         >
           {underDisplayFullScreen ? (

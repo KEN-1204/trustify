@@ -906,6 +906,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --overlay-relight: #ffffff30;
   --overlay: #00000060;
   --overlay-modal-bg: #ffffff60;
+  --overlay-loading-modal-inside: #ffffff48;
   /* ツールチップ */
   --color-tooltip-arrow: #282828;
   --color-tooltip-dark: #333;
@@ -1502,6 +1503,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --overlay-relight: #00000060;
   --overlay: #ffffff20;
   --overlay-modal-bg: #33333360;
+  --overlay-loading-modal-inside: #00000066;
 
   /* ツールチップ dark */
   --color-tooltip-arrow: #333;

@@ -92,14 +92,27 @@ export const Tooltip = () => {
         }
       }
 
-      // 画面左端を超えている場合、位置を右に調整
-      if (leftPosition < 0) {
+      // // 画面左端を超えている場合、位置を右に調整
+      if (hoveredItemPositionX + hoveredItemHalfWidth - tooltipHalfWidth < 0) {
         adjustedLeft = 10; // 10pxの余白を残す
+        // スタイルを更新
+        menuRef.current.style.left = `${adjustedLeft}px`;
+        // 超えている場合は矢印を消去
+        if (arrowRef.current) arrowRef.current.style.opacity = "0";
+        if (arrowRef.current) arrowRef.current.style.display = "hidden";
+      } else {
+        // スタイルを更新
+        adjustedLeft = adjustedLeft - tooltipHalfWidth;
+        menuRef.current.style.left = `${adjustedLeft}px`;
       }
 
-      // スタイルを更新
-      adjustedLeft = adjustedLeft - tooltipHalfWidth;
-      menuRef.current.style.left = `${adjustedLeft}px`;
+      // // 画面左端を超えている場合、位置を右に調整
+      // if (leftPosition < 0) {
+      //   adjustedLeft = 10; // 10pxの余白を残す
+      // }
+      // // スタイルを更新
+      // adjustedLeft = adjustedLeft - tooltipHalfWidth;
+      // menuRef.current.style.left = `${adjustedLeft}px`;
     }
   }, [hoveredItemPositionX, hoveredItemPositionY, hoveredItemHalfWidth, hoveredItemDisplay]);
 

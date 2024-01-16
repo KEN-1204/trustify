@@ -1,12 +1,43 @@
 export const optionsPositionsClassForCustomer = [
-  "代表者",
-  "取締役/役員",
-  "部長",
-  "課長",
-  "チームメンバー",
-  "所長・支店長・工場長",
-  "フリーランス・個人事業主",
+  "1 代表者",
+  "2 取締役/役員",
+  "3 部長",
+  "4 課長",
+  "5 チームメンバー",
+  "6 所長・支店長・工場長",
+  "7 フリーランス・個人事業主",
 ];
+
+// export const optionsPositionsClassForCustomer = [1, 2, 3, 4, 5, 6, 7];
+
+export const getPositionClassNameForCustomer = (classNum: string, language: string = "ja") => {
+  switch (classNum) {
+    case "1 代表者":
+      return language === "ja" ? `代表者` : `President`;
+      break;
+    case "2 取締役/役員":
+      return language === "ja" ? `取締役/役員` : `Director/Executive`;
+      break;
+    case "3 部長":
+      return language === "ja" ? `部長` : `Manager`;
+      break;
+    case "4 課長":
+      return language === "ja" ? `課長` : `Section Manager`;
+      break;
+    case "5 チームメンバー":
+      return language === "ja" ? `チームメンバー` : `Team Member`;
+      break;
+    case "6 所長・支店長・工場長":
+      return language === "ja" ? `所長・支店長・工場長` : `Branch Manager`;
+      break;
+    case "7 フリーランス・個人事業主":
+      return language === "ja" ? `フリーランス・個人事業主` : `Freelance`;
+      break;
+
+    default:
+      break;
+  }
+};
 
 // export const optionsPositionsClass = ["代表者", "取締役", "部長", "課長", "課長未満", "所長・支社長・工場長", "その他"];
 // export const optionsPositionsClass = [
@@ -17,6 +48,8 @@ export const optionsPositionsClassForCustomer = [
 //   "5 課長未満",
 //   "6 所長・支社長・工場長",
 // ];
+
+// 職位(役職クラス)
 export const optionsPositionsClass = [1, 2, 3, 4, 5, 6];
 
 export const getPositionClassName = (classNum: number, language: string = "ja") => {
@@ -348,6 +381,34 @@ export const getNumberOfEmployeesClass = (title: string, language: string = "ja"
       break;
   }
 };
+export const getNumberOfEmployeesClassForCustomer = (title: string, language: string = "ja") => {
+  switch (title) {
+    case "A":
+      return "1000名以上";
+      break;
+    case "B":
+      return "500〜999名";
+      break;
+    case "C":
+      return "300〜499名";
+      break;
+    case "D":
+      return "200〜299名";
+      break;
+    case "E":
+      return "100〜199名";
+      break;
+    case "F":
+      return "50〜99名";
+      break;
+    case "G":
+      return "1〜49名";
+      break;
+    default:
+      return title;
+      break;
+  }
+};
 
 export const optionsSearchEmployeesClass = [
   <option key={`A 1000名以上`} value="A*">
@@ -421,10 +482,13 @@ export const optionsResultNegotiateDecisionMaker = ["決裁者と未商談", "�
 export const optionsMeetingParticipationRequest = ["同席依頼無し", "同席依頼済み 同席OK", "同席依頼済み 同席NG"];
 
 // 現ステータス
-export const optionsCurrentStatus = ["展開", "申請", "受注"];
+export const optionsCurrentStatus = ["リード", "展開", "申請", "受注"];
 
 export const getCurrentStatus = (title: string) => {
   switch (title) {
+    case "リード":
+      return "リード";
+      break;
     case "展開":
       return "展開(案件発生)";
       break;

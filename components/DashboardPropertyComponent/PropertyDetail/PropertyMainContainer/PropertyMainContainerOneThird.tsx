@@ -38,6 +38,7 @@ import {
   optionsDecisionMakerNegotiation,
   optionsIndustryType,
   optionsLeaseDivision,
+  optionsMonth,
   optionsNumberOfEmployeesClass,
   optionsOccupation,
   optionsOrderCertaintyStartOfMonth,
@@ -6506,28 +6507,6 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           : ""}
                       </span>
                     )}
-                    {searchMode && (
-                      // <input
-                      //   type="text"
-                      //   className={`${styles.input_box} ml-[20px]`}
-                      //   value={inputProductL}
-                      //   onChange={(e) => setInputProductL(e.target.value)}
-                      // />
-                      <select
-                        className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
-                        value={inputEmployeesClass}
-                        onChange={(e) => setInputEmployeesClass(e.target.value)}
-                      >
-                        <option value=""></option>
-                        <option value="A*">A 1000名以上</option>
-                        <option value="B*">B 500~999名</option>
-                        <option value="C*">C 300~499名</option>
-                        <option value="D*">D 200~299名</option>
-                        <option value="E*">E 100~199名</option>
-                        <option value="F*">F 50~99名</option>
-                        <option value="G*">G 1~49名</option>
-                      </select>
-                    )}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -6548,14 +6527,6 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       >
                         {selectedRowDataProperty?.fiscal_end_month ? selectedRowDataProperty?.fiscal_end_month : ""}
                       </span>
-                    )}
-                    {searchMode && (
-                      <input
-                        type="text"
-                        className={`${styles.input_box}`}
-                        value={inputFiscal}
-                        onChange={(e) => setInputFiscal(e.target.value)}
-                      />
                     )}
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -7514,6 +7485,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           {option === "来期" && `来期 (来期に獲得予定)`}
                         </option>
                       ))}
+                      <option value="is not null">入力有りのデータのみ</option>
+                      <option value="is null">入力無しのデータのみ</option>
                       {/* <option value="今期">今期</option>
                       <option value="来期">来期</option> */}
                     </select>
@@ -7602,11 +7575,18 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       }}
                     >
                       <option value=""></option>
-                      <option value="自己売上(自身で発生、自身で売上)">自己売上(自身で発生、自身で売上)</option>
+                      {optionsSalesContributionCategory.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                      {/* <option value="自己売上(自身で発生、自身で売上)">自己売上(自身で発生、自身で売上)</option>
                       <option value="引継ぎ売上(他担当が発生、引継ぎで売上)">
                         引継ぎ売上(他担当が発生、引継ぎで売上)
                       </option>
-                      <option value="リピート売上">リピート売上</option>
+                      <option value="リピート売上">リピート売上</option> */}
+                      <option value="is not null">入力有りのデータのみ</option>
+                      <option value="is null">入力無しのデータのみ</option>
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -7804,6 +7784,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       {/* <option value="新規">新規</option>
                       <option value="増設">増設</option>
                       <option value="更新">更新</option> */}
+                      <option value="is not null">入力有りのデータのみ</option>
+                      <option value="is null">入力無しのデータのみ</option>
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -7838,8 +7820,15 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       }}
                     >
                       <option value=""></option>
-                      <option value="月額">月額</option>
-                      <option value="年額">年額</option>
+                      {optionsSubscriptionInterval.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                      <option value="is not null">入力有りのデータのみ</option>
+                      <option value="is null">入力無しのデータのみ</option>
+                      {/* <option value="月額">月額</option>
+                      <option value="年額">年額</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -7903,8 +7892,15 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       }}
                     >
                       <option value=""></option>
-                      <option value="ファイナンスリース">ファイナンスリース</option>
-                      <option value="オペレーティングリース">オペレーティングリース</option>
+                      {optionsLeaseDivision.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                      <option value="is not null">入力有りのデータのみ</option>
+                      <option value="is null">入力無しのデータのみ</option>
+                      {/* <option value="ファイナンスリース">ファイナンスリース</option>
+                      <option value="オペレーティングリース">オペレーティングリース</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -8248,6 +8244,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           {getOrderCertaintyStartOfMonth(option)}
                         </option>
                       ))}
+                      <option value="is not null">入力有りのデータのみ</option>
+                      <option value="is null">入力無しのデータのみ</option>
                       {/* <option value="○ (80%以上の確率で受注)">○ (80%以上の確率で受注)</option>
                       <option value="△ (50%以上の確率で受注)">△ (50%以上の確率で受注)</option>
                       <option value="▲ (30%以上の確率で受注)">▲ (30%以上の確率で受注)</option> */}
@@ -8272,6 +8270,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           {getOrderCertaintyStartOfMonth(option)}
                         </option>
                       ))}
+                      <option value="is not null">入力有りのデータのみ</option>
+                      <option value="is null">入力無しのデータのみ</option>
                       {/* <option value="○ (80%以上の確率で受注)">○ (80%以上の確率で受注)</option>
                       <option value="△ (50%以上の確率で受注)">△ (50%以上の確率で受注)</option>
                       <option value="▲ (30%以上の確率で受注)">▲ (30%以上の確率で受注)</option> */}
@@ -8423,10 +8423,17 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       }}
                     >
                       <option value=""></option>
-                      <option value="競合無し">競合無し</option>
+                      {optionsOrderCertaintyStartOfMonth.map((option) => (
+                        <option key={option} value={option}>
+                          {getOrderCertaintyStartOfMonth(option)}
+                        </option>
+                      ))}
+                      <option value="is not null">入力有りのデータのみ</option>
+                      <option value="is null">入力無しのデータのみ</option>
+                      {/* <option value="競合無し">競合無し</option>
                       <option value="競合有り ○優勢">競合有り ○優勢</option>
                       <option value="競合有り △">競合有り △</option>
-                      <option value="競合有り ▲劣勢">競合有り ▲劣勢</option>
+                      <option value="競合有り ▲劣勢">競合有り ▲劣勢</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -8484,7 +8491,14 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       }}
                     >
                       <option value=""></option>
-                      <option value="新規会社(過去面談無し)/能動">新規会社(過去面談無し)/能動</option>
+                      {optionsReasonClass.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                      <option value="is not null">入力有りのデータのみ</option>
+                      <option value="is null">入力無しのデータのみ</option>
+                      {/* <option value="新規会社(過去面談無し)/能動">新規会社(過去面談無し)/能動</option>
                       <option value="被り会社(過去面談有り)/能動">被り会社(過去面談有り)/能動</option>
                       <option value="社内ID/能動">社内ID/能動</option>
                       <option value="社外･客先ID/能動">社外･客先ID/能動</option>
@@ -8495,7 +8509,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       <option value="ホームページ/受動">ホームページ/受動</option>
                       <option value="ウェビナー/受動">ウェビナー/受動</option>
                       <option value="展示会/受動">展示会/受動</option>
-                      <option value="その他">その他</option>
+                      <option value="その他">その他</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -8587,9 +8601,16 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       }}
                     >
                       <option value=""></option>
-                      <option value="決裁者と会えず">決裁者と会えず</option>
+                      {optionsDecisionMakerNegotiation.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                      <option value="is not null">入力有りのデータのみ</option>
+                      <option value="is null">入力無しのデータのみ</option>
+                      {/* <option value="決裁者と会えず">決裁者と会えず</option>
                       <option value="決裁者と会うも、商談できず">決裁者と会うも、商談できず</option>
-                      <option value="決裁者と商談済み">決裁者と商談済み</option>
+                      <option value="決裁者と商談済み">決裁者と商談済み</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -8893,6 +8914,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             {getPositionClassName(classNum, language)}
                           </option>
                         ))}
+                        <option value="is not null">入力有りのデータのみ</option>
+                        <option value="is null">入力無しのデータのみ</option>
                         {/* <option value="1 代表者">1 代表者</option>
                         <option value="2 取締役/役員">2 取締役/役員</option>
                         <option value="3 部長">3 部長</option>
@@ -8924,6 +8947,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             {getOccupationName(num, language)}
                           </option>
                         ))}
+                        <option value="is not null">入力有りのデータのみ</option>
+                        <option value="is null">入力無しのデータのみ</option>
                         {/* {optionsOccupation.map((option) => (
                           <option key={option} value={option}>
                             {option}
@@ -8985,13 +9010,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             {getNumberOfEmployeesClass(option)}
                           </option>
                         ))}
-                        {/* <option value="A*">A 1000名以上</option>
-                        <option value="B*">B 500~999名</option>
-                        <option value="C*">C 300~499名</option>
-                        <option value="D*">D 200~299名</option>
-                        <option value="E*">E 100~199名</option>
-                        <option value="F*">F 50~99名</option>
-                        <option value="G*">G 1~49名</option> */}
+                        <option value="is not null">入力有りのデータのみ</option>
+                        <option value="is null">入力無しのデータのみ</option>
                       </select>
                     )}
                   </div>
@@ -9001,12 +9021,20 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center`}>
                     <span className={`${styles.title_search_mode}`}>決算月</span>
                     {searchMode && (
-                      <input
-                        type="text"
-                        className={`${styles.input_box}`}
+                      <select
+                        className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
                         value={inputFiscal}
                         onChange={(e) => setInputFiscal(e.target.value)}
-                      />
+                      >
+                        <option value=""></option>
+                        {optionsMonth.map((option) => (
+                          <option key={option} value={option}>
+                            {option}月
+                          </option>
+                        ))}
+                        <option value="is not null">入力有りのデータのみ</option>
+                        <option value="is null">入力無しのデータのみ</option>
+                      </select>
                     )}
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -9019,12 +9047,20 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode} text-[12px]`}>予算申請月1</span>
                     {searchMode && (
-                      <input
-                        type="text"
-                        className={`${styles.input_box}`}
+                      <select
+                        className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
                         value={inputBudgetRequestMonth1}
                         onChange={(e) => setInputBudgetRequestMonth1(e.target.value)}
-                      />
+                      >
+                        <option value=""></option>
+                        {optionsMonth.map((option) => (
+                          <option key={option} value={option + `*`}>
+                            {`${option}月`}
+                          </option>
+                        ))}
+                        <option value="is not null">入力有りのデータのみ</option>
+                        <option value="is null">入力無しのデータのみ</option>
+                      </select>
                     )}
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -9033,12 +9069,20 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.title_box} flex h-full items-center`}>
                     <span className={`${styles.title_search_mode} text-[12px]`}>予算申請月2</span>
                     {searchMode && (
-                      <input
-                        type="text"
-                        className={`${styles.input_box}`}
+                      <select
+                        className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
                         value={inputBudgetRequestMonth2}
                         onChange={(e) => setInputBudgetRequestMonth2(e.target.value)}
-                      />
+                      >
+                        <option value=""></option>
+                        {optionsMonth.map((option) => (
+                          <option key={option} value={option + `*`}>
+                            {`${option}月`}
+                          </option>
+                        ))}
+                        <option value="is not null">入力有りのデータのみ</option>
+                        <option value="is null">入力無しのデータのみ</option>
+                      </select>
                     )}
                   </div>
                   <div className={`${styles.underline}`}></div>

@@ -1848,7 +1848,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                         className={`${styles.textarea_box} ${
                           isOurActivityAndIsTypeActivity ? styles.editable_field : styles.uneditable_field
                         } ${
-                          !isNotActivityTypeArray.includes(selectedRowDataActivity?.activity_type)
+                          !isNotActivityTypeArray.includes(selectedRowDataActivity?.activity_type ?? "")
                             ? `${styles.active}`
                             : ``
                         }`}
@@ -4529,13 +4529,8 @@ const ActivityMainContainerOneThirdMemo = () => {
                               {getPositionClassName(classNum, language)}
                             </option>
                           ))}
-                          {/* <option value="1 代表者">1 代表者</option>
-                          <option value="2 取締役/役員">2 取締役/役員</option>
-                          <option value="3 部長">3 部長</option>
-                          <option value="4 課長">4 課長</option>
-                          <option value="5 課長未満">5 課長未満</option>
-                          <option value="6 所長・工場長">6 所長・工場長</option>
-                          <option value="7 不明">7 不明</option> */}
+                          <option value="is not null">入力有りのデータのみ</option>
+                          <option value="is null">入力無しのデータのみ</option>
                         </select>
                       )}
                     </div>
@@ -4569,11 +4564,8 @@ const ActivityMainContainerOneThirdMemo = () => {
                               {getOccupationName(num, language)}
                             </option>
                           ))}
-                          {/* {optionsOccupation.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))} */}
+                          <option value="is not null">入力有りのデータのみ</option>
+                          <option value="is null">入力無しのデータのみ</option>
                         </select>
                       )}
                     </div>
@@ -4630,12 +4622,6 @@ const ActivityMainContainerOneThirdMemo = () => {
                         </span>
                       )}
                       {searchMode && (
-                        // <input
-                        //   type="text"
-                        //   className={`${styles.input_box} ml-[20px]`}
-                        //   value={inputProductL}
-                        //   onChange={(e) => setInputProductL(e.target.value)}
-                        // />
                         <select
                           className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                           value={inputEmployeesClass}
@@ -4647,14 +4633,8 @@ const ActivityMainContainerOneThirdMemo = () => {
                               {getNumberOfEmployeesClass(option)}
                             </option>
                           ))}
-                          {/* {optionsSearchEmployeesClass.map((option) => option)} */}
-                          {/* <option value="A*">A 1000名以上</option>
-                          <option value="B*">B 500~999名</option>
-                          <option value="C*">C 300~499名</option>
-                          <option value="D*">D 200~299名</option>
-                          <option value="E*">E 100~199名</option>
-                          <option value="F*">F 50~99名</option>
-                          <option value="G*">G 1~49名</option> */}
+                          <option value="is not null">入力有りのデータのみ</option>
+                          <option value="is null">入力無しのデータのみ</option>
                         </select>
                       )}
                     </div>
@@ -4702,21 +4682,37 @@ const ActivityMainContainerOneThirdMemo = () => {
                         <span>予算</span>
                         <span>申請月1</span>
                       </div>
-                      {!searchMode && (
+                      {/* {!searchMode && (
                         <span className={`${styles.value}`}>
                           {selectedRowDataActivity?.budget_request_month1
                             ? selectedRowDataActivity?.budget_request_month1
                             : ""}
                         </span>
-                      )}
+                      )} */}
                       {searchMode && (
+                        <select
+                          className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
+                          value={inputBudgetRequestMonth1}
+                          onChange={(e) => setInputBudgetRequestMonth1(e.target.value)}
+                        >
+                          <option value=""></option>
+                          {optionsMonth.map((option) => (
+                            <option key={option} value={option + `*`}>
+                              {`${option}月`}
+                            </option>
+                          ))}
+                          <option value="is not null">入力有りのデータのみ</option>
+                          <option value="is null">入力無しのデータのみ</option>
+                        </select>
+                      )}
+                      {/* {searchMode && (
                         <input
                           type="text"
                           className={`${styles.input_box}`}
                           value={inputBudgetRequestMonth1}
                           onChange={(e) => setInputBudgetRequestMonth1(e.target.value)}
                         />
-                      )}
+                      )} */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -4727,20 +4723,28 @@ const ActivityMainContainerOneThirdMemo = () => {
                         <span>予算</span>
                         <span>申請月2</span>
                       </div>
-                      {!searchMode && (
+                      {/* {!searchMode && (
                         <span className={`${styles.value}`}>
                           {selectedRowDataActivity?.budget_request_month2
                             ? selectedRowDataActivity?.budget_request_month2
                             : ""}
                         </span>
-                      )}
+                      )} */}
                       {searchMode && (
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
+                        <select
+                          className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
                           value={inputBudgetRequestMonth2}
                           onChange={(e) => setInputBudgetRequestMonth2(e.target.value)}
-                        />
+                        >
+                          <option value=""></option>
+                          {optionsMonth.map((option) => (
+                            <option key={option} value={option + `*`}>
+                              {`${option}月`}
+                            </option>
+                          ))}
+                          <option value="is not null">入力有りのデータのみ</option>
+                          <option value="is null">入力無しのデータのみ</option>
+                        </select>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
@@ -5518,6 +5522,8 @@ const ActivityMainContainerOneThirdMemo = () => {
                           <option value="高">高</option>
                           <option value="中">中</option>
                           <option value="低">低</option>
+                          <option value="is not null">入力有りのデータのみ</option>
+                          <option value="is null">入力無しのデータのみ</option>
                         </select>
                       )}
                     </div>

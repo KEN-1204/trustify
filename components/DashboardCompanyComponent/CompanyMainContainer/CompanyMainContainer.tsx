@@ -157,6 +157,8 @@ const CompanyMainContainerMemo: FC = () => {
   const [inputProductM, setInputProductM] = useState("");
   const [inputProductS, setInputProductS] = useState("");
   const [inputFiscal, setInputFiscal] = useState("");
+  const [inputBudgetRequestMonth1, setInputBudgetRequestMonth1] = useState("");
+  const [inputBudgetRequestMonth2, setInputBudgetRequestMonth2] = useState("");
   const [inputClient, setInputClient] = useState("");
   const [inputSupplier, setInputSupplier] = useState("");
   const [inputFacility, setInputFacility] = useState("");
@@ -1515,12 +1517,14 @@ const CompanyMainContainerMemo: FC = () => {
                       value={inputEmployeesClass}
                       onChange={(e) => setInputEmployeesClass(e.target.value)}
                     >
-                      <option value="">全て選択</option>
+                      <option value=""></option>
                       {optionsNumberOfEmployeesClass.map((option) => (
                         <option key={option} value={option + "*"}>
                           {getNumberOfEmployeesClass(option)}
                         </option>
                       ))}
+                      <option value="is not null">入力有りのデータのみ</option>
+                      <option value="is null">入力無しのデータのみ</option>
                       {/* <option value="A*">A 1000名以上</option>
                       <option value="B*">B 500~999名</option>
                       <option value="C*">C 300~499名</option>
@@ -2749,6 +2753,195 @@ const CompanyMainContainerMemo: FC = () => {
             </div>
 
             {/* 予算申請月1・予算申請月2 🌟自社専用会社のみ表示 一旦無し　実装は後で、 */}
+            {isOwnCompany && (
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className={`flex h-full w-1/2 flex-col pr-[20px]`}>
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title}`}>予算申請月1</span>
+                    {/* <span className={`${styles.title}`}>会員専用</span> */}
+                    {/* ディスプレイ */}
+                    {!searchMode && isEditModeField !== "budget_request_month1" && (
+                      <span
+                        className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
+                        onClick={handleSingleClickField}
+                        onDoubleClick={(e) => {
+                          handleDoubleClickField({
+                            e,
+                            field: "budget_request_month1",
+                            dispatch: setInputBudgetRequestMonth1,
+                          });
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
+                        {selectedRowDataCompany?.budget_request_month1
+                          ? selectedRowDataCompany?.budget_request_month1
+                          : ""}
+                      </span>
+                    )}
+                    {/* ============= フィールドエディットモード関連 ============= */}
+                    {/* フィールドエディットモード inputタグ */}
+                    {!searchMode && isEditModeField === "budget_request_month1" && (
+                      <>
+                        <input
+                          type="text"
+                          placeholder=""
+                          autoFocus
+                          className={`${styles.input_box} ${styles.field_edit_mode_input_box_with_close}`}
+                          value={inputBudgetRequestMonth1}
+                          onChange={(e) => setInputBudgetRequestMonth1(e.target.value)}
+                          onCompositionStart={() => setIsComposing(true)}
+                          onCompositionEnd={() => setIsComposing(false)}
+                          onKeyDown={(e) =>
+                            handleKeyDownUpdateField({
+                              e,
+                              fieldName: "budget_request_month1",
+                              value: toHalfWidthAndSpace(inputBudgetRequestMonth1.trim()),
+                              id: selectedRowDataCompany?.id,
+                              required: false,
+                            })
+                          }
+                        />
+                        {/* 送信ボタンとクローズボタン */}
+                        {!updateClientCompanyFieldMutation.isLoading && (
+                          <InputSendAndCloseBtn
+                            inputState={inputBudgetRequestMonth1}
+                            setInputState={setInputBudgetRequestMonth1}
+                            onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                              handleClickSendUpdateField({
+                                e,
+                                fieldName: "budget_request_month1",
+                                value: toHalfWidthAndSpace(inputBudgetRequestMonth1.trim()),
+                                id: selectedRowDataCompany?.id,
+                                required: false,
+                              })
+                            }
+                            required={false}
+                            isDisplayClose={false}
+                          />
+                        )}
+                        {/* エディットフィールド送信中ローディングスピナー */}
+                        {updateClientCompanyFieldMutation.isLoading && (
+                          <div
+                            className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                          >
+                            <SpinnerComet w="22px" h="22px" s="3px" />
+                          </div>
+                        )}
+                      </>
+                    )}
+                    {/* フィールドエディットモードオーバーレイ */}
+                    {!searchMode && isEditModeField === "budget_request_month1" && (
+                      <div
+                        className={`${styles.edit_mode_overlay}`}
+                        onClick={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                          setIsEditModeField(null); // エディットモードを終了
+                        }}
+                      />
+                    )}
+                    {/* ============= フィールドエディットモード関連ここまで ============= */}
+                    {/* サーチは従業員数の詳細では必要なし */}
+
+                    {/* {!searchMode && <span className={`${styles.value}`}>有料会員様専用のフィールドです</span>} */}
+                    {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
+                    {/* サブスク未加入者にはブラーを表示 */}
+                    {/* <div className={`${styles.limited_lock_cover_half} flex-center`}>
+                    <FaLock />
+                  </div> */}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                {/* 予算申請月2 */}
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title}`}>予算申請月2</span>
+                    {/* ディスプレイ */}
+                    {!searchMode && isEditModeField !== "budget_request_month2" && (
+                      <span
+                        className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
+                        onClick={handleSingleClickField}
+                        onDoubleClick={(e) => {
+                          handleDoubleClickField({
+                            e,
+                            field: "budget_request_month2",
+                            dispatch: setInputBudgetRequestMonth1,
+                          });
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
+                        {selectedRowDataCompany?.budget_request_month2
+                          ? selectedRowDataCompany?.budget_request_month2
+                          : ""}
+                      </span>
+                    )}
+                    {/* ============= フィールドエディットモード関連 ============= */}
+                    {/* フィールドエディットモード inputタグ */}
+                    {!searchMode && isEditModeField === "budget_request_month2" && (
+                      <>
+                        <select
+                          className={`ml-auto h-full w-full cursor-pointer ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                          value={inputEmployeesClass}
+                          onChange={(e) => {
+                            // setInputEmployeesClass(e.target.value);
+                            handleChangeSelectUpdateField({
+                              e,
+                              fieldName: "number_of_employees_class",
+                              value: e.target.value,
+                              id: selectedRowDataCompany?.id,
+                            });
+                          }}
+                        >
+                          {/* <option value="">全て選択</option> */}
+                          {optionsNumberOfEmployeesClass.map((option) => (
+                            <option key={option} value={option}>
+                              {getNumberOfEmployeesClass(option)}
+                            </option>
+                          ))}
+                        </select>
+                        {/* エディットフィールド送信中ローディングスピナー */}
+                        {updateClientCompanyFieldMutation.isLoading && (
+                          <div
+                            className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                          >
+                            <SpinnerComet w="22px" h="22px" s="3px" />
+                          </div>
+                        )}
+                      </>
+                    )}
+                    {/* フィールドエディットモードオーバーレイ */}
+                    {!searchMode && isEditModeField === "budget_request_month2" && (
+                      <div
+                        className={`${styles.edit_mode_overlay}`}
+                        onClick={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                          setIsEditModeField(null); // エディットモードを終了
+                        }}
+                      />
+                    )}
+                    {/* ============= フィールドエディットモード関連ここまで ============= */}
+                    {/* サーチは従業員数の詳細では必要なし */}
+
+                    {/* {!searchMode && <span className={`${styles.value}`}>有料会員様専用のフィールドです</span>} */}
+                    {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
+                    {/* サブスク未加入者にはブラーを表示 */}
+                    {/* <div className={`${styles.limited_lock_cover_half} flex-center`}>
+                    <FaLock />
+                  </div> */}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+            )}
 
             {/* 主要取引先 */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>

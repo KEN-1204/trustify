@@ -2080,13 +2080,8 @@ const ContactMainContainerMemo: FC = () => {
                           {getPositionClassName(classNum, language)}
                         </option>
                       ))}
-                      {/* <option value="代表者">代表者</option>
-                      <option value="取締役/役員">取締役/役員</option>
-                      <option value="部長">部長</option>
-                      <option value="課長">課長</option>
-                      <option value="課長未満">課長未満</option>
-                      <option value="所長・工場長">所長・工場長</option>
-                      <option value="その他">その他</option> */}
+                      <option value="is not null">入力有りのデータのみ</option>
+                      <option value="is null">入力無しのデータのみ</option>
                     </select>
                   )}
                   {/* ============= フィールドエディットモード関連 ============= */}
@@ -2180,32 +2175,8 @@ const ContactMainContainerMemo: FC = () => {
                           {getOccupationName(num, language)}
                         </option>
                       ))}
-                      {/* {optionsOccupation.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))} */}
-                      {/* <option value="社長・専務">社長・専務</option>
-                      <option value="取締役・役員">取締役・役員</option>
-                      <option value="プロジェクト管理">プロジェクト管理</option>
-                      <option value="営業">営業</option>
-                      <option value="マーケティング">マーケティング</option>
-                      <option value="クリエイティブ">クリエイティブ</option>
-                      <option value="ソフトウェア開発">ソフトウェア開発</option>
-                      <option value="開発・設計">開発・設計</option>
-                      <option value="製造">製造</option>
-                      <option value="品質管理・品質保証">品質管理・品質保証</option>
-                      <option value="生産管理">生産管理</option>
-                      <option value="生産技術">生産技術</option>
-                      <option value="人事">人事</option>
-                      <option value="経理">経理</option>
-                      <option value="総務">総務</option>
-                      <option value="法務">法務</option>
-                      <option value="財務">財務</option>
-                      <option value="購買">購買</option>
-                      <option value="情報システム/IT管理者">情報システム/IT管理者</option>
-                      <option value="CS/カスタマーサービス">CS/カスタマーサービス</option>
-                      <option value="その他">その他</option> */}
+                      <option value="is not null">入力有りのデータのみ</option>
+                      <option value="is null">入力無しのデータのみ</option>
                     </select>
                   )}
                   {/* ============= フィールドエディットモード関連 ============= */}
@@ -2415,6 +2386,8 @@ const ContactMainContainerMemo: FC = () => {
                           {getNumberOfEmployeesClass(option)}
                         </option>
                       ))}
+                      <option value="is not null">入力有りのデータのみ</option>
+                      <option value="is null">入力無しのデータのみ</option>
                       {/* <option value="A*">A 1000名以上</option>
                       <option value="B*">B 500~999名</option>
                       <option value="C*">C 300~499名</option>
@@ -2512,6 +2485,8 @@ const ContactMainContainerMemo: FC = () => {
                           {`${option}月`}
                         </option>
                       ))}
+                      <option value="is not null">入力有りのデータのみ</option>
+                      <option value="is null">入力無しのデータのみ</option>
                     </select>
                   )}
                 </div>
@@ -2555,6 +2530,8 @@ const ContactMainContainerMemo: FC = () => {
                           {`${option}月`}
                         </option>
                       ))}
+                      <option value="is not null">入力有りのデータのみ</option>
+                      <option value="is null">入力無しのデータのみ</option>
                     </select>
                   )}
                 </div>

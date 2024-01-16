@@ -18,6 +18,9 @@ type Props = {
   clickEventHandler?: () => void;
   buttonType?: "button" | "submit" | "reset";
   // onMouseEnterHandler?: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
+  dataText?: string;
+  dataText2?: string;
+  dataText3?: string;
   onMouseEnterHandler?: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   onMouseLeaveHandler?: () => void;
 };
@@ -38,6 +41,9 @@ const RippleButtonMemo: FC<Props> = ({
   clickEventHandler,
   //   padding = "14px 40px",
   buttonType = "button",
+  dataText,
+  dataText2,
+  dataText3,
   onMouseEnterHandler,
   onMouseLeaveHandler,
 }) => {
@@ -91,7 +97,8 @@ const RippleButtonMemo: FC<Props> = ({
             borderRadius: borderRadius,
           } as CSSProperties
         }
-        data-text="Button"
+        // data-text="Button"
+
         ref={buttonRef}
         // イベントハンドラを渡していない時はonClickイベントが付与されないので、formタグ内で使用してもonSubmitイベントが発火される。
         // onClickイベントが付与されているとformのonSubmitよりonClickがエンターキーに反応してしまうため
@@ -103,6 +110,9 @@ const RippleButtonMemo: FC<Props> = ({
               }
             : undefined
         }
+        data-text={dataText ? dataText : undefined}
+        data-text2={dataText2 ? dataText2 : undefined}
+        data-text3={dataText3 ? dataText3 : undefined}
         onMouseEnter={onMouseEnterHandler ? onMouseEnterHandler : undefined}
         onMouseLeave={onMouseLeaveHandler ? onMouseLeaveHandler : undefined}
         // onClick={(e) => {

@@ -14,7 +14,12 @@ import { useQueryOffices } from "@/hooks/useQueryOffices";
 import useStore from "@/store";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { useMutateAuth } from "@/hooks/useMutateAuth";
-import { optionsOccupation, optionsPositionsClassForCustomer } from "@/utils/selectOptions";
+import {
+  getOccupationName,
+  getPositionClassNameForCustomer,
+  optionsOccupation,
+  optionsPositionsClassForCustomer,
+} from "@/utils/selectOptions";
 import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 import { FiRefreshCw } from "react-icons/fi";
 import SpinnerIDS3 from "@/components/Parts/SpinnerIDS/SpinnerIDS3";
@@ -1487,8 +1492,6 @@ const SettingProfileMemo = () => {
             {editOccupationMode && (
               <div className={`flex h-full w-full items-center justify-between`}>
                 <select
-                  name="profile_occupation"
-                  id="profile_occupation"
                   className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
                   value={editedOccupation}
                   onChange={(e) => setEditedOccupation(e.target.value)}
@@ -1517,7 +1520,7 @@ const SettingProfileMemo = () => {
                   <option value="その他">その他</option> */}
                   {optionsOccupation.map((option) => (
                     <option key={option} value={option}>
-                      {option}
+                      {getOccupationName(option)}
                     </option>
                   ))}
                 </select>
@@ -1611,7 +1614,9 @@ const SettingProfileMemo = () => {
             {!editPositionClassMode && (
               <div className={`flex h-full w-full items-center justify-between`}>
                 <div className={`${styles.section_value}`}>
-                  {userProfileState?.position_class ? userProfileState.position_class : "未設定"}
+                  {userProfileState?.position_class
+                    ? getPositionClassNameForCustomer(userProfileState.position_class)
+                    : "未設定"}
                 </div>
                 <div>
                   <div
@@ -1631,8 +1636,6 @@ const SettingProfileMemo = () => {
             {editPositionClassMode && (
               <div className={`flex h-full w-full items-center justify-between`}>
                 <select
-                  name="profile_occupation"
-                  id="profile_occupation"
                   className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
                   value={editedPositionClass}
                   onChange={(e) => setEditedPositionClass(e.target.value)}
@@ -1647,7 +1650,7 @@ const SettingProfileMemo = () => {
                   <option value="7 フリーランス・個人事業主">フリーランス・個人事業主</option> */}
                   {optionsPositionsClassForCustomer.map((option) => (
                     <option key={option} value={option}>
-                      {option}
+                      {getPositionClassNameForCustomer(option)}
                     </option>
                   ))}
                 </select>
@@ -2279,8 +2282,6 @@ const SettingProfileMemo = () => {
             {editUsageMode && (
               <div className={`flex h-full w-full items-center justify-between`}>
                 <select
-                  name="profile_usage"
-                  id="profile_usage"
                   className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
                   value={editedUsage}
                   onChange={(e) => setEditedUsage(e.target.value)}

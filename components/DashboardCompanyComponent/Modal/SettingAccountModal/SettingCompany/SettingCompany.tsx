@@ -35,6 +35,8 @@ import { useMutateUnit } from "@/hooks/useMutateUnit";
 import { AiFillCaretDown } from "react-icons/ai";
 import { useMutateOffice } from "@/hooks/useMutateOffice";
 import { useQueryOffices } from "@/hooks/useQueryOffices";
+import { getNumberOfEmployeesClassForCustomer, optionsNumberOfEmployeesClass } from "@/utils/selectOptions";
+import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 
 const SettingCompanyMemo = () => {
   const language = useStore((state) => state.language);
@@ -780,6 +782,19 @@ const SettingCompanyMemo = () => {
 
   return (
     <>
+      {/* {loadingGlobalState && (
+        <div className={`flex-center absolute left-0 top-0 z-[3000] h-[100%] w-[100%] rounded-[8px] bg-[#00000090]`}>
+          <SpinnerIDS scale={"scale-[0.5]"} />
+        </div>
+      )} */}
+      {loadingGlobalState && (
+        <div className={`${styles.loading_overlay_modal_outside}`}>
+          <div className={`${styles.loading_overlay_modal_inside}`}>
+            {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
+            <SpinnerComet w="50px" h="50px" s="5px" />
+          </div>
+        </div>
+      )}
       {/* 右側メインエリア 会社・チーム */}
       {selectedSettingAccountMenu === "Company" && (
         <div className={`flex h-full w-full flex-col overflow-y-scroll px-[20px] py-[20px] pr-[80px]`}>
@@ -2321,7 +2336,7 @@ const SettingCompanyMemo = () => {
               <div className={`flex h-full min-h-[74px] w-full items-center justify-between`}>
                 <div className={`${styles.section_value}`}>
                   {userProfileState?.customer_number_of_employees_class
-                    ? userProfileState.customer_number_of_employees_class
+                    ? getNumberOfEmployeesClassForCustomer(userProfileState.customer_number_of_employees_class)
                     : "未設定"}
                 </div>
                 <div>
@@ -2344,20 +2359,23 @@ const SettingCompanyMemo = () => {
             {editNumberOfEmployeeClassMode && (
               <div className={`flex h-full min-h-[74px] w-full items-center justify-between`}>
                 <select
-                  name="profile_occupation"
-                  id="profile_occupation"
                   className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
                   value={editedNumberOfEmployeeClass}
                   onChange={(e) => setEditedNumberOfEmployeeClass(e.target.value)}
                 >
                   <option value="">回答を選択してください</option>
-                  <option value="G 1〜49名">1〜49名</option>
+                  {optionsNumberOfEmployeesClass.map((option) => (
+                    <option key={option} value={option}>
+                      {getNumberOfEmployeesClassForCustomer(option)}
+                    </option>
+                  ))}
+                  {/* <option value="G 1〜49名">1〜49名</option>
                   <option value="F 50〜99名">50〜99名</option>
                   <option value="E 100〜199名">100〜199名</option>
                   <option value="D 200〜299名">200〜299名</option>
                   <option value="C 300〜499名">300〜499名</option>
                   <option value="B 500〜999名">500〜999名</option>
-                  <option value="A 1000名以上">1000名以上</option>
+                  <option value="A 1000名以上">1000名以上</option> */}
                 </select>
                 <div className="flex">
                   <div
