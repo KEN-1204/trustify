@@ -1206,61 +1206,130 @@ export type Property_row_data = {
   assigned_unit_name: string | null;
   assigned_office_name: string | null;
 };
-// export type Contact_row_data = {
-//   // client_companyテーブル
-//   company_id?: string;
-//   company_name?: string | null;
-//   department_name?: string | null;
-//   main_phone_number?: string | null;
-//   main_fax?: string | null;
-//   zipcode?: string | null;
-//   address?: string | null;
-//   number_of_employees_class?: string | null;
-//   capital?: string | null;
-//   established_in?: string | null;
-//   business_content?: string | null;
-//   website_url?: string | null;
-//   company_email?: string | null;
-//   industry_type?: string | null;
-//   product_category_large?: string | null;
-//   product_category_medium?: string | null;
-//   product_category_small?: string | null;
-//   fiscal_end_month?: string | null;
-//   budget_request_month1?: string | null;
-//   budget_request_month2?: string | null;
-//   clients?: string | null;
-//   supplier?: string | null;
-//   facility?: string | null;
-//   business_sites?: string | null;
-//   overseas_bases?: string | null;
-//   group_company?: string | null;
-//   corporate_number?: string | null;
-
-//   // contactテーブル
-//   contact_id?: string | null;
-//   contact_name?: string | null;
-//   direct_line?: string | null;
-//   direct_fax?: string | null;
-//   position_name?: string | null;
-//   position_class?: string | null;
-//   extension?: string | null;
-//   company_cell_phone?: string | null;
-//   personal_cell_phone?: string | null;
-//   contact_email?: string | null;
-//   occupation?: string | null;
-//   approval_amount?: string | null;
-//   created_by_company_id?: string | null;
-//   created_by_user_id?: string | null;
-//   created_by_department_of_user?: string | null;
-//   created_by_unit_of_user?: string | null;
-//   call_careful_flag?: string | null;
-//   call_careful_reason?: string | null;
-//   email_ban_flag?: string | null;
-//   sending_ban_flag?: string | null;
-//   fax_dm_ban_flag?: string | null;
-//   ban_reason?: string | null;
-//   claim?: string | null;
-// };
+// 見積テーブル
+export type Quotation_row_data = {
+  company_id: string;
+  contact_id: string;
+  property_id: string;
+  company_name: string | null;
+  contact_name: string | null;
+  department_name: string | null;
+  main_phone_number: string | null;
+  main_fax: string | null;
+  zipcode: string | null;
+  address: string | null;
+  company_email: string | null;
+  number_of_employees_class: string | null;
+  // capital: string | null;
+  capital: number | null;
+  established_in: string | null;
+  business_content: string | null;
+  website_url: string | null;
+  industry_type: string | null;
+  product_category_large: string | null;
+  product_category_medium: string | null;
+  product_category_small: string | null;
+  fiscal_end_month: string | null;
+  budget_request_month1: string | null;
+  budget_request_month2: string | null;
+  clients: string | null;
+  supplier: string | null;
+  facility: string | null;
+  business_sites: string | null;
+  overseas_bases: string | null;
+  group_company: string | null;
+  corporate_number: string | null;
+  // 🔹contacts
+  direct_line: string | null;
+  direct_fax: string | null;
+  extension: string | null;
+  company_cell_phone: string | null;
+  personal_cell_phone: string | null;
+  contact_email: string | null;
+  position_name: string | null;
+  // position_class: string | null;
+  // occupation: string | null;
+  position_class: number | null; //🌠変更オブジェクトマッピング
+  occupation: number | null; //🌠変更オブジェクトマッピング
+  // approval_amount: string | null;
+  approval_amount: number | null;
+  contact_created_by_company_id: string | null;
+  contact_created_by_user_id: string | null;
+  contact_created_by_department_of_user: string | null;
+  contact_created_by_unit_of_user: string | null;
+  contact_created_by_office_of_user: string | null; //🌠追加
+  call_careful_flag: boolean | null;
+  call_careful_reason: string | null;
+  email_ban_flag: boolean | null;
+  sending_materials_ban_flag: boolean | null;
+  fax_dm_ban_flag: boolean | null;
+  ban_reason: string | null;
+  claim: string | null;
+  // 🔹見積 quotations
+  submission_class: string | null;
+  quotation_date: string | null;
+  expiration_date: string | null;
+  deadline: string | null;
+  delivery_place: string | null;
+  payment_terms: string | null;
+  quotation_division: string | null;
+  sending_method: string | null;
+  use_corporate_seal: boolean | null;
+  quotation_notes: string | null;
+  sales_tax_class: string | null;
+  sales_tax_rate: string | null;
+  total_price: string | null;
+  discount_amount: string | null;
+  discount_rate: string | null;
+  discount_title: string | null;
+  total_amount: string | null;
+  quotation_remarks: string | null;
+  set_item_count: number | null;
+  set_unit_name: string | null;
+  set_price: string | null;
+  lease_period: number | null;
+  lease_rate: string | null;
+  lease_monthly_fee: string | null;
+  // 🔹quotation_company_details結合テーブル
+  quotation_company_details_id: string | null;
+  quotation_created_by_company_id: string | null;
+  quotation_created_by_user_id: string | null;
+  quotation_created_by_department_of_user: string | null;
+  quotation_created_by_unit_of_user: string | null;
+  quotation_created_by_office_of_user: string | null;
+  destination_company_id: string | null;
+  destination_contact_id: string | null;
+  in_charge_stamp_id: string | null;
+  in_charge_user_id: string | null;
+  supervisor1_stamp_id: string | null;
+  supervisor1_user_id: string | null;
+  supervisor2_stamp_id: string | null;
+  supervisor2_user_id: string | null;
+  quotation_no_custom: string | null;
+  quotation_no_system: string | null;
+  // -- 🔹送付先会社
+  destination_company_name: string | null;
+  destination_company_department_name: string | null;
+  destination_company_zipcode: string | null;
+  destination_company_address: string | null;
+  // -- 🔹送付先担当者
+  destination_contact_name: string | null;
+  destination_contact_direct_line: string | null;
+  destination_contact_direct_fax: string | null;
+  destination_contact_email: string | null;
+  // -- 🔹印鑑
+  in_charge_stamp_image_url: string | null;
+  supervisor1_stamp_image_url: string | null;
+  supervisor2_stamp_image_url: string | null;
+  // -- 🔹印鑑ユーザー
+  in_charge_user_name: string | null;
+  supervisor1_user_name: string | null;
+  supervisor2_user_name: string | null;
+  //🌠追加 事業部、係、事業所
+  assigned_department_name: string | null;
+  assigned_unit_name: string | null;
+  assigned_office_name: string | null;
+};
 
 export type NewSearchContact_CompanyParams = {
   "client_companies.name": string | null;
@@ -1864,3 +1933,32 @@ export type ResultMeetingWithProductsAttendees = {
 };
 
 // 見積テーブル
+export type Quotation = {
+  id: string;
+  created_at: string;
+  updated_at: string | null;
+  submission_class: string | null;
+  quotation_date: string | null;
+  expiration_date: string | null;
+  deadline: string | null;
+  delivery_place: string | null;
+  payment_terms: string | null;
+  quotation_division: string | null;
+  sending_method: string | null;
+  use_corporate_seal: boolean | null;
+  quotation_notes: string | null;
+  sales_tax_class: string | null;
+  sales_tax_rate: string | null;
+  total_price: string | null;
+  discount_amount: string | null;
+  discount_rate: string | null;
+  discount_title: string | null;
+  total_amount: string | null;
+  quotation_remarks: string | null;
+  set_item_count: number | null;
+  set_unit_name: string | null;
+  set_price: string | null;
+  lease_period: number | null;
+  lease_rate: string | null;
+  lease_monthly_fee: string | null;
+};
