@@ -1803,6 +1803,7 @@ export type Property = {
   property_date: string | null;
 };
 
+// モーダルのサイズ(ツールチップ計算用)
 export type SettingModalProperties = {
   left: number;
   top: number;
@@ -1861,3 +1862,5 @@ export type ResultMeetingWithProductsAttendees = {
   delete_product_count: number | null;
   delete_attendee_count: number | null;
 };
+
+// 見積テーブル

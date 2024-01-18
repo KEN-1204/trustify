@@ -1005,7 +1005,9 @@ const ContactMainContainerMemo: FC = () => {
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>●担当者名</span>
+                  <span className={`${styles.title} ${isEditModeField === "name" && `${styles.field_edit}`}`}>
+                    ●担当者名
+                  </span>
                   {!searchMode && isEditModeField !== "name" && (
                     <span
                       className={`${styles.value} ${isOurContact ? styles.editable_field : styles.uneditable_field}`}

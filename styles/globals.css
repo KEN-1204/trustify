@@ -470,6 +470,10 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-brand-fd0: #0d99ffd0;
   --color-bg-brand-fe0: #0d99ffe0;
   --color-bg-brand-f-deep: #0c88e1;
+  /* 会社名ハイライト */
+  --color-company-highlight: #4189c8;
+  --color-company-highlight: #0c88e1;
+  --color-company-highlight-f: #0c88e1;
   --color-bg-brand-middle: #80e9ff;
   --color-bg-brand-middle30: #80e9ff30;
   --color-bg-brand-middle90: #80e9ff90;
@@ -1143,6 +1147,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-brand-fd0: #0c8ce9d0;
   --color-bg-brand-fe0: #0c8ce9e0;
   --color-bg-brand-f-deep: #0b73bc;
+  /* 会社ハイライト */
+  --color-company-highlight: #0c8ce9;
+  --color-company-highlight-f: #0c8ce9;
   --color-bg-brand-middle: #80e9ff;
   --color-bg-brand-middle30: #80e9ff30;
   --color-bg-brand-middle90: #80e9ff90;
@@ -1216,6 +1223,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-table-bg-selected: #232323;
   --color-table-bg-selected: #14141490;
   --color-table-bg-selected: #191919;
+  --color-table-bg-selected: #2e2e2e;
   /* --color-table-bg-selected: #222; */
   /* --color-table-bg-selected: #292929; */
   /* --color-table-bg-selected: #333; */

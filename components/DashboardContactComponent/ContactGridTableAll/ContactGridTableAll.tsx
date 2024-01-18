@@ -2994,7 +2994,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                                       isFrozenCountRef.current === 1 && index === 0 ? styles.grid_cell_frozen_last : ""
                                     } ${isFrozenCountRef.current === index + 1 ? styles.grid_cell_frozen_last : ""}  ${
                                       styles.grid_cell_resizable
-                                    }`}
+                                    } ${columnName === "company_name" ? `${styles.company_highlight}` : ``}`}
                                     // className={`${styles.grid_cell} ${index === 0 ? styles.grid_column_frozen : ""}  ${index === 0 ? styles.grid_cell_frozen_last : ""} ${styles.grid_cell_resizable}`}
                                     // style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
                                     style={

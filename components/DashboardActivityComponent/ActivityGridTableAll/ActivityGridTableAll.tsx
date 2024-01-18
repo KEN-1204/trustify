@@ -3271,7 +3271,7 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
                                       isFrozenCountRef.current === 1 && index === 0 ? styles.grid_cell_frozen_last : ""
                                     } ${isFrozenCountRef.current === index + 1 ? styles.grid_cell_frozen_last : ""}  ${
                                       styles.grid_cell_resizable
-                                    }`}
+                                    } ${columnName === "company_name" ? `${styles.company_highlight}` : ``}`}
                                     style={
                                       activityColumnHeaderItemList[index].isFrozen
                                         ? {

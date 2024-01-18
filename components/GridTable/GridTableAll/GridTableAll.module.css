@@ -59,7 +59,9 @@
 }
 .theme_f_light:global {
   --border-theme: #0d99ff;
-  --border-theme-text: #0d99ff;
+  /* --border-theme-text: #0d99ff; */
+  --border-theme-text: var(--color-bg-brand);
+  --border-theme-text: var(--color-bg-brand-sub);
   /* --border-theme: #2b7fff; */
   --border-theme-dark: #0c8ce9;
   --selected-text: #fff;
@@ -474,6 +476,12 @@
   contain: size layout style paint;
   outline: none;
   padding: 0 8px;
+  /* font-family: sans-serif; */
+}
+.grid_cell.company_highlight {
+  color: var(--color-company-highlight);
+  /* color: var(--color-company-highlight-f); */
+  font-family: sans-serif;
 }
 .grid_row:hover .grid_cell {
   background-color: var(--color-table-row-hover);
@@ -483,6 +491,7 @@
   background-color: var(--color-table-bg-selected);
   /* background-color: var(--color-table-row-hover); */
   color: var(--border-theme-text);
+  /* color: var(--color-bg-brand); */
   /* color: var(--selected-text); */
 }
 

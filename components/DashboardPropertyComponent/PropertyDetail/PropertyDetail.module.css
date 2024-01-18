@@ -879,6 +879,7 @@
   z-index: 2000;
 }
 .field_edit_mode_select_box {
+  box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f);
   min-height: 28px;
   user-select: none;
   z-index: 2000;
@@ -897,6 +898,27 @@
 .field_edit_mode_textarea.xl {
   min-height: 180px;
 }
+/* テスト */
+.field_edit_mode_input_box.input_box {
+  background-color: var(--color-bg-base);
+  /* box-shadow: none;
+  padding: 0px; */
+}
+.field_edit_mode_input_box_with_close.input_box {
+  background-color: var(--color-bg-base);
+  /* box-shadow: none;
+  padding: 0px; */
+}
+.field_edit_mode_textarea.textarea_box {
+  /* background-color: var(--color-bg-base);
+  box-shadow: none;
+  padding: 0px;
+  padding-right: 65px; */
+}
+.field_edit_mode_select_box.select_box {
+  box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f);
+}
+/* テスト */
 
 .field_edit_mode_btn_area {
   position: absolute;
