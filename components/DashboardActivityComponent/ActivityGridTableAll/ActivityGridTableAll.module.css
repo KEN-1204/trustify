@@ -138,6 +138,7 @@
   background-color: var(--color-bg-base);
   /* box-shadow: 0 0px 20px rgba(12, 12, 12, 0.5); */
   color: var(--color-text);
+  color: var(--color-text-title);
   /* box-shadow: 0 0px 5px rgba(12, 12, 12, 0.3); */
   /* margin-top: 5px; */
 }
@@ -249,6 +250,7 @@
 .page_transition_button {
   font-size: 14px;
   color: var(--color-text);
+  color: var(--color-text-title);
 }
 /* 🌟スクロールコンテナ overflow: auto */
 /* position relative */
@@ -391,6 +393,7 @@
 
 .grid_column_header_all {
   color: var(--color-text);
+  color: var(--color-text-title);
 
   background: var(--color-table-header);
   white-space: nowrap;
@@ -418,6 +421,7 @@
 
 .grid_cell {
   color: var(--color-text);
+  color: var(--color-text-title);
   /* background: var(--color-bg-base); */
   background: var(--color-table-cell-bg);
   /* background-color: #232323; */
@@ -544,6 +548,7 @@
   font-size: 0.75rem;
   line-height: 1rem;
   color: var(--color-text);
+  color: var(--color-text-title);
   overflow: hidden;
 
   /* -webkit-user-select: none;

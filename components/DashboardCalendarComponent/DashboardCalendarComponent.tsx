@@ -42,11 +42,20 @@ export const DashboardCalendarComponent: FC = () => {
       )}
       {/* 左サイドバーサイズ分のスペーサー */}
       <div className={`${styles.spacer_left} ${isOpenSidebar ? `transition-base02` : `transition-base01`}`}></div>
+
       <div className={`${styles.main_contents_wrapper} `}>
         {/* 上ヘッダーサイズ分のスペーサー */}
         <div className={`${styles.spacer_top}`}></div>
         {/* ===================== スクロールコンテナ ここから ===================== */}
         <div className={`${styles.main_contents_container}`}>
+          {/* 水玉グラデーション */}
+          <div className="pointer-events-none absolute inset-0 z-[10] overflow-hidden">
+            {/* <div className="bg-gradient-brand1 z-1 absolute bottom-[-300px] left-[-300px] h-[300px] w-[300px] rounded-full"></div> */}
+            {/* <div className="bg-gradient-brand2 z-1 absolute left-[14%] top-[-300px] h-[300px] w-[300px] rounded-full"></div> */}
+            {/* <div className="bg-gradient-brand1 z-1 absolute right-[5%] top-[-300px] h-[300px] w-[300px] rounded-full"></div> */}
+            {/* <div className="polka_dot_border3"></div> */}
+            {/* <div className="bg-gradient-brand1 z-1 absolute left-[-300px] top-[-200px] h-[300px] w-[300px] rounded-full"></div> */}
+          </div>
           <section className={`${styles.company_table_screen} py-[20px] pl-[20px]`}>
             {activeMenuTab === "Calendar" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>

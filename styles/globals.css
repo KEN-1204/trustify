@@ -24,6 +24,7 @@
   --not-quite-black: #23272a;
   --caret-color-blue: #1da1f2;
   --caret-color-light-blue: #02e7f5;
+
   /* TikTok */
   --caret-color-red: #ff3b5b;
   /* 現在のメインロゴ: #2B7FFF
@@ -500,7 +501,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-brand-subd0: #2b7fffd0;
   --color-bg-brand-sube0: #2b7fffe0;
   --color-bg-brand-sub08: #2b7fff90;
-  --color-bg-brand-sub-deep: #2b7fff;
+  --color-bg-brand-sub-deep: #2265c9;
   --color-bg-brand-sub-rgb: 43, 127, 255;
   --color-bg-brand-sub-hover: #2571e2;
 
@@ -1199,6 +1200,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
     #0088ffb7 100%
   );
   --color-border-table: #333;
+  /* --color-border-table: #555; */
+  /* --color-border-table: #484848; */
   --color-border-table-deep: #555;
   /* --color-table-header: #252525; */
   --color-table-header: #2c2c2c;
@@ -2162,6 +2165,10 @@ textarea {
     rgb(0, 136, 255) 100%
   );
 }
+/* ブランドグラデーション */
+.bg-brand-gradient {
+  background: linear-gradient(to bottom left, #0affff, #0abeff, #0066ff);
+}
 /* STRIPE
 メイン薄い #80E9FF, #7A73FF, ロゴ #55D2FF */
 .bg-gradient-brand1 {
@@ -2513,7 +2520,7 @@ textarea {
   opacity: 1;
 }
 
-/* ================= datePickerスタイル =================== */
+/* ------------------ 🌟datePickerスタイル🌟 ------------------== */
 .react-datepicker__tab-loop {
   z-index: 3000;
 }
@@ -2529,3 +2536,41 @@ textarea {
 .react-datepicker__input-container {
   /* font-size: 14px; */
 }
+/* ------------------ ✅datePickerスタイル✅ ------------------ */
+
+/* ------------------ 🌟カレンダー🌟 ------------------ */
+.fc-button {
+  background-color: var(--color-bg-brand-sube0) !important;
+  border-color: var(--color-border-deep) !important;
+}
+.fc-button:hover {
+  background-color: var(--color-bg-brand-subc0) !important;
+}
+.fc-button:focus {
+  box-shadow: none !important;
+  background-color: var(--color-bg-brand) !important;
+}
+.fc-v-event {
+  background: linear-gradient(to bottom left, #0affff, #0abeff, #0066ff) !important;
+
+  border: 1px solid var(--color-bg-brand) !important;
+  box-shadow: 0 0 0 1px var(--color-border-deep) !important;
+}
+.fc-daygrid-event-dot {
+  border: calc(var(--fc-daygrid-event-dot-width) / 2) solid var(--color-bg-brand-sub);
+}
+.fc-theme-standard td,
+.fc-theme-standard th {
+  /* border: 1px solid var(--fc-border-color); */
+  border: 1px solid var(--color-border-base);
+  border-right-width: 0px;
+}
+.fc-theme-standard .fc-scrollgrid {
+  border: 1px solid var(--fc-border-color);
+  border: 1px solid var(--color-border-light) !important;
+}
+.fc-scroller .fc-col-header-cell {
+  background-color: var(--color-bg-brand-fe0) !important;
+  color: #fff !important;
+}
+/* ------------------ ✅カレンダー✅ ------------------ */

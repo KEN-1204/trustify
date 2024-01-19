@@ -1008,7 +1008,478 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
             } h-full min-w-[calc((100vw-var(--sidebar-width))/3-11px)] max-w-[calc((100vw-var(--sidebar-width))/3-11px)] pb-[35px] pt-[0px]`}
           >
             {/* --------- ラッパー --------- */}
-            <div className={`${styles.left_contents_wrapper} flex h-full w-full flex-col`}></div>
+            <div className={`${styles.left_contents_wrapper} flex h-full w-full flex-col`}>
+              {/* 依頼元 セクションタイトル */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.section_title}`}>依頼元</span>
+                  </div>
+                  <div className={`${styles.section_underline}`}></div>
+                </div>
+              </div>
+              {/*  */}
+
+              {/* 会社名 */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>会社名</span>
+                    {!searchMode && (
+                      <span
+                        className={`${styles.value} ${styles.value_highlight} ${styles.text_start}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
+                        {selectedRowDataQuotation?.company_name ? selectedRowDataQuotation?.company_name : ""}
+                      </span>
+                    )}
+                    {searchMode && (
+                      <input
+                        type="text"
+                        placeholder="株式会社○○"
+                        autoFocus
+                        className={`${styles.input_box}`}
+                        value={inputCompanyName}
+                        onChange={(e) => setInputCompanyName(e.target.value)}
+                      />
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+              {/*  */}
+
+              {/* 部署名 */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>部署名</span>
+                    {!searchMode && (
+                      <span
+                        className={`${styles.value} ${styles.text_start}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
+                        {selectedRowDataQuotation?.department_name ? selectedRowDataQuotation?.department_name : ""}
+                      </span>
+                    )}
+                    {searchMode && (
+                      <input
+                        type="text"
+                        placeholder="「代表取締役＊」や「＊製造部＊」「＊品質＊」など"
+                        className={`${styles.input_box}`}
+                        value={inputDepartmentName}
+                        onChange={(e) => setInputDepartmentName(e.target.value)}
+                      />
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+              {/*  */}
+
+              {/* 担当者名・直通TEL */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>担当者名</span>
+                    {!searchMode && (
+                      <span
+                        className={`${styles.value}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
+                        {selectedRowDataQuotation?.contact_name ? selectedRowDataQuotation?.contact_name : ""}
+                      </span>
+                    )}
+                    {searchMode && (
+                      <input
+                        type="tel"
+                        placeholder=""
+                        className={`${styles.input_box}`}
+                        value={inputContactName}
+                        onChange={(e) => setInputContactName(e.target.value)}
+                      />
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}></div>
+                  {/* <div className={`${styles.underline}`}></div> */}
+                </div>
+              </div>
+              {/*  */}
+
+              {/* 内線TEL・代表TEL */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>直通TEL</span>
+                    {!searchMode && (
+                      <span
+                        className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataQuotation?.direct_line ? selectedRowDataQuotation?.direct_line : ""
+                        }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          // handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
+                        {selectedRowDataQuotation?.direct_line ? selectedRowDataQuotation?.direct_line : ""}
+                      </span>
+                    )}
+                    {searchMode && (
+                      <input
+                        type="tel"
+                        className={`${styles.input_box}`}
+                        value={inputDirectLine}
+                        onChange={(e) => setInputDirectLine(e.target.value)}
+                      />
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title}`}>代表TEL</span>
+                    {!searchMode && (
+                      <span
+                        className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataQuotation?.main_phone_number ? selectedRowDataQuotation?.main_phone_number : ""
+                        }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          // handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
+                        {selectedRowDataQuotation?.main_phone_number ? selectedRowDataQuotation?.main_phone_number : ""}
+                      </span>
+                    )}
+                    {searchMode && (
+                      <input
+                        type="tel"
+                        className={`${styles.input_box}`}
+                        value={inputTel}
+                        onChange={(e) => setInputTel(e.target.value)}
+                      />
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+              {/*  */}
+
+              {/* 内線TEL・代表TEL */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>内線TEL</span>
+                    {!searchMode && (
+                      <span
+                        className={`${styles.value}`}
+                        data-text={`${selectedRowDataQuotation?.extension ? selectedRowDataQuotation?.extension : ""}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          // handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
+                        {selectedRowDataQuotation?.extension ? selectedRowDataQuotation?.extension : ""}
+                      </span>
+                    )}
+                    {searchMode && (
+                      <input
+                        type="tel"
+                        placeholder=""
+                        className={`${styles.input_box}`}
+                        value={inputExtension}
+                        onChange={(e) => setInputExtension(e.target.value)}
+                      />
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title}`}>社用携帯</span>
+                    {!searchMode && (
+                      <span
+                        className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataQuotation?.company_cell_phone
+                            ? selectedRowDataQuotation?.company_cell_phone
+                            : ""
+                        }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          // handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
+                        {selectedRowDataQuotation?.company_cell_phone
+                          ? selectedRowDataQuotation?.company_cell_phone
+                          : ""}
+                      </span>
+                    )}
+                    {searchMode && (
+                      <input
+                        type="text"
+                        className={`${styles.input_box}`}
+                        value={inputCompanyCellPhone}
+                        onChange={(e) => setInputCompanyCellPhone(e.target.value)}
+                      />
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 直通FAX・代表FAX */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>直通FAX</span>
+                    {!searchMode && (
+                      <span
+                        className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataQuotation?.direct_fax ? selectedRowDataQuotation?.direct_fax : ""
+                        }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          // handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
+                        {selectedRowDataQuotation?.direct_fax ? selectedRowDataQuotation?.direct_fax : ""}
+                      </span>
+                    )}
+                    {searchMode && (
+                      <input
+                        type="text"
+                        className={`${styles.input_box}`}
+                        value={inputDirectFax}
+                        onChange={(e) => setInputDirectFax(e.target.value)}
+                      />
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className={`flex h-full w-1/2 flex-col pr-[20px]`}>
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title}`}>代表FAX</span>
+                    {/* <span className={`${styles.title}`}>会員専用</span> */}
+                    {!searchMode && (
+                      <span
+                        className={`${styles.value}`}
+                        data-text={`${selectedRowDataQuotation?.main_fax ? selectedRowDataQuotation?.main_fax : ""}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          // handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
+                        {selectedRowDataQuotation?.main_fax ? selectedRowDataQuotation?.main_fax : ""}
+                      </span>
+                    )}
+                    {searchMode && (
+                      <input
+                        type="text"
+                        className={`${styles.input_box}`}
+                        value={inputFax}
+                        onChange={(e) => setInputFax(e.target.value)}
+                      />
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+              {/*  */}
+
+              {/* Email */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span
+                      className={`${styles.title}`} // data-text={`${selectedRowDataQuotation?.occupation ? selectedRowDataQuotation?.occupation : ""}`}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        // if (!isDesktopGTE1600 && isOpenSidebar) {
+                        //   handleOpenTooltip(e);
+                        // }
+                        // handleOpenTooltip(e);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        // if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) {
+                        //   handleCloseTooltip();
+                        // }
+                        // if (hoveredItemPosWrap) handleCloseTooltip();
+                      }}
+                    >
+                      E-mail
+                    </span>
+                    {!searchMode && (
+                      <span className={`${styles.value}`}>
+                        {selectedRowDataQuotation?.contact_email ? selectedRowDataQuotation?.contact_email : ""}
+                      </span>
+                    )}
+                    {searchMode && (
+                      <input
+                        type="text"
+                        className={`${styles.input_box}`}
+                        value={inputContactEmail}
+                        onChange={(e) => setInputContactEmail(e.target.value)}
+                      />
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+              {/*  */}
+
+              {/* 郵便番号・ */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>郵便番号</span>
+                    {!searchMode && (
+                      <span
+                        className={`${styles.value}`}
+                        // data-text={`${
+                        //   selectedRowDataQuotation?.personal_cell_phone ? selectedRowDataQuotation?.personal_cell_phone : ""
+                        // }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          // if (!isDesktopGTE1600 && isOpenSidebar) {
+                          //   handleOpenTooltip(e);
+                          // }
+                          // handleOpenTooltip(e);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          // if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) {
+                          //   handleCloseTooltip();
+                          // }
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
+                        {selectedRowDataQuotation?.zipcode ? selectedRowDataQuotation?.zipcode : ""}
+                      </span>
+                    )}
+                    {searchMode && (
+                      <input
+                        type="text"
+                        className={`${styles.input_box}`}
+                        value={inputZipcode}
+                        onChange={(e) => setInputZipcode(e.target.value)}
+                      />
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title}`}></span>
+                  </div>
+                  {/* <div className={`${styles.underline}`}></div> */}
+                </div>
+              </div>
+
+              {/* 住所 */}
+              <div className={`${styles.row_area_lg_box} flex h-[50px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px] ">
+                  <div className={`${styles.title_box} flex h-full`}>
+                    <span className={`${styles.title}`}>○住所</span>
+                    {!searchMode && (
+                      <span
+                        className={`${styles.full_value} h-[45px] !overflow-visible !whitespace-normal`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
+                        {selectedRowDataQuotation?.address ? selectedRowDataQuotation?.address : ""}
+                      </span>
+                    )}
+                    {searchMode && (
+                      <textarea
+                        cols={30}
+                        // rows={10}
+                        placeholder="「神奈川県＊」や「＊大田区＊」など"
+                        className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
+                        value={inputAddress}
+                        onChange={(e) => setInputAddress(e.target.value)}
+                      ></textarea>
+                    )}
+                  </div>
+                  <div className={`${styles.underline} `}></div>
+                </div>
+              </div>
+
+              {/* 依頼元 セクションタイトル */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full !items-end `}>
+                    <span className={`${styles.section_title} mb-[2px] mr-[5px] !min-w-max`}>送付先</span>
+                    <span className={`text-[12px]`}>（送付先が依頼元と違う場合は変更する）</span>
+                  </div>
+                  <div className={`${styles.section_underline}`}></div>
+                </div>
+              </div>
+              {/*  */}
+            </div>
+            {/* --------- ラッパー --------- */}
           </div>
         )}
         {/* ---------------- ✅通常モード 左コンテナここまで✅ ---------------- */}
