@@ -13,9 +13,11 @@ import {
   NewSearchContact_CompanyParams,
   NewSearchMeeting_Contact_CompanyParams,
   NewSearchProperty_Contact_CompanyParams,
+  NewSearchQuotation_Contact_CompanyParams,
   Notification,
   Product,
   Property_row_data,
+  Quotation_row_data,
   SettingModalProperties,
   StripeSchedule,
   UserProfile,
@@ -26,6 +28,7 @@ import { companyColumnHeaderItemListData } from "@/utils/companyColumnHeaderItem
 import { contactColumnHeaderItemListData } from "@/utils/contactColumnHeaderItemListData";
 import { meetingColumnHeaderItemListData } from "@/utils/meetingColumnHeaderItemListData";
 import { propertyColumnHeaderItemListData } from "@/utils/propertyColumnHeaderItemListData";
+import { quotationColumnHeaderItemListData } from "@/utils/quotationColumnHeaderItemListData";
 // import { Session } from "@supabase/supabase-js";
 import { ReactNode } from "react";
 import Stripe from "stripe";
@@ -131,6 +134,13 @@ type State = {
   // 編集モーダル
   isOpenUpdatePropertyModal: boolean;
   setIsOpenUpdatePropertyModal: (payload: boolean) => void;
+  // =================== 見積作成モーダル ===================
+  // 新規作成モーダル
+  isOpenInsertNewQuotationModal: boolean;
+  setIsOpenInsertNewQuotationModal: (payload: boolean) => void;
+  // 編集モーダル
+  isOpenUpdateQuotationModal: boolean;
+  setIsOpenUpdateQuotationModal: (payload: boolean) => void;
 
   // =================== アカウント設定モーダル ===================
   // アカウント設定開閉
@@ -333,6 +343,20 @@ type State = {
   // INSERT,UPDATEクエリ後にinvalidateQueryでキャッシュ更新された選択中の行データをselectedRowDataPropertyに反映するために発火通知するか否かのstate(発火通知してDOMクリックで更新する)
   isUpdateRequiredForLatestSelectedRowDataProperty: boolean;
   setIsUpdateRequiredForLatestSelectedRowDataProperty: (payload: boolean) => void;
+
+  // =================== 見積テーブル ヘッダーリスト保持用state関連 ===================
+  quotationColumnHeaderItemList: ColumnHeaderItemList[];
+  setQuotationColumnHeaderItemList: (payload: ColumnHeaderItemList[]) => void;
+  // =================== 上画面の列選択した時に下画面に担当者情報を映す用のState ===================
+  // 選択中の行データオブジェクト
+  selectedRowDataQuotation: Quotation_row_data | null;
+  setSelectedRowDataQuotation: (payload: Quotation_row_data | null) => void;
+  // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
+  newSearchQuotation_Contact_CompanyParams: NewSearchQuotation_Contact_CompanyParams | null;
+  setNewSearchQuotation_Contact_CompanyParams: (payload: NewSearchQuotation_Contact_CompanyParams) => void;
+  // INSERT,UPDATEクエリ後にinvalidateQueryでキャッシュ更新された選択中の行データをselectedRowDataQuotationに反映するために発火通知するか否かのstate(発火通知してDOMクリックで更新する)
+  isUpdateRequiredForLatestSelectedRowDataQuotation: boolean;
+  setIsUpdateRequiredForLatestSelectedRowDataQuotation: (payload: boolean) => void;
 };
 
 const useDashboardStore = create<State>((set) => ({
@@ -412,6 +436,14 @@ const useDashboardStore = create<State>((set) => ({
   // 編集モーダル
   isOpenUpdatePropertyModal: false,
   setIsOpenUpdatePropertyModal: (payload) => set({ isOpenUpdatePropertyModal: payload }),
+
+  // =================== 見積作成モーダル ===================
+  // 新規作成モーダル
+  isOpenInsertNewQuotationModal: false,
+  setIsOpenInsertNewQuotationModal: (payload) => set({ isOpenInsertNewQuotationModal: payload }),
+  // 編集モーダル
+  isOpenUpdateQuotationModal: false,
+  setIsOpenUpdateQuotationModal: (payload) => set({ isOpenUpdateQuotationModal: payload }),
 
   // =================== アカウント設定モーダル ===================
   // 開閉
@@ -827,6 +859,21 @@ const useDashboardStore = create<State>((set) => ({
   isUpdateRequiredForLatestSelectedRowDataProperty: false,
   setIsUpdateRequiredForLatestSelectedRowDataProperty: (payload) =>
     set({ isUpdateRequiredForLatestSelectedRowDataProperty: payload }),
+
+  // =================== 見積テーブル ヘッダーリスト保持用state関連 ===================
+  quotationColumnHeaderItemList: quotationColumnHeaderItemListData,
+  setQuotationColumnHeaderItemList: (payload) => set({ quotationColumnHeaderItemList: payload }),
+  // =================== 上画面の列選択した時に下画面に担当者情報を映す用のState ===================
+  // 選択中の行データオブジェクト
+  selectedRowDataQuotation: null,
+  setSelectedRowDataQuotation: (payload) => set({ selectedRowDataQuotation: payload }),
+  // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
+  newSearchQuotation_Contact_CompanyParams: null,
+  setNewSearchQuotation_Contact_CompanyParams: (payload) => set({ newSearchQuotation_Contact_CompanyParams: payload }),
+  // INSERT,UPDATEクエリ後にinvalidateQueryでキャッシュ更新された選択中の行データをselectedRowDataQuotationに反映するために発火通知するか否かのstate(発火通知してDOMクリックで更新する)
+  isUpdateRequiredForLatestSelectedRowDataQuotation: false,
+  setIsUpdateRequiredForLatestSelectedRowDataQuotation: (payload) =>
+    set({ isUpdateRequiredForLatestSelectedRowDataQuotation: payload }),
 }));
 
 export default useDashboardStore;

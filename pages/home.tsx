@@ -7,6 +7,7 @@ import { FallbackDashboardHomeComponent } from "@/components/DashboardHomeCompon
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { DashboardMeetingComponent } from "@/components/DashboardMeetingComponent/DashboardMeetingComponent";
 import { DashboardPropertyComponent } from "@/components/DashboardPropertyComponent/DashboardPropertyComponent";
+import { DashboardQuotationComponent } from "@/components/DashboardQuotationComponent/DashboardQuotationComponent";
 import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import { Fallback } from "@/components/Fallback/Fallback";
 import { useQueryDepartments } from "@/hooks/useQueryDepartments";
@@ -350,6 +351,7 @@ const DashboardHome = ({
       {activeMenuTab === "Meeting" && <DashboardMeetingComponent />}
       {activeMenuTab === "Property" && <DashboardPropertyComponent />}
       {activeMenuTab === "Calendar" && <DashboardCalendarComponent />}
+      {activeMenuTab === "Quotation" && <DashboardQuotationComponent />}
       {/* {activeMenuTab === "Contacts" && <div className="flex-center w-screen h-screen bg-red-100">あい</div>} */}
     </DashboardLayout>
   );

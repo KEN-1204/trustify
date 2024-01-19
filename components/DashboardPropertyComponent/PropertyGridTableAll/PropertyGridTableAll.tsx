@@ -689,7 +689,15 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
   const { status, data, error, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } = useInfiniteQuery(
     {
       // queryKey: ["companies"],
-      queryKey: ["properties", newSearchParamsStringRef.current],
+      // queryKey: ["properties", newSearchParamsStringRef.current],
+      queryKey: [
+        "properties",
+        newSearchParamsStringRef.current,
+        isFetchAllDepartments,
+        isFetchAllUnits,
+        isFetchAllOffices,
+        isFetchAllMembers,
+      ],
       // queryKey: ["contacts"],
       queryFn: async (ctx) => {
         console.log("useInfiniteQuery queryFn関数内 引数ctx", ctx);

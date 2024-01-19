@@ -259,7 +259,8 @@ const CompanyFunctionHeaderMemo: FC = () => {
               : `text-[var(--color-bg-brand-f)] ${styles.fh_text_btn} cursor-pointer`
           }`}
           onClick={() => {
-            if (tableContainerSize === "one_third") return;
+            if (tableContainerSize === "one_third")
+              return alert("「サイズ切り替え」でラージ、ミディアムのサイズを選択すると全画面表示に切り替え可能です。");
             setUnderDisplayFullScreen(!underDisplayFullScreen);
           }}
           // data-text={`${underDisplayFullScreen ? "デフォルト表示" : "全画面表示"}`}

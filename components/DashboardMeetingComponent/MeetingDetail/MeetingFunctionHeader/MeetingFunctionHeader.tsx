@@ -24,6 +24,7 @@ const MeetingFunctionHeaderMemo: FC = () => {
   const setIsOpenInsertNewActivityModal = useDashboardStore((state) => state.setIsOpenInsertNewActivityModal);
   const setIsOpenInsertNewMeetingModal = useDashboardStore((state) => state.setIsOpenInsertNewMeetingModal);
   const setIsOpenInsertNewPropertyModal = useDashboardStore((state) => state.setIsOpenInsertNewPropertyModal);
+  const setIsOpenInsertNewQuotationModal = useDashboardStore((state) => state.setIsOpenInsertNewQuotationModal);
 
   // 上画面の選択中の列データ会社
   const selectedRowDataMeeting = useDashboardStore((state) => state.selectedRowDataMeeting);
@@ -33,6 +34,7 @@ const MeetingFunctionHeaderMemo: FC = () => {
   const setSelectedRowDataActivity = useDashboardStore((state) => state.setSelectedRowDataActivity);
   // const setSelectedRowDataMeeting = useDashboardStore((state) => state.setSelectedRowDataMeeting);
   const setSelectedRowDataProperty = useDashboardStore((state) => state.setSelectedRowDataProperty);
+  const setSelectedRowDataQuotation = useDashboardStore((state) => state.setSelectedRowDataQuotation);
 
   const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
     // ホバーしたアイテムにツールチップを表示
@@ -117,6 +119,7 @@ const MeetingFunctionHeaderMemo: FC = () => {
               setSelectedRowDataActivity(null);
               // setSelectedRowDataMeeting(null);
               setSelectedRowDataProperty(null);
+              setSelectedRowDataQuotation(null);
               if (loadingGlobalState) setLoadingGlobalState(false);
               setIsOpenInsertNewActivityModal(true);
             }}
@@ -133,6 +136,7 @@ const MeetingFunctionHeaderMemo: FC = () => {
               setSelectedRowDataActivity(null);
               // setSelectedRowDataMeeting(null);
               setSelectedRowDataProperty(null);
+              setSelectedRowDataQuotation(null);
               if (loadingGlobalState) setLoadingGlobalState(false);
               setIsOpenInsertNewMeetingModal(true);
             }}
@@ -149,6 +153,7 @@ const MeetingFunctionHeaderMemo: FC = () => {
               setSelectedRowDataActivity(null);
               // setSelectedRowDataMeeting(null);
               setSelectedRowDataProperty(null);
+              setSelectedRowDataQuotation(null);
               if (loadingGlobalState) setLoadingGlobalState(false);
               setIsOpenUpdateMeetingModal(true);
             }}
@@ -165,8 +170,26 @@ const MeetingFunctionHeaderMemo: FC = () => {
               setSelectedRowDataActivity(null);
               // setSelectedRowDataMeeting(null);
               setSelectedRowDataProperty(null);
+              setSelectedRowDataQuotation(null);
               if (loadingGlobalState) setLoadingGlobalState(false);
               setIsOpenInsertNewPropertyModal(true);
+            }}
+          />
+          <RippleButton
+            title={`見積_作成`}
+            classText={`select-none ${searchMode || !selectedRowDataMeeting ? `cursor-not-allowed` : ``}`}
+            clickEventHandler={() => {
+              if (searchMode) return;
+              if (!selectedRowDataMeeting) return alert("担当者を選択してください");
+              console.log("案件_作成 クリック");
+              // 他画面の選択行データはリセット
+              setSelectedRowDataContact(null);
+              setSelectedRowDataActivity(null);
+              // setSelectedRowDataMeeting(null);
+              setSelectedRowDataProperty(null);
+              setSelectedRowDataQuotation(null);
+              if (loadingGlobalState) setLoadingGlobalState(false);
+              setIsOpenInsertNewQuotationModal(true);
             }}
           />
         </div>
@@ -193,7 +216,10 @@ const MeetingFunctionHeaderMemo: FC = () => {
                 : `text-[var(--color-bg-brand-f)] ${styles.fh_text_btn} cursor-pointer`
             }`}
             onClick={() => {
-              if (tableContainerSize === "one_third") return;
+              if (tableContainerSize === "one_third")
+                return alert(
+                  "「サイズ切り替え」でラージ、ミディアムのサイズを選択すると全画面表示に切り替え可能です。"
+                );
               setUnderDisplayFullScreen(!underDisplayFullScreen);
             }}
             onMouseEnter={(e) => handleOpenTooltip(e, "right")}

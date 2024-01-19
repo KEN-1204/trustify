@@ -135,6 +135,7 @@ export const useMutateMeeting = () => {
 
       console.log("🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥rpc実行 newMeetingAndActivityPayload", newMeetingAndActivityPayload);
 
+      // 面談予定INSERT
       const { error } = await supabase.rpc("insert_meeting_schedule_and_activity", newMeetingAndActivityPayload);
 
       if (error) throw error;
