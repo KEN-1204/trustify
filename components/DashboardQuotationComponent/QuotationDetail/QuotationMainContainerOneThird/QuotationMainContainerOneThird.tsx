@@ -41,6 +41,12 @@ import { formatTime } from "@/utils/Helpers/formatTime";
 import { splitTime } from "@/utils/Helpers/splitTime";
 import { IoIosSend } from "react-icons/io";
 import { InputSendAndCloseBtn } from "@/components/DashboardCompanyComponent/CompanyMainContainer/InputSendAndCloseBtn/InputSendAndCloseBtn";
+import { checkNotFalsyExcludeZero } from "@/utils/Helpers/checkNotFalsyExcludeZero";
+import { convertToYen } from "@/utils/Helpers/convertToYen";
+import { normalizeDiscountRate } from "@/utils/Helpers/normalizeDiscountRate";
+import { CiEdit } from "react-icons/ci";
+import { RippleButton } from "@/components/Parts/RippleButton/RippleButton";
+import { ProductListTable } from "./ProductListTable/ProductListTable";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -106,13 +112,14 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   }, [isDesktopGTE1600Media]);
 
   // 🌟サブミット
+  // 🔹client_companiesテーブル
   const [inputCompanyName, setInputCompanyName] = useState("");
   const [inputDepartmentName, setInputDepartmentName] = useState("");
   const [inputTel, setInputTel] = useState("");
   const [inputFax, setInputFax] = useState("");
   const [inputZipcode, setInputZipcode] = useState("");
   const [inputAddress, setInputAddress] = useState("");
-  // contactsテーブル
+  // 🔹contactsテーブル
   const [inputContactName, setInputContactName] = useState("");
   const [inputDirectLine, setInputDirectLine] = useState("");
   const [inputDirectFax, setInputDirectFax] = useState("");
@@ -123,7 +130,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   // const [inputPositionClass, setInputPositionClass] = useState("");
   const [inputContactCreatedByCompanyId, setInputContactCreatedByCompanyId] = useState("");
   const [inputContactCreatedByUserId, setInputContactCreatedByUserId] = useState("");
-  // Quotationテーブル
+  // 🔹Quotationテーブル
   // const [inputSubmissionClass, setInputSubmissionClass] = useState("");
   const [inputQuotationCreatedByCompanyId, setInputQuotationCreatedByCompanyId] = useState("");
   const [inputQuotationCreatedByUserId, setInputQuotationCreatedByUserId] = useState("");
@@ -132,6 +139,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const [inputQuotationCreatedByOfficeOfUser, setInputQuotationCreatedByOfficeOfUser] = useState("");
   const [inputQuotationDate, setInputQuotationDate] = useState<Date | null>(null);
   const [inputExpirationDate, setInputExpirationDate] = useState<Date | null>(null);
+  const [inputQuotationNotes, setInputQuotationNotes] = useState("");
+  const [inputQuotationRemarks, setInputQuotationRemarks] = useState("");
   const [inputQuotationNoCustom, setInputQuotationNoCustom] = useState("");
   const [inputQuotationNoSystem, setInputQuotationNoSystem] = useState("");
   const [inputQuotationTitle, setInputQuotationTitle] = useState("");
@@ -144,8 +153,81 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const [inputQuotationYearMonth, setInputQuotationYearMonth] = useState<number | null>(null);
 
   // ================================ 🌟フィールドエディットモード関連state🌟 ================================
-  const [inputQuotationDateForFieldEditMode, setInputQuotationDateForFieldEditMode] = useState<Date | null>(null);
-  const [inputExpirationDateForFieldEditMode, setInputExpirationDateForFieldEditMode] = useState<Date | null>(null);
+  const [inputQuotationDateForFieldEdit, setInputQuotationDateForFieldEdit] = useState<Date | null>(null);
+  const [inputExpirationDateForFieldEdit, setInputExpirationDateForFieldEdit] = useState<Date | null>(null);
+  // 送付先フィールドエディット
+  const [inputCompanyIdDestForFieldEdit, setInputCompanyIdDestForFieldEdit] = useState("");
+  const [inputContactIdDestForFieldEdit, setInputContactIdDestForFieldEdit] = useState("");
+  // const [inputDepartmentNameDestForFieldEdit, setInputDepartmentNameDestForFieldEdit] = useState("");
+  // const [inputContactNameDestForFieldEdit, setInputContactNameDestForFieldEdit] = useState("");
+  // const [inputDirectLineDestForFieldEdit, setInputDirectLineDestForFieldEdit] = useState("");
+  // const [inputDirectFaxDestForFieldEdit, setInputDirectFaxDestForFieldEdit] = useState("");
+  // const [inputContactEmailDestForFieldEdit, setInputContactEmailDestForFieldEdit] = useState("");
+  // const [inputZipcodeDestForFieldEdit, setInputZipcodeDestForFieldEdit] = useState("");
+  // const [inputAddressDestForFieldEdit, setInputAddressDestForFieldEdit] = useState("");
+  // 見積関連フィールドエディット
+  const [inputSubmissionClassForFieldEdit, setInputSubmissionClassForFieldEdit] = useState("");
+  const [inputDeadlineForFieldEdit, setInputDeadlineForFieldEdit] = useState("");
+  const [inputDeliveryPlaceForFieldEdit, setInputDeliveryPlaceForFieldEdit] = useState("");
+  const [inputPaymentTermsForFieldEdit, setInputPaymentTermsForFieldEdit] = useState("");
+  const [inputQuotationDivisionForFieldEdit, setInputQuotationDivisionForFieldEdit] = useState("");
+  const [inputSendingMethodForFieldEdit, setInputSendingMethodForFieldEdit] = useState("");
+  const [inputUseCorporateSealForFieldEdit, setInputUseCorporateSealForFieldEdit] = useState("");
+  // const [inputQuotationNotesForFieldEdit, setInputQuotationNotesForFieldEdit] = useState("");
+  const [inputSalesTaxClassForFieldEdit, setInputSalesTaxClassForFieldEdit] = useState("");
+  const [inputSalesTaxRateForFieldEdit, setInputSalesTaxRateForFieldEdit] = useState("");
+  const [inputTotalPriceForFieldEdit, setInputTotalPriceForFieldEdit] = useState("");
+  const [inputDiscountAmountForFieldEdit, setInputDiscountAmountForFieldEdit] = useState("");
+  const [inputDiscountRateForFieldEdit, setInputDiscountRateForFieldEdit] = useState("");
+  const [inputDiscountTitleForFieldEdit, setInputDiscountTitleForFieldEdit] = useState("");
+  const [inputTotalAmountForFieldEdit, setInputTotalAmountForFieldEdit] = useState("");
+  // const [inputQuotationRemarksForFieldEdit, setInputQuotationRemarksForFieldEdit] = useState("");
+  const [inputSetItemCountForFieldEdit, setInputSetItemCountForFieldEdit] = useState("");
+  const [inputSetUnitNameForFieldEdit, setInputSetUnitNameForFieldEdit] = useState("");
+  const [inputSetPriceForFieldEdit, setInputSetPriceForFieldEdit] = useState("");
+  const [inputLeasePeriodForFieldEdit, setInputLeasePeriodForFieldEdit] = useState("");
+  const [inputLeaseRateForFieldEdit, setInputLeaseRateForFieldEdit] = useState("");
+  const [inputLeaseMonthlyFeeForFieldEdit, setInputLeaseMonthlyFeeForFieldEdit] = useState("");
+  //  印鑑フィールドエディット
+  const [inputInChargeStampIdForFieldEdit, setInputInChargeStampIdForFieldEdit] = useState("");
+  const [inputInChargeNameIdForFieldEdit, setInputInChargeNameIdForFieldEdit] = useState("");
+  const [inputSupervisor1StampIdForFieldEdit, setInputSupervisor1StampIdForFieldEdit] = useState("");
+  const [inputSupervisor1NameIdForFieldEdit, setInputSupervisor1NameIdForFieldEdit] = useState("");
+  const [inputSupervisor2StampIdForFieldEdit, setInputSupervisor2StampIdForFieldEdit] = useState("");
+  const [inputSupervisor2NameIdForFieldEdit, setInputSupervisor2NameIdForFieldEdit] = useState("");
+
+  // フラグ関連 フィールドエディット用 初期はfalseにしておき、useEffectでselectedRowDataのフラグを反映する
+  // 角印印刷フラグ、担当印、上長印１、上長印２ フィールドエディット用
+  const [checkboxUseCorporateSealFlagForFieldEdit, setCheckboxUseCorporateSealFlagForFieldEdit] = useState(false);
+  const [checkboxInChargeFlagForFieldEdit, setCheckboxInChargeFlagForFieldEdit] = useState(false);
+  const [checkboxSupervisor1FlagForFieldEdit, setCheckboxSupervisor1FlagForFieldEdit] = useState(false);
+  const [checkboxSupervisor2FlagForFieldEdit, setCheckboxSupervisor2FlagForFieldEdit] = useState(false);
+
+  // フラグの初期値を更新
+  // 角印印刷
+  useEffect(() => {
+    setCheckboxUseCorporateSealFlagForFieldEdit(
+      selectedRowDataQuotation?.use_corporate_seal ? selectedRowDataQuotation?.use_corporate_seal : false
+    );
+  }, [selectedRowDataQuotation?.use_corporate_seal]);
+  // 担当者印
+  useEffect(() => {
+    setCheckboxInChargeFlagForFieldEdit(
+      selectedRowDataQuotation?.in_charge_stamp_flag ? selectedRowDataQuotation?.in_charge_stamp_flag : false
+    );
+  }, [selectedRowDataQuotation?.in_charge_stamp_flag]);
+  // 上長印1
+  useEffect(() => {
+    setCheckboxSupervisor1FlagForFieldEdit(
+      selectedRowDataQuotation?.supervisor1_stamp_flag ? selectedRowDataQuotation?.supervisor1_stamp_flag : false
+    );
+  }, [selectedRowDataQuotation?.supervisor1_stamp_flag]);
+  // 上長印2
+  useEffect(() => {
+    setCheckboxSupervisor2FlagForFieldEdit(
+      selectedRowDataQuotation?.supervisor2_stamp_flag ? selectedRowDataQuotation?.supervisor2_stamp_flag : false
+    );
+  }, [selectedRowDataQuotation?.supervisor2_stamp_flag]);
 
   // ================================ ✅フィールドエディットモード関連state✅ ================================
 
@@ -292,6 +374,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
           ? new Date(newSearchQuotation_Contact_CompanyParams.expiration_date)
           : null
       );
+      //
+      setInputQuotationNotes(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.quotation_notes));
+      setInputQuotationRemarks(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.quotation_remarks));
+      setInputQuotationNoCustom(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.quotation_no_custom));
+      setInputQuotationNoSystem(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.quotation_no_system));
+      //
       setInputQuotationBusinessOffice(
         beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.quotation_business_office)
       );
@@ -334,6 +422,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       if (!!inputQuotationCreatedByOfficeOfUser) setInputQuotationCreatedByOfficeOfUser("");
       if (!!inputQuotationDate) setInputQuotationDate(null);
       if (!!inputExpirationDate) setInputExpirationDate(null);
+      if (!!inputQuotationNotes) setInputQuotationNotes("");
+      if (!!inputQuotationRemarks) setInputQuotationRemarks("");
       if (!!inputQuotationNoCustom) setInputQuotationNoCustom("");
       if (!!inputQuotationNoSystem) setInputQuotationNoSystem("");
       if (!!inputQuotationTitle) setInputQuotationTitle("");
@@ -393,6 +483,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     let _quotation_created_by_office_of_user = adjustFieldValue(inputQuotationCreatedByOfficeOfUser);
     let _quotation_date = inputQuotationDate ? inputQuotationDate.toISOString() : null;
     let _expiration_date = inputExpirationDate ? inputExpirationDate.toISOString() : null;
+    let _quotation_notes = adjustFieldValue(inputQuotationNotes);
+    let _quotation_remarks = adjustFieldValue(inputQuotationRemarks);
     let _quotation_no_custom = adjustFieldValue(inputQuotationNoCustom);
     let _quotation_no_system = adjustFieldValue(inputQuotationNoSystem);
     let _quotation_title = adjustFieldValue(inputQuotationTitle);
@@ -428,6 +520,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       "quotations.created_by_office_of_user": _quotation_created_by_office_of_user,
       quotation_date: _quotation_date,
       expiration_date: _expiration_date,
+      quotation_notes: _quotation_notes,
+      quotation_remarks: _quotation_remarks,
       quotation_no_custom: _quotation_no_custom,
       quotation_no_system: _quotation_no_system,
       quotation_business_office: _quotation_business_office,
@@ -468,6 +562,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     setInputQuotationCreatedByOfficeOfUser("");
     setInputQuotationDate(null);
     setInputExpirationDate(null);
+    setInputQuotationNotes("");
+    setInputQuotationRemarks("");
     setInputQuotationNoCustom("");
     setInputQuotationNoSystem("");
     setInputQuotationTitle("");
@@ -491,14 +587,33 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   };
 
   // ==================================== 🌟ツールチップ🌟 ====================================
-  const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string = "center") => {
+  type TooltipParams = {
+    e: React.MouseEvent<HTMLElement, MouseEvent>;
+    display?: "top" | "right" | "bottom" | "left" | "";
+    marginTop?: number;
+    itemsPosition?: string;
+    whiteSpace?: "normal" | "pre" | "nowrap" | "pre-wrap" | "pre-line" | "break-spaces" | undefined;
+    content?: string;
+    content2?: string;
+    content3?: string;
+  };
+  const handleOpenTooltip = ({
+    e,
+    display = "",
+    marginTop,
+    itemsPosition,
+    whiteSpace,
+    content,
+    content2,
+    content3,
+  }: TooltipParams) => {
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
     // console.log("ツールチップx, y width , height", x, y, width, height);
-    const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
+    const dataText2 = ((e.target as HTMLDivElement).dataset.text2 as string)
       ? ((e.target as HTMLDivElement).dataset.text2 as string)
       : "";
-    const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
+    const dataText3 = ((e.target as HTMLDivElement).dataset.text3 as string)
       ? ((e.target as HTMLDivElement).dataset.text3 as string)
       : "";
     setHoveredItemPosWrap({
@@ -506,10 +621,13 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       y: y,
       itemWidth: width,
       itemHeight: height,
-      content: (e.target as HTMLDivElement).dataset.text as string,
-      content2: content2,
-      content3: content3,
+      content: ((e.target as HTMLDivElement).dataset.text as string) || (content ?? ""),
+      content2: dataText2 || content2 || "",
+      content3: dataText3 || content3 || "",
       display: display,
+      marginTop: marginTop,
+      itemsPosition: itemsPosition,
+      whiteSpace: whiteSpace,
     });
   };
   // ツールチップを非表示
@@ -601,7 +719,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
           text = text.replace(/月/g, ""); // 決算月の場合は、1月の月を削除してstateに格納 optionタグのvalueと一致させるため
         }
         // // 「活動日付」「次回フォロー予定日」はinnerHTMLではなく元々の値を格納
-        if (["planned_date", "result_date"].includes(field)) {
+        if (["quotation_date", "result_date"].includes(field)) {
           const originalDate = dateValue ? new Date(dateValue) : null;
           console.log("ダブルクリック 日付格納", dateValue);
           // originalValueFieldEdit.current = originalDate;
@@ -761,7 +879,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
           if (!closingDayRef.current)
             return toast.error("決算日データが確認できないため、活動を更新できませんでした...🙇‍♀️");
           // if (!(newValue instanceof Date)) return toast.error("エラー：無効な日付です。");
-          type ExcludeKeys = "company_id" | "contact_id" | "meeting_id"; // 除外するキー idはUPDATEすることは無いため
+          type ExcludeKeys = "company_id" | "contact_id" | "quotation_id"; // 除外するキー idはUPDATEすることは無いため
           type QuotationFieldNamesForSelectedRowData = Exclude<keyof Quotation_row_data, ExcludeKeys>;
           type UpdateObject = {
             fieldName: string;
@@ -1137,8 +1255,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          if (!isDesktopGTE1600) handleOpenTooltip(e);
-                          // handleOpenTooltip(e);
+                          if (!isDesktopGTE1600) handleOpenTooltip({ e });
+                          // handleOpenTooltip({e});
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -1171,8 +1289,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          if (!isDesktopGTE1600) handleOpenTooltip(e);
-                          // handleOpenTooltip(e);
+                          if (!isDesktopGTE1600) handleOpenTooltip({ e });
+                          // handleOpenTooltip({e});
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -1208,8 +1326,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         data-text={`${selectedRowDataQuotation?.extension ? selectedRowDataQuotation?.extension : ""}`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          if (!isDesktopGTE1600) handleOpenTooltip(e);
-                          // handleOpenTooltip(e);
+                          if (!isDesktopGTE1600) handleOpenTooltip({ e });
+                          // handleOpenTooltip({e});
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -1245,8 +1363,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          if (!isDesktopGTE1600) handleOpenTooltip(e);
-                          // handleOpenTooltip(e);
+                          if (!isDesktopGTE1600) handleOpenTooltip({ e });
+                          // handleOpenTooltip({e});
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -1285,8 +1403,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          if (!isDesktopGTE1600) handleOpenTooltip(e);
-                          // handleOpenTooltip(e);
+                          if (!isDesktopGTE1600) handleOpenTooltip({ e });
+                          // handleOpenTooltip({e});
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -1318,8 +1436,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         data-text={`${selectedRowDataQuotation?.main_fax ? selectedRowDataQuotation?.main_fax : ""}`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          if (!isDesktopGTE1600) handleOpenTooltip(e);
-                          // handleOpenTooltip(e);
+                          if (!isDesktopGTE1600) handleOpenTooltip({ e });
+                          // handleOpenTooltip({e});
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -1353,9 +1471,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                       onMouseEnter={(e) => {
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         // if (!isDesktopGTE1600 && isOpenSidebar) {
-                        //   handleOpenTooltip(e);
+                        //   handleOpenTooltip({e});
                         // }
-                        // handleOpenTooltip(e);
+                        // handleOpenTooltip({e});
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -1400,9 +1518,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           // if (!isDesktopGTE1600 && isOpenSidebar) {
-                          //   handleOpenTooltip(e);
+                          //   handleOpenTooltip({e});
                           // }
-                          // handleOpenTooltip(e);
+                          // handleOpenTooltip({e});
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -1435,9 +1553,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 住所 */}
-              <div className={`${styles.row_area_lg_box} flex h-[50px] w-full items-center`}>
+              <div className={`${styles.row_area_lg_box}  flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px] ">
-                  <div className={`${styles.title_box} flex h-full`}>
+                  <div className={`${styles.title_box} ${styles.xl} flex h-full`}>
                     <span className={`${styles.title}`}>○住所</span>
                     {!searchMode && (
                       <span
@@ -1466,9 +1584,10 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.underline} `}></div>
                 </div>
               </div>
+              {/*  */}
 
-              {/* 依頼元 セクションタイトル */}
-              <div className={`${styles.row_area} flex w-full items-center`}>
+              {/* 送付先 セクションタイトル */}
+              <div className={`${styles.row_area} !mt-[22px] flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full !items-end `}>
                     <span className={`${styles.section_title} mb-[2px] mr-[5px] !min-w-max`}>送付先</span>
@@ -1478,39 +1597,2617 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                 </div>
               </div>
               {/*  */}
+
+              {/* 送付先 会社名 */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>会社名</span>
+                    {!searchMode && (
+                      <span
+                        className={`${styles.value} ${styles.value_highlight} ${styles.text_start}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
+                        {selectedRowDataQuotation?.destination_company_name
+                          ? selectedRowDataQuotation?.destination_company_name
+                          : ""}
+                      </span>
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+              {/*  */}
+
+              {/* 送付先 部署名 */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>部署名</span>
+                    {!searchMode && (
+                      <span
+                        className={`${styles.value} ${styles.text_start}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
+                        {selectedRowDataQuotation?.destination_company_department_name
+                          ? selectedRowDataQuotation?.destination_company_department_name
+                          : ""}
+                      </span>
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+              {/*  */}
+
+              {/* 送付先 担当者名 */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>担当者名</span>
+                    {!searchMode && (
+                      <span
+                        className={`${styles.value}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
+                        {selectedRowDataQuotation?.destination_contact_name
+                          ? selectedRowDataQuotation?.destination_contact_name
+                          : ""}
+                      </span>
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}></div>
+                  {/* <div className={`${styles.underline}`}></div> */}
+                </div>
+              </div>
+              {/*  */}
+
+              {/* 送付先 直通TEL・直通FAX */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>直通TEL</span>
+                    {!searchMode && (
+                      <span
+                        className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataQuotation?.direct_line ? selectedRowDataQuotation?.direct_line : ""
+                        }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          if (!isDesktopGTE1600) handleOpenTooltip({ e });
+                          // handleOpenTooltip({e});
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
+                        {selectedRowDataQuotation?.destination_contact_direct_line
+                          ? selectedRowDataQuotation?.destination_contact_direct_line
+                          : ""}
+                      </span>
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title}`}>直通FAX</span>
+                    {!searchMode && (
+                      <span
+                        className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataQuotation?.main_phone_number ? selectedRowDataQuotation?.main_phone_number : ""
+                        }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          if (!isDesktopGTE1600) handleOpenTooltip({ e });
+                          // handleOpenTooltip({e});
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
+                        {selectedRowDataQuotation?.destination_contact_direct_fax
+                          ? selectedRowDataQuotation?.destination_contact_direct_fax
+                          : ""}
+                      </span>
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+              {/*  */}
+
+              {/* 送付先 Email */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span
+                      className={`${styles.title}`} // data-text={`${selectedRowDataQuotation?.occupation ? selectedRowDataQuotation?.occupation : ""}`}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        // if (!isDesktopGTE1600 && isOpenSidebar) {
+                        //   handleOpenTooltip({e});
+                        // }
+                        // handleOpenTooltip({e});
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        // if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) {
+                        //   handleCloseTooltip();
+                        // }
+                        // if (hoveredItemPosWrap) handleCloseTooltip();
+                      }}
+                    >
+                      E-mail
+                    </span>
+                    {!searchMode && (
+                      <span className={`${styles.value}`}>
+                        {selectedRowDataQuotation?.destination_contact_email
+                          ? selectedRowDataQuotation?.destination_contact_email
+                          : ""}
+                      </span>
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+              {/*  */}
+
+              {/* 送付先 郵便番号・ */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title}`}>郵便番号</span>
+                    {!searchMode && (
+                      <span
+                        className={`${styles.value}`}
+                        // data-text={`${
+                        //   selectedRowDataQuotation?.personal_cell_phone ? selectedRowDataQuotation?.personal_cell_phone : ""
+                        // }`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          // if (!isDesktopGTE1600 && isOpenSidebar) {
+                          //   handleOpenTooltip({e});
+                          // }
+                          // handleOpenTooltip({e});
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          // if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) {
+                          //   handleCloseTooltip();
+                          // }
+                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
+                        {selectedRowDataQuotation?.destination_company_zipcode
+                          ? selectedRowDataQuotation?.destination_company_zipcode
+                          : ""}
+                      </span>
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title}`}></span>
+                  </div>
+                  {/* <div className={`${styles.underline}`}></div> */}
+                </div>
+              </div>
+
+              {/* 送付先 住所 */}
+              <div className={`${styles.row_area_lg_box} flex h-[50px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px] ">
+                  <div className={`${styles.title_box} flex h-full`}>
+                    <span className={`${styles.title}`}>○住所</span>
+                    {!searchMode && (
+                      <span
+                        className={`${styles.full_value} h-[45px] !overflow-visible !whitespace-normal`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
+                        {selectedRowDataQuotation?.destination_company_address
+                          ? selectedRowDataQuotation?.destination_company_address
+                          : ""}
+                      </span>
+                    )}
+                  </div>
+                  <div className={`${styles.underline} `}></div>
+                </div>
+              </div>
+              {/*  */}
             </div>
             {/* --------- ラッパー --------- */}
           </div>
         )}
         {/* ---------------- ✅通常モード 左コンテナここまで✅ ---------------- */}
 
-        {/* ---------------- 🌟通常モード 真ん中コンテナ 結果エリア🌟 ---------------- */}
-        {!searchMode && (
-          <div
-            className={`${styles.right_container} ${
-              isOpenSidebar ? `transition-base02` : `transition-base01`
-            } h-full min-w-[calc((100vw-var(--sidebar-width))/3-11px)] max-w-[calc((100vw-var(--sidebar-width))/3-11px)] grow bg-[aqua]/[0] pb-[35px] pt-[0px]`}
-          >
-            <div className={`${styles.right_contents_wrapper} flex h-full w-full flex-col bg-[#000]/[0]`}>
-              {/* 下エリア 禁止フラグなど */}
-            </div>
-          </div>
-        )}
-        {/* ---------------- ✅通常モード 真ん中コンテナここまで✅ ---------------- */}
+        {/* ------------------------ 🌟通常モード 真ん中と右コンテナ 上下全体🌟 ------------------------ */}
+        <div className={`flex h-full flex-col`}>
+          {/* ------------------------ 🌟通常モード 上 真ん中と右コンテナ🌟 ------------------------ */}
+          <div className={`flex h-full`}>
+            {/* ---------------- 🌟通常モード 真ん中コンテナ🌟 ---------------- */}
+            {!searchMode && (
+              <div
+                className={`${styles.right_container} ${
+                  isOpenSidebar ? `transition-base02` : `transition-base01`
+                } h-full min-w-[calc((100vw-var(--sidebar-width))/3-11px)] max-w-[calc((100vw-var(--sidebar-width))/3-11px)] grow bg-[aqua]/[0] pb-[0px] pt-[0px]`}
+              >
+                {/* <div
+                className={`${styles.right_container} ${
+                  isOpenSidebar ? `transition-base02` : `transition-base01`
+                } h-full min-w-[calc((100vw-var(--sidebar-width))/3-11px)] max-w-[calc((100vw-var(--sidebar-width))/3-11px)] grow bg-[aqua]/[0] pb-[35px] pt-[0px]`}
+              > */}
+                <div className={`${styles.right_contents_wrapper} flex h-full w-full flex-col bg-[#000]/[0]`}>
+                  {/* 下エリア 禁止フラグなど */}
+                  {/* 見積No・提出区分 通常 */}
+                  <div className={`${styles.row_area} flex max-h-[26px] w-full items-center`}>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center `}>
+                        <span className={`${styles.section_title} ${styles.min_text}`}>●見積No</span>
+                        {/* ローカルストレージに真偽値で独自かシステムどちらを使うかを保持して表示を切り替える */}
+                        {!searchMode && isEditModeField !== "quotation_no_system" && (
+                          <span
+                            className={`${styles.value} ${styles.value_highlight} ${styles.editable_field}`}
+                            data-text={
+                              selectedRowDataQuotation?.quotation_no_system
+                                ? selectedRowDataQuotation?.quotation_no_system
+                                : ""
+                            }
+                            onMouseEnter={(e) => handleOpenTooltip({ e, display: "top" })}
+                            onMouseLeave={handleCloseTooltip}
+                            onClick={handleSingleClickField}
+                            onDoubleClick={(e) => {
+                              // if (!selectedRowDataQuotation?.activity_type) return;
+                              // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.activity_type)) {
+                              //   return alert(returnMessageNotActivity(selectedRowDataQuotation.activity_type));
+                              // }
+                              handleDoubleClickField({
+                                e,
+                                field: "quotation_no_system",
+                                dispatch: setInputQuotationNoSystem,
+                                selectedRowDataValue: selectedRowDataQuotation?.quotation_no_system ?? "",
+                              });
+                              handleCloseTooltip();
+                            }}
+                          >
+                            {selectedRowDataQuotation?.quotation_no_system
+                              ? selectedRowDataQuotation?.quotation_no_system
+                              : ""}
+                          </span>
+                        )}
+                        {/* ============= フィールドエディットモード関連 ============= */}
+                        {/* フィールドエディットモード selectタグ  */}
+                        {!searchMode && isEditModeField === "quotation_no_system" && (
+                          <>
+                            <input
+                              type="text"
+                              placeholder=""
+                              autoFocus
+                              className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                              value={inputQuotationNoSystem}
+                              onChange={(e) => setInputQuotationNoSystem(e.target.value)}
+                              onCompositionStart={() => setIsComposing(true)}
+                              onCompositionEnd={() => setIsComposing(false)}
+                              onKeyDown={(e) =>
+                                handleKeyDownUpdateField({
+                                  e,
+                                  fieldName: "quotation_no_system",
+                                  fieldNameForSelectedRowData: "quotation_no_system",
+                                  originalValue: originalValueFieldEdit.current,
+                                  newValue: inputQuotationNoSystem.trim(),
+                                  id: selectedRowDataQuotation?.quotation_id,
+                                  required: true,
+                                })
+                              }
+                            />
+                            {/* 送信ボタンとクローズボタン */}
+                            {!updateQuotationFieldMutation.isLoading && (
+                              <InputSendAndCloseBtn
+                                inputState={inputQuotationNoSystem}
+                                setInputState={setInputQuotationNoSystem}
+                                onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                                  handleClickSendUpdateField({
+                                    e,
+                                    fieldName: "quotation_no_system",
+                                    fieldNameForSelectedRowData: "quotation_no_system",
+                                    originalValue: originalValueFieldEdit.current,
+                                    newValue: inputQuotationNoSystem.trim(),
+                                    id: selectedRowDataQuotation?.quotation_id,
+                                    required: true,
+                                  })
+                                }
+                                required={true}
+                                isDisplayClose={false}
+                              />
+                            )}
+                            {/* エディットフィールド送信中ローディングスピナー */}
+                            {updateQuotationFieldMutation.isLoading && (
+                              <div className={`${styles.field_edit_mode_loading_area}`}>
+                                <SpinnerComet w="22px" h="22px" s="3px" />
+                              </div>
+                            )}
+                          </>
+                        )}
+                        {/* フィールドエディットモードオーバーレイ */}
+                        {!searchMode && isEditModeField === "quotation_no_system" && (
+                          <div
+                            className={`${styles.edit_mode_overlay}`}
+                            onClick={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                              setIsEditModeField(null); // エディットモードを終了
+                            }}
+                          />
+                        )}
+                        {/* ============= フィールドエディットモード関連ここまで ============= */}
+                      </div>
+                      {/* <div className={`${styles.section_underline}`}></div> */}
+                    </div>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center `}>
+                        <div className={`${styles.section_title} ${styles.min_text} flex flex-col`}>
+                          <span>●提出区分</span>
+                        </div>
 
-        {/* ---------------- 🌟通常モード 右コンテナ🌟 ---------------- */}
-        {!searchMode && (
-          <div
-            // className={`${styles.left_container1 h-full min-w-[calc((100vw-var(--sidebar-width))/3)1 pb-[35px] pt-[10px]`}
-            className={`${styles.left_container} ${
-              isOpenSidebar ? `transition-base02` : `transition-base01`
-            } h-full min-w-[calc((100vw-var(--sidebar-width))/3-11px)] max-w-[calc((100vw-var(--sidebar-width))/3-11px)] pb-[35px] pt-[0px]`}
-          >
-            {/* --------- ラッパー --------- */}
-            <div className={`${styles.left_contents_wrapper} flex h-full w-full flex-col`}></div>
+                        {!searchMode && isEditModeField !== "submission_class" && (
+                          <span
+                            className={`${styles.value} ${styles.value_highlight} ${styles.editable_field}`}
+                            data-text={
+                              selectedRowDataQuotation?.submission_class
+                                ? selectedRowDataQuotation?.submission_class
+                                : ""
+                            }
+                            onMouseEnter={(e) => handleOpenTooltip({ e, display: "top" })}
+                            onMouseLeave={handleCloseTooltip}
+                            onClick={handleSingleClickField}
+                            onDoubleClick={(e) => {
+                              // if (!selectedRowDataQuotation?.activity_type) return;
+                              // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.activity_type)) {
+                              //   return alert(returnMessageNotActivity(selectedRowDataQuotation.activity_type));
+                              // }
+                              handleDoubleClickField({
+                                e,
+                                field: "submission_class",
+                                dispatch: setInputSubmissionClassForFieldEdit,
+                                selectedRowDataValue: selectedRowDataQuotation?.submission_class ?? "",
+                              });
+                              handleCloseTooltip();
+                            }}
+                          >
+                            {selectedRowDataQuotation?.submission_class
+                              ? selectedRowDataQuotation?.submission_class
+                              : ""}
+                          </span>
+                        )}
+                        {/* ============= フィールドエディットモード関連 ============= */}
+                        {/* フィールドエディットモード selectタグ  */}
+                        {!searchMode && isEditModeField === "submission_class" && (
+                          <>
+                            <select
+                              className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                              value={inputSubmissionClassForFieldEdit}
+                              onChange={(e) => {
+                                handleChangeSelectUpdateField({
+                                  e,
+                                  fieldName: "submission_class",
+                                  fieldNameForSelectedRowData: "submission_class",
+                                  newValue: e.target.value,
+                                  originalValue: originalValueFieldEdit.current,
+                                  id: selectedRowDataQuotation?.quotation_id,
+                                });
+                              }}
+                              // onChange={(e) => {
+                              //   setInputActivityType(e.target.value);
+                              // }}
+                            >
+                              {/* <option value=""></option> */}
+                              <option value="提出用">提出用</option>
+                              <option value="社内用">社内用</option>
+                            </select>
+                            {/* エディットフィールド送信中ローディングスピナー */}
+                            {updateQuotationFieldMutation.isLoading && (
+                              <div
+                                className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                              >
+                                <SpinnerComet w="22px" h="22px" s="3px" />
+                              </div>
+                            )}
+                          </>
+                        )}
+                        {/* フィールドエディットモードオーバーレイ */}
+                        {!searchMode && isEditModeField === "submission_class" && (
+                          <div
+                            className={`${styles.edit_mode_overlay}`}
+                            onClick={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                              setIsEditModeField(null); // エディットモードを終了
+                            }}
+                          />
+                        )}
+                        {/* ============= フィールドエディットモード関連ここまで ============= */}
+                      </div>
+                      {/* <div className={`${styles.section_underline}`}></div> */}
+                    </div>
+                  </div>
+                  <div className={`${styles.section_underline2} `}></div>
+                  {/*  */}
+
+                  {/* ●見積日・●納期 */}
+                  <div className={`${styles.row_area} flex w-full items-center`}>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center `}>
+                        <span className={`${styles.title}`}>●納期</span>
+                        {!searchMode && isEditModeField !== "deadline" && (
+                          <span
+                            className={`${styles.value} ${styles.editable_field}`}
+                            onClick={handleSingleClickField}
+                            onDoubleClick={(e) => {
+                              if (!selectedRowDataQuotation?.deadline) return;
+                              // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.deadline))
+                              //   return alert(returnMessageNotActivity(selectedRowDataQuotation.deadline));
+                              handleDoubleClickField({
+                                e,
+                                field: "deadline",
+                                dispatch: setInputDeadlineForFieldEdit,
+                              });
+                              if (hoveredItemPosWrap) handleCloseTooltip();
+                            }}
+                            data-text={`${
+                              selectedRowDataQuotation?.deadline ? selectedRowDataQuotation?.deadline : ""
+                            }`}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                              // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                              // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                            }}
+                          >
+                            {selectedRowDataQuotation?.deadline ? selectedRowDataQuotation?.deadline : ""}
+                          </span>
+                        )}
+                        {/* ============= フィールドエディットモード関連 ============= */}
+                        {/* フィールドエディットモード selectタグ  */}
+                        {!searchMode && isEditModeField === "deadline" && (
+                          <>
+                            <select
+                              className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                              value={inputDeadlineForFieldEdit}
+                              onChange={(e) => {
+                                handleChangeSelectUpdateField({
+                                  e,
+                                  fieldName: "deadline",
+                                  fieldNameForSelectedRowData: "deadline",
+                                  newValue: e.target.value,
+                                  originalValue: originalValueFieldEdit.current,
+                                  id: selectedRowDataQuotation?.quotation_id,
+                                });
+                              }}
+                              // onChange={(e) => {
+                              //   setInputActivityType(e.target.value);
+                              // }}
+                            >
+                              {/* <option value=""></option> */}
+                              {/* {optionsMeetingType.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))} */}
+                            </select>
+                            {/* エディットフィールド送信中ローディングスピナー */}
+                            {updateQuotationFieldMutation.isLoading && (
+                              <div
+                                className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                              >
+                                <SpinnerComet w="22px" h="22px" s="3px" />
+                              </div>
+                            )}
+                          </>
+                        )}
+                        {/* フィールドエディットモードオーバーレイ */}
+                        {!searchMode && isEditModeField === "deadline" && (
+                          <div
+                            className={`${styles.edit_mode_overlay}`}
+                            onClick={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                              setIsEditModeField(null); // エディットモードを終了
+                            }}
+                          />
+                        )}
+                        {/* ============= フィールドエディットモード関連ここまで ============= */}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                    {/* 見積日 */}
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center`}>
+                        <span className={`${styles.title}`}>●見積日</span>
+                        {!searchMode && isEditModeField !== "quotation_date" && (
+                          <span
+                            className={`${styles.value} ${styles.editable_field}`}
+                            onClick={handleSingleClickField}
+                            onDoubleClick={(e) => {
+                              // if (!selectedRowDataQuotation?.activity_type) return;
+                              // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.activity_type)) {
+                              //   return alert(returnMessageNotActivity(selectedRowDataQuotation.activity_type));
+                              // }
+                              handleDoubleClickField({
+                                e,
+                                field: "quotation_date",
+                                dispatch: setInputQuotationDateForFieldEdit,
+                                dateValue: selectedRowDataQuotation?.quotation_date
+                                  ? selectedRowDataQuotation.quotation_date
+                                  : null,
+                              });
+                            }}
+                            data-text={`${
+                              selectedRowDataQuotation?.quotation_date
+                                ? format(new Date(selectedRowDataQuotation.quotation_date), "yyyy/MM/dd")
+                                : ""
+                            }`}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                              if (!isDesktopGTE1600 && isOpenSidebar) handleOpenTooltip({ e });
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                              if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) handleCloseTooltip();
+                            }}
+                          >
+                            {selectedRowDataQuotation?.quotation_date
+                              ? format(new Date(selectedRowDataQuotation.quotation_date), "yyyy/MM/dd")
+                              : ""}
+                          </span>
+                        )}
+                        {/* ============= フィールドエディットモード関連 ============= */}
+                        {/* フィールドエディットモード Date-picker  */}
+                        {!searchMode && isEditModeField === "quotation_date" && (
+                          <>
+                            <div className="z-[2000] w-full">
+                              <DatePickerCustomInput
+                                startDate={inputQuotationDateForFieldEdit}
+                                setStartDate={setInputQuotationDateForFieldEdit}
+                                required={true}
+                                isFieldEditMode={true}
+                                fieldEditModeBtnAreaPosition="right"
+                                isLoadingSendEvent={updateQuotationFieldMutation.isLoading}
+                                onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                                  if (!inputQuotationDateForFieldEdit) return alert("このデータは入力が必須です。");
+                                  const originalDateUTCString = selectedRowDataQuotation?.quotation_date
+                                    ? selectedRowDataQuotation.quotation_date
+                                    : null; // ISOString UTC時間 2023-12-26T15:00:00+00:00
+                                  const newDateUTCString = inputQuotationDateForFieldEdit
+                                    ? inputQuotationDateForFieldEdit.toISOString()
+                                    : null; // Dateオブジェクト ローカルタイムゾーンに自動で変換済み Thu Dec 28 2023 00:00:00 GMT+0900 (日本標準時)
+                                  // const result = isSameDateLocal(originalDateString, newDateString);
+                                  console.log(
+                                    "日付送信クリック",
+                                    "オリジナル(UTC)",
+                                    originalDateUTCString,
+                                    "新たな値(Dateオブジェクト)",
+                                    inputQuotationDateForFieldEdit,
+                                    "新たな値.toISO(UTC)",
+                                    newDateUTCString
+                                    // "同じかチェック結果",
+                                    // result
+                                  );
+                                  if (e.currentTarget.parentElement?.parentElement?.parentElement)
+                                    e.currentTarget.parentElement.parentElement.parentElement.classList.remove(
+                                      `${styles.active}`
+                                    );
+                                  // オリジナルはUTC、新たな値はDateオブジェクト(ローカルタイムゾーン)なのでISOString()でUTCに変換
+                                  handleClickSendUpdateField({
+                                    e,
+                                    fieldName: "quotation_date",
+                                    fieldNameForSelectedRowData: "quotation_date",
+                                    // originalValue: originalValueFieldEdit.current,
+                                    originalValue: originalDateUTCString,
+                                    newValue: newDateUTCString,
+                                    id: selectedRowDataQuotation?.quotation_id,
+                                    required: true,
+                                  });
+                                }}
+                              />
+                            </div>
+                          </>
+                        )}
+                        {/* フィールドエディットモードオーバーレイ */}
+                        {!searchMode && isEditModeField === "quotation_date" && (
+                          <div
+                            className={`${styles.edit_mode_overlay}`}
+                            onClick={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                              setIsEditModeField(null); // エディットモードを終了
+                            }}
+                          />
+                        )}
+                        {/* ============= フィールドエディットモード関連ここまで ============= */}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                  </div>
+                  {/*  */}
+
+                  {/* ●有効期限・●納入場所 */}
+                  <div className={`${styles.row_area} flex w-full items-center`}>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center `}>
+                        <span className={`${styles.title}`}>●納入場所</span>
+                        {!searchMode && isEditModeField !== "delivery_place" && (
+                          <span
+                            className={`${styles.value} ${styles.editable_field}`}
+                            onClick={handleSingleClickField}
+                            onDoubleClick={(e) => {
+                              if (!selectedRowDataQuotation?.delivery_place) return;
+                              // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.delivery_place))
+                              //   return alert(returnMessageNotActivity(selectedRowDataQuotation.delivery_place));
+                              handleDoubleClickField({
+                                e,
+                                field: "delivery_place",
+                                dispatch: setInputDeliveryPlaceForFieldEdit,
+                              });
+                              if (hoveredItemPosWrap) handleCloseTooltip();
+                            }}
+                            data-text={`${
+                              selectedRowDataQuotation?.delivery_place ? selectedRowDataQuotation?.delivery_place : ""
+                            }`}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                              // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                              // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                            }}
+                          >
+                            {selectedRowDataQuotation?.delivery_place ? selectedRowDataQuotation?.delivery_place : ""}
+                          </span>
+                        )}
+                        {/* ============= フィールドエディットモード関連 ============= */}
+                        {/* フィールドエディットモード selectタグ  */}
+                        {!searchMode && isEditModeField === "delivery_place" && (
+                          <>
+                            <select
+                              className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                              value={inputDeliveryPlaceForFieldEdit}
+                              onChange={(e) => {
+                                handleChangeSelectUpdateField({
+                                  e,
+                                  fieldName: "delivery_place",
+                                  fieldNameForSelectedRowData: "delivery_place",
+                                  newValue: e.target.value,
+                                  originalValue: originalValueFieldEdit.current,
+                                  id: selectedRowDataQuotation?.quotation_id,
+                                });
+                              }}
+                              // onChange={(e) => {
+                              //   setInputActivityType(e.target.value);
+                              // }}
+                            >
+                              {/* <option value=""></option> */}
+                              {/* {optionsMeetingType.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))} */}
+                            </select>
+                            {/* エディットフィールド送信中ローディングスピナー */}
+                            {updateQuotationFieldMutation.isLoading && (
+                              <div
+                                className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                              >
+                                <SpinnerComet w="22px" h="22px" s="3px" />
+                              </div>
+                            )}
+                          </>
+                        )}
+                        {/* フィールドエディットモードオーバーレイ */}
+                        {!searchMode && isEditModeField === "delivery_place" && (
+                          <div
+                            className={`${styles.edit_mode_overlay}`}
+                            onClick={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                              setIsEditModeField(null); // エディットモードを終了
+                            }}
+                          />
+                        )}
+                        {/* ============= フィールドエディットモード関連ここまで ============= */}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                    {/* 有効期限 */}
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center`}>
+                        <span className={`${styles.title}`}>○有効期限</span>
+                        {!searchMode && isEditModeField !== "expiration_date" && (
+                          <span
+                            className={`${styles.value} ${styles.editable_field}`}
+                            onClick={handleSingleClickField}
+                            onDoubleClick={(e) => {
+                              // if (!selectedRowDataQuotation?.activity_type) return;
+                              // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.activity_type)) {
+                              //   return alert(returnMessageNotActivity(selectedRowDataQuotation.activity_type));
+                              // }
+                              handleDoubleClickField({
+                                e,
+                                field: "expiration_date",
+                                dispatch: setInputExpirationDateForFieldEdit,
+                                dateValue: selectedRowDataQuotation?.expiration_date
+                                  ? selectedRowDataQuotation.expiration_date
+                                  : null,
+                              });
+                            }}
+                            data-text={`${
+                              selectedRowDataQuotation?.expiration_date
+                                ? format(new Date(selectedRowDataQuotation.expiration_date), "yyyy/MM/dd")
+                                : ""
+                            }`}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                              if (!isDesktopGTE1600 && isOpenSidebar) handleOpenTooltip({ e });
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                              if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) handleCloseTooltip();
+                            }}
+                          >
+                            {selectedRowDataQuotation?.expiration_date
+                              ? format(new Date(selectedRowDataQuotation.expiration_date), "yyyy/MM/dd")
+                              : ""}
+                          </span>
+                        )}
+                        {/* ============= フィールドエディットモード関連 ============= */}
+                        {/* フィールドエディットモード Date-picker  */}
+                        {!searchMode && isEditModeField === "expiration_date" && (
+                          <>
+                            <div className="z-[2000] w-full">
+                              <DatePickerCustomInput
+                                startDate={inputExpirationDateForFieldEdit}
+                                setStartDate={setInputExpirationDateForFieldEdit}
+                                required={true}
+                                isFieldEditMode={true}
+                                fieldEditModeBtnAreaPosition="right"
+                                isLoadingSendEvent={updateQuotationFieldMutation.isLoading}
+                                onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                                  if (!inputExpirationDateForFieldEdit) return alert("このデータは入力が必須です。");
+                                  const originalDateUTCString = selectedRowDataQuotation?.expiration_date
+                                    ? selectedRowDataQuotation.expiration_date
+                                    : null; // ISOString UTC時間 2023-12-26T15:00:00+00:00
+                                  const newDateUTCString = inputExpirationDateForFieldEdit
+                                    ? inputExpirationDateForFieldEdit.toISOString()
+                                    : null; // Dateオブジェクト ローカルタイムゾーンに自動で変換済み Thu Dec 28 2023 00:00:00 GMT+0900 (日本標準時)
+                                  // const result = isSameDateLocal(originalDateString, newDateString);
+                                  console.log(
+                                    "日付送信クリック",
+                                    "オリジナル(UTC)",
+                                    originalDateUTCString,
+                                    "新たな値(Dateオブジェクト)",
+                                    inputQuotationDateForFieldEdit,
+                                    "新たな値.toISO(UTC)",
+                                    newDateUTCString
+                                    // "同じかチェック結果",
+                                    // result
+                                  );
+                                  if (e.currentTarget.parentElement?.parentElement?.parentElement)
+                                    e.currentTarget.parentElement.parentElement.parentElement.classList.remove(
+                                      `${styles.active}`
+                                    );
+                                  // オリジナルはUTC、新たな値はDateオブジェクト(ローカルタイムゾーン)なのでISOString()でUTCに変換
+                                  handleClickSendUpdateField({
+                                    e,
+                                    fieldName: "expiration_date",
+                                    fieldNameForSelectedRowData: "expiration_date",
+                                    // originalValue: originalValueFieldEdit.current,
+                                    originalValue: originalDateUTCString,
+                                    newValue: newDateUTCString,
+                                    id: selectedRowDataQuotation?.quotation_id,
+                                    required: true,
+                                  });
+                                }}
+                              />
+                            </div>
+                          </>
+                        )}
+                        {/* フィールドエディットモードオーバーレイ */}
+                        {!searchMode && isEditModeField === "expiration_date" && (
+                          <div
+                            className={`${styles.edit_mode_overlay}`}
+                            onClick={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                              setIsEditModeField(null); // エディットモードを終了
+                            }}
+                          />
+                        )}
+                        {/* ============= フィールドエディットモード関連ここまで ============= */}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                  </div>
+                  {/*  */}
+
+                  {/* ●取引方法・角印印刷 */}
+                  <div className={`${styles.row_area} flex w-full items-center`}>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center `}>
+                        <span className={`${styles.title}`}>●取引方法</span>
+                        {!searchMode && isEditModeField !== "payment_terms" && (
+                          <span
+                            className={`${styles.value} ${styles.editable_field}`}
+                            onClick={handleSingleClickField}
+                            onDoubleClick={(e) => {
+                              if (!selectedRowDataQuotation?.payment_terms) return;
+                              // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.payment_terms))
+                              //   return alert(returnMessageNotActivity(selectedRowDataQuotation.payment_terms));
+                              handleDoubleClickField({
+                                e,
+                                field: "payment_terms",
+                                dispatch: setInputPaymentTermsForFieldEdit,
+                              });
+                              if (hoveredItemPosWrap) handleCloseTooltip();
+                            }}
+                            data-text={`${
+                              selectedRowDataQuotation?.payment_terms ? selectedRowDataQuotation?.payment_terms : ""
+                            }`}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                              // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                              // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                            }}
+                          >
+                            {selectedRowDataQuotation?.payment_terms ? selectedRowDataQuotation?.payment_terms : ""}
+                          </span>
+                        )}
+                        {/* ============= フィールドエディットモード関連 ============= */}
+                        {/* フィールドエディットモード selectタグ  */}
+                        {!searchMode && isEditModeField === "payment_terms" && (
+                          <>
+                            <select
+                              className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                              value={inputPaymentTermsForFieldEdit}
+                              onChange={(e) => {
+                                handleChangeSelectUpdateField({
+                                  e,
+                                  fieldName: "payment_terms",
+                                  fieldNameForSelectedRowData: "payment_terms",
+                                  newValue: e.target.value,
+                                  originalValue: originalValueFieldEdit.current,
+                                  id: selectedRowDataQuotation?.quotation_id,
+                                });
+                              }}
+                              // onChange={(e) => {
+                              //   setInputActivityType(e.target.value);
+                              // }}
+                            >
+                              {/* <option value=""></option> */}
+                              {/* {optionsMeetingType.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))} */}
+                            </select>
+                            {/* エディットフィールド送信中ローディングスピナー */}
+                            {updateQuotationFieldMutation.isLoading && (
+                              <div
+                                className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                              >
+                                <SpinnerComet w="22px" h="22px" s="3px" />
+                              </div>
+                            )}
+                          </>
+                        )}
+                        {/* フィールドエディットモードオーバーレイ */}
+                        {!searchMode && isEditModeField === "payment_terms" && (
+                          <div
+                            className={`${styles.edit_mode_overlay}`}
+                            onClick={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                              setIsEditModeField(null); // エディットモードを終了
+                            }}
+                          />
+                        )}
+                        {/* ============= フィールドエディットモード関連ここまで ============= */}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center`}>
+                        <span className={`${styles.check_title} ${styles.single_text}`}>角印印刷</span>
+
+                        <div
+                          className={`${styles.grid_select_cell_header} `}
+                          onMouseEnter={(e) => {
+                            if (!selectedRowDataQuotation) return;
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!selectedRowDataQuotation) return;
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            // checked={!!selectedRowDataQuotation?.use_corporate_seal}
+                            // onChange={() => {
+                            //   setLoadingGlobalState(false);
+                            //   setIsOpenUpdateQuotationModal(true);
+                            // }}
+                            className={`${styles.grid_select_cell_header_input} ${
+                              !selectedRowDataQuotation ? `pointer-events-none cursor-not-allowed` : ``
+                            }`}
+                            checked={checkboxUseCorporateSealFlagForFieldEdit}
+                            onChange={async (e) => {
+                              if (!selectedRowDataQuotation) return;
+                              // 個別にチェックボックスを更新するルート
+                              if (!selectedRowDataQuotation?.quotation_id)
+                                return toast.error(`データが見つかりませんでした🙇‍♀️`);
+
+                              console.log(
+                                "チェック 新しい値",
+                                !checkboxUseCorporateSealFlagForFieldEdit,
+                                "オリジナル",
+                                selectedRowDataQuotation?.use_corporate_seal
+                              );
+                              if (
+                                !checkboxUseCorporateSealFlagForFieldEdit ===
+                                selectedRowDataQuotation?.use_corporate_seal
+                              ) {
+                                toast.error(`アップデートに失敗しました🤦‍♀️`);
+                                return;
+                              }
+                              const updatePayload = {
+                                fieldName: "use_corporate_seal",
+                                fieldNameForSelectedRowData: "use_corporate_seal" as "use_corporate_seal",
+                                newValue: !checkboxUseCorporateSealFlagForFieldEdit,
+                                id: selectedRowDataQuotation.quotation_id,
+                              };
+                              // 直感的にするためにmutateにして非同期処理のまま後続のローカルのチェックボックスを更新する
+                              updateQuotationFieldMutation.mutate(updatePayload);
+                              setCheckboxUseCorporateSealFlagForFieldEdit(!checkboxUseCorporateSealFlagForFieldEdit);
+                            }}
+                          />
+                          <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+                          </svg>
+                        </div>
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                  </div>
+                  {/*  */}
+
+                  {/* ●見積区分・●送付方法 */}
+                  <div className={`${styles.row_area} flex w-full items-center`}>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center `}>
+                        <span className={`${styles.title}`}>●見積区分</span>
+                        {!searchMode && isEditModeField !== "quotation_division" && (
+                          <span
+                            className={`${styles.value} ${styles.editable_field}`}
+                            onClick={handleSingleClickField}
+                            onDoubleClick={(e) => {
+                              if (!selectedRowDataQuotation?.quotation_division) return;
+                              // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.quotation_division))
+                              //   return alert(returnMessageNotActivity(selectedRowDataQuotation.quotation_division));
+                              handleDoubleClickField({
+                                e,
+                                field: "quotation_division",
+                                dispatch: setInputQuotationDivisionForFieldEdit,
+                              });
+                              if (hoveredItemPosWrap) handleCloseTooltip();
+                            }}
+                            data-text={`${
+                              selectedRowDataQuotation?.quotation_division
+                                ? selectedRowDataQuotation?.quotation_division
+                                : ""
+                            }`}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                              // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                              // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                            }}
+                          >
+                            {selectedRowDataQuotation?.quotation_division
+                              ? selectedRowDataQuotation?.quotation_division
+                              : ""}
+                          </span>
+                        )}
+                        {/* ============= フィールドエディットモード関連 ============= */}
+                        {/* フィールドエディットモード selectタグ  */}
+                        {!searchMode && isEditModeField === "quotation_division" && (
+                          <>
+                            <select
+                              className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                              value={inputQuotationDivisionForFieldEdit}
+                              onChange={(e) => {
+                                handleChangeSelectUpdateField({
+                                  e,
+                                  fieldName: "quotation_division",
+                                  fieldNameForSelectedRowData: "quotation_division",
+                                  newValue: e.target.value,
+                                  originalValue: originalValueFieldEdit.current,
+                                  id: selectedRowDataQuotation?.quotation_id,
+                                });
+                              }}
+                              // onChange={(e) => {
+                              //   setInputActivityType(e.target.value);
+                              // }}
+                            >
+                              {/* <option value=""></option> */}
+                              {/* {optionsMeetingType.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))} */}
+                            </select>
+                            {/* エディットフィールド送信中ローディングスピナー */}
+                            {updateQuotationFieldMutation.isLoading && (
+                              <div
+                                className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                              >
+                                <SpinnerComet w="22px" h="22px" s="3px" />
+                              </div>
+                            )}
+                          </>
+                        )}
+                        {/* フィールドエディットモードオーバーレイ */}
+                        {!searchMode && isEditModeField === "quotation_division" && (
+                          <div
+                            className={`${styles.edit_mode_overlay}`}
+                            onClick={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                              setIsEditModeField(null); // エディットモードを終了
+                            }}
+                          />
+                        )}
+                        {/* ============= フィールドエディットモード関連ここまで ============= */}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center`}>
+                        <span className={`${styles.title}`}>○送付方法</span>
+                        {!searchMode && isEditModeField !== "sending_method" && (
+                          <span
+                            className={`${styles.value} ${styles.editable_field}`}
+                            onClick={handleSingleClickField}
+                            onDoubleClick={(e) => {
+                              if (!selectedRowDataQuotation?.sending_method) return;
+                              // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.sending_method))
+                              //   return alert(returnMessageNotActivity(selectedRowDataQuotation.sending_method));
+                              handleDoubleClickField({
+                                e,
+                                field: "sending_method",
+                                dispatch: setInputSendingMethodForFieldEdit,
+                              });
+                              if (hoveredItemPosWrap) handleCloseTooltip();
+                            }}
+                            data-text={`${
+                              selectedRowDataQuotation?.sending_method ? selectedRowDataQuotation?.sending_method : ""
+                            }`}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                              // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                              // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                            }}
+                          >
+                            {selectedRowDataQuotation?.sending_method ? selectedRowDataQuotation?.sending_method : ""}
+                          </span>
+                        )}
+                        {/* ============= フィールドエディットモード関連 ============= */}
+                        {/* フィールドエディットモード selectタグ  */}
+                        {!searchMode && isEditModeField === "sending_method" && (
+                          <>
+                            <select
+                              className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                              value={inputSendingMethodForFieldEdit}
+                              onChange={(e) => {
+                                handleChangeSelectUpdateField({
+                                  e,
+                                  fieldName: "sending_method",
+                                  fieldNameForSelectedRowData: "sending_method",
+                                  newValue: e.target.value,
+                                  originalValue: originalValueFieldEdit.current,
+                                  id: selectedRowDataQuotation?.quotation_id,
+                                });
+                              }}
+                              // onChange={(e) => {
+                              //   setInputActivityType(e.target.value);
+                              // }}
+                            >
+                              {/* <option value=""></option> */}
+                              {/* {optionsMeetingType.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))} */}
+                            </select>
+                            {/* エディットフィールド送信中ローディングスピナー */}
+                            {updateQuotationFieldMutation.isLoading && (
+                              <div
+                                className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                              >
+                                <SpinnerComet w="22px" h="22px" s="3px" />
+                              </div>
+                            )}
+                          </>
+                        )}
+                        {/* フィールドエディットモードオーバーレイ */}
+                        {!searchMode && isEditModeField === "sending_method" && (
+                          <div
+                            className={`${styles.edit_mode_overlay}`}
+                            onClick={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                              setIsEditModeField(null); // エディットモードを終了
+                            }}
+                          />
+                        )}
+                        {/* ============= フィールドエディットモード関連ここまで ============= */}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                  </div>
+                  {/*  */}
+
+                  {/* 見積備考 */}
+                  <div className={`${styles.row_area_lg_box} flex w-full items-center`}>
+                    <div className="flex h-full w-full flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full `}>
+                        <span className={`${styles.title} ${styles.title_sm}`}>見積備考</span>
+                        {!searchMode && isEditModeField !== "quotation_notes" && (
+                          <div
+                            className={`${styles.textarea_box} ${styles.md} ${
+                              selectedRowDataQuotation ? `${styles.editable_field}` : `${styles.uneditable_field}`
+                            }`}
+                            onClick={handleSingleClickField}
+                            onDoubleClick={(e) => {
+                              // if (!selectedRowDataQuotation?.activity_type) return;
+                              // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.activity_type))
+                              //   return alert(returnMessageNotActivity(selectedRowDataQuotation.activity_type));
+                              handleCloseTooltip();
+                              handleDoubleClickField({
+                                e,
+                                field: "quotation_notes",
+                                dispatch: setInputQuotationNotes,
+                                selectedRowDataValue: selectedRowDataQuotation?.quotation_notes
+                                  ? selectedRowDataQuotation?.quotation_notes
+                                  : null,
+                              });
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            }}
+                            dangerouslySetInnerHTML={{
+                              __html: selectedRowDataQuotation?.quotation_notes
+                                ? selectedRowDataQuotation?.quotation_notes.replace(/\n/g, "<br>")
+                                : "",
+                            }}
+                          ></div>
+                        )}
+                        {/* ============= フィールドエディットモード関連 ============= */}
+                        {/* フィールドエディットモード inputタグ */}
+                        {!searchMode && isEditModeField === "quotation_notes" && (
+                          <>
+                            <textarea
+                              cols={30}
+                              // rows={10}
+                              placeholder=""
+                              style={{ whiteSpace: "pre-wrap" }}
+                              className={`${styles.textarea_box} ${styles.textarea_box_search_mode} ${styles.field_edit_mode_textarea} ${styles.xl}`}
+                              value={inputQuotationNotes}
+                              onChange={(e) => setInputQuotationNotes(e.target.value)}
+                            ></textarea>
+                            {/* 送信ボタンとクローズボタン */}
+                            <InputSendAndCloseBtn
+                              inputState={inputQuotationNotes}
+                              setInputState={setInputQuotationNotes}
+                              onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                                handleClickSendUpdateField({
+                                  e,
+                                  fieldName: "quotation_notes",
+                                  fieldNameForSelectedRowData: "quotation_notes",
+                                  originalValue: originalValueFieldEdit.current,
+                                  newValue: inputQuotationNotes ? inputQuotationNotes.trim() : null,
+                                  id: selectedRowDataQuotation?.quotation_id,
+                                  required: false,
+                                })
+                              }
+                              required={false}
+                              // isDisplayClose={true}
+                              // btnPositionY="bottom-[8px]"
+                              isOutside={true}
+                              outsidePosition="under_right"
+                              isLoadingSendEvent={updateQuotationFieldMutation.isLoading}
+                            />
+                          </>
+                        )}
+                        {/* フィールドエディットモードオーバーレイ */}
+                        {!searchMode && isEditModeField === "quotation_notes" && (
+                          <div
+                            className={`${styles.edit_mode_overlay}`}
+                            onClick={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                              setIsEditModeField(null); // エディットモードを終了
+                            }}
+                          />
+                        )}
+                        {/* ============= フィールドエディットモード関連ここまで ============= */}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                  </div>
+                  {/*  */}
+
+                  {/* ●消費税区分・●消費税率 */}
+                  <div className={`${styles.row_area} flex w-full items-center`}>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center `}>
+                        <span className={`${styles.title}`}>●消費税区分</span>
+                        {!searchMode && isEditModeField !== "sales_tax_class" && (
+                          <span
+                            className={`${styles.value} ${styles.editable_field}`}
+                            onClick={handleSingleClickField}
+                            onDoubleClick={(e) => {
+                              if (!selectedRowDataQuotation?.sales_tax_class) return;
+                              // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.sales_tax_class))
+                              //   return alert(returnMessageNotActivity(selectedRowDataQuotation.sales_tax_class));
+                              handleDoubleClickField({
+                                e,
+                                field: "sales_tax_class",
+                                dispatch: setInputSalesTaxClassForFieldEdit,
+                              });
+                              if (hoveredItemPosWrap) handleCloseTooltip();
+                            }}
+                            data-text={`${
+                              selectedRowDataQuotation?.sales_tax_class ? selectedRowDataQuotation?.sales_tax_class : ""
+                            }`}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                              // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                              // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                            }}
+                          >
+                            {selectedRowDataQuotation?.sales_tax_class ? selectedRowDataQuotation?.sales_tax_class : ""}
+                          </span>
+                        )}
+                        {/* ============= フィールドエディットモード関連 ============= */}
+                        {/* フィールドエディットモード selectタグ  */}
+                        {!searchMode && isEditModeField === "sales_tax_class" && (
+                          <>
+                            <select
+                              className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                              value={inputSalesTaxClassForFieldEdit}
+                              onChange={(e) => {
+                                handleChangeSelectUpdateField({
+                                  e,
+                                  fieldName: "sales_tax_class",
+                                  fieldNameForSelectedRowData: "sales_tax_class",
+                                  newValue: e.target.value,
+                                  originalValue: originalValueFieldEdit.current,
+                                  id: selectedRowDataQuotation?.quotation_id,
+                                });
+                              }}
+                              // onChange={(e) => {
+                              //   setInputActivityType(e.target.value);
+                              // }}
+                            >
+                              {/* <option value=""></option> */}
+                              {/* {optionsMeetingType.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))} */}
+                            </select>
+                            {/* エディットフィールド送信中ローディングスピナー */}
+                            {updateQuotationFieldMutation.isLoading && (
+                              <div
+                                className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                              >
+                                <SpinnerComet w="22px" h="22px" s="3px" />
+                              </div>
+                            )}
+                          </>
+                        )}
+                        {/* フィールドエディットモードオーバーレイ */}
+                        {!searchMode && isEditModeField === "sales_tax_class" && (
+                          <div
+                            className={`${styles.edit_mode_overlay}`}
+                            onClick={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                              setIsEditModeField(null); // エディットモードを終了
+                            }}
+                          />
+                        )}
+                        {/* ============= フィールドエディットモード関連ここまで ============= */}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center`}>
+                        <span className={`${styles.title}`}>●消費税率</span>
+                        {!searchMode && isEditModeField !== "sales_tax_rate" && (
+                          <span
+                            className={`${styles.value} ${styles.editable_field}`}
+                            onClick={handleSingleClickField}
+                            onDoubleClick={(e) => {
+                              if (!selectedRowDataQuotation?.sales_tax_rate) return;
+                              // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.sales_tax_rate))
+                              //   return alert(returnMessageNotActivity(selectedRowDataQuotation.sales_tax_rate));
+                              handleDoubleClickField({
+                                e,
+                                field: "sales_tax_rate",
+                                dispatch: setInputSalesTaxRateForFieldEdit,
+                              });
+                              if (hoveredItemPosWrap) handleCloseTooltip();
+                            }}
+                            data-text={`${
+                              selectedRowDataQuotation?.sales_tax_rate ? selectedRowDataQuotation?.sales_tax_rate : ""
+                            }`}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                              // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                              // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                            }}
+                          >
+                            {selectedRowDataQuotation?.sales_tax_rate ? selectedRowDataQuotation?.sales_tax_rate : ""}
+                          </span>
+                        )}
+                        {/* ============= フィールドエディットモード関連 ============= */}
+                        {/* フィールドエディットモード selectタグ  */}
+                        {!searchMode && isEditModeField === "sales_tax_rate" && (
+                          <>
+                            <select
+                              className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                              value={inputSalesTaxRateForFieldEdit}
+                              onChange={(e) => {
+                                handleChangeSelectUpdateField({
+                                  e,
+                                  fieldName: "sales_tax_rate",
+                                  fieldNameForSelectedRowData: "sales_tax_rate",
+                                  newValue: e.target.value,
+                                  originalValue: originalValueFieldEdit.current,
+                                  id: selectedRowDataQuotation?.quotation_id,
+                                });
+                              }}
+                              // onChange={(e) => {
+                              //   setInputActivityType(e.target.value);
+                              // }}
+                            >
+                              {/* <option value=""></option> */}
+                              {/* {optionsMeetingType.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))} */}
+                            </select>
+                            {/* エディットフィールド送信中ローディングスピナー */}
+                            {updateQuotationFieldMutation.isLoading && (
+                              <div
+                                className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                              >
+                                <SpinnerComet w="22px" h="22px" s="3px" />
+                              </div>
+                            )}
+                          </>
+                        )}
+                        {/* フィールドエディットモードオーバーレイ */}
+                        {!searchMode && isEditModeField === "sales_tax_rate" && (
+                          <div
+                            className={`${styles.edit_mode_overlay}`}
+                            onClick={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                              setIsEditModeField(null); // エディットモードを終了
+                            }}
+                          />
+                        )}
+                        {/* ============= フィールドエディットモード関連ここまで ============= */}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                  </div>
+                  {/*  */}
+
+                  {/* 価格合計・値引タイトル */}
+                  <div className={`${styles.row_area} flex w-full items-center`}>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center `}>
+                        <span className={`${styles.title} text-[12px]`}>売上価格</span>
+                        {!searchMode && isEditModeField !== "total_price" && (
+                          <span
+                            className={`${styles.value} ${styles.editable_field}`}
+                            onClick={handleSingleClickField}
+                            onDoubleClick={(e) => {
+                              if (!checkNotFalsyExcludeZero(selectedRowDataQuotation?.total_price)) return;
+                              // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.total_price))
+                              //   return alert(returnMessageNotActivity(selectedRowDataQuotation.total_price));
+                              handleDoubleClickField({
+                                e,
+                                field: "total_price",
+                                dispatch: setInputTotalPriceForFieldEdit,
+                              });
+                              if (hoveredItemPosWrap) handleCloseTooltip();
+                            }}
+                            data-text={`${
+                              selectedRowDataQuotation?.total_price ? selectedRowDataQuotation?.total_price : ""
+                            }`}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                              // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                              // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                            }}
+                          >
+                            {checkNotFalsyExcludeZero(selectedRowDataQuotation?.total_price)
+                              ? Number(selectedRowDataQuotation?.total_price).toLocaleString() + "円"
+                              : ""}
+                          </span>
+                        )}
+                        {/* ============= フィールドエディットモード関連 ============= */}
+                        {/* フィールドエディットモード selectタグ  */}
+                        {!searchMode && isEditModeField === "total_price" && (
+                          <>
+                            <input
+                              type="text"
+                              autoFocus
+                              // placeholder="例：600万円 → 6000000　※半角で入力"
+                              className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                              onCompositionStart={() => setIsComposing(true)}
+                              onCompositionEnd={() => setIsComposing(false)}
+                              value={
+                                checkNotFalsyExcludeZero(inputTotalPriceForFieldEdit) ? inputTotalPriceForFieldEdit : ""
+                              }
+                              onChange={(e) => {
+                                if (e.target.value === "0" || e.target.value === "０") {
+                                  setInputTotalPriceForFieldEdit("0");
+                                }
+                                setInputTotalPriceForFieldEdit(e.target.value);
+                              }}
+                              // onBlur={() => {
+                              //   setInputTotalPriceForFieldEdit(
+                              //     !!inputTotalPriceForFieldEdit &&
+                              //       inputTotalPriceForFieldEdit !== "" &&
+                              //       convertToYen(inputTotalPriceForFieldEdit.trim()) !== null
+                              //       ? (convertToYen(inputTotalPriceForFieldEdit.trim()) as number).toLocaleString()
+                              //       : ""
+                              //   );
+                              // }}
+                              onKeyDown={(e) => {
+                                handleKeyDownUpdateField({
+                                  e,
+                                  fieldName: "total_price",
+                                  fieldNameForSelectedRowData: "total_price",
+                                  originalValue: originalValueFieldEdit.current,
+                                  newValue: !!inputTotalPriceForFieldEdit
+                                    ? (convertToYen(inputTotalPriceForFieldEdit.trim()) as number).toString()
+                                    : null,
+                                  id: selectedRowDataQuotation?.quotation_id,
+                                  required: false,
+                                });
+                              }}
+                            />
+                            {/* 送信ボタンとクローズボタン */}
+                            {!updateQuotationFieldMutation.isLoading && (
+                              <InputSendAndCloseBtn<string>
+                                inputState={inputTotalPriceForFieldEdit}
+                                setInputState={setInputTotalPriceForFieldEdit}
+                                onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                                  handleClickSendUpdateField({
+                                    e,
+                                    fieldName: "total_price",
+                                    fieldNameForSelectedRowData: "total_price",
+                                    originalValue: originalValueFieldEdit.current,
+                                    newValue: inputTotalPriceForFieldEdit
+                                      ? (convertToYen(inputTotalPriceForFieldEdit.trim()) as number).toString()
+                                      : null,
+                                    id: selectedRowDataQuotation?.quotation_id,
+                                    required: false,
+                                  })
+                                }
+                                required={false}
+                                isDisplayClose={false}
+                              />
+                            )}
+
+                            {/* エディットフィールド送信中ローディングスピナー */}
+                            {updateQuotationFieldMutation.isLoading && (
+                              <div
+                                className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                              >
+                                <SpinnerComet w="22px" h="22px" s="3px" />
+                              </div>
+                            )}
+                          </>
+                        )}
+                        {/* フィールドエディットモードオーバーレイ */}
+                        {!searchMode && isEditModeField === "total_price" && (
+                          <div
+                            className={`${styles.edit_mode_overlay}`}
+                            onClick={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                              setIsEditModeField(null); // エディットモードを終了
+                            }}
+                          />
+                        )}
+                        {/* ============= フィールドエディットモード関連ここまで ============= */}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                    {/* 値引タイトル */}
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center`}>
+                        <span className={`${styles.title} text-[12px]`}>値引ﾀｲﾄﾙ</span>
+                        {!searchMode && isEditModeField !== "discount_title" && (
+                          <span
+                            className={`${styles.value} ${styles.editable_field}`}
+                            data-text={
+                              selectedRowDataQuotation?.discount_title ? selectedRowDataQuotation?.discount_title : ""
+                            }
+                            onMouseEnter={(e) => handleOpenTooltip({ e, display: "top" })}
+                            onMouseLeave={handleCloseTooltip}
+                            onClick={handleSingleClickField}
+                            onDoubleClick={(e) => {
+                              // if (!selectedRowDataQuotation?.activity_type) return;
+                              // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.activity_type)) {
+                              //   return alert(returnMessageNotActivity(selectedRowDataQuotation.activity_type));
+                              // }
+                              handleDoubleClickField({
+                                e,
+                                field: "discount_title",
+                                dispatch: setInputDiscountTitleForFieldEdit,
+                                selectedRowDataValue: selectedRowDataQuotation?.discount_title ?? "",
+                              });
+                              handleCloseTooltip();
+                            }}
+                          >
+                            {selectedRowDataQuotation?.discount_title ? selectedRowDataQuotation?.discount_title : ""}
+                          </span>
+                        )}
+                        {/* ============= フィールドエディットモード関連 ============= */}
+                        {/* フィールドエディットモード selectタグ  */}
+                        {!searchMode && isEditModeField === "discount_title" && (
+                          <>
+                            <input
+                              type="text"
+                              placeholder=""
+                              autoFocus
+                              className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                              value={inputDiscountTitleForFieldEdit}
+                              onChange={(e) => setInputDiscountTitleForFieldEdit(e.target.value)}
+                              onCompositionStart={() => setIsComposing(true)}
+                              onCompositionEnd={() => setIsComposing(false)}
+                              onKeyDown={(e) =>
+                                handleKeyDownUpdateField({
+                                  e,
+                                  fieldName: "discount_title",
+                                  fieldNameForSelectedRowData: "discount_title",
+                                  originalValue: originalValueFieldEdit.current,
+                                  newValue: inputDiscountTitleForFieldEdit.trim(),
+                                  id: selectedRowDataQuotation?.quotation_id,
+                                  required: true,
+                                })
+                              }
+                            />
+                            {/* 送信ボタンとクローズボタン */}
+                            {!updateQuotationFieldMutation.isLoading && (
+                              <InputSendAndCloseBtn
+                                inputState={inputDiscountTitleForFieldEdit}
+                                setInputState={setInputDiscountTitleForFieldEdit}
+                                onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                                  handleClickSendUpdateField({
+                                    e,
+                                    fieldName: "discount_title",
+                                    fieldNameForSelectedRowData: "discount_title",
+                                    originalValue: originalValueFieldEdit.current,
+                                    newValue: inputDiscountTitleForFieldEdit.trim(),
+                                    id: selectedRowDataQuotation?.quotation_id,
+                                    required: true,
+                                  })
+                                }
+                                required={true}
+                                isDisplayClose={false}
+                              />
+                            )}
+                            {/* エディットフィールド送信中ローディングスピナー */}
+                            {updateQuotationFieldMutation.isLoading && (
+                              <div className={`${styles.field_edit_mode_loading_area}`}>
+                                <SpinnerComet w="22px" h="22px" s="3px" />
+                              </div>
+                            )}
+                          </>
+                        )}
+                        {/* フィールドエディットモードオーバーレイ */}
+                        {!searchMode && isEditModeField === "discount_title" && (
+                          <div
+                            className={`${styles.edit_mode_overlay}`}
+                            onClick={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                              setIsEditModeField(null); // エディットモードを終了
+                            }}
+                          />
+                        )}
+                        {/* ============= フィールドエディットモード関連ここまで ============= */}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                  </div>
+                  {/*  */}
+
+                  {/* 値引価格・値引率 */}
+                  <div className={`${styles.row_area} flex w-full items-center`}>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center `}>
+                        <span className={`${styles.title} text-[12px]`}>値引価格</span>
+                        {!searchMode && isEditModeField !== "discount_amount" && (
+                          <span
+                            className={`${styles.value} ${styles.editable_field}`}
+                            onClick={handleSingleClickField}
+                            onDoubleClick={(e) => {
+                              if (!checkNotFalsyExcludeZero(selectedRowDataQuotation?.discount_amount)) return;
+                              // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.discount_amount))
+                              //   return alert(returnMessageNotActivity(selectedRowDataQuotation.discount_amount));
+                              handleDoubleClickField({
+                                e,
+                                field: "discount_amount",
+                                dispatch: setInputDiscountAmountForFieldEdit,
+                              });
+                              if (hoveredItemPosWrap) handleCloseTooltip();
+                            }}
+                            data-text={`${
+                              selectedRowDataQuotation?.discount_amount ? selectedRowDataQuotation?.discount_amount : ""
+                            }`}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                              // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                              // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                            }}
+                          >
+                            {checkNotFalsyExcludeZero(selectedRowDataQuotation?.discount_amount)
+                              ? Number(selectedRowDataQuotation?.discount_amount).toLocaleString() + "円"
+                              : ""}
+                          </span>
+                        )}
+                        {/* ============= フィールドエディットモード関連 ============= */}
+                        {/* フィールドエディットモード selectタグ  */}
+                        {!searchMode && isEditModeField === "discount_amount" && (
+                          <>
+                            <input
+                              type="text"
+                              autoFocus
+                              // placeholder="例：600万円 → 6000000　※半角で入力"
+                              className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                              onCompositionStart={() => setIsComposing(true)}
+                              onCompositionEnd={() => setIsComposing(false)}
+                              value={
+                                checkNotFalsyExcludeZero(inputDiscountAmountForFieldEdit)
+                                  ? inputDiscountAmountForFieldEdit
+                                  : ""
+                              }
+                              onChange={(e) => setInputDiscountAmountForFieldEdit(e.target.value)}
+                              // onBlur={() => {
+                              //   setInputDiscountAmountForFieldEdit(
+                              //     !!inputDiscountAmountForFieldEdit &&
+                              //       inputDiscountAmountForFieldEdit !== "" &&
+                              //       convertToYen(inputDiscountAmountForFieldEdit.trim()) !== null
+                              //       ? (convertToYen(inputDiscountAmountForFieldEdit.trim()) as number).toLocaleString()
+                              //       : ""
+                              //   );
+                              // }}
+                              onKeyDown={(e) => {
+                                handleKeyDownUpdateField({
+                                  e,
+                                  fieldName: "discount_amount",
+                                  fieldNameForSelectedRowData: "discount_amount",
+                                  originalValue: originalValueFieldEdit.current,
+                                  newValue: !!inputDiscountAmountForFieldEdit
+                                    ? (convertToYen(inputDiscountAmountForFieldEdit.trim()) as number).toString()
+                                    : null,
+                                  id: selectedRowDataQuotation?.quotation_id,
+                                  required: false,
+                                });
+                              }}
+                            />
+                            {/* 送信ボタンとクローズボタン */}
+                            {!updateQuotationFieldMutation.isLoading && (
+                              <InputSendAndCloseBtn<string>
+                                inputState={inputDiscountAmountForFieldEdit}
+                                setInputState={setInputDiscountAmountForFieldEdit}
+                                onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                                  handleClickSendUpdateField({
+                                    e,
+                                    fieldName: "discount_amount",
+                                    fieldNameForSelectedRowData: "discount_amount",
+                                    originalValue: originalValueFieldEdit.current,
+                                    newValue: inputDiscountAmountForFieldEdit
+                                      ? (convertToYen(inputDiscountAmountForFieldEdit.trim()) as number).toString()
+                                      : null,
+                                    id: selectedRowDataQuotation?.quotation_id,
+                                    required: false,
+                                  })
+                                }
+                                required={false}
+                                isDisplayClose={false}
+                              />
+                            )}
+
+                            {/* エディットフィールド送信中ローディングスピナー */}
+                            {updateQuotationFieldMutation.isLoading && (
+                              <div
+                                className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                              >
+                                <SpinnerComet w="22px" h="22px" s="3px" />
+                              </div>
+                            )}
+                          </>
+                        )}
+                        {/* フィールドエディットモードオーバーレイ */}
+                        {!searchMode && isEditModeField === "discount_amount" && (
+                          <div
+                            className={`${styles.edit_mode_overlay}`}
+                            onClick={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                              setIsEditModeField(null); // エディットモードを終了
+                            }}
+                          />
+                        )}
+                        {/* ============= フィールドエディットモード関連ここまで ============= */}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center`}>
+                        <span className={`${styles.title} text-[12px]`}>値引率</span>
+                        {!searchMode && (
+                          <span
+                            className={`${styles.value}`}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            }}
+                          >
+                            {checkNotFalsyExcludeZero(selectedRowDataQuotation?.discount_rate)
+                              ? normalizeDiscountRate(selectedRowDataQuotation!.discount_rate!.toString())
+                              : ""}
+                          </span>
+                        )}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                  </div>
+                  {/*  */}
+
+                  {/* 見積タイトル */}
+                  <div className={`${styles.row_area} flex w-full items-center`}>
+                    <div className="flex h-full w-full flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center `}>
+                        <span className={`${styles.title}`}>見積ﾀｲﾄﾙ</span>
+                        {!searchMode && isEditModeField !== "quotation_title" && (
+                          <span
+                            className={`${styles.value} ${styles.editable_field}`}
+                            data-text={
+                              selectedRowDataQuotation?.quotation_title ? selectedRowDataQuotation?.quotation_title : ""
+                            }
+                            onMouseEnter={(e) => handleOpenTooltip({ e, display: "top" })}
+                            onMouseLeave={handleCloseTooltip}
+                            onClick={handleSingleClickField}
+                            onDoubleClick={(e) => {
+                              // if (!selectedRowDataQuotation?.activity_type) return;
+                              // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.activity_type)) {
+                              //   return alert(returnMessageNotActivity(selectedRowDataQuotation.activity_type));
+                              // }
+                              handleDoubleClickField({
+                                e,
+                                field: "quotation_title",
+                                dispatch: setInputQuotationTitle,
+                                selectedRowDataValue: selectedRowDataQuotation?.quotation_title ?? "",
+                              });
+                              handleCloseTooltip();
+                            }}
+                          >
+                            {selectedRowDataQuotation?.quotation_title ? selectedRowDataQuotation?.quotation_title : ""}
+                          </span>
+                        )}
+                        {/* ============= フィールドエディットモード関連 ============= */}
+                        {/* フィールドエディットモード selectタグ  */}
+                        {!searchMode && isEditModeField === "quotation_title" && (
+                          <>
+                            <input
+                              type="text"
+                              placeholder=""
+                              autoFocus
+                              className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                              value={inputQuotationTitle}
+                              onChange={(e) => setInputQuotationTitle(e.target.value)}
+                              onCompositionStart={() => setIsComposing(true)}
+                              onCompositionEnd={() => setIsComposing(false)}
+                              onKeyDown={(e) =>
+                                handleKeyDownUpdateField({
+                                  e,
+                                  fieldName: "quotation_title",
+                                  fieldNameForSelectedRowData: "quotation_title",
+                                  originalValue: originalValueFieldEdit.current,
+                                  newValue: inputQuotationTitle.trim(),
+                                  id: selectedRowDataQuotation?.quotation_id,
+                                  required: true,
+                                })
+                              }
+                            />
+                            {/* 送信ボタンとクローズボタン */}
+                            {!updateQuotationFieldMutation.isLoading && (
+                              <InputSendAndCloseBtn
+                                inputState={inputQuotationTitle}
+                                setInputState={setInputQuotationTitle}
+                                onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                                  handleClickSendUpdateField({
+                                    e,
+                                    fieldName: "quotation_title",
+                                    fieldNameForSelectedRowData: "quotation_title",
+                                    originalValue: originalValueFieldEdit.current,
+                                    newValue: inputQuotationTitle.trim(),
+                                    id: selectedRowDataQuotation?.quotation_id,
+                                    required: true,
+                                  })
+                                }
+                                required={true}
+                                isDisplayClose={false}
+                              />
+                            )}
+                            {/* エディットフィールド送信中ローディングスピナー */}
+                            {updateQuotationFieldMutation.isLoading && (
+                              <div className={`${styles.field_edit_mode_loading_area}`}>
+                                <SpinnerComet w="22px" h="22px" s="3px" />
+                              </div>
+                            )}
+                          </>
+                        )}
+                        {/* フィールドエディットモードオーバーレイ */}
+                        {!searchMode && isEditModeField === "quotation_title" && (
+                          <div
+                            className={`${styles.edit_mode_overlay}`}
+                            onClick={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                              setIsEditModeField(null); // エディットモードを終了
+                            }}
+                          />
+                        )}
+                        {/* ============= フィールドエディットモード関連ここまで ============= */}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                  </div>
+                  {/*  */}
+                </div>
+              </div>
+            )}
+            {/* ---------------- ✅通常モード 真ん中コンテナここまで✅ ---------------- */}
+
+            {/* ---------------- 🌟通常モード 右コンテナ🌟 ---------------- */}
+            {!searchMode && (
+              <div
+                className={`${styles.left_container} ${
+                  isOpenSidebar ? `transition-base02` : `transition-base01`
+                } h-full min-w-[calc((100vw-var(--sidebar-width))/3-11px)] max-w-[calc((100vw-var(--sidebar-width))/3-11px)] pb-[0px] pt-[0px]`}
+              >
+                {/* <div
+                className={`${styles.left_container} ${
+                  isOpenSidebar ? `transition-base02` : `transition-base01`
+                } h-full min-w-[calc((100vw-var(--sidebar-width))/3-11px)] max-w-[calc((100vw-var(--sidebar-width))/3-11px)] pb-[35px] pt-[0px]`}
+              > */}
+                {/* --------- ラッパー --------- */}
+                <div className={`${styles.left_contents_wrapper} flex h-full w-full flex-col`}>
+                  {/* 見積ルール */}
+                  <div className={`${styles.row_area} flex w-full items-center`}>
+                    <div className="flex h-full w-full flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center `}>
+                        <span className={`${styles.title}`}>見積ルール</span>
+                        {!searchMode && (
+                          <div className="flex items-center space-x-[9px]">
+                            <span
+                              className={`${styles.value} ${styles.text_start}`}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                              }}
+                            >
+                              {selectedRowDataQuotation?.quotation_rule ? selectedRowDataQuotation?.quotation_rule : ""}
+                            </span>
+                            {/* 見積ルールが存在しないなら編集マークを表示 */}
+                            {!!selectedRowDataQuotation && !selectedRowDataQuotation?.quotation_rule && (
+                              <div
+                                className={`relative !ml-[4px] h-[22px] w-[22px] ${styles.editable_icon}`}
+                                data-text={`表示されている各データをダブルクリックすることで個別に編集可能です。`}
+                                data-text2={`編集できるのは自社で作成した自社専用データのみです。`}
+                                onMouseEnter={(e) => {
+                                  handleOpenTooltip({ e, display: "top" });
+                                }}
+                                onMouseLeave={handleCloseTooltip}
+                              >
+                                {/* <MdOutlineEdit
+                            className={`pointer-events-none min-h-[20px] min-w-[20px] text-[20px] text-[var(--color-text-sub-light)]`}
+                          /> */}
+                                <CiEdit
+                                  className={`pointer-events-none min-h-[22px] min-w-[22px] text-[22px] text-[var(--color-text-sub)]`}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        {searchMode && (
+                          <input
+                            type="text"
+                            // placeholder="株式会社○○"
+                            autoFocus
+                            className={`${styles.input_box}`}
+                            value={inputCompanyName}
+                            onChange={(e) => setInputCompanyName(e.target.value)}
+                          />
+                        )}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                  </div>
+                  {/*  */}
+
+                  {/* 商品All */}
+                  <div className={`${styles.row_area} flex w-full items-center`}>
+                    <div className="flex h-full w-full flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center `}>
+                        <span className={`${styles.title}`}>商品All</span>
+                        {!searchMode && (
+                          <span
+                            className={`${styles.value}`}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            }}
+                          >
+                            {/* {selectedRowDataMeeting?.result_presentation_product5
+                            ? selectedRowDataMeeting?.result_presentation_product5
+                            : ""} */}
+                            {selectedRowDataQuotation &&
+                              getProductNamesAll(selectedRowDataQuotation.quotation_products_details)}
+                          </span>
+                        )}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                  </div>
+                  {/*  */}
+
+                  {/* 事業部名 */}
+                  <div className={`${styles.row_area} flex w-full items-center`}>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center `}>
+                        <span className={`${styles.title}`}>事業部名</span>
+                        {!searchMode && (
+                          <span
+                            className={`${styles.value}`}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            }}
+                          >
+                            {selectedRowDataQuotation?.assigned_department_name
+                              ? selectedRowDataQuotation?.assigned_department_name
+                              : ""}
+                          </span>
+                        )}
+                        {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center`}>
+                        <span className={`${styles.title} ${styles.min}`}>係・ﾁｰﾑ</span>
+                        {!searchMode && (
+                          <span
+                            className={`${styles.value}`}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            }}
+                          >
+                            {selectedRowDataQuotation?.assigned_unit_name
+                              ? selectedRowDataQuotation?.assigned_unit_name
+                              : ""}
+                          </span>
+                        )}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                  </div>
+                  {/*  */}
+
+                  {/* 事業所・自社担当 */}
+                  <div className={`${styles.row_area} flex w-full items-center`}>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center `}>
+                        <span className={`${styles.title}`}>事業所</span>
+                        {!searchMode && (
+                          <span
+                            className={`${styles.value}`}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            }}
+                          >
+                            {selectedRowDataQuotation?.assigned_department_name
+                              ? selectedRowDataQuotation?.assigned_department_name
+                              : ""}
+                          </span>
+                        )}
+                        {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center`}>
+                        <span className={`${styles.title}`}>自社担当</span>
+                        {!searchMode && (
+                          <span
+                            className={`${styles.value}`}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            }}
+                          >
+                            {selectedRowDataQuotation?.quotation_member_name
+                              ? selectedRowDataQuotation?.quotation_member_name
+                              : ""}
+                          </span>
+                        )}
+                        {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                  </div>
+                  {/*  */}
+
+                  {/* 担当印 */}
+                  <div className={`${styles.row_area} flex w-full items-center`}>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center `}>
+                        <span className={`${styles.title}`}>担当印</span>
+                        {!searchMode && (
+                          <span
+                            className={`${styles.value}`}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            }}
+                          >
+                            {selectedRowDataQuotation?.in_charge_user_name
+                              ? selectedRowDataQuotation?.in_charge_user_name
+                              : ""}
+                          </span>
+                        )}
+                        {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center`}>
+                        <span className={`${styles.check_title} ${styles.single_text}`}>印字</span>
+                        {/* <div className={`${styles.check_title} flex flex-col ${styles.double_text}`}>
+                      <span>見積</span>
+                      <span>印字ﾌﾗｸﾞ</span>
+                    </div> */}
+
+                        <div
+                          className={`${styles.grid_select_cell_header} `}
+                          onMouseEnter={(e) => {
+                            if (!selectedRowDataQuotation) return;
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!selectedRowDataQuotation) return;
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            // checked={!!selectedRowDataQuotation?.in_charge_stamp_flag}
+                            // onChange={() => {
+                            //   setLoadingGlobalState(false);
+                            //   setIsOpenUpdateQuotationModal(true);
+                            // }}
+                            className={`${styles.grid_select_cell_header_input} ${
+                              !selectedRowDataQuotation ? `pointer-events-none cursor-not-allowed` : ``
+                            }`}
+                            checked={checkboxInChargeFlagForFieldEdit}
+                            onChange={async (e) => {
+                              if (!selectedRowDataQuotation) return;
+                              // 個別にチェックボックスを更新するルート
+                              if (!selectedRowDataQuotation?.quotation_id)
+                                return toast.error(`データが見つかりませんでした🙇‍♀️`);
+
+                              console.log(
+                                "チェック 新しい値",
+                                !checkboxInChargeFlagForFieldEdit,
+                                "オリジナル",
+                                selectedRowDataQuotation?.in_charge_stamp_flag
+                              );
+                              if (
+                                !checkboxInChargeFlagForFieldEdit === selectedRowDataQuotation?.in_charge_stamp_flag
+                              ) {
+                                toast.error(`アップデートに失敗しました🤦‍♀️`);
+                                return;
+                              }
+                              const updatePayload = {
+                                fieldName: "in_charge_stamp_flag",
+                                fieldNameForSelectedRowData: "in_charge_stamp_flag" as "in_charge_stamp_flag",
+                                newValue: !checkboxInChargeFlagForFieldEdit,
+                                id: selectedRowDataQuotation.quotation_id,
+                              };
+                              // 直感的にするためにmutateにして非同期処理のまま後続のローカルのチェックボックスを更新する
+                              updateQuotationFieldMutation.mutate(updatePayload);
+                              setCheckboxInChargeFlagForFieldEdit(!checkboxInChargeFlagForFieldEdit);
+                            }}
+                          />
+                          <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+                          </svg>
+                        </div>
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                  </div>
+                  {/*  */}
+
+                  {/* 上長印1 */}
+                  <div className={`${styles.row_area} flex w-full items-center`}>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center `}>
+                        <span className={`${styles.title}`}>上長印1</span>
+                        {!searchMode && (
+                          <span
+                            className={`${styles.value}`}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            }}
+                          >
+                            {selectedRowDataQuotation?.supervisor1_user_name
+                              ? selectedRowDataQuotation?.supervisor1_user_name
+                              : ""}
+                          </span>
+                        )}
+                        {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center`}>
+                        <span className={`${styles.check_title} ${styles.single_text}`}>印字</span>
+                        {/* <div className={`${styles.check_title} flex flex-col ${styles.double_text}`}>
+                      <span>見積</span>
+                      <span>印字ﾌﾗｸﾞ</span>
+                    </div> */}
+
+                        <div
+                          className={`${styles.grid_select_cell_header} `}
+                          onMouseEnter={(e) => {
+                            if (!selectedRowDataQuotation) return;
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!selectedRowDataQuotation) return;
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            // checked={!!selectedRowDataQuotation?.supervisor1_stamp_flag}
+                            // onChange={() => {
+                            //   setLoadingGlobalState(false);
+                            //   setIsOpenUpdateQuotationModal(true);
+                            // }}
+                            className={`${styles.grid_select_cell_header_input} ${
+                              !selectedRowDataQuotation ? `pointer-events-none cursor-not-allowed` : ``
+                            }`}
+                            checked={checkboxSupervisor1FlagForFieldEdit}
+                            onChange={async (e) => {
+                              if (!selectedRowDataQuotation) return;
+                              // 個別にチェックボックスを更新するルート
+                              if (!selectedRowDataQuotation?.quotation_id)
+                                return toast.error(`データが見つかりませんでした🙇‍♀️`);
+
+                              console.log(
+                                "チェック 新しい値",
+                                !checkboxSupervisor1FlagForFieldEdit,
+                                "オリジナル",
+                                selectedRowDataQuotation?.supervisor1_stamp_flag
+                              );
+                              if (
+                                !checkboxSupervisor1FlagForFieldEdit ===
+                                selectedRowDataQuotation?.supervisor1_stamp_flag
+                              ) {
+                                toast.error(`アップデートに失敗しました🤦‍♀️`);
+                                return;
+                              }
+                              const updatePayload = {
+                                fieldName: "supervisor1_stamp_flag",
+                                fieldNameForSelectedRowData: "supervisor1_stamp_flag" as "supervisor1_stamp_flag",
+                                newValue: !checkboxSupervisor1FlagForFieldEdit,
+                                id: selectedRowDataQuotation.quotation_id,
+                              };
+                              // 直感的にするためにmutateにして非同期処理のまま後続のローカルのチェックボックスを更新する
+                              updateQuotationFieldMutation.mutate(updatePayload);
+                              setCheckboxSupervisor1FlagForFieldEdit(!checkboxSupervisor1FlagForFieldEdit);
+                            }}
+                          />
+                          <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+                          </svg>
+                        </div>
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                  </div>
+                  {/*  */}
+
+                  {/* 上長印2 */}
+                  <div className={`${styles.row_area} flex w-full items-center`}>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center `}>
+                        <span className={`${styles.title}`}>上長印2</span>
+                        {!searchMode && (
+                          <span
+                            className={`${styles.value}`}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            }}
+                          >
+                            {selectedRowDataQuotation?.supervisor2_user_name
+                              ? selectedRowDataQuotation?.supervisor2_user_name
+                              : ""}
+                          </span>
+                        )}
+                        {searchMode && <input type="text" className={`${styles.input_box}`} />}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center`}>
+                        <span className={`${styles.check_title} ${styles.single_text}`}>印字</span>
+                        {/* <div className={`${styles.check_title} flex flex-col ${styles.double_text}`}>
+                      <span>見積</span>
+                      <span>印字ﾌﾗｸﾞ</span>
+                    </div> */}
+
+                        <div
+                          className={`${styles.grid_select_cell_header} `}
+                          onMouseEnter={(e) => {
+                            if (!selectedRowDataQuotation) return;
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!selectedRowDataQuotation) return;
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            // checked={!!selectedRowDataQuotation?.supervisor1_stamp_flag}
+                            // onChange={() => {
+                            //   setLoadingGlobalState(false);
+                            //   setIsOpenUpdateQuotationModal(true);
+                            // }}
+                            className={`${styles.grid_select_cell_header_input} ${
+                              !selectedRowDataQuotation ? `pointer-events-none cursor-not-allowed` : ``
+                            }`}
+                            checked={checkboxSupervisor2FlagForFieldEdit}
+                            onChange={async (e) => {
+                              if (!selectedRowDataQuotation) return;
+                              // 個別にチェックボックスを更新するルート
+                              if (!selectedRowDataQuotation?.quotation_id)
+                                return toast.error(`データが見つかりませんでした🙇‍♀️`);
+
+                              console.log(
+                                "チェック 新しい値",
+                                !checkboxSupervisor2FlagForFieldEdit,
+                                "オリジナル",
+                                selectedRowDataQuotation?.supervisor1_stamp_flag
+                              );
+                              if (
+                                !checkboxSupervisor2FlagForFieldEdit ===
+                                selectedRowDataQuotation?.supervisor1_stamp_flag
+                              ) {
+                                toast.error(`アップデートに失敗しました🤦‍♀️`);
+                                return;
+                              }
+                              const updatePayload = {
+                                fieldName: "supervisor1_stamp_flag",
+                                fieldNameForSelectedRowData: "supervisor1_stamp_flag" as "supervisor1_stamp_flag",
+                                newValue: !checkboxSupervisor2FlagForFieldEdit,
+                                id: selectedRowDataQuotation.quotation_id,
+                              };
+                              // 直感的にするためにmutateにして非同期処理のまま後続のローカルのチェックボックスを更新する
+                              updateQuotationFieldMutation.mutate(updatePayload);
+                              setCheckboxSupervisor2FlagForFieldEdit(!checkboxSupervisor2FlagForFieldEdit);
+                            }}
+                          />
+                          <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+                          </svg>
+                        </div>
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                  </div>
+                  {/*  */}
+
+                  {/* 特記備考 */}
+                  <div className={`${styles.row_area_lg_box} flex w-full items-center`}>
+                    <div className="flex h-full w-full flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full `}>
+                        {/* <span className={`${styles.title} ${styles.title_sm}`}>特記備考</span> */}
+                        <div className={`${styles.check_title} flex flex-col ${styles.double_text}`}>
+                          <span>特記事項</span>
+                          <span>(社内ﾒﾓ)</span>
+                        </div>
+                        {!searchMode && isEditModeField !== "quotation_remarks" && (
+                          <div
+                            className={`${styles.textarea_box} ${styles.md} ${
+                              selectedRowDataQuotation ? `${styles.editable_field}` : `${styles.uneditable_field}`
+                            }`}
+                            onClick={handleSingleClickField}
+                            onDoubleClick={(e) => {
+                              // if (!selectedRowDataQuotation?.activity_type) return;
+                              // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.activity_type))
+                              //   return alert(returnMessageNotActivity(selectedRowDataQuotation.activity_type));
+                              handleCloseTooltip();
+                              handleDoubleClickField({
+                                e,
+                                field: "quotation_remarks",
+                                dispatch: setInputQuotationRemarks,
+                                selectedRowDataValue: selectedRowDataQuotation?.quotation_remarks
+                                  ? selectedRowDataQuotation?.quotation_remarks
+                                  : null,
+                              });
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            }}
+                            dangerouslySetInnerHTML={{
+                              __html: selectedRowDataQuotation?.quotation_remarks
+                                ? selectedRowDataQuotation?.quotation_remarks.replace(/\n/g, "<br>")
+                                : "",
+                            }}
+                          ></div>
+                        )}
+                        {/* ============= フィールドエディットモード関連 ============= */}
+                        {/* フィールドエディットモード inputタグ */}
+                        {!searchMode && isEditModeField === "quotation_remarks" && (
+                          <>
+                            <textarea
+                              cols={30}
+                              // rows={10}
+                              placeholder=""
+                              style={{ whiteSpace: "pre-wrap" }}
+                              className={`${styles.textarea_box} ${styles.textarea_box_search_mode} ${styles.field_edit_mode_textarea} ${styles.xl}`}
+                              value={inputQuotationRemarks}
+                              onChange={(e) => setInputQuotationRemarks(e.target.value)}
+                            ></textarea>
+                            {/* 送信ボタンとクローズボタン */}
+                            <InputSendAndCloseBtn
+                              inputState={inputQuotationRemarks}
+                              setInputState={setInputQuotationRemarks}
+                              onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                                handleClickSendUpdateField({
+                                  e,
+                                  fieldName: "quotation_remarks",
+                                  fieldNameForSelectedRowData: "quotation_remarks",
+                                  originalValue: originalValueFieldEdit.current,
+                                  newValue: inputQuotationNotes ? inputQuotationNotes.trim() : null,
+                                  id: selectedRowDataQuotation?.quotation_id,
+                                  required: false,
+                                })
+                              }
+                              required={false}
+                              // isDisplayClose={true}
+                              // btnPositionY="bottom-[8px]"
+                              isOutside={true}
+                              outsidePosition="under_right"
+                              isLoadingSendEvent={updateQuotationFieldMutation.isLoading}
+                            />
+                          </>
+                        )}
+                        {/* フィールドエディットモードオーバーレイ */}
+                        {!searchMode && isEditModeField === "quotation_remarks" && (
+                          <div
+                            className={`${styles.edit_mode_overlay}`}
+                            onClick={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                              setIsEditModeField(null); // エディットモードを終了
+                            }}
+                          />
+                        )}
+                        {/* ============= フィールドエディットモード関連ここまで ============= */}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                  </div>
+                  {/*  */}
+
+                  {/* 商品追加ボタンエリア */}
+                  {/* <div className={`${styles.row_area} flex w-full items-center`}>
+                    <div className="flex h-full w-full flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center`}>
+                        <span className={`${styles.section_title} mr-[20px]`}>見積商品</span>
+                        <RippleButton
+                          title={`追加`}
+                          classText="select-none"
+                          clickEventHandler={() => {
+                            // const newResetColumnHeaderItemList = JSON.parse(JSON.stringify(columnHeaderItemList));
+                            // console.log(
+                            //   "🔥🔥🔥モーダル開いた ZustandのリセットStateにパースして格納newResetColumnHeaderItemList",
+                            //   newResetColumnHeaderItemList
+                            // );
+                            // setResetColumnHeaderItemList(newResetColumnHeaderItemList);
+                            // setIsOpenEditColumns(true);
+                          }}
+                          onMouseEnterHandler={(e) =>
+                            handleOpenTooltip({
+                              e: e,
+                              display: "top",
+                              content: `見積に商品を追加`,
+                              // content2: `直近売れ先の仕入れ先や、売れ先と同じ取引先を持つ同業他社で導入実績が響く会社など`,
+                              // marginTop: 48,
+                              // marginTop: 28,
+                              marginTop: 9,
+                            })
+                          }
+                          onMouseLeaveHandler={handleCloseTooltip}
+                        />
+                      </div>
+
+                      <div className={`${styles.section_underline}`}></div>
+                    </div>
+                  </div> */}
+                  {/*  */}
+                </div>
+              </div>
+            )}
+            {/* ---------------- ✅通常モード 右コンテナここまで✅ ---------------- */}
           </div>
-        )}
-        {/* ---------------- ✅通常モード 右コンテナここまで✅ ---------------- */}
+          {/* ---------------- ✅通常モード 上コンテナ 真ん中と右コンテナここまで✅ ---------------- */}
+          {/* ---------------- 🌟通常モード 下コンテナ 真ん中と右コンテナ🌟 ---------------- */}
+          <div className="mt-[10px] flex h-full w-full flex-col">
+            {/* 商品追加ボタンエリア */}
+            <div className={`${styles.row_area} flex w-full items-center`}>
+              <div className="flex h-full w-full flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full items-center`}>
+                  <span className={`${styles.section_title} mr-[20px]`}>見積商品</span>
+                  <RippleButton
+                    title={`追加`}
+                    classText="select-none"
+                    clickEventHandler={() => {
+                      // const newResetColumnHeaderItemList = JSON.parse(JSON.stringify(columnHeaderItemList));
+                      // console.log(
+                      //   "🔥🔥🔥モーダル開いた ZustandのリセットStateにパースして格納newResetColumnHeaderItemList",
+                      //   newResetColumnHeaderItemList
+                      // );
+                      // setResetColumnHeaderItemList(newResetColumnHeaderItemList);
+                      // setIsOpenEditColumns(true);
+                    }}
+                    onMouseEnterHandler={(e) =>
+                      handleOpenTooltip({
+                        e: e,
+                        display: "top",
+                        content: `見積に商品を追加`,
+                        // content2: `直近売れ先の仕入れ先や、売れ先と同じ取引先を持つ同業他社で導入実績が響く会社など`,
+                        // marginTop: 48,
+                        // marginTop: 28,
+                        marginTop: 9,
+                      })
+                    }
+                    onMouseLeaveHandler={handleCloseTooltip}
+                  />
+                </div>
+
+                {/* <div className={`${styles.underline}`}></div> */}
+                <div className={`${styles.section_underline}`}></div>
+              </div>
+            </div>
+            {/*  */}
+
+            {/* 商品エリア */}
+            {/* {selectedRowDataQuotation &&
+              selectedRowDataQuotation.quotation_products_details &&
+              selectedRowDataQuotation.quotation_products_details.length > 0 && (
+                <div className={`mt-[10px]`}>
+                  <ProductListTable productsArray={selectedRowDataQuotation.quotation_products_details} />
+                </div>
+              )} */}
+            <div className={`mt-[15px]`}>
+              <ProductListTable
+                productsArray={
+                  selectedRowDataQuotation && selectedRowDataQuotation.quotation_products_details?.length > 0
+                    ? selectedRowDataQuotation.quotation_products_details
+                    : []
+                }
+              />
+            </div>
+            {/* 商品エリアここまで */}
+          </div>
+          {/* ---------------- ✅通常モード 下コンテナ 真ん中と右コンテナここまで✅ ---------------- */}
+        </div>
+        {/* ---------------- ✅通常モード 上下コンテナ 真ん中と右コンテナここまで✅ ---------------- */}
 
         {/* ---------------- 🌟サーチモード 左コンテナ🌟 input時はstickyにしてnullやis nullなどのボタンや説明を配置 ---------------- */}
         {searchMode && (

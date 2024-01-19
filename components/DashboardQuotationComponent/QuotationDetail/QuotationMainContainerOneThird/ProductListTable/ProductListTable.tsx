@@ -1,16 +1,15 @@
 import React, { CSSProperties, FC, memo, useCallback, useEffect, useRef, useState } from "react";
-import styles from "./AttendeesListTable.module.css";
+import styles from "./ProductListTable.module.css";
 import useStore from "@/store";
 import useDashboardStore from "@/store/useDashboardStore";
-import { AttendeeInfo } from "@/types";
 import { mappingPositionClass } from "@/utils/mappings";
-// import { rightRowData } from "./data";
+import { QuotationProductsDetail } from "@/types";
 
 type Props = {
-  attendeesArray: AttendeeInfo[];
+  productsArray: QuotationProductsDetail[];
 };
 
-const AttendeesListTableMemo: FC<Props> = ({ attendeesArray }) => {
+const ProductListTableMemo: FC<Props> = ({ productsArray }) => {
   const language = useStore((state) => state.language);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
@@ -113,26 +112,32 @@ const AttendeesListTableMemo: FC<Props> = ({ attendeesArray }) => {
 
   const columnNameToJapanese = (columnName: string) => {
     switch (columnName) {
-      case "attendee_company":
-        return "会社";
+      case "quotation_product_name":
+        return "商品名(見積記載)";
         break;
-      case "attendee_department_name":
-        return "部署";
+      case "quotation_outside_short_name":
+        return "型式(見積記載)";
         break;
-      case "attendee_name":
-        return "同席者";
+      //   case "quotation_inside_short_name":
+      //     return "同席者";
+      //     break;
+      case "quotation_unit_price":
+        return "価格(見積記載)";
         break;
-      case "attendee_position_name":
-        return "役職名";
+      case "quotation_product_priority":
+        return "見積記載順";
         break;
-      case "attendee_direct_line":
-        return "直通TEL";
+      case "product_name":
+        return "商品名";
         break;
-      case "attendee_email":
-        return "Email";
+      case "outside_short_name":
+        return "型式";
         break;
-      case "attendee_position_class":
-        return "職位";
+      case "inside_short_name":
+        return "型式略称";
+        break;
+      case "unit_price":
+        return "価格";
         break;
 
       default:
@@ -142,18 +147,19 @@ const AttendeesListTableMemo: FC<Props> = ({ attendeesArray }) => {
 
   // 活動タイプ、概要、日付、営業担当、事業部、営業所
   const columnHeaderList = [
-    "attendee_company",
-    "attendee_department_name",
-    "attendee_name",
-    "attendee_position_name",
-    "attendee_direct_line",
-    "attendee_email",
-    "attendee_position_class",
+    "quotation_product_name",
+    "quotation_outside_short_name",
+    "quotation_unit_price",
+    "quotation_product_priority",
+    "product_name",
+    "outside_short_name",
+    "inside_short_name",
+    "unit_price",
   ];
 
   // 🌟現在のカラム.map((obj) => Object.values(row)[obj.columnId])で展開してGridセルを表示する
   // カラムNameの値のみ配列バージョンで順番入れ替え
-  const columnOrder = [...columnHeaderList].map((columnName, index) => columnName as keyof AttendeeInfo); // columnNameのみの配列を取得
+  const columnOrder = [...columnHeaderList].map((columnName, index) => columnName as keyof QuotationProductsDetail); // columnNameのみの配列を取得
 
   // 「日付」カラムのセルはformat()関数を通してブラウザに表示する
   //   const formatMapping: {
@@ -163,7 +169,7 @@ const AttendeesListTableMemo: FC<Props> = ({ attendeesArray }) => {
   //     activity_date: "yyyy/MM/dd",
   //   };
 
-  console.log("同席者テーブルレンダリング", "attendeesArray", attendeesArray);
+  console.log("同席者テーブルレンダリング", "productsArray", productsArray);
 
   return (
     <>
@@ -178,7 +184,7 @@ const AttendeesListTableMemo: FC<Props> = ({ attendeesArray }) => {
       >
         {/* ================== テーブルタブヘッダー ================== */}
         <div className={`${styles.right_table_tab_header}`}>
-          <span>同席者リスト</span>
+          <span>商品リスト</span>
         </div>
         {/* ================== Gridスクロールコンテナ ================== */}
         <div
@@ -199,11 +205,18 @@ const AttendeesListTableMemo: FC<Props> = ({ attendeesArray }) => {
             style={
               {
                 display: "grid",
-                gridTemplateColumns: `2fr 1fr repeat(5, 1fr)`,
+                // gridTemplateColumns: `2fr 1fr repeat(6, 1fr)`,
+                gridTemplateColumns: `2fr repeat(3, 1fr) 2fr repeat(3, 1fr)`,
                 minHeight: "25px",
                 //   width: `100%`,
+                minWidth: `calc(100vw - var(--sidebar-width) - 20px - 10px - (100vw - var(--sidebar-width) - 20px - 10px) / 3 - 3px)`,
                 width: `var(--row-width)`,
-                "--row-width": "800px",
+                // "--row-width": "800px",
+                // "--row-width": "888px",
+                // "--row-width": "1200px",
+                "--row-width": "1300px",
+                // "--row-width":
+                //   "calc(100vw - var(--sidebar-width) - 20px - 10px - (100vw - var(--sidebar-width) - 20px - 10px) / 3 - 1px + 500px)",
               } as CSSProperties
             }
           >
@@ -268,13 +281,13 @@ const AttendeesListTableMemo: FC<Props> = ({ attendeesArray }) => {
 
           {/* ======================== 🌟Grid列トラック Rowグループコンテナ🌟 ======================== */}
           {/* Rowアイテム収納のためのインナー要素 */}
-          {attendeesArray.length > 0 && (
+          {productsArray.length > 0 && (
             <div
               ref={gridRowGroupContainerRef}
               role="rowgroup"
               style={
                 {
-                  height: `${attendeesArray.length * 25}px`,
+                  height: `${productsArray.length * 25}px`,
                   //   height: `${10 * 25}px`,
                   width: `var(--row-width)`,
                   position: "relative",
@@ -284,7 +297,7 @@ const AttendeesListTableMemo: FC<Props> = ({ attendeesArray }) => {
               }
               className={`${styles.grid_rowgroup_virtualized_container}`}
             >
-              {attendeesArray.map((attendee: { [key: string]: string | number | null }, index: number) => {
+              {productsArray.map((attendee: { [key: string]: string | number | null }, index: number) => {
                 return (
                   <div
                     key={attendee.attendee_id}
@@ -397,14 +410,14 @@ const AttendeesListTableMemo: FC<Props> = ({ attendeesArray }) => {
                   <span className="truncate ">
                     {language === "ja" &&
                       `${
-                        attendeesArray.length !== null && attendeesArray.length !== undefined
-                          ? attendeesArray.length
+                        productsArray !== null && productsArray !== undefined && productsArray.length > 0
+                          ? productsArray.length
                           : `-`
-                      } 人`}
+                      } 件`}
                     {language === "en" &&
                       `${
-                        attendeesArray.length !== null && attendeesArray.length !== undefined
-                          ? attendeesArray.length
+                        productsArray !== null && productsArray !== undefined && productsArray.length > 0
+                          ? productsArray.length
                           : `-`
                       } rows`}
                   </span>
@@ -413,8 +426,8 @@ const AttendeesListTableMemo: FC<Props> = ({ attendeesArray }) => {
               {/* <p className="pointer-events-none space-x-2 text-[13px] font-medium text-[#bbb]">
                 <span>/</span>
                 <span>
-                  {language === "ja" && `${attendeesArray.length === null ? "-" : attendeesArray.length} 件`}
-                  {language === "en" && `${attendeesArray.length === null ? "-" : attendeesArray.length} records`}
+                  {language === "ja" && `${productsArray.length === null ? "-" : productsArray.length} 件`}
+                  {language === "en" && `${productsArray.length === null ? "-" : productsArray.length} records`}
                 </span>
               </p> */}
             </div>
@@ -426,4 +439,4 @@ const AttendeesListTableMemo: FC<Props> = ({ attendeesArray }) => {
   );
 };
 
-export const AttendeesListTable = memo(AttendeesListTableMemo);
+export const ProductListTable = memo(ProductListTableMemo);

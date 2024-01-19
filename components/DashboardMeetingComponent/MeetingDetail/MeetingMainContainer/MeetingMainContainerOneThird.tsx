@@ -999,6 +999,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
 
   // シングルクリック => 何もアクションなし
   const handleSingleClickField = useCallback((e: React.MouseEvent<HTMLSpanElement>) => {
+    if (!selectedRowDataMeeting) return;
     // 自社で作成した会社でない場合はそのままリターン
     // if (!isMatchDepartment) return;
     if (setTimeoutRef.current !== null) return;
@@ -1025,6 +1026,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   // ダブルクリック => ダブルクリックしたフィールドを編集モードに変更
   const handleDoubleClickField = useCallback(
     ({ e, field, dispatch, dateValue, selectedRowDataValue }: DoubleClickProps) => {
+      if (!selectedRowDataMeeting) return;
       // 自社で作成した会社でない場合はそのままリターン
       // if (!isOurActivity) return;
 
@@ -2332,7 +2334,9 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     <span className={`${styles.title} ${styles.title_sm}`}>事前ｺﾒﾝﾄ</span>
                     {!searchMode && isEditModeField !== "planned_comment" && (
                       <div
-                        className={`${styles.textarea_box} ${styles.editable_field}`}
+                        className={`${styles.textarea_box} ${
+                          selectedRowDataMeeting ? `${styles.editable_field}` : `${styles.uneditable_field}`
+                        }`}
                         onClick={handleSingleClickField}
                         onDoubleClick={(e) => {
                           // if (!selectedRowDataMeeting?.activity_type) return;
@@ -2474,8 +2478,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                         }}
                       >
-                        {selectedRowDataMeeting?.meeting_business_office
+                        {/* {selectedRowDataMeeting?.meeting_business_office
                           ? selectedRowDataMeeting?.meeting_business_office
+                          : ""} */}
+                        {selectedRowDataMeeting?.assigned_department_name
+                          ? selectedRowDataMeeting?.assigned_department_name
                           : ""}
                       </span>
                     )}
@@ -3454,7 +3461,9 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <span className={`${styles.title} ${styles.title_sm}`}>結果ｺﾒﾝﾄ</span>
                       {!searchMode && isEditModeField !== "result_summary" && (
                         <div
-                          className={`${styles.textarea_box} ${styles.editable_field}`}
+                          className={`${styles.textarea_box} ${
+                            selectedRowDataMeeting ? `${styles.editable_field}` : `${styles.uneditable_field}`
+                          }`}
                           onClick={handleSingleClickField}
                           onDoubleClick={(e) => {
                             // if (!selectedRowDataMeeting?.activity_type) return;

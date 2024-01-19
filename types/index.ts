@@ -1220,13 +1220,13 @@ export type QuotationProductsDetail = {
   quotation_unit_price: number | null;
   quotation_product_priority: number | null;
 };
-export type QuotationProductsDetails = IntroducedProductsName[];
+export type QuotationProductsDetails = QuotationProductsDetail[];
 
 // 見積テーブル
 export type Quotation_row_data = {
   company_id: string;
   contact_id: string;
-  property_id: string;
+  quotation_id: string;
   company_name: string | null;
   contact_name: string | null;
   department_name: string | null;
@@ -1315,10 +1315,13 @@ export type Quotation_row_data = {
   quotation_created_by_office_of_user: string | null;
   destination_company_id: string | null;
   destination_contact_id: string | null;
+  in_charge_stamp_flag: boolean | null;
   in_charge_stamp_id: string | null;
   in_charge_user_id: string | null;
+  supervisor1_stamp_flag: boolean | null;
   supervisor1_stamp_id: string | null;
   supervisor1_user_id: string | null;
+  supervisor2_stamp_flag: boolean | null;
   supervisor2_stamp_id: string | null;
   supervisor2_user_id: string | null;
   quotation_no_custom: string | null;
@@ -1340,7 +1343,7 @@ export type Quotation_row_data = {
   in_charge_stamp_image_url: string | null;
   supervisor1_stamp_image_url: string | null;
   supervisor2_stamp_image_url: string | null;
-  // -- 🔹印鑑ユーザー
+  // -- 🔹印鑑ユーザー(profilesテーブル)
   in_charge_user_name: string | null;
   supervisor1_user_name: string | null;
   supervisor2_user_name: string | null;
@@ -1351,6 +1354,8 @@ export type Quotation_row_data = {
   assigned_employee_id_name: string | null;
   // 🔹商品リスト
   quotation_products_details: QuotationProductsDetails;
+  // 🔹見積ルール
+  quotation_rule: string | null;
 };
 
 export type NewSearchContact_CompanyParams = {
@@ -1680,7 +1685,7 @@ export type NewSearchProperty_Contact_CompanyParams = {
   property_member_name: string | null;
   property_date: string | null;
 };
-
+// 見積 サーチパラメータ
 export type NewSearchQuotation_Contact_CompanyParams = {
   "client_companies.name": string | null;
   department_name: string | null;
@@ -1744,7 +1749,7 @@ export type NewSearchQuotation_Contact_CompanyParams = {
   // quotation_division: string | null;
   // sending_method: string | null;
   // use_corporate_seal: boolean | null;
-  // quotation_notes: string | null;
+  quotation_notes: string | null;
   // sales_tax_class: string | null;
   // sales_tax_rate: string | null;
   // total_price: string | null;
@@ -1752,7 +1757,7 @@ export type NewSearchQuotation_Contact_CompanyParams = {
   // discount_rate: string | null;
   // discount_title: string | null;
   // total_amount: string | null;
-  // quotation_remarks: string | null;
+  quotation_remarks: string | null;
   // set_item_count: number | null;
   // set_unit_name: string | null;
   // set_price: string | null;
@@ -2154,4 +2159,14 @@ export type QuotationWithProducts = {
   product_ids: (string | null)[];
   // 紹介済み商品配列と同席者配列で削除が必要な個数
   delete_product_count: number | null;
+};
+
+// 顧客会社とクライアント会社の結合テーブル(見積ルール)
+type CustomersClients = {
+  id: string;
+  created_at: string | null;
+  updated_at: string | null;
+  customer_company_id: string | null;
+  client_company_id: string | null;
+  quotation_rule: string | null;
 };

@@ -263,7 +263,7 @@
   position: relative;
   padding-bottom: 5px;
   display: flex;
-  align-items: center;
+  /* align-items: center; */
 }
 .limited_lock_cover_half {
   position: absolute;
