@@ -33,6 +33,10 @@ const ActivityFunctionHeaderMemo: FC = () => {
   const setSelectedRowDataMeeting = useDashboardStore((state) => state.setSelectedRowDataMeeting);
   const setSelectedRowDataProperty = useDashboardStore((state) => state.setSelectedRowDataProperty);
   const setSelectedRowDataQuotation = useDashboardStore((state) => state.setSelectedRowDataQuotation);
+  // 見積新規作成モード
+  const setIsInsertModeQuotation = useDashboardStore((state) => state.setIsInsertModeQuotation);
+  // アクティブタブ変更state
+  const setActiveMenuTab = useDashboardStore((state) => state.setActiveMenuTab);
 
   const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
     // ホバーしたアイテムにツールチップを表示
@@ -200,7 +204,9 @@ const ActivityFunctionHeaderMemo: FC = () => {
               setSelectedRowDataProperty(null);
               setSelectedRowDataQuotation(null);
               if (loadingGlobalState) setLoadingGlobalState(false);
-              setIsOpenInsertNewPropertyModal(true);
+              // setIsOpenInsertNewPropertyModal(true);
+              setIsInsertModeQuotation(true);
+              setActiveMenuTab("Quotation");
             }}
           />
           <RippleButton
@@ -216,7 +222,9 @@ const ActivityFunctionHeaderMemo: FC = () => {
               setSelectedRowDataProperty(null);
               setSelectedRowDataQuotation(null);
               if (loadingGlobalState) setLoadingGlobalState(false);
-              setIsOpenInsertNewQuotationModal(true);
+              // setIsOpenInsertNewQuotationModal(true);
+              setIsInsertModeQuotation(true);
+              setActiveMenuTab("Quotation");
             }}
           />
         </div>

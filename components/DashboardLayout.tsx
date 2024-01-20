@@ -188,6 +188,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   // モーダルが開いている時はbodyにoverflow: hiddenを設定する
   const isOpenEditModal = useDashboardStore((state) => state.isOpenEditModal);
   const openLangTab = useStore((state) => state.openLangTab);
+  const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   // useEffect(() => {
   //   if (isOpenEditModal || openLangTab) {
   //     // モーダルが開いているときに、bodyにoverflow: hiddenを設定
@@ -264,6 +265,15 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   // 案件作成モーダル 新規作成と編集モーダル
   const isOpenInsertNewPropertyModal = useDashboardStore((state) => state.isOpenInsertNewPropertyModal);
   const isOpenUpdatePropertyModal = useDashboardStore((state) => state.isOpenUpdatePropertyModal);
+  // 見積作成モーダル 新規作成と編集モーダル
+  const isOpenInsertNewQuotationModal = useDashboardStore((state) => state.isOpenInsertNewQuotationModal);
+  const isOpenUpdateQuotationModal = useDashboardStore((state) => state.isOpenUpdateQuotationModal);
+  // 見積新規作成、編集モード
+  const isInsertModeQuotation = useDashboardStore((state) => state.isInsertModeQuotation);
+  const setIsInsertModeQuotation = useDashboardStore((state) => state.setIsInsertModeQuotation);
+  const isUpdateModeQuotation = useDashboardStore((state) => state.isUpdateModeQuotation);
+  const setIsUpdateModeQuotation = useDashboardStore((state) => state.setIsUpdateModeQuotation);
+  const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
 
   // 【お知らせの所有者変更モーダル開閉状態】
   const openNotificationChangeTeamOwnerModal = useDashboardStore((state) => state.openNotificationChangeTeamOwnerModal);
@@ -540,6 +550,45 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
             <UpdatePropertyModal />
           </Suspense>
         </ErrorBoundary>
+      )}
+      {/* <Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" /> */}
+
+      {/* 見積_作成・編集モーダル */}
+      {/* {isOpenInsertNewQuotationModal && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<FallbackModal />}>
+            <InsertNewQuotationModal />
+          </Suspense>
+        </ErrorBoundary>
+      )} */}
+      {/* {isOpenUpdateQuotationModal && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<FallbackModal />}>
+            <UpdateQuotationModal />
+          </Suspense>
+        </ErrorBoundary>
+      )} */}
+      {/* 見積_作成・編集モード中のオーバーレイ */}
+      {(isInsertModeQuotation || isUpdateModeQuotation) && (
+        <>
+          <div
+            // className={`is_upsert_overlay_top ${tableContainerSize === "half" && `medium`} ${
+            //   tableContainerSize === "all" && `large`
+            // }`}
+            className={`is_upsert_overlay_top`}
+            onClick={() => {
+              if (isInsertModeQuotation) setIsInsertModeQuotation(false);
+              if (isUpdateModeQuotation) setIsUpdateModeQuotation(false);
+            }}
+          ></div>
+          <div
+            className={`is_upsert_overlay_left ${isOpenSidebar ? `open` : `mini`}`}
+            onClick={() => {
+              if (isInsertModeQuotation) setIsInsertModeQuotation(false);
+              if (isUpdateModeQuotation) setIsUpdateModeQuotation(false);
+            }}
+          ></div>
+        </>
       )}
       {/* <Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" /> */}
 

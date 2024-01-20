@@ -1960,6 +1960,52 @@ textarea {
   width: 100%;
   backdrop-filter: blur(3px);
 }
+/* 見積_作成・編集モード時のボタンクリックを防ぐオーバーレイ */
+.is_upsert_overlay_top {
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  left: var(--sidebar-mini-width);
+  width: 100%;
+  height: calc(
+    var(--header-height) + 20px + 22px + 40px + (100vh / 3 - var(--header-height) / 3 - 40px - 22px - 9px) + 30px
+  );
+  /* background: #00000090; */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.is_upsert_overlay_top.medium {
+  height: calc(var(--header-height) + 20px + 22px + 40px + (50vh - var(--header-height) / 2 - 30px - 40px) + 30px);
+}
+.is_upsert_overlay_top.large {
+  height: calc(
+    var(--header-height) + 20px + 22px + 40px + (100vh - var(--header-height) - 0px - 22px - 40px - 30px - 30px) + 30px
+  );
+}
+/* .is_upsert_overlay_top.mini {
+  left: var(--sidebar-mini-width);
+}
+.is_upsert_overlay_top.open {
+  left: var(--sidebar-open-width);
+} */
+.is_upsert_overlay_left {
+  position: fixed;
+  z-index: 1000;
+  top: var(--header-height);
+  left: 0;
+  height: 100vh;
+  /* background: #00000090; */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.is_upsert_overlay_left.mini {
+  width: var(--sidebar-mini-width);
+}
+.is_upsert_overlay_left.open {
+  width: var(--sidebar-open-width);
+}
 
 /* 出現 appearanceアニメーション */
 .fade-scale-up {

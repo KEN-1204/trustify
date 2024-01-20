@@ -24,6 +24,10 @@ const ContactFunctionHeaderMemo: FC = () => {
   const setIsOpenInsertNewMeetingModal = useDashboardStore((state) => state.setIsOpenInsertNewMeetingModal);
   const setIsOpenInsertNewPropertyModal = useDashboardStore((state) => state.setIsOpenInsertNewPropertyModal);
   const setIsOpenInsertNewQuotationModal = useDashboardStore((state) => state.setIsOpenInsertNewQuotationModal);
+  // 見積新規作成モード
+  const setIsInsertModeQuotation = useDashboardStore((state) => state.setIsInsertModeQuotation);
+  // アクティブタブ変更state
+  const setActiveMenuTab = useDashboardStore((state) => state.setActiveMenuTab);
 
   // 上画面の選択中の列データ会社
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
@@ -179,7 +183,7 @@ const ContactFunctionHeaderMemo: FC = () => {
             clickEventHandler={() => {
               if (searchMode) return;
               if (!selectedRowDataContact) return alert("担当者を選択してください");
-              console.log("案件_作成 クリック");
+              console.log("見積_作成 クリック");
               // 他画面の選択行データはリセット
               // setSelectedRowDataContact(null);
               setSelectedRowDataActivity(null);
@@ -187,7 +191,9 @@ const ContactFunctionHeaderMemo: FC = () => {
               setSelectedRowDataProperty(null);
               setSelectedRowDataQuotation(null);
               if (loadingGlobalState) setLoadingGlobalState(false);
-              setIsOpenInsertNewQuotationModal(true);
+              // setIsOpenInsertNewQuotationModal(true);
+              setIsInsertModeQuotation(true);
+              setActiveMenuTab("Quotation");
             }}
           />
         </div>

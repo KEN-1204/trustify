@@ -25,6 +25,11 @@ const QuotationFunctionHeaderMemo: FC = () => {
   const setIsOpenInsertNewMeetingModal = useDashboardStore((state) => state.setIsOpenInsertNewMeetingModal);
   const setIsOpenInsertNewPropertyModal = useDashboardStore((state) => state.setIsOpenInsertNewPropertyModal);
   const setIsOpenInsertNewQuotationModal = useDashboardStore((state) => state.setIsOpenInsertNewQuotationModal);
+  // 見積新規作成、編集モード
+  const isInsertModeQuotation = useDashboardStore((state) => state.isInsertModeQuotation);
+  const isUpdateModeQuotation = useDashboardStore((state) => state.isUpdateModeQuotation);
+  const setIsInsertModeQuotation = useDashboardStore((state) => state.setIsInsertModeQuotation);
+  const setIsUpdateModeQuotation = useDashboardStore((state) => state.setIsUpdateModeQuotation);
 
   // 上画面の選択中の列データ会社
   const selectedRowDataQuotation = useDashboardStore((state) => state.selectedRowDataQuotation);
@@ -72,6 +77,16 @@ const QuotationFunctionHeaderMemo: FC = () => {
 
   return (
     <div className={`${styles.grid_function_header} h-[40px] w-full bg-[var(--color-bg-under-function-header)]`}>
+      {/* 新規作成・編集モード用オーバーレイ */}
+      {(isInsertModeQuotation || isUpdateModeQuotation) && (
+        <div
+          className={`absolute left-0 top-0 z-[1000] h-[62px] w-full bg-[#00000000]`}
+          onClick={() => {
+            if (isInsertModeQuotation) setIsInsertModeQuotation(false);
+            if (isUpdateModeQuotation) setIsUpdateModeQuotation(false);
+          }}
+        ></div>
+      )}
       <div className={`flex max-h-[26px] w-full items-center justify-start space-x-[6px]`}>
         <RippleButton
           title={`${searchMode ? `サーチ中止` : `新規サーチ`}`}
@@ -174,7 +189,8 @@ const QuotationFunctionHeaderMemo: FC = () => {
               setSelectedRowDataProperty(null);
               // setSelectedRowDataQuotation(null);
               if (loadingGlobalState) setLoadingGlobalState(false);
-              setIsOpenInsertNewQuotationModal(true);
+              // setIsOpenInsertNewQuotationModal(true);
+              setIsInsertModeQuotation(true);
             }}
           />
           <RippleButton
@@ -191,7 +207,8 @@ const QuotationFunctionHeaderMemo: FC = () => {
               setSelectedRowDataProperty(null);
               // setSelectedRowDataQuotation(null);
               if (loadingGlobalState) setLoadingGlobalState(false);
-              setIsOpenUpdateQuotationModal(true);
+              // setIsOpenUpdateQuotationModal(true);
+              setIsUpdateModeQuotation(true);
             }}
           />
         </div>

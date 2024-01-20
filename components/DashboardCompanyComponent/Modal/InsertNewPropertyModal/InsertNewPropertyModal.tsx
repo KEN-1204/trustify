@@ -1389,7 +1389,7 @@ export const InsertNewPropertyModal = () => {
               <span>戻る</span>
             </div>
           </div>
-          <div className="min-w-[150px] select-none font-bold">案件 新規作成</div>
+          <div className="min-w-[150px] select-none font-bold">案件 作成</div>
 
           {selectedRowDataMeeting && (
             <div

@@ -85,6 +85,9 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
   const setSearchMode = useDashboardStore((state) => state.setSearchMode);
   const editSearchMode = useDashboardStore((state) => state.editSearchMode);
   const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
+  // 見積新規作成、編集モード
+  const isInsertModeQuotation = useDashboardStore((state) => state.isInsertModeQuotation);
+  const isUpdateModeQuotation = useDashboardStore((state) => state.isUpdateModeQuotation);
   // 下メインコンテナサーチモード用Zustand ここまで =================
 
   // const [colsWidth,; setColsWidth] = useState(
@@ -3087,7 +3090,7 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
             </div>
             {/* ======================== 🌟Grid列トラック Rowヘッダー🌟 ======================== */}
             {/* サーチモード中は空のdivを表示 */}
-            {searchMode ? (
+            {searchMode || isInsertModeQuotation || isUpdateModeQuotation ? (
               <div
                 className={`${tableContainerSize === "one_third" ? `${styles.search_mode_container_one_third}` : ``} ${
                   tableContainerSize === "half" ? `${styles.search_mode_container_half}` : ``

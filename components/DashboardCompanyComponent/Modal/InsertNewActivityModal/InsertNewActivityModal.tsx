@@ -683,7 +683,7 @@ export const InsertNewActivityModal = () => {
               <span>戻る</span>
             </div>
           </div>
-          <div className="min-w-[150px] select-none font-bold">活動 新規作成</div>
+          <div className="min-w-[150px] select-none font-bold">活動 作成</div>
           {selectedRowDataContact && (
             <div
               className={`min-w-[150px] cursor-pointer text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text} select-none`}

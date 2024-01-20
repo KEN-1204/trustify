@@ -2078,7 +2078,6 @@ export type Quotation = {
   lease_period: number | null;
   lease_rate: string | null;
   lease_monthly_fee: string | null;
-  // 紐付け関連情報
   created_by_company_id: string | null;
   created_by_user_id: string | null;
   created_by_department_of_user: string | null;
@@ -2101,6 +2100,9 @@ export type Quotation = {
   quotation_department: string | null;
   quotation_year_month: number | null;
   quotation_title: string | null;
+  in_charge_stamp_flag: string | null;
+  supervisor1_stamp_flag: string | null;
+  supervisor2_stamp_flag: string | null;
 };
 
 // 見積INSERT保存payload用 quotation, quotation_productsテーブル
@@ -2155,6 +2157,9 @@ export type QuotationWithProducts = {
   quotation_department: string | null;
   quotation_year_month: number | null;
   quotation_title: string | null;
+  in_charge_stamp_flag: string | null;
+  supervisor1_stamp_flag: string | null;
+  supervisor2_stamp_flag: string | null;
   // 実施商品テーブル用と、同席者テーブル用
   product_ids: (string | null)[];
   // 紹介済み商品配列と同席者配列で削除が必要な個数

@@ -1121,7 +1121,7 @@ export const InsertNewMeetingModal = () => {
               <span>戻る</span>
             </div>
           </div>
-          <div className="min-w-[150px] select-none font-bold">面談予定 新規作成</div>
+          <div className="min-w-[150px] select-none font-bold">面談予定 作成</div>
 
           {selectedRowDataContact && (
             <div

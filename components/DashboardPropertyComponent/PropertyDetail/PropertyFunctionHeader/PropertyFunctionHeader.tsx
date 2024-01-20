@@ -25,6 +25,10 @@ const PropertyFunctionHeaderMemo: FC = () => {
   const setIsOpenInsertNewMeetingModal = useDashboardStore((state) => state.setIsOpenInsertNewMeetingModal);
   const setIsOpenInsertNewPropertyModal = useDashboardStore((state) => state.setIsOpenInsertNewPropertyModal);
   const setIsOpenInsertNewQuotationModal = useDashboardStore((state) => state.setIsOpenInsertNewQuotationModal);
+  // 見積新規作成モード
+  const setIsInsertModeQuotation = useDashboardStore((state) => state.setIsInsertModeQuotation);
+  // アクティブタブ変更state
+  const setActiveMenuTab = useDashboardStore((state) => state.setActiveMenuTab);
 
   // 上画面の選択中の列データ会社
   const selectedRowDataProperty = useDashboardStore((state) => state.selectedRowDataProperty);
@@ -179,12 +183,12 @@ const PropertyFunctionHeaderMemo: FC = () => {
             }}
           />
           <RippleButton
-            title={`見積_編集`}
+            title={`見積_作成`}
             classText={`select-none ${searchMode || !selectedRowDataProperty ? `cursor-not-allowed` : ``}`}
             clickEventHandler={() => {
               if (searchMode) return;
               if (!selectedRowDataProperty) return alert("担当者を選択してください");
-              console.log("見積編集 クリック");
+              console.log("見積作成 クリック");
               // 他画面の選択行データはリセット
               setSelectedRowDataContact(null);
               setSelectedRowDataActivity(null);
@@ -192,7 +196,9 @@ const PropertyFunctionHeaderMemo: FC = () => {
               // setSelectedRowDataProperty(null);
               setSelectedRowDataQuotation(null);
               if (loadingGlobalState) setLoadingGlobalState(false);
-              setIsOpenInsertNewQuotationModal(true);
+              // setIsOpenInsertNewQuotationModal(true);
+              setIsInsertModeQuotation(true);
+              setActiveMenuTab("Quotation");
             }}
           />
         </div>

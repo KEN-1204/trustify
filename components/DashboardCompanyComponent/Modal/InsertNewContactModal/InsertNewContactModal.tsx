@@ -166,7 +166,7 @@ export const InsertNewContactModal = () => {
               <span>戻る</span>
             </div>
           </div>
-          <div className="min-w-[150px] select-none font-bold">担当者 新規作成</div>
+          <div className="min-w-[150px] select-none font-bold">担当者 作成</div>
           <div
             className={`min-w-[150px] cursor-pointer select-none text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
             onClick={handleSaveAndClose}

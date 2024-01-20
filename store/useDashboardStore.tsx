@@ -357,6 +357,12 @@ type State = {
   // INSERT,UPDATEクエリ後にinvalidateQueryでキャッシュ更新された選択中の行データをselectedRowDataQuotationに反映するために発火通知するか否かのstate(発火通知してDOMクリックで更新する)
   isUpdateRequiredForLatestSelectedRowDataQuotation: boolean;
   setIsUpdateRequiredForLatestSelectedRowDataQuotation: (payload: boolean) => void;
+  // 見積作成モード
+  isInsertModeQuotation: boolean;
+  setIsInsertModeQuotation: (payload: boolean) => void;
+  // 見積編集モード
+  isUpdateModeQuotation: boolean;
+  setIsUpdateModeQuotation: (payload: boolean) => void;
 };
 
 const useDashboardStore = create<State>((set) => ({
@@ -874,6 +880,12 @@ const useDashboardStore = create<State>((set) => ({
   isUpdateRequiredForLatestSelectedRowDataQuotation: false,
   setIsUpdateRequiredForLatestSelectedRowDataQuotation: (payload) =>
     set({ isUpdateRequiredForLatestSelectedRowDataQuotation: payload }),
+  // 見積作成モード
+  isInsertModeQuotation: false,
+  setIsInsertModeQuotation: (payload) => set({ isInsertModeQuotation: payload }),
+  // 見積編集モード
+  isUpdateModeQuotation: false,
+  setIsUpdateModeQuotation: (payload) => set({ isUpdateModeQuotation: payload }),
 }));
 
 export default useDashboardStore;
