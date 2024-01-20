@@ -1,6 +1,8 @@
 // 半角数字のみで、小数点は四捨五入する
 
-export function convertHalfWidthNumOnly(input: string) {
+import Decimal from "decimal.js";
+
+export function convertHalfWidthNumOnly(input: string, decimalPlaces: number = 0) {
   // 全角数字を半角に変換する関数
   const fullWidthToHalfWidth = (str: string) =>
     str.replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0));
@@ -18,7 +20,9 @@ export function convertHalfWidthNumOnly(input: string) {
 
   // 4. 小数点が含まれている場合は四捨五入
   if (result.includes(".")) {
-    return String(Math.round(parseFloat(result)));
+    // return String(Math.round(parseFloat(result)));
+    // Decimal.jsを使用して指定された桁数で四捨五入
+    return new Decimal(result).toFixed(decimalPlaces, Decimal.ROUND_HALF_UP);
   }
 
   return result;

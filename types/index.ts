@@ -1687,12 +1687,18 @@ export type NewSearchProperty_Contact_CompanyParams = {
 };
 // 見積 サーチパラメータ
 export type NewSearchQuotation_Contact_CompanyParams = {
+  // 🔹依頼元 client_companiesテーブル
   "client_companies.name": string | null;
-  department_name: string | null;
+  "client_companies.department_name": string | null;
   main_phone_number: string | null;
   main_fax: string | null;
-  zipcode: string | null;
-  address: string | null;
+  "client_companies.zipcode": string | null;
+  "client_companies.address": string | null;
+  // 🔹送付先 cc_destinationテーブル
+  "cc_destination.name": string | null;
+  "cc_destination.department_name": string | null;
+  "cc_destination.zipcode": string | null;
+  "cc_destination.address": string | null;
   // number_of_employees_class: string | null;
   // capital: number | null;
   // established_in: string | null;
@@ -1713,15 +1719,21 @@ export type NewSearchQuotation_Contact_CompanyParams = {
   // overseas_bases: string | null;
   // group_company: string | null;
   // corporate_number: string | null;
-
+  // 🔹依頼元contactsテーブル
   "contacts.name": string | null;
-  direct_line: string | null;
-  direct_fax: string | null;
+  "contacts.direct_line": string | null;
+  "contacts.direct_fax": string | null;
   extension: string | null;
   company_cell_phone: string | null;
   // personal_cell_phone: string | null;
   // contact_email: string | null;
   "contacts.email": string | null;
+  // 🔹送付先c_destinationテーブル
+  "c_destination.name": string | null;
+  "c_destination.direct_line": string | null;
+  "c_destination.direct_fax": string | null;
+  "c_destination.email": string | null;
+  // 送付先ここまで
   // position_name: string | null;
   // position_class: string | null;
   // occupation: string | null;

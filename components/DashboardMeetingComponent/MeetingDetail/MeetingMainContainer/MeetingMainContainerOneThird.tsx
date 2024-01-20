@@ -2122,6 +2122,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         className={`${styles.value} ${styles.editable_field}`}
                         onClick={handleSingleClickField}
                         onDoubleClick={(e) => {
+                          // console.log("クリック");
                           if (!selectedRowDataMeeting?.planned_purpose) return;
                           // if (isNotActivityTypeArray.includes(selectedRowDataMeeting.planned_purpose))
                           //   return alert(returnMessageNotActivity(selectedRowDataMeeting.planned_purpose));

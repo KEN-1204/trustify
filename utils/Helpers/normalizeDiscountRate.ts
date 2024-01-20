@@ -2,7 +2,7 @@
 
 import { zenkakuToHankaku } from "./zenkakuToHankaku";
 
-export function normalizeDiscountRate(inputString: string) {
+export function normalizeDiscountRate(inputString: string, showPercent: boolean = true) {
   // console.log("inputString", inputString);
   // 全角数字を半角数字に変換
   const fullWidthToHalfWidth = (str: string) =>
@@ -42,7 +42,9 @@ export function normalizeDiscountRate(inputString: string) {
   //     inputString += "%";
   //   }
   // console.log("inputString", inputString);
-  inputString += "%";
+  if (showPercent) {
+    inputString += "%";
+  }
 
   return inputString;
 }

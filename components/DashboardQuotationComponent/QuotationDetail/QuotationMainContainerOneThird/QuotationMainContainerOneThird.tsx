@@ -47,6 +47,8 @@ import { normalizeDiscountRate } from "@/utils/Helpers/normalizeDiscountRate";
 import { CiEdit } from "react-icons/ci";
 import { RippleButton } from "@/components/Parts/RippleButton/RippleButton";
 import { ProductListTable } from "./ProductListTable/ProductListTable";
+import { convertHalfWidthNumOnly } from "@/utils/Helpers/convertHalfWidthNumOnly";
+import { CustomSelectInput } from "@/components/Parts/CustomSelectInput/CustomSelectInput";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -149,12 +151,22 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const [inputExtension, setInputExtension] = useState("");
   const [inputCompanyCellPhone, setInputCompanyCellPhone] = useState("");
   const [inputContactEmail, setInputContactEmail] = useState("");
+  // 🔹送付先cc_destinationテーブル
+  const [inputCompanyNameDest, setInputCompanyNameDest] = useState("");
+  const [inputDepartmentNameDest, setInputDepartmentNameDest] = useState("");
+  const [inputZipcodeDest, setInputZipcodeDest] = useState("");
+  const [inputAddressDest, setInputAddressDest] = useState("");
+  // 🔹送付先c_destinationテーブル
+  const [inputContactNameDest, setInputContactNameDest] = useState("");
+  const [inputDirectLineDest, setInputDirectLineDest] = useState("");
+  const [inputDirectFaxDest, setInputDirectFaxDest] = useState("");
+  const [inputContactEmailDest, setInputContactEmailDest] = useState("");
+  // 送付先ここまで
   // const [inputPositionName, setInputPositionName] = useState("");
   // const [inputPositionClass, setInputPositionClass] = useState("");
   const [inputContactCreatedByCompanyId, setInputContactCreatedByCompanyId] = useState("");
   const [inputContactCreatedByUserId, setInputContactCreatedByUserId] = useState("");
   // 🔹Quotationテーブル
-  // const [inputSubmissionClass, setInputSubmissionClass] = useState("");
   const [inputQuotationCreatedByCompanyId, setInputQuotationCreatedByCompanyId] = useState("");
   const [inputQuotationCreatedByUserId, setInputQuotationCreatedByUserId] = useState("");
   const [inputQuotationCreatedByDepartmentOfUser, setInputQuotationCreatedByDepartmentOfUser] = useState("");
@@ -176,83 +188,165 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const [inputQuotationYearMonth, setInputQuotationYearMonth] = useState<number | null>(null);
 
   // ================================ 🌟フィールドエディットモード関連state🌟 ================================
-  const [inputQuotationDateForFieldEdit, setInputQuotationDateForFieldEdit] = useState<Date | null>(null);
-  const [inputExpirationDateForFieldEdit, setInputExpirationDateForFieldEdit] = useState<Date | null>(null);
+  const [inputQuotationDateEdit, setInputQuotationDateEdit] = useState<Date | null>(null);
+  const [inputExpirationDateEdit, setInputExpirationDateEdit] = useState<Date | null>(null);
+  // 依頼元フィールドエディット
+  const [inputClientCompanyIdEdit, setInputClientCompanyIdEdit] = useState(null);
+  const [inputContactIdEdit, setInputContactIdEdit] = useState(null);
   // 送付先フィールドエディット
-  const [inputCompanyIdDestForFieldEdit, setInputCompanyIdDestForFieldEdit] = useState("");
-  const [inputContactIdDestForFieldEdit, setInputContactIdDestForFieldEdit] = useState("");
-  // const [inputDepartmentNameDestForFieldEdit, setInputDepartmentNameDestForFieldEdit] = useState("");
-  // const [inputContactNameDestForFieldEdit, setInputContactNameDestForFieldEdit] = useState("");
-  // const [inputDirectLineDestForFieldEdit, setInputDirectLineDestForFieldEdit] = useState("");
-  // const [inputDirectFaxDestForFieldEdit, setInputDirectFaxDestForFieldEdit] = useState("");
-  // const [inputContactEmailDestForFieldEdit, setInputContactEmailDestForFieldEdit] = useState("");
-  // const [inputZipcodeDestForFieldEdit, setInputZipcodeDestForFieldEdit] = useState("");
-  // const [inputAddressDestForFieldEdit, setInputAddressDestForFieldEdit] = useState("");
+  const [inputCompanyIdDestEdit, setInputCompanyIdDestEdit] = useState(null);
+  const [inputContactIdDestEdit, setInputContactIdDestEdit] = useState(null);
   // 見積関連フィールドエディット
-  const [inputSubmissionClassForFieldEdit, setInputSubmissionClassForFieldEdit] = useState("");
-  const [inputDeadlineForFieldEdit, setInputDeadlineForFieldEdit] = useState("");
-  const [inputDeliveryPlaceForFieldEdit, setInputDeliveryPlaceForFieldEdit] = useState("");
-  const [inputPaymentTermsForFieldEdit, setInputPaymentTermsForFieldEdit] = useState("");
-  const [inputQuotationDivisionForFieldEdit, setInputQuotationDivisionForFieldEdit] = useState("");
-  const [inputSendingMethodForFieldEdit, setInputSendingMethodForFieldEdit] = useState("");
-  const [inputUseCorporateSealForFieldEdit, setInputUseCorporateSealForFieldEdit] = useState("");
-  // const [inputQuotationNotesForFieldEdit, setInputQuotationNotesForFieldEdit] = useState("");
-  const [inputSalesTaxClassForFieldEdit, setInputSalesTaxClassForFieldEdit] = useState("");
-  const [inputSalesTaxRateForFieldEdit, setInputSalesTaxRateForFieldEdit] = useState("");
-  const [inputTotalPriceForFieldEdit, setInputTotalPriceForFieldEdit] = useState("");
-  const [inputDiscountAmountForFieldEdit, setInputDiscountAmountForFieldEdit] = useState("");
-  const [inputDiscountRateForFieldEdit, setInputDiscountRateForFieldEdit] = useState("");
-  const [inputDiscountTitleForFieldEdit, setInputDiscountTitleForFieldEdit] = useState("");
-  const [inputTotalAmountForFieldEdit, setInputTotalAmountForFieldEdit] = useState("");
-  // const [inputQuotationRemarksForFieldEdit, setInputQuotationRemarksForFieldEdit] = useState("");
-  const [inputSetItemCountForFieldEdit, setInputSetItemCountForFieldEdit] = useState("");
-  const [inputSetUnitNameForFieldEdit, setInputSetUnitNameForFieldEdit] = useState("");
-  const [inputSetPriceForFieldEdit, setInputSetPriceForFieldEdit] = useState("");
-  const [inputLeasePeriodForFieldEdit, setInputLeasePeriodForFieldEdit] = useState("");
-  const [inputLeaseRateForFieldEdit, setInputLeaseRateForFieldEdit] = useState("");
-  const [inputLeaseMonthlyFeeForFieldEdit, setInputLeaseMonthlyFeeForFieldEdit] = useState("");
+  const [inputSubmissionClassEdit, setInputSubmissionClassEdit] = useState("");
+  const [inputDeadlineEdit, setInputDeadlineEdit] = useState("");
+  const [inputDeliveryPlaceEdit, setInputDeliveryPlaceEdit] = useState("");
+  const [inputPaymentTermsEdit, setInputPaymentTermsEdit] = useState("");
+  const [inputQuotationDivisionEdit, setInputQuotationDivisionEdit] = useState("");
+  const [inputSendingMethodEdit, setInputSendingMethodEdit] = useState("");
+  const [inputUseCorporateSealEdit, setInputUseCorporateSealEdit] = useState("");
+  const [inputSalesTaxClassEdit, setInputSalesTaxClassEdit] = useState("");
+  const [inputSalesTaxRateEdit, setInputSalesTaxRateEdit] = useState("");
+  const [inputTotalPriceEdit, setInputTotalPriceEdit] = useState("");
+  const [inputDiscountAmountEdit, setInputDiscountAmountEdit] = useState("");
+  const [inputDiscountRateEdit, setInputDiscountRateEdit] = useState("");
+  const [inputDiscountTitleEdit, setInputDiscountTitleEdit] = useState("");
+  const [inputTotalAmountEdit, setInputTotalAmountEdit] = useState("");
+  // const [inputSetItemCountEdit, setInputSetItemCountEdit] = useState<number | null>(null);
+  const [inputSetItemCountEdit, setInputSetItemCountEdit] = useState<string>("");
+  const [inputSetUnitNameEdit, setInputSetUnitNameEdit] = useState("");
+  const [inputSetPriceEdit, setInputSetPriceEdit] = useState("");
+  // const [inputLeasePeriodEdit, setInputLeasePeriodEdit] = useState<number | null>(null);
+  // const [inputLeaseRateEdit, setInputLeaseRateEdit] = useState<number | null>(null);
+  const [inputLeasePeriodEdit, setInputLeasePeriodEdit] = useState<string>("");
+  const [inputLeaseRateEdit, setInputLeaseRateEdit] = useState<string>("");
+  const [inputLeaseMonthlyFeeEdit, setInputLeaseMonthlyFeeEdit] = useState("");
   //  印鑑フィールドエディット
-  const [inputInChargeStampIdForFieldEdit, setInputInChargeStampIdForFieldEdit] = useState("");
-  const [inputInChargeNameIdForFieldEdit, setInputInChargeNameIdForFieldEdit] = useState("");
-  const [inputSupervisor1StampIdForFieldEdit, setInputSupervisor1StampIdForFieldEdit] = useState("");
-  const [inputSupervisor1NameIdForFieldEdit, setInputSupervisor1NameIdForFieldEdit] = useState("");
-  const [inputSupervisor2StampIdForFieldEdit, setInputSupervisor2StampIdForFieldEdit] = useState("");
-  const [inputSupervisor2NameIdForFieldEdit, setInputSupervisor2NameIdForFieldEdit] = useState("");
+  const [inputInChargeStampIdEdit, setInputInChargeStampIdEdit] = useState("");
+  const [inputInChargeNameIdEdit, setInputInChargeNameIdEdit] = useState("");
+  const [inputSupervisor1StampIdEdit, setInputSupervisor1StampIdEdit] = useState("");
+  const [inputSupervisor1NameIdEdit, setInputSupervisor1NameIdEdit] = useState("");
+  const [inputSupervisor2StampIdEdit, setInputSupervisor2StampIdEdit] = useState("");
+  const [inputSupervisor2NameIdEdit, setInputSupervisor2NameIdEdit] = useState("");
 
   // フラグ関連 フィールドエディット用 初期はfalseにしておき、useEffectでselectedRowDataのフラグを反映する
   // 角印印刷フラグ、担当印、上長印１、上長印２ フィールドエディット用
-  const [checkboxUseCorporateSealFlagForFieldEdit, setCheckboxUseCorporateSealFlagForFieldEdit] = useState(false);
-  const [checkboxInChargeFlagForFieldEdit, setCheckboxInChargeFlagForFieldEdit] = useState(false);
-  const [checkboxSupervisor1FlagForFieldEdit, setCheckboxSupervisor1FlagForFieldEdit] = useState(false);
-  const [checkboxSupervisor2FlagForFieldEdit, setCheckboxSupervisor2FlagForFieldEdit] = useState(false);
+  const [checkboxUseCorporateSealFlagEdit, setCheckboxUseCorporateSealFlagEdit] = useState(false);
+  const [checkboxInChargeFlagEdit, setCheckboxInChargeFlagEdit] = useState(false);
+  const [checkboxSupervisor1FlagEdit, setCheckboxSupervisor1FlagEdit] = useState(false);
+  const [checkboxSupervisor2FlagEdit, setCheckboxSupervisor2FlagEdit] = useState(false);
 
   // フラグの初期値を更新
   // 角印印刷
   useEffect(() => {
-    setCheckboxUseCorporateSealFlagForFieldEdit(
+    setCheckboxUseCorporateSealFlagEdit(
       selectedRowDataQuotation?.use_corporate_seal ? selectedRowDataQuotation?.use_corporate_seal : false
     );
   }, [selectedRowDataQuotation?.use_corporate_seal]);
   // 担当者印
   useEffect(() => {
-    setCheckboxInChargeFlagForFieldEdit(
+    setCheckboxInChargeFlagEdit(
       selectedRowDataQuotation?.in_charge_stamp_flag ? selectedRowDataQuotation?.in_charge_stamp_flag : false
     );
   }, [selectedRowDataQuotation?.in_charge_stamp_flag]);
   // 上長印1
   useEffect(() => {
-    setCheckboxSupervisor1FlagForFieldEdit(
+    setCheckboxSupervisor1FlagEdit(
       selectedRowDataQuotation?.supervisor1_stamp_flag ? selectedRowDataQuotation?.supervisor1_stamp_flag : false
     );
   }, [selectedRowDataQuotation?.supervisor1_stamp_flag]);
   // 上長印2
   useEffect(() => {
-    setCheckboxSupervisor2FlagForFieldEdit(
+    setCheckboxSupervisor2FlagEdit(
       selectedRowDataQuotation?.supervisor2_stamp_flag ? selectedRowDataQuotation?.supervisor2_stamp_flag : false
     );
   }, [selectedRowDataQuotation?.supervisor2_stamp_flag]);
 
   // ================================ ✅フィールドエディットモード関連state✅ ================================
+
+  // ------------------ 🌟見積作成のマウント時に選択中の担当者&会社の列データの情報をStateに格納🌟 ------------------
+  useEffect(() => {
+    if (!isInsertModeQuotation) return;
+
+    let selectedData;
+
+    if (selectedRowDataContact) selectedData = selectedRowDataContact;
+    if (selectedRowDataActivity) selectedData = selectedRowDataActivity;
+    if (selectedRowDataMeeting) selectedData = selectedRowDataMeeting;
+    if (selectedRowDataProperty) selectedData = selectedRowDataProperty;
+
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear(); // 例: 2023
+    const currentMonth = currentDate.getMonth() + 1; // getMonth()は0から11で返されるため、+1して1から12に調整
+    const selectedYearMonthInitialValue = `${currentYear}${currentMonth < 10 ? "0" + currentMonth : currentMonth}`; // 月が1桁の場合は先頭に0を追加
+
+    // 依頼元
+    let company_name = selectedData?.company_name ? selectedData?.company_name : "";
+    let department_name = selectedData?.department_name ? selectedData?.department_name : "";
+    let contact_name = selectedData?.contact_name ? selectedData?.contact_name : "";
+    let direct_line = selectedData?.direct_line ? selectedData?.direct_line : "";
+    let main_phone_number = selectedData?.main_phone_number ? selectedData?.main_phone_number : "";
+    let extension = selectedData?.extension ? selectedData?.extension : "";
+    let company_cell_phone = selectedData?.company_cell_phone ? selectedData?.company_cell_phone : "";
+    let direct_fax = selectedData?.direct_fax ? selectedData?.direct_fax : "";
+    let main_fax = selectedData?.main_fax ? selectedData?.main_fax : "";
+    let contact_email = selectedData?.contact_email ? selectedData?.contact_email : "";
+    let zipcode = selectedData?.zipcode ? selectedData?.zipcode : "";
+    let address = selectedData?.address ? selectedData?.address : "";
+    // 送付先
+    let dest_company_name = selectedData?.company_name ? selectedData?.company_name : "";
+    let dest_department_name = selectedData?.department_name ? selectedData?.department_name : "";
+    let dest_contact_name = selectedData?.contact_name ? selectedData?.contact_name : "";
+    let dest_direct_line = selectedData?.direct_line ? selectedData?.direct_line : "";
+    let dest_direct_fax = selectedData?.direct_fax ? selectedData?.direct_fax : "";
+    let dest_contact_email = selectedData?.contact_email ? selectedData?.contact_email : "";
+    let dest_zipcode = selectedData?.zipcode ? selectedData?.zipcode : "";
+    let dest_address = selectedData?.address ? selectedData?.address : "";
+    // 見積関連
+    let quotation_no_custom = "";
+    let quotation_no_system = "";
+    let submission_class = "";
+    let quotation_date = new Date();
+    let expiration_date = null;
+    let deadline = "";
+    let delivery_place = "";
+    let payment_terms = "";
+    let quotation_division = "";
+    let sending_method = "";
+    let use_corporate_seal = false;
+    let quotation_notes = "";
+    let sales_tax_class = "";
+    let sales_tax_rate = 10;
+    let total_price = "";
+    let discount_amount = "";
+    let discount_rate = "";
+    let discount_title = "";
+    let total_amount = "";
+    let quotation_remarks = "";
+    let set_item_count = "";
+    let set_unit_name = "";
+    let set_price = "";
+    let lease_period = "";
+    let lease_rate = "";
+    let lease_monthly_fee = "";
+
+    let company_id = selectedData?.company_id ? selectedData?.company_id : "";
+    let contact_id = selectedData?.contact_id ? selectedData?.contact_id : "";
+    let destination_company_id = selectedData?.company_id ? selectedData?.company_id : "";
+    let destination_contact_id = selectedData?.contact_id ? selectedData?.contact_id : "";
+
+    let initialMemberObj = {
+      memberId: userProfileState?.id ? userProfileState?.id : null,
+      memberName: userProfileState?.profile_name ? userProfileState?.profile_name : null,
+      departmentId: userProfileState?.assigned_department_id ? userProfileState?.assigned_department_id : null,
+      unitId: userProfileState?.assigned_unit_id ? userProfileState?.assigned_unit_id : null,
+      officeId: userProfileState?.assigned_office_id ? userProfileState?.assigned_office_id : null,
+    };
+  }, [isInsertModeQuotation]);
+  // ------------------ ✅見積作成のマウント時に選択中の担当者&会社の列データの情報をStateに格納✅ ------------------
+
+  // ================================ 🌟useQuery依頼元・送付先の会社、担当者フェッチ🌟 ================================
+
+  // ================================ ✅useQuery依頼元・送付先の会社、担当者フェッチ✅ ================================
 
   // ================================ 🌟useQuery初回マウント時のフェッチ遅延用🌟 ================================
   // const [isReady, setIsReady] = useState(false);
@@ -356,30 +450,45 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
         "🔥Meetingメインコンテナー useEffect 編集モード inputにnewSearchQuotation_Contact_CompanyParamsを格納",
         newSearchQuotation_Contact_CompanyParams
       );
-      //   setInputCompanyName(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.company_name));
+      // ----------------------------- 依頼元
+      // 🔹client_companyテーブル
       setInputCompanyName(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["client_companies.name"]));
-      setInputDepartmentName(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.department_name));
-      //   setInputContactName(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.contact_name));
+      setInputDepartmentName(
+        beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["client_companies.department_name"])
+      );
       setInputContactName(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["contacts.name"]));
       setInputTel(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams?.main_phone_number));
       setInputFax(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams?.main_fax));
-      setInputZipcode(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams?.zipcode));
-      setInputAddress(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams?.address));
-
-      // contactsテーブル
-      //   setInputContactName(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.contact_name));
+      setInputZipcode(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["client_companies.zipcode"]));
+      setInputAddress(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["client_companies.address"]));
+      // 🔹contactsテーブル
       setInputContactName(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["contacts.name"]));
-      setInputDirectLine(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.direct_line));
-      setInputDirectFax(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.direct_fax));
+      setInputDirectLine(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["contacts.direct_line"]));
+      setInputDirectFax(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["contacts.direct_fax"]));
       setInputExtension(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.extension));
       setInputCompanyCellPhone(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.company_cell_phone));
       setInputContactEmail(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["contacts.email"]));
-      // setInputPositionName(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.position_name));
-      // setInputPositionClass(
-      //   newSearchQuotation_Contact_CompanyParams.position_class
-      //     ? newSearchQuotation_Contact_CompanyParams.position_class.toString()
-      //     : ""
-      // );
+
+      // ----------------------------- 送付先
+      // 🔹cc_destinationテーブル
+      setInputCompanyNameDest(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["cc_destination.name"]));
+      setInputDepartmentNameDest(
+        beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["cc_destination.department_name"])
+      );
+      setInputContactNameDest(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["contacts.name"]));
+      setInputZipcodeDest(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["cc_destination.zipcode"]));
+      setInputAddressDest(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["cc_destination.address"]));
+      // 🔹c_destinationテーブル
+      setInputContactNameDest(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["c_destination.name"]));
+      setInputDirectLineDest(
+        beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["c_destination.direct_line"])
+      );
+      setInputDirectFaxDest(
+        beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["c_destination.direct_fax"])
+      );
+      setInputContactEmailDest(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["c_destination.email"]));
+      // c_destinationここまで
+
       setInputContactCreatedByCompanyId(
         beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["contacts.created_by_company_id"])
       );
@@ -433,8 +542,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
         "🔥Quotationメインコンテナー useEffect 新規サーチモード inputを初期化",
         newSearchQuotation_Contact_CompanyParams
       );
+      // client_companiesテーブル
       if (!!inputCompanyName) setInputCompanyName("");
-      // if (!!input) setInputContactName("");
       if (!!inputDepartmentName) setInputDepartmentName(""); // 部署名(クライアント)
       if (!!inputTel) setInputTel("");
       if (!!inputFax) setInputFax("");
@@ -448,10 +557,20 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       if (!!inputExtension) setInputExtension("");
       if (!!inputCompanyCellPhone) setInputCompanyCellPhone("");
       if (!!inputContactEmail) setInputContactEmail("");
-      // if (!!inputPositionName) setInputPositionName("");
-      // if (!!inputPositionClass) setInputPositionClass("");
       if (!!inputContactCreatedByCompanyId) setInputContactCreatedByCompanyId("");
       if (!!inputContactCreatedByUserId) setInputContactCreatedByUserId("");
+
+      // c_destinationテーブル
+      if (!!inputCompanyNameDest) setInputCompanyNameDest("");
+      if (!!inputDepartmentNameDest) setInputDepartmentNameDest("");
+      if (!!inputZipcodeDest) setInputZipcodeDest("");
+      if (!!inputAddressDest) setInputAddressDest("");
+
+      // c_destinationテーブル
+      if (!!inputContactNameDest) setInputContactNameDest("");
+      if (!!inputDirectLineDest) setInputDirectLineDest("");
+      if (!!inputDirectFaxDest) setInputDirectFaxDest("");
+      if (!!inputContactEmailDest) setInputContactEmailDest("");
 
       // quotationsテーブル
       if (!!inputQuotationCreatedByCompanyId) setInputQuotationCreatedByCompanyId("");
@@ -534,21 +653,33 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     let _employee_id_name = adjustFieldValue(inputEmployeeIdName);
 
     const params = {
+      // 依頼元
+      // 会社
       "client_companies.name": _company_name,
-      department_name: _department_name,
+      "client_companies.department_name": _department_name,
       main_phone_number: _main_phone_number,
       main_fax: _main_fax,
-      zipcode: _zipcode,
-      address: _address,
-      // contactsテーブル
+      "client_companies.zipcode": _zipcode,
+      "client_companies.address": _address,
+      // 担当者
       "contacts.name": _contact_name,
-      direct_line: _direct_line,
-      direct_fax: _direct_fax,
+      "contacts.direct_line": _direct_line,
+      "contacts.direct_fax": _direct_fax,
       extension: _extension,
       company_cell_phone: _company_cell_phone,
       "contacts.email": _contact_email,
-      // position_name: _position_name,
-      // position_class: _position_class,
+      // 送付先
+      // 会社
+      "cc_destination.name": _company_name,
+      "cc_destination.department_name": _department_name,
+      "cc_destination.zipcode": _zipcode,
+      "cc_destination.address": _address,
+      // 担当者
+      "c_destination.name": _contact_name,
+      "c_destination.direct_line": _direct_line,
+      "c_destination.direct_fax": _direct_fax,
+      "c_destination.email": _contact_email,
+
       "contacts.created_by_company_id": _contact_created_by_company_id,
       "contacts.created_by_user_id": _contact_created_by_user_id,
       // quotationsテーブル
@@ -1190,7 +1321,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                       e: e,
                       display: "top",
                       content: `独自に設定できるカスタム見積Noと自動で採番される見積Noの切り替えが可能です。`,
-                      content2: `自動採番の見積Noは12桁の一意な見積Noが自動で割り当てられ、`,
+                      content2: `自動採番の見積Noは12桁の番号が自動で割り当てられ、`,
                       content3: `1日に99万9999件まで採番が可能です。`,
                       marginTop: 28,
                       itemsPosition: "center",
@@ -1254,7 +1385,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                   <div className="flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>会社名</span>
-                      {!searchMode && (
+                      {!searchMode && !isInsertModeQuotation && (
                         <span
                           className={`${styles.value} ${styles.value_highlight} ${styles.text_start}`}
                           onMouseEnter={(e) => {
@@ -1265,6 +1396,20 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           }}
                         >
                           {selectedRowDataQuotation?.company_name ? selectedRowDataQuotation?.company_name : ""}
+                          {inputCompanyName ? inputCompanyName : ""}
+                        </span>
+                      )}
+                      {!searchMode && isInsertModeQuotation && (
+                        <span
+                          className={`${styles.value} ${styles.value_highlight} ${styles.text_start}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
+                          {inputCompanyName ? inputCompanyName : ""}
                         </span>
                       )}
                       {searchMode && (
@@ -1288,7 +1433,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                   <div className="flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>部署名</span>
-                      {!searchMode && (
+                      {!searchMode && !isInsertModeQuotation && (
                         <span
                           className={`${styles.value} ${styles.text_start}`}
                           onMouseEnter={(e) => {
@@ -1299,6 +1444,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           }}
                         >
                           {selectedRowDataQuotation?.department_name ? selectedRowDataQuotation?.department_name : ""}
+                        </span>
+                      )}
+                      {!searchMode && isInsertModeQuotation && (
+                        <span
+                          className={`${styles.value} ${styles.text_start}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
+                          {inputDepartmentName ? inputDepartmentName : ""}
                         </span>
                       )}
                       {searchMode && (
@@ -1321,7 +1479,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>担当者名</span>
-                      {!searchMode && (
+                      {!searchMode && !isInsertModeQuotation && (
                         <span
                           className={`${styles.value}`}
                           onMouseEnter={(e) => {
@@ -1332,6 +1490,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           }}
                         >
                           {selectedRowDataQuotation?.contact_name ? selectedRowDataQuotation?.contact_name : ""}
+                        </span>
+                      )}
+                      {!searchMode && isInsertModeQuotation && (
+                        <span
+                          className={`${styles.value} ${styles.text_start}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
+                          {inputContactName ? inputContactName : ""}
                         </span>
                       )}
                       {searchMode && (
@@ -1358,7 +1529,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>直通TEL</span>
-                      {!searchMode && (
+                      {!searchMode && !isInsertModeQuotation && (
                         <span
                           className={`${styles.value}`}
                           data-text={`${
@@ -1378,6 +1549,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           {selectedRowDataQuotation?.direct_line ? selectedRowDataQuotation?.direct_line : ""}
                         </span>
                       )}
+                      {!searchMode && isInsertModeQuotation && (
+                        <span
+                          className={`${styles.value} ${styles.text_start}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
+                          {inputDirectLine ? inputDirectLine : ""}
+                        </span>
+                      )}
                       {searchMode && (
                         <input
                           type="tel"
@@ -1392,7 +1576,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>代表TEL</span>
-                      {!searchMode && (
+                      {!searchMode && !isInsertModeQuotation && (
                         <span
                           className={`${styles.value}`}
                           data-text={`${
@@ -1416,6 +1600,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             : ""}
                         </span>
                       )}
+                      {!searchMode && isInsertModeQuotation && (
+                        <span
+                          className={`${styles.value} ${styles.text_start}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
+                          {inputTel ? inputTel : ""}
+                        </span>
+                      )}
                       {searchMode && (
                         <input
                           type="tel"
@@ -1435,7 +1632,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>内線TEL</span>
-                      {!searchMode && (
+                      {!searchMode && !isInsertModeQuotation && (
                         <span
                           className={`${styles.value}`}
                           data-text={`${
@@ -1455,6 +1652,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           {selectedRowDataQuotation?.extension ? selectedRowDataQuotation?.extension : ""}
                         </span>
                       )}
+                      {!searchMode && isInsertModeQuotation && (
+                        <span
+                          className={`${styles.value} ${styles.text_start}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
+                          {inputExtension ? inputExtension : ""}
+                        </span>
+                      )}
                       {searchMode && (
                         <input
                           type="tel"
@@ -1470,7 +1680,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>社用携帯</span>
-                      {!searchMode && (
+                      {!searchMode && !isInsertModeQuotation && (
                         <span
                           className={`${styles.value}`}
                           data-text={`${
@@ -1494,6 +1704,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             : ""}
                         </span>
                       )}
+                      {!searchMode && isInsertModeQuotation && (
+                        <span
+                          className={`${styles.value} ${styles.text_start}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
+                          {inputCompanyCellPhone ? inputCompanyCellPhone : ""}
+                        </span>
+                      )}
                       {searchMode && (
                         <input
                           type="text"
@@ -1512,7 +1735,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>直通FAX</span>
-                      {!searchMode && (
+                      {!searchMode && !isInsertModeQuotation && (
                         <span
                           className={`${styles.value}`}
                           data-text={`${
@@ -1532,6 +1755,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           {selectedRowDataQuotation?.direct_fax ? selectedRowDataQuotation?.direct_fax : ""}
                         </span>
                       )}
+                      {!searchMode && isInsertModeQuotation && (
+                        <span
+                          className={`${styles.value} ${styles.text_start}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
+                          {inputDirectFax ? inputDirectFax : ""}
+                        </span>
+                      )}
                       {searchMode && (
                         <input
                           type="text"
@@ -1547,7 +1783,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>代表FAX</span>
                       {/* <span className={`${styles.title}`}>会員専用</span> */}
-                      {!searchMode && (
+                      {!searchMode && !isInsertModeQuotation && (
                         <span
                           className={`${styles.value}`}
                           data-text={`${selectedRowDataQuotation?.main_fax ? selectedRowDataQuotation?.main_fax : ""}`}
@@ -1563,6 +1799,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           }}
                         >
                           {selectedRowDataQuotation?.main_fax ? selectedRowDataQuotation?.main_fax : ""}
+                        </span>
+                      )}
+                      {!searchMode && isInsertModeQuotation && (
+                        <span
+                          className={`${styles.value} ${styles.text_start}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
+                          {inputFax ? inputFax : ""}
                         </span>
                       )}
                       {searchMode && (
@@ -1602,9 +1851,22 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                       >
                         E-mail
                       </span>
-                      {!searchMode && (
+                      {!searchMode && !isInsertModeQuotation && (
                         <span className={`${styles.value}`}>
                           {selectedRowDataQuotation?.contact_email ? selectedRowDataQuotation?.contact_email : ""}
+                        </span>
+                      )}
+                      {!searchMode && isInsertModeQuotation && (
+                        <span
+                          className={`${styles.value} ${styles.text_start}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
+                          {inputContactEmail ? inputContactEmail : ""}
                         </span>
                       )}
                       {searchMode && (
@@ -1626,7 +1888,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>郵便番号</span>
-                      {!searchMode && (
+                      {!searchMode && !isInsertModeQuotation && (
                         <span
                           className={`${styles.value}`}
                           // data-text={`${
@@ -1648,6 +1910,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           }}
                         >
                           {selectedRowDataQuotation?.zipcode ? selectedRowDataQuotation?.zipcode : ""}
+                        </span>
+                      )}
+                      {!searchMode && isInsertModeQuotation && (
+                        <span
+                          className={`${styles.value} ${styles.text_start}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
+                          {inputZipcode ? inputZipcode : ""}
                         </span>
                       )}
                       {searchMode && (
@@ -1674,7 +1949,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                   <div className="flex h-full w-full flex-col pr-[20px] ">
                     <div className={`${styles.title_box} ${styles.xl} flex h-full`}>
                       <span className={`${styles.title}`}>○住所</span>
-                      {!searchMode && (
+                      {!searchMode && !isInsertModeQuotation && (
                         <span
                           className={`${styles.full_value} h-[45px] !overflow-visible !whitespace-normal`}
                           onMouseEnter={(e) => {
@@ -1685,6 +1960,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           }}
                         >
                           {selectedRowDataQuotation?.address ? selectedRowDataQuotation?.address : ""}
+                        </span>
+                      )}
+                      {!searchMode && isInsertModeQuotation && (
+                        <span
+                          className={`${styles.value} ${styles.text_start}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
+                          {inputAddress ? inputAddress : ""}
                         </span>
                       )}
                       {searchMode && (
@@ -1725,7 +2013,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                   <div className="flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>会社名</span>
-                      {!searchMode && (
+                      {!searchMode && !isInsertModeQuotation && (
                         <span
                           className={`${styles.value} ${styles.value_highlight} ${styles.text_start}`}
                           onMouseEnter={(e) => {
@@ -1740,6 +2028,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             : ""}
                         </span>
                       )}
+                      {!searchMode && isInsertModeQuotation && (
+                        <span
+                          className={`${styles.value} ${styles.text_start}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
+                          {inputCompanyNameDest ? inputCompanyNameDest : ""}
+                        </span>
+                      )}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -1751,7 +2052,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                   <div className="flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>部署名</span>
-                      {!searchMode && (
+                      {!searchMode && !isInsertModeQuotation && (
                         <span
                           className={`${styles.value} ${styles.text_start}`}
                           onMouseEnter={(e) => {
@@ -1766,6 +2067,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             : ""}
                         </span>
                       )}
+                      {!searchMode && isInsertModeQuotation && (
+                        <span
+                          className={`${styles.value} ${styles.text_start}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
+                          {inputDepartmentNameDest ? inputDepartmentNameDest : ""}
+                        </span>
+                      )}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -1777,7 +2091,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>担当者名</span>
-                      {!searchMode && (
+                      {!searchMode && !isInsertModeQuotation && (
                         <span
                           className={`${styles.value}`}
                           onMouseEnter={(e) => {
@@ -1790,6 +2104,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           {selectedRowDataQuotation?.destination_contact_name
                             ? selectedRowDataQuotation?.destination_contact_name
                             : ""}
+                        </span>
+                      )}
+                      {!searchMode && isInsertModeQuotation && (
+                        <span
+                          className={`${styles.value} ${styles.text_start}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
+                          {inputContactNameDest ? inputContactNameDest : ""}
                         </span>
                       )}
                     </div>
@@ -1807,7 +2134,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>直通TEL</span>
-                      {!searchMode && (
+                      {!searchMode && !isInsertModeQuotation && (
                         <span
                           className={`${styles.value}`}
                           data-text={`${
@@ -1829,13 +2156,26 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             : ""}
                         </span>
                       )}
+                      {!searchMode && isInsertModeQuotation && (
+                        <span
+                          className={`${styles.value} ${styles.text_start}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
+                          {inputDirectLineDest ? inputDirectLineDest : ""}
+                        </span>
+                      )}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>直通FAX</span>
-                      {!searchMode && (
+                      {!searchMode && !isInsertModeQuotation && (
                         <span
                           className={`${styles.value}`}
                           data-text={`${
@@ -1857,6 +2197,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           {selectedRowDataQuotation?.destination_contact_direct_fax
                             ? selectedRowDataQuotation?.destination_contact_direct_fax
                             : ""}
+                        </span>
+                      )}
+                      {!searchMode && isInsertModeQuotation && (
+                        <span
+                          className={`${styles.value} ${styles.text_start}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
+                          {inputDirectFaxDest ? inputDirectFaxDest : ""}
                         </span>
                       )}
                     </div>
@@ -1888,11 +2241,24 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                       >
                         E-mail
                       </span>
-                      {!searchMode && (
+                      {!searchMode && !isInsertModeQuotation && (
                         <span className={`${styles.value}`}>
                           {selectedRowDataQuotation?.destination_contact_email
                             ? selectedRowDataQuotation?.destination_contact_email
                             : ""}
+                        </span>
+                      )}
+                      {!searchMode && isInsertModeQuotation && (
+                        <span
+                          className={`${styles.value} ${styles.text_start}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
+                          {inputContactEmailDest ? inputContactEmailDest : ""}
                         </span>
                       )}
                     </div>
@@ -1906,7 +2272,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>郵便番号</span>
-                      {!searchMode && (
+                      {!searchMode && !isInsertModeQuotation && (
                         <span
                           className={`${styles.value}`}
                           // data-text={`${
@@ -1932,6 +2298,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             : ""}
                         </span>
                       )}
+                      {!searchMode && isInsertModeQuotation && (
+                        <span
+                          className={`${styles.value} ${styles.text_start}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
+                          {inputZipcodeDest ? inputZipcodeDest : ""}
+                        </span>
+                      )}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
@@ -1948,7 +2327,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                   <div className="flex h-full w-full flex-col pr-[20px] ">
                     <div className={`${styles.title_box} flex h-full`}>
                       <span className={`${styles.title}`}>○住所</span>
-                      {!searchMode && (
+                      {!searchMode && !isInsertModeQuotation && (
                         <span
                           className={`${styles.full_value} h-[45px] !overflow-visible !whitespace-normal`}
                           onMouseEnter={(e) => {
@@ -1961,6 +2340,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           {selectedRowDataQuotation?.destination_company_address
                             ? selectedRowDataQuotation?.destination_company_address
                             : ""}
+                        </span>
+                      )}
+                      {!searchMode && isInsertModeQuotation && (
+                        <span
+                          className={`${styles.value} ${styles.text_start}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
+                          {inputAddressDest ? inputAddressDest : ""}
                         </span>
                       )}
                     </div>
@@ -1998,7 +2390,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         <div className={`${styles.title_box} flex h-full items-center `}>
                           <span className={`${styles.section_title} ${styles.min_text}`}>●見積No</span>
                           {/* ローカルストレージに真偽値で独自かシステムどちらを使うかを保持して表示を切り替える */}
-                          {!searchMode && isEditModeField !== "quotation_no_system" && (
+                          {!searchMode && isEditModeField !== "quotation_no_system" && !isInsertModeQuotation && (
                             <span
                               className={`${styles.value} ${styles.value_highlight} ${styles.editable_field}`}
                               data-text={
@@ -2027,6 +2419,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 ? selectedRowDataQuotation?.quotation_no_system
                                 : ""}
                             </span>
+                          )}
+                          {!searchMode && isInsertModeQuotation && (
+                            <>
+                              <input
+                                type="text"
+                                placeholder=""
+                                autoFocus
+                                className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                                value={inputQuotationNoSystem}
+                                onChange={(e) => setInputQuotationNoSystem(e.target.value)}
+                                onBlur={(e) => setInputQuotationNoSystem(inputQuotationNoSystem.trim())}
+                              />
+                            </>
                           )}
                           {/* ============= フィールドエディットモード関連 ============= */}
                           {/* フィールドエディットモード selectタグ  */}
@@ -2100,8 +2505,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           <div className={`${styles.section_title} ${styles.min_text} flex flex-col`}>
                             <span>●提出区分</span>
                           </div>
-
-                          {!searchMode && isEditModeField !== "submission_class" && (
+                          {!searchMode && isEditModeField !== "submission_class" && !isInsertModeQuotation && (
                             <span
                               className={`${styles.value} ${styles.value_highlight} ${styles.editable_field}`}
                               data-text={
@@ -2120,7 +2524,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 handleDoubleClickField({
                                   e,
                                   field: "submission_class",
-                                  dispatch: setInputSubmissionClassForFieldEdit,
+                                  dispatch: setInputSubmissionClassEdit,
                                   selectedRowDataValue: selectedRowDataQuotation?.submission_class ?? "",
                                 });
                                 handleCloseTooltip();
@@ -2131,13 +2535,28 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 : ""}
                             </span>
                           )}
+                          {!searchMode && isInsertModeQuotation && (
+                            <>
+                              <select
+                                className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                                value={inputSubmissionClassEdit}
+                                onChange={(e) => {
+                                  setInputSubmissionClassEdit(e.target.value);
+                                }}
+                              >
+                                {/* <option value=""></option> */}
+                                <option value="提出用">提出用</option>
+                                <option value="社内用">社内用</option>
+                              </select>
+                            </>
+                          )}
                           {/* ============= フィールドエディットモード関連 ============= */}
                           {/* フィールドエディットモード selectタグ  */}
                           {!searchMode && isEditModeField === "submission_class" && (
                             <>
                               <select
                                 className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
-                                value={inputSubmissionClassForFieldEdit}
+                                value={inputSubmissionClassEdit}
                                 onChange={(e) => {
                                   handleChangeSelectUpdateField({
                                     e,
@@ -2200,7 +2619,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 handleDoubleClickField({
                                   e,
                                   field: "deadline",
-                                  dispatch: setInputDeadlineForFieldEdit,
+                                  dispatch: setInputDeadlineEdit,
                                 });
                                 if (hoveredItemPosWrap) handleCloseTooltip();
                               }}
@@ -2219,13 +2638,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               {selectedRowDataQuotation?.deadline ? selectedRowDataQuotation?.deadline : ""}
                             </span>
                           )}
+
+                          <CustomSelectInput
+                            options={["Option 1option Option 1option", "Option 2", "Option 3"]}
+                            displayX="left"
+                          />
+
                           {/* ============= フィールドエディットモード関連 ============= */}
                           {/* フィールドエディットモード selectタグ  */}
                           {!searchMode && isEditModeField === "deadline" && (
                             <>
                               <select
                                 className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
-                                value={inputDeadlineForFieldEdit}
+                                value={inputDeadlineEdit}
                                 onChange={(e) => {
                                   handleChangeSelectUpdateField({
                                     e,
@@ -2287,7 +2712,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 handleDoubleClickField({
                                   e,
                                   field: "quotation_date",
-                                  dispatch: setInputQuotationDateForFieldEdit,
+                                  dispatch: setInputQuotationDateEdit,
                                   dateValue: selectedRowDataQuotation?.quotation_date
                                     ? selectedRowDataQuotation.quotation_date
                                     : null,
@@ -2318,19 +2743,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             <>
                               <div className="z-[2000] w-full">
                                 <DatePickerCustomInput
-                                  startDate={inputQuotationDateForFieldEdit}
-                                  setStartDate={setInputQuotationDateForFieldEdit}
+                                  startDate={inputQuotationDateEdit}
+                                  setStartDate={setInputQuotationDateEdit}
                                   required={true}
                                   isFieldEditMode={true}
                                   fieldEditModeBtnAreaPosition="right"
                                   isLoadingSendEvent={updateQuotationFieldMutation.isLoading}
                                   onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-                                    if (!inputQuotationDateForFieldEdit) return alert("このデータは入力が必須です。");
+                                    if (!inputQuotationDateEdit) return alert("このデータは入力が必須です。");
                                     const originalDateUTCString = selectedRowDataQuotation?.quotation_date
                                       ? selectedRowDataQuotation.quotation_date
                                       : null; // ISOString UTC時間 2023-12-26T15:00:00+00:00
-                                    const newDateUTCString = inputQuotationDateForFieldEdit
-                                      ? inputQuotationDateForFieldEdit.toISOString()
+                                    const newDateUTCString = inputQuotationDateEdit
+                                      ? inputQuotationDateEdit.toISOString()
                                       : null; // Dateオブジェクト ローカルタイムゾーンに自動で変換済み Thu Dec 28 2023 00:00:00 GMT+0900 (日本標準時)
                                     // const result = isSameDateLocal(originalDateString, newDateString);
                                     console.log(
@@ -2338,7 +2763,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                       "オリジナル(UTC)",
                                       originalDateUTCString,
                                       "新たな値(Dateオブジェクト)",
-                                      inputQuotationDateForFieldEdit,
+                                      inputQuotationDateEdit,
                                       "新たな値.toISO(UTC)",
                                       newDateUTCString
                                       // "同じかチェック結果",
@@ -2397,7 +2822,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 handleDoubleClickField({
                                   e,
                                   field: "delivery_place",
-                                  dispatch: setInputDeliveryPlaceForFieldEdit,
+                                  dispatch: setInputDeliveryPlaceEdit,
                                 });
                                 if (hoveredItemPosWrap) handleCloseTooltip();
                               }}
@@ -2422,7 +2847,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             <>
                               <select
                                 className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
-                                value={inputDeliveryPlaceForFieldEdit}
+                                value={inputDeliveryPlaceEdit}
                                 onChange={(e) => {
                                   handleChangeSelectUpdateField({
                                     e,
@@ -2484,7 +2909,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 handleDoubleClickField({
                                   e,
                                   field: "expiration_date",
-                                  dispatch: setInputExpirationDateForFieldEdit,
+                                  dispatch: setInputExpirationDateEdit,
                                   dateValue: selectedRowDataQuotation?.expiration_date
                                     ? selectedRowDataQuotation.expiration_date
                                     : null,
@@ -2515,19 +2940,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             <>
                               <div className="z-[2000] w-full">
                                 <DatePickerCustomInput
-                                  startDate={inputExpirationDateForFieldEdit}
-                                  setStartDate={setInputExpirationDateForFieldEdit}
+                                  startDate={inputExpirationDateEdit}
+                                  setStartDate={setInputExpirationDateEdit}
                                   required={true}
                                   isFieldEditMode={true}
                                   fieldEditModeBtnAreaPosition="right"
                                   isLoadingSendEvent={updateQuotationFieldMutation.isLoading}
                                   onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-                                    if (!inputExpirationDateForFieldEdit) return alert("このデータは入力が必須です。");
+                                    if (!inputExpirationDateEdit) return alert("このデータは入力が必須です。");
                                     const originalDateUTCString = selectedRowDataQuotation?.expiration_date
                                       ? selectedRowDataQuotation.expiration_date
                                       : null; // ISOString UTC時間 2023-12-26T15:00:00+00:00
-                                    const newDateUTCString = inputExpirationDateForFieldEdit
-                                      ? inputExpirationDateForFieldEdit.toISOString()
+                                    const newDateUTCString = inputExpirationDateEdit
+                                      ? inputExpirationDateEdit.toISOString()
                                       : null; // Dateオブジェクト ローカルタイムゾーンに自動で変換済み Thu Dec 28 2023 00:00:00 GMT+0900 (日本標準時)
                                     // const result = isSameDateLocal(originalDateString, newDateString);
                                     console.log(
@@ -2535,7 +2960,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                       "オリジナル(UTC)",
                                       originalDateUTCString,
                                       "新たな値(Dateオブジェクト)",
-                                      inputQuotationDateForFieldEdit,
+                                      inputQuotationDateEdit,
                                       "新たな値.toISO(UTC)",
                                       newDateUTCString
                                       // "同じかチェック結果",
@@ -2594,7 +3019,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 handleDoubleClickField({
                                   e,
                                   field: "payment_terms",
-                                  dispatch: setInputPaymentTermsForFieldEdit,
+                                  dispatch: setInputPaymentTermsEdit,
                                 });
                                 if (hoveredItemPosWrap) handleCloseTooltip();
                               }}
@@ -2619,7 +3044,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             <>
                               <select
                                 className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
-                                value={inputPaymentTermsForFieldEdit}
+                                value={inputPaymentTermsEdit}
                                 onChange={(e) => {
                                   handleChangeSelectUpdateField({
                                     e,
@@ -2690,7 +3115,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               className={`${styles.grid_select_cell_header_input} ${
                                 !selectedRowDataQuotation ? `pointer-events-none cursor-not-allowed` : ``
                               }`}
-                              checked={checkboxUseCorporateSealFlagForFieldEdit}
+                              checked={checkboxUseCorporateSealFlagEdit}
                               onChange={async (e) => {
                                 if (!selectedRowDataQuotation) return;
                                 // 個別にチェックボックスを更新するルート
@@ -2699,13 +3124,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
 
                                 console.log(
                                   "チェック 新しい値",
-                                  !checkboxUseCorporateSealFlagForFieldEdit,
+                                  !checkboxUseCorporateSealFlagEdit,
                                   "オリジナル",
                                   selectedRowDataQuotation?.use_corporate_seal
                                 );
                                 if (
-                                  !checkboxUseCorporateSealFlagForFieldEdit ===
-                                  selectedRowDataQuotation?.use_corporate_seal
+                                  !checkboxUseCorporateSealFlagEdit === selectedRowDataQuotation?.use_corporate_seal
                                 ) {
                                   toast.error(`アップデートに失敗しました🤦‍♀️`);
                                   return;
@@ -2713,12 +3137,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 const updatePayload = {
                                   fieldName: "use_corporate_seal",
                                   fieldNameForSelectedRowData: "use_corporate_seal" as "use_corporate_seal",
-                                  newValue: !checkboxUseCorporateSealFlagForFieldEdit,
+                                  newValue: !checkboxUseCorporateSealFlagEdit,
                                   id: selectedRowDataQuotation.quotation_id,
                                 };
                                 // 直感的にするためにmutateにして非同期処理のまま後続のローカルのチェックボックスを更新する
                                 updateQuotationFieldMutation.mutate(updatePayload);
-                                setCheckboxUseCorporateSealFlagForFieldEdit(!checkboxUseCorporateSealFlagForFieldEdit);
+                                setCheckboxUseCorporateSealFlagEdit(!checkboxUseCorporateSealFlagEdit);
                               }}
                             />
                             <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -2747,7 +3171,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 handleDoubleClickField({
                                   e,
                                   field: "quotation_division",
-                                  dispatch: setInputQuotationDivisionForFieldEdit,
+                                  dispatch: setInputQuotationDivisionEdit,
                                 });
                                 if (hoveredItemPosWrap) handleCloseTooltip();
                               }}
@@ -2776,7 +3200,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             <>
                               <select
                                 className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
-                                value={inputQuotationDivisionForFieldEdit}
+                                value={inputQuotationDivisionEdit}
                                 onChange={(e) => {
                                   handleChangeSelectUpdateField({
                                     e,
@@ -2836,7 +3260,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 handleDoubleClickField({
                                   e,
                                   field: "sending_method",
-                                  dispatch: setInputSendingMethodForFieldEdit,
+                                  dispatch: setInputSendingMethodEdit,
                                 });
                                 if (hoveredItemPosWrap) handleCloseTooltip();
                               }}
@@ -2861,7 +3285,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             <>
                               <select
                                 className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
-                                value={inputSendingMethodForFieldEdit}
+                                value={inputSendingMethodEdit}
                                 onChange={(e) => {
                                   handleChangeSelectUpdateField({
                                     e,
@@ -3006,7 +3430,11 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                     <div className={`${styles.row_area} flex w-full items-center`}>
                       <div className="flex h-full w-1/2 flex-col pr-[20px]">
                         <div className={`${styles.title_box} flex h-full items-center `}>
-                          <span className={`${styles.title}`}>●消費税区分</span>
+                          {/* <span className={`${styles.title}`}>●消費税区分</span> */}
+                          <div className={`${styles.check_title} flex flex-col ${styles.double_text} !text-[12px]`}>
+                            <span>●消費税区分</span>
+                            <span>見積記載有無</span>
+                          </div>
                           {!searchMode && isEditModeField !== "sales_tax_class" && (
                             <span
                               className={`${styles.value} ${styles.editable_field}`}
@@ -3018,7 +3446,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 handleDoubleClickField({
                                   e,
                                   field: "sales_tax_class",
-                                  dispatch: setInputSalesTaxClassForFieldEdit,
+                                  dispatch: setInputSalesTaxClassEdit,
                                 });
                                 if (hoveredItemPosWrap) handleCloseTooltip();
                               }}
@@ -3047,7 +3475,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             <>
                               <select
                                 className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
-                                value={inputSalesTaxClassForFieldEdit}
+                                value={inputSalesTaxClassEdit}
                                 onChange={(e) => {
                                   handleChangeSelectUpdateField({
                                     e,
@@ -3107,7 +3535,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 handleDoubleClickField({
                                   e,
                                   field: "sales_tax_rate",
-                                  dispatch: setInputSalesTaxRateForFieldEdit,
+                                  dispatch: setInputSalesTaxRateEdit,
                                 });
                                 if (hoveredItemPosWrap) handleCloseTooltip();
                               }}
@@ -3132,7 +3560,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             <>
                               <select
                                 className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
-                                value={inputSalesTaxRateForFieldEdit}
+                                value={inputSalesTaxRateEdit}
                                 onChange={(e) => {
                                   handleChangeSelectUpdateField({
                                     e,
@@ -3185,7 +3613,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                     <div className={`${styles.row_area} flex w-full items-center`}>
                       <div className="flex h-full w-1/2 flex-col pr-[20px]">
                         <div className={`${styles.title_box} flex h-full items-center `}>
-                          <span className={`${styles.title} text-[12px]`}>売上価格</span>
+                          <span className={`${styles.title} text-[12px]`}>価格合計</span>
                           {!searchMode && isEditModeField !== "total_price" && (
                             <span
                               className={`${styles.value} ${styles.editable_field}`}
@@ -3197,7 +3625,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 handleDoubleClickField({
                                   e,
                                   field: "total_price",
-                                  dispatch: setInputTotalPriceForFieldEdit,
+                                  dispatch: setInputTotalPriceEdit,
                                 });
                                 if (hoveredItemPosWrap) handleCloseTooltip();
                               }}
@@ -3229,23 +3657,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
                                 onCompositionStart={() => setIsComposing(true)}
                                 onCompositionEnd={() => setIsComposing(false)}
-                                value={
-                                  checkNotFalsyExcludeZero(inputTotalPriceForFieldEdit)
-                                    ? inputTotalPriceForFieldEdit
-                                    : ""
-                                }
+                                value={checkNotFalsyExcludeZero(inputTotalPriceEdit) ? inputTotalPriceEdit : ""}
                                 onChange={(e) => {
                                   if (e.target.value === "0" || e.target.value === "０") {
-                                    setInputTotalPriceForFieldEdit("0");
+                                    setInputTotalPriceEdit("0");
                                   }
-                                  setInputTotalPriceForFieldEdit(e.target.value);
+                                  setInputTotalPriceEdit(e.target.value);
                                 }}
                                 // onBlur={() => {
-                                //   setInputTotalPriceForFieldEdit(
-                                //     !!inputTotalPriceForFieldEdit &&
-                                //       inputTotalPriceForFieldEdit !== "" &&
-                                //       convertToYen(inputTotalPriceForFieldEdit.trim()) !== null
-                                //       ? (convertToYen(inputTotalPriceForFieldEdit.trim()) as number).toLocaleString()
+                                //   setInputTotalPriceEdit(
+                                //     !!inputTotalPriceEdit &&
+                                //       inputTotalPriceEdit !== "" &&
+                                //       convertToYen(inputTotalPriceEdit.trim()) !== null
+                                //       ? (convertToYen(inputTotalPriceEdit.trim()) as number).toLocaleString()
                                 //       : ""
                                 //   );
                                 // }}
@@ -3255,8 +3679,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     fieldName: "total_price",
                                     fieldNameForSelectedRowData: "total_price",
                                     originalValue: originalValueFieldEdit.current,
-                                    newValue: !!inputTotalPriceForFieldEdit
-                                      ? (convertToYen(inputTotalPriceForFieldEdit.trim()) as number).toString()
+                                    newValue: !!inputTotalPriceEdit
+                                      ? (convertToYen(inputTotalPriceEdit.trim()) as number).toString()
                                       : null,
                                     id: selectedRowDataQuotation?.quotation_id,
                                     required: false,
@@ -3266,16 +3690,16 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               {/* 送信ボタンとクローズボタン */}
                               {!updateQuotationFieldMutation.isLoading && (
                                 <InputSendAndCloseBtn<string>
-                                  inputState={inputTotalPriceForFieldEdit}
-                                  setInputState={setInputTotalPriceForFieldEdit}
+                                  inputState={inputTotalPriceEdit}
+                                  setInputState={setInputTotalPriceEdit}
                                   onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
                                     handleClickSendUpdateField({
                                       e,
                                       fieldName: "total_price",
                                       fieldNameForSelectedRowData: "total_price",
                                       originalValue: originalValueFieldEdit.current,
-                                      newValue: inputTotalPriceForFieldEdit
-                                        ? (convertToYen(inputTotalPriceForFieldEdit.trim()) as number).toString()
+                                      newValue: inputTotalPriceEdit
+                                        ? (convertToYen(inputTotalPriceEdit.trim()) as number).toString()
                                         : null,
                                       id: selectedRowDataQuotation?.quotation_id,
                                       required: false,
@@ -3331,7 +3755,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 handleDoubleClickField({
                                   e,
                                   field: "discount_title",
-                                  dispatch: setInputDiscountTitleForFieldEdit,
+                                  dispatch: setInputDiscountTitleEdit,
                                   selectedRowDataValue: selectedRowDataQuotation?.discount_title ?? "",
                                 });
                                 handleCloseTooltip();
@@ -3349,8 +3773,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 placeholder=""
                                 autoFocus
                                 className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
-                                value={inputDiscountTitleForFieldEdit}
-                                onChange={(e) => setInputDiscountTitleForFieldEdit(e.target.value)}
+                                value={inputDiscountTitleEdit}
+                                onChange={(e) => setInputDiscountTitleEdit(e.target.value)}
                                 onCompositionStart={() => setIsComposing(true)}
                                 onCompositionEnd={() => setIsComposing(false)}
                                 onKeyDown={(e) =>
@@ -3359,7 +3783,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     fieldName: "discount_title",
                                     fieldNameForSelectedRowData: "discount_title",
                                     originalValue: originalValueFieldEdit.current,
-                                    newValue: inputDiscountTitleForFieldEdit.trim(),
+                                    newValue: inputDiscountTitleEdit.trim(),
                                     id: selectedRowDataQuotation?.quotation_id,
                                     required: true,
                                   })
@@ -3368,15 +3792,15 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               {/* 送信ボタンとクローズボタン */}
                               {!updateQuotationFieldMutation.isLoading && (
                                 <InputSendAndCloseBtn
-                                  inputState={inputDiscountTitleForFieldEdit}
-                                  setInputState={setInputDiscountTitleForFieldEdit}
+                                  inputState={inputDiscountTitleEdit}
+                                  setInputState={setInputDiscountTitleEdit}
                                   onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
                                     handleClickSendUpdateField({
                                       e,
                                       fieldName: "discount_title",
                                       fieldNameForSelectedRowData: "discount_title",
                                       originalValue: originalValueFieldEdit.current,
-                                      newValue: inputDiscountTitleForFieldEdit.trim(),
+                                      newValue: inputDiscountTitleEdit.trim(),
                                       id: selectedRowDataQuotation?.quotation_id,
                                       required: true,
                                     })
@@ -3426,7 +3850,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 handleDoubleClickField({
                                   e,
                                   field: "discount_amount",
-                                  dispatch: setInputDiscountAmountForFieldEdit,
+                                  dispatch: setInputDiscountAmountEdit,
                                 });
                                 if (hoveredItemPosWrap) handleCloseTooltip();
                               }}
@@ -3460,18 +3884,14 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
                                 onCompositionStart={() => setIsComposing(true)}
                                 onCompositionEnd={() => setIsComposing(false)}
-                                value={
-                                  checkNotFalsyExcludeZero(inputDiscountAmountForFieldEdit)
-                                    ? inputDiscountAmountForFieldEdit
-                                    : ""
-                                }
-                                onChange={(e) => setInputDiscountAmountForFieldEdit(e.target.value)}
+                                value={checkNotFalsyExcludeZero(inputDiscountAmountEdit) ? inputDiscountAmountEdit : ""}
+                                onChange={(e) => setInputDiscountAmountEdit(e.target.value)}
                                 // onBlur={() => {
-                                //   setInputDiscountAmountForFieldEdit(
-                                //     !!inputDiscountAmountForFieldEdit &&
-                                //       inputDiscountAmountForFieldEdit !== "" &&
-                                //       convertToYen(inputDiscountAmountForFieldEdit.trim()) !== null
-                                //       ? (convertToYen(inputDiscountAmountForFieldEdit.trim()) as number).toLocaleString()
+                                //   setInputDiscountAmountEdit(
+                                //     !!inputDiscountAmountEdit &&
+                                //       inputDiscountAmountEdit !== "" &&
+                                //       convertToYen(inputDiscountAmountEdit.trim()) !== null
+                                //       ? (convertToYen(inputDiscountAmountEdit.trim()) as number).toLocaleString()
                                 //       : ""
                                 //   );
                                 // }}
@@ -3481,8 +3901,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     fieldName: "discount_amount",
                                     fieldNameForSelectedRowData: "discount_amount",
                                     originalValue: originalValueFieldEdit.current,
-                                    newValue: !!inputDiscountAmountForFieldEdit
-                                      ? (convertToYen(inputDiscountAmountForFieldEdit.trim()) as number).toString()
+                                    newValue: !!inputDiscountAmountEdit
+                                      ? (convertToYen(inputDiscountAmountEdit.trim()) as number).toString()
                                       : null,
                                     id: selectedRowDataQuotation?.quotation_id,
                                     required: false,
@@ -3492,16 +3912,16 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               {/* 送信ボタンとクローズボタン */}
                               {!updateQuotationFieldMutation.isLoading && (
                                 <InputSendAndCloseBtn<string>
-                                  inputState={inputDiscountAmountForFieldEdit}
-                                  setInputState={setInputDiscountAmountForFieldEdit}
+                                  inputState={inputDiscountAmountEdit}
+                                  setInputState={setInputDiscountAmountEdit}
                                   onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
                                     handleClickSendUpdateField({
                                       e,
                                       fieldName: "discount_amount",
                                       fieldNameForSelectedRowData: "discount_amount",
                                       originalValue: originalValueFieldEdit.current,
-                                      newValue: inputDiscountAmountForFieldEdit
-                                        ? (convertToYen(inputDiscountAmountForFieldEdit.trim()) as number).toString()
+                                      newValue: inputDiscountAmountEdit
+                                        ? (convertToYen(inputDiscountAmountEdit.trim()) as number).toString()
                                         : null,
                                       id: selectedRowDataQuotation?.quotation_id,
                                       required: false,
@@ -3556,6 +3976,138 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           )}
                         </div>
                         <div className={`${styles.underline}`}></div>
+                      </div>
+                    </div>
+                    {/*  */}
+
+                    {/* 合計金額 */}
+                    <div className={`${styles.row_area} flex w-full items-center`}>
+                      <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                        <div className={`${styles.title_box} flex h-full items-center `}>
+                          <span className={`${styles.title} text-[12px]`}>合計金額</span>
+                          {!searchMode && isEditModeField !== "total_amount" && (
+                            <span
+                              className={`${styles.value} ${styles.editable_field}`}
+                              onClick={handleSingleClickField}
+                              onDoubleClick={(e) => {
+                                if (!checkNotFalsyExcludeZero(selectedRowDataQuotation?.total_amount)) return;
+                                // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.total_amount))
+                                //   return alert(returnMessageNotActivity(selectedRowDataQuotation.total_amount));
+                                handleDoubleClickField({
+                                  e,
+                                  field: "total_amount",
+                                  dispatch: setInputTotalAmountEdit,
+                                });
+                                if (hoveredItemPosWrap) handleCloseTooltip();
+                              }}
+                              data-text={`${
+                                selectedRowDataQuotation?.total_amount ? selectedRowDataQuotation?.total_amount : ""
+                              }`}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                              }}
+                            >
+                              {checkNotFalsyExcludeZero(selectedRowDataQuotation?.total_amount)
+                                ? Number(selectedRowDataQuotation?.total_amount).toLocaleString() + "円"
+                                : ""}
+                            </span>
+                          )}
+                          {/* ============= フィールドエディットモード関連 ============= */}
+                          {/* フィールドエディットモード selectタグ  */}
+                          {!searchMode && isEditModeField === "total_amount" && (
+                            <>
+                              <input
+                                type="text"
+                                autoFocus
+                                // placeholder="例：600万円 → 6000000　※半角で入力"
+                                className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                                onCompositionStart={() => setIsComposing(true)}
+                                onCompositionEnd={() => setIsComposing(false)}
+                                value={checkNotFalsyExcludeZero(inputTotalAmountEdit) ? inputTotalAmountEdit : ""}
+                                onChange={(e) => {
+                                  if (e.target.value === "0" || e.target.value === "０") {
+                                    setInputTotalAmountEdit("0");
+                                  }
+                                  setInputTotalAmountEdit(e.target.value);
+                                }}
+                                // onBlur={() => {
+                                //   setInputTotalAmountEdit(
+                                //     !!inputTotalAmountEdit &&
+                                //       inputTotalAmountEdit !== "" &&
+                                //       convertToYen(inputTotalAmountEdit.trim()) !== null
+                                //       ? (convertToYen(inputTotalAmountEdit.trim()) as number).toLocaleString()
+                                //       : ""
+                                //   );
+                                // }}
+                                onKeyDown={(e) => {
+                                  handleKeyDownUpdateField({
+                                    e,
+                                    fieldName: "total_amount",
+                                    fieldNameForSelectedRowData: "total_amount",
+                                    originalValue: originalValueFieldEdit.current,
+                                    newValue: !!inputTotalAmountEdit
+                                      ? (convertToYen(inputTotalAmountEdit.trim()) as number).toString()
+                                      : null,
+                                    id: selectedRowDataQuotation?.quotation_id,
+                                    required: false,
+                                  });
+                                }}
+                              />
+                              {/* 送信ボタンとクローズボタン */}
+                              {!updateQuotationFieldMutation.isLoading && (
+                                <InputSendAndCloseBtn<string>
+                                  inputState={inputTotalAmountEdit}
+                                  setInputState={setInputTotalAmountEdit}
+                                  onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                                    handleClickSendUpdateField({
+                                      e,
+                                      fieldName: "total_amount",
+                                      fieldNameForSelectedRowData: "total_amount",
+                                      originalValue: originalValueFieldEdit.current,
+                                      newValue: inputTotalAmountEdit
+                                        ? (convertToYen(inputTotalAmountEdit.trim()) as number).toString()
+                                        : null,
+                                      id: selectedRowDataQuotation?.quotation_id,
+                                      required: false,
+                                    })
+                                  }
+                                  required={false}
+                                  isDisplayClose={false}
+                                />
+                              )}
+
+                              {/* エディットフィールド送信中ローディングスピナー */}
+                              {updateQuotationFieldMutation.isLoading && (
+                                <div
+                                  className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                                >
+                                  <SpinnerComet w="22px" h="22px" s="3px" />
+                                </div>
+                              )}
+                            </>
+                          )}
+                          {/* フィールドエディットモードオーバーレイ */}
+                          {!searchMode && isEditModeField === "total_amount" && (
+                            <div
+                              className={`${styles.edit_mode_overlay}`}
+                              onClick={(e) => {
+                                e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                                setIsEditModeField(null); // エディットモードを終了
+                              }}
+                            />
+                          )}
+                          {/* ============= フィールドエディットモード関連ここまで ============= */}
+                        </div>
+                        <div className={`${styles.underline}`}></div>
+                      </div>
+                      <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                        <div className={`${styles.title_box} flex h-full items-center`}></div>
+                        {/* <div className={`${styles.underline}`}></div> */}
                       </div>
                     </div>
                     {/*  */}
@@ -3774,7 +4326,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             />
                           )}
                         </div>
-                        <div className={`${styles.underline}`}></div>
+                        {/* <div className={`${styles.underline}`}></div> */}
+                        <div className={`${styles.section_underline}`}></div>
                       </div>
                     </div>
                     {/*  */}
@@ -3957,7 +4510,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               className={`${styles.grid_select_cell_header_input} ${
                                 !selectedRowDataQuotation ? `pointer-events-none cursor-not-allowed` : ``
                               }`}
-                              checked={checkboxInChargeFlagForFieldEdit}
+                              checked={checkboxInChargeFlagEdit}
                               onChange={async (e) => {
                                 if (!selectedRowDataQuotation) return;
                                 // 個別にチェックボックスを更新するルート
@@ -3966,25 +4519,23 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
 
                                 console.log(
                                   "チェック 新しい値",
-                                  !checkboxInChargeFlagForFieldEdit,
+                                  !checkboxInChargeFlagEdit,
                                   "オリジナル",
                                   selectedRowDataQuotation?.in_charge_stamp_flag
                                 );
-                                if (
-                                  !checkboxInChargeFlagForFieldEdit === selectedRowDataQuotation?.in_charge_stamp_flag
-                                ) {
+                                if (!checkboxInChargeFlagEdit === selectedRowDataQuotation?.in_charge_stamp_flag) {
                                   toast.error(`アップデートに失敗しました🤦‍♀️`);
                                   return;
                                 }
                                 const updatePayload = {
                                   fieldName: "in_charge_stamp_flag",
                                   fieldNameForSelectedRowData: "in_charge_stamp_flag" as "in_charge_stamp_flag",
-                                  newValue: !checkboxInChargeFlagForFieldEdit,
+                                  newValue: !checkboxInChargeFlagEdit,
                                   id: selectedRowDataQuotation.quotation_id,
                                 };
                                 // 直感的にするためにmutateにして非同期処理のまま後続のローカルのチェックボックスを更新する
                                 updateQuotationFieldMutation.mutate(updatePayload);
-                                setCheckboxInChargeFlagForFieldEdit(!checkboxInChargeFlagForFieldEdit);
+                                setCheckboxInChargeFlagEdit(!checkboxInChargeFlagEdit);
                               }}
                             />
                             <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -4050,7 +4601,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               className={`${styles.grid_select_cell_header_input} ${
                                 !selectedRowDataQuotation ? `pointer-events-none cursor-not-allowed` : ``
                               }`}
-                              checked={checkboxSupervisor1FlagForFieldEdit}
+                              checked={checkboxSupervisor1FlagEdit}
                               onChange={async (e) => {
                                 if (!selectedRowDataQuotation) return;
                                 // 個別にチェックボックスを更新するルート
@@ -4059,26 +4610,23 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
 
                                 console.log(
                                   "チェック 新しい値",
-                                  !checkboxSupervisor1FlagForFieldEdit,
+                                  !checkboxSupervisor1FlagEdit,
                                   "オリジナル",
                                   selectedRowDataQuotation?.supervisor1_stamp_flag
                                 );
-                                if (
-                                  !checkboxSupervisor1FlagForFieldEdit ===
-                                  selectedRowDataQuotation?.supervisor1_stamp_flag
-                                ) {
+                                if (!checkboxSupervisor1FlagEdit === selectedRowDataQuotation?.supervisor1_stamp_flag) {
                                   toast.error(`アップデートに失敗しました🤦‍♀️`);
                                   return;
                                 }
                                 const updatePayload = {
                                   fieldName: "supervisor1_stamp_flag",
                                   fieldNameForSelectedRowData: "supervisor1_stamp_flag" as "supervisor1_stamp_flag",
-                                  newValue: !checkboxSupervisor1FlagForFieldEdit,
+                                  newValue: !checkboxSupervisor1FlagEdit,
                                   id: selectedRowDataQuotation.quotation_id,
                                 };
                                 // 直感的にするためにmutateにして非同期処理のまま後続のローカルのチェックボックスを更新する
                                 updateQuotationFieldMutation.mutate(updatePayload);
-                                setCheckboxSupervisor1FlagForFieldEdit(!checkboxSupervisor1FlagForFieldEdit);
+                                setCheckboxSupervisor1FlagEdit(!checkboxSupervisor1FlagEdit);
                               }}
                             />
                             <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -4144,7 +4692,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               className={`${styles.grid_select_cell_header_input} ${
                                 !selectedRowDataQuotation ? `pointer-events-none cursor-not-allowed` : ``
                               }`}
-                              checked={checkboxSupervisor2FlagForFieldEdit}
+                              checked={checkboxSupervisor2FlagEdit}
                               onChange={async (e) => {
                                 if (!selectedRowDataQuotation) return;
                                 // 個別にチェックボックスを更新するルート
@@ -4153,26 +4701,23 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
 
                                 console.log(
                                   "チェック 新しい値",
-                                  !checkboxSupervisor2FlagForFieldEdit,
+                                  !checkboxSupervisor2FlagEdit,
                                   "オリジナル",
                                   selectedRowDataQuotation?.supervisor1_stamp_flag
                                 );
-                                if (
-                                  !checkboxSupervisor2FlagForFieldEdit ===
-                                  selectedRowDataQuotation?.supervisor1_stamp_flag
-                                ) {
+                                if (!checkboxSupervisor2FlagEdit === selectedRowDataQuotation?.supervisor1_stamp_flag) {
                                   toast.error(`アップデートに失敗しました🤦‍♀️`);
                                   return;
                                 }
                                 const updatePayload = {
                                   fieldName: "supervisor1_stamp_flag",
                                   fieldNameForSelectedRowData: "supervisor1_stamp_flag" as "supervisor1_stamp_flag",
-                                  newValue: !checkboxSupervisor2FlagForFieldEdit,
+                                  newValue: !checkboxSupervisor2FlagEdit,
                                   id: selectedRowDataQuotation.quotation_id,
                                 };
                                 // 直感的にするためにmutateにして非同期処理のまま後続のローカルのチェックボックスを更新する
                                 updateQuotationFieldMutation.mutate(updatePayload);
-                                setCheckboxSupervisor2FlagForFieldEdit(!checkboxSupervisor2FlagForFieldEdit);
+                                setCheckboxSupervisor2FlagEdit(!checkboxSupervisor2FlagEdit);
                               }}
                             />
                             <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -4275,6 +4820,731 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             />
                           )}
                           {/* ============= フィールドエディットモード関連ここまで ============= */}
+                        </div>
+                        <div className={`${styles.underline}`}></div>
+                      </div>
+                    </div>
+                    {/*  */}
+
+                    {/* セット見積り・リース見積り */}
+                    <div className={`${styles.row_area} flex w-full items-center`}>
+                      <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                        <div className={`${styles.title_box} flex h-full items-center `}>
+                          <span className={`${styles.title}`}>セット見積り</span>
+                        </div>
+                        {/* <div className={`${styles.underline}`}></div> */}
+                        <div className={`${styles.section_underline}`}></div>
+                      </div>
+                      {/* リース見積り */}
+                      <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                        <div className={`${styles.title_box} flex h-full items-center`}>
+                          <span className={`${styles.title}`}>リース見積り</span>
+                        </div>
+                        {/* <div className={`${styles.underline}`}></div> */}
+                        <div className={`${styles.section_underline}`}></div>
+                      </div>
+                    </div>
+                    {/*  */}
+
+                    {/* セット数・期間 */}
+                    <div className={`${styles.row_area} flex w-full items-center`}>
+                      <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                        <div className={`${styles.title_box} flex h-full items-center `}>
+                          <span className={`${styles.title}`}>セット数</span>
+                          {!searchMode && isEditModeField !== "set_item_count" && (
+                            <span
+                              className={`${styles.value} ${styles.editable_field}`}
+                              onClick={handleSingleClickField}
+                              onDoubleClick={(e) => {
+                                if (!selectedRowDataQuotation?.set_item_count) return;
+                                // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.set_item_count))
+                                //   return alert(returnMessageNotActivity(selectedRowDataQuotation.set_item_count));
+                                handleDoubleClickField({
+                                  e,
+                                  field: "set_item_count",
+                                  dispatch: setInputSetItemCountEdit,
+                                });
+                                if (hoveredItemPosWrap) handleCloseTooltip();
+                              }}
+                              data-text={`${
+                                selectedRowDataQuotation?.set_item_count ? selectedRowDataQuotation?.set_item_count : ""
+                              }`}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                              }}
+                            >
+                              {selectedRowDataQuotation?.quotation_division === "set" &&
+                              selectedRowDataQuotation?.set_item_count
+                                ? selectedRowDataQuotation?.set_item_count
+                                : ""}
+                            </span>
+                          )}
+                          {/* ============= フィールドエディットモード関連 ============= */}
+                          {/* フィールドエディットモード selectタグ  */}
+                          {!searchMode && isEditModeField === "set_item_count" && (
+                            <>
+                              <input
+                                type="text"
+                                placeholder=""
+                                className={`${styles.input_box}`}
+                                onCompositionStart={() => setIsComposing(true)}
+                                onCompositionEnd={() => setIsComposing(false)}
+                                value={!!inputSetItemCountEdit ? inputSetItemCountEdit : ""}
+                                onChange={(e) => {
+                                  if (e.target.value === "0" || e.target.value === "０") {
+                                    if (inputSetItemCountEdit === "0" || inputSetItemCountEdit === "０")
+                                      setInputSetItemCountEdit("");
+                                    return;
+                                  }
+                                  setInputSetItemCountEdit(e.target.value);
+                                }}
+                                // onBlur={(e) => {
+                                //   if (
+                                //     !inputSetItemCountEdit ||
+                                //     inputSetItemCountEdit === "" ||
+                                //     inputSetItemCountEdit === "0" ||
+                                //     e.target.value === "０"
+                                //   )
+                                //     return setInputSetItemCountEdit("");
+                                //   const converted = convertHalfWidthNumOnly(inputSetItemCountEdit.trim());
+                                //   if (converted === null) return setInputSetItemCountEdit("");
+                                //   setInputSetItemCountEdit(converted);
+                                // }}
+                                onKeyDown={(e) => {
+                                  if (
+                                    !inputSetItemCountEdit ||
+                                    inputSetItemCountEdit === "" ||
+                                    inputSetItemCountEdit === "0" ||
+                                    inputSetItemCountEdit === "０"
+                                  ) {
+                                    return setInputSetItemCountEdit("");
+                                  }
+                                  const converted = convertHalfWidthNumOnly(inputSetItemCountEdit.trim());
+                                  if (converted === null) return setInputSetItemCountEdit("");
+                                  setInputSetItemCountEdit(converted);
+                                  handleKeyDownUpdateField({
+                                    e,
+                                    fieldName: "set_item_count",
+                                    fieldNameForSelectedRowData: "set_item_count",
+                                    originalValue: originalValueFieldEdit.current,
+                                    // newValue: inputSetItemCountEdit,
+                                    newValue: converted,
+                                    id: selectedRowDataQuotation?.quotation_id,
+                                    required: false,
+                                  });
+                                }}
+                              />
+                              {/* 送信ボタンとクローズボタン */}
+                              {!updateQuotationFieldMutation.isLoading && (
+                                <InputSendAndCloseBtn<string>
+                                  inputState={inputSetItemCountEdit}
+                                  setInputState={setInputSetItemCountEdit}
+                                  onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                                    if (
+                                      !inputSetItemCountEdit ||
+                                      inputSetItemCountEdit === "" ||
+                                      inputSetItemCountEdit === "0" ||
+                                      inputSetItemCountEdit === "０"
+                                    ) {
+                                      return setInputSetItemCountEdit("");
+                                    }
+                                    const converted = convertHalfWidthNumOnly(inputSetItemCountEdit.trim());
+                                    if (converted === null) return setInputSetItemCountEdit("");
+                                    setInputSetItemCountEdit(converted);
+                                    handleClickSendUpdateField({
+                                      e,
+                                      fieldName: "set_item_count",
+                                      fieldNameForSelectedRowData: "set_item_count",
+                                      originalValue: originalValueFieldEdit.current,
+                                      // newValue: inputSetItemCountEdit,
+                                      newValue: converted,
+                                      id: selectedRowDataQuotation?.quotation_id,
+                                      required: false,
+                                    });
+                                  }}
+                                  required={false}
+                                  isDisplayClose={false}
+                                />
+                              )}
+                              {/* エディットフィールド送信中ローディングスピナー */}
+                              {updateQuotationFieldMutation.isLoading && (
+                                <div
+                                  className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                                >
+                                  <SpinnerComet w="22px" h="22px" s="3px" />
+                                </div>
+                              )}
+                            </>
+                          )}
+                          {/* フィールドエディットモードオーバーレイ */}
+                          {!searchMode && isEditModeField === "set_item_count" && (
+                            <div
+                              className={`${styles.edit_mode_overlay}`}
+                              onClick={(e) => {
+                                e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                                setIsEditModeField(null); // エディットモードを終了
+                              }}
+                            />
+                          )}
+                          {/* ============= フィールドエディットモード関連ここまで ============= */}
+                        </div>
+                        <div className={`${styles.underline}`}></div>
+                      </div>
+                      {/* 期間 */}
+                      <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                        <div className={`${styles.title_box} flex h-full items-center`}>
+                          <span className={`${styles.title}`}>期間</span>
+                          {!searchMode && isEditModeField !== "lease_period" && (
+                            <span
+                              className={`${styles.value} ${styles.editable_field}`}
+                              onClick={handleSingleClickField}
+                              onDoubleClick={(e) => {
+                                if (!selectedRowDataQuotation?.lease_period) return;
+                                // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.lease_period))
+                                //   return alert(returnMessageNotActivity(selectedRowDataQuotation.lease_period));
+                                handleDoubleClickField({
+                                  e,
+                                  field: "lease_period",
+                                  dispatch: setInputLeasePeriodEdit,
+                                });
+                                if (hoveredItemPosWrap) handleCloseTooltip();
+                              }}
+                              data-text={`${
+                                selectedRowDataQuotation?.lease_period ? selectedRowDataQuotation?.lease_period : ""
+                              }`}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                              }}
+                            >
+                              {selectedRowDataQuotation?.quotation_division === "lease" &&
+                              selectedRowDataQuotation?.lease_period
+                                ? selectedRowDataQuotation?.lease_period
+                                : ""}
+                            </span>
+                          )}
+                          {/* ============= フィールドエディットモード関連 ============= */}
+                          {/* フィールドエディットモード selectタグ  */}
+                          {/* フィールドエディットモード selectタグ  */}
+                          {!searchMode && isEditModeField === "lease_period" && (
+                            <>
+                              <input
+                                type="text"
+                                placeholder=""
+                                className={`${styles.input_box}`}
+                                onCompositionStart={() => setIsComposing(true)}
+                                onCompositionEnd={() => setIsComposing(false)}
+                                value={!!inputLeasePeriodEdit ? inputLeasePeriodEdit : ""}
+                                onChange={(e) => {
+                                  if (e.target.value === "0" || e.target.value === "０") {
+                                    if (inputLeasePeriodEdit === "0" || inputLeasePeriodEdit === "０")
+                                      setInputLeasePeriodEdit("");
+                                    return;
+                                  }
+                                  setInputLeasePeriodEdit(e.target.value);
+                                }}
+                                // onBlur={(e) => {
+                                //   if (
+                                //     !inputLeasePeriodEdit ||
+                                //     inputLeasePeriodEdit === "" ||
+                                //     inputLeasePeriodEdit === "0" ||
+                                //     e.target.value === "０"
+                                //   )
+                                //     return setInputLeasePeriodEdit("");
+                                //   const converted = convertHalfWidthNumOnly(inputLeasePeriodEdit.trim());
+                                //   if (converted === null) return setInputLeasePeriodEdit("");
+                                //   setInputLeasePeriodEdit(converted);
+                                // }}
+                                onKeyDown={(e) => {
+                                  if (
+                                    !inputLeasePeriodEdit ||
+                                    inputLeasePeriodEdit === "" ||
+                                    inputLeasePeriodEdit === "0" ||
+                                    inputLeasePeriodEdit === "０"
+                                  ) {
+                                    return setInputLeasePeriodEdit("");
+                                  }
+                                  const converted = convertHalfWidthNumOnly(inputLeasePeriodEdit.trim());
+                                  if (converted === null) return setInputLeasePeriodEdit("");
+                                  setInputLeasePeriodEdit(converted);
+                                  handleKeyDownUpdateField({
+                                    e,
+                                    fieldName: "lease_period",
+                                    fieldNameForSelectedRowData: "lease_period",
+                                    originalValue: originalValueFieldEdit.current,
+                                    // newValue: inputLeasePeriodEdit,
+                                    newValue: converted,
+                                    id: selectedRowDataQuotation?.quotation_id,
+                                    required: false,
+                                  });
+                                }}
+                              />
+                              {/* 送信ボタンとクローズボタン */}
+                              {!updateQuotationFieldMutation.isLoading && (
+                                <InputSendAndCloseBtn<string>
+                                  inputState={inputLeasePeriodEdit}
+                                  setInputState={setInputLeasePeriodEdit}
+                                  onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                                    if (
+                                      !inputLeasePeriodEdit ||
+                                      inputLeasePeriodEdit === "" ||
+                                      inputLeasePeriodEdit === "0" ||
+                                      inputLeasePeriodEdit === "０"
+                                    ) {
+                                      return setInputLeasePeriodEdit("");
+                                    }
+                                    const converted = convertHalfWidthNumOnly(inputLeasePeriodEdit.trim());
+                                    if (converted === null) return setInputLeasePeriodEdit("");
+                                    setInputLeasePeriodEdit(converted);
+                                    handleClickSendUpdateField({
+                                      e,
+                                      fieldName: "lease_period",
+                                      fieldNameForSelectedRowData: "lease_period",
+                                      originalValue: originalValueFieldEdit.current,
+                                      // newValue: inputLeasePeriodEdit,
+                                      newValue: converted,
+                                      id: selectedRowDataQuotation?.quotation_id,
+                                      required: false,
+                                    });
+                                  }}
+                                  required={false}
+                                  isDisplayClose={false}
+                                />
+                              )}
+                              {/* エディットフィールド送信中ローディングスピナー */}
+                              {updateQuotationFieldMutation.isLoading && (
+                                <div
+                                  className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                                >
+                                  <SpinnerComet w="22px" h="22px" s="3px" />
+                                </div>
+                              )}
+                            </>
+                          )}
+                          {/* フィールドエディットモードオーバーレイ */}
+                          {!searchMode && isEditModeField === "lease_period" && (
+                            <div
+                              className={`${styles.edit_mode_overlay}`}
+                              onClick={(e) => {
+                                e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                                setIsEditModeField(null); // エディットモードを終了
+                              }}
+                            />
+                          )}
+                          {/* ============= フィールドエディットモード関連ここまで ============= */}
+                        </div>
+                        <div className={`${styles.underline}`}></div>
+                      </div>
+                    </div>
+                    {/*  */}
+
+                    {/* セット単位・料率(%) */}
+                    <div className={`${styles.row_area} flex w-full items-center`}>
+                      <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                        <div className={`${styles.title_box} flex h-full items-center `}>
+                          <span className={`${styles.title}`}>セット単位</span>
+                          {!searchMode && isEditModeField !== "set_unit_name" && (
+                            <span
+                              className={`${styles.value} ${styles.editable_field}`}
+                              data-text={
+                                selectedRowDataQuotation?.set_unit_name ? selectedRowDataQuotation?.set_unit_name : ""
+                              }
+                              onMouseEnter={(e) => handleOpenTooltip({ e, display: "top" })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={handleSingleClickField}
+                              onDoubleClick={(e) => {
+                                // if (!selectedRowDataQuotation?.activity_type) return;
+                                // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.activity_type)) {
+                                //   return alert(returnMessageNotActivity(selectedRowDataQuotation.activity_type));
+                                // }
+                                handleDoubleClickField({
+                                  e,
+                                  field: "set_unit_name",
+                                  dispatch: setInputSetUnitNameEdit,
+                                  selectedRowDataValue: selectedRowDataQuotation?.set_unit_name ?? "",
+                                });
+                                handleCloseTooltip();
+                              }}
+                            >
+                              {selectedRowDataQuotation?.quotation_division === "set" &&
+                              selectedRowDataQuotation?.set_unit_name
+                                ? selectedRowDataQuotation?.set_unit_name
+                                : ""}
+                            </span>
+                          )}
+                          {/* ============= フィールドエディットモード関連 ============= */}
+                          {/* フィールドエディットモード selectタグ  */}
+                          {!searchMode && isEditModeField === "set_unit_name" && (
+                            <>
+                              <input
+                                type="text"
+                                placeholder=""
+                                autoFocus
+                                className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                                value={inputSetUnitNameEdit}
+                                onChange={(e) => setInputSetUnitNameEdit(e.target.value)}
+                                onCompositionStart={() => setIsComposing(true)}
+                                onCompositionEnd={() => setIsComposing(false)}
+                                onKeyDown={(e) =>
+                                  handleKeyDownUpdateField({
+                                    e,
+                                    fieldName: "set_unit_name",
+                                    fieldNameForSelectedRowData: "set_unit_name",
+                                    originalValue: originalValueFieldEdit.current,
+                                    newValue: inputSetUnitNameEdit.trim(),
+                                    id: selectedRowDataQuotation?.quotation_id,
+                                    required: true,
+                                  })
+                                }
+                              />
+                              {/* 送信ボタンとクローズボタン */}
+                              {!updateQuotationFieldMutation.isLoading && (
+                                <InputSendAndCloseBtn
+                                  inputState={inputSetUnitNameEdit}
+                                  setInputState={setInputSetUnitNameEdit}
+                                  onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                                    handleClickSendUpdateField({
+                                      e,
+                                      fieldName: "set_unit_name",
+                                      fieldNameForSelectedRowData: "set_unit_name",
+                                      originalValue: originalValueFieldEdit.current,
+                                      newValue: inputSetUnitNameEdit.trim(),
+                                      id: selectedRowDataQuotation?.quotation_id,
+                                      required: true,
+                                    })
+                                  }
+                                  required={true}
+                                  isDisplayClose={false}
+                                />
+                              )}
+                              {/* エディットフィールド送信中ローディングスピナー */}
+                              {updateQuotationFieldMutation.isLoading && (
+                                <div className={`${styles.field_edit_mode_loading_area}`}>
+                                  <SpinnerComet w="22px" h="22px" s="3px" />
+                                </div>
+                              )}
+                            </>
+                          )}
+                          {/* フィールドエディットモードオーバーレイ */}
+                          {!searchMode && isEditModeField === "set_unit_name" && (
+                            <div
+                              className={`${styles.edit_mode_overlay}`}
+                              onClick={(e) => {
+                                e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                                setIsEditModeField(null); // エディットモードを終了
+                              }}
+                            />
+                          )}
+                          {/* ============= フィールドエディットモード関連ここまで ============= */}
+                        </div>
+                        <div className={`${styles.underline}`}></div>
+                      </div>
+                      <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                        <div className={`${styles.title_box} flex h-full items-center`}>
+                          <span className={`${styles.title} text-[12px]`}>料率(%)</span>
+                          {!searchMode && isEditModeField !== "lease_rate" && (
+                            <span
+                              className={`${styles.value} ${styles.editable_field}`}
+                              onClick={handleSingleClickField}
+                              onDoubleClick={(e) => {
+                                if (!selectedRowDataQuotation?.lease_rate) return;
+                                // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.lease_rate))
+                                //   return alert(returnMessageNotActivity(selectedRowDataQuotation.lease_rate));
+                                handleDoubleClickField({
+                                  e,
+                                  field: "lease_rate",
+                                  dispatch: setInputLeaseRateEdit,
+                                });
+                                if (hoveredItemPosWrap) handleCloseTooltip();
+                              }}
+                              data-text={`${
+                                selectedRowDataQuotation?.lease_rate ? selectedRowDataQuotation?.lease_rate : ""
+                              }`}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                              }}
+                            >
+                              {selectedRowDataQuotation?.quotation_division === "lease" &&
+                              checkNotFalsyExcludeZero(selectedRowDataQuotation?.lease_rate)
+                                ? normalizeDiscountRate(selectedRowDataQuotation.lease_rate!.toString())
+                                : ""}
+                            </span>
+                          )}
+                          {/* ============= フィールドエディットモード関連 ============= */}
+                          {/* フィールドエディットモード selectタグ  */}
+                          {!searchMode && isEditModeField === "lease_rate" && (
+                            <>
+                              <input
+                                type="text"
+                                placeholder=""
+                                className={`${styles.input_box}`}
+                                onCompositionStart={() => setIsComposing(true)}
+                                onCompositionEnd={() => setIsComposing(false)}
+                                value={!!inputLeaseRateEdit ? inputLeaseRateEdit : ""}
+                                onChange={(e) => {
+                                  if (e.target.value === "0" || e.target.value === "０") {
+                                    if (inputLeaseRateEdit === "0" || inputLeaseRateEdit === "０")
+                                      setInputLeaseRateEdit("");
+                                    return;
+                                  }
+                                  setInputLeaseRateEdit(e.target.value);
+                                }}
+                                // onBlur={(e) => {
+                                //   if (
+                                //     !inputLeaseRateEdit ||
+                                //     inputLeaseRateEdit === "" ||
+                                //     inputLeaseRateEdit === "0" ||
+                                //     e.target.value === "０"
+                                //   )
+                                //     return setInputLeaseRateEdit("");
+                                //   const converted = convertHalfWidthNumOnly(inputLeaseRateEdit.trim());
+                                //   if (converted === null) return setInputLeaseRateEdit("");
+                                //   setInputLeaseRateEdit(converted);
+                                // }}
+                                onKeyDown={(e) => {
+                                  if (
+                                    !inputLeaseRateEdit ||
+                                    inputLeaseRateEdit === "" ||
+                                    inputLeaseRateEdit === "0" ||
+                                    inputLeaseRateEdit === "０"
+                                  ) {
+                                    return setInputLeaseRateEdit("");
+                                  }
+                                  // 小数点第二まで算出
+                                  const converted = convertHalfWidthNumOnly(inputLeaseRateEdit.trim(), 2);
+                                  if (converted === null) return setInputLeaseRateEdit("");
+                                  setInputLeaseRateEdit(converted);
+                                  handleKeyDownUpdateField({
+                                    e,
+                                    fieldName: "lease_rate",
+                                    fieldNameForSelectedRowData: "lease_rate",
+                                    originalValue: originalValueFieldEdit.current,
+                                    // newValue: inputLeaseRateEdit,
+                                    newValue: converted,
+                                    id: selectedRowDataQuotation?.quotation_id,
+                                    required: false,
+                                  });
+                                }}
+                              />
+                              {/* 送信ボタンとクローズボタン */}
+                              {!updateQuotationFieldMutation.isLoading && (
+                                <InputSendAndCloseBtn<string>
+                                  inputState={inputLeaseRateEdit}
+                                  setInputState={setInputLeaseRateEdit}
+                                  onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                                    if (
+                                      !inputLeaseRateEdit ||
+                                      inputLeaseRateEdit === "" ||
+                                      inputLeaseRateEdit === "0" ||
+                                      inputLeaseRateEdit === "０"
+                                    ) {
+                                      return setInputLeaseRateEdit("");
+                                    }
+                                    // 小数点第二まで算出
+                                    const converted = convertHalfWidthNumOnly(inputLeaseRateEdit.trim(), 2);
+                                    if (converted === null) return setInputLeaseRateEdit("");
+                                    setInputLeaseRateEdit(converted);
+                                    handleClickSendUpdateField({
+                                      e,
+                                      fieldName: "lease_rate",
+                                      fieldNameForSelectedRowData: "lease_rate",
+                                      originalValue: originalValueFieldEdit.current,
+                                      // newValue: inputLeaseRateEdit,
+                                      newValue: converted,
+                                      id: selectedRowDataQuotation?.quotation_id,
+                                      required: false,
+                                    });
+                                  }}
+                                  required={false}
+                                  isDisplayClose={false}
+                                />
+                              )}
+                              {/* エディットフィールド送信中ローディングスピナー */}
+                              {updateQuotationFieldMutation.isLoading && (
+                                <div
+                                  className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                                >
+                                  <SpinnerComet w="22px" h="22px" s="3px" />
+                                </div>
+                              )}
+                            </>
+                          )}
+                          {/* フィールドエディットモードオーバーレイ */}
+                          {!searchMode && isEditModeField === "lease_rate" && (
+                            <div
+                              className={`${styles.edit_mode_overlay}`}
+                              onClick={(e) => {
+                                e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                                setIsEditModeField(null); // エディットモードを終了
+                              }}
+                            />
+                          )}
+                          {/* ============= フィールドエディットモード関連ここまで ============= */}
+                        </div>
+                        <div className={`${styles.underline}`}></div>
+                      </div>
+                    </div>
+                    {/*  */}
+
+                    {/* セット価格・月額リース料 */}
+                    <div className={`${styles.row_area} flex w-full items-center`}>
+                      <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                        <div className={`${styles.title_box} flex h-full items-center `}>
+                          <span className={`${styles.title} text-[12px]`}>セット価格</span>
+                          {!searchMode && isEditModeField !== "set_price" && (
+                            <span
+                              className={`${styles.value} ${styles.editable_field}`}
+                              onClick={handleSingleClickField}
+                              onDoubleClick={(e) => {
+                                if (!checkNotFalsyExcludeZero(selectedRowDataQuotation?.set_price)) return;
+                                // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.set_price))
+                                //   return alert(returnMessageNotActivity(selectedRowDataQuotation.set_price));
+                                handleDoubleClickField({
+                                  e,
+                                  field: "set_price",
+                                  dispatch: setInputSetPriceEdit,
+                                });
+                                if (hoveredItemPosWrap) handleCloseTooltip();
+                              }}
+                              data-text={`${
+                                selectedRowDataQuotation?.set_price ? selectedRowDataQuotation?.set_price : ""
+                              }`}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                              }}
+                            >
+                              {checkNotFalsyExcludeZero(selectedRowDataQuotation?.set_price)
+                                ? Number(selectedRowDataQuotation?.set_price).toLocaleString() + "円"
+                                : ""}
+                            </span>
+                          )}
+                          {/* ============= フィールドエディットモード関連 ============= */}
+                          {/* フィールドエディットモード selectタグ  */}
+                          {!searchMode && isEditModeField === "set_price" && (
+                            <>
+                              <input
+                                type="text"
+                                autoFocus
+                                // placeholder="例：600万円 → 6000000　※半角で入力"
+                                className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                                onCompositionStart={() => setIsComposing(true)}
+                                onCompositionEnd={() => setIsComposing(false)}
+                                value={checkNotFalsyExcludeZero(inputSetPriceEdit) ? inputSetPriceEdit : ""}
+                                onChange={(e) => {
+                                  if (e.target.value === "0" || e.target.value === "０") {
+                                    setInputSetPriceEdit("0");
+                                  }
+                                  setInputSetPriceEdit(e.target.value);
+                                }}
+                                // onBlur={() => {
+                                //   setInputSetPriceEdit(
+                                //     !!inputSetPriceEdit &&
+                                //       inputSetPriceEdit !== "" &&
+                                //       convertToYen(inputSetPriceEdit.trim()) !== null
+                                //       ? (convertToYen(inputSetPriceEdit.trim()) as number).toLocaleString()
+                                //       : ""
+                                //   );
+                                // }}
+                                onKeyDown={(e) => {
+                                  handleKeyDownUpdateField({
+                                    e,
+                                    fieldName: "set_price",
+                                    fieldNameForSelectedRowData: "set_price",
+                                    originalValue: originalValueFieldEdit.current,
+                                    newValue: !!inputSetPriceEdit
+                                      ? (convertToYen(inputSetPriceEdit.trim()) as number).toString()
+                                      : null,
+                                    id: selectedRowDataQuotation?.quotation_id,
+                                    required: false,
+                                  });
+                                }}
+                              />
+                              {/* 送信ボタンとクローズボタン */}
+                              {!updateQuotationFieldMutation.isLoading && (
+                                <InputSendAndCloseBtn<string>
+                                  inputState={inputSetPriceEdit}
+                                  setInputState={setInputSetPriceEdit}
+                                  onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                                    handleClickSendUpdateField({
+                                      e,
+                                      fieldName: "set_price",
+                                      fieldNameForSelectedRowData: "set_price",
+                                      originalValue: originalValueFieldEdit.current,
+                                      newValue: inputSetPriceEdit
+                                        ? (convertToYen(inputSetPriceEdit.trim()) as number).toString()
+                                        : null,
+                                      id: selectedRowDataQuotation?.quotation_id,
+                                      required: false,
+                                    })
+                                  }
+                                  required={false}
+                                  isDisplayClose={false}
+                                />
+                              )}
+
+                              {/* エディットフィールド送信中ローディングスピナー */}
+                              {updateQuotationFieldMutation.isLoading && (
+                                <div
+                                  className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                                >
+                                  <SpinnerComet w="22px" h="22px" s="3px" />
+                                </div>
+                              )}
+                            </>
+                          )}
+                          {/* フィールドエディットモードオーバーレイ */}
+                          {!searchMode && isEditModeField === "set_price" && (
+                            <div
+                              className={`${styles.edit_mode_overlay}`}
+                              onClick={(e) => {
+                                e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                                setIsEditModeField(null); // エディットモードを終了
+                              }}
+                            />
+                          )}
+                          {/* ============= フィールドエディットモード関連ここまで ============= */}
+                        </div>
+                        <div className={`${styles.underline}`}></div>
+                      </div>
+                      {/* 月額リース料 */}
+                      <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                        <div className={`${styles.title_box} flex h-full items-center`}>
+                          <span className={`${styles.title} text-[12px]`}>月額ﾘｰｽ料</span>
+                          {!searchMode && isEditModeField !== "lease_monthly_fee" && (
+                            <span
+                              className={`${styles.value} ${styles.editable_field}`}
+                              data-text={
+                                selectedRowDataQuotation?.lease_monthly_fee
+                                  ? selectedRowDataQuotation?.lease_monthly_fee
+                                  : ""
+                              }
+                              onMouseEnter={(e) => handleOpenTooltip({ e, display: "top" })}
+                              onMouseLeave={handleCloseTooltip}
+                            >
+                              {checkNotFalsyExcludeZero(selectedRowDataQuotation?.lease_monthly_fee)
+                                ? Number(selectedRowDataQuotation?.lease_monthly_fee).toLocaleString() + "円"
+                                : ""}
+                            </span>
+                          )}
                         </div>
                         <div className={`${styles.underline}`}></div>
                       </div>
