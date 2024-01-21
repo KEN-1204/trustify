@@ -9,21 +9,30 @@
   box-shadow: var(--color-bg-under-input-box-shadow);
   /* padding: 0px 6px; */
   /* padding: 6px 8px; */
+  padding: 1px;
   border-radius: 6px;
   padding-right: 3px;
-  min-height: 28px;
+  /* min-height: 28px; */
+  /* min-height: 29px; */
+  min-height: 27px;
 }
 
 .input_box input {
   height: 100%;
   width: 100%;
+  background: var(--color-bg-under-input);
   border-radius: 6px;
   /* padding: 6px 8px; */
   padding: 6px 0px 6px 8px;
+  /* min-height: 27px; */
+  font-size: 13px;
 }
-.input_box:focus {
+.input_box:hover {
   box-shadow: var(--color-bg-under-input-active-box-shadow);
 }
+/* .input_box:focus {
+  box-shadow: var(--color-bg-under-input-active-box-shadow);
+} */
 
 .input_box .select_arrow {
   cursor: pointer;
@@ -37,18 +46,35 @@
   /* left: -50%; */
   /* right: 0; */
   z-index: 1000;
-  background: var(--color-bg-base);
+  /* background: var(--color-bg-base); */
+  background: var(--color-select-box-bg);
   list-style: none;
-  padding: 0;
+  padding: 6px 6px;
   margin: 0;
-  border: 1px solid #ddd;
+  border-radius: 6px;
+  max-height: 281px;
+  overflow-y: auto;
+  /* border: 1px solid #ddd; */
+}
+.input_box .options.display_top {
+  top: auto; /* 上に表示する場合、topプロパティを無効化 */
+  bottom: 100%;
 }
 .input_box .options li {
-  padding: 5px 10px;
+  min-height: 29px;
+  max-height: 29px;
+  font-size: 13px;
+  padding: 6px 13px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
   cursor: pointer;
+  color: #fff;
 }
 .input_box .options li:hover {
-  background-color: #f0f0f0;
+  /* background-color: #f0f0f0; */
+  /* background-color: #2894ff; */
+  background-color: var(--color-select-box-hover);
 }
 
 .field_edit_mode_input_box {

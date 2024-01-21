@@ -1108,18 +1108,22 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
     selectedRowDataProperty.property_created_by_department_of_user === userProfileState?.assigned_department_id;
 
   // シングルクリック => 何もアクションなし
-  const handleSingleClickField = useCallback((e: React.MouseEvent<HTMLSpanElement>) => {
-    // 自社で作成した会社でない場合はそのままリターン
-    // if (!isMatchDepartment) return;
-    if (setTimeoutRef.current !== null) return;
+  const handleSingleClickField = useCallback(
+    (e: React.MouseEvent<HTMLSpanElement>) => {
+      if (!selectedRowDataProperty) return;
+      // 自社で作成した会社でない場合はそのままリターン
+      // if (!isMatchDepartment) return;
+      if (setTimeoutRef.current !== null) return;
 
-    setTimeoutRef.current = setTimeout(() => {
-      setTimeoutRef.current = null;
-      // シングルクリック時に実行したい処理
-      // 0.2秒後に実行されてしまうためここには書かない
-    }, 200);
-    console.log("シングルクリック");
-  }, []);
+      setTimeoutRef.current = setTimeout(() => {
+        setTimeoutRef.current = null;
+        // シングルクリック時に実行したい処理
+        // 0.2秒後に実行されてしまうためここには書かない
+      }, 200);
+      console.log("シングルクリック");
+    },
+    [selectedRowDataProperty]
+  );
 
   // const originalOptionRef = useRef(""); // 同じ選択肢選択時にエディットモード終了用
   // 編集前のダブルクリック時の値を保持 => 変更されたかどうかを確認
@@ -1135,6 +1139,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
   // ダブルクリック => ダブルクリックしたフィールドを編集モードに変更
   const handleDoubleClickField = useCallback(
     ({ e, field, dispatch, dateValue, selectedRowDataValue }: DoubleClickProps) => {
+      if (!selectedRowDataProperty) return;
       // 自社で作成した会社でない場合はそのままリターン
       // if (!isOurActivity) return;
 
@@ -1230,7 +1235,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
         // if (isSelectChangeEvent) originalOptionRef.current = e.currentTarget.innerText; // selectタグ同じ選択肢選択時の編集モード終了用
       }
     },
-    [setIsEditModeField]
+    [setIsEditModeField, selectedRowDataProperty]
     // [isOurActivity, setIsEditModeField]
   );
   // ================== ✅シングルクリック、ダブルクリックイベント✅ ==================

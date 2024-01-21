@@ -586,3 +586,31 @@ export const optionsCompetitionState = ["競合無し", "競合有り ○優勢"
 
 // 決裁者商談有無
 export const optionsDecisionMakerNegotiation = ["決裁者と会えず", "決裁者と会うも、商談できず", "決裁者と商談済み"];
+
+// 🌟見積
+
+// 提出区分
+export const optionsSubmissionClass = ["提出用", "社内用"];
+
+// 納期
+export const optionsDeadline = ["当日出荷", "１ヶ月以内", "お打ち合わせにより決定"];
+
+// 納入場所
+export const optionsDeliveryPlace = ["貴社指定場所", "お打ち合わせにより決定"];
+
+// 取引方法
+export const optionsPaymentTerms = ["従来通り", "月末締め翌月末現金お振込み", "お打ち合わせにより決定"];
+
+// 見積区分
+export const optionsQuotationDivision = ["標準見積", "セット見積", "リース見積"];
+
+// 送付方法
+// export const optionsSendingMethod = ["送付状なし", "Fax", "郵送"];
+export const optionsSendingMethod = ["送付状なし"];
+
+// 消費税区分
+export const optionsSalesTaxClass = ["消費税記載なし", "消費税記載あり"];
+
+// 消費税区分
+export const optionsSalesTaxRate = ["5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18"];
+// export const optionsSalesTaxRate = ["10", "11", "12", "13", "14", "15", "16", "17", "18"];

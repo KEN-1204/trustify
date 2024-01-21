@@ -437,19 +437,7 @@
 .email_value:hover {
   color: var(--color-text-brand-f-deep);
 }
-.input_box {
-  height: 100%;
-  width: 100%;
-  background: var(--color-bg-under-input);
-  color: var(--color-text-under-input);
-  box-shadow: var(--color-bg-under-input-box-shadow);
-  /* padding: 0px 6px; */
-  padding: 6px 8px;
-  border-radius: 6px;
-}
-.input_box:focus {
-  box-shadow: var(--color-bg-under-input-active-box-shadow);
-}
+
 /* .underline {
   min-height: 1px;
   width: 100%;
@@ -498,53 +486,6 @@
 }
 .divider {
   background-color: rgb(94 94 94 / 0.3);
-}
-.textarea_box {
-  /* height: 100%; */
-  /* min-height: 56px; */
-  min-height: 78px;
-  width: 100%;
-  /* background: #0c8ce9; */
-  background: var(--color-bg-under-input);
-  /* background: #daefff30; */
-  /* color: var(--color-text-under-input); */
-  /* color: var(--color-text-under-value); */
-  color: var(--color-textarea-value);
-  box-shadow: var(--color-bg-under-input-box-shadow);
-  /* padding: 3px 6px; */
-  /* padding: 0px 6px; */
-  /* padding: 6px 9px; */
-  /* 3分割はこっち */
-  /* padding: 6px 8px; */
-  /* padding: 4px 8px; */
-  padding: 6px 12px;
-  font-size: 14px;
-  /* letter-spacing: 0.9px; */
-  /* letter-spacing: 0.6px; */
-  letter-spacing: 0.3px;
-  /* line-height: 24px; */
-  line-height: 22px;
-  border-radius: 6px;
-  resize: none;
-  /* box-sizing: border-box; */
-}
-.textarea_box.md {
-  min-height: 60px;
-}
-.textarea_box:focus {
-  box-shadow: var(--color-bg-under-input-active-box-shadow);
-}
-.textarea_box_search_mode {
-  line-height: normal;
-}
-.textarea_box_search_mode:focus {
-  box-shadow: var(--color-bg-under-input-active-box-shadow);
-}
-.textarea_box_bg {
-  /* background: var(--color-bg-under-input-gray); */
-}
-.textarea_xl {
-  min-height: 120px;
 }
 
 /* ------------------------------- 右側エリア ------------------------------- */
@@ -894,6 +835,7 @@
   padding-right: 65px;
   z-index: 2000;
 }
+
 .field_edit_mode_select_box {
   box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f);
   min-height: 28px;
@@ -925,14 +867,102 @@
   /* box-shadow: none;
   padding: 0px; */
 }
-.field_edit_mode_textarea.textarea_box {
-  /* background-color: var(--color-bg-base);
-  box-shadow: none;
-  padding: 0px;
-  padding-right: 65px; */
-}
+
 .field_edit_mode_select_box.select_box {
   box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f);
+}
+.select_box {
+  box-shadow: var(--color-bg-under-input-box-shadow);
+  padding-left: 5px;
+  background: var(--color-bg-under-input);
+  border-radius: 6px;
+}
+.select_box.upsert {
+  /* box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f); */
+  /* background: none; */
+  /* min-height: 28px; */
+  min-height: 27px;
+  user-select: none;
+  /* z-index: 2000; */
+  font-size: 13px;
+}
+.input_box {
+  height: 100%;
+  width: 100%;
+  background: var(--color-bg-under-input);
+  color: var(--color-text-under-input);
+  box-shadow: var(--color-bg-under-input-box-shadow);
+  /* padding: 0px 6px; */
+  padding: 6px 8px;
+  border-radius: 6px;
+}
+.input_box:focus {
+  box-shadow: var(--color-bg-under-input-active-box-shadow);
+}
+
+.input_box.upsert {
+  /* background: none; */
+  /* min-height: 28px; */
+  min-height: 27px;
+  /* z-index: 2000; */
+  font-size: 13px;
+}
+
+.textarea_box {
+  /* height: 100%; */
+  /* min-height: 56px; */
+  min-height: 78px;
+  width: 100%;
+  /* background: #0c8ce9; */
+  background: var(--color-bg-under-input);
+  /* background: #daefff30; */
+  /* color: var(--color-text-under-input); */
+  /* color: var(--color-text-under-value); */
+  color: var(--color-textarea-value);
+  box-shadow: var(--color-bg-under-input-box-shadow);
+  /* padding: 3px 6px; */
+  /* padding: 0px 6px; */
+  /* padding: 6px 9px; */
+  /* 3分割はこっち */
+  /* padding: 6px 8px; */
+  /* padding: 4px 8px; */
+  padding: 6px 12px;
+  font-size: 14px;
+  /* letter-spacing: 0.9px; */
+  /* letter-spacing: 0.6px; */
+  letter-spacing: 0.3px;
+  /* line-height: 24px; */
+  line-height: 22px;
+  border-radius: 6px;
+  resize: none;
+  /* box-sizing: border-box; */
+}
+.textarea_box.md {
+  min-height: 60px;
+}
+.textarea_box.upsert {
+  padding: 6px 12px;
+  letter-spacing: 0.3px;
+  line-height: 22px;
+  /* z-index: 2000; */
+  /* padding-right: 65px; */
+  /* min-height: 75px; */
+  /* min-height: 120px; */
+}
+.textarea_box:focus {
+  box-shadow: var(--color-bg-under-input-active-box-shadow);
+}
+.textarea_box_search_mode {
+  line-height: normal;
+}
+.textarea_box_search_mode:focus {
+  box-shadow: var(--color-bg-under-input-active-box-shadow);
+}
+.textarea_box_bg {
+  /* background: var(--color-bg-under-input-gray); */
+}
+.textarea_xl {
+  min-height: 120px;
 }
 /* テスト */
 
@@ -1026,13 +1056,6 @@
 }
 .row_area input[type="number"] {
   -moz-appearance: textfiled;
-}
-
-.select_box {
-  box-shadow: var(--color-bg-under-input-box-shadow);
-  padding-left: 5px;
-  background: var(--color-bg-under-input);
-  border-radius: 6px;
 }
 
 @media (max-width: 1600px) {

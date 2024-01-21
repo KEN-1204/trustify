@@ -971,6 +971,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --box-shadow-tooltip-border: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #33333390;
   --shadow-dropdown-menu: 0 4px 6px 2px #00000033;
   --border-real-with-shadow: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #33333390, var(--shadow-dropdown-menu);
+  --border-real-with-shadow-dark: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #33333390,
+    var(--shadow-dropdown-menu);
 
   --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff30, #ffffff20, #ffffff10, #ffffff10, #ffffff80);
   --tile-border-hp: conic-gradient(#555555c0, #55555540, #55555520, #555555c0, #55555540, #55555520, #555555c0);
@@ -983,6 +985,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-side-table-border: #aaa;
   --color-side-table-bg: #000000c0;
   --color-side-table-list-hover: #484848;
+  /* セレクトボックス カスタム */
+  --color-select-box-bg: #666;
+  --color-select-box-hover: #2894ff;
 }
 
 /* ============================================= 🌠 ============================================= */
@@ -1585,7 +1590,10 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
 
   --box-shadow-tooltip-border: inset 0px 0px 0px 1px #ffffff70, 0px 0px 0px 1px #000;
   --shadow-dropdown-menu: 0 4px 10px 2px #ffffff33;
+  --shadow-dropdown-menu-dark: 0 4px 6px 2px #00000033;
   --border-real-with-shadow: inset 0px 0px 0px 1px #ffffff70, 0px 0px 0px 1px #000, var(--shadow-dropdown-menu);
+  --border-real-with-shadow-dark: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #33333390,
+    var(--shadow-dropdown-menu-dark);
 
   /* --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff30, #ffffff20, #ffffff10, #ffffff10, #ffffff80); */
   --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff20, #ffffff80, #ffffff40, #ffffff20, #ffffff80);
@@ -1602,6 +1610,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-side-table-border: #999;
   --color-side-table-bg: #00000099;
   --color-side-table-list-hover: #333;
+  /* セレクトボックス カスタム */
+  --color-select-box-bg: #333;
+  --color-select-box-hover: #2894ff;
 }
 
 /* html {
@@ -2398,6 +2409,9 @@ textarea {
 } */
 .border-real-with-shadow {
   box-shadow: var(--border-real-with-shadow);
+}
+.border-real-with-shadow-dark {
+  box-shadow: var(--border-real-with-shadow-dark);
 }
 
 /* ボーダー box-shadow inset ブランドカラー */

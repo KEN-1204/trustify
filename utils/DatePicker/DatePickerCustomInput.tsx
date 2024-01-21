@@ -31,8 +31,11 @@ type Props = {
   tooltipDataText?: string;
   fontSize?: string;
   minHeight?: string;
+  sizeMin?: boolean;
   px?: string;
   py?: string;
+  pr?: string;
+  isShownCloseBtn?: boolean;
   placeholderText?: string;
 };
 
@@ -51,8 +54,11 @@ export const DatePickerCustomInput: FC<Props> = ({
   // fontSize = "!text-[12px]",
   fontSize = "!text-[14px]",
   minHeight = "",
+  sizeMin = false,
   px = "px-[8px]",
   py = "py-[4px]",
+  pr,
+  isShownCloseBtn = true,
   placeholderText = "placeholder:text-[12px]",
 }) => {
   const language = useStore((state) => state.language);
@@ -123,7 +129,7 @@ export const DatePickerCustomInput: FC<Props> = ({
   return (
     <>
       {/* 🌟バツボタン */}
-      {startDate && !isFieldEditMode && (
+      {startDate && !isFieldEditMode && isShownCloseBtn && (
         <div className={`${styles.close_btn} `} onClick={() => setStartDate(null)}>
           <MdClose className="pointer-event-none text-[20px]" />
         </div>
@@ -246,7 +252,9 @@ export const DatePickerCustomInput: FC<Props> = ({
 
       {language === "ja" ? (
         <DatePicker
-          className={`rounded border-gray-100 ${px} ${py} date_input_flag truncate text-base outline-0 ${placeholderText} ${minHeight} ${fontSize} ${styles.input_box}`}
+          className={`rounded border-gray-100 ${px} ${py} ${pr} date_input_flag truncate text-base outline-0 ${placeholderText} ${minHeight} ${
+            sizeMin ? styles.min : ``
+          } ${fontSize} ${styles.input_box}`}
           wrapperClassName="react-datepicker__input-container"
           placeholderText={"日付を選択"}
           // placeholderText={`${startDate === "is not null" ? "フォロー予定有りのみ" : `日付を選択`}`}
@@ -300,7 +308,8 @@ export const DatePickerCustomInput: FC<Props> = ({
         />
       ) : (
         <DatePicker
-          className={`rounded border-gray-100 p-1.5 text-base outline-0 ${isFieldEditMode ? `z-[2100]` : ``}`}
+          // className={`rounded border-gray-100 p-1.5 text-base outline-0 ${isFieldEditMode ? `z-[2100]` : ``}`}
+          className={`rounded border-gray-100 ${px} ${py} ${pr} date_input_flag truncate text-base outline-0 ${placeholderText} ${minHeight} ${fontSize} ${styles.input_box}`}
           placeholderText={"Please select date"}
           selected={startDate}
           // selected={startDate instanceof Date ? startDate : null}

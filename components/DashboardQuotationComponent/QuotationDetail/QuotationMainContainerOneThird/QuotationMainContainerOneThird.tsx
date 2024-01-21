@@ -49,6 +49,16 @@ import { RippleButton } from "@/components/Parts/RippleButton/RippleButton";
 import { ProductListTable } from "./ProductListTable/ProductListTable";
 import { convertHalfWidthNumOnly } from "@/utils/Helpers/convertHalfWidthNumOnly";
 import { CustomSelectInput } from "@/components/Parts/CustomSelectInput/CustomSelectInput";
+import {
+  optionsDeadline,
+  optionsDeliveryPlace,
+  optionsPaymentTerms,
+  optionsQuotationDivision,
+  optionsSalesTaxClass,
+  optionsSalesTaxRate,
+  optionsSendingMethod,
+  optionsSubmissionClass,
+} from "@/utils/selectOptions";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -205,7 +215,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const [inputSendingMethodEdit, setInputSendingMethodEdit] = useState("");
   const [inputUseCorporateSealEdit, setInputUseCorporateSealEdit] = useState("");
   const [inputSalesTaxClassEdit, setInputSalesTaxClassEdit] = useState("");
-  const [inputSalesTaxRateEdit, setInputSalesTaxRateEdit] = useState("");
+  const [inputSalesTaxRateEdit, setInputSalesTaxRateEdit] = useState("10");
   const [inputTotalPriceEdit, setInputTotalPriceEdit] = useState("");
   const [inputDiscountAmountEdit, setInputDiscountAmountEdit] = useState("");
   const [inputDiscountRateEdit, setInputDiscountRateEdit] = useState("");
@@ -830,19 +840,22 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     selectedRowDataQuotation.quotation_created_by_department_of_user === userProfileState?.assigned_department_id;
 
   // シングルクリック => 何もアクションなし
-  const handleSingleClickField = useCallback((e: React.MouseEvent<HTMLSpanElement>) => {
-    if (!selectedRowDataQuotation) return;
-    // 自社で作成した会社でない場合はそのままリターン
-    // if (!isMatchDepartment) return;
-    if (setTimeoutRef.current !== null) return;
+  const handleSingleClickField = useCallback(
+    (e: React.MouseEvent<HTMLSpanElement>) => {
+      if (!selectedRowDataQuotation) return;
+      // 自社で作成した会社でない場合はそのままリターン
+      // if (!isMatchDepartment) return;
+      if (setTimeoutRef.current !== null) return;
 
-    setTimeoutRef.current = setTimeout(() => {
-      setTimeoutRef.current = null;
-      // シングルクリック時に実行したい処理
-      // 0.2秒後に実行されてしまうためここには書かない
-    }, 200);
-    console.log("シングルクリック");
-  }, []);
+      setTimeoutRef.current = setTimeout(() => {
+        setTimeoutRef.current = null;
+        // シングルクリック時に実行したい処理
+        // 0.2秒後に実行されてしまうためここには書かない
+      }, 200);
+      console.log("シングルクリック");
+    },
+    [selectedRowDataQuotation]
+  );
 
   // const originalOptionRef = useRef(""); // 同じ選択肢選択時にエディットモード終了用
   // 編集前のダブルクリック時の値を保持 => 変更されたかどうかを確認
@@ -910,7 +923,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
         // if (isSelectChangeEvent) originalOptionRef.current = e.currentTarget.innerText; // selectタグ同じ選択肢選択時の編集モード終了用
       }
     },
-    [setIsEditModeField]
+    [setIsEditModeField, selectedRowDataQuotation]
     // [isOurActivity, setIsEditModeField]
   );
   // ================== ✅シングルクリック、ダブルクリックイベント✅ ==================
@@ -2424,9 +2437,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             <>
                               <input
                                 type="text"
-                                placeholder=""
-                                autoFocus
-                                className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                                placeholder="見積Noを入力"
+                                // autoFocus
+                                className={`${styles.input_box} ${styles.upsert}`}
                                 value={inputQuotationNoSystem}
                                 onChange={(e) => setInputQuotationNoSystem(e.target.value)}
                                 onBlur={(e) => setInputQuotationNoSystem(inputQuotationNoSystem.trim())}
@@ -2535,21 +2548,28 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 : ""}
                             </span>
                           )}
+                          {/* ----------------- upsert ----------------- */}
                           {!searchMode && isInsertModeQuotation && (
                             <>
                               <select
-                                className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                                className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.upsert}`}
                                 value={inputSubmissionClassEdit}
                                 onChange={(e) => {
                                   setInputSubmissionClassEdit(e.target.value);
                                 }}
                               >
                                 {/* <option value=""></option> */}
-                                <option value="提出用">提出用</option>
-                                <option value="社内用">社内用</option>
+                                {optionsSubmissionClass.map((option) => (
+                                  <option key={option} value={option}>
+                                    {option}
+                                  </option>
+                                ))}
+                                {/* <option value="提出用">提出用</option>
+                                <option value="社内用">社内用</option> */}
                               </select>
                             </>
                           )}
+                          {/* ----------------- upsert ----------------- */}
                           {/* ============= フィールドエディットモード関連 ============= */}
                           {/* フィールドエディットモード selectタグ  */}
                           {!searchMode && isEditModeField === "submission_class" && (
@@ -2572,8 +2592,13 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 // }}
                               >
                                 {/* <option value=""></option> */}
-                                <option value="提出用">提出用</option>
-                                <option value="社内用">社内用</option>
+                                {optionsSubmissionClass.map((option) => (
+                                  <option key={option} value={option}>
+                                    {option}
+                                  </option>
+                                ))}
+                                {/* <option value="提出用">提出用</option>
+                                <option value="社内用">社内用</option> */}
                               </select>
                               {/* エディットフィールド送信中ローディングスピナー */}
                               {updateQuotationFieldMutation.isLoading && (
@@ -2639,10 +2664,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             </span>
                           )}
 
-                          <CustomSelectInput
-                            options={["Option 1option Option 1option", "Option 2", "Option 3"]}
-                            displayX="left"
-                          />
+                          {/* <CustomSelectInput options={Array(12).fill("新規会社(過去面談無し)")} displayX="center" /> */}
+
+                          {/* ----------------- upsert ----------------- */}
+                          {!searchMode && isInsertModeQuotation && (
+                            <CustomSelectInput
+                              options={optionsDeadline}
+                              defaultValue={"当日出荷"}
+                              displayX="center"
+                              state={inputDeadlineEdit}
+                              dispatch={setInputDeadlineEdit}
+                            />
+                          )}
+                          {/* ----------------- upsert ----------------- */}
 
                           {/* ============= フィールドエディットモード関連 ============= */}
                           {/* フィールドエディットモード selectタグ  */}
@@ -2737,6 +2771,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 : ""}
                             </span>
                           )}
+
+                          {/* ----------------- upsert ----------------- */}
+                          {!searchMode && isInsertModeQuotation && (
+                            <DatePickerCustomInput
+                              startDate={inputQuotationDate}
+                              setStartDate={setInputQuotationDate}
+                              required={true}
+                              isShownCloseBtn={false}
+                              sizeMin={true}
+                            />
+                          )}
+                          {/* ----------------- upsert ----------------- */}
+
                           {/* ============= フィールドエディットモード関連 ============= */}
                           {/* フィールドエディットモード Date-picker  */}
                           {!searchMode && isEditModeField === "quotation_date" && (
@@ -2841,6 +2888,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               {selectedRowDataQuotation?.delivery_place ? selectedRowDataQuotation?.delivery_place : ""}
                             </span>
                           )}
+
+                          {/* ----------------- upsert ----------------- */}
+                          {!searchMode && isInsertModeQuotation && (
+                            <CustomSelectInput
+                              options={optionsDeliveryPlace}
+                              defaultValue={"お打ち合わせにより決定"}
+                              displayX="center"
+                              state={inputDeliveryPlaceEdit}
+                              dispatch={setInputDeliveryPlaceEdit}
+                            />
+                          )}
+                          {/* ----------------- upsert ----------------- */}
+
                           {/* ============= フィールドエディットモード関連 ============= */}
                           {/* フィールドエディットモード selectタグ  */}
                           {!searchMode && isEditModeField === "delivery_place" && (
@@ -2934,6 +2994,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 : ""}
                             </span>
                           )}
+
+                          {/* ----------------- upsert ----------------- */}
+                          {!searchMode && isInsertModeQuotation && (
+                            <DatePickerCustomInput
+                              startDate={inputExpirationDate}
+                              setStartDate={setInputExpirationDate}
+                              required={true}
+                              isShownCloseBtn={false}
+                              sizeMin={true}
+                            />
+                          )}
+                          {/* ----------------- upsert ----------------- */}
+
                           {/* ============= フィールドエディットモード関連 ============= */}
                           {/* フィールドエディットモード Date-picker  */}
                           {!searchMode && isEditModeField === "expiration_date" && (
@@ -3038,6 +3111,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               {selectedRowDataQuotation?.payment_terms ? selectedRowDataQuotation?.payment_terms : ""}
                             </span>
                           )}
+
+                          {/* ----------------- upsert ----------------- */}
+                          {!searchMode && isInsertModeQuotation && (
+                            <CustomSelectInput
+                              options={optionsPaymentTerms}
+                              defaultValue={"従来通り"}
+                              displayX="center"
+                              state={inputPaymentTermsEdit}
+                              dispatch={setInputPaymentTermsEdit}
+                            />
+                          )}
+                          {/* ----------------- upsert ----------------- */}
+
                           {/* ============= フィールドエディットモード関連 ============= */}
                           {/* フィールドエディットモード selectタグ  */}
                           {!searchMode && isEditModeField === "payment_terms" && (
@@ -3094,61 +3180,88 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         <div className={`${styles.title_box} flex h-full items-center`}>
                           <span className={`${styles.check_title} ${styles.single_text}`}>角印印刷</span>
 
-                          <div
-                            className={`${styles.grid_select_cell_header} `}
-                            onMouseEnter={(e) => {
-                              if (!selectedRowDataQuotation) return;
-                              e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            }}
-                            onMouseLeave={(e) => {
-                              if (!selectedRowDataQuotation) return;
-                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            }}
-                          >
-                            <input
-                              type="checkbox"
-                              // checked={!!selectedRowDataQuotation?.use_corporate_seal}
-                              // onChange={() => {
-                              //   setLoadingGlobalState(false);
-                              //   setIsOpenUpdateQuotationModal(true);
-                              // }}
-                              className={`${styles.grid_select_cell_header_input} ${
-                                !selectedRowDataQuotation ? `pointer-events-none cursor-not-allowed` : ``
-                              }`}
-                              checked={checkboxUseCorporateSealFlagEdit}
-                              onChange={async (e) => {
+                          {!isInsertModeQuotation && (
+                            <div
+                              className={`${styles.grid_select_cell_header} `}
+                              onMouseEnter={(e) => {
                                 if (!selectedRowDataQuotation) return;
-                                // 個別にチェックボックスを更新するルート
-                                if (!selectedRowDataQuotation?.quotation_id)
-                                  return toast.error(`データが見つかりませんでした🙇‍♀️`);
-
-                                console.log(
-                                  "チェック 新しい値",
-                                  !checkboxUseCorporateSealFlagEdit,
-                                  "オリジナル",
-                                  selectedRowDataQuotation?.use_corporate_seal
-                                );
-                                if (
-                                  !checkboxUseCorporateSealFlagEdit === selectedRowDataQuotation?.use_corporate_seal
-                                ) {
-                                  toast.error(`アップデートに失敗しました🤦‍♀️`);
-                                  return;
-                                }
-                                const updatePayload = {
-                                  fieldName: "use_corporate_seal",
-                                  fieldNameForSelectedRowData: "use_corporate_seal" as "use_corporate_seal",
-                                  newValue: !checkboxUseCorporateSealFlagEdit,
-                                  id: selectedRowDataQuotation.quotation_id,
-                                };
-                                // 直感的にするためにmutateにして非同期処理のまま後続のローカルのチェックボックスを更新する
-                                updateQuotationFieldMutation.mutate(updatePayload);
-                                setCheckboxUseCorporateSealFlagEdit(!checkboxUseCorporateSealFlagEdit);
+                                e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                               }}
-                            />
-                            <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
-                            </svg>
-                          </div>
+                              onMouseLeave={(e) => {
+                                if (!selectedRowDataQuotation) return;
+                                e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                              }}
+                            >
+                              <input
+                                type="checkbox"
+                                // checked={!!selectedRowDataQuotation?.use_corporate_seal}
+                                // onChange={() => {
+                                //   setLoadingGlobalState(false);
+                                //   setIsOpenUpdateQuotationModal(true);
+                                // }}
+                                className={`${styles.grid_select_cell_header_input} ${
+                                  !selectedRowDataQuotation ? `pointer-events-none cursor-not-allowed` : ``
+                                }`}
+                                checked={checkboxUseCorporateSealFlagEdit}
+                                onChange={async (e) => {
+                                  if (!selectedRowDataQuotation) return;
+                                  // 個別にチェックボックスを更新するルート
+                                  if (!selectedRowDataQuotation?.quotation_id)
+                                    return toast.error(`データが見つかりませんでした🙇‍♀️`);
+
+                                  console.log(
+                                    "チェック 新しい値",
+                                    !checkboxUseCorporateSealFlagEdit,
+                                    "オリジナル",
+                                    selectedRowDataQuotation?.use_corporate_seal
+                                  );
+                                  if (
+                                    !checkboxUseCorporateSealFlagEdit === selectedRowDataQuotation?.use_corporate_seal
+                                  ) {
+                                    toast.error(`アップデートに失敗しました🤦‍♀️`);
+                                    return;
+                                  }
+                                  const updatePayload = {
+                                    fieldName: "use_corporate_seal",
+                                    fieldNameForSelectedRowData: "use_corporate_seal" as "use_corporate_seal",
+                                    newValue: !checkboxUseCorporateSealFlagEdit,
+                                    id: selectedRowDataQuotation.quotation_id,
+                                  };
+                                  // 直感的にするためにmutateにして非同期処理のまま後続のローカルのチェックボックスを更新する
+                                  updateQuotationFieldMutation.mutate(updatePayload);
+                                  setCheckboxUseCorporateSealFlagEdit(!checkboxUseCorporateSealFlagEdit);
+                                }}
+                              />
+                              <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+                              </svg>
+                            </div>
+                          )}
+                          {/* ----------------- upsert ----------------- */}
+                          {isInsertModeQuotation && (
+                            <div
+                              className={`${styles.grid_select_cell_header} `}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                              }}
+                            >
+                              <input
+                                type="checkbox"
+                                className={`${styles.grid_select_cell_header_input}`}
+                                checked={checkboxUseCorporateSealFlagEdit}
+                                onChange={async (e) => {
+                                  setCheckboxUseCorporateSealFlagEdit(!checkboxUseCorporateSealFlagEdit);
+                                }}
+                              />
+                              <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+                              </svg>
+                            </div>
+                          )}
+                          {/* ----------------- upsert ----------------- */}
                         </div>
                         <div className={`${styles.underline}`}></div>
                       </div>
@@ -3194,6 +3307,28 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 : ""}
                             </span>
                           )}
+
+                          {/* ----------------- upsert ----------------- */}
+                          {!searchMode && isInsertModeQuotation && (
+                            <>
+                              <select
+                                className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.upsert}`}
+                                value={inputQuotationDivisionEdit}
+                                onChange={(e) => {
+                                  setInputQuotationDivisionEdit(e.target.value);
+                                }}
+                              >
+                                {/* <option value=""></option> */}
+                                {optionsQuotationDivision.map((option) => (
+                                  <option key={option} value={option}>
+                                    {option}
+                                  </option>
+                                ))}
+                              </select>
+                            </>
+                          )}
+                          {/* ----------------- upsert ----------------- */}
+
                           {/* ============= フィールドエディットモード関連 ============= */}
                           {/* フィールドエディットモード selectタグ  */}
                           {!searchMode && isEditModeField === "quotation_division" && (
@@ -3279,6 +3414,28 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               {selectedRowDataQuotation?.sending_method ? selectedRowDataQuotation?.sending_method : ""}
                             </span>
                           )}
+
+                          {/* ----------------- upsert ----------------- */}
+                          {!searchMode && isInsertModeQuotation && (
+                            <>
+                              <select
+                                className={`ml-auto h-full w-full cursor-pointer ${styles.select_box} ${styles.upsert}`}
+                                value={inputSendingMethodEdit}
+                                onChange={(e) => {
+                                  setInputSendingMethodEdit(e.target.value);
+                                }}
+                              >
+                                {/* <option value=""></option> */}
+                                {optionsSendingMethod.map((option) => (
+                                  <option key={option} value={option}>
+                                    {option}
+                                  </option>
+                                ))}
+                              </select>
+                            </>
+                          )}
+                          {/* ----------------- upsert ----------------- */}
+
                           {/* ============= フィールドエディットモード関連 ============= */}
                           {/* フィールドエディットモード selectタグ  */}
                           {!searchMode && isEditModeField === "sending_method" && (
@@ -3338,8 +3495,10 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                     <div className={`${styles.row_area_lg_box} flex w-full items-center`}>
                       <div className="flex h-full w-full flex-col pr-[20px]">
                         <div className={`${styles.title_box} flex h-full `}>
-                          <span className={`${styles.title} ${styles.title_sm}`}>見積備考</span>
-                          {!searchMode && isEditModeField !== "quotation_notes" && (
+                          <span className={`${styles.title} ${isInsertModeQuotation ? `` : `${styles.title_sm}`}`}>
+                            見積備考
+                          </span>
+                          {!searchMode && isEditModeField !== "quotation_notes" && !isInsertModeQuotation && (
                             <div
                               className={`${styles.textarea_box} ${styles.md} ${
                                 selectedRowDataQuotation ? `${styles.editable_field}` : `${styles.uneditable_field}`
@@ -3372,6 +3531,24 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               }}
                             ></div>
                           )}
+
+                          {/* ----------------- upsert ----------------- */}
+                          {!searchMode && isInsertModeQuotation && (
+                            <>
+                              <textarea
+                                cols={30}
+                                // rows={10}
+                                placeholder=""
+                                style={{ whiteSpace: "pre-wrap" }}
+                                className={`${styles.textarea_box} ${styles.md} ${styles.upsert}`}
+                                value={inputQuotationNotes}
+                                onChange={(e) => setInputQuotationNotes(e.target.value)}
+                              ></textarea>
+                            </>
+                          )}
+
+                          {/* ----------------- upsert ----------------- */}
+
                           {/* ============= フィールドエディットモード関連 ============= */}
                           {/* フィールドエディットモード inputタグ */}
                           {!searchMode && isEditModeField === "quotation_notes" && (
@@ -3431,7 +3608,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                       <div className="flex h-full w-1/2 flex-col pr-[20px]">
                         <div className={`${styles.title_box} flex h-full items-center `}>
                           {/* <span className={`${styles.title}`}>●消費税区分</span> */}
-                          <div className={`${styles.check_title} flex flex-col ${styles.double_text} !text-[12px]`}>
+                          <div className={`${styles.title} flex flex-col ${styles.double_text} !text-[12px]`}>
                             <span>●消費税区分</span>
                             <span>見積記載有無</span>
                           </div>
@@ -3469,6 +3646,28 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 : ""}
                             </span>
                           )}
+
+                          {/* ----------------- upsert ----------------- */}
+                          {!searchMode && isInsertModeQuotation && (
+                            <>
+                              <select
+                                className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.upsert}`}
+                                value={inputSalesTaxClassEdit}
+                                onChange={(e) => {
+                                  setInputSalesTaxClassEdit(e.target.value);
+                                }}
+                              >
+                                {/* <option value=""></option> */}
+                                {optionsSalesTaxClass.map((option) => (
+                                  <option key={option} value={option}>
+                                    {option}
+                                  </option>
+                                ))}
+                              </select>
+                            </>
+                          )}
+                          {/* ----------------- upsert ----------------- */}
+
                           {/* ============= フィールドエディットモード関連 ============= */}
                           {/* フィールドエディットモード selectタグ  */}
                           {!searchMode && isEditModeField === "sales_tax_class" && (
@@ -3554,6 +3753,28 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               {selectedRowDataQuotation?.sales_tax_rate ? selectedRowDataQuotation?.sales_tax_rate : ""}
                             </span>
                           )}
+
+                          {/* ----------------- upsert ----------------- */}
+                          {!searchMode && isInsertModeQuotation && (
+                            <>
+                              <select
+                                className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.upsert}`}
+                                value={inputSalesTaxRateEdit}
+                                onChange={(e) => {
+                                  setInputSalesTaxRateEdit(e.target.value);
+                                }}
+                              >
+                                {/* <option value=""></option> */}
+                                {optionsSalesTaxRate.map((option) => (
+                                  <option key={option} value={option}>
+                                    {option}
+                                  </option>
+                                ))}
+                              </select>
+                            </>
+                          )}
+                          {/* ----------------- upsert ----------------- */}
+
                           {/* ============= フィールドエディットモード関連 ============= */}
                           {/* フィールドエディットモード selectタグ  */}
                           {!searchMode && isEditModeField === "sales_tax_rate" && (
@@ -3646,6 +3867,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 : ""}
                             </span>
                           )}
+
                           {/* ============= フィールドエディットモード関連 ============= */}
                           {/* フィールドエディットモード selectタグ  */}
                           {!searchMode && isEditModeField === "total_price" && (

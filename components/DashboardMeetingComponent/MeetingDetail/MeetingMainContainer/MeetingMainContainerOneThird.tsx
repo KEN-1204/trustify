@@ -998,19 +998,22 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     selectedRowDataMeeting.meeting_created_by_department_of_user === userProfileState?.assigned_department_id;
 
   // シングルクリック => 何もアクションなし
-  const handleSingleClickField = useCallback((e: React.MouseEvent<HTMLSpanElement>) => {
-    if (!selectedRowDataMeeting) return;
-    // 自社で作成した会社でない場合はそのままリターン
-    // if (!isMatchDepartment) return;
-    if (setTimeoutRef.current !== null) return;
+  const handleSingleClickField = useCallback(
+    (e: React.MouseEvent<HTMLSpanElement>) => {
+      if (!selectedRowDataMeeting) return console.log("リターン");
+      // 自社で作成した会社でない場合はそのままリターン
+      // if (!isMatchDepartment) return;
+      if (setTimeoutRef.current !== null) return;
 
-    setTimeoutRef.current = setTimeout(() => {
-      setTimeoutRef.current = null;
-      // シングルクリック時に実行したい処理
-      // 0.2秒後に実行されてしまうためここには書かない
-    }, 200);
-    console.log("シングルクリック");
-  }, []);
+      setTimeoutRef.current = setTimeout(() => {
+        setTimeoutRef.current = null;
+        // シングルクリック時に実行したい処理
+        // 0.2秒後に実行されてしまうためここには書かない
+      }, 200);
+      console.log("シングルクリック");
+    },
+    [selectedRowDataMeeting]
+  );
 
   // const originalOptionRef = useRef(""); // 同じ選択肢選択時にエディットモード終了用
   // 編集前のダブルクリック時の値を保持 => 変更されたかどうかを確認
@@ -1097,7 +1100,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
         // if (isSelectChangeEvent) originalOptionRef.current = e.currentTarget.innerText; // selectタグ同じ選択肢選択時の編集モード終了用
       }
     },
-    [setIsEditModeField]
+    [setIsEditModeField, selectedRowDataMeeting]
     // [isOurActivity, setIsEditModeField]
   );
   // ================== ✅シングルクリック、ダブルクリックイベント✅ ==================
@@ -2122,7 +2125,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         className={`${styles.value} ${styles.editable_field}`}
                         onClick={handleSingleClickField}
                         onDoubleClick={(e) => {
-                          // console.log("クリック");
+                          console.log("クリック");
                           if (!selectedRowDataMeeting?.planned_purpose) return;
                           // if (isNotActivityTypeArray.includes(selectedRowDataMeeting.planned_purpose))
                           //   return alert(returnMessageNotActivity(selectedRowDataMeeting.planned_purpose));
