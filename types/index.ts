@@ -417,6 +417,9 @@ export type UserProfileCompanySubscription = {
   assigned_office_name: string | null;
   assigned_employee_id: string | null;
   assigned_employee_id_name: string | null;
+  // 印鑑データ
+  assigned_signature_stamp_id: string | null;
+  assigned_signature_stamp_url: string | null;
 };
 export type Subscription = {
   id: string;
@@ -2182,11 +2185,27 @@ export type QuotationWithProducts = {
 };
 
 // 顧客会社とクライアント会社の結合テーブル(見積ルール)
-type CustomersClients = {
+export type CustomersClients = {
   id: string;
   created_at: string | null;
   updated_at: string | null;
   customer_company_id: string | null;
   client_company_id: string | null;
   quotation_rule: string | null;
+};
+
+// 印鑑データ
+export type SignatureStamp = {
+  id: string;
+  created_at: string | null;
+  updated_at: string | null;
+  image_url: string | null;
+  kanji: string | null;
+  furigana: string | null;
+  romaji: string | null;
+};
+// 印鑑データオブジェクト SettingProfileで使用
+export type StampObj = {
+  signature_stamp_id: string | null;
+  signature_stamp_url: string | null;
 };

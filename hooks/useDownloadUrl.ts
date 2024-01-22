@@ -1,5 +1,6 @@
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 type UseDownloadUrlReturn = {
   isLoading: boolean;
@@ -10,7 +11,7 @@ type UseDownloadUrlReturn = {
 export const useDownloadUrl = (
   filePath: string | undefined | null,
   // key: "avatars" | "documents"
-  key: "avatars" | "documents" | "customer_company_logos"
+  key: "avatars" | "documents" | "customer_company_logos" | "signature_stamps"
 ): UseDownloadUrlReturn => {
   const supabase = useSupabaseClient();
   const [isLoading, setIsLoading] = useState(false);
@@ -21,18 +22,22 @@ export const useDownloadUrl = (
   useEffect(() => {
     if (filePath) {
       const download = async () => {
-        setIsLoading(true);
+        try {
+          setIsLoading(true);
 
-        const { data, error } = await supabase.storage.from(bucketName).download(filePath);
+          const { data, error } = await supabase.storage.from(bucketName).download(filePath);
 
-        if (error) {
+          if (error) {
+            setIsLoading(false);
+            toast.error("画像のダウンロードに失敗しました");
+            throw error;
+          }
+          // ストレージからダウンロードした画像URLをURLstringの形に変換してから更新関数に渡す
+          setFullUrl(URL.createObjectURL(data));
           setIsLoading(false);
-          alert("画像のダウンロードに失敗しました" + error.message);
-          throw new Error();
+        } catch (e: any) {
+          console.error("画像ダウンロード失敗", e);
         }
-        // ストレージからダウンロードした画像URLをURLstringの形に変換してから更新関数に渡す
-        setFullUrl(URL.createObjectURL(data));
-        setIsLoading(false);
       };
       download();
     }

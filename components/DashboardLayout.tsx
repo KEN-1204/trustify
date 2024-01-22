@@ -54,6 +54,8 @@ import { FallbackResumeMembershipAfterCancel } from "./Modal/ResumeMembershipAft
 import { BlockModal } from "./Modal/BlockModal/BlockModal";
 import { RestartAfterCancelForMember } from "./Modal/RestartAfterCancelForMember/RestartAfterCancelForMember";
 import { FallbackModal } from "./DashboardCompanyComponent/Modal/FallbackModal/FallbackModal";
+import { FallbackSideTableSearchSignatureStamp } from "./DashboardCompanyComponent/Modal/UpdateMeetingModal/SideTableSearchSignatureStamp/FallbackSideTableSearchSignatureStamp";
+import { SideTableSearchSignatureStamp } from "./DashboardCompanyComponent/Modal/UpdateMeetingModal/SideTableSearchSignatureStamp/SideTableSearchSignatureStamp";
 
 type Prop = {
   title?: string;
@@ -274,6 +276,9 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   const isUpdateModeQuotation = useDashboardStore((state) => state.isUpdateModeQuotation);
   const setIsUpdateModeQuotation = useDashboardStore((state) => state.setIsUpdateModeQuotation);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
+  // 印鑑データ設定サイドテーブル
+  const isOpenSearchStampSideTable = useDashboardStore((state) => state.isOpenSearchStampSideTable);
+  const isOpenSearchStampSideTableBefore = useDashboardStore((state) => state.isOpenSearchStampSideTableBefore);
 
   // 【お知らせの所有者変更モーダル開閉状態】
   const openNotificationChangeTeamOwnerModal = useDashboardStore((state) => state.openNotificationChangeTeamOwnerModal);
@@ -466,6 +471,38 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
 
       {/* アカウント設定モーダル */}
       {isOpenSettingAccountModal && <SettingAccountModal />}
+
+      {/* サイドテーブル 印鑑データ */}
+      {/* 「自社担当」変更サイドテーブル */}
+      {isOpenSearchStampSideTableBefore && (
+        <div
+          className={`fixed inset-0 z-[10000] bg-[#ffffff00] ${
+            isOpenSearchStampSideTable ? `` : `pointer-events-none`
+          }`}
+        >
+          <ErrorBoundary FallbackComponent={ErrorFallback}>
+            <Suspense
+              fallback={
+                <FallbackSideTableSearchSignatureStamp isOpenSearchStampSideTable={isOpenSearchStampSideTable} />
+              }
+            >
+              <SideTableSearchSignatureStamp
+                isOpenSearchStampSideTable={isOpenSearchStampSideTable}
+                // setIsOpenSearchStampSideTable={setIsOpenSearchStampSideTable}
+                isOpenSearchStampSideTableBefore={isOpenSearchStampSideTableBefore}
+                // setIsOpenSearchStampSideTableBefore={setIsOpenSearchStampSideTableBefore}
+                // prevStampObj={prevStampObj}
+                // setPrevStampObj={setPrevStampObj}
+                // stampObj={stampObj}
+                // setStampObj={setStampObj}
+                // searchSignatureStamp={sideTableState !== "author" ? true : false}
+              />
+            </Suspense>
+          </ErrorBoundary>
+        </div>
+      )}
+      {/* <FallbackSideTableSearchSignatureStamp isOpenSearchStampSideTable={isOpenSearchStampSideTable} /> */}
+
       {/* 製品_追加・編集モーダル */}
       {isOpenInsertNewProductModal && <InsertNewProductModal />}
       {isOpenUpdateProductModal && <UpdateProductModal />}

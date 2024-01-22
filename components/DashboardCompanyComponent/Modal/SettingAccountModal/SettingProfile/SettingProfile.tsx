@@ -1,4 +1,4 @@
-import React, { useState, memo, useEffect, ChangeEvent, useRef } from "react";
+import React, { useState, memo, useEffect, ChangeEvent, useRef, Suspense } from "react";
 import styles from "../SettingAccountModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -25,6 +25,12 @@ import { FiRefreshCw } from "react-icons/fi";
 import SpinnerIDS3 from "@/components/Parts/SpinnerIDS/SpinnerIDS3";
 import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
 import { useQueryClient } from "@tanstack/react-query";
+import { ErrorBoundary } from "react-error-boundary";
+import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
+import { SideTableSearchSignatureStamp } from "../../UpdateMeetingModal/SideTableSearchSignatureStamp/SideTableSearchSignatureStamp";
+import { FallbackSideTableSearchSignatureStamp } from "../../UpdateMeetingModal/SideTableSearchSignatureStamp/FallbackSideTableSearchSignatureStamp";
+import { SkeletonLoadingLineCustom } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineCustom";
+import { ImInfo } from "react-icons/im";
 
 const SettingProfileMemo = () => {
   const language = useStore((state) => state.language);
@@ -84,6 +90,28 @@ const SettingProfileMemo = () => {
   // 使用目的
   const [editPurposeOfUseMode, setEditPurposeOfUseMode] = useState(false);
   const [editedPurposeOfUse, setEditedPurposeOfUse] = useState("");
+  // 印鑑データ
+  const [editSignatureStampMode, setEditSignatureStampMode] = useState(false);
+  const [editedSignatureStamp, setEditedSignatureStamp] = useState("");
+  // const [isOpenSearchStampSideTableBefore, setIsOpenSearchStampSideTableBefore] = useState(false);
+  // const [isOpenSearchStampSideTable, setIsOpenSearchStampSideTable] = useState(false);
+  // 印鑑オブジェクト
+  type StampObj = {
+    signature_stamp_id: string | null;
+    signature_stamp_url: string | null;
+  };
+  const initialStampObj = {
+    signature_stamp_id: userProfileState?.assigned_signature_stamp_id ?? null,
+    signature_stamp_url: userProfileState?.assigned_signature_stamp_url ?? null,
+  };
+  // const [prevStampObj, setPrevStampObj] = useState<StampObj>(initialStampObj);
+  // const [stampObj, setStampObj] = useState<StampObj>(initialStampObj);
+  const prevStampObj = useDashboardStore((state) => state.prevStampObj);
+  const setPrevStampObj = useDashboardStore((state) => state.setPrevStampObj);
+  const stampObj = useDashboardStore((state) => state.stampObj);
+  const setStampObj = useDashboardStore((state) => state.setStampObj);
+  const setIsOpenSearchStampSideTableBefore = useDashboardStore((state) => state.setIsOpenSearchStampSideTableBefore);
+  const setIsOpenSearchStampSideTable = useDashboardStore((state) => state.setIsOpenSearchStampSideTable);
 
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
@@ -91,6 +119,10 @@ const SettingProfileMemo = () => {
   // const { createActivityMutation } = useMutateActivity();
   const { useMutateUploadAvatarImg, useMutateDeleteAvatarImg } = useUploadAvatarImg();
   const { fullUrl: avatarUrl, isLoading } = useDownloadUrl(userProfileState?.avatar_url, "avatars");
+  const { fullUrl: stampUrl, isLoading: isLoadingStamp } = useDownloadUrl(
+    userProfileState?.assigned_signature_stamp_url,
+    "signature_stamps"
+  );
 
   // ================================ 🌟事業部、係、事業所リスト取得useQuery🌟 ================================
   // const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
@@ -534,6 +566,124 @@ const SettingProfileMemo = () => {
               />
             </div>
           </div>
+
+          <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
+
+          {/* 印鑑データ */}
+          <div className={`mt-[30px] flex min-h-[120px] w-full flex-col `}>
+            <div className={`${styles.section_title}`}>
+              <div
+                className="flex max-w-max items-center space-x-[9px]"
+                onMouseEnter={(e) =>
+                  handleOpenTooltip({
+                    e: e,
+                    display: "top",
+                    content: "データベース内の印鑑データと紐付けすることで",
+                    content2: "見積書の印鑑や承認の押印をデータベース上で処理が可能になります。",
+                    marginTop: 33,
+                    // marginTop: 8,
+                  })
+                }
+                onMouseLeave={handleCloseTooltip}
+              >
+                <span>印鑑データ</span>
+                <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+              </div>
+            </div>
+            <div className={`flex h-full w-full items-center justify-between`}>
+              <div className="">
+                {!stampUrl && !isLoadingStamp && (
+                  <div className={`${styles.section_value}`}>
+                    <span>未設定</span>
+                  </div>
+                )}
+                {stampUrl && !isLoadingStamp && (
+                  <label
+                    className={`flex-center group relative h-[75px] w-[75px] cursor-pointer overflow-hidden rounded-full`}
+                  >
+                    <Image
+                      src={stampUrl}
+                      alt="stamp"
+                      className={`h-full w-full object-cover text-[#fff]`}
+                      width={75}
+                      height={75}
+                    />
+                    <div className={`absolute inset-0 z-10`}></div>
+                  </label>
+                )}
+                {isLoadingStamp && (
+                  <label
+                    className={`flex-center relative min-h-[75px] min-w-[75px] cursor-pointer overflow-hidden rounded-full`}
+                  >
+                    <SkeletonLoadingLineCustom rounded="50%" h="60px" w="60px" />
+                  </label>
+                )}
+              </div>
+
+              <div>
+                <div
+                  className={`transition-bg01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                  onClick={() => {
+                    setEditedSignatureStamp(
+                      userProfileState?.signature_stamp_id ? userProfileState.signature_stamp_id : ""
+                    );
+                    setPrevStampObj(initialStampObj);
+                    setStampObj(initialStampObj);
+                    setIsOpenSearchStampSideTableBefore(true);
+                    setTimeout(() => {
+                      setIsOpenSearchStampSideTable(true);
+                    }, 100);
+                    handleCloseTooltip();
+                  }}
+                  onMouseEnter={(e) =>
+                    handleOpenTooltip({
+                      e: e,
+                      display: "top",
+                      content: "データベース内の印鑑データと紐付けすることで",
+                      content2: "見積書の印鑑や承認の押印をデータベース上で処理が可能になります。",
+                      // marginTop: 33,
+                      marginTop: 18,
+                    })
+                  }
+                  onMouseLeave={handleCloseTooltip}
+                >
+                  {!userProfileState?.signature_stamp_id && <span>設定</span>}
+                  {userProfileState?.signature_stamp_id && <span>編集</span>}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
+            <div className={`${styles.section_title}`}>印鑑データ</div>
+            {!editSignatureStampMode && (
+              <div className={`flex h-full w-full items-center justify-between`}>
+                <div className={`${styles.section_value}`}>
+                  {userProfileState?.signature_stamp_id ? "設定済み" : "未設定"}
+                </div>
+                <div>
+                  <div
+                    className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                    onClick={() => {
+                      setEditedSignatureStamp(
+                        userProfileState?.signature_stamp_id ? userProfileState.signature_stamp_id : ""
+                      );
+                      setPrevStampObj(initialStampObj);
+                      setStampObj(initialStampObj);
+                      setIsOpenSearchStampSideTableBefore(true);
+                      setTimeout(() => {
+                        setIsOpenSearchStampSideTable(true);
+                      }, 100);
+                    }}
+                  >
+                    {!userProfileState?.signature_stamp_id && <span>編集</span>}
+                    {userProfileState?.signature_stamp_id && <span>設定</span>}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div> */}
+          {/* 印鑑データここまで */}
 
           <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
 
@@ -2406,6 +2556,35 @@ const SettingProfileMemo = () => {
           <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
         </div>
       )}
+
+      {/* 「自社担当」変更サイドテーブル */}
+      {/* {isOpenSearchStampSideTableBefore && (
+        <div
+          className={`fixed inset-0 z-[20000] bg-[#ffffff00] ${
+            isOpenSearchStampSideTable ? `` : `pointer-events-none`
+          }`}
+        >
+          <ErrorBoundary FallbackComponent={ErrorFallback}>
+            <Suspense
+              fallback={
+                <FallbackSideTableSearchSignatureStamp isOpenSearchStampSideTable={isOpenSearchStampSideTable} />
+              }
+            >
+              <SideTableSearchSignatureStamp
+                isOpenSearchStampSideTable={isOpenSearchStampSideTable}
+                setIsOpenSearchStampSideTable={setIsOpenSearchStampSideTable}
+                isOpenSearchStampSideTableBefore={isOpenSearchStampSideTableBefore}
+                setIsOpenSearchStampSideTableBefore={setIsOpenSearchStampSideTableBefore}
+                prevStampObj={prevStampObj}
+                setPrevStampObj={setPrevStampObj}
+                stampObj={stampObj}
+                setStampObj={setStampObj}
+                // searchSignatureStamp={sideTableState !== "author" ? true : false}
+              />
+            </Suspense>
+          </ErrorBoundary>
+        </div>
+      )} */}
     </>
   );
 };

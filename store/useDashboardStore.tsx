@@ -19,6 +19,7 @@ import {
   Property_row_data,
   Quotation_row_data,
   SettingModalProperties,
+  StampObj,
   StripeSchedule,
   UserProfile,
   UserProfileCompanySubscription,
@@ -152,6 +153,17 @@ type State = {
   // 【アカウント設定モーダルの画面からのx, yとサイズ保持用】
   settingModalProperties: SettingModalProperties | null;
   setSettingModalProperties: (payload: SettingModalProperties) => void;
+
+  // =================== サイドテーブル 印鑑データ ===================
+  isOpenSearchStampSideTable: boolean;
+  setIsOpenSearchStampSideTable: (payload: boolean) => void;
+  isOpenSearchStampSideTableBefore: boolean;
+  setIsOpenSearchStampSideTableBefore: (payload: boolean) => void;
+  prevStampObj: StampObj;
+  setPrevStampObj: (payload: StampObj) => void;
+  stampObj: StampObj;
+  setStampObj: (payload: StampObj) => void;
+
   // =================== 製品追加・編集モーダル ===================
   // 新規作成モーダル
   isOpenInsertNewProductModal: boolean;
@@ -461,6 +473,16 @@ const useDashboardStore = create<State>((set) => ({
   // 【アカウント設定モーダルの画面からのx, yとサイズ保持用】
   settingModalProperties: null,
   setSettingModalProperties: (payload) => set({ settingModalProperties: payload }),
+
+  // =================== サイドテーブル 印鑑データ ===================
+  isOpenSearchStampSideTable: false,
+  setIsOpenSearchStampSideTable: (payload) => set({ isOpenSearchStampSideTable: payload }),
+  isOpenSearchStampSideTableBefore: false,
+  setIsOpenSearchStampSideTableBefore: (payload) => set({ isOpenSearchStampSideTableBefore: payload }),
+  prevStampObj: { signature_stamp_id: null, signature_stamp_url: null },
+  setPrevStampObj: (payload) => set({ prevStampObj: payload }),
+  stampObj: { signature_stamp_id: null, signature_stamp_url: null },
+  setStampObj: (payload) => set({ stampObj: payload }),
 
   // =================== 製品追加・編集モーダル ===================
   // 新規作成モーダル
