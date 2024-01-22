@@ -483,7 +483,7 @@ export type SubscribedAccount = {
 //   account_invited_email: string | null;
 // };
 // profilesとsubscribed_accountsの外部結合データ
-// 部署、係、事業所、社員番号なしvar
+// 部署、係、事業所、社員番号ありvar
 export type MemberAccounts = {
   id: string;
   created_at: string;
@@ -528,6 +528,9 @@ export type MemberAccounts = {
   assigned_office_name: string | null;
   assigned_employee_id: string | null;
   assigned_employee_id_name: string | null;
+  // 印鑑データ
+  assigned_signature_stamp_id: string | null;
+  assigned_signature_stamp_url: string | null;
 };
 
 export type Invitation = {

@@ -602,7 +602,24 @@ export const optionsDeliveryPlace = ["貴社指定場所", "お打ち合わせ�
 export const optionsPaymentTerms = ["従来通り", "月末締め翌月末現金お振込み", "お打ち合わせにより決定"];
 
 // 見積区分
-export const optionsQuotationDivision = ["標準見積", "セット見積", "リース見積"];
+export const optionsQuotationDivision = ["standard", "set", "lease"];
+export const getQuotationDivision = (title: string, language: string = "ja") => {
+  switch (title) {
+    case "standard":
+      return (language = "ja" ? `標準見積` : `Standard estimate`);
+      break;
+    case "set":
+      return (language = "ja" ? `セット見積` : `Set estimate`);
+      break;
+    case "lease":
+      return (language = "ja" ? `リース見積` : `Lease estimate`);
+      break;
+
+    default:
+      return (language = "ja" ? `標準見積` : `Standard estimate`);
+      break;
+  }
+};
 
 // 送付方法
 // export const optionsSendingMethod = ["送付状なし", "Fax", "郵送"];

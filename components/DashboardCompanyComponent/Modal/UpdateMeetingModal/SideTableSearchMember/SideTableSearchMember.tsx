@@ -23,6 +23,8 @@ type MemberObj = {
   departmentId: string | null;
   unitId: string | null;
   officeId: string | null;
+  signature_stamp_id?: string | null;
+  signature_stamp_url?: string | null;
 };
 
 type Props = {
@@ -35,6 +37,7 @@ type Props = {
   setPrevMemberObj: Dispatch<SetStateAction<MemberObj>>;
   memberObj: MemberObj;
   setMemberObj: Dispatch<SetStateAction<MemberObj>>;
+  searchSignatureStamp?: boolean;
   // setMeetingMemberName: Dispatch<SetStateAction<string>>;
   // searchMemberInputFields: {
   //   title: string;
@@ -67,6 +70,7 @@ const SideTableSearchMemberMemo = ({
   // setMeetingMemberName,
   memberObj,
   setMemberObj,
+  searchSignatureStamp = false,
 }: // selectedAttendeesArray,
 // setSelectedAttendeesArray,
 Props) => {
@@ -432,18 +436,38 @@ Props) => {
       alert(`同じ担当者です。変更が不要な場合は右上の矢印ボタンかテーブル以外をクリックして戻ってください。`);
       return;
     } else {
-      // 現在の自社担当と異なる担当者の場合は自社担当を変更
-      const newMemberObj: MemberObj = {
-        memberId: selectedMemberObj.id,
-        memberName: selectedMemberObj.profile_name,
-        departmentId: selectedMemberObj.assigned_department_id ?? null,
-        unitId: selectedMemberObj.assigned_unit_id ?? null,
-        officeId: selectedMemberObj.assigned_office_id ?? null,
-      };
+      // 印鑑検索の場合
+      if (searchSignatureStamp) {
+        // 現在の自社担当と異なる担当者の場合は自社担当を変更
+        const newMemberObj: MemberObj = {
+          memberId: selectedMemberObj.id,
+          memberName: selectedMemberObj.profile_name,
+          departmentId: selectedMemberObj.assigned_department_id ?? null,
+          unitId: selectedMemberObj.assigned_unit_id ?? null,
+          officeId: selectedMemberObj.assigned_office_id ?? null,
+          signature_stamp_id: selectedMemberObj.assigned_signature_stamp_id ?? null,
+          signature_stamp_url: selectedMemberObj.assigned_signature_stamp_url ?? null,
+        };
 
-      // 変更後のメンバーstateに追加
-      // setChangedMemberObj(newMemberObj);
-      setMemberObj(newMemberObj);
+        // 変更後のメンバーstateに追加
+        // setChangedMemberObj(newMemberObj);
+        setMemberObj(newMemberObj);
+      }
+      // 作成者変更の場合
+      else {
+        // 現在の自社担当と異なる担当者の場合は自社担当を変更
+        const newMemberObj: MemberObj = {
+          memberId: selectedMemberObj.id,
+          memberName: selectedMemberObj.profile_name,
+          departmentId: selectedMemberObj.assigned_department_id ?? null,
+          unitId: selectedMemberObj.assigned_unit_id ?? null,
+          officeId: selectedMemberObj.assigned_office_id ?? null,
+        };
+
+        // 変更後のメンバーstateに追加
+        // setChangedMemberObj(newMemberObj);
+        setMemberObj(newMemberObj);
+      }
 
       // 変更確定確認モーダルを開く
       // setIsChangeConfirmationModal(true)
@@ -467,11 +491,11 @@ Props) => {
   };
   // -------------------------- ✅変更ボタンをクリック✅ --------------------------
 
-  // -------------------------- 🌟変更確定ボタンをクリック🌟 --------------------------
+  // -------------------------- 🌟担当印変更クリック🌟 --------------------------
   // const handleConfirmChangeMember = () => {
 
   // }
-  // -------------------------- ✅変更確定ボタンをクリック✅ --------------------------
+  // -------------------------- ✅担当印変更クリック✅ --------------------------
 
   // -------------------------- 🌟スクロールでヘッダー色変更🌟 --------------------------
   // サイドテーブルの同席者一覧エリアのスクロールアイテムRef
@@ -612,7 +636,9 @@ Props) => {
       {isOpenSearchMemberSideTable && (
         <div
           // className={`absolute left-0 top-0 z-[1100] h-full w-full bg-[#00800030]`}
-          className={`absolute left-0 top-0 z-[1100] h-full w-full bg-[#00000000]`}
+          className={`absolute left-0 top-0 z-[1100] h-full w-full bg-[#00000000] ${
+            searchSignatureStamp ? `bg-[#00000039]` : ``
+          }`}
           onClick={handleClose}
         ></div>
       )}
@@ -643,6 +669,7 @@ Props) => {
               className={`z-1 flex-center absolute right-[-10px] top-[50%]  h-[36px] w-[36px] translate-y-[-50%] cursor-pointer rounded-full hover:bg-[#666]`}
               onClick={() => {
                 // setMeetingMemberName(currentMemberName);
+                handleClose();
               }}
             >
               {/* <BsChevronRight className="z-1 absolute left-[-15px] top-[50%] translate-y-[-50%] text-[24px]" /> */}
