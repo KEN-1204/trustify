@@ -11,9 +11,10 @@ import { ImInfo } from "react-icons/im";
 
 type Props = {
   isOpenSearchMemberSideTable: boolean;
+  searchSignatureStamp?: boolean;
 };
 
-export const FallbackSideTableSearchMember = ({ isOpenSearchMemberSideTable }: Props) => {
+export const FallbackSideTableSearchMember = ({ isOpenSearchMemberSideTable, searchSignatureStamp = false }: Props) => {
   const searchAttendeeFields = [
     {
       title: "社員名",
@@ -54,7 +55,8 @@ export const FallbackSideTableSearchMember = ({ isOpenSearchMemberSideTable }: P
           <div className={`relative flex h-full w-full items-center justify-between`}>
             <h3 className="space-y-[1px] text-[22px] font-bold">
               <div className={`flex items-start space-x-[9px]`}>
-                <span>メンバー検索</span>
+                {!searchSignatureStamp && <span>メンバー検索</span>}
+                {searchSignatureStamp && <span>印鑑データ設定</span>}
                 <span>{neonSearchIcon("30")}</span>
                 {/* <span>{neonCycleIcon("30")}</span> */}
               </div>
@@ -74,7 +76,8 @@ export const FallbackSideTableSearchMember = ({ isOpenSearchMemberSideTable }: P
             <div className={`flex min-h-[30px] items-end justify-between px-[30px]`}>
               <h3 className="flex min-h-[30px] max-w-max items-end space-y-[1px] text-[14px] font-bold ">
                 <div className="flex items-end space-x-[10px]">
-                  <span>条件を入力してメンバーを検索</span>
+                  {!searchSignatureStamp && <span>条件を入力してメンバーを検索</span>}
+                  {searchSignatureStamp && <span>条件を入力して自身の印鑑データを検索</span>}
                   <div className="pointer-events-none flex min-h-[30px] items-end pb-[2px]">
                     <ImInfo className={`min-h-[18px] min-w-[18px] text-[var(--color-bg-brand-f)]`} />
                   </div>
@@ -150,7 +153,8 @@ export const FallbackSideTableSearchMember = ({ isOpenSearchMemberSideTable }: P
               className={`sticky top-0 flex min-h-[30px] items-end justify-between px-[30px] pb-[18px] pt-[18px] ${styles.side_table_attendees_header}`}
             >
               <h3 className="flex min-h-[30px] max-w-max items-center space-y-[1px] text-[14px] font-bold">
-                <span>メンバーを選択してデータの所有者を変更</span>
+                {!searchSignatureStamp && <span>メンバーを選択してデータの所有者を変更</span>}
+                {searchSignatureStamp && <span>自分のデータを選択して見積にデータ印を設定</span>}
               </h3>
               <div className="flex">
                 <RippleButton

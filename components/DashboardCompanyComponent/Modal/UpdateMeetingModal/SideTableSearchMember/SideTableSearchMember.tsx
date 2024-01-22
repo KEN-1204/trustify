@@ -452,6 +452,7 @@ Props) => {
         // 変更後のメンバーstateに追加
         // setChangedMemberObj(newMemberObj);
         setMemberObj(newMemberObj);
+        setPrevMemberObj(newMemberObj);
       }
       // 作成者変更の場合
       else {
@@ -658,7 +659,8 @@ Props) => {
           <div className={`relative flex h-full w-full items-center justify-between`}>
             <h3 className="space-y-[1px] text-[22px] font-bold">
               <div className={`flex items-start space-x-[9px]`}>
-                <span>メンバー検索</span>
+                {!searchSignatureStamp && <span>メンバー検索</span>}
+                {searchSignatureStamp && <span>印鑑データ設定</span>}
                 <span>{neonSearchIcon("30")}</span>
               </div>
               <div className="min-h-[1px] w-full bg-[var(--color-bg-brand-f)]"></div>
@@ -710,7 +712,8 @@ Props) => {
                   }
                   onMouseLeave={handleCloseTooltip}
                 >
-                  <span>条件を入力してメンバーを検索</span>
+                  {!searchSignatureStamp && <span>条件を入力してメンバーを検索</span>}
+                  {searchSignatureStamp && <span>条件を入力して自身の印鑑データを検索</span>}
                   {/* <div className="min-h-[1px] w-auto bg-[#999]"></div> */}
                   {/* <RippleButton
                     title={`検索`}
@@ -898,7 +901,8 @@ Props) => {
               // className={`sticky top-0 flex min-h-[30px] items-end justify-between bg-[var(--color-bg-brand-f-deep)] px-[30px] pb-[12px] pt-[12px]`}
             >
               <h3 className="flex min-h-[30px] max-w-max items-center space-x-[10px] space-y-[1px] text-[14px] font-bold">
-                <span>メンバーを選択してデータの所有者を変更</span>
+                {!searchSignatureStamp && <span>メンバーを選択してデータの所有者を変更</span>}
+                {searchSignatureStamp && <span>自分のデータを選択して見積にデータ印を設定</span>}
                 {/* <div className="min-h-[1px] w-auto bg-[#999]"></div> */}
                 {!!selectedMemberObj && (
                   <>
@@ -1013,6 +1017,15 @@ Props) => {
                         selectedMemberObj && selectedMemberObj.id === member.id ? styles.active : ``
                       }`}
                       onClick={() => {
+                        // 印鑑データ設定の場合、印鑑データが設定されていないメンバーをクリックした場合はリターン
+                        if (
+                          searchSignatureStamp &&
+                          (!member.assigned_signature_stamp_id || !member.assigned_signature_stamp_url)
+                        ) {
+                          return alert(
+                            "印鑑データが設定されていません。先にプロフィール画面からデータベース内の印鑑データと紐付けを行ってください。"
+                          );
+                        }
                         // 存在の確認のみなので、findではなくsome
                         if (selectedMemberObj && selectedMemberObj.id === member.id) {
                           // 既に選択している場合はリセット
@@ -1085,6 +1098,33 @@ Props) => {
                           )}
                         </div>
                       </div>
+                      {searchSignatureStamp &&
+                        (!member.assigned_signature_stamp_id || !member.assigned_signature_stamp_url) && (
+                          <div className="ml-auto mr-[30px]">
+                            <span
+                              className="text-[13px]"
+                              onMouseEnter={(e) => {
+                                // if (isOpenDropdownMenuFilterProducts) return;
+                                handleOpenTooltip({
+                                  e: e,
+                                  display: "top",
+                                  content: "印鑑データが設定されていません。",
+                                  content2: "先にプロフィール画面から印鑑データの設定が必要です",
+                                  // marginTop: 57,
+                                  marginTop: 38,
+                                  // marginTop: 12,
+                                  itemsPosition: "center",
+                                  whiteSpace: "nowrap",
+                                });
+                              }}
+                              onMouseLeave={() => {
+                                if (hoveredItemPosSideTable) handleCloseTooltip();
+                              }}
+                            >
+                              印鑑データなし
+                            </span>
+                          </div>
+                        )}
                     </li>
                   );
                 })}

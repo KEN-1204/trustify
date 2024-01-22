@@ -9,6 +9,7 @@ import { CgDarkMode } from "react-icons/cg";
 import { GiSettingsKnobs } from "react-icons/gi";
 import { BsCheck2, BsChevronLeft, BsChevronRight } from "react-icons/bs";
 import Image from "next/image";
+import ImageLegacy from "next/legacy/image";
 import Link from "next/link";
 import useDashboardStore from "@/store/useDashboardStore";
 import useThemeStore from "@/store/useThemeStore";
@@ -1301,7 +1302,7 @@ export const DashboardHeaderMemo: FC = () => {
                     {avatarUrl && (
                       <div
                         data-text={`${userProfileState?.profile_name}`}
-                        className={`flex-center z-0 min-h-[58px] min-w-[58px] cursor-pointer overflow-hidden rounded-full hover:bg-[#00000020]`}
+                        className={`flex-center relative z-0 h-[58px] min-h-[58px] w-[58px] min-w-[58px] cursor-pointer overflow-hidden rounded-full hover:bg-[#00000020]`}
                         onMouseEnter={() => {
                           setHoveredIcon(true);
                         }}
@@ -1320,6 +1321,13 @@ export const DashboardHeaderMemo: FC = () => {
                           width={58}
                           height={58}
                         />
+                        {/* <ImageLegacy
+                          src={avatarUrl}
+                          alt="Avatar"
+                          className={`pointer-events-none h-full w-full object-cover text-[#fff]`}
+                          layout="fill"
+                          objectFit="cover"
+                        /> */}
                       </div>
                     )}
                     {/* 編集アイコン */}

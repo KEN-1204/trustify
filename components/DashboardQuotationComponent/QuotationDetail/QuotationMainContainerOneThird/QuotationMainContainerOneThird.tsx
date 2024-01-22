@@ -64,6 +64,7 @@ import { ConfirmationModal } from "@/components/DashboardCompanyComponent/Modal/
 import { toHalfWidthAndSpace } from "@/utils/Helpers/toHalfWidthAndSpace";
 import { FallbackSideTableSearchMember } from "@/components/DashboardCompanyComponent/Modal/UpdateMeetingModal/SideTableSearchMember/FallbackSideTableSearchMember";
 import { SideTableSearchMember } from "@/components/DashboardCompanyComponent/Modal/UpdateMeetingModal/SideTableSearchMember/SideTableSearchMember";
+import { GrPowerReset } from "react-icons/gr";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -252,12 +253,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const [inputLeaseRateEdit, setInputLeaseRateEdit] = useState<string>("");
   const [inputLeaseMonthlyFeeEdit, setInputLeaseMonthlyFeeEdit] = useState("");
   //  印鑑フィールドエディット
-  const [inputInChargeStampIdEdit, setInputInChargeStampIdEdit] = useState("");
-  const [inputInChargeNameIdEdit, setInputInChargeNameIdEdit] = useState("");
-  const [inputSupervisor1StampIdEdit, setInputSupervisor1StampIdEdit] = useState("");
-  const [inputSupervisor1NameIdEdit, setInputSupervisor1NameIdEdit] = useState("");
-  const [inputSupervisor2StampIdEdit, setInputSupervisor2StampIdEdit] = useState("");
-  const [inputSupervisor2NameIdEdit, setInputSupervisor2NameIdEdit] = useState("");
+  // const [inputInChargeStampIdEdit, setInputInChargeStampIdEdit] = useState("");
+  // const [inputInChargeNameIdEdit, setInputInChargeNameIdEdit] = useState("");
+  // const [inputSupervisor1StampIdEdit, setInputSupervisor1StampIdEdit] = useState("");
+  // const [inputSupervisor1NameIdEdit, setInputSupervisor1NameIdEdit] = useState("");
+  // const [inputSupervisor2StampIdEdit, setInputSupervisor2StampIdEdit] = useState("");
+  // const [inputSupervisor2NameIdEdit, setInputSupervisor2NameIdEdit] = useState("");
   type MemberWithStamp = {
     memberId: string | null;
     memberName: string | null;
@@ -334,6 +335,11 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
 
   // フラグ関連 フィールドエディット用 初期はfalseにしておき、useEffectでselectedRowDataのフラグを反映する
   // 角印印刷フラグ、担当印、上長印１、上長印２ フィールドエディット用
+  const [checkboxUseCorporateSealFlag, setCheckboxUseCorporateSealFlag] = useState(false);
+  const [checkboxInChargeFlag, setCheckboxInChargeFlag] = useState(false);
+  const [checkboxSupervisor1Flag, setCheckboxSupervisor1Flag] = useState(false);
+  const [checkboxSupervisor2Flag, setCheckboxSupervisor2Flag] = useState(false);
+  // Insert用フラグ
   const [checkboxUseCorporateSealFlagEdit, setCheckboxUseCorporateSealFlagEdit] = useState(false);
   const [checkboxInChargeFlagEdit, setCheckboxInChargeFlagEdit] = useState(false);
   const [checkboxSupervisor1FlagEdit, setCheckboxSupervisor1FlagEdit] = useState(false);
@@ -342,25 +348,25 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   // フラグの初期値を更新
   // 角印印刷
   useEffect(() => {
-    setCheckboxUseCorporateSealFlagEdit(
+    setCheckboxUseCorporateSealFlag(
       selectedRowDataQuotation?.use_corporate_seal ? selectedRowDataQuotation?.use_corporate_seal : false
     );
   }, [selectedRowDataQuotation?.use_corporate_seal]);
   // 担当者印
   useEffect(() => {
-    setCheckboxInChargeFlagEdit(
+    setCheckboxInChargeFlag(
       selectedRowDataQuotation?.in_charge_stamp_flag ? selectedRowDataQuotation?.in_charge_stamp_flag : false
     );
   }, [selectedRowDataQuotation?.in_charge_stamp_flag]);
   // 上長印1
   useEffect(() => {
-    setCheckboxSupervisor1FlagEdit(
+    setCheckboxSupervisor1Flag(
       selectedRowDataQuotation?.supervisor1_stamp_flag ? selectedRowDataQuotation?.supervisor1_stamp_flag : false
     );
   }, [selectedRowDataQuotation?.supervisor1_stamp_flag]);
   // 上長印2
   useEffect(() => {
-    setCheckboxSupervisor2FlagEdit(
+    setCheckboxSupervisor2Flag(
       selectedRowDataQuotation?.supervisor2_stamp_flag ? selectedRowDataQuotation?.supervisor2_stamp_flag : false
     );
   }, [selectedRowDataQuotation?.supervisor2_stamp_flag]);
@@ -1846,7 +1852,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
 
                         {/* ----------------- upsert ----------------- */}
                         {!searchMode && isInsertModeQuotation && (
-                          <span className={`${styles.value} ${styles.text_start}`}>
+                          <span className={`${styles.value} ${styles.text_start} ${styles.upsert}`}>
                             {inputCompanyCellPhone ? inputCompanyCellPhone : ""}
                           </span>
                         )}
@@ -1937,7 +1943,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
 
                         {/* ----------------- upsert ----------------- */}
                         {!searchMode && isInsertModeQuotation && (
-                          <span className={`${styles.value} ${styles.text_start}`}>{inputFax ? inputFax : ""}</span>
+                          <span className={`${styles.value} ${styles.text_start} ${styles.upsert}`}>
+                            {inputFax ? inputFax : ""}
+                          </span>
                         )}
                         {/* ----------------- upsert ----------------- */}
 
@@ -5006,6 +5014,57 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 </div>
                               </>
                             )}
+                            {!searchMode && isInsertModeQuotation && memberObjInCharge.signature_stamp_id && (
+                              <div className="flex w-full items-center">
+                                <span className={`${styles.value} truncate`}>
+                                  {memberObjInCharge.memberName &&
+                                  memberObjInCharge.signature_stamp_id &&
+                                  memberObjInCharge.signature_stamp_url
+                                    ? memberObjInCharge.memberName
+                                    : `未設定`}
+                                </span>
+
+                                <div
+                                  className={`${styles.icon_path_stroke} ${styles.icon_btn} flex-center transition-bg03 ml-auto`}
+                                  onMouseEnter={(e) => {
+                                    // if (isOpenDropdownMenuFilterProducts) return;
+                                    handleOpenTooltip({
+                                      e: e,
+                                      display: "top",
+                                      content: "データ印を変更",
+                                      // content2: "フィルターの切り替えが可能です。",
+                                      // marginTop: 57,
+                                      // marginTop: 38,
+                                      marginTop: 6,
+                                      itemsPosition: "center",
+                                      whiteSpace: "nowrap",
+                                    });
+                                  }}
+                                  onMouseLeave={() => {
+                                    if (hoveredItemPosWrap) handleCloseTooltip();
+                                  }}
+                                  onClick={() => {
+                                    if (!memberObjInCharge) return;
+                                    setIsOpenSearchMemberSideTable(true);
+                                    setSideTableState("inCharge");
+                                    const currentMemberObj = {
+                                      memberId: memberObjInCharge.memberId,
+                                      memberName: memberObjInCharge?.memberName ?? null,
+                                      departmentId: memberObjInCharge?.departmentId ?? null,
+                                      unitId: memberObjInCharge?.unitId ?? null,
+                                      officeId: memberObjInCharge?.officeId ?? null,
+                                      signature_stamp_id: memberObjInCharge?.signature_stamp_id ?? null,
+                                      signature_stamp_url: memberObjInCharge?.signature_stamp_url ?? null,
+                                    };
+                                    setMemberObj(currentMemberObj);
+                                    setPrevMemberObj(currentMemberObj);
+                                    if (hoveredItemPosWrap) handleCloseTooltip();
+                                  }}
+                                >
+                                  <GrPowerReset />
+                                </div>
+                              </div>
+                            )}
                             {/* ----------------- upsert ----------------- */}
                           </div>
                           <div className={`${styles.underline}`}></div>
@@ -5014,61 +5073,84 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           <div className={`${styles.title_box} flex h-full items-center`}>
                             <span className={`${styles.check_title} ${styles.single_text}`}>印字</span>
 
-                            <div
-                              className={`${styles.grid_select_cell_header} `}
-                              onMouseEnter={(e) => {
-                                if (!selectedRowDataQuotation) return;
-                                e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                              }}
-                              onMouseLeave={(e) => {
-                                if (!selectedRowDataQuotation) return;
-                                e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                              }}
-                            >
-                              <input
-                                type="checkbox"
-                                // checked={!!selectedRowDataQuotation?.in_charge_stamp_flag}
-                                // onChange={() => {
-                                //   setLoadingGlobalState(false);
-                                //   setIsOpenUpdateQuotationModal(true);
-                                // }}
-                                className={`${styles.grid_select_cell_header_input} ${
-                                  !selectedRowDataQuotation || !memberObjInCharge.signature_stamp_id
-                                    ? `pointer-events-none cursor-not-allowed`
-                                    : ``
-                                }`}
-                                checked={checkboxInChargeFlagEdit}
-                                onChange={async (e) => {
+                            {!searchMode && !isInsertModeQuotation && (
+                              <div
+                                className={`${styles.grid_select_cell_header} `}
+                                onMouseEnter={(e) => {
                                   if (!selectedRowDataQuotation) return;
-                                  // 個別にチェックボックスを更新するルート
-                                  if (!selectedRowDataQuotation?.quotation_id)
-                                    return toast.error(`データが見つかりませんでした🙇‍♀️`);
-
-                                  console.log(
-                                    "チェック 新しい値",
-                                    !checkboxInChargeFlagEdit,
-                                    "オリジナル",
-                                    selectedRowDataQuotation?.in_charge_stamp_flag
-                                  );
-                                  if (!checkboxInChargeFlagEdit === selectedRowDataQuotation?.in_charge_stamp_flag) {
-                                    toast.error(`アップデートに失敗しました🤦‍♀️`);
-                                    return;
-                                  }
-                                  const updatePayload = {
-                                    fieldName: "in_charge_stamp_flag",
-                                    fieldNameForSelectedRowData: "in_charge_stamp_flag" as "in_charge_stamp_flag",
-                                    newValue: !checkboxInChargeFlagEdit,
-                                    id: selectedRowDataQuotation.quotation_id,
-                                  };
-                                  // 直感的にするためにmutateにして非同期処理のまま後続のローカルのチェックボックスを更新する
-                                  updateQuotationFieldMutation.mutate(updatePayload);
-                                  setCheckboxInChargeFlagEdit(!checkboxInChargeFlagEdit);
+                                  e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                                 }}
-                              />
-                              <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
-                              </svg>
-                            </div>
+                                onMouseLeave={(e) => {
+                                  if (!selectedRowDataQuotation) return;
+                                  e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                }}
+                              >
+                                <input
+                                  type="checkbox"
+                                  // checked={!!selectedRowDataQuotation?.in_charge_stamp_flag}
+                                  // onChange={() => {
+                                  //   setLoadingGlobalState(false);
+                                  //   setIsOpenUpdateQuotationModal(true);
+                                  // }}
+                                  className={`${styles.grid_select_cell_header_input} ${
+                                    !selectedRowDataQuotation ? `pointer-events-none cursor-not-allowed` : ``
+                                  }`}
+                                  checked={checkboxInChargeFlag}
+                                  onChange={async (e) => {
+                                    if (!selectedRowDataQuotation) return;
+                                    // 個別にチェックボックスを更新するルート
+                                    if (!selectedRowDataQuotation?.quotation_id)
+                                      return toast.error(`データが見つかりませんでした🙇‍♀️`);
+
+                                    console.log(
+                                      "チェック 新しい値",
+                                      !checkboxInChargeFlag,
+                                      "オリジナル",
+                                      selectedRowDataQuotation?.in_charge_stamp_flag
+                                    );
+                                    if (!checkboxInChargeFlag === selectedRowDataQuotation?.in_charge_stamp_flag) {
+                                      toast.error(`アップデートに失敗しました🤦‍♀️`);
+                                      return;
+                                    }
+                                    const updatePayload = {
+                                      fieldName: "in_charge_stamp_flag",
+                                      fieldNameForSelectedRowData: "in_charge_stamp_flag" as "in_charge_stamp_flag",
+                                      newValue: !checkboxInChargeFlag,
+                                      id: selectedRowDataQuotation.quotation_id,
+                                    };
+                                    // 直感的にするためにmutateにして非同期処理のまま後続のローカルのチェックボックスを更新する
+                                    updateQuotationFieldMutation.mutate(updatePayload);
+                                    setCheckboxInChargeFlag(!checkboxInChargeFlag);
+                                  }}
+                                />
+                                <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+                                </svg>
+                              </div>
+                            )}
+
+                            {/* ----------------- upsert ----------------- */}
+                            {!searchMode && isInsertModeQuotation && (
+                              <div className={`${styles.grid_select_cell_header} `}>
+                                <input
+                                  type="checkbox"
+                                  className={`${styles.grid_select_cell_header_input} ${
+                                    !memberObjInCharge.signature_stamp_id
+                                      ? `pointer-events-none cursor-not-allowed`
+                                      : ``
+                                  }`}
+                                  checked={checkboxInChargeFlagEdit}
+                                  onChange={async (e) => {
+                                    if (!memberObjInCharge.signature_stamp_id) return;
+                                    setCheckboxInChargeFlagEdit(!checkboxInChargeFlagEdit);
+                                  }}
+                                />
+                                <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+                                </svg>
+                              </div>
+                            )}
+                            {/* ----------------- upsert ----------------- */}
                           </div>
                           <div className={`${styles.underline}`}></div>
                         </div>
@@ -5097,7 +5179,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             )}
 
                             {/* ----------------- upsert ----------------- */}
-                            {!searchMode && isInsertModeQuotation && !memberObjSupervisor1.departmentId && (
+                            {!searchMode && isInsertModeQuotation && !memberObjSupervisor1.signature_stamp_id && (
                               <>
                                 <div className="flex-center w-full">
                                   <RippleButton
@@ -5123,6 +5205,58 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   />
                                 </div>
                               </>
+                            )}
+
+                            {!searchMode && isInsertModeQuotation && memberObjSupervisor1.signature_stamp_id && (
+                              <div className="flex w-full items-center">
+                                <span className={`${styles.value} truncate`}>
+                                  {memberObjSupervisor1.memberName &&
+                                  memberObjSupervisor1.signature_stamp_id &&
+                                  memberObjSupervisor1.signature_stamp_url
+                                    ? memberObjSupervisor1.memberName
+                                    : `未設定`}
+                                </span>
+
+                                <div
+                                  className={`${styles.icon_path_stroke} ${styles.icon_btn} flex-center transition-bg03 ml-auto`}
+                                  onMouseEnter={(e) => {
+                                    // if (isOpenDropdownMenuFilterProducts) return;
+                                    handleOpenTooltip({
+                                      e: e,
+                                      display: "top",
+                                      content: "データ印を変更",
+                                      // content2: "フィルターの切り替えが可能です。",
+                                      // marginTop: 57,
+                                      // marginTop: 38,
+                                      marginTop: 6,
+                                      itemsPosition: "center",
+                                      whiteSpace: "nowrap",
+                                    });
+                                  }}
+                                  onMouseLeave={() => {
+                                    if (hoveredItemPosWrap) handleCloseTooltip();
+                                  }}
+                                  onClick={() => {
+                                    if (!memberObjSupervisor1) return;
+                                    setIsOpenSearchMemberSideTable(true);
+                                    setSideTableState("supervisor1");
+                                    const currentMemberObj = {
+                                      memberId: memberObjSupervisor1.memberId,
+                                      memberName: memberObjSupervisor1?.memberName ?? null,
+                                      departmentId: memberObjSupervisor1?.departmentId ?? null,
+                                      unitId: memberObjSupervisor1?.unitId ?? null,
+                                      officeId: memberObjSupervisor1?.officeId ?? null,
+                                      signature_stamp_id: memberObjSupervisor1?.signature_stamp_id ?? null,
+                                      signature_stamp_url: memberObjSupervisor1?.signature_stamp_url ?? null,
+                                    };
+                                    setMemberObj(currentMemberObj);
+                                    setPrevMemberObj(currentMemberObj);
+                                    if (hoveredItemPosWrap) handleCloseTooltip();
+                                  }}
+                                >
+                                  <GrPowerReset />
+                                </div>
+                              </div>
                             )}
                             {/* ----------------- upsert ----------------- */}
                           </div>
@@ -5159,7 +5293,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     ? `pointer-events-none cursor-not-allowed`
                                     : ``
                                 }`}
-                                checked={checkboxSupervisor1FlagEdit}
+                                checked={checkboxSupervisor1Flag}
                                 onChange={async (e) => {
                                   if (!selectedRowDataQuotation) return;
                                   // 個別にチェックボックスを更新するルート
@@ -5168,25 +5302,23 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
 
                                   console.log(
                                     "チェック 新しい値",
-                                    !checkboxSupervisor1FlagEdit,
+                                    !checkboxSupervisor1Flag,
                                     "オリジナル",
                                     selectedRowDataQuotation?.supervisor1_stamp_flag
                                   );
-                                  if (
-                                    !checkboxSupervisor1FlagEdit === selectedRowDataQuotation?.supervisor1_stamp_flag
-                                  ) {
+                                  if (!checkboxSupervisor1Flag === selectedRowDataQuotation?.supervisor1_stamp_flag) {
                                     toast.error(`アップデートに失敗しました🤦‍♀️`);
                                     return;
                                   }
                                   const updatePayload = {
                                     fieldName: "supervisor1_stamp_flag",
                                     fieldNameForSelectedRowData: "supervisor1_stamp_flag" as "supervisor1_stamp_flag",
-                                    newValue: !checkboxSupervisor1FlagEdit,
+                                    newValue: !checkboxSupervisor1Flag,
                                     id: selectedRowDataQuotation.quotation_id,
                                   };
                                   // 直感的にするためにmutateにして非同期処理のまま後続のローカルのチェックボックスを更新する
                                   updateQuotationFieldMutation.mutate(updatePayload);
-                                  setCheckboxSupervisor1FlagEdit(!checkboxSupervisor1FlagEdit);
+                                  setCheckboxSupervisor1Flag(!checkboxSupervisor1Flag);
                                 }}
                               />
                               <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -5248,6 +5380,58 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 </div>
                               </>
                             )}
+
+                            {!searchMode && isInsertModeQuotation && memberObjSupervisor2.signature_stamp_id && (
+                              <div className="flex w-full items-center">
+                                <span className={`${styles.value} truncate`}>
+                                  {memberObjSupervisor2.memberName &&
+                                  memberObjSupervisor2.signature_stamp_id &&
+                                  memberObjSupervisor2.signature_stamp_url
+                                    ? memberObjSupervisor2.memberName
+                                    : `未設定`}
+                                </span>
+
+                                <div
+                                  className={`${styles.icon_path_stroke} ${styles.icon_btn} flex-center transition-bg03 ml-auto`}
+                                  onMouseEnter={(e) => {
+                                    // if (isOpenDropdownMenuFilterProducts) return;
+                                    handleOpenTooltip({
+                                      e: e,
+                                      display: "top",
+                                      content: "データ印を変更",
+                                      // content2: "フィルターの切り替えが可能です。",
+                                      // marginTop: 57,
+                                      // marginTop: 38,
+                                      marginTop: 6,
+                                      itemsPosition: "center",
+                                      whiteSpace: "nowrap",
+                                    });
+                                  }}
+                                  onMouseLeave={() => {
+                                    if (hoveredItemPosWrap) handleCloseTooltip();
+                                  }}
+                                  onClick={() => {
+                                    if (!memberObjSupervisor2) return;
+                                    setIsOpenSearchMemberSideTable(true);
+                                    setSideTableState("supervisor2");
+                                    const currentMemberObj = {
+                                      memberId: memberObjSupervisor2.memberId,
+                                      memberName: memberObjSupervisor2?.memberName ?? null,
+                                      departmentId: memberObjSupervisor2?.departmentId ?? null,
+                                      unitId: memberObjSupervisor2?.unitId ?? null,
+                                      officeId: memberObjSupervisor2?.officeId ?? null,
+                                      signature_stamp_id: memberObjSupervisor2?.signature_stamp_id ?? null,
+                                      signature_stamp_url: memberObjSupervisor2?.signature_stamp_url ?? null,
+                                    };
+                                    setMemberObj(currentMemberObj);
+                                    setPrevMemberObj(currentMemberObj);
+                                    if (hoveredItemPosWrap) handleCloseTooltip();
+                                  }}
+                                >
+                                  <GrPowerReset />
+                                </div>
+                              </div>
+                            )}
                             {/* ----------------- upsert ----------------- */}
                           </div>
                           <div className={`${styles.underline}`}></div>
@@ -5283,7 +5467,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     ? `pointer-events-none cursor-not-allowed`
                                     : ``
                                 }`}
-                                checked={checkboxSupervisor2FlagEdit}
+                                checked={checkboxSupervisor2Flag}
                                 onChange={async (e) => {
                                   if (!selectedRowDataQuotation) return;
                                   // 個別にチェックボックスを更新するルート
@@ -5292,25 +5476,23 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
 
                                   console.log(
                                     "チェック 新しい値",
-                                    !checkboxSupervisor2FlagEdit,
+                                    !checkboxSupervisor2Flag,
                                     "オリジナル",
                                     selectedRowDataQuotation?.supervisor1_stamp_flag
                                   );
-                                  if (
-                                    !checkboxSupervisor2FlagEdit === selectedRowDataQuotation?.supervisor1_stamp_flag
-                                  ) {
+                                  if (!checkboxSupervisor2Flag === selectedRowDataQuotation?.supervisor1_stamp_flag) {
                                     toast.error(`アップデートに失敗しました🤦‍♀️`);
                                     return;
                                   }
                                   const updatePayload = {
                                     fieldName: "supervisor1_stamp_flag",
                                     fieldNameForSelectedRowData: "supervisor1_stamp_flag" as "supervisor1_stamp_flag",
-                                    newValue: !checkboxSupervisor2FlagEdit,
+                                    newValue: !checkboxSupervisor2Flag,
                                     id: selectedRowDataQuotation.quotation_id,
                                   };
                                   // 直感的にするためにmutateにして非同期処理のまま後続のローカルのチェックボックスを更新する
                                   updateQuotationFieldMutation.mutate(updatePayload);
-                                  setCheckboxSupervisor2FlagEdit(!checkboxSupervisor2FlagEdit);
+                                  setCheckboxSupervisor2Flag(!checkboxSupervisor2Flag);
                                 }}
                               />
                               <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -6544,7 +6726,14 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       >
         <ErrorBoundary FallbackComponent={ErrorFallback}>
           <Suspense
-            fallback={<FallbackSideTableSearchMember isOpenSearchMemberSideTable={isOpenSearchMemberSideTable} />}
+            fallback={
+              <div className={`pointer-events-none fixed inset-0 z-[10000] bg-[#00000039]`}>
+                <FallbackSideTableSearchMember
+                  isOpenSearchMemberSideTable={isOpenSearchMemberSideTable}
+                  searchSignatureStamp={sideTableState !== "author" ? true : false}
+                />
+              </div>
+            }
           >
             <SideTableSearchMember
               isOpenSearchMemberSideTable={isOpenSearchMemberSideTable}

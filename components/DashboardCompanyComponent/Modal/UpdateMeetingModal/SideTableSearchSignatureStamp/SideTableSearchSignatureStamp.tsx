@@ -4,7 +4,7 @@ import { Dispatch, FormEvent, SetStateAction, memo, useCallback, useEffect, useR
 import { BsChevronRight } from "react-icons/bs";
 import { MdOutlineDataSaverOff } from "react-icons/md";
 import styles from "../UpdateMeetingModal.module.css";
-import { Contact_row_data, Department, Office, SignatureStamp, Unit } from "@/types";
+import { Contact_row_data, Department, Office, SignatureStamp, Unit, UserProfileCompanySubscription } from "@/types";
 import { useMedia } from "react-use";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import useDashboardStore from "@/store/useDashboardStore";
@@ -50,12 +50,15 @@ const SideTableSearchSignatureStampMemo = ({
 // setStampObj,
 Props) => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
+  const setUserProfileState = useDashboardStore((state) => state.setUserProfileState);
+  const [isLoadingUpsert, setIsLoadingUpsert] = useState(false);
   const setIsOpenSearchStampSideTable = useDashboardStore((state) => state.setIsOpenSearchStampSideTable);
   const setIsOpenSearchStampSideTableBefore = useDashboardStore((state) => state.setIsOpenSearchStampSideTableBefore);
   const prevStampObj = useDashboardStore((state) => state.prevStampObj);
   const setPrevStampObj = useDashboardStore((state) => state.setPrevStampObj);
   const stampObj = useDashboardStore((state) => state.stampObj);
   const setStampObj = useDashboardStore((state) => state.setStampObj);
+
   // メディアクエリState
   // デスクトップモニター
   const isDesktopGTE1600Media = useMedia("(min-width: 1600px)", false);
@@ -124,6 +127,7 @@ Props) => {
 
   // ------------- 🌟検索ボタンクリックかエンターでonSubmitイベント発火🌟 -------------
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    if (isLoadingUpsert) return;
     if (!userProfileState) return alert("エラー：ユーザー情報が見つかりませんでした。");
     console.log("🔥onnSubmit発火");
     e.preventDefault();
@@ -134,6 +138,10 @@ Props) => {
       _romaji: adjustFieldValue(searchInputRomaji),
     };
     console.log("✅ 条件 params", params);
+
+    if (Object.values(params).every((value) => value === null)) {
+      return alert("漢字・ふりがな・ローマ字のいづれかの条件を入力して検索してください。");
+    }
 
     // paramsの結合した文字列をqueryKeyに渡しているため、検索条件の入力値が変わると（paramsが変わると）useInfiniteQueryのqueryFnが再度実行される
     console.log("🔥フェッチ");
@@ -251,6 +259,7 @@ Props) => {
     queryKey: ["signature_stamps", queryKeySearchParamsStringRef.current],
     // queryKey: ["contacts"],
     queryFn: async (ctx) => {
+      if (isLoadingUpsert) return;
       console.log("サーチフェッチメンバー queryFn✅✅✅ searchStampParams", searchStampParams);
       return fetchNewSearchServerPage(20, ctx.pageParam); // 20個ずつ取得
     },
@@ -305,33 +314,77 @@ Props) => {
     "status",
     status,
     "isLoadingQuery",
-    isLoadingQuery
+    isLoadingQuery,
+    "stampObj",
+    stampObj
   );
   // -------------------------- ✅useInfiniteQuery無限スクロール✅ --------------------------
 
   // -------------------------- 🌟変更ボタンをクリック🌟 --------------------------
-  const handleAddSelectedMember = () => {
+
+  const handleAddSelectedMember = async () => {
+    // if (true) {
+    //   toast.success("🌟");
+    //   return;
+    // }
+    if (isLoadingUpsert) return;
     if (!selectedStampObj) return;
     if (!stampObj) return;
     if (!selectedStampObj.id) return alert("エラー：印鑑データが見つかりませんでした。");
-    // 現在の自社担当と同じidの場合はリターンする idはprofiles.id
+    if (!userProfileState?.id) return alert("エラー：ユーザーデータが見つかりませんでした。");
+    // 現在の印鑑idと選択した印鑑idが一致している場合はリターン
     const isEqualMember = selectedStampObj.id === stampObj.signature_stamp_id;
     if (isEqualMember) {
       alert(`同じ印鑑データです。変更が不要な場合は右上の矢印ボタンかテーブル以外をクリックして戻ってください。`);
       return;
     } else {
+      // signature_stamp_assignmentsにuser_idとsignature_stamp_idをUPSERT
+      // まだstampObj.signature_stamp_idが存在しない場合はINSERT
+      try {
+        setIsLoadingUpsert(true);
+
+        const upsertPayload = {
+          user_id: userProfileState.id,
+          signature_stamp_id: selectedStampObj.id,
+        };
+        const { error } = await supabase
+          .from("signature_stamp_assignments")
+          .upsert(upsertPayload, { onConflict: "user_id" });
+
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        if (error) throw error;
+      } catch (e: any) {
+        console.error(`upsert signature_stamp_assignments failed`, e);
+        toast.error("印鑑データの変更に失敗しました...🙇‍♀️");
+        setIsLoadingUpsert(false);
+        return;
+      }
+
+      // UPSERT成功後、Zustandのユーザーデータを更新する
+      const newUserData: UserProfileCompanySubscription = {
+        ...userProfileState,
+        assigned_signature_stamp_id: selectedStampObj.id,
+        assigned_signature_stamp_url: selectedStampObj.image_url,
+      };
+
+      setUserProfileState(newUserData);
+
       // 現在の自社担当と異なる担当者の場合は自社担当を変更
-      const newMemberObj: StampObj = {
+      const newStampObj: StampObj = {
         signature_stamp_id: selectedStampObj.id,
         signature_stamp_url: selectedStampObj.image_url,
       };
 
       // 変更後のメンバーstateに追加
-      // setChangedMemberObj(newMemberObj);
-      setStampObj(newMemberObj);
+      // setChangedMemberObj(newStampObj);
+      setStampObj(newStampObj);
 
       // 変更確定確認モーダルを開く
       // setIsChangeConfirmationModal(true)
+
+      // ローディング終了
+      setIsLoadingUpsert(false);
 
       // サイドテーブルを閉じる
       setIsOpenSearchStampSideTable(false);
@@ -349,6 +402,8 @@ Props) => {
       if (searchInputKanji) setSearchInputKanji("");
       if (searchInputFurigana) setSearchInputFurigana("");
       if (searchInputRomaji) setSearchInputRomaji("");
+
+      toast.success("印鑑データの変更が完了しました!🌟");
     }
   };
   // -------------------------- ✅変更ボタンをクリック✅ --------------------------
@@ -387,7 +442,7 @@ Props) => {
 
     return () => {
       if (!sideTableScrollContainerRef.current)
-        return console.log("❌useEffectクリーンアップ sideTableScrollContainerRef.currentは既に存在せず リターン");
+        return console.log("✅useEffectクリーンアップ sideTableScrollContainerRef.currentは既に存在せず リターン");
       sideTableScrollContainerRef.current?.removeEventListener(`scroll`, handleScrollEvent);
       console.log("✅useEffectスクロール終了 リターン");
     };
@@ -465,6 +520,7 @@ Props) => {
 
   // -------------------------- 🌟サイドテーブルを閉じる🌟 --------------------------
   const handleClose = () => {
+    if (isLoadingUpsert) return;
     // setMeetingMemberName(currentMemberName);
 
     // 元のメンバーデータに戻す
@@ -731,40 +787,47 @@ Props) => {
                 )}
               </h3>
               <div className="flex">
-                <RippleButton
-                  title={`変更`}
-                  minHeight="30px"
-                  minWidth="78px"
-                  fontSize="13px"
-                  textColor={`${!!selectedStampObj ? `#fff` : `#666`}`}
-                  bgColor={`${!!selectedStampObj ? `var(--color-bg-brand50)` : `#33333390`}`}
-                  bgColorHover={`${!!selectedStampObj ? `var(--color-bg-brand)` : `#33333390`}`}
-                  border={`${!!selectedStampObj ? `var(--color-bg-brand)` : `var(--color-bg-brandc0)`}`}
-                  borderRadius="6px"
-                  classText={`select-none ${!!selectedStampObj ? `` : `hover:cursor-not-allowed`}`}
-                  clickEventHandler={() => {
-                    // setIsOpenSettingInvitationModal(true);
-                    handleAddSelectedMember();
-                    handleCloseTooltip();
-                  }}
-                  onMouseEnterHandler={(e: React.MouseEvent<HTMLElement, MouseEvent>) => {
-                    // if (isOpenDropdownMenuFilterProducts) return;
-                    handleOpenTooltip({
-                      e: e,
-                      display: "top",
-                      content: "データを選択して設定済みの印鑑データを変更する",
-                      // content2: "フィルターの切り替えが可能です。",
-                      // marginTop: 57,
-                      // marginTop: 38,
-                      marginTop: 12,
-                      itemsPosition: "center",
-                      // whiteSpace: "nowrap",
-                    });
-                  }}
-                  onMouseLeaveHandler={() => {
-                    if (hoveredItemPosSideTable) handleCloseTooltip();
-                  }}
-                />
+                {!isLoadingUpsert && (
+                  <RippleButton
+                    title={`変更`}
+                    minHeight="30px"
+                    minWidth="78px"
+                    fontSize="13px"
+                    textColor={`${!!selectedStampObj ? `#fff` : `#666`}`}
+                    bgColor={`${!!selectedStampObj ? `var(--color-bg-brand50)` : `#33333390`}`}
+                    bgColorHover={`${!!selectedStampObj ? `var(--color-bg-brand)` : `#33333390`}`}
+                    border={`${!!selectedStampObj ? `var(--color-bg-brand)` : `var(--color-bg-brandc0)`}`}
+                    borderRadius="6px"
+                    classText={`select-none ${!!selectedStampObj ? `` : `hover:cursor-not-allowed`}`}
+                    clickEventHandler={() => {
+                      // setIsOpenSettingInvitationModal(true);
+                      handleAddSelectedMember();
+                      handleCloseTooltip();
+                    }}
+                    onMouseEnterHandler={(e: React.MouseEvent<HTMLElement, MouseEvent>) => {
+                      // if (isOpenDropdownMenuFilterProducts) return;
+                      handleOpenTooltip({
+                        e: e,
+                        display: "top",
+                        content: "データを選択して設定済みの印鑑データを変更する",
+                        // content2: "フィルターの切り替えが可能です。",
+                        // marginTop: 57,
+                        // marginTop: 38,
+                        marginTop: 12,
+                        itemsPosition: "center",
+                        // whiteSpace: "nowrap",
+                      });
+                    }}
+                    onMouseLeaveHandler={() => {
+                      if (hoveredItemPosSideTable) handleCloseTooltip();
+                    }}
+                  />
+                )}
+                {isLoadingUpsert && (
+                  <div className="flex-center min-h-[30px] min-w-[78px]">
+                    <SpinnerComet w="30px" h="30px" s="3px" />
+                  </div>
+                )}
               </div>
             </div>
             {/* 担当者一覧エリア */}

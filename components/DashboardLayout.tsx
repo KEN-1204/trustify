@@ -476,9 +476,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
       {/* 「自社担当」変更サイドテーブル */}
       {isOpenSearchStampSideTableBefore && (
         <div
-          className={`fixed inset-0 z-[10000] bg-[#ffffff00] ${
-            isOpenSearchStampSideTable ? `` : `pointer-events-none`
-          }`}
+          className={`fixed inset-0 z-[5000] bg-[#ffffff00] ${isOpenSearchStampSideTable ? `` : `pointer-events-none`}`}
         >
           <ErrorBoundary FallbackComponent={ErrorFallback}>
             <Suspense

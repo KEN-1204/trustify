@@ -15,9 +15,15 @@ type Props = {
 
 const StampListitemMemo = ({ stamp, selectedStampObj, setSelectedStampObj }: Props) => {
   const { fullUrl: stampUrl, isLoading } = useDownloadUrl(stamp.image_url, "signature_stamps");
-  console.log("🔥stamp", stamp);
-  console.log("🔥selectedStampObj", selectedStampObj);
-  console.log("🔥stampUrl", stampUrl);
+  console.log(
+    "StampListitemコンポーネント 🔥stamp",
+    stamp,
+    "🔥selectedStampObj",
+    selectedStampObj,
+    "🔥stampUrl",
+    stampUrl
+  );
+
   return (
     <li
       key={stamp.id}
@@ -36,13 +42,18 @@ const StampListitemMemo = ({ stamp, selectedStampObj, setSelectedStampObj }: Pro
         }
       }}
     >
-      {!stampUrl && !isLoading && (
+      {/* {!stampUrl && !isLoading && (
         <div
           className={`${styles.stamp_list_item_Icon} flex-center cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip} mr-[15px]`}
         >
-          <span className={`text-[27px]`}>{/* {getInitial(stamp.profile_name ? stamp.profile_name : "N")} */}N</span>
+          <span className={`text-[27px]`}>N</span>
         </div>
-      )}
+      )} */}
+      {/* {!stampUrl && !isLoading && (
+        <div className={`mr-[15px] min-h-[60px] min-w-[60px] rounded-full`}>
+          <SkeletonLoadingLineCustom rounded="50%" h="60px" w="60px" />
+        </div>
+      )} */}
       {stampUrl && !isLoading && (
         <div
           className={`${styles.stamp_list_item_Icon} flex-center cursor-pointer rounded-full ${styles.tooltip} mr-[15px]`}
@@ -56,7 +67,7 @@ const StampListitemMemo = ({ stamp, selectedStampObj, setSelectedStampObj }: Pro
           />
         </div>
       )}
-      {isLoading && (
+      {(isLoading || !stampUrl) && (
         <div className={`mr-[15px] min-h-[60px] min-w-[60px] rounded-full`}>
           <SkeletonLoadingLineCustom rounded="50%" h="60px" w="60px" />
         </div>

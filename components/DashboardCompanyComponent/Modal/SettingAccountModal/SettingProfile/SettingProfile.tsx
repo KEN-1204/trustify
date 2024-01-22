@@ -599,23 +599,23 @@ const SettingProfileMemo = () => {
                 )}
                 {stampUrl && !isLoadingStamp && (
                   <label
-                    className={`flex-center group relative h-[75px] w-[75px] cursor-pointer overflow-hidden rounded-full`}
+                    className={`flex-center group relative ml-[9px] h-[56px] w-[56px] overflow-hidden rounded-full`}
                   >
                     <Image
                       src={stampUrl}
                       alt="stamp"
                       className={`h-full w-full object-cover text-[#fff]`}
-                      width={75}
-                      height={75}
+                      width={56}
+                      height={56}
                     />
                     <div className={`absolute inset-0 z-10`}></div>
                   </label>
                 )}
                 {isLoadingStamp && (
                   <label
-                    className={`flex-center relative min-h-[75px] min-w-[75px] cursor-pointer overflow-hidden rounded-full`}
+                    className={`flex-center relative ml-[9px] min-h-[56px] min-w-[56px] overflow-hidden rounded-full`}
                   >
-                    <SkeletonLoadingLineCustom rounded="50%" h="60px" w="60px" />
+                    <SkeletonLoadingLineCustom rounded="50%" h="56px" w="56px" />
                   </label>
                 )}
               </div>
@@ -647,8 +647,8 @@ const SettingProfileMemo = () => {
                   }
                   onMouseLeave={handleCloseTooltip}
                 >
-                  {!userProfileState?.signature_stamp_id && <span>設定</span>}
-                  {userProfileState?.signature_stamp_id && <span>編集</span>}
+                  {!userProfileState?.assigned_signature_stamp_id && <span>設定</span>}
+                  {userProfileState?.assigned_signature_stamp_id && <span>編集</span>}
                 </div>
               </div>
             </div>
