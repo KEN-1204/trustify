@@ -330,6 +330,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   Apple light グラデーションテキスト background-image: linear-gradient(90deg,#b434ab 0%,#866cbe 30%,#4dbbd8);
   */
   /* light */
+  --color-border-theme: #0d99ff;
+  --color-border-theme-text: var(--color-bg-brand-sub);
   --vivid-green: var(--bright-green);
   --hero-img: url("/assets/images/hero/slide_transparent3x.png");
   --hero-overlay: transparent;
@@ -510,6 +512,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-bg-brand-table-tab: #0d99ffd0; */
   --color-bg-brand-table-tab: #2b7fffe0;
   --color-bg-brand-table-tab: linear-gradient(to top right, #2b7fff, #0affff50);
+  --color-bg-brand-table-tab: linear-gradient(to top right, #206eff, #0affff50);
+  --color-bg-brand-table-tab: linear-gradient(to top right, #0048ff, #0affff50);
   --color-bg-brand-table-tab2: linear-gradient(
     to bottom left,
     #cffcfdd0 0.89%,
@@ -1014,6 +1018,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   Apple light グラデーションテキスト background-image: linear-gradient(90deg,#b434ab 0%,#866cbe 30%,#4dbbd8);
   */
   /* dark */
+  --color-border-theme: #0066ff;
+  --color-border-theme-text: #0085ff;
   --vivid-green: var(--vivid-green-dark);
   --hero-img: url("/assets/images/hero/slide_transparent3x.png");
   --hero-overlay: #00000008;
@@ -1195,6 +1201,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-bg-brand-table-tab: #156cab; */
   --color-bg-brand-table-tab: #2258a9;
   --color-bg-brand-table-tab: linear-gradient(to top right, #2b7fffba, #0affff90);
+  --color-bg-brand-table-tab: linear-gradient(to top right, #0048ffd0, #0affff90);
   --color-bg-brand-table-tab2: linear-gradient(
     to bottom left,
     #cffcfdb7 0.89%,

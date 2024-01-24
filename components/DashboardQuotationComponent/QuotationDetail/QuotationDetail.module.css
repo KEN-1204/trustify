@@ -1097,6 +1097,33 @@
   pointer-events: none;
 }
 
+.update_stamp_menu {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 33px;
+  min-width: 120px;
+  transform: translateX(calc(50% - 14px));
+  border-radius: 6px;
+  background-color: var(--color-bg-base);
+  padding: 5px 12px;
+}
+.update_stamp_menu .menu_btn {
+  min-height: 33px;
+  min-width: 90px;
+  cursor: pointer;
+  white-space: nowrap;
+  border-radius: 8px;
+  padding: 5px 20px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+}
+
 @media (max-width: 1600px) {
   .textarea_box {
     font-size: 13px;

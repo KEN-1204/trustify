@@ -17,6 +17,7 @@ import {
   Notification,
   Product,
   Property_row_data,
+  QuotationProductsDetail,
   Quotation_row_data,
   SettingModalProperties,
   StampObj,
@@ -286,7 +287,7 @@ type State = {
   columnHeaderItemList: ColumnHeaderItemList[];
   setColumnHeaderItemList: (payload: ColumnHeaderItemList[]) => void;
 
-  // =================== 上画面の列選択した時に下画面に会社情報を映す用のState ===================
+  // =================== 上画面の行選択した時に下画面に会社情報を映す用のState ===================
   // 選択中の行データオブジェクト
   selectedRowDataCompany: Client_company_row_data | null;
   setSelectedRowDataCompany: (payload: Client_company_row_data | null) => void;
@@ -302,7 +303,7 @@ type State = {
   // =================== 担当者テーブル ヘッダーリスト保持用state関連 ===================
   contactColumnHeaderItemList: ColumnHeaderItemList[];
   setContactColumnHeaderItemList: (payload: ColumnHeaderItemList[]) => void;
-  // =================== 上画面の列選択した時に下画面に担当者情報を映す用のState ===================
+  // =================== 上画面の行選択した時に下画面に担当者情報を映す用のState ===================
   // 選択中の行データオブジェクト
   selectedRowDataContact: Contact_row_data | null;
   setSelectedRowDataContact: (payload: Contact_row_data | null) => void;
@@ -317,7 +318,7 @@ type State = {
   // =================== 活動テーブル ヘッダーリスト保持用state関連 ===================
   activityColumnHeaderItemList: ColumnHeaderItemList[];
   setActivityColumnHeaderItemList: (payload: ColumnHeaderItemList[]) => void;
-  // =================== 上画面の列選択した時に下画面に担当者情報を映す用のState ===================
+  // =================== 上画面の行選択した時に下画面に担当者情報を映す用のState ===================
   // 選択中の行データオブジェクト
   selectedRowDataActivity: Activity_row_data | null;
   setSelectedRowDataActivity: (payload: Activity_row_data | null) => void;
@@ -331,7 +332,7 @@ type State = {
   // =================== 面談テーブル ヘッダーリスト保持用state関連 ===================
   meetingColumnHeaderItemList: ColumnHeaderItemList[];
   setMeetingColumnHeaderItemList: (payload: ColumnHeaderItemList[]) => void;
-  // =================== 上画面の列選択した時に下画面に担当者情報を映す用のState ===================
+  // =================== 上画面の行選択した時に下画面に担当者情報を映す用のState ===================
   // 選択中の行データオブジェクト
   selectedRowDataMeeting: Meeting_row_data | null;
   setSelectedRowDataMeeting: (payload: Meeting_row_data | null) => void;
@@ -345,7 +346,7 @@ type State = {
   // =================== 案件テーブル ヘッダーリスト保持用state関連 ===================
   propertyColumnHeaderItemList: ColumnHeaderItemList[];
   setPropertyColumnHeaderItemList: (payload: ColumnHeaderItemList[]) => void;
-  // =================== 上画面の列選択した時に下画面に担当者情報を映す用のState ===================
+  // =================== 上画面の行選択した時に下画面に担当者情報を映す用のState ===================
   // 選択中の行データオブジェクト
   selectedRowDataProperty: Property_row_data | null;
   setSelectedRowDataProperty: (payload: Property_row_data | null) => void;
@@ -359,7 +360,7 @@ type State = {
   // =================== 見積テーブル ヘッダーリスト保持用state関連 ===================
   quotationColumnHeaderItemList: ColumnHeaderItemList[];
   setQuotationColumnHeaderItemList: (payload: ColumnHeaderItemList[]) => void;
-  // =================== 上画面の列選択した時に下画面に担当者情報を映す用のState ===================
+  // =================== 上画面の行選択した時に下画面に担当者情報を映す用のState ===================
   // 選択中の行データオブジェクト
   selectedRowDataQuotation: Quotation_row_data | null;
   setSelectedRowDataQuotation: (payload: Quotation_row_data | null) => void;
@@ -375,6 +376,11 @@ type State = {
   // 見積編集モード
   isUpdateModeQuotation: boolean;
   setIsUpdateModeQuotation: (payload: boolean) => void;
+
+  // 見積画面の商品リストの選択中の行データ
+  // 選択中の行データオブジェクト
+  selectedRowDataQuotationProduct: QuotationProductsDetail | null;
+  setSelectedRowDataQuotationProduct: (payload: QuotationProductsDetail | null) => void;
 };
 
 const useDashboardStore = create<State>((set) => ({
@@ -806,7 +812,7 @@ const useDashboardStore = create<State>((set) => ({
   columnHeaderItemList: companyColumnHeaderItemListData,
   setColumnHeaderItemList: (payload) => set({ columnHeaderItemList: payload }),
 
-  // =================== 上画面の列選択した時に下画面に会社情報を映す用のState ===================
+  // =================== 上画面の行選択した時に下画面に会社情報を映す用のState ===================
   // 会社オブジェクト
   selectedRowDataCompany: null,
   setSelectedRowDataCompany: (payload) => set({ selectedRowDataCompany: payload }),
@@ -825,7 +831,7 @@ const useDashboardStore = create<State>((set) => ({
   contactColumnHeaderItemList: contactColumnHeaderItemListData,
   setContactColumnHeaderItemList: (payload) => set({ contactColumnHeaderItemList: payload }),
 
-  // =================== 上画面の列選択した時に下画面に担当者情報を映す用のState ===================
+  // =================== 上画面の行選択した時に下画面に担当者情報を映す用のState ===================
   // オブジェクト
   selectedRowDataContact: null,
   setSelectedRowDataContact: (payload) => set({ selectedRowDataContact: payload }),
@@ -843,7 +849,7 @@ const useDashboardStore = create<State>((set) => ({
   activityColumnHeaderItemList: activityColumnHeaderItemListData,
   setActivityColumnHeaderItemList: (payload) => set({ activityColumnHeaderItemList: payload }),
 
-  // =================== 上画面の列選択した時に下画面に担当者情報を映す用のState ===================
+  // =================== 上画面の行選択した時に下画面に担当者情報を映す用のState ===================
   // オブジェクト
   selectedRowDataActivity: null,
   setSelectedRowDataActivity: (payload) => set({ selectedRowDataActivity: payload }),
@@ -859,7 +865,7 @@ const useDashboardStore = create<State>((set) => ({
   // =================== 面談テーブル ヘッダーリスト保持用state関連 ===================
   meetingColumnHeaderItemList: meetingColumnHeaderItemListData,
   setMeetingColumnHeaderItemList: (payload) => set({ meetingColumnHeaderItemList: payload }),
-  // =================== 上画面の列選択した時に下画面に担当者情報を映す用のState ===================
+  // =================== 上画面の行選択した時に下画面に担当者情報を映す用のState ===================
   // オブジェクト
   selectedRowDataMeeting: null,
   setSelectedRowDataMeeting: (payload) => set({ selectedRowDataMeeting: payload }),
@@ -876,7 +882,7 @@ const useDashboardStore = create<State>((set) => ({
   propertyColumnHeaderItemList: propertyColumnHeaderItemListData,
   setPropertyColumnHeaderItemList: (payload) => set({ propertyColumnHeaderItemList: payload }),
 
-  // =================== 上画面の列選択した時に下画面に担当者情報を映す用のState ===================
+  // =================== 上画面の行選択した時に下画面に担当者情報を映す用のState ===================
   // オブジェクト
   selectedRowDataProperty: null,
   setSelectedRowDataProperty: (payload) => set({ selectedRowDataProperty: payload }),
@@ -891,7 +897,7 @@ const useDashboardStore = create<State>((set) => ({
   // =================== 見積テーブル ヘッダーリスト保持用state関連 ===================
   quotationColumnHeaderItemList: quotationColumnHeaderItemListData,
   setQuotationColumnHeaderItemList: (payload) => set({ quotationColumnHeaderItemList: payload }),
-  // =================== 上画面の列選択した時に下画面に担当者情報を映す用のState ===================
+  // =================== 上画面の行選択した時に下画面に担当者情報を映す用のState ===================
   // 選択中の行データオブジェクト
   selectedRowDataQuotation: null,
   setSelectedRowDataQuotation: (payload) => set({ selectedRowDataQuotation: payload }),
@@ -908,6 +914,11 @@ const useDashboardStore = create<State>((set) => ({
   // 見積編集モード
   isUpdateModeQuotation: false,
   setIsUpdateModeQuotation: (payload) => set({ isUpdateModeQuotation: payload }),
+
+  // 見積画面の商品リストの選択中の行データ
+  // 選択中の行データオブジェクト
+  selectedRowDataQuotationProduct: null,
+  setSelectedRowDataQuotationProduct: (payload) => set({ selectedRowDataQuotationProduct: payload }),
 }));
 
 export default useDashboardStore;

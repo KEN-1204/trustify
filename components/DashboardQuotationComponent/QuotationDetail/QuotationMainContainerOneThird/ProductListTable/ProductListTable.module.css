@@ -259,30 +259,48 @@
 }
 .grid_row[aria-selected="true"] .grid_cell {
   background-color: var(--color-table-bg-selected);
-  color: var(--border-theme-text);
-  /* color: var(--selected-text); */
+  /* color: var(--border-theme-text); */
+  color: var(--color-bg-brand-sub);
+}
+.grid_row .grid_cell.editable:hover {
+  background-color: var(--color-bg-brand-f20);
 }
 
 .grid_column_header_all[aria-selected="true"] {
-  box-shadow: inset 0 0 0 1px var(--border-theme);
+  /* box-shadow: inset 0 0 0 1px var(--border-theme); */
+  box-shadow: inset 0 0 0 1px var(--color-border-theme);
 }
 
 .grid_cell[aria-selected="true"] {
-  box-shadow: inset 0 0 0 1px var(--border-theme);
+  /* box-shadow: inset 0 0 0 1px var(--border-theme); */
+  box-shadow: inset 0 0 0 1px var(--color-border-theme);
+}
+.grid_row .grid_cell.editable.edit_mode {
+  /* box-shadow: inset 0 0 0 1px var(--vivid-green); */
+  /* box-shadow: inset 0 0 0 1px var(--main-color-tk); */
+  box-shadow: inset 0 0 0 1px var(--bright-green);
+  /* box-shadow: inset 0 0 0 1px #0066ff; */
+  /* box-shadow: inset 0 0 0 1px #0affff; */
+  background-color: var(--color-bg-base);
+  color: var(--color-text-title);
 }
 
 /* 列サイズ変更時のボーダーハイライト */
 .grid_column_header_all.is_dragging {
-  border-right-color: var(--border-theme);
+  /* border-right-color: var(--border-theme); */
+  border-right-color: var(--color-border-theme);
 }
 .grid_column_header_all.is_dragging_hover {
-  border-right-color: var(--border-theme);
+  /* border-right-color: var(--border-theme); */
+  border-right-color: var(--color-border-theme);
 }
 .grid_cell.is_dragging {
-  border-right-color: var(--border-theme);
+  /* border-right-color: var(--border-theme); */
+  border-right-color: var(--color-border-theme);
 }
 .grid_cell.is_dragging_hover {
-  border-right-color: var(--border-theme);
+  /* border-right-color: var(--border-theme); */
+  border-right-color: var(--color-border-theme);
 }
 /* カラム順番入れ替え中のスタイル変更 ドラッグ中の色を付ける */
 .grid_column_header_all.dragging_change_order {
@@ -377,7 +395,8 @@
   width: 1rem; */
 }
 .grid_select_cell_header[aria-selected="true"] {
-  box-shadow: inset 0 0 0 1px var(--border-theme);
+  /* box-shadow: inset 0 0 0 1px var(--border-theme); */
+  box-shadow: inset 0 0 0 1px var(--color-border-theme);
 }
 .main_container input[type="checkbox"]:checked ~ svg {
   display: inline-block;

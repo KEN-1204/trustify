@@ -1215,11 +1215,16 @@ export type Property_row_data = {
 
 // 面談時の紹介した商品群の配列
 export type QuotationProductsDetail = {
-  quotation_product_id: string;
+  quotation_product_id: string; // products.id
   product_name: string | null;
   outside_short_name: string | null;
   inside_short_name: string | null;
   unit_price: number | null;
+  product_created_by_user_id: string | null;
+  product_created_by_company_id: string | null;
+  product_created_by_department_of_user: string | null;
+  product_created_by_unit_of_user: string | null;
+  product_created_by_office_of_user: string | null;
   quotation_product_name: string | null;
   quotation_outside_short_name: string | null;
   quotation_inside_short_name: string | null;

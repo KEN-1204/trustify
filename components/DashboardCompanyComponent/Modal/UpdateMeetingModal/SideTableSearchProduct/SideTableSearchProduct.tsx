@@ -4,7 +4,7 @@ import { Dispatch, FormEvent, SetStateAction, memo, useCallback, useEffect, useR
 import { BsChevronRight } from "react-icons/bs";
 import { MdOutlineDataSaverOff } from "react-icons/md";
 import styles from "../UpdateMeetingModal.module.css";
-import { Contact_row_data, Department, MemberAccounts, Office, Unit } from "@/types";
+import { Department, Product, Office, QuotationProductsDetail, Unit } from "@/types";
 import { useMedia } from "react-use";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import useDashboardStore from "@/store/useDashboardStore";
@@ -16,69 +16,38 @@ import useStore from "@/store";
 import { TooltipSideTable } from "@/components/Parts/Tooltip/TooltipSideTable";
 import { ImInfo } from "react-icons/im";
 import { toast } from "react-toastify";
-
-type MemberObj = {
-  memberId: string | null;
-  memberName: string | null;
-  departmentId: string | null;
-  unitId: string | null;
-  officeId: string | null;
-  signature_stamp_id?: string | null;
-  signature_stamp_url?: string | null;
-};
+import { formatToJapaneseYen } from "@/utils/Helpers/formatToJapaneseYen";
 
 type Props = {
-  isOpenSearchMemberSideTable: boolean;
-  setIsOpenSearchMemberSideTable: Dispatch<SetStateAction<boolean>>;
-  isOpenSearchMemberSideTableBefore?: boolean;
-  setIsOpenSearchMemberSideTableBefore?: Dispatch<SetStateAction<boolean>>;
-  // currentMemberId: string;
-  // currentMemberName: string;
-  // currentMemberDepartmentId: string | null;
-  prevMemberObj: MemberObj;
-  setPrevMemberObj: Dispatch<SetStateAction<MemberObj>>;
-  memberObj: MemberObj;
-  setMemberObj: Dispatch<SetStateAction<MemberObj>>;
-  searchSignatureStamp?: boolean;
-  // setMeetingMemberName: Dispatch<SetStateAction<string>>;
-  // searchMemberInputFields: {
-  //   title: string;
-  //   inputValue: string;
-  //   setInputValue: React.Dispatch<React.SetStateAction<string>>;
-  // }[];
-  // selectedAttendeesArray: Contact_row_data[];
-  // setSelectedAttendeesArray: Dispatch<SetStateAction<Contact_row_data[]>>;
+  isOpenSearchProductSideTable: boolean;
+  setIsOpenSearchProductSideTable: Dispatch<SetStateAction<boolean>>;
+  isOpenSearchProductSideTableBefore?: boolean;
+  setIsOpenSearchProductSideTableBefore?: Dispatch<SetStateAction<boolean>>;
+  selectedProductsArray: QuotationProductsDetail[];
+  setSelectedProductsArray: Dispatch<SetStateAction<QuotationProductsDetail[]>>;
 };
 
-type SearchMemberParams = {
-  _subscription_id: string | null;
+type SearchProductParams = {
   _company_id: string | null;
-  _user_name: string | null;
-  _employee_id_name: string | null;
+  _product_name: string | null;
+  _outside_short_name: string | null;
+  _inside_short_name: string | null;
   _department_id: string | null;
   _unit_id: string | null;
   _office_id: string | null;
 };
 
-const SideTableSearchMemberMemo = ({
-  isOpenSearchMemberSideTable,
-  setIsOpenSearchMemberSideTable,
-  isOpenSearchMemberSideTableBefore,
-  setIsOpenSearchMemberSideTableBefore,
-  // currentMemberId,
-  // currentMemberName,
-  // currentMemberDepartmentId,
-  prevMemberObj,
-  setPrevMemberObj,
-  // setChangedMemberObj,
-  // setMeetingMemberName,
-  memberObj,
-  setMemberObj,
-  searchSignatureStamp = false,
-}: // selectedAttendeesArray,
-// setSelectedAttendeesArray,
-Props) => {
+const SideTableSearchProductMemo = ({
+  isOpenSearchProductSideTable,
+  setIsOpenSearchProductSideTable,
+  isOpenSearchProductSideTableBefore,
+  setIsOpenSearchProductSideTableBefore,
+  selectedProductsArray,
+  setSelectedProductsArray,
+}: Props) => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
+  // 説明アイコンホバーで非アクティブ化
+  const [hasBeenHoveredIcon, setHasBeenHoveredIcon] = useState(false);
   // メディアクエリState
   // デスクトップモニター
   const isDesktopGTE1600Media = useMedia("(min-width: 1600px)", false);
@@ -91,42 +60,50 @@ Props) => {
 
   // 初回マウント時フェッチを防ぐ 検索をクリックした時に初めてqueryFnを実行
   const [isEnableFetch, setIsEnableFetch] = useState(false);
-  // 自社担当の変更先の担当者オブジェクト, profile_nameを自社担当に割り当て、idをcreated_by_user_idに割り当てる
-  const [selectedMemberObj, setSelectedMemberObj] = useState<MemberAccounts | null>(null);
 
   // 同席者検索時のparams
-  const initialSearchMemberParams = {
-    _subscription_id: userProfileState?.subscription_id ?? null,
+  const initialSearchProductParams = {
     _company_id: userProfileState?.company_id ?? null,
-    _user_name: null,
-    _employee_id_name: null,
+    _product_name: null,
+    _outside_short_name: null,
+    _inside_short_name: null,
     _department_id: null,
     _unit_id: null,
     _office_id: null,
   };
-  const [searchMemberParams, setSearchMemberParams] = useState<SearchMemberParams>(initialSearchMemberParams);
+  const [searchProductParams, setSearchProductParams] = useState<SearchProductParams>(initialSearchProductParams);
 
   // 同席者検索フィールド用input
-  const [searchInputMemberName, setSearchInputMemberName] = useState(""); //メンバーの名前
-  const [searchInputEmployeesIdName, setSearchInputEmployeesIdName] = useState(""); //社員番号
+  const [searchInputProductName, setSearchInputProductName] = useState(""); //メンバーの名前
+  const [searchInputOutsideName, setSearchInputOutsideName] = useState(""); //メンバーの名前
+  const [searchInputInsideName, setSearchInputInsideName] = useState(""); //メンバーの名前
   const [searchSelectedDepartmentId, setSearchSelectedDepartmentId] = useState<Department["id"] | null>(
-    memberObj.departmentId ?? null
+    selectedProductsArray[0]?.product_created_by_department_of_user ?? null
   ); //事業部id
   const [searchSelectedUnitId, setSearchSelectedUnitId] = useState<Unit["id"] | null>(null); //係id
   const [searchSelectedOfficeId, setSearchSelectedOfficeId] = useState<Office["id"] | null>(null); //事業所id
 
-  const searchMemberInputFields = [
+  // const [selectedSearchProductsArray, setSelectedSearchProductsArray] = useState<QuotationProductsDetail[]>([]);
+  const [selectedSearchProductsArray, setSelectedSearchProductsArray] = useState<Product[]>([]);
+
+  const searchProductInputFields = [
     {
-      key: "name",
-      title: "社員名",
-      inputValue: searchInputMemberName,
-      setInputValue: setSearchInputMemberName,
+      key: "product_name",
+      title: "商品名",
+      inputValue: searchInputProductName,
+      setInputValue: setSearchInputProductName,
     },
     {
-      key: "employee_id_name",
-      title: "社員番号・ID",
-      inputValue: searchInputEmployeesIdName,
-      setInputValue: setSearchInputEmployeesIdName,
+      key: "outside_short_name",
+      title: "型式(顧客向け)",
+      inputValue: searchInputOutsideName,
+      setInputValue: setSearchInputOutsideName,
+    },
+    {
+      key: "inside_short_name",
+      title: "型式・略称(社内向け)",
+      inputValue: searchInputInsideName,
+      setInputValue: setSearchInputInsideName,
     },
   ];
   const searchMemberSelectFields = [
@@ -149,13 +126,6 @@ Props) => {
       setInputValue: setSearchSelectedOfficeId,
     },
   ];
-  // ============== 🌟サイドテーブルの開閉ごとにメンバーの部署が変更されたらstateを更新🌟 ==============
-  useEffect(() => {
-    if (searchSelectedDepartmentId !== memberObj.departmentId) {
-      setSearchSelectedDepartmentId(memberObj.departmentId);
-    }
-  }, [isOpenSearchMemberSideTable]);
-  // ============== ✅サイドテーブルの開閉ごとにメンバーの部署が変更されたらstateを更新✅ ==============
 
   // ============================ 🌟事業部、係、事業所リスト取得useQuery🌟 ============================
   const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
@@ -199,11 +169,27 @@ Props) => {
     console.log("🔥onnSubmit発火");
     e.preventDefault();
 
-    let params = {
-      _subscription_id: userProfileState.subscription_id,
+    // 何も入力せず検索した場合はalertを出す
+    // if (
+    //   [
+    //     searchInputProductName,
+    //     searchInputInsideName,
+    //     searchInputOutsideName,
+    //     searchSelectedDepartmentId,
+    //     searchSelectedUnitId,
+    //     searchSelectedOfficeId,
+    //   ].every((value) => value === "")
+    // ) {
+    //   return alert(
+    //     "少なくとも一つの項目は条件を入力してください。条件を入力して検索することで効率的に目的の同席者を見つけ出すことができます。"
+    //   );
+    // }
+
+    let params: SearchProductParams = {
       _company_id: userProfileState.company_id,
-      _user_name: adjustFieldValue(searchInputMemberName),
-      _employee_id_name: adjustFieldValue(searchInputEmployeesIdName),
+      _product_name: adjustFieldValue(searchInputProductName),
+      _outside_short_name: adjustFieldValue(searchInputOutsideName),
+      _inside_short_name: adjustFieldValue(searchInputInsideName),
       _department_id: searchSelectedDepartmentId || null,
       _unit_id: searchSelectedUnitId || null,
       _office_id: searchSelectedOfficeId || null,
@@ -212,18 +198,18 @@ Props) => {
 
     // 現在の入力値と同じかチェック
     // if (
-    //   params._user_name === searchMemberParams._user_name &&
-    //   params._employee_id_name === searchMemberParams._employee_id_name &&
-    //   params._department_id === searchMemberParams._department_id &&
-    //   params._unit_id === searchMemberParams._unit_id &&
-    //   params._office_id === searchMemberParams._office_id
+    //   params._user_name === searchProductParams._user_name &&
+    //   params._employee_id_name === searchProductParams._employee_id_name &&
+    //   params._department_id === searchProductParams._department_id &&
+    //   params._unit_id === searchProductParams._unit_id &&
+    //   params._office_id === searchProductParams._office_id
     // ) {
     //   return console.log("✅params同じためリターン");
     // }
 
     // paramsの結合した文字列をqueryKeyに渡しているため、検索条件の入力値が変わると（paramsが変わると）useInfiniteQueryのqueryFnが再度実行される
     console.log("🔥フェッチ");
-    setSearchMemberParams(params);
+    setSearchProductParams(params);
 
     // 初回変更ボタンクリックのみ isEnableFetchをtrueにして初めてフェッチを走らせる
     if (!isEnableFetch) {
@@ -238,7 +224,7 @@ Props) => {
   fetchNewSearchServerPage = async (
     limit: number,
     offset: number = 0
-  ): Promise<{ rows: MemberAccounts[] | null; nextOffset: number; isLastPage: boolean; count: number | null }> => {
+  ): Promise<{ rows: Product[] | null; nextOffset: number; isLastPage: boolean; count: number | null }> => {
     // ローディング開始
     // setIsLoadingQuery(true);
     if (!userProfileState?.company_id) {
@@ -249,19 +235,11 @@ Props) => {
       console.log("❌会社データなしリターン");
       return { rows, nextOffset: offset + 1, isLastPage, count };
     }
-    if (!searchMemberParams._subscription_id || !searchMemberParams._company_id) {
-      let rows: null = null;
-      const isLastPage = rows === null;
-      let count: null = null;
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      console.log("❌サブスクidまたは会社idなしリターン", searchMemberParams);
-      return { rows, nextOffset: offset + 1, isLastPage, count };
-    }
 
     // 条件の値が全てnullなら、つまり何も入力せず検索されるか初回マウント時はnullを返す。
-    // if (Object.values(searchMemberParams).every((value) => value === null)) {
+    // if (Object.values(searchProductParams).every((value) => value === null)) {
     // 社員名と社員番号どちらかは必ず入力 nullか空文字ならrowをnullで返す
-    // if (!searchMemberParams._user_name && !searchMemberParams._employee_id_name) {
+    // if (!searchProductParams._user_name && !searchProductParams._employee_id_name) {
     //   let rows: null = null;
     //   const isLastPage = rows === null;
     //   let count: null = null;
@@ -273,42 +251,20 @@ Props) => {
     const from = offset * limit;
     const to = from + limit - 1;
 
-    let params = searchMemberParams;
+    let params = searchProductParams;
 
-    // 名前、社員番号は入力値をワイルドカードとILIKEで、事業部、係、事業所はidに一致で条件検索
-    // 事業部、名前順に並び替え、activeのみに絞り込み
+    // 商品名、型式は入力値をワイルドカードとILIKEで、事業部、係、事業所はidに一致で条件検索
     console.log("🔥rpc()実行", params);
-    // const {
-    //   data: rows,
-    //   error,
-    //   count,
-    // } = await supabase
-    //   .rpc(
-    //     "get_members_searched_name_employee_id_name",
-    //     {
-    //       _subscription_id: searchMemberParams._subscription_id,
-    //       _company_id: searchMemberParams._company_id,
-    //       _user_name: searchMemberParams._user_name || null,
-    //       _employee_id_name: searchMemberParams._employee_id_name || null,
-    //       _department_id: searchMemberParams._department_id || null,
-    //       _unit_id: searchMemberParams._unit_id || null,
-    //       _office_id: searchMemberParams._office_id || null,
-    //     },
-    //     { count: "exact" }
-    //   )
-    //   // .rpc("get_members_searched_name_employee_id_name", params, { count: "exact" })
-    //   .range(from, to)
-    //   .order("assigned_department_name", { ascending: true })
-    //   .order("profile_name", { ascending: true });
+
     const {
       data: rows,
       error,
       count,
     } = await supabase
-      .rpc("get_members_searched_name_employee_id_name", params, { count: "exact" })
+      .rpc("get_products_searched_name", params, { count: "exact" })
       .range(from, to)
-      .order("assigned_department_name", { ascending: true })
-      .order("profile_name", { ascending: true });
+      .order("created_by_department_of_user", { ascending: true })
+      .order("product_name", { ascending: true });
     // .order("contact_created_at", { ascending: false }); // 担当者作成日 更新にすると更新の度に行が入れ替わるため
 
     if (error) {
@@ -334,18 +290,19 @@ Props) => {
 
   // ------------------- 🌟queryKeyの生成🌟 -------------------
   const queryKeySearchParamsStringRef = useRef<string | null>(null);
-  console.log("キャッシュに割り当てるparamsキー searchMemberParams", searchMemberParams);
-  if (searchMemberParams) {
-    // queryKeySearchParamsStringRef.current = Object.entries(searchMemberParams)
+  console.log("キャッシュに割り当てるparamsキー searchProductParams", searchProductParams);
+  if (searchProductParams) {
+    // queryKeySearchParamsStringRef.current = Object.entries(searchProductParams)
     //   .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
     //   .map(([key, value]) => `${key}:${value === null ? `null` : `${value}`}`)
     //   .join(", ");
     queryKeySearchParamsStringRef.current = [
-      ["_user_name", searchMemberParams._user_name],
-      ["_employee_id_name", searchMemberParams._employee_id_name],
-      ["_department_id", searchMemberParams._department_id],
-      ["_unit_id", searchMemberParams._unit_id],
-      ["_office_id", searchMemberParams._office_id],
+      ["_product_name", searchProductParams._product_name],
+      ["_outside_short_name", searchProductParams._outside_short_name],
+      ["_inside_short_name", searchProductParams._inside_short_name],
+      ["_department_id", searchProductParams._department_id],
+      ["_unit_id", searchProductParams._unit_id],
+      ["_office_id", searchProductParams._office_id],
     ]
       .map(([key, value]) => `${key}:${value === null ? `null` : `${value}`}`)
       .join(", ");
@@ -364,10 +321,10 @@ Props) => {
     hasNextPage,
   } = useInfiniteQuery({
     // queryKey: ["companies"],
-    queryKey: ["members", queryKeySearchParamsStringRef.current],
+    queryKey: ["quotation_products", queryKeySearchParamsStringRef.current],
     // queryKey: ["contacts"],
     queryFn: async (ctx) => {
-      console.log("サーチフェッチメンバー queryFn✅✅✅ searchMemberParams", searchMemberParams);
+      console.log("サーチフェッチメンバー queryFn✅✅✅ searchProductParams", searchProductParams);
       return fetchNewSearchServerPage(20, ctx.pageParam); // 20個ずつ取得
     },
     getNextPageParam: (lastGroup, allGroups) => {
@@ -375,11 +332,7 @@ Props) => {
       return lastGroup.isLastPage ? undefined : allGroups.length;
     },
     staleTime: Infinity,
-    enabled:
-      isOpenSearchMemberSideTable &&
-      isEnableFetch &&
-      !!userProfileState?.company_id &&
-      !!userProfileState?.subscription_id,
+    enabled: isOpenSearchProductSideTable && isEnableFetch && !!userProfileState?.company_id,
   });
 
   // ------------------- ✅useInfiniteQueryフック✅ -------------------
@@ -395,7 +348,7 @@ Props) => {
     queryDataObj &&
     (
       queryDataObj?.pages[0] as {
-        rows: MemberAccounts[] | null;
+        rows: Product[] | null;
         nextOffset: number;
         isLastPage: boolean;
         count: number | null;
@@ -403,7 +356,7 @@ Props) => {
     )?.rows
       ? queryDataObj.pages.flatMap((d) => d?.rows)
       : [];
-  const memberRows = Rows.map((obj, index) => {
+  const ProductRows = Rows.map((obj, index) => {
     return { index, ...obj };
   });
   const queryCount = queryDataObj?.pages[0].count; // 0: {rows: Array(9), nextOffset: 1, isLastPage: true, count: 9}
@@ -412,7 +365,7 @@ Props) => {
   // ------------------------------- 🌟初回ブロックstateをtrueに🌟 -------------------------------
   // 初回マウント時に既に初期状態(入力なしで検索した全てのデータ)でRowsが存在するなら初回ブロックstateをtrueにする
   useEffect(() => {
-    if (memberRows && memberRows.length > 0) {
+    if (ProductRows && ProductRows.length > 0) {
       if (!isEnableFetch) setIsEnableFetch(true);
     }
   }, []);
@@ -427,10 +380,14 @@ Props) => {
     isLastPage,
     "hasNextPage",
     hasNextPage,
-    "memberRows",
-    memberRows,
-    "searchMemberParams",
-    searchMemberParams,
+    "ProductRows",
+    ProductRows,
+    "searchProductParams",
+    searchProductParams,
+    "selectedProductsArray",
+    selectedProductsArray,
+    "selectedSearchProductsArray",
+    selectedSearchProductsArray,
     "status",
     status,
     "isLoadingQuery",
@@ -438,50 +395,64 @@ Props) => {
   );
   // -------------------------- ✅useInfiniteQuery無限スクロール✅ --------------------------
 
-  // -------------------------- 🌟変更ボタンをクリック🌟 --------------------------
-  const handleAddSelectedMember = () => {
-    if (!selectedMemberObj) return;
-    if (!selectedMemberObj.id) return alert("エラー：メンバーデータが見つかりませんでした。");
-    if (!selectedMemberObj.profile_name) return alert("エラー：メンバー名が見つかりませんでした。");
-    // 現在の自社担当と同じidの場合はリターンする idはprofiles.id
-    const isEqualMember = selectedMemberObj.id === memberObj.memberId;
-    if (isEqualMember) {
-      alert(`同じ担当者です。変更が不要な場合は右上の矢印ボタンかテーブル以外をクリックして戻ってください。`);
+  // -------------------------- 🌟追加ボタンをクリック🌟 --------------------------
+  const handleAddSelectedProductsList = () => {
+    if (!selectedSearchProductsArray || selectedSearchProductsArray.length === 0) return;
+    // 既に商品リストに選択中のリストが含まれているかチェックして含まれている場合はリターンする
+    // 配列同士の配列内のオブジェクトで一致するオブジェクトがあるかをチェックするために
+    // new Setオブジェクトとhasメソッドのハッシュテーブルでのチェック
+    // 1. 選択中商品リストから商品idのみを取り出した配列をnew SetでSetオブジェクトを生成
+    const selectedSearchProductsSetObj = new Set(selectedSearchProductsArray.map((product) => product.id));
+    // 2. 商品リストをsomeで一つずつ商品オブジェクトを取り出し、obj.idがハッシュテーブルに含まれているかチェック
+    const foundAttendee = selectedProductsArray.find((product) =>
+      // selectedSearchProductsSetObj.has(product.contact_id)
+      selectedSearchProductsSetObj.has(product.quotation_product_id)
+    );
+    if (foundAttendee) {
+      alert(
+        `${
+          foundAttendee.product_name
+            ? `「${foundAttendee.product_name}${
+                foundAttendee.outside_short_name ? ` / ${foundAttendee.outside_short_name}` : ``
+              }」は既に商品リストに含まれています。既に商品リストに含まれている商品は追加できません。`
+            : `既に商品リストに含まれています。既に商品リストに含まれている商品は追加できません。`
+        }`
+      );
       return;
     } else {
-      // 印鑑検索の場合
-      if (searchSignatureStamp) {
-        // 現在の自社担当と異なる担当者の場合は自社担当を変更
-        const newMemberObj: MemberObj = {
-          memberId: selectedMemberObj.id,
-          memberName: selectedMemberObj.profile_name,
-          departmentId: selectedMemberObj.assigned_department_id ?? null,
-          unitId: selectedMemberObj.assigned_unit_id ?? null,
-          officeId: selectedMemberObj.assigned_office_id ?? null,
-          signature_stamp_id: selectedMemberObj.assigned_signature_stamp_id ?? null,
-          signature_stamp_url: selectedMemberObj.assigned_signature_stamp_url ?? null,
+      // 商品リストに一つも含まれていない場合はリストに追加
+      const newQuotationProducts = selectedSearchProductsArray.map((product, index) => {
+        const newProduct: QuotationProductsDetail = {
+          quotation_product_id: product.id,
+          product_name: product.product_name,
+          outside_short_name: product.outside_short_name,
+          inside_short_name: product.inside_short_name,
+          unit_price: product.unit_price,
+          product_created_by_user_id: product.created_by_user_id,
+          product_created_by_company_id: product.created_by_company_id,
+          product_created_by_department_of_user: product.created_by_department_of_user,
+          product_created_by_unit_of_user: product.created_by_unit_of_user,
+          product_created_by_office_of_user: product.created_by_office_of_user,
+          quotation_product_name: product.product_name,
+          quotation_outside_short_name: product.outside_short_name,
+          quotation_inside_short_name: product.inside_short_name,
+          quotation_unit_price: product.unit_price,
+          quotation_product_priority: selectedProductsArray.length + index + 1,
         };
+        return newProduct;
+      });
+      // const newProductsList = [...selectedProductsArray, ...selectedSearchProductsArray];
+      const newProductsList = [...selectedProductsArray, ...newQuotationProducts];
+      // 商品リストの追加は30個までに一旦区切る
+      // if (newProductsList.length >= 30 && userProfileState?.subscription_plan !== "premium_plan") {
+      //   return toast.error(
+      //     `30人以上の商品リストへの追加は現在のプランでは制限されています。制限の解除が必要な場合はサポートからご要望をお願い致します。`
+      //   );
+      // }
+      setSelectedProductsArray(newProductsList);
 
-        // 変更後のメンバーstateに追加
-        // setChangedMemberObj(newMemberObj);
-        setMemberObj(newMemberObj);
-        setPrevMemberObj(newMemberObj);
-      }
-      // 作成者変更の場合
-      else {
-        // 現在の自社担当と異なる担当者の場合は自社担当を変更
-        const newMemberObj: MemberObj = {
-          memberId: selectedMemberObj.id,
-          memberName: selectedMemberObj.profile_name,
-          departmentId: selectedMemberObj.assigned_department_id ?? null,
-          unitId: selectedMemberObj.assigned_unit_id ?? null,
-          officeId: selectedMemberObj.assigned_office_id ?? null,
-        };
-
-        // 変更後のメンバーstateに追加
-        // setChangedMemberObj(newMemberObj);
-        setMemberObj(newMemberObj);
-      }
+      // 追加が完了したら選択中のリスト配列をリセットする
+      setSelectedSearchProductsArray([]);
 
       // 変更確定確認モーダルを開く
       // setIsChangeConfirmationModal(true)
@@ -490,34 +461,27 @@ Props) => {
       // setIsEnableFetch(false);
 
       // サイドテーブルを閉じる
-      setIsOpenSearchMemberSideTable(false);
-      if (isOpenSearchMemberSideTableBefore && setIsOpenSearchMemberSideTableBefore) {
+      setIsOpenSearchProductSideTable(false);
+      if (isOpenSearchProductSideTableBefore && setIsOpenSearchProductSideTableBefore) {
         setTimeout(() => {
-          setIsOpenSearchMemberSideTableBefore(false);
+          setIsOpenSearchProductSideTableBefore(false);
         }, 300);
       }
 
       // 変更が完了したら選択中のメンバーをリセット
-      setSelectedMemberObj(null);
+      //   setSelectedProductsArray(null);
 
       // paramsをリセット
-      setSearchMemberParams(initialSearchMemberParams);
+      //   setSearchProductParams(initialSearchProductParams);
 
       // 各検索条件もリセット
-      if (searchInputMemberName) setSearchInputMemberName("");
-      if (searchInputEmployeesIdName) setSearchInputEmployeesIdName("");
-      if (searchSelectedDepartmentId) setSearchSelectedDepartmentId(null);
-      if (searchSelectedUnitId) setSearchSelectedUnitId(null);
-      if (searchSelectedOfficeId) setSearchSelectedOfficeId(null);
+      //   if (searchInputProductName) setSearchInputProductName("");
+      //   if (searchSelectedDepartmentId) setSearchSelectedDepartmentId(null);
+      //   if (searchSelectedUnitId) setSearchSelectedUnitId(null);
+      //   if (searchSelectedOfficeId) setSearchSelectedOfficeId(null);
     }
   };
   // -------------------------- ✅変更ボタンをクリック✅ --------------------------
-
-  // -------------------------- 🌟担当印変更クリック🌟 --------------------------
-  // const handleConfirmChangeMember = () => {
-
-  // }
-  // -------------------------- ✅担当印変更クリック✅ --------------------------
 
   // -------------------------- 🌟スクロールでヘッダー色変更🌟 --------------------------
   // サイドテーブルの同席者一覧エリアのスクロールアイテムRef
@@ -631,27 +595,15 @@ Props) => {
 
   // -------------------------- 🌟サイドテーブルを閉じる🌟 --------------------------
   const handleClose = () => {
-    // setMeetingMemberName(currentMemberName);
-
-    // 元のメンバーデータに戻す
-    setMemberObj(prevMemberObj);
-    // paramsをリセット
-    setSearchMemberParams(initialSearchMemberParams);
-    // 入力値を初期化
-    if (searchInputMemberName) setSearchInputMemberName("");
-    if (searchInputEmployeesIdName) setSearchInputEmployeesIdName("");
-    if (searchSelectedDepartmentId) setSearchSelectedDepartmentId(null);
-    if (searchSelectedUnitId) setSearchSelectedUnitId(null);
-    if (searchSelectedOfficeId) setSearchSelectedOfficeId(null);
-    // 閉じたら再度初回フェッチをブロックする
-    setIsEnableFetch(false);
-    // 変更が完了したら選択中のメンバーをリセット
-    setSelectedMemberObj(null);
+    // 選択中のリスト配列をリセットする
+    setSelectedSearchProductsArray([]);
+    // サイドテーブルを閉じる
+    setIsOpenSearchProductSideTable(false);
     // テーブルを閉じる
-    setIsOpenSearchMemberSideTable(false);
-    if (isOpenSearchMemberSideTableBefore && setIsOpenSearchMemberSideTableBefore) {
+    setIsOpenSearchProductSideTable(false);
+    if (isOpenSearchProductSideTableBefore && setIsOpenSearchProductSideTableBefore) {
       setTimeout(() => {
-        setIsOpenSearchMemberSideTableBefore(false);
+        setIsOpenSearchProductSideTableBefore(false);
       }, 300);
     }
   };
@@ -660,20 +612,14 @@ Props) => {
   return (
     <>
       {/* オーバーレイ */}
-      {isOpenSearchMemberSideTable && (
-        <div
-          // className={`absolute left-0 top-0 z-[1100] h-full w-full bg-[#00800030]`}
-          className={`absolute left-0 top-0 z-[1100] h-full w-full bg-[#00000000] ${
-            searchSignatureStamp ? `bg-[#00000039]` : ``
-          }`}
-          onClick={handleClose}
-        ></div>
+      {isOpenSearchProductSideTable && (
+        <div className={`absolute left-0 top-0 z-[1100] h-full w-full bg-[#00000039]`} onClick={handleClose}></div>
       )}
       {/* サイドテーブル */}
       <div
         ref={modalContainerRef}
         className={`${styles.side_table} ${styles.change_member} z-[1200] pt-[30px] ${
-          isOpenSearchMemberSideTable
+          isOpenSearchProductSideTable
             ? `${styles.active} transition-transform02 !delay-[0.1s]`
             : `transition-transform01`
         }`}
@@ -685,8 +631,7 @@ Props) => {
           <div className={`relative flex h-full w-full items-center justify-between`}>
             <h3 className="space-y-[1px] text-[22px] font-bold">
               <div className={`flex items-start space-x-[9px]`}>
-                {!searchSignatureStamp && <span>メンバー検索</span>}
-                {searchSignatureStamp && <span>印鑑データ設定</span>}
+                <span>商品検索</span>
                 <span>{neonSearchIcon("30")}</span>
               </div>
               <div className="min-h-[1px] w-full bg-[var(--color-bg-brand-f)]"></div>
@@ -722,11 +667,11 @@ Props) => {
               <h3 className="flex min-h-[30px] max-w-max items-end space-x-[10px] space-y-[1px] text-[14px] font-bold ">
                 <div
                   className="flex items-end space-x-[10px]"
-                  onMouseEnter={(e) =>
+                  onMouseEnter={(e) => {
                     handleOpenTooltip({
                       e: e,
                       display: "",
-                      content: `○メンバーの名前、社員番号・ID名、事業部、係・チーム、事業所を条件に入力して検索してください。\n例えば、担当者名が「佐藤 礼司」で「マイクロスコープ事業部」という事業部の担当者を検索する場合は、「社員名」に「佐藤 礼司」または「佐藤＊」を入力し、「事業部」は「マイクロスコープ事業部」を選択して検索します。\n○「※ アスタリスク」は、「前方一致・後方一致・部分一致」を表します。\n○「○項目を空欄のまま検索した場合は、その項目の「全てのデータ」を抽出します。\n○「社員名」「社員番号・ID」の最低どちらか一つの項目は入力して検索してください。`,
+                      content: `○商品の名前、型式(顧客向け)、型式・略称(社内向け)、事業部、係・チーム、事業所を条件に入力して検索してください。\n例えば、商品名が「マイクロスコープ」で、その商品が「マイクロスコープ事業部」という事業部の商品なら、「商品名」に「マイクロスコープ」または「マイクロ＊」を入力し、「事業部」は「マイクロスコープ事業部」を選択して検索します。\n○「※ アスタリスク」は、「前方一致・後方一致・部分一致」を表します。\n○「項目を空欄のまま検索した場合は、その項目の「全てのデータ」を抽出します。\n○最低一つの項目は入力して検索してください。`,
                       // content2: "600万円と入力しても円単位に自動補完されます。",
                       // marginTop: 57,
                       marginTop: 39,
@@ -734,12 +679,12 @@ Props) => {
                       itemsPosition: "start",
                       // whiteSpace: "nowrap",
                       maxWidth: 550,
-                    })
-                  }
+                    });
+                    setHasBeenHoveredIcon(true);
+                  }}
                   onMouseLeave={handleCloseTooltip}
                 >
-                  {!searchSignatureStamp && <span>条件を入力してメンバーを検索</span>}
-                  {searchSignatureStamp && <span>条件を入力して自身の印鑑データを検索</span>}
+                  <span>条件を入力して商品を検索</span>
                   {/* <div className="min-h-[1px] w-auto bg-[#999]"></div> */}
                   {/* <RippleButton
                     title={`検索`}
@@ -751,12 +696,20 @@ Props) => {
                     }}
                   /> */}
                   <div className="pointer-events-none flex min-h-[30px] items-end pb-[2px]">
-                    <ImInfo className={`min-h-[18px] min-w-[18px] text-[var(--color-bg-brand-f)]`} />
+                    <div className="flex-center relative h-[18px] w-[18px] rounded-full">
+                      <div
+                        className={`flex-center absolute left-0 top-0 h-[18px] w-[18px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${
+                          hasBeenHoveredIcon ? `` : `animate-ping`
+                        }`}
+                      ></div>
+                      <ImInfo className={`min-h-[18px] min-w-[18px] text-[var(--color-bg-brand-f)]`} />
+                    </div>
                   </div>
                 </div>
                 {[
-                  searchInputMemberName,
-                  searchInputEmployeesIdName,
+                  searchInputProductName,
+                  searchInputInsideName,
+                  searchInputOutsideName,
                   searchSelectedDepartmentId,
                   searchSelectedUnitId,
                   searchSelectedOfficeId,
@@ -781,19 +734,9 @@ Props) => {
                       if (hoveredItemPosSideTable) handleCloseTooltip();
                     }}
                     onClick={() => {
-                      // [
-                      //   [searchInputCompany, setSearchInputCompany],
-                      //   [searchInputDepartment, setSearchInputDepartment],
-                      //   [searchInputContact, setSearchInputContact],
-                      //   [searchInputPositionName, setSearchInputPositionName],
-                      //   [searchInputTel, setSearchInputTel],
-                      //   [searchInputDirectLine, setSearchInputDirectLine],
-                      //   [searchInputCompanyCellPhone, setSearchInputCompanyCellPhone],
-                      //   [searchInputEmail, setSearchInputEmail],
-                      //   [searchInputAddress, setSearchInputAddress],
-                      // ].forEach(([state, setDispatch]) => !!state && setDispatch(""));
-                      if (searchInputMemberName) setSearchInputMemberName("");
-                      if (searchInputEmployeesIdName) setSearchInputEmployeesIdName("");
+                      if (searchInputProductName) setSearchInputProductName("");
+                      if (searchInputInsideName) setSearchInputInsideName("");
+                      if (searchInputOutsideName) setSearchInputOutsideName("");
                       if (searchSelectedDepartmentId) setSearchSelectedDepartmentId(null);
                       if (searchSelectedUnitId) setSearchSelectedUnitId(null);
                       if (searchSelectedOfficeId) setSearchSelectedOfficeId(null);
@@ -828,7 +771,7 @@ Props) => {
                 <li className="px-[30px]"></li>
               </ul> */}
             <ul className={`mt-[20px] flex flex-col text-[13px] text-[var(--color-text-title)]`}>
-              {searchMemberInputFields.map((item, index) => (
+              {searchProductInputFields.map((item, index) => (
                 <li
                   key={item.title + index.toString()}
                   className={`relative flex h-[56px] w-full min-w-max items-center justify-between px-[30px] py-[6px] text-[#fff] ${styles.side_table_search_list}`}
@@ -842,11 +785,7 @@ Props) => {
                   </div>
                   <input
                     type="text"
-                    placeholder={
-                      item.key === "name"
-                        ? "佐藤 礼司 → 「佐藤＊」と入力して検索"
-                        : `名前か社員番号・IDを最低どちらか1つ入力して検索`
-                    }
+                    placeholder=""
                     className={`${styles.input_box}`}
                     value={item.inputValue}
                     onChange={(e) => item.setInputValue(e.target.value)}
@@ -927,14 +866,13 @@ Props) => {
               // className={`sticky top-0 flex min-h-[30px] items-end justify-between bg-[var(--color-bg-brand-f-deep)] px-[30px] pb-[12px] pt-[12px]`}
             >
               <h3 className="flex min-h-[30px] max-w-max items-center space-x-[10px] space-y-[1px] text-[14px] font-bold">
-                {!searchSignatureStamp && <span>メンバーを選択してデータの所有者を変更</span>}
-                {searchSignatureStamp && <span>自分のデータを選択して見積にデータ印を設定</span>}
+                <span>商品を選択してリストに追加</span>
                 {/* <div className="min-h-[1px] w-auto bg-[#999]"></div> */}
-                {!!selectedMemberObj && (
+                {selectedSearchProductsArray && selectedSearchProductsArray.length > 0 && (
                   <>
-                    {/* <span className={`text-[11px] font-normal text-[#fff]`}>
-                      {selectedSearchAttendeesArray.length}件選択中
-                    </span> */}
+                    <span className={`text-[11px] font-normal text-[#fff]`}>
+                      {selectedSearchProductsArray.length}件選択中
+                    </span>
                     <div
                       className={`${styles.icon_path_stroke} ${styles.icon_btn} flex-center transition-bg03`}
                       onMouseEnter={(e) => {
@@ -955,7 +893,7 @@ Props) => {
                         if (hoveredItemPosSideTable) handleCloseTooltip();
                       }}
                       onClick={() => {
-                        setSelectedMemberObj(null);
+                        setSelectedSearchProductsArray([]);
                         if (hoveredItemPosSideTable) handleCloseTooltip();
                       }}
                     >
@@ -966,19 +904,21 @@ Props) => {
               </h3>
               <div className="flex">
                 <RippleButton
-                  title={`変更`}
+                  title={`追加`}
                   minHeight="30px"
                   minWidth="78px"
                   fontSize="13px"
-                  textColor={`${!!selectedMemberObj ? `#fff` : `#666`}`}
-                  bgColor={`${!!selectedMemberObj ? `var(--color-bg-brand50)` : `#33333390`}`}
-                  bgColorHover={`${!!selectedMemberObj ? `var(--color-bg-brand)` : `#33333390`}`}
-                  border={`${!!selectedMemberObj ? `var(--color-bg-brand)` : `var(--color-bg-brandc0)`}`}
+                  textColor={`${selectedSearchProductsArray?.length > 0 ? `#fff` : `#666`}`}
+                  bgColor={`${selectedSearchProductsArray?.length > 0 ? `var(--color-bg-brand50)` : `#33333390`}`}
+                  bgColorHover={`${selectedSearchProductsArray?.length > 0 ? `var(--color-bg-brand)` : `#33333390`}`}
+                  border={`${
+                    selectedSearchProductsArray?.length > 0 ? `var(--color-bg-brand)` : `var(--color-bg-brandc0)`
+                  }`}
                   borderRadius="6px"
-                  classText={`select-none ${!!selectedMemberObj ? `` : `hover:cursor-not-allowed`}`}
+                  classText={`select-none ${selectedSearchProductsArray?.length > 0 ? `` : `hover:cursor-not-allowed`}`}
                   clickEventHandler={() => {
                     // setIsOpenSettingInvitationModal(true);
-                    handleAddSelectedMember();
+                    handleAddSelectedProductsList();
                     handleCloseTooltip();
                   }}
                   onMouseEnterHandler={(e: React.MouseEvent<HTMLElement, MouseEvent>) => {
@@ -1004,27 +944,26 @@ Props) => {
             {/* 担当者一覧エリア */}
             <ul className={`flex h-auto w-full flex-col space-y-[12px]`}>
               {/* Rowsが存在する場合 */}
-              {memberRows &&
-                memberRows.length > 0 &&
-                memberRows.map((member: MemberAccounts, index) => {
-                  // if (member.id === currentMemberId) return;
-                  if (member.id === memberObj.memberId) return;
+              {ProductRows &&
+                ProductRows.length > 0 &&
+                ProductRows.map((product: Product, index) => {
+                  //   if (product.id === productObj.productId) return;
                   return (
                     <li
-                      key={member.id}
+                      key={product.id}
                       // onMouseEnter={(e) => {
                       //   handleOpenTooltip({
                       //     e: e,
                       //     display: "top",
-                      //     content: `${member.company_name ? `${member.company_name} / ` : ``}${
-                      //       member.contact_name ? `${member.contact_name} / ` : ``
-                      //     }${member.department_name ? `${member.department_name} / ` : ``}${
-                      //       member.position_name ? `${member.position_name}` : ``
+                      //     content: `${product.company_name ? `${product.company_name} / ` : ``}${
+                      //       product.contact_name ? `${product.contact_name} / ` : ``
+                      //     }${product.department_name ? `${product.department_name} / ` : ``}${
+                      //       product.position_name ? `${product.position_name}` : ``
                       //     }`,
-                      //     content2: `${member.address ? `住所: ${member.address} / ` : ``}${
-                      //       member.main_phone_number ? `代表TEL: ${member.main_phone_number} / ` : ``
-                      //     }${member.direct_line ? `直通TEL: ${member.direct_line} / ` : ``}${
-                      //       member.contact_email ? `担当者Email: ${member.contact_email}` : ``
+                      //     content2: `${product.address ? `住所: ${product.address} / ` : ``}${
+                      //       product.main_phone_number ? `代表TEL: ${product.main_phone_number} / ` : ``
+                      //     }${product.direct_line ? `直通TEL: ${product.direct_line} / ` : ``}${
+                      //       product.contact_email ? `担当者Email: ${product.contact_email}` : ``
                       //     }`,
                       //     // marginTop: 57,
                       //     // marginTop: 38,
@@ -1040,26 +979,42 @@ Props) => {
                       className={`${
                         styles.attendees_list
                       } flex min-h-[44px] w-full cursor-pointer items-center truncate ${
-                        selectedMemberObj && selectedMemberObj.id === member.id ? styles.active : ``
+                        selectedSearchProductsArray.some((obj) => obj.id === product.id) ? styles.active : ``
                       }`}
                       onClick={() => {
-                        // 印鑑データ設定の場合、印鑑データが設定されていないメンバーをクリックした場合はリターン
-                        if (
-                          searchSignatureStamp &&
-                          (!member.assigned_signature_stamp_id || !member.assigned_signature_stamp_url)
-                        ) {
-                          return alert(
-                            "印鑑データが設定されていません。先にプロフィール画面からデータベース内の印鑑データと紐付けを行ってください。"
-                          );
-                        }
                         // 存在の確認のみなので、findではなくsome
-                        if (selectedMemberObj && selectedMemberObj.id === member.id) {
-                          // 既に選択している場合はリセット
-                          setSelectedMemberObj(null);
+                        // if (selectedSearchProductsArray.some((obj) => obj.contact_id === product.contact_id)) {
+                        if (selectedSearchProductsArray.some((obj) => obj.id === product.id)) {
+                          // 既に配列に存在している場合は取り除く
+                          // const filteredproducts = selectedSearchProductsArray.filter(
+                          //   (obj) => obj.contact_id !== product.contact_id
+                          // );
+                          const filteredProducts = selectedSearchProductsArray.filter((obj) => obj.id !== product.id);
+                          setSelectedSearchProductsArray(filteredProducts);
                           return;
                         } else {
-                          // 存在しない場合は新たに選択中に追加する
-                          setSelectedMemberObj(member);
+                          // 存在しない場合は配列に入れる スプレッドで不変性を保つ
+                          // const newProducts = [...selectedSearchProductsArray, product];
+                          // const newProduct: QuotationProductsDetail = {
+                          //   quotation_product_id: product.id ?? null,
+                          //   product_name: product.product_name,
+                          //   inside_short_name: product.inside_short_name ?? null,
+                          //   outside_short_name: product.outside_short_name ?? null,
+                          //   unit_price: product.unit_price ?? null,
+                          //   product_created_by_user_id: product.created_by_user_id ?? null,
+                          //   product_created_by_company_id: product.created_by_company_id ?? null,
+                          //   product_created_by_department_of_user: product.created_by_department_of_user ?? null,
+                          //   product_created_by_unit_of_user: product.created_by_unit_of_user ?? null,
+                          //   product_created_by_office_of_user: product.created_by_office_of_user ?? null,
+                          //   quotation_product_name: product.product_name ?? null,
+                          //   quotation_inside_short_name: product.inside_short_name ?? null,
+                          //   quotation_outside_short_name: product.outside_short_name ?? null,
+                          //   quotation_unit_price: product.unit_price ?? null,
+                          //   quotation_product_priority: selectedProductsArray.length + 1,
+                          // };
+                          // const newProducts = [...selectedSearchProductsArray, newProduct];
+                          const newProducts = [...selectedSearchProductsArray, product];
+                          setSelectedSearchProductsArray(newProducts);
                         }
                       }}
                     >
@@ -1069,63 +1024,42 @@ Props) => {
                         // onMouseEnter={(e) => handleOpenTooltip(e, "center")}
                         // onMouseLeave={handleCloseTooltip}
                       >
-                        {/* <span className={`text-[20px]`}>
-                          {getInitial(member.profile_name ? member.profile_name : "")}
-                        </span> */}
                         <span className={`text-[20px]`}>
-                          {getInitial(member.profile_name ? member.profile_name : "N")}
+                          {product.inside_short_name &&
+                            getInitial(product.inside_short_name ? product.inside_short_name : "N")}
+                          {!product.inside_short_name && getInitial(product.product_name ? product.product_name : "N")}
                         </span>
                       </div>
                       <div
                         className={`${styles.attendees_list_item_lines_group} flex h-full flex-col space-y-[3px] pl-[5px] text-[12px]`}
                       >
-                        {/* 会社・部署 */}
-                        <div className={`${styles.attendees_list_item_line} flex text-[13px]`}>
-                          {member.profile_name && <span className="mr-[4px]">{member.profile_name}</span>}
-                          {/* <span>{attendee.department_name ?? ""}</span> */}
-                        </div>
-                        {/* <div className={`text-[var(--color-text-sub)]`}>{member.email ? member.email : ""}</div> */}
-                        {/* 役職・名前 */}
+                        {/* 型式・略称 */}
                         <div className={`${styles.attendees_list_item_line} flex`}>
-                          {/* {member.profile_name && (
-                          <>
-                            <span className="mr-[12px]">{member.profile_name}</span>
-                          </>
-                        )} */}
-                          {member.assigned_department_name && (
+                          {product.inside_short_name && (
                             <>
-                              <span className="mr-[12px]">{member.assigned_department_name}</span>
-                              {/* {member.position_name && <span className="mr-[10px]">/</span>} */}
+                              <span className="mr-[12px]">{product.inside_short_name}</span>
                             </>
                           )}
-                          {member.assigned_unit_name && <span className="mr-[10px]">{member.assigned_unit_name}</span>}
                         </div>
+                        {/* 商品名 */}
+                        <div className={`${styles.attendees_list_item_line} flex text-[13px]`}>
+                          {product.product_name && <span className="mr-[4px]">{product.product_name}</span>}
+                          <span>{product.outside_short_name ?? ""}</span>
+                        </div>
+
                         {/* 住所・Email・1600以上で直通TEL */}
                         <div className={`${styles.attendees_list_item_line} flex`}>
-                          {/* {attendee.address && (
-                          <>
-                            <span className="mr-[10px] text-[#ccc]">{attendee.address}</span>
-                            {((isDesktopGTE1600 && attendee.direct_line) || attendee.contact_email) && (
-                              <span className="mr-[10px]">/</span>
-                            )}
-                          </>
-                        )} */}
-                          {/* {isDesktopGTE1600 && member.assigned_office_name && (
-                            <>
-                              <span className="mr-[10px] text-[#ccc]">{member.assigned_office_name}</span>
-                              {member.assigned_employee_id_name && <span className="mr-[10px]">/</span>}
-                            </>
+                          {product.unit_price && (
+                            // <span className="mr-[10px] text-[#ccc]">{product.unit_price.toLocaleString()}</span>
+                            <span className="mr-[10px] text-[#ccc]">{formatToJapaneseYen(product.unit_price)}</span>
+                          )}
+                          {/* {product.assigned_employee_id_name && (
+                            <div className={`text-[#ccc]`}>{product.assigned_employee_id_name}</div>
                           )} */}
-                          {member.assigned_office_name && (
-                            <span className="mr-[10px] text-[#ccc]">{member.assigned_office_name}</span>
-                          )}
-                          {member.assigned_employee_id_name && (
-                            <div className={`text-[#ccc]`}>{member.assigned_employee_id_name}</div>
-                          )}
                         </div>
                       </div>
-                      {searchSignatureStamp &&
-                        (!member.assigned_signature_stamp_id || !member.assigned_signature_stamp_url) && (
+                      {/* {searchSignatureStamp &&
+                        (!product.assigned_signature_stamp_id || !product.assigned_signature_stamp_url) && (
                           <div className="ml-auto mr-[30px]">
                             <span
                               className="text-[13px]"
@@ -1150,7 +1084,7 @@ Props) => {
                               印鑑データなし
                             </span>
                           </div>
-                        )}
+                        )} */}
                     </li>
                   );
                 })}
@@ -1158,7 +1092,7 @@ Props) => {
               {/* 初回マウント時ではなく検索結果で行が0の場合 countがnullではなく0の場合 data.pages[0].row  */}
               {queryCount === 0 && (
                 <div className={`flex-center h-full min-h-[100px] w-full bg-[#ffffff00] text-[13px] text-[#fff]`}>
-                  <span>該当するメンバーは見つかりませんでした。</span>
+                  <span>該当する商品は見つかりませんでした。</span>
                 </div>
               )}
               {/* 条件検索結果が1件も無い場合 */}
@@ -1182,62 +1116,6 @@ Props) => {
                 </div>
               )}
               {/* もっと見る ここまで */}
-
-              {/* <div className="flex-center relative min-h-[64.5px] w-full rounded-[8px] text-[14px]">
-                <div className="flex-center transition-bg01 group z-[10] h-[57%] w-[58%] cursor-pointer rounded-full bg-[var(--color-text-brand-f)] text-[#fff] hover:bg-[var(--color-text-brand-f-deep)]">
-                  <span>もっと見る</span>
-                </div>
-                <div className="z-5 absolute left-0 top-[50%] h-[1px] w-full bg-[var(--color-text-brand-f)] "></div>
-              </div> */}
-              {/* <div className="flex-center relative min-h-[64.5px] w-full rounded-[8px] text-[14px]">
-                <SpinnerComet width="!w-[35px]" height="!h-[35px]" />
-              </div> */}
-              {/* {Array(12)
-                .fill(null)
-                .map((_, index) => (
-                  <li
-                    key={index}
-                    className={`${styles.attendees_list} flex min-h-[44px] w-full cursor-pointer items-center truncate rounded-[8px] py-[12px] pl-[24px] hover:bg-[var(--color-bg-brand-f30)]`}
-                    // onClick={() => {
-                    // }}
-                  >
-                    <div
-                      // data-text="ユーザー名"
-                      className={`${styles.attendees_list_item_Icon} flex-center h-[40px] w-[40px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip} mr-[15px]`}
-                      // onMouseEnter={(e) => handleOpenTooltip(e, "center")}
-                      // onMouseLeave={handleCloseTooltip}
-                    >
-                      <span className={`text-[20px]`}>伊</span>
-                    </div>
-                    <div
-                      className={`${styles.attendees_list_item_lines_group} flex h-full flex-col space-y-[3px] pl-[5px] text-[12px]`}
-                    >
-                      <div className={`${styles.attendees_list_item_line} flex text-[13px]`}>
-                        <span className="mr-[12px]">株式会社トラスティファイ</span>
-                      </div>
-                      <div className={`${styles.attendees_list_item_line} flex`}>
-                        <span className="mr-[12px]">伊藤 謙太</span>
-                        <span className="mr-[12px]">事業推進本部事業推進グループ</span>
-                        <span className="mr-[12px]">エグゼクティブマネージャー兼チーフエバンジェリストCEO</span>
-                      </div>
-                      <div className={`${styles.attendees_list_item_line} flex space-x-[10px]`}>
-                        <div className="flex text-[#ccc]">
-                          <span>東京都港区芝浦4-20-2 ローズスクエア12F</span>
-                        </div>
-                        <span>/</span>
-                        {isDesktopGTE1600 && (
-                          <>
-                            <div className="flex text-[#ccc]">
-                              <span>01-4567-8900</span>
-                            </div>
-                            <span>/</span>
-                          </>
-                        )}
-                        <div className={`text-[#ccc]`}>cieletoile.1204@gmail.com</div>
-                      </div>
-                    </div>
-                  </li>
-                ))} */}
             </ul>
           </div>
         </div>
@@ -1247,4 +1125,4 @@ Props) => {
   );
 };
 
-export const SideTableSearchMember = memo(SideTableSearchMemberMemo);
+export const SideTableSearchProduct = memo(SideTableSearchProductMemo);

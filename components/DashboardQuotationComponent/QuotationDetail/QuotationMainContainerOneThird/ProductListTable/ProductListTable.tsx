@@ -4,12 +4,14 @@ import useStore from "@/store";
 import useDashboardStore from "@/store/useDashboardStore";
 import { mappingPositionClass } from "@/utils/mappings";
 import { QuotationProductsDetail } from "@/types";
+import { formatToJapaneseYen } from "@/utils/Helpers/formatToJapaneseYen";
 
 type Props = {
   productsArray: QuotationProductsDetail[];
+  isInsertMode?: boolean;
 };
 
-const ProductListTableMemo: FC<Props> = ({ productsArray }) => {
+const ProductListTableMemo: FC<Props> = ({ productsArray, isInsertMode = false }) => {
   const language = useStore((state) => state.language);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
@@ -17,7 +19,13 @@ const ProductListTableMemo: FC<Props> = ({ productsArray }) => {
 
   // ダブルクリックでセルの詳細を確認
   const setIsOpenEditModal = useDashboardStore((state) => state.setIsOpenEditModal);
+  const textareaInput = useDashboardStore((state) => state.textareaInput);
   const setTextareaInput = useDashboardStore((state) => state.setTextareaInput);
+  // 編集中のセル
+  const [editPosition, setEditPosition] = useState<{ row: number | null; col: number | null }>({
+    row: null,
+    col: null,
+  });
 
   // カラム列全てにindex付きのrefを渡す
   const colsRef = useRef<(HTMLDivElement | null)[]>([]);
@@ -70,59 +78,19 @@ const ProductListTableMemo: FC<Props> = ({ productsArray }) => {
   };
   // ===================== ✅ツールチップ 3点リーダーの時にツールチップ表示✅ =====================
 
-  // ================== 🌟セル シングルクリック、ダブルクリックイベント ==================
-  // クリックで概要の詳細を確認
-  const setTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const handleSingleClickGridCell = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (setTimeoutRef.current !== null) return;
-
-    setTimeoutRef.current = setTimeout(() => {
-      setTimeoutRef.current = null;
-      // シングルクリック時に実行したい処理
-      // 0.2秒後に実行されてしまうためここには書かない
-    }, 200);
-
-    console.log("シングルクリック");
-  }, []);
-
-  // セルダブルクリック
-  const handleDoubleClickGridCell = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>, index: number, columnName: string) => {
-      console.log("ダブルクリック", e.currentTarget, "index", index);
-      //   if (columnName !== "summary") return console.log("ダブルクリック summaryでないためリターン");
-
-      if (setTimeoutRef.current) {
-        clearTimeout(setTimeoutRef.current);
-
-        // console.log(e.detail);
-        setTimeoutRef.current = null;
-        // ダブルクリック時に実行したい処理
-
-        // クリックした要素のテキストを格納
-        // const text = e.currentTarget.innerText;
-        const text = e.currentTarget.innerHTML;
-        setTextareaInput(text);
-        setIsOpenEditModal(true);
-      }
-    },
-    [setTextareaInput, setIsOpenEditModal]
-  );
-  // ================== 🌟セル シングルクリック、ダブルクリックイベント ここまで ==================
-
   const columnNameToJapanese = (columnName: string) => {
     switch (columnName) {
       case "quotation_product_name":
-        return "商品名(見積記載)";
+        return "商品名（見積記載）";
         break;
       case "quotation_outside_short_name":
-        return "型式(見積記載)";
+        return "型式（見積記載）";
         break;
       //   case "quotation_inside_short_name":
       //     return "同席者";
       //     break;
       case "quotation_unit_price":
-        return "価格(見積記載)";
+        return "価格（見積記載）";
         break;
       case "quotation_product_priority":
         return "見積記載順";
@@ -146,30 +114,231 @@ const ProductListTableMemo: FC<Props> = ({ productsArray }) => {
   };
 
   // 活動タイプ、概要、日付、営業担当、事業部、営業所
-  const columnHeaderList = [
+  const columnHeaderListArray = [
     "quotation_product_name",
     "quotation_outside_short_name",
     "quotation_unit_price",
-    "quotation_product_priority",
+    // "quotation_product_priority",
+    "inside_short_name",
     "product_name",
     "outside_short_name",
-    "inside_short_name",
     "unit_price",
   ];
+  const columnHeaderList = columnHeaderListArray.map((item, index) => {
+    const newItem = {
+      columnId: index,
+      columnName: item,
+      columnIndex: index + 2,
+    };
+    return newItem;
+  });
 
   // 🌟現在のカラム.map((obj) => Object.values(row)[obj.columnId])で展開してGridセルを表示する
   // カラムNameの値のみ配列バージョンで順番入れ替え
-  const columnOrder = [...columnHeaderList].map((columnName, index) => columnName as keyof QuotationProductsDetail); // columnNameのみの配列を取得
+  const columnOrder = [...columnHeaderList].map((item, index) => item.columnName as keyof QuotationProductsDetail); // columnNameのみの配列を取得
 
-  // 「日付」カラムのセルはformat()関数を通してブラウザに表示する
-  //   const formatMapping: {
-  //     activity_date: string;
-  //     [key: string]: string;
-  //   } = {
-  //     activity_date: "yyyy/MM/dd",
-  //   };
+  // 見積記載順(追加順)に商品リストを並び替え
+  const sortedProductsList = [...productsArray].sort((a, b) => {
+    if (a.quotation_product_priority === null) return 1; // null値をリストの最後に移動
+    if (b.quotation_product_priority === null) return -1;
+    return a.quotation_product_priority - b.quotation_product_priority;
+  });
 
-  console.log("同席者テーブルレンダリング", "productsArray", productsArray);
+  // ================== 🌟セル シングルクリック、ダブルクリックイベント ==================
+  // クリックで概要の詳細を確認
+  const setTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [clickActiveRow, setClickedActiveRow] = useState<number | null>(null);
+  const selectedRowDataQuotationProduct = useDashboardStore((state) => state.selectedRowDataQuotationProduct);
+  const setSelectedRowDataQuotationProduct = useDashboardStore((state) => state.setSelectedRowDataQuotationProduct);
+  // フォーカス中、選択中のセルを保持
+  const selectedGridCellRef = useRef<HTMLDivElement | null>(null);
+  const [activeCell, setActiveCell] = useState<HTMLDivElement | null>(null);
+  // 前回のアクティブセル
+  const prevSelectedGridCellRef = useRef<HTMLDivElement | null>(null);
+
+  // 選択中の商品データが削除されたらstateとrefを非アクティブにする
+  useEffect(() => {
+    if (selectedRowDataQuotationProduct === null) {
+      console.log("selectedRowDataQuotationProductなし 全てリセット");
+      if (!selectedGridCellRef.current) return;
+      if (!prevSelectedGridCellRef.current) return;
+      prevSelectedGridCellRef.current.setAttribute("aria-selected", "false");
+      prevSelectedGridCellRef.current.setAttribute("tabindex", "-1");
+      selectedGridCellRef.current.setAttribute("aria-selected", "false");
+      selectedGridCellRef.current.setAttribute("tabindex", "-1");
+      if (activeCell) setActiveCell(null);
+      if (clickActiveRow) setClickedActiveRow(null);
+    }
+  }, [selectedRowDataQuotationProduct]);
+
+  const handleSingleClickGridCell = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>, isEditable: boolean) => {
+      if (setTimeoutRef.current !== null) return;
+      if (!isEditable) return;
+
+      setTimeoutRef.current = setTimeout(() => {
+        setTimeoutRef.current = null;
+        // シングルクリック時に実行したい処理
+        // 0.2秒後に実行されてしまうためここには書かない
+      }, 200);
+
+      console.log("シングルクリック");
+      // すでにselectedセル(アクティブセル)のrefが存在するなら、一度aria-selectedをfalseに変更
+      if (selectedGridCellRef.current?.getAttribute("aria-selected") === "true") {
+        // 保持していたアクティブセルを前回のアクティブセルprevSelectedGridCellRefに格納
+        prevSelectedGridCellRef.current = selectedGridCellRef.current;
+
+        selectedGridCellRef.current.setAttribute("aria-selected", "false");
+        selectedGridCellRef.current.setAttribute("tabindex", "-1");
+      }
+      // クリックしたセルの属性setAttributeでクリックしたセルのaria-selectedをtrueに変更
+      e.currentTarget.setAttribute("aria-selected", "true");
+      e.currentTarget.setAttribute("tabindex", "0");
+
+      // クリックしたセルを新たなアクティブセルとしてrefに格納して更新
+      selectedGridCellRef.current = e.currentTarget;
+      setActiveCell(e.currentTarget);
+
+      console.log(
+        `前回アクティブセルの行と列: ${prevSelectedGridCellRef.current?.ariaColIndex}, ${prevSelectedGridCellRef.current?.parentElement?.ariaRowIndex}, 今回アクティブの行と列: ${selectedGridCellRef.current?.ariaColIndex}, ${selectedGridCellRef.current?.parentElement?.ariaRowIndex}`
+      );
+      // クリックした列を選択中の状態の色に変更する aria-selectedをtrueにする
+      if (typeof selectedGridCellRef.current?.parentElement?.ariaRowIndex === "undefined") return;
+      if (Number(selectedGridCellRef.current?.parentElement?.ariaRowIndex) === 1) {
+        setClickedActiveRow(null);
+        return;
+      }
+      setClickedActiveRow(Number(selectedGridCellRef.current?.parentElement?.ariaRowIndex));
+      // クリックした列要素の列データをZustandに挿入 indexは0から rowIndexは2から
+      setSelectedRowDataQuotationProduct(
+        productsArray[Number(selectedGridCellRef.current?.parentElement?.ariaRowIndex) - 2]
+      );
+
+      // 既に選択中なら選択を解除
+      // if (e.currentTarget.getAttribute("aria-selected") === "true") {
+      //   if (!selectedGridCellRef.current) return;
+      //   if (!prevSelectedGridCellRef.current) return;
+      //   prevSelectedGridCellRef.current.setAttribute("aria-selected", "false");
+      //   prevSelectedGridCellRef.current.setAttribute("tabindex", "-1");
+      //   selectedGridCellRef.current.setAttribute("aria-selected", "false");
+      //   selectedGridCellRef.current.setAttribute("tabindex", "-1");
+      //   setActiveCell(null);
+      //   setClickedActiveRow(null);
+      //   setSelectedRowDataQuotationProduct(null);
+      // }
+      // // 未選択なら選択中にする
+      // else {
+      //   // すでにselectedセル(アクティブセル)のrefが存在するなら、一度aria-selectedをfalseに変更
+      //   if (selectedGridCellRef.current?.getAttribute("aria-selected") === "true") {
+      //     // 保持していたアクティブセルを前回のアクティブセルprevSelectedGridCellRefに格納
+      //     prevSelectedGridCellRef.current = selectedGridCellRef.current;
+
+      //     selectedGridCellRef.current.setAttribute("aria-selected", "false");
+      //     selectedGridCellRef.current.setAttribute("tabindex", "-1");
+      //   }
+      //   // クリックしたセルの属性setAttributeでクリックしたセルのaria-selectedをtrueに変更
+      //   e.currentTarget.setAttribute("aria-selected", "true");
+      //   e.currentTarget.setAttribute("tabindex", "0");
+
+      //   // クリックしたセルを新たなアクティブセルとしてrefに格納して更新
+      //   selectedGridCellRef.current = e.currentTarget;
+      //   setActiveCell(e.currentTarget);
+
+      //   console.log(
+      //     `前回アクティブセルの行と列: ${prevSelectedGridCellRef.current?.ariaColIndex}, ${prevSelectedGridCellRef.current?.parentElement?.ariaRowIndex}, 今回アクティブの行と列: ${selectedGridCellRef.current?.ariaColIndex}, ${selectedGridCellRef.current?.parentElement?.ariaRowIndex}`
+      //   );
+      //   // クリックした列を選択中の状態の色に変更する aria-selectedをtrueにする
+      //   if (typeof selectedGridCellRef.current?.parentElement?.ariaRowIndex === "undefined") return;
+      //   if (Number(selectedGridCellRef.current?.parentElement?.ariaRowIndex) === 1) {
+      //     setClickedActiveRow(null);
+      //     return;
+      //   }
+      //   setClickedActiveRow(Number(selectedGridCellRef.current?.parentElement?.ariaRowIndex));
+      //   // クリックした列要素の列データをZustandに挿入 indexは0から rowIndexは2から
+      //   setSelectedRowDataQuotationProduct(
+      //     productsArray[Number(selectedGridCellRef.current?.parentElement?.ariaRowIndex) - 2]
+      //   );
+      // }
+    },
+    [productsArray]
+  );
+
+  // セルダブルクリック
+  const handleDoubleClickGridCell = useCallback(
+    (
+      e: React.MouseEvent<HTMLDivElement>,
+      index: number,
+      columnName: string,
+      productListIndex: number,
+      isEditable: boolean
+    ) => {
+      // 編集不能なセルはリターン
+      if (!isEditable) return;
+      console.log("ダブルクリック", e.currentTarget, "index", index);
+      //   if (columnName !== "summary") return console.log("ダブルクリック summaryでないためリターン");
+
+      if (setTimeoutRef.current) {
+        clearTimeout(setTimeoutRef.current);
+
+        // console.log(e.detail);
+        setTimeoutRef.current = null;
+        // ダブルクリック時に実行したい処理
+
+        // クリックした要素のテキストを格納
+        // const text = e.currentTarget.innerText;
+
+        let text;
+        if (["quotation_unit_price", "unit_price"].includes(columnName)) {
+          console.log("🔥 columnName", columnName);
+          console.log("🔥 productListIndex", productListIndex);
+          console.log("🔥 sortedProductsList", sortedProductsList);
+          console.log(
+            "🔥 sortedProductsList[productListIndex][columnName as keyof QuotationProductsDetail]",
+            sortedProductsList[productListIndex]
+          );
+          console.log(
+            "🔥 sortedProductsList[productListIndex]",
+            sortedProductsList[productListIndex][columnName as keyof QuotationProductsDetail]
+          );
+          if (columnName in sortedProductsList[productListIndex]) {
+            text = sortedProductsList[productListIndex][columnName as keyof QuotationProductsDetail];
+          }
+        } else {
+          text = e.currentTarget.innerHTML;
+        }
+        console.log("🔥 text", text);
+        if (typeof text === "number") {
+          text = text.toString();
+        }
+        setTextareaInput((text ?? "") as string);
+        // setIsOpenEditModal(true);
+        setEditPosition({ row: productListIndex, col: index });
+      }
+    },
+    [setTextareaInput, setIsOpenEditModal]
+  );
+  // ================== 🌟セル シングルクリック、ダブルクリックイベント ここまで ==================
+
+  // 編集中のinputタグ以外をクリックしたら編集モードを解除
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (inputRef.current && !inputRef.current.contains(event.target as Node)) {
+        setEditPosition({ row: null, col: null });
+        setTextareaInput("");
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [inputRef]);
+
+  console.log("見積商品リストテーブルレンダリング", "productsArray", productsArray, "clickActiveRow", clickActiveRow);
+  console.log("🔥 activeCell", activeCell);
+  console.log("🔥 clickActiveRow", clickActiveRow);
+  console.log("🔥 selectedRowDataQuotationProduct", selectedRowDataQuotationProduct);
 
   return (
     <>
@@ -206,7 +375,8 @@ const ProductListTableMemo: FC<Props> = ({ productsArray }) => {
               {
                 display: "grid",
                 // gridTemplateColumns: `2fr 1fr repeat(6, 1fr)`,
-                gridTemplateColumns: `2fr repeat(3, 1fr) 2fr repeat(3, 1fr)`,
+                // gridTemplateColumns: `2fr repeat(3, 1fr) 2fr repeat(3, 1fr)`,
+                gridTemplateColumns: `2fr repeat(3, 1fr) 2fr repeat(2, 1fr)`,
                 minHeight: "25px",
                 //   width: `100%`,
                 minWidth: `calc(100vw - var(--sidebar-width) - 20px - 10px - (100vw - var(--sidebar-width) - 20px - 10px) / 3 - 3px)`,
@@ -214,7 +384,8 @@ const ProductListTableMemo: FC<Props> = ({ productsArray }) => {
                 // "--row-width": "800px",
                 // "--row-width": "888px",
                 // "--row-width": "1200px",
-                "--row-width": "1300px",
+                // "--row-width": "1300px",
+                "--row-width": "1170px",
                 // "--row-width":
                 //   "calc(100vw - var(--sidebar-width) - 20px - 10px - (100vw - var(--sidebar-width) - 20px - 10px) / 3 - 1px + 500px)",
               } as CSSProperties
@@ -224,7 +395,7 @@ const ProductListTableMemo: FC<Props> = ({ productsArray }) => {
             {columnHeaderList.map((key, index) => (
               <div
                 // key={index}
-                key={key}
+                key={key.columnName}
                 ref={(ref) => (colsRef.current[index] = ref)}
                 role="columnheader"
                 draggable={false}
@@ -250,8 +421,8 @@ const ProductListTableMemo: FC<Props> = ({ productsArray }) => {
                         className={`${styles.grid_column_header_inner_name} pointer-events-none`}
                         ref={(ref) => (columnHeaderInnerTextRef.current[index] = ref)}
                       >
-                        {language === "en" && key}
-                        {language === "ja" && columnNameToJapanese(key)}
+                        {language === "en" && key.columnName}
+                        {language === "ja" && columnNameToJapanese(key.columnName)}
                       </span>
                     </div>
                   </div>
@@ -297,60 +468,156 @@ const ProductListTableMemo: FC<Props> = ({ productsArray }) => {
               }
               className={`${styles.grid_rowgroup_virtualized_container}`}
             >
-              {productsArray.map((attendee: { [key: string]: string | number | null }, index: number) => {
-                return (
-                  <div
-                    key={attendee.attendee_id}
-                    role="row"
-                    tabIndex={-1}
-                    aria-rowindex={index + 2} // ヘッダーの次からで+1、indexは0からなので+1で、index0に+2
-                    aria-selected={false}
-                    className={`${styles.grid_row}`}
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: `2fr 1fr repeat(5, 1fr)`,
-                      minHeight: "25px",
-                      width: `100%`,
-                      top: ((index + 0) * 25).toString() + "px", // +1か0か
-                    }}
-                  >
-                    {columnOrder.map((value, index) => {
-                      const columnName = columnHeaderList[index];
-                      //   let displayValue = value;
-                      //   // 「日付」のカラムのセルには、formatして表示する
-                      //   if (columnName in formatMapping && !!value) {
-                      //     displayValue = format(new Date(value), formatMapping[columnName]);
-                      //   }
-                      let displayValue = attendee[columnName];
-                      if (columnName === "attendee_position_class" && typeof displayValue === "number") {
-                        displayValue = mappingPositionClass[displayValue]?.[language]
-                          ? mappingPositionClass[displayValue]?.[language]
-                          : "";
+              {/* {[...productsArray]
+                .sort((a, b) => {
+                  if (a.quotation_product_priority === null) return 1; // null値をリストの最後に移動
+                  if (b.quotation_product_priority === null) return -1;
+                  return a.quotation_product_priority - b.quotation_product_priority;
+                }) */}
+              {sortedProductsList
+                // .map((product: { [key: string]: string | number | null }, index: number) => {
+                .map((product: QuotationProductsDetail, index: number) => {
+                  return (
+                    <div
+                      key={product.quotation_product_id}
+                      role="row"
+                      tabIndex={-1}
+                      aria-rowindex={index + 2} // ヘッダーの次からで+1、indexは0からなので+1で、index0に+2
+                      aria-selected={clickActiveRow === index + 2}
+                      className={`${styles.grid_row}`}
+                      style={
+                        {
+                          display: "grid",
+                          // gridTemplateColumns: `2fr 1fr repeat(5, 1fr)`,
+                          // gridTemplateColumns: `2fr repeat(3, 1fr) 2fr repeat(3, 1fr)`,
+                          gridTemplateColumns: `2fr repeat(3, 1fr) 2fr repeat(2, 1fr)`,
+                          minHeight: "25px",
+                          // width: `100%`,
+                          minWidth: `calc(100vw - var(--sidebar-width) - 20px - 10px - (100vw - var(--sidebar-width) - 20px - 10px) / 3 - 3px)`,
+                          width: `var(--row-width)`,
+                          // "--row-width": "1300px",
+                          "--row-width": "1170px",
+                          top: ((index + 0) * 25).toString() + "px", // +1か0か
+                        } as CSSProperties
                       }
-                      return (
-                        <div
-                          key={"row" + attendee.attendee_id + index.toString()}
-                          role="gridcell"
-                          aria-colindex={index + 1} // カラムヘッダーの列StateのcolumnIndexと一致させる
-                          aria-selected={false}
-                          tabIndex={-1}
-                          className={`${styles.grid_cell} ${styles.grid_cell_resizable}`}
-                          style={{
-                            gridColumnStart: index + 1,
-                            ...(columnHeaderList[index] === "summary" && { cursor: "pointer" }),
-                            // ...(columnHeaderList.length - 1 === index && { borderRight: "none" }),
-                            ...(index === columnHeaderList.length - 1 && { borderRight: "none" }),
-                          }}
-                          onClick={handleSingleClickGridCell}
-                          onDoubleClick={(e) => handleDoubleClickGridCell(e, index, columnHeaderList[index])}
-                        >
-                          {displayValue}
-                        </div>
-                      );
-                    })}
-                  </div>
-                );
-              })}
+                    >
+                      {columnOrder.map((value, colIndex) => {
+                        const columnName = columnHeaderList[colIndex].columnName;
+                        //   let displayValue = value;
+                        //   // 「日付」のカラムのセルには、formatして表示する
+                        //   if (columnName in formatMapping && !!value) {
+                        //     displayValue = format(new Date(value), formatMapping[columnName]);
+                        //   }
+                        let displayValue = (product as { [key: string]: string | number | null })[columnName];
+                        if (
+                          ["quotation_unit_price", "unit_price"].includes(columnName) &&
+                          typeof displayValue === "number"
+                        ) {
+                          displayValue = formatToJapaneseYen(displayValue);
+                        }
+                        return (
+                          <>
+                            {!(editPosition.row === index && editPosition.col === colIndex) && (
+                              <div
+                                key={"row" + product.quotation_product_id + colIndex.toString()}
+                                role="gridcell"
+                                // aria-colindex={index + 1} // カラムヘッダーの列StateのcolumnIndexと一致させる
+                                aria-colindex={
+                                  columnHeaderList[colIndex] ? columnHeaderList[colIndex]?.columnIndex : colIndex + 2
+                                } // カラムヘッダーの列StateのcolumnIndexと一致させる
+                                aria-selected={false}
+                                tabIndex={-1}
+                                className={`${styles.grid_cell} ${styles.grid_cell_resizable} ${
+                                  [
+                                    "quotation_product_name",
+                                    "quotation_outside_short_name",
+                                    "quotation_unit_price",
+                                  ].includes(columnHeaderList[colIndex].columnName)
+                                    ? `${styles.editable}`
+                                    : ``
+                                }`}
+                                style={{
+                                  gridColumnStart: colIndex + 1,
+                                  ...([
+                                    "quotation_product_name",
+                                    "quotation_outside_short_name",
+                                    "quotation_unit_price",
+                                  ].includes(columnHeaderList[colIndex].columnName) && {
+                                    cursor: "pointer",
+                                  }),
+                                  // ...(columnHeaderList.length - 1 === index && { borderRight: "none" }),
+                                  ...(colIndex === columnHeaderList.length - 1 && { borderRight: "none" }),
+                                }}
+                                onClick={(e) =>
+                                  handleSingleClickGridCell(
+                                    e,
+                                    [
+                                      "quotation_product_name",
+                                      "quotation_outside_short_name",
+                                      "quotation_unit_price",
+                                    ].includes(columnHeaderList[colIndex].columnName)
+                                  )
+                                }
+                                onDoubleClick={(e) =>
+                                  handleDoubleClickGridCell(
+                                    e,
+                                    colIndex,
+                                    columnHeaderList[colIndex].columnName,
+                                    index,
+                                    [
+                                      "quotation_product_name",
+                                      "quotation_outside_short_name",
+                                      "quotation_unit_price",
+                                    ].includes(columnHeaderList[colIndex].columnName)
+                                  )
+                                }
+                              >
+                                {displayValue}
+                              </div>
+                            )}
+                            {editPosition.row === index && editPosition.col === colIndex && (
+                              <input
+                                ref={inputRef}
+                                type="text"
+                                value={textareaInput}
+                                onChange={(e) => setTextareaInput(e.target.value)}
+                                key={"row" + product.quotation_product_id + colIndex.toString()}
+                                role="gridcell"
+                                // aria-colindex={index + 1} // カラムヘッダーの列StateのcolumnIndexと一致させる
+                                aria-colindex={
+                                  columnHeaderList[colIndex] ? columnHeaderList[colIndex]?.columnIndex : colIndex + 2
+                                } // カラムヘッダーの列StateのcolumnIndexと一致させる
+                                aria-selected={false}
+                                tabIndex={-1}
+                                className={`${styles.grid_cell} ${styles.grid_cell_resizable} ${styles.edit_mode} ${
+                                  [
+                                    "quotation_product_name",
+                                    "quotation_outside_short_name",
+                                    "quotation_unit_price",
+                                  ].includes(columnHeaderList[colIndex].columnName)
+                                    ? `${styles.editable}`
+                                    : ``
+                                }`}
+                                style={{
+                                  gridColumnStart: colIndex + 1,
+                                  ...([
+                                    "quotation_product_name",
+                                    "quotation_outside_short_name",
+                                    "quotation_unit_price",
+                                  ].includes(columnHeaderList[colIndex].columnName) && {
+                                    cursor: "text",
+                                  }),
+                                  // ...(columnHeaderList.length - 1 === index && { borderRight: "none" }),
+                                  ...(colIndex === columnHeaderList.length - 1 && { borderRight: "none" }),
+                                }}
+                              />
+                            )}
+                          </>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
 
               {/* {Array(10)
                 .fill(null)

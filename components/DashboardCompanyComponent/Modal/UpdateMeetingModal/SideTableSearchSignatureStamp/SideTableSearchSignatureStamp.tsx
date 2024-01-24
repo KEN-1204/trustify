@@ -298,6 +298,15 @@ Props) => {
   const queryCount = queryDataObj?.pages[0].count; // 0: {rows: Array(9), nextOffset: 1, isLastPage: true, count: 9}
   const isLastPage = queryDataObj?.pages[queryDataObj.pages.length - 1].isLastPage;
 
+  // ------------------------------- 🌟初回ブロックstateをtrueに🌟 -------------------------------
+  // 初回マウント時に既に初期状態(入力なしで検索した全てのデータ)でRowsが存在するなら初回ブロックstateをtrueにする
+  useEffect(() => {
+    if (memberRows && memberRows.length > 0) {
+      if (!isEnableFetch) setIsEnableFetch(true);
+    }
+  }, []);
+  // ------------------------------- ✅初回ブロックstateをtrueに✅ -------------------------------
+
   console.log(
     "=============================================メンバーqueryDataObj",
     queryDataObj,

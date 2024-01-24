@@ -65,6 +65,8 @@ import { toHalfWidthAndSpace } from "@/utils/Helpers/toHalfWidthAndSpace";
 import { FallbackSideTableSearchMember } from "@/components/DashboardCompanyComponent/Modal/UpdateMeetingModal/SideTableSearchMember/FallbackSideTableSearchMember";
 import { SideTableSearchMember } from "@/components/DashboardCompanyComponent/Modal/UpdateMeetingModal/SideTableSearchMember/SideTableSearchMember";
 import { GrPowerReset } from "react-icons/gr";
+import { SideTableSearchProduct } from "@/components/DashboardCompanyComponent/Modal/UpdateMeetingModal/SideTableSearchProduct/SideTableSearchProduct";
+import { FallbackSideTableSearchProduct } from "@/components/DashboardCompanyComponent/Modal/UpdateMeetingModal/SideTableSearchProduct/FallbackSideTableSearchProduct";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -131,7 +133,16 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   // 確認モーダル(自社担当名、データ所有者変更確認)
   const [isOpenConfirmationModal, setIsOpenConfirmationModal] = useState<string | null>(null);
   // 自社担当検索サイドテーブル開閉
+  const [isOpenSearchMemberSideTableBefore, setIsOpenSearchMemberSideTableBefore] = useState(false);
   const [isOpenSearchMemberSideTable, setIsOpenSearchMemberSideTable] = useState(false);
+  // 商品検索サイドテーブル開閉
+  const [isOpenSearchProductSideTableBefore, setIsOpenSearchProductSideTableBefore] = useState(false);
+  const [isOpenSearchProductSideTable, setIsOpenSearchProductSideTable] = useState(false);
+  // 見積に追加された商品リスト
+  const [selectedProductsArray, setSelectedProductsArray] = useState<QuotationProductsDetail[]>([]);
+  // 選択中の商品データ
+  const selectedRowDataQuotationProduct = useDashboardStore((state) => state.selectedRowDataQuotationProduct);
+  const setSelectedRowDataQuotationProduct = useDashboardStore((state) => state.setSelectedRowDataQuotationProduct);
 
   // const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
@@ -284,6 +295,11 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const [memberObjSupervisor1, setMemberObjSupervisor1] = useState<MemberWithStamp>(initialMemberNullObj);
   const [prevMemberObjSupervisor2, setPrevMemberObjSupervisor2] = useState<MemberWithStamp>(initialMemberNullObj);
   const [memberObjSupervisor2, setMemberObjSupervisor2] = useState<MemberWithStamp>(initialMemberNullObj);
+
+  // 担当印、上長印の削除、変更メニュー開閉
+  const [isOpenInChargeMenu, setIsOpenInChargeMenu] = useState(false);
+  const [isOpenSupervisor1Menu, setIsOpenSupervisor1Menu] = useState(false);
+  const [isOpenSupervisor2Menu, setIsOpenSupervisor2Menu] = useState(false);
 
   // 担当者検索サイドテーブルに渡すオブジェクトを切り替える関数
   const [sideTableState, setSideTableState] = useState("author");
@@ -763,6 +779,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const handleSearchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    // upsertモードがtrueならサブミットせずにリターン
+    if (isInsertModeQuotation) return console.log("サブミット INSERTモードのためリターン");
     // フィールド編集モードがtrueならサブミットせずにリターン
     if (isEditModeField) return console.log("サブミット フィールドエディットモードのためリターン");
 
@@ -1466,7 +1484,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
               <div className={`flex h-full items-center space-x-[15px]`}>
                 <div className={`mr-[30px] flex h-full w-full items-center space-x-[15px]`}>
                   <button
-                    type="submit"
+                    type="button"
                     className={`${styles.upsert_btn} transition-bg02 max-h-[28px] min-h-[28px] min-w-[90px] max-w-[90px] text-[13px]`}
                   >
                     保存
@@ -4995,7 +5013,10 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     classText="select-none"
                                     borderRadius="6px"
                                     clickEventHandler={() => {
-                                      setIsOpenSearchMemberSideTable(true);
+                                      setIsOpenSearchMemberSideTableBefore(true);
+                                      setTimeout(() => {
+                                        setIsOpenSearchMemberSideTable(true);
+                                      }, 100);
                                       setSideTableState("inCharge");
                                     }}
                                     onMouseEnterHandler={(e) =>
@@ -5025,9 +5046,13 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 </span>
 
                                 <div
-                                  className={`${styles.icon_path_stroke} ${styles.icon_btn} flex-center transition-bg03 ml-auto`}
+                                  className={`${styles.icon_path_stroke} ${
+                                    styles.icon_btn
+                                  } flex-center transition-bg03 ml-auto ${
+                                    isOpenInChargeMenu ? `pointer-events-none` : ``
+                                  }`}
                                   onMouseEnter={(e) => {
-                                    // if (isOpenDropdownMenuFilterProducts) return;
+                                    if (isOpenInChargeMenu) return;
                                     handleOpenTooltip({
                                       e: e,
                                       display: "top",
@@ -5045,24 +5070,61 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   }}
                                   onClick={() => {
                                     if (!memberObjInCharge) return;
-                                    setIsOpenSearchMemberSideTable(true);
-                                    setSideTableState("inCharge");
-                                    const currentMemberObj = {
-                                      memberId: memberObjInCharge.memberId,
-                                      memberName: memberObjInCharge?.memberName ?? null,
-                                      departmentId: memberObjInCharge?.departmentId ?? null,
-                                      unitId: memberObjInCharge?.unitId ?? null,
-                                      officeId: memberObjInCharge?.officeId ?? null,
-                                      signature_stamp_id: memberObjInCharge?.signature_stamp_id ?? null,
-                                      signature_stamp_url: memberObjInCharge?.signature_stamp_url ?? null,
-                                    };
-                                    setMemberObj(currentMemberObj);
-                                    setPrevMemberObj(currentMemberObj);
+                                    if (isOpenInChargeMenu) return;
+                                    setIsOpenInChargeMenu(true);
                                     if (hoveredItemPosWrap) handleCloseTooltip();
                                   }}
                                 >
                                   <GrPowerReset />
                                 </div>
+                                {isOpenInChargeMenu && (
+                                  <>
+                                    <div
+                                      className="fixed left-0 top-0 z-[2000] h-full w-full bg-[#00000000]"
+                                      onClick={() => setIsOpenInChargeMenu(false)}
+                                    ></div>
+                                    <div
+                                      className={`border-real-with-shadow-dark fade03 space-x-[20px] ${styles.update_stamp_menu}`}
+                                    >
+                                      <div
+                                        className={`${styles.menu_btn} transition-bg01 flex-center bg-[var(--setting-side-bg-select)]  text-[var(--color-text-title)]  hover:bg-[var(--setting-side-bg-select-hover)]`}
+                                        onClick={() => {
+                                          setPrevMemberObjInCharge(initialMemberNullObj);
+                                          setMemberObjInCharge(initialMemberNullObj);
+                                          setIsOpenInChargeMenu(false);
+                                          if (checkboxInChargeFlagEdit) setCheckboxInChargeFlagEdit(false);
+                                        }}
+                                      >
+                                        <span>削除</span>
+                                      </div>
+                                      <div
+                                        className={`${styles.menu_btn} transition-bg01 flex-center bg-[var(--color-bg-brand-f)] text-[#fff] hover:bg-[var(--color-bg-brand-f-hover)]`}
+                                        onClick={() => {
+                                          // setIsOpenSearchMemberSideTable(true);
+                                          setIsOpenSearchMemberSideTableBefore(true);
+                                          setTimeout(() => {
+                                            setIsOpenSearchMemberSideTable(true);
+                                          }, 100);
+                                          setSideTableState("inCharge");
+                                          const currentMemberObj = {
+                                            memberId: memberObjInCharge.memberId,
+                                            memberName: memberObjInCharge?.memberName ?? null,
+                                            departmentId: memberObjInCharge?.departmentId ?? null,
+                                            unitId: memberObjInCharge?.unitId ?? null,
+                                            officeId: memberObjInCharge?.officeId ?? null,
+                                            signature_stamp_id: memberObjInCharge?.signature_stamp_id ?? null,
+                                            signature_stamp_url: memberObjInCharge?.signature_stamp_url ?? null,
+                                          };
+                                          setMemberObj(currentMemberObj);
+                                          setPrevMemberObj(currentMemberObj);
+                                          setIsOpenInChargeMenu(false);
+                                        }}
+                                      >
+                                        <span>変更</span>
+                                      </div>
+                                    </div>
+                                  </>
+                                )}
                               </div>
                             )}
                             {/* ----------------- upsert ----------------- */}
@@ -5187,7 +5249,11 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     classText="select-none"
                                     borderRadius="6px"
                                     clickEventHandler={() => {
-                                      setIsOpenSearchMemberSideTable(true);
+                                      // setIsOpenSearchMemberSideTable(true);
+                                      setIsOpenSearchMemberSideTableBefore(true);
+                                      setTimeout(() => {
+                                        setIsOpenSearchMemberSideTable(true);
+                                      }, 100);
                                       setSideTableState("supervisor1");
                                     }}
                                     onMouseEnterHandler={(e) =>
@@ -5218,9 +5284,13 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 </span>
 
                                 <div
-                                  className={`${styles.icon_path_stroke} ${styles.icon_btn} flex-center transition-bg03 ml-auto`}
+                                  className={`${styles.icon_path_stroke} ${
+                                    styles.icon_btn
+                                  } flex-center transition-bg03 ml-auto ${
+                                    isOpenSupervisor1Menu ? `pointer-events-none` : ``
+                                  }`}
                                   onMouseEnter={(e) => {
-                                    // if (isOpenDropdownMenuFilterProducts) return;
+                                    if (isOpenSupervisor1Menu) return;
                                     handleOpenTooltip({
                                       e: e,
                                       display: "top",
@@ -5238,24 +5308,61 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   }}
                                   onClick={() => {
                                     if (!memberObjSupervisor1) return;
-                                    setIsOpenSearchMemberSideTable(true);
-                                    setSideTableState("supervisor1");
-                                    const currentMemberObj = {
-                                      memberId: memberObjSupervisor1.memberId,
-                                      memberName: memberObjSupervisor1?.memberName ?? null,
-                                      departmentId: memberObjSupervisor1?.departmentId ?? null,
-                                      unitId: memberObjSupervisor1?.unitId ?? null,
-                                      officeId: memberObjSupervisor1?.officeId ?? null,
-                                      signature_stamp_id: memberObjSupervisor1?.signature_stamp_id ?? null,
-                                      signature_stamp_url: memberObjSupervisor1?.signature_stamp_url ?? null,
-                                    };
-                                    setMemberObj(currentMemberObj);
-                                    setPrevMemberObj(currentMemberObj);
+                                    if (isOpenSupervisor1Menu) return;
+                                    setIsOpenSupervisor1Menu(true);
                                     if (hoveredItemPosWrap) handleCloseTooltip();
                                   }}
                                 >
                                   <GrPowerReset />
                                 </div>
+                                {isOpenSupervisor1Menu && (
+                                  <>
+                                    <div
+                                      className="fixed left-0 top-0 z-[2000] h-full w-full bg-[#00000000]"
+                                      onClick={() => setIsOpenSupervisor1Menu(false)}
+                                    ></div>
+                                    <div
+                                      className={`border-real-with-shadow-dark fade03 space-x-[20px] ${styles.update_stamp_menu}`}
+                                    >
+                                      <div
+                                        className={`${styles.menu_btn} transition-bg01 flex-center bg-[var(--setting-side-bg-select)]  text-[var(--color-text-title)]  hover:bg-[var(--setting-side-bg-select-hover)]`}
+                                        onClick={() => {
+                                          setPrevMemberObjSupervisor1(initialMemberNullObj);
+                                          setMemberObjSupervisor1(initialMemberNullObj);
+                                          setIsOpenSupervisor1Menu(false);
+                                          if (checkboxSupervisor1FlagEdit) setCheckboxSupervisor1FlagEdit(false);
+                                        }}
+                                      >
+                                        <span>削除</span>
+                                      </div>
+                                      <div
+                                        className={`${styles.menu_btn} transition-bg01 flex-center bg-[var(--color-bg-brand-f)] text-[#fff] hover:bg-[var(--color-bg-brand-f-hover)]`}
+                                        onClick={() => {
+                                          // setIsOpenSearchMemberSideTable(true);
+                                          setIsOpenSearchMemberSideTableBefore(true);
+                                          setTimeout(() => {
+                                            setIsOpenSearchMemberSideTable(true);
+                                          }, 100);
+                                          setSideTableState("supervisor1");
+                                          const currentMemberObj = {
+                                            memberId: memberObjSupervisor1.memberId,
+                                            memberName: memberObjSupervisor1?.memberName ?? null,
+                                            departmentId: memberObjSupervisor1?.departmentId ?? null,
+                                            unitId: memberObjSupervisor1?.unitId ?? null,
+                                            officeId: memberObjSupervisor1?.officeId ?? null,
+                                            signature_stamp_id: memberObjSupervisor1?.signature_stamp_id ?? null,
+                                            signature_stamp_url: memberObjSupervisor1?.signature_stamp_url ?? null,
+                                          };
+                                          setMemberObj(currentMemberObj);
+                                          setPrevMemberObj(currentMemberObj);
+                                          setIsOpenSupervisor1Menu(false);
+                                        }}
+                                      >
+                                        <span>変更</span>
+                                      </div>
+                                    </div>
+                                  </>
+                                )}
                               </div>
                             )}
                             {/* ----------------- upsert ----------------- */}
@@ -5265,66 +5372,87 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         <div className="flex h-full w-1/2 flex-col pr-[20px]">
                           <div className={`${styles.title_box} flex h-full items-center`}>
                             <span className={`${styles.check_title} ${styles.single_text}`}>印字</span>
-                            {/* <div className={`${styles.check_title} flex flex-col ${styles.double_text}`}>
-                      <span>見積</span>
-                      <span>印字ﾌﾗｸﾞ</span>
-                    </div> */}
 
-                            <div
-                              className={`${styles.grid_select_cell_header} `}
-                              onMouseEnter={(e) => {
-                                if (!selectedRowDataQuotation) return;
-                                e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                              }}
-                              onMouseLeave={(e) => {
-                                if (!selectedRowDataQuotation) return;
-                                e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                              }}
-                            >
-                              <input
-                                type="checkbox"
-                                // checked={!!selectedRowDataQuotation?.supervisor1_stamp_flag}
-                                // onChange={() => {
-                                //   setLoadingGlobalState(false);
-                                //   setIsOpenUpdateQuotationModal(true);
-                                // }}
-                                className={`${styles.grid_select_cell_header_input} ${
-                                  !selectedRowDataQuotation || !memberObjSupervisor1.departmentId
-                                    ? `pointer-events-none cursor-not-allowed`
-                                    : ``
-                                }`}
-                                checked={checkboxSupervisor1Flag}
-                                onChange={async (e) => {
+                            {!searchMode && !isInsertModeQuotation && (
+                              <div
+                                className={`${styles.grid_select_cell_header} `}
+                                onMouseEnter={(e) => {
                                   if (!selectedRowDataQuotation) return;
-                                  // 個別にチェックボックスを更新するルート
-                                  if (!selectedRowDataQuotation?.quotation_id)
-                                    return toast.error(`データが見つかりませんでした🙇‍♀️`);
-
-                                  console.log(
-                                    "チェック 新しい値",
-                                    !checkboxSupervisor1Flag,
-                                    "オリジナル",
-                                    selectedRowDataQuotation?.supervisor1_stamp_flag
-                                  );
-                                  if (!checkboxSupervisor1Flag === selectedRowDataQuotation?.supervisor1_stamp_flag) {
-                                    toast.error(`アップデートに失敗しました🤦‍♀️`);
-                                    return;
-                                  }
-                                  const updatePayload = {
-                                    fieldName: "supervisor1_stamp_flag",
-                                    fieldNameForSelectedRowData: "supervisor1_stamp_flag" as "supervisor1_stamp_flag",
-                                    newValue: !checkboxSupervisor1Flag,
-                                    id: selectedRowDataQuotation.quotation_id,
-                                  };
-                                  // 直感的にするためにmutateにして非同期処理のまま後続のローカルのチェックボックスを更新する
-                                  updateQuotationFieldMutation.mutate(updatePayload);
-                                  setCheckboxSupervisor1Flag(!checkboxSupervisor1Flag);
+                                  e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                                 }}
-                              />
-                              <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
-                              </svg>
-                            </div>
+                                onMouseLeave={(e) => {
+                                  if (!selectedRowDataQuotation) return;
+                                  e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                }}
+                              >
+                                <input
+                                  type="checkbox"
+                                  // checked={!!selectedRowDataQuotation?.supervisor1_stamp_flag}
+                                  // onChange={() => {
+                                  //   setLoadingGlobalState(false);
+                                  //   setIsOpenUpdateQuotationModal(true);
+                                  // }}
+                                  className={`${styles.grid_select_cell_header_input} ${
+                                    !selectedRowDataQuotation || !memberObjSupervisor1.departmentId
+                                      ? `pointer-events-none cursor-not-allowed`
+                                      : ``
+                                  }`}
+                                  checked={checkboxSupervisor1Flag}
+                                  onChange={async (e) => {
+                                    if (!selectedRowDataQuotation) return;
+                                    // 個別にチェックボックスを更新するルート
+                                    if (!selectedRowDataQuotation?.quotation_id)
+                                      return toast.error(`データが見つかりませんでした🙇‍♀️`);
+
+                                    console.log(
+                                      "チェック 新しい値",
+                                      !checkboxSupervisor1Flag,
+                                      "オリジナル",
+                                      selectedRowDataQuotation?.supervisor1_stamp_flag
+                                    );
+                                    if (!checkboxSupervisor1Flag === selectedRowDataQuotation?.supervisor1_stamp_flag) {
+                                      toast.error(`アップデートに失敗しました🤦‍♀️`);
+                                      return;
+                                    }
+                                    const updatePayload = {
+                                      fieldName: "supervisor1_stamp_flag",
+                                      fieldNameForSelectedRowData: "supervisor1_stamp_flag" as "supervisor1_stamp_flag",
+                                      newValue: !checkboxSupervisor1Flag,
+                                      id: selectedRowDataQuotation.quotation_id,
+                                    };
+                                    // 直感的にするためにmutateにして非同期処理のまま後続のローカルのチェックボックスを更新する
+                                    updateQuotationFieldMutation.mutate(updatePayload);
+                                    setCheckboxSupervisor1Flag(!checkboxSupervisor1Flag);
+                                  }}
+                                />
+                                <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+                                </svg>
+                              </div>
+                            )}
+
+                            {/* ----------------- upsert ----------------- */}
+                            {!searchMode && isInsertModeQuotation && (
+                              <div className={`${styles.grid_select_cell_header} `}>
+                                <input
+                                  type="checkbox"
+                                  className={`${styles.grid_select_cell_header_input} ${
+                                    !memberObjSupervisor1.signature_stamp_id
+                                      ? `pointer-events-none cursor-not-allowed`
+                                      : ``
+                                  }`}
+                                  checked={checkboxSupervisor1FlagEdit}
+                                  onChange={async (e) => {
+                                    if (!memberObjSupervisor1.signature_stamp_id) return;
+                                    setCheckboxSupervisor1FlagEdit(!checkboxSupervisor1FlagEdit);
+                                  }}
+                                />
+                                <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+                                </svg>
+                              </div>
+                            )}
+                            {/* ----------------- upsert ----------------- */}
                           </div>
                           <div className={`${styles.underline}`}></div>
                         </div>
@@ -5361,7 +5489,11 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     classText="select-none"
                                     borderRadius="6px"
                                     clickEventHandler={() => {
-                                      setIsOpenSearchMemberSideTable(true);
+                                      // setIsOpenSearchMemberSideTable(true);
+                                      setIsOpenSearchMemberSideTableBefore(true);
+                                      setTimeout(() => {
+                                        setIsOpenSearchMemberSideTable(true);
+                                      }, 100);
                                       setSideTableState("supervisor2");
                                     }}
                                     onMouseEnterHandler={(e) =>
@@ -5392,9 +5524,13 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 </span>
 
                                 <div
-                                  className={`${styles.icon_path_stroke} ${styles.icon_btn} flex-center transition-bg03 ml-auto`}
+                                  className={`${styles.icon_path_stroke} ${
+                                    styles.icon_btn
+                                  } flex-center transition-bg03 ml-auto ${
+                                    isOpenSupervisor2Menu ? `pointer-events-none` : ``
+                                  }`}
                                   onMouseEnter={(e) => {
-                                    // if (isOpenDropdownMenuFilterProducts) return;
+                                    if (isOpenSupervisor2Menu) return;
                                     handleOpenTooltip({
                                       e: e,
                                       display: "top",
@@ -5412,24 +5548,61 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   }}
                                   onClick={() => {
                                     if (!memberObjSupervisor2) return;
-                                    setIsOpenSearchMemberSideTable(true);
-                                    setSideTableState("supervisor2");
-                                    const currentMemberObj = {
-                                      memberId: memberObjSupervisor2.memberId,
-                                      memberName: memberObjSupervisor2?.memberName ?? null,
-                                      departmentId: memberObjSupervisor2?.departmentId ?? null,
-                                      unitId: memberObjSupervisor2?.unitId ?? null,
-                                      officeId: memberObjSupervisor2?.officeId ?? null,
-                                      signature_stamp_id: memberObjSupervisor2?.signature_stamp_id ?? null,
-                                      signature_stamp_url: memberObjSupervisor2?.signature_stamp_url ?? null,
-                                    };
-                                    setMemberObj(currentMemberObj);
-                                    setPrevMemberObj(currentMemberObj);
+                                    if (isOpenSupervisor2Menu) return;
+                                    setIsOpenSupervisor2Menu(true);
                                     if (hoveredItemPosWrap) handleCloseTooltip();
                                   }}
                                 >
                                   <GrPowerReset />
                                 </div>
+                                {isOpenSupervisor2Menu && (
+                                  <>
+                                    <div
+                                      className="fixed left-0 top-0 z-[2000] h-full w-full bg-[#00000000]"
+                                      onClick={() => setIsOpenSupervisor2Menu(false)}
+                                    ></div>
+                                    <div
+                                      className={`border-real-with-shadow-dark fade03 space-x-[20px] ${styles.update_stamp_menu}`}
+                                    >
+                                      <div
+                                        className={`${styles.menu_btn} transition-bg01 flex-center bg-[var(--setting-side-bg-select)]  text-[var(--color-text-title)]  hover:bg-[var(--setting-side-bg-select-hover)]`}
+                                        onClick={() => {
+                                          setPrevMemberObjSupervisor2(initialMemberNullObj);
+                                          setMemberObjSupervisor2(initialMemberNullObj);
+                                          setIsOpenSupervisor2Menu(false);
+                                          if (checkboxSupervisor2FlagEdit) setCheckboxSupervisor2FlagEdit(false);
+                                        }}
+                                      >
+                                        <span>削除</span>
+                                      </div>
+                                      <div
+                                        className={`${styles.menu_btn} transition-bg01 flex-center bg-[var(--color-bg-brand-f)] text-[#fff] hover:bg-[var(--color-bg-brand-f-hover)]`}
+                                        onClick={() => {
+                                          // setIsOpenSearchMemberSideTable(true);
+                                          setIsOpenSearchMemberSideTableBefore(true);
+                                          setTimeout(() => {
+                                            setIsOpenSearchMemberSideTable(true);
+                                          }, 100);
+                                          setSideTableState("supervisor2");
+                                          const currentMemberObj = {
+                                            memberId: memberObjSupervisor2.memberId,
+                                            memberName: memberObjSupervisor2?.memberName ?? null,
+                                            departmentId: memberObjSupervisor2?.departmentId ?? null,
+                                            unitId: memberObjSupervisor2?.unitId ?? null,
+                                            officeId: memberObjSupervisor2?.officeId ?? null,
+                                            signature_stamp_id: memberObjSupervisor2?.signature_stamp_id ?? null,
+                                            signature_stamp_url: memberObjSupervisor2?.signature_stamp_url ?? null,
+                                          };
+                                          setMemberObj(currentMemberObj);
+                                          setPrevMemberObj(currentMemberObj);
+                                          setIsOpenSupervisor2Menu(false);
+                                        }}
+                                      >
+                                        <span>変更</span>
+                                      </div>
+                                    </div>
+                                  </>
+                                )}
                               </div>
                             )}
                             {/* ----------------- upsert ----------------- */}
@@ -5439,66 +5612,87 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         <div className="flex h-full w-1/2 flex-col pr-[20px]">
                           <div className={`${styles.title_box} flex h-full items-center`}>
                             <span className={`${styles.check_title} ${styles.single_text}`}>印字</span>
-                            {/* <div className={`${styles.check_title} flex flex-col ${styles.double_text}`}>
-                      <span>見積</span>
-                      <span>印字ﾌﾗｸﾞ</span>
-                    </div> */}
 
-                            <div
-                              className={`${styles.grid_select_cell_header} `}
-                              onMouseEnter={(e) => {
-                                if (!selectedRowDataQuotation) return;
-                                e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                              }}
-                              onMouseLeave={(e) => {
-                                if (!selectedRowDataQuotation) return;
-                                e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                              }}
-                            >
-                              <input
-                                type="checkbox"
-                                // checked={!!selectedRowDataQuotation?.supervisor1_stamp_flag}
-                                // onChange={() => {
-                                //   setLoadingGlobalState(false);
-                                //   setIsOpenUpdateQuotationModal(true);
-                                // }}
-                                className={`${styles.grid_select_cell_header_input} ${
-                                  !selectedRowDataQuotation || !memberObjSupervisor2.signature_stamp_id
-                                    ? `pointer-events-none cursor-not-allowed`
-                                    : ``
-                                }`}
-                                checked={checkboxSupervisor2Flag}
-                                onChange={async (e) => {
+                            {!searchMode && !isInsertModeQuotation && (
+                              <div
+                                className={`${styles.grid_select_cell_header} `}
+                                onMouseEnter={(e) => {
                                   if (!selectedRowDataQuotation) return;
-                                  // 個別にチェックボックスを更新するルート
-                                  if (!selectedRowDataQuotation?.quotation_id)
-                                    return toast.error(`データが見つかりませんでした🙇‍♀️`);
-
-                                  console.log(
-                                    "チェック 新しい値",
-                                    !checkboxSupervisor2Flag,
-                                    "オリジナル",
-                                    selectedRowDataQuotation?.supervisor1_stamp_flag
-                                  );
-                                  if (!checkboxSupervisor2Flag === selectedRowDataQuotation?.supervisor1_stamp_flag) {
-                                    toast.error(`アップデートに失敗しました🤦‍♀️`);
-                                    return;
-                                  }
-                                  const updatePayload = {
-                                    fieldName: "supervisor1_stamp_flag",
-                                    fieldNameForSelectedRowData: "supervisor1_stamp_flag" as "supervisor1_stamp_flag",
-                                    newValue: !checkboxSupervisor2Flag,
-                                    id: selectedRowDataQuotation.quotation_id,
-                                  };
-                                  // 直感的にするためにmutateにして非同期処理のまま後続のローカルのチェックボックスを更新する
-                                  updateQuotationFieldMutation.mutate(updatePayload);
-                                  setCheckboxSupervisor2Flag(!checkboxSupervisor2Flag);
+                                  e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                                 }}
-                              />
-                              <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
-                              </svg>
-                            </div>
+                                onMouseLeave={(e) => {
+                                  if (!selectedRowDataQuotation) return;
+                                  e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                }}
+                              >
+                                <input
+                                  type="checkbox"
+                                  // checked={!!selectedRowDataQuotation?.supervisor1_stamp_flag}
+                                  // onChange={() => {
+                                  //   setLoadingGlobalState(false);
+                                  //   setIsOpenUpdateQuotationModal(true);
+                                  // }}
+                                  className={`${styles.grid_select_cell_header_input} ${
+                                    !selectedRowDataQuotation || !memberObjSupervisor2.signature_stamp_id
+                                      ? `pointer-events-none cursor-not-allowed`
+                                      : ``
+                                  }`}
+                                  checked={checkboxSupervisor2Flag}
+                                  onChange={async (e) => {
+                                    if (!selectedRowDataQuotation) return;
+                                    // 個別にチェックボックスを更新するルート
+                                    if (!selectedRowDataQuotation?.quotation_id)
+                                      return toast.error(`データが見つかりませんでした🙇‍♀️`);
+
+                                    console.log(
+                                      "チェック 新しい値",
+                                      !checkboxSupervisor2Flag,
+                                      "オリジナル",
+                                      selectedRowDataQuotation?.supervisor1_stamp_flag
+                                    );
+                                    if (!checkboxSupervisor2Flag === selectedRowDataQuotation?.supervisor1_stamp_flag) {
+                                      toast.error(`アップデートに失敗しました🤦‍♀️`);
+                                      return;
+                                    }
+                                    const updatePayload = {
+                                      fieldName: "supervisor1_stamp_flag",
+                                      fieldNameForSelectedRowData: "supervisor1_stamp_flag" as "supervisor1_stamp_flag",
+                                      newValue: !checkboxSupervisor2Flag,
+                                      id: selectedRowDataQuotation.quotation_id,
+                                    };
+                                    // 直感的にするためにmutateにして非同期処理のまま後続のローカルのチェックボックスを更新する
+                                    updateQuotationFieldMutation.mutate(updatePayload);
+                                    setCheckboxSupervisor2Flag(!checkboxSupervisor2Flag);
+                                  }}
+                                />
+                                <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+                                </svg>
+                              </div>
+                            )}
+
+                            {/* ----------------- upsert ----------------- */}
+                            {!searchMode && isInsertModeQuotation && (
+                              <div className={`${styles.grid_select_cell_header} `}>
+                                <input
+                                  type="checkbox"
+                                  className={`${styles.grid_select_cell_header_input} ${
+                                    !memberObjSupervisor2.signature_stamp_id
+                                      ? `pointer-events-none cursor-not-allowed`
+                                      : ``
+                                  }`}
+                                  checked={checkboxSupervisor2FlagEdit}
+                                  onChange={async (e) => {
+                                    if (!memberObjSupervisor2.signature_stamp_id) return;
+                                    setCheckboxSupervisor2FlagEdit(!checkboxSupervisor2FlagEdit);
+                                  }}
+                                />
+                                <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+                                  <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+                                </svg>
+                              </div>
+                            )}
+                            {/* ----------------- upsert ----------------- */}
                           </div>
                           <div className={`${styles.underline}`}></div>
                         </div>
@@ -6551,32 +6745,69 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                   <div className="flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.section_title} mr-[20px]`}>見積商品</span>
-                      <RippleButton
-                        title={`追加`}
-                        classText="select-none"
-                        borderRadius="6px"
-                        clickEventHandler={() => {
-                          // const newResetColumnHeaderItemList = JSON.parse(JSON.stringify(columnHeaderItemList));
-                          // console.log(
-                          //   "🔥🔥🔥モーダル開いた ZustandのリセットStateにパースして格納newResetColumnHeaderItemList",
-                          //   newResetColumnHeaderItemList
-                          // );
-                          // setResetColumnHeaderItemList(newResetColumnHeaderItemList);
-                          // setIsOpenEditColumns(true);
-                        }}
-                        onMouseEnterHandler={(e) =>
-                          handleOpenTooltip({
-                            e: e,
-                            display: "top",
-                            content: `見積に商品を追加`,
-                            // content2: `直近売れ先の仕入れ先や、売れ先と同じ取引先を持つ同業他社で導入実績が響く会社など`,
-                            // marginTop: 48,
-                            // marginTop: 28,
-                            marginTop: 9,
-                          })
-                        }
-                        onMouseLeaveHandler={handleCloseTooltip}
-                      />
+                      <div className="flex w-full items-center space-x-[10px]">
+                        <RippleButton
+                          title={`追加`}
+                          classText="select-none"
+                          borderRadius="6px"
+                          clickEventHandler={() => {
+                            setIsOpenSearchProductSideTableBefore(true);
+                            setTimeout(() => {
+                              setIsOpenSearchProductSideTable(true);
+                            }, 100);
+                          }}
+                          onMouseEnterHandler={(e) =>
+                            handleOpenTooltip({
+                              e: e,
+                              display: "top",
+                              content: `見積に商品を追加`,
+                              // content2: `直近売れ先の仕入れ先や、売れ先と同じ取引先を持つ同業他社で導入実績が響く会社など`,
+                              // marginTop: 48,
+                              // marginTop: 28,
+                              marginTop: 9,
+                            })
+                          }
+                          onMouseLeaveHandler={handleCloseTooltip}
+                        />
+                        {selectedRowDataQuotationProduct && (
+                          <>
+                            <RippleButton
+                              title={`削除`}
+                              classText="select-none"
+                              borderRadius="6px"
+                              clickEventHandler={() => {
+                                const newArray = selectedProductsArray.filter(
+                                  (obj) =>
+                                    obj.quotation_product_id !== selectedRowDataQuotationProduct.quotation_product_id
+                                );
+                                // 削除後のpriorityを現在の順番に変更する
+                                const sortedNewArray = newArray.map((obj, index) => {
+                                  const newObj: QuotationProductsDetail = {
+                                    ...obj,
+                                    quotation_product_priority: index + 1,
+                                  };
+                                  return newObj;
+                                });
+                                setSelectedProductsArray(sortedNewArray);
+                                setSelectedRowDataQuotationProduct(null);
+                                handleCloseTooltip();
+                              }}
+                              onMouseEnterHandler={(e) =>
+                                handleOpenTooltip({
+                                  e: e,
+                                  display: "top",
+                                  content: `選択中の商品をリストから削除`,
+                                  // content2: `直近売れ先の仕入れ先や、売れ先と同じ取引先を持つ同業他社で導入実績が響く会社など`,
+                                  // marginTop: 48,
+                                  // marginTop: 28,
+                                  marginTop: 9,
+                                })
+                              }
+                              onMouseLeaveHandler={handleCloseTooltip}
+                            />
+                          </>
+                        )}
+                      </div>
                     </div>
 
                     {/* <div className={`${styles.underline}`}></div> */}
@@ -6596,10 +6827,13 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                 <div className={`mt-[15px]`}>
                   <ProductListTable
                     productsArray={
-                      selectedRowDataQuotation && selectedRowDataQuotation.quotation_products_details?.length > 0
+                      isInsertModeQuotation
+                        ? selectedProductsArray
+                        : selectedRowDataQuotation && selectedRowDataQuotation.quotation_products_details?.length > 0
                         ? selectedRowDataQuotation.quotation_products_details
                         : []
                     }
+                    isInsertMode={isInsertModeQuotation ? true : false}
                   />
                 </div>
                 {/* 商品エリアここまで */}
@@ -6714,43 +6948,81 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
           clickEventSubmit={() => {
             // setMemberObj(prevMemberObj);
             setIsOpenConfirmationModal(null);
-            setIsOpenSearchMemberSideTable(true);
+            // setIsOpenSearchMemberSideTable(true);
+            setIsOpenSearchMemberSideTableBefore(true);
+            setTimeout(() => {
+              setIsOpenSearchMemberSideTable(true);
+            }, 100);
             setSideTableState("author");
           }}
         />
       )}
 
-      {/* 「自社担当」変更サイドテーブル */}
-      <div
-        className={`fixed inset-0 z-[10000] bg-[#ffffff00] ${isOpenSearchMemberSideTable ? `` : `pointer-events-none`}`}
-      >
-        <ErrorBoundary FallbackComponent={ErrorFallback}>
-          <Suspense
-            fallback={
-              <div className={`pointer-events-none fixed inset-0 z-[10000] bg-[#00000039]`}>
-                <FallbackSideTableSearchMember
-                  isOpenSearchMemberSideTable={isOpenSearchMemberSideTable}
-                  searchSignatureStamp={sideTableState !== "author" ? true : false}
-                />
-              </div>
-            }
-          >
-            <SideTableSearchMember
-              isOpenSearchMemberSideTable={isOpenSearchMemberSideTable}
-              setIsOpenSearchMemberSideTable={setIsOpenSearchMemberSideTable}
-              prevMemberObj={getMemberObj(sideTableState).prevMemberObj}
-              setPrevMemberObj={getMemberObj(sideTableState).setPrevMemberObj}
-              memberObj={getMemberObj(sideTableState).memberObj}
-              setMemberObj={getMemberObj(sideTableState).setMemberObj}
-              searchSignatureStamp={sideTableState !== "author" ? true : false}
-              // prevMemberObj={prevMemberObj}
-              // setPrevMemberObj={setPrevMemberObj}
-              // memberObj={memberObj}
-              // setMemberObj={setMemberObj}
-            />
-          </Suspense>
-        </ErrorBoundary>
-      </div>
+      {/* 「自社担当」「印鑑データ」変更サイドテーブル */}
+      {isOpenSearchMemberSideTableBefore && (
+        <div
+          className={`fixed inset-0 z-[10000] bg-[#ffffff00] ${
+            isOpenSearchMemberSideTable ? `` : `pointer-events-none`
+          }`}
+        >
+          <ErrorBoundary FallbackComponent={ErrorFallback}>
+            <Suspense
+              fallback={
+                <div className={`pointer-events-none fixed inset-0 z-[10000] bg-[#00000039]`}>
+                  <FallbackSideTableSearchMember
+                    isOpenSearchMemberSideTable={isOpenSearchMemberSideTable}
+                    searchSignatureStamp={sideTableState !== "author" ? true : false}
+                  />
+                </div>
+              }
+            >
+              <SideTableSearchMember
+                isOpenSearchMemberSideTable={isOpenSearchMemberSideTable}
+                setIsOpenSearchMemberSideTable={setIsOpenSearchMemberSideTable}
+                isOpenSearchMemberSideTableBefore={isOpenSearchMemberSideTableBefore}
+                setIsOpenSearchMemberSideTableBefore={setIsOpenSearchMemberSideTableBefore}
+                prevMemberObj={getMemberObj(sideTableState).prevMemberObj}
+                setPrevMemberObj={getMemberObj(sideTableState).setPrevMemberObj}
+                memberObj={getMemberObj(sideTableState).memberObj}
+                setMemberObj={getMemberObj(sideTableState).setMemberObj}
+                searchSignatureStamp={sideTableState !== "author" ? true : false}
+                // prevMemberObj={prevMemberObj}
+                // setPrevMemberObj={setPrevMemberObj}
+                // memberObj={memberObj}
+                // setMemberObj={setMemberObj}
+              />
+            </Suspense>
+          </ErrorBoundary>
+        </div>
+      )}
+
+      {/* 商品リスト追加サイドテーブル */}
+      {isOpenSearchProductSideTableBefore && (
+        <div
+          className={`fixed inset-0 z-[10010] bg-[#ffffff00] ${
+            isOpenSearchProductSideTable ? `` : `pointer-events-none`
+          }`}
+        >
+          <ErrorBoundary FallbackComponent={ErrorFallback}>
+            <Suspense
+              fallback={
+                <div className={`pointer-events-none fixed inset-0 z-[10000] bg-[#00000039]`}>
+                  <FallbackSideTableSearchProduct isOpenSearchProductSideTable={isOpenSearchProductSideTable} />
+                </div>
+              }
+            >
+              <SideTableSearchProduct
+                isOpenSearchProductSideTable={isOpenSearchProductSideTable}
+                setIsOpenSearchProductSideTable={setIsOpenSearchProductSideTable}
+                isOpenSearchProductSideTableBefore={isOpenSearchProductSideTableBefore}
+                setIsOpenSearchProductSideTableBefore={setIsOpenSearchProductSideTableBefore}
+                selectedProductsArray={selectedProductsArray}
+                setSelectedProductsArray={setSelectedProductsArray}
+              />
+            </Suspense>
+          </ErrorBoundary>
+        </div>
+      )}
     </>
   );
 };
