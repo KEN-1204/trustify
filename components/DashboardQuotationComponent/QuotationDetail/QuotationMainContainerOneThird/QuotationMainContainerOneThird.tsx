@@ -47,7 +47,7 @@ import { normalizeDiscountRate } from "@/utils/Helpers/normalizeDiscountRate";
 import { CiEdit } from "react-icons/ci";
 import { RippleButton } from "@/components/Parts/RippleButton/RippleButton";
 import { ProductListTable } from "./ProductListTable/ProductListTable";
-import { convertHalfWidthNumOnly } from "@/utils/Helpers/convertHalfWidthNumOnly";
+import { convertHalfWidthRoundNumOnly } from "@/utils/Helpers/convertHalfWidthRoundNumOnly";
 import { CustomSelectInput } from "@/components/Parts/CustomSelectInput/CustomSelectInput";
 import {
   getQuotationDivision,
@@ -1462,6 +1462,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
 
     return _formatAttendees;
   };
+
+  // ---------------- 🌟insert/updateモード終了 or アンマウント時に商品リスト関連をリセット🌟 ----------------
+  // useEffect(() => {
+  //   // インサートモードが終了したら、商品リスト関連のstateを全てリセット
+  //   if (!isInsertModeQuotation) {
+  //     setEditPosition({ row: null, col: null });
+  //     setTextareaInput("");
+  //     setIsEditingCell(false);
+  //     setSelectedProductsArray([]);
+  //   }
+
+  // }, [isInsertModeQuotation])
+  // ---------------- ✅insert/updateモード終了 or アンマウント時に商品リスト関連をリセット✅ ----------------
 
   console.log(
     "🔥MeetingMainContainerレンダリング",
@@ -5898,7 +5911,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                       e.target.value === "０"
                                     )
                                       return setInputSetItemCountEdit("");
-                                    const converted = convertHalfWidthNumOnly(inputSetItemCountEdit.trim());
+                                    const converted = convertHalfWidthRoundNumOnly(inputSetItemCountEdit.trim());
                                     if (converted === null) return setInputSetItemCountEdit("");
                                     setInputSetItemCountEdit(converted);
                                   }}
@@ -5934,7 +5947,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   //     e.target.value === "０"
                                   //   )
                                   //     return setInputSetItemCountEdit("");
-                                  //   const converted = convertHalfWidthNumOnly(inputSetItemCountEdit.trim());
+                                  //   const converted = convertHalfWidthRoundNumOnly(inputSetItemCountEdit.trim());
                                   //   if (converted === null) return setInputSetItemCountEdit("");
                                   //   setInputSetItemCountEdit(converted);
                                   // }}
@@ -5947,7 +5960,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     ) {
                                       return setInputSetItemCountEdit("");
                                     }
-                                    const converted = convertHalfWidthNumOnly(inputSetItemCountEdit.trim());
+                                    const converted = convertHalfWidthRoundNumOnly(inputSetItemCountEdit.trim());
                                     if (converted === null) return setInputSetItemCountEdit("");
                                     setInputSetItemCountEdit(converted);
                                     handleKeyDownUpdateField({
@@ -5976,7 +5989,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                       ) {
                                         return setInputSetItemCountEdit("");
                                       }
-                                      const converted = convertHalfWidthNumOnly(inputSetItemCountEdit.trim());
+                                      const converted = convertHalfWidthRoundNumOnly(inputSetItemCountEdit.trim());
                                       if (converted === null) return setInputSetItemCountEdit("");
                                       setInputSetItemCountEdit(converted);
                                       handleClickSendUpdateField({
@@ -6083,7 +6096,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                       e.target.value === "０"
                                     )
                                       return setInputLeasePeriodEdit("");
-                                    const converted = convertHalfWidthNumOnly(inputLeasePeriodEdit.trim());
+                                    const converted = convertHalfWidthRoundNumOnly(inputLeasePeriodEdit.trim());
                                     if (converted === null) return setInputLeasePeriodEdit("");
                                     setInputLeasePeriodEdit(converted);
                                   }}
@@ -6120,7 +6133,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   //     e.target.value === "０"
                                   //   )
                                   //     return setInputLeasePeriodEdit("");
-                                  //   const converted = convertHalfWidthNumOnly(inputLeasePeriodEdit.trim());
+                                  //   const converted = convertHalfWidthRoundNumOnly(inputLeasePeriodEdit.trim());
                                   //   if (converted === null) return setInputLeasePeriodEdit("");
                                   //   setInputLeasePeriodEdit(converted);
                                   // }}
@@ -6133,7 +6146,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     ) {
                                       return setInputLeasePeriodEdit("");
                                     }
-                                    const converted = convertHalfWidthNumOnly(inputLeasePeriodEdit.trim());
+                                    const converted = convertHalfWidthRoundNumOnly(inputLeasePeriodEdit.trim());
                                     if (converted === null) return setInputLeasePeriodEdit("");
                                     setInputLeasePeriodEdit(converted);
                                     handleKeyDownUpdateField({
@@ -6162,7 +6175,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                       ) {
                                         return setInputLeasePeriodEdit("");
                                       }
-                                      const converted = convertHalfWidthNumOnly(inputLeasePeriodEdit.trim());
+                                      const converted = convertHalfWidthRoundNumOnly(inputLeasePeriodEdit.trim());
                                       if (converted === null) return setInputLeasePeriodEdit("");
                                       setInputLeasePeriodEdit(converted);
                                       handleClickSendUpdateField({
@@ -6390,7 +6403,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     )
                                       return setInputLeaseRateEdit("");
                                     // 小数点第二まで算出
-                                    const converted = convertHalfWidthNumOnly(inputLeaseRateEdit.trim(), 2);
+                                    const converted = convertHalfWidthRoundNumOnly(inputLeaseRateEdit.trim(), 2);
                                     if (converted === null) return setInputLeaseRateEdit("");
                                     setInputLeaseRateEdit(converted);
                                   }}
@@ -6426,7 +6439,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   //     e.target.value === "０"
                                   //   )
                                   //     return setInputLeaseRateEdit("");
-                                  //   const converted = convertHalfWidthNumOnly(inputLeaseRateEdit.trim());
+                                  //   const converted = convertHalfWidthRoundNumOnly(inputLeaseRateEdit.trim());
                                   //   if (converted === null) return setInputLeaseRateEdit("");
                                   //   setInputLeaseRateEdit(converted);
                                   // }}
@@ -6440,7 +6453,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                       return setInputLeaseRateEdit("");
                                     }
                                     // 小数点第二まで算出
-                                    const converted = convertHalfWidthNumOnly(inputLeaseRateEdit.trim(), 2);
+                                    const converted = convertHalfWidthRoundNumOnly(inputLeaseRateEdit.trim(), 2);
                                     if (converted === null) return setInputLeaseRateEdit("");
                                     setInputLeaseRateEdit(converted);
                                     handleKeyDownUpdateField({
@@ -6470,7 +6483,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                         return setInputLeaseRateEdit("");
                                       }
                                       // 小数点第二まで算出
-                                      const converted = convertHalfWidthNumOnly(inputLeaseRateEdit.trim(), 2);
+                                      const converted = convertHalfWidthRoundNumOnly(inputLeaseRateEdit.trim(), 2);
                                       if (converted === null) return setInputLeaseRateEdit("");
                                       setInputLeaseRateEdit(converted);
                                       handleClickSendUpdateField({
@@ -6827,9 +6840,10 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     e: e,
                                     display: "top",
                                     content: `選択中の項目を編集する`,
-                                    content2: `見積記載の項目は自由に編集が可能です。`,
-                                    // marginTop: 48,
-                                    marginTop: 27,
+                                    content2: `見積記載の項目は自由に編集が可能です`,
+                                    content3: `セルをダブルクリックしても編集が可能です`,
+                                    marginTop: 48,
+                                    // marginTop: 27,
                                     // marginTop: 9,
                                   });
                                 }}
@@ -6865,7 +6879,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         : []
                     }
                     setSelectedProductsArray={setSelectedProductsArray}
-                    isInsertMode={isInsertModeQuotation ? true : false}
+                    isInsertMode={isInsertModeQuotation}
                   />
                 </div>
                 {/* 商品エリアここまで */}

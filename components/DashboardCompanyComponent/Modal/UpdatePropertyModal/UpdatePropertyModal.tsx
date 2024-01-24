@@ -36,7 +36,7 @@ import { DropDownMenuFilterProducts } from "../SettingAccountModal/SettingMember
 import NextImage from "next/image";
 import { HiChevronDown } from "react-icons/hi2";
 import { checkNotFalsyExcludeZero } from "@/utils/Helpers/checkNotFalsyExcludeZero";
-import { convertHalfWidthNumOnly } from "@/utils/Helpers/convertHalfWidthNumOnly";
+import { convertHalfWidthRoundNumOnly } from "@/utils/Helpers/convertHalfWidthRoundNumOnly";
 import { normalizeDiscountRate } from "@/utils/Helpers/normalizeDiscountRate";
 import {
   getOrderCertaintyStartOfMonth,
@@ -1654,7 +1654,7 @@ export const UpdatePropertyModal = () => {
                       onChange={(e) => setProductSales(e.target.value)}
                       onBlur={() => {
                         if (!productSales || productSales === "") return setProductSales("");
-                        const converted = convertHalfWidthNumOnly(productSales.trim());
+                        const converted = convertHalfWidthRoundNumOnly(productSales.trim());
                         if (converted === null) return setProductSales("");
                         setProductSales(converted);
                         // setProductSales(
@@ -2768,7 +2768,7 @@ export const UpdatePropertyModal = () => {
                       onBlur={(e) => {
                         if (!unitSales || unitSales === "" || unitSales === "0" || e.target.value === "０")
                           return setUnitSales("");
-                        const converted = convertHalfWidthNumOnly(unitSales.trim());
+                        const converted = convertHalfWidthRoundNumOnly(unitSales.trim());
                         if (converted === null) return setUnitSales("");
                         setUnitSales(converted);
                         // setUnitSales(

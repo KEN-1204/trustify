@@ -50,7 +50,7 @@ import {
   optionsSubscriptionInterval,
   optionsTermDivision,
 } from "@/utils/selectOptions";
-import { convertHalfWidthNumOnly } from "@/utils/Helpers/convertHalfWidthNumOnly";
+import { convertHalfWidthRoundNumOnly } from "@/utils/Helpers/convertHalfWidthRoundNumOnly";
 
 type ModalProperties = {
   left: number;
@@ -1844,7 +1844,7 @@ export const InsertNewPropertyModal = () => {
                       onChange={(e) => setProductSales(e.target.value)}
                       onBlur={() => {
                         if (!productSales || productSales === "") return setProductSales("");
-                        const converted = convertHalfWidthNumOnly(productSales.trim());
+                        const converted = convertHalfWidthRoundNumOnly(productSales.trim());
                         if (converted === null) return setProductSales("");
                         setProductSales(converted);
                         // setProductSales(
@@ -2962,7 +2962,7 @@ export const InsertNewPropertyModal = () => {
                       onBlur={(e) => {
                         if (!unitSales || unitSales === "" || unitSales === "0" || e.target.value === "０")
                           return setUnitSales("");
-                        const converted = convertHalfWidthNumOnly(unitSales.trim());
+                        const converted = convertHalfWidthRoundNumOnly(unitSales.trim());
                         if (converted === null) return setUnitSales("");
                         setUnitSales(converted);
                         // setUnitSales(

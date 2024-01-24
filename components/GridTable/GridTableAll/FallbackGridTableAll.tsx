@@ -14,7 +14,7 @@ import { SkeletonLoadingLineLong } from "@/components/Parts/SkeletonLoading/Skel
 import { SkeletonLoadingLineMedium } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineMedium";
 import { SkeletonLoadingLineShort } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineShort";
 
-export const FallbackGridTableAll = () => {
+export const FallbackGridTableAll = ({ title }: { title: string }) => {
   const theme = useRootStore(useThemeStore, (state) => state.theme);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
   const language = useStore((state) => state.language);
@@ -27,7 +27,7 @@ export const FallbackGridTableAll = () => {
       {/* ================== Gridテーブルヘッダー ================== */}
       <div className={`${styles.grid_header}`}>
         {/* <div className={`${styles.table_tab} min-h-[22px]`}></div> */}
-        <div className={`${styles.table_tab} min-h-[22px]`}>会社</div>
+        <div className={`${styles.table_tab} min-h-[22px]`}>{title}</div>
       </div>
 
       {/* ================== Gridメインコンテナ ================== */}

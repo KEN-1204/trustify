@@ -518,7 +518,7 @@ const SideTableSearchProductMemo = ({
 
     return () => {
       if (!sideTableScrollContainerRef.current)
-        return console.log("❌useEffectクリーンアップ sideTableScrollContainerRef.currentは既に存在せず リターン");
+        return console.log("✅useEffectクリーンアップ sideTableScrollContainerRef.currentは既に存在せず リターン");
       sideTableScrollContainerRef.current?.removeEventListener(`scroll`, handleScrollEvent);
       console.log("✅useEffectスクロール終了 リターン");
     };

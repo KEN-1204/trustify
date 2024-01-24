@@ -51,6 +51,8 @@ const SideTableSearchSignatureStampMemo = ({
 Props) => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const setUserProfileState = useDashboardStore((state) => state.setUserProfileState);
+  // 説明アイコンホバーで非アクティブ化
+  const [hasBeenHoveredIcon, setHasBeenHoveredIcon] = useState(false);
   const [isLoadingUpsert, setIsLoadingUpsert] = useState(false);
   const setIsOpenSearchStampSideTable = useDashboardStore((state) => state.setIsOpenSearchStampSideTable);
   const setIsOpenSearchStampSideTableBefore = useDashboardStore((state) => state.setIsOpenSearchStampSideTableBefore);
@@ -630,7 +632,7 @@ Props) => {
               <h3 className="flex min-h-[30px] max-w-max items-end space-x-[10px] space-y-[1px] text-[14px] font-bold ">
                 <div
                   className="flex items-end space-x-[10px]"
-                  onMouseEnter={(e) =>
+                  onMouseEnter={(e) => {
                     handleOpenTooltip({
                       e: e,
                       display: "",
@@ -642,13 +644,24 @@ Props) => {
                       itemsPosition: "start",
                       // whiteSpace: "nowrap",
                       maxWidth: 550,
-                    })
-                  }
+                    });
+                    setHasBeenHoveredIcon(true);
+                  }}
                   onMouseLeave={handleCloseTooltip}
                 >
                   <span>条件を入力して印鑑データを検索</span>
-                  <div className="pointer-events-none flex min-h-[30px] items-end pb-[2px]">
+                  {/* <div className="pointer-events-none flex min-h-[30px] items-end pb-[2px]">
                     <ImInfo className={`min-h-[18px] min-w-[18px] text-[var(--color-bg-brand-f)]`} />
+                  </div> */}
+                  <div className="pointer-events-none flex min-h-[30px] items-end pb-[2px]">
+                    <div className="flex-center relative h-[18px] w-[18px] rounded-full">
+                      <div
+                        className={`flex-center absolute left-0 top-0 h-[18px] w-[18px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${
+                          hasBeenHoveredIcon ? `` : `animate-ping`
+                        }`}
+                      ></div>
+                      <ImInfo className={`min-h-[18px] min-w-[18px] text-[var(--color-bg-brand-f)]`} />
+                    </div>
                   </div>
                 </div>
                 {[searchInputKanji, searchInputFurigana, searchInputRomaji].some(

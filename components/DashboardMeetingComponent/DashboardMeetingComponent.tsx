@@ -64,7 +64,7 @@ export const DashboardMeetingComponent: FC = () => {
             {activeMenuTab === "Meeting" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 {/* <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}> */}
-                <Suspense fallback={<FallbackGridTableAll />}>
+                <Suspense fallback={<FallbackGridTableAll title="面談" />}>
                   <MeetingGridTableAll title="面談" />
                 </Suspense>
               </ErrorBoundary>

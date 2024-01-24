@@ -64,7 +64,7 @@ export const DashboardActivityComponent: FC = () => {
             {activeMenuTab === "Activity" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 {/* <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}> */}
-                <Suspense fallback={<FallbackGridTableAll />}>
+                <Suspense fallback={<FallbackGridTableAll title="活動" />}>
                   <ActivityGridTableAll title="活動" />
                 </Suspense>
               </ErrorBoundary>

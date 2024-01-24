@@ -2,6 +2,7 @@ import React, {
   CSSProperties,
   Dispatch,
   FC,
+  Fragment,
   SetStateAction,
   memo,
   useCallback,
@@ -16,9 +17,10 @@ import { mappingPositionClass } from "@/utils/mappings";
 import { QuotationProductsDetail } from "@/types";
 import { formatToJapaneseYen } from "@/utils/Helpers/formatToJapaneseYen";
 import { toast } from "react-toastify";
-import { convertHalfWidthNumOnly } from "@/utils/Helpers/convertHalfWidthNumOnly";
+import { convertHalfWidthRoundNumOnly } from "@/utils/Helpers/convertHalfWidthRoundNumOnly";
 import { convertToYen } from "@/utils/Helpers/convertToYen";
 import { checkNotFalsyExcludeZero } from "@/utils/Helpers/checkNotFalsyExcludeZero";
+import { toHalfWidth } from "@/utils/Helpers/toHalfWidth";
 
 type Props = {
   productsArray: QuotationProductsDetail[];
@@ -58,14 +60,38 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
   const parentGridScrollContainer = useRef<HTMLDivElement | null>(null);
   // Rowグループコンテナ(Virtualize収納用インナー)
   const gridRowGroupContainerRef = useRef<HTMLDivElement | null>(null);
+  // それぞれのセル 大規模なテーブルや動的に変更されるテーブルのセルに対してrefオブジェクトを付与する場合はオブジェクトで管理する
+  /*
+  1行1列目のセルのキー: row-0-col-0
+  ここで、rowIndex は 0（最初の行）、colIndex は 0（最初の列）
+  2行3列目のセルのキー: row-1-col-2
+  ここで、rowIndex は 1（2番目の行）、colIndex は 2（3番目の列）
+  {
+  "row-0-col-0": refObject1, // 1行1列目のセルのref
+  "row-0-col-1": refObject2, // 1行2列目のセルのref
+  "row-0-col-2": refObject3, // 1行3列目のセルのref
+  "row-1-col-0": refObject4, // 2行1列目のセルのref
+  "row-1-col-1": refObject5, // 2行2列目のセルのref
+  "row-1-col-2": refObject6, // 2行3列目のセルのref
+  "row-2-col-0": refObject7, // 3行1列目のセルのref
+  "row-2-col-1": refObject8, // 3行2列目のセルのref
+  "row-2-col-2": refObject9  // 3行3列目のセルのref
+  }
+  */
+  const gridcellsRef = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  // const truncatedCellsRef = useRef<{ [key: string]: {el: HTMLDivElement | null, isOverflow: boolean} }>({});
+
+  // --------------------- 🌟見積
 
   // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
+  const hoveredItemPos = useStore((state) => state.hoveredItemPos);
   const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
   type TooltipParams = {
     e: React.MouseEvent<HTMLElement, MouseEvent>;
     display: string;
     content: string;
     content2?: string | undefined | null;
+    content3?: string | undefined | null;
     marginTop?: number;
     itemsPosition?: string;
   };
@@ -74,6 +100,7 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
     display,
     content,
     content2,
+    content3,
     marginTop = 0,
     itemsPosition = "start",
   }: TooltipParams) => {
@@ -88,6 +115,7 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
       itemHeight: height,
       content: content,
       content2: content2,
+      content3: content2,
       display: display,
       marginTop: marginTop,
       itemsPosition: itemsPosition,
@@ -190,21 +218,6 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
   const [activeCell, setActiveCell] = useState<HTMLDivElement | null>(null);
   // 前回のアクティブセル
   const prevSelectedGridCellRef = useRef<HTMLDivElement | null>(null);
-
-  // 選択中の商品データが削除されたらstateとrefを非アクティブにする
-  useEffect(() => {
-    if (selectedRowDataQuotationProduct === null) {
-      console.log("selectedRowDataQuotationProductなし 全てリセット");
-      if (!selectedGridCellRef.current) return;
-      if (!prevSelectedGridCellRef.current) return;
-      prevSelectedGridCellRef.current.setAttribute("aria-selected", "false");
-      prevSelectedGridCellRef.current.setAttribute("tabindex", "-1");
-      selectedGridCellRef.current.setAttribute("aria-selected", "false");
-      selectedGridCellRef.current.setAttribute("tabindex", "-1");
-      if (activeCell) setActiveCell(null);
-      if (clickActiveRow) setClickedActiveRow(null);
-    }
-  }, [selectedRowDataQuotationProduct]);
 
   const handleSingleClickGridCell = useCallback(
     // (e: React.MouseEvent<HTMLDivElement>,  isEditable: boolean) => {
@@ -419,6 +432,8 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
     newValue,
     id,
     required,
+    rowIndex,
+    colIndex,
   }: {
     e: React.KeyboardEvent<HTMLInputElement>;
     // fieldName: string;
@@ -428,32 +443,61 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
     newValue: any;
     id: string | undefined;
     required: boolean;
+    rowIndex: number;
+    colIndex: number;
   }) => {
     // 日本語入力変換中はtrueで変換確定のエンターキーではUPDATEクエリが実行されないようにする
     // 英語などの入力変換が存在しない言語ではisCompositionStartは発火しないため常にfalse
     if (e.key === "Enter" && !isComposing) {
       if (required && (newValue === "" || newValue === null)) return toast.info(`この項目は入力が必須です。`);
-      if (fieldName === "quotation_product_quantity" && ["0", "０"].includes(newValue))
+      if (fieldName === "quotation_product_quantity" && ["0", "０", ""].includes(newValue)) {
         return toast.info(`数量は1以上の入力が必須です。`);
+      }
 
-      // INSERTモード
+      // 編集していたセルのポジションをrefに格納 useEffect内でセルを特定
+      positionRef.current = `row-${rowIndex}-col-${colIndex}`;
+      const el = e.currentTarget;
+      console.log("オーバーフローかどうか", el.offsetWidth < el.scrollWidth, el.offsetWidth, el.scrollWidth);
+      if (el.offsetWidth < el.scrollWidth) {
+        console.log("オーバーフロー");
+        setIsOverflow(true);
+      }
+
+      // 🔹INSERTモード
       if (isInsertMode && fieldName) {
         const updatedArray = productsArray.map((item) => {
           if (item.quotation_product_id === selectedRowDataQuotationProduct?.quotation_product_id) {
-            return { ...item, fieldName: newValue };
+            if (["quotation_product_quantity"].includes(fieldName)) {
+              // 数量は0以外の整数値の場合のみ変更を許可
+              const parsedValue = parseInt(newValue, 10);
+              const convertedValue = !isNaN(parsedValue) && parsedValue !== 0 ? parsedValue : originalValue;
+              return { ...item, [fieldName]: convertedValue };
+            } else if (["quotation_unit_price"].includes(fieldName)) {
+              // 価格は0と小数点を許容
+              const convertedValue = checkNotFalsyExcludeZero(newValue) ? newValue : Number(originalValue);
+              return { ...item, [fieldName]: convertedValue };
+            } else {
+              // それ以外の商品名と型式はそのままの値で変更
+              return { ...item, [fieldName]: newValue };
+            }
           }
           return item;
         });
-        console.log("🔥updatedArray", updatedArray);
-        // if (setSelectedProductsArray) {
-        //   setSelectedProductsArray(updatedArray);
-        // }
+        // console.log("🔥fieldName", fieldName);
+        // console.log("🔥newValue", newValue);
+        // console.log("🔥originalValue", originalValue);
+        // console.log("🔥updatedArray", updatedArray);
+        if (setSelectedProductsArray) {
+          setSelectedProductsArray(updatedArray);
+        }
 
-        // setIsEditingCell(false);
-        // setTextareaInput("");
-        // setEditPosition({ row: null, col: null });
+        originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
+        setIsEditingCell(false);
+        setTextareaInput("");
+        setEditPosition({ row: null, col: null });
+        return;
       }
-      // UPDATEモード
+      // 🔹UPDATEモード
       else {
         if (!id || !selectedRowDataQuotationProduct) {
           toast.error(`エラー：データが見つかりませんでした。`);
@@ -499,6 +543,109 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
   };
   // ================== ✅エンターキーで個別フィールドをアップデート inputタグ✅ ==================
 
+  // ------------------------ 🌟初回マウント時 3点リーダー表示有無🌟 ------------------------
+  useEffect(() => {
+    Object.entries(gridcellsRef.current).forEach(([key, ref]) => {
+      if (ref && ref.offsetWidth < ref.scrollWidth) {
+        // refが存在し、かつ、テキストが省略されている場合
+        ref.classList.add(`${styles.text_truncated}`);
+      }
+    });
+  }, []);
+  // useEffect(() => {
+  //   Object.entries(truncatedCells.current).forEach(([key, obj]) => {
+  //     const ref = obj.;
+  //     if (ref && ref.offsetWidth < ref.scrollWidth) {
+  //       // refが存在し、かつ、テキストが省略されている場合
+  //       // ref.classList.add(`${styles.text_truncated}`);
+  //       obj.isOverflow = true
+  //     } else {
+  //       obj.isOverflow = false;
+  //     }
+  //   });
+  // }, []);
+  // ------------------------ ✅初回マウント時 3点リーダー表示有無✅ ------------------------
+
+  // ------------------------ 🌟セル編集完了時 オーバーフロー状態なら3点リーダークラス付与🌟 ------------------------
+  // 編集開始時に「row-${rowIndex}-col-${colIndex}」形式のセルのpositionを保持するref
+  const positionRef = useRef<string | null>(null);
+  // 編集完了時のinputタグのサイズでdivタグがオーバーフロー状態かどうかを判定する
+  const [isOverflow, setIsOverflow] = useState(false);
+  useEffect(() => {
+    if (!isEditingCell && positionRef.current) {
+      // scrollWidthがoffsetWidthを超えている場合は3点リーダーにする
+      // const ref = gridcellsRef.current[`row-${rowIndex}-col-${colIndex}`];
+      const ref = gridcellsRef.current[positionRef.current];
+      console.log(
+        "ref?.classList.contains(`${styles.text_truncated}`)",
+        ref?.classList.contains(`${styles.text_truncated}`)
+      );
+      if (ref) {
+        if (isOverflow) {
+          ref.classList.add(`${styles.text_truncated}`);
+        } else if (ref?.classList.contains(`${styles.text_truncated}`)) {
+          ref.classList.remove(`${styles.text_truncated}`);
+        }
+        if (isOverflow) setIsOverflow(false);
+      }
+      positionRef.current = null;
+      if (hoveredItemPos) handleCloseTooltip();
+    }
+  }, [isEditingCell]);
+  // ------------------------ ✅セル編集完了時 オーバーフロー状態なら3点リーダークラス付与✅ ------------------------
+
+  // ------------------------ 🌟商品リストから商品削除時 リセット🌟 ------------------------
+  // 選択中の商品データが削除されたらstateとrefを非アクティブにする
+  useEffect(() => {
+    if (selectedRowDataQuotationProduct === null) {
+      console.log("selectedRowDataQuotationProductなし 全てリセット");
+      if (!selectedGridCellRef.current) return;
+      if (!prevSelectedGridCellRef.current) return;
+      prevSelectedGridCellRef.current.setAttribute("aria-selected", "false");
+      prevSelectedGridCellRef.current.setAttribute("tabindex", "-1");
+      selectedGridCellRef.current.setAttribute("aria-selected", "false");
+      selectedGridCellRef.current.setAttribute("tabindex", "-1");
+      if (activeCell) setActiveCell(null);
+      if (clickActiveRow) setClickedActiveRow(null);
+    }
+  }, [selectedRowDataQuotationProduct]);
+  // ------------------------ ✅商品リストから商品削除時 リセット✅ ------------------------
+
+  // ---------------- 🌟insert/updateモード終了時 or アンマウント時に商品リスト関連をリセット🌟 ----------------
+  useEffect(() => {
+    // インサートモードが終了したら、商品リスト関連のstateを全てリセット
+    if (!isInsertMode) {
+      setEditPosition({ row: null, col: null });
+      setTextareaInput("");
+      if (isEditingCell) setIsEditingCell(false);
+      if (setSelectedProductsArray) setSelectedProductsArray([]);
+
+      if (!selectedGridCellRef.current) return;
+      if (!prevSelectedGridCellRef.current) return;
+      prevSelectedGridCellRef.current.setAttribute("aria-selected", "false");
+      prevSelectedGridCellRef.current.setAttribute("tabindex", "-1");
+      selectedGridCellRef.current.setAttribute("aria-selected", "false");
+      selectedGridCellRef.current.setAttribute("tabindex", "-1");
+      if (activeCell) setActiveCell(null);
+      if (clickActiveRow) setClickedActiveRow(null);
+      if (selectedRowDataQuotationProduct) setSelectedRowDataQuotationProduct(null);
+    }
+
+    return () => {
+      console.log("✅商品リストコンポーネント アンマウント");
+      setEditPosition({ row: null, col: null });
+      setTextareaInput("");
+      if (isEditingCell) setIsEditingCell(false);
+      if (setSelectedProductsArray) setSelectedProductsArray([]);
+
+      if (activeCell) setActiveCell(null);
+      if (clickActiveRow) setClickedActiveRow(null);
+      if (selectedRowDataQuotationProduct) setSelectedRowDataQuotationProduct(null);
+    };
+  }, [isInsertMode]);
+  // ---------------- ✅insert/updateモード終了 or アンマウント時に商品リスト関連をリセット✅ ----------------
+
+  // ------------------------ 🌟セル編集時のセル以外のクリック監視 編集モード終了🌟 ------------------------
   // 編集中のinputタグ以外をクリックしたら編集モードを解除
   const inputRef = useRef<HTMLInputElement | null>(null);
   useEffect(() => {
@@ -515,11 +662,21 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [inputRef]);
+  // ------------------------ ✅セル編集時のセル以外のクリック監視 編集モード終了✅ ------------------------
 
-  console.log("見積商品リストテーブルレンダリング", "productsArray", productsArray, "clickActiveRow", clickActiveRow);
-  console.log("🔥 activeCell", activeCell);
-  console.log("🔥 clickActiveRow", clickActiveRow);
-  console.log("🔥 selectedRowDataQuotationProduct", selectedRowDataQuotationProduct);
+  console.log(
+    "見積商品リストテーブルレンダリング",
+    "productsArray",
+    productsArray,
+    "clickActiveRow",
+    clickActiveRow,
+    "🔥 activeCell",
+    activeCell,
+    "🔥 clickActiveRow",
+    clickActiveRow,
+    "🔥 selectedRowDataQuotationProduct",
+    selectedRowDataQuotationProduct
+  );
 
   const editableColumnNameArray = [
     "quotation_product_name",
@@ -528,14 +685,19 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
     "quotation_product_quantity",
   ];
 
+  // 編集後にエンターキーで値を更新するhandleKeyDownUpdateField関数の引数のnewValueに渡す際の前処理関数
   const getNewValueAfterEdit = (text: string, columnName: string, originalValue: any) => {
-    if (columnName === "quotation_unit_price") {
-      const convertedText = convertHalfWidthNumOnly(text);
-      return convertedText ? convertedText : originalValue;
-    } else if (columnName === "quotation_product_quantity") {
-      if (!text || text === "") return "0";
-      const convertedNum = convertToYen(text);
-      return checkNotFalsyExcludeZero(convertedNum) ? convertedNum : originalValue;
+    if (columnName === "quotation_product_quantity") {
+      // 数量は0以外の整数値の場合のみ変更を許可
+      const convertedText = convertHalfWidthRoundNumOnly(text);
+      const convertedNum = checkNotFalsyExcludeZero(convertedText) ? Number(convertedText) : "";
+      // return convertedNum ? convertedNum : originalValue;
+      return convertedNum;
+    } else if (columnName === "quotation_unit_price") {
+      // 価格は0と小数点を許容 (多くの通貨では、小数点以下2桁（セント単位）が一般的, 特定の通貨（例: クウェートディナール）では、小数点以下3桁を使用)
+      // if (!text || text === "") return "0";
+      const convertedNum = language === "ja" ? convertToYen(text) : Number(convertHalfWidthRoundNumOnly(text, 3));
+      return checkNotFalsyExcludeZero(convertedNum) ? convertedNum : Number(originalValue);
     } else {
       return text;
     }
@@ -577,7 +739,7 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
                 display: "grid",
                 // gridTemplateColumns: `2fr 1fr repeat(6, 1fr)`,
                 // gridTemplateColumns: `2fr repeat(3, 1fr) 2fr repeat(3, 1fr)`,
-                gridTemplateColumns: `2fr repeat(3, 1fr) 2fr repeat(2, 1fr)`,
+                gridTemplateColumns: `2fr repeat(4, 1fr) 2fr repeat(2, 1fr)`,
                 minHeight: "25px",
                 //   width: `100%`,
                 minWidth: `calc(100vw - var(--sidebar-width) - 20px - 10px - (100vw - var(--sidebar-width) - 20px - 10px) / 3 - 3px)`,
@@ -585,8 +747,8 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
                 // "--row-width": "800px",
                 // "--row-width": "888px",
                 // "--row-width": "1200px",
-                // "--row-width": "1300px",
-                "--row-width": "1170px",
+                "--row-width": "1300px",
+                // "--row-width": "1170px",
                 // "--row-width":
                 //   "calc(100vw - var(--sidebar-width) - 20px - 10px - (100vw - var(--sidebar-width) - 20px - 10px) / 3 - 1px + 500px)",
               } as CSSProperties
@@ -596,7 +758,7 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
             {columnHeaderList.map((key, index) => (
               <div
                 // key={index}
-                key={key.columnName}
+                key={`ProductList_${key.columnName}`}
                 ref={(ref) => (colsRef.current[index] = ref)}
                 role="columnheader"
                 draggable={false}
@@ -677,28 +839,28 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
                 }) */}
               {sortedProductsList
                 // .map((product: { [key: string]: string | number | null }, index: number) => {
-                .map((product: QuotationProductsDetail, index: number) => {
+                .map((product: QuotationProductsDetail, rowIndex: number) => {
                   return (
                     <div
-                      key={product.quotation_product_id}
+                      key={`ProductList_${product.quotation_product_id}`}
                       role="row"
                       tabIndex={-1}
-                      aria-rowindex={index + 2} // ヘッダーの次からで+1、indexは0からなので+1で、index0に+2
-                      aria-selected={clickActiveRow === index + 2}
+                      aria-rowindex={rowIndex + 2} // ヘッダーの次からで+1、indexは0からなので+1で、index0に+2
+                      aria-selected={clickActiveRow === rowIndex + 2}
                       className={`${styles.grid_row}`}
                       style={
                         {
                           display: "grid",
                           // gridTemplateColumns: `2fr 1fr repeat(5, 1fr)`,
                           // gridTemplateColumns: `2fr repeat(3, 1fr) 2fr repeat(3, 1fr)`,
-                          gridTemplateColumns: `2fr repeat(3, 1fr) 2fr repeat(2, 1fr)`,
+                          gridTemplateColumns: `2fr repeat(4, 1fr) 2fr repeat(2, 1fr)`,
                           minHeight: "25px",
                           // width: `100%`,
                           minWidth: `calc(100vw - var(--sidebar-width) - 20px - 10px - (100vw - var(--sidebar-width) - 20px - 10px) / 3 - 3px)`,
                           width: `var(--row-width)`,
-                          // "--row-width": "1300px",
-                          "--row-width": "1170px",
-                          top: ((index + 0) * 25).toString() + "px", // +1か0か
+                          "--row-width": "1300px",
+                          // "--row-width": "1170px",
+                          top: ((rowIndex + 0) * 25).toString() + "px", // +1か0か
                         } as CSSProperties
                       }
                     >
@@ -716,119 +878,150 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
                         ) {
                           displayValue = formatToJapaneseYen(displayValue);
                         }
-                        return (
-                          <>
-                            {!(editPosition.row === index && editPosition.col === colIndex && isEditingCell) && (
-                              <div
-                                key={"row" + product.quotation_product_id + colIndex.toString()}
-                                role="gridcell"
-                                // aria-colindex={index + 1} // カラムヘッダーの列StateのcolumnIndexと一致させる
-                                aria-colindex={
-                                  columnHeaderList[colIndex] ? columnHeaderList[colIndex]?.columnIndex : colIndex + 2
-                                } // カラムヘッダーの列StateのcolumnIndexと一致させる
-                                aria-selected={false}
-                                tabIndex={-1}
-                                className={`${styles.grid_cell} ${styles.grid_cell_resizable} ${
-                                  editableColumnNameArray.includes(columnHeaderList[colIndex].columnName)
-                                    ? `${styles.editable}`
-                                    : ``
-                                }`}
-                                style={{
-                                  gridColumnStart: colIndex + 1,
-                                  ...(editableColumnNameArray.includes(columnHeaderList[colIndex].columnName) && {
-                                    cursor: "pointer",
-                                  }),
-                                  // ...(columnHeaderList.length - 1 === index && { borderRight: "none" }),
-                                  ...(colIndex === columnHeaderList.length - 1 && { borderRight: "none" }),
-                                }}
-                                onClick={(e) => {
-                                  // handleSingleClickGridCell(
-                                  //   e,
-                                  //   [
-                                  //     "quotation_product_name",
-                                  //     "quotation_outside_short_name",
-                                  //     "quotation_unit_price",
-                                  //   ].includes(columnHeaderList[colIndex].columnName)
-                                  // )
-                                  handleSingleClickGridCell(
-                                    e,
-                                    colIndex,
-                                    columnHeaderList[colIndex].columnName,
-                                    index,
-                                    editableColumnNameArray.includes(columnHeaderList[colIndex].columnName)
-                                  );
-                                }}
-                                onDoubleClick={(e) =>
-                                  handleDoubleClickGridCell(
-                                    e,
-                                    colIndex,
-                                    columnHeaderList[colIndex].columnName,
-                                    index,
-                                    editableColumnNameArray.includes(columnHeaderList[colIndex].columnName)
-                                  )
-                                }
-                              >
-                                {displayValue}
-                              </div>
-                            )}
-                            {editPosition.row === index &&
-                              editPosition.col === colIndex &&
-                              isEditingCell &&
-                              editableColumnNameArray.includes(columnName) && (
-                                <input
-                                  ref={inputRef}
-                                  type="text"
-                                  value={textareaInput}
-                                  // onChange={(e) => setTextareaInput(e.target.value)}
-                                  onCompositionStart={() => setIsComposing(true)}
-                                  onCompositionEnd={() => setIsComposing(false)}
-                                  onChange={(e) => {
-                                    const val = e.target.value;
-                                    if (["quotation_product_quantity"].includes(columnName)) {
-                                      if (val === "0" || val === "０") setTextareaInput("");
-                                    }
+
+                        if (
+                          editPosition.row === rowIndex &&
+                          editPosition.col === colIndex &&
+                          isEditingCell &&
+                          editableColumnNameArray.includes(columnName)
+                        ) {
+                          return (
+                            <input
+                              key={`ProductList_Row:${rowIndex}_Col:${colIndex}`}
+                              ref={inputRef}
+                              role="gridcell"
+                              // aria-colindex={index + 1} // カラムヘッダーの列StateのcolumnIndexと一致させる
+                              aria-colindex={
+                                columnHeaderList[colIndex] ? columnHeaderList[colIndex]?.columnIndex : colIndex + 2
+                              } // カラムヘッダーの列StateのcolumnIndexと一致させる
+                              aria-selected={false}
+                              tabIndex={-1}
+                              type="text"
+                              autoFocus
+                              autoCapitalize="none"
+                              value={textareaInput}
+                              // onChange={(e) => setTextareaInput(e.target.value)}
+                              onCompositionStart={() => setIsComposing(true)}
+                              onCompositionEnd={() => setIsComposing(false)}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (["quotation_product_quantity"].includes(columnName)) {
+                                  if (val === "0" || val === "０") {
+                                    setTextareaInput("1");
+                                  } else {
                                     setTextareaInput(e.target.value);
-                                  }}
-                                  onKeyDown={(e) =>
-                                    handleKeyDownUpdateField({
-                                      e,
-                                      fieldName: columnName as EditableFieldNames,
-                                      // fieldNameForSelectedRowData: columnName as EditableFieldNames,
-                                      originalValue: originalValueFieldEdit.current,
-                                      newValue: getNewValueAfterEdit(
-                                        textareaInput,
-                                        columnName,
-                                        originalValueFieldEdit.current
-                                      ),
-                                      id: sortedProductsList[index]?.quotation_product_id,
-                                      required: ["quotation_product_quantity"].includes(columnName),
-                                    })
                                   }
-                                  key={"row" + product.quotation_product_id + colIndex.toString() + "edit"}
-                                  role="gridcell"
-                                  // aria-colindex={index + 1} // カラムヘッダーの列StateのcolumnIndexと一致させる
-                                  aria-colindex={
-                                    columnHeaderList[colIndex] ? columnHeaderList[colIndex]?.columnIndex : colIndex + 2
-                                  } // カラムヘッダーの列StateのcolumnIndexと一致させる
-                                  aria-selected={false}
-                                  tabIndex={-1}
-                                  className={`${styles.grid_cell} ${styles.grid_cell_resizable} ${styles.edit_mode} ${
-                                    editableColumnNameArray.includes(columnHeaderList[colIndex].columnName)
-                                      ? `${styles.editable}`
-                                      : ``
-                                  }`}
-                                  style={{
-                                    gridColumnStart: colIndex + 1,
-                                    ...(editableColumnNameArray.includes(columnHeaderList[colIndex].columnName) && {
-                                      cursor: "text",
-                                    }),
-                                    // ...(columnHeaderList.length - 1 === index && { borderRight: "none" }),
-                                    ...(colIndex === columnHeaderList.length - 1 && { borderRight: "none" }),
-                                  }}
-                                />
-                              )}
-                          </>
-                        );
+                                } else {
+                                  setTextareaInput(e.target.value);
+                                }
+                              }}
+                              onKeyDown={(e) => {
+                                // 編集内容を更新
+                                handleKeyDownUpdateField({
+                                  e,
+                                  fieldName: columnName as EditableFieldNames,
+                                  // fieldNameForSelectedRowData: columnName as EditableFieldNames,
+                                  originalValue: originalValueFieldEdit.current,
+                                  newValue: getNewValueAfterEdit(
+                                    textareaInput,
+                                    columnName,
+                                    originalValueFieldEdit.current
+                                  ),
+                                  id: sortedProductsList[rowIndex]?.quotation_product_id,
+                                  required: ["quotation_product_quantity"].includes(columnName),
+                                  rowIndex: rowIndex,
+                                  colIndex: colIndex,
+                                });
+                              }}
+                              className={`${styles.grid_cell} ${styles.grid_cell_resizable} ${styles.edit_mode} ${
+                                editableColumnNameArray.includes(columnHeaderList[colIndex].columnName)
+                                  ? `${styles.editable}`
+                                  : ``
+                              }`}
+                              style={{
+                                gridColumnStart: colIndex + 1,
+                                ...(editableColumnNameArray.includes(columnHeaderList[colIndex].columnName) && {
+                                  cursor: "text",
+                                }),
+                                // ...(columnHeaderList.length - 1 === index && { borderRight: "none" }),
+                                ...(colIndex === columnHeaderList.length - 1 && { borderRight: "none" }),
+                              }}
+                            />
+                          );
+                        } else {
+                          return (
+                            <div
+                              ref={(ref) => (gridcellsRef.current[`row-${rowIndex}-col-${colIndex}`] = ref)}
+                              // ref={(ref) => (truncatedCellsRef.current[`row-${rowIndex}-col-${colIndex}`].el = ref)}
+                              key={`ProductList_Row:${rowIndex}_Col:${colIndex}`}
+                              role="gridcell"
+                              // aria-colindex={index + 1} // カラムヘッダーの列StateのcolumnIndexと一致させる
+                              aria-colindex={
+                                columnHeaderList[colIndex] ? columnHeaderList[colIndex]?.columnIndex : colIndex + 2
+                              } // カラムヘッダーの列StateのcolumnIndexと一致させる
+                              aria-selected={false}
+                              tabIndex={-1}
+                              className={`${styles.grid_cell} ${styles.grid_cell_resizable} ${
+                                editableColumnNameArray.includes(columnHeaderList[colIndex].columnName)
+                                  ? `${styles.editable}`
+                                  : ``
+                              }`}
+                              style={{
+                                gridColumnStart: colIndex + 1,
+                                ...(editableColumnNameArray.includes(columnHeaderList[colIndex].columnName) && {
+                                  cursor: "pointer",
+                                }),
+                                // ...(columnHeaderList.length - 1 === index && { borderRight: "none" }),
+                                ...(colIndex === columnHeaderList.length - 1 && { borderRight: "none" }),
+                              }}
+                              onMouseEnter={(e) => {
+                                if (e.currentTarget.classList.contains(`${styles.text_truncated}`)) {
+                                  handleOpenTooltip({
+                                    e: e,
+                                    display: "top",
+                                    content:
+                                      typeof displayValue === "number" ? displayValue.toString() : displayValue ?? "",
+                                    // marginTop: 48,
+                                    // marginTop: 27,
+                                    marginTop: 9,
+                                  });
+                                }
+                              }}
+                              onMouseLeave={() => {
+                                if (hoveredItemPos) handleCloseTooltip();
+                              }}
+                              onClick={(e) => {
+                                // handleSingleClickGridCell(
+                                //   e,
+                                //   [
+                                //     "quotation_product_name",
+                                //     "quotation_outside_short_name",
+                                //     "quotation_unit_price",
+                                //   ].includes(columnHeaderList[colIndex].columnName)
+                                // )
+                                handleSingleClickGridCell(
+                                  e,
+                                  colIndex,
+                                  columnHeaderList[colIndex].columnName,
+                                  rowIndex,
+                                  editableColumnNameArray.includes(columnHeaderList[colIndex].columnName)
+                                );
+                              }}
+                              onDoubleClick={(e) =>
+                                handleDoubleClickGridCell(
+                                  e,
+                                  colIndex,
+                                  columnHeaderList[colIndex].columnName,
+                                  rowIndex,
+                                  editableColumnNameArray.includes(columnHeaderList[colIndex].columnName)
+                                )
+                              }
+                            >
+                              {/* <span className="truncate">{displayValue}</span> */}
+                              {displayValue}
+                            </div>
+                          );
+                        }
                       })}
                     </div>
                   );

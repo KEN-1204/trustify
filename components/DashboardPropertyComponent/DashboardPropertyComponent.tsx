@@ -63,7 +63,7 @@ export const DashboardPropertyComponent: FC = () => {
           >
             {activeMenuTab === "Property" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
-                <Suspense fallback={<FallbackGridTableAll />}>
+                <Suspense fallback={<FallbackGridTableAll title="面談" />}>
                   <PropertyGridTableAll title="面談" />
                 </Suspense>
               </ErrorBoundary>

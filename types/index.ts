@@ -1222,7 +1222,8 @@ export type QuotationProductsDetail = {
   product_name: string | null;
   outside_short_name: string | null;
   inside_short_name: string | null;
-  unit_price: number | null;
+  // unit_price: number | null;
+  unit_price: string | null;
   product_created_by_user_id: string | null;
   product_created_by_company_id: string | null;
   product_created_by_department_of_user: string | null;
@@ -1231,7 +1232,9 @@ export type QuotationProductsDetail = {
   quotation_product_name: string | null;
   quotation_outside_short_name: string | null;
   quotation_inside_short_name: string | null;
-  quotation_unit_price: number | null;
+  // quotation_unit_price: number | null;
+  quotation_unit_price: string | null;
+  quotation_product_quantity: number | null;
   quotation_product_priority: number | null;
 };
 export type QuotationProductsDetails = QuotationProductsDetail[];

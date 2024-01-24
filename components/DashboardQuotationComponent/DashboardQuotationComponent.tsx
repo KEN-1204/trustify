@@ -63,7 +63,7 @@ export const DashboardQuotationComponent: FC = () => {
           >
             {activeMenuTab === "Quotation" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
-                <Suspense fallback={<FallbackGridTableAll />}>
+                <Suspense fallback={<FallbackGridTableAll title="見積" />}>
                   <QuotationGridTableAll title="見積" />
                 </Suspense>
               </ErrorBoundary>
