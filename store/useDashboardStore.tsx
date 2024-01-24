@@ -5,6 +5,7 @@ import {
   Client_company_row_data,
   ColumnHeaderItemList,
   Contact_row_data,
+  EditPosition,
   EditedProduct,
   Meeting_row_data,
   MemberAccounts,
@@ -381,6 +382,12 @@ type State = {
   // 選択中の行データオブジェクト
   selectedRowDataQuotationProduct: QuotationProductsDetail | null;
   setSelectedRowDataQuotationProduct: (payload: QuotationProductsDetail | null) => void;
+  // 選択中の商品セルの列と行
+  editPosition: EditPosition;
+  setEditPosition: (payload: EditPosition) => void;
+  // セルの編集モード
+  isEditingCell: boolean;
+  setIsEditingCell: (payload: boolean) => void;
 };
 
 const useDashboardStore = create<State>((set) => ({
@@ -919,6 +926,12 @@ const useDashboardStore = create<State>((set) => ({
   // 選択中の行データオブジェクト
   selectedRowDataQuotationProduct: null,
   setSelectedRowDataQuotationProduct: (payload) => set({ selectedRowDataQuotationProduct: payload }),
+  // 選択中の商品セルの列と行
+  editPosition: { row: null, col: null },
+  setEditPosition: (payload) => set({ editPosition: payload }),
+  // セルの編集モード
+  isEditingCell: false,
+  setIsEditingCell: (payload) => set({ isEditingCell: payload }),
 }));
 
 export default useDashboardStore;

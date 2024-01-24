@@ -437,6 +437,7 @@ const SideTableSearchProductMemo = ({
           quotation_outside_short_name: product.outside_short_name,
           quotation_inside_short_name: product.inside_short_name,
           quotation_unit_price: product.unit_price,
+          quotation_product_quantity: 1,
           quotation_product_priority: selectedProductsArray.length + index + 1,
         };
         return newProduct;

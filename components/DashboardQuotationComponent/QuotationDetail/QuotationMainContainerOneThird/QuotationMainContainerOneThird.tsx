@@ -143,6 +143,10 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   // 選択中の商品データ
   const selectedRowDataQuotationProduct = useDashboardStore((state) => state.selectedRowDataQuotationProduct);
   const setSelectedRowDataQuotationProduct = useDashboardStore((state) => state.setSelectedRowDataQuotationProduct);
+  // 商品リストのセルのポジション
+  const editPosition = useDashboardStore((state) => state.editPosition);
+  const isEditingCell = useDashboardStore((state) => state.isEditingCell);
+  const setIsEditingCell = useDashboardStore((state) => state.setIsEditingCell);
 
   // const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
@@ -6751,6 +6755,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           classText="select-none"
                           borderRadius="6px"
                           clickEventHandler={() => {
+                            if (isEditingCell) return;
                             setIsOpenSearchProductSideTableBefore(true);
                             setTimeout(() => {
                               setIsOpenSearchProductSideTable(true);
@@ -6776,6 +6781,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               classText="select-none"
                               borderRadius="6px"
                               clickEventHandler={() => {
+                                if (isEditingCell) return;
                                 const newArray = selectedProductsArray.filter(
                                   (obj) =>
                                     obj.quotation_product_id !== selectedRowDataQuotationProduct.quotation_product_id
@@ -6792,7 +6798,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 setSelectedRowDataQuotationProduct(null);
                                 handleCloseTooltip();
                               }}
-                              onMouseEnterHandler={(e) =>
+                              onMouseEnterHandler={(e) => {
                                 handleOpenTooltip({
                                   e: e,
                                   display: "top",
@@ -6801,10 +6807,35 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   // marginTop: 48,
                                   // marginTop: 28,
                                   marginTop: 9,
-                                })
-                              }
+                                });
+                              }}
                               onMouseLeaveHandler={handleCloseTooltip}
                             />
+                            {Object.values(editPosition).every((value) => value !== null) && (
+                              <RippleButton
+                                title={`編集`}
+                                classText={`select-none ${isEditingCell ? ` cursor-not-allowed` : ``}`}
+                                borderRadius="6px"
+                                clickEventHandler={() => {
+                                  if (isEditingCell) return;
+                                  setIsEditingCell(true);
+                                  handleCloseTooltip();
+                                }}
+                                onMouseEnterHandler={(e) => {
+                                  if (isEditingCell) return;
+                                  handleOpenTooltip({
+                                    e: e,
+                                    display: "top",
+                                    content: `選択中の項目を編集する`,
+                                    content2: `見積記載の項目は自由に編集が可能です。`,
+                                    // marginTop: 48,
+                                    marginTop: 27,
+                                    // marginTop: 9,
+                                  });
+                                }}
+                                onMouseLeaveHandler={handleCloseTooltip}
+                              />
+                            )}
                           </>
                         )}
                       </div>
@@ -6816,7 +6847,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                 </div>
                 {/*  */}
 
-                {/* 商品エリア */}
+                {/* 商品リストエリア */}
                 {/* {selectedRowDataQuotation &&
               selectedRowDataQuotation.quotation_products_details &&
               selectedRowDataQuotation.quotation_products_details.length > 0 && (
@@ -6833,6 +6864,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         ? selectedRowDataQuotation.quotation_products_details
                         : []
                     }
+                    setSelectedProductsArray={setSelectedProductsArray}
                     isInsertMode={isInsertModeQuotation ? true : false}
                   />
                 </div>

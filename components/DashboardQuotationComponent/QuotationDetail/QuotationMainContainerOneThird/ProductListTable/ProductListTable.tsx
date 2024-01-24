@@ -1,31 +1,52 @@
-import React, { CSSProperties, FC, memo, useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  CSSProperties,
+  Dispatch,
+  FC,
+  SetStateAction,
+  memo,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import styles from "./ProductListTable.module.css";
 import useStore from "@/store";
 import useDashboardStore from "@/store/useDashboardStore";
 import { mappingPositionClass } from "@/utils/mappings";
 import { QuotationProductsDetail } from "@/types";
 import { formatToJapaneseYen } from "@/utils/Helpers/formatToJapaneseYen";
+import { toast } from "react-toastify";
+import { convertHalfWidthNumOnly } from "@/utils/Helpers/convertHalfWidthNumOnly";
+import { convertToYen } from "@/utils/Helpers/convertToYen";
+import { checkNotFalsyExcludeZero } from "@/utils/Helpers/checkNotFalsyExcludeZero";
 
 type Props = {
   productsArray: QuotationProductsDetail[];
+  setSelectedProductsArray?: Dispatch<SetStateAction<QuotationProductsDetail[]>>;
   isInsertMode?: boolean;
 };
 
-const ProductListTableMemo: FC<Props> = ({ productsArray, isInsertMode = false }) => {
+const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArray, isInsertMode = false }) => {
   const language = useStore((state) => state.language);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
   const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
+
+  const [isComposing, setIsComposing] = useState(false);
 
   // ダブルクリックでセルの詳細を確認
   const setIsOpenEditModal = useDashboardStore((state) => state.setIsOpenEditModal);
   const textareaInput = useDashboardStore((state) => state.textareaInput);
   const setTextareaInput = useDashboardStore((state) => state.setTextareaInput);
   // 編集中のセル
-  const [editPosition, setEditPosition] = useState<{ row: number | null; col: number | null }>({
-    row: null,
-    col: null,
-  });
+  // const [editPosition, setEditPosition] = useState<{ row: number | null; col: number | null }>({
+  //   row: null,
+  //   col: null,
+  // });
+  const editPosition = useDashboardStore((state) => state.editPosition);
+  const setEditPosition = useDashboardStore((state) => state.setEditPosition);
+  const isEditingCell = useDashboardStore((state) => state.isEditingCell);
+  const setIsEditingCell = useDashboardStore((state) => state.setIsEditingCell);
 
   // カラム列全てにindex付きのrefを渡す
   const colsRef = useRef<(HTMLDivElement | null)[]>([]);
@@ -92,6 +113,9 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, isInsertMode = false }
       case "quotation_unit_price":
         return "価格（見積記載）";
         break;
+      case "quotation_product_quantity":
+        return "数量";
+        break;
       case "quotation_product_priority":
         return "見積記載順";
         break;
@@ -114,11 +138,22 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, isInsertMode = false }
   };
 
   // 活動タイプ、概要、日付、営業担当、事業部、営業所
-  const columnHeaderListArray = [
+  type ColumnExcludeKeys =
+    | "quotation_product_id"
+    | "product_created_by_user_id"
+    | "product_created_by_company_id"
+    | "product_created_by_department_of_user"
+    | "product_created_by_unit_of_user"
+    | "product_created_by_office_of_user"
+    | "quotation_inside_short_name"
+    | "quotation_product_priority"; // 除外するキー
+  type ColumnNames = Exclude<keyof QuotationProductsDetail, ColumnExcludeKeys>; // Quotation_row_dataタイプのプロパティ名のみのデータ型を取得
+  const columnHeaderListArray: ColumnNames[] = [
     "quotation_product_name",
     "quotation_outside_short_name",
     "quotation_unit_price",
     // "quotation_product_priority",
+    "quotation_product_quantity",
     "inside_short_name",
     "product_name",
     "outside_short_name",
@@ -172,7 +207,8 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, isInsertMode = false }
   }, [selectedRowDataQuotationProduct]);
 
   const handleSingleClickGridCell = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>, isEditable: boolean) => {
+    // (e: React.MouseEvent<HTMLDivElement>,  isEditable: boolean) => {
+    (e: React.MouseEvent<HTMLDivElement>, index: number, columnName: string, rowIndex: number, isEditable: boolean) => {
       if (setTimeoutRef.current !== null) return;
       if (!isEditable) return;
 
@@ -213,6 +249,35 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, isInsertMode = false }
       setSelectedRowDataQuotationProduct(
         productsArray[Number(selectedGridCellRef.current?.parentElement?.ariaRowIndex) - 2]
       );
+
+      // --------------- セルのテキストとpositionを格納 ---------------
+      let text;
+      if (["quotation_unit_price", "unit_price"].includes(columnName)) {
+        console.log("🔥 columnName", columnName);
+        console.log("🔥 rowIndex", rowIndex);
+        console.log("🔥 sortedProductsList", sortedProductsList);
+        console.log(
+          "🔥 sortedProductsList[rowIndex][columnName as keyof QuotationProductsDetail]",
+          sortedProductsList[rowIndex]
+        );
+        console.log(
+          "🔥 sortedProductsList[rowIndex]",
+          sortedProductsList[rowIndex][columnName as keyof QuotationProductsDetail]
+        );
+        if (columnName in sortedProductsList[rowIndex]) {
+          text = sortedProductsList[rowIndex][columnName as keyof QuotationProductsDetail];
+        }
+      } else {
+        text = e.currentTarget.innerHTML;
+      }
+      console.log("🔥 text", text);
+      if (typeof text === "number") {
+        text = text.toString();
+      }
+      // setIsOpenEditModal(true);
+      originalValueFieldEdit.current = text ?? "";
+      setTextareaInput((text ?? "") as string);
+      setEditPosition({ row: rowIndex, col: index });
 
       // 既に選択中なら選択を解除
       // if (e.currentTarget.getAttribute("aria-selected") === "true") {
@@ -287,37 +352,152 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, isInsertMode = false }
         // クリックした要素のテキストを格納
         // const text = e.currentTarget.innerText;
 
-        let text;
-        if (["quotation_unit_price", "unit_price"].includes(columnName)) {
-          console.log("🔥 columnName", columnName);
-          console.log("🔥 productListIndex", productListIndex);
-          console.log("🔥 sortedProductsList", sortedProductsList);
-          console.log(
-            "🔥 sortedProductsList[productListIndex][columnName as keyof QuotationProductsDetail]",
-            sortedProductsList[productListIndex]
-          );
-          console.log(
-            "🔥 sortedProductsList[productListIndex]",
-            sortedProductsList[productListIndex][columnName as keyof QuotationProductsDetail]
-          );
-          if (columnName in sortedProductsList[productListIndex]) {
-            text = sortedProductsList[productListIndex][columnName as keyof QuotationProductsDetail];
-          }
-        } else {
-          text = e.currentTarget.innerHTML;
-        }
-        console.log("🔥 text", text);
-        if (typeof text === "number") {
-          text = text.toString();
-        }
-        setTextareaInput((text ?? "") as string);
+        // let text;
+        // if (["quotation_unit_price", "unit_price"].includes(columnName)) {
+        //   console.log("🔥 columnName", columnName);
+        //   console.log("🔥 productListIndex", productListIndex);
+        //   console.log("🔥 sortedProductsList", sortedProductsList);
+        //   console.log(
+        //     "🔥 sortedProductsList[productListIndex][columnName as keyof QuotationProductsDetail]",
+        //     sortedProductsList[productListIndex]
+        //   );
+        //   console.log(
+        //     "🔥 sortedProductsList[productListIndex]",
+        //     sortedProductsList[productListIndex][columnName as keyof QuotationProductsDetail]
+        //   );
+        //   if (columnName in sortedProductsList[productListIndex]) {
+        //     text = sortedProductsList[productListIndex][columnName as keyof QuotationProductsDetail];
+        //   }
+        // } else {
+        //   text = e.currentTarget.innerHTML;
+        // }
+        // console.log("🔥 text", text);
+        // if (typeof text === "number") {
+        //   text = text.toString();
+        // }
+
+        // セルのテキストとpositionを格納
+        // setTextareaInput((text ?? "") as string);
+        // setEditPosition({ row: productListIndex, col: index });
+        // セル編集モードをON
+        setIsEditingCell(true);
         // setIsOpenEditModal(true);
-        setEditPosition({ row: productListIndex, col: index });
       }
     },
     [setTextareaInput, setIsOpenEditModal]
   );
   // ================== 🌟セル シングルクリック、ダブルクリックイベント ここまで ==================
+
+  // ================== 🌟エンターキーで個別フィールドをアップデート inputタグ ==================
+  type ExcludeKeys =
+    | "quotation_product_id"
+    | "product_name"
+    | "outside_short_name"
+    | "inside_short_name"
+    | "unit_price"
+    | "product_created_by_user_id"
+    | "product_created_by_company_id"
+    | "product_created_by_department_of_user"
+    | "product_created_by_unit_of_user"
+    | "product_created_by_office_of_user"
+    | "quotation_inside_short_name"
+    | "quotation_product_priority"; // 除外するキー
+  type EditProductFieldNames = Exclude<keyof QuotationProductsDetail, ExcludeKeys>; // Quotation_row_dataタイプのプロパティ名のみのデータ型を取得
+  type EditableFieldNames =
+    | "quotation_product_name"
+    | "quotation_outside_short_name"
+    | "quotation_unit_price"
+    | "quotation_product_quantity";
+
+  const originalValueFieldEdit = useRef<string | null>("");
+
+  const handleKeyDownUpdateField = async ({
+    e,
+    fieldName,
+    // fieldNameForSelectedRowData,
+    originalValue,
+    newValue,
+    id,
+    required,
+  }: {
+    e: React.KeyboardEvent<HTMLInputElement>;
+    // fieldName: string;
+    fieldName: EditableFieldNames;
+    // fieldNameForSelectedRowData: EditableFieldNames;
+    originalValue: any;
+    newValue: any;
+    id: string | undefined;
+    required: boolean;
+  }) => {
+    // 日本語入力変換中はtrueで変換確定のエンターキーではUPDATEクエリが実行されないようにする
+    // 英語などの入力変換が存在しない言語ではisCompositionStartは発火しないため常にfalse
+    if (e.key === "Enter" && !isComposing) {
+      if (required && (newValue === "" || newValue === null)) return toast.info(`この項目は入力が必須です。`);
+      if (fieldName === "quotation_product_quantity" && ["0", "０"].includes(newValue))
+        return toast.info(`数量は1以上の入力が必須です。`);
+
+      // INSERTモード
+      if (isInsertMode && fieldName) {
+        const updatedArray = productsArray.map((item) => {
+          if (item.quotation_product_id === selectedRowDataQuotationProduct?.quotation_product_id) {
+            return { ...item, fieldName: newValue };
+          }
+          return item;
+        });
+        console.log("🔥updatedArray", updatedArray);
+        // if (setSelectedProductsArray) {
+        //   setSelectedProductsArray(updatedArray);
+        // }
+
+        // setIsEditingCell(false);
+        // setTextareaInput("");
+        // setEditPosition({ row: null, col: null });
+      }
+      // UPDATEモード
+      else {
+        if (!id || !selectedRowDataQuotationProduct) {
+          toast.error(`エラー：データが見つかりませんでした。`);
+          return;
+        }
+        console.log(
+          "フィールドアップデート エンターキー",
+          " ・フィールド名:",
+          fieldName,
+          // " ・結合フィールド名:",
+          // fieldNameForSelectedRowData,
+          " ・元の値:",
+          originalValue,
+          " ・新たな値:",
+          newValue
+        );
+        // 入力値が現在のvalueと同じであれば更新は不要なため閉じてリターン
+        if (originalValue === newValue) {
+          console.log("同じためリターン");
+          // setIsEditModeField(null); // エディットモードを終了
+          setIsEditingCell(false);
+          setTextareaInput("");
+          setEditPosition({ row: null, col: null });
+          return;
+        }
+
+        // const updatePayload = {
+        //   fieldName: fieldName,
+        //   fieldNameForSelectedRowData: fieldNameForSelectedRowData,
+        //   newValue: newValue,
+        //   id: id,
+        // };
+        // 入力変換確定状態でエンターキーが押された場合の処理
+        // console.log("onKeyDownイベント エンターキーが入力確定状態でクリック UPDATE実行 updatePayload", updatePayload);
+        // await updateQuotationFieldMutation.mutateAsync(updatePayload);
+        originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
+        // setIsEditModeField(null); // エディットモードを終了
+        setIsEditingCell(false);
+        setTextareaInput("");
+        setEditPosition({ row: null, col: null });
+      }
+    }
+  };
+  // ================== ✅エンターキーで個別フィールドをアップデート inputタグ✅ ==================
 
   // 編集中のinputタグ以外をクリックしたら編集モードを解除
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -326,6 +506,7 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, isInsertMode = false }
       if (inputRef.current && !inputRef.current.contains(event.target as Node)) {
         setEditPosition({ row: null, col: null });
         setTextareaInput("");
+        setIsEditingCell(false);
       }
     };
 
@@ -339,6 +520,26 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, isInsertMode = false }
   console.log("🔥 activeCell", activeCell);
   console.log("🔥 clickActiveRow", clickActiveRow);
   console.log("🔥 selectedRowDataQuotationProduct", selectedRowDataQuotationProduct);
+
+  const editableColumnNameArray = [
+    "quotation_product_name",
+    "quotation_outside_short_name",
+    "quotation_unit_price",
+    "quotation_product_quantity",
+  ];
+
+  const getNewValueAfterEdit = (text: string, columnName: string, originalValue: any) => {
+    if (columnName === "quotation_unit_price") {
+      const convertedText = convertHalfWidthNumOnly(text);
+      return convertedText ? convertedText : originalValue;
+    } else if (columnName === "quotation_product_quantity") {
+      if (!text || text === "") return "0";
+      const convertedNum = convertToYen(text);
+      return checkNotFalsyExcludeZero(convertedNum) ? convertedNum : originalValue;
+    } else {
+      return text;
+    }
+  };
 
   return (
     <>
@@ -517,7 +718,7 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, isInsertMode = false }
                         }
                         return (
                           <>
-                            {!(editPosition.row === index && editPosition.col === colIndex) && (
+                            {!(editPosition.row === index && editPosition.col === colIndex && isEditingCell) && (
                               <div
                                 key={"row" + product.quotation_product_id + colIndex.toString()}
                                 role="gridcell"
@@ -528,90 +729,104 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, isInsertMode = false }
                                 aria-selected={false}
                                 tabIndex={-1}
                                 className={`${styles.grid_cell} ${styles.grid_cell_resizable} ${
-                                  [
-                                    "quotation_product_name",
-                                    "quotation_outside_short_name",
-                                    "quotation_unit_price",
-                                  ].includes(columnHeaderList[colIndex].columnName)
+                                  editableColumnNameArray.includes(columnHeaderList[colIndex].columnName)
                                     ? `${styles.editable}`
                                     : ``
                                 }`}
                                 style={{
                                   gridColumnStart: colIndex + 1,
-                                  ...([
-                                    "quotation_product_name",
-                                    "quotation_outside_short_name",
-                                    "quotation_unit_price",
-                                  ].includes(columnHeaderList[colIndex].columnName) && {
+                                  ...(editableColumnNameArray.includes(columnHeaderList[colIndex].columnName) && {
                                     cursor: "pointer",
                                   }),
                                   // ...(columnHeaderList.length - 1 === index && { borderRight: "none" }),
                                   ...(colIndex === columnHeaderList.length - 1 && { borderRight: "none" }),
                                 }}
-                                onClick={(e) =>
+                                onClick={(e) => {
+                                  // handleSingleClickGridCell(
+                                  //   e,
+                                  //   [
+                                  //     "quotation_product_name",
+                                  //     "quotation_outside_short_name",
+                                  //     "quotation_unit_price",
+                                  //   ].includes(columnHeaderList[colIndex].columnName)
+                                  // )
                                   handleSingleClickGridCell(
                                     e,
-                                    [
-                                      "quotation_product_name",
-                                      "quotation_outside_short_name",
-                                      "quotation_unit_price",
-                                    ].includes(columnHeaderList[colIndex].columnName)
-                                  )
-                                }
+                                    colIndex,
+                                    columnHeaderList[colIndex].columnName,
+                                    index,
+                                    editableColumnNameArray.includes(columnHeaderList[colIndex].columnName)
+                                  );
+                                }}
                                 onDoubleClick={(e) =>
                                   handleDoubleClickGridCell(
                                     e,
                                     colIndex,
                                     columnHeaderList[colIndex].columnName,
                                     index,
-                                    [
-                                      "quotation_product_name",
-                                      "quotation_outside_short_name",
-                                      "quotation_unit_price",
-                                    ].includes(columnHeaderList[colIndex].columnName)
+                                    editableColumnNameArray.includes(columnHeaderList[colIndex].columnName)
                                   )
                                 }
                               >
                                 {displayValue}
                               </div>
                             )}
-                            {editPosition.row === index && editPosition.col === colIndex && (
-                              <input
-                                ref={inputRef}
-                                type="text"
-                                value={textareaInput}
-                                onChange={(e) => setTextareaInput(e.target.value)}
-                                key={"row" + product.quotation_product_id + colIndex.toString()}
-                                role="gridcell"
-                                // aria-colindex={index + 1} // カラムヘッダーの列StateのcolumnIndexと一致させる
-                                aria-colindex={
-                                  columnHeaderList[colIndex] ? columnHeaderList[colIndex]?.columnIndex : colIndex + 2
-                                } // カラムヘッダーの列StateのcolumnIndexと一致させる
-                                aria-selected={false}
-                                tabIndex={-1}
-                                className={`${styles.grid_cell} ${styles.grid_cell_resizable} ${styles.edit_mode} ${
-                                  [
-                                    "quotation_product_name",
-                                    "quotation_outside_short_name",
-                                    "quotation_unit_price",
-                                  ].includes(columnHeaderList[colIndex].columnName)
-                                    ? `${styles.editable}`
-                                    : ``
-                                }`}
-                                style={{
-                                  gridColumnStart: colIndex + 1,
-                                  ...([
-                                    "quotation_product_name",
-                                    "quotation_outside_short_name",
-                                    "quotation_unit_price",
-                                  ].includes(columnHeaderList[colIndex].columnName) && {
-                                    cursor: "text",
-                                  }),
-                                  // ...(columnHeaderList.length - 1 === index && { borderRight: "none" }),
-                                  ...(colIndex === columnHeaderList.length - 1 && { borderRight: "none" }),
-                                }}
-                              />
-                            )}
+                            {editPosition.row === index &&
+                              editPosition.col === colIndex &&
+                              isEditingCell &&
+                              editableColumnNameArray.includes(columnName) && (
+                                <input
+                                  ref={inputRef}
+                                  type="text"
+                                  value={textareaInput}
+                                  // onChange={(e) => setTextareaInput(e.target.value)}
+                                  onCompositionStart={() => setIsComposing(true)}
+                                  onCompositionEnd={() => setIsComposing(false)}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (["quotation_product_quantity"].includes(columnName)) {
+                                      if (val === "0" || val === "０") setTextareaInput("");
+                                    }
+                                    setTextareaInput(e.target.value);
+                                  }}
+                                  onKeyDown={(e) =>
+                                    handleKeyDownUpdateField({
+                                      e,
+                                      fieldName: columnName as EditableFieldNames,
+                                      // fieldNameForSelectedRowData: columnName as EditableFieldNames,
+                                      originalValue: originalValueFieldEdit.current,
+                                      newValue: getNewValueAfterEdit(
+                                        textareaInput,
+                                        columnName,
+                                        originalValueFieldEdit.current
+                                      ),
+                                      id: sortedProductsList[index]?.quotation_product_id,
+                                      required: ["quotation_product_quantity"].includes(columnName),
+                                    })
+                                  }
+                                  key={"row" + product.quotation_product_id + colIndex.toString() + "edit"}
+                                  role="gridcell"
+                                  // aria-colindex={index + 1} // カラムヘッダーの列StateのcolumnIndexと一致させる
+                                  aria-colindex={
+                                    columnHeaderList[colIndex] ? columnHeaderList[colIndex]?.columnIndex : colIndex + 2
+                                  } // カラムヘッダーの列StateのcolumnIndexと一致させる
+                                  aria-selected={false}
+                                  tabIndex={-1}
+                                  className={`${styles.grid_cell} ${styles.grid_cell_resizable} ${styles.edit_mode} ${
+                                    editableColumnNameArray.includes(columnHeaderList[colIndex].columnName)
+                                      ? `${styles.editable}`
+                                      : ``
+                                  }`}
+                                  style={{
+                                    gridColumnStart: colIndex + 1,
+                                    ...(editableColumnNameArray.includes(columnHeaderList[colIndex].columnName) && {
+                                      cursor: "text",
+                                    }),
+                                    // ...(columnHeaderList.length - 1 === index && { borderRight: "none" }),
+                                    ...(colIndex === columnHeaderList.length - 1 && { borderRight: "none" }),
+                                  }}
+                                />
+                              )}
                           </>
                         );
                       })}

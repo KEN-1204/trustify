@@ -1213,6 +1213,9 @@ export type Property_row_data = {
   assigned_office_name: string | null;
 };
 
+// 商品リストの選択中のセルの列と行
+export type EditPosition = { row: number | null; col: number | null };
+
 // 面談時の紹介した商品群の配列
 export type QuotationProductsDetail = {
   quotation_product_id: string; // products.id
