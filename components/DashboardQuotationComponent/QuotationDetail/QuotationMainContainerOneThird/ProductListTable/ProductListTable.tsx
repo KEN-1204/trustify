@@ -21,6 +21,9 @@ import { convertHalfWidthRoundNumOnly } from "@/utils/Helpers/convertHalfWidthRo
 import { convertToYen } from "@/utils/Helpers/convertToYen";
 import { checkNotFalsyExcludeZero } from "@/utils/Helpers/checkNotFalsyExcludeZero";
 import { toHalfWidth } from "@/utils/Helpers/toHalfWidth";
+import { calculateTotalPriceProducts } from "@/utils/Helpers/calculateTotalPriceProducts";
+import { calculateTotalAmount } from "@/utils/Helpers/calculateTotalAmount";
+import { calculateDiscountRate } from "@/utils/Helpers/calculateDiscountRate";
 
 type Props = {
   productsArray: QuotationProductsDetail[];
@@ -33,6 +36,17 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
   const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
+
+  // 見積価格関連 価格合計・値引金額・値引率・合計金額の4つの計算が必要なグローバルstate
+  const inputTotalPriceEdit = useDashboardStore((state) => state.inputTotalPriceEdit);
+  const setInputTotalPriceEdit = useDashboardStore((state) => state.setInputTotalPriceEdit);
+  const inputDiscountAmountEdit = useDashboardStore((state) => state.inputDiscountAmountEdit);
+  const setInputDiscountAmountEdit = useDashboardStore((state) => state.setInputDiscountAmountEdit);
+  const inputDiscountRateEdit = useDashboardStore((state) => state.inputDiscountRateEdit);
+  const setInputDiscountRateEdit = useDashboardStore((state) => state.setInputDiscountRateEdit);
+  const inputTotalAmountEdit = useDashboardStore((state) => state.inputTotalAmountEdit);
+  const setInputTotalAmountEdit = useDashboardStore((state) => state.setInputTotalAmountEdit);
+  // 見積価格関連ここまで
 
   const [isComposing, setIsComposing] = useState(false);
 
@@ -142,7 +156,7 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
         return "価格（見積記載）";
         break;
       case "quotation_product_quantity":
-        return "数量";
+        return "数量（見積記載）";
         break;
       case "quotation_product_priority":
         return "見積記載順";
@@ -338,7 +352,7 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
       //   );
       // }
     },
-    [productsArray]
+    [productsArray, sortedProductsList]
   );
 
   // セルダブルクリック
@@ -397,7 +411,7 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
         // setIsOpenEditModal(true);
       }
     },
-    [setTextareaInput, setIsOpenEditModal]
+    [setTextareaInput, setIsOpenEditModal, setIsEditingCell]
   );
   // ================== 🌟セル シングルクリック、ダブルクリックイベント ここまで ==================
 
@@ -465,16 +479,21 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
 
       // 🔹INSERTモード
       if (isInsertMode && fieldName) {
+        let _newQuantity;
+        let _newPrice;
         const updatedArray = productsArray.map((item) => {
           if (item.quotation_product_id === selectedRowDataQuotationProduct?.quotation_product_id) {
             if (["quotation_product_quantity"].includes(fieldName)) {
-              // 数量は0以外の整数値の場合のみ変更を許可
-              const parsedValue = parseInt(newValue, 10);
-              const convertedValue = !isNaN(parsedValue) && parsedValue !== 0 ? parsedValue : originalValue;
-              return { ...item, [fieldName]: convertedValue };
+              // 数量 0以外の整数値の場合のみ変更を許可
+              const parsedQuantity = parseInt(newValue, 10);
+              // 0の場合は元の値を返す
+              const newQuantity = !isNaN(parsedQuantity) && parsedQuantity !== 0 ? parsedQuantity : originalValue;
+              _newQuantity = newQuantity;
+              return { ...item, [fieldName]: newQuantity };
             } else if (["quotation_unit_price"].includes(fieldName)) {
-              // 価格は0と小数点を許容
+              // 価格 0と小数点を許容(海外は小数点あり)
               const convertedValue = checkNotFalsyExcludeZero(newValue) ? newValue : Number(originalValue);
+              _newPrice = convertedValue;
               return { ...item, [fieldName]: convertedValue };
             } else {
               // それ以外の商品名と型式はそのままの値で変更
@@ -491,11 +510,48 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
           setSelectedProductsArray(updatedArray);
         }
 
+        //
+        // 価格合計・値引率・合計金額を算出(元の値と異なる新たな値なら再計算する)
+        // 🔹数量・価格の変更、かつ、元の値と異なる場合
+        if (
+          (fieldName === "quotation_product_quantity" && _newQuantity !== originalValue) ||
+          (fieldName === "quotation_unit_price" && _newPrice !== Number(originalValue))
+        ) {
+          // 価格合計
+          const newTotalPrice = calculateTotalPriceProducts(updatedArray, language === "ja" ? 0 : 2);
+          setInputTotalPriceEdit(newTotalPrice);
+          // 合計金額 = 価格合計 - 値引金額
+          // 値引価格の数字と小数点以外は除去
+          const formatDiscountAmount = inputDiscountAmountEdit.replace(/[^\d.]/g, "");
+          const newTotalAmount = calculateTotalAmount(
+            Number(newTotalPrice),
+            Number(formatDiscountAmount) || 0,
+            language === "ja" ? 0 : 2
+          );
+          setInputTotalAmountEdit(newTotalAmount);
+          // 値引率
+          const result = calculateDiscountRate({
+            salesPriceStr: newTotalAmount,
+            discountPriceStr: formatDiscountAmount || "0",
+            salesQuantityStr: "1",
+            showPercentSign: false,
+            decimalPlace: 2,
+          });
+          if (result.error) {
+            toast.error(`エラー：${result.error}🙇‍♀️`);
+            console.error("エラー：値引率の取得に失敗", result.error);
+            setInputDiscountRateEdit("");
+          } else if (result.discountRate) {
+            console.log("result.discountRate");
+            const newDiscountRate = result.discountRate;
+            setInputDiscountRateEdit(newDiscountRate);
+          }
+        }
+
         originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
         setIsEditingCell(false);
         setTextareaInput("");
         setEditPosition({ row: null, col: null });
-        return;
       }
       // 🔹UPDATEモード
       else {
@@ -690,13 +746,14 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
     if (columnName === "quotation_product_quantity") {
       // 数量は0以外の整数値の場合のみ変更を許可
       const convertedText = convertHalfWidthRoundNumOnly(text);
-      const convertedNum = checkNotFalsyExcludeZero(convertedText) ? Number(convertedText) : "";
+      const convertedNum = convertedText ? Number(convertedText) : "1";
       // return convertedNum ? convertedNum : originalValue;
       return convertedNum;
     } else if (columnName === "quotation_unit_price") {
       // 価格は0と小数点を許容 (多くの通貨では、小数点以下2桁（セント単位）が一般的, 特定の通貨（例: クウェートディナール）では、小数点以下3桁を使用)
       // if (!text || text === "") return "0";
-      const convertedNum = language === "ja" ? convertToYen(text) : Number(convertHalfWidthRoundNumOnly(text, 3));
+      // const convertedNum = language === "ja" ? convertToYen(text) : Number(convertHalfWidthRoundNumOnly(text, 3));
+      const convertedNum = language === "ja" ? convertToYen(text) : Number(convertHalfWidthRoundNumOnly(text, 2));
       return checkNotFalsyExcludeZero(convertedNum) ? convertedNum : Number(originalValue);
     } else {
       return text;
@@ -887,15 +944,17 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
                         ) {
                           return (
                             <input
-                              key={`ProductList_Row:${rowIndex}_Col:${colIndex}`}
                               ref={inputRef}
+                              key={`ProductList_Row:${rowIndex}_Col:${colIndex}`}
                               role="gridcell"
                               // aria-colindex={index + 1} // カラムヘッダーの列StateのcolumnIndexと一致させる
                               aria-colindex={
                                 columnHeaderList[colIndex] ? columnHeaderList[colIndex]?.columnIndex : colIndex + 2
                               } // カラムヘッダーの列StateのcolumnIndexと一致させる
-                              aria-selected={false}
-                              tabIndex={-1}
+                              // aria-selected={false}
+                              // tabIndex={-1}
+                              aria-selected={true}
+                              tabIndex={0}
                               type="text"
                               autoFocus
                               autoCapitalize="none"
@@ -945,6 +1004,7 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
                                 }),
                                 // ...(columnHeaderList.length - 1 === index && { borderRight: "none" }),
                                 ...(colIndex === columnHeaderList.length - 1 && { borderRight: "none" }),
+                                width: "100%",
                               }}
                             />
                           );

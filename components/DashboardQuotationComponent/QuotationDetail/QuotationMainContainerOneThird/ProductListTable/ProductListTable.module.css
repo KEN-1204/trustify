@@ -259,6 +259,8 @@
   outline: none;
   padding: 0 8px;
 }
+.grid_row input.grid_cell {
+}
 /* 3点リーダー */
 .grid_cell.text_truncated {
   white-space: nowrap;

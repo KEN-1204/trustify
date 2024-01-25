@@ -8,8 +8,9 @@ function isValidNumber(inputStr: string) {
     return false;
   }
 
+  // 数字と小数点のみを許容する正規表現
+  // 入力が「整数だけ」または「小数点を含む正の数値でかつ先頭に数字が１回以上」の場合のみ許可しそれ以外はfalse
   if (!/^\d+(\.\d+)?$/.test(inputStr)) {
-    // 数字と小数点のみを許容する正規表現
     return false;
   }
 
@@ -28,10 +29,14 @@ export const calculateDiscountRate = ({
   salesPriceStr,
   discountPriceStr,
   salesQuantityStr = "1",
+  showPercentSign = true,
+  decimalPlace = 2,
 }: {
   salesPriceStr: string;
   discountPriceStr: string;
   salesQuantityStr: string;
+  showPercentSign?: boolean;
+  decimalPlace?: number;
 }) => {
   //   // 文字列から数値に変換
   //   const salesPrice = parseInt(salesPriceStr.replace(/,/g, ""), 10);
@@ -74,7 +79,7 @@ export const calculateDiscountRate = ({
 
   console.log(
     "結果　discountRate",
-    discountRate.toFixed(2) + "%",
+    discountRate.toFixed(decimalPlace, Decimal.ROUND_HALF_UP) + "%",
     "discountPrice",
     discountPrice.toString(),
     "totalSalesAmount",
@@ -84,6 +89,12 @@ export const calculateDiscountRate = ({
     "salesQuantity",
     salesQuantity.toString()
   );
-  return { discountRate: discountRate.toFixed(2) + `%`, error: null };
+
+  const PercentSignOrEmpty = showPercentSign ? `%` : ``;
+
+  return {
+    discountRate: discountRate.toFixed(decimalPlace, Decimal.ROUND_HALF_UP) + PercentSignOrEmpty,
+    error: null,
+  };
   // return { discountRate: discountRate, error: null };
 };

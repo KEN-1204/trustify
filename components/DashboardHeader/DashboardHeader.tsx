@@ -570,7 +570,7 @@ export const DashboardHeaderMemo: FC = () => {
         >
           <HiOutlineBars3 className="pointer-events-none text-[24px] text-[--color-text]" />
         </div>
-        <div className="relative flex h-full w-[145px] cursor-pointer select-none items-center justify-center pl-[16px]">
+        <div className="relative flex h-full w-[145px] select-none items-center justify-center pl-[16px]">
           <Image
             src={logoSrc}
             alt=""
@@ -581,7 +581,7 @@ export const DashboardHeaderMemo: FC = () => {
             // placeholder="blur"
             // blurDataURL={theme === "dark" ? blurDataURLDark : blurDataURL}
             // className="!relative !h-[60px] !w-[200px] object-cover"
-            onClick={() => setActiveMenuTab("HOME")}
+            // onClick={() => setActiveMenuTab("HOME")}
           />
         </div>
         {/* ヘッダータブ左スクロール時に連続でツールチップが表示されないようにするためのオーバーレイ */}

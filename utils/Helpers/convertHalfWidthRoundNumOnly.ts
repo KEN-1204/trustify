@@ -10,7 +10,7 @@ export function convertHalfWidthRoundNumOnly(input: string, decimalPlaces: numbe
   // 1. 全角数字を半角に変換
   let result = fullWidthToHalfWidth(input);
 
-  // 2. 数字以外を除去
+  // 2. 数字、小数点以外を除去
   result = result.replace(/[^\d.]/g, "");
 
   // 3. 数字が含まれていない場合は空文字を返す
@@ -22,6 +22,10 @@ export function convertHalfWidthRoundNumOnly(input: string, decimalPlaces: numbe
   if (result.includes(".")) {
     // return String(Math.round(parseFloat(result)));
     // Decimal.jsを使用して指定された桁数で四捨五入
+    return new Decimal(result).toFixed(decimalPlaces, Decimal.ROUND_HALF_UP);
+  }
+
+  if (decimalPlaces > 0) {
     return new Decimal(result).toFixed(decimalPlaces, Decimal.ROUND_HALF_UP);
   }
 

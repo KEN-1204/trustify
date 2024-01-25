@@ -388,6 +388,19 @@ type State = {
   // セルの編集モード
   isEditingCell: boolean;
   setIsEditingCell: (payload: boolean) => void;
+  // 見積価格関連
+  // 価格合計
+  inputTotalPriceEdit: string;
+  setInputTotalPriceEdit: (payload: string) => void;
+  // 値引金額
+  inputDiscountAmountEdit: string;
+  setInputDiscountAmountEdit: (payload: string) => void;
+  // 値引率
+  inputDiscountRateEdit: string;
+  setInputDiscountRateEdit: (payload: string) => void;
+  // 合計金額
+  inputTotalAmountEdit: string;
+  setInputTotalAmountEdit: (payload: string) => void;
 };
 
 const useDashboardStore = create<State>((set) => ({
@@ -932,6 +945,20 @@ const useDashboardStore = create<State>((set) => ({
   // セルの編集モード
   isEditingCell: false,
   setIsEditingCell: (payload) => set({ isEditingCell: payload }),
+
+  // 見積価格関連
+  // 価格合計
+  inputTotalPriceEdit: "",
+  setInputTotalPriceEdit: (payload) => set({ inputTotalPriceEdit: payload }),
+  // 値引金額
+  inputDiscountAmountEdit: "",
+  setInputDiscountAmountEdit: (payload) => set({ inputDiscountAmountEdit: payload }),
+  // 値引率
+  inputDiscountRateEdit: "",
+  setInputDiscountRateEdit: (payload) => set({ inputDiscountRateEdit: payload }),
+  // 合計金額
+  inputTotalAmountEdit: "",
+  setInputTotalAmountEdit: (payload) => set({ inputTotalAmountEdit: payload }),
 }));
 
 export default useDashboardStore;

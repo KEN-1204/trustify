@@ -67,6 +67,12 @@ import { SideTableSearchMember } from "@/components/DashboardCompanyComponent/Mo
 import { GrPowerReset } from "react-icons/gr";
 import { SideTableSearchProduct } from "@/components/DashboardCompanyComponent/Modal/UpdateMeetingModal/SideTableSearchProduct/SideTableSearchProduct";
 import { FallbackSideTableSearchProduct } from "@/components/DashboardCompanyComponent/Modal/UpdateMeetingModal/SideTableSearchProduct/FallbackSideTableSearchProduct";
+import { calculateTotalPriceProducts } from "@/utils/Helpers/calculateTotalPriceProducts";
+import { calculateTotalAmount } from "@/utils/Helpers/calculateTotalAmount";
+import { formatToJapaneseYen } from "@/utils/Helpers/formatToJapaneseYen";
+import { InputSendAndCloseBtnGlobal } from "@/components/DashboardCompanyComponent/CompanyMainContainer/InputSendAndCloseBtnGlobal/InputSendAndCloseBtnGlobal";
+import { calculateDiscountRate } from "@/utils/Helpers/calculateDiscountRate";
+import { ImInfo } from "react-icons/im";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -147,6 +153,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const editPosition = useDashboardStore((state) => state.editPosition);
   const isEditingCell = useDashboardStore((state) => state.isEditingCell);
   const setIsEditingCell = useDashboardStore((state) => state.setIsEditingCell);
+  // 値引金額説明アイコン 既読ならクラスを外す
+  const infoIconDiscountRef = useRef<HTMLDivElement | null>(null);
 
   // const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
@@ -253,11 +261,21 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const [inputUseCorporateSealEdit, setInputUseCorporateSealEdit] = useState(false);
   const [inputSalesTaxClassEdit, setInputSalesTaxClassEdit] = useState("");
   const [inputSalesTaxRateEdit, setInputSalesTaxRateEdit] = useState("10");
-  const [inputTotalPriceEdit, setInputTotalPriceEdit] = useState("");
-  const [inputDiscountAmountEdit, setInputDiscountAmountEdit] = useState("");
-  const [inputDiscountRateEdit, setInputDiscountRateEdit] = useState("");
+  // const [inputTotalPriceEdit, setInputTotalPriceEdit] = useState("");
+  // const [inputDiscountAmountEdit, setInputDiscountAmountEdit] = useState("");
+  // const [inputDiscountRateEdit, setInputDiscountRateEdit] = useState("");
+  // const [inputTotalAmountEdit, setInputTotalAmountEdit] = useState("");
+  // 見積価格関連 価格合計・値引金額・値引率・合計金額の4つの計算が必要なグローバルstate
+  const inputTotalPriceEdit = useDashboardStore((state) => state.inputTotalPriceEdit);
+  const setInputTotalPriceEdit = useDashboardStore((state) => state.setInputTotalPriceEdit);
+  const inputDiscountAmountEdit = useDashboardStore((state) => state.inputDiscountAmountEdit);
+  const setInputDiscountAmountEdit = useDashboardStore((state) => state.setInputDiscountAmountEdit);
+  const inputDiscountRateEdit = useDashboardStore((state) => state.inputDiscountRateEdit);
+  const setInputDiscountRateEdit = useDashboardStore((state) => state.setInputDiscountRateEdit);
+  const inputTotalAmountEdit = useDashboardStore((state) => state.inputTotalAmountEdit);
+  const setInputTotalAmountEdit = useDashboardStore((state) => state.setInputTotalAmountEdit);
+  // 見積価格関連ここまで
   const [inputDiscountTitleEdit, setInputDiscountTitleEdit] = useState("出精値引");
-  const [inputTotalAmountEdit, setInputTotalAmountEdit] = useState("");
   // const [inputSetItemCountEdit, setInputSetItemCountEdit] = useState<number | null>(null);
   const [inputSetItemCountEdit, setInputSetItemCountEdit] = useState<string>("");
   const [inputSetUnitNameEdit, setInputSetUnitNameEdit] = useState(language === "ja" ? "式" : "Set");
@@ -393,7 +411,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
 
   // ================================ ✅フィールドエディットモード関連state✅ ================================
 
-  // ------------------ 🌟見積作成のマウント時に選択中の担当者&会社の列データの情報をStateに格納🌟 ------------------
+  // ------------------ 🌟見積作成のマウント時 選択中の担当者&会社の列データの情報をStateに格納🌟 ------------------
   useEffect(() => {
     if (!isInsertModeQuotation) return;
 
@@ -514,8 +532,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     setInputTotalPriceEdit(_total_price);
     setInputDiscountAmountEdit(_discount_amount);
     setInputDiscountRateEdit(_discount_rate);
-    setInputDiscountTitleEdit(_discount_title);
     setInputTotalAmountEdit(_total_amount);
+    setInputDiscountTitleEdit(_discount_title);
     setInputQuotationRemarks(_quotation_remarks);
     setInputSetItemCountEdit(_set_item_count);
     setInputSetUnitNameEdit(_set_unit_name);
@@ -575,6 +593,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   // useMutation
   // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
   // ================================ ✅事業所・営業所リスト取得useQuery✅ ================================
+
   // ======================= 🌟現在の選択した事業部で係・チームを絞り込むuseEffect🌟 =======================
   const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
   useEffect(() => {
@@ -624,6 +643,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     return value;
   }
 
+  // ----------------------- 🌟新規サーチ・サーチ編集🌟 -----------------------
   // 編集モードtrueの場合、サーチ条件をinputタグのvalueに格納
   // 新規サーチの場合には、サーチ条件を空にする
   useEffect(() => {
@@ -778,6 +798,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       if (!!inputEmployeeIdName) setInputEmployeeIdName("");
     }
   }, [editSearchMode, searchMode]);
+
+  // ----------------------- ✅新規サーチ・サーチ編集✅ -----------------------
 
   // サーチ関数実行
   const handleSearchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -1463,18 +1485,72 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     return _formatAttendees;
   };
 
-  // ---------------- 🌟insert/updateモード終了 or アンマウント時に商品リスト関連をリセット🌟 ----------------
-  // useEffect(() => {
-  //   // インサートモードが終了したら、商品リスト関連のstateを全てリセット
-  //   if (!isInsertModeQuotation) {
-  //     setEditPosition({ row: null, col: null });
-  //     setTextareaInput("");
-  //     setIsEditingCell(false);
-  //     setSelectedProductsArray([]);
-  //   }
+  const formatDisplayPrice = (price: number | string): string => {
+    switch (language) {
+      case "ja":
+        const priceNum = typeof price === "number" ? price : Number(price);
+        return formatToJapaneseYen(priceNum, true, false);
+        break;
+      default:
+        return typeof price === "number" ? price.toString() : price;
+        break;
+    }
+  };
 
-  // }, [isInsertModeQuotation])
-  // ---------------- ✅insert/updateモード終了 or アンマウント時に商品リスト関連をリセット✅ ----------------
+  // ---------------- 🌟useEffect 見積商品リストに商品が追加、削除された時に価格合計を再計算🌟 ----------------
+  useEffect(() => {
+    // 商品数が0なら、価格合計が空文字に変更
+    if (selectedProductsArray.length === 0) {
+      if (inputTotalPriceEdit !== "") setInputTotalPriceEdit("");
+      if (inputTotalAmountEdit !== "") setInputTotalAmountEdit("");
+      if (inputDiscountAmountEdit !== "") setInputDiscountAmountEdit("");
+      if (inputDiscountRateEdit !== "") setInputDiscountRateEdit("");
+    }
+    // 商品数が1個以上なら合計額を算出してstateを更新
+    else if (selectedProductsArray.length > 0) {
+      // 価格合計
+      const newTotalPrice = calculateTotalPriceProducts(selectedProductsArray, language === "ja" ? 0 : 2);
+      setInputTotalPriceEdit(newTotalPrice);
+      // 合計金額 = 価格合計 - 値引金額
+      // 値引価格の数字と小数点以外は除去
+      const formatDiscountAmount = inputDiscountAmountEdit.replace(/[^\d.]/g, "");
+      const newTotalAmount = calculateTotalAmount(
+        Number(newTotalPrice),
+        Number(formatDiscountAmount) || 0,
+        language === "ja" ? 0 : 2
+      );
+      setInputTotalAmountEdit(newTotalAmount);
+      // 商品リストが1以上で値引額がまだ未入力の場合は、値引額と値引率を0に更新
+      const zeroStr = formatDisplayPrice(0);
+      if (formatDiscountAmount === "") {
+        setInputDiscountAmountEdit(zeroStr);
+        setInputDiscountRateEdit("0");
+      }
+      if (formatDiscountAmount === "0" && inputDiscountRateEdit !== "0") {
+        setInputDiscountRateEdit("0");
+      }
+      // 合計金額と値引金額が共に0以上なら値引率を再計算
+      if (Number(newTotalAmount) > 0 && Number(formatDiscountAmount) > 0) {
+        // 値引価格の数字と小数点以外は除去
+        const result = calculateDiscountRate({
+          salesPriceStr: newTotalAmount,
+          discountPriceStr: formatDiscountAmount.replace(/[^\d.]/g, "") || "0",
+          salesQuantityStr: "1",
+          showPercentSign: false,
+          decimalPlace: 2,
+        });
+        if (result.error) {
+          toast.error(`エラー：${result.error}🙇‍♀️`);
+          console.error("エラー：値引率の取得に失敗", result.error);
+          setInputDiscountRateEdit("");
+        } else if (result.discountRate) {
+          const newDiscountRate = result.discountRate;
+          setInputDiscountRateEdit(newDiscountRate);
+        }
+      }
+    }
+  }, [selectedProductsArray.length]);
+  // ---------------- ✅useEffect 見積商品リストに商品が追加、削除された時に価格合計を再計算✅ ----------------
 
   console.log(
     "🔥MeetingMainContainerレンダリング",
@@ -4000,7 +4076,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             {/* ----------------- upsert ----------------- */}
                             {!searchMode && isInsertModeQuotation && (
                               <span className={`${styles.value}`}>
-                                {inputTotalPriceEdit ? inputTotalPriceEdit.toLocaleString() : ""}
+                                {inputTotalPriceEdit ? formatDisplayPrice(inputTotalPriceEdit) : ""}
                               </span>
                             )}
                             {/* ----------------- upsert ----------------- */}
@@ -4048,7 +4124,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 />
                                 {/* 送信ボタンとクローズボタン */}
                                 {!updateQuotationFieldMutation.isLoading && (
-                                  <InputSendAndCloseBtn<string>
+                                  <InputSendAndCloseBtnGlobal<string>
                                     inputState={inputTotalPriceEdit}
                                     setInputState={setInputTotalPriceEdit}
                                     onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
@@ -4214,11 +4290,42 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                       </div>
                       {/*  */}
 
-                      {/* 値引価格・値引率 */}
+                      {/* 値引金額・値引率 */}
                       <div className={`${styles.row_area} flex w-full items-center`}>
                         <div className="flex h-full w-1/2 flex-col pr-[20px]">
                           <div className={`${styles.title_box} flex h-full items-center `}>
-                            <span className={`${styles.title} text-[12px]`}>値引価格</span>
+                            {/* <span className={`${styles.title} text-[12px]`}>値引金額</span> */}
+                            <div
+                              className={`${styles.title} flex items-center`}
+                              onMouseEnter={(e) => {
+                                if (
+                                  infoIconDiscountRef.current &&
+                                  infoIconDiscountRef.current.classList.contains(styles.animate_ping)
+                                ) {
+                                  infoIconDiscountRef.current.classList.remove(styles.animate_ping);
+                                }
+                                handleOpenTooltip({
+                                  e: e,
+                                  display: "top",
+                                  content: `円単位で値引金額を入力します`,
+                                  content2: `20万円と入力しても自動で円単位に補完されます`,
+                                  // content3: `1日に99万9999件まで採番が可能です。`,
+                                  marginTop: 28,
+                                  itemsPosition: "center",
+                                });
+                              }}
+                              onMouseLeave={handleCloseTooltip}
+                            >
+                              <span className={`mr-[6px]`}>値引金額</span>
+                              <div className="flex-center relative h-[15px] w-[15px] rounded-full">
+                                <div
+                                  ref={infoIconDiscountRef}
+                                  className={`flex-center absolute left-0 top-0 h-[15px] w-[15px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
+                                ></div>
+                                <ImInfo className={`min-h-[15px] min-w-[15px] text-[var(--color-bg-brand-f)]`} />
+                              </div>
+                            </div>
+
                             {!searchMode && isEditModeField !== "discount_amount" && !isInsertModeQuotation && (
                               <span
                                 className={`${styles.value} ${styles.editable_field}`}
@@ -4260,21 +4367,89 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 <input
                                   type="text"
                                   // placeholder="例：600万円 → 6000000　※半角で入力"
-                                  className={`${styles.input_box} ${styles.upsert}`}
+                                  className={`${styles.input_box} ${styles.upsert} ${
+                                    selectedProductsArray?.length === 0 ? `${styles.uneditable_field}` : ``
+                                  }`}
                                   // onCompositionStart={() => setIsComposing(true)}
                                   // onCompositionEnd={() => setIsComposing(false)}
                                   value={
                                     checkNotFalsyExcludeZero(inputDiscountAmountEdit) ? inputDiscountAmountEdit : ""
                                   }
-                                  onChange={(e) => setInputDiscountAmountEdit(e.target.value)}
+                                  onChange={(e) => {
+                                    // 商品リストが0の場合は先に商品を追加するように案内
+                                    if (selectedProductsArray?.length === 0) {
+                                      return alert("先に見積商品を追加してください。");
+                                    }
+                                    setInputDiscountAmountEdit(e.target.value);
+                                  }}
+                                  onFocus={() => {
+                                    // 商品リストが存在しない、または、値引金額が0以外のfalsyならリターン
+                                    if (
+                                      selectedProductsArray?.length === 0 ||
+                                      !checkNotFalsyExcludeZero(inputDiscountAmountEdit)
+                                    ) {
+                                      return;
+                                    }
+                                    // フォーカス時は数字と小数点以外除去
+                                    setInputDiscountAmountEdit(inputDiscountAmountEdit.replace(/[^\d.]/g, ""));
+                                  }}
+                                  // onBlur={() => {
+                                  //   setInputDiscountAmountEdit(
+                                  //     !!inputDiscountAmountEdit &&
+                                  //       inputDiscountAmountEdit !== "" &&
+                                  //       convertToYen(inputDiscountAmountEdit.trim()) !== null
+                                  //       ? (convertToYen(inputDiscountAmountEdit.trim()) as number).toLocaleString()
+                                  //       : ""
+                                  //   );
+                                  // }}
                                   onBlur={() => {
-                                    setInputDiscountAmountEdit(
-                                      !!inputDiscountAmountEdit &&
-                                        inputDiscountAmountEdit !== "" &&
-                                        convertToYen(inputDiscountAmountEdit.trim()) !== null
-                                        ? (convertToYen(inputDiscountAmountEdit.trim()) as number).toLocaleString()
-                                        : ""
+                                    // 現在の価格合計
+                                    const replacedTotalPrice = inputTotalPriceEdit.replace(/[^\d.]/g, "");
+                                    // 商品リストが存在しない場合、価格合計が空文字の場合はリターンする
+                                    if (
+                                      selectedProductsArray?.length === 0 ||
+                                      !checkNotFalsyExcludeZero(replacedTotalPrice)
+                                    ) {
+                                      return;
+                                    }
+                                    // 新たな値引金額
+                                    const convertedDiscountPrice = checkNotFalsyExcludeZero(inputDiscountAmountEdit)
+                                      ? convertToYen(inputDiscountAmountEdit.trim())
+                                      : null;
+                                    // 値引金額が合計金額を超えてたら値引金額と値引率を0にして合計金額を価格合計に合わせる
+                                    if (Number(replacedTotalPrice || 0) < Number(convertedDiscountPrice || 0)) {
+                                      setInputTotalAmountEdit(inputTotalPriceEdit);
+                                      setInputDiscountAmountEdit("0");
+                                      setInputDiscountRateEdit("0");
+                                      return;
+                                    }
+                                    const newFormatDiscountAmount = formatDisplayPrice(convertedDiscountPrice || 0);
+                                    setInputDiscountAmountEdit(newFormatDiscountAmount);
+
+                                    // 合計金額を算出して更新
+                                    const newTotalAmount = calculateTotalAmount(
+                                      Number(replacedTotalPrice),
+                                      Number(convertedDiscountPrice) || 0,
+                                      language === "ja" ? 0 : 2
                                     );
+                                    setInputTotalAmountEdit(newTotalAmount);
+
+                                    // 値引率も同時に計算して更新する
+                                    const result = calculateDiscountRate({
+                                      salesPriceStr: inputTotalPriceEdit,
+                                      discountPriceStr: (convertedDiscountPrice || 0).toString(),
+                                      salesQuantityStr: "1",
+                                      showPercentSign: false,
+                                      decimalPlace: 2,
+                                    });
+                                    if (result.error) {
+                                      toast.error(`エラー：${result.error}🙇‍♀️`);
+                                      console.error("エラー：値引率の取得に失敗", result.error);
+                                      setInputDiscountRateEdit("");
+                                    } else if (result.discountRate) {
+                                      const newDiscountRate = result.discountRate;
+                                      setInputDiscountRateEdit(newDiscountRate);
+                                    }
                                   }}
                                 />
                               </>
@@ -4321,7 +4496,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 />
                                 {/* 送信ボタンとクローズボタン */}
                                 {!updateQuotationFieldMutation.isLoading && (
-                                  <InputSendAndCloseBtn<string>
+                                  <InputSendAndCloseBtnGlobal<string>
                                     inputState={inputDiscountAmountEdit}
                                     setInputState={setInputDiscountAmountEdit}
                                     onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
@@ -4388,7 +4563,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             {/* ----------------- upsert ----------------- */}
                             {!searchMode && isInsertModeQuotation && (
                               <span className={`${styles.value}`}>
-                                {inputDiscountRateEdit ? inputDiscountRateEdit.toLocaleString() : ""}
+                                {inputDiscountRateEdit
+                                  ? convertHalfWidthRoundNumOnly(inputDiscountRateEdit, 2) + "%"
+                                  : ""}
                               </span>
                             )}
                             {/* ----------------- upsert ----------------- */}
@@ -4439,7 +4616,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             {/* ----------------- upsert ----------------- */}
                             {!searchMode && isInsertModeQuotation && (
                               <span className={`${styles.value}`}>
-                                {inputTotalAmountEdit ? inputTotalAmountEdit.toLocaleString() : ""}
+                                {inputTotalAmountEdit ? formatDisplayPrice(inputTotalAmountEdit) : ""}
                               </span>
                             )}
                             {/* ----------------- upsert ----------------- */}
@@ -4487,7 +4664,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 />
                                 {/* 送信ボタンとクローズボタン */}
                                 {!updateQuotationFieldMutation.isLoading && (
-                                  <InputSendAndCloseBtn<string>
+                                  <InputSendAndCloseBtnGlobal<string>
                                     inputState={inputTotalAmountEdit}
                                     setInputState={setInputTotalAmountEdit}
                                     onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
