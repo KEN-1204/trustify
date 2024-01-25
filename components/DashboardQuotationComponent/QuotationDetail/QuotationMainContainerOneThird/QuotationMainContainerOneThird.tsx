@@ -155,6 +155,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const setIsEditingCell = useDashboardStore((state) => state.setIsEditingCell);
   // 値引金額説明アイコン 既読ならクラスを外す
   const infoIconDiscountRef = useRef<HTMLDivElement | null>(null);
+  const infoIconTotalPriceRef = useRef<HTMLDivElement | null>(null);
+  const infoIconDiscountRateRef = useRef<HTMLDivElement | null>(null);
 
   // const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
@@ -285,6 +287,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const [inputLeasePeriodEdit, setInputLeasePeriodEdit] = useState<string>("");
   const [inputLeaseRateEdit, setInputLeaseRateEdit] = useState<string>("");
   const [inputLeaseMonthlyFeeEdit, setInputLeaseMonthlyFeeEdit] = useState("");
+
   //  印鑑フィールドエディット
   // const [inputInChargeStampIdEdit, setInputInChargeStampIdEdit] = useState("");
   // const [inputInChargeNameIdEdit, setInputInChargeNameIdEdit] = useState("");
@@ -1513,28 +1516,28 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       setInputTotalPriceEdit(newTotalPrice);
       // 合計金額 = 価格合計 - 値引金額
       // 値引価格の数字と小数点以外は除去
-      const formatDiscountAmount = inputDiscountAmountEdit.replace(/[^\d.]/g, "");
+      const replacedDiscountAmount = inputDiscountAmountEdit.replace(/[^\d.]/g, "");
       const newTotalAmount = calculateTotalAmount(
         Number(newTotalPrice),
-        Number(formatDiscountAmount) || 0,
+        Number(replacedDiscountAmount) || 0,
         language === "ja" ? 0 : 2
       );
       setInputTotalAmountEdit(newTotalAmount);
       // 商品リストが1以上で値引額がまだ未入力の場合は、値引額と値引率を0に更新
       const zeroStr = formatDisplayPrice(0);
-      if (formatDiscountAmount === "") {
+      if (replacedDiscountAmount === "") {
         setInputDiscountAmountEdit(zeroStr);
         setInputDiscountRateEdit("0");
       }
-      if (formatDiscountAmount === "0" && inputDiscountRateEdit !== "0") {
+      if (replacedDiscountAmount === "0" && inputDiscountRateEdit !== "0") {
         setInputDiscountRateEdit("0");
       }
-      // 合計金額と値引金額が共に0以上なら値引率を再計算
-      if (Number(newTotalAmount) > 0 && Number(formatDiscountAmount) > 0) {
+      // 🔹値引率 合計金額と値引金額が共に0以上なら値引率を再計算
+      if (Number(newTotalPrice) > 0 && Number(replacedDiscountAmount) > 0) {
         // 値引価格の数字と小数点以外は除去
         const result = calculateDiscountRate({
-          salesPriceStr: newTotalAmount,
-          discountPriceStr: formatDiscountAmount.replace(/[^\d.]/g, "") || "0",
+          salesPriceStr: newTotalPrice,
+          discountPriceStr: replacedDiscountAmount.replace(/[^\d.]/g, "") || "0",
           salesQuantityStr: "1",
           showPercentSign: false,
           decimalPlace: 2,
@@ -1557,8 +1560,17 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     "selectedRowDataQuotation",
     selectedRowDataQuotation,
     "newSearchQuotation_Contact_CompanyParams",
-    newSearchQuotation_Contact_CompanyParams
+    newSearchQuotation_Contact_CompanyParams,
+    "価格合計inputTotalPriceEdit",
+    inputTotalPriceEdit,
+    "値引金額inputDiscountAmountEdit",
+    inputDiscountAmountEdit,
+    "合計金額inputTotalAmountEdit",
+    inputTotalAmountEdit,
+    "値引率inputDiscountRateEdit",
+    inputDiscountRateEdit
   );
+
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
   return (
     <>
@@ -4039,7 +4051,38 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                       <div className={`${styles.row_area} flex w-full items-center`}>
                         <div className="flex h-full w-1/2 flex-col pr-[20px]">
                           <div className={`${styles.title_box} flex h-full items-center `}>
-                            <span className={`${styles.title} text-[12px]`}>価格合計</span>
+                            {/* <span className={`${styles.title} text-[12px]`}>価格合計</span> */}
+                            <div
+                              className={`${styles.title} flex items-center`}
+                              onMouseEnter={(e) => {
+                                if (
+                                  infoIconTotalPriceRef.current &&
+                                  infoIconTotalPriceRef.current.classList.contains(styles.animate_ping)
+                                ) {
+                                  infoIconTotalPriceRef.current.classList.remove(styles.animate_ping);
+                                }
+                                handleOpenTooltip({
+                                  e: e,
+                                  display: "top",
+                                  content: `価格合計は見積商品リストに商品を追加することで自動で計算されます`,
+                                  content2: `以下の「見積商品リスト」の追加ボタンから商品の追加が可能です`,
+                                  // content3: `ex) 入力: 20万円 -> 出力: 200000`,
+                                  marginTop: 28,
+                                  itemsPosition: "center",
+                                });
+                              }}
+                              onMouseLeave={handleCloseTooltip}
+                            >
+                              <span className={`mr-[6px]`}>価格合計</span>
+                              <div className="flex-center relative h-[15px] w-[15px] rounded-full">
+                                <div
+                                  ref={infoIconTotalPriceRef}
+                                  className={`flex-center absolute left-0 top-0 h-[15px] w-[15px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
+                                ></div>
+                                <ImInfo className={`min-h-[15px] min-w-[15px] text-[var(--color-bg-brand-f)]`} />
+                              </div>
+                            </div>
+
                             {!searchMode && isEditModeField !== "total_price" && !isInsertModeQuotation && (
                               <span
                                 className={`${styles.value} ${styles.editable_field}`}
@@ -4308,8 +4351,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   e: e,
                                   display: "top",
                                   content: `円単位で値引金額を入力します`,
-                                  content2: `20万円と入力しても自動で円単位に補完されます`,
-                                  // content3: `1日に99万9999件まで採番が可能です。`,
+                                  content2: `万円単位で入力しても自動で円単位に補完されます`,
+                                  content3: `ex) 入力: 20万円 -> 出力: 200000`,
                                   marginTop: 28,
                                   itemsPosition: "center",
                                 });
@@ -4543,7 +4586,38 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         </div>
                         <div className="flex h-full w-1/2 flex-col pr-[20px]">
                           <div className={`${styles.title_box} flex h-full items-center`}>
-                            <span className={`${styles.title} text-[12px]`}>値引率</span>
+                            {/* <span className={`${styles.title} text-[12px]`}>値引率</span> */}
+                            <div
+                              className={`${styles.title} flex items-center`}
+                              onMouseEnter={(e) => {
+                                if (
+                                  infoIconDiscountRateRef.current &&
+                                  infoIconDiscountRateRef.current.classList.contains(styles.animate_ping)
+                                ) {
+                                  infoIconDiscountRateRef.current.classList.remove(styles.animate_ping);
+                                }
+                                handleOpenTooltip({
+                                  e: e,
+                                  display: "top",
+                                  content: `価格合計と値引金額を入力することで`,
+                                  content2: `値引率は自動で算出されます`,
+                                  // content3: `ex) 入力: 20万円 -> 出力: 200000`,
+                                  marginTop: 28,
+                                  itemsPosition: "center",
+                                });
+                              }}
+                              onMouseLeave={handleCloseTooltip}
+                            >
+                              <span className={`mr-[6px]`}>値引率</span>
+                              <div className="flex-center relative h-[15px] w-[15px] rounded-full">
+                                <div
+                                  ref={infoIconDiscountRateRef}
+                                  className={`flex-center absolute left-0 top-0 h-[15px] w-[15px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
+                                ></div>
+                                <ImInfo className={`min-h-[15px] min-w-[15px] text-[var(--color-bg-brand-f)]`} />
+                              </div>
+                            </div>
+
                             {!searchMode && (
                               <span
                                 className={`${styles.value}`}
@@ -6938,7 +7012,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                 <div className={`${styles.row_area} flex w-full items-center`}>
                   <div className="flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
-                      <span className={`${styles.section_title} mr-[20px]`}>見積商品</span>
+                      <span className={`${styles.section_title} mr-[20px]`}>見積商品リスト</span>
                       <div className="flex w-full items-center space-x-[10px]">
                         <RippleButton
                           title={`追加`}

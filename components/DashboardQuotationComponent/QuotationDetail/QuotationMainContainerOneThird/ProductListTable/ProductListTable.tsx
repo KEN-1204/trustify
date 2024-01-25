@@ -517,22 +517,22 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
           (fieldName === "quotation_product_quantity" && _newQuantity !== originalValue) ||
           (fieldName === "quotation_unit_price" && _newPrice !== Number(originalValue))
         ) {
-          // 価格合計
+          // 🔹価格合計
           const newTotalPrice = calculateTotalPriceProducts(updatedArray, language === "ja" ? 0 : 2);
           setInputTotalPriceEdit(newTotalPrice);
-          // 合計金額 = 価格合計 - 値引金額
+          // 🔹合計金額 = 価格合計 - 値引金額
           // 値引価格の数字と小数点以外は除去
-          const formatDiscountAmount = inputDiscountAmountEdit.replace(/[^\d.]/g, "");
+          const replacedDiscountAmount = inputDiscountAmountEdit.replace(/[^\d.]/g, "");
           const newTotalAmount = calculateTotalAmount(
             Number(newTotalPrice),
-            Number(formatDiscountAmount) || 0,
+            Number(replacedDiscountAmount) || 0,
             language === "ja" ? 0 : 2
           );
           setInputTotalAmountEdit(newTotalAmount);
-          // 値引率
+          // 🔹値引率
           const result = calculateDiscountRate({
-            salesPriceStr: newTotalAmount,
-            discountPriceStr: formatDiscountAmount || "0",
+            salesPriceStr: newTotalPrice,
+            discountPriceStr: replacedDiscountAmount || "0",
             salesQuantityStr: "1",
             showPercentSign: false,
             decimalPlace: 2,
