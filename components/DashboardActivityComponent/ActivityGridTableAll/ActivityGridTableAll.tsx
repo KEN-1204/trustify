@@ -409,7 +409,7 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
 
       // ユーザーIDが自身のIDと一致するデータのみ 成功
       // const { data, error } = await supabase
-      //   .rpc("search_companies_and_contacts", { params })
+      //   .rpc("", { params })
       //   .eq("created_by_user_id", `${userProfileState?.id}`)
       //   .range(0, 20);
 
@@ -643,7 +643,7 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
 
       // // ユーザーIDが自身のIDと一致するデータのみ 成功
       // // const { data, error } = await supabase
-      // //   .rpc("search_companies_and_contacts", { params })
+      // //   .rpc("", { params })
       // //   .eq("created_by_user_id", `${userProfileState?.id}`)
       // //   .range(0, 20);
       // ------------------------------- ✅成功 切り替え無し✅ -------------------------------

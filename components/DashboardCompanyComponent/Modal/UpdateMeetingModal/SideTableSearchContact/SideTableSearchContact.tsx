@@ -4,7 +4,7 @@ import { Dispatch, FormEvent, SetStateAction, memo, useCallback, useEffect, useR
 import { BsChevronRight } from "react-icons/bs";
 import { MdOutlineDataSaverOff } from "react-icons/md";
 import styles from "../UpdateMeetingModal.module.css";
-import { AttendeeInfo, Contact_row_data } from "@/types";
+import { AttendeeInfo, Contact_row_data, Destination } from "@/types";
 import { useMedia } from "react-use";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import useDashboardStore from "@/store/useDashboardStore";
@@ -18,20 +18,16 @@ import { ImInfo } from "react-icons/im";
 import { toast } from "react-toastify";
 
 type Props = {
-  isOpenSearchAttendeesSideTable: boolean;
-  setIsOpenSearchAttendeesSideTable: Dispatch<SetStateAction<boolean>>;
-  // searchAttendeeFields: {
-  //   title: string;
-  //   inputValue: string;
-  //   setInputValue: React.Dispatch<React.SetStateAction<string>>;
-  // }[];
-  // selectedAttendeesArray: Contact_row_data[];
-  // setSelectedAttendeesArray: Dispatch<SetStateAction<Contact_row_data[]>>;
-  selectedAttendeesArray: AttendeeInfo[];
-  setSelectedAttendeesArray: Dispatch<SetStateAction<AttendeeInfo[]>>;
+  isOpenSearchSideTable: boolean;
+  setIsOpenSearchSideTable: Dispatch<SetStateAction<boolean>>;
+  isOpenSearchSideTableBefore: boolean;
+  setIsOpenSearchSideTableBefore: Dispatch<SetStateAction<boolean>>;
+  selectedContactObj: Destination;
+  setSelectedContactObj: Dispatch<SetStateAction<Destination>>;
+  searchTitle: string;
 };
 
-type SearchAttendeesParams = {
+type SearchParams = {
   "client_companies.name": string | null;
   "client_companies.department_name": string | null;
   "contacts.name": string | null;
@@ -43,12 +39,14 @@ type SearchAttendeesParams = {
   address: string | null;
 };
 
-export const SideTableSearchAttendeesMemo = ({
-  isOpenSearchAttendeesSideTable,
-  setIsOpenSearchAttendeesSideTable,
-  // searchAttendeeFields,
-  selectedAttendeesArray,
-  setSelectedAttendeesArray,
+export const SideTableSearchContactMemo = ({
+  isOpenSearchSideTable,
+  setIsOpenSearchSideTable,
+  isOpenSearchSideTableBefore,
+  setIsOpenSearchSideTableBefore,
+  selectedContactObj,
+  setSelectedContactObj,
+  searchTitle,
 }: Props) => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   // 説明アイコンホバーで非アクティブ化
@@ -61,8 +59,8 @@ export const SideTableSearchAttendeesMemo = ({
     setIsDesktopGTE1600(isDesktopGTE1600Media);
   }, [isDesktopGTE1600Media]);
 
-  // 同席者検索時のparams
-  const [searchAttendeesParams, setSearchAttendeesParams] = useState<SearchAttendeesParams>({
+  // 担当者検索時のparams
+  const [searchParams, setSearchParams] = useState<SearchParams>({
     "client_companies.name": null,
     "client_companies.department_name": null,
     "contacts.name": null,
@@ -74,7 +72,7 @@ export const SideTableSearchAttendeesMemo = ({
     address: null,
   });
 
-  // 同席者検索フィールド用input
+  // 担当者検索フィールド用input
   const [searchInputCompany, setSearchInputCompany] = useState(""); //会社名
   const [searchInputDepartment, setSearchInputDepartment] = useState(""); //部署名
   const [searchInputContact, setSearchInputContact] = useState(""); //担当者名
@@ -84,9 +82,23 @@ export const SideTableSearchAttendeesMemo = ({
   const [searchInputCompanyCellPhone, setSearchInputCompanyCellPhone] = useState(""); //社用携帯
   const [searchInputEmail, setSearchInputEmail] = useState(""); //Email
   const [searchInputAddress, setSearchInputAddress] = useState(""); //住所
-  // モーダルの同席者カードに追加前のテーブル内で選択中の同席者オブジェクトを保持するstate
-  // const [selectedSearchAttendeesArray, setSelectedSearchAttendeesArray] = useState<Contact_row_data[]>([]);
-  const [selectedSearchAttendeesArray, setSelectedSearchAttendeesArray] = useState<AttendeeInfo[]>([]);
+  // モーダルの担当者カードに追加前のテーブル内で選択中の担当者オブジェクトを保持するstate
+  const initialDestinationObj = {
+    // 送付先会社
+    destination_company_id: null,
+    destination_company_name: null,
+    destination_company_department_name: null,
+    destination_company_zipcode: null,
+    destination_company_address: null,
+    // 送付先担当者
+    destination_contact_id: null,
+    destination_contact_name: null,
+    destination_contact_direct_line: null,
+    destination_contact_direct_fax: null,
+    destination_contact_email: null,
+  };
+  const [prevDestination, setPrevDestination] = useState<Destination>(selectedContactObj);
+  const [selectedSearchDestination, setSelectedSearchDestination] = useState<Destination | null>(null);
 
   const searchAttendeeFields = [
     {
@@ -170,7 +182,7 @@ export const SideTableSearchAttendeesMemo = ({
       ].every((value) => value === "")
     ) {
       return alert(
-        "少なくとも一つの項目は条件を入力してください。条件を入力して検索することで効率的に目的の同席者を見つけ出すことができます。"
+        "少なくとも一つの項目は条件を入力してください。条件を入力して検索することで効率的に目的の担当者を見つけ出すことができます。"
       );
     }
 
@@ -189,20 +201,20 @@ export const SideTableSearchAttendeesMemo = ({
 
     // 現在の入力値と同じかチェック
     // if (
-    //   params["client_companies.name"] === searchAttendeesParams["client_companies.name"] &&
-    //   params.department_name === searchAttendeesParams.department_name &&
-    //   params["contacts.name"] === searchAttendeesParams["contacts.name"] &&
-    //   params.position_name === searchAttendeesParams.position_name &&
-    //   params.main_phone_number === searchAttendeesParams.main_phone_number &&
-    //   params.direct_line === searchAttendeesParams.direct_line &&
-    //   params.company_cell_phone === searchAttendeesParams.company_cell_phone &&
-    //   params["contacts.email"] === searchAttendeesParams["contacts.email"] &&
-    //   params.address === searchAttendeesParams.address
+    //   params["client_companies.name"] === searchParams["client_companies.name"] &&
+    //   params.department_name === searchParams.department_name &&
+    //   params["contacts.name"] === searchParams["contacts.name"] &&
+    //   params.position_name === searchParams.position_name &&
+    //   params.main_phone_number === searchParams.main_phone_number &&
+    //   params.direct_line === searchParams.direct_line &&
+    //   params.company_cell_phone === searchParams.company_cell_phone &&
+    //   params["contacts.email"] === searchParams["contacts.email"] &&
+    //   params.address === searchParams.address
     // ) {
     //   return console.log("✅params同じためリターン");
     // }
 
-    setSearchAttendeesParams(params);
+    setSearchParams(params);
   };
   // ------------- ✅検索ボタンクリックかエンターでonSubmitイベント発火✅ -------------
 
@@ -224,7 +236,7 @@ export const SideTableSearchAttendeesMemo = ({
     }
 
     // 条件の値が全てnullなら、つまり何も入力せず検索されるか初回マウント時はnullを返す。
-    if (Object.values(searchAttendeesParams).every((value) => value === null)) {
+    if (Object.values(searchParams).every((value) => value === null)) {
       let rows: null = null;
       const isLastPage = rows === null;
       let count: null = null;
@@ -236,7 +248,7 @@ export const SideTableSearchAttendeesMemo = ({
     const from = offset * limit;
     const to = from + limit - 1;
 
-    let params = searchAttendeesParams;
+    let params = searchParams;
 
     // 会社名、部署名で並び替え
     const {
@@ -270,22 +282,22 @@ export const SideTableSearchAttendeesMemo = ({
 
   // ------------------- 🌟queryKeyの生成🌟 -------------------
   const queryKeySearchParamsStringRef = useRef<string | null>(null);
-  console.log("キャッシュに割り当てるparamsキー searchAttendeesParams", searchAttendeesParams);
-  if (searchAttendeesParams) {
-    // queryKeySearchParamsStringRef.current = Object.entries(searchAttendeesParams)
+  console.log("キャッシュに割り当てるparamsキー searchParams", searchParams);
+  if (searchParams) {
+    // queryKeySearchParamsStringRef.current = Object.entries(searchParams)
     //   .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
     //   .map(([key, value]) => `${key}:${value === null ? `null` : `${value}`}`)
     //   .join(", ");
     queryKeySearchParamsStringRef.current = [
-      ["client_companies.name", searchAttendeesParams["client_companies.name"]],
-      ["client_companies.department_name", searchAttendeesParams["client_companies.department_name"]],
-      ["contacts.name", searchAttendeesParams["contacts.name"]],
-      ["position_name", searchAttendeesParams["position_name"]],
-      ["main_phone_number", searchAttendeesParams["main_phone_number"]],
-      ["direct_line", searchAttendeesParams["direct_line"]],
-      ["company_cell_phone", searchAttendeesParams["company_cell_phone"]],
-      ["contacts.email", searchAttendeesParams["contacts.email"]],
-      ["address", searchAttendeesParams["address"]],
+      ["client_companies.name", searchParams["client_companies.name"]],
+      ["client_companies.department_name", searchParams["client_companies.department_name"]],
+      ["contacts.name", searchParams["contacts.name"]],
+      ["position_name", searchParams["position_name"]],
+      ["main_phone_number", searchParams["main_phone_number"]],
+      ["direct_line", searchParams["direct_line"]],
+      ["company_cell_phone", searchParams["company_cell_phone"]],
+      ["contacts.email", searchParams["contacts.email"]],
+      ["address", searchParams["address"]],
     ]
       .map(([key, value]) => `${key}:${value === null ? `null` : `${value}`}`)
       .join(", ");
@@ -307,7 +319,7 @@ export const SideTableSearchAttendeesMemo = ({
     queryKey: ["attendees", queryKeySearchParamsStringRef.current],
     // queryKey: ["contacts"],
     queryFn: async (ctx) => {
-      console.log("サーチフェッチ同席者 queryFn✅✅✅ searchAttendeesParams", searchAttendeesParams);
+      console.log("サーチフェッチ担当者 queryFn✅✅✅ searchParams", searchParams);
       return fetchNewSearchServerPage(20, ctx.pageParam); // 20個ずつ取得
     },
     getNextPageParam: (lastGroup, allGroups) => {
@@ -338,7 +350,7 @@ export const SideTableSearchAttendeesMemo = ({
     )?.rows
       ? queryDataObj.pages.flatMap((d) => d?.rows)
       : [];
-  const attendeeRows = Rows.map((obj, index) => {
+  const contactRows = Rows.map((obj, index) => {
     return { index, ...obj };
   });
   const queryCount = queryDataObj?.pages[0].count; // 0: {rows: Array(9), nextOffset: 1, isLastPage: true, count: 9}
@@ -353,70 +365,48 @@ export const SideTableSearchAttendeesMemo = ({
     isLastPage,
     "hasNextPage",
     hasNextPage,
-    "attendeeRows",
-    attendeeRows,
-    "selectedSearchAttendeesArray",
-    selectedSearchAttendeesArray,
-    "searchAttendeesParams",
-    searchAttendeesParams,
-    "selectedAttendeesArray",
-    selectedAttendeesArray
+    "contactRows",
+    contactRows,
+    "selectedSearchDestination",
+    selectedSearchDestination,
+    "searchParams",
+    searchParams,
+    "selectedContactObj",
+    selectedContactObj
   );
   // -------------------------- ✅useInfiniteQuery無限スクロール✅ --------------------------
 
-  // -------------------------- 🌟追加ボタンをクリック 同席者リストに追加🌟 --------------------------
-  const handleAddAttendeesList = () => {
-    if (!selectedSearchAttendeesArray || selectedSearchAttendeesArray.length === 0) return;
-    // 既に同席者リストに選択中のリストが含まれているかチェックして含まれている場合はリターンする
-    // 配列同士の配列内のオブジェクトで一致するオブジェクトがあるかをチェックするために
-    // new Setオブジェクトとhasメソッドのハッシュテーブルでのチェック
-    // 1. 選択中担当者リストから担当者idのみを取り出した配列をnew SetでSetオブジェクトを生成
-    // const selectedSearchAttendeesSetObj = new Set(selectedSearchAttendeesArray.map((attendee) => attendee.contact_id));
-    const selectedSearchAttendeesSetObj = new Set(selectedSearchAttendeesArray.map((attendee) => attendee.attendee_id));
-    // 2. 同席者リストをsomeで一つずつ担当者オブジェクトを取り出し、obj.idがハッシュテーブルに含まれているかチェック
-    const foundAttendee = selectedAttendeesArray.find((attendee) =>
-      // selectedSearchAttendeesSetObj.has(attendee.contact_id)
-      selectedSearchAttendeesSetObj.has(attendee.attendee_id)
-    );
-    // 3. 既に選択してる担当者が一人でも同席者リストに存在する場合アラートを出してリターン(undefined以外ならリターン)
-    if (foundAttendee) {
-      // alert(
-      //   `${
-      //     foundAttendee.company_name && foundAttendee.contact_name
-      //       ? `「${foundAttendee.company_name} ${foundAttendee.contact_name} 様」は既に同席者リストに含まれています。既に同席者リストに含まれている担当者は追加できません。`
-      //       : `既に同席者リストに含まれています。既に同席者リストに含まれている担当者は追加できません。`
-      //   }`
-      // );
-      alert(
-        `${
-          foundAttendee.attendee_company && foundAttendee.attendee_name
-            ? `「${foundAttendee.attendee_company} ${foundAttendee.attendee_name} 様」は既に同席者リストに含まれています。既に同席者リストに含まれている担当者は追加できません。`
-            : `既に同席者リストに含まれています。既に同席者リストに含まれている担当者は追加できません。`
-        }`
-      );
-      return;
-    } else {
-      // 同席者リストに一人も含まれていない場合はリストに追加
-      const newAttendeesList = [...selectedAttendeesArray, ...selectedSearchAttendeesArray];
-      // 同席者リストの追加は20人までに一旦区切る
-      // if (newAttendeesList.length >= 20 && userProfileState?.subscription_plan !== 'premium_plan') {
-      //   return toast.error(`20人以上の同席者リストへの追加はプレミアムプラン未満では制限されています。`)
-      // }
-      if (newAttendeesList.length >= 20) {
-        return toast.error(
-          `20人以上の同席者リストへの追加は現在制限されています。制限の解除が必要な場合はサポートからご要望をお願い致します。`
-        );
-      }
-      setSelectedAttendeesArray(newAttendeesList);
+  // -------------------------- 🌟変更ボタンをクリック 担当者リストに追加🌟 --------------------------
+  const handleChangeContact = () => {
+    if (!selectedSearchDestination) return;
 
-      // 追加が完了したら選択中のリスト配列をリセットする
-      setSelectedSearchAttendeesArray([]);
+    const result = selectedSearchDestination.destination_contact_id === prevDestination.destination_contact_id;
+
+    // 現在の同じ担当者と同じ場合はリターン
+    if (result) {
+      alert(`同じ担当者です。`);
+      return;
+    }
+    // 現在の担当者と違う場合は変更する
+    else {
+      setSelectedContactObj(selectedSearchDestination);
+
+      // 変更が完了したら選択中のstateを元々のstateにリセットする
+      setSelectedSearchDestination(null);
+
+      // サイドテーブルを閉じる
+      setIsOpenSearchSideTable(false);
+      if (isOpenSearchSideTableBefore && setIsOpenSearchSideTableBefore) {
+        setTimeout(() => {
+          setIsOpenSearchSideTableBefore(false);
+        }, 300);
+      }
     }
   };
-  // -------------------------- 🌟追加ボタンをクリック 同席者リストに追加🌟 --------------------------
+  // -------------------------- ✅変更ボタンをクリック 担当者リストに追加✅ --------------------------
 
   // -------------------------- 🌟スクロールでヘッダー色変更🌟 --------------------------
-  // サイドテーブルの同席者一覧エリアのスクロールアイテムRef
+  // サイドテーブルの担当者一覧エリアのスクロールアイテムRef
   const sideTableScrollHeaderRef = useRef<HTMLDivElement | null>(null);
   const sideTableScrollContainerRef = useRef<HTMLDivElement | null>(null);
   const sideTableScrollItemRef = useRef<HTMLDivElement | null>(null);
@@ -438,6 +428,8 @@ export const SideTableSearchAttendeesMemo = ({
       console.log("✅useEffect remove");
     }
   }, []);
+
+  // スクロールイベント監視
   useEffect(() => {
     if (!sideTableScrollContainerRef.current || !sideTableScrollItemRef.current) return;
     // 初期Y位置取得
@@ -528,29 +520,36 @@ export const SideTableSearchAttendeesMemo = ({
   // -------------------------- 🌟サイドテーブルを閉じる🌟 --------------------------
   const handleClose = () => {
     // 選択中のリスト配列をリセットする
-    setSelectedSearchAttendeesArray([]);
+    setSelectedSearchDestination(null);
+
     // サイドテーブルを閉じる
-    setIsOpenSearchAttendeesSideTable(false);
+    setIsOpenSearchSideTable(false);
+    if (isOpenSearchSideTableBefore && setIsOpenSearchSideTableBefore) {
+      setTimeout(() => {
+        setIsOpenSearchSideTableBefore(false);
+      }, 300);
+    }
   };
   // -------------------------- ✅サイドテーブルを閉じる✅ --------------------------
+
+  console.log(
+    '["destination"].includes(searchTitle)',
+    ["destination"].includes(searchTitle),
+    "searchTitle",
+    searchTitle
+  );
 
   return (
     <>
       {/* オーバーレイ */}
-      {isOpenSearchAttendeesSideTable && (
-        <div
-          // className={`absolute left-0 top-0 z-[1100] h-full w-full bg-[#00800030]`}
-          className={`absolute left-0 top-0 z-[1100] h-full w-full bg-[#00000000]`}
-          onClick={handleClose}
-        ></div>
+      {isOpenSearchSideTable && (
+        <div className={`absolute left-0 top-0 z-[1100] h-full w-full bg-[#00000000]`} onClick={handleClose}></div>
       )}
       {/* サイドテーブル */}
       <div
         ref={modalContainerRef}
         className={`${styles.side_table} z-[1200] pt-[30px] ${
-          isOpenSearchAttendeesSideTable
-            ? `${styles.active} transition-transform02 !delay-[0.1s]`
-            : `transition-transform01`
+          isOpenSearchSideTable ? `${styles.active} transition-transform02 !delay-[0.1s]` : `transition-transform01`
         }`}
       >
         {/* ツールチップ */}
@@ -560,22 +559,19 @@ export const SideTableSearchAttendeesMemo = ({
           <div className={`relative flex h-full w-full items-center justify-between`}>
             <h3 className="space-y-[1px] text-[22px] font-bold">
               <div className={`flex items-start space-x-[9px]`}>
-                <span>同席者を検索</span>
+                {["destination"].includes(searchTitle) && <span>送付先変更</span>}
+                {/* {[""].includes(searchTitle) && <span>担当者を検索</span>} */}
                 <span>{neonSearchIcon("30")}</span>
               </div>
               <div className="min-h-[1px] w-full bg-[var(--color-bg-brand-f)]"></div>
-              {/* <div className="brand-gradient-underline-light min-h-[1px] w-full"></div> */}
             </h3>
             <div
-              // className={`flex-center h-[36px] w-[36px] cursor-pointer rounded-full hover:bg-[#666]`}
               className={`z-1 flex-center absolute right-[-10px] top-[50%]  h-[36px] w-[36px] translate-y-[-50%] cursor-pointer rounded-full hover:bg-[#666]`}
               onClick={handleClose}
             >
-              {/* <BsChevronRight className="z-1 absolute left-[-15px] top-[50%] translate-y-[-50%] text-[24px]" /> */}
               <BsChevronRight className="text-[24px]" />
             </div>
           </div>
-          {/* <div className="min-h-[1px] w-full bg-[var(--color-bg-brand-f)]"></div> */}
         </div>
         {/* 条件入力エリア */}
         <form
@@ -583,12 +579,7 @@ export const SideTableSearchAttendeesMemo = ({
           onSubmit={handleSubmit}
           // onSubmit={(e) => console.log(e)}
         >
-          {/* <div
-          className="mt-[20px] h-full max-h-[33vh] w-full overflow-y-scroll bg-[#ffffff00] pb-[90px]"
-          // onSubmit={(e) => console.log(e)}
-        > */}
           <div className="flex h-auto w-full flex-col">
-            {/* <div className={`sticky top-0 min-h-[60px] w-full`}></div> */}
             <div className={`flex min-h-[30px] items-end justify-between px-[30px]`}>
               <h3 className="flex min-h-[30px] max-w-max items-end space-x-[10px] space-y-[1px] text-[14px] font-bold ">
                 <div
@@ -597,7 +588,7 @@ export const SideTableSearchAttendeesMemo = ({
                     handleOpenTooltip({
                       e: e,
                       display: "",
-                      content: `○同席者が所属する会社名や部署名など条件を入力して検索してください。\n例えば、会社名で「株式会社データベース」で会社住所が「"東京都大田区"」の「"佐藤"」という担当者を検索する場合は、「会社名」に「株式会社データベース」または「＊データベース＊」を入力し、「住所」に「東京都大田区※」と入力、担当者名に「＊佐藤＊」を入力してください。\n○「※ アスタリスク」は、「前方一致・後方一致・部分一致」を表します。\n例えば、会社名に「"工業"」と付く会社を検索したい場合に、「※工業※」、「"製作所"」と付く会社は「※製作所※」と検索することで、指定した文字が付くデータを検索可能です\n○「○項目を空欄のまま検索した場合は、その項目の「全てのデータ」を抽出します。\n○最低一つの項目は入力して検索してください。`,
+                      content: `○担当者が所属する会社名や部署名など条件を入力して検索してください。\n例えば、会社名で「株式会社データベース」で会社住所が「"東京都大田区"」の「"佐藤"」という担当者を検索する場合は、「会社名」に「株式会社データベース」または「＊データベース＊」を入力し、「住所」に「東京都大田区※」と入力、担当者名に「＊佐藤＊」を入力してください。\n○「※ アスタリスク」は、「前方一致・後方一致・部分一致」を表します。\n例えば、会社名に「"工業"」と付く会社を検索したい場合に、「※工業※」、「"製作所"」と付く会社は「※製作所※」と検索することで、指定した文字が付くデータを検索可能です\n○「○項目を空欄のまま検索した場合は、その項目の「全てのデータ」を抽出します。\n○最低一つの項目は入力して検索してください。`,
                       // content2: "600万円と入力しても円単位に自動補完されます。",
                       // marginTop: 57,
                       marginTop: 39,
@@ -610,20 +601,7 @@ export const SideTableSearchAttendeesMemo = ({
                   }}
                   onMouseLeave={handleCloseTooltip}
                 >
-                  <span>条件を入力して同席者を検索</span>
-                  {/* <div className="min-h-[1px] w-auto bg-[#999]"></div> */}
-                  {/* <RippleButton
-                    title={`検索`}
-                    bgColor="var(--color-bg-brand-f50)"
-                    bgColorHover="var(--color-btn-brand-f-hover)"
-                    classText={`select-none`}
-                    clickEventHandler={() => {
-                      // setIsOpenSettingInvitationModal(true);
-                    }}
-                  /> */}
-                  {/* <div className="pointer-events-none flex min-h-[30px] items-end pb-[2px]">
-                    <ImInfo className={`min-h-[18px] min-w-[18px] text-[var(--color-bg-brand-f)]`} />
-                  </div> */}
+                  {["destination"].includes(searchTitle) && <span>条件を入力して担当者を検索</span>}
                   <div className="pointer-events-none flex min-h-[30px] items-end pb-[2px]">
                     <div className="flex-center relative h-[18px] w-[18px] rounded-full">
                       <div
@@ -649,7 +627,6 @@ export const SideTableSearchAttendeesMemo = ({
                   <div
                     className={`${styles.icon_path_stroke} ${styles.search_icon_btn} flex-center transition-bg03`}
                     onMouseEnter={(e) => {
-                      // if (isOpenDropdownMenuFilterProducts) return;
                       handleOpenTooltip({
                         e: e,
                         display: "top",
@@ -666,17 +643,6 @@ export const SideTableSearchAttendeesMemo = ({
                       if (hoveredItemPosSideTable) handleCloseTooltip();
                     }}
                     onClick={() => {
-                      // [
-                      //   [searchInputCompany, setSearchInputCompany],
-                      //   [searchInputDepartment, setSearchInputDepartment],
-                      //   [searchInputContact, setSearchInputContact],
-                      //   [searchInputPositionName, setSearchInputPositionName],
-                      //   [searchInputTel, setSearchInputTel],
-                      //   [searchInputDirectLine, setSearchInputDirectLine],
-                      //   [searchInputCompanyCellPhone, setSearchInputCompanyCellPhone],
-                      //   [searchInputEmail, setSearchInputEmail],
-                      //   [searchInputAddress, setSearchInputAddress],
-                      // ].forEach(([state, setDispatch]) => !!state && setDispatch(""));
                       if (searchInputCompany) setSearchInputCompany("");
                       if (searchInputDepartment) setSearchInputDepartment("");
                       if (searchInputContact) setSearchInputContact("");
@@ -713,9 +679,6 @@ export const SideTableSearchAttendeesMemo = ({
                 />
               </div>
             </div>
-            {/* <ul className={`flex flex-col px-[1px] text-[13px] text-[var(--color-text-title)]`}>
-                <li className="px-[30px]"></li>
-              </ul> */}
             <ul className={`mt-[20px] flex flex-col text-[13px] text-[var(--color-text-title)]`}>
               {searchAttendeeFields.map((item, index) => (
                 <li
@@ -755,7 +718,6 @@ export const SideTableSearchAttendeesMemo = ({
         <hr className="my-[0px] min-h-[1px] w-full bg-[var(--color-bg-brand-f)]" />
 
         {/* 担当者一覧エリア */}
-        {/* <div className="h-[40vh] w-full bg-[#ffffff90] px-[30px] 2xl:px-[30px]"></div> */}
         <div
           ref={sideTableScrollContainerRef}
           className="flex h-full max-h-[calc(100vh-(30px+36px+20px+33vh+1px+0px))] w-full flex-col overflow-y-scroll bg-[#ffffff00] pb-[90px]"
@@ -764,16 +726,14 @@ export const SideTableSearchAttendeesMemo = ({
             <div
               ref={sideTableScrollHeaderRef}
               className={`sticky top-0 flex min-h-[30px] items-end justify-between px-[30px] pb-[18px] pt-[18px] ${styles.side_table_attendees_header}`}
-              // className={`sticky top-0 flex min-h-[30px] items-end justify-between bg-[var(--color-bg-brand-f-deep)] px-[30px] pb-[12px] pt-[12px]`}
             >
               <h3 className="flex min-h-[30px] max-w-max items-center space-x-[10px] space-y-[1px] text-[14px] font-bold">
-                <span>同席者を選択して追加</span>
-                {/* <div className="min-h-[1px] w-auto bg-[#999]"></div> */}
-                {selectedSearchAttendeesArray.length > 0 && (
+                {["destination"].includes(searchTitle) && <span>担当者を選択して追加</span>}
+                {selectedSearchDestination && (
                   <>
-                    <span className={`text-[11px] font-normal text-[#fff]`}>
+                    {/* <span className={`text-[11px] font-normal text-[#fff]`}>
                       {selectedSearchAttendeesArray.length}件選択中
-                    </span>
+                    </span> */}
                     <div
                       className={`${styles.icon_path_stroke} ${styles.icon_btn} flex-center transition-bg03`}
                       onMouseEnter={(e) => {
@@ -781,7 +741,7 @@ export const SideTableSearchAttendeesMemo = ({
                         handleOpenTooltip({
                           e: e,
                           display: "top",
-                          content: "選択中の同席者をリセット",
+                          content: "選択中の担当者をリセット",
                           // content2: "フィルターの切り替えが可能です。",
                           // marginTop: 57,
                           // marginTop: 38,
@@ -794,7 +754,7 @@ export const SideTableSearchAttendeesMemo = ({
                         if (hoveredItemPosSideTable) handleCloseTooltip();
                       }}
                       onClick={() => {
-                        setSelectedSearchAttendeesArray([]);
+                        setSelectedSearchDestination(null);
                         if (hoveredItemPosSideTable) handleCloseTooltip();
                       }}
                     >
@@ -809,19 +769,15 @@ export const SideTableSearchAttendeesMemo = ({
                   minHeight="30px"
                   minWidth="78px"
                   fontSize="13px"
-                  textColor={`${selectedSearchAttendeesArray?.length > 0 ? `#fff` : `#666`}`}
-                  bgColor={`${selectedSearchAttendeesArray?.length > 0 ? `var(--color-bg-brand50)` : `#33333390`}`}
-                  bgColorHover={`${selectedSearchAttendeesArray?.length > 0 ? `var(--color-bg-brand)` : `#33333390`}`}
-                  border={`${
-                    selectedSearchAttendeesArray?.length > 0 ? `var(--color-bg-brand)` : `var(--color-bg-brandc0)`
-                  }`}
+                  textColor={`${selectedSearchDestination ? `#fff` : `#666`}`}
+                  bgColor={`${selectedSearchDestination ? `var(--color-bg-brand50)` : `#33333390`}`}
+                  bgColorHover={`${selectedSearchDestination ? `var(--color-bg-brand)` : `#33333390`}`}
+                  border={`${selectedSearchDestination ? `var(--color-bg-brand)` : `var(--color-bg-brandc0)`}`}
                   borderRadius="6px"
-                  classText={`select-none ${
-                    selectedSearchAttendeesArray?.length > 0 ? `` : `hover:cursor-not-allowed`
-                  }`}
+                  classText={`select-none ${selectedSearchDestination ? `` : `hover:cursor-not-allowed`}`}
                   clickEventHandler={() => {
                     // setIsOpenSettingInvitationModal(true);
-                    handleAddAttendeesList();
+                    handleChangeContact();
                     handleCloseTooltip();
                   }}
                   onMouseEnterHandler={(e: React.MouseEvent<HTMLElement, MouseEvent>) => {
@@ -829,7 +785,7 @@ export const SideTableSearchAttendeesMemo = ({
                     handleOpenTooltip({
                       e: e,
                       display: "top",
-                      content: "担当者を選択して同席者リストに追加する",
+                      content: "担当者を選択して担当者リストに追加する",
                       // content2: "フィルターの切り替えが可能です。",
                       // marginTop: 57,
                       // marginTop: 38,
@@ -847,80 +803,39 @@ export const SideTableSearchAttendeesMemo = ({
             {/* 担当者一覧エリア */}
             <ul className={`flex h-auto w-full flex-col space-y-[12px]`}>
               {/* Rowsが存在する場合 */}
-              {attendeeRows &&
-                attendeeRows.length > 0 &&
-                attendeeRows.map((attendee: Contact_row_data, index) => (
+              {contactRows &&
+                contactRows.length > 0 &&
+                contactRows.map((contact: Contact_row_data, index) => (
                   <li
-                    key={attendee.contact_id}
-                    // onMouseEnter={(e) => {
-                    //   handleOpenTooltip({
-                    //     e: e,
-                    //     display: "top",
-                    //     content: `${attendee.company_name ? `${attendee.company_name} / ` : ``}${
-                    //       attendee.contact_name ? `${attendee.contact_name} / ` : ``
-                    //     }${attendee.department_name ? `${attendee.department_name} / ` : ``}${
-                    //       attendee.position_name ? `${attendee.position_name}` : ``
-                    //     }`,
-                    //     content2: `${attendee.address ? `住所: ${attendee.address} / ` : ``}${
-                    //       attendee.main_phone_number ? `代表TEL: ${attendee.main_phone_number} / ` : ``
-                    //     }${attendee.direct_line ? `直通TEL: ${attendee.direct_line} / ` : ``}${
-                    //       attendee.contact_email ? `担当者Email: ${attendee.contact_email}` : ``
-                    //     }`,
-                    //     // marginTop: 57,
-                    //     // marginTop: 38,
-                    //     // marginTop: 12,
-                    //     marginTop: -32,
-                    //     itemsPosition: "start",
-                    //     whiteSpace: "nowrap",
-                    //   });
-                    // }}
-                    // onMouseLeave={() => {
-                    //   if (hoveredItemPosSideTable) handleCloseTooltip();
-                    // }}
-                    // className={`${
-                    //   styles.attendees_list
-                    // } flex min-h-[44px] w-full cursor-pointer items-center truncate ${
-                    //   selectedSearchAttendeesArray.some((obj) => obj.contact_id === attendee.contact_id)
-                    //     ? styles.active
-                    //     : ``
-                    // }`}
+                    key={contact.contact_id}
                     className={`${
                       styles.attendees_list
                     } flex min-h-[44px] w-full cursor-pointer items-center truncate ${
-                      selectedSearchAttendeesArray.some((obj) => obj.attendee_id === attendee.contact_id)
-                        ? styles.active
-                        : ``
+                      selectedSearchDestination?.destination_contact_id === contact.contact_id ? styles.active : ``
                     }`}
                     onClick={() => {
-                      // 存在の確認のみなので、findではなくsome
-                      // if (selectedSearchAttendeesArray.some((obj) => obj.contact_id === attendee.contact_id)) {
-                      if (selectedSearchAttendeesArray.some((obj) => obj.attendee_id === attendee.contact_id)) {
-                        // 既に配列に存在している場合は取り除く
-                        // const filteredAttendees = selectedSearchAttendeesArray.filter(
-                        //   (obj) => obj.contact_id !== attendee.contact_id
-                        // );
-                        const filteredAttendees = selectedSearchAttendeesArray.filter(
-                          (obj) => obj.attendee_id !== attendee.contact_id
-                        );
-                        setSelectedSearchAttendeesArray(filteredAttendees);
+                      if (
+                        selectedSearchDestination &&
+                        selectedSearchDestination.destination_contact_id === contact.contact_id
+                      ) {
+                        setSelectedSearchDestination(null);
                         return;
                       } else {
-                        // 存在しない場合は配列に入れる スプレッドで不変性を保つ
-                        // const newAttendees = [...selectedSearchAttendeesArray, attendee];
-                        const newAttendee: AttendeeInfo = {
-                          attendee_id: attendee.contact_id,
-                          attendee_name: attendee.contact_name ?? null,
-                          attendee_position_class: attendee.position_class ?? null,
-                          attendee_position_name: attendee.position_name ?? null,
-                          attendee_direct_line: attendee.direct_line ?? null,
-                          attendee_email: attendee.contact_email ?? null,
-                          attendee_company: attendee.company_name ?? null,
-                          attendee_main_phone_number: attendee.main_phone_number ?? null,
-                          attendee_address: attendee.address ?? null,
-                          attendee_department_name: attendee.company_department_name ?? null,
+                        const newDestination: Destination = {
+                          // 🔹送付先会社
+                          destination_company_id: contact.company_id,
+                          destination_company_name: contact.company_name,
+                          destination_company_department_name: contact.company_department_name,
+                          destination_company_zipcode: contact.zipcode,
+                          destination_company_address: contact.address,
+                          // 🔹送付先担当者
+                          destination_contact_id: contact.contact_id,
+                          destination_contact_name: contact.contact_name,
+                          destination_contact_direct_line: contact.direct_line,
+                          destination_contact_direct_fax: contact.direct_fax,
+                          destination_contact_email: contact.contact_email,
                         };
-                        const newAttendees = [...selectedSearchAttendeesArray, newAttendee];
-                        setSelectedSearchAttendeesArray(newAttendees);
+                        setSelectedSearchDestination(newDestination);
                       }
                     }}
                   >
@@ -934,7 +849,7 @@ export const SideTableSearchAttendeesMemo = ({
                           {getInitial(member.profile_name ? member.profile_name : "")}
                         </span> */}
                       <span className={`text-[20px]`}>
-                        {getInitial(attendee.contact_name ? attendee.contact_name : "N")}
+                        {getInitial(contact.contact_name ? contact.contact_name : "N")}
                       </span>
                     </div>
                     <div
@@ -942,43 +857,43 @@ export const SideTableSearchAttendeesMemo = ({
                     >
                       {/* 会社・部署 */}
                       <div className={`${styles.attendees_list_item_line} flex text-[13px]`}>
-                        {attendee.company_name && <span className="mr-[4px]">{attendee.company_name}</span>}
-                        {/* <span>{attendee.department_name ?? ""}</span> */}
+                        {contact.company_name && <span className="mr-[4px]">{contact.company_name}</span>}
+                        {/* <span>{contact.department_name ?? ""}</span> */}
                       </div>
                       {/* <div className={`text-[var(--color-text-sub)]`}>{member.email ? member.email : ""}</div> */}
                       {/* 役職・名前 */}
                       <div className={`${styles.attendees_list_item_line} flex`}>
-                        {attendee.contact_name && (
+                        {contact.contact_name && (
                           <>
-                            <span className="mr-[12px]">{attendee.contact_name}</span>
-                            {/* {attendee.department_name && <span className="mr-[10px]">/</span>} */}
+                            <span className="mr-[12px]">{contact.contact_name}</span>
+                            {/* {contact.department_name && <span className="mr-[10px]">/</span>} */}
                           </>
                         )}
-                        {attendee.company_department_name && (
+                        {contact.company_department_name && (
                           <>
-                            <span className="mr-[12px]">{attendee.company_department_name}</span>
-                            {/* {attendee.position_name && <span className="mr-[10px]">/</span>} */}
+                            <span className="mr-[12px]">{contact.company_department_name}</span>
+                            {/* {contact.position_name && <span className="mr-[10px]">/</span>} */}
                           </>
                         )}
-                        {attendee.position_name && <span className="mr-[10px]">{attendee.position_name}</span>}
+                        {contact.position_name && <span className="mr-[10px]">{contact.position_name}</span>}
                       </div>
                       {/* 住所・Email・1600以上で直通TEL */}
                       <div className={`${styles.attendees_list_item_line} flex`}>
-                        {attendee.address && (
+                        {contact.address && (
                           <>
-                            <span className="mr-[10px] text-[#ccc]">{attendee.address}</span>
-                            {((isDesktopGTE1600 && attendee.direct_line) || attendee.contact_email) && (
+                            <span className="mr-[10px] text-[#ccc]">{contact.address}</span>
+                            {((isDesktopGTE1600 && contact.direct_line) || contact.contact_email) && (
                               <span className="mr-[10px]">/</span>
                             )}
                           </>
                         )}
-                        {isDesktopGTE1600 && attendee.direct_line && (
+                        {isDesktopGTE1600 && contact.direct_line && (
                           <>
-                            <span className="mr-[10px] text-[#ccc]">{attendee.direct_line}</span>
-                            {attendee.contact_email && <span className="mr-[10px]">/</span>}
+                            <span className="mr-[10px] text-[#ccc]">{contact.direct_line}</span>
+                            {contact.contact_email && <span className="mr-[10px]">/</span>}
                           </>
                         )}
-                        {attendee.contact_email && <div className={`text-[#ccc]`}>{attendee.contact_email}</div>}
+                        {contact.contact_email && <div className={`text-[#ccc]`}>{contact.contact_email}</div>}
                       </div>
                     </div>
                   </li>
@@ -1011,62 +926,6 @@ export const SideTableSearchAttendeesMemo = ({
                 </div>
               )}
               {/* もっと見る ここまで */}
-
-              {/* <div className="flex-center relative min-h-[64.5px] w-full rounded-[8px] text-[14px]">
-                <div className="flex-center transition-bg01 group z-[10] h-[57%] w-[58%] cursor-pointer rounded-full bg-[var(--color-text-brand-f)] text-[#fff] hover:bg-[var(--color-text-brand-f-deep)]">
-                  <span>もっと見る</span>
-                </div>
-                <div className="z-5 absolute left-0 top-[50%] h-[1px] w-full bg-[var(--color-text-brand-f)] "></div>
-              </div> */}
-              {/* <div className="flex-center relative min-h-[64.5px] w-full rounded-[8px] text-[14px]">
-                <SpinnerComet width="!w-[35px]" height="!h-[35px]" />
-              </div> */}
-              {/* {Array(12)
-                .fill(null)
-                .map((_, index) => (
-                  <li
-                    key={index}
-                    className={`${styles.attendees_list} flex min-h-[44px] w-full cursor-pointer items-center truncate rounded-[8px] py-[12px] pl-[24px] hover:bg-[var(--color-bg-brand-f30)]`}
-                    // onClick={() => {
-                    // }}
-                  >
-                    <div
-                      // data-text="ユーザー名"
-                      className={`${styles.attendees_list_item_Icon} flex-center h-[40px] w-[40px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip} mr-[15px]`}
-                      // onMouseEnter={(e) => handleOpenTooltip(e, "center")}
-                      // onMouseLeave={handleCloseTooltip}
-                    >
-                      <span className={`text-[20px]`}>伊</span>
-                    </div>
-                    <div
-                      className={`${styles.attendees_list_item_lines_group} flex h-full flex-col space-y-[3px] pl-[5px] text-[12px]`}
-                    >
-                      <div className={`${styles.attendees_list_item_line} flex text-[13px]`}>
-                        <span className="mr-[12px]">株式会社トラスティファイ</span>
-                      </div>
-                      <div className={`${styles.attendees_list_item_line} flex`}>
-                        <span className="mr-[12px]">伊藤 謙太</span>
-                        <span className="mr-[12px]">事業推進本部事業推進グループ</span>
-                        <span className="mr-[12px]">エグゼクティブマネージャー兼チーフエバンジェリストCEO</span>
-                      </div>
-                      <div className={`${styles.attendees_list_item_line} flex space-x-[10px]`}>
-                        <div className="flex text-[#ccc]">
-                          <span>東京都港区芝浦4-20-2 ローズスクエア12F</span>
-                        </div>
-                        <span>/</span>
-                        {isDesktopGTE1600 && (
-                          <>
-                            <div className="flex text-[#ccc]">
-                              <span>01-4567-8900</span>
-                            </div>
-                            <span>/</span>
-                          </>
-                        )}
-                        <div className={`text-[#ccc]`}>cieletoile.1204@gmail.com</div>
-                      </div>
-                    </div>
-                  </li>
-                ))} */}
             </ul>
           </div>
         </div>
@@ -1076,4 +935,4 @@ export const SideTableSearchAttendeesMemo = ({
   );
 };
 
-export const SideTableSearchAttendees = memo(SideTableSearchAttendeesMemo);
+export const SideTableSearchContact = memo(SideTableSearchContactMemo);

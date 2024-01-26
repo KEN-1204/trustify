@@ -287,7 +287,10 @@ const ActivityMainContainerOneThirdMemo = () => {
       );
       //   setInputCompanyName(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.company_name));
       setInputCompanyName(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams["client_companies.name"]));
-      setInputDepartmentName(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.department_name));
+      // setInputDepartmentName(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.department_name));
+      setInputDepartmentName(
+        beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams["client_companies.department_name"])
+      );
       //   setInputContactName(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.contact_name));
       setInputContactName(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams["contacts.name"]));
       setInputTel(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams?.main_phone_number));
@@ -600,7 +603,7 @@ const ActivityMainContainerOneThirdMemo = () => {
     const params = {
       "client_companies.name": _company_name,
       //   company_name: _company_name,
-      department_name: _department_name,
+      "client_companies.department_name": _department_name,
       main_phone_number: _main_phone_number,
       main_fax: _main_fax,
       zipcode: _zipcode,
@@ -670,7 +673,7 @@ const ActivityMainContainerOneThirdMemo = () => {
 
     // console.log("✅ 条件 params", params);
 
-    // const { data, error } = await supabase.rpc("search_companies_and_contacts", { params });
+    // const { data, error } = await supabase.rpc("", { params });
     // const { data, error } = await supabase.rpc("search_companies", { params });
 
     setInputCompanyName("");
@@ -748,18 +751,18 @@ const ActivityMainContainerOneThirdMemo = () => {
 
     console.log("✅ 条件 params", params);
     // const { data, error } = await supabase.rpc("search_companies", { params });
-    // const { data, error } = await supabase.rpc("search_companies_and_contacts", { params });
+    // const { data, error } = await supabase.rpc("", { params });
     // const { data, error } = await supabase.rpc("search_activities_and_companies_and_contacts", { params });
 
     // 会社IDがnull、つまりまだ有料アカウントを持っていないユーザー
     // const { data, error } = await supabase
-    //   .rpc("search_companies_and_contacts", { params })
+    //   .rpc("", { params })
     //   .is("created_by_company_id", null)
     //   .range(0, 20);
 
     // ユーザーIDが自身のIDと一致するデータのみ 成功
     // const { data, error } = await supabase
-    //   .rpc("search_companies_and_contacts", { params })
+    //   .rpc("", { params })
     //   .eq("created_by_user_id", `${userProfileState?.id}`)
     //   .range(0, 20);
 
@@ -2557,7 +2560,10 @@ const ActivityMainContainerOneThirdMemo = () => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                           }}
                         >
-                          {selectedRowDataActivity?.department_name ? selectedRowDataActivity?.department_name : ""}
+                          {/* {selectedRowDataActivity?.department_name ? selectedRowDataActivity?.department_name : ""} */}
+                          {selectedRowDataActivity?.company_department_name
+                            ? selectedRowDataActivity?.company_department_name
+                            : ""}
                         </span>
                       )}
                       {/* {searchMode && (
@@ -4162,7 +4168,10 @@ const ActivityMainContainerOneThirdMemo = () => {
                       <span className={`${styles.title}`}>●部署名</span>
                       {!searchMode && (
                         <span className={`${styles.value}`}>
-                          {selectedRowDataActivity?.department_name ? selectedRowDataActivity?.department_name : ""}
+                          {/* {selectedRowDataActivity?.department_name ? selectedRowDataActivity?.department_name : ""} */}
+                          {selectedRowDataActivity?.company_department_name
+                            ? selectedRowDataActivity?.company_department_name
+                            : ""}
                         </span>
                       )}
                       {searchMode && (

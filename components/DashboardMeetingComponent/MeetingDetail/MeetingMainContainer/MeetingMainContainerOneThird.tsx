@@ -302,7 +302,10 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       );
       //   setInputCompanyName(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.company_name));
       setInputCompanyName(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams["client_companies.name"]));
-      setInputDepartmentName(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.department_name));
+      // setInputDepartmentName(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.department_name));
+      setInputDepartmentName(
+        beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams["client_companies.department_name"])
+      );
       //   setInputContactName(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.contact_name));
       setInputContactName(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams["contacts.name"]));
       setInputTel(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams?.main_phone_number));
@@ -752,7 +755,8 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     const params = {
       "client_companies.name": _company_name,
       //   company_name: _company_name,
-      department_name: _department_name,
+      // department_name: _department_name,
+      "client_companies.department_name": _department_name,
       main_phone_number: _main_phone_number,
       main_fax: _main_fax,
       zipcode: _zipcode,
@@ -4020,7 +4024,10 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                         }}
                       >
-                        {selectedRowDataMeeting?.department_name ? selectedRowDataMeeting?.department_name : ""}
+                        {/* {selectedRowDataMeeting?.department_name ? selectedRowDataMeeting?.department_name : ""} */}
+                        {selectedRowDataMeeting?.company_department_name
+                          ? selectedRowDataMeeting?.company_department_name
+                          : ""}
                       </span>
                     )}
                     {searchMode && (

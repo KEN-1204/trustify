@@ -15,6 +15,11 @@ const ContactTabHeaderMemo: FC<Props> = ({ activeTabDetail, setActiveTabDetail }
         } flex-col-center relative h-full w-[60px] cursor-pointer  text-[12px] text-[var(--color-text)] ${
           activeTabDetail === "Company" ? `${styles.active}` : ``
         }`}
+        // className={`${
+        //   styles.navbarItem
+        // } flex-col-center bg-brand-gradient-light relative h-full w-[60px] cursor-pointer text-[12px] text-[var(--color-text)] ${
+        //   activeTabDetail === "Company" ? `` : ``
+        // }`}
         onClick={() => {
           if (activeTabDetail === "Company") return;
           setActiveTabDetail("Company");

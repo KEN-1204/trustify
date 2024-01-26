@@ -188,7 +188,8 @@ const ContactMainContainerMemo: FC = () => {
       console.log("🔥メインコンテナーnewSearchContact_CompanyParams編集モード", newSearchContact_CompanyParams);
       //   setInputCompanyName(beforeAdjustFieldValue(newSearchContact_CompanyParams.company_name));
       setInputCompanyName(beforeAdjustFieldValue(newSearchContact_CompanyParams["client_companies.name"]));
-      setInputDepartment(beforeAdjustFieldValue(newSearchContact_CompanyParams.department_name));
+      // setInputDepartment(beforeAdjustFieldValue(newSearchContact_CompanyParams.department_name));
+      setInputDepartment(beforeAdjustFieldValue(newSearchContact_CompanyParams["client_companies.department_name"]));
       //   setInputContactName(beforeAdjustFieldValue(newSearchContact_CompanyParams.contact_name));
       setInputContactName(beforeAdjustFieldValue(newSearchContact_CompanyParams["contacts.name"]));
       setInputTel(beforeAdjustFieldValue(newSearchContact_CompanyParams?.main_phone_number));
@@ -373,7 +374,7 @@ const ContactMainContainerMemo: FC = () => {
     const params = {
       "client_companies.name": _company_name,
       //   company_name: _company_name,
-      department_name: _department_name,
+      "client_companies.department_name": _department_name,
       main_phone_number: _main_phone_number,
       main_fax: _main_fax,
       zipcode: _zipcode,
@@ -420,7 +421,7 @@ const ContactMainContainerMemo: FC = () => {
 
     // console.log("✅ 条件 params", params);
 
-    // const { data, error } = await supabase.rpc("search_companies_and_contacts", { params });
+    // const { data, error } = await supabase.rpc("", { params });
     // const { data, error } = await supabase.rpc("search_companies", { params });
 
     setInputCompanyName("");
@@ -475,17 +476,17 @@ const ContactMainContainerMemo: FC = () => {
 
     console.log("✅ 条件 params", params);
     // const { data, error } = await supabase.rpc("search_companies", { params });
-    // const { data, error } = await supabase.rpc("search_companies_and_contacts", { params });
+    // const { data, error } = await supabase.rpc("", { params });
 
     // 会社IDがnull、つまりまだ有料アカウントを持っていないユーザー
     // const { data, error } = await supabase
-    //   .rpc("search_companies_and_contacts", { params })
+    //   .rpc("", { params })
     //   .is("created_by_company_id", null)
     //   .range(0, 20);
 
     // ユーザーIDが自身のIDと一致するデータのみ 成功
     // const { data, error } = await supabase
-    //   .rpc("search_companies_and_contacts", { params })
+    //   .rpc("", { params })
     //   .eq("created_by_user_id", `${userProfileState?.id}`)
     //   .range(0, 20);
 
@@ -984,7 +985,9 @@ const ContactMainContainerMemo: FC = () => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                       }}
                     >
-                      {selectedRowDataContact?.department_name ? selectedRowDataContact?.department_name : ""}
+                      {selectedRowDataContact?.company_department_name
+                        ? selectedRowDataContact?.company_department_name
+                        : ""}
                     </span>
                   )}
                   {searchMode && (

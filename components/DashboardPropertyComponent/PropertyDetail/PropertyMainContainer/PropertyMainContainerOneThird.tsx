@@ -352,7 +352,9 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       );
       //   setInputCompanyName(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.company_name));
       setInputCompanyName(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams["client_companies.name"]));
-      setInputDepartmentName(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.department_name));
+      setInputDepartmentName(
+        beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams["client_companies.department_name"])
+      );
       //   setInputContactName(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.contact_name));
       setInputContactName(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams["contacts.name"]));
       setInputTel(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams?.main_phone_number));
@@ -807,7 +809,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
     const params = {
       "client_companies.name": _company_name,
       //   company_name: _company_name,
-      department_name: _department_name,
+      "client_companies.department_name": _department_name,
       main_phone_number: _main_phone_number,
       main_fax: _main_fax,
       zipcode: _zipcode,
@@ -5929,7 +5931,10 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                         }}
                       >
-                        {selectedRowDataProperty?.department_name ? selectedRowDataProperty?.department_name : ""}
+                        {/* {selectedRowDataProperty?.department_name ? selectedRowDataProperty?.department_name : ""} */}
+                        {selectedRowDataProperty?.company_department_name
+                          ? selectedRowDataProperty?.company_department_name
+                          : ""}
                       </span>
                     )}
                     {searchMode && (

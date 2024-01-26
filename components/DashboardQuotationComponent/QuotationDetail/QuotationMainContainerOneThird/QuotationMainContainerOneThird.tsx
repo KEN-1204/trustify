@@ -28,6 +28,7 @@ import {
   Office,
   Unit,
   QuotationProductsDetail,
+  Destination,
 } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
@@ -76,6 +77,8 @@ import { formatToJapaneseYen } from "@/utils/Helpers/formatToJapaneseYen";
 import { InputSendAndCloseBtnGlobal } from "@/components/DashboardCompanyComponent/CompanyMainContainer/InputSendAndCloseBtnGlobal/InputSendAndCloseBtnGlobal";
 import { calculateDiscountRate } from "@/utils/Helpers/calculateDiscountRate";
 import { ImInfo } from "react-icons/im";
+import { SideTableSearchContact } from "@/components/DashboardCompanyComponent/Modal/UpdateMeetingModal/SideTableSearchContact/SideTableSearchContact";
+import { FallbackSideTableSearchContact } from "@/components/DashboardCompanyComponent/Modal/UpdateMeetingModal/SideTableSearchContact/FallbackSideTableSearchContact";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -147,6 +150,10 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   // 商品検索サイドテーブル開閉
   const [isOpenSearchProductSideTableBefore, setIsOpenSearchProductSideTableBefore] = useState(false);
   const [isOpenSearchProductSideTable, setIsOpenSearchProductSideTable] = useState(false);
+  // 商品検索サイドテーブル開閉
+  const [isOpenSearchDestinationSideTableBefore, setIsOpenSearchDestinationSideTableBefore] = useState(false);
+  const [isOpenSearchDestinationSideTable, setIsOpenSearchDestinationSideTable] = useState(false);
+
   // 見積に追加された商品リスト
   const [selectedProductsArray, setSelectedProductsArray] = useState<QuotationProductsDetail[]>([]);
   // 選択中の商品データ
@@ -203,6 +210,22 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const [inputDirectLineDest, setInputDirectLineDest] = useState("");
   const [inputDirectFaxDest, setInputDirectFaxDest] = useState("");
   const [inputContactEmailDest, setInputContactEmailDest] = useState("");
+  // 🔹送付先 UPSERT用
+  const initialDestinationObj = {
+    // 送付先会社
+    destination_company_id: null,
+    destination_company_name: null,
+    destination_company_department_name: null,
+    destination_company_zipcode: null,
+    destination_company_address: null,
+    // 送付先担当者
+    destination_contact_id: null,
+    destination_contact_name: null,
+    destination_contact_direct_line: null,
+    destination_contact_direct_fax: null,
+    destination_contact_email: null,
+  };
+  const [selectedDestination, setSelectedDestination] = useState<Destination>(initialDestinationObj);
   // 送付先ここまで
   // const [inputPositionName, setInputPositionName] = useState("");
   // const [inputPositionClass, setInputPositionClass] = useState("");
@@ -424,7 +447,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
 
   // ================================ ✅フィールドエディットモード関連state✅ ================================
 
-  // ------------------ 🌟見積作成のマウント時 選択中の担当者&会社の列データの情報をStateに格納🌟 ------------------
+  // ------------------ 🌟INSERT見積作成のマウント時 選択中の担当者&会社の列データの情報をStateに格納🌟 ------------------
   useEffect(() => {
     if (!isInsertModeQuotation) return;
 
@@ -444,7 +467,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     let _company_id = selectedData?.company_id ? selectedData?.company_id : "";
     let _contact_id = selectedData?.contact_id ? selectedData?.contact_id : "";
     let _company_name = selectedData?.company_name ? selectedData?.company_name : "";
-    let _department_name = selectedData?.department_name ? selectedData?.department_name : "";
+    // let _department_name = selectedData?.department_name ? selectedData?.department_name : "";
+    let _department_name = selectedData?.company_department_name ? selectedData?.company_department_name : "";
     let _contact_name = selectedData?.contact_name ? selectedData?.contact_name : "";
     let _direct_line = selectedData?.direct_line ? selectedData?.direct_line : "";
     let _main_phone_number = selectedData?.main_phone_number ? selectedData?.main_phone_number : "";
@@ -459,7 +483,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     let _dest_company_id = selectedData?.company_id ? selectedData?.company_id : "";
     let _dest_contact_id = selectedData?.contact_id ? selectedData?.contact_id : "";
     let _dest_company_name = selectedData?.company_name ? selectedData?.company_name : "";
-    let _dest_department_name = selectedData?.department_name ? selectedData?.department_name : "";
+    // let _dest_department_name = selectedData?.department_name ? selectedData?.department_name : "";
+    let _dest_department_name = selectedData?.company_department_name ? selectedData?.company_department_name : "";
     let _dest_contact_name = selectedData?.contact_name ? selectedData?.contact_name : "";
     let _dest_direct_line = selectedData?.direct_line ? selectedData?.direct_line : "";
     let _dest_direct_fax = selectedData?.direct_fax ? selectedData?.direct_fax : "";
@@ -517,16 +542,28 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     setInputZipcode(_zipcode);
     setInputAddress(_address);
     // 送付先
-    setInputCompanyIdDest(_dest_company_id);
-    setInputContactIdDest(_dest_contact_id);
-    setInputCompanyNameDest(_dest_company_name);
-    setInputDepartmentNameDest(_dest_department_name);
-    setInputContactNameDest(_dest_contact_name);
-    setInputDirectLineDest(_dest_direct_line);
-    setInputDirectFaxDest(_dest_direct_fax);
-    setInputContactEmailDest(_dest_contact_email);
-    setInputZipcodeDest(_dest_zipcode);
-    setInputAddressDest(_dest_address);
+    // setInputCompanyIdDest(_dest_company_id);
+    // setInputContactIdDest(_dest_contact_id);
+    // setInputCompanyNameDest(_dest_company_name);
+    // setInputDepartmentNameDest(_dest_department_name);
+    // setInputContactNameDest(_dest_contact_name);
+    // setInputDirectLineDest(_dest_direct_line);
+    // setInputDirectFaxDest(_dest_direct_fax);
+    // setInputContactEmailDest(_dest_contact_email);
+    // setInputZipcodeDest(_dest_zipcode);
+    // setInputAddressDest(_dest_address);
+    setSelectedDestination({
+      destination_company_id: _dest_company_id,
+      destination_contact_id: _dest_contact_id,
+      destination_company_name: _dest_company_name,
+      destination_company_department_name: _dest_department_name,
+      destination_contact_name: _dest_contact_name,
+      destination_contact_direct_line: _dest_direct_line,
+      destination_contact_direct_fax: _dest_direct_fax,
+      destination_contact_email: _dest_contact_email,
+      destination_company_zipcode: _dest_zipcode,
+      destination_company_address: _dest_address,
+    });
     // 見積関連
     setInputQuotationNoCustom(_quotation_no_custom);
     setInputQuotationNoSystem(_quotation_no_system);
@@ -945,7 +982,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
 
     // console.log("✅ 条件 params", params);
 
-    // const { data, error } = await supabase.rpc("search_companies_and_contacts", { params });
+    // const { data, error } = await supabase.rpc("", { params });
     // const { data, error } = await supabase.rpc("search_companies", { params });
 
     setInputCompanyName("");
@@ -1631,6 +1668,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   };
   // ---------------- ✅オート見積Noをデータベースから取得する関数✅ ----------------
 
+  // -------------------------------- 🌟保存ボタン🌟 --------------------------------
   const handleSaveUpsert = async () => {
     // カスタムとオートの両方の見積Noが空文字ならリターン
     if (!inputQuotationNoCustom && !inputQuotationNoSystem)
@@ -1638,6 +1676,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
         "見積Noは必須です。「見積No区分」からカスタムかオートを選択し、見積Noを設定してから保存してください。"
       );
   };
+  // -------------------------------- ✅保存ボタン✅ --------------------------------
 
   console.log(
     "🔥MeetingMainContainerレンダリング",
@@ -1918,7 +1957,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                             }}
                           >
-                            {selectedRowDataQuotation?.department_name ? selectedRowDataQuotation?.department_name : ""}
+                            {selectedRowDataQuotation?.company_department_name
+                              ? selectedRowDataQuotation?.company_department_name
+                              : ""}
                           </span>
                         )}
 
@@ -2431,6 +2472,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         {isInsertModeQuotation && (
                           <div
                             className={`${styles.upsert_btn} transition-bg02 ml-auto min-h-[26px] min-w-[90px] max-w-[90px] !rounded-[6px] text-[12px]`}
+                            onClick={() => {
+                              setIsOpenSearchDestinationSideTableBefore(true);
+                              setTimeout(() => {
+                                setIsOpenSearchDestinationSideTable(true);
+                              }, 100);
+                            }}
                           >
                             送付先変更
                           </div>
@@ -2465,7 +2512,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         {/* ----------------- upsert ----------------- */}
                         {!searchMode && isInsertModeQuotation && (
                           <span className={`${styles.value} ${styles.text_start}`}>
-                            {inputCompanyNameDest ? inputCompanyNameDest : ""}
+                            {selectedDestination?.destination_company_name
+                              ? selectedDestination?.destination_company_name
+                              : ""}
                           </span>
                         )}
                         {/* ----------------- upsert ----------------- */}
@@ -2499,7 +2548,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         {/* ----------------- upsert ----------------- */}
                         {!searchMode && isInsertModeQuotation && (
                           <span className={`${styles.value} ${styles.text_start}`}>
-                            {inputDepartmentNameDest ? inputDepartmentNameDest : ""}
+                            {selectedDestination?.destination_company_department_name
+                              ? selectedDestination?.destination_company_department_name
+                              : ""}
                           </span>
                         )}
                         {/* ----------------- upsert ----------------- */}
@@ -2533,7 +2584,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         {/* ----------------- upsert ----------------- */}
                         {!searchMode && isInsertModeQuotation && (
                           <span className={`${styles.value} ${styles.text_start}`}>
-                            {inputContactNameDest ? inputContactNameDest : ""}
+                            {selectedDestination?.destination_contact_name
+                              ? selectedDestination?.destination_contact_name
+                              : ""}
                           </span>
                         )}
                         {/* ----------------- upsert ----------------- */}
@@ -2578,7 +2631,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         {/* ----------------- upsert ----------------- */}
                         {!searchMode && isInsertModeQuotation && (
                           <span className={`${styles.value} ${styles.text_start}`}>
-                            {inputDirectLineDest ? inputDirectLineDest : ""}
+                            {selectedDestination?.destination_contact_direct_line
+                              ? selectedDestination?.destination_contact_direct_line
+                              : ""}
                           </span>
                         )}
                         {/* ----------------- upsert ----------------- */}
@@ -2616,7 +2671,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         {/* ----------------- upsert ----------------- */}
                         {!searchMode && isInsertModeQuotation && (
                           <span className={`${styles.value} ${styles.text_start}`}>
-                            {inputDirectFaxDest ? inputDirectFaxDest : ""}
+                            {selectedDestination?.destination_contact_direct_fax
+                              ? selectedDestination?.destination_contact_direct_fax
+                              : ""}
                           </span>
                         )}
                         {/* ----------------- upsert ----------------- */}
@@ -2659,16 +2716,10 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
 
                         {/* ----------------- upsert ----------------- */}
                         {!searchMode && isInsertModeQuotation && (
-                          <span
-                            className={`${styles.value} ${styles.text_start}`}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            }}
-                          >
-                            {inputContactEmailDest ? inputContactEmailDest : ""}
+                          <span className={`${styles.value} ${styles.text_start}`}>
+                            {selectedDestination?.destination_contact_email
+                              ? selectedDestination?.destination_contact_email
+                              : ""}
                           </span>
                         )}
                         {/* ----------------- upsert ----------------- */}
@@ -2713,7 +2764,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         {/* ----------------- upsert ----------------- */}
                         {!searchMode && isInsertModeQuotation && (
                           <span className={`${styles.value} ${styles.text_start}`}>
-                            {inputZipcodeDest ? inputZipcodeDest : ""}
+                            {selectedDestination?.destination_company_zipcode
+                              ? selectedDestination?.destination_company_zipcode
+                              : ""}
                           </span>
                         )}
                         {/* ----------------- upsert ----------------- */}
@@ -2752,7 +2805,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         {/* ----------------- upsert ----------------- */}
                         {!searchMode && isInsertModeQuotation && (
                           <span className={`${styles.value} ${styles.text_start}`}>
-                            {inputAddressDest ? inputAddressDest : ""}
+                            {selectedDestination?.destination_company_address
+                              ? selectedDestination?.destination_company_address
+                              : ""}
                           </span>
                         )}
                         {/* ----------------- upsert ----------------- */}
@@ -7544,6 +7599,38 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                 // setPrevMemberObj={setPrevMemberObj}
                 // memberObj={memberObj}
                 // setMemberObj={setMemberObj}
+              />
+            </Suspense>
+          </ErrorBoundary>
+        </div>
+      )}
+
+      {/* 送付先 変更サイドテーブル */}
+      {isOpenSearchDestinationSideTableBefore && (
+        <div
+          className={`fixed inset-0 z-[10000] bg-[#ffffff00] ${
+            isOpenSearchDestinationSideTable ? `` : `pointer-events-none`
+          }`}
+        >
+          <ErrorBoundary FallbackComponent={ErrorFallback}>
+            <Suspense
+              fallback={
+                <div className={`pointer-events-none fixed inset-0 z-[10000] bg-[#00000039]`}>
+                  <FallbackSideTableSearchContact
+                    isOpenSearchSideTable={isOpenSearchDestinationSideTable}
+                    searchTitle="destination"
+                  />
+                </div>
+              }
+            >
+              <SideTableSearchContact
+                isOpenSearchSideTable={isOpenSearchDestinationSideTable}
+                setIsOpenSearchSideTable={setIsOpenSearchDestinationSideTable}
+                isOpenSearchSideTableBefore={isOpenSearchDestinationSideTableBefore}
+                setIsOpenSearchSideTableBefore={setIsOpenSearchDestinationSideTableBefore}
+                selectedContactObj={selectedDestination}
+                setSelectedContactObj={setSelectedDestination}
+                searchTitle="destination"
               />
             </Suspense>
           </ErrorBoundary>

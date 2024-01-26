@@ -681,7 +681,7 @@ export type Contact_row_data = {
   contact_name: string | null;
   contact_created_at: string;
   contact_updated_at: string | null;
-  department_name: string | null;
+  company_department_name: string | null;
   main_phone_number: string | null;
   main_fax: string | null;
   zipcode: string | null;
@@ -746,7 +746,8 @@ export type Activity_row_data = {
   activity_id: string;
   company_name: string | null;
   contact_name: string | null;
-  department_name: string | null;
+  // department_name: string | null;
+  company_department_name: string | null;
   main_phone_number: string | null;
   main_fax: string | null;
   zipcode: string | null;
@@ -866,7 +867,8 @@ export type Meeting_row_data = {
   meeting_id: string;
   company_name: string | null;
   contact_name: string | null;
-  department_name: string | null;
+  // department_name: string | null;
+  company_department_name: string | null;
   main_phone_number: string | null;
   main_fax: string | null;
   zipcode: string | null;
@@ -1087,7 +1089,8 @@ export type Property_row_data = {
   property_id: string;
   company_name: string | null;
   contact_name: string | null;
-  department_name: string | null;
+  // department_name: string | null;
+  company_department_name: string | null;
   main_phone_number: string | null;
   main_fax: string | null;
   zipcode: string | null;
@@ -1245,7 +1248,8 @@ export type Quotation_row_data = {
   quotation_id: string;
   company_name: string | null;
   contact_name: string | null;
-  department_name: string | null;
+  // department_name: string | null;
+  company_department_name: string | null;
   main_phone_number: string | null;
   main_fax: string | null;
   zipcode: string | null;
@@ -1376,7 +1380,7 @@ export type Quotation_row_data = {
 
 export type NewSearchContact_CompanyParams = {
   "client_companies.name": string | null;
-  department_name: string | null;
+  "client_companies.department_name": string | null;
   main_phone_number: string | null;
   main_fax: string | null;
   zipcode: string | null;
@@ -1426,7 +1430,7 @@ export type NewSearchContact_CompanyParams = {
 // 検索時に下で条件入力した内容を上のrpc()のparamsに渡す用のstate
 export type NewSearchActivity_Contact_CompanyParams = {
   "client_companies.name": string | null;
-  department_name: string | null;
+  "client_companies.department_name": string | null;
   main_phone_number: string | null;
   main_fax: string | null;
   zipcode: string | null;
@@ -1500,7 +1504,7 @@ export type NewSearchActivity_Contact_CompanyParams = {
 // 面談サーチパラメータ用
 export type NewSearchMeeting_Contact_CompanyParams = {
   "client_companies.name": string | null;
-  department_name: string | null;
+  "client_companies.department_name": string | null;
   main_phone_number: string | null;
   main_fax: string | null;
   zipcode: string | null;
@@ -1587,7 +1591,7 @@ export type NewSearchMeeting_Contact_CompanyParams = {
 
 export type NewSearchProperty_Contact_CompanyParams = {
   "client_companies.name": string | null;
-  department_name: string | null;
+  "client_companies.department_name": string | null;
   main_phone_number: string | null;
   main_fax: string | null;
   zipcode: string | null;
@@ -2218,4 +2222,20 @@ export type SignatureStamp = {
 export type StampObj = {
   signature_stamp_id: string | null;
   signature_stamp_url: string | null;
+};
+
+// 送付先 会社・担当者
+export type Destination = {
+  // 🔹送付先会社
+  destination_company_id: string | null;
+  destination_company_name: string | null;
+  destination_company_department_name: string | null;
+  destination_company_zipcode: string | null;
+  destination_company_address: string | null;
+  // 🔹送付先担当者
+  destination_contact_id: string | null;
+  destination_contact_name: string | null;
+  destination_contact_direct_line: string | null;
+  destination_contact_direct_fax: string | null;
+  destination_contact_email: string | null;
 };

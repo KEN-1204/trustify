@@ -551,7 +551,7 @@
 
 //     // console.log("✅ 条件 params", params);
 
-//     // const { data, error } = await supabase.rpc("search_companies_and_contacts", { params });
+//     // const { data, error } = await supabase.rpc("", { params });
 //     // const { data, error } = await supabase.rpc("search_companies", { params });
 
 //     setInputCompanyName("");
@@ -628,18 +628,18 @@
 
 //     console.log("✅ 条件 params", params);
 //     // const { data, error } = await supabase.rpc("search_companies", { params });
-//     // const { data, error } = await supabase.rpc("search_companies_and_contacts", { params });
+//     // const { data, error } = await supabase.rpc("", { params });
 //     // const { data, error } = await supabase.rpc("search_activities_and_companies_and_contacts", { params });
 
 //     // 会社IDがnull、つまりまだ有料アカウントを持っていないユーザー
 //     // const { data, error } = await supabase
-//     //   .rpc("search_companies_and_contacts", { params })
+//     //   .rpc("", { params })
 //     //   .is("created_by_company_id", null)
 //     //   .range(0, 20);
 
 //     // ユーザーIDが自身のIDと一致するデータのみ 成功
 //     // const { data, error } = await supabase
-//     //   .rpc("search_companies_and_contacts", { params })
+//     //   .rpc("", { params })
 //     //   .eq("created_by_user_id", `${userProfileState?.id}`)
 //     //   .range(0, 20);
 
