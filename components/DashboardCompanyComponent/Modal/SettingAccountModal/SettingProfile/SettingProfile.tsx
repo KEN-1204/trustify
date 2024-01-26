@@ -43,6 +43,9 @@ const SettingProfileMemo = () => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const setUserProfileState = useDashboardStore((state) => state.setUserProfileState);
 
+  // infoアイコン
+  const infoIconStampRef = useRef<HTMLDivElement | null>(null);
+
   // 名前編集モード
   const [editNameMode, setEditNameMode] = useState(false);
   const [editedName, setEditedName] = useState("");
@@ -574,7 +577,10 @@ const SettingProfileMemo = () => {
             <div className={`${styles.section_title}`}>
               <div
                 className="flex max-w-max items-center space-x-[9px]"
-                onMouseEnter={(e) =>
+                onMouseEnter={(e) => {
+                  if (infoIconStampRef.current && infoIconStampRef.current.classList.contains(styles.animate_ping)) {
+                    infoIconStampRef.current.classList.remove(styles.animate_ping);
+                  }
                   handleOpenTooltip({
                     e: e,
                     display: "top",
@@ -582,12 +588,19 @@ const SettingProfileMemo = () => {
                     content2: "見積書の印鑑や承認の押印をデータベース上で処理が可能になります。",
                     marginTop: 33,
                     // marginTop: 8,
-                  })
-                }
+                  });
+                }}
                 onMouseLeave={handleCloseTooltip}
               >
                 <span>印鑑データ</span>
-                <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+                {/* <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} /> */}
+                <div className="flex-center relative h-[16px] w-[16px] rounded-full">
+                  <div
+                    ref={infoIconStampRef}
+                    className={`flex-center absolute left-0 top-0 h-[16px] w-[16px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
+                  ></div>
+                  <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
+                </div>
               </div>
             </div>
             <div className={`flex h-full w-full items-center justify-between`}>

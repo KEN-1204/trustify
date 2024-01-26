@@ -67,6 +67,7 @@ export type hoveredItemPosWrap = {
   content: string;
   content2?: string | null;
   content3?: string | null;
+  content4?: string | null;
   display?: string | null;
   textLength?: number;
   marginTop?: number;

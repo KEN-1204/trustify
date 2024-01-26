@@ -2233,6 +2233,9 @@ textarea {
 .bg-brand-gradient {
   background: linear-gradient(to bottom left, #0affff, #0abeff, #0066ff);
 }
+/* .bg-brand-gradient-light {
+  background: linear-gradient(to bottom left, #0affff, #0abeff, #0066ff);
+} */
 /* STRIPE
 メイン薄い #80E9FF, #7A73FF, ロゴ #55D2FF */
 .bg-gradient-brand1 {

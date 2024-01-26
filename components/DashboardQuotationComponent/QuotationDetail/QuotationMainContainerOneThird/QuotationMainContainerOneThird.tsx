@@ -59,6 +59,9 @@ import {
   optionsSalesTaxRate,
   optionsSendingMethod,
   optionsSubmissionClass,
+  optionsTimeZoneEn,
+  optionsTimeZoneJa,
+  timezoneList,
 } from "@/utils/selectOptions";
 import { ConfirmationModal } from "@/components/DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/ConfirmationModal/ConfirmationModal";
 import { toHalfWidthAndSpace } from "@/utils/Helpers/toHalfWidthAndSpace";
@@ -157,8 +160,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const infoIconDiscountRef = useRef<HTMLDivElement | null>(null);
   const infoIconTotalPriceRef = useRef<HTMLDivElement | null>(null);
   const infoIconDiscountRateRef = useRef<HTMLDivElement | null>(null);
+  const infoIconQuotationNoRef = useRef<HTMLDivElement | null>(null);
 
-  // const supabase = useSupabaseClient();
+  const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
 
   const { updateQuotationFieldMutation } = useMutateQuotation();
@@ -233,6 +237,10 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const [inputExpirationDate, setInputExpirationDate] = useState<Date | null>(null);
   const [inputQuotationNotes, setInputQuotationNotes] = useState("");
   const [inputQuotationRemarks, setInputQuotationRemarks] = useState("");
+  // サーチ用
+  const [inputQuotationNoCustomSearch, setInputQuotationNoCustomSearch] = useState("");
+  const [inputQuotationNoSystemSearch, setInputQuotationNoSystemSearch] = useState("");
+  // upsert編集用
   const [inputQuotationNoCustom, setInputQuotationNoCustom] = useState("");
   const [inputQuotationNoSystem, setInputQuotationNoSystem] = useState("");
   const [inputQuotationTitle, setInputQuotationTitle] = useState("");
@@ -254,6 +262,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const [inputCompanyIdDestEdit, setInputCompanyIdDestEdit] = useState(null);
   const [inputContactIdDestEdit, setInputContactIdDestEdit] = useState(null);
   // 見積関連フィールドエディット
+  // const [inputQuotationNoCustomEdit, setInputQuotationNoCustomEdit] = useState("");
+  // const [inputQuotationNoSystemEdit, setInputQuotationNoSystemEdit] = useState("");
   const [inputSubmissionClassEdit, setInputSubmissionClassEdit] = useState("");
   const [inputDeadlineEdit, setInputDeadlineEdit] = useState("");
   const [inputDeliveryPlaceEdit, setInputDeliveryPlaceEdit] = useState("");
@@ -615,11 +625,21 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
 
   // ----------------------- 🌟見積Noカスタム/自動をローカルストレージから取得🌟 -----------------------
-  const [useQuotationNoCustom, setUseQuotationNoCustom] = useState(false);
+  // カスタム/オート
+  const [useQuotationNoCustom, setUseQuotationNoCustom] = useState(
+    localStorage.getItem("use_quotation_no_custom") === "true" ? true : false
+  );
+  // ユーザーのタイムゾーン
+  const [userTimeZone, setUserTimeZone] = useState(
+    localStorage.getItem("timezone")
+      ? localStorage.getItem("timezone")
+      : Intl.DateTimeFormat().resolvedOptions().timeZone
+  );
   useEffect(() => {
+    // 見積Noのカスタム/オート
     let _useQuotationNoCustom = false;
     const result = localStorage.getItem("use_quotation_no_custom");
-    // まだセットされていない場合はfalseをセット
+    // まだセットされていない場合は初期値にfalse(自動採番)をセット
     if (!result) {
       localStorage.setItem("use_quotation_no_custom", JSON.stringify(false));
     } else {
@@ -627,6 +647,14 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     }
     // stateに格納
     setUseQuotationNoCustom(_useQuotationNoCustom);
+
+    // ユーザーのローカルタイムゾーン
+    const resultTimezone = localStorage.getItem("timezone");
+    // まだセットされていない場合
+    if (!resultTimezone) {
+      // タイムゾーンは既に文字列形式なので、直接 localStorage.setItem に渡すことができる
+      localStorage.setItem("timezone", Intl.DateTimeFormat().resolvedOptions().timeZone);
+    }
   }, []);
   // ----------------------- ✅見積Noカスタム/自動をローカルストレージから取得✅ -----------------------
 
@@ -979,6 +1007,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     content?: string;
     content2?: string;
     content3?: string;
+    content4?: string;
   };
   const handleOpenTooltip = ({
     e,
@@ -989,6 +1018,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     content,
     content2,
     content3,
+    content4,
   }: TooltipParams) => {
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
@@ -999,6 +1029,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     const dataText3 = ((e.target as HTMLDivElement).dataset.text3 as string)
       ? ((e.target as HTMLDivElement).dataset.text3 as string)
       : "";
+    const dataText4 = ((e.target as HTMLDivElement).dataset.text4 as string)
+      ? ((e.target as HTMLDivElement).dataset.text4 as string)
+      : "";
     setHoveredItemPosWrap({
       x: x,
       y: y,
@@ -1007,6 +1040,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       content: ((e.target as HTMLDivElement).dataset.text as string) || (content ?? ""),
       content2: dataText2 || content2 || "",
       content3: dataText3 || content3 || "",
+      content4: dataText4 || content4 || "",
       display: display,
       marginTop: marginTop,
       itemsPosition: itemsPosition,
@@ -1555,6 +1589,56 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   }, [selectedProductsArray.length]);
   // ---------------- ✅useEffect 見積商品リストに商品が追加、削除された時に価格合計を再計算✅ ----------------
 
+  // ---------------- 🌟オート見積Noをデータベースから取得する関数🌟 ----------------
+  const [isLoadingQuotationNo, setIsLoadingQuotationNo] = useState(false); // ローディング
+  const handleGetQuotationNo = async () => {
+    if (!userProfileState?.company_id) return alert("エラー：会社・チームのデータが見つかりません");
+
+    // 既にシステム見積Noが採番されている場合はリターンさせる
+    if (inputQuotationNoSystem)
+      return alert(
+        "既にオート見積Noは採番済みです。別の見積Noが必要な場合は、「戻る」を押して再度見積もりを作成してください。"
+      );
+
+    // ローディング開始
+    setIsLoadingQuotationNo(true);
+
+    try {
+      // タイムゾーンがリスト内の値かをチェック
+      const isValidTimeZone = userTimeZone && timezoneList.includes(userTimeZone);
+
+      if (!isValidTimeZone) throw new Error("有効なタイムゾーンではありません");
+
+      // FUNCTIONを実行
+      const { data: newQuotationNo, error } = await supabase.rpc("get_next_quotation_no", {
+        _customer_id_arg: userProfileState.company_id,
+        _user_timezone_arg: userTimeZone,
+      });
+
+      // 0.3秒ローディング
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      if (error) throw error;
+
+      setInputQuotationNoSystem(newQuotationNo);
+    } catch (error: any) {
+      console.error(`オート見積Noの取得に失敗しました`, error);
+      toast.error(`見積Noの採番に失敗しました...🙇‍♀️`);
+    }
+
+    // ローディング終了
+    setIsLoadingQuotationNo(false);
+  };
+  // ---------------- ✅オート見積Noをデータベースから取得する関数✅ ----------------
+
+  const handleSaveUpsert = async () => {
+    // カスタムとオートの両方の見積Noが空文字ならリターン
+    if (!inputQuotationNoCustom && !inputQuotationNoSystem)
+      return alert(
+        "見積Noは必須です。「見積No区分」からカスタムかオートを選択し、見積Noを設定してから保存してください。"
+      );
+  };
+
   console.log(
     "🔥MeetingMainContainerレンダリング",
     "selectedRowDataQuotation",
@@ -1591,6 +1675,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                   <button
                     type="button"
                     className={`${styles.upsert_btn} transition-bg02 max-h-[28px] min-h-[28px] min-w-[90px] max-w-[90px] text-[13px]`}
+                    onClick={handleSaveUpsert}
                   >
                     保存
                   </button>
@@ -1607,17 +1692,17 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                   </div>
                 </div>
                 <div className={`flex h-full items-center space-x-[15px]`}>
-                  <div
+                  {/* <div
                     className={`${styles.upsert_btn} transition-bg02 max-h-[28px] min-h-[28px] min-w-[100px] max-w-[100px] text-[12px]`}
                     onMouseEnter={(e) =>
                       handleOpenTooltip({
                         e: e,
                         display: "top",
-                        content: `独自に設定できるカスタム見積Noと自動で採番される見積Noの切り替えが可能です。`,
-                        content2: `自動採番の見積Noは12桁の番号が自動で割り当てられ、`,
-                        content3: `1日に99万9999件まで採番が可能です。`,
+                        content: `独自に設定できるカスタム見積Noと自動で採番されるシステム見積Noの切り替えが可能です`,
+                        content2: `○カスタム見積No： 会社、チーム内で独自の見積Noを管理している場合はカスタム見積Noを使用します`,
+                        content3: `○自動見積No： 自動採番の見積Noは12桁の番号が自動で割り当てられ、1日に99万9999件まで採番が可能です`,
                         marginTop: 28,
-                        itemsPosition: "center",
+                        itemsPosition: "left",
                       })
                     }
                     onMouseLeave={handleCloseTooltip}
@@ -1632,12 +1717,112 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                     }}
                   >
                     見積No切替
+                  </div> */}
+                  <div className="flex flex-col">
+                    <div className="flex items-end space-x-[9px]">
+                      <div
+                        className={`flex min-h-max min-w-max items-center text-[13px] font-bold`}
+                        onMouseEnter={(e) => {
+                          if (
+                            infoIconQuotationNoRef.current &&
+                            infoIconQuotationNoRef.current.classList.contains(styles.animate_ping)
+                          ) {
+                            infoIconQuotationNoRef.current.classList.remove(styles.animate_ping);
+                          }
+                          handleOpenTooltip({
+                            e: e,
+                            display: "top",
+                            content: `独自に設定できるカスタム見積Noと自動で採番されるオート見積Noの切り替えが可能です。`,
+                            content2: `○カスタム見積No： 会社、チーム内で独自の見積Noを管理している場合はカスタム見積Noを使用します。`,
+                            content3: `○オート見積No：「見積No採番」をクリックすると自動で12桁の見積Noが採番されます。`,
+                            content4: `1日に99万9999件まで一意のNoを採番可能です。`,
+                            marginTop: 28,
+                            itemsPosition: "left",
+                          });
+                        }}
+                        onMouseLeave={handleCloseTooltip}
+                      >
+                        <div className="flex-center relative h-[15px] w-[15px] rounded-full">
+                          <div
+                            ref={infoIconQuotationNoRef}
+                            className={`flex-center absolute left-0 top-0 h-[15px] w-[15px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
+                          ></div>
+                          <ImInfo className={`min-h-[15px] min-w-[15px] text-[var(--color-bg-brand-f)]`} />
+                        </div>
+                        <span className={`ml-[6px]`}>見積No区分</span>
+                      </div>
+                      <select
+                        className={`h-full min-w-max cursor-pointer ${styles.select_box} ${styles.upsert}`}
+                        value={useQuotationNoCustom ? `custom` : `auto`}
+                        onChange={(e) => {
+                          const newValue = e.target.value === "custom" ? true : false;
+                          setUseQuotationNoCustom(newValue);
+                          localStorage.setItem("use_quotation_no_custom", JSON.stringify(newValue));
+                        }}
+                      >
+                        <option value="custom">カスタム</option>
+                        <option value="auto">オート</option>
+                      </select>
+                    </div>
+                    <div className={`${styles.underline} mb-[-3px] mt-[3px]`}></div>
                   </div>
                   {!useQuotationNoCustom && (
                     <div
                       className={`${styles.upsert_btn} transition-bg02 max-h-[28px] min-h-[28px] min-w-[100px] max-w-[100px] text-[12px]`}
+                      onClick={handleGetQuotationNo}
                     >
                       見積No採番
+                    </div>
+                  )}
+                  {!useQuotationNoCustom && (
+                    <div className="flex flex-col">
+                      <div className="flex items-end space-x-[9px]">
+                        <div
+                          className={`flex min-h-max min-w-max items-center text-[13px] font-bold`}
+                          onMouseEnter={(e) => {
+                            handleOpenTooltip({
+                              e: e,
+                              display: "top",
+                              content: `オート見積Noで採番される番号は、現在の西暦の下2桁と月日の4桁、6桁の連番を組み合わせたものです。`,
+                              content2: `地域により日付が異なるため、自チームにあったタイムゾーンを選択してください。`,
+                              marginTop: 28,
+                              itemsPosition: "left",
+                            });
+                          }}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          <div className="flex-center relative h-[15px] w-[15px] rounded-full">
+                            <div
+                              // ref={infoIconQuotationNoRef}
+                              className={`flex-center absolute left-0 top-0 h-[15px] w-[15px] rounded-full border border-solid border-[var(--color-bg-brand-f)]`}
+                            ></div>
+                            <ImInfo className={`min-h-[15px] min-w-[15px] text-[var(--color-bg-brand-f)]`} />
+                          </div>
+                          <span className={`ml-[6px]`}>タイムゾーン</span>
+                        </div>
+                        <select
+                          className={`h-full min-w-max cursor-pointer ${styles.select_box} ${styles.upsert}`}
+                          value={userTimeZone ?? optionsTimeZoneJa[0].timeZone}
+                          onChange={(e) => {
+                            setUserTimeZone(e.target.value);
+                            localStorage.setItem("timezone", e.target.value);
+                          }}
+                        >
+                          {language === "ja" &&
+                            optionsTimeZoneJa.map((option) => (
+                              <option key={option.timeZone} value={option.timeZone}>
+                                {option.areaName}
+                              </option>
+                            ))}
+                          {language === "en" &&
+                            optionsTimeZoneEn.map((option) => (
+                              <option key={option.timeZone} value={option.timeZone}>
+                                {option.areaName}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                      <div className={`${styles.underline} mb-[-3px] mt-[3px]`}></div>
                     </div>
                   )}
                 </div>
@@ -2243,11 +2428,13 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                       <div className={`${styles.title_box} flex h-full min-h-[26px] !items-end `}>
                         <span className={`${styles.section_title} mb-[2px] mr-[5px] !min-w-max`}>送付先</span>
                         <span className={`text-[12px]`}>（送付先が依頼元と違う場合は変更する）</span>
-                        <div
-                          className={`${styles.upsert_btn} transition-bg02 ml-auto min-h-[26px] min-w-[90px] max-w-[90px] !rounded-[6px] text-[12px]`}
-                        >
-                          送付先変更
-                        </div>
+                        {isInsertModeQuotation && (
+                          <div
+                            className={`${styles.upsert_btn} transition-bg02 ml-auto min-h-[26px] min-w-[90px] max-w-[90px] !rounded-[6px] text-[12px]`}
+                          >
+                            送付先変更
+                          </div>
+                        )}
                       </div>
                       <div className={`${styles.section_underline}`}></div>
                     </div>
@@ -2602,108 +2789,170 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                       <div className={`${styles.row_area} flex max-h-[26px] w-full items-center`}>
                         <div className="flex h-full w-1/2 flex-col pr-[20px]">
                           <div className={`${styles.title_box} flex h-full items-center `}>
-                            <span className={`${styles.section_title} ${styles.min_text}`}>●見積No</span>
+                            <span
+                              className={`${styles.section_title} ${styles.min_text} ${
+                                useQuotationNoCustom && isInsertModeQuotation ? `` : `!min-w-[88px]`
+                              }`}
+                            >
+                              ●見積No
+                            </span>
                             {/* ローカルストレージに真偽値で独自かシステムどちらを使うかを保持して表示を切り替える */}
-                            {!searchMode && isEditModeField !== "quotation_no_system" && !isInsertModeQuotation && (
-                              <span
-                                className={`${styles.value} ${styles.value_highlight} ${styles.editable_field}`}
-                                data-text={
-                                  selectedRowDataQuotation?.quotation_no_system
+                            {!searchMode &&
+                              isEditModeField !== "quotation_no_system" &&
+                              isEditModeField !== "quotation_no_custom" &&
+                              !isInsertModeQuotation && (
+                                <span
+                                  className={`${styles.value} ${styles.value_highlight} ${styles.editable_field}`}
+                                  data-text={
+                                    selectedRowDataQuotation?.quotation_no_system
+                                      ? selectedRowDataQuotation?.quotation_no_system
+                                      : selectedRowDataQuotation?.quotation_no_custom
+                                      ? selectedRowDataQuotation?.quotation_no_custom
+                                      : ""
+                                  }
+                                  onMouseEnter={(e) => handleOpenTooltip({ e, display: "top" })}
+                                  onMouseLeave={handleCloseTooltip}
+                                  onClick={handleSingleClickField}
+                                  onDoubleClick={(e) => {
+                                    if (
+                                      !selectedRowDataQuotation?.quotation_no_system &&
+                                      !selectedRowDataQuotation?.quotation_no_custom
+                                    ) {
+                                      return;
+                                    }
+                                    handleDoubleClickField({
+                                      e,
+                                      // field: "quotation_no_system",
+                                      field: selectedRowDataQuotation?.quotation_no_system
+                                        ? "quotation_no_system"
+                                        : selectedRowDataQuotation?.quotation_no_custom
+                                        ? "quotation_no_custom"
+                                        : "",
+                                      dispatch: setInputQuotationNoSystem,
+                                      selectedRowDataValue: selectedRowDataQuotation?.quotation_no_system ?? "",
+                                    });
+                                    handleCloseTooltip();
+                                  }}
+                                >
+                                  {/* {selectedRowDataQuotation?.quotation_no_system
                                     ? selectedRowDataQuotation?.quotation_no_system
-                                    : ""
-                                }
-                                onMouseEnter={(e) => handleOpenTooltip({ e, display: "top" })}
-                                onMouseLeave={handleCloseTooltip}
-                                onClick={handleSingleClickField}
-                                onDoubleClick={(e) => {
-                                  // if (!selectedRowDataQuotation?.activity_type) return;
-                                  // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.activity_type)) {
-                                  //   return alert(returnMessageNotActivity(selectedRowDataQuotation.activity_type));
-                                  // }
-                                  handleDoubleClickField({
-                                    e,
-                                    field: "quotation_no_system",
-                                    dispatch: setInputQuotationNoSystem,
-                                    selectedRowDataValue: selectedRowDataQuotation?.quotation_no_system ?? "",
-                                  });
-                                  handleCloseTooltip();
-                                }}
-                              >
-                                {selectedRowDataQuotation?.quotation_no_system
-                                  ? selectedRowDataQuotation?.quotation_no_system
-                                  : ""}
-                              </span>
-                            )}
+                                    : ""} */}
+                                  {/* カスタム見積Noが存在する場合はカスタム見積Noを優先で取得 */}
+                                  {selectedRowDataQuotation?.quotation_no_custom
+                                    ? selectedRowDataQuotation?.quotation_no_custom
+                                    : selectedRowDataQuotation?.quotation_no_system
+                                    ? selectedRowDataQuotation?.quotation_no_system
+                                    : ""}
+                                </span>
+                              )}
 
                             {/* ----------------- upsert ----------------- */}
                             {!searchMode && isInsertModeQuotation && (
                               <>
-                                <input
-                                  type="text"
-                                  placeholder="見積Noを入力"
-                                  // autoFocus
-                                  className={`${styles.input_box} ${styles.upsert}`}
-                                  value={inputQuotationNoSystem}
-                                  onChange={(e) => setInputQuotationNoSystem(e.target.value)}
-                                  onBlur={(e) => setInputQuotationNoSystem(inputQuotationNoSystem.trim())}
-                                />
+                                {useQuotationNoCustom && !isLoadingQuotationNo && (
+                                  <input
+                                    type="text"
+                                    placeholder="見積Noを入力"
+                                    // autoFocus
+                                    className={`${styles.input_box} ${styles.upsert}`}
+                                    value={inputQuotationNoCustom}
+                                    onChange={(e) => setInputQuotationNoCustom(e.target.value)}
+                                    onBlur={(e) => setInputQuotationNoCustom(inputQuotationNoCustom.trim())}
+                                  />
+                                )}
+                                {!useQuotationNoCustom && !isLoadingQuotationNo && (
+                                  <span
+                                    className={`${styles.value}`}
+                                    onMouseEnter={(e) => {
+                                      if (inputQuotationNoSystem) {
+                                        handleOpenTooltip({
+                                          e: e,
+                                          display: "top",
+                                          content: `オート見積Noで採番された番号の編集はできません`,
+                                          content2: `${
+                                            !isDesktopGTE1600 && isOpenSidebar ? `${inputQuotationNoSystem}` : ``
+                                          }`,
+                                          marginTop: 28,
+                                          itemsPosition: "center",
+                                        });
+                                      }
+                                    }}
+                                    onMouseLeave={() => {
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                  >
+                                    {inputQuotationNoSystem ? inputQuotationNoSystem : ""}
+                                  </span>
+                                )}
+                                {/* ローディング オート見積No取得時 */}
+                                {isLoadingQuotationNo && (
+                                  <div className="">
+                                    <SpinnerComet w="24px" h="24px" s="3px" />
+                                  </div>
+                                )}
                               </>
                             )}
                             {/* ----------------- upsert ----------------- */}
 
                             {/* ============= フィールドエディットモード関連 ============= */}
                             {/* フィールドエディットモード selectタグ  */}
-                            {!searchMode && isEditModeField === "quotation_no_system" && (
-                              <>
-                                <input
-                                  type="text"
-                                  placeholder=""
-                                  autoFocus
-                                  className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
-                                  value={inputQuotationNoSystem}
-                                  onChange={(e) => setInputQuotationNoSystem(e.target.value)}
-                                  onCompositionStart={() => setIsComposing(true)}
-                                  onCompositionEnd={() => setIsComposing(false)}
-                                  onKeyDown={(e) =>
-                                    handleKeyDownUpdateField({
-                                      e,
-                                      fieldName: "quotation_no_system",
-                                      fieldNameForSelectedRowData: "quotation_no_system",
-                                      originalValue: originalValueFieldEdit.current,
-                                      newValue: inputQuotationNoSystem.trim(),
-                                      id: selectedRowDataQuotation?.quotation_id,
-                                      required: true,
-                                    })
-                                  }
-                                />
-                                {/* 送信ボタンとクローズボタン */}
-                                {!updateQuotationFieldMutation.isLoading && (
-                                  <InputSendAndCloseBtn
-                                    inputState={inputQuotationNoSystem}
-                                    setInputState={setInputQuotationNoSystem}
-                                    onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
-                                      handleClickSendUpdateField({
+                            {!searchMode &&
+                              (isEditModeField === "quotation_no_system" ||
+                                isEditModeField === "quotation_no_custom") && (
+                                <>
+                                  <input
+                                    type="text"
+                                    placeholder=""
+                                    autoFocus
+                                    className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                                    value={inputQuotationNoSystem}
+                                    onChange={(e) => setInputQuotationNoSystem(e.target.value)}
+                                    onCompositionStart={() => setIsComposing(true)}
+                                    onCompositionEnd={() => setIsComposing(false)}
+                                    onKeyDown={(e) => {
+                                      handleKeyDownUpdateField({
                                         e,
-                                        fieldName: "quotation_no_system",
-                                        fieldNameForSelectedRowData: "quotation_no_system",
+                                        // fieldName: "quotation_no_system",
+                                        // fieldNameForSelectedRowData: "quotation_no_system",
+                                        fieldName: isEditModeField,
+                                        fieldNameForSelectedRowData: isEditModeField,
                                         originalValue: originalValueFieldEdit.current,
                                         newValue: inputQuotationNoSystem.trim(),
                                         id: selectedRowDataQuotation?.quotation_id,
                                         required: true,
-                                      })
-                                    }
-                                    required={true}
-                                    isDisplayClose={false}
+                                      });
+                                    }}
                                   />
-                                )}
-                                {/* エディットフィールド送信中ローディングスピナー */}
-                                {updateQuotationFieldMutation.isLoading && (
-                                  <div className={`${styles.field_edit_mode_loading_area}`}>
-                                    <SpinnerComet w="22px" h="22px" s="3px" />
-                                  </div>
-                                )}
-                              </>
-                            )}
+                                  {/* 送信ボタンとクローズボタン */}
+                                  {!updateQuotationFieldMutation.isLoading && (
+                                    <InputSendAndCloseBtn
+                                      inputState={inputQuotationNoSystem}
+                                      setInputState={setInputQuotationNoSystem}
+                                      onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
+                                        handleClickSendUpdateField({
+                                          e,
+                                          // fieldName: "quotation_no_system",
+                                          // fieldNameForSelectedRowData: "quotation_no_system",
+                                          fieldName: isEditModeField,
+                                          fieldNameForSelectedRowData: isEditModeField,
+                                          originalValue: originalValueFieldEdit.current,
+                                          newValue: inputQuotationNoSystem.trim(),
+                                          id: selectedRowDataQuotation?.quotation_id,
+                                          required: true,
+                                        })
+                                      }
+                                      required={true}
+                                      isDisplayClose={false}
+                                    />
+                                  )}
+                                  {/* エディットフィールド送信中ローディングスピナー */}
+                                  {updateQuotationFieldMutation.isLoading && (
+                                    <div className={`${styles.field_edit_mode_loading_area}`}>
+                                      <SpinnerComet w="22px" h="22px" s="3px" />
+                                    </div>
+                                  )}
+                                </>
+                              )}
                             {/* フィールドエディットモードオーバーレイ */}
                             {!searchMode && isEditModeField === "quotation_no_system" && (
                               <div
@@ -2720,7 +2969,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         </div>
                         <div className="flex h-full w-1/2 flex-col pr-[20px]">
                           <div className={`${styles.title_box} flex h-full items-center `}>
-                            <div className={`${styles.section_title} ${styles.min_text} flex flex-col`}>
+                            <div className={`${styles.title} flex flex-col`}>
                               <span>●提出区分</span>
                             </div>
                             {!searchMode && isEditModeField !== "submission_class" && !isInsertModeQuotation && (
@@ -2757,7 +3006,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             {!searchMode && isInsertModeQuotation && (
                               <>
                                 <select
-                                  className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.upsert}`}
+                                  className={`ml-auto h-full w-full cursor-pointer ${styles.select_box} ${styles.upsert}`}
                                   value={inputSubmissionClassEdit}
                                   onChange={(e) => {
                                     setInputSubmissionClassEdit(e.target.value);
@@ -4074,13 +4323,15 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               onMouseLeave={handleCloseTooltip}
                             >
                               <span className={`mr-[6px]`}>価格合計</span>
-                              <div className="flex-center relative h-[15px] w-[15px] rounded-full">
-                                <div
-                                  ref={infoIconTotalPriceRef}
-                                  className={`flex-center absolute left-0 top-0 h-[15px] w-[15px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
-                                ></div>
-                                <ImInfo className={`min-h-[15px] min-w-[15px] text-[var(--color-bg-brand-f)]`} />
-                              </div>
+                              {isInsertModeQuotation && (
+                                <div className="flex-center relative h-[15px] w-[15px] rounded-full">
+                                  <div
+                                    ref={infoIconTotalPriceRef}
+                                    className={`flex-center absolute left-0 top-0 h-[15px] w-[15px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
+                                  ></div>
+                                  <ImInfo className={`min-h-[15px] min-w-[15px] text-[var(--color-bg-brand-f)]`} />
+                                </div>
+                              )}
                             </div>
 
                             {!searchMode && isEditModeField !== "total_price" && !isInsertModeQuotation && (
@@ -4360,13 +4611,15 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               onMouseLeave={handleCloseTooltip}
                             >
                               <span className={`mr-[6px]`}>値引金額</span>
-                              <div className="flex-center relative h-[15px] w-[15px] rounded-full">
-                                <div
-                                  ref={infoIconDiscountRef}
-                                  className={`flex-center absolute left-0 top-0 h-[15px] w-[15px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
-                                ></div>
-                                <ImInfo className={`min-h-[15px] min-w-[15px] text-[var(--color-bg-brand-f)]`} />
-                              </div>
+                              {isInsertModeQuotation && (
+                                <div className="flex-center relative h-[15px] w-[15px] rounded-full">
+                                  <div
+                                    ref={infoIconDiscountRef}
+                                    className={`flex-center absolute left-0 top-0 h-[15px] w-[15px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
+                                  ></div>
+                                  <ImInfo className={`min-h-[15px] min-w-[15px] text-[var(--color-bg-brand-f)]`} />
+                                </div>
+                              )}
                             </div>
 
                             {!searchMode && isEditModeField !== "discount_amount" && !isInsertModeQuotation && (
@@ -4609,13 +4862,15 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               onMouseLeave={handleCloseTooltip}
                             >
                               <span className={`mr-[6px]`}>値引率</span>
-                              <div className="flex-center relative h-[15px] w-[15px] rounded-full">
-                                <div
-                                  ref={infoIconDiscountRateRef}
-                                  className={`flex-center absolute left-0 top-0 h-[15px] w-[15px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
-                                ></div>
-                                <ImInfo className={`min-h-[15px] min-w-[15px] text-[var(--color-bg-brand-f)]`} />
-                              </div>
+                              {isInsertModeQuotation && (
+                                <div className="flex-center relative h-[15px] w-[15px] rounded-full">
+                                  <div
+                                    ref={infoIconDiscountRateRef}
+                                    className={`flex-center absolute left-0 top-0 h-[15px] w-[15px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
+                                  ></div>
+                                  <ImInfo className={`min-h-[15px] min-w-[15px] text-[var(--color-bg-brand-f)]`} />
+                                </div>
+                              )}
                             </div>
 
                             {!searchMode && (
@@ -7012,98 +7267,100 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                 <div className={`${styles.row_area} flex w-full items-center`}>
                   <div className="flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
-                      <span className={`${styles.section_title} mr-[20px]`}>見積商品リスト</span>
-                      <div className="flex w-full items-center space-x-[10px]">
-                        <RippleButton
-                          title={`追加`}
-                          classText="select-none"
-                          borderRadius="6px"
-                          clickEventHandler={() => {
-                            if (isEditingCell) return;
-                            setIsOpenSearchProductSideTableBefore(true);
-                            setTimeout(() => {
-                              setIsOpenSearchProductSideTable(true);
-                            }, 100);
-                          }}
-                          onMouseEnterHandler={(e) =>
-                            handleOpenTooltip({
-                              e: e,
-                              display: "top",
-                              content: `見積に商品を追加`,
-                              // content2: `直近売れ先の仕入れ先や、売れ先と同じ取引先を持つ同業他社で導入実績が響く会社など`,
-                              // marginTop: 48,
-                              // marginTop: 28,
-                              marginTop: 9,
-                            })
-                          }
-                          onMouseLeaveHandler={handleCloseTooltip}
-                        />
-                        {selectedRowDataQuotationProduct && (
-                          <>
-                            <RippleButton
-                              title={`削除`}
-                              classText="select-none"
-                              borderRadius="6px"
-                              clickEventHandler={() => {
-                                if (isEditingCell) return;
-                                const newArray = selectedProductsArray.filter(
-                                  (obj) =>
-                                    obj.quotation_product_id !== selectedRowDataQuotationProduct.quotation_product_id
-                                );
-                                // 削除後のpriorityを現在の順番に変更する
-                                const sortedNewArray = newArray.map((obj, index) => {
-                                  const newObj: QuotationProductsDetail = {
-                                    ...obj,
-                                    quotation_product_priority: index + 1,
-                                  };
-                                  return newObj;
-                                });
-                                setSelectedProductsArray(sortedNewArray);
-                                setSelectedRowDataQuotationProduct(null);
-                                handleCloseTooltip();
-                              }}
-                              onMouseEnterHandler={(e) => {
-                                handleOpenTooltip({
-                                  e: e,
-                                  display: "top",
-                                  content: `選択中の商品をリストから削除`,
-                                  // content2: `直近売れ先の仕入れ先や、売れ先と同じ取引先を持つ同業他社で導入実績が響く会社など`,
-                                  // marginTop: 48,
-                                  // marginTop: 28,
-                                  marginTop: 9,
-                                });
-                              }}
-                              onMouseLeaveHandler={handleCloseTooltip}
-                            />
-                            {Object.values(editPosition).every((value) => value !== null) && (
+                      <span className={`${styles.section_title} mr-[20px] !min-w-max`}>見積商品リスト</span>
+                      {isInsertModeQuotation && (
+                        <div className="flex w-full items-center space-x-[10px]">
+                          <RippleButton
+                            title={`追加`}
+                            classText="select-none"
+                            borderRadius="6px"
+                            clickEventHandler={() => {
+                              if (isEditingCell) return;
+                              setIsOpenSearchProductSideTableBefore(true);
+                              setTimeout(() => {
+                                setIsOpenSearchProductSideTable(true);
+                              }, 100);
+                            }}
+                            onMouseEnterHandler={(e) =>
+                              handleOpenTooltip({
+                                e: e,
+                                display: "top",
+                                content: `見積に商品を追加`,
+                                // content2: `直近売れ先の仕入れ先や、売れ先と同じ取引先を持つ同業他社で導入実績が響く会社など`,
+                                // marginTop: 48,
+                                // marginTop: 28,
+                                marginTop: 9,
+                              })
+                            }
+                            onMouseLeaveHandler={handleCloseTooltip}
+                          />
+                          {selectedRowDataQuotationProduct && (
+                            <>
                               <RippleButton
-                                title={`編集`}
-                                classText={`select-none ${isEditingCell ? ` cursor-not-allowed` : ``}`}
+                                title={`削除`}
+                                classText="select-none"
                                 borderRadius="6px"
                                 clickEventHandler={() => {
                                   if (isEditingCell) return;
-                                  setIsEditingCell(true);
+                                  const newArray = selectedProductsArray.filter(
+                                    (obj) =>
+                                      obj.quotation_product_id !== selectedRowDataQuotationProduct.quotation_product_id
+                                  );
+                                  // 削除後のpriorityを現在の順番に変更する
+                                  const sortedNewArray = newArray.map((obj, index) => {
+                                    const newObj: QuotationProductsDetail = {
+                                      ...obj,
+                                      quotation_product_priority: index + 1,
+                                    };
+                                    return newObj;
+                                  });
+                                  setSelectedProductsArray(sortedNewArray);
+                                  setSelectedRowDataQuotationProduct(null);
                                   handleCloseTooltip();
                                 }}
                                 onMouseEnterHandler={(e) => {
-                                  if (isEditingCell) return;
                                   handleOpenTooltip({
                                     e: e,
                                     display: "top",
-                                    content: `選択中の項目を編集する`,
-                                    content2: `見積記載の項目は自由に編集が可能です`,
-                                    content3: `セルをダブルクリックしても編集が可能です`,
-                                    marginTop: 48,
-                                    // marginTop: 27,
-                                    // marginTop: 9,
+                                    content: `選択中の商品をリストから削除`,
+                                    // content2: `直近売れ先の仕入れ先や、売れ先と同じ取引先を持つ同業他社で導入実績が響く会社など`,
+                                    // marginTop: 48,
+                                    // marginTop: 28,
+                                    marginTop: 9,
                                   });
                                 }}
                                 onMouseLeaveHandler={handleCloseTooltip}
                               />
-                            )}
-                          </>
-                        )}
-                      </div>
+                              {Object.values(editPosition).every((value) => value !== null) && (
+                                <RippleButton
+                                  title={`編集`}
+                                  classText={`select-none ${isEditingCell ? ` cursor-not-allowed` : ``}`}
+                                  borderRadius="6px"
+                                  clickEventHandler={() => {
+                                    if (isEditingCell) return;
+                                    setIsEditingCell(true);
+                                    handleCloseTooltip();
+                                  }}
+                                  onMouseEnterHandler={(e) => {
+                                    if (isEditingCell) return;
+                                    handleOpenTooltip({
+                                      e: e,
+                                      display: "top",
+                                      content: `選択中の項目を編集する`,
+                                      content2: `見積記載の項目は自由に編集が可能です`,
+                                      content3: `セルをダブルクリックしても編集が可能です`,
+                                      marginTop: 48,
+                                      // marginTop: 27,
+                                      // marginTop: 9,
+                                    });
+                                  }}
+                                  onMouseLeaveHandler={handleCloseTooltip}
+                                />
+                              )}
+                            </>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {/* <div className={`${styles.underline}`}></div> */}

@@ -139,6 +139,7 @@ const TooltipWrapMemo = () => {
               ></div>
               <span>{hoveredItemPosWrap?.content2}</span>
               {hoveredItemPosWrap?.content3 && <span>{hoveredItemPosWrap?.content3}</span>}
+              {hoveredItemPosWrap?.content4 && <span>{hoveredItemPosWrap?.content4}</span>}
             </div>
           </div>
           <div className={`${styles.tooltip_arrow_over_right}`}></div>
@@ -175,6 +176,7 @@ const TooltipWrapMemo = () => {
           ></div>
           <span>{hoveredItemPosWrap?.content2}</span>
           {hoveredItemPosWrap?.content3 && <span>{hoveredItemPosWrap?.content3}</span>}
+          {hoveredItemPosWrap?.content4 && <span>{hoveredItemPosWrap?.content4}</span>}
         </div>
       </div>
     );
@@ -201,7 +203,11 @@ const TooltipWrapMemo = () => {
       >
         <div className={`${styles.tooltip_over}`}>
           <div
-            className={`flex-col-center ${styles.dropdown_item}`}
+            className={`flex flex-col ${styles.dropdown_item} ${
+              hoveredItemPosWrap.itemsPosition === "center" || !hoveredItemPosWrap.itemsPosition
+                ? `items-center`
+                : `items-start`
+            }`}
             onClick={() => {
               setHoveredItemPosWrap(null);
             }}
@@ -214,6 +220,7 @@ const TooltipWrapMemo = () => {
             ></div>
             {!!hoveredItemPosWrap?.content2 ? <span>{hoveredItemPosWrap?.content2}</span> : ``}
             {!!hoveredItemPosWrap?.content3 ? <span>{hoveredItemPosWrap?.content3}</span> : ``}
+            {!!hoveredItemPosWrap?.content4 ? <span>{hoveredItemPosWrap?.content4}</span> : ``}
           </div>
         </div>
         {/* <div className={`${styles.tooltip_arrow_over}`}></div> */}
@@ -237,7 +244,11 @@ const TooltipWrapMemo = () => {
     >
       <div className={`${styles.tooltip}`}>
         <div
-          className={`flex-col-center ${styles.dropdown_item}`}
+          className={`flex flex-col ${styles.dropdown_item} ${
+            hoveredItemPosWrap.itemsPosition === "center" || !hoveredItemPosWrap.itemsPosition
+              ? `items-center`
+              : `items-start`
+          }`}
           onClick={() => {
             setHoveredItemPosWrap(null);
           }}
@@ -250,6 +261,7 @@ const TooltipWrapMemo = () => {
           ></div>
           <span>{hoveredItemPosWrap?.content2}</span>
           {hoveredItemPosWrap?.content3 && <span>{hoveredItemPosWrap?.content3}</span>}
+          {hoveredItemPosWrap?.content4 && <span>{hoveredItemPosWrap?.content4}</span>}
         </div>
       </div>
       {/* <div className={`${styles.tooltip_arrow}`}></div> */}

@@ -1212,32 +1212,46 @@ export const DashboardHeaderMemo: FC = () => {
           {!avatarUrl && (
             <div
               data-text={`${userProfileState?.profile_name}`}
-              className={`flex-center h-[38px] w-[38px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip}`}
+              // className={`flex-center h-[38px] w-[38px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip}`}
+              className={`flex-center bg-brand-gradient h-[38px] w-[38px] cursor-pointer rounded-full text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip}`}
               onMouseEnter={(e) => handleOpenTooltip(e, "center", "center", "nowrap")}
               onMouseLeave={handleCloseTooltip}
               onClick={() => setOpenProfileMenu(true)}
             >
-              {/* <span>K</span> */}
-              <span className={`pointer-events-none text-[18px]`}>
-                {userProfileState?.profile_name ? getInitial(userProfileState.profile_name) : `${getInitial("NoName")}`}
-              </span>
+              <div className="flex-center h-[34px] w-[34px] rounded-full bg-[var(--color-bg-base)]">
+                <div className="flex-center relative h-[31px] w-[31px] rounded-full bg-[var(--color-bg-brand-sub)]">
+                  <div className="absolute left-0 top-0 z-[10] h-full w-full rounded-full hover:bg-[#00000020]" />
+                  <span className={`pointer-events-none text-[16px]`}>
+                    {userProfileState?.profile_name
+                      ? getInitial(userProfileState.profile_name)
+                      : `${getInitial("NoName")}`}
+                  </span>
+                </div>
+              </div>
             </div>
           )}
           {avatarUrl && (
             <div
               data-text={`${userProfileState?.profile_name}`}
-              className={`flex-center h-[37px] w-[37px] cursor-pointer overflow-hidden rounded-full hover:bg-[#00000020]`}
+              // className={`flex-center h-[37px] w-[37px] cursor-pointer overflow-hidden rounded-full hover:bg-[#00000020]`}
+              // className={`flex-center h-[38px] w-[38px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] `}
+              className={`flex-center bg-brand-gradient h-[38px] w-[38px] cursor-pointer rounded-full `}
               onMouseEnter={(e) => handleOpenTooltip(e, "center", "center", "nowrap")}
               onMouseLeave={handleCloseTooltip}
               onClick={() => setOpenProfileMenu(true)}
             >
-              <Image
-                src={avatarUrl}
-                alt="Avatar"
-                className={`pointer-events-none h-full w-full object-cover text-[#fff]`}
-                width={75}
-                height={75}
-              />
+              <div className="flex-center h-[34px] w-[34px] rounded-full bg-[var(--color-bg-base)]">
+                <div className="flex-center relative h-[31px] w-[31px] overflow-hidden rounded-full">
+                  <div className="absolute left-0 top-0 z-[10] h-full w-full rounded-full hover:bg-[#00000020]" />
+                  <Image
+                    src={avatarUrl}
+                    alt="Avatar"
+                    className={`pointer-events-none h-full w-full object-cover text-[#fff]`}
+                    width={75}
+                    height={75}
+                  />
+                </div>
+              </div>
             </div>
           )}
 

@@ -1,3 +1,95 @@
+// ローカルタイムゾーン
+export const optionsTimeZoneEn = [
+  { areaName: "Japan (Tokyo)", timeZone: "Asia/Tokyo" },
+  { areaName: "South Korea (Seoul)", timeZone: "Asia/Seoul" },
+  { areaName: "China (Shanghai)", timeZone: "Asia/Shanghai" },
+  { areaName: "India (Kolkata)", timeZone: "Asia/Kolkata" },
+  { areaName: "Thailand (Bangkok)", timeZone: "Asia/Bangkok" },
+  { areaName: "UAE (Dubai)", timeZone: "Asia/Dubai" },
+  { areaName: "UK (London)", timeZone: "Europe/London" },
+  { areaName: "France (Paris)", timeZone: "Europe/Paris" },
+  { areaName: "Germany (Berlin)", timeZone: "Europe/Berlin" },
+  { areaName: "Russia (Moscow)", timeZone: "Europe/Moscow" },
+  { areaName: "USA (New York)", timeZone: "America/New_York" },
+  { areaName: "USA (Chicago)", timeZone: "America/Chicago" },
+  { areaName: "USA (Denver)", timeZone: "America/Denver" },
+  { areaName: "USA (Los Angeles)", timeZone: "America/Los_Angeles" },
+  { areaName: "Australia (Sydney)", timeZone: "Australia/Sydney" },
+  { areaName: "New Zealand (Auckland)", timeZone: "Pacific/Auckland" },
+  { areaName: "South Africa (Johannesburg)", timeZone: "Africa/Johannesburg" },
+  { areaName: "Egypt (Cairo)", timeZone: "Africa/Cairo" },
+  { areaName: "Nigeria (Lagos)", timeZone: "Africa/Lagos" },
+];
+export const optionsTimeZoneJa = [
+  { areaName: "日本", timeZone: "Asia/Tokyo" },
+  { areaName: "韓国", timeZone: "Asia/Seoul" },
+  { areaName: "中国", timeZone: "Asia/Shanghai" },
+  { areaName: "インド", timeZone: "Asia/Kolkata" },
+  { areaName: "タイ", timeZone: "Asia/Bangkok" },
+  { areaName: "アラブ首長国連邦", timeZone: "Asia/Dubai" },
+  { areaName: "イギリス", timeZone: "Europe/London" },
+  { areaName: "フランス", timeZone: "Europe/Paris" },
+  { areaName: "ドイツ", timeZone: "Europe/Berlin" },
+  { areaName: "ロシア", timeZone: "Europe/Moscow" },
+  { areaName: "アメリカ(ニューヨーク)", timeZone: "America/New_York" },
+  { areaName: "アメリカ（シカゴ）", timeZone: "America/Chicago" },
+  { areaName: "アメリカ（デンバー）", timeZone: "America/Denver" },
+  { areaName: "アメリカ（ロサンゼルス）", timeZone: "America/Los_Angeles" },
+  { areaName: "オーストラリア", timeZone: "Australia/Sydney" },
+  { areaName: "ニュージーランド", timeZone: "Pacific/Auckland" },
+  { areaName: "南アフリカ", timeZone: "Africa/Johannesburg" },
+  { areaName: "エジプト", timeZone: "Africa/Cairo" },
+  { areaName: "ナイジェリア", timeZone: "Africa/Lagos" },
+];
+// 見積No採番時のタイムゾーンがリストに存在するかチェック用
+export const timezoneList = [
+  "Asia/Tokyo",
+  "Asia/Seoul",
+  "Asia/Shanghai",
+  "Asia/Kolkata",
+  "Asia/Bangkok",
+  "Asia/Dubai",
+  "Europe/London",
+  "Europe/Paris",
+  "Europe/Berlin",
+  "Europe/Moscow",
+  "America/New_York",
+  "America/Chicago",
+  "America/Denver",
+  "America/Los_Angeles",
+  "Australia/Sydney",
+  "Pacific/Auckland",
+  "Africa/Johannesburg",
+  "Africa/Cairo",
+  "Africa/Lagos",
+];
+
+/**
+アジア
+'Asia/Tokyo'（日本）: "Japan (Tokyo)"
+'Asia/Seoul'（韓国）: "South Korea (Seoul)"
+'Asia/Shanghai'（中国）: "China (Shanghai)"
+'Asia/Kolkata'（インド）: "India (Kolkata)"
+'Asia/Bangkok'（タイ）: "Thailand (Bangkok)"
+'Asia/Dubai'（アラブ首長国連邦）: "UAE (Dubai)"
+ヨーロッパ
+'Europe/London'（イギリス）: "UK (London)"
+'Europe/Paris'（フランス）: "France (Paris)"
+'Europe/Berlin'（ドイツ）: "Germany (Berlin)"
+'Europe/Moscow'（ロシア）: "Russia (Moscow)"
+アメリカ大陸
+'America/New_York'（東部標準時）: "USA (New York)"
+'America/Chicago'（中部標準時）: "USA (Chicago)"
+'America/Denver'（山岳部標準時）: "USA (Denver)"
+'America/Los_Angeles'（太平洋標準時）: "USA (Los Angeles)"
+オセアニア
+'Australia/Sydney'（オーストラリア）: "Australia (Sydney)"
+'Pacific/Auckland'（ニュージーランド）: "New Zealand (Auckland)"
+アフリカ
+'Africa/Johannesburg'（南アフリカ）: "South Africa (Johannesburg)"
+'Africa/Cairo'（エジプト）: "Egypt (Cairo)"
+'Africa/Lagos'（ナイジェリア）: "Nigeria (Lagos)"
+ */
 export const optionsPositionsClassForCustomer = [
   "1 代表者",
   "2 取締役/役員",
