@@ -19,6 +19,9 @@ export const useMutateQuotation = () => {
     (state) => state.setIsUpdateRequiredForLatestSelectedRowDataQuotation
   );
 
+  // INSERTモード
+  const setIsInsertModeQuotation = useDashboardStore((state) => state.setIsInsertModeQuotation);
+
   // 選択中の行データと更新関数
   const selectedRowDataQuotation = useDashboardStore((state) => state.selectedRowDataQuotation);
   const setSelectedRowDataQuotation = useDashboardStore((state) => state.setSelectedRowDataQuotation);
@@ -145,6 +148,7 @@ export const useMutateQuotation = () => {
         // setSelectedRowDataQuotation(null);
 
         // setIsOpenInsertNewQuotationModal(false);
+        setIsInsertModeQuotation(false);
         toast.success("見積の作成が完了しました🌟", {
           position: "top-right",
           autoClose: 3000,
@@ -156,6 +160,7 @@ export const useMutateQuotation = () => {
         if (isLoadingUpsertGlobal) setIsLoadingUpsertGlobal(false);
         // setIsOpenInsertNewQuotationModal(false);
         // alert(err.message);
+        setIsInsertModeQuotation(false);
         console.error("見積INSERTエラー", err);
         toast.error("見積の作成に失敗しました...🙇‍♀️", {
           position: "top-right",
@@ -267,7 +272,8 @@ export const useMutateQuotation = () => {
         // 再度テーブルの選択セルのDOMをクリックしてselectedRowDataQuotationを最新状態にする(一括更新の場合UPDATEされた行データを現在選択中のZustandのstateにスプレッドで割り当てようとしても結合してエイリアスを複数使っているのと、実施済み商品と同席者の複数テーブルへのクエリなのでinvalidateQueryのよってstaleにして新たに再フェッチしたデータをクリックしてメインテーブルにデータを反映させる)
         setIsUpdateRequiredForLatestSelectedRowDataQuotation(true);
 
-        if (loadingGlobalState) setLoadingGlobalState(false);
+        // if (loadingGlobalState) setLoadingGlobalState(false);
+        if (isLoadingUpsertGlobal) setIsLoadingUpsertGlobal(false);
         // setIsOpenUpdateQuotationModal(false);
         toast.success("面談の更新が完了しました🌟", {
           position: "top-right",
@@ -275,7 +281,8 @@ export const useMutateQuotation = () => {
         });
       },
       onError: (err: any) => {
-        if (loadingGlobalState) setLoadingGlobalState(false);
+        // if (loadingGlobalState) setLoadingGlobalState(false);
+        if (isLoadingUpsertGlobal) setIsLoadingUpsertGlobal(false);
         // setIsOpenUpdateQuotationModal(false);
         alert(err.message);
         console.error("UPDATEエラー", err);

@@ -49,7 +49,7 @@ export const FallbackSideTableSearchProduct = ({ isOpenSearchProductSideTable }:
   return (
     <>
       {/* オーバーレイ */}
-      <div className={`absolute left-0 top-0 z-[1100] h-full w-full bg-[#00000039]`}></div>
+      <div className={`absolute left-0 top-0 z-[1100] h-full w-full bg-[#00000000]`}></div>
       {/* サイドテーブル */}
       <div
         className={`${styles.side_table} ${styles.change_member} z-[1200] pt-[30px] ${

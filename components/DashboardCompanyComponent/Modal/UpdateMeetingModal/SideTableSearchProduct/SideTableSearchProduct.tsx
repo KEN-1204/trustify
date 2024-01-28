@@ -404,16 +404,16 @@ const SideTableSearchProductMemo = ({
     // 1. 選択中商品リストから商品idのみを取り出した配列をnew SetでSetオブジェクトを生成
     const selectedSearchProductsSetObj = new Set(selectedSearchProductsArray.map((product) => product.id));
     // 2. 商品リストをsomeで一つずつ商品オブジェクトを取り出し、obj.idがハッシュテーブルに含まれているかチェック
-    const foundAttendee = selectedProductsArray.find((product) =>
+    const foundProduct = selectedProductsArray.find((product) =>
       // selectedSearchProductsSetObj.has(product.contact_id)
       selectedSearchProductsSetObj.has(product.quotation_product_id)
     );
-    if (foundAttendee) {
+    if (foundProduct) {
       alert(
         `${
-          foundAttendee.product_name
-            ? `「${foundAttendee.product_name}${
-                foundAttendee.outside_short_name ? ` / ${foundAttendee.outside_short_name}` : ``
+          foundProduct.product_name
+            ? `「${foundProduct.product_name}${
+                foundProduct.outside_short_name ? ` / ${foundProduct.outside_short_name}` : ``
               }」は既に商品リストに含まれています。既に商品リストに含まれている商品は追加できません。`
             : `既に商品リストに含まれています。既に商品リストに含まれている商品は追加できません。`
         }`
@@ -434,9 +434,9 @@ const SideTableSearchProductMemo = ({
           product_created_by_unit_of_user: product.created_by_unit_of_user,
           product_created_by_office_of_user: product.created_by_office_of_user,
           quotation_product_name: product.product_name,
-          quotation_outside_short_name: product.outside_short_name,
-          quotation_inside_short_name: product.inside_short_name,
-          quotation_unit_price: product.unit_price,
+          quotation_product_outside_short_name: product.outside_short_name,
+          quotation_product_inside_short_name: product.inside_short_name,
+          quotation_product_unit_price: product.unit_price,
           quotation_product_quantity: 1,
           quotation_product_priority: selectedProductsArray.length + index + 1,
         };

@@ -543,7 +543,7 @@ export const SideTableSearchContactMemo = ({
     <>
       {/* オーバーレイ */}
       {isOpenSearchSideTable && (
-        <div className={`absolute left-0 top-0 z-[1100] h-full w-full bg-[#00000000]`} onClick={handleClose}></div>
+        <div className={`absolute left-0 top-0 z-[1100] h-full w-full bg-[#00000039]`} onClick={handleClose}></div>
       )}
       {/* サイドテーブル */}
       <div

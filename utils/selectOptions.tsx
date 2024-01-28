@@ -424,82 +424,6 @@ export const optionsProductL = [
 // 決算月
 export const optionsMonth = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
 
-// 活動タイプ
-export const optionsActivityType = [
-  "Phone Call Made (Absent)",
-  "Phone Call Made (Proactive)",
-  "Phone Call Made (Reactive)",
-  "Phone Call Made (Pre-Sales Follow-Up)",
-  "Phone Call Made (Post-Sales Follow-Up)",
-  "Phone Call Made (Appointment Scheduling)",
-  "Phone Call Made (Other)",
-  "Email Received",
-  "Email Sent",
-  "Other",
-  "Handover",
-];
-export const getActivityType = (value: string, language: string = "ja") => {
-  switch (value) {
-    case "Phone Call Made (Absent)":
-      return language === "ja" ? `TEL発信(不在)` : `Phone Call Made (Absent)`;
-      break;
-    case "Phone Call Made (Proactive)":
-      return language === "ja" ? `TEL発信(能動)` : `Phone Call Made (Proactive)`;
-      break;
-    case "Phone Call Made (Reactive)":
-      return language === "ja" ? `TEL発信(受動)` : `Phone Call Made (Reactive)`;
-      break;
-    case "Phone Call Made (Pre-Sales Follow-Up)":
-      return language === "ja" ? `TEL発信(売前ﾌｫﾛｰ)` : `Phone Call Made (Pre-Sales Follow-Up)`;
-      break;
-    case "Phone Call Made (Post-Sales Follow-Up)":
-      return language === "ja" ? `TEL発信(売後ﾌｫﾛｰ)` : `Phone Call Made (Post-Sales Follow-Up)`;
-      break;
-    case "Phone Call Made (Appointment Scheduling)":
-      return language === "ja" ? `TEL発信(ｱﾎﾟ組み)` : `Phone Call Made (Appointment Scheduling)`;
-      break;
-    case "Phone Call Made (Other)":
-      return language === "ja" ? `TEL発信(その他)` : `Phone Call Made (Other)`;
-      break;
-    case "Email Received":
-      return language === "ja" ? `Email受信` : `Email Received`;
-      break;
-    case "Email Sent":
-      return language === "ja" ? `Email送信` : `Email Sent`;
-      break;
-    case "Other":
-      return language === "ja" ? `その他` : `Other`;
-      break;
-    case "Handover":
-      return language === "ja" ? `引継ぎ` : `Handover`;
-      break;
-
-    default:
-      return value;
-      break;
-  }
-};
-
-// 優先度
-export const optionsPriority = ["A High", "B Medium", "Low"];
-export const getPriorityName = (value: string, language: string = "ja") => {
-  switch (value) {
-    case "A High":
-      return language === "ja" ? `高` : `High`;
-      break;
-    case "B Medium":
-      return language === "ja" ? `中` : `Medium`;
-      break;
-    case "C Low":
-      return language === "ja" ? `低` : `Low`;
-      break;
-
-    default:
-      return value;
-      break;
-  }
-};
-
 // 規模（ランク）
 export const optionsNumberOfEmployeesClass = ["A", "B", "C", "D", "E", "F", "G"];
 
@@ -583,6 +507,86 @@ export const optionsSearchEmployeesClass = [
     G 1~49名
   </option>,
 ];
+
+// 🌠活動画面
+
+// 活動タイプ
+export const optionsActivityType = [
+  "Phone Call Made (Absent)",
+  "Phone Call Made (Proactive)",
+  "Phone Call Made (Reactive)",
+  "Phone Call Made (Pre-Sales Follow-Up)",
+  "Phone Call Made (Post-Sales Follow-Up)",
+  "Phone Call Made (Appointment Scheduling)",
+  "Phone Call Made (Other)",
+  "Email Received",
+  "Email Sent",
+  "Other",
+  "Handover",
+];
+export const getActivityType = (value: string, language: string = "ja") => {
+  switch (value) {
+    case "Phone Call Made (Absent)":
+      return language === "ja" ? `TEL発信(不在)` : `Phone Call Made (Absent)`;
+      break;
+    case "Phone Call Made (Proactive)":
+      return language === "ja" ? `TEL発信(能動)` : `Phone Call Made (Proactive)`;
+      break;
+    case "Phone Call Made (Reactive)":
+      return language === "ja" ? `TEL発信(受動)` : `Phone Call Made (Reactive)`;
+      break;
+    case "Phone Call Made (Pre-Sales Follow-Up)":
+      return language === "ja" ? `TEL発信(売前ﾌｫﾛｰ)` : `Phone Call Made (Pre-Sales Follow-Up)`;
+      break;
+    case "Phone Call Made (Post-Sales Follow-Up)":
+      return language === "ja" ? `TEL発信(売後ﾌｫﾛｰ)` : `Phone Call Made (Post-Sales Follow-Up)`;
+      break;
+    case "Phone Call Made (Appointment Scheduling)":
+      return language === "ja" ? `TEL発信(ｱﾎﾟ組み)` : `Phone Call Made (Appointment Scheduling)`;
+      break;
+    case "Phone Call Made (Other)":
+      return language === "ja" ? `TEL発信(その他)` : `Phone Call Made (Other)`;
+      break;
+    case "Email Received":
+      return language === "ja" ? `Email受信` : `Email Received`;
+      break;
+    case "Email Sent":
+      return language === "ja" ? `Email送信` : `Email Sent`;
+      break;
+    case "Other":
+      return language === "ja" ? `その他` : `Other`;
+      break;
+    case "Handover":
+      return language === "ja" ? `引継ぎ` : `Handover`;
+      break;
+
+    default:
+      return value;
+      break;
+  }
+};
+
+// 優先度
+export const optionsPriority = ["A High", "B Medium", "Low"];
+export const getPriorityName = (value: string, language: string = "ja") => {
+  switch (value) {
+    case "A High":
+      return language === "ja" ? `高` : `High`;
+      break;
+    case "B Medium":
+      return language === "ja" ? `中` : `Medium`;
+      break;
+    case "C Low":
+      return language === "ja" ? `低` : `Low`;
+      break;
+
+    default:
+      return value;
+      break;
+  }
+};
+
+// 🌠活動画面
 
 // 面談関連
 
@@ -1159,11 +1163,11 @@ export const getQuotationDivision = (value: string, language: string = "ja") => 
 // 送付方法
 // export const optionsSendingMethod = ["送付状なし", "Fax", "郵送"];
 // export const optionsSendingMethod = ["送付状なし"];
-export const optionsSendingMethod = ["With Cover Letter"];
+export const optionsSendingMethod = ["Without Cover Letter"];
 export const getSendingMethod = (value: string, language: string = "ja") => {
   switch (value) {
-    case "With Cover Letter":
-      return (language = "ja" ? `送付状なし` : `With Cover Letter`);
+    case "Without Cover Letter":
+      return (language = "ja" ? `送付状なし` : `Without Cover Letter`);
       break;
 
     default:

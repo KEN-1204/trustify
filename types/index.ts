@@ -1884,7 +1884,7 @@ export type QuotationProducts = {
   updated_at: string | null;
   quotation_product_name: string | null;
   quotation_product_inside_short_name: string | null;
-  quotation_outside_short_name: string | null;
+  quotation_product_outside_short_name: string | null;
   // quotation_product_unit_price: string | null;
   // quotation_product_quantity: string | null;
   // priority: string | null;
@@ -1953,9 +1953,9 @@ export type QuotationProductsDetail = {
   product_created_by_unit_of_user: string | null;
   product_created_by_office_of_user: string | null;
   quotation_product_name: string | null;
-  quotation_outside_short_name: string | null;
-  quotation_inside_short_name: string | null;
-  quotation_unit_price: number | null;
+  quotation_product_outside_short_name: string | null;
+  quotation_product_inside_short_name: string | null;
+  quotation_product_unit_price: number | null;
   quotation_product_quantity: number | null;
   quotation_product_priority: number | null;
 };
@@ -2160,7 +2160,7 @@ export type NewSearchQuotation_Contact_CompanyParams = {
   // approval_amount: string | null;
   // approval_amount: number | null;
   "contacts.created_by_company_id": string | null;
-  "contacts.created_by_user_id": string | null;
+  // "contacts.created_by_user_id": string | null;
 
   // created_at: string;
   // updated_at: string | null;
@@ -2176,7 +2176,7 @@ export type NewSearchQuotation_Contact_CompanyParams = {
   // deadline: string | null;
   // delivery_place: string | null;
   // payment_terms: string | null;
-  // quotation_division: string | null;
+  quotation_division: string | null;
   // sending_method: string | null;
   // use_corporate_seal: boolean | null;
   quotation_notes: string | null;
@@ -2197,11 +2197,14 @@ export type NewSearchQuotation_Contact_CompanyParams = {
   // 見積関連情報
   quotation_no_custom: string | null;
   quotation_no_system: string | null;
-  quotation_department: string | null;
-  quotation_business_office: string | null;
+  // quotation_department: string | null;
+  // quotation_business_office: string | null;
   quotation_member_name: string | null;
   quotation_year_month: number | null;
   quotation_title: string | null;
-  // 社員番号
-  employee_id_name: string | null;
+  // 担当印 担当者名
+  "quotations.in_charge_stamp_name": string | null;
+  // 担当印 社員番号
+  "employee_ids.employee_id_name": string | null;
+  // employee_id_name: string | null;
 };

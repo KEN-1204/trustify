@@ -2,7 +2,6 @@ import React, { useState, memo, useEffect, ChangeEvent, useRef, Suspense } from 
 import styles from "../SettingAccountModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 import { toast } from "react-toastify";
 import { Department, Employee_id, Office, Unit, UserProfileCompanySubscription } from "@/types";
 import { useUploadAvatarImg } from "@/hooks/useUploadAvatarImg";

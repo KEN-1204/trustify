@@ -23,7 +23,7 @@ export const FallbackSideTableSearchMember = ({ isOpenSearchMemberSideTable, sea
       title: "社員番号・ID",
     },
     {
-      title: "事業部名",
+      title: "事業部",
     },
     {
       title: "係・チーム",
@@ -110,7 +110,7 @@ export const FallbackSideTableSearchMember = ({ isOpenSearchMemberSideTable, sea
                     <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
                     <div className="flex select-none items-center space-x-[2px]">
                       <span className={`${styles.list_title}`}>{item.title}</span>
-                      <span className={``}>：</span>
+                      {/* <span className={``}>：</span> */}
                     </div>
                   </div>
                   <input
