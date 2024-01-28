@@ -1,16 +1,19 @@
 import useDashboardStore from "@/store/useDashboardStore";
 import useThemeStore from "@/store/useThemeStore";
-import { Quotation, QuotationWithProducts, Quotation_row_data } from "@/types";
+import { Quotation, QuotationProducts, Quotation_row_data } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Dispatch, SetStateAction } from "react";
 import { toast } from "react-toastify";
 
 export const useMutateQuotation = () => {
   const theme = useThemeStore((state) => state.theme);
-  const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
-  const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
-  const setIsOpenInsertNewQuotationModal = useDashboardStore((state) => state.setIsOpenInsertNewQuotationModal);
-  const setIsOpenUpdateQuotationModal = useDashboardStore((state) => state.setIsOpenUpdateQuotationModal);
+  // const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
+  // const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
+  const isLoadingUpsertGlobal = useDashboardStore((state) => state.isLoadingUpsertGlobal);
+  const setIsLoadingUpsertGlobal = useDashboardStore((state) => state.setIsLoadingUpsertGlobal);
+  // const setIsOpenInsertNewQuotationModal = useDashboardStore((state) => state.setIsOpenInsertNewQuotationModal);
+  // const setIsOpenUpdateQuotationModal = useDashboardStore((state) => state.setIsOpenUpdateQuotationModal);
   // 選択中の行をクリック通知してselectedRowDataPropertyを最新状態にアップデートする
   const setIsUpdateRequiredForLatestSelectedRowDataQuotation = useDashboardStore(
     (state) => state.setIsUpdateRequiredForLatestSelectedRowDataQuotation
@@ -23,9 +26,23 @@ export const useMutateQuotation = () => {
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
 
+  // type CreateProps = {
+  // newQuotation: Omit<Quotation, "id" | "created_at" | "updated_at"> & {
+  //   quotation_products_array: Omit<QuotationProducts, "id" | "created_at" | "updated_at">[];
+  // };
+  //   isLoadingUpsert: boolean;
+  //   setIsLoadingUpsert: Dispatch<SetStateAction<boolean>>;
+  // };
+
+  type InsertPayload = Omit<Quotation, "id" | "created_at" | "updated_at"> & {
+    quotation_products_array: Omit<QuotationProducts, "id" | "created_at" | "updated_at">[];
+  };
+
+  // async ({ newQuotation, isLoadingUpsert, setIsLoadingUpsert }: CreateProps) => {
+
   // 【Quotation新規作成INSERT用createQuotationMutation関数】
   const createQuotationMutation = useMutation(
-    async (newQuotation: Omit<QuotationWithProducts, "id" | "created_at" | "updated_at">) => {
+    async (newQuotation: InsertPayload) => {
       const newQuotationAndActivityPayload = {
         // 見積テーブル
         _submission_class: newQuotation.submission_class,
@@ -52,7 +69,6 @@ export const useMutateQuotation = () => {
         _lease_period: newQuotation.lease_period,
         _lease_rate: newQuotation.lease_rate,
         _lease_monthly_fee: newQuotation.lease_monthly_fee,
-        // 紐付け関連情報
         _created_by_company_id: newQuotation.created_by_company_id,
         _created_by_user_id: newQuotation.created_by_user_id,
         _created_by_department_of_user: newQuotation.created_by_department_of_user,
@@ -75,7 +91,14 @@ export const useMutateQuotation = () => {
         _quotation_department: newQuotation.quotation_department,
         _quotation_year_month: newQuotation.quotation_year_month,
         _quotation_title: newQuotation.quotation_title,
-        // _quotation_year_month: newQuotation.quotation_year_month,
+        _in_charge_stamp_flag: newQuotation.in_charge_stamp_flag,
+        _supervisor1_stamp_flag: newQuotation.supervisor1_stamp_flag,
+        _supervisor2_stamp_flag: newQuotation.supervisor2_stamp_flag,
+        _in_charge_stamp_name: newQuotation.in_charge_stamp_name,
+        _supervisor1_stamp_name: newQuotation.supervisor1_stamp_name,
+        _supervisor2_stamp_name: newQuotation.supervisor2_stamp_name,
+        // 見積商品リスト
+        _quotation_products_array: newQuotation.quotation_products_array,
         // -- 活動テーブル用
         _summary: null,
         _scheduled_follow_up_date: null,
@@ -96,48 +119,47 @@ export const useMutateQuotation = () => {
         _activity_year_month: newQuotation.quotation_year_month,
         _meeting_id: null,
         _property_id: null,
-        // _quotation_id: null,
-        // --🌠見積商品テーブル
-        _product_ids: newQuotation.product_ids,
-        _delete_product_count: newQuotation.delete_product_count,
       };
 
       // insert_quotation_schedule_and_activity rpc
 
       console.log("🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥rpc実行 newQuotationAndActivityPayload", newQuotationAndActivityPayload);
 
-      // 見積INSERT
-      const { error } = await supabase.rpc("insert_quotation_with_activity_products", newQuotationAndActivityPayload);
+      // 見積・商品リスト・活動の3つのテーブルにINSERT
+      const { error } = await supabase.rpc("insert_quotation_with_products", newQuotationAndActivityPayload);
 
       if (error) throw error;
     },
     {
-      onSuccess: async () => {
+      onSuccess: async (data, variables) => {
+        // const { isLoadingUpsert, setIsLoadingUpsert } = variables;
         // キャッシュのデータを再取得
         await queryClient.invalidateQueries({ queryKey: ["quotations"] });
         await queryClient.invalidateQueries({ queryKey: ["activities"] });
         // TanStack Queryでデータの変更に合わせて別のデータを再取得する
         // https://zenn.dev/masatakaitoh/articles/3c2f8602d2bb9d
-        if (loadingGlobalState) setLoadingGlobalState(false);
+        // if (loadingGlobalState) setLoadingGlobalState(false);
+        if (isLoadingUpsertGlobal) setIsLoadingUpsertGlobal(false);
 
         // console.log("選択中の行をリセット");
         // setSelectedRowDataQuotation(null);
 
-        setIsOpenInsertNewQuotationModal(false);
+        // setIsOpenInsertNewQuotationModal(false);
         toast.success("見積の作成が完了しました🌟", {
           position: "top-right",
-          autoClose: 1500,
+          autoClose: 3000,
         });
       },
-      onError: (err: any) => {
-        if (loadingGlobalState) setLoadingGlobalState(false);
+      onError: (err: any, variables) => {
+        // const { isLoadingUpsert, setIsLoadingUpsert } = variables;
+        // if (loadingGlobalState) setLoadingGlobalState(false);
+        if (isLoadingUpsertGlobal) setIsLoadingUpsertGlobal(false);
         // setIsOpenInsertNewQuotationModal(false);
         // alert(err.message);
-        console.log("INSERTエラー", err);
-        console.error("INSERTエラー", err.message);
+        console.error("見積INSERTエラー", err);
         toast.error("見積の作成に失敗しました...🙇‍♀️", {
           position: "top-right",
-          autoClose: 1500,
+          autoClose: 3000,
         });
       },
     }
@@ -146,7 +168,7 @@ export const useMutateQuotation = () => {
   // 【Quotation一括編集UPDATE用updateQuotationMutation関数】
   const updateQuotationMutation = useMutation(
     // async (newQuotation: Omit<Quotation, "created_at" | "updated_at">) => {
-    async (newQuotation: Omit<QuotationWithProducts, "created_at" | "updated_at">) => {
+    async (newQuotation: Omit<Quotation, "created_at" | "updated_at">) => {
       const updateQuotationAndActivityPayload = {
         // 見積テーブル
         _submission_class: newQuotation.submission_class,
@@ -219,8 +241,8 @@ export const useMutateQuotation = () => {
         // _property_id: null,
         // _quotation_id: null,
         // --🌠見積商品テーブル
-        _product_ids: newQuotation.product_ids,
-        _delete_product_count: newQuotation.delete_product_count,
+        // _product_ids: newQuotation.product_ids,
+        // _delete_product_count: newQuotation.delete_product_count,
       };
 
       console.log("🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠rpc実行 updateQuotationAndActivityPayload", updateQuotationAndActivityPayload);
@@ -246,7 +268,7 @@ export const useMutateQuotation = () => {
         setIsUpdateRequiredForLatestSelectedRowDataQuotation(true);
 
         if (loadingGlobalState) setLoadingGlobalState(false);
-        setIsOpenUpdateQuotationModal(false);
+        // setIsOpenUpdateQuotationModal(false);
         toast.success("面談の更新が完了しました🌟", {
           position: "top-right",
           // autoClose: 1500,

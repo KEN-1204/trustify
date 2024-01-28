@@ -1217,167 +1217,6 @@ export type Property_row_data = {
   assigned_office_name: string | null;
 };
 
-// 商品リストの選択中のセルの列と行
-export type EditPosition = { row: number | null; col: number | null };
-
-// 面談時の紹介した商品群の配列
-export type QuotationProductsDetail = {
-  quotation_product_id: string; // products.id
-  product_name: string | null;
-  outside_short_name: string | null;
-  inside_short_name: string | null;
-  unit_price: number | null;
-  product_created_by_user_id: string | null;
-  product_created_by_company_id: string | null;
-  product_created_by_department_of_user: string | null;
-  product_created_by_unit_of_user: string | null;
-  product_created_by_office_of_user: string | null;
-  quotation_product_name: string | null;
-  quotation_outside_short_name: string | null;
-  quotation_inside_short_name: string | null;
-  quotation_unit_price: number | null;
-  quotation_product_quantity: number | null;
-  quotation_product_priority: number | null;
-};
-export type QuotationProductsDetails = QuotationProductsDetail[];
-
-// 見積テーブル
-export type Quotation_row_data = {
-  company_id: string;
-  contact_id: string;
-  quotation_id: string;
-  company_name: string | null;
-  contact_name: string | null;
-  // department_name: string | null;
-  company_department_name: string | null;
-  main_phone_number: string | null;
-  main_fax: string | null;
-  zipcode: string | null;
-  address: string | null;
-  company_email: string | null;
-  number_of_employees_class: string | null;
-  // capital: string | null;
-  capital: number | null;
-  established_in: string | null;
-  business_content: string | null;
-  website_url: string | null;
-  industry_type: string | null;
-  product_category_large: string | null;
-  product_category_medium: string | null;
-  product_category_small: string | null;
-  fiscal_end_month: string | null;
-  budget_request_month1: string | null;
-  budget_request_month2: string | null;
-  clients: string | null;
-  supplier: string | null;
-  facility: string | null;
-  business_sites: string | null;
-  overseas_bases: string | null;
-  group_company: string | null;
-  corporate_number: string | null;
-  // 🔹contacts
-  direct_line: string | null;
-  direct_fax: string | null;
-  extension: string | null;
-  company_cell_phone: string | null;
-  personal_cell_phone: string | null;
-  contact_email: string | null;
-  position_name: string | null;
-  // position_class: string | null;
-  // occupation: string | null;
-  position_class: number | null; //🌠変更オブジェクトマッピング
-  occupation: number | null; //🌠変更オブジェクトマッピング
-  // approval_amount: string | null;
-  approval_amount: number | null;
-  contact_created_by_company_id: string | null;
-  contact_created_by_user_id: string | null;
-  contact_created_by_department_of_user: string | null;
-  contact_created_by_unit_of_user: string | null;
-  contact_created_by_office_of_user: string | null; //🌠追加
-  call_careful_flag: boolean | null;
-  call_careful_reason: string | null;
-  email_ban_flag: boolean | null;
-  sending_materials_ban_flag: boolean | null;
-  fax_dm_ban_flag: boolean | null;
-  ban_reason: string | null;
-  claim: string | null;
-  // 🔹見積 quotations
-  submission_class: string | null;
-  quotation_date: string | null;
-  expiration_date: string | null;
-  deadline: string | null;
-  delivery_place: string | null;
-  payment_terms: string | null;
-  quotation_division: string | null;
-  sending_method: string | null;
-  use_corporate_seal: boolean | null;
-  quotation_notes: string | null;
-  sales_tax_class: string | null;
-  sales_tax_rate: string | null;
-  total_price: string | null;
-  discount_amount: string | null;
-  discount_rate: string | null;
-  discount_title: string | null;
-  total_amount: string | null;
-  quotation_remarks: string | null;
-  set_item_count: number | null;
-  set_unit_name: string | null;
-  set_price: string | null;
-  lease_period: number | null;
-  lease_rate: string | null;
-  lease_monthly_fee: string | null;
-  // 見積関連情報
-  // quotation_company_details_id: string | null;
-  quotation_created_by_company_id: string | null;
-  quotation_created_by_user_id: string | null;
-  quotation_created_by_department_of_user: string | null;
-  quotation_created_by_unit_of_user: string | null;
-  quotation_created_by_office_of_user: string | null;
-  destination_company_id: string | null;
-  destination_contact_id: string | null;
-  in_charge_stamp_flag: boolean | null;
-  in_charge_stamp_id: string | null;
-  in_charge_user_id: string | null;
-  supervisor1_stamp_flag: boolean | null;
-  supervisor1_stamp_id: string | null;
-  supervisor1_user_id: string | null;
-  supervisor2_stamp_flag: boolean | null;
-  supervisor2_stamp_id: string | null;
-  supervisor2_user_id: string | null;
-  quotation_no_custom: string | null;
-  quotation_no_system: string | null;
-  quotation_member_name: string | null;
-  quotation_year_month: number | null;
-  quotation_title: string | null;
-  // -- 🔹送付先会社
-  destination_company_name: string | null;
-  destination_company_department_name: string | null;
-  destination_company_zipcode: string | null;
-  destination_company_address: string | null;
-  // -- 🔹送付先担当者
-  destination_contact_name: string | null;
-  destination_contact_direct_line: string | null;
-  destination_contact_direct_fax: string | null;
-  destination_contact_email: string | null;
-  // -- 🔹印鑑
-  in_charge_stamp_image_url: string | null;
-  supervisor1_stamp_image_url: string | null;
-  supervisor2_stamp_image_url: string | null;
-  // -- 🔹印鑑ユーザー(profilesテーブル)
-  in_charge_user_name: string | null;
-  supervisor1_user_name: string | null;
-  supervisor2_user_name: string | null;
-  //🌠追加 事業部、係、事業所
-  assigned_department_name: string | null;
-  assigned_unit_name: string | null;
-  assigned_office_name: string | null;
-  assigned_employee_id_name: string | null;
-  // 🔹商品リスト
-  quotation_products_details: QuotationProductsDetails;
-  // 🔹見積ルール
-  quotation_rule: string | null;
-};
-
 export type NewSearchContact_CompanyParams = {
   "client_companies.name": string | null;
   "client_companies.department_name": string | null;
@@ -1705,108 +1544,6 @@ export type NewSearchProperty_Contact_CompanyParams = {
   property_member_name: string | null;
   property_date: string | null;
 };
-// 見積 サーチパラメータ
-export type NewSearchQuotation_Contact_CompanyParams = {
-  // 🔹依頼元 client_companiesテーブル
-  "client_companies.name": string | null;
-  "client_companies.department_name": string | null;
-  main_phone_number: string | null;
-  main_fax: string | null;
-  "client_companies.zipcode": string | null;
-  "client_companies.address": string | null;
-  // 🔹送付先 cc_destinationテーブル
-  "cc_destination.name": string | null;
-  "cc_destination.department_name": string | null;
-  "cc_destination.zipcode": string | null;
-  "cc_destination.address": string | null;
-  // number_of_employees_class: string | null;
-  // capital: number | null;
-  // established_in: string | null;
-  // business_content: string | null;
-  // website_url: string | null;
-  // "client_companies.email": string | null;
-  // industry_type: string | null;
-  // product_category_large: string | null;
-  // product_category_medium: string | null;
-  // product_category_small: string | null;
-  // fiscal_end_month: string | null;
-  // budget_request_month1: string | null;
-  // budget_request_month2: string | null;
-  // clients: string | null;
-  // supplier: string | null;
-  // facility: string | null;
-  // business_sites: string | null;
-  // overseas_bases: string | null;
-  // group_company: string | null;
-  // corporate_number: string | null;
-  // 🔹依頼元contactsテーブル
-  "contacts.name": string | null;
-  "contacts.direct_line": string | null;
-  "contacts.direct_fax": string | null;
-  extension: string | null;
-  company_cell_phone: string | null;
-  // personal_cell_phone: string | null;
-  // contact_email: string | null;
-  "contacts.email": string | null;
-  // 🔹送付先c_destinationテーブル
-  "c_destination.name": string | null;
-  "c_destination.direct_line": string | null;
-  "c_destination.direct_fax": string | null;
-  "c_destination.email": string | null;
-  // 送付先ここまで
-  // position_name: string | null;
-  // position_class: string | null;
-  // occupation: string | null;
-  // position_class: number | null; //🌠変更オブジェクトマッピング
-  // occupation: number | null; //🌠変更オブジェクトマッピング
-  // approval_amount: string | null;
-  // approval_amount: number | null;
-  "contacts.created_by_company_id": string | null;
-  "contacts.created_by_user_id": string | null;
-
-  // created_at: string;
-  // updated_at: string | null;
-  // 🔹見積テーブル
-  "quotations.created_by_company_id": string | null;
-  "quotations.created_by_user_id": string | null;
-  "quotations.created_by_department_of_user": string | null;
-  "quotations.created_by_unit_of_user": string | null;
-  "quotations.created_by_office_of_user": string | null; //🌠追加
-  // submission_class: string | null;
-  quotation_date: string | null;
-  expiration_date: string | null;
-  // deadline: string | null;
-  // delivery_place: string | null;
-  // payment_terms: string | null;
-  // quotation_division: string | null;
-  // sending_method: string | null;
-  // use_corporate_seal: boolean | null;
-  quotation_notes: string | null;
-  // sales_tax_class: string | null;
-  // sales_tax_rate: string | null;
-  // total_price: string | null;
-  // discount_amount: string | null;
-  // discount_rate: string | null;
-  // discount_title: string | null;
-  // total_amount: string | null;
-  quotation_remarks: string | null;
-  // set_item_count: number | null;
-  // set_unit_name: string | null;
-  // set_price: string | null;
-  // lease_period: number | null;
-  // lease_rate: string | null;
-  // lease_monthly_fee: string | null;
-  // 見積関連情報
-  quotation_no_custom: string | null;
-  quotation_no_system: string | null;
-  quotation_department: string | null;
-  quotation_business_office: string | null;
-  quotation_member_name: string | null;
-  quotation_year_month: number | null;
-  quotation_title: string | null;
-  // 社員番号
-  employee_id_name: string | null;
-};
 
 // 活動 activitiesテーブル
 export type Activity = {
@@ -2132,70 +1869,30 @@ export type Quotation = {
   quotation_department: string | null;
   quotation_year_month: number | null;
   quotation_title: string | null;
-  in_charge_stamp_flag: string | null;
-  supervisor1_stamp_flag: string | null;
-  supervisor2_stamp_flag: string | null;
+  in_charge_stamp_flag: boolean | null;
+  supervisor1_stamp_flag: boolean | null;
+  supervisor2_stamp_flag: boolean | null;
+  in_charge_stamp_name: string | null;
+  supervisor1_stamp_name: string | null;
+  supervisor2_stamp_name: string | null;
 };
 
-// 見積INSERT保存payload用 quotation, quotation_productsテーブル
-export type QuotationWithProducts = {
+// 見積商品リストテーブル
+export type QuotationProducts = {
   id: string;
   created_at: string;
   updated_at: string | null;
-  submission_class: string | null;
-  quotation_date: string | null;
-  expiration_date: string | null;
-  deadline: string | null;
-  delivery_place: string | null;
-  payment_terms: string | null;
-  quotation_division: string | null;
-  sending_method: string | null;
-  use_corporate_seal: boolean | null;
-  quotation_notes: string | null;
-  sales_tax_class: string | null;
-  sales_tax_rate: string | null;
-  total_price: string | null;
-  discount_amount: string | null;
-  discount_rate: string | null;
-  discount_title: string | null;
-  total_amount: string | null;
-  quotation_remarks: string | null;
-  set_item_count: number | null;
-  set_unit_name: string | null;
-  set_price: string | null;
-  lease_period: number | null;
-  lease_rate: string | null;
-  lease_monthly_fee: string | null;
-  // 紐付け関連情報
-  created_by_company_id: string | null;
-  created_by_user_id: string | null;
-  created_by_department_of_user: string | null;
-  created_by_unit_of_user: string | null;
-  created_by_office_of_user: string | null;
-  client_company_id: string | null;
-  client_contact_id: string | null;
-  destination_company_id: string | null;
-  destination_contact_id: string | null;
-  in_charge_stamp_id: string | null;
-  in_charge_user_id: string | null;
-  supervisor1_stamp_id: string | null;
-  supervisor1_user_id: string | null;
-  supervisor2_stamp_id: string | null;
-  supervisor2_user_id: string | null;
-  quotation_no_custom: string | null;
-  quotation_no_system: string | null;
-  quotation_member_name: string | null;
-  quotation_business_office: string | null;
-  quotation_department: string | null;
-  quotation_year_month: number | null;
-  quotation_title: string | null;
-  in_charge_stamp_flag: string | null;
-  supervisor1_stamp_flag: string | null;
-  supervisor2_stamp_flag: string | null;
-  // 実施商品テーブル用と、同席者テーブル用
-  product_ids: (string | null)[];
-  // 紹介済み商品配列と同席者配列で削除が必要な個数
-  delete_product_count: number | null;
+  quotation_product_name: string | null;
+  quotation_product_inside_short_name: string | null;
+  quotation_outside_short_name: string | null;
+  // quotation_product_unit_price: string | null;
+  // quotation_product_quantity: string | null;
+  // priority: string | null;
+  quotation_product_unit_price: number | null;
+  quotation_product_quantity: number | null;
+  priority: number | null;
+  quotation_id: string | null;
+  product_id: string | null;
 };
 
 // 顧客会社とクライアント会社の結合テーブル(見積ルール)
@@ -2238,4 +1935,273 @@ export type Destination = {
   destination_contact_direct_line: string | null;
   destination_contact_direct_fax: string | null;
   destination_contact_email: string | null;
+};
+
+// 商品リストの選択中のセルの列と行
+export type EditPosition = { row: number | null; col: number | null };
+
+// 見積商品リストの配列 (取得、UPSERT用)
+export type QuotationProductsDetail = {
+  quotation_product_id: string; // products.id
+  product_name: string | null;
+  outside_short_name: string | null;
+  inside_short_name: string | null;
+  unit_price: number | null;
+  product_created_by_user_id: string | null;
+  product_created_by_company_id: string | null;
+  product_created_by_department_of_user: string | null;
+  product_created_by_unit_of_user: string | null;
+  product_created_by_office_of_user: string | null;
+  quotation_product_name: string | null;
+  quotation_outside_short_name: string | null;
+  quotation_inside_short_name: string | null;
+  quotation_unit_price: number | null;
+  quotation_product_quantity: number | null;
+  quotation_product_priority: number | null;
+};
+export type QuotationProductsDetails = QuotationProductsDetail[];
+
+// 見積テーブル
+export type Quotation_row_data = {
+  company_id: string;
+  contact_id: string;
+  quotation_id: string;
+  company_name: string | null;
+  contact_name: string | null;
+  // department_name: string | null;
+  company_department_name: string | null;
+  main_phone_number: string | null;
+  main_fax: string | null;
+  zipcode: string | null;
+  address: string | null;
+  company_email: string | null;
+  number_of_employees_class: string | null;
+  // capital: string | null;
+  capital: number | null;
+  established_in: string | null;
+  business_content: string | null;
+  website_url: string | null;
+  industry_type: string | null;
+  product_category_large: string | null;
+  product_category_medium: string | null;
+  product_category_small: string | null;
+  fiscal_end_month: string | null;
+  budget_request_month1: string | null;
+  budget_request_month2: string | null;
+  clients: string | null;
+  supplier: string | null;
+  facility: string | null;
+  business_sites: string | null;
+  overseas_bases: string | null;
+  group_company: string | null;
+  corporate_number: string | null;
+  // 🔹contacts
+  direct_line: string | null;
+  direct_fax: string | null;
+  extension: string | null;
+  company_cell_phone: string | null;
+  personal_cell_phone: string | null;
+  contact_email: string | null;
+  position_name: string | null;
+  // position_class: string | null;
+  // occupation: string | null;
+  position_class: number | null; //🌠変更オブジェクトマッピング
+  occupation: number | null; //🌠変更オブジェクトマッピング
+  // approval_amount: string | null;
+  approval_amount: number | null;
+  contact_created_by_company_id: string | null;
+  contact_created_by_user_id: string | null;
+  contact_created_by_department_of_user: string | null;
+  contact_created_by_unit_of_user: string | null;
+  contact_created_by_office_of_user: string | null; //🌠追加
+  call_careful_flag: boolean | null;
+  call_careful_reason: string | null;
+  email_ban_flag: boolean | null;
+  sending_materials_ban_flag: boolean | null;
+  fax_dm_ban_flag: boolean | null;
+  ban_reason: string | null;
+  claim: string | null;
+  // 🔹見積 quotations
+  submission_class: string | null;
+  quotation_date: string | null;
+  expiration_date: string | null;
+  deadline: string | null;
+  delivery_place: string | null;
+  payment_terms: string | null;
+  quotation_division: string | null;
+  sending_method: string | null;
+  use_corporate_seal: boolean | null;
+  quotation_notes: string | null;
+  sales_tax_class: string | null;
+  sales_tax_rate: string | null;
+  total_price: string | null;
+  discount_amount: string | null;
+  discount_rate: string | null;
+  discount_title: string | null;
+  total_amount: string | null;
+  quotation_remarks: string | null;
+  set_item_count: number | null;
+  set_unit_name: string | null;
+  set_price: string | null;
+  lease_period: number | null;
+  lease_rate: string | null;
+  lease_monthly_fee: string | null;
+  // 見積関連情報
+  // quotation_company_details_id: string | null;
+  quotation_created_by_company_id: string | null;
+  quotation_created_by_user_id: string | null;
+  quotation_created_by_department_of_user: string | null;
+  quotation_created_by_unit_of_user: string | null;
+  quotation_created_by_office_of_user: string | null;
+  destination_company_id: string | null;
+  destination_contact_id: string | null;
+  in_charge_stamp_name: string | null;
+  in_charge_stamp_flag: boolean | null;
+  in_charge_stamp_id: string | null;
+  in_charge_user_id: string | null;
+  supervisor1_stamp_name: string | null;
+  supervisor1_stamp_flag: boolean | null;
+  supervisor1_stamp_id: string | null;
+  supervisor1_user_id: string | null;
+  supervisor2_stamp_name: string | null;
+  supervisor2_stamp_flag: boolean | null;
+  supervisor2_stamp_id: string | null;
+  supervisor2_user_id: string | null;
+  quotation_no_custom: string | null;
+  quotation_no_system: string | null;
+  quotation_department: string | null;
+  quotation_business_office: string | null;
+  quotation_member_name: string | null;
+  quotation_year_month: number | null;
+  quotation_title: string | null;
+  // -- 🔹送付先会社
+  destination_company_name: string | null;
+  destination_company_department_name: string | null;
+  destination_company_zipcode: string | null;
+  destination_company_address: string | null;
+  // -- 🔹送付先担当者
+  destination_contact_name: string | null;
+  destination_contact_direct_line: string | null;
+  destination_contact_direct_fax: string | null;
+  destination_contact_email: string | null;
+  // -- 🔹印鑑
+  in_charge_stamp_image_url: string | null;
+  supervisor1_stamp_image_url: string | null;
+  supervisor2_stamp_image_url: string | null;
+  // -- 🔹印鑑ユーザー(profilesテーブル)
+  in_charge_user_name: string | null;
+  supervisor1_user_name: string | null;
+  supervisor2_user_name: string | null;
+  //🌠追加 事業部、係、事業所
+  assigned_department_name: string | null;
+  assigned_unit_name: string | null;
+  assigned_office_name: string | null;
+  assigned_employee_id_name: string | null;
+  // 🔹商品リスト
+  quotation_products_details: QuotationProductsDetails;
+  // 🔹見積ルール
+  quotation_rule: string | null;
+};
+
+// 見積 サーチパラメータ
+export type NewSearchQuotation_Contact_CompanyParams = {
+  // 🔹依頼元 client_companiesテーブル
+  "client_companies.name": string | null;
+  "client_companies.department_name": string | null;
+  main_phone_number: string | null;
+  main_fax: string | null;
+  "client_companies.zipcode": string | null;
+  "client_companies.address": string | null;
+  // 🔹送付先 cc_destinationテーブル
+  "cc_destination.name": string | null;
+  "cc_destination.department_name": string | null;
+  "cc_destination.zipcode": string | null;
+  "cc_destination.address": string | null;
+  // number_of_employees_class: string | null;
+  // capital: number | null;
+  // established_in: string | null;
+  // business_content: string | null;
+  // website_url: string | null;
+  // "client_companies.email": string | null;
+  // industry_type: string | null;
+  // product_category_large: string | null;
+  // product_category_medium: string | null;
+  // product_category_small: string | null;
+  // fiscal_end_month: string | null;
+  // budget_request_month1: string | null;
+  // budget_request_month2: string | null;
+  // clients: string | null;
+  // supplier: string | null;
+  // facility: string | null;
+  // business_sites: string | null;
+  // overseas_bases: string | null;
+  // group_company: string | null;
+  // corporate_number: string | null;
+  // 🔹依頼元contactsテーブル
+  "contacts.name": string | null;
+  "contacts.direct_line": string | null;
+  "contacts.direct_fax": string | null;
+  extension: string | null;
+  company_cell_phone: string | null;
+  // personal_cell_phone: string | null;
+  // contact_email: string | null;
+  "contacts.email": string | null;
+  // 🔹送付先c_destinationテーブル
+  "c_destination.name": string | null;
+  "c_destination.direct_line": string | null;
+  "c_destination.direct_fax": string | null;
+  "c_destination.email": string | null;
+  // 送付先ここまで
+  // position_name: string | null;
+  // position_class: string | null;
+  // occupation: string | null;
+  // position_class: number | null; //🌠変更オブジェクトマッピング
+  // occupation: number | null; //🌠変更オブジェクトマッピング
+  // approval_amount: string | null;
+  // approval_amount: number | null;
+  "contacts.created_by_company_id": string | null;
+  "contacts.created_by_user_id": string | null;
+
+  // created_at: string;
+  // updated_at: string | null;
+  // 🔹見積テーブル
+  "quotations.created_by_company_id": string | null;
+  "quotations.created_by_user_id": string | null;
+  "quotations.created_by_department_of_user": string | null;
+  "quotations.created_by_unit_of_user": string | null;
+  "quotations.created_by_office_of_user": string | null; //🌠追加
+  // submission_class: string | null;
+  quotation_date: string | null;
+  expiration_date: string | null;
+  // deadline: string | null;
+  // delivery_place: string | null;
+  // payment_terms: string | null;
+  // quotation_division: string | null;
+  // sending_method: string | null;
+  // use_corporate_seal: boolean | null;
+  quotation_notes: string | null;
+  // sales_tax_class: string | null;
+  // sales_tax_rate: string | null;
+  // total_price: string | null;
+  // discount_amount: string | null;
+  // discount_rate: string | null;
+  // discount_title: string | null;
+  // total_amount: string | null;
+  quotation_remarks: string | null;
+  // set_item_count: number | null;
+  // set_unit_name: string | null;
+  // set_price: string | null;
+  // lease_period: number | null;
+  // lease_rate: string | null;
+  // lease_monthly_fee: string | null;
+  // 見積関連情報
+  quotation_no_custom: string | null;
+  quotation_no_system: string | null;
+  quotation_department: string | null;
+  quotation_business_office: string | null;
+  quotation_member_name: string | null;
+  quotation_year_month: number | null;
+  quotation_title: string | null;
+  // 社員番号
+  employee_id_name: string | null;
 };

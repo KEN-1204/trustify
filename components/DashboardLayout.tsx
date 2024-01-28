@@ -76,6 +76,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   const activeMenuTab = useDashboardStore((state) => state.activeMenuTab);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const setProductsState = useDashboardStore((state) => state.setProductsState);
+
   // const [loading, setLoading] = useState(false)
   // ユーザープロフィール
 

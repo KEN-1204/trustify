@@ -805,99 +805,102 @@ export const SideTableSearchContactMemo = ({
               {/* Rowsが存在する場合 */}
               {contactRows &&
                 contactRows.length > 0 &&
-                contactRows.map((contact: Contact_row_data, index) => (
-                  <li
-                    key={contact.contact_id}
-                    className={`${
-                      styles.attendees_list
-                    } flex min-h-[44px] w-full cursor-pointer items-center truncate ${
-                      selectedSearchDestination?.destination_contact_id === contact.contact_id ? styles.active : ``
-                    }`}
-                    onClick={() => {
-                      if (
-                        selectedSearchDestination &&
-                        selectedSearchDestination.destination_contact_id === contact.contact_id
-                      ) {
-                        setSelectedSearchDestination(null);
-                        return;
-                      } else {
-                        const newDestination: Destination = {
-                          // 🔹送付先会社
-                          destination_company_id: contact.company_id,
-                          destination_company_name: contact.company_name,
-                          destination_company_department_name: contact.company_department_name,
-                          destination_company_zipcode: contact.zipcode,
-                          destination_company_address: contact.address,
-                          // 🔹送付先担当者
-                          destination_contact_id: contact.contact_id,
-                          destination_contact_name: contact.contact_name,
-                          destination_contact_direct_line: contact.direct_line,
-                          destination_contact_direct_fax: contact.direct_fax,
-                          destination_contact_email: contact.contact_email,
-                        };
-                        setSelectedSearchDestination(newDestination);
-                      }
-                    }}
-                  >
-                    <div
-                      // data-text="ユーザー名"
-                      className={`${styles.attendees_list_item_Icon} flex-center h-[40px] w-[40px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip} mr-[15px]`}
-                      // onMouseEnter={(e) => handleOpenTooltip(e, "center")}
-                      // onMouseLeave={handleCloseTooltip}
+                contactRows.map((contact: Contact_row_data, index) => {
+                  if (contact.contact_id === selectedContactObj.destination_contact_id) return;
+                  return (
+                    <li
+                      key={contact.contact_id}
+                      className={`${
+                        styles.attendees_list
+                      } flex min-h-[44px] w-full cursor-pointer items-center truncate ${
+                        selectedSearchDestination?.destination_contact_id === contact.contact_id ? styles.active : ``
+                      }`}
+                      onClick={() => {
+                        if (
+                          selectedSearchDestination &&
+                          selectedSearchDestination.destination_contact_id === contact.contact_id
+                        ) {
+                          setSelectedSearchDestination(null);
+                          return;
+                        } else {
+                          const newDestination: Destination = {
+                            // 🔹送付先会社
+                            destination_company_id: contact.company_id,
+                            destination_company_name: contact.company_name,
+                            destination_company_department_name: contact.company_department_name,
+                            destination_company_zipcode: contact.zipcode,
+                            destination_company_address: contact.address,
+                            // 🔹送付先担当者
+                            destination_contact_id: contact.contact_id,
+                            destination_contact_name: contact.contact_name,
+                            destination_contact_direct_line: contact.direct_line,
+                            destination_contact_direct_fax: contact.direct_fax,
+                            destination_contact_email: contact.contact_email,
+                          };
+                          setSelectedSearchDestination(newDestination);
+                        }
+                      }}
                     >
-                      {/* <span className={`text-[20px]`}>
+                      <div
+                        // data-text="ユーザー名"
+                        className={`${styles.attendees_list_item_Icon} flex-center h-[40px] w-[40px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip} mr-[15px]`}
+                        // onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+                        // onMouseLeave={handleCloseTooltip}
+                      >
+                        {/* <span className={`text-[20px]`}>
                           {getInitial(member.profile_name ? member.profile_name : "")}
                         </span> */}
-                      <span className={`text-[20px]`}>
-                        {getInitial(contact.contact_name ? contact.contact_name : "N")}
-                      </span>
-                    </div>
-                    <div
-                      className={`${styles.attendees_list_item_lines_group} flex h-full flex-col space-y-[3px] pl-[5px] text-[12px]`}
-                    >
-                      {/* 会社・部署 */}
-                      <div className={`${styles.attendees_list_item_line} flex text-[13px]`}>
-                        {contact.company_name && <span className="mr-[4px]">{contact.company_name}</span>}
-                        {/* <span>{contact.department_name ?? ""}</span> */}
+                        <span className={`text-[20px]`}>
+                          {getInitial(contact.contact_name ? contact.contact_name : "N")}
+                        </span>
                       </div>
-                      {/* <div className={`text-[var(--color-text-sub)]`}>{member.email ? member.email : ""}</div> */}
-                      {/* 役職・名前 */}
-                      <div className={`${styles.attendees_list_item_line} flex`}>
-                        {contact.contact_name && (
-                          <>
-                            <span className="mr-[12px]">{contact.contact_name}</span>
-                            {/* {contact.department_name && <span className="mr-[10px]">/</span>} */}
-                          </>
-                        )}
-                        {contact.company_department_name && (
-                          <>
-                            <span className="mr-[12px]">{contact.company_department_name}</span>
-                            {/* {contact.position_name && <span className="mr-[10px]">/</span>} */}
-                          </>
-                        )}
-                        {contact.position_name && <span className="mr-[10px]">{contact.position_name}</span>}
+                      <div
+                        className={`${styles.attendees_list_item_lines_group} flex h-full flex-col space-y-[3px] pl-[5px] text-[12px]`}
+                      >
+                        {/* 会社・部署 */}
+                        <div className={`${styles.attendees_list_item_line} flex text-[13px]`}>
+                          {contact.company_name && <span className="mr-[4px]">{contact.company_name}</span>}
+                          {/* <span>{contact.department_name ?? ""}</span> */}
+                        </div>
+                        {/* <div className={`text-[var(--color-text-sub)]`}>{member.email ? member.email : ""}</div> */}
+                        {/* 役職・名前 */}
+                        <div className={`${styles.attendees_list_item_line} flex`}>
+                          {contact.contact_name && (
+                            <>
+                              <span className="mr-[12px]">{contact.contact_name}</span>
+                              {/* {contact.department_name && <span className="mr-[10px]">/</span>} */}
+                            </>
+                          )}
+                          {contact.company_department_name && (
+                            <>
+                              <span className="mr-[12px]">{contact.company_department_name}</span>
+                              {/* {contact.position_name && <span className="mr-[10px]">/</span>} */}
+                            </>
+                          )}
+                          {contact.position_name && <span className="mr-[10px]">{contact.position_name}</span>}
+                        </div>
+                        {/* 住所・Email・1600以上で直通TEL */}
+                        <div className={`${styles.attendees_list_item_line} flex`}>
+                          {contact.address && (
+                            <>
+                              <span className="mr-[10px] text-[#ccc]">{contact.address}</span>
+                              {((isDesktopGTE1600 && contact.direct_line) || contact.contact_email) && (
+                                <span className="mr-[10px]">/</span>
+                              )}
+                            </>
+                          )}
+                          {isDesktopGTE1600 && contact.direct_line && (
+                            <>
+                              <span className="mr-[10px] text-[#ccc]">{contact.direct_line}</span>
+                              {contact.contact_email && <span className="mr-[10px]">/</span>}
+                            </>
+                          )}
+                          {contact.contact_email && <div className={`text-[#ccc]`}>{contact.contact_email}</div>}
+                        </div>
                       </div>
-                      {/* 住所・Email・1600以上で直通TEL */}
-                      <div className={`${styles.attendees_list_item_line} flex`}>
-                        {contact.address && (
-                          <>
-                            <span className="mr-[10px] text-[#ccc]">{contact.address}</span>
-                            {((isDesktopGTE1600 && contact.direct_line) || contact.contact_email) && (
-                              <span className="mr-[10px]">/</span>
-                            )}
-                          </>
-                        )}
-                        {isDesktopGTE1600 && contact.direct_line && (
-                          <>
-                            <span className="mr-[10px] text-[#ccc]">{contact.direct_line}</span>
-                            {contact.contact_email && <span className="mr-[10px]">/</span>}
-                          </>
-                        )}
-                        {contact.contact_email && <div className={`text-[#ccc]`}>{contact.contact_email}</div>}
-                      </div>
-                    </div>
-                  </li>
-                ))}
+                    </li>
+                  );
+                })}
               {/* 条件検索結果が1件も無い場合 */}
               {/* 初回マウント時ではなく検索結果で行が0の場合 countがnullではなく0の場合 data.pages[0].row  */}
               {queryCount === 0 && (

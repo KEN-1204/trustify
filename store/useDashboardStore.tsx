@@ -251,6 +251,9 @@ type State = {
   // =================== ローディング状態保持 ===================
   loadingGlobalState: boolean;
   setLoadingGlobalState: (payload: boolean) => void;
+  // INSERT/UPDATE時のローディング
+  isLoadingUpsertGlobal: boolean;
+  setIsLoadingUpsertGlobal: (payload: boolean) => void;
 
   // =================== ユーザープロフィール ===================
   userProfileState: UserProfileCompanySubscription | null;
@@ -799,6 +802,9 @@ const useDashboardStore = create<State>((set) => ({
   // =================== ローディング状態保持 ===================
   loadingGlobalState: false,
   setLoadingGlobalState: (payload) => set({ loadingGlobalState: payload }),
+  // INSERT/UPDATE時のローディング
+  isLoadingUpsertGlobal: false,
+  setIsLoadingUpsertGlobal: (payload) => set({ isLoadingUpsertGlobal: payload }),
 
   // =================== ユーザープロフィール ===================
   userProfileState: null,

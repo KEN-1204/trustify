@@ -29,6 +29,7 @@ import {
   Unit,
   QuotationProductsDetail,
   Destination,
+  QuotationProducts,
 } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
@@ -79,6 +80,8 @@ import { calculateDiscountRate } from "@/utils/Helpers/calculateDiscountRate";
 import { ImInfo } from "react-icons/im";
 import { SideTableSearchContact } from "@/components/DashboardCompanyComponent/Modal/UpdateMeetingModal/SideTableSearchContact/SideTableSearchContact";
 import { FallbackSideTableSearchContact } from "@/components/DashboardCompanyComponent/Modal/UpdateMeetingModal/SideTableSearchContact/FallbackSideTableSearchContact";
+import { calculateLeaseMonthlyFee } from "@/utils/Helpers/calculateLeaseMonthlyFee";
+import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -154,8 +157,6 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const [isOpenSearchDestinationSideTableBefore, setIsOpenSearchDestinationSideTableBefore] = useState(false);
   const [isOpenSearchDestinationSideTable, setIsOpenSearchDestinationSideTable] = useState(false);
 
-  // 見積に追加された商品リスト
-  const [selectedProductsArray, setSelectedProductsArray] = useState<QuotationProductsDetail[]>([]);
   // 選択中の商品データ
   const selectedRowDataQuotationProduct = useDashboardStore((state) => state.selectedRowDataQuotationProduct);
   const setSelectedRowDataQuotationProduct = useDashboardStore((state) => state.setSelectedRowDataQuotationProduct);
@@ -168,11 +169,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const infoIconTotalPriceRef = useRef<HTMLDivElement | null>(null);
   const infoIconDiscountRateRef = useRef<HTMLDivElement | null>(null);
   const infoIconQuotationNoRef = useRef<HTMLDivElement | null>(null);
+  const infoIconQuotationProductList = useRef<HTMLDivElement | null>(null);
 
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
 
-  const { updateQuotationFieldMutation } = useMutateQuotation();
+  const { createQuotationMutation, updateQuotationFieldMutation } = useMutateQuotation();
 
   // メディアクエリState デスクトップモニター
   const isDesktopGTE1600Media = useMedia("(min-width: 1600px)", false);
@@ -229,6 +231,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   // 送付先ここまで
   // const [inputPositionName, setInputPositionName] = useState("");
   // const [inputPositionClass, setInputPositionClass] = useState("");
+  // サーチ用
   const [inputContactCreatedByCompanyId, setInputContactCreatedByCompanyId] = useState("");
   const [inputContactCreatedByUserId, setInputContactCreatedByUserId] = useState("");
   // 🔹Quotationテーブル
@@ -237,6 +240,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const [inputQuotationCreatedByDepartmentOfUser, setInputQuotationCreatedByDepartmentOfUser] = useState("");
   const [inputQuotationCreatedByUnitOfUser, setInputQuotationCreatedByUnitOfUser] = useState("");
   const [inputQuotationCreatedByOfficeOfUser, setInputQuotationCreatedByOfficeOfUser] = useState("");
+
   // =========営業担当データ
   type MemberDetail = {
     memberId: string | null;
@@ -261,8 +265,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const [inputQuotationNotes, setInputQuotationNotes] = useState("");
   const [inputQuotationRemarks, setInputQuotationRemarks] = useState("");
   // サーチ用
-  const [inputQuotationNoCustomSearch, setInputQuotationNoCustomSearch] = useState("");
-  const [inputQuotationNoSystemSearch, setInputQuotationNoSystemSearch] = useState("");
+  // const [inputQuotationNoCustomSearch, setInputQuotationNoCustomSearch] = useState("");
+  // const [inputQuotationNoSystemSearch, setInputQuotationNoSystemSearch] = useState("");
   // upsert編集用
   const [inputQuotationNoCustom, setInputQuotationNoCustom] = useState("");
   const [inputQuotationNoSystem, setInputQuotationNoSystem] = useState("");
@@ -311,13 +315,13 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const setInputTotalAmountEdit = useDashboardStore((state) => state.setInputTotalAmountEdit);
   // 見積価格関連ここまで
   const [inputDiscountTitleEdit, setInputDiscountTitleEdit] = useState("出精値引");
-  // const [inputSetItemCountEdit, setInputSetItemCountEdit] = useState<number | null>(null);
-  const [inputSetItemCountEdit, setInputSetItemCountEdit] = useState<string>("");
+  const [inputSetItemCountEdit, setInputSetItemCountEdit] = useState<number | null>(null);
+  // const [inputSetItemCountEdit, setInputSetItemCountEdit] = useState<string>("");
   const [inputSetUnitNameEdit, setInputSetUnitNameEdit] = useState(language === "ja" ? "式" : "Set");
   const [inputSetPriceEdit, setInputSetPriceEdit] = useState("");
-  // const [inputLeasePeriodEdit, setInputLeasePeriodEdit] = useState<number | null>(null);
+  const [inputLeasePeriodEdit, setInputLeasePeriodEdit] = useState<number | null>(null);
   // const [inputLeaseRateEdit, setInputLeaseRateEdit] = useState<number | null>(null);
-  const [inputLeasePeriodEdit, setInputLeasePeriodEdit] = useState<string>("");
+  // const [inputLeasePeriodEdit, setInputLeasePeriodEdit] = useState<string>("");
   const [inputLeaseRateEdit, setInputLeaseRateEdit] = useState<string>("");
   const [inputLeaseMonthlyFeeEdit, setInputLeaseMonthlyFeeEdit] = useState("");
 
@@ -353,6 +357,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const [memberObjSupervisor1, setMemberObjSupervisor1] = useState<MemberWithStamp>(initialMemberNullObj);
   const [prevMemberObjSupervisor2, setPrevMemberObjSupervisor2] = useState<MemberWithStamp>(initialMemberNullObj);
   const [memberObjSupervisor2, setMemberObjSupervisor2] = useState<MemberWithStamp>(initialMemberNullObj);
+
+  // 見積に追加された商品リスト
+  const [selectedProductsArray, setSelectedProductsArray] = useState<QuotationProductsDetail[]>([]);
 
   // 担当印、上長印の削除、変更メニュー開閉
   const [isOpenInChargeMenu, setIsOpenInChargeMenu] = useState(false);
@@ -512,10 +519,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     let _discount_title = "出精値引";
     let _total_amount = "";
     let _quotation_remarks = "";
-    let _set_item_count = "";
+    // let _set_item_count = "";
+    let _set_item_count = null;
     let _set_unit_name = "式";
     let _set_price = "";
-    let _lease_period = "";
+    // let _lease_period = "";
+    let _lease_period = null;
     let _lease_rate = "";
     let _lease_monthly_fee = "";
 
@@ -659,6 +668,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       setFilteredUnitBySelectedDepartment(filteredUnitArray);
     }
   }, [unitDataArray, inputQuotationCreatedByDepartmentOfUser]);
+  // }, [unitDataArray, memberObj.departmentId]);
   // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
 
   // ----------------------- 🌟見積Noカスタム/自動をローカルストレージから取得🌟 -----------------------
@@ -1177,6 +1187,10 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
         if (field === "fiscal_end_month") {
           text = text.replace(/月/g, ""); // 決算月の場合は、1月の月を削除してstateに格納 optionタグのvalueと一致させるため
         }
+        if (["set_item_count", "lease_period"].includes(field)) {
+          // 数字と小数点以外は全て除去
+          text = Number(e.currentTarget.innerText.replace(/[^\d.]/g, ""));
+        }
         // // 「活動日付」「次回フォロー予定日」はinnerHTMLではなく元々の値を格納
         if (["quotation_date", "result_date"].includes(field)) {
           const originalDate = dateValue ? new Date(dateValue) : null;
@@ -1513,7 +1527,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
           product.quotation_outside_short_name
         );
       } else {
-        return;
+        return "";
       }
     });
     // const productNamesObj = { ...productNames };
@@ -1579,6 +1593,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       if (inputTotalAmountEdit !== "") setInputTotalAmountEdit("");
       if (inputDiscountAmountEdit !== "") setInputDiscountAmountEdit("");
       if (inputDiscountRateEdit !== "") setInputDiscountRateEdit("");
+
+      // 見積区分がリースの場合
+      if (inputQuotationDivisionEdit === "lease") {
+        if (inputLeasePeriodEdit) setInputLeasePeriodEdit(null);
+        if (inputLeaseRateEdit) setInputLeaseRateEdit("");
+      }
     }
     // 商品数が1個以上なら合計額を算出してstateを更新
     else if (selectedProductsArray.length > 0) {
@@ -1620,6 +1640,42 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
         } else if (result.discountRate) {
           const newDiscountRate = result.discountRate;
           setInputDiscountRateEdit(newDiscountRate);
+        }
+      }
+
+      // 🔹見積区分がリースの場合
+      if (inputQuotationDivisionEdit === "lease") {
+        // 数字と小数点以外は全て除去
+        const replacedAmount = newTotalAmount.replace(/[^\d.]/g, "");
+        const replacedRate = inputLeaseRateEdit.replace(/[^\d.]/g, "");
+        console.log(
+          "newTotalAmount",
+          newTotalAmount,
+          "replacedAmount",
+          replacedAmount,
+          "inputLeaseRateEdit",
+          inputLeaseRateEdit,
+          "replacedRate",
+          replacedRate
+        );
+        if (isValidNumber(replacedAmount) && isValidNumber(replacedRate)) {
+          // 🔹リース料の算出
+          // 月額リース料
+          const result = calculateLeaseMonthlyFee(replacedAmount, replacedRate, 0);
+          console.log(
+            "result.monthlyFee",
+            result.monthlyFee,
+            "replacedAmount",
+            replacedAmount,
+            "replacedRate",
+            replacedRate
+          );
+          if (result.error || !result.monthlyFee) {
+            console.error(result.error);
+            toast.error(result.error);
+            return;
+          }
+          setInputLeaseMonthlyFeeEdit(result.monthlyFee);
         }
       }
     }
@@ -1669,12 +1725,157 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   // ---------------- ✅オート見積Noをデータベースから取得する関数✅ ----------------
 
   // -------------------------------- 🌟保存ボタン🌟 --------------------------------
-  const handleSaveUpsert = async () => {
+  const [isLoadingUpsert, setIsLoadingUpsert] = useState(false);
+  const handleSaveInsert = async () => {
     // カスタムとオートの両方の見積Noが空文字ならリターン
     if (!inputQuotationNoCustom && !inputQuotationNoSystem)
       return alert(
         "見積Noは必須です。「見積No区分」からカスタムかオートを選択し、見積Noを設定してから保存してください。"
       );
+    if (!userProfileState?.id) return alert("ユーザー情報が存在しません");
+    if (!userProfileState?.company_id) return alert("ユーザー情報が存在しません");
+    if (!inputCompanyId) return alert("依頼元の会社データの取得に失敗しました。");
+    if (!inputContactId) return alert("依頼元の担当者データの取得に失敗しました。");
+    if (!inputQuotationDate) return alert("見積日を入力してください。");
+    if (!inputDeadlineEdit) return alert("納期を入力してください。");
+    if (!inputPaymentTermsEdit) return alert("取引方法を入力してください。");
+    if (memberObj.memberName === "") return alert("自社担当を入力してください");
+    if (!memberObj.memberId) return alert("自社担当を入力してください");
+    if (!inputCompanyId) return alert("依頼元の会社が無効なデータです。");
+    if (!inputContactId) return alert("依頼元の担当者が無効なデータです。");
+
+    // ローディング開始
+    setIsLoadingUpsert(true);
+
+    // 見積年月度の作成
+    const quotationFiscalYearMonth = calculateDateToYearMonth(
+      inputQuotationDate,
+      closingDayRef.current ?? new Date(new Date().getFullYear(), 2, 31).getDate()
+    );
+
+    // 部署名
+    const departmentName =
+      departmentDataArray &&
+      memberObj.departmentId &&
+      departmentDataArray.find((obj) => obj.id === memberObj.departmentId)?.department_name;
+    // 事業所名
+    const officeName =
+      officeDataArray &&
+      memberObj.officeId &&
+      officeDataArray.find((obj) => obj.id === memberObj.officeId)?.office_name;
+
+    // 価格合計
+    const replacedTotalPrice = inputTotalPriceEdit.replace(/[^\d.]/g, "");
+    // 値引合計
+    const replacedDiscountAmount = inputDiscountAmountEdit.replace(/[^\d.]/g, "");
+    // 値引率
+    const replacedDiscountRate = inputDiscountRateEdit.replace(/[^\d.]/g, "");
+    // 合計金額
+    const replacedTotalAmount = inputTotalAmountEdit.replace(/[^\d.]/g, "");
+    // セット価格
+    const replacedSetPrice = inputSetPriceEdit.replace(/[^\d.]/g, "");
+    // リース料率
+    const replacedLeaseRate = inputLeaseRateEdit.replace(/[^\d.]/g, "");
+    // 月額リース料
+    const replacedLeaseMonthlyFee = inputLeaseMonthlyFeeEdit.replace(/[^\d.]/g, "");
+
+    // 商品リストの全てのidが有効化をチェック
+    const result = selectedProductsArray.some(
+      (product) =>
+        product?.quotation_product_id === null ||
+        product?.quotation_product_id === undefined ||
+        product?.quotation_product_id === ""
+    );
+
+    if (result) return alert("エラー：無効な商品が含まれています。");
+
+    // 見積商品リストテーブルのデータ型に合わせた配列を作成
+    type QuotationProductInsertPayload = Omit<QuotationProducts, "id" | "created_at" | "updated_at">[];
+    const insertProductsList: QuotationProductInsertPayload = selectedProductsArray.map((product) => {
+      // if (!product.quotation_product_id) return;
+      return {
+        quotation_product_name: product.quotation_product_name ?? null,
+        quotation_product_inside_short_name: product.quotation_inside_short_name ?? null,
+        quotation_outside_short_name: product.quotation_outside_short_name ?? null,
+        quotation_product_unit_price: isValidNumber(product.quotation_unit_price) ? product.quotation_unit_price : null,
+        quotation_product_quantity: isValidNumber(product.quotation_product_quantity)
+          ? product.quotation_product_quantity
+          : null,
+        priority: isValidNumber(product.quotation_product_priority) ? product.quotation_product_priority : null,
+        quotation_id: null, // 見積データ作成後のidを使用
+        product_id: product.quotation_product_id,
+      };
+    });
+
+    try {
+      // 見積テーブルと見積商品リストテーブルにINSERT
+      const insertPayload = {
+        //       id: string;
+        // created_at: string;
+        // updated_at: null,
+        submission_class: inputSubmissionClassEdit || null,
+        quotation_date: inputQuotationDate ? inputQuotationDate.toISOString() : null,
+        expiration_date: inputExpirationDate ? inputExpirationDate.toISOString() : null,
+        deadline: inputDeadlineEdit || null,
+        delivery_place: inputDeliveryPlaceEdit || null,
+        payment_terms: inputPaymentTermsEdit || null,
+        quotation_division: inputQuotationDivisionEdit || null,
+        sending_method: inputSendingMethodEdit || null,
+        use_corporate_seal: inputUseCorporateSealEdit,
+        quotation_notes: inputQuotationNotes || null,
+        sales_tax_class: inputSalesTaxClassEdit || null,
+        sales_tax_rate: inputSalesTaxRateEdit ?? null,
+        total_price: isValidNumber(replacedTotalPrice) ? replacedTotalPrice : null,
+        discount_amount: isValidNumber(replacedDiscountAmount) ? replacedDiscountAmount : null,
+        discount_rate: isValidNumber(replacedDiscountRate) ? replacedDiscountRate : null,
+        discount_title: inputDiscountTitleEdit || null,
+        total_amount: isValidNumber(replacedTotalAmount) ? replacedTotalAmount : null,
+        quotation_remarks: inputQuotationRemarks || null,
+        set_item_count: isValidNumber(inputSetItemCountEdit) ? inputSetItemCountEdit : null,
+        set_unit_name: inputSetUnitNameEdit || null,
+        set_price: isValidNumber(replacedSetPrice) ? replacedSetPrice : null,
+        lease_period: isValidNumber(inputLeasePeriodEdit) ? inputLeasePeriodEdit : null,
+        lease_rate: isValidNumber(replacedLeaseRate) ? replacedLeaseRate : null,
+        lease_monthly_fee: isValidNumber(replacedLeaseMonthlyFee) ? replacedLeaseMonthlyFee : null,
+        created_by_company_id: userProfileState.company_id,
+        created_by_user_id: memberObj.memberId,
+        created_by_department_of_user: memberObj.departmentId || null,
+        created_by_unit_of_user: memberObj.unitId || null,
+        created_by_office_of_user: memberObj.officeId || null,
+        client_company_id: inputCompanyId,
+        client_contact_id: inputContactId,
+        destination_company_id: selectedDestination.destination_company_id || null,
+        destination_contact_id: selectedDestination.destination_contact_id || null,
+        in_charge_stamp_id: memberObjInCharge.signature_stamp_id || null,
+        in_charge_user_id: memberObjInCharge.memberId || null,
+        supervisor1_stamp_id: memberObjSupervisor1.signature_stamp_id || null,
+        supervisor1_user_id: memberObjSupervisor1.memberId || null,
+        supervisor2_stamp_id: memberObjSupervisor2.signature_stamp_id || null,
+        supervisor2_user_id: memberObjSupervisor2.memberId || null,
+        quotation_no_custom: inputQuotationNoCustom ?? null,
+        quotation_no_system: inputQuotationNoSystem ?? null,
+        quotation_member_name: memberObj.memberName,
+        quotation_business_office: officeName ?? null,
+        quotation_department: departmentName ?? null,
+        quotation_year_month: quotationFiscalYearMonth || null,
+        quotation_title: inputQuotationTitle ?? null,
+        in_charge_stamp_flag: checkboxInChargeFlagEdit,
+        supervisor1_stamp_flag: checkboxSupervisor1FlagEdit,
+        supervisor2_stamp_flag: checkboxSupervisor2FlagEdit,
+        in_charge_stamp_name: memberObjInCharge.memberName,
+        supervisor1_stamp_name: memberObjSupervisor1.memberName,
+        supervisor2_stamp_name: memberObjSupervisor2.memberName,
+        quotation_products_array: insertProductsList ?? [],
+      };
+
+      console.log("見積 新規作成 insertPayload", insertPayload);
+
+      // supabaseにINSERT
+      createQuotationMutation.mutate({ newQuotation: insertPayload, isLoadingUpsert, setIsLoadingUpsert });
+    } catch (error: any) {
+      console.error("見積INSERTに失敗", error);
+      toast.error(`見積の作成に失敗しました...🙇‍♀️`);
+    }
   };
   // -------------------------------- ✅保存ボタン✅ --------------------------------
 
@@ -1714,7 +1915,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                   <button
                     type="button"
                     className={`${styles.upsert_btn} transition-bg02 max-h-[28px] min-h-[28px] min-w-[90px] max-w-[90px] text-[13px]`}
-                    onClick={handleSaveUpsert}
+                    onClick={handleSaveInsert}
                   >
                     保存
                   </button>
@@ -3362,11 +3563,11 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                       </div>
                       {/*  */}
 
-                      {/* ●有効期限・●納入場所 */}
+                      {/* ●有効期限・納入場所 */}
                       <div className={`${styles.row_area} flex w-full items-center`}>
                         <div className="flex h-full w-1/2 flex-col pr-[20px]">
                           <div className={`${styles.title_box} flex h-full items-center `}>
-                            <span className={`${styles.title}`}>●納入場所</span>
+                            <span className={`${styles.title}`}>納入場所</span>
                             {!searchMode && isEditModeField !== "delivery_place" && !isInsertModeQuotation && (
                               <span
                                 className={`${styles.value} ${styles.editable_field}`}
@@ -4409,11 +4610,23 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 }`}
                                 onMouseEnter={(e) => {
                                   e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                  // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                                  // scrollWidthがoffsetWidthを超えていればツールチップを表示
+                                  const el = e.currentTarget;
+                                  if (el.scrollWidth > el.offsetWidth) {
+                                    handleOpenTooltip({
+                                      e: e,
+                                      display: "top",
+                                      content: checkNotFalsyExcludeZero(selectedRowDataQuotation?.total_price)
+                                        ? Number(selectedRowDataQuotation?.total_price).toLocaleString() + "円"
+                                        : "",
+                                      // marginTop: 28,
+                                      itemsPosition: "center",
+                                    });
+                                  }
                                 }}
                                 onMouseLeave={(e) => {
                                   e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                  // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                                  if (hoveredItemPosWrap) handleCloseTooltip();
                                 }}
                               >
                                 {checkNotFalsyExcludeZero(selectedRowDataQuotation?.total_price)
@@ -4424,7 +4637,25 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
 
                             {/* ----------------- upsert ----------------- */}
                             {!searchMode && isInsertModeQuotation && (
-                              <span className={`${styles.value}`}>
+                              <span
+                                className={`${styles.value}`}
+                                onMouseEnter={(e) => {
+                                  // scrollWidthがoffsetWidthを超えていればツールチップを表示
+                                  const el = e.currentTarget;
+                                  if (el.scrollWidth > el.offsetWidth) {
+                                    handleOpenTooltip({
+                                      e: e,
+                                      display: "top",
+                                      content: inputTotalPriceEdit ? formatDisplayPrice(inputTotalPriceEdit) : "",
+                                      // marginTop: 28,
+                                      itemsPosition: "center",
+                                    });
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (hoveredItemPosWrap) handleCloseTooltip();
+                                }}
+                              >
                                 {inputTotalPriceEdit ? formatDisplayPrice(inputTotalPriceEdit) : ""}
                               </span>
                             )}
@@ -4469,6 +4700,16 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                       id: selectedRowDataQuotation?.quotation_id,
                                       required: false,
                                     });
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    // scrollWidthがoffsetWidthを超えていればツールチップを表示
+                                    const el = e.currentTarget;
+                                    if (el.scrollWidth > el.offsetWidth) {
+                                      handleOpenTooltip({ e });
+                                    }
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    if (hoveredItemPosWrap) handleCloseTooltip();
                                   }}
                                 />
                                 {/* 送信ボタンとクローズボタン */}
@@ -4663,7 +4904,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   itemsPosition: "center",
                                 });
                               }}
-                              onMouseLeave={handleCloseTooltip}
+                              onMouseLeave={() => {
+                                if (hoveredItemPosWrap) handleCloseTooltip();
+                              }}
                             >
                               <span className={`mr-[6px]`}>値引金額</span>
                               {isInsertModeQuotation && (
@@ -4801,6 +5044,22 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                       const newDiscountRate = result.discountRate;
                                       setInputDiscountRateEdit(newDiscountRate);
                                     }
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    // scrollWidthがoffsetWidthを超えていればツールチップを表示
+                                    const el = e.currentTarget;
+                                    if (el.scrollWidth > el.offsetWidth) {
+                                      handleOpenTooltip({
+                                        e: e,
+                                        display: "top",
+                                        content: inputDiscountAmountEdit,
+                                        // marginTop: 28,
+                                        itemsPosition: "center",
+                                      });
+                                    }
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    if (hoveredItemPosWrap) handleCloseTooltip();
                                   }}
                                 />
                               </>
@@ -5359,6 +5618,36 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   getProductNamesAll(selectedRowDataQuotation.quotation_products_details)}
                               </span>
                             )}
+
+                            {/* ----------------- upsert ----------------- */}
+                            {!searchMode && isInsertModeQuotation && (
+                              <>
+                                {selectedProductsArray?.length > 0 && (
+                                  <span
+                                    className={`${styles.value} truncate`}
+                                    onMouseEnter={(e) => {
+                                      // scrollWidthがoffsetWidthを超えていればツールチップを表示
+                                      const el = e.currentTarget;
+                                      if (el.scrollWidth > el.offsetWidth) {
+                                        handleOpenTooltip({
+                                          e: e,
+                                          display: "top",
+                                          content: getProductNamesAll(selectedProductsArray),
+                                          // marginTop: 28,
+                                          itemsPosition: "center",
+                                        });
+                                      }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                  >
+                                    {getProductNamesAll(selectedProductsArray)}
+                                  </span>
+                                )}
+                              </>
+                            )}
+                            {/* ----------------- upsert ----------------- */}
                           </div>
                           <div className={`${styles.underline}`}></div>
                         </div>
@@ -6449,6 +6738,30 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             {!searchMode && isInsertModeQuotation && inputQuotationDivisionEdit === "set" && (
                               <>
                                 <input
+                                  type="number"
+                                  min="1"
+                                  className={`${styles.input_box} ${styles.upsert}`}
+                                  // onCompositionStart={() => setIsComposing(true)}
+                                  // onCompositionEnd={() => setIsComposing(false)}
+                                  value={inputSetItemCountEdit ? inputSetItemCountEdit : ""}
+                                  // onChange={(e) => setInputSetItemCountEdit(e.target.value)}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (val === "" || val === "0" || val === "０") {
+                                      setInputSetItemCountEdit(null);
+                                    } else {
+                                      const numValue = Number(val);
+
+                                      // 入力値がマイナスかチェック
+                                      if (numValue < 1) {
+                                        setInputSetItemCountEdit(1); // ここで0に設定しているが、必要に応じて他の正の値に変更することもできる
+                                      } else {
+                                        setInputSetItemCountEdit(numValue);
+                                      }
+                                    }
+                                  }}
+                                />
+                                {/* <input
                                   type="text"
                                   // placeholder="例：600万円 → 6000000　※半角で入力"
                                   className={`${styles.input_box} ${styles.upsert}`}
@@ -6476,7 +6789,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     if (converted === null) return setInputSetItemCountEdit("");
                                     setInputSetItemCountEdit(converted);
                                   }}
-                                />
+                                /> */}
                               </>
                             )}
                             {/* ----------------- upsert ----------------- */}
@@ -6486,19 +6799,36 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             {!searchMode && isEditModeField === "set_item_count" && (
                               <>
                                 <input
-                                  type="text"
-                                  placeholder=""
+                                  // type="text"
+                                  // placeholder=""
+                                  type="number"
+                                  min="1"
                                   className={`${styles.input_box}`}
                                   onCompositionStart={() => setIsComposing(true)}
                                   onCompositionEnd={() => setIsComposing(false)}
                                   value={!!inputSetItemCountEdit ? inputSetItemCountEdit : ""}
+                                  // onChange={(e) => {
+                                  //   if (e.target.value === "0" || e.target.value === "０") {
+                                  //     if (inputSetItemCountEdit === "0" || inputSetItemCountEdit === "０")
+                                  //       setInputSetItemCountEdit("");
+                                  //     return;
+                                  //   }
+                                  //   setInputSetItemCountEdit(e.target.value);
+                                  // }}
                                   onChange={(e) => {
-                                    if (e.target.value === "0" || e.target.value === "０") {
-                                      if (inputSetItemCountEdit === "0" || inputSetItemCountEdit === "０")
-                                        setInputSetItemCountEdit("");
-                                      return;
+                                    const val = e.target.value;
+                                    if (val === "" || val === "0" || val === "０") {
+                                      setInputSetItemCountEdit(null);
+                                    } else {
+                                      const numValue = Number(val);
+
+                                      // 入力値がマイナスかチェック
+                                      if (numValue < 1) {
+                                        setInputSetItemCountEdit(1); // ここで0に設定しているが、必要に応じて他の正の値に変更することもできる
+                                      } else {
+                                        setInputSetItemCountEdit(numValue);
+                                      }
                                     }
-                                    setInputSetItemCountEdit(e.target.value);
                                   }}
                                   // onBlur={(e) => {
                                   //   if (
@@ -6513,17 +6843,14 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   //   setInputSetItemCountEdit(converted);
                                   // }}
                                   onKeyDown={(e) => {
-                                    if (
-                                      !inputSetItemCountEdit ||
-                                      inputSetItemCountEdit === "" ||
-                                      inputSetItemCountEdit === "0" ||
-                                      inputSetItemCountEdit === "０"
-                                    ) {
-                                      return setInputSetItemCountEdit("");
+                                    if (!inputSetItemCountEdit) {
+                                      return setInputSetItemCountEdit(null);
                                     }
-                                    const converted = convertHalfWidthRoundNumOnly(inputSetItemCountEdit.trim());
-                                    if (converted === null) return setInputSetItemCountEdit("");
-                                    setInputSetItemCountEdit(converted);
+                                    const converted = inputSetItemCountEdit
+                                      ? convertHalfWidthRoundNumOnly(inputSetItemCountEdit.toString().trim())
+                                      : null;
+                                    if (converted === null) return setInputSetItemCountEdit(null);
+                                    setInputSetItemCountEdit(Number(converted));
                                     handleKeyDownUpdateField({
                                       e,
                                       fieldName: "set_item_count",
@@ -6535,13 +6862,60 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                       required: false,
                                     });
                                   }}
+                                  // onKeyDown={(e) => {
+                                  //   if (
+                                  //     !inputSetItemCountEdit ||
+                                  //     inputSetItemCountEdit === "" ||
+                                  //     inputSetItemCountEdit === "0" ||
+                                  //     inputSetItemCountEdit === "０"
+                                  //   ) {
+                                  //     return setInputSetItemCountEdit("");
+                                  //   }
+                                  //   const converted = convertHalfWidthRoundNumOnly(inputSetItemCountEdit.trim());
+                                  //   if (converted === null) return setInputSetItemCountEdit("");
+                                  //   setInputSetItemCountEdit(converted);
+                                  //   handleKeyDownUpdateField({
+                                  //     e,
+                                  //     fieldName: "set_item_count",
+                                  //     fieldNameForSelectedRowData: "set_item_count",
+                                  //     originalValue: originalValueFieldEdit.current,
+                                  //     // newValue: inputSetItemCountEdit,
+                                  //     newValue: converted,
+                                  //     id: selectedRowDataQuotation?.quotation_id,
+                                  //     required: false,
+                                  //   });
+                                  // }}
                                 />
                                 {/* 送信ボタンとクローズボタン */}
                                 {!updateQuotationFieldMutation.isLoading && (
-                                  <InputSendAndCloseBtn<string>
+                                  <InputSendAndCloseBtn<number | null>
                                     inputState={inputSetItemCountEdit}
                                     setInputState={setInputSetItemCountEdit}
                                     onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                                      if (!inputSetItemCountEdit) {
+                                        return setInputSetItemCountEdit(null);
+                                      }
+                                      const converted = inputSetItemCountEdit
+                                        ? convertHalfWidthRoundNumOnly(inputSetItemCountEdit.toString().trim())
+                                        : null;
+                                      if (converted === null) return setInputSetItemCountEdit(null);
+                                      setInputSetItemCountEdit(Number(converted));
+                                      handleClickSendUpdateField({
+                                        e,
+                                        fieldName: "set_item_count",
+                                        fieldNameForSelectedRowData: "set_item_count",
+                                        originalValue: originalValueFieldEdit.current,
+                                        // newValue: inputSetItemCountEdit,
+                                        newValue: converted,
+                                        id: selectedRowDataQuotation?.quotation_id,
+                                        required: false,
+                                      });
+                                    }}
+                                    required={false}
+                                    isDisplayClose={false}
+                                  />
+                                )}
+                                {/* onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
                                       if (
                                         !inputSetItemCountEdit ||
                                         inputSetItemCountEdit === "" ||
@@ -6567,7 +6941,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     required={false}
                                     isDisplayClose={false}
                                   />
-                                )}
+                                )} */}
                                 {/* エディットフィールド送信中ローディングスピナー */}
                                 {updateQuotationFieldMutation.isLoading && (
                                   <div
@@ -6595,7 +6969,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         {/* 期間 */}
                         <div className="flex h-full w-1/2 flex-col pr-[20px]">
                           <div className={`${styles.title_box} flex h-full items-center`}>
-                            <span className={`${styles.title}`}>期間(回数)</span>
+                            <span className={`${styles.title}`}>期間(年)</span>
                             {!searchMode && isEditModeField !== "lease_period" && !isInsertModeQuotation && (
                               <span
                                 className={`${styles.value} ${styles.editable_field}`}
@@ -6634,33 +7008,48 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             {!searchMode && isInsertModeQuotation && inputQuotationDivisionEdit === "lease" && (
                               <>
                                 <input
-                                  type="text"
-                                  placeholder="例：5年 → 60　※半角で入力"
+                                  type="number"
+                                  min="1"
                                   className={`${styles.input_box} ${styles.upsert}`}
-                                  onCompositionStart={() => setIsComposing(true)}
-                                  onCompositionEnd={() => setIsComposing(false)}
+                                  // onCompositionStart={() => setIsComposing(true)}
+                                  // onCompositionEnd={() => setIsComposing(false)}
                                   value={inputLeasePeriodEdit ? inputLeasePeriodEdit : ""}
-                                  // onChange={(e) => setInputLeasePeriodEdit(e.target.value)}
                                   onChange={(e) => {
-                                    if (e.target.value === "0" || e.target.value === "０") {
-                                      if (inputLeasePeriodEdit === "0" || inputLeasePeriodEdit === "０")
-                                        setInputLeasePeriodEdit("");
-                                      return;
+                                    if (!isValidNumber(inputTotalAmountEdit))
+                                      return alert("先に商品を追加して合計金額を算出してください。");
+                                    // if (e.target.value === "0" || e.target.value === "０") {
+                                    //   if (inputLeasePeriodEdit === "0" || inputLeasePeriodEdit === "０")
+                                    //     setInputLeasePeriodEdit("");
+                                    //   return;
+                                    // }
+                                    // setInputLeasePeriodEdit(e.target.value);
+
+                                    const val = e.target.value;
+                                    if (val === "" || val === "0" || val === "０") {
+                                      setInputLeasePeriodEdit(null);
+                                    } else {
+                                      const numValue = Number(val);
+
+                                      // 入力値がマイナスかチェック
+                                      if (numValue < 1) {
+                                        setInputLeasePeriodEdit(1); // ここで0に設定しているが、必要に応じて他の正の値に変更することもできる
+                                      } else {
+                                        setInputLeasePeriodEdit(numValue);
+                                      }
                                     }
-                                    setInputLeasePeriodEdit(e.target.value);
                                   }}
-                                  onBlur={(e) => {
-                                    if (
-                                      !inputLeasePeriodEdit ||
-                                      inputLeasePeriodEdit === "" ||
-                                      inputLeasePeriodEdit === "0" ||
-                                      e.target.value === "０"
-                                    )
-                                      return setInputLeasePeriodEdit("");
-                                    const converted = convertHalfWidthRoundNumOnly(inputLeasePeriodEdit.trim());
-                                    if (converted === null) return setInputLeasePeriodEdit("");
-                                    setInputLeasePeriodEdit(converted);
-                                  }}
+                                  // onBlur={(e) => {
+                                  //   if (
+                                  //     !inputLeasePeriodEdit ||
+                                  //     inputLeasePeriodEdit === "" ||
+                                  //     inputLeasePeriodEdit === "0" ||
+                                  //     e.target.value === "０"
+                                  //   )
+                                  //     return setInputLeasePeriodEdit("");
+                                  //   const converted = convertHalfWidthRoundNumOnly(inputLeasePeriodEdit.trim());
+                                  //   if (converted === null) return setInputLeasePeriodEdit("");
+                                  //   setInputLeasePeriodEdit(converted);
+                                  // }}
                                 />
                               </>
                             )}
@@ -6672,19 +7061,34 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             {!searchMode && isEditModeField === "lease_period" && (
                               <>
                                 <input
-                                  type="text"
-                                  placeholder=""
+                                  // type="text"
+                                  // placeholder=""
+                                  type="number"
+                                  min="1"
                                   className={`${styles.input_box}`}
                                   onCompositionStart={() => setIsComposing(true)}
                                   onCompositionEnd={() => setIsComposing(false)}
                                   value={!!inputLeasePeriodEdit ? inputLeasePeriodEdit : ""}
                                   onChange={(e) => {
-                                    if (e.target.value === "0" || e.target.value === "０") {
-                                      if (inputLeasePeriodEdit === "0" || inputLeasePeriodEdit === "０")
-                                        setInputLeasePeriodEdit("");
-                                      return;
+                                    // if (e.target.value === "0" || e.target.value === "０") {
+                                    //   if (inputLeasePeriodEdit === "0" || inputLeasePeriodEdit === "０")
+                                    //     setInputLeasePeriodEdit("");
+                                    //   return;
+                                    // }
+                                    // setInputLeasePeriodEdit(e.target.value);
+                                    const val = e.target.value;
+                                    if (val === "" || val === "0" || val === "０") {
+                                      setInputLeasePeriodEdit(null);
+                                    } else {
+                                      const numValue = Number(val);
+
+                                      // 入力値がマイナスかチェック
+                                      if (numValue < 1) {
+                                        setInputLeasePeriodEdit(1); // ここで0に設定しているが、必要に応じて他の正の値に変更することもできる
+                                      } else {
+                                        setInputLeasePeriodEdit(numValue);
+                                      }
                                     }
-                                    setInputLeasePeriodEdit(e.target.value);
                                   }}
                                   // onBlur={(e) => {
                                   //   if (
@@ -6699,46 +7103,72 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   //   setInputLeasePeriodEdit(converted);
                                   // }}
                                   onKeyDown={(e) => {
-                                    if (
-                                      !inputLeasePeriodEdit ||
-                                      inputLeasePeriodEdit === "" ||
-                                      inputLeasePeriodEdit === "0" ||
-                                      inputLeasePeriodEdit === "０"
-                                    ) {
-                                      return setInputLeasePeriodEdit("");
+                                    if (!inputLeasePeriodEdit) {
+                                      return setInputLeasePeriodEdit(null);
                                     }
-                                    const converted = convertHalfWidthRoundNumOnly(inputLeasePeriodEdit.trim());
-                                    if (converted === null) return setInputLeasePeriodEdit("");
-                                    setInputLeasePeriodEdit(converted);
+                                    const converted = inputLeasePeriodEdit
+                                      ? convertHalfWidthRoundNumOnly(inputLeasePeriodEdit.toString().trim())
+                                      : null;
+                                    if (converted === null) return setInputLeasePeriodEdit(null);
+                                    setInputLeasePeriodEdit(Number(converted));
                                     handleKeyDownUpdateField({
                                       e,
-                                      fieldName: "lease_period",
-                                      fieldNameForSelectedRowData: "lease_period",
+                                      fieldName: "set_item_count",
+                                      fieldNameForSelectedRowData: "set_item_count",
                                       originalValue: originalValueFieldEdit.current,
                                       // newValue: inputLeasePeriodEdit,
                                       newValue: converted,
                                       id: selectedRowDataQuotation?.quotation_id,
                                       required: false,
                                     });
+                                    // if (
+                                    //   !inputLeasePeriodEdit ||
+                                    //   inputLeasePeriodEdit === "" ||
+                                    //   inputLeasePeriodEdit === "0" ||
+                                    //   inputLeasePeriodEdit === "０"
+                                    // ) {
+                                    //   return setInputLeasePeriodEdit("");
+                                    // }
+                                    // const converted = convertHalfWidthRoundNumOnly(inputLeasePeriodEdit.trim());
+                                    // if (converted === null) return setInputLeasePeriodEdit("");
+                                    // setInputLeasePeriodEdit(converted);
+                                    // handleKeyDownUpdateField({
+                                    //   e,
+                                    //   fieldName: "lease_period",
+                                    //   fieldNameForSelectedRowData: "lease_period",
+                                    //   originalValue: originalValueFieldEdit.current,
+                                    //   // newValue: inputLeasePeriodEdit,
+                                    //   newValue: converted,
+                                    //   id: selectedRowDataQuotation?.quotation_id,
+                                    //   required: false,
+                                    // });
                                   }}
                                 />
                                 {/* 送信ボタンとクローズボタン */}
                                 {!updateQuotationFieldMutation.isLoading && (
-                                  <InputSendAndCloseBtn<string>
+                                  <InputSendAndCloseBtn<number | null>
                                     inputState={inputLeasePeriodEdit}
                                     setInputState={setInputLeasePeriodEdit}
                                     onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-                                      if (
-                                        !inputLeasePeriodEdit ||
-                                        inputLeasePeriodEdit === "" ||
-                                        inputLeasePeriodEdit === "0" ||
-                                        inputLeasePeriodEdit === "０"
-                                      ) {
-                                        return setInputLeasePeriodEdit("");
+                                      // if (
+                                      //   !inputLeasePeriodEdit ||
+                                      //   inputLeasePeriodEdit === "" ||
+                                      //   inputLeasePeriodEdit === "0" ||
+                                      //   inputLeasePeriodEdit === "０"
+                                      // ) {
+                                      //   return setInputLeasePeriodEdit("");
+                                      // }
+                                      // const converted = convertHalfWidthRoundNumOnly(inputLeasePeriodEdit.trim());
+                                      // if (converted === null) return setInputLeasePeriodEdit("");
+                                      // setInputLeasePeriodEdit(converted);
+                                      if (!inputLeasePeriodEdit) {
+                                        return setInputLeasePeriodEdit(null);
                                       }
-                                      const converted = convertHalfWidthRoundNumOnly(inputLeasePeriodEdit.trim());
-                                      if (converted === null) return setInputLeasePeriodEdit("");
-                                      setInputLeasePeriodEdit(converted);
+                                      const converted = inputLeasePeriodEdit
+                                        ? convertHalfWidthRoundNumOnly(inputLeasePeriodEdit.toString().trim())
+                                        : null;
+                                      if (converted === null) return setInputLeasePeriodEdit(null);
+                                      setInputLeasePeriodEdit(Number(converted));
                                       handleClickSendUpdateField({
                                         e,
                                         fieldName: "lease_period",
@@ -6931,7 +7361,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               >
                                 {selectedRowDataQuotation?.quotation_division === "lease" &&
                                 checkNotFalsyExcludeZero(selectedRowDataQuotation?.lease_rate)
-                                  ? normalizeDiscountRate(selectedRowDataQuotation.lease_rate!.toString())
+                                  ? normalizeDiscountRate(selectedRowDataQuotation.lease_rate!.toString(), true)
                                   : ""}
                               </span>
                             )}
@@ -6941,16 +7371,17 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               <>
                                 <input
                                   type="text"
-                                  placeholder="例：1.8% → 1.8　※半角で入力"
+                                  placeholder="1.8%→1.8　※半角で入力"
                                   className={`${styles.input_box} ${styles.upsert}`}
                                   onCompositionStart={() => setIsComposing(true)}
                                   onCompositionEnd={() => setIsComposing(false)}
                                   value={inputLeaseRateEdit ? inputLeaseRateEdit : ""}
                                   // onChange={(e) => setInputLeaseRateEdit(e.target.value)}
                                   onChange={(e) => {
+                                    if (!isValidNumber(inputTotalAmountEdit))
+                                      return alert("先に商品を追加して合計金額を算出してください。");
                                     if (e.target.value === "0" || e.target.value === "０") {
-                                      if (inputLeaseRateEdit === "0" || inputLeaseRateEdit === "０")
-                                        setInputLeaseRateEdit("");
+                                      if (inputLeaseRateEdit) setInputLeaseRateEdit("");
                                       return;
                                     }
                                     setInputLeaseRateEdit(e.target.value);
@@ -6960,13 +7391,34 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                       !inputLeaseRateEdit ||
                                       inputLeaseRateEdit === "" ||
                                       inputLeaseRateEdit === "0" ||
-                                      e.target.value === "０"
+                                      inputLeaseRateEdit === "０"
                                     )
                                       return setInputLeaseRateEdit("");
                                     // 小数点第二まで算出
-                                    const converted = convertHalfWidthRoundNumOnly(inputLeaseRateEdit.trim(), 2);
-                                    if (converted === null) return setInputLeaseRateEdit("");
-                                    setInputLeaseRateEdit(converted);
+                                    const convertedRate = convertHalfWidthRoundNumOnly(inputLeaseRateEdit.trim(), 2);
+                                    if (convertedRate === null) return setInputLeaseRateEdit("");
+                                    setInputLeaseRateEdit(convertedRate);
+
+                                    // 🔹リース料の算出
+                                    // 数字と小数点以外は全て除去
+                                    const replacedAmount = inputTotalAmountEdit.replace(/[^\d.]/g, "");
+                                    if (!isValidNumber(inputTotalAmountEdit)) return;
+                                    // 月額リース料
+                                    const result = calculateLeaseMonthlyFee(replacedAmount, convertedRate, 0);
+                                    console.log(
+                                      "result.monthlyFee",
+                                      result.monthlyFee,
+                                      "replacedAmount",
+                                      replacedAmount,
+                                      "convertedRate",
+                                      convertedRate
+                                    );
+                                    if (result.error || !result.monthlyFee) {
+                                      console.error(result.error);
+                                      toast.error(result.error);
+                                      return;
+                                    }
+                                    setInputLeaseMonthlyFeeEdit(result.monthlyFee);
                                   }}
                                 />
                               </>
@@ -7133,19 +7585,41 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 <input
                                   type="text"
                                   // placeholder="例：600万円 → 6000000　※半角で入力"
-                                  className={`${styles.input_box} ${styles.upsert}`}
+                                  className={`${styles.input_box} ${styles.upsert} truncate`}
                                   // onCompositionStart={() => setIsComposing(true)}
                                   // onCompositionEnd={() => setIsComposing(false)}
                                   value={checkNotFalsyExcludeZero(inputSetPriceEdit) ? inputSetPriceEdit : ""}
                                   onChange={(e) => setInputSetPriceEdit(e.target.value)}
+                                  onFocus={() => {
+                                    setInputSetPriceEdit(inputSetPriceEdit.replace(/[^\d.]/g, ""));
+                                  }}
                                   onBlur={() => {
-                                    setInputSetPriceEdit(
-                                      !!inputSetPriceEdit &&
-                                        inputSetPriceEdit !== "" &&
-                                        convertToYen(inputSetPriceEdit.trim()) !== null
-                                        ? (convertToYen(inputSetPriceEdit.trim()) as number).toLocaleString()
-                                        : ""
-                                    );
+                                    // 日本語の場合は円に変換、それ以外は小数点第二位までの数字と小数点か空文字に変換し、空文字の場合はNumberで0に変換
+                                    const convertedPrice =
+                                      language === "ja"
+                                        ? convertToYen(inputSetPriceEdit.trim())
+                                        : Number(convertHalfWidthRoundNumOnly(inputSetPriceEdit.trim(), 2));
+                                    // 数値を日本語はIntl.NumberFormatで￥と区切り文字をつけ、0以外のfalsyは空文字を格納
+                                    const newPrice = checkNotFalsyExcludeZero(convertedPrice)
+                                      ? formatDisplayPrice(convertedPrice as number)
+                                      : "";
+                                    setInputSetPriceEdit(newPrice);
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    const el = e.currentTarget;
+                                    // スクロールwidthがoffsetWidthを超えていればツールチップを表示
+                                    if (el.scrollWidth > el.offsetWidth) {
+                                      handleOpenTooltip({
+                                        e: e,
+                                        display: "top",
+                                        content: inputSetPriceEdit,
+                                        marginTop: 28,
+                                        itemsPosition: "center",
+                                      });
+                                    }
+                                  }}
+                                  onMouseLeave={() => {
+                                    if (hoveredItemPosWrap) handleCloseTooltip();
                                   }}
                                 />
                               </>
@@ -7160,7 +7634,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   type="text"
                                   autoFocus
                                   // placeholder="例：600万円 → 6000000　※半角で入力"
-                                  className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                                  className={`${styles.input_box} ${styles.field_edit_mode_input_box} truncate`}
                                   onCompositionStart={() => setIsComposing(true)}
                                   onCompositionEnd={() => setIsComposing(false)}
                                   value={checkNotFalsyExcludeZero(inputSetPriceEdit) ? inputSetPriceEdit : ""}
@@ -7264,7 +7738,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             {/* ----------------- upsert ----------------- */}
                             {!searchMode && isInsertModeQuotation && inputQuotationDivisionEdit === "lease" && (
                               <span className={`${styles.value}`}>
-                                {inputLeaseMonthlyFeeEdit ? inputLeaseMonthlyFeeEdit.toLocaleString() : ""}
+                                {/* {inputLeaseMonthlyFeeEdit ? inputLeaseMonthlyFeeEdit.toLocaleString() : ""} */}
+                                {inputLeaseMonthlyFeeEdit ? formatDisplayPrice(inputLeaseMonthlyFeeEdit) : ""}
                               </span>
                             )}
                             {/* ----------------- upsert ----------------- */}
@@ -7322,7 +7797,41 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                 <div className={`${styles.row_area} flex w-full items-center`}>
                   <div className="flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
-                      <span className={`${styles.section_title} mr-[20px] !min-w-max`}>見積商品リスト</span>
+                      {/* <span className={`${styles.section_title} mr-[20px] !min-w-max`}>見積商品リスト</span> */}
+                      <div
+                        className={`${styles.section_title} mr-[20px] flex !min-w-max items-center space-x-[6px]`}
+                        onMouseEnter={(e) => {
+                          if (!isInsertModeQuotation) return;
+                          if (
+                            infoIconQuotationProductList.current &&
+                            infoIconQuotationProductList.current.classList.contains(styles.animate_ping)
+                          ) {
+                            infoIconQuotationProductList.current.classList.remove(styles.animate_ping);
+                          }
+                          handleOpenTooltip({
+                            e: e,
+                            display: "top",
+                            content: `見積商品リストに追加した商品の「見積記載」が付いた項目は編集が可能です。`,
+                            content2: `上記の価格合計、合計金額は、リストの見積記載が付いた価格と数量に基づいて算出されます。`,
+                            // content3: `ex) 入力: 20万円 -> 出力: 200000`,
+                            marginTop: 28,
+                            itemsPosition: "center",
+                          });
+                        }}
+                        onMouseLeave={() => {
+                          if (hoveredItemPosWrap) handleCloseTooltip();
+                        }}
+                      >
+                        <span>見積商品リスト</span>
+
+                        <div className="flex-center relative h-[15px] w-[15px] rounded-full">
+                          <div
+                            ref={infoIconQuotationProductList}
+                            className={`flex-center absolute left-0 top-0 h-[15px] w-[15px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
+                          ></div>
+                          <ImInfo className={`min-h-[15px] min-w-[15px] text-[var(--color-bg-brand-f)]`} />
+                        </div>
+                      </div>
                       {isInsertModeQuotation && (
                         <div className="flex w-full items-center space-x-[10px]">
                           <RippleButton
@@ -7550,8 +8059,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
           // titleText="面談データの自社担当を変更してもよろしいですか？"
           titleText={`データの所有者を変更してもよろしいですか？`}
           // titleText2={`データの所有者を変更しますか？`}
-          sectionP1="「自社担当」「事業部」「係・チーム」「事業所」を変更すると案件データの所有者が変更されます。"
-          sectionP2="注：データの所有者を変更すると、この案件結果は変更先のメンバーの集計結果に移行され、分析結果が変更されます。"
+          sectionP1="「自社担当」「事業部」「係・チーム」「事業所」を変更すると見積データの所有者が変更されます。"
+          sectionP2="注：データの所有者を変更すると、この見積結果は変更先のメンバーの集計結果に移行され、分析結果が変更されます。"
           cancelText="戻る"
           submitText="変更する"
           clickEventSubmit={() => {

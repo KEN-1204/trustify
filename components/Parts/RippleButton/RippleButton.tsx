@@ -32,6 +32,7 @@ const RippleButtonMemo: FC<Props> = ({
   textColor = "#fff",
   // bgColor = "var(--color-bg-brand-gradient)",
   bgColor = "var(--color-btn-brand-f)",
+  // bgColor = "var(--color-bg-brand-f90)",
   bgColorHover = "var(--color-btn-brand-f-hover)",
   minWidth = "75px",
   minHeight = "26px",
