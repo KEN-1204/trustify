@@ -17,9 +17,11 @@ import { Zoom } from "@/utils/Helpers/toastHelpers";
 import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 import {
+  getActivityType,
   getNumberOfEmployeesClass,
   getOccupationName,
   getPositionClassName,
+  getPriorityName,
   optionsActivityType,
   optionsMonth,
   optionsNumberOfEmployeesClass,
@@ -1518,7 +1520,9 @@ const ActivityMainContainerOneThirdMemo = () => {
                           if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                         data-text={`${
-                          selectedRowDataActivity?.activity_type ? selectedRowDataActivity?.activity_type : ""
+                          selectedRowDataActivity?.activity_type
+                            ? getActivityType(selectedRowDataActivity?.activity_type)
+                            : ""
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
@@ -1529,7 +1533,9 @@ const ActivityMainContainerOneThirdMemo = () => {
                           if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
-                        {selectedRowDataActivity?.activity_type ? selectedRowDataActivity?.activity_type : ""}
+                        {selectedRowDataActivity?.activity_type
+                          ? getActivityType(selectedRowDataActivity?.activity_type)
+                          : ""}
                       </span>
                     )}
 
@@ -1557,7 +1563,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                           {/* <option value=""></option> */}
                           {optionsActivityType.map((option) => (
                             <option key={option} value={option}>
-                              {option}
+                              {getActivityType(option)}
                             </option>
                           ))}
                         </select>
@@ -1611,7 +1617,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                         }}
                       >
-                        {selectedRowDataActivity?.priority ? selectedRowDataActivity?.priority : ""}
+                        {selectedRowDataActivity?.priority ? getPriorityName(selectedRowDataActivity?.priority) : ""}
                       </span>
                     )}
                     {/* ============= フィールドエディットモード関連 ============= */}
@@ -1635,7 +1641,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                           <option value=""></option>
                           {optionsPriority.map((option) => (
                             <option key={option} value={option}>
-                              {option}
+                              {getPriorityName(option)}
                             </option>
                           ))}
                         </select>
@@ -5502,7 +5508,12 @@ const ActivityMainContainerOneThirdMemo = () => {
                           }}
                         >
                           <option value=""></option>
-                          <option value="TEL発信(不在)">TEL発信(不在)</option>
+                          {optionsActivityType.map((option) => (
+                            <option key={option} value={option}>
+                              {getActivityType(option)}
+                            </option>
+                          ))}
+                          {/* <option value="TEL発信(不在)">TEL発信(不在)</option>
                           <option value="TEL発信(能動)">TEL発信(能動)</option>
                           <option value="TEL発信(受動)">TEL発信(受動)</option>
                           <option value="TEL発信(売前ﾌｫﾛｰ)">TEL発信(売前ﾌｫﾛｰ)</option>
@@ -5512,7 +5523,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                           <option value="Email受信">Email受信</option>
                           <option value="Email送信">Email送信</option>
                           <option value="その他">その他</option>
-                          <option value="引継ぎ">引継ぎ</option>
+                          <option value="引継ぎ">引継ぎ</option> */}
                         </select>
                       )}
                     </div>

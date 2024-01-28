@@ -21,7 +21,14 @@ import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 import { GridTableFooter } from "@/components/GridTable/GridTableFooter/GridTableFooter";
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
 import { checkNotFalsyExcludeZero } from "@/utils/Helpers/checkNotFalsyExcludeZero";
-import { getNumberOfEmployeesClass, getOrderCertaintyStartOfMonth } from "@/utils/selectOptions";
+import {
+  getNumberOfEmployeesClass,
+  getOrderCertaintyStartOfMonth,
+  getQuotationDivision,
+  getSalesTaxClass,
+  getSendingMethod,
+  getSubmissionClass,
+} from "@/utils/selectOptions";
 import { BsCheck2 } from "react-icons/bs";
 import { DropDownMenuSearchModeDetail } from "@/components/Parts/DropDownMenu/DropDownMenuSearchModeDetail/DropDownMenuSearchModeDetail";
 
@@ -2671,6 +2678,26 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
       case "number_of_employees_class":
         if (!value) return null;
         return getNumberOfEmployeesClass(value);
+
+      // 提出区分
+      case "submission_class":
+        if (!value) return null;
+        return getSubmissionClass(value);
+
+      // 見積区分
+      case "quotation_division":
+        if (!value) return null;
+        return getQuotationDivision(value);
+
+      // 送付方法
+      case "sending_method":
+        if (!value) return null;
+        return getSendingMethod(value);
+
+      // 消費税区分
+      case "sales_tax_class":
+        if (!value) return null;
+        return getSalesTaxClass(value);
 
       default:
         return value;

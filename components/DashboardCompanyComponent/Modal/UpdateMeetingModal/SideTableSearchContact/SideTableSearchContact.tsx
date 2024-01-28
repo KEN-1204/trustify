@@ -728,7 +728,7 @@ export const SideTableSearchContactMemo = ({
               className={`sticky top-0 flex min-h-[30px] items-end justify-between px-[30px] pb-[18px] pt-[18px] ${styles.side_table_attendees_header}`}
             >
               <h3 className="flex min-h-[30px] max-w-max items-center space-x-[10px] space-y-[1px] text-[14px] font-bold">
-                {["destination"].includes(searchTitle) && <span>担当者を選択して追加</span>}
+                {["destination"].includes(searchTitle) && <span>担当者を選択して変更</span>}
                 {selectedSearchDestination && (
                   <>
                     {/* <span className={`text-[11px] font-normal text-[#fff]`}>
@@ -765,7 +765,7 @@ export const SideTableSearchContactMemo = ({
               </h3>
               <div className="flex">
                 <RippleButton
-                  title={`追加`}
+                  title={`変更`}
                   minHeight="30px"
                   minWidth="78px"
                   fontSize="13px"
@@ -785,7 +785,7 @@ export const SideTableSearchContactMemo = ({
                     handleOpenTooltip({
                       e: e,
                       display: "top",
-                      content: "担当者を選択して担当者リストに追加する",
+                      content: "選択した担当者に変更する",
                       // content2: "フィルターの切り替えが可能です。",
                       // marginTop: 57,
                       // marginTop: 38,

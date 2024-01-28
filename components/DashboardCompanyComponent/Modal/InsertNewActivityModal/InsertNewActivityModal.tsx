@@ -26,6 +26,7 @@ import { ImInfo } from "react-icons/im";
 import useStore from "@/store";
 import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
 import { toHalfWidthAndSpace } from "@/utils/Helpers/toHalfWidthAndSpace";
+import { getActivityType, getPriorityName, optionsActivityType, optionsPriority } from "@/utils/selectOptions";
 
 // type ModalProperties = {
 //   left: number;
@@ -796,7 +797,12 @@ export const InsertNewActivityModal = () => {
                       }}
                     >
                       <option value="">※選択必須　選択してください</option>
-                      <option value="TEL発信(不在)">TEL発信(不在)</option>
+                      {optionsActivityType.map((option) => (
+                        <option key={option} value={option}>
+                          {getActivityType(option)}
+                        </option>
+                      ))}
+                      {/* <option value="TEL発信(不在)">TEL発信(不在)</option>
                       <option value="TEL発信(能動)">TEL発信(能動)</option>
                       <option value="TEL発信(受動)">TEL発信(受動)</option>
                       <option value="TEL発信(売前ﾌｫﾛｰ)">TEL発信(売前ﾌｫﾛｰ)</option>
@@ -808,7 +814,7 @@ export const InsertNewActivityModal = () => {
                       <option value="Email受信">Email受信</option>
                       <option value="Email送信">Email送信</option>
                       <option value="その他">その他</option>
-                      <option value="引継ぎ">引継ぎ</option>
+                      <option value="引継ぎ">引継ぎ</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -831,9 +837,14 @@ export const InsertNewActivityModal = () => {
                       onChange={(e) => setPriority(e.target.value)}
                     >
                       <option value=""></option>
-                      <option value="高">高</option>
+                      {optionsPriority.map((option) => (
+                        <option key={option} value={option}>
+                          {getPriorityName(option)}
+                        </option>
+                      ))}
+                      {/* <option value="高">高</option>
                       <option value="中">中</option>
-                      <option value="低">低</option>
+                      <option value="低">低</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>

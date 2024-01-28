@@ -39,8 +39,17 @@ import { normalizeDiscountRate } from "@/utils/Helpers/normalizeDiscountRate";
 import { checkNotFalsyExcludeZero } from "@/utils/Helpers/checkNotFalsyExcludeZero";
 import { calculateDiscountRate } from "@/utils/Helpers/calculateDiscountRate";
 import {
+  getCurrentStatus,
+  getDecisionMakerNegotiation,
+  getLeaseDivision,
   getOrderCertaintyStartOfMonth,
+  getReasonClass,
+  getSalesClass,
+  getSalesContributionCategory,
+  getSubscriptionInterval,
+  getTermDivision,
   optionsCompetitionState,
+  optionsCurrentStatus,
   optionsDecisionMakerNegotiation,
   optionsLeaseDivision,
   optionsOrderCertaintyStartOfMonth,
@@ -1452,10 +1461,15 @@ export const InsertNewPropertyModal = () => {
                       {/* <option value="">※選択必/須　ステータスを選択してください</option> */}
                       {/* <option value="展開">展開 (案件発生)</option> */}
                       <option value="">ステータスを選択してください</option>
-                      <option value="リード">リード</option>
+                      {optionsCurrentStatus.map((option) => (
+                        <option key={option} value={option}>
+                          {getCurrentStatus(option)}
+                        </option>
+                      ))}
+                      {/* <option value="リード">リード</option>
                       <option value="展開">展開</option>
                       <option value="申請">申請 (予算申請案件)</option>
-                      <option value="受注">受注</option>
+                      <option value="受注">受注</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -2033,10 +2047,15 @@ export const InsertNewPropertyModal = () => {
                       <option value=""></option>
                       {optionsTermDivision.map((option) => (
                         <option key={option} value={option}>
+                          {getTermDivision(option)}
+                        </option>
+                      ))}
+                      {/* {optionsTermDivision.map((option) => (
+                        <option key={option} value={option}>
                           {option === "今期" && `今期 (今期に獲得予定)`}
                           {option === "来期" && `来期 (来期に獲得予定)`}
                         </option>
-                      ))}
+                      ))} */}
                       {/* <option value="今期">今期 (今期に獲得予定)</option>
                       <option value="来期">来期 (来期に獲得予定)</option> */}
                     </select>
@@ -2788,7 +2807,7 @@ export const InsertNewPropertyModal = () => {
                       <option value=""></option>
                       {optionsSalesContributionCategory.map((option) => (
                         <option key={option} value={option}>
-                          {option}
+                          {getSalesContributionCategory(option)}
                         </option>
                       ))}
                       {/* <option value="自己売上(自身で発生、自身で売上)">自己売上(自身で発生、自身で売上)</option>
@@ -2822,7 +2841,7 @@ export const InsertNewPropertyModal = () => {
                       <option value=""></option>
                       {optionsSalesClass.map((option) => (
                         <option key={option} value={option}>
-                          {option}
+                          {getSalesClass(option)}
                         </option>
                       ))}
                       {/* <option value="新規">新規</option>
@@ -3197,7 +3216,7 @@ export const InsertNewPropertyModal = () => {
                       <option value=""></option>
                       {optionsSubscriptionInterval.map((option) => (
                         <option key={option} value={option}>
-                          {option}
+                          {getSubscriptionInterval(option)}
                         </option>
                       ))}
                       {/* <option value="月額">月額</option>
@@ -3306,7 +3325,7 @@ export const InsertNewPropertyModal = () => {
                       <option value=""></option>
                       {optionsLeaseDivision.map((option) => (
                         <option key={option} value={option}>
-                          {option}
+                          {getLeaseDivision(option)}
                         </option>
                       ))}
                       {/* <option value="ファイナンスリース">ファイナンスリース</option>
@@ -3551,7 +3570,7 @@ export const InsertNewPropertyModal = () => {
                       <option value=""></option>
                       {optionsReasonClass.map((option) => (
                         <option key={option} value={option}>
-                          {option}
+                          {getReasonClass(option)}
                         </option>
                       ))}
                       {/* <option value="新規会社(過去面談無し)/能動">新規会社(過去面談無し)/能動</option>
@@ -3709,7 +3728,7 @@ export const InsertNewPropertyModal = () => {
                       <option value=""></option>
                       {optionsDecisionMakerNegotiation.map((option) => (
                         <option key={option} value={option}>
-                          {option}
+                          {getDecisionMakerNegotiation(option)}
                         </option>
                       ))}
                       {/* optionsDecisionMakerNegotiation */}

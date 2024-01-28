@@ -39,11 +39,21 @@ import { checkNotFalsyExcludeZero } from "@/utils/Helpers/checkNotFalsyExcludeZe
 import { convertHalfWidthRoundNumOnly } from "@/utils/Helpers/convertHalfWidthRoundNumOnly";
 import { normalizeDiscountRate } from "@/utils/Helpers/normalizeDiscountRate";
 import {
+  getCurrentStatus,
+  getDecisionMakerNegotiation,
+  getLeaseDivision,
   getOrderCertaintyStartOfMonth,
+  getReasonClass,
+  getSalesClass,
+  getSalesContributionCategory,
+  getSubscriptionInterval,
+  getTermDivision,
   optionsCompetitionState,
+  optionsCurrentStatus,
   optionsDecisionMakerNegotiation,
   optionsLeaseDivision,
   optionsOrderCertaintyStartOfMonth,
+  optionsReasonClass,
   optionsSalesClass,
   optionsSalesContributionCategory,
   optionsSubscriptionInterval,
@@ -1265,10 +1275,15 @@ export const UpdatePropertyModal = () => {
                     >
                       {/* <option value="">ステータスを選択してください</option> */}
                       <option value="">ステータスを選択してください</option>
-                      <option value="リード">リード</option>
+                      {optionsCurrentStatus.map((option) => (
+                        <option key={option} value={option}>
+                          {getCurrentStatus(option)}
+                        </option>
+                      ))}
+                      {/* <option value="リード">リード</option>
                       <option value="展開">展開</option>
                       <option value="申請">申請 (予算申請案件)</option>
-                      <option value="受注">受注</option>
+                      <option value="受注">受注</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -1845,8 +1860,9 @@ export const UpdatePropertyModal = () => {
                       <option value=""></option>
                       {optionsTermDivision.map((option) => (
                         <option key={option} value={option}>
-                          {option === "今期" && `今期 (今期に獲得予定)`}
-                          {option === "来期" && `来期 (来期に獲得予定)`}
+                          {getTermDivision(option)}
+                          {/* {option === "今期" && `今期 (今期に獲得予定)`}
+                          {option === "来期" && `来期 (来期に獲得予定)`} */}
                         </option>
                       ))}
                     </select>
@@ -2595,7 +2611,7 @@ export const UpdatePropertyModal = () => {
                       <option value=""></option>
                       {optionsSalesContributionCategory.map((option) => (
                         <option key={option} value={option}>
-                          {option}
+                          {getSalesContributionCategory(option)}
                         </option>
                       ))}
                       {/* <option value="自己売上(自身で発生、自身で売上)">自己売上(自身で発生、自身で売上)</option>
@@ -2629,7 +2645,7 @@ export const UpdatePropertyModal = () => {
                       <option value=""></option>
                       {optionsSalesClass.map((option) => (
                         <option key={option} value={option}>
-                          {option}
+                          {getSalesClass(option)}
                         </option>
                       ))}
                       {/* <option value="新規">新規</option>
@@ -3004,7 +3020,7 @@ export const UpdatePropertyModal = () => {
                       <option value=""></option>
                       {optionsSubscriptionInterval.map((option) => (
                         <option key={option} value={option}>
-                          {option}
+                          {getSubscriptionInterval(option)}
                         </option>
                       ))}
                       {/* <option value="月額">月額</option>
@@ -3113,7 +3129,7 @@ export const UpdatePropertyModal = () => {
                       <option value=""></option>
                       {optionsLeaseDivision.map((option) => (
                         <option key={option} value={option}>
-                          {option}
+                          {getLeaseDivision(option)}
                         </option>
                       ))}
                       {/* <option value="ファイナンスリース">ファイナンスリース</option>
@@ -3342,7 +3358,12 @@ export const UpdatePropertyModal = () => {
                       }}
                     >
                       <option value=""></option>
-                      <option value="新規会社(過去面談無し)/能動">新規会社(過去面談無し)/能動</option>
+                      {optionsReasonClass.map((option) => (
+                        <option key={option} value={option}>
+                          {getReasonClass(option)}
+                        </option>
+                      ))}
+                      {/* <option value="新規会社(過去面談無し)/能動">新規会社(過去面談無し)/能動</option>
                       <option value="被り会社(過去面談有り)/能動">被り会社(過去面談有り)/能動</option>
                       <option value="社内ID/能動">社内ID/能動</option>
                       <option value="社外･客先ID/能動">社外･客先ID/能動</option>
@@ -3353,7 +3374,7 @@ export const UpdatePropertyModal = () => {
                       <option value="ホームページ/受動">ホームページ/受動</option>
                       <option value="ウェビナー/受動">ウェビナー/受動</option>
                       <option value="展示会/受動">展示会/受動</option>
-                      <option value="その他">その他</option>
+                      <option value="その他">その他</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -3497,7 +3518,7 @@ export const UpdatePropertyModal = () => {
                       <option value=""></option>
                       {optionsDecisionMakerNegotiation.map((option) => (
                         <option key={option} value={option}>
-                          {option}
+                          {getDecisionMakerNegotiation(option)}
                         </option>
                       ))}
                       {/* <option value="決裁者と会えず">決裁者と会えず</option>

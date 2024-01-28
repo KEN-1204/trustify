@@ -31,7 +31,14 @@ import { ErrorBoundary } from "react-error-boundary";
 import { FallbackSideTableSearchMember } from "../UpdateMeetingModal/SideTableSearchMember/FallbackSideTableSearchMember";
 import { SideTableSearchMember } from "../UpdateMeetingModal/SideTableSearchMember/SideTableSearchMember";
 import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
-import { optionsPlannedPurpose } from "@/utils/selectOptions";
+import {
+  getMeetingType,
+  getPlannedPurpose,
+  getWebTool,
+  optionsMeetingType,
+  optionsPlannedPurpose,
+  optionsWebTool,
+} from "@/utils/selectOptions";
 
 export const InsertNewMeetingModal = () => {
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
@@ -64,7 +71,8 @@ export const InsertNewMeetingModal = () => {
   const month = initialDate.getMonth() + 1; // getMonth()は0から11で返されるため、+1して1から12に調整
   const meetingYearMonthInitialValue = `${year}${month < 10 ? "0" + month : month}`; // 月が1桁の場合は先頭に0を追加
   // const [MeetingDate, setMeetingDate] = useState<Date | null>(new Date());
-  const [meetingType, setMeetingType] = useState("訪問"); //面談タイプ
+  // const [meetingType, setMeetingType] = useState("訪問"); //面談タイプ
+  const [meetingType, setMeetingType] = useState("Visit"); //面談タイプ
   const [webTool, setWebTool] = useState(""); //webツール
   const [plannedDate, setPlannedDate] = useState<Date | null>(initialDate); //面談日付(予定)
   const [plannedStartTime, setPlannedStartTime] = useState<string>(""); //面談開始時刻(予定)
@@ -1201,8 +1209,13 @@ export const InsertNewMeetingModal = () => {
                       }}
                     >
                       {/* <option value=""></option> */}
-                      <option value="訪問">訪問</option>
-                      <option value="WEB">WEB</option>
+                      {optionsMeetingType.map((option) => (
+                        <option key={option} value={option}>
+                          {getMeetingType(option)}
+                        </option>
+                      ))}
+                      {/* <option value="訪問">訪問</option>
+                      <option value="WEB">WEB</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -1276,13 +1289,18 @@ export const InsertNewMeetingModal = () => {
                       }}
                     >
                       <option value=""></option>
-                      <option value="Zoom">Zoom</option>
+                      {optionsWebTool.map((option) => (
+                        <option key={option} value={option}>
+                          {getWebTool(option)}
+                        </option>
+                      ))}
+                      {/* <option value="Zoom">Zoom</option>
                       <option value="Teams">Teams</option>
                       <option value="Google Meet">Google Meet</option>
                       <option value="Webex">Webex</option>
                       <option value="Skype">Skype</option>
                       <option value="bellFace">bellFace</option>
-                      <option value="その他">その他</option>
+                      <option value="その他">その他</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -1390,7 +1408,7 @@ export const InsertNewMeetingModal = () => {
                       <option value=""></option>
                       {optionsPlannedPurpose.map((option) => (
                         <option key={option} value={option}>
-                          {option}
+                          {getPlannedPurpose(option)}
                         </option>
                       ))}
                       {/* <option value="新規会社(過去面談無し)/能動">新規会社(過去面談無し)/能動</option>

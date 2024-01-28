@@ -1978,6 +1978,7 @@ textarea {
   width: 100%;
   backdrop-filter: blur(3px);
 }
+
 /* 見積_作成・編集モード時のボタンクリックを防ぐオーバーレイ */
 .is_upsert_overlay_top {
   position: fixed;

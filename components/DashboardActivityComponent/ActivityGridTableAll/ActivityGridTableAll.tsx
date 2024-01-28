@@ -22,7 +22,7 @@ import { GridTableFooter } from "@/components/GridTable/GridTableFooter/GridTabl
 import { GridCellCheckboxTrue } from "@/components/DashboardActivityComponent/ActivityGridTableAll/GridCellCheckbox/GridCellCheckboxTrue";
 import { GridCellCheckboxFalse } from "@/components/DashboardActivityComponent/ActivityGridTableAll/GridCellCheckbox/GridCellCheckboxFalse";
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
-import { getNumberOfEmployeesClass } from "@/utils/selectOptions";
+import { getActivityType, getNumberOfEmployeesClass, getPriorityName } from "@/utils/selectOptions";
 import { DropDownMenuSearchModeDetail } from "@/components/Parts/DropDownMenu/DropDownMenuSearchModeDetail/DropDownMenuSearchModeDetail";
 import { BsCheck2 } from "react-icons/bs";
 
@@ -2675,6 +2675,16 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
       case "number_of_employees_class":
         if (!value) return null;
         return getNumberOfEmployeesClass(value);
+
+      // 優先度
+      case "priority":
+        if (!value) return null;
+        return getPriorityName(value);
+
+      // 優先度
+      case "activity_type":
+        if (!value) return null;
+        return getActivityType(value);
 
       default:
         return value;

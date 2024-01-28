@@ -29,10 +29,17 @@ import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
 import {
   getCurrentStatus,
+  getDecisionMakerNegotiation,
+  getLeaseDivision,
   getNumberOfEmployeesClass,
   getOccupationName,
   getOrderCertaintyStartOfMonth,
   getPositionClassName,
+  getReasonClass,
+  getSalesClass,
+  getSalesContributionCategory,
+  getSubscriptionInterval,
+  getTermDivision,
   optionsCompetitionState,
   optionsCurrentStatus,
   optionsDecisionMakerNegotiation,
@@ -1879,7 +1886,9 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           });
                         }}
                       >
-                        {selectedRowDataProperty?.current_status ? selectedRowDataProperty?.current_status : ""}
+                        {selectedRowDataProperty?.current_status
+                          ? getCurrentStatus(selectedRowDataProperty?.current_status)
+                          : ""}
                       </span>
                     )}
                     {/* <span className={`${styles.value} ${styles.value_highlight} ${styles.text_start} !pl-[0px]`}>
@@ -1910,7 +1919,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           {/* <option value=""></option> */}
                           {optionsCurrentStatus.map((option) => (
                             <option key={option} value={option}>
-                              {option}
+                              {getCurrentStatus(option)}
                             </option>
                           ))}
                         </select>
@@ -2595,7 +2604,9 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                         data-text={`${
-                          selectedRowDataProperty?.term_division ? selectedRowDataProperty?.term_division : ""
+                          selectedRowDataProperty?.term_division
+                            ? getTermDivision(selectedRowDataProperty?.term_division)
+                            : ""
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
@@ -2606,7 +2617,9 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
-                        {selectedRowDataProperty?.term_division ? selectedRowDataProperty?.term_division : ""}
+                        {selectedRowDataProperty?.term_division
+                          ? getTermDivision(selectedRowDataProperty?.term_division)
+                          : ""}
                       </span>
                     )}
                     {/* ============= フィールドエディットモード関連 ============= */}
@@ -2633,8 +2646,9 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           {/* <option value=""></option> */}
                           {optionsTermDivision.map((option) => (
                             <option key={option} value={option}>
-                              {option === "今期" && `今期 (今期に獲得予定)`}
-                              {option === "来期" && `来期 (来期に獲得予定)`}
+                              {getTermDivision(option)}
+                              {/* {option === "今期" && `今期 (今期に獲得予定)`}
+                              {option === "来期" && `来期 (来期に獲得予定)`} */}
                             </option>
                           ))}
                           {/* <option value="今期">今期</option>
@@ -2848,7 +2862,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         data-text={
                           selectedRowDataProperty?.sales_contribution_category
-                            ? selectedRowDataProperty?.sales_contribution_category
+                            ? getSalesContributionCategory(selectedRowDataProperty?.sales_contribution_category)
                             : ""
                         }
                         onMouseEnter={(e) => {
@@ -2864,7 +2878,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                       >
                         {selectedRowDataProperty?.sales_contribution_category
-                          ? selectedRowDataProperty?.sales_contribution_category
+                          ? getSalesContributionCategory(selectedRowDataProperty?.sales_contribution_category)
                           : ""}
                       </span>
                     )}
@@ -2888,7 +2902,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         >
                           {optionsSalesContributionCategory.map((option) => (
                             <option key={option} value={option}>
-                              {option}
+                              {getSalesContributionCategory(option)}
                             </option>
                           ))}
                         </select>
@@ -3205,7 +3219,9 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                         data-text={`${
-                          selectedRowDataProperty?.sales_class ? selectedRowDataProperty?.sales_class : ""
+                          selectedRowDataProperty?.sales_class
+                            ? getSalesClass(selectedRowDataProperty?.sales_class)
+                            : ""
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
@@ -3216,7 +3232,9 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
-                        {selectedRowDataProperty?.sales_class ? selectedRowDataProperty?.sales_class : ""}
+                        {selectedRowDataProperty?.sales_class
+                          ? getSalesClass(selectedRowDataProperty?.sales_class)
+                          : ""}
                       </span>
                     )}
                     {/* ============= フィールドエディットモード関連 ============= */}
@@ -3243,7 +3261,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           {/* <option value=""></option> */}
                           {optionsSalesClass.map((option) => (
                             <option key={option} value={option}>
-                              {option}
+                              {getSalesClass(option)}
                             </option>
                           ))}
                         </select>
@@ -3310,7 +3328,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         data-text={`${
                           selectedRowDataProperty?.subscription_interval
-                            ? selectedRowDataProperty?.subscription_interval
+                            ? getSubscriptionInterval(selectedRowDataProperty?.subscription_interval)
                             : ""
                         }`}
                         onMouseEnter={(e) => {
@@ -3323,7 +3341,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                       >
                         {selectedRowDataProperty?.subscription_interval
-                          ? selectedRowDataProperty?.subscription_interval
+                          ? getSubscriptionInterval(selectedRowDataProperty?.subscription_interval)
                           : ""}
                       </span>
                     )}
@@ -3351,7 +3369,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           <option value=""></option>
                           {optionsSubscriptionInterval.map((option) => (
                             <option key={option} value={option}>
-                              {option}
+                              {getSubscriptionInterval(option)}
                             </option>
                           ))}
                         </select>
@@ -3653,7 +3671,9 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                         data-text={
-                          selectedRowDataProperty?.lease_division ? selectedRowDataProperty?.lease_division : ""
+                          selectedRowDataProperty?.lease_division
+                            ? getLeaseDivision(selectedRowDataProperty?.lease_division)
+                            : ""
                         }
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
@@ -3668,7 +3688,9 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           // if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
-                        {selectedRowDataProperty?.lease_division ? selectedRowDataProperty?.lease_division : ""}
+                        {selectedRowDataProperty?.lease_division
+                          ? getLeaseDivision(selectedRowDataProperty?.lease_division)
+                          : ""}
                       </span>
                     )}
                     {/* ============= フィールドエディットモード関連 ============= */}
@@ -3692,7 +3714,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           <option value=""></option>
                           {optionsLeaseDivision.map((option) => (
                             <option key={option} value={option}>
-                              {option}
+                              {getLeaseDivision(option)}
                             </option>
                           ))}
                         </select>
@@ -5013,7 +5035,9 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             if (hoveredItemPosWrap) handleCloseTooltip();
                           }}
                           data-text={`${
-                            selectedRowDataProperty?.competition_state ? selectedRowDataProperty?.competition_state : ""
+                            selectedRowDataProperty?.competition_state
+                              ? getCompetitionState(selectedRowDataProperty?.competition_state)
+                              : ""
                           }`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
@@ -5036,7 +5060,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           }}
                         >
                           {selectedRowDataProperty?.competition_state
-                            ? selectedRowDataProperty?.competition_state
+                            ? getCompetitionState(selectedRowDataProperty?.competition_state)
                             : null}
                         </span>
                       )}
@@ -5344,7 +5368,9 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             if (hoveredItemPosWrap) handleCloseTooltip();
                           }}
                           data-text={`${
-                            selectedRowDataProperty?.reason_class ? selectedRowDataProperty?.reason_class : ""
+                            selectedRowDataProperty?.reason_class
+                              ? getReasonClass(selectedRowDataProperty?.reason_class)
+                              : ""
                           }`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
@@ -5367,7 +5393,9 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             if (hoveredItemPosWrap) handleCloseTooltip();
                           }}
                         >
-                          {selectedRowDataProperty?.reason_class ? selectedRowDataProperty?.reason_class : ""}
+                          {selectedRowDataProperty?.reason_class
+                            ? getReasonClass(selectedRowDataProperty?.reason_class)
+                            : ""}
                         </span>
                       )}
                       {/* ============= フィールドエディットモード関連 ============= */}
@@ -5394,7 +5422,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             <option value=""></option>
                             {optionsReasonClass.map((option) => (
                               <option key={option} value={option}>
-                                {option}
+                                {getReasonClass(option)}
                               </option>
                             ))}
                             {/* <option value="今期">今期</option>
@@ -5672,7 +5700,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           }}
                           data-text={
                             selectedRowDataProperty?.decision_maker_negotiation
-                              ? selectedRowDataProperty?.decision_maker_negotiation
+                              ? getDecisionMakerNegotiation(selectedRowDataProperty?.decision_maker_negotiation)
                               : ""
                           }
                           onMouseEnter={(e) => {
@@ -5697,7 +5725,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           }}
                         >
                           {selectedRowDataProperty?.decision_maker_negotiation
-                            ? selectedRowDataProperty?.decision_maker_negotiation
+                            ? getDecisionMakerNegotiation(selectedRowDataProperty?.decision_maker_negotiation)
                             : ""}
                         </span>
                       )}
@@ -5725,7 +5753,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             <option value=""></option>
                             {optionsDecisionMakerNegotiation.map((option) => (
                               <option key={option} value={option}>
-                                {option}
+                                {getDecisionMakerNegotiation(option)}
                               </option>
                             ))}
                             {/* <option value="今期">今期</option>
@@ -7491,8 +7519,9 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       <option value=""></option>
                       {optionsTermDivision.map((option) => (
                         <option key={option} value={option}>
-                          {option === "今期" && `今期 (今期に獲得予定)`}
-                          {option === "来期" && `来期 (来期に獲得予定)`}
+                          {getTermDivision(option)}
+                          {/* {option === "今期" && `今期 (今期に獲得予定)`}
+                          {option === "来期" && `来期 (来期に獲得予定)`} */}
                         </option>
                       ))}
                       <option value="is not null">入力有りのデータのみ</option>
@@ -7587,7 +7616,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       <option value=""></option>
                       {optionsSalesContributionCategory.map((option) => (
                         <option key={option} value={option}>
-                          {option}
+                          {getSalesContributionCategory(option)}
                         </option>
                       ))}
                       {/* <option value="自己売上(自身で発生、自身で売上)">自己売上(自身で発生、自身で売上)</option>
@@ -7788,7 +7817,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       <option value=""></option>
                       {optionsSalesClass.map((option) => (
                         <option key={option} value={option}>
-                          {option}
+                          {getSalesClass(option)}
                         </option>
                       ))}
                       {/* <option value="新規">新規</option>
@@ -7832,7 +7861,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       <option value=""></option>
                       {optionsSubscriptionInterval.map((option) => (
                         <option key={option} value={option}>
-                          {option}
+                          {getSubscriptionInterval(option)}
                         </option>
                       ))}
                       <option value="is not null">入力有りのデータのみ</option>
@@ -7904,7 +7933,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       <option value=""></option>
                       {optionsLeaseDivision.map((option) => (
                         <option key={option} value={option}>
-                          {option}
+                          {getLeaseDivision(option)}
                         </option>
                       ))}
                       <option value="is not null">入力有りのデータのみ</option>
@@ -8503,7 +8532,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       <option value=""></option>
                       {optionsReasonClass.map((option) => (
                         <option key={option} value={option}>
-                          {option}
+                          {getReasonClass(option)}
                         </option>
                       ))}
                       <option value="is not null">入力有りのデータのみ</option>
@@ -8613,7 +8642,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       <option value=""></option>
                       {optionsDecisionMakerNegotiation.map((option) => (
                         <option key={option} value={option}>
-                          {option}
+                          {getDecisionMakerNegotiation(option)}
                         </option>
                       ))}
                       <option value="is not null">入力有りのデータのみ</option>

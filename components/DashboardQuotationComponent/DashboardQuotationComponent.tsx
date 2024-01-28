@@ -8,6 +8,7 @@ import { Fallback } from "../Fallback/Fallback";
 import { QuotationGridTableAll } from "./QuotationGridTableAll/QuotationGridTableAll";
 import { QuotationDetail } from "./QuotationDetail/QuotationDetail";
 import { FallbackGridTableAll } from "../GridTable/GridTableAll/FallbackGridTableAll";
+import { SpinnerComet } from "../Parts/SpinnerComet/SpinnerComet";
 // import { ContactDetail } from "./ContactDetail/ContactDetail";
 
 export const DashboardQuotationComponent: FC = () => {
@@ -16,6 +17,8 @@ export const DashboardQuotationComponent: FC = () => {
   const isOpenChangeSizeMenu = useDashboardStore((state) => state.isOpenChangeSizeMenu);
   const setIsOpenChangeSizeMenu = useDashboardStore((state) => state.setIsOpenChangeSizeMenu);
   const setClickedItemPos = useStore((state) => state.setClickedItemPos);
+  // Upsert用ローディング
+  const isLoadingUpsertGlobal = useDashboardStore((state) => state.isLoadingUpsertGlobal);
   console.log("🔥 DashboardQuotationComponentレンダリング レンダリング activeMenuTab", activeMenuTab);
 
   // ハーフとallの時はheight指定を無しにして、コンテンツ全体を表示できるようにする
@@ -28,6 +31,12 @@ export const DashboardQuotationComponent: FC = () => {
         isOpenSidebar ? `${styles.open}` : `${styles.close}`
       }`}
     >
+      {/* 見積Upsert用ローディング */}
+      {isLoadingUpsertGlobal && (
+        <div className="flex-center fixed left-0 top-0 z-[10000] h-full w-full bg-[var(--overlay-loading-modal-inside)]">
+          <SpinnerComet w="50px" h="50px" s="5px" />
+        </div>
+      )}
       {/* サイズメニュー切り替えタブ表示時中のオーバーレイ */}
       {isOpenChangeSizeMenu && (
         <div

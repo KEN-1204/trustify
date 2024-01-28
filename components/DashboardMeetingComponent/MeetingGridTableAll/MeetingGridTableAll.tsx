@@ -20,7 +20,15 @@ import { format } from "date-fns";
 import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 import { GridTableFooter } from "@/components/GridTable/GridTableFooter/GridTableFooter";
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
-import { getNumberOfEmployeesClass } from "@/utils/selectOptions";
+import {
+  getMeetingParticipationRequest,
+  getMeetingType,
+  getNumberOfEmployeesClass,
+  getPlannedPurpose,
+  getResultCategory,
+  getResultNegotiateDecisionMaker,
+  getWebTool,
+} from "@/utils/selectOptions";
 import { BsCheck2 } from "react-icons/bs";
 import { DropDownMenuSearchModeDetail } from "@/components/Parts/DropDownMenu/DropDownMenuSearchModeDetail/DropDownMenuSearchModeDetail";
 
@@ -2751,6 +2759,36 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
       case "number_of_employees_class":
         if (!value) return null;
         return getNumberOfEmployeesClass(value);
+
+      // 面談時同席依頼
+      case "meeting_participation_request":
+        if (!value) return null;
+        return getMeetingParticipationRequest(value);
+
+      // 面談時_決裁者商談有無
+      case "result_negotiate_decision_maker":
+        if (!value) return null;
+        return getResultNegotiateDecisionMaker(value);
+
+      // 面談結果
+      case "result_category":
+        if (!value) return null;
+        return getResultCategory(value);
+
+      // 面談目的
+      case "planned_purpose":
+        if (!value) return null;
+        return getPlannedPurpose(value);
+
+      // Webツール
+      case "web_tool":
+        if (!value) return null;
+        return getWebTool(value);
+
+      // 面談タイプ
+      case "meeting_type":
+        if (!value) return null;
+        return getMeetingType(value);
 
       default:
         return value;

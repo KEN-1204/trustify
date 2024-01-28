@@ -40,12 +40,20 @@ import { ConfirmationModal } from "../SettingAccountModal/SettingCompany/Confirm
 import { SideTableSearchMember } from "./SideTableSearchMember/SideTableSearchMember";
 import { FallbackSideTableSearchMember } from "./SideTableSearchMember/FallbackSideTableSearchMember";
 import {
+  getMeetingParticipationRequest,
+  getMeetingType,
+  getPlannedPurpose,
   getPositionClassName,
+  getResultCategory,
+  getResultNegotiateDecisionMaker,
+  getWebTool,
   optionsMeetingParticipationRequest,
+  optionsMeetingType,
   optionsPlannedPurpose,
   optionsPositionsClass,
   optionsResultCategory,
   optionsResultNegotiateDecisionMaker,
+  optionsWebTool,
 } from "@/utils/selectOptions";
 
 type ModalProperties = {
@@ -242,7 +250,8 @@ export const UpdateMeetingModal = () => {
   const month = initialDate.getMonth() + 1; // getMonth()は0から11で返されるため、+1して1から12に調整
   const meetingYearMonthInitialValue = `${year}${month < 10 ? "0" + month : month}`; // 月が1桁の場合は先頭に0を追加
   // const [MeetingDate, setMeetingDate] = useState<Date | null>(new Date());
-  const [meetingType, setMeetingType] = useState("訪問");
+  // const [meetingType, setMeetingType] = useState("訪問");
+  const [meetingType, setMeetingType] = useState("Visit");
   const [webTool, setWebTool] = useState("");
   // const [plannedDate, setPlannedDate] = useState<Date | null>(initialDate);
   const [plannedDate, setPlannedDate] = useState<Date | null>(
@@ -1379,8 +1388,13 @@ export const UpdateMeetingModal = () => {
                       }}
                     >
                       {/* <option value=""></option> */}
-                      <option value="訪問">訪問</option>
-                      <option value="WEB">WEB</option>
+                      {optionsMeetingType.map((option) => (
+                        <option key={option} value={option}>
+                          {getMeetingType(option)}
+                        </option>
+                      ))}
+                      {/* <option value="訪問">訪問</option>
+                      <option value="WEB">WEB</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -1454,13 +1468,18 @@ export const UpdateMeetingModal = () => {
                       }}
                     >
                       <option value=""></option>
-                      <option value="Zoom">Zoom</option>
+                      {optionsWebTool.map((option) => (
+                        <option key={option} value={option}>
+                          {getWebTool(option)}
+                        </option>
+                      ))}
+                      {/* <option value="Zoom">Zoom</option>
                       <option value="Teams">Teams</option>
                       <option value="Google Meet">Google Meet</option>
                       <option value="Webex">Webex</option>
                       <option value="Skype">Skype</option>
                       <option value="bellFace">bellFace</option>
-                      <option value="その他">その他</option>
+                      <option value="その他">その他</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -1568,7 +1587,7 @@ export const UpdateMeetingModal = () => {
                       <option value=""></option>
                       {optionsPlannedPurpose.map((option) => (
                         <option key={option} value={option}>
-                          {option}
+                          {getPlannedPurpose(option)}
                         </option>
                       ))}
                       {/* <option value="新規会社(過去面談無し)/能動">新規会社(過去面談無し)/能動</option>
@@ -3237,7 +3256,7 @@ export const UpdateMeetingModal = () => {
                       <option value="">面談結果を選択してください</option>
                       {optionsResultCategory.map((option) => (
                         <option key={option} value={option}>
-                          {option}
+                          {getResultCategory(option)}
                         </option>
                       ))}
                       {/* <option value="展開F(当期中に導入の可能性あり)">展開F(当期中に導入の可能性あり)</option>
@@ -3424,9 +3443,9 @@ export const UpdateMeetingModal = () => {
                       }}
                     >
                       <option value="">選択してください</option>
-                      {optionsResultNegotiateDecisionMaker.map((classNum) => (
-                        <option key={classNum} value={`${classNum}`}>
-                          {classNum}
+                      {optionsResultNegotiateDecisionMaker.map((option) => (
+                        <option key={option} value={`${option}`}>
+                          {getResultNegotiateDecisionMaker(option)}
                         </option>
                       ))}
                       {/* <option value="決裁者と未商談">決裁者と未商談</option>
@@ -3457,7 +3476,7 @@ export const UpdateMeetingModal = () => {
                       <option value=""></option>
                       {optionsMeetingParticipationRequest.map((option) => (
                         <option key={option} value={`${option}`}>
-                          {option}
+                          {getMeetingParticipationRequest(option)}
                         </option>
                       ))}
                       {/* <option value="同席依頼無し">同席依頼無し</option>

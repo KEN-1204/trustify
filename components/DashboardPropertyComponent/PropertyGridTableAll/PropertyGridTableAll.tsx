@@ -21,7 +21,18 @@ import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 import { GridTableFooter } from "@/components/GridTable/GridTableFooter/GridTableFooter";
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
 import { checkNotFalsyExcludeZero } from "@/utils/Helpers/checkNotFalsyExcludeZero";
-import { getNumberOfEmployeesClass, getOrderCertaintyStartOfMonth } from "@/utils/selectOptions";
+import {
+  getCurrentStatus,
+  getDecisionMakerNegotiation,
+  getLeaseDivision,
+  getNumberOfEmployeesClass,
+  getOrderCertaintyStartOfMonth,
+  getReasonClass,
+  getSalesClass,
+  getSalesContributionCategory,
+  getSubscriptionInterval,
+  getTermDivision,
+} from "@/utils/selectOptions";
 import { BsCheck2 } from "react-icons/bs";
 import { DropDownMenuSearchModeDetail } from "@/components/Parts/DropDownMenu/DropDownMenuSearchModeDetail/DropDownMenuSearchModeDetail";
 
@@ -2738,6 +2749,46 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
       case "number_of_employees_class":
         if (!value) return null;
         return getNumberOfEmployeesClass(value);
+
+      // リース分類
+      case "lease_division":
+        if (!value) return null;
+        return getLeaseDivision(value);
+
+      // 決裁者商談有無
+      case "decision_maker_negotiation":
+        if (!value) return null;
+        return getDecisionMakerNegotiation(value);
+
+      // サブスク分類
+      case "subscription_interval":
+        if (!value) return null;
+        return getSubscriptionInterval(value);
+
+      // 今期・来期
+      case "term_division":
+        if (!value) return null;
+        return getTermDivision(value);
+
+      // 導入分類
+      case "sales_class":
+        if (!value) return null;
+        return getSalesClass(value);
+
+      // 売上貢献区分
+      case "sales_contribution_category":
+        if (!value) return null;
+        return getSalesContributionCategory(value);
+
+      // 案件発生動機
+      case "reason_class":
+        if (!value) return null;
+        return getReasonClass(value);
+
+      // 現ステータス
+      case "current_status":
+        if (!value) return null;
+        return getCurrentStatus(value);
 
       default:
         return value;

@@ -17,9 +17,15 @@ import { Zoom } from "@/utils/Helpers/toastHelpers";
 import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 import {
+  getMeetingParticipationRequest,
+  getMeetingType,
   getNumberOfEmployeesClass,
   getOccupationName,
+  getPlannedPurpose,
   getPositionClassName,
+  getResultCategory,
+  getResultNegotiateDecisionMaker,
+  getWebTool,
   optionsIndustryType,
   optionsMeetingParticipationRequest,
   optionsMeetingType,
@@ -1648,7 +1654,9 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                         data-text={`${
-                          selectedRowDataMeeting?.meeting_type ? selectedRowDataMeeting?.meeting_type : ""
+                          selectedRowDataMeeting?.meeting_type
+                            ? getMeetingType(selectedRowDataMeeting?.meeting_type)
+                            : ""
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
@@ -1659,7 +1667,9 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
-                        {selectedRowDataMeeting?.meeting_type ? selectedRowDataMeeting?.meeting_type : ""}
+                        {selectedRowDataMeeting?.meeting_type
+                          ? getMeetingType(selectedRowDataMeeting?.meeting_type)
+                          : ""}
                       </span>
                     )}
                     {/* ============= フィールドエディットモード関連 ============= */}
@@ -1686,7 +1696,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           {/* <option value=""></option> */}
                           {optionsMeetingType.map((option) => (
                             <option key={option} value={option}>
-                              {option}
+                              {getMeetingType(option)}
                             </option>
                           ))}
                         </select>
@@ -1922,7 +1932,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                         data-text={`${
-                          selectedRowDataMeeting?.meeting_type ? selectedRowDataMeeting?.meeting_type : ""
+                          selectedRowDataMeeting?.meeting_type ? getWebTool(selectedRowDataMeeting?.meeting_type) : ""
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
@@ -1933,7 +1943,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
-                        {selectedRowDataMeeting?.web_tool ? selectedRowDataMeeting?.web_tool : ""}
+                        {selectedRowDataMeeting?.web_tool ? getWebTool(selectedRowDataMeeting?.web_tool) : ""}
                       </span>
                     )}
                     {/* ============= フィールドエディットモード関連 ============= */}
@@ -1960,7 +1970,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           {/* <option value=""></option> */}
                           {optionsWebTool.map((option) => (
                             <option key={option} value={option}>
-                              {option}
+                              {getWebTool(option)}
                             </option>
                           ))}
                         </select>
@@ -2141,7 +2151,9 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                         data-text={`${
-                          selectedRowDataMeeting?.planned_purpose ? selectedRowDataMeeting?.planned_purpose : ""
+                          selectedRowDataMeeting?.planned_purpose
+                            ? getPlannedPurpose(selectedRowDataMeeting?.planned_purpose)
+                            : ""
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
@@ -2154,7 +2166,9 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
-                        {selectedRowDataMeeting?.planned_purpose ? selectedRowDataMeeting.planned_purpose : ""}
+                        {selectedRowDataMeeting?.planned_purpose
+                          ? getPlannedPurpose(selectedRowDataMeeting.planned_purpose)
+                          : ""}
                       </span>
                     )}
                     {/* ============= フィールドエディットモード関連 ============= */}
@@ -2181,7 +2195,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           {/* <option value=""></option> */}
                           {optionsPlannedPurpose.map((option) => (
                             <option key={option} value={option}>
-                              {option}
+                              {getPlannedPurpose(option)}
                             </option>
                           ))}
                         </select>
@@ -3574,7 +3588,9 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             if (hoveredItemPosWrap) handleCloseTooltip();
                           }}
                           data-text={`${
-                            selectedRowDataMeeting?.result_category ? selectedRowDataMeeting?.result_category : ""
+                            selectedRowDataMeeting?.result_category
+                              ? getResultCategory(selectedRowDataMeeting?.result_category)
+                              : ""
                           }`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
@@ -3586,12 +3602,16 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
                             if (hoveredItemPosWrap) handleCloseTooltip();
                           }}
-                          dangerouslySetInnerHTML={{
-                            __html: selectedRowDataMeeting?.result_category
-                              ? selectedRowDataMeeting?.result_category.replace(/\n/g, "<br>")
-                              : "",
-                          }}
-                        ></div>
+                          // dangerouslySetInnerHTML={{
+                          //   __html: selectedRowDataMeeting?.result_category
+                          //     ? selectedRowDataMeeting?.result_category.replace(/\n/g, "<br>")
+                          //     : "",
+                          // }}
+                        >
+                          {selectedRowDataMeeting?.result_category
+                            ? getResultCategory(selectedRowDataMeeting?.result_category)
+                            : ""}
+                        </div>
                       )}
                       {/* ============= フィールドエディットモード関連 ============= */}
                       {/* フィールドエディットモード selectタグ  */}
@@ -3617,7 +3637,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             {/* <option value=""></option> */}
                             {optionsResultCategory.map((option) => (
                               <option key={option} value={option}>
-                                {option}
+                                {getResultCategory(option)}
                               </option>
                             ))}
                           </select>
@@ -3777,7 +3797,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           }}
                           data-text={`${
                             selectedRowDataMeeting?.result_negotiate_decision_maker
-                              ? selectedRowDataMeeting?.result_negotiate_decision_maker
+                              ? getResultNegotiateDecisionMaker(selectedRowDataMeeting?.result_negotiate_decision_maker)
                               : ""
                           }`}
                           onMouseEnter={(e) => {
@@ -3792,7 +3812,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           }}
                         >
                           {selectedRowDataMeeting?.result_negotiate_decision_maker
-                            ? selectedRowDataMeeting?.result_negotiate_decision_maker
+                            ? getResultNegotiateDecisionMaker(selectedRowDataMeeting?.result_negotiate_decision_maker)
                             : ""}
                         </span>
                       )}
@@ -3820,7 +3840,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             {/* <option value=""></option> */}
                             {optionsResultNegotiateDecisionMaker.map((option) => (
                               <option key={option} value={`${option}`}>
-                                {option}
+                                {getResultNegotiateDecisionMaker(option)}
                               </option>
                             ))}
                           </select>
@@ -3874,7 +3894,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           }}
                           data-text={`${
                             selectedRowDataMeeting?.meeting_participation_request
-                              ? selectedRowDataMeeting?.meeting_participation_request
+                              ? getMeetingParticipationRequest(selectedRowDataMeeting?.meeting_participation_request)
                               : ""
                           }`}
                           onMouseEnter={(e) => {
@@ -3889,7 +3909,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           }}
                         >
                           {selectedRowDataMeeting?.meeting_participation_request
-                            ? selectedRowDataMeeting?.meeting_participation_request
+                            ? getMeetingParticipationRequest(selectedRowDataMeeting?.meeting_participation_request)
                             : ""}
                         </span>
                       )}
@@ -3917,7 +3937,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             {/* <option value=""></option> */}
                             {optionsMeetingParticipationRequest.map((option) => (
                               <option key={option} value={`${option}`}>
-                                {option}
+                                {getMeetingParticipationRequest(option)}
                               </option>
                             ))}
                           </select>
@@ -5700,8 +5720,13 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       }}
                     >
                       <option value=""></option>
-                      <option value="訪問">訪問</option>
-                      <option value="WEB">WEB</option>
+                      {optionsMeetingType.map((option) => (
+                        <option key={option} value={option}>
+                          {getMeetingType(option)}
+                        </option>
+                      ))}
+                      {/* <option value="訪問">訪問</option>
+                      <option value="WEB">WEB</option> */}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -5773,7 +5798,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <option value=""></option>
                       {optionsWebTool.map((option) => (
                         <option key={option} value={option}>
-                          {option}
+                          {getWebTool(option)}
                         </option>
                       ))}
                       <option value="is not null">入力有りのデータのみ</option>
@@ -5842,7 +5867,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <option value=""></option>
                       {optionsPlannedPurpose.map((option) => (
                         <option key={option} value={option}>
-                          {option}
+                          {getPlannedPurpose(option)}
                         </option>
                       ))}
                       {/* <option value="新規会社/能動">新規会社/能動</option>
@@ -6407,7 +6432,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <option value=""></option>
                       {optionsResultCategory.map((option) => (
                         <option key={option} value={option}>
-                          {option}
+                          {getResultCategory(option)}
                         </option>
                       ))}
                       {/* <option value="展開F(当期中に導入の可能性あり)">展開F(当期中に導入の可能性あり)</option>
@@ -6494,7 +6519,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <option value=""></option>
                       {optionsResultNegotiateDecisionMaker.map((option) => (
                         <option key={option} value={`${option}`}>
-                          {option}
+                          {getResultNegotiateDecisionMaker(option)}
                         </option>
                       ))}
                       {/* <option value="決裁者と未商談">決裁者と未商談</option>
@@ -6522,7 +6547,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <option value=""></option>
                       {optionsMeetingParticipationRequest.map((option) => (
                         <option key={option} value={`${option}`}>
-                          {option}
+                          {getMeetingParticipationRequest(option)}
                         </option>
                       ))}
                       {/* <option value="同席依頼無し">同席依頼無し</option>

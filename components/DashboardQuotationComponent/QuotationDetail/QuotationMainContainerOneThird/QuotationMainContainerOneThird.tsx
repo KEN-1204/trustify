@@ -53,6 +53,9 @@ import { convertHalfWidthRoundNumOnly } from "@/utils/Helpers/convertHalfWidthRo
 import { CustomSelectInput } from "@/components/Parts/CustomSelectInput/CustomSelectInput";
 import {
   getQuotationDivision,
+  getSalesTaxClass,
+  getSendingMethod,
+  getSubmissionClass,
   optionsDeadline,
   optionsDeliveryPlace,
   optionsPaymentTerms,
@@ -112,6 +115,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const editSearchMode = useDashboardStore((state) => state.editSearchMode);
   const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
+  const setIsLoadingUpsertGlobal = useDashboardStore((state) => state.setIsLoadingUpsertGlobal);
   const hoveredItemPosWrap = useStore((state) => state.hoveredItemPosWrap);
   const setHoveredItemPosWrap = useStore((state) => state.setHoveredItemPosWrap);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
@@ -501,17 +505,18 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     // 見積関連
     let _quotation_no_custom = "";
     let _quotation_no_system = "";
-    let _submission_class = "";
+    let _submission_class = "A submission";
     let _quotation_date = new Date();
     let _expiration_date = null;
     let _deadline = "当日出荷";
     let _delivery_place = "お打ち合わせにより決定";
     let _payment_terms = "従来通り";
-    let _quotation_division = "標準見積";
-    let _sending_method = "送付状なし";
+    let _quotation_division = "A standard";
+    // let _sending_method = "送付状なし";
+    let _sending_method = "With Cover Letter";
     let _use_corporate_seal = false;
     let _quotation_notes = "";
-    let _sales_tax_class = "消費税記載なし";
+    let _sales_tax_class = "A With Tax Notation";
     let _sales_tax_rate = "10";
     let _total_price = "";
     let _discount_amount = "";
@@ -1745,7 +1750,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     if (!inputContactId) return alert("依頼元の担当者が無効なデータです。");
 
     // ローディング開始
-    setIsLoadingUpsert(true);
+    setIsLoadingUpsertGlobal(true);
 
     // 見積年月度の作成
     const quotationFiscalYearMonth = calculateDateToYearMonth(
@@ -1871,7 +1876,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       console.log("見積 新規作成 insertPayload", insertPayload);
 
       // supabaseにINSERT
-      createQuotationMutation.mutate({ newQuotation: insertPayload, isLoadingUpsert, setIsLoadingUpsert });
+      // createQuotationMutation.mutate({ newQuotation: insertPayload, isLoadingUpsert, setIsLoadingUpsert });
+      createQuotationMutation.mutate(insertPayload);
     } catch (error: any) {
       console.error("見積INSERTに失敗", error);
       toast.error(`見積の作成に失敗しました...🙇‍♀️`);
@@ -3233,7 +3239,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 className={`${styles.value} ${styles.value_highlight} ${styles.editable_field}`}
                                 data-text={
                                   selectedRowDataQuotation?.submission_class
-                                    ? selectedRowDataQuotation?.submission_class
+                                    ? getSubmissionClass(selectedRowDataQuotation?.submission_class)
                                     : ""
                                 }
                                 onMouseEnter={(e) => handleOpenTooltip({ e, display: "top" })}
@@ -3254,7 +3260,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 }}
                               >
                                 {selectedRowDataQuotation?.submission_class
-                                  ? selectedRowDataQuotation?.submission_class
+                                  ? getSubmissionClass(selectedRowDataQuotation?.submission_class)
                                   : ""}
                               </span>
                             )}
@@ -3271,7 +3277,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   {/* <option value=""></option> */}
                                   {optionsSubmissionClass.map((option) => (
                                     <option key={option} value={option}>
-                                      {option}
+                                      {getSubmissionClass(option)}
                                     </option>
                                   ))}
                                   {/* <option value="提出用">提出用</option>
@@ -3304,7 +3310,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   {/* <option value=""></option> */}
                                   {optionsSubmissionClass.map((option) => (
                                     <option key={option} value={option}>
-                                      {option}
+                                      {getSubmissionClass(option)}
                                     </option>
                                   ))}
                                   {/* <option value="提出用">提出用</option>
@@ -4004,7 +4010,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 }}
                                 data-text={`${
                                   selectedRowDataQuotation?.quotation_division
-                                    ? selectedRowDataQuotation?.quotation_division
+                                    ? getQuotationDivision(selectedRowDataQuotation?.quotation_division)
                                     : ""
                                 }`}
                                 onMouseEnter={(e) => {
@@ -4017,7 +4023,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 }}
                               >
                                 {selectedRowDataQuotation?.quotation_division
-                                  ? selectedRowDataQuotation?.quotation_division
+                                  ? getQuotationDivision(selectedRowDataQuotation?.quotation_division)
                                   : ""}
                               </span>
                             )}
@@ -4115,7 +4121,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 }}
                                 data-text={`${
                                   selectedRowDataQuotation?.sending_method
-                                    ? selectedRowDataQuotation?.sending_method
+                                    ? getSendingMethod(selectedRowDataQuotation?.sending_method)
                                     : ""
                                 }`}
                                 onMouseEnter={(e) => {
@@ -4128,7 +4134,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 }}
                               >
                                 {selectedRowDataQuotation?.sending_method
-                                  ? selectedRowDataQuotation?.sending_method
+                                  ? getSendingMethod(selectedRowDataQuotation?.sending_method)
                                   : ""}
                               </span>
                             )}
@@ -4146,7 +4152,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   {/* <option value=""></option> */}
                                   {optionsSendingMethod.map((option) => (
                                     <option key={option} value={option}>
-                                      {option}
+                                      {getSendingMethod(option)}
                                     </option>
                                   ))}
                                 </select>
@@ -4347,7 +4353,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 }}
                                 data-text={`${
                                   selectedRowDataQuotation?.sales_tax_class
-                                    ? selectedRowDataQuotation?.sales_tax_class
+                                    ? getSalesTaxClass(selectedRowDataQuotation?.sales_tax_class)
                                     : ""
                                 }`}
                                 onMouseEnter={(e) => {
@@ -4360,7 +4366,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 }}
                               >
                                 {selectedRowDataQuotation?.sales_tax_class
-                                  ? selectedRowDataQuotation?.sales_tax_class
+                                  ? getSalesTaxClass(selectedRowDataQuotation?.sales_tax_class)
                                   : ""}
                               </span>
                             )}
@@ -4378,7 +4384,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   {/* <option value=""></option> */}
                                   {optionsSalesTaxClass.map((option) => (
                                     <option key={option} value={option}>
-                                      {option}
+                                      {getSalesTaxClass(option)}
                                     </option>
                                   ))}
                                 </select>
@@ -7824,13 +7830,15 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                       >
                         <span>見積商品リスト</span>
 
-                        <div className="flex-center relative h-[15px] w-[15px] rounded-full">
-                          <div
-                            ref={infoIconQuotationProductList}
-                            className={`flex-center absolute left-0 top-0 h-[15px] w-[15px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
-                          ></div>
-                          <ImInfo className={`min-h-[15px] min-w-[15px] text-[var(--color-bg-brand-f)]`} />
-                        </div>
+                        {isInsertModeQuotation && (
+                          <div className="flex-center relative h-[15px] w-[15px] rounded-full">
+                            <div
+                              ref={infoIconQuotationProductList}
+                              className={`flex-center absolute left-0 top-0 h-[15px] w-[15px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
+                            ></div>
+                            <ImInfo className={`min-h-[15px] min-w-[15px] text-[var(--color-bg-brand-f)]`} />
+                          </div>
+                        )}
                       </div>
                       {isInsertModeQuotation && (
                         <div className="flex w-full items-center space-x-[10px]">
