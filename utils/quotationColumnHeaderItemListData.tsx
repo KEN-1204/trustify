@@ -308,6 +308,12 @@ const quotationColumnHeaderItemListArray: Obj[] = [
   //   },
   // 見積エリア
   {
+    columnName: "quotation_year_month",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
     columnName: "quotation_created_at",
     columnWidth: "100px",
     isFrozen: false,

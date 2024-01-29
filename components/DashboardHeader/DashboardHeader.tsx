@@ -62,6 +62,7 @@ export const DashboardHeaderMemo: FC = () => {
   const setSelectedRowDataActivity = useDashboardStore((state) => state.setSelectedRowDataActivity);
   const setSelectedRowDataMeeting = useDashboardStore((state) => state.setSelectedRowDataMeeting);
   const setSelectedRowDataProperty = useDashboardStore((state) => state.setSelectedRowDataProperty);
+  const setSelectedRowDataQuotation = useDashboardStore((state) => state.setSelectedRowDataQuotation);
   // テーマ別ロゴ
   const logoSrc =
     theme === "light" ? "/assets/images/Trustify_logo_white1.png" : "/assets/images/Trustify_logo_black.png";
@@ -537,6 +538,7 @@ export const DashboardHeaderMemo: FC = () => {
       setSelectedRowDataActivity(null);
       setSelectedRowDataMeeting(null);
       setSelectedRowDataProperty(null);
+      setSelectedRowDataQuotation(null);
     }
     // 現在のタブと一緒なら選択中のRowデータはリセットしない
   };

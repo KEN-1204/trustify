@@ -2106,12 +2106,12 @@ export type Quotation_row_data = {
 // 見積 サーチパラメータ
 export type NewSearchQuotation_Contact_CompanyParams = {
   // 🔹依頼元 client_companiesテーブル
-  "client_companies.name": string | null;
-  "client_companies.department_name": string | null;
+  "cc.name": string | null;
+  "cc.department_name": string | null;
   main_phone_number: string | null;
   main_fax: string | null;
-  "client_companies.zipcode": string | null;
-  "client_companies.address": string | null;
+  "cc.zipcode": string | null;
+  "cc.address": string | null;
   // 🔹送付先 cc_destinationテーブル
   "cc_destination.name": string | null;
   "cc_destination.department_name": string | null;
@@ -2122,7 +2122,7 @@ export type NewSearchQuotation_Contact_CompanyParams = {
   // established_in: string | null;
   // business_content: string | null;
   // website_url: string | null;
-  // "client_companies.email": string | null;
+  // "cc.email": string | null;
   // industry_type: string | null;
   // product_category_large: string | null;
   // product_category_medium: string | null;
@@ -2138,14 +2138,14 @@ export type NewSearchQuotation_Contact_CompanyParams = {
   // group_company: string | null;
   // corporate_number: string | null;
   // 🔹依頼元contactsテーブル
-  "contacts.name": string | null;
-  "contacts.direct_line": string | null;
-  "contacts.direct_fax": string | null;
+  "c.name": string | null;
+  "c.direct_line": string | null;
+  "c.direct_fax": string | null;
   extension: string | null;
   company_cell_phone: string | null;
   // personal_cell_phone: string | null;
   // contact_email: string | null;
-  "contacts.email": string | null;
+  "c.email": string | null;
   // 🔹送付先c_destinationテーブル
   "c_destination.name": string | null;
   "c_destination.direct_line": string | null;
@@ -2159,17 +2159,17 @@ export type NewSearchQuotation_Contact_CompanyParams = {
   // occupation: number | null; //🌠変更オブジェクトマッピング
   // approval_amount: string | null;
   // approval_amount: number | null;
-  "contacts.created_by_company_id": string | null;
-  // "contacts.created_by_user_id": string | null;
+  "c.created_by_company_id": string | null;
+  // "c.created_by_user_id": string | null;
 
   // created_at: string;
   // updated_at: string | null;
   // 🔹見積テーブル
-  "quotations.created_by_company_id": string | null;
-  "quotations.created_by_user_id": string | null;
-  "quotations.created_by_department_of_user": string | null;
-  "quotations.created_by_unit_of_user": string | null;
-  "quotations.created_by_office_of_user": string | null; //🌠追加
+  "q.created_by_company_id": string | null;
+  "q.created_by_user_id": string | null;
+  "q.created_by_department_of_user": string | null;
+  "q.created_by_unit_of_user": string | null;
+  "q.created_by_office_of_user": string | null; //🌠追加
   // submission_class: string | null;
   quotation_date: string | null;
   expiration_date: string | null;
@@ -2203,8 +2203,8 @@ export type NewSearchQuotation_Contact_CompanyParams = {
   quotation_year_month: number | null;
   quotation_title: string | null;
   // 担当印 担当者名
-  "quotations.in_charge_stamp_name": string | null;
+  "q.in_charge_stamp_name": string | null;
   // 担当印 社員番号
-  "employee_ids.employee_id_name": string | null;
+  "e.employee_id_name": string | null;
   // employee_id_name: string | null;
 };

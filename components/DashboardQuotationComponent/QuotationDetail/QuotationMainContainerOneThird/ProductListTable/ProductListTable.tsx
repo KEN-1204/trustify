@@ -146,13 +146,13 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
       case "quotation_product_name":
         return "商品名（見積記載）";
         break;
-      case "quotation_outside_short_name":
+      case "quotation_product_outside_short_name":
         return "型式（見積記載）";
         break;
       //   case "quotation_inside_short_name":
       //     return "同席者";
       //     break;
-      case "quotation_unit_price":
+      case "quotation_product_unit_price":
         return "価格（見積記載）";
         break;
       case "quotation_product_quantity":
@@ -192,8 +192,8 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
   type ColumnNames = Exclude<keyof QuotationProductsDetail, ColumnExcludeKeys>; // Quotation_row_dataタイプのプロパティ名のみのデータ型を取得
   const columnHeaderListArray: ColumnNames[] = [
     "quotation_product_name",
-    "quotation_outside_short_name",
-    "quotation_unit_price",
+    "quotation_product_outside_short_name",
+    "quotation_product_unit_price",
     // "quotation_product_priority",
     "quotation_product_quantity",
     "inside_short_name",
@@ -279,7 +279,7 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
 
       // --------------- セルのテキストとpositionを格納 ---------------
       let text;
-      if (["quotation_unit_price", "unit_price"].includes(columnName)) {
+      if (["quotation_product_unit_price", "unit_price"].includes(columnName)) {
         console.log("🔥 columnName", columnName);
         console.log("🔥 rowIndex", rowIndex);
         console.log("🔥 sortedProductsList", sortedProductsList);
@@ -380,7 +380,7 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
         // const text = e.currentTarget.innerText;
 
         // let text;
-        // if (["quotation_unit_price", "unit_price"].includes(columnName)) {
+        // if (["quotation_product_unit_price", "unit_price"].includes(columnName)) {
         //   console.log("🔥 columnName", columnName);
         //   console.log("🔥 productListIndex", productListIndex);
         //   console.log("🔥 sortedProductsList", sortedProductsList);
@@ -432,8 +432,8 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
   type EditProductFieldNames = Exclude<keyof QuotationProductsDetail, ExcludeKeys>; // Quotation_row_dataタイプのプロパティ名のみのデータ型を取得
   type EditableFieldNames =
     | "quotation_product_name"
-    | "quotation_outside_short_name"
-    | "quotation_unit_price"
+    | "quotation_product_outside_short_name"
+    | "quotation_product_unit_price"
     | "quotation_product_quantity";
 
   const originalValueFieldEdit = useRef<string | null>("");
@@ -490,7 +490,7 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
               const newQuantity = !isNaN(parsedQuantity) && parsedQuantity !== 0 ? parsedQuantity : originalValue;
               _newQuantity = newQuantity;
               return { ...item, [fieldName]: newQuantity };
-            } else if (["quotation_unit_price"].includes(fieldName)) {
+            } else if (["quotation_product_unit_price"].includes(fieldName)) {
               // 価格 0と小数点を許容(海外は小数点あり)
               const convertedValue = checkNotFalsyExcludeZero(newValue) ? newValue : Number(originalValue);
               _newPrice = convertedValue;
@@ -515,7 +515,7 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
         // 🔹数量・価格の変更、かつ、元の値と異なる場合
         if (
           (fieldName === "quotation_product_quantity" && _newQuantity !== originalValue) ||
-          (fieldName === "quotation_unit_price" && _newPrice !== Number(originalValue))
+          (fieldName === "quotation_product_unit_price" && _newPrice !== Number(originalValue))
         ) {
           // 🔹価格合計
           const newTotalPrice = calculateTotalPriceProducts(updatedArray, language === "ja" ? 0 : 2);
@@ -736,8 +736,8 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
 
   const editableColumnNameArray = [
     "quotation_product_name",
-    "quotation_outside_short_name",
-    "quotation_unit_price",
+    "quotation_product_outside_short_name",
+    "quotation_product_unit_price",
     "quotation_product_quantity",
   ];
 
@@ -749,7 +749,7 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
       const convertedNum = convertedText ? Number(convertedText) : "1";
       // return convertedNum ? convertedNum : originalValue;
       return convertedNum;
-    } else if (columnName === "quotation_unit_price") {
+    } else if (columnName === "quotation_product_unit_price") {
       // 価格は0と小数点を許容 (多くの通貨では、小数点以下2桁（セント単位）が一般的, 特定の通貨（例: クウェートディナール）では、小数点以下3桁を使用)
       // if (!text || text === "") return "0";
       // const convertedNum = language === "ja" ? convertToYen(text) : Number(convertHalfWidthRoundNumOnly(text, 3));
@@ -930,7 +930,7 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
                         //   }
                         let displayValue = (product as { [key: string]: string | number | null })[columnName];
                         if (
-                          ["quotation_unit_price", "unit_price"].includes(columnName) &&
+                          ["quotation_product_unit_price", "unit_price"].includes(columnName) &&
                           typeof displayValue === "number"
                         ) {
                           displayValue = formatToJapaneseYen(displayValue);
@@ -1055,8 +1055,8 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
                                 //   e,
                                 //   [
                                 //     "quotation_product_name",
-                                //     "quotation_outside_short_name",
-                                //     "quotation_unit_price",
+                                //     "quotation_product_outside_short_name",
+                                //     "quotation_product_unit_price",
                                 //   ].includes(columnHeaderList[colIndex].columnName)
                                 // )
                                 handleSingleClickGridCell(

@@ -146,9 +146,13 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const isEditModeField = useDashboardStore((state) => state.isEditModeField);
   const setIsEditModeField = useDashboardStore((state) => state.setIsEditModeField);
   const [isComposing, setIsComposing] = useState(false); // 日本語のように変換、確定が存在する言語入力の場合の日本語入力の変換中を保持するstate、日本語入力開始でtrue, エンターキーで変換確定した時にfalse
-  // 見積作成State
+  // INSERTモード見積作成State
   const isInsertModeQuotation = useDashboardStore((state) => state.isInsertModeQuotation);
   const setIsInsertModeQuotation = useDashboardStore((state) => state.setIsInsertModeQuotation);
+  // UPDATEモード
+  const isUpdateModeQuotation = useDashboardStore((state) => state.isUpdateModeQuotation);
+  const setIsUpdateModeQuotation = useDashboardStore((state) => state.setIsUpdateModeQuotation);
+
   // 確認モーダル(自社担当名、データ所有者変更確認)
   const [isOpenConfirmationModal, setIsOpenConfirmationModal] = useState<string | null>(null);
   // 自社担当検索サイドテーブル開閉
@@ -186,6 +190,59 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   useEffect(() => {
     setIsDesktopGTE1600(isDesktopGTE1600Media);
   }, [isDesktopGTE1600Media]);
+
+  // 担当印、上長印の削除、変更メニュー開閉
+  const [isOpenInChargeMenu, setIsOpenInChargeMenu] = useState(false);
+  const [isOpenSupervisor1Menu, setIsOpenSupervisor1Menu] = useState(false);
+  const [isOpenSupervisor2Menu, setIsOpenSupervisor2Menu] = useState(false);
+
+  // 担当者検索サイドテーブルに渡すオブジェクトを切り替える関数
+  const [sideTableState, setSideTableState] = useState("author");
+  const getMemberObj = (title: string) => {
+    switch (title) {
+      case "author":
+        return {
+          memberObj: memberObj,
+          setMemberObj: setMemberObj,
+          prevMemberObj: prevMemberObj,
+          setPrevMemberObj: setPrevMemberObj,
+        };
+        break;
+      case "inCharge":
+        return {
+          memberObj: memberObjInCharge,
+          setMemberObj: setMemberObjInCharge,
+          prevMemberObj: prevMemberObjInCharge,
+          setPrevMemberObj: setPrevMemberObjInCharge,
+        };
+        break;
+      case "supervisor1":
+        return {
+          memberObj: memberObjSupervisor1,
+          setMemberObj: setMemberObjSupervisor1,
+          prevMemberObj: prevMemberObjSupervisor1,
+          setPrevMemberObj: setPrevMemberObjSupervisor1,
+        };
+        break;
+      case "supervisor2":
+        return {
+          memberObj: memberObjSupervisor2,
+          setMemberObj: setMemberObjSupervisor2,
+          prevMemberObj: prevMemberObjSupervisor2,
+          setPrevMemberObj: setPrevMemberObjSupervisor2,
+        };
+        break;
+
+      default:
+        return {
+          memberObj: memberObj,
+          setMemberObj: setMemberObj,
+          prevMemberObj: prevMemberObj,
+          setPrevMemberObj: setPrevMemberObj,
+        };
+        break;
+    }
+  };
 
   // 🌟サブミット
   // 🔹client_companiesテーブル
@@ -368,59 +425,6 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   // 見積に追加された商品リスト
   const [selectedProductsArray, setSelectedProductsArray] = useState<QuotationProductsDetail[]>([]);
 
-  // 担当印、上長印の削除、変更メニュー開閉
-  const [isOpenInChargeMenu, setIsOpenInChargeMenu] = useState(false);
-  const [isOpenSupervisor1Menu, setIsOpenSupervisor1Menu] = useState(false);
-  const [isOpenSupervisor2Menu, setIsOpenSupervisor2Menu] = useState(false);
-
-  // 担当者検索サイドテーブルに渡すオブジェクトを切り替える関数
-  const [sideTableState, setSideTableState] = useState("author");
-  const getMemberObj = (title: string) => {
-    switch (title) {
-      case "author":
-        return {
-          memberObj: memberObj,
-          setMemberObj: setMemberObj,
-          prevMemberObj: prevMemberObj,
-          setPrevMemberObj: setPrevMemberObj,
-        };
-        break;
-      case "inCharge":
-        return {
-          memberObj: memberObjInCharge,
-          setMemberObj: setMemberObjInCharge,
-          prevMemberObj: prevMemberObjInCharge,
-          setPrevMemberObj: setPrevMemberObjInCharge,
-        };
-        break;
-      case "supervisor1":
-        return {
-          memberObj: memberObjSupervisor1,
-          setMemberObj: setMemberObjSupervisor1,
-          prevMemberObj: prevMemberObjSupervisor1,
-          setPrevMemberObj: setPrevMemberObjSupervisor1,
-        };
-        break;
-      case "supervisor2":
-        return {
-          memberObj: memberObjSupervisor2,
-          setMemberObj: setMemberObjSupervisor2,
-          prevMemberObj: prevMemberObjSupervisor2,
-          setPrevMemberObj: setPrevMemberObjSupervisor2,
-        };
-        break;
-
-      default:
-        return {
-          memberObj: memberObj,
-          setMemberObj: setMemberObj,
-          prevMemberObj: prevMemberObj,
-          setPrevMemberObj: setPrevMemberObj,
-        };
-        break;
-    }
-  };
-
   // フラグ関連 フィールドエディット用 初期はfalseにしておき、useEffectでselectedRowDataのフラグを反映する
   // 角印印刷フラグ、担当印、上長印１、上長印２ フィールドエディット用
   const [checkboxUseCorporateSealFlag, setCheckboxUseCorporateSealFlag] = useState(false);
@@ -461,12 +465,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
 
   // ================================ ✅フィールドエディットモード関連state✅ ================================
 
-  // ------------------ 🌟INSERT見積作成のマウント時 選択中の担当者&会社の列データの情報をStateに格納🌟 ------------------
+  // ------------------ 🌟INSERT見積作成のマウント時 選択中の担当者&会社の行データの情報をStateに格納🌟 ------------------
   useEffect(() => {
     if (!isInsertModeQuotation) {
       console.log("INSERTモードOFF 選択している列をリセット");
       // 選択している列をリセット
-      if (selectedRowDataQuotation) setSelectedRowDataQuotation(null);
+      // if (selectedRowDataQuotation) setSelectedRowDataQuotation(null);
       if (selectedRowDataContact) setSelectedRowDataContact(null);
       if (selectedRowDataActivity) setSelectedRowDataActivity(null);
       if (selectedRowDataMeeting) setSelectedRowDataMeeting(null);
@@ -474,9 +478,11 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       return;
     }
 
+    if (isUpdateModeQuotation) return;
+
     let selectedData;
 
-    if (selectedRowDataQuotation) selectedData = selectedRowDataQuotation;
+    // if (selectedRowDataQuotation) selectedData = selectedRowDataQuotation;
     if (selectedRowDataContact) selectedData = selectedRowDataContact;
     if (selectedRowDataActivity) selectedData = selectedRowDataActivity;
     if (selectedRowDataMeeting) selectedData = selectedRowDataMeeting;
@@ -623,11 +629,150 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     setPrevMemberObj(_initialMemberObj);
     setMemberObj(_initialMemberObj);
   }, [isInsertModeQuotation]);
-  // ------------------ ✅見積作成のマウント時に選択中の担当者&会社の列データの情報をStateに格納✅ ------------------
+  // ------------------ ✅INSERT見積作成のマウント時 選択中の担当者&会社の行データの情報をStateに格納✅ ------------------
 
-  // ================================ 🌟useQuery依頼元・送付先の会社、担当者フェッチ🌟 ================================
+  // ------------------ 🌟UPDATEモード 選択中の見積データの情報をStateに格納🌟 ------------------
 
-  // ================================ ✅useQuery依頼元・送付先の会社、担当者フェッチ✅ ================================
+  useEffect(() => {
+    if (!isUpdateModeQuotation) {
+      console.log("UPDATEモードOFF");
+      // 選択している列をリセット
+      // if (selectedRowDataQuotation) setSelectedRowDataQuotation(null);
+      return;
+    }
+
+    if (isInsertModeQuotation) return;
+    if (!selectedRowDataQuotation) return;
+
+    const row = selectedRowDataQuotation;
+
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear(); // 例: 2023
+    const currentMonth = currentDate.getMonth() + 1; // getMonth()は0から11で返されるため、+1して1から12に調整
+    const selectedYearMonthInitialValue = `${currentYear}${currentMonth < 10 ? "0" + currentMonth : currentMonth}`; // 月が1桁の場合は先頭に0を追加
+
+    // 依頼元
+    setInputCompanyId(row?.company_id ? row?.company_id : "");
+    setInputContactId(row?.contact_id ? row?.contact_id : "");
+    setInputCompanyName(row?.company_name ? row?.company_name : "");
+    setInputDepartmentName(row?.company_department_name ? row?.company_department_name : "");
+    setInputContactName(row?.contact_name ? row?.contact_name : "");
+    setInputDirectLine(row?.direct_line ? row?.direct_line : "");
+    setInputTel(row?.main_phone_number ? row?.main_phone_number : "");
+    setInputExtension(row?.extension ? row?.extension : "");
+    setInputCompanyCellPhone(row?.company_cell_phone ? row?.company_cell_phone : "");
+    setInputDirectFax(row?.direct_fax ? row?.direct_fax : "");
+    setInputFax(row?.main_fax ? row?.main_fax : "");
+    setInputContactEmail(row?.contact_email ? row?.contact_email : "");
+    setInputZipcode(row?.zipcode ? row?.zipcode : "");
+    setInputAddress(row?.address ? row?.address : "");
+    // 送付先
+    // setInputCompanyIdDest(_dest_company_id);
+    // setInputContactIdDest(_dest_contact_id);
+    // setInputCompanyNameDest(_dest_company_name);
+    // setInputDepartmentNameDest(_dest_department_name);
+    // setInputContactNameDest(_dest_contact_name);
+    // setInputDirectLineDest(_dest_direct_line);
+    // setInputDirectFaxDest(_dest_direct_fax);
+    // setInputContactEmailDest(_dest_contact_email);
+    // setInputZipcodeDest(_dest_zipcode);
+    // setInputAddressDest(_dest_address);
+    setSelectedDestination({
+      destination_company_id: row?.destination_company_id ? row?.destination_company_id : "",
+      destination_contact_id: row?.destination_contact_id ? row?.destination_contact_id : "",
+      destination_company_name: row?.destination_company_name ? row?.destination_company_name : "",
+      destination_company_department_name: row?.destination_company_department_name
+        ? row?.destination_company_department_name
+        : "",
+      destination_contact_name: row?.destination_contact_name ? row?.destination_contact_name : "",
+      destination_contact_direct_line: row?.destination_contact_direct_line ? row?.destination_contact_direct_line : "",
+      destination_contact_direct_fax: row?.destination_contact_direct_fax ? row?.destination_contact_direct_fax : "",
+      destination_contact_email: row?.destination_contact_email ? row?.destination_contact_email : "",
+      destination_company_zipcode: row?.destination_company_zipcode ? row?.destination_company_zipcode : "",
+      destination_company_address: row?.destination_company_address ? row?.destination_company_address : "",
+    });
+    // 見積関連
+    setInputQuotationNoCustom(row?.quotation_no_custom ? row?.quotation_no_custom : "");
+    setInputQuotationNoSystem(row?.quotation_no_system ? row?.quotation_no_system : "");
+    setInputSubmissionClassEdit(row?.submission_class ? row.submission_class : "");
+    setInputQuotationDate(row?.quotation_date ? new Date(row.quotation_date) : null);
+    setInputExpirationDate(row?.expiration_date ? new Date(row.expiration_date) : null);
+    setInputDeadlineEdit(row?.deadline ? row.deadline : "");
+    setInputDeliveryPlaceEdit(row?.delivery_place ? row.delivery_place : "");
+    setInputPaymentTermsEdit(row?.payment_terms ? row.payment_terms : "");
+    setInputQuotationDivisionEdit(row?.quotation_division ? row.quotation_division : "");
+    setInputSendingMethodEdit(row?.sending_method ? row.sending_method : "");
+    setInputUseCorporateSealEdit(row?.use_corporate_seal ? row.use_corporate_seal : false);
+    setInputQuotationNotes(row?.quotation_notes ? row.quotation_notes : "");
+    setInputSalesTaxClassEdit(row?.sales_tax_class ? row.sales_tax_class : "");
+    setInputSalesTaxRateEdit(row?.sales_tax_rate ? row.sales_tax_rate : "");
+    setInputTotalPriceEdit(row?.total_price ? formatDisplayPrice(row.total_price) : "");
+    setInputDiscountAmountEdit(row?.discount_amount ? formatDisplayPrice(row.discount_amount) : "");
+    setInputDiscountRateEdit(row?.discount_rate ? row.discount_rate : "");
+    setInputTotalAmountEdit(row?.total_amount ? formatDisplayPrice(row.total_amount) : "");
+    setInputDiscountTitleEdit(row?.discount_title ? row.discount_title : "");
+    setInputQuotationRemarks(row?.quotation_remarks ? row.quotation_remarks : "");
+    setInputSetItemCountEdit(row?.set_item_count ? row.set_item_count : null);
+    setInputSetUnitNameEdit(row?.set_unit_name ? row.set_unit_name : "");
+    setInputSetPriceEdit(row?.set_price ? formatDisplayPrice(row.set_price) : "");
+    setInputLeasePeriodEdit(row?.lease_period ? row.lease_period : null);
+    setInputLeaseRateEdit(row?.lease_rate ? row.lease_rate : "");
+    setInputLeaseMonthlyFeeEdit(row?.lease_monthly_fee ? formatDisplayPrice(row.lease_monthly_fee) : "");
+
+    let _updateMemberObj = {
+      memberId: row?.quotation_created_by_user_id ? row?.quotation_created_by_user_id : null,
+      memberName: row?.quotation_member_name ? row?.quotation_member_name : null,
+      departmentId: row?.quotation_created_by_department_of_user ? row?.quotation_created_by_department_of_user : null,
+      unitId: row?.quotation_created_by_unit_of_user ? row?.quotation_created_by_unit_of_user : null,
+      officeId: row?.quotation_created_by_office_of_user ? row?.quotation_created_by_office_of_user : null,
+    };
+
+    // 作成者
+    setPrevMemberObj(_updateMemberObj);
+    setMemberObj(_updateMemberObj);
+
+    // 商品リスト
+    setSelectedProductsArray(row?.quotation_products_details.length > 0 ? row.quotation_products_details : []);
+
+    // 印鑑関連
+    const inChargeMemberObj = {
+      memberId: row?.in_charge_user_id || null,
+      memberName: row?.in_charge_user_name || null,
+      departmentId: null,
+      unitId: null,
+      officeId: null,
+      signature_stamp_id: row?.in_charge_stamp_id || null,
+      signature_stamp_url: row?.in_charge_stamp_image_url || null,
+    };
+    setPrevMemberObjInCharge(inChargeMemberObj);
+    setMemberObjInCharge(inChargeMemberObj);
+    setCheckboxInChargeFlagEdit(row?.in_charge_stamp_flag || false);
+    const supervisor1MemberObj = {
+      memberId: row?.supervisor1_user_id || null,
+      memberName: row?.supervisor1_user_name || null,
+      departmentId: null,
+      unitId: null,
+      officeId: null,
+      signature_stamp_id: row?.supervisor1_stamp_id || null,
+      signature_stamp_url: row?.supervisor1_stamp_image_url || null,
+    };
+    setPrevMemberObjSupervisor1(supervisor1MemberObj);
+    setMemberObjSupervisor1(supervisor1MemberObj);
+    setCheckboxSupervisor1FlagEdit(row?.supervisor1_stamp_flag || false);
+    const supervisor2MemberObj = {
+      memberId: row?.supervisor2_user_id || null,
+      memberName: row?.supervisor2_user_name || null,
+      departmentId: null,
+      unitId: null,
+      officeId: null,
+      signature_stamp_id: row?.supervisor2_stamp_id || null,
+      signature_stamp_url: row?.supervisor2_stamp_image_url || null,
+    };
+    setPrevMemberObjSupervisor2(supervisor2MemberObj);
+    setMemberObjSupervisor2(supervisor2MemberObj);
+    setCheckboxSupervisor2FlagEdit(row?.supervisor2_stamp_flag || false);
+  }, [isUpdateModeQuotation]);
+  // ------------------ ✅UPDATEモード 選択中の見積データの情報をStateに格納✅ ------------------
 
   // ================================ 🌟useQuery初回マウント時のフェッチ遅延用🌟 ================================
   // const [isReady, setIsReady] = useState(false);
@@ -754,22 +899,20 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       );
       // ----------------------------- 依頼元
       // 🔹client_companyテーブル
-      setInputCompanyName(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["client_companies.name"]));
-      setInputDepartmentName(
-        beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["client_companies.department_name"])
-      );
-      setInputContactName(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["contacts.name"]));
+      setInputCompanyName(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["cc.name"]));
+      setInputDepartmentName(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["cc.department_name"]));
+      setInputContactName(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["c.name"]));
       setInputTel(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams?.main_phone_number));
       setInputFax(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams?.main_fax));
-      setInputZipcode(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["client_companies.zipcode"]));
-      setInputAddress(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["client_companies.address"]));
+      setInputZipcode(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["cc.zipcode"]));
+      setInputAddress(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["cc.address"]));
       // 🔹contactsテーブル
-      setInputContactName(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["contacts.name"]));
-      setInputDirectLine(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["contacts.direct_line"]));
-      setInputDirectFax(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["contacts.direct_fax"]));
+      setInputContactName(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["c.name"]));
+      setInputDirectLine(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["c.direct_line"]));
+      setInputDirectFax(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["c.direct_fax"]));
       setInputExtension(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.extension));
       setInputCompanyCellPhone(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.company_cell_phone));
-      setInputContactEmail(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["contacts.email"]));
+      setInputContactEmail(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["c.email"]));
 
       // ----------------------------- 送付先
       // 🔹cc_destinationテーブル
@@ -777,7 +920,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       setInputDepartmentNameDest(
         beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["cc_destination.department_name"])
       );
-      setInputContactNameDest(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["contacts.name"]));
+      setInputContactNameDest(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["c.name"]));
       setInputZipcodeDest(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["cc_destination.zipcode"]));
       setInputAddressDest(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["cc_destination.address"]));
       // 🔹c_destinationテーブル
@@ -792,7 +935,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       // c_destinationここまで
 
       setInputContactCreatedByCompanyId(
-        beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["contacts.created_by_company_id"])
+        beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["c.created_by_company_id"])
       );
       // setInputContactCreatedByUserId(
       //   beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["contacts.created_by_user_id"])
@@ -800,19 +943,22 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
 
       // quotationsテーブル
       setInputQuotationCreatedByCompanyId(
-        beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["quotations.created_by_company_id"])
+        beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["q.created_by_company_id"])
       );
       setInputQuotationCreatedByUserId(
-        beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["quotations.created_by_user_id"])
+        beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["q.created_by_user_id"])
       );
       setInputQuotationCreatedByDepartmentOfUser(
-        beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["quotations.created_by_department_of_user"])
+        beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["q.created_by_department_of_user"])
       );
       setInputQuotationCreatedByUnitOfUser(
-        beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["quotations.created_by_unit_of_user"])
+        beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["q.created_by_unit_of_user"])
       );
       setInputQuotationCreatedByUnitOfUser(
-        beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["quotations.created_by_office_of_user"])
+        beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["q.created_by_office_of_user"])
+      );
+      setInputQuotationMemberName(
+        beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.quotation_member_name)
       );
       setInputQuotationDate(
         newSearchQuotation_Contact_CompanyParams.quotation_date
@@ -825,11 +971,11 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
           : null
       );
       //
+      setInputQuotationNoCustom(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.quotation_no_custom));
+      setInputQuotationNoSystem(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.quotation_no_system));
       setInputQuotationDivision(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.quotation_division));
       setInputQuotationNotes(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.quotation_notes));
       setInputQuotationRemarks(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.quotation_remarks));
-      setInputQuotationNoCustom(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.quotation_no_custom));
-      setInputQuotationNoSystem(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.quotation_no_system));
       //
       // setInputQuotationBusinessOffice(
       //   beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.quotation_business_office)
@@ -837,9 +983,11 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       // setInputQuotationDepartment(
       //   beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.quotation_department)
       // );
-      setInputQuotationMemberName(
-        beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.quotation_member_name)
+      setInputQuotationYearMonth(adjustFieldValueNumber(newSearchQuotation_Contact_CompanyParams.quotation_year_month));
+      setInputInChargeUserName(
+        beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["q.in_charge_stamp_name"])
       );
+      setInputEmployeeIdName(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["e.employee_id_name"]));
     } else if (!editSearchMode && searchMode) {
       console.log(
         "🔥Quotationメインコンテナー useEffect 新規サーチモード inputを初期化",
@@ -972,21 +1120,70 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     let _in_charge_user_name_name = adjustFieldValue(inputInChargeUserName);
     let _in_charge_user_employee_id_name = adjustFieldValue(inputEmployeeIdName);
 
+    // const params = {
+    //   // 会社 依頼元
+    //   "client_companies.name": _company_name,
+    //   "client_companies.department_name": _company_department_name,
+    //   main_phone_number: _main_phone_number,
+    //   main_fax: _main_fax,
+    //   "client_companies.zipcode": _zipcode,
+    //   "client_companies.address": _address,
+    //   // 担当者 依頼元
+    //   "contacts.name": _contact_name,
+    //   "contacts.direct_line": _direct_line,
+    //   "contacts.direct_fax": _direct_fax,
+    //   extension: _extension,
+    //   company_cell_phone: _company_cell_phone,
+    //   "contacts.email": _contact_email,
+    //   // 会社 送付先
+    //   "cc_destination.name": _destination_company_name,
+    //   "cc_destination.department_name": _destination_company_department_name,
+    //   "cc_destination.zipcode": _destination_company_zipcode,
+    //   "cc_destination.address": _destination_company_address,
+    //   // 担当者 送付先
+    //   "c_destination.name": _destination_contact_name,
+    //   "c_destination.direct_line": _destination_contact_direct_line,
+    //   "c_destination.direct_fax": _destination_contact_direct_fax,
+    //   "c_destination.email": _destination_contact_email,
+
+    //   "contacts.created_by_company_id": _contact_created_by_company_id,
+    //   // "contacts.created_by_user_id": _contact_created_by_user_id,
+    //   // quotationsテーブル
+    //   "quotations.created_by_company_id": _quotation_created_by_company_id,
+    //   "quotations.created_by_user_id": _quotation_created_by_user_id,
+    //   "quotations.created_by_department_of_user": _quotation_created_by_department_of_user,
+    //   "quotations.created_by_unit_of_user": _quotation_created_by_unit_of_user,
+    //   "quotations.created_by_office_of_user": _quotation_created_by_office_of_user,
+    //   quotation_no_custom: _quotation_no_custom,
+    //   quotation_no_system: _quotation_no_system,
+    //   quotation_member_name: _quotation_member_name,
+    //   quotation_date: _quotation_date,
+    //   expiration_date: _expiration_date,
+    //   quotation_title: _quotation_title,
+    //   quotation_division: _quotation_division,
+    //   quotation_notes: _quotation_notes,
+    //   quotation_remarks: _quotation_remarks,
+    //   // quotation_business_office: _quotation_business_office,
+    //   // quotation_department: _quotation_department,
+    //   quotation_year_month: _quotation_year_month,
+    //   "quotations.in_charge_stamp_name": _in_charge_user_name_name,
+    //   "employee_ids.employee_id_name": _in_charge_user_employee_id_name,
+    // };
     const params = {
       // 会社 依頼元
-      "client_companies.name": _company_name,
-      "client_companies.department_name": _company_department_name,
+      "cc.name": _company_name,
+      "cc.department_name": _company_department_name,
       main_phone_number: _main_phone_number,
       main_fax: _main_fax,
-      "client_companies.zipcode": _zipcode,
-      "client_companies.address": _address,
+      "cc.zipcode": _zipcode,
+      "cc.address": _address,
       // 担当者 依頼元
-      "contacts.name": _contact_name,
-      "contacts.direct_line": _direct_line,
-      "contacts.direct_fax": _direct_fax,
+      "c.name": _contact_name,
+      "c.direct_line": _direct_line,
+      "c.direct_fax": _direct_fax,
       extension: _extension,
       company_cell_phone: _company_cell_phone,
-      "contacts.email": _contact_email,
+      "c.email": _contact_email,
       // 会社 送付先
       "cc_destination.name": _destination_company_name,
       "cc_destination.department_name": _destination_company_department_name,
@@ -998,17 +1195,17 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       "c_destination.direct_fax": _destination_contact_direct_fax,
       "c_destination.email": _destination_contact_email,
 
-      "contacts.created_by_company_id": _contact_created_by_company_id,
+      "c.created_by_company_id": _contact_created_by_company_id,
       // "contacts.created_by_user_id": _contact_created_by_user_id,
       // quotationsテーブル
-      "quotations.created_by_company_id": _quotation_created_by_company_id,
-      "quotations.created_by_user_id": _quotation_created_by_user_id,
-      "quotations.created_by_department_of_user": _quotation_created_by_department_of_user,
-      "quotations.created_by_unit_of_user": _quotation_created_by_unit_of_user,
-      "quotations.created_by_office_of_user": _quotation_created_by_office_of_user,
+      "q.created_by_company_id": _quotation_created_by_company_id,
+      "q.created_by_user_id": _quotation_created_by_user_id,
+      "q.created_by_department_of_user": _quotation_created_by_department_of_user,
+      "q.created_by_unit_of_user": _quotation_created_by_unit_of_user,
+      "q.created_by_office_of_user": _quotation_created_by_office_of_user,
+      quotation_member_name: _quotation_member_name,
       quotation_no_custom: _quotation_no_custom,
       quotation_no_system: _quotation_no_system,
-      quotation_member_name: _quotation_member_name,
       quotation_date: _quotation_date,
       expiration_date: _expiration_date,
       quotation_title: _quotation_title,
@@ -1018,8 +1215,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       // quotation_business_office: _quotation_business_office,
       // quotation_department: _quotation_department,
       quotation_year_month: _quotation_year_month,
-      "quotations.in_charge_stamp_name": _in_charge_user_name_name,
-      "employee_ids.employee_id_name": _in_charge_user_employee_id_name,
+      "q.in_charge_stamp_name": _in_charge_user_name_name,
+      "e.employee_id_name": _in_charge_user_employee_id_name,
     };
 
     // console.log("✅ 条件 params", params);
@@ -1595,29 +1792,6 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   //     }
   //   };
 
-  const hours = Array.from({ length: 24 }, (_, index) => (index < 10 ? "0" + index : "" + index));
-  const minutes5 = Array.from({ length: 12 }, (_, index) => (index * 5 < 10 ? "0" + index * 5 : "" + index * 5));
-  const minutes = Array.from({ length: 60 }, (_, i) => (i < 10 ? "0" + i : "" + i));
-
-  // 同席者リストから各同席者を「 / \n」で区切った一つの文字列に変換する関数
-  // 形式は「佐藤(株式会社X・営業部・部長) / \n ...」
-  const formatAttendees = (attendees: AttendeeInfo[] | undefined | null) => {
-    if (!attendees || attendees?.length === 0) return "";
-    const _formatAttendees = attendees
-      .map((attendee) => {
-        return `${attendee.attendee_name ?? ""}(${
-          attendee.attendee_company ? attendee.attendee_company + (attendee.attendee_department_name && `・`) : ""
-        }${
-          attendee.attendee_department_name
-            ? attendee.attendee_department_name + (attendee.attendee_position_name && `・`)
-            : ""
-        }${attendee.attendee_position_name ?? ""})`;
-      })
-      .join(` / \n`);
-
-    return _formatAttendees;
-  };
-
   const formatDisplayPrice = (price: number | string): string => {
     switch (language) {
       case "ja":
@@ -1652,6 +1826,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       setInputTotalPriceEdit(newTotalPrice);
       // 合計金額 = 価格合計 - 値引金額
       // 値引価格の数字と小数点以外は除去
+      console.log("inputDiscountAmountEdit", inputDiscountAmountEdit);
       const replacedDiscountAmount = inputDiscountAmountEdit.replace(/[^\d.]/g, "");
       const newTotalAmount = calculateTotalAmount(
         Number(newTotalPrice),
@@ -2249,11 +2424,17 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         {!searchMode && !isInsertModeQuotation && (
                           <span
                             className={`${styles.value}`}
+                            data-text={`${
+                              selectedRowDataQuotation?.contact_name ? selectedRowDataQuotation?.contact_name : ""
+                            }`}
                             onMouseEnter={(e) => {
                               e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                              const el = e.currentTarget;
+                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                              if (hoveredItemPosWrap) handleCloseTooltip();
                             }}
                           >
                             {selectedRowDataQuotation?.contact_name ? selectedRowDataQuotation?.contact_name : ""}
@@ -2300,13 +2481,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             }`}
                             onMouseEnter={(e) => {
                               e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                              if (!isDesktopGTE1600) handleOpenTooltip({ e });
-                              // handleOpenTooltip({e});
+                              const el = e.currentTarget;
+                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                              if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
-                              // if (hoveredItemPosWrap) handleCloseTooltip();
+                              if (hoveredItemPosWrap) handleCloseTooltip();
                             }}
                           >
                             {selectedRowDataQuotation?.direct_line ? selectedRowDataQuotation?.direct_line : ""}
@@ -2345,13 +2525,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             }`}
                             onMouseEnter={(e) => {
                               e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                              if (!isDesktopGTE1600) handleOpenTooltip({ e });
-                              // handleOpenTooltip({e});
+                              const el = e.currentTarget;
+                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                              if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
-                              // if (hoveredItemPosWrap) handleCloseTooltip();
+                              if (hoveredItemPosWrap) handleCloseTooltip();
                             }}
                           >
                             {selectedRowDataQuotation?.main_phone_number
@@ -2393,13 +2572,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             }`}
                             onMouseEnter={(e) => {
                               e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                              if (!isDesktopGTE1600) handleOpenTooltip({ e });
-                              // handleOpenTooltip({e});
+                              const el = e.currentTarget;
+                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                              if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
-                              // if (hoveredItemPosWrap) handleCloseTooltip();
+                              if (hoveredItemPosWrap) handleCloseTooltip();
                             }}
                           >
                             {selectedRowDataQuotation?.extension ? selectedRowDataQuotation?.extension : ""}
@@ -2439,13 +2617,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             }`}
                             onMouseEnter={(e) => {
                               e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                              if (!isDesktopGTE1600) handleOpenTooltip({ e });
-                              // handleOpenTooltip({e});
+                              const el = e.currentTarget;
+                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                              if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
-                              // if (hoveredItemPosWrap) handleCloseTooltip();
+                              if (hoveredItemPosWrap) handleCloseTooltip();
                             }}
                           >
                             {selectedRowDataQuotation?.company_cell_phone
@@ -2488,13 +2665,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             }`}
                             onMouseEnter={(e) => {
                               e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                              if (!isDesktopGTE1600) handleOpenTooltip({ e });
-                              // handleOpenTooltip({e});
+                              const el = e.currentTarget;
+                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                              if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
-                              // if (hoveredItemPosWrap) handleCloseTooltip();
+                              if (hoveredItemPosWrap) handleCloseTooltip();
                             }}
                           >
                             {selectedRowDataQuotation?.direct_fax ? selectedRowDataQuotation?.direct_fax : ""}
@@ -2532,13 +2708,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             }`}
                             onMouseEnter={(e) => {
                               e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                              if (!isDesktopGTE1600) handleOpenTooltip({ e });
-                              // handleOpenTooltip({e});
+                              const el = e.currentTarget;
+                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                              if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
-                              // if (hoveredItemPosWrap) handleCloseTooltip();
+                              if (hoveredItemPosWrap) handleCloseTooltip();
                             }}
                           >
                             {selectedRowDataQuotation?.main_fax ? selectedRowDataQuotation?.main_fax : ""}
@@ -2572,20 +2747,18 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                     <div className="flex h-full w-full flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span
-                          className={`${styles.title}`} // data-text={`${selectedRowDataQuotation?.occupation ? selectedRowDataQuotation?.occupation : ""}`}
+                          className={`${styles.title}`}
+                          data-text={`${
+                            selectedRowDataQuotation?.contact_email ? selectedRowDataQuotation?.contact_email : ""
+                          }`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            // if (!isDesktopGTE1600 && isOpenSidebar) {
-                            //   handleOpenTooltip({e});
-                            // }
-                            // handleOpenTooltip({e});
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            // if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) {
-                            //   handleCloseTooltip();
-                            // }
-                            // if (hoveredItemPosWrap) handleCloseTooltip();
+                            if (hoveredItemPosWrap) handleCloseTooltip();
                           }}
                         >
                           E-mail
@@ -2626,22 +2799,15 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         {!searchMode && !isInsertModeQuotation && (
                           <span
                             className={`${styles.value}`}
-                            // data-text={`${
-                            //   selectedRowDataQuotation?.personal_cell_phone ? selectedRowDataQuotation?.personal_cell_phone : ""
-                            // }`}
+                            data-text={`${selectedRowDataQuotation?.zipcode ? selectedRowDataQuotation?.zipcode : ""}`}
                             onMouseEnter={(e) => {
                               e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                              // if (!isDesktopGTE1600 && isOpenSidebar) {
-                              //   handleOpenTooltip({e});
-                              // }
-                              // handleOpenTooltip({e});
+                              const el = e.currentTarget;
+                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                              // if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) {
-                              //   handleCloseTooltip();
-                              // }
-                              // if (hoveredItemPosWrap) handleCloseTooltip();
+                              if (hoveredItemPosWrap) handleCloseTooltip();
                             }}
                           >
                             {selectedRowDataQuotation?.zipcode ? selectedRowDataQuotation?.zipcode : ""}
@@ -2787,11 +2953,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         {!searchMode && !isInsertModeQuotation && (
                           <span
                             className={`${styles.value} ${styles.text_start}`}
+                            data-text={`${
+                              selectedRowDataQuotation?.destination_company_department_name
+                                ? selectedRowDataQuotation?.destination_company_department_name
+                                : ""
+                            }`}
                             onMouseEnter={(e) => {
                               e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                              const el = e.currentTarget;
+                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                              if (hoveredItemPosWrap) handleCloseTooltip();
                             }}
                           >
                             {selectedRowDataQuotation?.destination_company_department_name
@@ -2823,11 +2997,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         {!searchMode && !isInsertModeQuotation && (
                           <span
                             className={`${styles.value}`}
+                            data-text={`${
+                              selectedRowDataQuotation?.destination_contact_name
+                                ? selectedRowDataQuotation?.destination_contact_name
+                                : ""
+                            }`}
                             onMouseEnter={(e) => {
                               e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                              const el = e.currentTarget;
+                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                              if (hoveredItemPosWrap) handleCloseTooltip();
                             }}
                           >
                             {selectedRowDataQuotation?.destination_contact_name
@@ -2868,13 +3050,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             }`}
                             onMouseEnter={(e) => {
                               e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                              if (!isDesktopGTE1600) handleOpenTooltip({ e });
-                              // handleOpenTooltip({e});
+                              const el = e.currentTarget;
+                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                              if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
-                              // if (hoveredItemPosWrap) handleCloseTooltip();
+                              if (hoveredItemPosWrap) handleCloseTooltip();
                             }}
                           >
                             {selectedRowDataQuotation?.destination_contact_direct_line
@@ -2908,13 +3089,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             }`}
                             onMouseEnter={(e) => {
                               e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                              if (!isDesktopGTE1600) handleOpenTooltip({ e });
-                              // handleOpenTooltip({e});
+                              const el = e.currentTarget;
+                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                              if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
-                              // if (hoveredItemPosWrap) handleCloseTooltip();
+                              if (hoveredItemPosWrap) handleCloseTooltip();
                             }}
                           >
                             {selectedRowDataQuotation?.destination_contact_direct_fax
@@ -2944,19 +3124,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span
                           className={`${styles.title}`} // data-text={`${selectedRowDataQuotation?.occupation ? selectedRowDataQuotation?.occupation : ""}`}
+                          data-text={`${
+                            selectedRowDataQuotation?.destination_contact_email
+                              ? selectedRowDataQuotation?.destination_contact_email
+                              : ""
+                          }`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            // if (!isDesktopGTE1600 && isOpenSidebar) {
-                            //   handleOpenTooltip({e});
-                            // }
-                            // handleOpenTooltip({e});
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            // if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) {
-                            //   handleCloseTooltip();
-                            // }
-                            // if (hoveredItemPosWrap) handleCloseTooltip();
+                            if (hoveredItemPosWrap) handleCloseTooltip();
                           }}
                         >
                           E-mail
@@ -2992,22 +3172,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         {!searchMode && !isInsertModeQuotation && (
                           <span
                             className={`${styles.value}`}
-                            // data-text={`${
-                            //   selectedRowDataQuotation?.personal_cell_phone ? selectedRowDataQuotation?.personal_cell_phone : ""
-                            // }`}
+                            data-text={`${
+                              selectedRowDataQuotation?.destination_company_zipcode
+                                ? selectedRowDataQuotation?.destination_company_zipcode
+                                : ""
+                            }`}
                             onMouseEnter={(e) => {
                               e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                              // if (!isDesktopGTE1600 && isOpenSidebar) {
-                              //   handleOpenTooltip({e});
-                              // }
-                              // handleOpenTooltip({e});
+                              const el = e.currentTarget;
+                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                              // if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) {
-                              //   handleCloseTooltip();
-                              // }
-                              // if (hoveredItemPosWrap) handleCloseTooltip();
+                              if (hoveredItemPosWrap) handleCloseTooltip();
                             }}
                           >
                             {selectedRowDataQuotation?.destination_company_zipcode
@@ -3121,8 +3298,15 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                         ? selectedRowDataQuotation?.quotation_no_custom
                                         : ""
                                     }
-                                    onMouseEnter={(e) => handleOpenTooltip({ e, display: "top" })}
-                                    onMouseLeave={handleCloseTooltip}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                      const el = e.currentTarget;
+                                      if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
                                     onClick={handleSingleClickField}
                                     onDoubleClick={(e) => {
                                       if (
@@ -3418,11 +3602,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   }`}
                                   onMouseEnter={(e) => {
                                     e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                                    const el = e.currentTarget;
+                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                                   }}
                                   onMouseLeave={(e) => {
                                     e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                                    if (hoveredItemPosWrap) handleCloseTooltip();
                                   }}
                                 >
                                   {selectedRowDataQuotation?.deadline ? selectedRowDataQuotation?.deadline : ""}
@@ -3517,19 +3702,20 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                         : null,
                                     });
                                   }}
-                                  data-text={`${
+                                  data-text={
                                     selectedRowDataQuotation?.quotation_date
-                                      ? format(new Date(selectedRowDataQuotation.quotation_date), "yyyy/MM/dd")
+                                      ? format(new Date(selectedRowDataQuotation?.quotation_date), "yyyy/MM/dd")
                                       : ""
-                                  }`}
+                                  }
                                   onMouseEnter={(e) => {
                                     e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    if (!isDesktopGTE1600 && isOpenSidebar) handleOpenTooltip({ e });
+                                    const el = e.currentTarget;
+                                    // const { width } = el.getBoundingClientRect();
+                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                                   }}
                                   onMouseLeave={(e) => {
                                     e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap)
-                                      handleCloseTooltip();
+                                    if (hoveredItemPosWrap) handleCloseTooltip();
                                   }}
                                 >
                                   {selectedRowDataQuotation?.quotation_date
@@ -3646,11 +3832,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   }`}
                                   onMouseEnter={(e) => {
                                     e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                                    const el = e.currentTarget;
+                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                                   }}
                                   onMouseLeave={(e) => {
                                     e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                                    if (hoveredItemPosWrap) handleCloseTooltip();
                                   }}
                                 >
                                   {selectedRowDataQuotation?.delivery_place
@@ -3752,12 +3939,13 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   }`}
                                   onMouseEnter={(e) => {
                                     e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    if (!isDesktopGTE1600 && isOpenSidebar) handleOpenTooltip({ e });
+                                    const el = e.currentTarget;
+                                    // const { width } = el.getBoundingClientRect();
+                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                                   }}
                                   onMouseLeave={(e) => {
                                     e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap)
-                                      handleCloseTooltip();
+                                    if (hoveredItemPosWrap) handleCloseTooltip();
                                   }}
                                 >
                                   {selectedRowDataQuotation?.expiration_date
@@ -3874,11 +4062,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   }`}
                                   onMouseEnter={(e) => {
                                     e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                                    const el = e.currentTarget;
+                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                                   }}
                                   onMouseLeave={(e) => {
                                     e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                                    if (hoveredItemPosWrap) handleCloseTooltip();
                                   }}
                                 >
                                   {selectedRowDataQuotation?.payment_terms
@@ -4071,11 +4260,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   }`}
                                   onMouseEnter={(e) => {
                                     e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                                    const el = e.currentTarget;
+                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                                   }}
                                   onMouseLeave={(e) => {
                                     e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                                    if (hoveredItemPosWrap) handleCloseTooltip();
                                   }}
                                 >
                                   {selectedRowDataQuotation?.quotation_division
@@ -4182,11 +4372,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   }`}
                                   onMouseEnter={(e) => {
                                     e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                                    const el = e.currentTarget;
+                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                                   }}
                                   onMouseLeave={(e) => {
                                     e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                                    if (hoveredItemPosWrap) handleCloseTooltip();
                                   }}
                                 >
                                   {selectedRowDataQuotation?.sending_method
@@ -4414,11 +4605,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   }`}
                                   onMouseEnter={(e) => {
                                     e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                                    const el = e.currentTarget;
+                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                                   }}
                                   onMouseLeave={(e) => {
                                     e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                                    if (hoveredItemPosWrap) handleCloseTooltip();
                                   }}
                                 >
                                   {selectedRowDataQuotation?.sales_tax_class
@@ -4525,11 +4717,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   }`}
                                   onMouseEnter={(e) => {
                                     e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                                    const el = e.currentTarget;
+                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                                   }}
                                   onMouseLeave={(e) => {
                                     e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                                    if (hoveredItemPosWrap) handleCloseTooltip();
                                   }}
                                 >
                                   {selectedRowDataQuotation?.sales_tax_rate
@@ -4628,6 +4821,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   ) {
                                     infoIconTotalPriceRef.current.classList.remove(styles.animate_ping);
                                   }
+
                                   handleOpenTooltip({
                                     e: e,
                                     display: "top",
@@ -4638,7 +4832,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     itemsPosition: "center",
                                   });
                                 }}
-                                onMouseLeave={handleCloseTooltip}
+                                onMouseLeave={(e) => {
+                                  if (hoveredItemPosWrap) handleCloseTooltip();
+                                }}
                               >
                                 <span className={`mr-[6px]`}>価格合計</span>
                                 {isInsertModeQuotation && (
@@ -4767,7 +4963,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                       // scrollWidthがoffsetWidthを超えていればツールチップを表示
                                       const el = e.currentTarget;
                                       if (el.scrollWidth > el.offsetWidth) {
-                                        handleOpenTooltip({ e });
+                                        handleOpenTooltip({ e, display: "top" });
                                       }
                                     }}
                                     onMouseLeave={(e) => {
@@ -4833,8 +5029,15 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                       ? selectedRowDataQuotation?.discount_title
                                       : ""
                                   }
-                                  onMouseEnter={(e) => handleOpenTooltip({ e, display: "top" })}
-                                  onMouseLeave={handleCloseTooltip}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                    const el = e.currentTarget;
+                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                    if (hoveredItemPosWrap) handleCloseTooltip();
+                                  }}
                                   onClick={handleSingleClickField}
                                   onDoubleClick={(e) => {
                                     // if (!selectedRowDataQuotation?.activity_type) return;
@@ -5004,11 +5207,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   }`}
                                   onMouseEnter={(e) => {
                                     e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                                    const el = e.currentTarget;
+                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                                   }}
                                   onMouseLeave={(e) => {
                                     e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                                    if (hoveredItemPosWrap) handleCloseTooltip();
                                   }}
                                 >
                                   {checkNotFalsyExcludeZero(selectedRowDataQuotation?.discount_amount)
@@ -5305,11 +5509,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   }`}
                                   onMouseEnter={(e) => {
                                     e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                                    const el = e.currentTarget;
+                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                                   }}
                                   onMouseLeave={(e) => {
                                     e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                                    if (hoveredItemPosWrap) handleCloseTooltip();
                                   }}
                                 >
                                   {checkNotFalsyExcludeZero(selectedRowDataQuotation?.total_amount)
@@ -5434,8 +5639,15 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                       ? selectedRowDataQuotation?.quotation_title
                                       : ""
                                   }
-                                  onMouseEnter={(e) => handleOpenTooltip({ e, display: "top" })}
-                                  onMouseLeave={handleCloseTooltip}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                    const el = e.currentTarget;
+                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                    if (hoveredItemPosWrap) handleCloseTooltip();
+                                  }}
                                   onClick={handleSingleClickField}
                                   onDoubleClick={(e) => {
                                     // if (!selectedRowDataQuotation?.activity_type) return;
@@ -5609,11 +5821,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 <div className="flex items-center space-x-[9px]">
                                   <span
                                     className={`${styles.value} ${styles.text_start}`}
+                                    data-text={`${
+                                      selectedRowDataQuotation?.quotation_rule
+                                        ? selectedRowDataQuotation?.quotation_rule
+                                        : ""
+                                    }`}
                                     onMouseEnter={(e) => {
                                       e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                      const el = e.currentTarget;
+                                      if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                                     }}
                                     onMouseLeave={(e) => {
                                       e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
                                     }}
                                   >
                                     {selectedRowDataQuotation?.quotation_rule
@@ -5666,11 +5886,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               {!searchMode && (
                                 <span
                                   className={`${styles.value}`}
+                                  data-text={`${
+                                    selectedRowDataQuotation?.quotation_products_details
+                                      ? getProductNamesAll(selectedRowDataQuotation.quotation_products_details)
+                                      : ""
+                                  }`}
                                   onMouseEnter={(e) => {
                                     e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                    const el = e.currentTarget;
+                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                                   }}
                                   onMouseLeave={(e) => {
                                     e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                    if (hoveredItemPosWrap) handleCloseTooltip();
                                   }}
                                 >
                                   {/* {selectedRowDataMeeting?.result_presentation_product5
@@ -5724,11 +5952,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               {!searchMode && !isInsertModeQuotation && (
                                 <span
                                   className={`${styles.value}`}
+                                  data-text={`${
+                                    selectedRowDataQuotation?.assigned_department_name
+                                      ? selectedRowDataQuotation?.assigned_department_name
+                                      : ""
+                                  }`}
                                   onMouseEnter={(e) => {
                                     e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                    const el = e.currentTarget;
+                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                                   }}
                                   onMouseLeave={(e) => {
                                     e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                    if (hoveredItemPosWrap) handleCloseTooltip();
                                   }}
                                 >
                                   {selectedRowDataQuotation?.assigned_department_name
@@ -5769,11 +6005,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               {!searchMode && !isInsertModeQuotation && (
                                 <span
                                   className={`${styles.value}`}
+                                  data-text={`${
+                                    selectedRowDataQuotation?.assigned_unit_name
+                                      ? selectedRowDataQuotation?.assigned_unit_name
+                                      : ""
+                                  }`}
                                   onMouseEnter={(e) => {
                                     e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                    const el = e.currentTarget;
+                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                                   }}
                                   onMouseLeave={(e) => {
                                     e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                    if (hoveredItemPosWrap) handleCloseTooltip();
                                   }}
                                 >
                                   {selectedRowDataQuotation?.assigned_unit_name
@@ -5819,11 +6063,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               {!searchMode && !isInsertModeQuotation && (
                                 <span
                                   className={`${styles.value}`}
+                                  data-text={`${
+                                    selectedRowDataQuotation?.assigned_department_name
+                                      ? selectedRowDataQuotation?.assigned_department_name
+                                      : ""
+                                  }`}
                                   onMouseEnter={(e) => {
                                     e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                    const el = e.currentTarget;
+                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                                   }}
                                   onMouseLeave={(e) => {
                                     e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                    if (hoveredItemPosWrap) handleCloseTooltip();
                                   }}
                                 >
                                   {selectedRowDataQuotation?.assigned_department_name
@@ -5864,11 +6116,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               {!searchMode && !isInsertModeQuotation && (
                                 <span
                                   className={`${styles.value}`}
+                                  data-text={`${
+                                    selectedRowDataQuotation?.quotation_member_name
+                                      ? selectedRowDataQuotation?.quotation_member_name
+                                      : ""
+                                  }`}
                                   onMouseEnter={(e) => {
                                     e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                    const el = e.currentTarget;
+                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                                   }}
                                   onMouseLeave={(e) => {
                                     e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                    if (hoveredItemPosWrap) handleCloseTooltip();
                                   }}
                                 >
                                   {selectedRowDataQuotation?.quotation_member_name
@@ -7636,11 +7896,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   }`}
                                   onMouseEnter={(e) => {
                                     e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                                    const el = e.currentTarget;
+                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                                   }}
                                   onMouseLeave={(e) => {
                                     e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                                    if (hoveredItemPosWrap) handleCloseTooltip();
                                   }}
                                 >
                                   {checkNotFalsyExcludeZero(selectedRowDataQuotation?.set_price)
@@ -7796,8 +8057,15 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                       ? selectedRowDataQuotation?.lease_monthly_fee
                                       : ""
                                   }
-                                  onMouseEnter={(e) => handleOpenTooltip({ e, display: "top" })}
-                                  onMouseLeave={handleCloseTooltip}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                    const el = e.currentTarget;
+                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                    if (hoveredItemPosWrap) handleCloseTooltip();
+                                  }}
                                 >
                                   {checkNotFalsyExcludeZero(selectedRowDataQuotation?.lease_monthly_fee)
                                     ? Number(selectedRowDataQuotation?.lease_monthly_fee).toLocaleString() + "円"
